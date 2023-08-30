@@ -7,7 +7,8 @@ git submodule init
 git submodule sync --recursive
 git submodule update --recursive
 docker compose build && \
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d && \
+docker compose exec -T frontend sh /build.sh
 cd bin
 ./stop.sh
 ./start_production.sh
