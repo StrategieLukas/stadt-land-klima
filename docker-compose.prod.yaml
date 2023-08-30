@@ -1,9 +1,14 @@
 version: '3'
 services:
+  db:
+    restart: always
+
   directus:
+    restart: always
     ports:
       - "9001:8055"
 
   frontend:
+    restart: always
     ports:
       - "9000:8080"
