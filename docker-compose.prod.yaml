@@ -1,0 +1,9 @@
+version: '3'
+services:
+  directus:
+    ports:
+      - "9001:8055"
+
+  frontend:
+    ports:
+      - "9000:8080"

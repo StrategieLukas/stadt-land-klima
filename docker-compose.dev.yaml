@@ -1,0 +1,14 @@
+version: '3'
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  directus:
+    ports:
+      - "8081:8055"
+
+  frontend:
+    ports:
+      - "8080:3000"
+    command: ["sh", "/start_dev.sh"]
