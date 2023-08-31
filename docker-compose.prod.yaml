@@ -11,4 +11,4 @@ services:
   frontend:
     restart: always
     ports:
-      - "9000:8080"
+      - "9000:3000"
