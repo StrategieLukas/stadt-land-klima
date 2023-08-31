@@ -2,4 +2,5 @@
 
 cd /frontend
 
-npm run start
+npm run build
+npm run preview
