@@ -18,7 +18,8 @@ https://xd.adobe.com/view/78b90913-6242-496d-98f2-6363e15715db-2dea/
 
 ## Preparations
 
-- copy `.env.example` to `.env` and adjust to your needs
+- copy `docker/db/.env.example` to `docker/db/.env` and adjust to your needs
+- copy `src/directus/.env.example` to `src/directus/.env` and adjust to your needs
 - copy `src/frontend/.env.example` to `src/frontend/.env` and adjust to your needs
 
 ## Start in development

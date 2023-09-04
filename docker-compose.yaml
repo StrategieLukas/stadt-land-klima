@@ -2,7 +2,7 @@ version: '3'
 services:
   db:
     image: postgis/postgis:13-3.1-alpine
-    env_file: .env
+    env_file: ./docker/db/.env
     volumes:
       - ./docker/data/db:/var/lib/postgresql/data
 
@@ -11,11 +11,13 @@ services:
 
   directus:
     build: ./docker/directus
-    env_file: .env
+    env_file: ./src/directus/.env
     volumes:
       - ./src/directus/uploads:/directus/uploads
       - ./src/directus/extensions:/directus/extensions
       - ./src/directus/schema/:/directus/schema
+      - ./src/directus/cli/:/directus/cli
+      - ./src/directus/.env/:/directus/.env
     depends_on:
     - cache
     - db
