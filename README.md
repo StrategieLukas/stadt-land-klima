@@ -58,3 +58,20 @@ Update to latest commit in current branch.
 $ cd bin
 $ ./update_production.sh
 ```
+
+## Directus CLI
+
+With the custom directus-cli you can import and export configuration.
+
+To get a list of supported commands do:
+
+```
+$ cd bin
+$ ./directus_bash.sh
+```
+
+then within the directus container:
+
+```
+$ ./directus-cli --help
+```
