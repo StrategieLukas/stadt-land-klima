@@ -11,10 +11,9 @@ import readYamlFiles from '../shared/readYamlFiles.mjs';
 async function importRoles(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
-  const existingRoles = await client.request(readRoles({limit: 1000}));
-  const existingPermissions = await client.request(readPermissions({limit: 10000}));
-
   try {
+    const existingRoles = await client.request(readRoles({limit: 1000}));
+    const existingPermissions = await client.request(readPermissions({limit: 10000}));
     const roles = readYamlFiles(path.join(src));
     let permissions = [];
 
@@ -67,7 +66,11 @@ async function importRoles(src, options = {verbose: false}) {
       }
 
       rolesToUpdate.forEach(async (role) => {
-        await client.request(updateRole(role.id, role));
+        try {
+          await client.request(updateRole(role.id, role));
+        } catch (err) {
+          console.error(err);
+        }
       });
     }
 
@@ -87,7 +90,11 @@ async function importRoles(src, options = {verbose: false}) {
       }
 
       permissionsToUpdate.forEach(async (permission) => {
-        await client.request(updatePermission(permission.id, permission));
+        try {
+          await client.request(updatePermission(permission.id, permission));
+        } catch (err) {
+          console.error(err);
+        }
       });
     }
 

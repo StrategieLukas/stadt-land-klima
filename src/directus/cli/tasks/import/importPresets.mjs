@@ -10,9 +10,8 @@ import readYamlFiles from '../shared/readYamlFiles.mjs';
 async function importRoles(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
-  const existingPresets = await client.request(readPresets({limit: 10000}));
-
   try {
+    const existingPresets = await client.request(readPresets({limit: 10000}));
     const presets = readYamlFiles(path.join(src));
     const presetsToCreate = [];
     const presetsToUpdate = [];
@@ -41,7 +40,11 @@ async function importRoles(src, options = {verbose: false}) {
       }
 
       presetsToUpdate.forEach(async (preset) => {
-        await client.request(updatePreset(preset.id, preset));
+        try {
+          await client.request(updatePreset(preset.id, preset));
+        } catch (err) {
+          console.error(err);
+        }
       });
     }
 

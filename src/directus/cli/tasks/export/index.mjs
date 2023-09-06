@@ -1,4 +1,3 @@
-import path from 'path';
 import clearDir from '../shared/clearDir.mjs';
 import exportSchema from './exportSchema.mjs';
 import clearSchema from './clearSchema.mjs';
@@ -6,6 +5,7 @@ import exportRoles from './exportRoles.mjs';
 import exportPresets from './exportPresets.mjs';
 import exportWebhooks from './exportWebhooks.mjs';
 import exportFlows from './exportFlows.mjs';
+import exportTranslations from './exportTranslations.mjs';
 
 async function clear(dest, options = {verbose: false}) {
   try {
@@ -51,12 +51,12 @@ function exportTasks(yargs) {
 
   .command(
     'export:roles [dest]',
-    'export all roles to the folder specified by "dest". By default it will export into "schema/roles"',
+    'export all roles to the folder specified by "dest". By default it will export into "roles"',
     (yargs) => {
       return yargs
       .positional('dest', {
         describe: 'destination folder',
-        default: path.join('schema', 'roles'),
+        default: 'roles',
       });
     },
     (argv) => {
@@ -78,12 +78,12 @@ function exportTasks(yargs) {
 
   .command(
     'export:presets [dest]',
-    'export all presets to the folder specified by "dest". By default it will export into "schema/presets"',
+    'export all presets to the folder specified by "dest". By default it will export into "presets"',
     (yargs) => {
       return yargs
       .positional('dest', {
         describe: 'destination folder',
-        default: path.join('schema', 'presets'),
+        default: 'presets',
       });
     },
     (argv) => {
@@ -105,12 +105,12 @@ function exportTasks(yargs) {
 
   .command(
     'export:webhooks [dest]',
-    'export all webhooks to the folder specified by "dest". By default it will export into "schema/webhooks"',
+    'export all webhooks to the folder specified by "dest". By default it will export into "webhooks"',
     (yargs) => {
       return yargs
       .positional('dest', {
         describe: 'destination folder',
-        default: path.join('schema', 'webhooks'),
+        default: 'webhooks',
       });
     },
     (argv) => {
@@ -132,12 +132,12 @@ function exportTasks(yargs) {
 
   .command(
     'export:flows [dest]',
-    'export all flows to the folder specified by "dest". By default it will export into "schema/flows"',
+    'export all flows to the folder specified by "dest". By default it will export into "flows"',
     (yargs) => {
       return yargs
       .positional('dest', {
         describe: 'destination folder',
-        default: path.join('schema', 'flows'),
+        default: 'flows',
       });
     },
     (argv) => {
@@ -151,6 +151,33 @@ function exportTasks(yargs) {
       }
 
       exportFlows(argv.dest, {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
+    'export:translations [dest]',
+    'export all translations to the folder specified by "dest". By default it will export into "translations"',
+    (yargs) => {
+      return yargs
+      .positional('dest', {
+        describe: 'destination folder',
+        default: 'translations',
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Exporting translations to ${argv.dest}`);
+      }
+      if (argv.clear) {
+        clear(argv.dest, {
+          verbose: argv.verbose,
+        });
+      }
+
+      exportTranslations(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });

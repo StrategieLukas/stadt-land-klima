@@ -7,12 +7,11 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importRoles(src, options = {verbose: false}) {
+async function importWebhooks(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
-  const existingWebhooks = await client.request(readWebhooks({limit: 10000}));
-
   try {
+    const existingWebhooks = await client.request(readWebhooks({limit: 10000}));
     const webhooks = readYamlFiles(path.join(src));
     const webhooksToCreate = [];
     const webhooksToUpdate = [];
@@ -41,7 +40,11 @@ async function importRoles(src, options = {verbose: false}) {
       }
 
       webhooksToUpdate.forEach(async (webhook) => {
-        await client.request(updateWebhook(webhook.id, webhook));
+        try {
+          await client.request(updateWebhook(webhook.id, webhook));
+        } catch (err) {
+          console.error(err);
+        }
       });
     }
 
@@ -69,4 +72,4 @@ async function importRoles(src, options = {verbose: false}) {
   }
 }
 
-export default importRoles;
+export default importWebhooks;

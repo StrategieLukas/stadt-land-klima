@@ -16,6 +16,11 @@ services:
       - ./src/directus/uploads:/directus/uploads
       - ./src/directus/extensions:/directus/extensions
       - ./src/directus/schema/:/directus/schema
+      - ./src/directus/roles/:/directus/roles
+      - ./src/directus/presets/:/directus/presets
+      - ./src/directus/webhooks/:/directus/webhooks
+      - ./src/directus/translations/:/directus/translations
+      - ./src/directus/flows/:/directus/flows
       - ./src/directus/cli/:/directus/cli
       - ./src/directus/.env/:/directus/.env
     depends_on:

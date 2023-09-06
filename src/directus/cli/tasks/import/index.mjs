@@ -1,9 +1,9 @@
-import path from 'path';
 import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
 import importPresets from './importPresets.mjs';
 import importWebhooks from './importWebhooks.mjs';
 import importFlows from './importFlows.mjs';
+import importTranslations from './importTranslations.mjs';
 
 function importTasks(yargs) {
   return yargs
@@ -30,12 +30,12 @@ function importTasks(yargs) {
 
   .command(
     'import:roles [src]',
-    'imports the roles from the folder specified by "src". By default it will import from "schema/roles"',
+    'imports the roles from the folder specified by "src". By default it will import from "roles"',
     (yargs) => {
       return yargs
       .positional('src', {
         describe: 'source folder',
-        default: path.join('schema', 'roles'),
+        default: 'roles',
       });
     },
     (argv) => {
@@ -52,12 +52,12 @@ function importTasks(yargs) {
 
   .command(
     'import:presets [src]',
-    'imports the presets from the folder specified by "src". By default it will import from "schema/presets"',
+    'imports the presets from the folder specified by "src". By default it will import from "presets"',
     (yargs) => {
       return yargs
       .positional('src', {
         describe: 'source folder',
-        default: path.join('schema', 'presets'),
+        default: 'presets',
       });
     },
     (argv) => {
@@ -74,12 +74,12 @@ function importTasks(yargs) {
 
   .command(
     'import:webhooks [src]',
-    'imports the webhooks from the folder specified by "src". By default it will import from "schema/webhooks"',
+    'imports the webhooks from the folder specified by "src". By default it will import from "webhooks"',
     (yargs) => {
       return yargs
       .positional('src', {
         describe: 'source folder',
-        default: path.join('schema', 'webhooks'),
+        default: 'webhooks',
       });
     },
     (argv) => {
@@ -96,12 +96,12 @@ function importTasks(yargs) {
 
   .command(
     'import:flows [src]',
-    'imports the flows from the folder specified by "src". By default it will import from "schema/flows"',
+    'imports the flows from the folder specified by "src". By default it will import from "flows"',
     (yargs) => {
       return yargs
       .positional('src', {
         describe: 'source folder',
-        default: path.join('schema', 'flows'),
+        default: 'flows',
       });
     },
     (argv) => {
@@ -110,6 +110,28 @@ function importTasks(yargs) {
       }
 
       importFlows(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+      });
+    }
+  )
+
+  .command(
+    'import:translations [src]',
+    'imports the translations from the folder specified by "src". By default it will import from "translations"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: 'translations',
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing translations from ${argv.src}`);
+      }
+
+      importTranslations(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });

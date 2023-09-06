@@ -11,10 +11,9 @@ import readYamlFiles from '../shared/readYamlFiles.mjs';
 async function importFlows(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
-  const existingFlows = await client.request(readFlows({limit: 1000}));
-  const existingOperations = await client.request(readOperations({limit: 10000}));
-
   try {
+    const existingFlows = await client.request(readFlows({limit: 1000}));
+    const existingOperations = await client.request(readOperations({limit: 10000}));
     const flows = readYamlFiles(path.join(src));
     let operations = [];
 
@@ -62,7 +61,11 @@ async function importFlows(src, options = {verbose: false}) {
       }
 
       flowsToUpdate.forEach(async (flow) => {
-        await client.request(updateFlow(flow.id, flow));
+        try {
+          await client.request(updateFlow(flow.id, flow));
+        } catch (err) {
+          console.error(err);
+        }
       });
     }
 
