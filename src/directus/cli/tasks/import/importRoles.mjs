@@ -1,8 +1,6 @@
 import path from 'path';
 import find from 'lodash/find.js';
 import property from 'lodash/property.js';
-import keys from 'lodash/keys.js';
-import values from 'lodash/values.js';
 import {
   readRoles, createRoles, updateRole, deleteRoles,
   readPermissions, createPermissions, updatePermission, deletePermissions,
@@ -62,7 +60,7 @@ async function importRoles(src, options = {verbose: false}) {
     await client.request(createRoles(rolesToCreate));
 
     if (options.verbose) {
-      console.info(`Updating ${keys(rolesToUpdate).length} roles`);
+      console.info(`Updating ${rolesToUpdate.length} roles`);
     }
 
     rolesToUpdate.forEach(async (role) => {
@@ -78,7 +76,7 @@ async function importRoles(src, options = {verbose: false}) {
     await client.request(createPermissions(permissionsToCreate));
 
     if (options.verbose) {
-      console.info(`Updating ${keys(permissionsToUpdate).length} permissions`);
+      console.info(`Updating ${permissionsToUpdate.length} permissions`);
     }
 
     permissionsToUpdate.forEach(async (permission) => {

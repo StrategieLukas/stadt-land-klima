@@ -1,6 +1,7 @@
 import path from 'path';
 import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
+import importPresets from './importPresets.mjs';
 
 function importTasks(yargs) {
   return yargs
@@ -22,6 +23,7 @@ function importTasks(yargs) {
       importSchema(argv.src, {verbose: argv.verbose});
     }
   )
+
   .command(
     'import:roles [src]',
     'imports the roles from the folder specified by "src". By default it will import from "schema/roles"',
@@ -40,6 +42,26 @@ function importTasks(yargs) {
       importRoles(argv.src, {verbose: argv.verbose, remove: argv['remove-orphans']});
     }
   )
+
+  .command(
+    'import:presets [src]',
+    'imports the presets from the folder specified by "src". By default it will import from "schema/presets"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: path.join('schema', 'presets'),
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing presets from ${argv.src}`);
+      }
+
+      importPresets(argv.src, {verbose: argv.verbose, remove: argv['remove-orphans']});
+    }
+  )
+
   .option('remove-orphans', {
     alias: 'r',
     type: 'boolean',

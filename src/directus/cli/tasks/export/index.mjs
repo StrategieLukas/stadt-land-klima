@@ -1,8 +1,22 @@
 import path from 'path';
+import clearDir from '../shared/clearDir.mjs';
 import exportSchema from './exportSchema.mjs';
 import clearSchema from './clearSchema.mjs';
 import exportRoles from './exportRoles.mjs';
-import clearRoles from './clearRoles.mjs';
+import exportPresets from './exportPresets.mjs';
+
+async function clear(dest, options = {verbose: false}) {
+  try {
+    clearDir(dest);
+
+    if (options.verbose) {
+      console.info(`${dest} cleared`);
+    }
+  } catch (err) {
+    console.error(err);
+    return process.exit(1);
+  }
+}
 
 function exportTasks(yargs) {
   return yargs
@@ -48,7 +62,7 @@ function exportTasks(yargs) {
         console.info(`Exporting roles to ${argv.dest}`);
       }
       if (argv.clear) {
-        clearRoles(argv.dest, {
+        clear(argv.dest, {
           verbose: argv.verbose,
         });
       }
@@ -59,6 +73,34 @@ function exportTasks(yargs) {
       });
     }
   )
+
+  .command(
+    'export:presets [dest]',
+    'export all presets to the folder specified by "dest". By default it will export into "schema/presets"',
+    (yargs) => {
+      return yargs
+      .positional('dest', {
+        describe: 'destination folder',
+        default: path.join('schema', 'presets'),
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Exporting presets to ${argv.dest}`);
+      }
+      if (argv.clear) {
+        clear(argv.dest, {
+          verbose: argv.verbose,
+        });
+      }
+
+      exportPresets(argv.dest, {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+    }
+  )
+
   .option('clear', {
     alias: 'c',
     type: 'boolean',
