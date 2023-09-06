@@ -1,5 +1,8 @@
+import path from 'path';
 import exportSchema from './exportSchema.mjs';
 import clearSchema from './clearSchema.mjs';
+import exportRoles from './exportRoles.mjs';
+import clearRoles from './clearRoles.mjs';
 
 function exportTasks(yargs) {
   return yargs
@@ -24,6 +27,33 @@ function exportTasks(yargs) {
       }
 
       exportSchema(argv.dest, {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
+    'export:roles [dest]',
+    'export all roles to the folder specified by "dest". By default it will export into "schema/roles"',
+    (yargs) => {
+      return yargs
+      .positional('dest', {
+        describe: 'destination folder',
+        default: path.join('schema', 'roles'),
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Exporting roles to ${argv.dest}`);
+      }
+      if (argv.clear) {
+        clearRoles(argv.dest, {
+          verbose: argv.verbose,
+        });
+      }
+
+      exportRoles(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });

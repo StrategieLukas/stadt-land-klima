@@ -43,6 +43,10 @@ async function exportSchema(dest, options = {verbose: false, overwrite: false}) 
         stringify(collection),
         { encoding: 'utf8' }
       );
+
+      if (options.verbose) {
+        console.info(`Exported collection ${destPath}`);
+      }
     });
 
     fields.forEach((field) => {
@@ -59,6 +63,10 @@ async function exportSchema(dest, options = {verbose: false, overwrite: false}) 
         stringify(field),
         { encoding: 'utf8' }
       );
+
+      if (options.verbose) {
+        console.info(`Exported field ${destPath}`);
+      }
     });
 
     relations.forEach((relation) => {
@@ -70,12 +78,21 @@ async function exportSchema(dest, options = {verbose: false, overwrite: false}) 
         return;
       }
 
+
       fse.writeFileSync(
         destPath,
         stringify(relation),
         { encoding: 'utf8' }
       );
+
+      if (options.verbose) {
+        console.info(`Exported relation ${destPath}`);
+      }
     });
+
+    if (options.verbose) {
+      console.info('Schema exported.');
+    }
   } catch (err) {
     console.error(err);
     return process.exit(1);

@@ -3,22 +3,9 @@ import path from 'path';
 import { parse } from 'yaml';
 import { schemaDiff, schemaApply } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
+import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importSchema(src, verbose = false) {
-  function readYamlFiles(dir) {
-    const yamls = [];
-
-    fse.readdirSync(dir)
-    .forEach((filename) => {
-      if (path.extname(filename).toLowerCase() === '.yaml') {
-        const yaml = parse(fse.readFileSync(path.join(dir, filename), { encoding: 'utf8' }));
-        yamls.push(yaml);
-      }
-    });
-
-    return yamls;
-  }
-
+async function importSchema(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
@@ -32,7 +19,7 @@ async function importSchema(src, verbose = false) {
       relations: relations,
     });
 
-    if (verbose) {
+    if (options.verbose) {
       console.info('Applying schema:');
       console.info(schema);
     }
@@ -40,21 +27,21 @@ async function importSchema(src, verbose = false) {
     const diff = await client.request(schemaDiff(schema));
 
     if (!diff) {
-      if (verbose) {
+      if (options.verbose) {
         console.info('No difference. Done');
       }
       return;
     }
 
-    if (verbose) {
+    if (options.verbose) {
       console.info('Applying diff:');
       console.info(diff);
     }
 
     const result = await client.request(schemaApply(diff));
 
-    if (verbose) {
-      console.info('Finished');
+    if (options.verbose) {
+      console.info('Schema imported.');
     }
   } catch (err) {
     console.error(err);

@@ -1,21 +1,19 @@
 import fse from 'fse';
 import path from 'path';
+import clearDir from '../shared/clearDir.mjs';
 
 async function clearSchema(dest, options = {verbose: false}) {
-  function clearDir(dir) {
-    fse.readdirSync(dir)
-    .forEach((filename) => {
-      if (filename !== '.' && filename !== '..') {
-        fse.unlinkSync(path.join(dir, filename));
-      }
-    });
-  }
-
   try {
-    fse.unlinkSync(path.join(dest, 'header.yaml'));
+    if (fse.existsSync(path.join(dest, 'header.yaml'))) {
+      fse.unlinkSync(path.join(dest, 'header.yaml'));
+    }
     clearDir(path.join(dest, 'collections'));
     clearDir(path.join(dest, 'fields'));
     clearDir(path.join(dest, 'relations'));
+
+    if (options.verbose) {
+      console.info(`${dest} cleared`);
+    }
   } catch (err) {
     console.error(err);
     return process.exit(1);
