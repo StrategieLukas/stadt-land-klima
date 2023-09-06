@@ -3,6 +3,7 @@ import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
 import importPresets from './importPresets.mjs';
 import importWebhooks from './importWebhooks.mjs';
+import importFlows from './importFlows.mjs';
 
 function importTasks(yargs) {
   return yargs
@@ -21,7 +22,9 @@ function importTasks(yargs) {
         console.info(`Importing schema from ${argv.src}`);
       }
 
-      importSchema(argv.src, {verbose: argv.verbose});
+      importSchema(argv.src, {
+        verbose: argv.verbose,
+      });
     }
   )
 
@@ -40,7 +43,10 @@ function importTasks(yargs) {
         console.info(`Importing roles from ${argv.src}`);
       }
 
-      importRoles(argv.src, {verbose: argv.verbose, remove: argv['remove-orphans']});
+      importRoles(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+      });
     }
   )
 
@@ -59,7 +65,10 @@ function importTasks(yargs) {
         console.info(`Importing presets from ${argv.src}`);
       }
 
-      importPresets(argv.src, {verbose: argv.verbose, remove: argv['remove-orphans']});
+      importPresets(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+      });
     }
   )
 
@@ -78,7 +87,32 @@ function importTasks(yargs) {
         console.info(`Importing webhooks from ${argv.src}`);
       }
 
-      importWebhooks(argv.src, {verbose: argv.verbose, remove: argv['remove-orphans']});
+      importWebhooks(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+      });
+    }
+  )
+
+  .command(
+    'import:flows [src]',
+    'imports the flows from the folder specified by "src". By default it will import from "schema/flows"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: path.join('schema', 'flows'),
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing flows from ${argv.src}`);
+      }
+
+      importFlows(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+      });
     }
   )
 

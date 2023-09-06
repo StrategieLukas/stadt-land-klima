@@ -5,6 +5,7 @@ import clearSchema from './clearSchema.mjs';
 import exportRoles from './exportRoles.mjs';
 import exportPresets from './exportPresets.mjs';
 import exportWebhooks from './exportWebhooks.mjs';
+import exportFlows from './exportFlows.mjs';
 
 async function clear(dest, options = {verbose: false}) {
   try {
@@ -123,6 +124,33 @@ function exportTasks(yargs) {
       }
 
       exportWebhooks(argv.dest, {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
+    'export:flows [dest]',
+    'export all flows to the folder specified by "dest". By default it will export into "schema/flows"',
+    (yargs) => {
+      return yargs
+      .positional('dest', {
+        describe: 'destination folder',
+        default: path.join('schema', 'flows'),
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Exporting flows to ${argv.dest}`);
+      }
+      if (argv.clear) {
+        clear(argv.dest, {
+          verbose: argv.verbose,
+        });
+      }
+
+      exportFlows(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
