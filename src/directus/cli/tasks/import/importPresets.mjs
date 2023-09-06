@@ -27,19 +27,23 @@ async function importRoles(src, options = {verbose: false}) {
       }
     });
 
-    if (options.verbose) {
-      console.info(`Creating ${presetsToCreate.length} presets`);
+    if (presetsToCreate.length) {
+      if (options.verbose) {
+        console.info(`Creating ${presetsToCreate.length} presets`);
+      }
+
+      await client.request(createPresets(presetsToCreate));
     }
 
-    await client.request(createPresets(presetsToCreate));
+    if (presetsToUpdate.length) {
+      if (options.verbose) {
+        console.info(`Updating ${presetsToUpdate.length} presets`);
+      }
 
-    if (options.verbose) {
-      console.info(`Updating ${presetsToUpdate.length} presets`);
+      presetsToUpdate.forEach(async (preset) => {
+        await client.request(updatePreset(preset.id, preset));
+      });
     }
-
-    presetsToUpdate.forEach(async (preset) => {
-      await client.request(updatePreset(preset.id, preset));
-    });
 
     // Remove
     if (options.remove) {
@@ -47,11 +51,13 @@ async function importRoles(src, options = {verbose: false}) {
         return !find(presets, ['id', preset.id]);
       });
 
-      if (options.verbose) {
-        console.info(`Removing ${presetsToDelete.length} presets`);
-      }
+      if (presetsToDelete.length) {
+        if (options.verbose) {
+          console.info(`Removing ${presetsToDelete.length} presets`);
+        }
 
-      await client.request(deletePresets(presetsToDelete.map(property('id'))));
+        await client.request(deletePresets(presetsToDelete.map(property('id'))));
+      }
     }
 
     if (options.verbose) {

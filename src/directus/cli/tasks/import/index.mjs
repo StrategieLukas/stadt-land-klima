@@ -2,6 +2,7 @@ import path from 'path';
 import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
 import importPresets from './importPresets.mjs';
+import importWebhooks from './importWebhooks.mjs';
 
 function importTasks(yargs) {
   return yargs
@@ -59,6 +60,25 @@ function importTasks(yargs) {
       }
 
       importPresets(argv.src, {verbose: argv.verbose, remove: argv['remove-orphans']});
+    }
+  )
+
+  .command(
+    'import:webhooks [src]',
+    'imports the webhooks from the folder specified by "src". By default it will import from "schema/webhooks"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: path.join('schema', 'webhooks'),
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing webhooks from ${argv.src}`);
+      }
+
+      importWebhooks(argv.src, {verbose: argv.verbose, remove: argv['remove-orphans']});
     }
   )
 

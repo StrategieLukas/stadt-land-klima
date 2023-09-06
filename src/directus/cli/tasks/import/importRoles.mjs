@@ -53,35 +53,43 @@ async function importRoles(src, options = {verbose: false}) {
 
     // Roles
 
-    if (options.verbose) {
-      console.info(`Creating ${rolesToCreate.length} roles`);
+    if (rolesToCreate.length) {
+      if (options.verbose) {
+        console.info(`Creating ${rolesToCreate.length} roles`);
+      }
+
+      await client.request(createRoles(rolesToCreate));
     }
 
-    await client.request(createRoles(rolesToCreate));
+    if (rolesToUpdate.length) {
+      if (options.verbose) {
+        console.info(`Updating ${rolesToUpdate.length} roles`);
+      }
 
-    if (options.verbose) {
-      console.info(`Updating ${rolesToUpdate.length} roles`);
+      rolesToUpdate.forEach(async (role) => {
+        await client.request(updateRole(role.id, role));
+      });
     }
-
-    rolesToUpdate.forEach(async (role) => {
-      await client.request(updateRole(role.id, role));
-    });
 
     // Permissions
 
-    if (options.verbose) {
-      console.info(`Creating ${permissionsToCreate.length} permissions`);
+    if (permissionsToCreate.length) {
+      if (options.verbose) {
+        console.info(`Creating ${permissionsToCreate.length} permissions`);
+      }
+
+      await client.request(createPermissions(permissionsToCreate));
     }
 
-    await client.request(createPermissions(permissionsToCreate));
+    if (permissionsToUpdate.length) {
+      if (options.verbose) {
+        console.info(`Updating ${permissionsToUpdate.length} permissions`);
+      }
 
-    if (options.verbose) {
-      console.info(`Updating ${permissionsToUpdate.length} permissions`);
+      permissionsToUpdate.forEach(async (permission) => {
+        await client.request(updatePermission(permission.id, permission));
+      });
     }
-
-    permissionsToUpdate.forEach(async (permission) => {
-      await client.request(updatePermission(permission.id, permission));
-    });
 
     // Remove
     if (options.remove) {
@@ -89,21 +97,26 @@ async function importRoles(src, options = {verbose: false}) {
         return !find(roles, ['id', role.id]);
       });
 
+
       const permissionsToDelete = existingPermissions.filter((permission) => {
         return permission.id && permission.role && !find(permissions, ['id', permission.id]);
       });
 
-      if (options.verbose) {
-        console.info(`Removing ${permissionsToDelete.length} permissions`);
+      if (permissionsToDelete.length) {
+        if (options.verbose) {
+          console.info(`Removing ${permissionsToDelete.length} permissions`);
+        }
+
+        await client.request(deletePermissions(permissionsToDelete.map(property('id'))));
       }
 
-      await client.request(deletePermissions(permissionsToDelete.map(property('id'))));
+      if (rolesToDelete.length) {
+        if (options.verbose) {
+          console.info(`Removing ${rolesToDelete.length} roles`);
+        }
 
-      if (options.verbose) {
-        console.info(`Removing ${rolesToDelete.length} roles`);
+        await client.request(deleteRoles(rolesToDelete.map(property('id'))));
       }
-
-      await client.request(deleteRoles(rolesToDelete.map(property('id'))));
     }
 
     if (options.verbose) {
