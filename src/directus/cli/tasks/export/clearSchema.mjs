@@ -1,7 +1,7 @@
 import fse from 'fse';
 import path from 'path';
 
-async function clearSchema(dest) {
+async function clearSchema(dest, options = {verbose: false}) {
   function clearDir(dir) {
     fse.readdirSync(dir)
     .forEach((filename) => {

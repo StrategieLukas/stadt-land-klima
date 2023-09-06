@@ -18,16 +18,26 @@ function exportTasks(yargs) {
         console.info(`Exporting schema to ${argv.dest}`);
       }
       if (argv.clear) {
-        clearSchema(argv.dest, argv.verbose);
+        clearSchema(argv.dest, {
+          verbose: argv.verbose,
+        });
       }
 
-      exportSchema(argv.dest, argv.verbose);
+      exportSchema(argv.dest, {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
     }
   )
   .option('clear', {
     alias: 'c',
     type: 'boolean',
     description: 'Clear existing files',
+  })
+  .option('force', {
+    alias: 'f',
+    type: 'boolean',
+    description: 'Overwrite existing files',
   })
   .option('verbose', {
     alias: 'v',
