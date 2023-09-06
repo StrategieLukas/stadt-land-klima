@@ -6,6 +6,7 @@ import exportPresets from './exportPresets.mjs';
 import exportWebhooks from './exportWebhooks.mjs';
 import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
+import exportSettings from './exportSettings.mjs';
 
 async function clear(dest, options = {verbose: false}) {
   try {
@@ -178,6 +179,33 @@ function exportTasks(yargs) {
       }
 
       exportTranslations(argv.dest, {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
+    'export:settings [dest]',
+    'export all settings to the folder specified by "dest". By default it will export into "settings"',
+    (yargs) => {
+      return yargs
+      .positional('dest', {
+        describe: 'destination folder',
+        default: 'settings',
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Exporting settings to ${argv.dest}`);
+      }
+      if (argv.clear) {
+        clear(argv.dest, {
+          verbose: argv.verbose,
+        });
+      }
+
+      exportSettings(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });

@@ -4,6 +4,7 @@ import importPresets from './importPresets.mjs';
 import importWebhooks from './importWebhooks.mjs';
 import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
+import importSettings from './importSettings.mjs';
 
 function importTasks(yargs) {
   return yargs
@@ -132,6 +133,28 @@ function importTasks(yargs) {
       }
 
       importTranslations(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+      });
+    }
+  )
+
+  .command(
+    'import:settings [src]',
+    'imports the settings from the folder specified by "src". By default it will import from "settings"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: 'settings',
+      });
+    },
+    (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing settings from ${argv.src}`);
+      }
+
+      importSettings(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });
