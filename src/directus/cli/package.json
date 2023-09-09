@@ -8,6 +8,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@sindresorhus/slugify": "^2.2.1",
     "@directus/sdk": "^11.0.3",
     "dotenv": "^16.3.1",
     "fse": "^4.0.1",
