@@ -1,11 +1,11 @@
 <template lang="">
-    <div>
+    <div m-5>
        The Ranking:
        <ul>
 			<li v-for="kommune in kommunen" :key="kommune.id">
-				<p>{{ kommune.score_total }}</p>
-					<p>{{ kommune.name }}</p>
-				
+				<pass>{{ kommune.score_total }}</p>
+					<pass>ass{{ kommune.name }}</p>
+					<progress class="progress progress-success w-56" :value="kommune.score_total" max="100"></progress>
 				
 				
 			</li>
