@@ -1,15 +1,11 @@
 <template lang="">
     <div>
-        <p>NavBar:</p>
-        <NuxtLink to="/">
-           Home
-        </NuxtLink>
-        <NuxtLink to="/kommunen">
-             Alle staedte und Kreise
+        <div class="navbar bg-base-100">
+  <NuxtLink to="/" class="btn btn-ghost normal-case text-xl">Home</NuxtLink>
+  <NuxtLink to="/kommunen" class="btn btn-ghost normal-case text-xl"> Alle staedte und Kreise</NuxtLink>
+</div>
 
-        </NuxtLink>
-        <p> ________________________
-       </p>
+    
     </div>
 </template>
 <script setup >

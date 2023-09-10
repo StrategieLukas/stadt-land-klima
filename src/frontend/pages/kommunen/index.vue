@@ -6,9 +6,8 @@
 				<NuxtLink :href="`/kommunen/${kommune.slug}`">
 					<h1>{{ kommune.name }}</h1>
 				</NuxtLink>
-				{{kommune.name}}
 				
-
+				
 			</li>
 		</ul>
 	</div>
@@ -21,7 +20,7 @@ const { $directus, $readItems } = useNuxtApp()
 const { data: kommunen }= await useAsyncData('kommunen', () => {
 	return $directus.request(
 		$readItems('kommunen', {
-			fields: ['slug', 'name'],
+			fields: ['slug', 'name','score_total'],
 			
 		})
 	)

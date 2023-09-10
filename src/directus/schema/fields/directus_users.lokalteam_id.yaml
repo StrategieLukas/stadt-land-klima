@@ -1,0 +1,42 @@
+collection: directus_users
+field: lokalteam_id
+type: uuid
+meta:
+  collection: directus_users
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{name}}"
+  field: lokalteam_id
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: null
+  options:
+    enableCreate: false
+    template: "{{name}}"
+  readonly: false
+  required: true
+  sort: 1
+  special:
+    - m2o
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: lokalteam_id
+  table: directus_users
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: lokalteam
+  foreign_key_column: id

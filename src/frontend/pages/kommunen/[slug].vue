@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>{{kommune[0].name}}</h1>
-    hello
+   
   </div>
 </template>
 <script setup >

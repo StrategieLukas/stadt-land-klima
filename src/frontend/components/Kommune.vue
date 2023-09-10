@@ -1,6 +1,6 @@
 <template lang="">
     <div>
-      Karte
+      Kommune
     </div>
 </template>
 <script setup>

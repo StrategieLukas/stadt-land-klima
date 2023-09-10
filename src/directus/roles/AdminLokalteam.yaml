@@ -1,0 +1,100 @@
+id: b8c043a2-a245-42d1-b28f-20c657270926
+name: AdminLokalteam
+icon: supervised_user_circle
+description: null
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: editors
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: editors
+    action: read
+    permissions:
+      _and:
+        - lokalteam_id:
+            _eq: $CURRENT_USER.lokalteam_id
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: editors
+    action: delete
+    permissions:
+      _and:
+        - lokalteam_id:
+            _eq: $CURRENT_USER.lokalteam_id
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: lokalteam
+    action: read
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER.lokalteam_id
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: lokalteam
+    action: update
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER.lokalteam_id
+    validation: null
+    presets: null
+    fields: null
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: example
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: example
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: example
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: example
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: example
+    action: share
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

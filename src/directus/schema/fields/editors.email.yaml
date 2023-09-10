@@ -1,0 +1,41 @@
+collection: editors
+field: email
+type: string
+meta:
+  collection: editors
+  conditions: null
+  display: null
+  display_options: null
+  field: email
+  group: null
+  hidden: false
+  interface: input
+  note: null
+  options: null
+  readonly: false
+  required: true
+  sort: 6
+  special: null
+  translations: null
+  validation:
+    _and:
+      - email:
+          _regex: ^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$
+  validation_message: Das ist keine Email Adresse
+  width: full
+schema:
+  name: email
+  table: editors
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: true
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null
