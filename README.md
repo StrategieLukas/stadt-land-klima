@@ -16,6 +16,9 @@ https://pad.fridaysforfuture.is/p/1MTNMaPYsqpM-p2Doo9r
 Adobe Click Dummy:
 https://xd.adobe.com/view/78b90913-6242-496d-98f2-6363e15715db-2dea/
 
+Adobe Click Dummy Mobile:
+https://xd.adobe.com/view/0376f59d-9ffb-4e30-aa8a-342addd91e2f-5625/
+
 ## Preparations
 
 - copy `.env.example` to `.env` and adjust to your needs
