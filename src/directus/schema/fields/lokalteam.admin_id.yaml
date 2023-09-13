@@ -1,32 +1,32 @@
-collection: kommunen
-field: slug
-type: string
+collection: lokalteam
+field: admin_id
+type: uuid
 meta:
-  collection: kommunen
+  collection: lokalteam
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: admin_id
   group: null
   hidden: false
-  interface: input
+  interface: select-dropdown-m2o
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
   required: false
-  sort: 8
-  special: null
+  sort: 11
+  special:
+    - m2o
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
-  table: kommunen
-  data_type: character varying
+  name: admin_id
+  table: lokalteam
+  data_type: uuid
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
@@ -35,5 +35,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: null
-  foreign_key_column: null
+  foreign_key_table: directus_users
+  foreign_key_column: id

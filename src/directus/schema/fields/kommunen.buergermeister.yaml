@@ -1,28 +1,27 @@
 collection: kommunen
-field: slug
+field: buergermeister
 type: string
 meta:
   collection: kommunen
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: buergermeister
   group: null
   hidden: false
   interface: input
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
   required: false
-  sort: 8
+  sort: 13
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
+  name: buergermeister
   table: kommunen
   data_type: character varying
   default_value: null
@@ -30,7 +29,7 @@ schema:
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

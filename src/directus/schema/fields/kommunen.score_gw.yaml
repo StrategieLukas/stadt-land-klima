@@ -1,36 +1,35 @@
 collection: kommunen
-field: slug
-type: string
+field: score_gw
+type: integer
 meta:
   collection: kommunen
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: score_gw
   group: null
   hidden: false
   interface: input
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
   required: false
-  sort: 8
+  sort: 13
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
+  name: score_gw
   table: kommunen
-  data_type: character varying
+  data_type: integer
   default_value: null
-  max_length: 255
-  numeric_precision: null
-  numeric_scale: null
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

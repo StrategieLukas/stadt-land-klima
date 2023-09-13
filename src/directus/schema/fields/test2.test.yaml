@@ -1,0 +1,23 @@
+collection: test2
+field: test
+type: alias
+meta:
+  collection: test2
+  conditions: null
+  display: null
+  display_options: null
+  field: test
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 2
+  special:
+    - m2m
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

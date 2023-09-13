@@ -1,0 +1,23 @@
+collection: kommunen
+field: lokalteams_ids
+type: alias
+meta:
+  collection: kommunen
+  conditions: null
+  display: null
+  display_options: null
+  field: lokalteams_ids
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 17
+  special:
+    - o2m
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

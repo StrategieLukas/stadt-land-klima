@@ -1,36 +1,35 @@
-collection: kommunen
-field: slug
-type: string
+collection: massnahmen
+field: erklaerung
+type: text
 meta:
-  collection: kommunen
+  collection: massnahmen
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: erklaerung
   group: null
   hidden: false
-  interface: input
+  interface: input-rich-text-html
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
-  required: false
-  sort: 8
+  required: true
+  sort: 12
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
-  table: kommunen
-  data_type: character varying
+  name: erklaerung
+  table: massnahmen
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

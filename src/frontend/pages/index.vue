@@ -3,8 +3,9 @@
         <h1 class="text-3xl font-bold underline">
             Hello world!
         </h1>
-        <CityPolarChart/>
-        <TheRanking :kommunen="kommunen"></TheRanking>
+        
+      <TheRanking :kommunen="kommunen" />
+      
     </div>
 </template>
 <script setup>

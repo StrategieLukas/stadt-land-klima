@@ -3,10 +3,10 @@
        The Ranking:
        <ul>
 			<li v-for="kommune in kommunen" :key="kommune.id">
-				<pass>{{ kommune.score_total }}</p>
-					<pass>ass{{ kommune.name }}</p>
+				<p>{{ kommune.score_total }}</p>
+					<p>ass{{ kommune.name }}</p>
 					<progress class="progress progress-success w-56" :value="kommune.score_total" max="100"></progress>
-				
+					<DetailCityRanking />
 				
 			</li>
 		</ul>

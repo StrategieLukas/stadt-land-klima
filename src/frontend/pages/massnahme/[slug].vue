@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>{{kommune[0].name}}</h1>
+    <h1>{{massnahme[0].name}}</h1>
 	<Kommune></Kommune>
   </div>
 </template>
@@ -8,14 +8,14 @@
 const { $directus, $readItems } = useNuxtApp()
 const route = useRoute()
 
-const { data: kommune }= await useAsyncData('kommune', () => {
+const { data: massnahme }= await useAsyncData('massnahme', () => {
 	return $directus.request(
-		$readItems('kommunen', {
+		$readItems('massnahmen', {
 		
 			filter:{"slug": {"_eq": route.params.slug}}
 		})
 	)
 })
-console.log(kommune)
+console.log(massnahme)
 
 </script>

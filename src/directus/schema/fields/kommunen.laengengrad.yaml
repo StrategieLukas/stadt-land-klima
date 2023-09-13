@@ -1,36 +1,38 @@
 collection: kommunen
-field: slug
-type: string
+field: laengengrad
+type: float
 meta:
   collection: kommunen
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: laengengrad
   group: null
   hidden: false
   interface: input
   note: null
   options:
-    slug: true
+    max: 180
+    min: -180
+    step: null
   readonly: false
   required: false
-  sort: 8
+  sort: 11
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
+  name: laengengrad
   table: kommunen
-  data_type: character varying
+  data_type: real
   default_value: null
-  max_length: 255
-  numeric_precision: null
+  max_length: null
+  numeric_precision: 24
   numeric_scale: null
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

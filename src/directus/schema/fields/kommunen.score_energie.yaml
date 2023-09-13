@@ -1,36 +1,35 @@
 collection: kommunen
-field: slug
-type: string
+field: score_energie
+type: integer
 meta:
   collection: kommunen
   conditions: null
   display: null
   display_options: null
-  field: slug
-  group: null
+  field: score_energie
+  group: scores
   hidden: false
   interface: input
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
   required: false
-  sort: 8
+  sort: 6
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
+  name: score_energie
   table: kommunen
-  data_type: character varying
+  data_type: integer
   default_value: null
-  max_length: 255
-  numeric_precision: null
-  numeric_scale: null
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null
