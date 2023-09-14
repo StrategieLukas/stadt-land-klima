@@ -13,11 +13,14 @@ https://docs.google.com/spreadsheets/d/1NArv2lk6YDHgT8YhwcyCa_55C0TaTbrFnAlss8-M
 Pad von Sitzung am 03.08.2023:
 https://pad.fridaysforfuture.is/p/1MTNMaPYsqpM-p2Doo9r
 
-Adobe Click Dummy:
+Adobe Click Dummy: (nicht aktuell)
 https://xd.adobe.com/view/78b90913-6242-496d-98f2-6363e15715db-2dea/
 
 Adobe Click Dummy Mobile:
 https://xd.adobe.com/view/0376f59d-9ffb-4e30-aa8a-342addd91e2f-5625/
+
+Adobe Click Dummy Desktop 1280:
+https://xd.adobe.com/view/27db8821-ac25-4773-a2f8-ab37b0abb61c-7288/
 
 ## Preparations
 
