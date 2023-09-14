@@ -1,8 +1,8 @@
-collection: massnahme
+collection: massnahmen
 field: date_created
 type: timestamp
 meta:
-  collection: massnahme
+  collection: massnahmen
   conditions: null
   display: datetime
   display_options:
@@ -24,7 +24,7 @@ meta:
   width: half
 schema:
   name: date_created
-  table: massnahme
+  table: massnahmen
   data_type: timestamp with time zone
   default_value: null
   max_length: null

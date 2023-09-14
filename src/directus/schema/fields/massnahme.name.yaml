@@ -1,8 +1,8 @@
-collection: massnahme
+collection: massnahmen
 field: name
 type: string
 meta:
-  collection: massnahme
+  collection: massnahmen
   conditions: null
   display: null
   display_options: null
@@ -22,7 +22,7 @@ meta:
   width: full
 schema:
   name: name
-  table: massnahme
+  table: massnahmen
   data_type: character varying
   default_value: null
   max_length: 255

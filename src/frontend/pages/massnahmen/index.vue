@@ -1,9 +1,9 @@
 <template>
 	<div>
-		<h1>Alle Maßnahmen</h1>
+		<h1>Alle Maßnahmen:</h1>
 		<ul>
 			<li v-for="massnahme in massnahmen" :key="massnahme.id">
-				<NuxtLink :href="`/massnahme/${massnahme.slug}`">
+				<NuxtLink :href="`/massnahmen/${massnahme.slug}`">
 					<h1>{{ massnahme.name }}</h1>
 				</NuxtLink>
 				
@@ -19,7 +19,7 @@ const { $directus, $readItems } = useNuxtApp()
  
 const { data: massnahmen }= await useAsyncData('massnahmen', () => {
 	return $directus.request(
-		$readItems('massnahme', {
+		$readItems('massnahmen', {
 			fields: ['slug', 'name',],
 			
 		})

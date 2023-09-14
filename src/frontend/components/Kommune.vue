@@ -1,10 +1,10 @@
 <template lang="">
     <div>
-      Kommune
+      Detail View with all the maßnahmen and everything detail
       <CityPolarChart>
         
       </CityPolarChart>
-      Detail View with all the maßnahmen and everything detail
+     
     </div>
 </template>
 <script setup>

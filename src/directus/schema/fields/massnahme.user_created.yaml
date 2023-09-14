@@ -1,8 +1,8 @@
-collection: massnahme
+collection: massnahmen
 field: user_created
 type: uuid
 meta:
-  collection: massnahme
+  collection: massnahmen
   conditions: null
   display: user
   display_options: null
@@ -24,7 +24,7 @@ meta:
   width: half
 schema:
   name: user_created
-  table: massnahme
+  table: massnahmen
   data_type: uuid
   default_value: null
   max_length: null

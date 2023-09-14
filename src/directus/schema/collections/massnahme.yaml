@@ -1,11 +1,11 @@
-collection: massnahme
+collection: massnahmen
 meta:
   accountability: all
   archive_app_filter: true
   archive_field: status
   archive_value: archived
   collapse: open
-  collection: massnahme
+  collection: massnahmen
   color: null
   display_template: null
   group: null
@@ -20,4 +20,4 @@ meta:
   translations: null
   unarchive_value: draft
 schema:
-  name: massnahme
+  name: massnahmen

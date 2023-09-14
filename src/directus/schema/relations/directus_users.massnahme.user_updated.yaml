@@ -1,9 +1,9 @@
-collection: massnahme
+collection: massnahmen
 field: user_updated
 related_collection: directus_users
 meta:
   junction_field: null
-  many_collection: massnahme
+  many_collection: massnahmen
   many_field: user_updated
   one_allowed_collections: null
   one_collection: directus_users
@@ -12,10 +12,10 @@ meta:
   one_field: null
   sort_field: null
 schema:
-  table: massnahme
+  table: massnahmen
   column: user_updated
   foreign_key_table: directus_users
   foreign_key_column: id
-  constraint_name: massnahme_user_updated_foreign
+  constraint_name: massnahmen_user_updated_foreign
   on_update: NO ACTION
   on_delete: NO ACTION

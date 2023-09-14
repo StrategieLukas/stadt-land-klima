@@ -2,7 +2,10 @@
   <div>
     <the-header></the-header>
     <the-nav-bar></the-nav-bar>
-    <slot />
+    <div calss="flex flex-col">
+
+      <slot />
+    </div>
     <the-footer></the-footer>
   </div>
 </template>
