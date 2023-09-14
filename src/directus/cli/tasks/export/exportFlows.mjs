@@ -9,8 +9,8 @@ async function exportFlows(dest, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
-    const flows = await client.request(readFlows({limit: 100}));
-    const operations = await client.request(readOperations({limit: 10000}));
+    const flows = await client.request(readFlows({limit: -1}));
+    const operations = await client.request(readOperations({limit: -1}));
 
     fse.mkdirSync(dest);
 

@@ -12,8 +12,8 @@ async function importFlows(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
-    const existingFlows = await client.request(readFlows({limit: 1000}));
-    const existingOperations = await client.request(readOperations({limit: 10000}));
+    const existingFlows = await client.request(readFlows({limit: -1}));
+    const existingOperations = await client.request(readOperations({limit: -1}));
     const flows = readYamlFiles(path.join(src));
     let operations = [];
 
@@ -46,6 +46,8 @@ async function importFlows(src, options = {verbose: false}) {
     });
 
     // Flows
+
+    // TODO: check for operations that do not exist and create them
 
     if (flowsToCreate.length) {
       if (options.verbose) {

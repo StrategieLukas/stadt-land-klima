@@ -11,7 +11,7 @@ async function importWebhooks(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
-    const existingWebhooks = await client.request(readWebhooks({limit: 10000}));
+    const existingWebhooks = await client.request(readWebhooks({limit: -1}));
     const webhooks = readYamlFiles(path.join(src));
     const webhooksToCreate = [];
     const webhooksToUpdate = [];

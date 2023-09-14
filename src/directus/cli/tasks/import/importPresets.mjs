@@ -11,7 +11,7 @@ async function importRoles(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
-    const existingPresets = await client.request(readPresets({limit: 10000}));
+    const existingPresets = await client.request(readPresets({limit: -1}));
     const presets = readYamlFiles(path.join(src));
     const presetsToCreate = [];
     const presetsToUpdate = [];

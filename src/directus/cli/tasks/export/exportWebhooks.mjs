@@ -9,7 +9,7 @@ async function exportWebhooks(dest, options = {verbose: false, overwrite: false}
   const client = createDirectusClient();
 
   try {
-    const webhooks = await client.request(readWebhooks({limit: 100}));
+    const webhooks = await client.request(readWebhooks({limit: -1}));
 
     fse.mkdirSync(dest);
 

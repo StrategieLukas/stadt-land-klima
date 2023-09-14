@@ -9,7 +9,7 @@ async function exportTranslations(dest, options = {verbose: false, overwrite: fa
   const client = createDirectusClient();
 
   try {
-    const translations = await client.request(readTranslations({limit: 9000}));
+    const translations = await client.request(readTranslations({limit: -1}));
 
     fse.mkdirSync(dest);
 
