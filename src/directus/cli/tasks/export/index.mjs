@@ -8,9 +8,11 @@ import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
 import exportSettings from './exportSettings.mjs';
 
+const clerDirOpts = {extensions: ['.yaml']};
+
 async function clear(dest, options = {verbose: false}) {
   try {
-    clearDir(dest);
+    clearDir(dest, clerDirOpts);
 
     if (options.verbose) {
       console.info(`${dest} cleared`);
