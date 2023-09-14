@@ -1,9 +1,10 @@
 import path from 'path';
 import find from 'lodash/find.js';
 import property from 'lodash/property.js';
+import assign from 'lodash/assign.js';
 import {
   readFlows, createFlows, updateFlow, deleteFlows,
-  readOperations, createOperations, updateOperation, deleteOperations,
+  readOperations, createOperations, updateOperation, deleteOperations, updateFlows,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
@@ -22,22 +23,33 @@ async function importFlows(src, options = {verbose: false}) {
     const operationsToCreate = [];
     const operationsToUpdate = [];
 
-    flows.forEach((flow) => {
-      const existingFlow = find(existingFlows, ['id', flow.id]);
+    // create lookup tables for existing operations
+    const existingOperationsByKey = {};
+    const existingOperationsById = {};
+    existingOperations.forEach((operation) => {
+      existingOperationsByKey[operation.key] = operation;
+      existingOperationsById[operation.id] = operation;
+    });
+
+    flows.forEach(async (flow) => {
+      const existingFlow = find(existingFlows, ['name', flow.name]);
       const flowOperations = flow.operations;
       operations = operations.concat(flowOperations);
       delete flow.operations;
 
       if (existingFlow) {
+        flow.id = existingFlow.id;
         flowsToUpdate.push(flow);
       } else {
         flowsToCreate.push(flow);
       }
 
       flowOperations.forEach((operation) => {
-        const existingOperation = find(existingOperations, ['id', operation.id]);
+        const existingOperation = find(existingOperations, ['key', operation.key]);
+        operation.flow_name = flow.name;
 
         if (existingOperation) {
+          operation.id = existingOperation.id;
           operationsToUpdate.push(operation);
         } else {
           operationsToCreate.push(operation);
@@ -47,14 +59,17 @@ async function importFlows(src, options = {verbose: false}) {
 
     // Flows
 
-    // TODO: check for operations that do not exist and create them
-
     if (flowsToCreate.length) {
       if (options.verbose) {
         console.info(`Creating ${flowsToCreate.length} flows`);
       }
 
-      await client.request(createFlows(flowsToCreate));
+      const createdFlows = await client.request(createFlows(flowsToCreate));
+
+      createdFlows.forEach((createdFlow) => {
+        const flow = find(flowsToCreate, ['name', createdFlow.name]);
+        assign(flow, createdFlow);
+      });
     }
 
     if (flowsToUpdate.length) {
@@ -64,12 +79,34 @@ async function importFlows(src, options = {verbose: false}) {
 
       flowsToUpdate.forEach(async (flow) => {
         try {
-          await client.request(updateFlow(flow.id, flow));
+          const updatedFlow = await client.request(updateFlow(flow.id, flow));
+          assign(flow, updatedFlow);
         } catch (err) {
           console.error(err);
         }
+
+        // delete non existing operations in this flow
+        const existingFlowOperations = existingOperations
+        .filter((operation) => {
+          return operation.flow === flow.id;
+        });
+        const flowOperationsToDelete = existingFlowOperations.filter((operation) => {
+          return !find(operations, {flow_name: flow.name, key: operation.key});
+        });
+
+        if (options.verbose && flowOperationsToDelete.length) {
+          console.info(`Removing ${flowOperationsToDelete.length} operations from flow ${flow.name}`);
+        }
+
+        await client.request(deleteOperations(flowOperationsToDelete.map(property('id'))));
       });
     }
+
+    // set flow ids to operations before creating or updating them
+    operations.forEach((operation) => {
+      const flow = find(flows, ['name', operation.flow_name]);
+      operation.flow = flow.id;
+    });
 
     // Operations
 
@@ -78,7 +115,12 @@ async function importFlows(src, options = {verbose: false}) {
         console.info(`Creating ${operationsToCreate.length} operations`);
       }
 
-      await client.request(createOperations(operationsToCreate));
+      const createdOperations = await client.request(createOperations(operationsToCreate));
+
+      createdOperations.forEach((createdOperation) => {
+        const operation = find(operationsToCreate, ['key', createdOperation.key]);
+        assign(operation, createdOperation);
+      });
     }
 
     if (operationsToUpdate.length) {
@@ -87,19 +129,67 @@ async function importFlows(src, options = {verbose: false}) {
       }
 
       operationsToUpdate.forEach(async (operation) => {
-        await client.request(updateOperation(operation.id, operation));
+        const updatedOperation = await client.request(updateOperation(operation.id, operation));
+        assign(operation, updatedOperation);
       });
     }
+
+    // set flow operation ids and then update the flow
+    flows.forEach(async (flow) => {
+      if (flow.operation_key) {
+        const operation = find(operations, ['key', flow.operation_key]);
+        if (!operation) {
+          return;
+        }
+
+        flow.operation = operation.id;
+
+        try {
+          const updatedFlow = await client.request(updateFlow(flow.id, {
+            operation: flow.operation,
+          }));
+          assign(flow, updatedFlow);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
+
+    // set resolve and reject ids to operations and then update those
+    operations.forEach(async (operation) => {
+      if (operation.resolve_key) {
+        const resolveOperation = find(operations, ['key', operation.resolve_key]);
+        operation.resolve = resolveOperation ? resolveOperation.id : null;
+      }
+
+      if (operation.reject_key) {
+        const rejectOperation = find(operations, ['key', operation.reject_key]);
+        operation.reject = rejectOperation ? rejectOperation.id : null;
+      }
+
+      if (operation.resolve || operation.reject) {
+        try {
+          // TODO: for some reason
+          const updatedOperation = await client.request(updateOperation(operation.id, {
+            resolve: operation.resolve,
+            reject: operation.reject,
+          }));
+
+          assign(operation, updatedOperation);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
 
     // Remove
     if (options.remove) {
       const flowsToDelete = existingFlows.filter((flow) => {
-        return !find(flows, ['id', flow.id]);
+        return !find(flows, ['name', flow.name]);
       });
 
-
       const operationsToDelete = existingOperations.filter((operation) => {
-        return !find(operations, ['id', operation.id]);
+        return !find(operations, ['key', operation.key]);
       });
 
       if (operationsToDelete.length) {

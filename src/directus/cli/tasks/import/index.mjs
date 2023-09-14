@@ -1,3 +1,4 @@
+import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
 import importPresets from './importPresets.mjs';
@@ -18,12 +19,13 @@ function importTasks(yargs) {
         default: 'schema',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Importing schema from ${argv.src}`);
       }
 
-      importSchema(argv.src, {
+      await clearDirectusCache();
+      await importSchema(argv.src, {
         verbose: argv.verbose,
       });
     }
@@ -39,12 +41,13 @@ function importTasks(yargs) {
         default: 'roles',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Importing roles from ${argv.src}`);
       }
 
-      importRoles(argv.src, {
+      await clearDirectusCache();
+      await importRoles(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });
@@ -61,12 +64,13 @@ function importTasks(yargs) {
         default: 'presets',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Importing presets from ${argv.src}`);
       }
 
-      importPresets(argv.src, {
+      await clearDirectusCache();
+      await importPresets(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });
@@ -83,12 +87,13 @@ function importTasks(yargs) {
         default: 'webhooks',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Importing webhooks from ${argv.src}`);
       }
 
-      importWebhooks(argv.src, {
+      await clearDirectusCache();
+      await importWebhooks(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });
@@ -105,12 +110,13 @@ function importTasks(yargs) {
         default: 'flows',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Importing flows from ${argv.src}`);
       }
 
-      importFlows(argv.src, {
+      await clearDirectusCache();
+      await importFlows(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });
@@ -127,12 +133,13 @@ function importTasks(yargs) {
         default: 'translations',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Importing translations from ${argv.src}`);
       }
 
-      importTranslations(argv.src, {
+      await clearDirectusCache();
+      await importTranslations(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });
@@ -149,12 +156,13 @@ function importTasks(yargs) {
         default: 'settings',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Importing settings from ${argv.src}`);
       }
 
-      importSettings(argv.src, {
+      await clearDirectusCache();
+      await importSettings(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });
