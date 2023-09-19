@@ -14,8 +14,6 @@ const { $directus, $readItems } = useNuxtApp()
 const { data: kommunen } = await useAsyncData('kommunen', () => {
     return $directus.request(
         $readItems('kommunen', {
-            fields: ['slug', 'name', 'score_total'],
-
         })
     )
 })
