@@ -1,40 +1,38 @@
-collection: massnahmen
-field: gewichtung
+collection: junction_directus_users_lokalteam
+field: id
 type: integer
 meta:
-  collection: massnahmen
+  collection: junction_directus_users_lokalteam
   conditions: null
   display: null
   display_options: null
-  field: gewichtung
+  field: id
   group: null
-  hidden: false
-  interface: slider
+  hidden: true
+  interface: null
   note: null
-  options:
-    maxValue: 10
-    minValue: 1
+  options: null
   readonly: false
   required: false
-  sort: 16
+  sort: 1
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: gewichtung
-  table: massnahmen
+  name: id
+  table: junction_directus_users_lokalteam
   data_type: integer
-  default_value: null
+  default_value: nextval('junction_directus_users_lokalteam_id_seq'::regclass)
   max_length: null
   numeric_precision: 32
   numeric_scale: 0
-  is_nullable: true
-  is_unique: false
-  is_primary_key: false
+  is_nullable: false
+  is_unique: true
+  is_primary_key: true
   is_generated: false
   generation_expression: null
-  has_auto_increment: false
+  has_auto_increment: true
   foreign_key_table: null
   foreign_key_column: null

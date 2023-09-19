@@ -1,39 +1,37 @@
-collection: kommunen
-field: laengengrad
-type: float
+collection: bewertungen_massnahmen
+field: id
+type: uuid
 meta:
-  collection: kommunen
+  collection: bewertungen_massnahmen
   conditions: null
   display: null
   display_options: null
-  field: laengengrad
+  field: id
   group: null
-  hidden: false
+  hidden: true
   interface: input
   note: null
-  options:
-    max: 180
-    min: -180
-    step: null
-  readonly: false
+  options: null
+  readonly: true
   required: false
-  sort: 11
-  special: null
+  sort: 1
+  special:
+    - uuid
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: laengengrad
-  table: kommunen
-  data_type: real
+  name: id
+  table: bewertungen_massnahmen
+  data_type: uuid
   default_value: null
   max_length: null
-  numeric_precision: 24
+  numeric_precision: null
   numeric_scale: null
-  is_nullable: true
-  is_unique: false
-  is_primary_key: false
+  is_nullable: false
+  is_unique: true
+  is_primary_key: true
   is_generated: false
   generation_expression: null
   has_auto_increment: false

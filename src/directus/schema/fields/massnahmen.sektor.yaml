@@ -26,7 +26,7 @@ meta:
       - text: Klimaschutzmanagement & Verwaltung
         value: kv
   readonly: false
-  required: true
+  required: false
   sort: 10
   special: null
   translations: null
@@ -41,7 +41,7 @@ schema:
   max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_primary_key: false
   is_generated: false

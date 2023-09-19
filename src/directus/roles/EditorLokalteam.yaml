@@ -8,17 +8,6 @@ admin_access: false
 app_access: true
 permissions:
   - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
-    collection: directus_users
-    action: read
-    permissions:
-      _and:
-        - id:
-            _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
     collection: directus_roles
     action: read
     permissions:
@@ -30,53 +19,41 @@ permissions:
     fields:
       - "*"
   - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
-    collection: directus_shares
-    action: read
-    permissions:
-      _or:
-        - role:
-            _eq: $CURRENT_ROLE
-        - role:
-            _null: true
-    validation: null
+    collection: example
+    action: delete
+    permissions: {}
+    validation: {}
     presets: null
     fields:
       - "*"
   - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
-    collection: directus_shares
+    collection: example
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
+    collection: example
     action: create
     permissions: {}
-    validation: null
+    validation: {}
     presets: null
     fields:
       - "*"
   - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
-    collection: directus_shares
-    action: update
-    permissions:
-      user_created:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
-    collection: directus_shares
-    action: delete
-    permissions:
-      user_created:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
-    collection: lokalteam
+    collection: example
     action: read
-    permissions:
-      _and:
-        - id:
-            _eq: $CURRENT_USER.lokalteam_id
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - role: 18781584-6436-49b7-a69d-69f4f5e5db8b
+    collection: example
+    action: share
+    permissions: {}
     validation: {}
     presets: null
     fields:

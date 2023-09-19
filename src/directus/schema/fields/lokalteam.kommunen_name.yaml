@@ -1,35 +1,33 @@
-collection: massnahmen
-field: gewichtung
-type: integer
+collection: lokalteam
+field: kommunen_name
+type: string
 meta:
-  collection: massnahmen
+  collection: lokalteam
   conditions: null
   display: null
   display_options: null
-  field: gewichtung
+  field: kommunen_name
   group: null
   hidden: false
-  interface: slider
+  interface: input
   note: null
-  options:
-    maxValue: 10
-    minValue: 1
+  options: null
   readonly: false
-  required: false
-  sort: 16
+  required: true
+  sort: 9
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: gewichtung
-  table: massnahmen
-  data_type: integer
+  name: kommunen_name
+  table: lokalteam
+  data_type: character varying
   default_value: null
-  max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
   is_nullable: true
   is_unique: false
   is_primary_key: false

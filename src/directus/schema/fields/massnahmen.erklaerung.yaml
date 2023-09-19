@@ -13,7 +13,7 @@ meta:
   note: null
   options: null
   readonly: false
-  required: true
+  required: false
   sort: 12
   special: null
   translations: null

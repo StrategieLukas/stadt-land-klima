@@ -3,20 +3,16 @@
        The Ranking:
        <ul>
 			<li v-for="kommune in kommunen" :key="kommune.id">
-				<p>{{ kommune.score_total }}</p>
-					<p>{{ kommune.name }}</p>
-					<ProgressBarCity/>
-					<progress class="progress progress-success w-56" :value="kommune.score_total" max="100"></progress>
-					<DetailCityRanking />
+				<ItemRanking :kommune="kommune"></ItemRanking>
 				
 			</li>
 		</ul>
     </div>
 </template>
 <script setup >
-const props = defineProps(['kommunen'])
+const props = defineProps(['kommunen']);
 const { kommunen } = props;
-console.log(kommunen)
+console.log(kommunen);
 
 </script>
 <style lang="">

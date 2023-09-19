@@ -1,29 +1,31 @@
-collection: massnahmen
-field: ueberpruefung_erklaerung
-type: text
+collection: bewertungen_massnahmen
+field: date_created
+type: timestamp
 meta:
-  collection: massnahmen
+  collection: bewertungen_massnahmen
   conditions: null
-  display: null
-  display_options: null
-  field: ueberpruefung_erklaerung
+  display: datetime
+  display_options:
+    relative: true
+  field: date_created
   group: null
-  hidden: false
-  interface: input-rich-text-html
+  hidden: true
+  interface: datetime
   note: null
   options: null
-  readonly: false
+  readonly: true
   required: false
-  sort: 13
-  special: null
+  sort: 5
+  special:
+    - date-created
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: ueberpruefung_erklaerung
-  table: massnahmen
-  data_type: text
+  name: date_created
+  table: bewertungen_massnahmen
+  data_type: timestamp with time zone
   default_value: null
   max_length: null
   numeric_precision: null

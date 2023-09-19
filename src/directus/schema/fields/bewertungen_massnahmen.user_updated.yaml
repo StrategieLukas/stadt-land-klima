@@ -1,32 +1,30 @@
-collection: directus_users
-field: lokalteam_id
+collection: bewertungen_massnahmen
+field: user_updated
 type: uuid
 meta:
-  collection: directus_users
+  collection: bewertungen_massnahmen
   conditions: null
-  display: related-values
-  display_options:
-    template: "{{name}}"
-  field: lokalteam_id
+  display: user
+  display_options: null
+  field: user_updated
   group: null
-  hidden: false
+  hidden: true
   interface: select-dropdown-m2o
   note: null
   options:
-    enableCreate: false
-    template: "{{name}}"
-  readonly: false
-  required: true
-  sort: 1
+    template: "{{avatar.$thumbnail}} {{first_name}} {{last_name}}"
+  readonly: true
+  required: false
+  sort: 6
   special:
-    - m2o
+    - user-updated
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: lokalteam_id
-  table: directus_users
+  name: user_updated
+  table: bewertungen_massnahmen
   data_type: uuid
   default_value: null
   max_length: null
@@ -38,5 +36,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: lokalteam
+  foreign_key_table: directus_users
   foreign_key_column: id

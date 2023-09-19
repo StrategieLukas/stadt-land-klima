@@ -20,7 +20,7 @@ meta:
       - text: schwer
         value: schwer
   readonly: false
-  required: true
+  required: false
   sort: 15
   special: null
   translations: null

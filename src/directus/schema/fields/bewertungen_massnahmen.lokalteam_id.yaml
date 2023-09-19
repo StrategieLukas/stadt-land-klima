@@ -1,29 +1,32 @@
-collection: massnahmen
-field: ueberpruefung_erklaerung
-type: text
+collection: bewertungen_massnahmen
+field: lokalteam_id
+type: uuid
 meta:
-  collection: massnahmen
+  collection: bewertungen_massnahmen
   conditions: null
-  display: null
-  display_options: null
-  field: ueberpruefung_erklaerung
+  display: related-values
+  display_options:
+    template: "{{name}}"
+  field: lokalteam_id
   group: null
   hidden: false
-  interface: input-rich-text-html
+  interface: select-dropdown-m2o
   note: null
-  options: null
+  options:
+    template: "{{name}}"
   readonly: false
   required: false
-  sort: 13
-  special: null
+  sort: 8
+  special:
+    - m2o
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: ueberpruefung_erklaerung
-  table: massnahmen
-  data_type: text
+  name: lokalteam_id
+  table: bewertungen_massnahmen
+  data_type: uuid
   default_value: null
   max_length: null
   numeric_precision: null
@@ -34,5 +37,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: null
-  foreign_key_column: null
+  foreign_key_table: lokalteam
+  foreign_key_column: id
