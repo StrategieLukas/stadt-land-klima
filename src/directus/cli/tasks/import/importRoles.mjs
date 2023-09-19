@@ -12,8 +12,8 @@ async function importRoles(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
-    const existingRoles = await client.request(readRoles({limit: 1000}));
-    const existingPermissions = await client.request(readPermissions({limit: 10000}));
+    const existingRoles = await client.request(readRoles({limit: -1}));
+    const existingPermissions = await client.request(readPermissions({limit: -1}));
     const roles = readYamlFiles(path.join(src));
     let permissions = [];
 

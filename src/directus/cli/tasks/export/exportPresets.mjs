@@ -9,7 +9,7 @@ async function exportPresets(dest, options = {verbose: false, overwrite: false})
   const client = createDirectusClient();
 
   try {
-    const presets = await client.request(readPresets({limit: 1000}));
+    const presets = await client.request(readPresets({limit: -1}));
 
     fse.mkdirSync(dest);
 

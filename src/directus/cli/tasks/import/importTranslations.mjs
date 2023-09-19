@@ -11,7 +11,7 @@ async function importTranslations(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
-    const existingTranslations = await client.request(readTranslations({limit: 9000}));
+    const existingTranslations = await client.request(readTranslations({limit: -1}));
     const translations = readYamlFiles(path.join(src));
     const translationsToCreate = [];
     const translationsToUpdate = [];

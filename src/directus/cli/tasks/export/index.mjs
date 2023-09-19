@@ -1,4 +1,5 @@
 import clearDir from '../shared/clearDir.mjs';
+import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import exportSchema from './exportSchema.mjs';
 import clearSchema from './clearSchema.mjs';
 import exportRoles from './exportRoles.mjs';
@@ -8,9 +9,11 @@ import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
 import exportSettings from './exportSettings.mjs';
 
+const clerDirOpts = {extensions: ['.yaml']};
+
 async function clear(dest, options = {verbose: false}) {
   try {
-    clearDir(dest);
+    clearDir(dest, clerDirOpts);
 
     if (options.verbose) {
       console.info(`${dest} cleared`);
@@ -33,7 +36,7 @@ function exportTasks(yargs) {
         default: 'schema',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Exporting schema to ${argv.dest}`);
       }
@@ -43,7 +46,8 @@ function exportTasks(yargs) {
         });
       }
 
-      exportSchema(argv.dest, {
+      await clearDirectusCache();
+      await exportSchema(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
@@ -60,7 +64,7 @@ function exportTasks(yargs) {
         default: 'roles',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Exporting roles to ${argv.dest}`);
       }
@@ -70,7 +74,8 @@ function exportTasks(yargs) {
         });
       }
 
-      exportRoles(argv.dest, {
+      await clearDirectusCache();
+      await exportRoles(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
@@ -87,7 +92,7 @@ function exportTasks(yargs) {
         default: 'presets',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Exporting presets to ${argv.dest}`);
       }
@@ -97,7 +102,8 @@ function exportTasks(yargs) {
         });
       }
 
-      exportPresets(argv.dest, {
+      await clearDirectusCache();
+      await exportPresets(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
@@ -114,7 +120,7 @@ function exportTasks(yargs) {
         default: 'webhooks',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Exporting webhooks to ${argv.dest}`);
       }
@@ -124,7 +130,8 @@ function exportTasks(yargs) {
         });
       }
 
-      exportWebhooks(argv.dest, {
+      await clearDirectusCache();
+      await exportWebhooks(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
@@ -141,7 +148,7 @@ function exportTasks(yargs) {
         default: 'flows',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Exporting flows to ${argv.dest}`);
       }
@@ -151,7 +158,8 @@ function exportTasks(yargs) {
         });
       }
 
-      exportFlows(argv.dest, {
+      await clearDirectusCache();
+      await exportFlows(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
@@ -168,7 +176,7 @@ function exportTasks(yargs) {
         default: 'translations',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Exporting translations to ${argv.dest}`);
       }
@@ -178,7 +186,8 @@ function exportTasks(yargs) {
         });
       }
 
-      exportTranslations(argv.dest, {
+      await clearDirectusCache();
+      await exportTranslations(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
@@ -195,7 +204,7 @@ function exportTasks(yargs) {
         default: 'settings',
       });
     },
-    (argv) => {
+    async (argv) => {
       if (argv.verbose) {
         console.info(`Exporting settings to ${argv.dest}`);
       }
@@ -205,7 +214,8 @@ function exportTasks(yargs) {
         });
       }
 
-      exportSettings(argv.dest, {
+      await clearDirectusCache();
+      await exportSettings(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
