@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>{{massnahme[0].name}}</h1>
-	<Kommune></Kommune>
+	<Massnahme></Massnahme>
   </div>
 </template>
 <script setup >
