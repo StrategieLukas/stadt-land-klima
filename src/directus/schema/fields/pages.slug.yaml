@@ -1,21 +1,21 @@
-collection: massnahmen
+collection: pages
 field: slug
 type: string
 meta:
-  collection: massnahmen
+  collection: pages
   conditions: null
   display: null
   display_options: null
   field: slug
   group: null
-  hidden: true
+  hidden: false
   interface: input
   note: null
   options:
     slug: true
   readonly: false
   required: false
-  sort: 8
+  sort: 9
   special: null
   translations: null
   validation: null
@@ -23,14 +23,14 @@ meta:
   width: full
 schema:
   name: slug
-  table: massnahmen
+  table: pages
   data_type: character varying
   default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

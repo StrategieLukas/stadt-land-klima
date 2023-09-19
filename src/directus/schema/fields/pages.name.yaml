@@ -1,30 +1,29 @@
-collection: lokalteam
-field: kommen_ud
-type: uuid
+collection: pages
+field: name
+type: text
 meta:
-  collection: lokalteam
+  collection: pages
   conditions: null
   display: null
   display_options: null
-  field: kommen_ud
+  field: name
   group: null
   hidden: false
-  interface: select-dropdown-m2o
+  interface: input
   note: null
   options: null
   readonly: false
-  required: false
-  sort: 12
-  special:
-    - m2o
+  required: true
+  sort: 8
+  special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: kommen_ud
-  table: lokalteam
-  data_type: uuid
+  name: name
+  table: pages
+  data_type: text
   default_value: null
   max_length: null
   numeric_precision: null
@@ -35,5 +34,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: kommunen
-  foreign_key_column: id
+  foreign_key_table: null
+  foreign_key_column: null

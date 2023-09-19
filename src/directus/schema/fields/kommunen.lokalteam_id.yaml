@@ -1,12 +1,12 @@
 collection: kommunen
-field: lokalteams_ids
+field: lokalteam_id
 type: alias
 meta:
   collection: kommunen
   conditions: null
   display: null
   display_options: null
-  field: lokalteams_ids
+  field: lokalteam_id
   group: null
   hidden: false
   interface: list-o2m
@@ -14,7 +14,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 17
+  sort: 20
   special:
     - o2m
   translations: null

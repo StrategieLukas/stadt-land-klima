@@ -1,38 +1,38 @@
-collection: example
-field: id
+collection: pages
+field: sort
 type: integer
 meta:
-  collection: example
+  collection: pages
   conditions: null
   display: null
   display_options: null
-  field: id
+  field: sort
   group: null
   hidden: true
   interface: input
   note: null
   options: null
-  readonly: true
+  readonly: false
   required: false
-  sort: 1
+  sort: 3
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: id
-  table: example
+  name: sort
+  table: pages
   data_type: integer
-  default_value: nextval('example_id_seq'::regclass)
+  default_value: null
   max_length: null
   numeric_precision: 32
   numeric_scale: 0
-  is_nullable: false
-  is_unique: true
-  is_primary_key: true
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
   is_generated: false
   generation_expression: null
-  has_auto_increment: true
+  has_auto_increment: false
   foreign_key_table: null
   foreign_key_column: null

@@ -1,0 +1,30 @@
+id: b23c8383-f32e-49cb-b030-f63dfc7b321d
+name: createBewertungForEach
+icon: bolt
+color: null
+description: 'erstellt "leere" Bewertungen für die massnahme für die erstellte Kommune '
+status: active
+trigger: operation
+accountability: all
+options:
+  return: $last
+operation: 5172d9ed-7624-478d-9b39-52d5264e72a9
+date_created: 2023-09-09T00:02:31.093Z
+user_created: null
+operations:
+  
+  - id: e6cd65d7-a64d-4a55-82ab-3d302c3ecb13
+    name: Trigger Flow
+    key: trigger_3dghp
+    type: trigger
+    position_x: 25
+    position_y: 37
+    options:
+      flow: b23c8383-f32e-49cb-b030-f63dfc7b321d
+      iterationMode: serial
+      payload: "{{$last['retData']}}"
+    resolve: null
+    reject: null
+    flow: b23c8383-f32e-49cb-b030-f63dfc7b321d
+    date_created: 2023-09-09T00:05:14.607Z
+    user_created: null
