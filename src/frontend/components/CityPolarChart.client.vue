@@ -9,17 +9,15 @@
 </template>
 <script setup>
 import { PolarArea } from 'vue-chartjs'
+
+const props = defineProps(['subScores']);
+//const subScoreArray = createSubScoreArray(props.subScores);
+
 const chartData = ref({
-  labels: [
-    'Red',
-    'Green',
-    'Yellow',
-    'Grey',
-    'Blue'
-  ],
+  
   datasets: [{
     label: 'My First Dataset',
-    data: [10, 9, 0, 9, 8],
+    data: [0.5,1,2,3,4,5],
     backgroundColor: [
       'rgba(255, 99, 132,0.5)',
       'rgb(75, 192, 192, 0.5)',
@@ -37,7 +35,15 @@ const chartOptions = ref({
    	
 })
     
-
+function createSubScoreArray(subScoreObject) {
+    let temp = []
+    for (const [key, value] of Object.entries(subScoreObject)) {
+        if (key.includes('score')) {
+            temp[key] = value;
+        }
+    }
+    return temp;
+};
 </script>
 <style lang="">
     
