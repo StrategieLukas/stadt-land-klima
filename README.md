@@ -24,7 +24,8 @@ https://xd.adobe.com/view/27db8821-ac25-4773-a2f8-ab37b0abb61c-7288/
 
 ## Preparations
 
-- copy `.env.example` to `.env` and adjust to your needs
+- copy `docker/db/.env.example` to `docker/db/.env` and adjust to your needs
+- copy `src/directus/.env.example` to `src/directus/.env` and adjust to your needs
 - copy `src/frontend/.env.example` to `src/frontend/.env` and adjust to your needs
 
 ## Start in development
@@ -62,4 +63,21 @@ Update to latest commit in current branch.
 ```
 $ cd bin
 $ ./update_production.sh
+```
+
+## Directus CLI
+
+With the custom directus-cli you can import and export configuration.
+
+To get a list of supported commands do:
+
+```
+$ cd bin
+$ ./directus_bash.sh
+```
+
+then within the directus container:
+
+```
+$ ./directus-cli --help
 ```

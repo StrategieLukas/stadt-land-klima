@@ -1,0 +1,19 @@
+{
+  "name": "directus-cli",
+  "version": "1.0.0",
+  "description": "CLI for directus API",
+  "bin": {
+    "directus-cli": "./index.mjs"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@directus/sdk": "^11.0.3",
+    "dotenv": "^16.3.1",
+    "fse": "^4.0.1",
+    "lodash": "^4.17.21",
+    "slugify": "^1.6.6",
+    "yaml": "^2.3.2",
+    "yargs": "^17.7.2"
+  }
+}
