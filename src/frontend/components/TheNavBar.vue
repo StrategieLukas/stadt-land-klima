@@ -23,7 +23,7 @@
        
       </ul>
     </div>
-    <a class="btn btn-ghost normal-case text-xl">daisyUI</a>
+    <a class="btn btn-ghost normal-case text-xl">XYButton</a>
   </div>
   <div class="navbar-center hidden lg:flex">
     <ul class="menu menu-horizontal px-1">
@@ -39,7 +39,7 @@
     </ul>
   </div>
   <div class="navbar-end">
-    <a class="btn">Button</a>
+    <a class="btn">XYButton</a>
   </div>
 </div>
 
