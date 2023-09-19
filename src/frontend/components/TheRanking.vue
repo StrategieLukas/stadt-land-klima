@@ -4,7 +4,8 @@
        <ul>
 			<li v-for="kommune in kommunen" :key="kommune.id">
 				<p>{{ kommune.score_total }}</p>
-					<p>ass{{ kommune.name }}</p>
+					<p>{{ kommune.name }}</p>
+					<ProgressBarCity/>
 					<progress class="progress progress-success w-56" :value="kommune.score_total" max="100"></progress>
 					<DetailCityRanking />
 				
