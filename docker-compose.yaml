@@ -22,6 +22,7 @@ services:
       - ./src/directus/translations/:/directus/translations
       - ./src/directus/flows/:/directus/flows
       - ./src/directus/settings/:/directus/settings
+      - ./src/directus/contents/:/directus/contents
       - ./src/directus/cli/:/directus/cli
       - ./src/directus/.env/:/directus/.env
     depends_on:

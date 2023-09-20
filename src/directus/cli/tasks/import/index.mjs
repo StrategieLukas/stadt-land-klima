@@ -1,3 +1,4 @@
+import path from 'path';
 import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
@@ -6,6 +7,7 @@ import importWebhooks from './importWebhooks.mjs';
 import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
 import importSettings from './importSettings.mjs';
+import importCollectionItems from './importCollectionItems.mjs';
 
 function importTasks(yargs) {
   return yargs
@@ -163,6 +165,35 @@ function importTasks(yargs) {
 
       await clearDirectusCache();
       await importSettings(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+      });
+    }
+  )
+
+  .command(
+    'import:items [collection] [src]',
+    'imports the items of a collection from a file specified by "src". By default it will import from "contents/{collection}.yaml"',
+    (yargs) => {
+      return yargs
+      .positional('collection', {
+        describe: 'collection to import',
+        required: true,
+      })
+      .positional('src', {
+        describe: 'source file',
+        default: '',
+      });
+    },
+    async (argv) => {
+      const src = argv.src || path.join('contents', argv.collection + '.yaml');
+
+      if (argv.verbose) {
+        console.info(`Importing ${argv.collection} items from ${src}`);
+      }
+
+      await clearDirectusCache();
+      await importCollectionItems(argv.collection, src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
       });
