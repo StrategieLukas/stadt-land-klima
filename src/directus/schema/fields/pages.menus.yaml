@@ -1,31 +1,40 @@
 collection: pages
-field: name
-type: text
+field: menus
+type: csv
 meta:
   collection: pages
   conditions: null
   display: null
   display_options: null
-  field: name
+  field: menus
   group: null
   hidden: false
-  interface: input
+  interface: select-multiple-checkbox
   note: null
-  options: null
+  options:
+    choices:
+      - text: Hauptnavigation
+        value: main
+      - text: Footernavigation
+        value: footer
+    itemsShown: 2
   readonly: false
-  required: true
-  sort: 8
-  special: null
-  translations: null
+  required: false
+  sort: 10
+  special:
+    - cast-csv
+  translations:
+    - language: de-DE
+      translation: Menüs
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: name
+  name: menus
   table: pages
-  data_type: text
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
