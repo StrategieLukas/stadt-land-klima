@@ -5,9 +5,14 @@
   </div>
 </template>
 <script setup>
-const props = defineProps(['kommune']);
-const { kommune } = props;
-console.log('kommune', kommune);
+const props = defineProps({
+  kommune: {
+    type: Object,
+    required: true,
+  },
+});
+const kommune = props.kommune;
+console.log('kommune DEtail City', kommune);
 
 const subScores = createSubScoreObject(kommune);
 console.log('subScores', subScores);

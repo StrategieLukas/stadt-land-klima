@@ -1,5 +1,5 @@
 <template lang="">
-  <div class="bg-white">
+  <div>
     Polar Chart:
     <PolarArea :data="chartData" :options="chartOptions" />
   </div>
