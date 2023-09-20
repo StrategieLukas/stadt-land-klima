@@ -1,0 +1,42 @@
+Klima2035 Styleguide
+
+Farben
+
+#afca0b Hauptfarbe Lindgrün
+Abstufungen: 10% 
+
+#1da64a FF-green
+Abstufung 10% 
+
+#e30613 Rot
+Abstufung 10%
+
+#f39200 Orange
+Abstufung 10%
+
+#ffc80c Localzero Gelb
+Abstufung 10%
+
+#16bae7 Hellblau
+
+#000000 Schwarz Schriftfarbe Headlines
+Abstufung: 50 % und 25% für Flächen
+
+#707070 Dklgrau Schriftfarbe 
+
+Verwendete Fonts
+
+Roboto Condensed Bold
+Roboto Condensed Regular
+Inter Regular
+Inter Bold
+
+h1 – Roboto Condensed Bold, size: 32pt, Line-height: 32pt, #000000
+h2 – Roboto Condensed Bold, size: 24pt, line-height: 24pt #000000
+h3 – Roboto Condensed Regular, size: 24pt, line-height: 24pt; #16bae7 Hellblau
+h4 – Roboto Condensed Regular, size: 24pt, line-height: 24pt; #afca0b Hauptfarbe Lindgrün
+p (normal) – Inter Regular, size: 14pt, line-height: 17 pt, Abstand nach: 10 pt,  #707070
+p (Anmerkung) – Inter Regular, size: 9pt, line-height: 11 pt,  #707070
+a (im Text)- Inter Bold, size: 14 pt, line-height: 17 pt; (am Ende des Links ↗ U+2197 einfügen)
+a (im Menü/Footer)- Inter Bold, size: 14 pt, line-height: 17 pt; (am Beginn des Links → U+2192 und Leerzeichen einfügen)
+a:hover,  a:focus – text-decoration: underline thin dotted
