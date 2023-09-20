@@ -4,8 +4,10 @@
     <div class="drawer-content h-full min-h-screen flex flex-col items-stretch">
       <the-nav-bar></the-nav-bar>
       <the-header></the-header>
-      <main class="flex flex-col pt-20 grow">
-        <slot />
+      <main class="flex flex-col pt-20 grow px-2">
+        <div class="mx-auto max-w-screen-xl w-full">
+          <slot />
+        </div>
       </main>
       <the-footer :pages="pages"></the-footer>
     </div>

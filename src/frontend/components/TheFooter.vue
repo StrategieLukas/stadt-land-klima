@@ -1,5 +1,5 @@
 <template lang="">
-  <footer class="bg-light-green px-6 2xl:px-2 py-4 text-base-100">
+  <footer class="bg-light-green px-2 py-4 text-base-100">
     <div class="mx-auto max-w-screen-xl w-full">
       <h3 class="text-md">Sitemap</h3>
 

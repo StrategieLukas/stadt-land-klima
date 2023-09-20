@@ -6,7 +6,7 @@
       </label>
     </div>
     <div class="max-w-screen-xl w-full mx-auto flex items-center justify-between">
-      <div class="flex-1 px-2 ml-2 mr-auto">Klima2035</div>
+      <div class="flex-1 mr-auto">Klima2035</div>
       <div class="flex-none hidden lg:block ml-auto">
         <ul tabindex="0" class="menu menu-horizontal">
           <!-- Navbar menu content here -->
