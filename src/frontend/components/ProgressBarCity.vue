@@ -1,13 +1,5 @@
 <template lang="">
-    <div>
-      ProgressBar
-    </div>
+  <div>ProgressBar</div>
 </template>
-<script setup>
-
-    
-
-</script>
-<style lang="">
-    
-</style>
+<script setup></script>
+<style lang=""></style>

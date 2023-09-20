@@ -1,8 +1,5 @@
 <template lang="">
-  <div>
-    Header
-    <p>________________________</p>
-  </div>
+  <div>Karte</div>
 </template>
 <script setup></script>
 <style lang=""></style>

@@ -1,16 +1,8 @@
 <template lang="">
-    <div>
-        <CityPolarChart>
-            
-        </CityPolarChart>
+  <div>
+    <city-polar-chart> </city-polar-chart>
     Detail view for each city in the ranking
-    </div>
+  </div>
 </template>
-<script setup>
-
-    
-
-</script>
-<style lang="">
-    
-</style>
+<script setup></script>
+<style lang=""></style>
