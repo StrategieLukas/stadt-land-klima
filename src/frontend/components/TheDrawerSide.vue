@@ -11,8 +11,16 @@
       <li>
         <NuxtLink to="/massnahmen" class="btn btn-ghost text-base-100 text-md normal-case"> Maßnahmen</NuxtLink>
       </li>
+      <li v-for="page in pages">
+        <NuxtLink :to="page.slug" class="btn btn-ghost text-base-100 text-md normal-case">
+          {{ page.name }}
+        </NuxtLink>
+      </li>
     </ul>
   </nav>
 </template>
-<script setup></script>
+<script setup>
+import { defineProps } from 'vue';
+const props = defineProps(['pages']);
+</script>
 <style lang=""></style>

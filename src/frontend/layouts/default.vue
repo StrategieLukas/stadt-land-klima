@@ -9,15 +9,17 @@
           <slot />
         </div>
       </main>
-      <the-footer :pages="pages"></the-footer>
+      <the-footer :pages="pages.filter((page) => { return includes(page.menus, 'footer') })" />
     </div>
-    <the-drawer-side />
+    <the-drawer-side :pages="pages.filter((page) => { return includes(page.menus, 'main') })" />
   </div>
 </template>
 <script setup>
+import { includes } from 'lodash';
 const { $directus, $readItems } = useNuxtApp();
 
 const { data: pages } = await useAsyncData('pages', () => {
   return $directus.request($readItems('pages', {limit: -1}));
 });
+console.log(pages);
 </script>
