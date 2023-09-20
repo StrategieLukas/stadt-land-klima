@@ -17,7 +17,11 @@ meta:
   singleton: false
   sort: null
   sort_field: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Redakteur*innen
+      singular: Redakteur*in
+      plural: Redakteur*innen
   unarchive_value: null
 schema:
   name: editors

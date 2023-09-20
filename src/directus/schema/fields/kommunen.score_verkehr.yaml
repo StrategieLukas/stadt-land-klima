@@ -14,12 +14,12 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 12
+  sort: 17
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: score_verkehr
   table: kommunen

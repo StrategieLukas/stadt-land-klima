@@ -14,9 +14,11 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 12
+  sort: 14
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Erklärung
   validation: null
   validation_message: null
   width: full

@@ -14,9 +14,11 @@ meta:
   options: null
   readonly: false
   required: true
-  sort: 9
+  sort: 10
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Name der Kommune
   validation: null
   validation_message: null
   width: full

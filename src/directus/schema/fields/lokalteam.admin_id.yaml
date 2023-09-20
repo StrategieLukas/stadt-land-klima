@@ -4,8 +4,8 @@ type: uuid
 meta:
   collection: lokalteam
   conditions: null
-  display: null
-  display_options: null
+  display: user
+  display_options: {}
   field: admin_id
   group: null
   hidden: false
@@ -17,7 +17,9 @@ meta:
   sort: 11
   special:
     - m2o
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Admin
   validation: null
   validation_message: null
   width: full

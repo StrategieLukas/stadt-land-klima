@@ -1,38 +1,41 @@
 collection: kommunen
-field: kommunen_typ
-type: string
+field: geolocation
+type: geometry.Point
 meta:
   collection: kommunen
   conditions: null
-  display: labels
+  display: null
   display_options: null
-  field: kommunen_typ
+  field: geolocation
   group: null
   hidden: false
-  interface: select-dropdown
+  interface: map
   note: null
   options:
-    choices:
-      - text: Großstadt
-        value: grossstadt
-      - text: Kleinstadt
-        value: kleinstadt
+    defaultView:
+      bearing: 0
+      center:
+        lat: 51.58303605025637
+        lng: 11.849132624118965
+      pitch: 0
+      zoom: 3.6742147103385885
+    geometryType: Point
   readonly: false
   required: false
-  sort: 10
+  sort: 16
   special: null
   translations:
     - language: de-DE
-      translation: Art der Kommune
+      translation: Geoposition
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: kommunen_typ
+  name: geolocation
   table: kommunen
-  data_type: character varying
+  data_type: POINT
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

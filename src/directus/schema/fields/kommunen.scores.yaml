@@ -14,7 +14,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 18
+  sort: 20
   special:
     - alias
     - group

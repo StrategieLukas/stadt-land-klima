@@ -22,7 +22,7 @@ meta:
       - email:
           _regex: ^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$
   validation_message: Das ist keine Email Adresse
-  width: full
+  width: half
 schema:
   name: email
   table: editors

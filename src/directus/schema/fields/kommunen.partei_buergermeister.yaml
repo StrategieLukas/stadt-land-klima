@@ -14,12 +14,14 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 14
+  sort: 15
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Partei des/der Bürgermeister*in
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: partei_buergermeister
   table: kommunen

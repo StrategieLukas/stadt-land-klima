@@ -17,7 +17,11 @@ meta:
   singleton: false
   sort: null
   sort_field: sort
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Seiten
+      singular: Seite
+      plural: Seiten
   unarchive_value: draft
 schema:
   name: pages

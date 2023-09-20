@@ -14,12 +14,12 @@ meta:
   options: null
   readonly: false
   required: true
-  sort: 9
+  sort: 8
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: name
   table: massnahmen
