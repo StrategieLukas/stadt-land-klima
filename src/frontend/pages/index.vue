@@ -1,8 +1,8 @@
 <template>
   <div>
-    <h1 class="text-3xl font-bold underline">Hello world!</h1>
+    <h1>Hello world!</h1>
 
-    <the-ranking :kommunen="kommunen"></the-ranking>
+    <the-ranking :kommunen="kommunen" class="bg-ff-green"></the-ranking>
   </div>
 </template>
 <script setup>
