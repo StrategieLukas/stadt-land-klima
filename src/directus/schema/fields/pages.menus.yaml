@@ -4,8 +4,13 @@ type: csv
 meta:
   collection: pages
   conditions: null
-  display: null
-  display_options: null
+  display: labels
+  display_options:
+    choices:
+      - text: Hauptnavigation
+        value: main
+      - text: Footernavigation
+        value: footer
   field: menus
   group: null
   hidden: false
