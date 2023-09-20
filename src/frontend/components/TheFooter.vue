@@ -1,14 +1,8 @@
 <template lang="">
-    <div>
-        <p> ________________________
-       </p>
-       Footer
-    </div>
+  <div>
+    <p>________________________</p>
+    Footer
+  </div>
 </template>
-<script setup >
- 
-
-</script>
-<style lang="">
-    
-</style>
+<script setup></script>
+<style lang=""></style>

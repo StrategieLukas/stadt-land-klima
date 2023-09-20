@@ -1,20 +1,14 @@
 <template>
-    <div>
-        <h1 class="text-3xl font-bold underline">
-            Hello world!
-        </h1>
-        
-      <TheRanking :kommunen="kommunen" />
-      
-    </div>
+  <div>
+    <h1>Hello world!</h1>
+
+    <the-ranking :kommunen="kommunen" class="bg-ff-green"></the-ranking>
+  </div>
 </template>
 <script setup>
-const { $directus, $readItems } = useNuxtApp()
+const { $directus, $readItems } = useNuxtApp();
 
 const { data: kommunen } = await useAsyncData('kommunen', () => {
-    return $directus.request(
-        $readItems('kommunen', {
-        })
-    )
-})
+  return $directus.request($readItems('kommunen', {}));
+});
 </script>
