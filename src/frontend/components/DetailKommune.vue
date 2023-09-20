@@ -1,8 +1,6 @@
 <template lang="">
-  <div>
-    <city-polar-chart :sub-scores="subScores"> </city-polar-chart>
-    Detail view for each city in the ranking
-  </div>
+  <kommune-polar-chart :sub-scores="subScores" :name-kommune="kommune.name"> </kommune-polar-chart>
+  <div>Detail view for each city in the rankings</div>
 </template>
 <script setup>
 const props = defineProps({

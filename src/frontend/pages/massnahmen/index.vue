@@ -3,7 +3,7 @@
     <h1>Alle Maßnahmen:</h1>
     <ul>
       <li v-for="massnahme in massnahmen" :key="massnahme.id">
-        <NuxtLink :href="`/massnahmen/${massnahme.slug}`">
+        <NuxtLink :to="'/massnahmen/' + massnahme.slug">
           <h1>{{ massnahme.name }}</h1>
         </NuxtLink>
       </li>

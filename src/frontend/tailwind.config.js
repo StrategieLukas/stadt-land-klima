@@ -17,6 +17,10 @@ module.exports = {
         'localzero-yellow': '#ffc80c',
         'light-blue': '#16bae7',
         black: '#000000',
+        gray: '#DDDDDD',
+      },
+      boxShadow: {
+        list: '0 3pt 6pt #00000029',
       },
     },
   },

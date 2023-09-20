@@ -1,9 +1,10 @@
 <template lang="">
-  <div m-5>
+  <div class="flex flex-col my-3">
     The Ranking:
+
     <ul>
-      <li v-for="kommune in kommunen" :key="kommune.id">
-        <item-ranking :kommune="kommune"></item-ranking>
+      <li v-for="(kommune, index) in kommunen" :key="kommune.id">
+        <item-ranking :kommune="kommune" :index="index + 1"></item-ranking>
       </li>
     </ul>
   </div>

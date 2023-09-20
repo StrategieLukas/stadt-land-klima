@@ -3,7 +3,7 @@
     <h1>Alle Städte und Kreise</h1>
     <ul>
       <li v-for="kommune in kommunen" :key="kommune.id">
-        <NuxtLink :href="`/kommunen/${kommune.slug}`">
+        <NuxtLink :to="'/kommunen/' + kommune.slug">
           <h1>{{ kommune.name }}</h1>
         </NuxtLink>
       </li>

@@ -1,7 +1,6 @@
 <template>
   <div>
-    <h1>{{ kommune[0].name }}</h1>
-    <Kommune></Kommune>
+    <detail-kommune :kommune="kommune[0]"></detail-kommune>
   </div>
 </template>
 <script setup>
