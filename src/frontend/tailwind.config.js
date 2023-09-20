@@ -22,6 +22,7 @@ module.exports = {
       typography: {
         DEFAULT: {
           css: {
+            color: '#707070',
             h1: {
               fontFamily: 'RobotoCondensed-Bold',
               'font-size': '32pt',
@@ -72,7 +73,10 @@ module.exports = {
       }
     },
   },
-  plugins: [require('daisyui')],
+  plugins: [
+    require('daisyui'),
+    require('@tailwindcss/typography'),
+  ],
   daisyui: {
     themes: [
       {
