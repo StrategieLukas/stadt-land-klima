@@ -19,7 +19,7 @@ module.exports = {
         'light-blue': '#16bae7',
         black: '#000000',
       },
-      typgraphy: {
+      typography: {
         DEFAULT: {
           css: {
             h1: {
