@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: bundesland
-  group: null
+  group: details
   hidden: false
   interface: select-dropdown
   note: null
@@ -47,7 +47,7 @@ meta:
         value: bremen
   readonly: false
   required: false
-  sort: 12
+  sort: 1
   special: null
   translations: null
   validation: null

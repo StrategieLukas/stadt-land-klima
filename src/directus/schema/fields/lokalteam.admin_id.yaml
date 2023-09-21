@@ -22,7 +22,7 @@ meta:
       translation: Admin
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: admin_id
   table: lokalteam

@@ -7,14 +7,14 @@ meta:
   display: null
   display_options: null
   field: einwohnerzahl
-  group: null
+  group: details
   hidden: false
   interface: input
   note: null
   options: null
   readonly: false
   required: false
-  sort: 13
+  sort: 2
   special: null
   translations: null
   validation: null

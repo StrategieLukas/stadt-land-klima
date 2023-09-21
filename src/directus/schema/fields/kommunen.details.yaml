@@ -1,12 +1,12 @@
 collection: kommunen
-field: scores
+field: details
 type: alias
 meta:
   collection: kommunen
   conditions: null
   display: null
   display_options: null
-  field: scores
+  field: details
   group: null
   hidden: false
   interface: group-detail
@@ -15,7 +15,7 @@ meta:
     start: closed
   readonly: false
   required: false
-  sort: 13
+  sort: 12
   special:
     - alias
     - group
