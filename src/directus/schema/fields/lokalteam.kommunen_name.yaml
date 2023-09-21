@@ -21,7 +21,7 @@ meta:
       translation: Name der Kommune
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: kommunen_name
   table: lokalteam

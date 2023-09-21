@@ -1,21 +1,20 @@
-collection: kommunen
-field: scores
+collection: massnahmen
+field: umsetzbarkeit
 type: alias
 meta:
-  collection: kommunen
+  collection: massnahmen
   conditions: null
   display: null
   display_options: null
-  field: scores
+  field: umsetzbarkeit
   group: null
   hidden: false
   interface: group-detail
   note: null
-  options:
-    start: closed
+  options: null
   readonly: false
   required: false
-  sort: 13
+  sort: 12
   special:
     - alias
     - group

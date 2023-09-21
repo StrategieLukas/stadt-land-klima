@@ -22,7 +22,7 @@ meta:
     geometryType: Point
   readonly: false
   required: false
-  sort: 16
+  sort: 14
   special: null
   translations:
     - language: de-DE

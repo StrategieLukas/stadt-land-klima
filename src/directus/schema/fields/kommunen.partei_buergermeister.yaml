@@ -7,14 +7,14 @@ meta:
   display: null
   display_options: null
   field: partei_buergermeister
-  group: null
+  group: details
   hidden: false
   interface: input
   note: null
   options: null
   readonly: false
   required: false
-  sort: 15
+  sort: 4
   special: null
   translations:
     - language: de-DE
