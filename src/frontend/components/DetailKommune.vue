@@ -1,6 +1,11 @@
 <template lang="">
-  <div class="w-full flex-col justify-center">
+  <div class="justify-center">
+    <item-ranking :kommune="kommune" :index="0"></item-ranking>
     <kommune-polar-chart :sub-scores="subScores" :name-kommune="kommune.name"> </kommune-polar-chart>
+    <div v-for="key in Object.keys(sortedBewertungen)" :key="key" class="py-2">
+      <collapse-sector :measures-assessments="sortedBewertungen[key]"></collapse-sector>
+    </div>
+
     <div>Detail view for each city in the rankings</div>
   </div>
 </template>
@@ -10,14 +15,14 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  bewertungen: {
+  sortedBewertungen: {
     type: Object,
     required: true,
   },
 });
 const kommune = props.kommune;
 console.log("kommune DEtail City", kommune);
-
+console.log("sorted Bewertungn DEtail City", props.sortedBewertungen);
 const subScores = createSubScoreObject(kommune);
 console.log("subScores", subScores);
 

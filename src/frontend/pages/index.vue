@@ -1,7 +1,5 @@
 <template>
   <div>
-    <h1>Hello world!</h1>
-
     <the-ranking :kommunen="kommunen" class=""></the-ranking>
   </div>
 </template>

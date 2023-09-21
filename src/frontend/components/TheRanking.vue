@@ -1,10 +1,10 @@
 <template lang="">
   <div class="my-3 flex flex-col">
-    The Ranking:
-
     <ul>
       <li v-for="(kommune, index) in kommunen" :key="kommune.id">
-        <item-ranking :kommune="kommune" :index="index + 1"></item-ranking>
+        <NuxtLink :to="'/kommunen/' + kommune.slug">
+          <item-ranking :kommune="kommune" :index="index + 1" :is-ranking="true"></item-ranking>
+        </NuxtLink>
       </li>
     </ul>
   </div>

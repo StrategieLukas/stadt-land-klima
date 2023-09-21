@@ -1,6 +1,6 @@
 <template>
   <div>
-    <detail-kommune :kommune="kommune[0]" :sorted-bewertungen="dictMassnhamenBewertungeSorted"></detail-kommune>
+    <detail-kommune :kommune="kommune[0]" :sorted-bewertungen="sortedBewertungen"></detail-kommune>
   </div>
 </template>
 <script setup>
@@ -28,9 +28,12 @@ const { data: massnahmen } = await useAsyncData("massnahmen", () => {
 
 const bmArray = bewertungen_massnahmen.value;
 const massnahmenArray = massnahmen.value;
-
+console.log("bmArray", bmArray);
+console.log("massnahmenArray", massnahmenArray);
+const sortedBewertungen = sortMassnahmneBySector();
+console.log("slug", sortedBewertungen);
 function sortMassnahmneBySector() {
-  //TODO Error HAndline
+  //TODO Error Handling
   const dictMassnhamenBewertungeSorted = {};
   for (const key in bmArray) {
     for (const key2 in massnahmenArray) {
@@ -39,11 +42,11 @@ function sortMassnahmneBySector() {
         console.log("succes", bmArray[key]);
       }
     }
-    if (!Object.prototype.hasOwnProperty.call(dictMassnhamenBewertunge, bmArray[key].massnahme.sektor)) {
+    if (!Object.prototype.hasOwnProperty.call(dictMassnhamenBewertungeSorted, bmArray[key].massnahme.sektor)) {
       dictMassnhamenBewertungeSorted[bmArray[key].massnahme.sektor] = [];
       console.log("succes2");
     }
-    dictMassnhamenBewertungeSorted[bmArray[key].massnahme.sektor].push(bewertungen_massnahmen.value[key]);
+    dictMassnhamenBewertungeSorted[bmArray[key].massnahme.sektor].push(bmArray[key]);
   }
 
   return dictMassnhamenBewertungeSorted;

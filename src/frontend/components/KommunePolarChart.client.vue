@@ -1,10 +1,12 @@
 <template lang="">
   <div class="flex w-full justify-center">
-    <div class="relative flex h-96 w-96 justify-center">
-      <div class="h-full w-6/12">
-        <PolarArea :data="chartData" :options="chartOptions" />
+    <div class="relative flex h-96 w-full items-center justify-center">
+      <div class="relative flex h-96 w-full items-center justify-center">
+        <div class="h-60/100 w-60/100 z-10">
+          <PolarArea :data="chartData" :options="chartOptions" />
+        </div>
       </div>
-      <div class="z-1 absolute h-full w-full items-center justify-center">
+      <div class="absolute h-full w-full items-center justify-center">
         <ring-polar></ring-polar>
       </div>
     </div>
@@ -12,6 +14,7 @@
 </template>
 <script setup>
 import { PolarArea } from "vue-chartjs";
+
 const props = defineProps({
   subScores: {
     type: Object,
@@ -26,9 +29,9 @@ const subScoresArray = createSubScoreArray(props.subScores);
 const colorsArray = createColorArray(subScoresArray);
 const labels = [
   "Energie",
-  "Landwirtschaft, Natur & Ernährung",
   "Verkehr",
-  " Industrie, Wirtschaft & Konsum",
+  "Landwirtschaft, Natur & Ernährung",
+  "Industrie, Wirtschaft & Konsum",
   "Gebäude & Wärme",
   "Klimaschutzmanagement & Verwaltung",
 ];
@@ -64,10 +67,10 @@ const chartOptions = {
         lineWidth: 1,
       },
       ticks: {
-        color: "gray",
+        color: "black",
         backdropColor: "rgba(0,0,0,0)",
         stepSize: 2,
-        maxRotation: 90,
+
         z: 1,
       },
     },
@@ -77,8 +80,8 @@ const chartOptions = {
 function createSubScoreArray(subScoreObject) {
   const tempScores = [];
   tempScores.push(subScoreObject.score_energie);
-  tempScores.push(subScoreObject.score_lne);
   tempScores.push(subScoreObject.score_verkehr);
+  tempScores.push(subScoreObject.score_lne);
   tempScores.push(subScoreObject.score_iwk);
   tempScores.push(subScoreObject.score_gw);
   tempScores.push(subScoreObject.score_kv);
@@ -88,12 +91,12 @@ function createSubScoreArray(subScoreObject) {
 function createColorArray(subScoresArray) {
   const tempColorsArray = [];
   subScoresArray.forEach(function (score, index) {
-    if (score < 3) {
-      tempColorsArray.push("rgba(255, 99, 132,0.5)");
+    if (score < 4) {
+      tempColorsArray.push("rgb(227, 6, 19, 0.5)");
     } else if (score < 7) {
-      tempColorsArray.push("rgb(75, 192, 192, 0.5)");
+      tempColorsArray.push("rgb(243, 146, 0, 0.5)");
     } else {
-      tempColorsArray.push("rgb(54, 162, 235, 0.5)");
+      tempColorsArray.push("rgb(29, 166, 74, 0.5)");
     }
   });
   console.log("temp Color:", tempColorsArray);
