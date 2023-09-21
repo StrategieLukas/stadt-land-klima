@@ -1,24 +1,15 @@
 <template lang="">
-  <header class="bg-white shadow py-4 px-2 mb-3">
-    <div class="mx-auto w-full max-w-screen-xl flex flex-col lg:flex-row items-center lg:items-end gap-x-8">
+  <header class="mb-3 bg-white px-2 py-4 shadow">
+    <div class="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-x-8 lg:flex-row lg:items-end">
       <NuxtLink to="/">
-        <img
-          src="~/assets/images/Signet-Klima2035.svg"
-          class="h-32 w-auto "
-          alt="Klima2035 - Land und Stadt Ranking"
-        />
+        <img src="~/assets/images/Signet-Klima2035.svg" class="h-32 w-auto" alt="Klima2035 - Land und Stadt Ranking" />
       </NuxtLink>
       <form class="mb-1">
         <div class="form-control">
-          <label
-            for="search-input"
-            class="label"
-          >
-            Suche nach PLZ oder Ort
-          </label>
+          <label for="search-input" class="label"> Suche nach PLZ oder Ort </label>
           <input
             id="search-input"
-            class="input input-bordered input-primary bg-white max-w-full w-96"
+            class="input input-bordered input-primary w-96 max-w-full bg-white"
             name="q"
             type="text"
           />

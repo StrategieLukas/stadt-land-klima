@@ -1,6 +1,6 @@
-import { createDirectus } from '@directus/sdk';
-import { rest, readItem, readItems } from '@directus/sdk/rest';
-const directusUrl = process.env.DIRECTUS_URL || 'http://127.0.0.1:8081';
+import { createDirectus } from "@directus/sdk";
+import { rest, readItem, readItems } from "@directus/sdk/rest";
+const directusUrl = process.env.DIRECTUS_URL || "http://127.0.0.1:8081";
 const directus = createDirectus(directusUrl).with(rest());
 
 // eslint-disable-next-line no-undef

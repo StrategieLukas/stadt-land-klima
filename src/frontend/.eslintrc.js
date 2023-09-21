@@ -4,8 +4,8 @@ module.exports = {
     browser: true,
     node: true,
   },
-  parser: 'vue-eslint-parser',
-  extends: ['@nuxt/eslint-config', 'plugin:prettier/recommended'],
+  parser: "vue-eslint-parser",
+  extends: ["@nuxt/eslint-config", "plugin:prettier/recommended"],
   plugins: [],
   rules: {},
 };

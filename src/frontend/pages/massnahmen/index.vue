@@ -14,12 +14,12 @@
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
 
-const { data: massnahmen } = await useAsyncData('massnahmen', () => {
+const { data: massnahmen } = await useAsyncData("massnahmen", () => {
   return $directus.request(
-    $readItems('massnahmen', {
-      fields: ['slug', 'name'],
+    $readItems("massnahmen", {
+      fields: ["slug", "name"],
     }),
   );
 });
-console.log('LOG:', massnahmen);
+console.log("LOG:", massnahmen);
 </script>

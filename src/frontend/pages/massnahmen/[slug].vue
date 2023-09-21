@@ -8,9 +8,9 @@
 const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
 
-const { data: massnahme } = await useAsyncData('massnahmen', () => {
+const { data: massnahme } = await useAsyncData("massnahmen", () => {
   return $directus.request(
-    $readItems('massnahmen', {
+    $readItems("massnahmen", {
       filter: { slug: { _eq: route.params.slug } },
     }),
   );

@@ -8,10 +8,10 @@
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
 
-const { data: kommunen } = await useAsyncData('kommunen', () => {
+const { data: kommunen } = await useAsyncData("kommunen", () => {
   return $directus.request(
-    $readItems('kommunen', {
-      sort: ['-score_total'],
+    $readItems("kommunen", {
+      sort: ["-score_total"],
     }),
   );
 });

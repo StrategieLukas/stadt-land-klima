@@ -1,5 +1,5 @@
 <template lang="">
-  <div class="flex flex-col my-3">
+  <div class="my-3 flex flex-col">
     The Ranking:
 
     <ul>
@@ -17,6 +17,6 @@ const props = defineProps({
   },
 });
 const kommunen = props.kommunen;
-console.log('kommunen:::', kommunen);
+console.log("kommunen:::", kommunen);
 </script>
 <style lang=""></style>
