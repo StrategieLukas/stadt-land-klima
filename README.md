@@ -16,8 +16,8 @@ https://pad.fridaysforfuture.is/p/1MTNMaPYsqpM-p2Doo9r
 Adobe Click Dummy: (nicht aktuell)
 https://xd.adobe.com/view/78b90913-6242-496d-98f2-6363e15715db-2dea/
 
-Adobe Click Dummy Desktop 1280:
-https://xd.adobe.com/view/27db8821-ac25-4773-a2f8-ab37b0abb61c-7288/
+Figma Click Dummy Desktop 1280:
+https://www.figma.com/file/hfLAnnvP4Qj2h9ALUtPUMl/Klima2035-Desktop?type=design&node-id=1%3A2001&mode=design&t=HKdvCQFJntTMq0EZ-1
 
 Figma Click Dummy Mobile:
 https://www.figma.com/file/xOUA8jmhBBreYvmZRdlFSn/Klima2035-mobile?type=design&node-id=3%3A2&mode=design&t=sY2zf5p8UTfrLm1e-1
