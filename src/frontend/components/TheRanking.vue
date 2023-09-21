@@ -1,16 +1,22 @@
 <template lang="">
-  <div m-5>
+  <div class="my-3 flex flex-col">
     The Ranking:
+
     <ul>
-      <li v-for="kommune in kommunen" :key="kommune.id">
-        <ItemRanking :kommune="kommune"></ItemRanking>
+      <li v-for="(kommune, index) in kommunen" :key="kommune.id">
+        <item-ranking :kommune="kommune" :index="index + 1"></item-ranking>
       </li>
     </ul>
   </div>
 </template>
 <script setup>
-const props = defineProps(['kommunen']);
-const { kommunen } = props;
-console.log(kommunen);
+const props = defineProps({
+  kommunen: {
+    type: Array,
+    required: true,
+  },
+});
+const kommunen = props.kommunen;
+console.log("kommunen:::", kommunen);
 </script>
 <style lang=""></style>

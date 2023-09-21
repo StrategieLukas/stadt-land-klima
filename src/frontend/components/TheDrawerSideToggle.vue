@@ -1,7 +1,17 @@
 <template lang="">
-  <div class="flex-none fixed top-0 right-0">
-    <label for="page-drawer" class="btn btn-square rounded-t-none rounded-br-none border-none bg-light-green text-white">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+  <div class="fixed right-0 top-0 flex-none">
+    <label
+      for="page-drawer"
+      class="btn btn-square rounded-t-none rounded-br-none border-none bg-light-green text-white"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        class="inline-block h-6 w-6 stroke-current"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
     </label>
   </div>
 </template>

@@ -8,7 +8,7 @@ import {
   LinearScale,
   ArcElement,
   RadialLinearScale,
-} from 'chart.js';
+} from "chart.js";
 export default defineNuxtPlugin(() => {
   Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, RadialLinearScale, ArcElement);
 });

@@ -3,7 +3,7 @@
     <h1>Alle Städte und Kreise</h1>
     <ul>
       <li v-for="kommune in kommunen" :key="kommune.id">
-        <NuxtLink :href="`/kommunen/${kommune.slug}`">
+        <NuxtLink :to="'/kommunen/' + kommune.slug">
           <h1>{{ kommune.name }}</h1>
         </NuxtLink>
       </li>
@@ -14,12 +14,12 @@
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
 
-const { data: kommunen } = await useAsyncData('kommunen', () => {
+const { data: kommunen } = await useAsyncData("kommunen", () => {
   return $directus.request(
-    $readItems('kommunen', {
-      fields: ['slug', 'name', 'score_total'],
+    $readItems("kommunen", {
+      fields: ["slug", "name", "score_total"],
     }),
   );
 });
-console.log('LOG:', kommunen);
+console.log("LOG:", kommunen);
 </script>
