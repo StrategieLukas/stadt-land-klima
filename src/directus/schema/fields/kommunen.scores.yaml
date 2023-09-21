@@ -1,0 +1,25 @@
+collection: kommunen
+field: scores
+type: alias
+meta:
+  collection: kommunen
+  conditions: null
+  display: null
+  display_options: null
+  field: scores
+  group: null
+  hidden: false
+  interface: group-raw
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 20
+  special:
+    - alias
+    - group
+    - no-data
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

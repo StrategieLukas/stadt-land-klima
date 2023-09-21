@@ -7,8 +7,10 @@ services:
   directus:
     ports:
       - "8081:8055"
+    command: ["sh", "/start_dev.sh"]
 
   frontend:
     ports:
       - "8080:3000"
+      - "24678:24678"
     command: ["sh", "/start_dev.sh"]

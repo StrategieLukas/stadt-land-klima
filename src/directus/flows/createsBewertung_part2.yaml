@@ -1,0 +1,21 @@
+name: createsBewertung_part2
+icon: bolt
+color: null
+description: creates a Bewertung for each Maßnahme or Lokalteam
+status: active
+trigger: operation
+accountability: all
+options:
+  return: $all
+operations:
+  - name: creates_Bewertung
+    key: creates_bewertung
+    type: item-create
+    position_x: 19
+    position_y: 1
+    options:
+      collection: bewertungen_massnahmen
+      payload:
+        massnahme_id: "{{$last.massnahme_id}}"
+        lokalteam_id: "{{$last.lokalteam_id}}"
+operation_key: creates_bewertung
