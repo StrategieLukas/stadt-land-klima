@@ -33,5 +33,4 @@ const { $directus, $readItems } = useNuxtApp();
 const { data: pages } = await useAsyncData("pages", () => {
   return $directus.request($readItems("pages", { limit: -1 }));
 });
-console.log(pages);
 </script>

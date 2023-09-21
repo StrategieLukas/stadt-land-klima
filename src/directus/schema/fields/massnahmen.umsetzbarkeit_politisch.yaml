@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: umsetzbarkeit_politisch
-  group: null
+  group: umsetzbarkeit
   hidden: false
   interface: select-dropdown
   note: null
@@ -21,7 +21,7 @@ meta:
         value: schwer
   readonly: false
   required: false
-  sort: 12
+  sort: 1
   special: null
   translations: null
   validation: null

@@ -19,7 +19,7 @@ meta:
   translations: null
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
   name: name
   table: massnahmen

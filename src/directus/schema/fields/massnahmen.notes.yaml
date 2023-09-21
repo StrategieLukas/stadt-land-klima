@@ -1,36 +1,37 @@
 collection: massnahmen
-field: slug
-type: string
+field: notes
+type: text
 meta:
   collection: massnahmen
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: notes
   group: null
   hidden: false
-  interface: input
+  interface: input-multiline
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
   required: false
-  sort: 9
+  sort: 15
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Hinweise
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
+  name: notes
   table: massnahmen
-  data_type: character varying
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null
