@@ -10,15 +10,15 @@ const props = defineProps({
   },
 });
 const kommune = props.kommune;
-console.log('kommune DEtail City', kommune);
+console.log("kommune DEtail City", kommune);
 
 const subScores = createSubScoreObject(kommune);
-console.log('subScores', subScores);
+console.log("subScores", subScores);
 
 function createSubScoreObject(kommune) {
   const temp = {};
   for (const [key, value] of Object.entries(kommune)) {
-    if (key.includes('score')) {
+    if (key.includes("score")) {
       temp[key] = value;
     }
   }
