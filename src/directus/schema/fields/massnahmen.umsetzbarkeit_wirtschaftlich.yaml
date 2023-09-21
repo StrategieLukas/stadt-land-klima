@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: umsetzbarkeit_wirtschaftlich
-  group: null
+  group: umsetzbarkeit
   hidden: false
   interface: select-dropdown
   note: null
@@ -21,7 +21,7 @@ meta:
         value: schwer
   readonly: false
   required: false
-  sort: 13
+  sort: 2
   special: null
   translations: null
   validation: null

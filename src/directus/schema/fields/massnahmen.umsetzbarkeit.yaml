@@ -1,0 +1,25 @@
+collection: massnahmen
+field: umsetzbarkeit
+type: alias
+meta:
+  collection: massnahmen
+  conditions: null
+  display: null
+  display_options: null
+  field: umsetzbarkeit
+  group: null
+  hidden: false
+  interface: group-detail
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 12
+  special:
+    - alias
+    - group
+    - no-data
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
