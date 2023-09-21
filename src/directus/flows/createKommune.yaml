@@ -1,0 +1,25 @@
+name: createKommune
+icon: bolt
+color: null
+description: createKommune when Lokalteam is created
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.create
+  collections:
+    - lokalteam
+operations:
+  - name: Create Data
+    key: item_create_vf2y4
+    type: item-create
+    position_x: 19
+    position_y: 1
+    options:
+      collection: kommunen
+      payload:
+        name: "{{$trigger.payload.kommunen_name}}"
+        lokalteam_id: "{{$trigger.key}}"
+operation_key: item_create_vf2y4

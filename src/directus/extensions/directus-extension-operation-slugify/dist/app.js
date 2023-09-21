@@ -1,0 +1,1 @@
+var t={id:"operation-slugify",name:"Slugify",icon:"box",description:"This slugify a string!",overview:({text:t})=>[{label:"Text",text:t}],options:[{field:"text",name:"Text",type:"string",meta:{width:"full",interface:"input"}}]};export{t as default};
