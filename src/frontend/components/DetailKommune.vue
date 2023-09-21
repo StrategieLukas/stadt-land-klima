@@ -1,10 +1,16 @@
 <template lang="">
-  <kommune-polar-chart :sub-scores="subScores" :name-kommune="kommune.name"> </kommune-polar-chart>
-  <div>Detail view for each city in the rankings</div>
+  <div class="w-full flex-col justify-center">
+    <kommune-polar-chart :sub-scores="subScores" :name-kommune="kommune.name"> </kommune-polar-chart>
+    <div>Detail view for each city in the rankings</div>
+  </div>
 </template>
 <script setup>
 const props = defineProps({
   kommune: {
+    type: Object,
+    required: true,
+  },
+  bewertungen: {
     type: Object,
     required: true,
   },
