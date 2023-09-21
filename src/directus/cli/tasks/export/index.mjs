@@ -8,6 +8,7 @@ import exportWebhooks from './exportWebhooks.mjs';
 import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
 import exportSettings from './exportSettings.mjs';
+import exportCollectionItems from './exportCollectionItems.mjs';
 
 const clerDirOpts = {extensions: ['.yaml']};
 
@@ -216,6 +217,33 @@ function exportTasks(yargs) {
 
       await clearDirectusCache();
       await exportSettings(argv.dest, {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
+    'export:items [collection] [dest]',
+    'export all items of a collection to the folder specified by "dest". By default it will export into "contents"',
+    (yargs) => {
+      return yargs
+      .positional('collection', {
+        describe: 'collection to export',
+        required: true,
+      })
+      .positional('dest', {
+        describe: 'destination folder',
+        default: 'contents',
+      });
+    },
+    async (argv) => {
+      if (argv.verbose) {
+        console.info(`Exporting ${argv.collection} items to ${argv.dest}`);
+      }
+
+      await clearDirectusCache();
+      await exportCollectionItems(argv.collection, argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });

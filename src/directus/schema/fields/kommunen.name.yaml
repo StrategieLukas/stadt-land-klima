@@ -14,12 +14,14 @@ meta:
   options: null
   readonly: false
   required: true
-  sort: 9
+  sort: 8
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Name
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: name
   table: kommunen

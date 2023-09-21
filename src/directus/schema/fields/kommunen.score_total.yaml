@@ -19,7 +19,7 @@ meta:
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: score_total
   table: kommunen

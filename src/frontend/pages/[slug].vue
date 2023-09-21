@@ -1,18 +1,17 @@
 <template>
-  <div>
-    <h1>{{ page[0].name }}</h1>
-  </div>
+  <article class="prose py-8" v-html="pages[0].inhalt">
+  </article>
 </template>
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
 
-const { data: page } = await useAsyncData('page', () => {
+const { data: pages } = await useAsyncData('pages', () => {
   return $directus.request(
     $readItems('pages', {
       filter: { slug: { _eq: route.params.slug } },
+      limit: 1,
     }),
   );
 });
-console.log(page);
 </script>

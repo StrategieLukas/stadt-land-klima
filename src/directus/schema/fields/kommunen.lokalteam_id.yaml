@@ -16,13 +16,13 @@ meta:
     template: "{{name}}"
   readonly: false
   required: false
-  sort: 19
+  sort: 11
   special:
     - m2o
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: lokalteam_id
   table: kommunen

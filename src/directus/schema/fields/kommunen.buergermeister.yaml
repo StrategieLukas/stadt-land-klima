@@ -14,12 +14,14 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 13
+  sort: 14
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Bürgermeister*in
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: buergermeister
   table: kommunen

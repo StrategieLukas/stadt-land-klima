@@ -19,10 +19,12 @@ meta:
   sort: 8
   special:
     - m2o
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Lokalteam
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: lokalteam_id
   table: bewertungen_massnahmen

@@ -1,5 +1,5 @@
 id: 1
-project_name: Directus
+project_name: Städtechallenge
 project_url: null
 project_color: null
 project_logo: null
@@ -32,5 +32,5 @@ module_bar:
     enabled: true
     locked: true
 project_descriptor: null
-default_language: en-US
+default_language: de-DE
 custom_aspect_ratios: null

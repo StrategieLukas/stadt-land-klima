@@ -21,12 +21,12 @@ meta:
         value: schwer
   readonly: false
   required: false
-  sort: 15
+  sort: 13
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: umsetzbarkeit_wirtschaftlich
   table: massnahmen

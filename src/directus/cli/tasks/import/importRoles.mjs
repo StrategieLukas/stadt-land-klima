@@ -8,7 +8,7 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importRoles(src, options = {verbose: false}) {
+async function importRoles(src, options = {verbose: false, remove: false}) {
   const client = createDirectusClient();
 
   try {

@@ -19,10 +19,12 @@ meta:
   sort: 9
   special:
     - m2o
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Maßnahme
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: massnahme_id
   table: bewertungen_massnahmen

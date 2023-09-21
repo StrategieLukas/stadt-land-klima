@@ -4,7 +4,7 @@ type: string
 meta:
   collection: kommunen
   conditions: null
-  display: null
+  display: labels
   display_options: null
   field: kommunen_typ
   group: null
@@ -19,12 +19,14 @@ meta:
         value: kleinstadt
   readonly: false
   required: false
-  sort: 12
+  sort: 10
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Art der Kommune
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: kommunen_typ
   table: kommunen

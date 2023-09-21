@@ -21,12 +21,12 @@ meta:
         value: schwer
   readonly: false
   required: false
-  sort: 14
+  sort: 12
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: umsetzbarkeit_politisch
   table: massnahmen

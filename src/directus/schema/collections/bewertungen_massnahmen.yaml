@@ -17,7 +17,11 @@ meta:
   singleton: false
   sort: null
   sort_field: sort
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Maßnahmenbewertungen
+      singular: Maßnahmenbewertung
+      plural: Maßnahmenbewertungen
   unarchive_value: draft
 schema:
   name: bewertungen_massnahmen
