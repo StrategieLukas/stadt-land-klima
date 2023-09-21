@@ -48,16 +48,18 @@ module.exports = {
               color: '#000000',
             },
             h3: {
-              fontFamily: "RobotoCondensed-Bold",
+              fontFamily: "RobotoCondensed-Regular",
               "font-size": "1.5rem",
               "line-height": "1.5",
+              "font-weight": 400,
               color: '#16bae7',
             },
             h4: {
-              fontFamily: "RobotoCondensed-Bold",
+              fontFamily: "RobotoCondensed-Regular",
               "font-size": "1.5rem",
               "line-height": "1.5",
-              color: '#afca0b',
+              "font-weight": 400,
+              color: '#1da64a',
             },
             "a:hover": {
               "text-decoration": "underline dotted",
