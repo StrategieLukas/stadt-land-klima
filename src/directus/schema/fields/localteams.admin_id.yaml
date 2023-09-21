@@ -1,0 +1,41 @@
+collection: localteams
+field: admin_id
+type: uuid
+meta:
+  collection: localteams
+  conditions: null
+  display: user
+  display_options: {}
+  field: admin_id
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 11
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Admin
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: admin_id
+  table: localteams
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: true
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: directus_users
+  foreign_key_column: id

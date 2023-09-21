@@ -1,0 +1,27 @@
+collection: measures
+field: feasibility
+type: alias
+meta:
+  collection: measures
+  conditions: null
+  display: null
+  display_options: null
+  field: feasibility
+  group: null
+  hidden: false
+  interface: group-detail
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 12
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Umsetzbarkeit
+  validation: null
+  validation_message: null
+  width: full

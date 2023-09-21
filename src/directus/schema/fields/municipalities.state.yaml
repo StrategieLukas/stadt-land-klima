@@ -1,0 +1,73 @@
+collection: municipalities
+field: state
+type: string
+meta:
+  collection: municipalities
+  conditions: null
+  display: null
+  display_options: null
+  field: state
+  group: details
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: Bayern
+        value: bayern
+      - text: " Niedersachsen"
+        value: niedersachsen
+      - text: " Baden-Württemberg"
+        value: " baden_wuerttemberg"
+      - text: Nordrhein-Westfalen
+        value: nordrhein_westfalen
+      - text: " Brandenburg"
+        value: brandenburg
+      - text: " Mecklenburg-Vorpommern \t"
+        value: " mecklenburg_vorpommern \t"
+      - text: " Hessen"
+        value: hessen
+      - text: " Sachsen-Anhalt"
+        value: sachsen_anhalt
+      - text: Rheinland-Pfalz
+        value: rheinland_pfalz
+      - text: Sachsen
+        value: sachsen
+      - text: Thüringen
+        value: thueringen
+      - text: Schleswig-Holstein
+        value: schleswig-holstein
+      - text: Saarland
+        value: saarland
+      - text: Berlin
+        value: berlin
+      - text: Hamburg
+        value: hamburg
+      - text: Bremen
+        value: bremen
+  readonly: false
+  required: false
+  sort: 1
+  special: null
+  translations:
+    - language: de-DE
+      translation: Bundesland
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: state
+  table: municipalities
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

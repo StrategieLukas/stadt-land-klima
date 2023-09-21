@@ -1,0 +1,40 @@
+collection: pages
+field: contents
+type: text
+meta:
+  collection: pages
+  conditions: null
+  display: null
+  display_options: null
+  field: contents
+  group: null
+  hidden: false
+  interface: input-rich-text-html
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 11
+  special: null
+  translations:
+    - language: de-DE
+      translation: Inhalt
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: contents
+  table: pages
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

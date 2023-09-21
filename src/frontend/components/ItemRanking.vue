@@ -1,5 +1,5 @@
 <template lang="">
-  <NuxtLink :to="'/kommunen/' + kommune.slug">
+  <NuxtLink :to="'/municipalities/' + municipality.slug">
     <div class="my-3 flex flex-row px-10 py-5 shadow-list">
       <div class="relative flex">
         <svg
@@ -32,19 +32,19 @@
       <div class="grow">
         <div class="flex flex-row">
           <div class="grow">
-            <h2>{{ kommune.name }}</h2>
-            <p>{{ kommune.bundesland }}</p>
+            <h2>{{ municipality.name }}</h2>
+            <p>{{ municipality.state }}</p>
           </div>
           <div class="flex items-center">Btton</div>
         </div>
-        <progress-bar :score-total="kommune.score_total"></progress-bar>
+        <progress-bar :score-total="municipality.score_total"></progress-bar>
       </div>
     </div>
   </NuxtLink>
 </template>
 <script setup>
 const props = defineProps({
-  kommune: {
+  municipality: {
     type: Object,
     required: true,
   },
@@ -53,6 +53,6 @@ const props = defineProps({
     required: true,
   },
 });
-const kommune = props.kommune;
+const municipality = props.municipality;
 </script>
 <style lang=""></style>

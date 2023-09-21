@@ -1,0 +1,26 @@
+collection: municipalities
+field: details
+type: alias
+meta:
+  collection: municipalities
+  conditions: null
+  display: null
+  display_options: null
+  field: details
+  group: null
+  hidden: false
+  interface: group-detail
+  note: null
+  options:
+    start: closed
+  readonly: false
+  required: false
+  sort: 12
+  special:
+    - alias
+    - group
+    - no-data
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

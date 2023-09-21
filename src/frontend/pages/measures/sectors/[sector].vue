@@ -1,0 +1,43 @@
+<template>
+  <NuxtLink to="/measures" class="btn btn-ghost normal-case mt-4">
+    Zurück zu den Bereichen
+  </NuxtLink>
+  <div class="mb-8 mt-10 flex items-start gap-4">
+    <img :src="sectorImages[route.params.sector]" alt="" class="w-24 h-auto opacity-50" />
+
+    <div class="prose">
+      <h1>{{ $t(`measure_sectors.${route.params.sector}.title`) }}</h1>
+      {{ $t(`measure_sectors.${route.params.sector}.description`) }}
+    </div>
+  </div>
+  <div class="prose">
+    <h2>Maßnahmen im Bereich {{ $t(`measure_sectors.${route.params.sector}.title`) }}</h2>
+  </div>
+  <ul>
+    <li
+      v-for="measure in measures"
+      class="mb-4"
+    >
+      <NuxtLink :to="`/measures/${measure.slug}`" class="card card-compact shadow">
+        <div class="card-body prose hover:underline focus:underline">
+          <h3>{{ measure.name }}</h3>
+        </div>
+      </NuxtLink>
+    </li>
+  </ul>
+</template>
+<script setup>
+import sectorImages from '../../shared/sectorImages.js';
+const { $directus, $readItems, $t } = useNuxtApp();
+const route = useRoute();
+
+const { data: measures } = await useAsyncData("measures", () => {
+  return $directus.request(
+    $readItems("measures", {
+      filter: { sector: { _eq: route.params.sector } },
+      limit: -1,
+    }),
+  );
+});
+console.log(measures.value);
+</script>

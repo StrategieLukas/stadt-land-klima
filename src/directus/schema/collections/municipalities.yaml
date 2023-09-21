@@ -1,0 +1,27 @@
+collection: municipalities
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: municipalities
+  color: null
+  display_template: null
+  group: null
+  hidden: false
+  icon: null
+  item_duplication_fields: null
+  note: null
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: sort
+  translations:
+    - language: de-DE
+      translation: Kommunen
+      singular: Kommune
+      plural: Kommunen
+  unarchive_value: draft
+schema:
+  name: municipalities

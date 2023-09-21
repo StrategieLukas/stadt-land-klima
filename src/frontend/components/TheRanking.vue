@@ -3,20 +3,20 @@
     The Ranking:
 
     <ul>
-      <li v-for="(kommune, index) in kommunen" :key="kommune.id">
-        <item-ranking :kommune="kommune" :index="index + 1"></item-ranking>
+      <li v-for="(municipality, index) in municipalities" :key="municipality.id">
+        <item-ranking :municipality="municipality" :index="index + 1"></item-ranking>
       </li>
     </ul>
   </div>
 </template>
 <script setup>
 const props = defineProps({
-  kommunen: {
+  municipalities: {
     type: Array,
     required: true,
   },
 });
-const kommunen = props.kommunen;
-console.log("kommunen:::", kommunen);
+const municipalities = props.municipalities;
+console.log("municipalities:::", municipalities);
 </script>
 <style lang=""></style>
