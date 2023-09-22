@@ -15,10 +15,9 @@ export default function createTranslator(translations) {
     } else {
       return key;
     }
-    return messages[key] || key;
   }
 
   return {
-    t
+    t,
   };
 }
