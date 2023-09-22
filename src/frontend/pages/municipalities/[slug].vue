@@ -1,6 +1,6 @@
 <template>
   <div>
-    <detail-municipality :municipality="municipality[0]" :sorted-ratings="dictMassnhamenBewertungeSorted"></detail-municipality>
+    <detail-municipality :municipality="municipalities[0]" :sorted-ratings="sortMeasuresBySectorDict"></detail-municipality>
   </div>
 </template>
 <script setup>
@@ -16,7 +16,7 @@ const { data: municipalities } = await useAsyncData("municipality", () => {
   );
 });
 const municipality = municipalities.value[0] || null;
-const localteam_id = municipality.value[0].localteam_id;
+const localteam_id = municipalities.value[0].localteam_id;
 const { data: ratings_measures } = await useAsyncData("ratings_measures", () => {
   return $directus.request(
     $readItems("ratings_measures", {
@@ -28,26 +28,29 @@ const { data: measures } = await useAsyncData("measures", () => {
   return $directus.request($readItems("measures", {}));
 });
 
-const bmArray = ratings_measures.value;
+const rmArray = ratings_measures.value;
 const measuresArray = measures.value;
+const sortMeasuresBySectorDict = sortMeasuresBySector()
+/* console.log("municipality",municipality);
+console.log("bmArray",rmArray);
+console.log("measuresArray",measuresArray); */
+console.log("sorted",sortMeasuresBySector());
 
-function sortMeasureBySector() {
+function sortMeasuresBySector() {
   //TODO Error HAndline
-  const dictMassnhamenBewertungeSorted = {};
-  for (const key in bmArray) {
+  const dictMeasuresRatingSorted = {};
+  for (const key in rmArray) {
     for (const key2 in measuresArray) {
-      if (bmArray[key].measure_id === measuresArray[key2].id) {
-        bmArray[key].measure = measuresArray[key2];
-        console.log("succes", bmArray[key]);
+      if (rmArray[key].measure_id === measuresArray[key2].id) {
+        rmArray[key].measure = measuresArray[key2];
       }
     }
-    if (!Object.prototype.hasOwnProperty.call(dictMassnhamenBewertunge, bmArray[key].measure.sector)) {
-      dictMassnhamenBewertungeSorted[bmArray[key].measure.sector] = [];
-      console.log("succes2");
+    if (!Object.prototype.hasOwnProperty.call(dictMeasuresRatingSorted, rmArray[key].measure.sector)) {
+      dictMeasuresRatingSorted[rmArray[key].measure.sector] = [];
     }
-    dictMassnhamenBewertungeSorted[bmArray[key].measure.sector].push(ratings_measures.value[key]);
+    dictMeasuresRatingSorted[rmArray[key].measure.sector].push(rmArray[key]);
   }
 
-  return dictMassnhamenBewertungeSorted;
+  return dictMeasuresRatingSorted;
 }
 </script>

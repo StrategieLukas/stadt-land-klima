@@ -1,33 +1,37 @@
 collection: municipalities
-field: score_lne
-type: string
+field: score_ann
+type: integer
 meta:
   collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: score_lne
+  field: score_ann
   group: scores
   hidden: false
   interface: input
-  note: null
-  options: null
+  note: $t:score_ann_info
+  options:
+    max: 10
+    min: 0
   readonly: false
   required: false
-  sort: 5
+  sort: 6
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: score_lne
   validation: null
   validation_message: null
   width: half
 schema:
-  name: score_lne
+  name: score_ann
   table: municipalities
-  data_type: character varying
+  data_type: integer
   default_value: null
-  max_length: 255
-  numeric_precision: null
-  numeric_scale: null
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
   is_nullable: true
   is_unique: false
   is_primary_key: false

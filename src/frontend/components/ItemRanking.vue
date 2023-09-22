@@ -1,6 +1,5 @@
 <template lang="">
-  <NuxtLink :to="'/municipalities/' + municipality.slug">
-    <div class="my-3 flex flex-row px-10 py-5 shadow-list">
+    <div class="my-3 flex flex-row px-10 py-5" :class="{ 'shadow-list': isRanking }">
       <div class="relative flex">
         <svg
           id="Ebene_1"
@@ -19,9 +18,9 @@
               d="M40.4,21.1c0-9.2-8-16.6-16.6-16.6S7.1,12,7.1,21.1c0,1.7-0.4,3.6,2.1,10c1.4,3.5,14.5,26.6,14.5,26.6s13.1-23,14.5-26.6
 		C40.8,24.7,40.4,22.9,40.4,21.1z M23.8,28.7c-3.9,0-7.1-3.2-7.1-7.3c0-4,3.2-7.3,7.1-7.3c3.9,0,7.1,3.2,7.1,7.3
 		C30.9,25.4,27.7,28.7,23.8,28.7z"
-            />
-          </g>
-        </svg>
+          />
+        </g>
+      </svg>
 
         <div class="absolute top-0 flex w-full items-center justify-center">
           <h2>
@@ -35,12 +34,12 @@
             <h2>{{ municipality.name }}</h2>
             <p>{{ municipality.state }}</p>
           </div>
-          <div class="flex items-center">Btton</div>
+          <div  v-if="isRanking" class="flex items-center">Btton</div>
         </div>
         <progress-bar :score-total="municipality.score_total"></progress-bar>
       </div>
     </div>
-  </NuxtLink>
+
 </template>
 <script setup>
 const props = defineProps({
@@ -51,6 +50,11 @@ const props = defineProps({
   index: {
     type: Number,
     required: true,
+  },
+  isRanking: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 });
 const municipality = props.municipality;

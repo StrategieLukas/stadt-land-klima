@@ -1,31 +1,32 @@
 collection: municipalities
-field: score_energy
+field: score_iec
 type: integer
 meta:
   collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: score_energy
+  field: score_iec
   group: scores
   hidden: false
   interface: input
-  note: null
+  note: $t:score_iec_info
   options:
     max: 10
     min: 0
+    placeholder: null
   readonly: false
   required: false
-  sort: 4
+  sort: 5
   special: null
   translations:
     - language: de-DE
-      translation: Score Energie
+      translation: score_iwk
   validation: null
   validation_message: null
   width: half
 schema:
-  name: score_energy
+  name: score_iec
   table: municipalities
   data_type: integer
   default_value: null

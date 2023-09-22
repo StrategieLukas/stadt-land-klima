@@ -2,7 +2,7 @@ name: createEditorUser
 icon: bolt
 color: null
 description: create Editor-User when in the collection a editor is created
-status: active
+status: inactive
 trigger: event
 accountability: all
 options:

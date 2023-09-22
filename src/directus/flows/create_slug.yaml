@@ -15,6 +15,8 @@ options:
     - lokalteam
     - pages
     - massnahmen
+    - municipalities
+    - measures
 operations:
   - name: Update Data
     key: item_update_e3ze4

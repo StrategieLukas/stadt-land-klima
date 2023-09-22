@@ -12,6 +12,7 @@ options:
     - items.create
   collections:
     - lokalteam
+    - localteams
 operations:
   - name: Trigger Flow
     key: trigger_l4vib
@@ -27,10 +28,10 @@ operations:
     position_x: 19
     position_y: 1
     options:
-      collection: massnahmen
+      collection: measures
       query: null
     resolve_key: exec_33st5
-  - name: add_lokalteam_id
+  - name: add_localteam_id
     key: exec_33st5
     type: exec
     position_x: 37
@@ -40,8 +41,8 @@ operations:
          module.exports = async function(data) {
                     let retData = data["$last"]
                 	for (var i = 0; i < retData.length; i++){
-                  		retData[i]["lokalteam_id"]=data["$trigger"]["key"]
-                        retData[i]["massnahme_id"]=retData[i]["id"]
+                  		retData[i]["localteam_id"]=data["$trigger"]["key"]
+                        retData[i]["measure_id"]=retData[i]["id"]
                   	}
                     return {retData};
                 }

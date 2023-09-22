@@ -14,8 +14,8 @@ operations:
     position_x: 19
     position_y: 1
     options:
-      collection: bewertungen_massnahmen
+      collection: ratings_measures
       payload:
-        massnahme_id: "{{$last.massnahme_id}}"
-        lokalteam_id: "{{$last.lokalteam_id}}"
+        measure_id: "{{$last.measure_id}}"
+        localteam_id: "{{$last.localteam_id}}"
 operation_key: creates_bewertung

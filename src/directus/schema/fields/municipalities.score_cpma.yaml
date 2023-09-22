@@ -1,27 +1,31 @@
 collection: municipalities
-field: score_iwk
+field: score_cpma
 type: integer
 meta:
   collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: score_iwk
+  field: score_cpma
   group: scores
   hidden: false
   interface: input
-  note: null
-  options: null
+  note: $t:score_cpma_info
+  options:
+    max: 10
+    min: 0
   readonly: false
   required: false
-  sort: 2
+  sort: 7
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: score_kmv
   validation: null
   validation_message: null
   width: half
 schema:
-  name: score_iwk
+  name: score_cpma
   table: municipalities
   data_type: integer
   default_value: null
