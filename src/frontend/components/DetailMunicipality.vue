@@ -2,8 +2,8 @@
   <div class="w-full flex-col justify-center">
     <item-ranking :municipality="municipality" :index="0"></item-ranking>
     <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name"> </municipality-polar-chart>
-    <div v-for="key in Object.keys(ratings)" :key="key" class="py-2">
-      <collapse-sector :measures-assessments="ratings[key]"></collapse-sector>
+    <div v-for="key in Object.keys(sortedRatings)" :key="key" class="py-2">
+      <collapse-sector :ratingsSector="sortedRatings[key]"></collapse-sector>
     </div>
     <div>Detail view for each city in the rankings</div>
   </div>
@@ -14,7 +14,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  ratings: {
+  sortedRatings: {
     type: Object,
     required: true,
   },

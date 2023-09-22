@@ -54,12 +54,24 @@ const chartOptions = {
     legend: {
       display: false,
     },
+    tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.formattedValue;
+                        return label;
+                        
+                    }
+                }
+              }
   },
 
   scales: {
     r: {
+      min: 0,
+      max: 10,
       pointLabels: {
         color: "red",
+        
       },
       startAngle: 0,
       angleLines: {
@@ -67,6 +79,7 @@ const chartOptions = {
         lineWidth: 1,
       },
       ticks: {
+        sampleSize:6,
         color: "black",
         backdropColor: "rgba(0,0,0,0)",
         stepSize: 2,
@@ -79,12 +92,12 @@ const chartOptions = {
 
 function createSubScoreArray(subScoreObject) {
   const tempScores = [];
-  tempScores.push(subScoreObject.score_energie);
-  tempScores.push(subScoreObject.score_verkehr);
-  tempScores.push(subScoreObject.score_lne);
-  tempScores.push(subScoreObject.score_iwk);
-  tempScores.push(subScoreObject.score_gw);
-  tempScores.push(subScoreObject.score_kv);
+  tempScores.push(subScoreObject.score_energy);
+  tempScores.push(subScoreObject.score_transport);
+  tempScores.push(subScoreObject.score_ann);
+  tempScores.push(subScoreObject.score_iec);
+  tempScores.push(subScoreObject.score_bh);
+  tempScores.push(subScoreObject.score_cpma);
   console.log("temp tempScores:", tempScores);
   return tempScores;
 }

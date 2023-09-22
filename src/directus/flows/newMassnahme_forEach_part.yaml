@@ -12,6 +12,7 @@ options:
     - items.create
   collections:
     - massnahmen
+    - measures
 operations:
   - name: add_massnahme_id
     key: add_massnahme_id
@@ -23,8 +24,8 @@ operations:
          module.exports = async function(data) {
                     let retData = data["$last"]
                 	for (var i = 0; i < retData.length; i++){
-                  		retData[i]["massnahme_id"]=data["$trigger"]["key"]
-                        retData[i]["lokalteam_id"]=retData[i]["id"]
+                  		retData[i]["measure_id"]=data["$trigger"]["key"]
+                        retData[i]["localteam_id"]=retData[i]["id"]
                   	}
                     return {retData};
                 }

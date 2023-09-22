@@ -13,12 +13,12 @@ meta:
   note: null
   options:
     choices:
-      - text: Grün
-        value: gruen
-      - text: Gelb
-        value: gelb
-      - text: Rot
-        value: rot
+      - text: $t:Green
+        value: "3"
+      - text: $t:Yellow
+        value: "2"
+      - text: $t:Red
+        value: "1"
   readonly: false
   required: false
   sort: 11

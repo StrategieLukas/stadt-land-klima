@@ -1,7 +1,7 @@
-name: createKommune
+name: createMunicipality
 icon: bolt
 color: null
-description: createKommune when Lokalteam is created
+description: create Municipality when Localteam is created
 status: active
 trigger: event
 accountability: all
@@ -11,6 +11,7 @@ options:
     - items.create
   collections:
     - lokalteam
+    - localteams
 operations:
   - name: Create Data
     key: item_create_vf2y4
@@ -18,8 +19,9 @@ operations:
     position_x: 19
     position_y: 1
     options:
-      collection: kommunen
+      collection: municipalities
       payload:
-        name: "{{$trigger.payload.kommunen_name}}"
-        lokalteam_id: "{{$trigger.key}}"
+        name: "{{$trigger.payload.municipality_name}}"
+        localteam_id: "{{$trigger.key}}"
+      emitEvents: true
 operation_key: item_create_vf2y4

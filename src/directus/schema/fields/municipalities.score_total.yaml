@@ -11,15 +11,17 @@ meta:
   hidden: false
   interface: input
   note: null
-  options: null
+  options:
+    max: 100
+    min: 0
   readonly: false
   required: false
-  sort: 4
+  sort: 1
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
   name: score_total
   table: municipalities

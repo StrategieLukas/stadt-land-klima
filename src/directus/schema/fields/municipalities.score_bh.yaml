@@ -1,27 +1,31 @@
 collection: municipalities
-field: score_gw
+field: score_bh
 type: integer
 meta:
   collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: score_gw
+  field: score_bh
   group: scores
   hidden: false
   interface: input
-  note: null
-  options: null
+  note: $t:score_bh_info
+  options:
+    max: 10
+    min: 0
   readonly: false
   required: false
-  sort: 3
+  sort: 8
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: score_gw
   validation: null
   validation_message: null
   width: half
 schema:
-  name: score_gw
+  name: score_bh
   table: municipalities
   data_type: integer
   default_value: null

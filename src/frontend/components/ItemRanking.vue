@@ -1,6 +1,5 @@
 <template lang="">
-  <NuxtLink :to="'/municipalities/' + municipality.slug">
-    <div class="my-3 flex flex-row px-10 py-5 shadow-list">
+    <div class="my-3 flex flex-row px-10 py-5" :class="{ 'shadow-list': isRanking }">
       <div class="relative flex">
         <svg
           id="Ebene_1"
@@ -40,7 +39,7 @@
         <progress-bar :score-total="municipality.score_total"></progress-bar>
       </div>
     </div>
-  </NuxtLink>
+
 </template>
 <script setup>
 const props = defineProps({
