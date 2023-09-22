@@ -1,0 +1,21 @@
+collection: junction_directus_users_localteams
+field: directus_users_id
+related_collection: directus_users
+meta:
+  junction_field: localteam_id
+  many_collection: junction_directus_users_localteams
+  many_field: directus_users_id
+  one_allowed_collections: null
+  one_collection: directus_users
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: localteams
+  sort_field: null
+schema:
+  table: junction_directus_users_localteams
+  column: directus_users_id
+  foreign_key_table: directus_users
+  foreign_key_column: id
+  constraint_name: junction_directus_users_localteams_directus_users_id_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL

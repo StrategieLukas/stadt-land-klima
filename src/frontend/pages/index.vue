@@ -1,14 +1,16 @@
 <template>
   <div>
-    <the-ranking :kommunen="kommunen" class=""></the-ranking>
+    <h1>Hello world!</h1>
+
+    <the-ranking :municipalities="municipalities" class=""></the-ranking>
   </div>
 </template>
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
 
-const { data: kommunen } = await useAsyncData("kommunen", () => {
+const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
-    $readItems("kommunen", {
+    $readItems("municipalities", {
       sort: ["-score_total"],
     }),
   );

@@ -6,10 +6,10 @@
         <NuxtLink to="/" class="text-md btn btn-ghost normal-case text-base-100">Home</NuxtLink>
       </li>
       <li>
-        <NuxtLink to="/kommunen" class="text-md btn btn-ghost normal-case text-base-100"> Staedte und Kreise</NuxtLink>
+        <NuxtLink to="/municipalities" class="text-md btn btn-ghost normal-case text-base-100"> Staedte und Kreise</NuxtLink>
       </li>
       <li>
-        <NuxtLink to="/massnahmen" class="text-md btn btn-ghost normal-case text-base-100"> Maßnahmen</NuxtLink>
+        <NuxtLink to="/measures" class="text-md btn btn-ghost normal-case text-base-100"> Maßnahmen</NuxtLink>
       </li>
       <li v-for="page in pages" :key="page.id">
         <NuxtLink :to="page.slug" class="text-md btn btn-ghost normal-case text-base-100">
