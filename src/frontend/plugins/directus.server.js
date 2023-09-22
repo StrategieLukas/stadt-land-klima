@@ -12,9 +12,15 @@ export default defineNuxtPlugin(async () => {
     filter: { language: { _eq: locale } },
   }));
 
-  const t = createTranslator(translations).t;
+  const translator = createTranslator(translations);
 
   return {
-    provide: { directus, readItem, readItems, t },
+    provide: {
+      directus,
+      readItem,
+      readItems,
+      locale,
+      t: translator.t,
+    },
   };
 });

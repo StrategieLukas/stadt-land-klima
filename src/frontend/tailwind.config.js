@@ -10,6 +10,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '420px',
+      },
       fontFamily: "Inter-Regular",
       colors: {
         "ranking-0-2": "#D9000D",
