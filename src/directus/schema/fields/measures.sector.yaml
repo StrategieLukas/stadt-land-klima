@@ -16,15 +16,15 @@ meta:
       - text: Energie
         value: energy
       - text: Landwirtschaft, Natur & Ernährung
-        value: lne
+        value: ann
       - text: Verkehr
         value: transport
       - text: Industrie, Wirtschaft & Konsum
-        value: iwk
+        value: iec
       - text: Gebäude & Wärme
-        value: gw
+        value: bh
       - text: Klimaschutzmanagement & Verwaltung
-        value: kv
+        value: cpma
   readonly: false
   required: false
   sort: 10
