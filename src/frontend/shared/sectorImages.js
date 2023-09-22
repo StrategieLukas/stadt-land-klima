@@ -1,8 +1,8 @@
 export default {
   energy: '/assets/icons/icon_category_energy.svg',
-  gw: '/assets/icons/icon_category_gw.svg',
-  iwk: '/assets/icons/icon_category_iwk.svg',
-  kv: '/assets/icons/icon_category_kv.svg',
-  lne: '/assets/icons/icon_category_lne.svg',
+  bh: '/assets/icons/icon_category_bh.svg',
+  iec: '/assets/icons/icon_category_iec.svg',
+  cpma: '/assets/icons/icon_category_cpma.svg',
+  ann: '/assets/icons/icon_category_ann.svg',
   transport: '/assets/icons/icon_category_transport.svg',
 };
