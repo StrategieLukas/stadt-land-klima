@@ -2,7 +2,7 @@
   <div class="prose mb-8 mt-10">
     <h1>Maßnahmen zur CO<sub>2</sub>-Reduktion:</h1>
     <p>
-      Einführungstext Auch gibt es niemanden, der den Schmerz an sich liebt, sucht oder wünscht, nur, weil er Schmerz ist, es sei denn, es kommt zu zufälligen Umständen, in denen Mühen und Schmerz ihm große Freude bereiten können.
+      {{ $t('measures_sectors.description') }}
     </p>
   </div>
   <ul>
