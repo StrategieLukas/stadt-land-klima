@@ -1,10 +1,10 @@
 <template lang="">
-  <div>
-    <div tabindex="0" class="collapse-arrow collapse shadow-list">
-      <div class="collapse-title text-xl font-medium">
+  <div class="">
+    <div tabindex="0" class="collapse-arrow collapse shadow-list p-0">
+      <div class="collapse-title  p-2 ">
         <div>
           <img :src="sectorImages[ratingsSector[0].measure.sector]" alt="" class="w-24 h-auto opacity-50" />
-            {{ $t(`measure_sectors.${sector}.title`) }}
+            <h1>{{ $t(`measure_sectors.${sector}.title`) }}</h1>
           </div>
         </div>
       <div class="collapse-content">
