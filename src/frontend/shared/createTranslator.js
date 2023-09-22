@@ -12,6 +12,8 @@ export default function createTranslator(translations) {
       forOwn(params, function (value, key) {
         translation = replace(translation, key, value);
       });
+
+      return translation;
     } else {
       return key;
     }
