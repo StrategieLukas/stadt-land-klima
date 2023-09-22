@@ -10,7 +10,13 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: "Inter-Regular",
       colors: {
+        "ranking-0-2": "#D9000D",
+        "ranking-2-4": "#F27C00",
+        "ranking-4-6": "#FFD400",
+        "ranking-6-8": "#AFCA0B",
+        "ranking-8-10": "#1DA64A",
         "light-green": "#AFCA0B",
         "ff-green": "#1da64a",
         red: "#e30613",
