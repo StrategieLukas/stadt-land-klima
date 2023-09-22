@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Alle Städte und Kreise</h1>
+    <h1>{{ $t('municipalities.heading') }}</h1>
     <ul>
       <li v-for="municipality in municipalities" :key="municipality.id">
         <NuxtLink :to="'/municipalities/' + municipality.slug">
@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-const { $directus, $readItems } = useNuxtApp();
+const { $directus, $readItems, $t } = useNuxtApp();
 
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(

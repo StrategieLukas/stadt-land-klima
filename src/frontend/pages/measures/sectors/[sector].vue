@@ -1,6 +1,6 @@
 <template>
   <NuxtLink to="/measures" class="btn btn-ghost normal-case mt-4">
-    Zurück zu den Bereichen
+    {{ $t('measures_sector.back_label') }}
   </NuxtLink>
   <div class="mb-8 mt-10 flex items-start gap-4">
     <img :src="sectorImages[route.params.sector]" alt="" class="w-24 h-auto opacity-50" />

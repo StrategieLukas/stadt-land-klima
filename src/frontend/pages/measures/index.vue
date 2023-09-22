@@ -1,8 +1,8 @@
 <template>
   <div class="prose mb-8 mt-10">
-    <h1>Maßnahmen zur CO<sub>2</sub>-Reduktion:</h1>
+    <h1>{{ $t('measures.heading') }}</h1>
     <p>
-      {{ $t('measures_sectors.description') }}
+      {{ $t('measures.description') }}
     </p>
   </div>
   <ul>

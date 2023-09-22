@@ -1,6 +1,6 @@
 <template>
   <NuxtLink :to="`/measures/sectors/${measure.sector}`" class="btn btn-ghost normal-case mt-4">
-    Zurück zum Bereich {{ $t(`measure_sectors.${measure.sector}.title`) }}
+    {{ $t('measure.back_label', {':sector': $t(`measure_sectors.${measure.sector}.title`)}) }}
   </NuxtLink>
 
   <article class="mb-8 mt-10 flex items-start gap-4">
