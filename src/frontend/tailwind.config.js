@@ -104,7 +104,7 @@ module.exports = {
           secondary: "#f27c00",
           accent: "#00aee2",
           neutral: "#707070",
-          "base-100": "#000000",
+          "base-100": "#ffffff",
           fontFamily: ["Inter", "sans"],
         },
       },
