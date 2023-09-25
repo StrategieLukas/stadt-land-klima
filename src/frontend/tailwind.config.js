@@ -23,7 +23,11 @@ module.exports = {
         "ranking-4-6": "#FFD400",
         "ranking-6-8": "#AFCA0B",
         "ranking-8-10": "#1DA64A",
+        "rating-3": "#1EA64A",
+        "rating-2": "#FFDD00",
+        "rating-1": "#E30613",
         "light-green": "#AFCA0B",
+        "green": "#339737",
         "ff-green": "#1da64a",
         red: "#e30613",
         orange: "#f39200 ",
@@ -45,7 +49,7 @@ module.exports = {
       typography: {
         DEFAULT: {
           css: {
-            color: "#707070",
+            color: "#505050",
             fontFamily: ["Inter", "sans"],
             "font-size": "1rem",
             "line-height": "1.5",

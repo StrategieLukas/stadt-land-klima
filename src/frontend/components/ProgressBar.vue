@@ -32,7 +32,7 @@ const durations = {
 };
 
 const width = ref(0);
-const colorClass = ref(colors[0]);
+const colorClass = getColorClass(props.scoreTotal);
 const durationClass = computed(() => {
   return getDurationClass(props.scoreTotal);
 });
@@ -68,7 +68,6 @@ function getColorClass(scoreTotal) {
 onMounted(() => {
   setTimeout(() => {
     width.value = props.scoreTotal;
-    colorClass.value = getColorClass(props.scoreTotal);
   }, 100);
 })
 </script>

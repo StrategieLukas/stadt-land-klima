@@ -1,7 +1,13 @@
 <template>
-  <div>
+  <NuxtLink :to="`/municipalities`" class="btn btn-ghost normal-case mt-4">
+    {{ $t('municipality.back_label') }}
+  </NuxtLink>
+  <article class="mb-8 mt-10">
     <detail-municipality :municipality="municipalities[0]" :sorted-ratings="sortMeasuresBySectorDict"></detail-municipality>
-  </div>
+  </article>
+  <NuxtLink :to="`/municipalities`" class="btn btn-ghost normal-case mb-4">
+    {{ $t('municipality.back_label') }}
+  </NuxtLink>
 </template>
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
