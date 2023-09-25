@@ -1,0 +1,73 @@
+name: calculateScores
+icon: bolt
+color: null
+description: calculates the Scores, when a rating_measure.rating is changed
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - ratings_measures
+operations:
+  - name: Read Data
+    key: item_read_io1ww
+    type: item-read
+    position_x: 37
+    position_y: 2
+    options:
+      collection: ratings_measures
+      key: "{{$trigger.keys}}"
+      permissions: $full
+    resolve_key: exec_uhsko
+  - name: Condition
+    key: condition_g9wrz
+    type: condition
+    position_x: 19
+    position_y: 2
+    options:
+      filter:
+        _or:
+          - $trigger:
+              payload:
+                status:
+                  _eq: published
+          - $trigger:
+              payload:
+                rating:
+                  _nnull: true
+    resolve_key: item_read_io1ww
+  - name: Run Script
+    key: exec_uhsko
+    type: exec
+    position_x: 3
+    position_y: 22
+    options:
+      code: >-
+        module.exports = async function(data) {
+            let  arrayChangedRatings = data["$last"];
+            let uniqueMeasuresIds=[];
+            let uniqueMeasures = arrayChangedRatings.filter((item, index, array) => {
+                // Use indexOf to find the first occurrence of the current item
+                const firstIndex = array.findIndex((element) =>  element["measure_id"] === item["measure_id"]);
+        	
+                // If the current item is the first occurrence in the array, keep it and push to Ids array
+                if(index === firstIndex){
+                	uniqueMeasuresIds.push(array[index].id);
+            	}
+                return index === firstIndex;
+              });
+            uniqueMeasures["Ids"]=uniqueMeasuresIds;
+        	return {uniqueMeasures};
+        }
+    resolve_key: item_read_er3au
+  - name: Read Data
+    key: item_read_er3au
+    type: item-read
+    position_x: 21
+    position_y: 22
+    options:
+      key: "{{$last"
+operation_key: condition_g9wrz

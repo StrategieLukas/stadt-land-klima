@@ -1,0 +1,10 @@
+name: calculateScoressss
+icon: bolt
+color: null
+description: null
+status: active
+trigger: operation
+accountability: all
+options:
+  return: $all
+operations: []
