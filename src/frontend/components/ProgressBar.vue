@@ -2,7 +2,7 @@
   <div>
     <div :class="['w-full h-8 relative border rounded-md', colorClass.border]">
       <div :class="['relative h-full flex items-center justify-end transition-all ease-out overflow-hidden', colorClass.bg, durationClass]" :style="{width: width + '%'}">
-        <div class="text-white font-bold text-xl mr-2">{{ scoreTotal }}</div>
+        <div class="text-white font-bold text-xl mr-1 font-heading">{{ scoreTotal }}</div>
       </div>
     </div>
   </div>
@@ -69,7 +69,7 @@ onMounted(() => {
   setTimeout(() => {
     width.value = props.scoreTotal;
     colorClass.value = getColorClass(props.scoreTotal);
-  }, 500);
+  }, 100);
 })
 </script>
 <style lang=""></style>

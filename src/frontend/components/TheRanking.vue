@@ -1,9 +1,12 @@
 <template lang="">
-  <div class="my-3 flex flex-col">
+  <div class="flex flex-col">
     <ul>
       <li v-for="(municipality, index) in municipalities" :key="municipality.id">
-        <NuxtLink :to="'/municipalities/' + municipality.slug">    
-        <item-ranking :municipality="municipality" :index="index + 1" :is-ranking="true"></item-ranking>
+        <NuxtLink :to="`/municipalities/${municipality.slug}`">
+          <item-ranking
+            :municipality="municipality"
+            :is-ranking="true"
+          />
         </NuxtLink>
       </li>
     </ul>
@@ -16,7 +19,5 @@ const props = defineProps({
     required: true,
   },
 });
-const municipalities = props.municipalities;
-console.log("municipalities:::", municipalities);
 </script>
 <style lang=""></style>

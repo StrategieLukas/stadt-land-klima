@@ -1,21 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @layer base {
   @font-face {
-    font-family: "Inter-Bold";
+    font-family: "Inter";
     src: url("~/assets/fonts/Inter-Bold.ttf");
+    font-weight: bold;
+    font-style: normal;
   }
   @font-face {
-    font-family: "Inter-Regular";
+    font-family: "Inter";
     src: url("~/assets/fonts/Inter-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
   }
   @font-face {
-    font-family: "RobotoCondensed-Bold";
+    font-family: "RobotoCondensed";
     src: url("~/assets/fonts/RobotoCondensed-Bold.ttf");
+    font-weight: bold;
+    font-style: normal;
   }
   @font-face {
-    font-family: "RobotoCondensed-Regular";
+    font-family: "RobotoCondensed";
     src: url("~/assets/fonts/RobotoCondensed-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
   }
 }

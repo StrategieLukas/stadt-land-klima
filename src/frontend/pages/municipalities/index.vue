@@ -1,9 +1,9 @@
 <template>
-  <div class="prose text-center max-w-full mt-10 mb-4">
-    <h1 class="mb-0">
+  <div class="prose text-center max-w-full mt-10 mb-8">
+    <h1 class="mb-0 whitespace-pre-line">
       {{ $t('municipalities.heading') }}
     </h1>
-    <p class="mt-0">
+    <p class="mt-0 text-xs">
       {{ $t('municipalities.last_updated_at', {':updated_at': lastUpdatedAtStr }) }}
     </p>
   </div>
@@ -11,25 +11,19 @@
     <implementation-traffic-light />
   </div>
   <section>
-    <ul>
-      <li v-for="municipality in municipalities" :key="municipality.id">
-        <NuxtLink :to="'/municipalities/' + municipality.slug">
-          <h1>{{ municipality.name }}</h1>
-        </NuxtLink>
-      </li>
-    </ul>
+    <the-ranking :municipalities="municipalities"></the-ranking>
   </section>
 </template>
 
 <script setup>
 import { sortBy, last, get } from 'lodash';
-import { format } from 'date-fns';
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "date_updated"],
+      fields: ["slug", "name", "score_total", "placement", "state", "date_updated"],
+      sort: '-score_total',
       limit: -1,
     }),
   );

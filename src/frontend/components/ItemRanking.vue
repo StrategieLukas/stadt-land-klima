@@ -1,54 +1,63 @@
 <template lang="">
-    <div class="my-3 flex flex-row px-10 py-5" :class="{ 'shadow-list': isRanking }">
-      <div class="relative flex">
-        <svg
-          id="Ebene_1"
-          version="1.1"
-          class="mt-2 h-14 w-14"
-          color="red"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          viewBox="0 0 47.5 62.2"
-          style="enable-background: new 0 0 47.5 62.2  transform: rotate(45deg)"
-          xml:space="preserve"
-        >
-          <g>
-            <path
-              fill="gray"
-              d="M40.4,21.1c0-9.2-8-16.6-16.6-16.6S7.1,12,7.1,21.1c0,1.7-0.4,3.6,2.1,10c1.4,3.5,14.5,26.6,14.5,26.6s13.1-23,14.5-26.6
-		C40.8,24.7,40.4,22.9,40.4,21.1z M23.8,28.7c-3.9,0-7.1-3.2-7.1-7.3c0-4,3.2-7.3,7.1-7.3c3.9,0,7.1,3.2,7.1,7.3
-		C30.9,25.4,27.7,28.7,23.8,28.7z"
-          />
-        </g>
-      </svg>
+    <div
+      class="relative mb-3 flex items-stretch pl-10 pr-4 py-5 gap-4 bg-opacity-10"
+      :class="[
+        isRanking ? 'shadow-list': '',
+        colorClass.bg,
+      ]"
+    >
+      <div class="relative h-full pt-6">
+        <img
+          src="~/assets/icons/icon_location_green_marker.svg"
+          class="w-8 h-auto my-auto"
+        />
 
-        <div class="absolute top-0 flex w-full items-center justify-center">
-          <h2>
-            {{ props.index }}
-          </h2>
+        <div class="absolute top-0 w-full text-center font-bold text-3xl text-black font-heading">
+          {{ municipality.placement || '?' }}
         </div>
       </div>
+
       <div class="grow">
-        <div class="flex flex-row">
-          <div class="grow">
-            <h2>{{ municipality.name }}</h2>
+        <div class="flex flex-row items-start">
+          <div class="mb-2">
+            <h3 class="text-2xl font-heading text-black font-bold">{{ municipality.name }}</h3>
             <p>{{ municipality.state }}</p>
           </div>
-          <div  v-if="isRanking" class="flex items-center">Btton</div>
         </div>
         <progress-bar :score-total="municipality.score_total"></progress-bar>
       </div>
-    </div>
 
+      <div v-if="isRanking" class="flex items-start">
+        <img src="~/assets/icons/icon_chevron_right.svg" class="w-4 h-auto" />
+      </div>
+    </div>
 </template>
 <script setup>
+const colors = {
+  0: {bg: 'bg-ranking-0-2' },
+  20: {bg: 'bg-ranking-2-4' },
+  40: {bg: 'bg-ranking-4-6' },
+  60: {bg: 'bg-ranking-6-8' },
+  80: {bg: 'bg-ranking-8-10' },
+};
+
+const colorClass = computed(() => {
+  let c = colors[0];
+
+  for(let score in colors) {
+    if (municipality.score_total < score) {
+      return c;
+    }
+
+    c = colors[score];
+  }
+
+  return c;
+});
+
 const props = defineProps({
   municipality: {
     type: Object,
-    required: true,
-  },
-  index: {
-    type: Number,
     required: true,
   },
   isRanking: {
