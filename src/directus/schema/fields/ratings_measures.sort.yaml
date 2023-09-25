@@ -3,7 +3,21 @@ field: sort
 type: integer
 meta:
   collection: ratings_measures
-  conditions: null
+  conditions:
+    conditions:
+      - name: test
+        rule:
+          _and:
+            - measure_id:
+                _neq: published
+        readonly: true
+        options:
+          font: sans-serif
+          trim: false
+          masked: false
+          clear: false
+          slug: false
+        hidden: true
   display: null
   display_options: null
   field: sort

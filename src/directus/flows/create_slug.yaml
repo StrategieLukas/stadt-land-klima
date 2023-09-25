@@ -10,14 +10,18 @@ options:
   scope:
     - items.create
   collections:
-    - kommunen
-    - massnahme
-    - lokalteam
     - pages
-    - massnahmen
     - municipalities
     - measures
 operations:
+  - name: Slugify
+    key: operation_slugify_z88zk
+    type: operation-slugify
+    position_x: 19
+    position_y: 1
+    options:
+      text: "{{$trigger.payload.name}}"
+    resolve_key: item_update_e3ze4
   - name: Update Data
     key: item_update_e3ze4
     type: item-update
@@ -29,12 +33,4 @@ operations:
         slug: "{{$last.text}}"
       key:
         - "{{ $trigger.key }}"
-  - name: Slugify
-    key: operation_slugify_z88zk
-    type: operation-slugify
-    position_x: 19
-    position_y: 1
-    options:
-      text: "{{$trigger.payload.name}}"
-    resolve_key: item_update_e3ze4
 operation_key: operation_slugify_z88zk

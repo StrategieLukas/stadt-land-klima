@@ -34,7 +34,7 @@ meta:
       - text: $t:archived
         value: archived
   readonly: false
-  required: false
+  required: true
   sort: 2
   special: null
   translations: null
@@ -45,11 +45,11 @@ schema:
   name: status
   table: measures
   data_type: character varying
-  default_value: draft
+  default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_primary_key: false
   is_generated: false

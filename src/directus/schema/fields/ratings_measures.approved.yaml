@@ -1,41 +1,41 @@
-collection: localteams
-field: admin_id
-type: uuid
+collection: ratings_measures
+field: approved
+type: boolean
 meta:
-  collection: localteams
+  collection: ratings_measures
   conditions: null
-  display: user
-  display_options: {}
-  field: admin_id
+  display: null
+  display_options: null
+  field: approved
   group: null
   hidden: false
-  interface: select-dropdown-m2o
+  interface: boolean
   note: null
   options: null
   readonly: false
-  required: false
+  required: true
   sort: 12
   special:
-    - m2o
+    - cast-boolean
   translations:
     - language: de-DE
-      translation: Admin
+      translation: Genehmigt
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: admin_id
-  table: localteams
-  data_type: uuid
-  default_value: null
+  name: approved
+  table: ratings_measures
+  data_type: boolean
+  default_value: true
   max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: directus_users
-  foreign_key_column: id
+  foreign_key_table: null
+  foreign_key_column: null
