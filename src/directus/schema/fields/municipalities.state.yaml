@@ -14,37 +14,37 @@ meta:
   options:
     choices:
       - text: Bayern
-        value: bayern
-      - text: " Niedersachsen"
-        value: niedersachsen
-      - text: " Baden-Württemberg"
-        value: " baden_wuerttemberg"
+        value: Bayern
+      - text: Niedersachsen
+        value: Niedersachsen
+      - text: Baden-Württemberg
+        value: Baden-Württemberg
       - text: Nordrhein-Westfalen
-        value: nordrhein_westfalen
-      - text: " Brandenburg"
-        value: brandenburg
-      - text: " Mecklenburg-Vorpommern \t"
-        value: " mecklenburg_vorpommern \t"
+        value: Nordrhein-Westfalen
+      - text: Brandenburg
+        value: Brandenburg
+      - text: " Mecklenburg-Vorpommern"
+        value: " Mecklenburg-Vorpommern"
       - text: " Hessen"
-        value: hessen
+        value: Hessen
       - text: " Sachsen-Anhalt"
-        value: sachsen_anhalt
+        value: Sachsen-Anhalt
       - text: Rheinland-Pfalz
-        value: rheinland_pfalz
+        value: Rheinland-Pfalz
       - text: Sachsen
-        value: sachsen
+        value: Sachsen
       - text: Thüringen
-        value: thueringen
+        value: Thüringen
       - text: Schleswig-Holstein
-        value: schleswig-holstein
+        value: Schleswig-Holstein
       - text: Saarland
-        value: saarland
+        value: Saarland
       - text: Berlin
-        value: berlin
+        value: Berlin
       - text: Hamburg
-        value: hamburg
+        value: Hamburg
       - text: Bremen
-        value: bremen
+        value: Bremen
   readonly: false
   required: false
   sort: 1
