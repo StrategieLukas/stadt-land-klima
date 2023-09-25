@@ -2,6 +2,7 @@
   <div class="fixed right-0 top-0 flex-none">
     <label
       for="page-drawer"
+      id="page-drawer-toggle"
       class="btn btn-square rounded-t-none rounded-br-none border-none bg-light-green text-white"
     >
       <svg
