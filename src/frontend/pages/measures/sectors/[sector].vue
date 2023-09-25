@@ -11,7 +11,7 @@
     </div>
   </div>
   <div class="prose">
-    <h2>Maßnahmen im Bereich {{ $t(`measure_sectors.${route.params.sector}.title`) }}</h2>
+    <h2>{{ $t('measures_in_sector', {':sector': $t(`measure_sectors.${route.params.sector}.title`)}) }}</h2>
   </div>
   <ul>
     <li

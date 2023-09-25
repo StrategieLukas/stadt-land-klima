@@ -1,14 +1,70 @@
 <template lang="">
   <div class="w-full flex-col justify-center">
-    <item-ranking :municipality="municipality" :index="0"></item-ranking>
-    <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name"> </municipality-polar-chart>
-    <div v-for="key in Object.keys(sortedRatings)" :key="key" class="py-2">
-      <collapse-sector :ratingsSector="sortedRatings[key]"></collapse-sector>
+    <div class="mb-8">
+      <item-ranking :municipality="municipality" />
     </div>
-    <div>Detail view for each city in the rankings</div>
+    <div class="mb-4">
+      <municipality-polar-chart
+        :sub-scores="subScores"
+        :name-municipality="municipality.name"
+      />
+      <div
+        v-for="key in Object.keys(sortedRatings)" :key="key" class="py-2"
+      >
+        <collapse-sector :ratingsSector="sortedRatings[key]" />
+      </div>
+    </div>
+    <p class="mt-0 text-xs text-center mb-4">
+      {{ $t('municipalities.last_updated_at', {':updated_at': lastUpdatedAtStr }) }}
+    </p>
+    <div class="mx-auto flex justify-center mb-8">
+      <implementation-traffic-light />
+    </div>
+
+    <div class="collapse p-2 rounded-sm shadow-list">
+      <input type="radio" name="sectors-accordion" checked="checked" />
+
+      <div class="collapse-title flex items-end gap-4">
+        <img src="~/assets/icons/icon_location.svg" class="w-10 h-auto opacity-50" />
+
+        <h2 class="font-heading text-light-green text-2xl leading-none">
+          {{ $t('municipality.about_heading', {':name': municipality.name }) }}
+        </h2>
+
+        <img src="~/assets/icons/icon_chevron_right.svg" class="ml-auto rotate-90 w-4 h-auto" />
+      </div>
+
+      <div class="collapse-content">
+        <div class="prose" v-html="municipality.description"></div>
+      </div>
+    </div>
+
+    <div
+      v-for="sector in Object.keys(sortedRatings)"
+      :key="sector"
+      class="collapse p-2 rounded-sm shadow-list"
+    >
+      <div class="collapse-title flex items-end gap-4">
+        <img :src="sectorImages[sector]" class="w-10 h-auto opacity-50" />
+
+        <h2 class="font-heading text-light-green text-2xl leading-none">
+          {{ $t(`measure_sectors.${sector}.title`) }}
+        </h2>
+
+        <img src="~/assets/icons/icon_chevron_right.svg" class="ml-auto rotate-90 w-4 h-auto" />
+      </div>
+
+      <div class="collapse-content">
+        <div class="prose">
+          {{ $t(`measure_sectors.${sector}.description`) }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script setup>
+const { $t, $locale } = useNuxtApp();
+import sectorImages from '../shared/sectorImages.js';
 const props = defineProps({
   municipality: {
     type: Object,
@@ -20,10 +76,9 @@ const props = defineProps({
   },
 });
 const municipality = props.municipality;
-console.log("municipality DEtail City", municipality);
-
 const subScores = createSubScoreObject(municipality);
-console.log("subScores", subScores);
+const lastUpdatedAt = new Date(municipality.date_updated);
+const lastUpdatedAtStr = lastUpdatedAt.toLocaleDateString($locale, {year: 'numeric', month: '2-digit', day: 'numeric'}) + ', ' + lastUpdatedAt.toLocaleTimeString($locale);
 
 function createSubScoreObject(municipality) {
   const temp = {};

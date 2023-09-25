@@ -31,10 +31,6 @@ const { data: measures } = await useAsyncData("measures", () => {
 const rmArray = ratings_measures.value;
 const measuresArray = measures.value;
 const sortMeasuresBySectorDict = sortMeasuresBySector()
-/* console.log("municipality",municipality);
-console.log("bmArray",rmArray);
-console.log("measuresArray",measuresArray); */
-console.log("sorted",sortMeasuresBySector());
 
 function sortMeasuresBySector() {
   //TODO Error HAndline
