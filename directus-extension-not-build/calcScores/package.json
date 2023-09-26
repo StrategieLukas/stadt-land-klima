@@ -19,7 +19,7 @@
 			"app": "src/app.js",
 			"api": "src/api.js"
 		},
-		"host": "^10.1.10"
+		"host": "^10.1.11"
 	},
 	"scripts": {
 		"build": "directus-extension build",
@@ -27,7 +27,7 @@
 		"link": "directus-extension link"
 	},
 	"devDependencies": {
-		"@directus/extensions-sdk": "10.1.10",
+		"@directus/extensions-sdk": "10.1.11",
 		"vue": "^3.3.4"
 	}
 }

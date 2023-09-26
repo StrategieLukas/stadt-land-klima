@@ -1,0 +1,1 @@
+var e={id:"operation-calculateScores",name:"Calculate Scores",icon:"box",description:"This calculates the scores for the given keys!",overview:({keys:e})=>[{label:"Keys",text:e}],options:[{field:"keys",name:"Rating Measure Keys",type:"json",meta:{width:"half",interface:"input"}}]};export{e as default};
