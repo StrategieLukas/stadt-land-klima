@@ -136,6 +136,8 @@ export default {
 				}
 				logger.info(scoresToPush, "scoresToPush");
 				let result = await municipalitiesService.updateOne(municipality.id, scoresToPush);
+			}
+
 				database.raw("WITH RankedScores AS ( \
 								SELECT \
 								id, \
@@ -163,8 +165,7 @@ export default {
 					throw new ServiceUnavailableException(error.message);
 				});
 
-			}
-
+			
 
 
 		} catch (e) {
