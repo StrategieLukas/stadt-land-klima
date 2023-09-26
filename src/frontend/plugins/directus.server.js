@@ -1,4 +1,5 @@
-import { createDirectus,authentication} from "@directus/sdk";
+import { createDirectus } from "@directus/sdk";
+import { staticToken } from '@directus/sdk/auth';
 import { rest, readItem, readItems, readTranslations } from "@directus/sdk/rest";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode.js";
 import createTranslator from "~/shared/createTranslator.js";
@@ -6,7 +7,7 @@ import createTranslator from "~/shared/createTranslator.js";
 
 const directusUrl = "http://directus:8055"; //TODO
 
-const directus = createDirectus(directusUrl).with(rest()).with(authentication());
+let directus = createDirectus(directusUrl).with(rest());
 
 
 
@@ -14,9 +15,9 @@ const locale = resolveFullLocaleCode();
 
 export default defineNuxtPlugin(async () => {
   const runtimeConfig = useRuntimeConfig()
-  const email =  runtimeConfig.public.emailDirectus;  
-  const password = runtimeConfig.public.passwordDirectus;  
-  await directus.login(email, password);    
+  const token = runtimeConfig.public.directusToken;
+  directus = directus.with(staticToken(token));
+
 
   const translations = await directus.request(readTranslations({
     limit: -1,

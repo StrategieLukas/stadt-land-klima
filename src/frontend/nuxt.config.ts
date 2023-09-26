@@ -4,8 +4,8 @@ export default defineNuxtConfig({
     // The private keys which are only available within server-side
     // Keys within public, will be also exposed to the client-side
     public: {
-      emailDirectus: process.env.DIRECTUS_EMAIL_FRONTEND_USER,
-      passwordDirectus: process.env.DIRECTUS_PASSWORD_FRONTEND_USER,
+      directusToken: process.env.DIRECTUS_TOKEN,
+     
     }
   },
   devtools: { enabled: true },
