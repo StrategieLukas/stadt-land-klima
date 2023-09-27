@@ -1,7 +1,7 @@
 
 export default {
 	id: 'operation-calculateScores',
-	handler: async ({ keys }, { env, logger, accountability, services, getSchema, database }) => {
+	handler: async({ keys }, { env, logger, accountability, services, getSchema }) => {
 		try {
 
 
@@ -146,36 +146,6 @@ export default {
 				let result = await municipalitiesService.updateOne(municipality.id, scoresToPush);
 			}
 
-				database.raw("WITH RankedScores AS ( \
-								SELECT \
-								id, \
-								DENSE_RANK() OVER (ORDER BY score_total DESC) AS place \
-								FROM \
-								public.municipalities \
-								WHERE status='published' \
-							) \
-						\
-							UPDATE public.municipalities AS t \
-							SET place = ( \
-								CASE \
-									WHEN t.status = 'published' THEN ( \
-										SELECT r.place \
-										FROM RankedScores r \
-										WHERE t.id = r.id \
-									) \
-									ELSE -1 \
-								END \
-							); \
-					").then((results) => {
-					logger.info(results, "resultsDB");
-				}
-				).catch((error) => {
-					throw new ServiceUnavailableException(error.message);
-				});
-
-			
-
-
 		} catch (e) {
 			logger.error(e)
 			throw new e
@@ -185,6 +155,7 @@ export default {
 		
 		}
 	},
+	
 };
 
 
