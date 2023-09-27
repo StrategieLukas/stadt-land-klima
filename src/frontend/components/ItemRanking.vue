@@ -7,7 +7,7 @@
       <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
       <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black">
-        {{ municipality.placement || "?" }}
+        {{ municipality.place || "?" }}
       </div>
     </div>
 

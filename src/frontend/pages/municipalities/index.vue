@@ -24,7 +24,7 @@ const { $directus, $readItems, $t, $locale } = useNuxtApp();
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "placement", "state", "date_updated"],
+      fields: ["slug", "name", "score_total", "place", "state", "date_updated"],
       sort: "-score_total",
       limit: -1,
     }),
