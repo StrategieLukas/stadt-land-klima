@@ -2,7 +2,7 @@
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
       <div class="relative flex h-96 w-full items-center justify-center">
-        <div class="h-60/100 w-60/100 z-10">
+        <div class="z-10 h-60/100 w-60/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
       </div>
@@ -55,14 +55,13 @@ const chartOptions = {
       display: false,
     },
     tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        let label = context.formattedValue;
-                        return label;
-                        
-                    }
-                }
-              }
+      callbacks: {
+        label: function (context) {
+          const label = context.formattedValue;
+          return label;
+        },
+      },
+    },
   },
 
   scales: {
@@ -71,7 +70,6 @@ const chartOptions = {
       max: 10,
       pointLabels: {
         color: "red",
-        
       },
       startAngle: 0,
       angleLines: {
@@ -79,7 +77,7 @@ const chartOptions = {
         lineWidth: 1,
       },
       ticks: {
-        sampleSize:6,
+        sampleSize: 6,
         color: "black",
         backdropColor: "rgba(0,0,0,0)",
         stepSize: 2,
@@ -116,6 +114,4 @@ function createColorArray(subScoresArray) {
   return tempColorsArray;
 }
 </script>
-<style scoped >
-
-</style>
+<style scoped></style>
