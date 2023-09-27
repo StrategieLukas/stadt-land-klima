@@ -24,7 +24,7 @@
             <p>{{ municipality.state }}</p>
           </div>
         </div>
-        <progress-bar :score-total="municipality.score_total"></progress-bar>
+        <progress-bar :score-total="Number(municipality.score_total)"></progress-bar>
       </div>
 
       <div v-if="isRanking" class="flex items-start">
@@ -45,7 +45,7 @@ const colorClass = computed(() => {
   let c = colors[0];
 
   for(let score in colors) {
-    if (municipality.score_total < score) {
+    if (Number(municipality.score_total) < score) {
       return c;
     }
 

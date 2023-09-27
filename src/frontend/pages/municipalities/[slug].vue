@@ -1,4 +1,5 @@
 <template>
+  <div>
   <NuxtLink :to="`/municipalities`" class="btn btn-ghost normal-case mt-4">
     {{ $t('municipality.back_label') }}
   </NuxtLink>
@@ -8,6 +9,7 @@
   <NuxtLink :to="`/municipalities`" class="btn btn-ghost normal-case mb-4">
     {{ $t('municipality.back_label') }}
   </NuxtLink>
+  </div>
 </template>
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
@@ -36,23 +38,23 @@ const { data: measures } = await useAsyncData("measures", () => {
 
 const rmArray = ratings_measures.value;
 const measuresArray = measures.value;
-const sortMeasuresBySectorDict = sortMeasuresBySector()
+const sortMeasuresBySectorDict =   computed(() => {
+  return sortMeasuresBySector(rmArray,measuresArray);
+});
 
-function sortMeasuresBySector() {
-  //TODO Error HAndline
+function sortMeasuresBySector(ratingsMeasuresArr,measuresArr) {
+  const measureMap = new Map(measuresArr.map(measure => [measure.id, measure]));
   const dictMeasuresRatingSorted = {};
-  for (const key in rmArray) {
-    for (const key2 in measuresArray) {
-      if (rmArray[key].measure_id === measuresArray[key2].id) {
-        rmArray[key].measure = measuresArray[key2];
-      }
-    }
-    if (!Object.prototype.hasOwnProperty.call(dictMeasuresRatingSorted, rmArray[key].measure.sector)) {
-      dictMeasuresRatingSorted[rmArray[key].measure.sector] = [];
-    }
-    dictMeasuresRatingSorted[rmArray[key].measure.sector].push(rmArray[key]);
-  }
 
+  for (const item of ratingsMeasuresArr) {
+    const measure = measureMap.get(item.measure_id);
+    if (measure) {
+      const { sector } = measure;
+      item.measure = measure
+      dictMeasuresRatingSorted[sector] = dictMeasuresRatingSorted[sector] || [];
+      dictMeasuresRatingSorted[sector].push(item);
+    }
+  }
   return dictMeasuresRatingSorted;
 }
 </script>
