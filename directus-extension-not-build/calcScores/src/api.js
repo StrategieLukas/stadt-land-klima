@@ -6,11 +6,12 @@ export default {
 
 
 
+
 			const { ItemsService } = services;
 			const schema = await getSchema();
 
 			// logger.info(accountability, "accountability");
-			// logger.info(keys, "keys");
+			logger.info(keys, "keys");
 			accountability.admin = true;
 			const rantingsMeasuresService = new ItemsService("ratings_measures", { schema, accountability });
 			const measuresService = new ItemsService("measures", { schema, accountability });
@@ -80,14 +81,15 @@ export default {
 				logger.info(allRatingsMeasures, "allRatingsMeasures");
 				let ratingsMeasureDetail = allRatingsMeasures.map(item1 => {
 					const item2 = measures.find(item2 => item2.id === item1.measure_id);
-					if (item2.weight != null && item2.sector != null) {
+					if (item2.weight != null && item2.sector != null && item2.status != null) {
 						item1.weight = item2.weight;
 						item1.sector = item2.sector;
+						item1.measureStatus = item2.status;
 					}
 					else {
 						item1.weight = 0;
 						item1.sector = "total";
-
+						item1.measureStatus = "draft";
 					}
 
 
@@ -102,10 +104,11 @@ export default {
 						approved,
 						status,
 						rating,
-						sector
+						sector,
+						measureStatus
 					} = ratingMeasureDetail;
 
-					if (applicable) {
+					if (applicable && measureStatus === "published") {
 						scoreDict["total"]["denominator"] += 3 * weight; //max value needs update
 						if (scoreDict[sector]) {
 							scoreDict[sector]["denominator"] += 3 * weight;
@@ -123,8 +126,13 @@ export default {
 				let scoresToPush = {}
 				for (const key in scoreDict) {
 					if (scoreDict.hasOwnProperty(key)) {
-
-						scoresToPush["score_" + key] = scoreDict[key] = scoreDict[key]["numerator"] / scoreDict[key]["denominator"];
+						if(scoreDict[key]["denominator"]>0){
+						scoresToPush["score_" + key] =  scoreDict[key]["numerator"] / scoreDict[key]["denominator"];
+						}
+						else{
+							scoresToPush["score_" + key] = 1;
+						}
+						
 						if (key === "total") {
 							scoresToPush["score_" + key] *= 100;
 						}
@@ -174,14 +182,9 @@ export default {
 		}
 		return {
 
-			/* text: slugify(text, {
-				replacement: '-',  // replace spaces with replacement character, defaults to `-`
-				remove: undefined, // remove characters that match regex, defaults to `undefined`
-				lower: true,      // convert to lower case, defaults to `false`
-				strict: true,     // strip special characters except replacement, defaults to `false`
-				locale: 'de',      // language code of the locale to use
-				trim: true         // trim leading and trailing replacement chars, defaults to `true`
-			  }) */
+		
 		}
 	},
 };
+
+
