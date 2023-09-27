@@ -4,21 +4,21 @@
       <NuxtLink to="/">
         <img src="~/assets/images/StadtLandKlima-Logo.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
       </NuxtLink>
-      <form class="mb-1 relative overflow-visible" action="javascript:;">
+      <form class="relative mb-1 overflow-visible" action="javascript:;">
         <div class="form-control">
-          <label for="search-input" class="label">{{ $t('municipalities_search.label') }}</label>
+          <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
           <input
             id="search-input"
-            class="input input-bordered input-primary w-64 sm:w-96 max-w-full bg-white pr-12"
+            v-model="q"
+            class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96"
             name="q"
             type="text"
-            v-model="q"
             autocomplete="off"
             @focus="handleSearchFocus()"
             @blur="handleSearchBlur()"
           />
           <button
-            class="absolute top-12 right-4 py-1 opacity-50 hover:opacity-60 focus:opacity-60"
+            class="absolute right-4 top-12 py-1 opacity-50 hover:opacity-60 focus:opacity-60"
             @click="handleResetSearchClick()"
           >
             ✖️
@@ -27,15 +27,12 @@
 
         <div
           v-if="suggestions.length && searchFocused"
-          class="absolute top-24 left-0 right-0 dropdown dropdown-open w-full"
+          class="dropdown-open dropdown absolute left-0 right-0 top-24 w-full"
         >
           <label tabindex="0"></label>
-          <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow bg-base-100 rounded-box w-full">
+          <ul tabindex="0" class="menu dropdown-content rounded-box z-50 w-full bg-base-100 p-2 shadow">
             <li v-for="suggestion in suggestions">
-              <NuxtLink
-                :to="suggestion.url"
-                @click="handleSuggestionClick()"
-              >
+              <NuxtLink :to="suggestion.url" @click="handleSuggestionClick()">
                 {{ suggestion.label }}
               </NuxtLink>
             </li>
@@ -46,15 +43,15 @@
   </header>
 </template>
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref } from "vue";
 const { $t, $directus, $readItems } = useNuxtApp();
-const q = ref('');
+const q = ref("");
 const searchFocused = ref(false);
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
       fields: ["slug", "name"],
-      sort: 'name',
+      sort: "name",
       limit: -1,
     }),
   );
@@ -71,11 +68,11 @@ function handleSearchBlur() {
 }
 
 function handleSuggestionClick() {
-  q.value = '';
+  q.value = "";
 }
 
 function handleResetSearchClick() {
-  q.value = '';
+  q.value = "";
 }
 
 const suggestions = computed(() => {
@@ -86,16 +83,16 @@ const suggestions = computed(() => {
   }
 
   return municipalities.value
-  .filter((municipality) => {
-    return municipality.name.toLowerCase().indexOf(_q) !== -1;
-  })
-  .map((municipality) => {
-    return {
-      url: `/municipalities/${municipality.slug}`,
-      label: municipality.name,
-    };
-  })
-  .slice(0, 5);
+    .filter((municipality) => {
+      return municipality.name.toLowerCase().indexOf(_q) !== -1;
+    })
+    .map((municipality) => {
+      return {
+        url: `/municipalities/${municipality.slug}`,
+        label: municipality.name,
+      };
+    })
+    .slice(0, 5);
 });
 </script>
 <style lang=""></style>

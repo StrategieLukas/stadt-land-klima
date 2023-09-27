@@ -11,11 +11,11 @@ module.exports = {
   theme: {
     extend: {
       screens: {
-        "xs": "420px",
+        xs: "420px",
       },
       fontFamily: {
-        "sans": ["Inter", "sans"],
-        "heading": ["RobotoCondensed", "sans"],
+        sans: ["Inter", "sans"],
+        heading: ["RobotoCondensed", "sans"],
       },
       colors: {
         "ranking-0-2": "#D9000D",
@@ -27,7 +27,7 @@ module.exports = {
         "rating-2": "#FFDD00",
         "rating-1": "#E30613",
         "light-green": "#AFCA0B",
-        "green": "#339737",
+        green: "#339737",
         "ff-green": "#1da64a",
         red: "#e30613",
         orange: "#f39200 ",

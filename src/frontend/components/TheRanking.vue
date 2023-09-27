@@ -1,12 +1,9 @@
 <template lang="">
   <div class="flex flex-col">
     <ul>
-      <li v-for="(municipality, index) in municipalities" :key="municipality.id">
+      <li v-for="municipality in municipalities" :key="municipality.id">
         <NuxtLink :to="`/municipalities/${municipality.slug}`">
-          <item-ranking
-            :municipality="municipality"
-            :is-ranking="true"
-          />
+          <item-ranking :municipality="municipality" :is-ranking="true" />
         </NuxtLink>
       </li>
     </ul>

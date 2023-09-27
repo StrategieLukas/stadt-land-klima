@@ -7,10 +7,12 @@ const directus = createDirectus(directusUrl).with(rest());
 const locale = resolveFullLocaleCode();
 
 export default defineNuxtPlugin(async () => {
-  const translations = await directus.request(readTranslations({
-    limit: -1,
-    filter: { language: { _eq: locale } },
-  }));
+  const translations = await directus.request(
+    readTranslations({
+      limit: -1,
+      filter: { language: { _eq: locale } },
+    }),
+  );
 
   const translator = createTranslator(translations);
 
