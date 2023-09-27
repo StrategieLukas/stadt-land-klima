@@ -31,6 +31,14 @@ operations:
                     return {retData};
                 }
     resolve_key: trigger_i5e2r
+  - name: Trigger Flow
+    key: trigger_i5e2r
+    type: trigger
+    position_x: 29
+    position_y: 20
+    options:
+      flow: 14c9927f-79d5-42e1-b145-873cc1f364ab
+      payload: "{{$last.retData}}"
   - name: Read Data
     key: item_read_rlzk6
     type: item-read
@@ -43,12 +51,4 @@ operations:
           status:
             _eq: published
     resolve_key: exec_l3jv0
-  - name: Trigger Flow
-    key: trigger_i5e2r
-    type: trigger
-    position_x: 29
-    position_y: 20
-    options:
-      flow: 577761a3-ffda-4fbd-afe3-118e22a146d9
-      payload: "{{$last.retData}}"
 operation_key: item_read_rlzk6

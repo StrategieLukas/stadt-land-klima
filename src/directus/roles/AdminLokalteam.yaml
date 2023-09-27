@@ -105,6 +105,8 @@ permissions:
       - score_cpma
       - score_bh
       - id
+      - place
+      - description
   - role: b8c043a2-a245-42d1-b28f-20c657270926
     collection: municipalities
     action: update
@@ -125,6 +127,7 @@ permissions:
       - population
       - mayor
       - party_mayor
+      - description
   - role: b8c043a2-a245-42d1-b28f-20c657270926
     collection: measures
     action: read

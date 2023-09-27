@@ -22,7 +22,7 @@ meta:
     showAsDot: true
   field: status
   group: null
-  hidden: false
+  hidden: true
   interface: select-dropdown
   note: null
   options:

@@ -31,8 +31,6 @@ meta:
         value: published
       - text: $t:draft
         value: draft
-      - text: $t:archived
-        value: archived
   readonly: false
   required: false
   sort: 1

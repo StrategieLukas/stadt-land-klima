@@ -1,6 +1,6 @@
 collection: municipalities
 field: score_energy
-type: integer
+type: decimal
 meta:
   collection: municipalities
   conditions: null
@@ -12,8 +12,7 @@ meta:
   interface: input
   note: null
   options:
-    max: 10
-    min: 0
+    step: null
   readonly: false
   required: false
   sort: 4
@@ -27,11 +26,11 @@ meta:
 schema:
   name: score_energy
   table: municipalities
-  data_type: integer
+  data_type: numeric
   default_value: null
   max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  numeric_precision: 10
+  numeric_scale: 5
   is_nullable: true
   is_unique: false
   is_primary_key: false

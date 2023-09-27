@@ -1,28 +1,31 @@
-collection: measures
-field: sort
+collection: municipalities
+field: place
 type: integer
 meta:
-  collection: measures
+  collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: sort
-  group: null
-  hidden: true
+  field: place
+  group: scores
+  hidden: false
   interface: input
   note: null
-  options: null
+  options:
+    min: 1
   readonly: false
   required: false
-  sort: 3
+  sort: 1
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Platz
   validation: null
   validation_message: null
   width: full
 schema:
-  name: sort
-  table: measures
+  name: place
+  table: municipalities
   data_type: integer
   default_value: null
   max_length: null

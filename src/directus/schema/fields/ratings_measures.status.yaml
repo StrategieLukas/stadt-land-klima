@@ -3,7 +3,17 @@ field: status
 type: string
 meta:
   collection: ratings_measures
-  conditions: null
+  conditions:
+    - name: EditOnlyIfMeasureIsPublished
+      rule:
+        _and:
+          - measure_id:
+              status:
+                _neq: null
+      readonly: true
+      options:
+        allowOther: false
+        allowNone: false
   display: labels
   display_options:
     choices:
@@ -31,14 +41,17 @@ meta:
         value: published
       - text: $t:draft
         value: draft
-      - text: $t:archived
-        value: archived
   readonly: false
   required: false
   sort: 2
   special: null
   translations: null
-  validation: null
+  validation:
+    _and:
+      - status:
+          _in:
+            - published
+            - draft
   validation_message: null
   width: full
 schema:

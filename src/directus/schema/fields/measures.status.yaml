@@ -31,8 +31,6 @@ meta:
         value: published
       - text: $t:draft
         value: draft
-      - text: $t:archived
-        value: archived
   readonly: false
   required: true
   sort: 2
@@ -45,7 +43,7 @@ schema:
   name: status
   table: measures
   data_type: character varying
-  default_value: null
+  default_value: draft
   max_length: 255
   numeric_precision: null
   numeric_scale: null

@@ -1,6 +1,6 @@
 collection: municipalities
 field: score_ann
-type: integer
+type: decimal
 meta:
   collection: municipalities
   conditions: null
@@ -10,13 +10,13 @@ meta:
   group: scores
   hidden: false
   interface: input
-  note: $t:score_ann_info
+  note: null
   options:
     max: 10
-    min: 0
+    step: null
   readonly: false
   required: false
-  sort: 6
+  sort: 7
   special: null
   translations:
     - language: de-DE
@@ -27,11 +27,11 @@ meta:
 schema:
   name: score_ann
   table: municipalities
-  data_type: integer
+  data_type: numeric
   default_value: null
   max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  numeric_precision: 10
+  numeric_scale: 5
   is_nullable: true
   is_unique: false
   is_primary_key: false

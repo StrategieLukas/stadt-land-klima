@@ -18,4 +18,5 @@ operations:
       payload:
         measure_id: "{{$last.measure_id}}"
         localteam_id: "{{$last.localteam_id}}"
+      emitEvents: true
 operation_key: item_create_8neoc
