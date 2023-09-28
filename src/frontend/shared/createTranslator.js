@@ -1,5 +1,5 @@
 import lodash from 'lodash';
-const { forOwn, replace } from ldoash;
+const { forOwn, replace } = lodash;
 
 export default function createTranslator(translations) {
   const messages = {};
