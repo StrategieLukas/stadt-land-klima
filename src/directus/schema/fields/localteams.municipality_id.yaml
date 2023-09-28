@@ -4,8 +4,9 @@ type: alias
 meta:
   collection: localteams
   conditions: null
-  display: null
-  display_options: null
+  display: related-values
+  display_options:
+    template: "{{name}}"
   field: municipality_id
   group: null
   hidden: false
