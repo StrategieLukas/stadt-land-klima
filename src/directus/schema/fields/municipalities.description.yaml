@@ -1,33 +1,35 @@
-collection: localteams
-field: sort
-type: integer
+collection: municipalities
+field: description
+type: text
 meta:
-  collection: localteams
+  collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: sort
-  group: null
-  hidden: true
-  interface: input
+  field: description
+  group: details
+  hidden: false
+  interface: input-multiline
   note: null
   options: null
   readonly: false
   required: false
-  sort: 3
+  sort: 1
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Beschreibung
   validation: null
   validation_message: null
   width: full
 schema:
-  name: sort
-  table: localteams
-  data_type: integer
+  name: description
+  table: municipalities
+  data_type: text
   default_value: null
   max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  numeric_precision: null
+  numeric_scale: null
   is_nullable: true
   is_unique: false
   is_primary_key: false

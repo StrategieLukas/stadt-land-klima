@@ -10,14 +10,13 @@ options:
   scope:
     - items.create
   collections:
-    - lokalteam
     - localteams
 operations:
   - name: Create Data
     key: item_create_vf2y4
     type: item-create
-    position_x: 19
-    position_y: 1
+    position_x: 27
+    position_y: 8
     options:
       collection: municipalities
       payload:

@@ -1,0 +1,39 @@
+name: calculateScoresCreateRating
+icon: bolt
+color: null
+description: calculate the Scores when new rating_measure is created
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.create
+  collections:
+    - ratings_measures
+operations:
+  - name: Transform Payload
+    key: transform_k2nt3
+    type: transform
+    position_x: 19
+    position_y: 1
+    options:
+      json:
+        keys:
+          - "{{ $trigger.key }}"
+    resolve_key: operation_calculate_scores_k3swm
+  - name: Calculate Scores
+    key: operation_calculate_scores_k3swm
+    type: operation-calculateScores
+    position_x: 37
+    position_y: 1
+    options:
+      keys: "{{$last.keys}}"
+    resolve_key: update_ranks_w2afr
+  - name: updatesRanks
+    key: update_ranks_w2afr
+    type: updateRanks
+    position_x: 8
+    position_y: 20
+    options: {}
+operation_key: transform_k2nt3

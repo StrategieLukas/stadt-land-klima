@@ -7,10 +7,14 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint:js": "eslint --ext \".js,.vue\" --ignore-path .gitignore .",
+    "lint:js": "eslint --ext \".js,.vue\" --ignore-path .gitignore ../../directus-extension-not-build/**",
     "lint:prettier": "prettier --check .",
     "lint": "npm run lint:js && npm run lint:prettier",
-    "lintfix": "prettier --write --list-different . && npm run lint:js --fix"
+    "lintfix": "prettier --write --list-different . && npm run lint:js --fix",
+    "lintExtensions:js": "eslint --ext \".js\" --ignore-path .gitignore ../../directus-extension-not-build/**",
+    "lintExtensions:prettier": "prettier --check ../../directus-extension-not-build/**",
+    "lintExtensions": "npm run lintExtensions:js && npm run lintExtensions:prettier",
+    "lintExtensionsfix": "prettier --write --list-different ../../directus-extension-not-build/** && npm run lintExtensions:js --fix"
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",

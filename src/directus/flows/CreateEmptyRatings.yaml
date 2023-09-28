@@ -1,15 +1,15 @@
-name: createsBewertung_part2
+name: CreateEmptyRatings
 icon: bolt
 color: null
-description: creates a Bewertung for each Maßnahme or Lokalteam
+description: Creates an empty rating for the corresponding measure and localteam
 status: active
 trigger: operation
 accountability: all
 options:
   return: $all
 operations:
-  - name: creates_Bewertung
-    key: creates_bewertung
+  - name: Create Data
+    key: item_create_8neoc
     type: item-create
     position_x: 19
     position_y: 1
@@ -18,4 +18,5 @@ operations:
       payload:
         measure_id: "{{$last.measure_id}}"
         localteam_id: "{{$last.localteam_id}}"
-operation_key: creates_bewertung
+      emitEvents: true
+operation_key: item_create_8neoc

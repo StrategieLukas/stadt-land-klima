@@ -40,3 +40,113 @@ permissions:
       - date_created
       - user_created
       - date_updated
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: ratings_measures
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - measure_id
+      - rating
+      - approved
+      - Source
+      - applicable
+      - status
+      - user_updated
+      - date_updated
+      - id
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: ratings_measures
+    action: update
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - status
+      - rating
+      - applicable
+      - Source
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: municipalities
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - status
+      - user_updated
+      - date_updated
+      - name
+      - municipality_type
+      - details
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - scores
+      - score_total
+      - score_transport
+      - score_energy
+      - score_iec
+      - score_ann
+      - score_cpma
+      - score_bh
+      - id
+      - place
+      - description
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: municipalities
+    action: update
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - status
+      - user_updated
+      - date_updated
+      - municipality_type
+      - details
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - description
+  - role: b8c043a2-a245-42d1-b28f-20c657270926
+    collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - name
+      - sector
+      - impact
+      - weight
+      - feasibility
+      - feasibility_political
+      - feasibility_economical
+      - description
+      - verification_description
+      - notes
+      - id
+      - status

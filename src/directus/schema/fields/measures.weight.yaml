@@ -14,7 +14,7 @@ meta:
   options:
     max: 100
   readonly: false
-  required: false
+  required: true
   sort: 12
   special: null
   translations:

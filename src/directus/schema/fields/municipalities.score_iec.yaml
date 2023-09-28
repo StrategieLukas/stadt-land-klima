@@ -1,6 +1,6 @@
 collection: municipalities
 field: score_iec
-type: integer
+type: decimal
 meta:
   collection: municipalities
   conditions: null
@@ -10,14 +10,11 @@ meta:
   group: scores
   hidden: false
   interface: input
-  note: $t:score_iec_info
-  options:
-    max: 10
-    min: 0
-    placeholder: null
+  note: null
+  options: null
   readonly: false
   required: false
-  sort: 5
+  sort: 6
   special: null
   translations:
     - language: de-DE
@@ -28,11 +25,11 @@ meta:
 schema:
   name: score_iec
   table: municipalities
-  data_type: integer
+  data_type: numeric
   default_value: null
   max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  numeric_precision: 10
+  numeric_scale: 5
   is_nullable: true
   is_unique: false
   is_primary_key: false

@@ -21,13 +21,19 @@ meta:
         value: "1"
   readonly: false
   required: false
-  sort: 11
+  sort: 9
   special: null
   translations:
     - language: de-DE
       translation: Bewertung
-  validation: null
-  validation_message: null
+  validation:
+    _and:
+      - rating:
+          _in:
+            - "1"
+            - "2"
+            - "3"
+  validation_message: Only 1,2,3 is allowed
   width: half
 schema:
   name: rating

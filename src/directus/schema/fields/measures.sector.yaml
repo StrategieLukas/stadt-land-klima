@@ -26,7 +26,7 @@ meta:
       - text: Klimaschutzmanagement & Verwaltung
         value: cpma
   readonly: false
-  required: false
+  required: true
   sort: 10
   special: null
   translations: null

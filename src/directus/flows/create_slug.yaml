@@ -10,11 +10,7 @@ options:
   scope:
     - items.create
   collections:
-    - kommunen
-    - massnahme
-    - lokalteam
     - pages
-    - massnahmen
     - municipalities
     - measures
 operations:

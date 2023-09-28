@@ -10,11 +10,11 @@ meta:
       - text: $t:published
         value: published
         foreground: "#FFFFFF"
-        background: var(--primary)
+        background: "#26A269"
       - text: $t:draft
         value: draft
         foreground: "#18222F"
-        background: "#D3DAE4"
+        background: "#E01B24"
       - text: $t:archived
         value: archived
         foreground: "#FFFFFF"
@@ -31,8 +31,6 @@ meta:
         value: published
       - text: $t:draft
         value: draft
-      - text: $t:archived
-        value: archived
   readonly: false
   required: false
   sort: 1

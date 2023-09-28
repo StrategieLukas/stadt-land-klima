@@ -1,0 +1,29 @@
+name: calculateScoresUpdateRating
+icon: bolt
+color: null
+description: calculate the Scores when  rating_measure is updated
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - ratings_measures
+operations:
+  - name: Calculate Scores
+    key: operation_calculate_scores_qp3zc
+    type: operation-calculateScores
+    position_x: 19
+    position_y: 1
+    options:
+      keys: "{{$trigger.keys}}"
+    resolve_key: update_ranks_we3ei
+  - name: updatesRanks
+    key: update_ranks_we3ei
+    type: updateRanks
+    position_x: 37
+    position_y: 1
+    options: {}
+operation_key: operation_calculate_scores_qp3zc

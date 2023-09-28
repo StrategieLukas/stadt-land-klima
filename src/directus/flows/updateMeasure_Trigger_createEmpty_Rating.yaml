@@ -1,0 +1,64 @@
+name: "updateMeasure Trigger createEmpty Rating "
+icon: bolt
+color: null
+description: triggers CreateEmptyRatings for each localteam  when a
+  measure.status is updated to published
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - measures
+operations:
+  - name: Condition
+    key: condition_l1qrh
+    type: condition
+    position_x: 19
+    position_y: 1
+    options:
+      filter:
+        $trigger:
+          payload:
+            status:
+              _eq: published
+    resolve_key: item_read_djgzw
+  - name: Trigger Flow
+    key: trigger_cupdd
+    type: trigger
+    position_x: 37
+    position_y: 18
+    options:
+      flow: 14c9927f-79d5-42e1-b145-873cc1f364ab
+      payload: "{{$last.retData}}"
+  - name: Read Data
+    key: item_read_djgzw
+    type: item-read
+    position_x: 1
+    position_y: 18
+    options:
+      collection: localteams
+    resolve_key: exec_thpou
+  - name: Run Script
+    key: exec_thpou
+    type: exec
+    position_x: 19
+    position_y: 18
+    options:
+      code: >2-
+         module.exports = async function(data) {
+                    let retData = []
+                	for (var i = 0; i < data["$last"].length; i++){
+                        for (var j = 0; j < data["$trigger"]["keys"].length; j++){
+                            retData.push({
+                               "localteam_id":data["$last"][i]["id"],
+                                "measure_id": data["$trigger"]["keys"][j]
+                            })
+                  		}
+                    }
+                    return {retData};
+                }
+    resolve_key: trigger_cupdd
+operation_key: condition_l1qrh

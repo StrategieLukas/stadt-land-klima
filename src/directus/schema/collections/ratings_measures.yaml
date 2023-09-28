@@ -16,7 +16,7 @@ meta:
   preview_url: null
   singleton: false
   sort: null
-  sort_field: sort
+  sort_field: null
   translations:
     - language: de-DE
       translation: Maßnahmenratings

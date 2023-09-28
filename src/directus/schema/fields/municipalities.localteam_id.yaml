@@ -15,10 +15,9 @@ meta:
   options:
     template: "{{name}}"
   readonly: false
-  required: false
+  required: true
   sort: 11
-  special:
-    - m2o
+  special: null
   translations:
     - language: de-DE
       translation: Lokalteam
@@ -33,7 +32,7 @@ schema:
   max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: true
+  is_nullable: false
   is_unique: true
   is_primary_key: false
   is_generated: false

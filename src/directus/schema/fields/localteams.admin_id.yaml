@@ -14,7 +14,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 11
+  sort: 12
   special:
     - m2o
   translations:

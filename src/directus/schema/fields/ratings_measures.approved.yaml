@@ -1,33 +1,36 @@
 collection: ratings_measures
-field: sort
-type: integer
+field: approved
+type: boolean
 meta:
   collection: ratings_measures
   conditions: null
   display: null
   display_options: null
-  field: sort
+  field: approved
   group: null
-  hidden: true
-  interface: input
+  hidden: false
+  interface: boolean
   note: null
   options: null
   readonly: false
-  required: false
-  sort: 3
-  special: null
-  translations: null
+  required: true
+  sort: 12
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Genehmigt
   validation: null
   validation_message: null
   width: full
 schema:
-  name: sort
+  name: approved
   table: ratings_measures
-  data_type: integer
-  default_value: null
+  data_type: boolean
+  default_value: true
   max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  numeric_precision: null
+  numeric_scale: null
   is_nullable: true
   is_unique: false
   is_primary_key: false

@@ -1,0 +1,33 @@
+{
+	"name": "directus-extension-calcScores",
+	"description": "Please enter a description for your extension",
+	"icon": "extension",
+	"version": "1.0.0",
+	"keywords": [
+		"directus",
+		"directus-extension",
+		"directus-custom-operation"
+	],
+	"type": "module",
+	"directus:extension": {
+		"type": "operation",
+		"path": {
+			"app": "dist/app.js",
+			"api": "dist/api.js"
+		},
+		"source": {
+			"app": "src/app.js",
+			"api": "src/api.js"
+		},
+		"host": "^10.1.11"
+	},
+	"scripts": {
+		"build": "directus-extension build",
+		"dev": "directus-extension build -w --no-minify",
+		"link": "directus-extension link"
+	},
+	"devDependencies": {
+		"@directus/extensions-sdk": "10.1.11",
+		"vue": "^3.3.4"
+	}
+}
