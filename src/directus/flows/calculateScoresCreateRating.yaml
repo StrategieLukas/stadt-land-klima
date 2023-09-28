@@ -6,12 +6,11 @@ status: active
 trigger: event
 accountability: all
 options:
-  type: filter
+  type: action
   scope:
     - items.create
   collections:
     - ratings_measures
-  return: $all
 operations:
   - name: Transform Payload
     key: transform_k2nt3
@@ -30,4 +29,11 @@ operations:
     position_y: 1
     options:
       keys: "{{$last.keys}}"
+    resolve_key: update_ranks_w2afr
+  - name: updatesRanks
+    key: update_ranks_w2afr
+    type: updateRanks
+    position_x: 8
+    position_y: 20
+    options: {}
 operation_key: transform_k2nt3

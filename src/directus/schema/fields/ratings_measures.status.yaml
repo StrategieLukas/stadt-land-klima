@@ -20,11 +20,11 @@ meta:
       - text: $t:published
         value: published
         foreground: "#FFFFFF"
-        background: var(--primary)
+        background: "#33D17A"
       - text: $t:draft
         value: draft
         foreground: "#18222F"
-        background: "#D3DAE4"
+        background: "#E01B24"
       - text: $t:archived
         value: archived
         foreground: "#FFFFFF"
