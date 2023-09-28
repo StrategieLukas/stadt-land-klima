@@ -1,5 +1,5 @@
 <template lang="">
-  <nav class="drawer-side">
+  <nav class="drawer-side z-20">
     <label for="page-drawer" class="drawer-overlay"></label>
     <ul tabindex="0" class="menu min-h-full w-80 bg-light-green p-4">
       <li>
