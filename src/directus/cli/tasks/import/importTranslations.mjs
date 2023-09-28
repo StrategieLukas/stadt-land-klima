@@ -17,9 +17,10 @@ async function importTranslations(src, options = {verbose: false}) {
     const translationsToUpdate = [];
 
     translations.forEach((translation) => {
-      const existingTranslation = find(existingTranslations, ['id', translation.id]);
+      const existingTranslation = find(existingTranslations, {key: translation.key, language: translation.language});
 
       if (existingTranslation) {
+        translation.id = existingTranslation.id;
         translationsToUpdate.push(translation);
       } else {
         translationsToCreate.push(translation);
@@ -41,7 +42,7 @@ async function importTranslations(src, options = {verbose: false}) {
 
       translationsToUpdate.forEach(async (translation) => {
         try {
-          await client.request(updateTranslation(translation.id, translation));
+          await client.request(updateTranslation(translation.id, {value: translation.value}));
         } catch (err) {
           console.error(err);
         }
@@ -51,7 +52,7 @@ async function importTranslations(src, options = {verbose: false}) {
     // Remove
     if (options.remove) {
       const translationsToDelete = existingTranslations.filter((translation) => {
-        return !find(translations, ['id', translation.id]);
+        return !find(translations, {key: translation.key, language: translation.language});
       });
 
       if (translationsToDelete.length) {

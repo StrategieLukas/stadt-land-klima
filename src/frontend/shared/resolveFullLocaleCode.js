@@ -1,7 +1,7 @@
-const fallbackLocale = process.env.FALLBACK_LOCALE || 'de-DE';
+const fallbackLocale = process.env.FALLBACK_LOCALE || "de-DE";
 const shorthands = {
-  de: 'de-DE',
-  en: 'en-US',
+  de: "de-DE",
+  en: "en-US",
 };
 
 export default function resolveFullLocaleCode(locale = null) {

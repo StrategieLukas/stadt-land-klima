@@ -1,14 +1,16 @@
 <template>
-  <NuxtLink :to="`/measures/sectors/${measure.sector}`" class="btn btn-ghost normal-case mt-4">
-    {{ $t('measure.back_label', {':sector': $t(`measure_sectors.${measure.sector}.title`)}) }}
-  </NuxtLink>
+  <div>
+    <NuxtLink :to="`/measures/sectors/${measure.sector}`" class="btn btn-ghost mt-4 normal-case">
+      {{ $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) }}
+    </NuxtLink>
 
-  <article class="mb-8 mt-10 flex items-start gap-4">
-    <div class="prose">
-      <h1>{{ measure.name }}</h1>
-      <div v-html="measure.description" />
-    </div>
-  </article>
+    <article class="mb-8 mt-10 flex items-start gap-4">
+      <div class="prose">
+        <h1>{{ measure.name }}</h1>
+        <div v-html="measure.description" />
+      </div>
+    </article>
+  </div>
 </template>
 <script setup>
 const { $directus, $readItems, $t } = useNuxtApp();

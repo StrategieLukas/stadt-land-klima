@@ -23,6 +23,8 @@ async function exportTranslations(dest, options = {verbose: false, overwrite: fa
         return;
       }
 
+      delete translation.id;
+
       fse.writeFileSync(
         destPath,
         stringify(translation),

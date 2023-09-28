@@ -15,7 +15,6 @@ export default defineNuxtPlugin(async () => {
   const runtimeConfig = useRuntimeConfig();
   const token = runtimeConfig.public.directusToken;
   directus = directus.with(staticToken(token));
-
   const translations = await directus.request(
     readTranslations({
       limit: -1,
@@ -23,9 +22,15 @@ export default defineNuxtPlugin(async () => {
     }),
   );
 
-  const t = createTranslator(translations).t;
+  const translator = createTranslator(translations);
 
   return {
-    provide: { directus, readItem, readItems, t },
+    provide: {
+      directus,
+      readItem,
+      readItems,
+      locale,
+      t: translator.t,
+    },
   };
 });

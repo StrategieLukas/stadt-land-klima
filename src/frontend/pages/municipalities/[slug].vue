@@ -1,6 +1,17 @@
 <template>
   <div>
-    <detail-municipality :municipality="municipalities[0]" :sorted-ratings="sortMeasuresBySectorDict"></detail-municipality>
+    <NuxtLink :to="`/municipalities`" class="btn btn-ghost mt-4 normal-case">
+      {{ $t("municipality.back_label") }}
+    </NuxtLink>
+    <article class="mb-8 mt-10">
+      <detail-municipality
+        :municipality="municipalities[0]"
+        :sorted-ratings="sortMeasuresBySectorDict"
+      ></detail-municipality>
+    </article>
+    <NuxtLink :to="`/municipalities`" class="btn btn-ghost mb-4 normal-case">
+      {{ $t("municipality.back_label") }}
+    </NuxtLink>
   </div>
 </template>
 <script setup>
@@ -15,7 +26,6 @@ const { data: municipalities } = await useAsyncData("municipality", () => {
     }),
   );
 });
-const municipality = municipalities.value[0] || null;
 const localteam_id = municipalities.value[0].localteam_id;
 const { data: ratings_measures } = await useAsyncData("ratings_measures", () => {
   return $directus.request(
@@ -30,27 +40,23 @@ const { data: measures } = await useAsyncData("measures", () => {
 
 const rmArray = ratings_measures.value;
 const measuresArray = measures.value;
-const sortMeasuresBySectorDict = sortMeasuresBySector()
-/* console.log("municipality",municipality);
-console.log("bmArray",rmArray);
-console.log("measuresArray",measuresArray); */
-console.log("sorted",sortMeasuresBySector());
+const sortMeasuresBySectorDict = computed(() => {
+  return sortMeasuresBySector(rmArray, measuresArray);
+});
 
-function sortMeasuresBySector() {
-  //TODO Error HAndline
+function sortMeasuresBySector(ratingsMeasuresArr, measuresArr) {
+  const measureMap = new Map(measuresArr.map((measure) => [measure.id, measure]));
   const dictMeasuresRatingSorted = {};
-  for (const key in rmArray) {
-    for (const key2 in measuresArray) {
-      if (rmArray[key].measure_id === measuresArray[key2].id) {
-        rmArray[key].measure = measuresArray[key2];
-      }
-    }
-    if (!Object.prototype.hasOwnProperty.call(dictMeasuresRatingSorted, rmArray[key].measure.sector)) {
-      dictMeasuresRatingSorted[rmArray[key].measure.sector] = [];
-    }
-    dictMeasuresRatingSorted[rmArray[key].measure.sector].push(rmArray[key]);
-  }
 
+  for (const item of ratingsMeasuresArr) {
+    const measure = measureMap.get(item.measure_id);
+    if (measure) {
+      const { sector } = measure;
+      item.measure = measure;
+      dictMeasuresRatingSorted[sector] = dictMeasuresRatingSorted[sector] || [];
+      dictMeasuresRatingSorted[sector].push(item);
+    }
+  }
   return dictMeasuresRatingSorted;
 }
 </script>

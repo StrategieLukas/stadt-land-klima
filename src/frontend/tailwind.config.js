@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+/** @type {import("tailwindcss").Config} */
 module.exports = {
   content: [
     "./components/**/*.{js,vue,ts}",
@@ -10,8 +10,24 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: "420px",
+      },
+      fontFamily: {
+        sans: ["Inter", "sans"],
+        heading: ["RobotoCondensed", "sans"],
+      },
       colors: {
+        "ranking-0-2": "#D9000D",
+        "ranking-2-4": "#F27C00",
+        "ranking-4-6": "#FFD400",
+        "ranking-6-8": "#AFCA0B",
+        "ranking-8-10": "#1DA64A",
+        "rating-3": "#1EA64A",
+        "rating-2": "#FFDD00",
+        "rating-1": "#E30613",
         "light-green": "#AFCA0B",
+        green: "#339737",
         "ff-green": "#1da64a",
         red: "#e30613",
         orange: "#f39200 ",
@@ -33,35 +49,37 @@ module.exports = {
       typography: {
         DEFAULT: {
           css: {
-            color: "#707070",
-            fontFamily: "Inter-Regular",
+            color: "#505050",
+            fontFamily: ["Inter", "sans"],
             "font-size": "1rem",
             "line-height": "1.5",
             h1: {
-              fontFamily: "RobotoCondensed-Bold",
+              fontFamily: ["RobotoCondensed", "sans"],
               "font-size": "2rem",
               "line-height": "1.5",
-              color: '#000000',
+              color: "#000000",
+              "font-weight": "bold",
             },
             h2: {
-              fontFamily: "RobotoCondensed-Bold",
+              fontFamily: ["RobotoCondensed", "sans"],
               "font-size": "1.5rem",
               "line-height": "1.5",
-              color: '#000000',
+              color: "#000000",
+              "font-Weight": "bold",
             },
             h3: {
-              fontFamily: "RobotoCondensed-Regular",
+              fontFamily: ["RobotoCondensed", "sans"],
               "font-size": "1.5rem",
               "line-height": "1.5",
-              "font-weight": 400,
-              color: '#16bae7',
+              "font-weight": "normal",
+              color: "#16bae7",
             },
             h4: {
-              fontFamily: "RobotoCondensed-Regular",
+              fontFamily: ["RobotoCondensed", "sans"],
               "font-size": "1.5rem",
               "line-height": "1.5",
-              "font-weight": 400,
-              color: '#1da64a',
+              "font-weight": "normal",
+              color: "#1da64a",
             },
             "a:hover": {
               "text-decoration": "underline dotted",
@@ -86,8 +104,8 @@ module.exports = {
           secondary: "#f27c00",
           accent: "#00aee2",
           neutral: "#707070",
-          "base-100": "#000000",
-          fontFamily: "Inter-Regular",
+          "base-100": "#ffffff",
+          fontFamily: ["Inter", "sans"],
         },
       },
     ],
