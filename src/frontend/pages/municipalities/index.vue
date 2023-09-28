@@ -18,7 +18,8 @@
 </template>
 
 <script setup>
-import { sortBy, last, get } from "lodash";
+import lodash from "lodash";
+const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 
 const { data: municipalities } = await useAsyncData("municipalities", () => {

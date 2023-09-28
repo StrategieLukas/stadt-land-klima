@@ -29,7 +29,8 @@
   </div>
 </template>
 <script setup>
-import { includes } from "lodash";
+import lodash from "lodash";
+const { includes } = lodash;
 const { $directus, $readItems } = useNuxtApp();
 
 const { data: pages } = await useAsyncData("pages", () => {

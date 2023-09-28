@@ -121,7 +121,8 @@
   </div>
 </template>
 <script setup>
-import { range } from "lodash";
+import lodash from "lodash";
+const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingImages from "../shared/ratingImages.js";
 const { $t, $locale } = useNuxtApp();
