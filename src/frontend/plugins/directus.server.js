@@ -5,7 +5,7 @@ import { rest, readItem, readItems, readTranslations } from "@directus/sdk/rest"
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode.js";
 import createTranslator from "~/shared/createTranslator.js";
 
-const directusUrl = "http://directus:8055"; //TODO
+const directusUrl = process.env.SERVER_DIRECTUS_URL || "http://directus:8055";
 
 let directus = createDirectus(directusUrl).with(rest());
 

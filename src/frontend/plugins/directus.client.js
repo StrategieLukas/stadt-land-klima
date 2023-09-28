@@ -4,7 +4,7 @@ import { staticToken } from "@directus/sdk/auth";
 import { rest, readItem, readItems, readTranslations } from "@directus/sdk/rest";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode.js";
 import createTranslator from "~/shared/createTranslator.js";
-const directusUrl = process.env.DIRECTUS_URL || "http://127.0.0.1:8081"; //TODO
+const directusUrl = runtimeConfig.public.clientDirectusUrl || "http://127.0.0.1:8081"; //TODO
 let directus = createDirectus(directusUrl).with(rest());
 const locale = resolveFullLocaleCode(document.documentElement.getAttribute("lang"));
 

@@ -5,7 +5,7 @@ export default defineNuxtConfig({
     // Keys within public, will be also exposed to the client-side
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,
-     
+      clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL,
     }
   },
   devtools: { enabled: true },
