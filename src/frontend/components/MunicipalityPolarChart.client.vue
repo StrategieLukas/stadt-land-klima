@@ -96,7 +96,6 @@ function createSubScoreArray(subScoreObject) {
   tempScores.push(subScoreObject.score_iec);
   tempScores.push(subScoreObject.score_bh);
   tempScores.push(subScoreObject.score_cpma);
-  console.log("temp tempScores:", tempScores);
   return tempScores;
 }
 function createColorArray(subScoresArray) {
@@ -110,7 +109,6 @@ function createColorArray(subScoresArray) {
       tempColorsArray.push("rgb(29, 166, 74, 0.5)");
     }
   });
-  console.log("temp Color:", tempColorsArray);
   return tempColorsArray;
 }
 </script>
