@@ -29,11 +29,11 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
     ),
     $directus.request($readItems("measures", {}))
   ])
-/*   ratingsMeasures = await $directus.request(
+  ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
       filter: { localteam_id: { _eq: municipalities[0].localteam_id } },
     }),
-  ); */
+  );
   return {
     municipalities,
     measures,
@@ -42,7 +42,7 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
 })
 
 const sortMeasuresBySectorDict = computed(() => {
-  return sortMeasuresBySector([], directusData.value.measures);
+  return sortMeasuresBySector(directusData.value.ratingsMeasures, directusData.value.measures);
 });
 
 
