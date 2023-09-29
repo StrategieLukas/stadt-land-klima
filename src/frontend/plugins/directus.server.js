@@ -5,16 +5,15 @@ import { rest, readItem, readItems, readTranslations } from "@directus/sdk/rest"
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode.js";
 import createTranslator from "~/shared/createTranslator.js";
 
-const directusUrl = process.env.SERVER_DIRECTUS_URL || "http://directus:8055";
 
-let directus = createDirectus(directusUrl).with(rest());
 
 const locale = resolveFullLocaleCode();
 
 export default defineNuxtPlugin(async () => {
   const runtimeConfig = useRuntimeConfig();
   const token = runtimeConfig.public.directusToken;
-  directus = directus.with(staticToken(token));
+  const directusUrl = runtimeConfig.public.serverDirectusUrl || "http://directus:8055";
+  let directus = createDirectus(directusUrl).with(rest()).with(staticToken(token));
   const translations = await directus.request(
     readTranslations({
       limit: -1,

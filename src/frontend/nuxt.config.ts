@@ -6,6 +6,7 @@ export default defineNuxtConfig({
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,
       clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL,
+      serverDirectusUrl: process.env.SERVER_DIRECTUS_URL,
     }
   },
   devtools: { enabled: true },

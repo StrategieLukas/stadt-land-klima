@@ -4,10 +4,8 @@
       {{ $t("municipality.back_label") }}
     </NuxtLink>
     <article class="mb-8 mt-10">
-      <detail-municipality
-        :municipality="municipalities[0]"
-        :sorted-ratings="sortMeasuresBySectorDict"
-      ></detail-municipality>
+      <detail-municipality :municipality="municipalities[0]"
+        :sorted-ratings="sortMeasuresBySectorDict"></detail-municipality>
     </article>
     <NuxtLink :to="`/municipalities`" class="btn btn-ghost mb-4 normal-case">
       {{ $t("municipality.back_label") }}
@@ -27,6 +25,7 @@ const { data: municipalities } = await useAsyncData("municipality", () => {
   );
 });
 const localteam_id = municipalities.value[0].localteam_id;
+console.log("municipalities.value[0].localteam_id;",municipalities.value[0].localteam_id)
 const { data: ratings_measures } = await useAsyncData("ratings_measures", () => {
   return $directus.request(
     $readItems("ratings_measures", {
@@ -36,15 +35,18 @@ const { data: ratings_measures } = await useAsyncData("ratings_measures", () => 
 });
 const { data: measures } = await useAsyncData("measures", () => {
   return $directus.request($readItems("measures", {}));
+})
+
+
+const sortMeasuresBySectorDict = computed(() => {
+  return sortMeasuresBySector(ratings_measures.value, measures.value);
 });
 
-const rmArray = ratings_measures.value;
-const measuresArray = measures.value;
-const sortMeasuresBySectorDict = computed(() => {
-  return sortMeasuresBySector(rmArray, measuresArray);
-});
 
 function sortMeasuresBySector(ratingsMeasuresArr, measuresArr) {
+  if (!Array.isArray(ratingsMeasuresArr) || !Array.isArray(measuresArr)) {
+    return {}
+  }
   const measureMap = new Map(measuresArr.map((measure) => [measure.id, measure]));
   const dictMeasuresRatingSorted = {};
 
