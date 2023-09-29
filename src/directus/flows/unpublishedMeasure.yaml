@@ -1,0 +1,38 @@
+name: unpublishedMeasure
+icon: restore_from_trash
+color: "#E01B24"
+description: when measure is unpublished delete coresponding ratings
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - measures
+operations:
+  - name: Delete Data
+    key: item_delete_oqa8j
+    type: item-delete
+    position_x: 3
+    position_y: 21
+    options:
+      collection: ratings_measures
+      query:
+        filter:
+          measure_id:
+            _in: "{{$trigger.keys}}"
+  - name: Condition
+    key: condition_79sk5
+    type: condition
+    position_x: 21
+    position_y: 2
+    options:
+      filter:
+        $trigger:
+          payload:
+            status:
+              _eq: draft
+    resolve_key: item_delete_oqa8j
+operation_key: condition_79sk5
