@@ -4,7 +4,7 @@
       {{ $t("municipality.back_label") }}
     </NuxtLink>
     <article class="mb-8 mt-10">
-      <detail-municipality :municipality="municipalities[0]"
+      <detail-municipality :municipality="directusData.municipalities[0]"
         :sorted-ratings="sortMeasuresBySectorDict"></detail-municipality>
     </article>
     <NuxtLink :to="`/municipalities`" class="btn btn-ghost mb-4 normal-case">
@@ -16,30 +16,33 @@
 const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
 
-const { data: municipalities } = await useAsyncData("municipality", () => {
-  return $directus.request(
-    $readItems("municipalities", {
-      filter: { slug: { _eq: route.params.slug } },
-      limit: 1,
-    }),
-  );
-});
-const localteam_id = municipalities.value[0].localteam_id;
-console.log("municipalities.value[0].localteam_id;",municipalities.value[0].localteam_id)
-const { data: ratings_measures } = await useAsyncData("ratings_measures", () => {
-  return $directus.request(
+const { data: directusData } = await useAsyncData("municipality", async () => {
+  let municipalities;
+  let measures;
+  let ratingsMeasures;
+  [municipalities, measures] = await Promise.all([
+    $directus.request(
+      $readItems("municipalities", {
+        filter: { slug: { _eq: route.params.slug } },
+        limit: 1,
+      }),
+    ),
+    $directus.request($readItems("measures", {}))
+  ])
+  ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
-      filter: { localteam_id: { _eq: localteam_id } },
+      filter: { localteam_id: { _eq: municipalities[0].localteam_id } },
     }),
   );
-});
-const { data: measures } = await useAsyncData("measures", () => {
-  return $directus.request($readItems("measures", {}));
+  return {
+    municipalities,
+    measures,
+    ratingsMeasures
+  }
 })
 
-
 const sortMeasuresBySectorDict = computed(() => {
-  return sortMeasuresBySector(ratings_measures.value, measures.value);
+  return sortMeasuresBySector(directusData.value.ratingsMeasures, directusData.value.measures);
 });
 
 
