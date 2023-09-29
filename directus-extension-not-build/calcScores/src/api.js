@@ -7,9 +7,11 @@ export default {
     try {
       const { ItemsService } = services;
       const schema = await getSchema();
-
+      let maxRating = 2;
+      let maxScoreTotal = 100;
+      let maxScoreSector = 10;
       // logger.info(accountability, "accountability");
-      logger.info(keys, "keys");
+      //logger.info(keys, "keys"); 
       accountability.admin = true;
       const rantingsMeasuresService = new ItemsService("ratings_measures", {
         schema,
@@ -122,9 +124,9 @@ export default {
           } = ratingMeasureDetail;
 
           if (applicable && measureStatus === "published") {
-            scoreDict["total"]["denominator"] += 3 * weight; //max value needs update
+            scoreDict["total"]["denominator"] +=  maxRating * weight; //max value needs update
             if (scoreDict[sector]) {
-              scoreDict[sector]["denominator"] += 3 * weight;
+              scoreDict[sector]["denominator"] += maxRating * weight;
             }
             if (approved && status === "published") {
               scoreDict["total"]["numerator"] += rating * weight;
@@ -142,13 +144,13 @@ export default {
               scoresToPush["score_" + key] =
                 scoreDict[key]["numerator"] / scoreDict[key]["denominator"];
             } else {
-              scoresToPush["score_" + key] = 1;
+              scoresToPush["score_" + key] = 0;
             }
 
             if (key === "total") {
-              scoresToPush["score_" + key] *= 100;
+              scoresToPush["score_" + key] *= maxScoreTotal;
             } else {
-              scoresToPush["score_" + key] *= 10;
+              scoresToPush["score_" + key] *= maxScoreSector;
             }
           }
         }

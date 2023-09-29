@@ -14,11 +14,11 @@ meta:
   options:
     choices:
       - text: $t:Green
-        value: "3"
-      - text: $t:Yellow
         value: "2"
-      - text: $t:Red
+      - text: $t:Yellow
         value: "1"
+      - text: $t:Red
+        value: "0"
   readonly: false
   required: false
   sort: 9
@@ -32,8 +32,8 @@ meta:
           _in:
             - "1"
             - "2"
-            - "3"
-  validation_message: Only 1,2,3 is allowed
+            - "0"
+  validation_message: Only 0,1,2 is allowed
   width: half
 schema:
   name: rating
