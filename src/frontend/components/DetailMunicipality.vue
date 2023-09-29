@@ -73,9 +73,9 @@
         </ul>
 
         <ul class="flex items-end gap-4">
-          <li v-for="rating in range(3, 0)" class="flex flex-col items-center gap-4">
-            <img :src="ratingImages[rating]" class="h-auto w-5" />
-            <div>{{ $t(`measure_rating.${rating}_caption`) }}</div>
+          <li v-for="(rating,index) in 3" class="flex flex-col items-center gap-4">
+            <img :src="ratingImages[index]" class="h-auto w-5" />
+            <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>
         </ul>
       </div>
@@ -137,9 +137,9 @@ const props = defineProps({
   },
 });
 const ratingColorClass = {
-  3: "bg-rating-3",
   2: "bg-rating-2",
   1: "bg-rating-1",
+  0: "bg-rating-0",
 };
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);

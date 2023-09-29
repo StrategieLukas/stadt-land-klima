@@ -4,8 +4,31 @@ type: string
 meta:
   collection: ratings_measures
   conditions: null
-  display: null
-  display_options: null
+  display: formatted-value
+  display_options:
+    choices:
+      - text: Grün
+        value: "2"
+      - text: Gelb
+        value: "1"
+      - text: Rot
+        value: "0"
+    color: "#33D17A"
+    conditionalFormatting:
+      - operator: eq
+        value: "1"
+        color: "#FFDD00"
+        icon: stars
+      - operator: eq
+        value: "0"
+        color: "#E30613"
+        icon: stars
+      - operator: eq
+        value: "2"
+        color: "#1EA64A"
+        icon: stars
+    filled: true
+    icon: star
   field: rating
   group: null
   hidden: false

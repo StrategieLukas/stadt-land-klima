@@ -31,7 +31,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Gewichtung
+      translation: Impact
   validation: null
   validation_message: null
   width: half
