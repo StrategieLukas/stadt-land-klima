@@ -7,7 +7,6 @@ export default {
     try {
       const { ItemsService } = services;
       const schema = await getSchema();
-      let maxRating = 2;
       let maxScoreTotal = 100;
       let maxScoreSector = 10;
       // logger.info(accountability, "accountability");
@@ -124,14 +123,14 @@ export default {
           } = ratingMeasureDetail;
 
           if (applicable && measureStatus === "published") {
-            scoreDict["total"]["denominator"] +=  maxRating * weight; //max value needs update
+            scoreDict["total"]["denominator"] += weight; //max value needs update
             if (scoreDict[sector]) {
-              scoreDict[sector]["denominator"] += maxRating * weight;
+              scoreDict[sector]["denominator"] += weight;
             }
             if (approved && status === "published") {
-              scoreDict["total"]["numerator"] += rating * weight;
+              scoreDict["total"]["numerator"] += Number(rating) * weight;
               if (scoreDict[sector]) {
-                scoreDict[sector]["numerator"] += rating * weight;
+                scoreDict[sector]["numerator"] += Number(rating) * weight;
               }
             }
           }
