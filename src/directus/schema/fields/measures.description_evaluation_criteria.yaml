@@ -1,12 +1,12 @@
 collection: measures
-field: description_benefit
+field: description_evaluation_criteria
 type: text
 meta:
   collection: measures
   conditions: null
   display: null
   display_options: null
-  field: description_benefit
+  field: description_evaluation_criteria
   group: accordion-p4jgb8
   hidden: false
   interface: input-rich-text-html
@@ -32,16 +32,16 @@ meta:
       - underline
   readonly: false
   required: false
-  sort: 3
+  sort: 1
   special: null
   translations:
     - language: de-DE
-      translation: Was bringt diese Maßnahme?  Wieso hilft sie?
+      translation: Krieterien der Bewertung
   validation: null
   validation_message: null
   width: full
 schema:
-  name: description_benefit
+  name: description_evaluation_criteria
   table: measures
   data_type: text
   default_value: null
