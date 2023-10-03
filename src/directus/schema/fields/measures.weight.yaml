@@ -15,10 +15,10 @@ meta:
     max: 100
   readonly: false
   required: true
-  sort: 12
+  sort: 11
   special: null
   translations:
-    - language: en-US
+    - language: de-DE
       translation: Gewichtung
   validation: null
   validation_message: null
