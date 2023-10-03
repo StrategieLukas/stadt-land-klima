@@ -7,7 +7,7 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importTranslations(src, options = {verbose: false}) {
+async function importTranslations(src, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
@@ -35,7 +35,7 @@ async function importTranslations(src, options = {verbose: false}) {
       await client.request(createTranslations(translationsToCreate));
     }
 
-    if (translationsToUpdate.length) {
+    if (options.overwrite && translationsToUpdate.length) {
       if (options.verbose) {
         console.info(`Updating ${translationsToUpdate.length} translations`);
       }

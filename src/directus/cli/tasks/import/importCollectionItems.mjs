@@ -10,7 +10,7 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFile from '../shared/readYamlFile.mjs';
 
-async function importCollectionItems(collection, src, options = {verbose: false, remove: false}) {
+async function importCollectionItems(collection, src, options = {verbose: false, remove: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
@@ -38,7 +38,7 @@ async function importCollectionItems(collection, src, options = {verbose: false,
       await client.request(createItems(collection, itemsToCreate));
     }
 
-    if (itemsToUpdate.length) {
+    if (options.overwrite && itemsToUpdate.length) {
       if (options.verbose) {
         console.info(`Updating ${itemsToUpdate.length} items`);
       }
