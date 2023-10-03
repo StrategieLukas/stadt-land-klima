@@ -9,7 +9,7 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importFlows(src, options = {verbose: false}) {
+async function importFlows(src, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
@@ -72,7 +72,7 @@ async function importFlows(src, options = {verbose: false}) {
       });
     }
 
-    if (flowsToUpdate.length) {
+    if (options.overwrite && flowsToUpdate.length) {
       if (options.verbose) {
         console.info(`Updating ${flowsToUpdate.length} flows`);
       }

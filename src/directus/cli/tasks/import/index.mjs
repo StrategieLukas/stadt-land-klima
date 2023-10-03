@@ -52,6 +52,7 @@ function importTasks(yargs) {
       await importRoles(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
+        overwrite: argv.force,
       });
     }
   )
@@ -75,6 +76,7 @@ function importTasks(yargs) {
       await importPresets(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
+        overwrite: argv.force,
       });
     }
   )
@@ -98,6 +100,7 @@ function importTasks(yargs) {
       await importWebhooks(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
+        overwrite: argv.force,
       });
     }
   )
@@ -121,6 +124,7 @@ function importTasks(yargs) {
       await importFlows(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
+        overwrite: argv.force,
       });
     }
   )
@@ -144,6 +148,7 @@ function importTasks(yargs) {
       await importTranslations(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
+        overwrite: argv.force,
       });
     }
   )
@@ -167,6 +172,7 @@ function importTasks(yargs) {
       await importSettings(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
+        overwrite: argv.force,
       });
     }
   )
@@ -196,6 +202,7 @@ function importTasks(yargs) {
       await importCollectionItems(argv.collection, src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
+        overwrite: argv.force,
       });
     }
   )
@@ -204,6 +211,11 @@ function importTasks(yargs) {
     alias: 'r',
     type: 'boolean',
     description: 'Removes orphan entries not present in the imported data.',
+  })
+  .option('force', {
+    alias: 'f',
+    type: 'boolean',
+    description: 'Overwrite existing entries',
   })
   .option('verbose', {
     alias: 'v',

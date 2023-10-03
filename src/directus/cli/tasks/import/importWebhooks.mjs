@@ -7,7 +7,7 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importWebhooks(src, options = {verbose: false}) {
+async function importWebhooks(src, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
@@ -34,7 +34,7 @@ async function importWebhooks(src, options = {verbose: false}) {
       await client.request(createWebhooks(webhooksToCreate));
     }
 
-    if (webhooksToUpdate.length) {
+    if (options.overwrite && webhooksToUpdate.length) {
       if (options.verbose) {
         console.info(`Updating ${webhooksToUpdate.length} webhooks`);
       }

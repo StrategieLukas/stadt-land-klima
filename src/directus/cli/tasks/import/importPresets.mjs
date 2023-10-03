@@ -7,7 +7,7 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importRoles(src, options = {verbose: false}) {
+async function importRoles(src, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
@@ -34,7 +34,7 @@ async function importRoles(src, options = {verbose: false}) {
       await client.request(createPresets(presetsToCreate));
     }
 
-    if (presetsToUpdate.length) {
+    if (options.overwrite && presetsToUpdate.length) {
       if (options.verbose) {
         console.info(`Updating ${presetsToUpdate.length} presets`);
       }

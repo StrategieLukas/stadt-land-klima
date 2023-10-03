@@ -8,7 +8,7 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importRoles(src, options = {verbose: false, remove: false}) {
+async function importRoles(src, options = {verbose: false, remove: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
@@ -60,7 +60,7 @@ async function importRoles(src, options = {verbose: false, remove: false}) {
       await client.request(createRoles(rolesToCreate));
     }
 
-    if (rolesToUpdate.length) {
+    if (options.overwrite && rolesToUpdate.length) {
       if (options.verbose) {
         console.info(`Updating ${rolesToUpdate.length} roles`);
       }
