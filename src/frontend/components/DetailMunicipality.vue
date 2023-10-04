@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at", { ":updated_at": "4.10.2023, 22:06:22" }) }}
+      {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr  }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />
@@ -142,12 +142,14 @@ const ratingColorClass = {
   1: "bg-rating-1",
   0: "bg-rating-0",
 };
+let lastUpdatedAtStr =ref("Initial Value");
 onMounted(() => {
   const lastUpdatedAt = new Date(municipality.date_updated);
-  const lastUpdatedAtStr =
+    lastUpdatedAtStr.value =
     lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
     lastUpdatedAt.toLocaleTimeString($locale);
+    console.log(lastUpdatedAtStr.value);
 })
 
 const municipality = props.municipality;
