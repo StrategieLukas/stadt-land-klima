@@ -16,8 +16,8 @@ operations:
   - name: Run Script
     key: exec_l3jv0
     type: exec
-    position_x: 37
-    position_y: 1
+    position_x: 1
+    position_y: 19
     options:
       code: |2-
          module.exports = async function(data) {
@@ -25,7 +25,8 @@ operations:
                 	for (var i = 0; i < data["$last"].length; i++){
                   		retData.push({
                            "localteam_id":data["$trigger"]["key"],
-                       		"measure_id":data["$last"][i]["id"]
+                       		"measure_id":data["$last"][i]["id"],
+                             "choices": data["$last"][i]["choices_rating"]
                         })
                   	}
                     return {retData};

@@ -60,6 +60,8 @@ permissions:
       - user_updated
       - date_updated
       - id
+      - links-jv6and
+      - choices
   - role: b8c043a2-a245-42d1-b28f-20c657270926
     collection: ratings_measures
     action: update

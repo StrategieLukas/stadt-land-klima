@@ -10,7 +10,7 @@ meta:
   group: null
   hidden: false
   interface: boolean
-  note: Ob die Maßnahme auf die Kommune infrage kommt
+  note: $t:measure_rating.applicable_notice
   options: null
   readonly: false
   required: false

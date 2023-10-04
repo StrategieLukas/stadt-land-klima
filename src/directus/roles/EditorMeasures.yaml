@@ -258,6 +258,7 @@ permissions:
       - verification_description
       - notes
       - id
+      - choices_rating
   - role: 3a964766-0e61-4140-90ff-38654594cda2
     collection: measures
     action: create
@@ -272,7 +273,6 @@ permissions:
       - user_updated
       - date_updated
       - name
-      - slug
       - sector
       - impact
       - weight
@@ -282,3 +282,4 @@ permissions:
       - description
       - verification_description
       - notes
+      - choices_rating

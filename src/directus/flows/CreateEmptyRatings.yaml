@@ -8,15 +8,75 @@ accountability: all
 options:
   return: $all
 operations:
+  - name: Daten aktualisieren
+    key: item_update_hfylm
+    type: item-update
+    position_x: 27
+    position_y: 38
+    options:
+      query:
+        filter:
+          _and:
+            - localteam_id:
+                _eq: "{{$trigger.localteam_id}}"
+            - measure_id:
+                _eq: "{{$trigger.measure_id}}"
+      payload:
+        choices: "{{$trigger.choices}}"
+        status: draft
+        rating: null
+      collection: ratings_measures
+  - name: Daten lesen
+    key: item_read_68izy
+    type: item-read
+    position_x: 20
+    position_y: 1
+    options:
+      query:
+        filter:
+          _and:
+            - localteam_id:
+                _eq: "{{$last.localteam_id}}"
+            - measure_id:
+                _eq: "{{$last.measure_id}}"
+      collection: ratings_measures
+    resolve_key: exec_koaij
   - name: Create Data
     key: item_create_8neoc
     type: item-create
-    position_x: 19
-    position_y: 1
+    position_x: 9
+    position_y: 37
     options:
       collection: ratings_measures
       payload:
-        measure_id: "{{$last.measure_id}}"
-        localteam_id: "{{$last.localteam_id}}"
+        measure_id: "{{$trigger.measure_id}}"
+        localteam_id: "{{$trigger.localteam_id}}"
+        choices: "{{$trigger.choices}}"
       emitEvents: true
-operation_key: item_create_8neoc
+  - name: Skript ausführen
+    key: exec_koaij
+    type: exec
+    position_x: 5
+    position_y: 18
+    options:
+      code: |-
+        module.exports = async function(data) {
+        	// Do something...
+        	return {
+            "emptyArray": data["$last"].length===0
+        	};
+        }
+    resolve_key: condition_0odis
+  - name: Kondition
+    key: condition_0odis
+    type: condition
+    position_x: 22
+    position_y: 18
+    options:
+      filter:
+        $last:
+          emptyArray:
+            _eq: true
+    resolve_key: item_create_8neoc
+    reject_key: item_update_hfylm
+operation_key: item_read_68izy

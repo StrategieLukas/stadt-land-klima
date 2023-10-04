@@ -1,0 +1,49 @@
+collection: measures
+field: choices_rating
+type: string
+meta:
+  collection: measures
+  conditions: null
+  display: null
+  display_options: null
+  field: choices_rating
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: $t:measure_choices.red_green
+        value: "0"
+      - text: $t:measure_choices.red_yellow_green
+        value: "1"
+      - text: $t:measure_choices.red_lightGreen_green
+        value: "2"
+      - text: $t:measure_choices.red_yellow_lightGreen_green
+        value: "3"
+  readonly: false
+  required: true
+  sort: 12
+  special: null
+  translations:
+    - language: de-DE
+      translation: Auswahlmöglichkeiten für die Bewertung
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: choices_rating
+  table: measures
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

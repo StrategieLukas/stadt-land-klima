@@ -1,4 +1,4 @@
-id: 058a636f-bc1f-45b8-acf3-e11650089368
+id: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
 name: Administrator
 icon: verified
 description: $t:admin_description
@@ -7,25 +7,25 @@ enforce_tfa: false
 admin_access: true
 app_access: true
 permissions:
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_collections
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_fields
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
+    collection: directus_permissions
+    action: read
     permissions:
       role:
         _eq: $CURRENT_ROLE
@@ -33,19 +33,17 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
-    collection: directus_permissions
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
+    collection: directus_relations
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-    system: true
-    collection: directus_relations
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
+    collection: directus_activity
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
     permissions:
       user:
         _eq: $CURRENT_USER
@@ -53,10 +51,9 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_activity
-    action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
+    action: create
     permissions: {}
     validation:
       comment:
@@ -64,10 +61,9 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
-    collection: directus_activity
-    action: create
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
+    collection: directus_presets
+    action: read
     permissions:
       _or:
         - user:
@@ -86,10 +82,9 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_presets
-    action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
+    action: create
     permissions: {}
     validation:
       user:
@@ -97,21 +92,9 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
-    collection: directus_presets
-    action: create
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
-      user:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_presets
     action: update
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
     permissions:
       user:
         _eq: $CURRENT_USER
@@ -119,10 +102,19 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_presets
     action: delete
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
+    permissions:
+      user:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
+    collection: directus_roles
+    action: read
     permissions:
       id:
         _eq: $CURRENT_ROLE
@@ -130,28 +122,25 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
-    collection: directus_roles
-    action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_settings
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_translations
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
+    collection: directus_notifications
+    action: read
     permissions:
       recipient:
         _eq: $CURRENT_USER
@@ -159,10 +148,9 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
     collection: directus_notifications
-    action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
+    action: update
     permissions:
       recipient:
         _eq: $CURRENT_USER
@@ -170,10 +158,9 @@ permissions:
     presets: null
     fields:
       - status
-    system: true
-    collection: directus_notifications
-    action: update
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
+    collection: directus_shares
+    action: read
     permissions:
       user_created:
         _eq: $CURRENT_USER
@@ -181,10 +168,9 @@ permissions:
     presets: null
     fields:
       - "*"
-    system: true
-    collection: directus_shares
+  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
+    collection: directus_users
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
     permissions:
       id:
         _eq: $CURRENT_USER
@@ -208,6 +194,3 @@ permissions:
       - tfa_secret
       - status
       - role
-    system: true
-    collection: directus_users
-    action: read
