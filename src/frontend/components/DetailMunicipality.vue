@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at", { ":updated_at": lastUpdatedAtStr }) }}
+      {{ $t("municipalities.last_updated_at", { ":updated_at": "4.10.2023, 22:06:22" }) }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />
@@ -142,13 +142,17 @@ const ratingColorClass = {
   1: "bg-rating-1",
   0: "bg-rating-0",
 };
+onMounted(() => {
+  const lastUpdatedAt = new Date(municipality.date_updated);
+  const lastUpdatedAtStr =
+    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    ", " +
+    lastUpdatedAt.toLocaleTimeString($locale);
+})
+
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);
-const lastUpdatedAt = new Date(municipality.date_updated);
-const lastUpdatedAtStr =
-  lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
-  ", " +
-  lastUpdatedAt.toLocaleTimeString($locale);
+
 
 function createSubScoreObject(municipality) {
   const temp = {};
@@ -159,11 +163,11 @@ function createSubScoreObject(municipality) {
   }
   return temp;
 }
-function transformToArrayPositions(value){
-  const tempVal= Number(value);
-  if(tempVal=== 0) return 0;
-  if(tempVal=== 0.3333) return 1;
-  if(tempVal=== 0.6666) return 2;
+function transformToArrayPositions(value) {
+  const tempVal = Number(value);
+  if (tempVal === 0) return 0;
+  if (tempVal === 0.3333) return 1;
+  if (tempVal === 0.6666) return 2;
   return 3
 }
 </script>
