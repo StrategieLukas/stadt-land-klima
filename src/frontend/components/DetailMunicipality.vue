@@ -142,14 +142,13 @@ const ratingColorClass = {
   1: "bg-rating-1",
   0: "bg-rating-0",
 };
-let lastUpdatedAtStr =ref("Initial Value");
+let lastUpdatedAtStr =ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(municipality.date_updated);
     lastUpdatedAtStr.value =
     lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
     lastUpdatedAt.toLocaleTimeString($locale);
-    console.log(lastUpdatedAtStr.value);
 })
 
 const municipality = props.municipality;
