@@ -113,7 +113,7 @@ schema:
   name: rating
   table: ratings_measures
   data_type: character varying
-  default_value: "0"
+  default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
