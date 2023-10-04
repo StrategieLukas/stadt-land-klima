@@ -1,11 +1,7 @@
 <template>
-  <article
-    v-if="pages.length"
-    class="prose py-8"
-    v-html="pages[0].contents"
-  />
+  <article v-if="pages.length" class="prose py-8" v-html="pages[0].contents" />
   <p v-else class="prose py-8">
-    {{ $t('page_not_found') }}
+    {{ $t("page_not_found") }}
   </p>
 </template>
 <script setup>

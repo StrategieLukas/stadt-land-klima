@@ -14,7 +14,7 @@
     "lintExtensions:js": "eslint --ext \".js\" --ignore-path .gitignore ../../directus-extension-not-build/**",
     "lintExtensions:prettier": "prettier --check ../../directus-extension-not-build/**",
     "lintExtensions": "npm run lintExtensions:js && npm run lintExtensions:prettier",
-    "lintExtensionsfix": "prettier --write --list-different ../../directus-extension-not-build/** && npm run lintExtensions:js --fix"
+    "lintfixExtensions": "prettier --write --list-different ../../directus-extension-not-build/** && npm run lintExtensions:js --fix"
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",

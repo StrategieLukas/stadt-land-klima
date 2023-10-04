@@ -1,4 +1,4 @@
-import lodash from 'lodash';
+import lodash from "lodash";
 const { forOwn, replace } = lodash;
 
 export default function createTranslator(translations) {

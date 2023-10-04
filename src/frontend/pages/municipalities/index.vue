@@ -32,13 +32,12 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
   );
 });
 
-
-let lastUpdatedAtStr =ref("");
+let lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(get(last(sortBy(municipalities.value, ["date_updated"])), "date_updated"));
-lastUpdatedAtStr.value =
-  lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
-  ", " +
-  lastUpdatedAt.toLocaleTimeString($locale);
-})
+  lastUpdatedAtStr.value =
+    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    ", " +
+    lastUpdatedAt.toLocaleTimeString($locale);
+});
 </script>

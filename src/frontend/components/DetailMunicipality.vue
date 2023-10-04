@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr  }}
+      {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />
@@ -52,7 +52,10 @@
           <li
             v-for="item in sectorRatings"
             :key="item.id"
-            :class="[ratingColorClass[transformToArrayPositions(item.rating)], 'flex items-center justify-stretch gap-3 bg-opacity-10 p-3']"
+            :class="[
+              ratingColorClass[transformToArrayPositions(item.rating)],
+              'flex items-center justify-stretch gap-3 bg-opacity-10 p-3',
+            ]"
           >
             <div class="shrink-0">
               <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
@@ -73,7 +76,7 @@
         </ul>
 
         <ul class="flex items-end gap-4">
-          <li v-for="(rating,index) in 4" class="flex flex-col items-center gap-4">
+          <li v-for="(rating, index) in 4" class="flex flex-col items-center gap-4">
             <img :src="ratingImages[index]" class="h-auto w-5" />
             <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>
@@ -142,18 +145,17 @@ const ratingColorClass = {
   1: "bg-rating-1",
   0: "bg-rating-0",
 };
-let lastUpdatedAtStr =ref("");
+let lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(municipality.date_updated);
-    lastUpdatedAtStr.value =
+  lastUpdatedAtStr.value =
     lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
     lastUpdatedAt.toLocaleTimeString($locale);
-})
+});
 
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);
-
 
 function createSubScoreObject(municipality) {
   const temp = {};
@@ -169,7 +171,7 @@ function transformToArrayPositions(value) {
   if (tempVal === 0) return 0;
   if (tempVal === 0.3333) return 1;
   if (tempVal === 0.6666) return 2;
-  return 3
+  return 3;
 }
 </script>
 <style lang=""></style>

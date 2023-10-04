@@ -10,7 +10,7 @@ export default {
       let maxScoreTotal = 100;
       let maxScoreSector = 10;
       // logger.info(accountability, "accountability");
-      //logger.info(keys, "keys"); 
+      //logger.info(keys, "keys");
       accountability.admin = true;
       const rantingsMeasuresService = new ItemsService("ratings_measures", {
         schema,
