@@ -52,10 +52,10 @@
           <li
             v-for="item in sectorRatings"
             :key="item.id"
-            :class="[ratingColorClass[item.rating], 'flex items-center justify-stretch gap-3 bg-opacity-10 p-3']"
+            :class="[ratingColorClass[transformToArrayPositions(item.rating)], 'flex items-center justify-stretch gap-3 bg-opacity-10 p-3']"
           >
             <div class="shrink-0">
-              <img :src="ratingImages[item.rating]" class="my-auto h-auto w-5" />
+              <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
             </div>
 
             <div class="grow text-sm">
@@ -73,7 +73,7 @@
         </ul>
 
         <ul class="flex items-end gap-4">
-          <li v-for="(rating,index) in 3" class="flex flex-col items-center gap-4">
+          <li v-for="(rating,index) in 4" class="flex flex-col items-center gap-4">
             <img :src="ratingImages[index]" class="h-auto w-5" />
             <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>
@@ -137,7 +137,8 @@ const props = defineProps({
   },
 });
 const ratingColorClass = {
-  2: "bg-rating-2",
+  3: "bg-rating-2",
+  2: "bg-light-green",
   1: "bg-rating-1",
   0: "bg-rating-0",
 };
@@ -157,6 +158,13 @@ function createSubScoreObject(municipality) {
     }
   }
   return temp;
+}
+function transformToArrayPositions(value){
+  const tempVal= Number(value);
+  if(tempVal=== 0) return 0;
+  if(tempVal=== 0.3333) return 1;
+  if(tempVal=== 0.6666) return 2;
+  return 3
 }
 </script>
 <style lang=""></style>

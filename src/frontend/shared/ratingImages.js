@@ -1,5 +1,6 @@
 export default {
-  2: "/assets/icons/icon_rating_3.svg",
-  1: "/assets/icons/icon_rating_2.svg",
-  0: "/assets/icons/icon_rating_1.svg",
+  3: "/assets/icons/4_bewertung-icon_voll.svg",
+  2: "/assets/icons/4_bewertung-icon_mehr-halb.svg",
+  1: "/assets/icons/4_bewertung-icon_nicht-halb.svg",
+  0: "/assets/icons/4_bewertung-icon_null.svg",
 };
