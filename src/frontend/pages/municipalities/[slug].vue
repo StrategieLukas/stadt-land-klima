@@ -40,6 +40,13 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
     ratingsMeasures
   }
 })
+//MetaTags
+const title = ref(directusData.value.municipalities[0].name)
+useHead({
+  title,
+})
+// 
+
 
 const sortMeasuresBySectorDict = computed(() => {
   return sortMeasuresBySector(directusData.value.ratingsMeasures, directusData.value.measures);

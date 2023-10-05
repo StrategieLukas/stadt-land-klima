@@ -30,8 +30,16 @@ import lodash from "lodash";
 const { includes } = lodash;
 import { ref } from "vue";
 import sectorImages from "../../shared/sectorImages.js";
+
+
+
 const { $directus, $readItems, $t } = useNuxtApp();
 const sectors = ref([]);
+
+const title = ref($t("measures.nav_label"))
+useHead({
+  title,
+})
 
 const { data: measures } = await useAsyncData("measures", () => {
   return $directus.request(
@@ -40,6 +48,7 @@ const { data: measures } = await useAsyncData("measures", () => {
     }),
   );
 });
+
 
 measures.value.forEach((measure) => {
   if (!measure.sector) {

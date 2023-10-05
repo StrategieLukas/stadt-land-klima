@@ -30,6 +30,13 @@ import sectorImages from "../../shared/sectorImages.js";
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
 
+//MetaTags
+const title = ref($t(`measure_sectors.${route.params.sector}.title`) )
+useHead({
+  title,
+})
+// 
+
 const { data: measures } = await useAsyncData("measures", () => {
   return $directus.request(
     $readItems("measures", {

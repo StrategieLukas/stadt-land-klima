@@ -8,6 +8,13 @@
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
 
+//MetaTags
+const title = ref("Ranking")
+useHead({
+  title,
+})
+// 
+
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {

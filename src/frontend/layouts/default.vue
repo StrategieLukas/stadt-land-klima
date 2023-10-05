@@ -36,4 +36,18 @@ const { $directus, $readItems } = useNuxtApp();
 const { data: pages } = await useAsyncData("pages", () => {
   return $directus.request($readItems("pages", { limit: -1 }));
 });
+const route = useRoute()
+//MetaTags
+const title = ref(`Stadt.Land.Klima! - ${route.meta.title}`)
+const description = ref('Stadt.Land.Klima!  Description')
+useHead({
+  titleTemplate: '%s - Stadt.Land.Klima!',
+  meta: [{
+    name: 'description',
+    content: description
+  }]
+})
+//
+
+
 </script>
