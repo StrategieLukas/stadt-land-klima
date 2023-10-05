@@ -22,7 +22,7 @@ const props = defineProps({
     required: true,
   },
 });
-
+props.scoreTotal=1;
 const colors = {
   0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2" },
   20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4" },

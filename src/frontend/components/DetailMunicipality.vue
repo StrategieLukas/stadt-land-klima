@@ -140,8 +140,8 @@ const props = defineProps({
   },
 });
 const ratingColorClass = {
-  3: "bg-rating-2",
-  2: "bg-light-green",
+  3: "bg-rating-3",
+  2: "bg-raiting-2",
   1: "bg-rating-1",
   0: "bg-rating-0",
 };

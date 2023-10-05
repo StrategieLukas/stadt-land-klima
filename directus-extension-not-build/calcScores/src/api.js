@@ -7,8 +7,7 @@ export default {
     try {
       const { ItemsService } = services;
       const schema = await getSchema();
-      let maxScoreTotal = 100;
-      let maxScoreSector = 10;
+      let maxScore = 100;
       // logger.info(accountability, "accountability");
       //logger.info(keys, "keys");
       accountability.admin = true;
@@ -147,9 +146,9 @@ export default {
             }
 
             if (key === "total") {
-              scoresToPush["score_" + key] *= maxScoreTotal;
+              scoresToPush["score_" + key] *= maxScore;
             } else {
-              scoresToPush["score_" + key] *= maxScoreSector;
+              scoresToPush["score_" + key] *= maxScore;
             }
           }
         }

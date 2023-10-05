@@ -23,7 +23,8 @@ module.exports = {
         "ranking-4-6": "#FFD400",
         "ranking-6-8": "#AFCA0B",
         "ranking-8-10": "#1DA64A",
-        "rating-2": "#1EA64A",
+        "rating-3": "#1EA64A",
+        "rating-2": "#AFCA0B",
         "rating-1": "#FFDD00",
         "rating-0": "#E30613",
         "light-green": "#AFCA0B",
@@ -39,11 +40,11 @@ module.exports = {
         list: "0 3pt 6pt #00000029",
       },
       height: {
-        "55/100": "55%",
+        "58/100": "58%",
         "60/100": "60%",
       },
       width: {
-        "55/10": "55%",
+        "58/10": "58%",
         "60/100": "60%",
       },
       typography: {
