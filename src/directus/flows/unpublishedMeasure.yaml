@@ -12,17 +12,32 @@ options:
   collections:
     - measures
 operations:
+  - name: updatesRanks
+    key: update_ranks_a25uz
+    type: updateRanks
+    position_x: 21
+    position_y: 22
+    options: {}
+    resolve_key: item_delete_oqa8j
   - name: Delete Data
     key: item_delete_oqa8j
     type: item-delete
     position_x: 3
-    position_y: 21
+    position_y: 39
     options:
       collection: ratings_measures
       query:
         filter:
           measure_id:
             _in: "{{$trigger.keys}}"
+  - name: Calculate Scores
+    key: operation_calculate_scores_3l19s
+    type: operation-calculateScores
+    position_x: 3
+    position_y: 22
+    options:
+      keys: "{{$trigger.keys}}"
+    resolve_key: update_ranks_a25uz
   - name: Condition
     key: condition_79sk5
     type: condition
@@ -34,5 +49,5 @@ operations:
           payload:
             status:
               _eq: draft
-    resolve_key: item_delete_oqa8j
+    resolve_key: operation_calculate_scores_3l19s
 operation_key: condition_79sk5

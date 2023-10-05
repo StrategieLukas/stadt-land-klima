@@ -26,6 +26,7 @@ operations:
         status: draft
         rating: null
       collection: ratings_measures
+      emitEvents: true
   - name: Daten lesen
     key: item_read_68izy
     type: item-read
