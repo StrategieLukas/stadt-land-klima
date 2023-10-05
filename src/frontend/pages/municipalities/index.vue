@@ -23,11 +23,11 @@ const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 
 //MetaTags
-const title = ref($t("municipalities.nav_label"))
+const title = ref($t("municipalities.nav_label"));
 useHead({
   title,
-})
-// 
+});
+//
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {

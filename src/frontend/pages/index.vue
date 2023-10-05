@@ -9,11 +9,11 @@
 const { $directus, $readItems } = useNuxtApp();
 
 //MetaTags
-const title = ref("Ranking")
+const title = ref("Ranking");
 useHead({
   title,
-})
-// 
+});
+//
 
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(

@@ -73,7 +73,7 @@
         </ul>
 
         <ul class="flex items-end gap-4">
-          <li v-for="(rating,index) in 3" class="flex flex-col items-center gap-4">
+          <li v-for="(rating, index) in 3" class="flex flex-col items-center gap-4">
             <img :src="ratingImages[index]" class="h-auto w-5" />
             <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>

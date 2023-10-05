@@ -37,15 +37,15 @@ const { data: pages } = await useAsyncData("pages", () => {
   return $directus.request($readItems("pages", { limit: -1 }));
 });
 //MetaTags
-const description = ref('Stadt.Land.Klima!  Description')
+const description = ref("Stadt.Land.Klima!  Description");
 useHead({
-  titleTemplate: '%s - Stadt.Land.Klima!',
-  meta: [{
-    name: 'description',
-    content: description
-  }]
-})
+  titleTemplate: "%s - Stadt.Land.Klima!",
+  meta: [
+    {
+      name: "description",
+      content: description,
+    },
+  ],
+});
 //
-
-
 </script>
