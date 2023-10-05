@@ -13,7 +13,29 @@
   </div>
 </template>
 <script setup>
-import { PolarArea } from "vue-chartjs";
+
+import { PolarArea } from 'vue-chartjs'
+import {
+  Chart,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  ArcElement,
+  RadialLinearScale,
+  
+} from "chart.js";
+class CustomRadialLinearScale extends RadialLinearScale {
+  draw() {
+   super.draw()
+   
+  }
+}
+CustomRadialLinearScale.id = 'customRadialLinear';
+
+Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, CustomRadialLinearScale, ArcElement);
 
 const props = defineProps({
   subScores: {
@@ -66,17 +88,18 @@ const chartOptions = {
 
   scales: {
     r: {
+      type: 'customRadialLinear', 
       min: 0,
       max: 10,
-      pointLabels: {
-        color: "red",
-      },
       startAngle: 0,
       angleLines: {
         display: true,
         lineWidth: 1,
+        z:1,
       },
+     
       ticks: {
+        position: 'top', 
         sampleSize: 6,
         color: "black",
         backdropColor: "rgba(0,0,0,0)",
@@ -102,11 +125,11 @@ function createColorArray(subScoresArray) {
   const tempColorsArray = [];
   subScoresArray.forEach(function (score, index) {
     if (score < 4) {
-      tempColorsArray.push("rgb(227, 6, 19, 0.5)");
+      tempColorsArray.push("rgb(227, 6, 19, 1)");
     } else if (score < 7) {
-      tempColorsArray.push("rgb(243, 146, 0, 0.5)");
+      tempColorsArray.push("rgb(243, 146, 0, 1)");
     } else {
-      tempColorsArray.push("rgb(29, 166, 74, 0.5)");
+      tempColorsArray.push("rgb(29, 166, 74, 1)");
     }
   });
   return tempColorsArray;
