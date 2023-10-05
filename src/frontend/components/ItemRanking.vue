@@ -18,7 +18,7 @@
           <p>{{ municipality.state }}</p>
         </div>
       </div>
-      <progress-bar :score-total="municipality.score_total"></progress-bar>
+      <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
 
     <div v-if="isRanking" class="flex items-start">
@@ -60,7 +60,7 @@ const props = defineProps({
     default: false,
   },
 });
-let municipality = props.municipality;
-municipality.score_total=Math.round(Number(municipality.score_total) *10) / 10
+const municipality = props.municipality;
+const scoreTotalRounded=Math.round(Number(municipality.score_total) *10) / 10
 </script>
 <style lang=""></style>

@@ -137,7 +137,6 @@ function createColorArray(subScoresArray) {
       tempColorsArray.push("#AFCA0B");
     }
     else {
-      console.log(score)
       tempColorsArray.push("#1DA64A");
     }
   });

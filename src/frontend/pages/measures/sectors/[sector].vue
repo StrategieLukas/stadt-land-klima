@@ -38,5 +38,5 @@ const { data: measures } = await useAsyncData("measures", () => {
     }),
   );
 });
-console.log(measures.value);
+
 </script>

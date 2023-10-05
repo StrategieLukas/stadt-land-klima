@@ -2,7 +2,6 @@ import slugify from "slugify";
 export default {
   id: "operation-slugify",
   handler: ({ text }) => {
-    console.log(text);
     return {
       text: slugify(text, {
         replacement: "-", // replace spaces with replacement character, defaults to `-`
