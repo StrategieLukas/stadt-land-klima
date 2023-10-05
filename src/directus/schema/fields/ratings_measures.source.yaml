@@ -1,36 +1,31 @@
 collection: ratings_measures
-field: measure_id
-type: uuid
+field: source
+type: text
 meta:
   collection: ratings_measures
   conditions: null
-  display: related-values
-  display_options:
-    template: "{{name}}"
-  field: measure_id
+  display: null
+  display_options: null
+  field: source
   group: null
   hidden: false
-  interface: select-dropdown-m2o
+  interface: input-multiline
   note: null
-  options:
-    enableCreate: false
-    enableSelect: false
-    template: "{{name}}"
-  readonly: true
-  required: true
-  sort: 11
-  special:
-    - m2o
+  options: null
+  readonly: false
+  required: false
+  sort: 14
+  special: null
   translations:
     - language: de-DE
-      translation: Maßnahme
+      translation: Quelle
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: measure_id
+  name: source
   table: ratings_measures
-  data_type: uuid
+  data_type: text
   default_value: null
   max_length: null
   numeric_precision: null
@@ -41,5 +36,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: measures
-  foreign_key_column: id
+  foreign_key_table: null
+  foreign_key_column: null

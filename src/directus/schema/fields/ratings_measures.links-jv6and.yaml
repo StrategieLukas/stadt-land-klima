@@ -19,7 +19,7 @@ meta:
         url: https://staedtechallenge.anzui.dev/measures/{{measure_id.slug}}
   readonly: false
   required: false
-  sort: 13
+  sort: 3
   special:
     - alias
     - no-data

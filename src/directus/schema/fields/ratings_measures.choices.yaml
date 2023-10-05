@@ -24,7 +24,7 @@ meta:
     step: null
   readonly: true
   required: true
-  sort: 11
+  sort: 12
   special: null
   translations: null
   validation: null
