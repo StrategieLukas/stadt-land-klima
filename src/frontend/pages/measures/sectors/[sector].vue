@@ -3,12 +3,13 @@
     <NuxtLink to="/measures" class="btn btn-ghost mt-4 normal-case">
       {{ $t("measures_sector.back_label") }}
     </NuxtLink>
-    <div class="mb-8 mt-10 flex items-start gap-4">
+    <div class="mb-8 mt-10 flex flex-col sm:flex-row items-start gap-4">
       <img :src="sectorImages[route.params.sector]" alt="" class="h-auto w-24 opacity-50" />
 
       <div class="prose">
         <h1>{{ $t(`measure_sectors.${route.params.sector}.title`) }}</h1>
-        {{ $t(`measure_sectors.${route.params.sector}.description`) }}
+        <div v-html="$t(`measure_sectors.${route.params.sector}.description`)" />
+        <p>{{ $t("measures_sector.count_measures_in_sector", {":count": measures.length }) }}</p>
       </div>
     </div>
     <div class="prose">
