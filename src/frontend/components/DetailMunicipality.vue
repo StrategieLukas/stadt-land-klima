@@ -55,14 +55,21 @@
           {{ $t('measure_sector.measures_in_detail') }}
         </h3>
 
+        <ul class="flex items-end justify-center gap-4 mb-2">
+          <li v-for="(rating,index) in 3" class="flex flex-col items-center">
+            <img :src="ratingImages[index]" class="h-auto w-5" />
+            <div class="text-sm">{{ $t(`measure_rating.${index}_caption`) }}</div>
+          </li>
+        </ul>
+
         <ul class="mb-8 divide-y divide-slate-300">
           <li
             v-for="item in sectorRatings"
             :key="item.id"
-            :class="[ratingColorClass[item.rating], 'flex items-center justify-stretch gap-3 bg-opacity-10 p-3']"
+            :class="[ratingColorClass[item.rating - 1], 'flex items-center justify-stretch gap-3 bg-opacity-10 p-3']"
           >
             <div class="shrink-0">
-              <img :src="ratingImages[item.rating]" class="my-auto h-auto w-5" />
+              <img :src="ratingImages[item.rating - 1]" class="my-auto h-auto w-5" />
             </div>
 
             <div class="grow text-sm">
@@ -76,13 +83,6 @@
             >
               ?
             </NuxtLink>
-          </li>
-        </ul>
-
-        <ul class="flex items-end gap-4">
-          <li v-for="(rating,index) in 3" class="flex flex-col items-center gap-4">
-            <img :src="ratingImages[index]" class="h-auto w-5" />
-            <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>
         </ul>
       </div>
