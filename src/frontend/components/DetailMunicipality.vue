@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at", { ":updated_at": lastUpdatedAtStr }) }}
+      {{ $t("last_updated_at", { ":updated_at": lastUpdatedAtStr }) }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />

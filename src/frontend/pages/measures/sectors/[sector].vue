@@ -4,7 +4,7 @@
       {{ $t("measures_sector.back_label") }}
     </NuxtLink>
     <div class="mb-8 mt-10 flex flex-col xs:flex-row items-start gap-4">
-      <img :src="sectorImages[route.params.sector]" alt="" class="h-auto w-24 opacity-50" />
+      <img :src="sectorImages[route.params.sector]" alt="" class="h-auto w-24 opacity-50 mt-0" />
 
       <div class="prose">
         <h1>{{ $t(`measure_sectors.${route.params.sector}.title`) }}</h1>
@@ -12,16 +12,9 @@
         <p>{{ $t("measures_sector.count_measures_in_sector", {":count": measures.length }) }}</p>
       </div>
     </div>
-    <div class="prose">
-      <h2>{{ $t("measures_in_sector", { ":sector": $t(`measure_sectors.${route.params.sector}.title`) }) }}</h2>
-    </div>
     <ul>
       <li v-for="measure in measures" class="mb-4">
-        <NuxtLink :to="`/measures/${measure.slug}`" class="card card-compact shadow">
-          <div class="card-body prose hover:underline focus:underline">
-            <h3>{{ measure.name }}</h3>
-          </div>
-        </NuxtLink>
+        <MeasureCard :measure="measure" />
       </li>
     </ul>
   </div>

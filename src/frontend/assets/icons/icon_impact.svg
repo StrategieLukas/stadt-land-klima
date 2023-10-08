@@ -3,7 +3,7 @@
 <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 141.7 141.7" style="enable-background:new 0 0 141.7 141.7;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#AFCA0B;}
+	.st0{fill:#000;}
 	.st1{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
 	.st2{fill:#FFFFFF;}
 </style>
@@ -43,6 +43,6 @@
 	<g>
 	</g>
 </g>
-<polygon class="st2" points="98.2,70.4 97.4,74.6 114.8,77.6 91,93.1 50.4,93.1 21,112.4 23.3,115.9 51.6,97.3 92.3,97.3 
+<polygon class="st2" points="98.2,70.4 97.4,74.6 114.8,77.6 91,93.1 50.4,93.1 21,112.4 23.3,115.9 51.6,97.3 92.3,97.3
 	117.1,81.1 112.8,98.2 116.9,99.2 123,74.7 "/>
 </svg>
