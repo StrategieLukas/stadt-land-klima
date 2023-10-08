@@ -3,7 +3,7 @@
     <NuxtLink to="/measures" class="btn btn-ghost mt-4 normal-case">
       {{ $t("measures_sector.back_label") }}
     </NuxtLink>
-    <div class="mb-8 mt-10 flex flex-col sm:flex-row items-start gap-4">
+    <div class="mb-8 mt-10 flex flex-col xs:flex-row items-start gap-4">
       <img :src="sectorImages[route.params.sector]" alt="" class="h-auto w-24 opacity-50" />
 
       <div class="prose">
