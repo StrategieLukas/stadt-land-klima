@@ -21,7 +21,7 @@
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_location.svg" class="h-auto w-10 opacity-50" />
 
-        <h2 class="font-heading text-2xl leading-none text-green">
+        <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
         </h2>
       </div>
@@ -39,15 +39,22 @@
     >
       <input type="radio" name="sectors-accordion" />
 
-      <div class="collapse-title flex items-end gap-4">
-        <img :src="sectorImages[sector]" class="h-auto w-10 opacity-50" />
+      <div class="collapse-title flex items-start gap-4">
+        <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50" />
 
-        <h2 class="font-heading text-2xl leading-none text-green">
-          {{ $t(`measure_sectors.${sector}.title`) }}
-        </h2>
+        <div class="grow">
+          <h2 class="font-heading text-h2 leading-none text-green mb-2">
+            {{ $t(`measure_sectors.${sector}.title`) }}
+          </h2>
+          <ProgressBar :score-total="municipality['score_' + sector]" layout="compact" />
+        </div>
       </div>
 
       <div class="collapse-content">
+        <h3 class="font-heading text-h2 text-black mb-2">
+          {{ $t('measure_sector.measures_in_detail') }}
+        </h3>
+
         <ul class="mb-8 divide-y divide-slate-300">
           <li
             v-for="item in sectorRatings"
@@ -63,7 +70,7 @@
             </div>
 
             <NuxtLink
-              :to="`/measures/${item.measure.slug}`"
+              :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
               class="flex h-5 w-5 shrink-0 items-center justify-center self-start rounded-full bg-slate-500 text-sm font-bold text-white hover:bg-slate-600 focus:bg-slate-600"
               target="measure"
             >
@@ -88,7 +95,7 @@
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_team.svg" class="h-auto w-10 opacity-50" />
 
-        <h2 class="font-heading text-2xl leading-none text-green">
+        <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.participate_heading") }}
         </h2>
       </div>
@@ -107,7 +114,7 @@
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_info.svg" class="h-auto w-10 opacity-50" />
 
-        <h2 class="font-heading text-2xl leading-none text-green">
+        <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.data_collection_heading") }}
         </h2>
       </div>

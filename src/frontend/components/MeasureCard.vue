@@ -1,6 +1,6 @@
 <template>
   <article
-    id="`measure-${measure.slug}`"
+    :id="`measure-${measure.slug}`"
     class="card card-compact shadow"
   >
     <div class="card-body">
