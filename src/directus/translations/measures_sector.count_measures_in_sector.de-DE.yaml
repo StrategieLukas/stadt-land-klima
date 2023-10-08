@@ -1,0 +1,3 @@
+language: de-DE
+key: measures_sector.count_measures_in_sector
+value: "Anzahl der Maßnahmen im Sektor Energie: :count"
