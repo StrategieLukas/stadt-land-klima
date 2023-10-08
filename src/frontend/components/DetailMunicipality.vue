@@ -78,10 +78,10 @@
 
             <NuxtLink
               :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-              class="flex h-5 w-5 shrink-0 items-center justify-center self-start rounded-full bg-slate-500 text-sm font-bold text-white hover:bg-slate-600 focus:bg-slate-600"
+              class="flex h-5 w-5 shrink-0 opacity-50 focus:opacity-60 hover:opacity-60"
               target="measure"
             >
-              ?
+              <img src="~/assets/icons/icon_info.svg" class="w-5 h-auto" alt="" />
             </NuxtLink>
           </li>
         </ul>
