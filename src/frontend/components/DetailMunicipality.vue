@@ -19,7 +19,7 @@
       <input type="radio" name="sectors-accordion" checked="checked" />
 
       <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_location.svg" class="h-auto w-10 opacity-50" />
+        <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
@@ -93,7 +93,7 @@
       <input type="radio" name="sectors-accordion" checked="checked" />
 
       <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_team.svg" class="h-auto w-10 opacity-50" />
+        <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.participate_heading") }}
@@ -112,7 +112,7 @@
       <input type="radio" name="sectors-accordion" checked="checked" />
 
       <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_info.svg" class="h-auto w-10 opacity-50" />
+        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.data_collection_heading") }}
