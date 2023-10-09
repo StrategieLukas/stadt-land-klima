@@ -25,4 +25,11 @@ const { data: measures } = await useAsyncData("measures", () => {
   );
 });
 const measure = measures.value[0] || null;
+
+//MetaTags
+const title = ref(measure.name);
+useHead({
+  title,
+});
+//
 </script>
