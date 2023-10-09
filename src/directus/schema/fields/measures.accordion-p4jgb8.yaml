@@ -1,27 +1,28 @@
 collection: measures
-field: feasibility
+field: accordion-p4jgb8
 type: alias
 meta:
   collection: measures
   conditions: null
   display: null
   display_options: null
-  field: feasibility
+  field: accordion-p4jgb8
   group: null
   hidden: false
-  interface: group-detail
+  interface: group-accordion
   note: null
-  options: null
+  options:
+    accordionMode: false
   readonly: false
   required: false
-  sort: 12
+  sort: 13
   special:
     - alias
     - group
     - no-data
   translations:
     - language: de-DE
-      translation: Umsetzbarkeit
+      translation: Beschreibungen
   validation: null
   validation_message: null
   width: full

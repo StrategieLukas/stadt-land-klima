@@ -1,6 +1,11 @@
 <template lang="">
   <div>
-    <div :class="['relative h-8 w-full rounded-md border', colorClass.border]">
+    <div
+      :class="[
+        'relative w-full border', colorClass.border,
+        layout === 'compact' ? 'rounded-sm h-4' : 'rounded-md h-8',
+      ]"
+    >
       <div
         :class="[
           'relative flex h-full items-center justify-end overflow-hidden transition-all ease-out',
@@ -9,7 +14,15 @@
         ]"
         :style="{ width: width + '%' }"
       >
-        <div class="mr-1 font-heading text-xl font-bold text-white">{{ scoreTotal }}</div>
+        <div
+          class="mr-1 font-heading font-bold"
+          :class="[
+            colorClass.text,
+            layout === 'compact' ? 'text-sm' : 'text-xl',
+          ]"
+        >
+          {{ parseInt(scoreTotal, 10) }}
+        </div>
       </div>
     </div>
   </div>
@@ -21,13 +34,20 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  layout: {
+    type: String,
+    validator(value) {
+      return ['default', 'compact'];
+    },
+    default: 'default',
+  },
 });
 const colors = {
-  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2" },
-  20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4" },
-  40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6" },
-  60: { bg: "bg-ranking-6-8", border: "border-ranking-6-8" },
-  80: { bg: "bg-ranking-8-10", border: "border-ranking-8-10" },
+  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: 'text-white' },
+  20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text: 'text-white' },
+  40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text: 'text-black' },
+  60: { bg: "bg-ranking-6-8", border: "border-ranking-6-8", text: 'text-white' },
+  80: { bg: "bg-ranking-8-10", border: "border-ranking-8-10", text: 'text-white' },
 };
 const durations = {
   0: "duration-[500ms]",

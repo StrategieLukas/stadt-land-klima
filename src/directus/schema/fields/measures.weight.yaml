@@ -18,7 +18,7 @@ meta:
   sort: 11
   special: null
   translations:
-    - language: en-US
+    - language: de-DE
       translation: Gewichtung
   validation: null
   validation_message: null

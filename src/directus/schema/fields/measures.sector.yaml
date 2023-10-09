@@ -29,7 +29,9 @@ meta:
   required: true
   sort: 9
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Sektor
   validation: null
   validation_message: null
   width: half

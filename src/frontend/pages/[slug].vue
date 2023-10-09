@@ -16,4 +16,12 @@ const { data: pages } = await useAsyncData("pages", () => {
     }),
   );
 });
+console.log(pages);
+
+//MetaTags
+const title = ref(pages.value[0].name);
+useHead({
+  title,
+});
+//
 </script>

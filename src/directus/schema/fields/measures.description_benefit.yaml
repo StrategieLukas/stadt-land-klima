@@ -1,44 +1,51 @@
 collection: measures
-field: feasibility_political
-type: string
+field: description_benefit
+type: text
 meta:
   collection: measures
   conditions: null
   display: null
   display_options: null
-  field: feasibility_political
-  group: feasibility
+  field: description_benefit
+  group: accordion-p4jgb8
   hidden: false
-  interface: select-dropdown
+  interface: input-rich-text-html
   note: null
   options:
-    choices:
-      - text: einfach
-        value: "1"
-      - text: einfach-mittel
-        value: "2"
-      - text: mittel
-        value: "3"
-      - text: mittel-schwer
-        value: "4"
-      - text: schwer
-        value: "5"
+    toolbar:
+      - blockquote
+      - bold
+      - bullist
+      - code
+      - customImage
+      - customLink
+      - customMedia
+      - fullscreen
+      - h1
+      - h2
+      - h3
+      - hr
+      - italic
+      - numlist
+      - paste
+      - removeformat
+      - underline
   readonly: false
   required: false
-  sort: 2
+  sort: 3
   special: null
   translations:
     - language: de-DE
-      translation: Umsetzbarkeit politisch
+      translation: Was bringt diese Maßnahme?  Wieso hilft sie?
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: feasibility_political
+  name: description_benefit
   table: measures
-  data_type: character varying
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
