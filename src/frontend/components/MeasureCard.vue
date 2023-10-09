@@ -43,7 +43,7 @@
               class="xs:mr-auto"
               icon="/assets/icons/icon_impact.svg"
               :label="$t('measure.impact_label')"
-              :value="measure.impact"
+              :value="Number(measure.impact)"
             />
 
             <FeasibilityBarChart
@@ -51,7 +51,7 @@
               class="xs:mx-auto"
               icon="/assets/icons/icon_politics.svg"
               :label="$t('measure.feasibility_political_label')"
-              :value="measure.feasibility_political"
+              :value="Number(measure.feasibility_political)"
             />
 
             <FeasibilityBarChart
@@ -59,7 +59,7 @@
               class="xs:ml-auto"
               icon="/assets/icons/icon_invest.svg"
               :label="$t('measure.feasibility_economical_label')"
-              :value="measure.feasibility_economical"
+              :value="Number(measure.feasibility_economical)"
             />
           </div>
         </div>
