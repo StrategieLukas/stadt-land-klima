@@ -1,0 +1,28 @@
+collection: measures
+field: accordion-p4jgb8
+type: alias
+meta:
+  collection: measures
+  conditions: null
+  display: null
+  display_options: null
+  field: accordion-p4jgb8
+  group: null
+  hidden: false
+  interface: group-accordion
+  note: null
+  options:
+    accordionMode: false
+  readonly: false
+  required: false
+  sort: 13
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Beschreibungen
+  validation: null
+  validation_message: null
+  width: full

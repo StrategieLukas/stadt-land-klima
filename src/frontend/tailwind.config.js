@@ -33,6 +33,7 @@ module.exports = {
         orange: "#f39200 ",
         "localzero-yellow": "#ffc80c",
         "light-blue": "#16bae7",
+        "gray": "#505050",
         black: "#000000",
       },
       boxShadow: {
@@ -43,8 +44,15 @@ module.exports = {
         "60/100": "60%",
       },
       width: {
+        '18': '4.5rem',
         "55/10": "55%",
         "60/100": "60%",
+      },
+      fontSize: {
+        'h1': "clamp(1.5rem, 4.69vw, 2rem)",
+        'h2': "clamp(1.15rem, 3.32vw, 1.5rem)",
+        'h3': "clamp(1.15rem, 2.93vw, 1.5rem)",
+        'h4': "clamp(1rem, 2.05vw, 1.5rem)",
       },
       typography: {
         DEFAULT: {
@@ -55,28 +63,28 @@ module.exports = {
             "line-height": "1.5",
             h1: {
               fontFamily: ["RobotoCondensed", "sans"],
-              "font-size": "2rem",
+              "font-size": "clamp(1.5rem, 4.69vw, 2rem)",
               "line-height": "1.5",
               color: "#000000",
               "font-weight": "bold",
             },
             h2: {
               fontFamily: ["RobotoCondensed", "sans"],
-              "font-size": "1.5rem",
+              "font-size": "clamp(1.15rem, 3.32vw, 1.5rem)",
               "line-height": "1.5",
               color: "#000000",
               "font-Weight": "bold",
             },
             h3: {
               fontFamily: ["RobotoCondensed", "sans"],
-              "font-size": "1.5rem",
+              "font-size": "clamp(1.15rem, 2.93vw, 1.5rem)",
               "line-height": "1.5",
               "font-weight": "normal",
               color: "#16bae7",
             },
             h4: {
               fontFamily: ["RobotoCondensed", "sans"],
-              "font-size": "1.5rem",
+              "font-size": "clamp(1rem, 2.05vw, 1.5rem)",
               "line-height": "1.5",
               "font-weight": "normal",
               color: "#1da64a",
