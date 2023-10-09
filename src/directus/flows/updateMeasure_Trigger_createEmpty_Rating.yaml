@@ -25,41 +25,36 @@ operations:
   - name: Condition
     key: condition_l1qrh
     type: condition
-    position_x: 4
-    position_y: 22
+    position_x: 3
+    position_y: 23
     options:
       filter:
-        _or:
-          - $trigger:
-              payload:
-                status:
-                  _eq: published
-          - $trigger:
-              payload:
-                choices_rating:
-                  _nnull: true
+        $trigger:
+          payload:
+            status:
+              _eq: published
     resolve_key: item_read_djgzw
   - name: Trigger Flow
     key: trigger_cupdd
     type: trigger
-    position_x: 23
-    position_y: 40
+    position_x: 21
+    position_y: 39
     options:
       flow: 14c9927f-79d5-42e1-b145-873cc1f364ab
       payload: "{{$last.retData}}"
   - name: Read Data
     key: item_read_djgzw
     type: item-read
-    position_x: 25
-    position_y: 22
+    position_x: 21
+    position_y: 23
     options:
       collection: localteams
     resolve_key: exec_thpou
   - name: Run Script
     key: exec_thpou
     type: exec
-    position_x: 6
-    position_y: 41
+    position_x: 4
+    position_y: 39
     options:
       code: >2-
          module.exports = async function(data) {

@@ -1,32 +1,33 @@
 collection: ratings_measures
-field: date_created
-type: timestamp
+field: measure_published
+type: boolean
 meta:
   collection: ratings_measures
   conditions: null
-  display: datetime
-  display_options:
-    relative: true
-  field: date_created
+  display: boolean
+  display_options: null
+  field: measure_published
   group: null
-  hidden: true
-  interface: datetime
+  hidden: false
+  interface: boolean
   note: null
   options: null
   readonly: true
-  required: false
-  sort: 6
+  required: true
+  sort: 3
   special:
-    - date-created
-  translations: null
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Massnahme ist veröffentlicht
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: date_created
+  name: measure_published
   table: ratings_measures
-  data_type: timestamp with time zone
-  default_value: null
+  data_type: boolean
+  default_value: true
   max_length: null
   numeric_precision: null
   numeric_scale: null

@@ -48,6 +48,8 @@ permissions:
         - localteam_id:
             _in:
               - $CURRENT_USER.localteams.localteam_id
+        - measure_published:
+            _eq: true
     validation: null
     presets: null
     fields:
@@ -70,6 +72,8 @@ permissions:
         - localteam_id:
             _in:
               - $CURRENT_USER.localteams.localteam_id
+        - measure_published:
+            _eq: true
     validation: null
     presets: null
     fields:

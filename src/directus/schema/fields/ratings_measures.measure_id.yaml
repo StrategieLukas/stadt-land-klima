@@ -18,7 +18,7 @@ meta:
     template: "{{name}}"
   readonly: true
   required: true
-  sort: 11
+  sort: 12
   special:
     - m2o
   translations:

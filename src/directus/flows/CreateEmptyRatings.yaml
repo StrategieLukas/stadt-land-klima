@@ -11,20 +11,15 @@ operations:
   - name: Daten aktualisieren
     key: item_update_hfylm
     type: item-update
-    position_x: 27
-    position_y: 38
+    position_x: 23
+    position_y: 35
     options:
       query:
         filter:
-          _and:
-            - localteam_id:
-                _eq: "{{$trigger.localteam_id}}"
-            - measure_id:
-                _eq: "{{$trigger.measure_id}}"
+          measure_id:
+            _eq: "{{$trigger.measure_id}}"
       payload:
-        choices: "{{$trigger.choices}}"
-        status: draft
-        rating: null
+        measure_published: true
       collection: ratings_measures
       emitEvents: true
   - name: Daten lesen
@@ -45,8 +40,8 @@ operations:
   - name: Create Data
     key: item_create_8neoc
     type: item-create
-    position_x: 9
-    position_y: 37
+    position_x: 5
+    position_y: 35
     options:
       collection: ratings_measures
       payload:
@@ -57,7 +52,7 @@ operations:
   - name: Skript ausführen
     key: exec_koaij
     type: exec
-    position_x: 5
+    position_x: 4
     position_y: 18
     options:
       code: |-
