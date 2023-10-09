@@ -19,8 +19,6 @@ meta:
         value: "2"
       - text: mittel
         value: "3"
-      - text: schwer
-        value: hard
       - text: mittel-schwer
         value: "4"
       - text: schwer

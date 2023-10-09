@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at", { ":updated_at": lastUpdatedAtStr }) }}
+      {{ $t("last_updated_at", { ":updated_at": lastUpdatedAtStr }) }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />
@@ -19,9 +19,9 @@
       <input type="radio" name="sectors-accordion" checked="checked" />
 
       <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_location.svg" class="h-auto w-10 opacity-50" />
+        <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50" />
 
-        <h2 class="font-heading text-2xl leading-none text-green">
+        <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
         </h2>
       </div>
@@ -39,23 +39,37 @@
     >
       <input type="radio" name="sectors-accordion" />
 
-      <div class="collapse-title flex items-end gap-4">
-        <img :src="sectorImages[sector]" class="h-auto w-10 opacity-50" />
+      <div class="collapse-title flex items-start gap-4">
+        <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50" />
 
-        <h2 class="font-heading text-2xl leading-none text-green">
-          {{ $t(`measure_sectors.${sector}.title`) }}
-        </h2>
+        <div class="grow">
+          <h2 class="font-heading text-h2 leading-none text-green mb-2">
+            {{ $t(`measure_sectors.${sector}.title`) }}
+          </h2>
+          <ProgressBar :score-total="municipality['score_' + sector]" layout="compact" />
+        </div>
       </div>
 
       <div class="collapse-content">
+        <h3 class="font-heading text-h2 text-black mb-2">
+          {{ $t('measure_sector.measures_in_detail') }}
+        </h3>
+
+        <ul class="flex items-end justify-center gap-4 mb-2">
+          <li v-for="(rating,index) in 3" class="flex flex-col items-center">
+            <img :src="ratingImages[index]" class="h-auto w-5" />
+            <div class="text-sm">{{ $t(`measure_rating.${index}_caption`) }}</div>
+          </li>
+        </ul>
+
         <ul class="mb-8 divide-y divide-slate-300">
           <li
             v-for="item in sectorRatings"
             :key="item.id"
-            :class="[ratingColorClass[item.rating], 'flex items-center justify-stretch gap-3 bg-opacity-10 p-3']"
+            :class="[ratingColorClass[item.rating - 1], 'flex items-center justify-stretch gap-3 bg-opacity-10 p-3']"
           >
             <div class="shrink-0">
-              <img :src="ratingImages[item.rating]" class="my-auto h-auto w-5" />
+              <img :src="ratingImages[item.rating - 1]" class="my-auto h-auto w-5" />
             </div>
 
             <div class="grow text-sm">
@@ -63,19 +77,12 @@
             </div>
 
             <NuxtLink
-              :to="`/measures/${item.measure.slug}`"
-              class="flex h-5 w-5 shrink-0 items-center justify-center self-start rounded-full bg-slate-500 text-sm font-bold text-white hover:bg-slate-600 focus:bg-slate-600"
+              :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
+              class="flex h-5 w-5 shrink-0 opacity-50 focus:opacity-60 hover:opacity-60"
               target="measure"
             >
-              ?
+              <img src="~/assets/icons/icon_info.svg" class="w-5 h-auto" alt="" />
             </NuxtLink>
-          </li>
-        </ul>
-
-        <ul class="flex items-end gap-4">
-          <li v-for="(rating,index) in 3" class="flex flex-col items-center gap-4">
-            <img :src="ratingImages[index]" class="h-auto w-5" />
-            <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>
         </ul>
       </div>
@@ -86,9 +93,9 @@
       <input type="radio" name="sectors-accordion" checked="checked" />
 
       <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_team.svg" class="h-auto w-10 opacity-50" />
+        <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50" />
 
-        <h2 class="font-heading text-2xl leading-none text-green">
+        <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.participate_heading") }}
         </h2>
       </div>
@@ -105,9 +112,9 @@
       <input type="radio" name="sectors-accordion" checked="checked" />
 
       <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_info.svg" class="h-auto w-10 opacity-50" />
+        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50" />
 
-        <h2 class="font-heading text-2xl leading-none text-green">
+        <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.data_collection_heading") }}
         </h2>
       </div>
