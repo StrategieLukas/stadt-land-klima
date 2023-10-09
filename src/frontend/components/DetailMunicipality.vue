@@ -46,7 +46,7 @@
           <h2 class="font-heading text-h2 leading-none text-green mb-2">
             {{ $t(`measure_sectors.${sector}.title`) }}
           </h2>
-          <ProgressBar :score-total="municipality['score_' + sector]" layout="compact" />
+          <ProgressBar :score-total="Math.round(Number(municipality['score_' + sector]) *10) / 10" layout="compact" />
         </div>
       </div>
 
@@ -54,9 +54,8 @@
         <h3 class="font-heading text-h2 text-black mb-2">
           {{ $t('measure_sector.measures_in_detail') }}
         </h3>
-
-        <ul class="flex items-end justify-center gap-4 mb-2">
-          <li v-for="(rating,index) in 3" class="flex flex-col items-center">
+               <ul class="flex items-end justify-center gap-4 mb-2">
+          <li v-for="(rating, index) in 4" class="flex flex-col items-center">
             <img :src="ratingImages[index]" class="h-auto w-5" />
             <div class="text-sm">{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>
@@ -89,12 +88,7 @@
           </li>
         </ul>
 
-        <ul class="flex items-end gap-4">
-          <li v-for="(rating, index) in 4" class="flex flex-col items-center gap-4">
-            <img :src="ratingImages[index]" class="h-auto w-5" />
-            <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
-          </li>
-        </ul>
+       
       </div>
     </div>
 
@@ -175,7 +169,7 @@ function createSubScoreObject(municipality) {
   const temp = {};
   for (const [key, value] of Object.entries(municipality)) {
     if (key.includes("score")) {
-      temp[key] = value;
+      temp[key] = Number(value);
     }
   }
   return temp;

@@ -21,7 +21,7 @@
             layout === 'compact' ? 'text-sm' : 'text-xl',
           ]"
         >
-          {{ parseInt(scoreTotal, 10) }}
+          {{scoreTotal}}
         </div>
       </div>
     </div>
