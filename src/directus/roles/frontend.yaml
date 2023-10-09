@@ -73,6 +73,16 @@ permissions:
       - notes
       - description
       - date_updated
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
   - role: d09e2c25-a977-41fc-aa73-9238fcf20a9b
     collection: directus_translations
     action: read

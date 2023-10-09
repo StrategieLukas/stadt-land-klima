@@ -39,6 +39,16 @@ permissions:
       - notes
       - id
       - choices_rating
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_contribution
+      - description_verification
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
   - role: 3a964766-0e61-4140-90ff-38654594cda2
     collection: measures
     action: create
@@ -63,3 +73,13 @@ permissions:
       - verification_description
       - notes
       - choices_rating
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial

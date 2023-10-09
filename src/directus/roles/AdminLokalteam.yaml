@@ -64,6 +64,7 @@ permissions:
       - id
       - links-jv6and
       - choices
+      - source
   - role: b8c043a2-a245-42d1-b28f-20c657270926
     collection: ratings_measures
     action: update
@@ -81,6 +82,7 @@ permissions:
       - rating
       - applicable
       - Source
+      - source
   - role: b8c043a2-a245-42d1-b28f-20c657270926
     collection: municipalities
     action: read
@@ -156,3 +158,13 @@ permissions:
       - notes
       - id
       - status
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
