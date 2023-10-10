@@ -1,0 +1,222 @@
+name: updateMeasure
+icon: bolt
+color: null
+description: when measure evaluation or choices_rating are changed create new
+  measure and unpublish old one
+status: active
+trigger: event
+accountability: all
+options:
+  type: filter
+  scope:
+    - items.update
+  collections:
+    - measures
+  return: $last
+operations:
+  - name: Flow auslösen
+    key: trigger_8v0q2
+    type: trigger
+    position_x: 5
+    position_y: 102
+    options:
+      payload: "{{$last}}"
+      flow: 14c9927f-79d5-42e1-b145-873cc1f364ab
+    resolve_key: item_update_wwvrc
+  - name: Daten lesen
+    key: item_read_gan61
+    type: item-read
+    position_x: 4
+    position_y: 86
+    options:
+      collection: municipalities
+      permissions: $full
+    resolve_key: exec_o122s
+  - name: Skript ausführen
+    key: exec_ztfvp
+    type: exec
+    position_x: 26
+    position_y: 19
+    options:
+      code: >2-
+         module.exports = async function(data) {
+                	let measures = data["$last"];
+                    if(!Array.isArray(measures)){
+                    measures =[measures];
+                    }
+                    let payload = data["$trigger"]["payload"];
+                    for (const measure of measures) {
+                        measure["id"] = null
+                        if ("description_evaluation_criteria" in payload) {
+                  			measure["description_evaluation_criteria"]=payload["description_evaluation_criteria"];    	
+                        }
+                        if("choices_rating" in payload) {
+                 				measure["choices_rating"]=payload["choices_rating"];       	
+                		}
+                        if("status" in payload) {
+                 				measure["status"]=payload["status"];
+                		}
+                         measure["slug"] = null
+                	}
+                	return measures;
+                }
+    resolve_key: exec_lg60r
+  - name: Daten aktualisieren
+    key: item_update_4tnsa
+    type: item-update
+    position_x: 4
+    position_y: 69
+    options:
+      payload: "{{$trigger.payload}}"
+      key: "{{$trigger.keys}}"
+      collection: measures
+    resolve_key: item_read_mrt7t
+  - name: Payload bearbeiten
+    key: transform_zo058
+    type: transform
+    position_x: 37
+    position_y: 37
+    options:
+      json: {}
+  - name: Daten aktualisieren
+    key: item_update_wwvrc
+    type: item-update
+    position_x: 23
+    position_y: 102
+    options:
+      permissions: $full
+      collection: ratings_measures
+      query:
+        filter:
+          _and:
+            - measure_id:
+                _in: "{{$trigger.keys}}"
+      payload:
+        measure_published: true
+      emitEvents: true
+  - name: Flow auslösen
+    key: trigger_7vn1c
+    type: trigger
+    position_x: 20
+    position_y: 36
+    options:
+      iterationMode: serial
+      flow: 175718e8-2a66-4c52-a499-b02669199a95
+      payload: "{{$last}}"
+    resolve_key: transform_zo058
+  - name: Skript ausführen
+    key: exec_lg60r
+    type: exec
+    position_x: 3
+    position_y: 36
+    options:
+      code: |-
+        module.exports = async function(data) {
+        	let measures = data["item_read_klhny"];
+            let measures_new = data["$last"];
+            const currentDateTime = new Date();
+        	const isoDateTimeString = currentDateTime.toISOString();
+
+            if(!Array.isArray(measures)){
+            measures =[measures];
+            }
+             if(!Array.isArray(measures_new)){
+            measures_new =[measures_new];
+            }
+            measures.forEach((measure, index) => {
+         	measure["name"] += "_updateAt_"+ isoDateTimeString;
+            measure["status"] = "draft";
+            measure["new_measure"] = measures_new[index];
+        	});
+
+        	return measures;
+        }
+    resolve_key: trigger_7vn1c
+  - name: Kondition
+    key: condition_e86rg
+    type: condition
+    position_x: 3
+    position_y: 52
+    options:
+      filter:
+        $trigger:
+          payload:
+            status:
+              _eq: published
+    resolve_key: item_update_4tnsa
+    reject_key: transform_3msfr
+  - name: Skript ausführen
+    key: exec_o122s
+    type: exec
+    position_x: 23
+    position_y: 86
+    options:
+      code: >2-
+         module.exports = async function(data) {
+                    let retData = [];
+                	for (var i = 0; i < data["$last"].length; i++){
+                        for (var j = 0; j < data["$trigger"]["keys"].length; j++){
+                            let choice;
+                            if(Array.isArray(data["item_read_mrt7t"])){
+                            	 choice=data["item_read_mrt7t"][j]["choices_rating"]
+                            }
+                       		 else{
+                                 choice = data["item_read_mrt7t"]["choices_rating"]
+                            }
+                            retData.push({
+                               "localteam_id":data["$last"][i]["id"],
+                                "measure_id": data["$trigger"]["keys"][j],
+                                "choices": choice
+                                     
+                            })
+                  		}
+                    }
+                    return {retData};
+                }
+    resolve_key: trigger_8v0q2
+  - name: Daten lesen
+    key: item_read_mrt7t
+    type: item-read
+    position_x: 25
+    position_y: 69
+    options:
+      collection: measures
+      key: "{{$trigger.keys}}"
+      permissions: $full
+    resolve_key: item_read_gan61
+  - name: Payload bearbeiten
+    key: transform_3msfr
+    type: transform
+    position_x: 38
+    position_y: 53
+    options:
+      json: "{{$trigger.payload}}"
+  - name: Daten lesen
+    key: item_read_klhny
+    type: item-read
+    position_x: 2
+    position_y: 19
+    options:
+      permissions: $full
+      collection: measures
+      key: "{{$trigger.keys}}"
+    resolve_key: exec_ztfvp
+  - name: Kondition
+    key: condition_himhz
+    type: condition
+    position_x: 25
+    position_y: 2
+    options:
+      filter:
+        _or:
+          - $trigger:
+              payload:
+                description_evaluation_criteria:
+                  _nnull: true
+          - $trigger:
+              payload:
+                choices_rating:
+                  _nnull: true
+    resolve_key: item_read_klhny
+    reject_key: condition_e86rg
+operation_key: condition_himhz

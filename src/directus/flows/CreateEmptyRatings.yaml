@@ -8,20 +8,6 @@ accountability: all
 options:
   return: $all
 operations:
-  - name: Daten aktualisieren
-    key: item_update_hfylm
-    type: item-update
-    position_x: 23
-    position_y: 35
-    options:
-      query:
-        filter:
-          measure_id:
-            _eq: "{{$trigger.measure_id}}"
-      payload:
-        measure_published: true
-      collection: ratings_measures
-      emitEvents: true
   - name: Daten lesen
     key: item_read_68izy
     type: item-read
@@ -40,8 +26,8 @@ operations:
   - name: Create Data
     key: item_create_8neoc
     type: item-create
-    position_x: 5
-    position_y: 35
+    position_x: 3
+    position_y: 34
     options:
       collection: ratings_measures
       payload:
@@ -52,8 +38,8 @@ operations:
   - name: Skript ausführen
     key: exec_koaij
     type: exec
-    position_x: 4
-    position_y: 18
+    position_x: 2
+    position_y: 17
     options:
       code: |-
         module.exports = async function(data) {
@@ -66,13 +52,12 @@ operations:
   - name: Kondition
     key: condition_0odis
     type: condition
-    position_x: 22
-    position_y: 18
+    position_x: 20
+    position_y: 17
     options:
       filter:
         $last:
           emptyArray:
             _eq: true
     resolve_key: item_create_8neoc
-    reject_key: item_update_hfylm
 operation_key: item_read_68izy

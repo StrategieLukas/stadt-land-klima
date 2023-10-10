@@ -2,7 +2,7 @@ name: updateMunicipality
 icon: bolt
 color: null
 description: When Municpality.status is updated to publish calculate rank
-status: active
+status: inactive
 trigger: event
 accountability: all
 options:
@@ -15,8 +15,8 @@ operations:
   - name: updatesRanks
     key: update_ranks_cun4d
     type: updateRanks
-    position_x: 10
-    position_y: 24
+    position_x: 2
+    position_y: 18
     options: {}
   - name: Condition
     key: condition_9x5et

@@ -25,15 +25,15 @@ operations:
   - name: Calculate Scores
     key: operation_calculate_scores_k3swm
     type: operation-calculateScores
-    position_x: 37
-    position_y: 1
+    position_x: 4
+    position_y: 22
     options:
       keys: "{{$last.keys}}"
     resolve_key: update_ranks_w2afr
   - name: updatesRanks
     key: update_ranks_w2afr
     type: updateRanks
-    position_x: 8
-    position_y: 20
+    position_x: 21
+    position_y: 22
     options: {}
 operation_key: transform_k2nt3
