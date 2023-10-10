@@ -29,7 +29,7 @@ operations:
     position_x: 4
     position_y: 86
     options:
-      collection: municipalities
+      collection: localteams
       permissions: $full
     resolve_key: exec_o122s
   - name: Skript ausführen
@@ -38,7 +38,7 @@ operations:
     position_x: 26
     position_y: 19
     options:
-      code: >2-
+      code: |2-
          module.exports = async function(data) {
                 	let measures = data["$last"];
                     if(!Array.isArray(measures)){
@@ -46,16 +46,13 @@ operations:
                     }
                     let payload = data["$trigger"]["payload"];
                     for (const measure of measures) {
-                        measure["id"] = null
-                        if ("description_evaluation_criteria" in payload) {
-                  			measure["description_evaluation_criteria"]=payload["description_evaluation_criteria"];    	
-                        }
-                        if("choices_rating" in payload) {
-                 				measure["choices_rating"]=payload["choices_rating"];       	
-                		}
-                        if("status" in payload) {
-                 				measure["status"]=payload["status"];
-                		}
+                     
+                        for (const key in payload) {
+          					if (payload.hasOwnProperty(key)) {
+            					measure[key]=payload[key];
+          					}
+        				}
+                         measure["id"] = null
                          measure["slug"] = null
                 	}
                 	return measures;
@@ -75,7 +72,7 @@ operations:
     key: transform_zo058
     type: transform
     position_x: 37
-    position_y: 37
+    position_y: 36
     options:
       json: {}
   - name: Daten aktualisieren
@@ -94,6 +91,7 @@ operations:
       payload:
         measure_published: true
       emitEvents: true
+    resolve_key: exec_mkg9q
   - name: Flow auslösen
     key: trigger_7vn1c
     type: trigger
@@ -110,7 +108,7 @@ operations:
     position_x: 3
     position_y: 36
     options:
-      code: |-
+      code: >-
         module.exports = async function(data) {
         	let measures = data["item_read_klhny"];
             let measures_new = data["$last"];
@@ -125,6 +123,7 @@ operations:
             }
             measures.forEach((measure, index) => {
          	measure["name"] += "_updateAt_"+ isoDateTimeString;
+            measure["slug"] = measure["slug"]+isoDateTimeString.replace(/[^a-zA-Z0-9]/g, '-');
             measure["status"] = "draft";
             measure["new_measure"] = measures_new[index];
         	});
@@ -171,19 +170,37 @@ operations:
                             })
                   		}
                     }
-                    return {retData};
+                    return retData;
                 }
     resolve_key: trigger_8v0q2
   - name: Daten lesen
     key: item_read_mrt7t
     type: item-read
-    position_x: 25
+    position_x: 40
     position_y: 69
     options:
       collection: measures
       key: "{{$trigger.keys}}"
       permissions: $full
     resolve_key: item_read_gan61
+  - name: Skript ausführen
+    key: exec_mkg9q
+    type: exec
+    position_x: 41
+    position_y: 102
+    options:
+      code: >2-
+         module.exports = async function(data) {
+                    let retData = []
+                	for (var i = 0; i < data["$last"].length; i++){
+                  		retData.push({
+                           "localteam_id":data["$last"][i]["id"],
+                       		"measure_id": data["$trigger"]["key"],
+                            "choices": data["$trigger"]["payload"]["choices_rating"]
+                        })
+                  	}
+                    return {retData};
+                }
   - name: Payload bearbeiten
     key: transform_3msfr
     type: transform

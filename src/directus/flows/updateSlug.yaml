@@ -1,0 +1,47 @@
+name: updateSlug
+icon: bolt
+color: null
+description: when updated Name create Slug
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - measures
+    - municipalities
+    - pages
+operations:
+  - name: Kondition
+    key: condition_kbi0b
+    type: condition
+    position_x: 19
+    position_y: 1
+    options:
+      filter:
+        $trigger:
+          payload:
+            name:
+              _nnull: true
+    resolve_key: operation_slugify_fxmad
+  - name: Slugify
+    key: operation_slugify_fxmad
+    type: operation-slugify
+    position_x: 3
+    position_y: 19
+    options:
+      text: "{{$trigger.payload.name}}"
+    resolve_key: item_update_14b9m
+  - name: Daten aktualisieren
+    key: item_update_14b9m
+    type: item-update
+    position_x: 21
+    position_y: 19
+    options:
+      payload:
+        slug: "{{$last.text}}"
+      key: "{{ $trigger.keys}}"
+      collection: "{{$trigger.collection}}"
+operation_key: condition_kbi0b

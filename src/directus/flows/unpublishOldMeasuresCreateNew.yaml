@@ -31,12 +31,16 @@ operations:
   - name: Daten aktualisieren
     key: item_update_wdrgr
     type: item-update
-    position_x: 1
-    position_y: 37
+    position_x: 3
+    position_y: 35
     options:
       collection: ratings_measures
       payload:
         measure_published: false
+      query:
+        filter:
+          measure_id:
+            _eq: "{{$trigger.id}}"
   - name: Skript ausführen
     key: exec_vb4gu
     type: exec
