@@ -70,18 +70,18 @@ meta:
       - operator: eq
         value: "0"
         color: "#E30613"
-        text: $t:measure_rating.choices.red
         icon: stars
+        text: $t:measure_rating.choices.red
       - operator: eq
         value: "1"
         color: "#1EA64A"
-        text: $t:measure_rating.choices.green
         icon: stars
+        text: $t:measure_rating.choices.green
       - operator: eq
         value: "0.3333"
         color: "#FFDD00"
-        text: $t:measure_rating.choices.yellow
         icon: stars
+        text: $t:measure_rating.choices.yellow
       - operator: eq
         value: "0.6666"
         text: $t:measure_rating.choices.light_green

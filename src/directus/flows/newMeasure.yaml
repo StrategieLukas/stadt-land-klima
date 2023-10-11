@@ -40,6 +40,7 @@ operations:
     options:
       collection: localteams
       query: null
+      permissions: $full
     resolve_key: exec_x1cau
   - name: Trigger Flow
     key: trigger_v8atj

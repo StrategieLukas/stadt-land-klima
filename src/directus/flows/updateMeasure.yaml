@@ -67,6 +67,7 @@ operations:
       payload: "{{$trigger.payload}}"
       key: "{{$trigger.keys}}"
       collection: measures
+      permissions: $full
     resolve_key: item_read_mrt7t
   - name: Payload bearbeiten
     key: transform_zo058

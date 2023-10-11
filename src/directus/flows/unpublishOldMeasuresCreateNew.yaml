@@ -17,6 +17,7 @@ operations:
       collection: measures
       payload: "{{exec_vb4gu.new_measure}}"
       emitEvents: true
+      permissions: $full
     resolve_key: item_update_wdrgr
   - name: Daten aktualisieren
     key: item_update_b13k5
@@ -27,6 +28,7 @@ operations:
       collection: measures
       key: "{{$last.old_measure.id}}"
       payload: "{{$last.old_measure}}"
+      permissions: $full
     resolve_key: item_create_duq7q
   - name: Daten aktualisieren
     key: item_update_wdrgr
@@ -41,6 +43,7 @@ operations:
         filter:
           measure_id:
             _eq: "{{$trigger.id}}"
+      permissions: $full
   - name: Skript ausführen
     key: exec_vb4gu
     type: exec

@@ -22,6 +22,7 @@ operations:
             - measure_id:
                 _eq: "{{$last.measure_id}}"
       collection: ratings_measures
+      permissions: $full
     resolve_key: exec_koaij
   - name: Create Data
     key: item_create_8neoc
@@ -35,6 +36,7 @@ operations:
         localteam_id: "{{$trigger.localteam_id}}"
         choices: "{{$trigger.choices}}"
       emitEvents: true
+      permissions: $full
   - name: Skript ausführen
     key: exec_koaij
     type: exec

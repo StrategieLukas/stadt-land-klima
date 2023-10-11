@@ -26,6 +26,7 @@ operations:
         measure_published: false
       collection: ratings_measures
       emitEvents: true
+      permissions: $full
   - name: Condition
     key: condition_79sk5
     type: condition

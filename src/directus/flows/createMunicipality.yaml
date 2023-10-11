@@ -23,4 +23,5 @@ operations:
         name: "{{$trigger.payload.municipality_name}}"
         localteam_id: "{{$trigger.key}}"
       emitEvents: true
+      permissions: $full
 operation_key: item_create_vf2y4

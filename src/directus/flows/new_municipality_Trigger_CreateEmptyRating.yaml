@@ -51,5 +51,6 @@ operations:
         filter:
           status:
             _eq: published
+      permissions: $full
     resolve_key: exec_l3jv0
 operation_key: item_read_rlzk6
