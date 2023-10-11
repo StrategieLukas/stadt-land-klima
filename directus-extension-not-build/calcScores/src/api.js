@@ -1,10 +1,12 @@
 export default {
   id: "operation-calculateScores",
   handler: async (
-    { keys },
+    { keys, measureIds },
     { env, logger, accountability, services, getSchema },
   ) => {
     try {
+
+
       const { ItemsService } = services;
       const schema = await getSchema();
       let maxScore = 100;
@@ -27,54 +29,85 @@ export default {
         limit: -1,
       };
 
-      const ratings_measures = await rantingsMeasuresService.readMany(
-        keys,
-        query,
-      );
       const measures = await measuresService.readByQuery(query);
-      // logger.info(ratings_measures, "ratings_measures");
-      // logger.info(measures, "measures");
-      const municipalitiesToRead = Object.values(ratings_measures).map(
-        (value) => value.localteam_id,
-      );
-      if (municipalitiesToRead.length === 0) {
-        /* logger.info("NOthing to recalc"); */
-        return;
+      let ratings_measures;
+      let measureNotToConsider;
+      if (measureIds === null || typeof measureIds === 'undefined') {
+        measureNotToConsider = [];
+      }
+      else {
+        measureNotToConsider = measureIds;
+      }
+      //logger.info(measureNotToConsider, "measureNotToConsider");
+      if (measureNotToConsider.length === 0) { // when there is no measureId than read all rating measures with given key
+        ratings_measures = await rantingsMeasuresService.readMany(
+          keys,
+          query,
+        );
+        const municipalitiesToRead = Object.values(ratings_measures).map(
+          (value) => value.localteam_id,
+        );
+        if (municipalitiesToRead.length === 0) {
+          /* logger.info("NOthing to recalc"); */
+          return;
+        }
+        query = { //query to only read the necessary municipalities
+          filter: {
+            localteam_id: {
+              _in: municipalitiesToRead,
+            },
+          },
+        };
       }
 
+
+
+
+      // logger.info(ratings_measures, "ratings_measures");
+      // logger.info(measures, "measures");
+
+
       // logger.info(municipalitiesToRead, "municipalitiesToRead");
-      query = {
-        filter: {
-          localteam_id: {
-            _in: municipalitiesToRead,
-          },
-        },
-      };
+
 
       const municipalities = await municipalitiesService.readByQuery(query);
       // logger.info(municipalities, "municipalities");
       // logger.info(municipalities[0], "municipalities0");
       for (const municipality of municipalities) {
         const scoreDict = {};
-        ratings_measures.forEach((item1) => {
-          if (item1.localteam_id === municipality.localteam_id) {
-            const item2 = measures.find(
-              (item2) => item2.id === item1.measure_id,
-            );
-            if (item2 !== undefined) {
-              scoreDict[item2.sector] = {
+
+        if (measureNotToConsider.length === 0) {
+          ratings_measures.forEach((item1) => {
+            if (item1.localteam_id === municipality.localteam_id) {
+              const item2 = measures.find(
+                (item2) => item2.id === item1.measure_id,
+              );
+              if (item2 !== undefined) {
+                scoreDict[item2.sector] = {
+                  denominator: 0,
+                  numerator: 0,
+                };
+              }
+            }
+          });
+        }
+        else {
+          measures.forEach(function (item) {
+            if (measureNotToConsider.includes(item.id)) {
+              scoreDict[item.sector] = {
                 denominator: 0,
                 numerator: 0,
               };
             }
-          }
-        });
+          });
+
+        }
         scoreDict["total"] = {
           denominator: 0,
           numerator: 0,
         };
-        /* logger.info(scoreDict, "scoreDict" +municipality.name);
-         */
+        //logger.info(scoreDict, "scoreDict" + municipality.name);
+
         query = {
           filter: {
             _and: [
@@ -112,6 +145,7 @@ export default {
 
         for (const ratingMeasureDetail of ratingsMeasureDetail) {
           const {
+            measure_id,
             applicable,
             weight,
             approved,
@@ -120,8 +154,7 @@ export default {
             sector,
             measureStatus,
           } = ratingMeasureDetail;
-
-          if (applicable && measureStatus === "published") {
+          if (applicable && measureStatus === "published" && !measureNotToConsider.includes(measure_id)) {
             scoreDict["total"]["denominator"] += weight; //max value needs update
             if (scoreDict[sector]) {
               scoreDict[sector]["denominator"] += weight;

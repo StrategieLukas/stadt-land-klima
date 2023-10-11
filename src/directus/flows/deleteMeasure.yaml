@@ -1,0 +1,31 @@
+name: deleteMeasure
+icon: bolt
+color: null
+description: when measure is delete recalcScores
+status: active
+trigger: event
+accountability: all
+options:
+  type: filter
+  scope:
+    - items.delete
+  collections:
+    - measures
+  return: ""
+operations:
+  - name: updatesRanks
+    key: update_ranks_xrmvz
+    type: updateRanks
+    position_x: 8
+    position_y: 18
+    options: {}
+  - name: Calculate Scores
+    key: operation_calculate_scores_0ob0q
+    type: operation-calculateScores
+    position_x: 19
+    position_y: 1
+    options:
+      measure: "{{$trigger.payload}}"
+      measureIds: "{{$trigger.payload}}"
+    resolve_key: update_ranks_xrmvz
+operation_key: operation_calculate_scores_0ob0q
