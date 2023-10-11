@@ -4,7 +4,7 @@
       <h1 class="text-rating-0">
         Dies ist eine Test Version
         <br />
-        Bitte schreibt uns an fals ihr Fehler entdeckt :)
+        Bitte schreibt uns an falls ihr Fehler entdeckt :)
       </h1>
     </div>
   </div>
