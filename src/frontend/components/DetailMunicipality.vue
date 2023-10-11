@@ -43,18 +43,18 @@
         <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50" />
 
         <div class="grow">
-          <h2 class="font-heading text-h2 leading-none text-green mb-2">
+          <h2 class="mb-2 font-heading text-h2 leading-none text-green">
             {{ $t(`measure_sectors.${sector}.title`) }}
           </h2>
-          <ProgressBar :score-total="Math.round(Number(municipality['score_' + sector]) *10) / 10" layout="compact" />
+          <ProgressBar :score-total="Math.round(Number(municipality['score_' + sector]) * 10) / 10" layout="compact" />
         </div>
       </div>
 
       <div class="collapse-content">
-        <h3 class="font-heading text-h2 text-black mb-2">
-          {{ $t('measure_sector.measures_in_detail') }}
+        <h3 class="mb-2 font-heading text-h2 text-black">
+          {{ $t("measure_sector.measures_in_detail") }}
         </h3>
-               <ul class="flex items-end justify-center gap-4 mb-2">
+        <ul class="mb-2 flex items-end justify-center gap-4">
           <li v-for="(rating, index) in 4" class="flex flex-col items-center">
             <img :src="ratingImages[index]" class="h-auto w-5" />
             <div class="text-sm">{{ $t(`measure_rating.${index}_caption`) }}</div>
@@ -80,15 +80,13 @@
 
             <NuxtLink
               :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-              class="flex h-5 w-5 shrink-0 opacity-50 focus:opacity-60 hover:opacity-60"
+              class="flex h-5 w-5 shrink-0 opacity-50 hover:opacity-60 focus:opacity-60"
               target="measure"
             >
-              <img src="~/assets/icons/icon_info.svg" class="w-5 h-auto" alt="" />
+              <img src="~/assets/icons/icon_info.svg" class="h-auto w-5" alt="" />
             </NuxtLink>
           </li>
         </ul>
-
-       
       </div>
     </div>
 

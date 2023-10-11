@@ -34,7 +34,7 @@ module.exports = {
         orange: "#f39200 ",
         "localzero-yellow": "#ffc80c",
         "light-blue": "#16bae7",
-        "gray": "#505050",
+        gray: "#505050",
         black: "#000000",
       },
       boxShadow: {
@@ -45,15 +45,15 @@ module.exports = {
         "60/100": "60%",
       },
       width: {
-        '18': '4.5rem',
+        18: "4.5rem",
         "58/10": "58%",
         "60/100": "60%",
       },
       fontSize: {
-        'h1': "clamp(1.5rem, 4.69vw, 2rem)",
-        'h2': "clamp(1.15rem, 3.32vw, 1.5rem)",
-        'h3': "clamp(1.15rem, 2.93vw, 1.5rem)",
-        'h4': "clamp(1rem, 2.05vw, 1.5rem)",
+        h1: "clamp(1.5rem, 4.69vw, 2rem)",
+        h2: "clamp(1.15rem, 3.32vw, 1.5rem)",
+        h3: "clamp(1.15rem, 2.93vw, 1.5rem)",
+        h4: "clamp(1rem, 2.05vw, 1.5rem)",
       },
       typography: {
         DEFAULT: {

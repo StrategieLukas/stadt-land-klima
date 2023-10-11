@@ -1,14 +1,13 @@
 <template>
-  <figure class="flex flex-col items-center m-0 w-18">
-    <img :src="icon" class="h-auto w-18 opacity-50">
+  <figure class="m-0 flex w-18 flex-col items-center">
+    <img :src="icon" class="h-auto w-18 opacity-50" />
     <figcaption class="-mt-2 w-full">
-      <div class="flex flex-row items-end h-10 gap-x-1">
+      <div class="flex h-10 flex-row items-end gap-x-1">
         <div
           v-for="index in range(0, max)"
           :class="value >= index + 1 ? 'bg-light-blue' : 'bg-black bg-opacity-20'"
-          :style="{height: valuePercent(index + 1) + '%', width: (100 / max) + '%'}"
-        >
-        </div>
+          :style="{ height: valuePercent(index + 1) + '%', width: 100 / max + '%' }"
+        ></div>
       </div>
       <div class="text-center">
         {{ label }}
@@ -17,8 +16,8 @@
   </figure>
 </template>
 <script setup>
-import lodash from 'lodash';
-import { defineProps } from 'vue';
+import lodash from "lodash";
+import { defineProps } from "vue";
 const { range } = lodash;
 
 const props = defineProps({

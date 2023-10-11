@@ -5,8 +5,6 @@ export default {
     { env, logger, accountability, services, getSchema },
   ) => {
     try {
-
-
       const { ItemsService } = services;
       const schema = await getSchema();
       let maxScore = 100;
@@ -32,18 +30,15 @@ export default {
       const measures = await measuresService.readByQuery(query);
       let ratings_measures;
       let measureNotToConsider;
-      if (measureIds === null || typeof measureIds === 'undefined') {
+      if (measureIds === null || typeof measureIds === "undefined") {
         measureNotToConsider = [];
-      }
-      else {
+      } else {
         measureNotToConsider = measureIds;
       }
       //logger.info(measureNotToConsider, "measureNotToConsider");
-      if (measureNotToConsider.length === 0) { // when there is no measureId than read all rating measures with given key
-        ratings_measures = await rantingsMeasuresService.readMany(
-          keys,
-          query,
-        );
+      if (measureNotToConsider.length === 0) {
+        // when there is no measureId than read all rating measures with given key
+        ratings_measures = await rantingsMeasuresService.readMany(keys, query);
         const municipalitiesToRead = Object.values(ratings_measures).map(
           (value) => value.localteam_id,
         );
@@ -51,7 +46,8 @@ export default {
           /* logger.info("NOthing to recalc"); */
           return;
         }
-        query = { //query to only read the necessary municipalities
+        query = {
+          //query to only read the necessary municipalities
           filter: {
             localteam_id: {
               _in: municipalitiesToRead,
@@ -60,15 +56,10 @@ export default {
         };
       }
 
-
-
-
       // logger.info(ratings_measures, "ratings_measures");
       // logger.info(measures, "measures");
 
-
       // logger.info(municipalitiesToRead, "municipalitiesToRead");
-
 
       const municipalities = await municipalitiesService.readByQuery(query);
       // logger.info(municipalities, "municipalities");
@@ -90,8 +81,7 @@ export default {
               }
             }
           });
-        }
-        else {
+        } else {
           measures.forEach(function (item) {
             if (measureNotToConsider.includes(item.id)) {
               scoreDict[item.sector] = {
@@ -100,7 +90,6 @@ export default {
               };
             }
           });
-
         }
         scoreDict["total"] = {
           denominator: 0,
@@ -154,7 +143,11 @@ export default {
             sector,
             measureStatus,
           } = ratingMeasureDetail;
-          if (applicable && measureStatus === "published" && !measureNotToConsider.includes(measure_id)) {
+          if (
+            applicable &&
+            measureStatus === "published" &&
+            !measureNotToConsider.includes(measure_id)
+          ) {
             scoreDict["total"]["denominator"] += weight; //max value needs update
             if (scoreDict[sector]) {
               scoreDict[sector]["denominator"] += weight;

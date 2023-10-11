@@ -2,7 +2,7 @@
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
       <div class="relative flex h-96 w-full items-center justify-center">
-        <div class="z-10 h-58/100 w-58/100">
+        <div class="w-58/100 z-10 h-58/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
       </div>
@@ -18,7 +18,7 @@ import tailwindConfig from "../tailwind.config";
 
 const config = resolveConfig(tailwindConfig); */
 
-import { PolarArea } from 'vue-chartjs'
+import { PolarArea } from "vue-chartjs";
 import {
   Chart,
   Title,
@@ -29,17 +29,14 @@ import {
   LinearScale,
   ArcElement,
   RadialLinearScale,
-  
 } from "chart.js";
 class CustomRadialLinearScale extends RadialLinearScale {
   draw() {
-   super.draw()
-   
+    super.draw();
   }
 }
-CustomRadialLinearScale.id = 'customRadialLinear';
+CustomRadialLinearScale.id = "customRadialLinear";
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, CustomRadialLinearScale, ArcElement);
-
 
 const props = defineProps({
   subScores: {
@@ -83,7 +80,7 @@ const chartOptions = {
     tooltip: {
       callbacks: {
         label: function (context) {
-          const label = context.formattedValue +'%';
+          const label = context.formattedValue + "%";
           return label;
         },
       },
@@ -92,18 +89,18 @@ const chartOptions = {
 
   scales: {
     r: {
-      type: 'customRadialLinear', 
+      type: "customRadialLinear",
       min: 0,
       max: 100,
       startAngle: 0,
       angleLines: {
         display: true,
         lineWidth: 1,
-        z:1,
+        z: 1,
       },
-     
+
       ticks: {
-        display:false,
+        display: false,
         sampleSize: 6,
         stepSize: 20,
         z: 2,
@@ -125,18 +122,15 @@ function createSubScoreArray(subScoreObject) {
 function createColorArray(subScoresArray) {
   const tempColorsArray = [];
   subScoresArray.forEach(function (score, index) {
- 
     if (score < 20) {
       tempColorsArray.push("#D9000D");
     } else if (score < 40) {
       tempColorsArray.push("#F27C00");
     } else if (score < 60) {
       tempColorsArray.push("#FFD400");
-    }
-    else if (score < 80) {
+    } else if (score < 80) {
       tempColorsArray.push("#AFCA0B");
-    }
-    else {
+    } else {
       tempColorsArray.push("#1DA64A");
     }
   });

@@ -61,6 +61,6 @@ const props = defineProps({
   },
 });
 const municipality = props.municipality;
-const scoreTotalRounded=Math.round(Number(municipality.score_total) *10) / 10
+const scoreTotalRounded = Math.round(Number(municipality.score_total) * 10) / 10;
 </script>
 <style lang=""></style>
