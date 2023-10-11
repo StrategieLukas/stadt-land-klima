@@ -212,7 +212,7 @@
         </div>
       </div>
       <p class="text-center">
-        {{ $t("last_updated_at", { ":updated_at": lastUpdatedAtStr }) }}
+        {{ $t("last_updated_at") + lastUpdatedAtStr  }}
       </p>
     </div>
   </article>
@@ -226,13 +226,13 @@ const props = defineProps({
     required: true
   },
 });
-const lastUpdatedAtStr = computed(() => {
+let lastUpdatedAtStr = ref("");
+onMounted(() => {
   const lastUpdatedAt = new Date(props.measure.date_updated);
-  return (
+  lastUpdatedAtStr.value =
     lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
-    lastUpdatedAt.toLocaleTimeString($locale)
-  );
+    lastUpdatedAt.toLocaleTimeString($locale);
 });
 
 </script>
