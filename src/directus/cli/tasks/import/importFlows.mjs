@@ -112,6 +112,33 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
       operation.flow = flow.id;
     });
 
+    // Remove
+    if (options.remove) {
+      const flowsToDelete = existingFlows.filter((flow) => {
+        return !find(flows, ['name', flow.name]);
+      });
+
+      const operationsToDelete = existingOperations.filter((operation) => {
+        return !find(operations, ['key', operation.key]);
+      });
+
+      if (operationsToDelete.length) {
+        if (options.verbose) {
+          console.info(`Removing ${operationsToDelete.length} operations`);
+        }
+
+        await client.request(deleteOperations(operationsToDelete.map(property('id'))));
+      }
+
+      if (flowsToDelete.length) {
+        if (options.verbose) {
+          console.info(`Removing ${flowsToDelete.length} flows`);
+        }
+
+        await client.request(deleteFlows(flowsToDelete.map(property('id'))));
+      }
+    }
+
     // Operations
 
     if (operationsToCreate.length) {
@@ -185,33 +212,6 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
         }
       }
     });
-
-    // Remove
-    if (options.remove) {
-      const flowsToDelete = existingFlows.filter((flow) => {
-        return !find(flows, ['name', flow.name]);
-      });
-
-      const operationsToDelete = existingOperations.filter((operation) => {
-        return !find(operations, ['key', operation.key]);
-      });
-
-      if (operationsToDelete.length) {
-        if (options.verbose) {
-          console.info(`Removing ${operationsToDelete.length} operations`);
-        }
-
-        await client.request(deleteOperations(operationsToDelete.map(property('id'))));
-      }
-
-      if (flowsToDelete.length) {
-        if (options.verbose) {
-          console.info(`Removing ${flowsToDelete.length} flows`);
-        }
-
-        await client.request(deleteFlows(flowsToDelete.map(property('id'))));
-      }
-    }
 
     if (options.verbose) {
       console.info('Flows imported');
