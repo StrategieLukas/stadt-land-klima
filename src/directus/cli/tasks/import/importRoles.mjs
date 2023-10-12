@@ -23,26 +23,32 @@ async function importRoles(src, options = {verbose: false, remove: false, overwr
     const permissionsToUpdate = [];
 
     roles.forEach((role) => {
-      const existingRole = find(existingRoles, ['id', role.id]);
+      const existingRole = find(existingRoles, ['name', role.name]);
       const rolePermissions = role.permissions;
       permissions = permissions.concat(rolePermissions);
       delete role.permissions;
 
       if (existingRole) {
+        role.id = existingRole.id;
         rolesToUpdate.push(role);
       } else {
         rolesToCreate.push(role);
       }
 
       rolePermissions.forEach((permission) => {
-        const existingPermission = find(existingPermissions, {
+        permission.role_name = role.name;
+        const existingRole = find(existingRoles, ['name', permission.role_name]);
+
+        const existingPermission = existingRole
+        ? find(existingPermissions, {
           action: permission.action,
-          role: permission.role,
+          role: existingRole.id,
           collection: permission.collection,
-        });
+        }) : null;
 
         if (existingPermission) {
           permission.id = existingPermission.id;
+          permission.role = existingRole.id;
           permissionsToUpdate.push(permission);
         } else {
           permissionsToCreate.push(permission);
@@ -74,6 +80,12 @@ async function importRoles(src, options = {verbose: false, remove: false, overwr
       });
     }
 
+    // set role ids to permissions before creating or updating them
+    permissions.forEach((permission) => {
+      const role = find(roles, ['name', permission.role_name]);
+      permission.role = role.id;
+    });
+
     // Permissions
 
     if (permissionsToCreate.length) {
@@ -101,12 +113,21 @@ async function importRoles(src, options = {verbose: false, remove: false, overwr
     // Remove
     if (options.remove) {
       const rolesToDelete = existingRoles.filter((role) => {
-        return !find(roles, ['id', role.id]);
+        return !find(roles, ['name', role.name]);
       });
 
-
       const permissionsToDelete = existingPermissions.filter((permission) => {
-        return permission.id && permission.role && !find(permissions, ['id', permission.id]);
+        if (!(permission.id && permission.role)) {
+          return false;
+        }
+
+        const existingRole = find(existingRoles, ['id', permission.role]);
+
+        return !existingRole || !find(permissions, {
+          action: permission.action,
+          role_name: existingRole.name,
+          collection: permission.collection,
+        });
       });
 
       if (permissionsToDelete.length) {

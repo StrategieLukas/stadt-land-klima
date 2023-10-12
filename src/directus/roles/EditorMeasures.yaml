@@ -1,4 +1,3 @@
-id: 3a964766-0e61-4140-90ff-38654594cda2
 name: EditorMeasures
 icon: supervised_user_circle
 description: null
@@ -7,16 +6,14 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: measures
+  - collection: measures
     action: read
     permissions: {}
     validation: {}
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: measures
+  - collection: measures
     action: update
     permissions: {}
     validation: {}
@@ -49,8 +46,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: measures
+  - collection: measures
     action: create
     permissions: {}
     validation: {}

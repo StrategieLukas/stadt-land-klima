@@ -30,8 +30,11 @@ async function exportRoles(dest, options = {verbose: false, overwrite: false}) {
         return permission.role === role.id;
       }).map((permission) => {
         delete permission.id;
+        delete permission.role;
         return permission;
       });
+
+      delete role.id;
 
       fse.writeFileSync(
         destPath,
