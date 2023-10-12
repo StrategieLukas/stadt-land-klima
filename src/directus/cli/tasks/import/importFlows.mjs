@@ -82,7 +82,7 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
           const updatedFlow = await client.request(updateFlow(flow.id, flow));
           assign(flow, updatedFlow);
         } catch (err) {
-          console.error(err);
+          console.error(err, flow);
         }
 
         // delete non existing operations in this flow
@@ -101,7 +101,7 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
         try {
           await client.request(deleteOperations(flowOperationsToDelete.map(property('id'))));
         } catch (err) {
-          console.error(err);
+          console.error(err, flow);
         }
       });
     }
@@ -154,7 +154,8 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
           }));
           assign(flow, updatedFlow);
         } catch (err) {
-          console.error(err);
+          console.error(err, flow);
+          console.debug(operation.id, flow.operation);
         }
       }
     });
@@ -181,7 +182,7 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
 
           assign(operation, updatedOperation);
         } catch (err) {
-          console.error(err);
+          console.error(err, operation);
         }
       }
     });
