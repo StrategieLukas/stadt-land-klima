@@ -33,7 +33,7 @@
 import lodash from "lodash";
 import WavingBanner from "~/components/WavingBanner.vue";
 const { includes } = lodash;
-const { $directus, $readItems } = useNuxtApp();
+const { $directus, $readItems, $appEnv } = useNuxtApp();
 
 const { data: pages } = await useAsyncData("pages", () => {
   return $directus.request($readItems("pages", { limit: -1 }));
@@ -47,6 +47,13 @@ useHead({
       name: "description",
       content: description,
     },
+  ],
+  script: [
+    $appEnv === 'production' ? {
+      defer: true,
+      'data-domain': 'stadt-land-klima.de',
+      scr: 'https://plausible.anzui.dev/js/script.js',
+    } : {},
   ],
 });
 //
