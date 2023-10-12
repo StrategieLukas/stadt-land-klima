@@ -1,4 +1,3 @@
-id: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
 name: Administrator
 icon: verified
 description: $t:admin_description
@@ -7,24 +6,21 @@ enforce_tfa: false
 admin_access: true
 app_access: true
 permissions:
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_collections
+  - collection: directus_collections
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_fields
+  - collection: directus_fields
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_permissions
+  - collection: directus_permissions
     action: read
     permissions:
       role:
@@ -33,16 +29,14 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_relations
+  - collection: directus_relations
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_activity
+  - collection: directus_activity
     action: read
     permissions:
       user:
@@ -51,8 +45,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_activity
+  - collection: directus_activity
     action: create
     permissions: {}
     validation:
@@ -61,8 +54,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_presets
+  - collection: directus_presets
     action: read
     permissions:
       _or:
@@ -82,8 +74,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_presets
+  - collection: directus_presets
     action: create
     permissions: {}
     validation:
@@ -92,8 +83,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_presets
+  - collection: directus_presets
     action: update
     permissions:
       user:
@@ -102,8 +92,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_presets
+  - collection: directus_presets
     action: delete
     permissions:
       user:
@@ -112,8 +101,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_roles
+  - collection: directus_roles
     action: read
     permissions:
       id:
@@ -122,24 +110,21 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_settings
+  - collection: directus_settings
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_translations
+  - collection: directus_translations
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_notifications
+  - collection: directus_notifications
     action: read
     permissions:
       recipient:
@@ -148,8 +133,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_notifications
+  - collection: directus_notifications
     action: update
     permissions:
       recipient:
@@ -158,8 +142,7 @@ permissions:
     presets: null
     fields:
       - status
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_shares
+  - collection: directus_shares
     action: read
     permissions:
       user_created:
@@ -168,8 +151,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 1cf817d7-d91c-4c15-b102-3f515a7b7d6f
-    collection: directus_users
+  - collection: directus_users
     action: read
     permissions:
       id:
