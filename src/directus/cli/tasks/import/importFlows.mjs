@@ -31,7 +31,7 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
       existingOperationsById[operation.id] = operation;
     });
 
-    flows.forEach(async (flow) => {
+    flows.forEach((flow) => {
       const existingFlow = find(existingFlows, ['name', flow.name]);
       const flowOperations = flow.operations;
       operations = operations.concat(flowOperations);
