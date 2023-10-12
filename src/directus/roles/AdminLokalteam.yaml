@@ -1,4 +1,3 @@
-id: b8c043a2-a245-42d1-b28f-20c657270926
 name: AdminLokalteam
 icon: supervised_user_circle
 description: null
@@ -7,8 +6,7 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - role: b8c043a2-a245-42d1-b28f-20c657270926
-    collection: bewertungen_massnahmen
+  - collection: bewertungen_massnahmen
     action: read
     permissions:
       _and:
@@ -19,8 +17,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: b8c043a2-a245-42d1-b28f-20c657270926
-    collection: lokalteam
+  - collection: lokalteam
     action: read
     permissions:
       _and:
@@ -40,8 +37,7 @@ permissions:
       - date_created
       - user_created
       - date_updated
-  - role: b8c043a2-a245-42d1-b28f-20c657270926
-    collection: ratings_measures
+  - collection: ratings_measures
     action: read
     permissions:
       _and:
@@ -60,8 +56,7 @@ permissions:
       - user_updated
       - date_updated
       - id
-  - role: b8c043a2-a245-42d1-b28f-20c657270926
-    collection: ratings_measures
+  - collection: ratings_measures
     action: update
     permissions:
       _and:
@@ -75,8 +70,7 @@ permissions:
       - rating
       - applicable
       - Source
-  - role: b8c043a2-a245-42d1-b28f-20c657270926
-    collection: municipalities
+  - collection: municipalities
     action: read
     permissions:
       _and:
@@ -107,8 +101,7 @@ permissions:
       - id
       - place
       - description
-  - role: b8c043a2-a245-42d1-b28f-20c657270926
-    collection: municipalities
+  - collection: municipalities
     action: update
     permissions:
       _and:
@@ -128,8 +121,7 @@ permissions:
       - mayor
       - party_mayor
       - description
-  - role: b8c043a2-a245-42d1-b28f-20c657270926
-    collection: measures
+  - collection: measures
     action: read
     permissions:
       _and:

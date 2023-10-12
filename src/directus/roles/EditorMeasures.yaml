@@ -1,4 +1,3 @@
-id: 3a964766-0e61-4140-90ff-38654594cda2
 name: EditorMeasures
 icon: supervised_user_circle
 description: null
@@ -7,143 +6,125 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_files
+  - collection: directus_files
     action: create
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_files
+  - collection: directus_files
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_files
+  - collection: directus_files
     action: update
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_files
+  - collection: directus_files
     action: delete
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_dashboards
+  - collection: directus_dashboards
     action: create
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_dashboards
+  - collection: directus_dashboards
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_dashboards
+  - collection: directus_dashboards
     action: update
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_dashboards
+  - collection: directus_dashboards
     action: delete
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_panels
+  - collection: directus_panels
     action: create
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_panels
+  - collection: directus_panels
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_panels
+  - collection: directus_panels
     action: update
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_panels
+  - collection: directus_panels
     action: delete
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_folders
+  - collection: directus_folders
     action: create
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_folders
+  - collection: directus_folders
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_folders
+  - collection: directus_folders
     action: update
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_folders
+  - collection: directus_folders
     action: delete
     permissions: {}
     validation: null
     presets: null
     fields: null
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_users
+  - collection: directus_users
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_users
+  - collection: directus_users
     action: update
     permissions:
       id:
@@ -162,16 +143,14 @@ permissions:
       - language
       - theme
       - tfa_secret
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_roles
+  - collection: directus_roles
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_shares
+  - collection: directus_shares
     action: read
     permissions:
       _or:
@@ -183,16 +162,14 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_shares
+  - collection: directus_shares
     action: create
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_shares
+  - collection: directus_shares
     action: update
     permissions:
       user_created:
@@ -201,8 +178,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_shares
+  - collection: directus_shares
     action: delete
     permissions:
       user_created:
@@ -211,8 +187,7 @@ permissions:
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: directus_flows
+  - collection: directus_flows
     action: read
     permissions:
       trigger:
@@ -227,16 +202,14 @@ permissions:
       - color
       - options
       - trigger
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: measures
+  - collection: measures
     action: read
     permissions: {}
     validation: {}
     presets: null
     fields:
       - "*"
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: measures
+  - collection: measures
     action: update
     permissions: {}
     validation: {}
@@ -258,8 +231,7 @@ permissions:
       - verification_description
       - notes
       - id
-  - role: 3a964766-0e61-4140-90ff-38654594cda2
-    collection: measures
+  - collection: measures
     action: create
     permissions: {}
     validation: {}

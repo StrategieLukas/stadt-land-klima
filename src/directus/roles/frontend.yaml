@@ -1,4 +1,3 @@
-id: d09e2c25-a977-41fc-aa73-9238fcf20a9b
 name: frontend
 icon: web_asset
 description: null
@@ -7,8 +6,7 @@ enforce_tfa: false
 admin_access: false
 app_access: false
 permissions:
-  - role: d09e2c25-a977-41fc-aa73-9238fcf20a9b
-    collection: ratings_measures
+  - collection: ratings_measures
     action: read
     permissions:
       _and:
@@ -33,8 +31,7 @@ permissions:
       - id
       - sort
       - Source
-  - role: d09e2c25-a977-41fc-aa73-9238fcf20a9b
-    collection: pages
+  - collection: pages
     action: read
     permissions:
       _and:
@@ -49,8 +46,7 @@ permissions:
       - contents
       - slug
       - sort
-  - role: d09e2c25-a977-41fc-aa73-9238fcf20a9b
-    collection: measures
+  - collection: measures
     action: read
     permissions:
       _and:
@@ -73,16 +69,14 @@ permissions:
       - notes
       - description
       - date_updated
-  - role: d09e2c25-a977-41fc-aa73-9238fcf20a9b
-    collection: directus_translations
+  - collection: directus_translations
     action: read
     permissions: {}
     validation: {}
     presets: null
     fields:
       - "*"
-  - role: d09e2c25-a977-41fc-aa73-9238fcf20a9b
-    collection: municipalities
+  - collection: municipalities
     action: read
     permissions:
       _and:

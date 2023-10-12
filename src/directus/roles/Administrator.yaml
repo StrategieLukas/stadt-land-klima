@@ -1,4 +1,3 @@
-id: 058a636f-bc1f-45b8-acf3-e11650089368
 name: Administrator
 icon: verified
 description: $t:admin_description
@@ -7,8 +6,7 @@ enforce_tfa: false
 admin_access: true
 app_access: true
 permissions:
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
@@ -16,8 +14,7 @@ permissions:
     system: true
     collection: directus_collections
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
@@ -25,8 +22,7 @@ permissions:
     system: true
     collection: directus_fields
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       role:
         _eq: $CURRENT_ROLE
     validation: null
@@ -36,8 +32,7 @@ permissions:
     system: true
     collection: directus_permissions
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
@@ -45,8 +40,7 @@ permissions:
     system: true
     collection: directus_relations
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       user:
         _eq: $CURRENT_USER
     validation: null
@@ -56,8 +50,7 @@ permissions:
     system: true
     collection: directus_activity
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
+  - permissions: {}
     validation:
       comment:
         _nnull: true
@@ -67,8 +60,7 @@ permissions:
     system: true
     collection: directus_activity
     action: create
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       _or:
         - user:
             _eq: $CURRENT_USER
@@ -89,8 +81,7 @@ permissions:
     system: true
     collection: directus_presets
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
+  - permissions: {}
     validation:
       user:
         _eq: $CURRENT_USER
@@ -100,8 +91,7 @@ permissions:
     system: true
     collection: directus_presets
     action: create
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       user:
         _eq: $CURRENT_USER
     validation: null
@@ -111,8 +101,7 @@ permissions:
     system: true
     collection: directus_presets
     action: update
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       user:
         _eq: $CURRENT_USER
     validation: null
@@ -122,8 +111,7 @@ permissions:
     system: true
     collection: directus_presets
     action: delete
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       id:
         _eq: $CURRENT_ROLE
     validation: null
@@ -133,8 +121,7 @@ permissions:
     system: true
     collection: directus_roles
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
@@ -142,8 +129,7 @@ permissions:
     system: true
     collection: directus_settings
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
@@ -151,8 +137,7 @@ permissions:
     system: true
     collection: directus_translations
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       recipient:
         _eq: $CURRENT_USER
     validation: null
@@ -162,8 +147,7 @@ permissions:
     system: true
     collection: directus_notifications
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       recipient:
         _eq: $CURRENT_USER
     validation: null
@@ -173,8 +157,7 @@ permissions:
     system: true
     collection: directus_notifications
     action: update
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       user_created:
         _eq: $CURRENT_USER
     validation: null
@@ -184,8 +167,7 @@ permissions:
     system: true
     collection: directus_shares
     action: read
-  - role: 058a636f-bc1f-45b8-acf3-e11650089368
-    permissions:
+  - permissions:
       id:
         _eq: $CURRENT_USER
     validation: null
