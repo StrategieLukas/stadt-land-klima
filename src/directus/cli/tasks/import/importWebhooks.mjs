@@ -43,7 +43,7 @@ async function importWebhooks(src, options = {verbose: false, overwrite: false})
         try {
           await client.request(updateWebhook(webhook.id, webhook));
         } catch (err) {
-          console.error(err);
+          console.error(err, webhook);
         }
       });
     }

@@ -47,7 +47,7 @@ async function importCollectionItems(collection, src, options = {verbose: false,
         try {
           await client.request(updateItem(collection, item.id, item));
         } catch (err) {
-          console.error(err);
+          console.error(err, item);
         }
       });
     }

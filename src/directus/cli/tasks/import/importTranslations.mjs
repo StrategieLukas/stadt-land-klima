@@ -44,7 +44,7 @@ async function importTranslations(src, options = {verbose: false, overwrite: fal
         try {
           await client.request(updateTranslation(translation.id, {value: translation.value}));
         } catch (err) {
-          console.error(err);
+          console.error(err, translation);
         }
       });
     }

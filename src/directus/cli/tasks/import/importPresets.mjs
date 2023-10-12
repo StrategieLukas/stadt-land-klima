@@ -43,7 +43,7 @@ async function importRoles(src, options = {verbose: false, overwrite: false}) {
         try {
           await client.request(updatePreset(preset.id, preset));
         } catch (err) {
-          console.error(err);
+          console.error(err, preset);
         }
       });
     }

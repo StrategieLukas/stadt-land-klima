@@ -155,7 +155,6 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
           assign(flow, updatedFlow);
         } catch (err) {
           console.error(err, flow);
-          console.debug(operation.id, flow.operation);
         }
       }
     });
