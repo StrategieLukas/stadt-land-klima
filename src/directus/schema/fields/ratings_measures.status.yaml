@@ -4,12 +4,11 @@ type: string
 meta:
   collection: ratings_measures
   conditions:
-    - name: EditOnlyIfMeasureIsPublished
+    - name: EditOnlyIfRatingSet
       rule:
         _and:
-          - measure_id:
-              status:
-                _neq: null
+          - rating:
+              _null: true
       readonly: true
       options:
         allowOther: false

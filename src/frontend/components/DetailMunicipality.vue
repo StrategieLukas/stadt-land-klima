@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("last_updated_at", { ":updated_at": lastUpdatedAtStr }) }}
+      {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />
@@ -43,20 +43,19 @@
         <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50" />
 
         <div class="grow">
-          <h2 class="font-heading text-h2 leading-none text-green mb-2">
+          <h2 class="mb-2 font-heading text-h2 leading-none text-green">
             {{ $t(`measure_sectors.${sector}.title`) }}
           </h2>
-          <ProgressBar :score-total="municipality['score_' + sector]" layout="compact" />
+          <ProgressBar :score-total="Math.round(Number(municipality['score_' + sector]) * 10) / 10" layout="compact" />
         </div>
       </div>
 
       <div class="collapse-content">
-        <h3 class="font-heading text-h2 text-black mb-2">
-          {{ $t('measure_sector.measures_in_detail') }}
+        <h3 class="mb-2 font-heading text-h2 text-black">
+          {{ $t("measure_sector.measures_in_detail") }}
         </h3>
-
-        <ul class="flex items-end justify-center gap-4 mb-2">
-          <li v-for="(rating,index) in 3" class="flex flex-col items-center">
+        <ul class="mb-2 flex items-end justify-center gap-4">
+          <li v-for="(rating, index) in 4" class="flex flex-col items-center">
             <img :src="ratingImages[index]" class="h-auto w-5" />
             <div class="text-sm">{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>
@@ -66,10 +65,13 @@
           <li
             v-for="item in sectorRatings"
             :key="item.id"
-            :class="[ratingColorClass[item.rating - 1], 'flex items-center justify-stretch gap-3 bg-opacity-10 p-3']"
+            :class="[
+              ratingColorClass[transformToArrayPositions(item.rating)],
+              'flex items-center justify-stretch gap-3 bg-opacity-10 p-3',
+            ]"
           >
             <div class="shrink-0">
-              <img :src="ratingImages[item.rating - 1]" class="my-auto h-auto w-5" />
+              <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
             </div>
 
             <div class="grow text-sm">
@@ -78,10 +80,10 @@
 
             <NuxtLink
               :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-              class="flex h-5 w-5 shrink-0 opacity-50 focus:opacity-60 hover:opacity-60"
+              class="flex h-5 w-5 shrink-0 opacity-50 hover:opacity-60 focus:opacity-60"
               target="measure"
             >
-              <img src="~/assets/icons/icon_info.svg" class="w-5 h-auto" alt="" />
+              <img src="~/assets/icons/icon_info.svg" class="h-auto w-5" alt="" />
             </NuxtLink>
           </li>
         </ul>
@@ -144,26 +146,38 @@ const props = defineProps({
   },
 });
 const ratingColorClass = {
-  2: "bg-rating-2",
+  3: "bg-rating-3",
+  2: "bg-raiting-2",
   1: "bg-rating-1",
   0: "bg-rating-0",
 };
+let lastUpdatedAtStr = ref("");
+onMounted(() => {
+  const lastUpdatedAt = new Date(municipality.date_updated);
+  lastUpdatedAtStr.value =
+    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    ", " +
+    lastUpdatedAt.toLocaleTimeString($locale);
+});
+
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);
-const lastUpdatedAt = new Date(municipality.date_updated);
-const lastUpdatedAtStr =
-  lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
-  ", " +
-  lastUpdatedAt.toLocaleTimeString($locale);
 
 function createSubScoreObject(municipality) {
   const temp = {};
   for (const [key, value] of Object.entries(municipality)) {
     if (key.includes("score")) {
-      temp[key] = value;
+      temp[key] = Number(value);
     }
   }
   return temp;
+}
+function transformToArrayPositions(value) {
+  const tempVal = Number(value);
+  if (tempVal === 0) return 0;
+  if (tempVal === 0.3333) return 1;
+  if (tempVal === 0.6666) return 2;
+  return 3;
 }
 </script>
 <style lang=""></style>

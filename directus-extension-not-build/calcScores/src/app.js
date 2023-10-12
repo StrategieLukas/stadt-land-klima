@@ -19,5 +19,14 @@ export default {
         interface: "input",
       },
     },
+    {
+      field: "measureIds",
+      name: "measure Ids not to consider for Update of scores",
+      type: "json",
+      meta: {
+        width: "half",
+        interface: "input",
+      },
+    },
   ],
 };

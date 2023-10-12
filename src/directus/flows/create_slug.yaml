@@ -17,14 +17,15 @@ operations:
   - name: Update Data
     key: item_update_e3ze4
     type: item-update
-    position_x: 40
-    position_y: 1
+    position_x: 4
+    position_y: 19
     options:
       collection: "{{$trigger.collection}}"
       payload:
         slug: "{{$last.text}}"
       key:
         - "{{ $trigger.key }}"
+      permissions: $full
   - name: Slugify
     key: operation_slugify_z88zk
     type: operation-slugify

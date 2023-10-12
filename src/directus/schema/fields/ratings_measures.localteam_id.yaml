@@ -14,9 +14,9 @@ meta:
   note: null
   options:
     template: "{{name}}"
-  readonly: false
-  required: false
-  sort: 10
+  readonly: true
+  required: true
+  sort: 11
   special:
     - m2o
   translations:

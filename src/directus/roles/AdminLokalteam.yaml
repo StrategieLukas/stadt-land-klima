@@ -44,6 +44,8 @@ permissions:
         - localteam_id:
             _in:
               - $CURRENT_USER.localteams.localteam_id
+        - measure_published:
+            _eq: true
     validation: null
     presets: null
     fields:
@@ -56,6 +58,9 @@ permissions:
       - user_updated
       - date_updated
       - id
+      - links-jv6and
+      - choices
+      - source
   - collection: ratings_measures
     action: update
     permissions:
@@ -63,6 +68,8 @@ permissions:
         - localteam_id:
             _in:
               - $CURRENT_USER.localteams.localteam_id
+        - measure_published:
+            _eq: true
     validation: null
     presets: null
     fields:
@@ -70,6 +77,7 @@ permissions:
       - rating
       - applicable
       - Source
+      - source
   - collection: municipalities
     action: read
     permissions:
@@ -142,3 +150,13 @@ permissions:
       - notes
       - id
       - status
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial

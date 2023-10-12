@@ -1,7 +1,7 @@
 name: unpublishedMeasure
 icon: restore_from_trash
 color: "#E01B24"
-description: when measure is unpublished delete coresponding ratings
+description: when measure is unpublished set flag in rating and set to draft
 status: active
 trigger: event
 accountability: all
@@ -12,17 +12,21 @@ options:
   collections:
     - measures
 operations:
-  - name: Delete Data
-    key: item_delete_oqa8j
-    type: item-delete
-    position_x: 3
-    position_y: 21
+  - name: Daten aktualisieren
+    key: item_update_w3815
+    type: item-update
+    position_x: 4
+    position_y: 23
     options:
-      collection: ratings_measures
       query:
         filter:
           measure_id:
             _in: "{{$trigger.keys}}"
+      payload:
+        measure_published: false
+      collection: ratings_measures
+      emitEvents: true
+      permissions: $full
   - name: Condition
     key: condition_79sk5
     type: condition
@@ -34,5 +38,5 @@ operations:
           payload:
             status:
               _eq: draft
-    resolve_key: item_delete_oqa8j
+    resolve_key: item_update_w3815
 operation_key: condition_79sk5

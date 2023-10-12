@@ -1,10 +1,7 @@
 <template lang="">
   <div>
     <div
-      :class="[
-        'relative w-full border', colorClass.border,
-        layout === 'compact' ? 'rounded-sm h-4' : 'rounded-md h-8',
-      ]"
+      :class="['relative w-full border', colorClass.border, layout === 'compact' ? 'h-4 rounded-sm' : 'h-8 rounded-md']"
     >
       <div
         :class="[
@@ -16,12 +13,9 @@
       >
         <div
           class="mr-1 font-heading font-bold"
-          :class="[
-            colorClass.text,
-            layout === 'compact' ? 'text-sm' : 'text-xl',
-          ]"
+          :class="[colorClass.text, layout === 'compact' ? 'text-sm' : 'text-xl']"
         >
-          {{ parseInt(scoreTotal, 10) }}
+          {{ scoreTotal }}
         </div>
       </div>
     </div>
@@ -37,18 +31,17 @@ const props = defineProps({
   layout: {
     type: String,
     validator(value) {
-      return ['default', 'compact'];
+      return ["default", "compact"];
     },
-    default: 'default',
+    default: "default",
   },
 });
-
 const colors = {
-  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: 'text-white' },
-  20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text: 'text-white' },
-  40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text: 'text-black' },
-  60: { bg: "bg-ranking-6-8", border: "border-ranking-6-8", text: 'text-white' },
-  80: { bg: "bg-ranking-8-10", border: "border-ranking-8-10", text: 'text-white' },
+  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: "text-white" },
+  20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text: "text-white" },
+  40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text: "text-black" },
+  60: { bg: "bg-ranking-6-8", border: "border-ranking-6-8", text: "text-white" },
+  80: { bg: "bg-ranking-8-10", border: "border-ranking-8-10", text: "text-white" },
 };
 const durations = {
   0: "duration-[500ms]",

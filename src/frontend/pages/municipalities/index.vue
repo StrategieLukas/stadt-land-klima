@@ -5,7 +5,7 @@
         {{ $t("municipalities.heading") }}
       </h1>
       <p class="mt-0 text-xs">
-        {{ $t("municipalities.last_updated_at", { ":updated_at": lastUpdatedAtStr }) }}
+        {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
       </p>
     </div>
     <div class="mx-auto mb-8 flex justify-center">
@@ -38,9 +38,12 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
   );
 });
 
-const lastUpdatedAt = new Date(get(last(sortBy(municipalities.value, ["date_updated"])), "date_updated"));
-const lastUpdatedAtStr =
-  lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
-  ", " +
-  lastUpdatedAt.toLocaleTimeString($locale);
+let lastUpdatedAtStr = ref("");
+onMounted(() => {
+  const lastUpdatedAt = new Date(get(last(sortBy(municipalities.value, ["date_updated"])), "date_updated"));
+  lastUpdatedAtStr.value =
+    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    ", " +
+    lastUpdatedAt.toLocaleTimeString($locale);
+});
 </script>

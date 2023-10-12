@@ -4,8 +4,10 @@ type: string
 meta:
   collection: measures
   conditions: null
-  display: labels
-  display_options: null
+  display: formatted-value
+  display_options:
+    choices: null
+    format: true
   field: sector
   group: null
   hidden: false

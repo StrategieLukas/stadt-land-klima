@@ -3,61 +3,112 @@ field: rating
 type: string
 meta:
   collection: ratings_measures
-  conditions: null
+  conditions:
+    - name: choices red & green
+      rule:
+        _and:
+          - choices:
+              _eq: "0"
+      options:
+        allowOther: false
+        allowNone: false
+        choices:
+          - text: $t:measure_rating.choices.red
+            value: "0"
+          - text: $t:measure_rating.choices.green
+            value: "1"
+    - name: choices red, yellow , green
+      rule:
+        _and:
+          - choices:
+              _eq: "1"
+      options:
+        allowOther: false
+        allowNone: false
+        choices:
+          - text: $t:measure_rating.choices.red
+            value: "0"
+          - text: $t:measure_rating.choices.yellow
+            value: "0.3333"
+          - text: $t:measure_rating.choices.green
+            value: "1"
+    - name: choices red, lightgreen, green
+      rule:
+        _and:
+          - choices:
+              _eq: "2"
+      options:
+        allowOther: false
+        allowNone: false
+        choices:
+          - text: $t:measure_rating.choices.red
+            value: "0"
+          - text: $t:measure_rating.choices.light_green
+            value: "0.6666"
+          - text: $t:measure_rating.choices.green
+            value: "1"
+    - name: choices red, yello, light green , green
+      rule:
+        _and:
+          - choices:
+              _eq: "3"
+      options:
+        allowOther: false
+        allowNone: false
+        choices:
+          - text: $t:measure_rating.choices.red
+            value: "0"
+          - text: $t:measure_rating.choices.yellow
+            value: "0.3333"
+          - text: $t:measure_rating.choices.light_green
+            value: "0.6666"
+          - text: $t:measure_rating.choices.green
+            value: "1"
   display: formatted-value
   display_options:
-    choices:
-      - text: Grün
-        value: "2"
-      - text: Gelb
-        value: "1"
-      - text: Rot
-        value: "0"
-    color: "#33D17A"
     conditionalFormatting:
-      - operator: eq
-        value: "1"
-        color: "#FFDD00"
-        icon: stars
       - operator: eq
         value: "0"
         color: "#E30613"
         icon: stars
+        text: $t:measure_rating.choices.red
       - operator: eq
-        value: "2"
+        value: "1"
         color: "#1EA64A"
         icon: stars
-    filled: true
-    icon: star
+        text: $t:measure_rating.choices.green
+      - operator: eq
+        value: "0.3333"
+        color: "#FFDD00"
+        icon: stars
+        text: $t:measure_rating.choices.yellow
+      - operator: eq
+        value: "0.6666"
+        text: $t:measure_rating.choices.light_green
+        icon: stars
+        color: "#AFCA0B"
   field: rating
   group: null
   hidden: false
   interface: select-dropdown
   note: null
-  options:
-    choices:
-      - text: $t:Green
-        value: "2"
-      - text: $t:Yellow
-        value: "1"
-      - text: $t:Red
-        value: "0"
+  options: null
   readonly: false
   required: false
-  sort: 9
+  sort: 14
   special: null
-  translations:
-    - language: de-DE
-      translation: Bewertung
+  translations: null
   validation:
     _and:
       - rating:
           _in:
-            - "1"
-            - "2"
             - "0"
-  validation_message: Only 0,1,2 is allowed
-  width: half
+            - "1"
+            - "0.3333"
+            - "0.6666"
+            - null
+  validation_message: null
+  width: full
 schema:
   name: rating
   table: ratings_measures

@@ -6,202 +6,6 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - collection: directus_files
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: update
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: delete
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_dashboards
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_dashboards
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_dashboards
-    action: update
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_dashboards
-    action: delete
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_panels
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_panels
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_panels
-    action: update
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_panels
-    action: delete
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: update
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: delete
-    permissions: {}
-    validation: null
-    presets: null
-    fields: null
-  - collection: directus_users
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_users
-    action: update
-    permissions:
-      id:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - first_name
-      - last_name
-      - email
-      - password
-      - location
-      - title
-      - description
-      - avatar
-      - language
-      - theme
-      - tfa_secret
-  - collection: directus_roles
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_shares
-    action: read
-    permissions:
-      _or:
-        - role:
-            _eq: $CURRENT_ROLE
-        - role:
-            _null: true
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_shares
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_shares
-    action: update
-    permissions:
-      user_created:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_shares
-    action: delete
-    permissions:
-      user_created:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_flows
-    action: read
-    permissions:
-      trigger:
-        _eq: manual
-    validation: null
-    presets: null
-    fields:
-      - id
-      - status
-      - name
-      - icon
-      - color
-      - options
-      - trigger
   - collection: measures
     action: read
     permissions: {}
@@ -231,6 +35,17 @@ permissions:
       - verification_description
       - notes
       - id
+      - choices_rating
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_contribution
+      - description_verification
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
   - collection: measures
     action: create
     permissions: {}
@@ -244,7 +59,6 @@ permissions:
       - user_updated
       - date_updated
       - name
-      - slug
       - sector
       - impact
       - weight
@@ -254,3 +68,14 @@ permissions:
       - description
       - verification_description
       - notes
+      - choices_rating
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial

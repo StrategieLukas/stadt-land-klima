@@ -1,16 +1,16 @@
 <template>
   <div>
-    <div class="mb-8 mt-10 flex flex-col xs:flex-row items-start gap-4">
-      <img :src="sectorImages[route.params.sector]" alt="" class="h-auto w-24 opacity-50 mt-0" />
+    <div class="mb-8 mt-10 flex flex-col items-start gap-4 xs:flex-row">
+      <img :src="sectorImages[route.params.sector]" alt="" class="mt-0 h-auto w-24 opacity-50" />
 
       <div class="prose">
         <h1>{{ $t(`measure_sectors.${route.params.sector}.title`) }}</h1>
         <div v-html="$t(`measure_sectors.${route.params.sector}.description`)" />
         <p>
-          {{ $t("measures_sector.count_measures_in_sector", {":count": measures.length }) }}
+          {{ $t("measures_sector.count_measures_in_sector", { ":count": measures.length }) }}
         </p>
 
-        <NuxtLink to="/measures" class="btn btn-link text-light-blue p-0 normal-case">
+        <NuxtLink to="/measures" class="btn btn-link p-0 normal-case text-light-blue">
           ← {{ $t("measures_sector.back_label") }}
         </NuxtLink>
       </div>
@@ -42,5 +42,4 @@ const { data: measures } = await useAsyncData("measures", () => {
     }),
   );
 });
-console.log(measures.value);
 </script>

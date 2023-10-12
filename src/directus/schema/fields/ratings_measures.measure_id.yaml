@@ -13,10 +13,12 @@ meta:
   interface: select-dropdown-m2o
   note: null
   options:
+    enableCreate: false
+    enableSelect: false
     template: "{{name}}"
-  readonly: false
-  required: false
-  sort: 11
+  readonly: true
+  required: true
+  sort: 12
   special:
     - m2o
   translations:

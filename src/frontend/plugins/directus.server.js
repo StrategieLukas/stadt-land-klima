@@ -5,8 +5,6 @@ import { rest, readItem, readItems, readTranslations } from "@directus/sdk/rest"
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode.js";
 import createTranslator from "~/shared/createTranslator.js";
 
-
-
 const locale = resolveFullLocaleCode();
 
 export default defineNuxtPlugin(async () => {

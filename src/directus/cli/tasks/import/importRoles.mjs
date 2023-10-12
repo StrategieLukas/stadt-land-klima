@@ -75,7 +75,7 @@ async function importRoles(src, options = {verbose: false, remove: false, overwr
         try {
           await client.request(updateRole(role.id, role));
         } catch (err) {
-          console.error(err);
+          console.error(err, role);
         }
       });
     }
@@ -105,7 +105,7 @@ async function importRoles(src, options = {verbose: false, remove: false, overwr
         try {
           await client.request(updatePermission(permission.id, permission));
         } catch (err) {
-          console.error(err);
+          console.error(err, permission);
         }
       });
     }

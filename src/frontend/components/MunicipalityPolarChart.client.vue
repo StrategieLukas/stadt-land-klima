@@ -2,7 +2,7 @@
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
       <div class="relative flex h-96 w-full items-center justify-center">
-        <div class="z-10 h-60/100 w-60/100">
+        <div class="w-58/100 z-10 h-58/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
       </div>
@@ -13,7 +13,30 @@
   </div>
 </template>
 <script setup>
+/* import resolveConfig from "tailwindcss/resolveConfig";
+import tailwindConfig from "../tailwind.config";
+
+const config = resolveConfig(tailwindConfig); */
+
 import { PolarArea } from "vue-chartjs";
+import {
+  Chart,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  ArcElement,
+  RadialLinearScale,
+} from "chart.js";
+class CustomRadialLinearScale extends RadialLinearScale {
+  draw() {
+    super.draw();
+  }
+}
+CustomRadialLinearScale.id = "customRadialLinear";
+Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, CustomRadialLinearScale, ArcElement);
 
 const props = defineProps({
   subScores: {
@@ -57,7 +80,7 @@ const chartOptions = {
     tooltip: {
       callbacks: {
         label: function (context) {
-          const label = context.formattedValue;
+          const label = context.formattedValue + "%";
           return label;
         },
       },
@@ -66,23 +89,21 @@ const chartOptions = {
 
   scales: {
     r: {
+      type: "customRadialLinear",
       min: 0,
-      max: 10,
-      pointLabels: {
-        color: "red",
-      },
+      max: 100,
       startAngle: 0,
       angleLines: {
         display: true,
         lineWidth: 1,
-      },
-      ticks: {
-        sampleSize: 6,
-        color: "black",
-        backdropColor: "rgba(0,0,0,0)",
-        stepSize: 2,
-
         z: 1,
+      },
+
+      ticks: {
+        display: false,
+        sampleSize: 6,
+        stepSize: 20,
+        z: 2,
       },
     },
   },
@@ -101,12 +122,16 @@ function createSubScoreArray(subScoreObject) {
 function createColorArray(subScoresArray) {
   const tempColorsArray = [];
   subScoresArray.forEach(function (score, index) {
-    if (score < 4) {
-      tempColorsArray.push("rgb(227, 6, 19, 0.5)");
-    } else if (score < 7) {
-      tempColorsArray.push("rgb(243, 146, 0, 0.5)");
+    if (score < 20) {
+      tempColorsArray.push("#D9000D");
+    } else if (score < 40) {
+      tempColorsArray.push("#F27C00");
+    } else if (score < 60) {
+      tempColorsArray.push("#FFD400");
+    } else if (score < 80) {
+      tempColorsArray.push("#AFCA0B");
     } else {
-      tempColorsArray.push("rgb(29, 166, 74, 0.5)");
+      tempColorsArray.push("#1DA64A");
     }
   });
   return tempColorsArray;

@@ -1,13 +1,20 @@
-<svg width="17" height="26" viewBox="0 0 17 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Bewerungs-Icon Kopie_ganz" clip-path="url(#clip0_51_766)">
-<g id="Group">
-<path id="Vector" d="M16.2956 8.45121C16.2956 4.13022 12.5037 0.646973 8.49139 0.646973C4.47904 0.646973 0.643065 4.17431 0.643065 8.45121C0.643065 9.24486 0.466698 10.1267 1.61308 13.169C2.27446 14.8004 8.4473 25.647 8.4473 25.647C8.4473 25.647 14.6201 14.8445 15.2815 13.169C16.472 10.1267 16.2956 9.28895 16.2956 8.45121Z" fill="#1EA64A"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#1EA64A;}
+	.st1{fill:#AFCA0B;}
+	.st2{fill:#E30613;}
+	.st3{fill:#FFFFFF;}
+	.st4{fill:#FFDD00;}
+	.st5{fill:#F39200;}
+	.st6{fill:#16BAE7;}
+	.st7{fill:none;}
+</style>
+<g>
+	<path class="st0" d="M35.4,17.7C35.4,7.9,26.9,0,17.7,0S-0.1,8-0.1,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
+		s14-24.5,15.5-28.3C35.9,21.5,35.4,19.6,35.4,17.7z"/>
 </g>
-<path id="Vector_2" d="M9.85824 15.1091H7.08046V10.4354H2.40674V7.65761H7.08046V2.98389H9.85824V7.65761H14.532V10.4354H9.85824V15.1091Z" fill="white"/>
-</g>
-<defs>
-<clipPath id="clip0_51_766">
-<rect width="15.6085" height="25" fill="white" transform="translate(0.643066 0.646973)"/>
-</clipPath>
-</defs>
+<polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
 </svg>

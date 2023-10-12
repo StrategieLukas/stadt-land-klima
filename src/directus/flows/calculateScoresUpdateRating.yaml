@@ -23,7 +23,7 @@ operations:
   - name: updatesRanks
     key: update_ranks_we3ei
     type: updateRanks
-    position_x: 37
-    position_y: 1
+    position_x: 4
+    position_y: 18
     options: {}
 operation_key: operation_calculate_scores_qp3zc
