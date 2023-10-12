@@ -98,7 +98,11 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
           console.info(`Removing ${flowOperationsToDelete.length} operations from flow ${flow.name}`);
         }
 
-        await client.request(deleteOperations(flowOperationsToDelete.map(property('id'))));
+        try {
+          await client.request(deleteOperations(flowOperationsToDelete.map(property('id'))));
+        } catch (err) {
+          console.error(err);
+        }
       });
     }
 
