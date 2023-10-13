@@ -1,5 +1,5 @@
 <template>
-  <article v-if="pages.length" class="prose py-8" v-html="pages[0].contents" />
+  <article v-if="page" class="prose py-8" v-html="page.contents" />
   <p v-else class="prose py-8">
     {{ $t("page_not_found") }}
   </p>
@@ -8,7 +8,7 @@
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
 
-const { data: pages } = await useAsyncData("pages", () => {
+const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", () => {
   return $directus.request(
     $readItems("pages", {
       filter: { slug: { _eq: route.params.slug } },
@@ -16,10 +16,11 @@ const { data: pages } = await useAsyncData("pages", () => {
     }),
   );
 });
-console.log(pages);
+const page = pagesWithSlug.value[0] || null;
 
 //MetaTags
-const title = ref(pages.value[0].name);
+const title = page ? ref(page.name) : $t('page_not_found');
+
 useHead({
   title,
 });
