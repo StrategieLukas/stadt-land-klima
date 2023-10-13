@@ -4,9 +4,21 @@ type: string
 meta:
   collection: measures
   conditions: null
-  display: formatted-value
+  display: labels
   display_options:
-    choices: null
+    choices:
+      - text: $t:measure_sectors.energy.title
+        value: energy
+      - text: $t:measure_sectors.ann.title
+        value: ann
+      - text: $t:measure_sectors.transport.title
+        value: transport
+      - text: $t:measure_sectors.iec.title
+        value: iec
+      - text: $t:measure_sectors.bh.title
+        value: bh
+      - text: $t:measure_sectors.cpma.title
+        value: cpma
     format: true
   field: sector
   group: null
@@ -15,17 +27,17 @@ meta:
   note: null
   options:
     choices:
-      - text: Energie
+      - text: $t:measure_categories.energie.title
         value: energy
-      - text: Landwirtschaft, Natur & Ernährung
+      - text: $t:measure_sectors.ann.title
         value: ann
-      - text: Verkehr
+      - text: $t:measure_sectors.transport.title
         value: transport
-      - text: Industrie, Wirtschaft & Konsum
+      - text: $t:measure_sectors.iec.title
         value: iec
-      - text: Gebäude & Wärme
+      - text: $t:measure_sectors.bh.title
         value: bh
-      - text: Klimaschutzmanagement & Verwaltung
+      - text: $t:measure_sectors.cpma.title
         value: cpma
   readonly: false
   required: true
