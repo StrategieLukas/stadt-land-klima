@@ -21,7 +21,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: score_iwk
+      translation: Score Industrie, Wirtschaft & Konsum
   validation: null
   validation_message: null
   width: half

@@ -21,7 +21,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: score_lne
+      translation: Score Landwirtschaft, Natur & Ernährung
   validation: null
   validation_message: null
   width: half

@@ -21,7 +21,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: score_gw
+      translation: Score Gebäude & Wärme
   validation: null
   validation_message: null
   width: half
