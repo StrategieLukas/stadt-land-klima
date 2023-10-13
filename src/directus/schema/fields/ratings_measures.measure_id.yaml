@@ -18,7 +18,7 @@ meta:
     template: "{{name}}"
   readonly: true
   required: true
-  sort: 12
+  sort: 8
   special:
     - m2o
   translations:
@@ -26,7 +26,7 @@ meta:
       translation: Maßnahme
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
   name: measure_id
   table: ratings_measures

@@ -53,7 +53,6 @@ permissions:
       - rating
       - approved
       - Source
-      - applicable
       - status
       - user_updated
       - date_updated
@@ -75,7 +74,6 @@ permissions:
     fields:
       - status
       - rating
-      - applicable
       - Source
       - source
   - collection: municipalities
