@@ -13,10 +13,10 @@
 <script setup>
 const banner = ref(null);
 onMounted(() => {
-  waveBanner(banner.value);
+  //waveBanner(banner.value);
 });
 
-function waveBanner(banner) {
+/* function waveBanner(banner) {
   let phase = 0;
   const amplitude = 4;
   const frequency = 0.05;
@@ -29,7 +29,7 @@ function waveBanner(banner) {
   }
 
   animateWave();
-}
+} */
 </script>
 
 <style scoped></style>

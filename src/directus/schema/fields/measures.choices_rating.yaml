@@ -35,7 +35,7 @@ schema:
   name: choices_rating
   table: measures
   data_type: character varying
-  default_value: null
+  default_value: "0"
   max_length: 255
   numeric_precision: null
   numeric_scale: null
