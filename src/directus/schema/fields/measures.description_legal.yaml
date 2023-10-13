@@ -32,7 +32,7 @@ meta:
       - underline
   readonly: false
   required: false
-  sort: 7
+  sort: 4
   special: null
   translations:
     - language: de-DE
