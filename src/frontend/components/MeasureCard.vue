@@ -8,6 +8,23 @@
       <div class="divide-y-2 divide-light-blue">
         <div v-if="measure.description_evaluation_criteria" class="py-4">
           <h3 class="mb-2 font-heading text-h3 text-light-blue">
+            {{ $t("measure.description_about_heading") }}
+          </h3>
+
+          <div class="mb-2 flex flex-col items-start gap-4 xs:flex-row">
+            <figure class="mt-0 flex flex-col">
+              <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-18 opacity-50" />
+              <figcaption class="mt-0 text-center">
+                {{ $t("measure.description_about_icon_caption") }}
+              </figcaption>
+            </figure>
+
+            <div class="prose" v-html="measure.description_about" />
+          </div>
+        </div>
+
+        <div v-if="measure.description_evaluation_criteria" class="py-4">
+          <h3 class="mb-2 font-heading text-h3 text-light-blue">
             {{ $t("measure.evaluation_criteria_heading") }}
           </h3>
 
@@ -57,21 +74,6 @@
 
         <!-- Accordion -->
         <div class="py-4">
-          <!-- Description about -->
-          <div v-if="measure.description_about" class="collapse-plus collapse">
-            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
-
-            <div class="collapse-title pl-0">
-              <h3 class="mt-0 font-heading text-h2 text-black">
-                {{ $t("measure.description_about_heading") }}
-              </h3>
-            </div>
-
-            <div class="collapse-content pl-0">
-              <div class="prose" v-html="measure.description_about" />
-            </div>
-          </div>
-
           <!-- Description benefit -->
           <div v-if="measure.description_benefit" class="collapse-plus collapse">
             <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />

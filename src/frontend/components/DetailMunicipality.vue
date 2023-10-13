@@ -83,7 +83,7 @@
               class="flex h-5 w-5 shrink-0 opacity-50 hover:opacity-60 focus:opacity-60"
               target="measure"
             >
-              <img src="~/assets/icons/icon_info.svg" class="h-auto w-5" alt="" />
+              <img src="~/assets/icons/icon_info_outline.svg" class="h-auto w-5" alt="" />
             </NuxtLink>
           </li>
         </ul>
