@@ -15,7 +15,7 @@ layout_query:
 layout_options:
   tabular:
     widths:
-      measure_id.name: 841
+      measure_id.name: 500
 refresh_interval: null
 filter: null
 icon: bookmark
