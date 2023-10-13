@@ -16,7 +16,7 @@
     <!-- Accordion -->
     <!-- Municipality description -->
     <div class="collapse collapse-plus rounded-sm p-2 shadow-list">
-      <input type="radio" name="sectors-accordion" checked="checked" />
+      <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50" />
@@ -37,7 +37,7 @@
       :key="sector"
       class="collapse-plus collapse rounded-sm p-2 shadow-list"
     >
-      <input type="radio" name="sectors-accordion" />
+      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-start gap-4">
         <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50" />
@@ -92,7 +92,7 @@
 
     <!-- Participate -->
     <div class="collapse-plus collapse rounded-sm p-2 shadow-list">
-      <input type="radio" name="sectors-accordion" checked="checked" />
+      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50" />
@@ -111,7 +111,7 @@
 
     <!-- Data collection -->
     <div class="collapse-plus collapse rounded-sm p-2 shadow-list">
-      <input type="radio" name="sectors-accordion" checked="checked" />
+      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50" />

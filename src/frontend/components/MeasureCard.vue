@@ -59,7 +59,7 @@
         <div class="py-4">
           <!-- Description about -->
           <div v-if="measure.description_about" class="collapse-plus collapse">
-            <input type="radio" :name="`measure-${measure.slug}-descriptions-accordion`" />
+            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
               <h3 class="mt-0 font-heading text-h2 text-black">
@@ -74,7 +74,7 @@
 
           <!-- Description benefit -->
           <div v-if="measure.description_benefit" class="collapse-plus collapse">
-            <input type="radio" :name="`measure-${measure.slug}-descriptions-accordion`" />
+            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
               <h3 class="mt-0 font-heading text-h2 text-black">
@@ -89,7 +89,7 @@
 
           <!-- Description verification -->
           <div v-if="measure.description_verification" class="collapse-plus collapse">
-            <input type="radio" :name="`measure-${measure.slug}-descriptions-accordion`" />
+            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
               <h3 class="mt-0 font-heading text-h2 text-black">
@@ -104,7 +104,7 @@
 
           <!-- Description contribution -->
           <div v-if="measure.description_contribution" class="collapse-plus collapse">
-            <input type="radio" :name="`measure-${measure.slug}-descriptions-accordion`" />
+            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
               <h3 class="mt-0 font-heading text-h2 text-black">
@@ -119,7 +119,7 @@
 
           <!-- Description implementation -->
           <div v-if="measure.description_implementation" class="collapse-plus collapse">
-            <input type="radio" :name="`measure-${measure.slug}-descriptions-accordion`" />
+            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
               <h3 class="mt-0 font-heading text-h2 text-black">
@@ -134,7 +134,7 @@
 
           <!-- Description legal -->
           <div v-if="measure.description_legal" class="collapse-plus collapse">
-            <input type="radio" :name="`measure-${measure.slug}-descriptions-accordion`" />
+            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
               <h3 class="mt-0 font-heading text-h2 text-black">
@@ -149,7 +149,7 @@
 
           <!-- Description funding -->
           <div v-if="measure.description_funding" class="collapse-plus collapse">
-            <input type="radio" :name="`measure-${measure.slug}-descriptions-accordion`" />
+            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
               <h3 class="mt-0 font-heading text-h2 text-black">
@@ -164,7 +164,7 @@
 
           <!-- Description tutorial -->
           <div v-if="measure.description_tutorial" class="collapse-plus collapse">
-            <input type="radio" :name="`measure-${measure.slug}-descriptions-accordion`" />
+            <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
               <h3 class="mt-0 font-heading text-h2 text-black">
