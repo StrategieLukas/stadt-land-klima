@@ -52,7 +52,7 @@ useHead({
     $appEnv === 'production' ? {
       defer: true,
       'data-domain': 'stadt-land-klima.de',
-      scr: 'https://plausible.anzui.dev/js/script.js',
+      src: 'https://plausible.anzui.dev/js/script.js',
     } : {},
   ],
 });
