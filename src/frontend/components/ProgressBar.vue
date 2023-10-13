@@ -5,15 +5,17 @@
     >
       <div
         :class="[
-          'relative flex h-full items-center justify-end overflow-hidden transition-all ease-out',
+          'relative flex h-full items-center justify-end overflow-visible transition-all ease-out',
           colorClass.bg,
           durationClass,
         ]"
         :style="{ width: width + '%' }"
       >
         <div
-          class="mr-1 font-heading font-bold"
-          :class="[colorClass.text, layout === 'compact' ? 'text-sm' : 'text-xl']"
+          class="mr-1 font-heading font-bold relative"
+          :class="[
+            layout === 'compact' ? colorClass.text_compact + ' text-sm top-0.25' : colorClass.text_default + ' text-xl',
+          ]"
         >
           {{ scoreTotal }}
         </div>
@@ -37,11 +39,13 @@ const props = defineProps({
   },
 });
 const colors = {
-  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: "text-white" },
-  20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text: "text-white" },
-  40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text: "text-black" },
-  60: { bg: "bg-ranking-6-8", border: "border-ranking-6-8", text: "text-white" },
-  80: { bg: "bg-ranking-8-10", border: "border-ranking-8-10", text: "text-white" },
+  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text_default: "text-black left-9", text_compact: "text-black left-5" },
+  5: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text_default: "text-black sm:text-white left-11 sm:left-0", text_compact: "text-black sm:text-white left-7 sm:left-0" },
+  15: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text_default: "text-white", text_compact: "text-white" },
+  20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text_default: "text-white", text_compact: "text-white" },
+  40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text_default: "text-black", text_compact: "text-black" },
+  60: { bg: "bg-ranking-6-8", border: "border-ranking-6-8", text_default: "text-white", text_compact: "text-white" },
+  80: { bg: "bg-ranking-8-10", border: "border-ranking-8-10", text_default: "text-white", text_compact: "text-white" },
 };
 const durations = {
   0: "duration-[500ms]",

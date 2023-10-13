@@ -21,7 +21,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: score_kmv
+      translation: Score Klimaschutzmanagement & Verwaltung
   validation: null
   validation_message: null
   width: half

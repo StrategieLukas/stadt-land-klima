@@ -16,7 +16,7 @@
     <!-- Accordion -->
     <!-- Municipality description -->
     <div class="collapse collapse-plus rounded-sm p-2 shadow-list">
-      <input type="radio" name="sectors-accordion" checked="checked" />
+      <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50" />
@@ -37,7 +37,7 @@
       :key="sector"
       class="collapse-plus collapse rounded-sm p-2 shadow-list"
     >
-      <input type="radio" name="sectors-accordion" />
+      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-start gap-4">
         <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50" />
@@ -83,7 +83,7 @@
               class="flex h-5 w-5 shrink-0 opacity-50 hover:opacity-60 focus:opacity-60"
               target="measure"
             >
-              <img src="~/assets/icons/icon_info.svg" class="h-auto w-5" alt="" />
+              <img src="~/assets/icons/icon_info_outline.svg" class="h-auto w-5" alt="" />
             </NuxtLink>
           </li>
         </ul>
@@ -92,7 +92,7 @@
 
     <!-- Participate -->
     <div class="collapse-plus collapse rounded-sm p-2 shadow-list">
-      <input type="radio" name="sectors-accordion" checked="checked" />
+      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50" />
@@ -111,7 +111,7 @@
 
     <!-- Data collection -->
     <div class="collapse-plus collapse rounded-sm p-2 shadow-list">
-      <input type="radio" name="sectors-accordion" checked="checked" />
+      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4">
         <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50" />
@@ -147,7 +147,7 @@ const props = defineProps({
 });
 const ratingColorClass = {
   3: "bg-rating-3",
-  2: "bg-raiting-2",
+  2: "bg-rating-2",
   1: "bg-rating-1",
   0: "bg-rating-0",
 };

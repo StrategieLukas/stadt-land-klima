@@ -3,21 +3,15 @@
 <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#1EA64A;}
-	.st1{fill:#AFCA0B;}
-	.st2{fill:#E30613;}
-	.st3{fill:#FFFFFF;}
-	.st4{fill:#FFDD00;}
-	.st5{fill:#F39200;}
-	.st6{fill:#16BAE7;}
-	.st7{fill:none;}
-	.st8{font-family:'ArialMT';}
-	.st9{font-size:12px;}
+	.st0{fill:#F39200;}
+	.st1{fill:#FFFFFF;}
+	.st2{font-family:'ArialMT';}
+	.st3{font-size:12px;}
 </style>
 <g>
-	<path class="st4" d="M35.5,17.7C35.5,7.9,26.9,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
+	<path class="st0" d="M35.5,17.7C35.5,7.9,26.9,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
 		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
 </g>
-<path class="st3" d="M15.6,30.4H9.3L19.8,7.7h6.3L15.6,30.4z"/>
-<text transform="matrix(1 0 0 1 16.0334 0)" class="st8 st9"> </text>
+<path class="st1" d="M15.6,30.4H9.3L19.8,7.7h6.3L15.6,30.4z"/>
+<text transform="matrix(1 0 0 1 16.0334 0)" class="st2 st3"> </text>
 </svg>

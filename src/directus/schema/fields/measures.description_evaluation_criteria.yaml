@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: description_evaluation_criteria
-  group: accordion-p4jgb8
+  group: null
   hidden: false
   interface: input-rich-text-html
   note: null
@@ -32,7 +32,7 @@ meta:
       - underline
   readonly: false
   required: false
-  sort: 1
+  sort: 15
   special: null
   translations:
     - language: de-DE

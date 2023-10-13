@@ -24,7 +24,7 @@ meta:
         value: small_city
   readonly: false
   required: false
-  sort: 10
+  sort: 9
   special: null
   translations:
     - language: de-DE
