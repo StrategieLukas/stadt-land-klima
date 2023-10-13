@@ -6,14 +6,14 @@ meta:
   conditions: null
   display: related-values
   display_options:
-    template: "{{name}}"
+    template: "{{municipality_id.name}}"
   field: localteam_id
   group: null
   hidden: false
   interface: select-dropdown-m2o
   note: null
   options:
-    template: "{{name}}"
+    template: "{{municipality_id.name}}"
   readonly: true
   required: true
   sort: 11
