@@ -40,8 +40,8 @@ const props = defineProps({
   },
 });
 const colors = {
-  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: "text-black left-5" },
-  5: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: "text-black xs:text-white left-7 xs:left-0" },
+  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: "text-black left-9" },
+  5: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: "text-black sm:text-white left-11 sm:left-0" },
   15: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text: "text-white" },
   20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text: "text-white" },
   40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text: "text-black" },
