@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: geolocation
-  group: null
+  group: details
   hidden: false
   interface: map
   note: null
@@ -22,7 +22,7 @@ meta:
     geometryType: Point
   readonly: false
   required: false
-  sort: 14
+  sort: 6
   special: null
   translations:
     - language: de-DE
