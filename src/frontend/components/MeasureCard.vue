@@ -12,7 +12,7 @@
           </h3>
 
           <div class="mb-2 flex flex-col items-start gap-4 xs:flex-row">
-            <figure class="mt-0 flex flex-col">
+            <figure class="mt-0 flex flex-col shrink-0">
               <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-18 opacity-50" />
               <figcaption class="mt-0 text-center">
                 {{ $t("measure.description_about_icon_caption") }}
@@ -29,7 +29,7 @@
           </h3>
 
           <div class="mb-2 flex flex-col items-start gap-4 xs:flex-row">
-            <figure class="mt-0 flex flex-col">
+            <figure class="mt-0 flex flex-col shrink-0">
               <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-18 opacity-50" />
               <figcaption class="mt-0 text-center">
                 {{ $t("measure.evaluation_criteria_icon_caption") }}
@@ -45,7 +45,7 @@
             {{ $t("measure.feasibility_heading") }}
           </h3>
 
-          <div class="grid grid-cols-2 justify-between gap-4 xs:grid-cols-3">
+          <div class="grid grid-cols-2 justify-between gap-4 xs:grid-cols-3 max-w-md">
             <FeasibilityBarChart
               key="impact"
               class="xs:mr-auto"
@@ -73,13 +73,13 @@
         </div>
 
         <!-- Accordion -->
-        <div class="py-4">
+        <div class="py-4 grid grid-cols-1 lg:grid-cols-2 gap-8">
           <!-- Description benefit -->
           <div v-if="measure.description_benefit" class="collapse-plus collapse">
             <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
-              <h3 class="mt-0 font-heading text-h2 text-black">
+              <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                 {{ $t("measure.description_benefit_heading") }}
               </h3>
             </div>
@@ -94,7 +94,7 @@
             <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
-              <h3 class="mt-0 font-heading text-h2 text-black">
+              <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                 {{ $t("measure.description_verification_heading") }}
               </h3>
             </div>
@@ -109,7 +109,7 @@
             <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
-              <h3 class="mt-0 font-heading text-h2 text-black">
+              <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                 {{ $t("measure.description_contribution_heading") }}
               </h3>
             </div>
@@ -124,7 +124,7 @@
             <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
-              <h3 class="mt-0 font-heading text-h2 text-black">
+              <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                 {{ $t("measure.description_implementation_heading") }}
               </h3>
             </div>
@@ -139,7 +139,7 @@
             <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
-              <h3 class="mt-0 font-heading text-h2 text-black">
+              <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                 {{ $t("measure.description_legal_heading") }}
               </h3>
             </div>
@@ -154,7 +154,7 @@
             <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
-              <h3 class="mt-0 font-heading text-h2 text-black">
+              <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                 {{ $t("measure.description_funding_heading") }}
               </h3>
             </div>
@@ -169,7 +169,7 @@
             <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
 
             <div class="collapse-title pl-0">
-              <h3 class="mt-0 font-heading text-h2 text-black">
+              <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                 {{ $t("measure.description_tutorial_heading") }}
               </h3>
             </div>
