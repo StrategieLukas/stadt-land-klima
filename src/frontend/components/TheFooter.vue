@@ -5,7 +5,7 @@
 
       <ul class="grid-2-cols grid">
         <li v-for="page in pages" :key="page.id">
-          <NuxtLink :to="page.slug" class="text-md btn btn-link pl-0 normal-case text-black">
+          <NuxtLink :to="'/' + page.slug" class="text-md btn btn-link pl-0 normal-case text-black">
             {{ page.name }}
           </NuxtLink>
         </li>

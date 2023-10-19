@@ -18,7 +18,7 @@
         </NuxtLink>
       </li>
       <li v-for="page in pages" :key="page.id">
-        <NuxtLink :to="page.slug" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
+        <NuxtLink :to="'/' + page.slug" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
           {{ page.name }}
         </NuxtLink>
       </li>
