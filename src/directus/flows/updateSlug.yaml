@@ -12,7 +12,6 @@ options:
   collections:
     - measures
     - municipalities
-    - pages
 operations:
   - name: Kondition
     key: condition_kbi0b
