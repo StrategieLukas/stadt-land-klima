@@ -30,13 +30,13 @@ import {
   ArcElement,
   RadialLinearScale,
 } from "chart.js";
-class CustomRadialLinearScale extends RadialLinearScale {
+/* class CustomRadialLinearScale extends RadialLinearScale {
   draw() {
     super.draw();
   }
 }
-CustomRadialLinearScale.id = "customRadialLinear";
-Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, CustomRadialLinearScale, ArcElement);
+CustomRadialLinearScale.id = "customRadialLinear"; */
+Chart.register(CategoryScale, LinearScale, RadialLinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const props = defineProps({
   subScores: {
@@ -50,6 +50,7 @@ const props = defineProps({
 });
 const subScoresArray = createSubScoreArray(props.subScores);
 const colorsArray = createColorArray(subScoresArray);
+const subScoresArrayScaled = scaleToArea(subScoresArray);
 const labels = [
   "Energie",
   "Verkehr",
@@ -63,7 +64,7 @@ const chartData = {
   datasets: [
     {
       label: props.nameMunicipality + " Scores",
-      data: subScoresArray,
+      data: subScoresArrayScaled,
       backgroundColor: colorsArray,
       borderWidth: 0,
     },
@@ -80,21 +81,23 @@ const chartOptions = {
     tooltip: {
       callbacks: {
         label: function (context) {
-          const label = context.formattedValue + "%";
+          const label = subScoresArray[context.dataIndex] + "%";
           return label;
         },
       },
     },
   },
-
   scales: {
     r: {
-      type: "customRadialLinear",
+      grid: {
+        color: 'red',
+        display: false,
+      },
       min: 0,
       max: 100,
       startAngle: 0,
       angleLines: {
-        display: true,
+        display: false,
         lineWidth: 1,
         z: 1,
       },
@@ -110,14 +113,18 @@ const chartOptions = {
 };
 
 function createSubScoreArray(subScoreObject) {
-  const tempScores = [];
-  tempScores.push(subScoreObject.score_energy);
-  tempScores.push(subScoreObject.score_transport);
-  tempScores.push(subScoreObject.score_ann);
-  tempScores.push(subScoreObject.score_iec);
-  tempScores.push(subScoreObject.score_bh);
-  tempScores.push(subScoreObject.score_cpma);
-  return tempScores;
+  let scoresArray = [];
+  scoresArray.push(subScoreObject.score_energy);
+  scoresArray.push(subScoreObject.score_transport);
+  scoresArray.push(subScoreObject.score_ann);
+  scoresArray.push(subScoreObject.score_iec);
+  scoresArray.push(subScoreObject.score_bh);
+  scoresArray.push(subScoreObject.score_cpma);
+  return scoresArray.map(value => Math.round(Number(value) * 10) / 10);
+}
+function scaleToArea(scoresArray) {
+  return scoresArray.map(value => Math.sqrt(value / 100) * 100);
+
 }
 function createColorArray(subScoresArray) {
   const tempColorsArray = [];
