@@ -1,5 +1,5 @@
 <template>
-<div v-if="measure.description_evaluation_criteria" class="py-4">
+<div v-if="measure.description_about" class="py-4">
   <h3 class="mb-2 font-heading text-h3 text-light-blue">
     {{ $t("measure.description_about_heading") }}
   </h3>
