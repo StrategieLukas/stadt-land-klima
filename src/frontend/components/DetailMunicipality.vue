@@ -97,7 +97,7 @@
                 </div>
 
                 <div v-if="item.achievement" class="mb-4">
-                  <h3 class="text-light-blue font-heading text-h4 mb-4">
+                  <h3 class="text-light-blue font-heading text-h4 mb-2">
                     {{ $t("ratings_measure.achievement_heading") }}
                   </h3>
 
@@ -107,7 +107,7 @@
                 </div>
 
                 <div v-if="item.source">
-                  <h3 class="text-light-blue font-heading text-h4 mb-4">
+                  <h3 class="text-light-blue font-heading text-h4 mb-2">
                     {{ $t("ratings_measure.source_heading") }}
                   </h3>
 
