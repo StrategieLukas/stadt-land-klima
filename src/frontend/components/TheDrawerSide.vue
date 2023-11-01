@@ -22,6 +22,11 @@
           {{ page.name }}
         </NuxtLink>
       </li>
+      <li>
+        <NuxtLink to="/backend" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
+          Login
+        </NuxtLink>
+      </li>
     </ul>
   </nav>
 </template>
