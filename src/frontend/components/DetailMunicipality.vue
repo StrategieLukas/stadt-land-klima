@@ -86,16 +86,18 @@
               <div class="collapse-content bg-white">
                 <MeasureDetails :measure=item.measure />
 
-                <NuxtLink
-                  :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-                  class="text-light-blue font-heading text-h4 mb-4"
-                  target="measure"
-                >
-                  {{ $t('municipality_rating.link_to_measure') }}↗
-                </NuxtLink>
+                <div class="mb-8">
+                  <NuxtLink
+                    :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
+                    class="text-light-blue font-heading text-h4"
+                    target="measure"
+                  >
+                    {{ $t('municipality_rating.link_to_measure') }}↗
+                  </NuxtLink>
+                </div>
 
                 <div v-if="item.achievement" class="mb-4">
-                  <h3 class="mt-0 font-heading text-h2 leading-none text-black">
+                  <h3 class="text-light-blue font-heading text-h4 mb-4">
                     {{ $t("ratings_measure.achievement_heading") }}
                   </h3>
 
@@ -105,7 +107,7 @@
                 </div>
 
                 <div v-if="item.source">
-                  <h3 class="mt-0 font-heading text-h2 leading-none text-black">
+                  <h3 class="text-light-blue font-heading text-h4 mb-4">
                     {{ $t("ratings_measure.source_heading") }}
                   </h3>
 
