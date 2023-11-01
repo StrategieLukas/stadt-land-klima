@@ -23,9 +23,9 @@
         </NuxtLink>
       </li>
       <li>
-        <NuxtLink to="/backend" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
+        <a href="/backend" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
           Login
-        </NuxtLink>
+        </a>
       </li>
     </ul>
   </nav>
