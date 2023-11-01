@@ -31,6 +31,8 @@ permissions:
       - id
       - sort
       - Source
+      - source
+      - achievement
   - collection: pages
     action: read
     permissions:
@@ -46,6 +48,36 @@ permissions:
       - contents
       - slug
       - sort
+  - collection: municipalities
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - sort
+      - slug
+      - municipality_type
+      - details
+      - score_cpma
+      - score_iec
+      - score_transport
+      - scores
+      - mayor
+      - state
+      - population
+      - party_mayor
+      - score_energy
+      - score_total
+      - score_ann
+      - score_bh
+      - name
+      - description
+      - place
+      - localteam_id
+      - date_updated
   - collection: measures
     action: read
     permissions:
@@ -86,33 +118,3 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: municipalities
-    action: read
-    permissions:
-      _and:
-        - status:
-            _eq: published
-    validation: null
-    presets: null
-    fields:
-      - sort
-      - slug
-      - municipality_type
-      - details
-      - score_cpma
-      - score_iec
-      - score_transport
-      - scores
-      - mayor
-      - state
-      - population
-      - party_mayor
-      - score_energy
-      - score_total
-      - score_ann
-      - score_bh
-      - name
-      - description
-      - place
-      - localteam_id
-      - date_updated
