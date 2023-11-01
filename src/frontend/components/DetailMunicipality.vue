@@ -94,23 +94,23 @@
                   {{ $t('municipality_rating.link_to_measure') }}↗
                 </NuxtLink>
 
-                <div v-if="item.rating.achievement" class="mb-4">
+                <div v-if="item.achievement" class="mb-4">
                   <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                     {{ $t("ratings_measure.achievement_heading") }}
                   </h3>
 
                   <div class="prose">
-                    {{ item.rating.achievement }}
+                    {{ item.achievement }}
                   </div>
                 </div>
 
-                <div v-if="item.rating.source">
+                <div v-if="item.source">
                   <h3 class="mt-0 font-heading text-h2 leading-none text-black">
                     {{ $t("ratings_measure.source_heading") }}
                   </h3>
 
                   <div class="prose">
-                    {{ item.rating.source }}
+                    {{ item.source }}
                   </div>
                 </div>
               </div>
