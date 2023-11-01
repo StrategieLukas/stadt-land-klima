@@ -1,7 +1,7 @@
 <template>
   <div>
-    <NuxtLink :to="`/municipalities`" class="btn btn-ghost mt-4 normal-case">
-      {{ $t("municipality.back_label") }}
+    <NuxtLink :to="`/municipalities`" class="text-light-blue font-heading text-h4">
+      ← {{ $t("municipality.back_label") }}
     </NuxtLink>
     <article class="mb-8 mt-10">
       <detail-municipality
@@ -9,8 +9,8 @@
         :sorted-ratings="sortMeasuresBySectorDict"
       ></detail-municipality>
     </article>
-    <NuxtLink :to="`/municipalities`" class="btn btn-ghost mb-4 normal-case">
-      {{ $t("municipality.back_label") }}
+    <NuxtLink :to="`/municipalities`" class="text-light-blue font-heading text-h4">
+      ← {{ $t("municipality.back_label") }}
     </NuxtLink>
   </div>
 </template>

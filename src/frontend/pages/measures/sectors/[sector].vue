@@ -10,7 +10,7 @@
           {{ $t("measures_sector.count_measures_in_sector", { ":count": measures.length }) }}
         </p>
 
-        <NuxtLink to="/measures" class="btn btn-link p-0 normal-case text-light-blue">
+        <NuxtLink to="/measures" class="text-light-blue font-heading text-h4">
           ← {{ $t("measures_sector.back_label") }}
         </NuxtLink>
       </div>
