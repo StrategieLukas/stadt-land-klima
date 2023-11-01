@@ -1,33 +1,34 @@
 collection: ratings_measures
-field: approved
-type: boolean
+field: achievement
+type: text
 meta:
   collection: ratings_measures
   conditions: null
   display: null
   display_options: null
-  field: approved
+  field: achievement
   group: null
   hidden: false
-  interface: boolean
+  interface: input-multiline
   note: null
-  options: null
+  options:
+    softLength: 500
+    trim: true
   readonly: false
-  required: true
-  sort: 16
-  special:
-    - cast-boolean
+  required: false
+  sort: 15
+  special: null
   translations:
     - language: de-DE
-      translation: Genehmigt
+      translation: Was wurde erreicht? Wie ist der Stand?
   validation: null
   validation_message: null
   width: full
 schema:
-  name: approved
+  name: achievement
   table: ratings_measures
-  data_type: boolean
-  default_value: true
+  data_type: text
+  default_value: null
   max_length: null
   numeric_precision: null
   numeric_scale: null
