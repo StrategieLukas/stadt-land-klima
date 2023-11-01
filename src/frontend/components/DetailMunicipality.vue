@@ -67,24 +67,38 @@
             :key="item.id"
             :class="[
               ratingColorClass[transformToArrayPositions(item.rating)],
-              'flex items-center justify-stretch gap-3 bg-opacity-10 p-3',
+              'bg-opacity-10',
             ]"
           >
-            <div class="shrink-0">
-              <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
-            </div>
+            <div class="collapse-plus collapse">
+              <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off" />
 
-            <div class="grow text-sm">
-              {{ item.measure.name }}
-            </div>
+              <div class="collapse-title flex items-center justify-stretch gap-3 p-3">
+                <div class="shrink-0">
+                  <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
+                </div>
 
-            <NuxtLink
-              :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-              class="flex h-5 w-5 shrink-0 opacity-50 hover:opacity-60 focus:opacity-60"
-              target="measure"
-            >
-              <img src="~/assets/icons/icon_info_outline.svg" class="h-auto w-5" alt="" />
-            </NuxtLink>
+                <div class="grow text-sm">
+                  {{ item.measure.name }}
+                </div>
+              </div>
+
+              <div class="collapse-content bg-white">
+                <MeasureDetails :measure=item.measure />
+
+                <NuxtLink
+                  :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
+                  class="text-light-blue font-heading text-h4"
+                  target="measure"
+                >
+                  {{ $t('municipality_rating.link_to_measure') }}↗
+                </NuxtLink>
+              </div>
+
+              <!--
+
+              -->
+            </div>
           </li>
         </ul>
       </div>
