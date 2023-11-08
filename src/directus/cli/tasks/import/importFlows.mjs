@@ -23,9 +23,13 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
     const operationsToCreate = [];
     const operationsToUpdate = [];
 
-    // create lookup tables for existing operations
+    // create lookup tables for existing operations and flows
+    const existingFlowsByName = {};
     const existingOperationsByKey = {};
     const existingOperationsById = {};
+    existingFlows.forEach((flow) => {
+      existingFlowsByName[flow.name] = flow;
+    });
     existingOperations.forEach((operation) => {
       existingOperationsByKey[operation.key] = operation;
       existingOperationsById[operation.id] = operation;
@@ -69,6 +73,9 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
       createdFlows.forEach((createdFlow) => {
         const flow = find(flowsToCreate, ['name', createdFlow.name]);
         assign(flow, createdFlow);
+
+        // add to lookup for later reference
+        existingFlowsByName[flow.name] = flow;
       });
     }
 
@@ -110,6 +117,16 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
     operations.forEach((operation) => {
       const flow = find(flows, ['name', operation.flow_name]);
       operation.flow = flow.id;
+
+      if (operation.type === 'trigger' && operation.options && operation.options.flow_name) {
+        const triggerFlow = existingFlowsByName[operation.options.flow_name];
+
+        if (triggerFlow) {
+          operation.options.flow = triggerFlow.id;
+        }
+
+        delete operation.options.flow_name;
+      }
     });
 
     // Remove

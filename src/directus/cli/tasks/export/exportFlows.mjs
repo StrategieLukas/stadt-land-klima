@@ -12,9 +12,13 @@ async function exportFlows(dest, options = {verbose: false, overwrite: false}) {
     const flows = await client.request(readFlows({limit: -1}));
     const operations = await client.request(readOperations({limit: -1}));
 
-    // create lookup tables for operations
+    // create lookup tables for operations and flows
+    const flowsById = {};
     const operationsByKey = {};
     const operationsById = {};
+    flows.forEach((flow) => {
+      flowsById[flow.id] = flow;
+    });
     operations.forEach((operation) => {
       operationsByKey[operation.key] = operation;
       operationsById[operation.id] = operation;
@@ -48,6 +52,11 @@ async function exportFlows(dest, options = {verbose: false, overwrite: false}) {
 
         if (operation.reject && operationsById[operation.reject]) {
           operation.reject_key = operationsById[operation.reject].key;
+        }
+
+        if (operation.type === 'trigger' && operation.options && operation.options.flow) {
+          operation.options.flow_name = flowsById[operation.options.flow].name;
+          delete operation.options.flow;
         }
 
         delete operation.resolve;
