@@ -12,6 +12,12 @@ options:
   collections:
     - ratings_measures
 operations:
+  - name: updatesRanks
+    key: update_ranks_we3ei
+    type: updateRanks
+    position_x: 4
+    position_y: 18
+    options: {}
   - name: Calculate Scores
     key: operation_calculate_scores_qp3zc
     type: operation-calculateScores
@@ -20,10 +26,4 @@ operations:
     options:
       keys: "{{$trigger.keys}}"
     resolve_key: update_ranks_we3ei
-  - name: updatesRanks
-    key: update_ranks_we3ei
-    type: updateRanks
-    position_x: 4
-    position_y: 18
-    options: {}
 operation_key: operation_calculate_scores_qp3zc

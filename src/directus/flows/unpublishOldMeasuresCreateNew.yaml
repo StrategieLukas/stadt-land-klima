@@ -8,42 +8,6 @@ accountability: all
 options:
   return: $all
 operations:
-  - name: Daten erstellen
-    key: item_create_duq7q
-    type: item-create
-    position_x: 21
-    position_y: 19
-    options:
-      collection: measures
-      payload: "{{exec_vb4gu.new_measure}}"
-      emitEvents: true
-      permissions: $full
-    resolve_key: item_update_wdrgr
-  - name: Daten aktualisieren
-    key: item_update_b13k5
-    type: item-update
-    position_x: 3
-    position_y: 19
-    options:
-      collection: measures
-      key: "{{$last.old_measure.id}}"
-      payload: "{{$last.old_measure}}"
-      permissions: $full
-    resolve_key: item_create_duq7q
-  - name: Daten aktualisieren
-    key: item_update_wdrgr
-    type: item-update
-    position_x: 3
-    position_y: 35
-    options:
-      collection: ratings_measures
-      payload:
-        measure_published: false
-      query:
-        filter:
-          measure_id:
-            _eq: "{{$trigger.id}}"
-      permissions: $full
   - name: Skript ausführen
     key: exec_vb4gu
     type: exec
@@ -61,4 +25,40 @@ operations:
             };
         }
     resolve_key: item_update_b13k5
+  - name: Daten aktualisieren
+    key: item_update_b13k5
+    type: item-update
+    position_x: 3
+    position_y: 19
+    options:
+      collection: measures
+      key: "{{$last.old_measure.id}}"
+      payload: "{{$last.old_measure}}"
+      permissions: $full
+    resolve_key: item_create_duq7q
+  - name: Daten erstellen
+    key: item_create_duq7q
+    type: item-create
+    position_x: 21
+    position_y: 19
+    options:
+      collection: measures
+      payload: "{{exec_vb4gu.new_measure}}"
+      emitEvents: true
+      permissions: $full
+    resolve_key: item_update_wdrgr
+  - name: Daten aktualisieren
+    key: item_update_wdrgr
+    type: item-update
+    position_x: 3
+    position_y: 35
+    options:
+      collection: ratings_measures
+      payload:
+        measure_published: false
+      query:
+        filter:
+          measure_id:
+            _eq: "{{$trigger.id}}"
+      permissions: $full
 operation_key: exec_vb4gu

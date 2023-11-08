@@ -38,8 +38,8 @@ operations:
     position_x: 29
     position_y: 20
     options:
-      flow: 14c9927f-79d5-42e1-b145-873cc1f364ab
       payload: "{{$last.retData}}"
+      flow_name: CreateEmptyRatings
   - name: Read Data
     key: item_read_rlzk6
     type: item-read
