@@ -1,7 +1,7 @@
 id: 1
 project_name: Stadt.Land.Klima!
 project_url: https://stadt-land-klima.de
-project_color: "#FFFFFF"
+project_color: "#2ECDA7"
 project_logo: f1519d9d-b3df-4649-aba0-d3c7f337683d
 public_foreground: null
 public_background: null
@@ -31,6 +31,12 @@ module_bar:
     id: settings
     enabled: true
     locked: true
-project_descriptor: null
+project_descriptor: Lokales Klimaschutz-Ranking
 default_language: de-DE
 custom_aspect_ratios: null
+public_favicon: null
+default_appearance: auto
+default_theme_light: null
+theme_light_overrides: null
+default_theme_dark: null
+theme_dark_overrides: null
