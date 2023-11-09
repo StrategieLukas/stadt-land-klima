@@ -25,9 +25,7 @@
 			@click="selectOption(item.value, field)"
 		>
 			<span class="label type-text">
-				<v-icon v-if="item.icon" :name="item.icon" filled />
-				<span v-else-if="item.svg_icon" class="v-icon" v-html="item.svg_icon"></span>
-				<img v-else-if="item.image" class="v-icon" :src="renderImage(item.image)" />
+				<span v--if="item.svg_icon" class="v-icon" v-html="item.svg_icon"></span>
 				<slot name="label">{{ item.text }}</slot>
 			</span>
 		</button>
