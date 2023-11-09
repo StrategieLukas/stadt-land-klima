@@ -7,7 +7,7 @@
 			'--v-radio-color': color,
 		}"
 	>
-		<input
+		<input  
 			:value="value"
 			:field="field"
 			:collection="collection"
@@ -36,6 +36,7 @@
 
 <script>
 import useDirectusToken from './use-directus-token';
+import { nextTick } from 'vue';
 export default {
 	inject: ['api'],
 	props: {
@@ -65,6 +66,13 @@ export default {
 		selectOption(value, field){
 			if(field == this.field){
 				this.$emit('input', value);
+				nextTick()
+				.then(
+					(result) => {
+					this.$emit('setFieldValue', { field: 'status', value: 'published' });
+					}
+				);
+				//Vue.nextTick(() => this.$emit('setFieldValue', { field: 'status', value: 'published' })); //Known bug direcuts so this workaround
 			}
 		},
 		isChecked(input, value){
@@ -75,10 +83,14 @@ export default {
 			const { addTokenToURL } = useDirectusToken(this.api);
 			return addTokenToURL(`/assets/${file_id}?width=42&height=42&fit=cover&cache-buster=${modified_on}`);
 		},
-		handleChange(value, field) {
+		handleChange(value, field) { //This is a fallback if anything outside of this interface changes the value.
 			if(field == this.field){
+				console.log(`handleChange:`);
 				this.$emit('input', value);
+				
+
 			}
+			
 		},
 	},
 };

@@ -26,7 +26,8 @@ export default {
 							name: 'Text',
 							meta: {
 								width: 'half',
-								interface: 'input',
+								interface: 'system-input-translated-string',
+								required: true,
 							},
 						},
 						{
@@ -36,20 +37,30 @@ export default {
 							meta: {
 								width: 'half',
 								interface: 'input',
+								required: true,
 								options: {
 									font: 'monospace',
 								},
 							},
 						},
 						{
-							field: 'image',
-							name: 'Image',
-							type: 'string',
+							field: 'svg_icon',
+							type: 'text',
+							name: 'SVG Icon',
+							meta: {
+								width: 'half',
+								interface: 'code',
+							},
+						},
+						{ //Dosest work for some reason
+							field: 'image2',
+							types: 'uuid',
+							name: 'image2',
 							meta: {
 								width: 'half',
 								interface: 'file-image',
 							},
-						},
+						}
 						
 					],
 				},
