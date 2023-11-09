@@ -12,16 +12,6 @@ options:
   collections:
     - ratings_measures
 operations:
-  - name: Transform Payload
-    key: transform_k2nt3
-    type: transform
-    position_x: 19
-    position_y: 1
-    options:
-      json:
-        keys:
-          - "{{ $trigger.key }}"
-    resolve_key: operation_calculate_scores_k3swm
   - name: Calculate Scores
     key: operation_calculate_scores_k3swm
     type: operation-calculateScores
@@ -36,4 +26,14 @@ operations:
     position_x: 21
     position_y: 22
     options: {}
+  - name: Transform Payload
+    key: transform_k2nt3
+    type: transform
+    position_x: 19
+    position_y: 1
+    options:
+      json:
+        keys:
+          - "{{ $trigger.key }}"
+    resolve_key: operation_calculate_scores_k3swm
 operation_key: transform_k2nt3

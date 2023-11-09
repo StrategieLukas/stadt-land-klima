@@ -13,6 +13,16 @@ options:
   collections:
     - measures
 operations:
+  - name: Read Data
+    key: item_read_10gpj
+    type: item-read
+    position_x: 1
+    position_y: 17
+    options:
+      collection: localteams
+      query: null
+      permissions: $full
+    resolve_key: exec_x1cau
   - name: Run Script
     key: exec_x1cau
     type: exec
@@ -32,24 +42,14 @@ operations:
                     return {retData};
                 }
     resolve_key: trigger_v8atj
-  - name: Read Data
-    key: item_read_10gpj
-    type: item-read
-    position_x: 1
-    position_y: 17
-    options:
-      collection: localteams
-      query: null
-      permissions: $full
-    resolve_key: exec_x1cau
   - name: Trigger Flow
     key: trigger_v8atj
     type: trigger
     position_x: 4
     position_y: 36
     options:
-      flow: 14c9927f-79d5-42e1-b145-873cc1f364ab
       payload: "{{$last.retData}}"
+      flow_name: CreateEmptyRatings
   - name: Condition
     key: condition_xau12
     type: condition
