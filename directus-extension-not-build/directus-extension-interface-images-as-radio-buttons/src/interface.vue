@@ -163,7 +163,7 @@ export default {
 		height: auto;
 		padding: 10px; 
 		border: 2px solid var(--border-normal);
-		border-radius: var(--border-radius);
+		border-radius: var(--theme--border-radius);
         &:hover {
             border-color: var(--border-normal-alt);
         }
@@ -174,7 +174,7 @@ export default {
 			width: 100%;
 			height: 100%;
 			background-color: var(--background-subdued);
-			border-radius: var(--border-radius);
+			border-radius: var(--theme--border-radius);
 			content: '';
 		}
 		.label {
