@@ -2,7 +2,7 @@
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
       <div class="relative flex h-96 w-full items-center justify-center">
-        <div class="w-58/100 z-10 h-58/100">
+        <div class="z-10 w-58/100 h-58/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
       </div>
@@ -30,13 +30,13 @@ import {
   ArcElement,
   RadialLinearScale,
 } from "chart.js";
-/* class CustomRadialLinearScale extends RadialLinearScale {
+class CustomRadialLinearScale extends RadialLinearScale {
   draw() {
     super.draw();
   }
 }
-CustomRadialLinearScale.id = "customRadialLinear"; */
-Chart.register(CategoryScale, LinearScale, RadialLinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
+CustomRadialLinearScale.id = "customRadialLinear"; 
+Chart.register(CategoryScale, LinearScale, CustomRadialLinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const props = defineProps({
   subScores: {
@@ -89,15 +89,15 @@ const chartOptions = {
   },
   scales: {
     r: {
+      type: "customRadialLinear",
       grid: {
-        color: 'red',
-        display: false,
+        display: true,
       },
       min: 0,
       max: 100,
       startAngle: 0,
       angleLines: {
-        display: false,
+        display: true,
         lineWidth: 1,
         z: 1,
       },
