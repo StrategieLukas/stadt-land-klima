@@ -19,5 +19,6 @@ meta:
   sort_field: null
   translations: null
   unarchive_value: null
+  versioning: false
 schema:
   name: junction_directus_users_localteams

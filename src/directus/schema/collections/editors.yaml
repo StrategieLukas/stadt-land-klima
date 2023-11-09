@@ -23,5 +23,6 @@ meta:
       singular: Redakteur*in
       plural: Redakteur*innen
   unarchive_value: null
+  versioning: false
 schema:
   name: editors
