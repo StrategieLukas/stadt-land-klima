@@ -138,8 +138,7 @@ export default {
             border: 2px solid transparent;
             border-radius: 50%;
             padding: 7px;
-            background: var(--background-input);
-            box-shadow: 0 0 2px rgb(0 0 0 / 30%);
+
         }
     }
     &:not(.checked) {

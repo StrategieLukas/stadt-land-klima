@@ -52,7 +52,7 @@ export default {
 								interface: 'code',
 							},
 						},
-						{ //Dosest work for some reason
+						/* { //Dosest work for some reason
 							field: 'image2',
 							types: 'uuid',
 							name: 'image2',
@@ -60,7 +60,7 @@ export default {
 								width: 'half',
 								interface: 'file-image',
 							},
-						}
+						} */
 						
 					],
 				},
