@@ -12,12 +12,6 @@ options:
   collections:
     - municipalities
 operations:
-  - name: updatesRanks
-    key: update_ranks_cun4d
-    type: updateRanks
-    position_x: 2
-    position_y: 18
-    options: {}
   - name: Condition
     key: condition_9x5et
     type: condition
@@ -30,4 +24,10 @@ operations:
             status:
               _eq: published
     resolve_key: update_ranks_cun4d
+  - name: updatesRanks
+    key: update_ranks_cun4d
+    type: updateRanks
+    position_x: 2
+    position_y: 18
+    options: {}
 operation_key: condition_9x5et

@@ -23,5 +23,6 @@ meta:
       singular: Kommune
       plural: Kommunen
   unarchive_value: draft
+  versioning: false
 schema:
   name: municipalities

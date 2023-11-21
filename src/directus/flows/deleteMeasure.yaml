@@ -13,12 +13,6 @@ options:
     - measures
   return: ""
 operations:
-  - name: updatesRanks
-    key: update_ranks_xrmvz
-    type: updateRanks
-    position_x: 8
-    position_y: 18
-    options: {}
   - name: Calculate Scores
     key: operation_calculate_scores_0ob0q
     type: operation-calculateScores
@@ -28,4 +22,10 @@ operations:
       measure: "{{$trigger.payload}}"
       measureIds: "{{$trigger.payload}}"
     resolve_key: update_ranks_xrmvz
+  - name: updatesRanks
+    key: update_ranks_xrmvz
+    type: updateRanks
+    position_x: 8
+    position_y: 18
+    options: {}
 operation_key: operation_calculate_scores_0ob0q

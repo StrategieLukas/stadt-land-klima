@@ -23,5 +23,6 @@ meta:
       singular: Maßnahme
       plural: Maßnahmen
   unarchive_value: draft
+  versioning: false
 schema:
   name: measures

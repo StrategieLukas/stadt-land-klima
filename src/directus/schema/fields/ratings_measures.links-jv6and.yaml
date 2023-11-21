@@ -16,7 +16,7 @@ meta:
       - label: $t:measure_rating.link_to_measure
         icon: web_asset
         type: success
-        url: https://staedtechallenge.anzui.dev/measures/{{measure_id.slug}}
+        url: https://stadt-land-klima.de/measures/sectors/{{measure_id.sector}}#{{measure_id.slug}}
   readonly: false
   required: false
   sort: 9

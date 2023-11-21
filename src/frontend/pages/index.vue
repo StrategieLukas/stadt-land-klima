@@ -4,8 +4,6 @@
     <p v-else class="prose py-8">
       {{ $t("page_not_found") }}
     </p>
-
-    <the-ranking :municipalities="municipalities" class=""></the-ranking>
   </div>
 </template>
 <script setup>
@@ -28,12 +26,4 @@ const title = page ? ref(page.name) : $t('page_not_found');
 useHead({
   title,
 });//
-
-const { data: municipalities } = await useAsyncData("municipalities", () => {
-  return $directus.request(
-    $readItems("municipalities", {
-      sort: ["-score_total"],
-    }),
-  );
-});
 </script>

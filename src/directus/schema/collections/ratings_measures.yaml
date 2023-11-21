@@ -23,5 +23,6 @@ meta:
       singular: Maßnahmenbewertung
       plural: Maßnahmenratings
   unarchive_value: draft
+  versioning: false
 schema:
   name: ratings_measures

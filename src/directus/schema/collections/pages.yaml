@@ -23,5 +23,6 @@ meta:
       singular: Seite
       plural: Seiten
   unarchive_value: draft
+  versioning: false
 schema:
   name: pages

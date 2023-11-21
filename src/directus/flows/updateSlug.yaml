@@ -13,6 +13,14 @@ options:
     - measures
     - municipalities
 operations:
+  - name: Slugify
+    key: operation_slugify_fxmad
+    type: operation-slugify
+    position_x: 3
+    position_y: 19
+    options:
+      text: "{{$trigger.payload.name}}"
+    resolve_key: item_update_14b9m
   - name: Kondition
     key: condition_kbi0b
     type: condition
@@ -25,14 +33,6 @@ operations:
             name:
               _nnull: true
     resolve_key: operation_slugify_fxmad
-  - name: Slugify
-    key: operation_slugify_fxmad
-    type: operation-slugify
-    position_x: 3
-    position_y: 19
-    options:
-      text: "{{$trigger.payload.name}}"
-    resolve_key: item_update_14b9m
   - name: Daten aktualisieren
     key: item_update_14b9m
     type: item-update

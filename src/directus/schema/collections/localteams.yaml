@@ -23,5 +23,6 @@ meta:
       singular: Lokalteam
       plural: Lokalteams
   unarchive_value: draft
+  versioning: false
 schema:
   name: localteams
