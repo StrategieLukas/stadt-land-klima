@@ -6,57 +6,61 @@ enforce_tfa: false
 admin_access: true
 app_access: true
 permissions:
-  - collection: directus_collections
-    action: read
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_fields
+    system: true
+    collection: directus_collections
     action: read
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_permissions
+    system: true
+    collection: directus_fields
     action: read
-    permissions:
+  - permissions:
       role:
         _eq: $CURRENT_ROLE
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_relations
+    system: true
+    collection: directus_permissions
     action: read
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_activity
+    system: true
+    collection: directus_relations
     action: read
-    permissions:
+  - permissions:
       user:
         _eq: $CURRENT_USER
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_activity
-    action: create
-    permissions: {}
+    system: true
+    collection: directus_activity
+    action: read
+  - permissions: {}
     validation:
       comment:
         _nnull: true
     presets: null
     fields:
       - "*"
-  - collection: directus_presets
-    action: read
-    permissions:
+    system: true
+    collection: directus_activity
+    action: create
+  - permissions:
       _or:
         - user:
             _eq: $CURRENT_USER
@@ -74,86 +78,96 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: directus_presets
-    action: create
-    permissions: {}
+    system: true
+    collection: directus_presets
+    action: read
+  - permissions: {}
     validation:
       user:
         _eq: $CURRENT_USER
     presets: null
     fields:
       - "*"
-  - collection: directus_presets
+    system: true
+    collection: directus_presets
+    action: create
+  - permissions:
+      user:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+    system: true
+    collection: directus_presets
     action: update
-    permissions:
+  - permissions:
       user:
         _eq: $CURRENT_USER
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_presets
+    system: true
+    collection: directus_presets
     action: delete
-    permissions:
-      user:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_roles
-    action: read
-    permissions:
+  - permissions:
       id:
         _eq: $CURRENT_ROLE
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_settings
+    system: true
+    collection: directus_roles
     action: read
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_translations
+    system: true
+    collection: directus_settings
     action: read
-    permissions: {}
+  - permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_notifications
+    system: true
+    collection: directus_translations
     action: read
-    permissions:
+  - permissions:
       recipient:
         _eq: $CURRENT_USER
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_notifications
-    action: update
-    permissions:
+    system: true
+    collection: directus_notifications
+    action: read
+  - permissions:
       recipient:
         _eq: $CURRENT_USER
     validation: null
     presets: null
     fields:
       - status
-  - collection: directus_shares
-    action: read
-    permissions:
+    system: true
+    collection: directus_notifications
+    action: update
+  - permissions:
       user_created:
         _eq: $CURRENT_USER
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_users
+    system: true
+    collection: directus_shares
     action: read
-    permissions:
+  - permissions:
       id:
         _eq: $CURRENT_USER
     validation: null
@@ -172,7 +186,15 @@ permissions:
       - preferences_divider
       - avatar
       - language
-      - theme
+      - appearance
+      - theme_light
+      - theme_dark
+      - theme_light_overrides
+      - theme_dark_overrides
       - tfa_secret
       - status
       - role
+      - theme
+    system: true
+    collection: directus_users
+    action: read
