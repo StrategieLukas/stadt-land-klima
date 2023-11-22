@@ -26,7 +26,8 @@ export default {
       let query = {
         limit: -1,
       };
-
+      // better to give measure id with and than only get the one measure, or read it by taking the 
+      // ratings_measures and the corresponding measures
       const measures = await measuresService.readByQuery(query);
       let ratings_measures;
       let measureNotToConsider;
@@ -36,6 +37,8 @@ export default {
         measureNotToConsider = measureIds;
       }
       //logger.info(measureNotToConsider, "measureNotToConsider");
+
+    
       if (measureNotToConsider.length === 0) {
         // when there is no measureId than read all rating measures with given key
         ratings_measures = await rantingsMeasuresService.readMany(keys, query);
