@@ -101,9 +101,7 @@
                     {{ $t("ratings_measure.achievement_heading") }}
                   </h3>
 
-                  <div class="prose">
-                    {{ item.achievement }}
-                  </div>
+                  <div class="prose has-long-links whitespace-pre-line" v-html="linkifyStr(item.achievement)" />
                 </div>
 
                 <div v-if="item.source">
@@ -111,9 +109,7 @@
                     {{ $t("ratings_measure.source_heading") }}
                   </h3>
 
-                  <div class="prose">
-                    {{ item.source }}
-                  </div>
+                  <div class="prose has-long-links whitespace-pre-line" v-html="linkifyStr(item.source)" />
                 </div>
               </div>
 
@@ -139,7 +135,7 @@
       </div>
 
       <div class="collapse-content px-2 md:px-4">
-        <div class="prose whitespace-pre-line">
+        <div class="prose has-long-links whitespace-pre-line">
           {{ $t("municipality.participate_body") }}
         </div>
       </div>
@@ -168,6 +164,7 @@
 <script setup>
 import lodash from "lodash";
 import sanitizeHtml from 'sanitize-html';
+import linkifyStr from 'linkify-string';
 const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingImages from "../shared/ratingImages.js";
