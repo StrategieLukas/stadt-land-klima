@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+.has-long-links a {
+  word-break: break-all;
+}
+
+.collapse-plus > .collapse-title::after {
+  font-size: 1.5rem;
+  line-height: 0.5rem;
+  right: 1rem;
+}
+
 @layer base {
   @font-face {
     font-family: "Inter";

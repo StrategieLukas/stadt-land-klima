@@ -15,19 +15,19 @@
 
     <!-- Accordion -->
     <!-- Municipality description -->
-    <div class="collapse collapse-plus rounded-sm p-2 shadow-list">
+    <div class="collapse collapse-plus rounded-sm p-2 px-0 md:px-2 shadow-list">
       <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
 
-      <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50" />
+      <div class="collapse-title px-2 md:px-4 flex items-end gap-4">
+        <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
         </h2>
       </div>
 
-      <div class="collapse-content">
-        <div class="prose" v-html="municipality.description"></div>
+      <div class="collapse-content px-2 md:px-4">
+        <div class="prose has-long-links" v-html="sanitizeHtml(municipality.description)"></div>
       </div>
     </div>
 
@@ -35,12 +35,12 @@
     <div
       v-for="(sectorRatings, sector) in sortedRatings"
       :key="sector"
-      class="collapse-plus collapse rounded-sm p-2 shadow-list"
+      class="collapse-plus collapse rounded-sm p-2 px-0 md:px-2 shadow-list"
     >
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
-      <div class="collapse-title flex items-start gap-4">
-        <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50" />
+      <div class="collapse-title px-2 md:px-4 flex items-start gap-4">
+        <img :src="sectorImages[sector]" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
 
         <div class="grow">
           <h2 class="mb-2 font-heading text-h2 leading-none text-green">
@@ -50,7 +50,7 @@
         </div>
       </div>
 
-      <div class="collapse-content">
+      <div class="collapse-content px-2 md:px-4">
         <h3 class="mb-2 font-heading text-h2 text-black">
           {{ $t("measure_sector.measures_in_detail") }}
         </h3>
@@ -73,17 +73,17 @@
             <div class="collapse-plus collapse">
               <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off" />
 
-              <div class="collapse-title flex items-center justify-stretch gap-3 p-3">
+              <div class="collapse-title px-2 md:px-4 pr-6 flex items-center justify-stretch gap-3 p-3">
                 <div class="shrink-0">
                   <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
                 </div>
 
-                <div class="grow text-sm">
+                <div class="grow font-bold">
                   {{ item.measure.name }}
                 </div>
               </div>
 
-              <div class="collapse-content bg-white">
+              <div class="collapse-content px-0 bg-white">
                 <MeasureDetails :measure=item.measure />
 
                 <div class="mb-8">
@@ -127,18 +127,18 @@
     </div>
 
     <!-- Participate -->
-    <div class="collapse-plus collapse rounded-sm p-2 shadow-list">
+    <div class="collapse-plus collapse rounded-sm p-2 px-0 md:px-2 shadow-list">
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
-      <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50" />
+      <div class="collapse-title px-2 md:px-4 flex items-end gap-4">
+        <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.participate_heading") }}
         </h2>
       </div>
 
-      <div class="collapse-content">
+      <div class="collapse-content px-2 md:px-4">
         <div class="prose whitespace-pre-line">
           {{ $t("municipality.participate_body") }}
         </div>
@@ -146,18 +146,18 @@
     </div>
 
     <!-- Data collection -->
-    <div class="collapse-plus collapse rounded-sm p-2 shadow-list">
+    <div class="collapse-plus collapse rounded-sm p-2 px-0 md:px-2 shadow-list">
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
-      <div class="collapse-title flex items-end gap-4">
-        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50" />
+      <div class="collapse-title px-2 md:px-4 flex items-end gap-4">
+        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.data_collection_heading") }}
         </h2>
       </div>
 
-      <div class="collapse-content">
+      <div class="collapse-content px-2 md:px-4">
         <div class="prose whitespace-pre-line">
           {{ $t("municipality.data_collection_body") }}
         </div>
@@ -167,6 +167,7 @@
 </template>
 <script setup>
 import lodash from "lodash";
+import sanitizeHtml from 'sanitize-html';
 const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingImages from "../shared/ratingImages.js";

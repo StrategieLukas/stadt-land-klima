@@ -1,6 +1,6 @@
 <template>
-  <figure class="m-0 flex w-18 flex-col items-center">
-    <img :src="icon" class="h-auto w-18 opacity-50" />
+  <figure class="m-0 flex w-12 md:w-14 lg:w-18 flex-col items-center">
+    <img :src="icon" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
     <figcaption class="-mt-2 w-full">
       <div class="flex h-10 flex-row items-end gap-x-1">
         <div

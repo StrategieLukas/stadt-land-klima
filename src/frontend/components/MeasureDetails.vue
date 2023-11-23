@@ -4,15 +4,15 @@
     {{ $t("measure.description_about_heading") }}
   </h3>
 
-  <div class="mb-2 flex flex-col items-start gap-4 xs:flex-row">
+  <div class="mb-2 flex flex-row items-start gap-4">
     <figure class="mt-0 flex flex-col shrink-0">
-      <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-18 opacity-50" />
+      <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
       <figcaption class="mt-0 text-center">
         {{ $t("measure.description_about_icon_caption") }}
       </figcaption>
     </figure>
 
-    <div class="prose" v-html="measure.description_about" />
+    <div class="prose has-long-links" v-html="sanitizeHtml(measure.description_about)" />
   </div>
 </div>
 
@@ -21,15 +21,15 @@
     {{ $t("measure.evaluation_criteria_heading") }}
   </h3>
 
-  <div class="mb-2 flex flex-col items-start gap-4 xs:flex-row">
+  <div class="mb-2 flex flex-row items-start gap-4">
     <figure class="mt-0 flex flex-col shrink-0">
-      <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-18 opacity-50" />
+      <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
       <figcaption class="mt-0 text-center">
         {{ $t("measure.evaluation_criteria_icon_caption") }}
       </figcaption>
     </figure>
 
-    <div class="prose" v-html="measure.description_evaluation_criteria" />
+    <div class="prose has-long-links" v-html="measure.description_evaluation_criteria" />
   </div>
 </div>
 
@@ -38,7 +38,7 @@
     {{ $t("measure.feasibility_heading") }}
   </h3>
 
-  <div class="grid grid-cols-2 justify-between gap-4 xs:grid-cols-3 max-w-md">
+  <div class="grid grid-cols-3 justify-between gap-4 max-w-md">
     <FeasibilityBarChart
       key="impact"
       class="xs:mr-auto"
@@ -67,6 +67,7 @@
 </template>
 <script setup>
 import { defineProps } from "vue";
+import sanitizeHtml from 'sanitize-html';
 const { $t, $locale } = useNuxtApp();
 const props = defineProps({
   measure: {
