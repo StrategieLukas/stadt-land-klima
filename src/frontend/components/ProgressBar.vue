@@ -1,5 +1,5 @@
 <template lang="">
-  <div>
+  <div class="flex flex-col">
     <div
       :class="['relative w-full border', colorClass.border, layout === 'compact' ? 'h-4 rounded-sm' : 'h-8 rounded-md']"
     >
@@ -21,6 +21,7 @@
         </div>
       </div>
     </div>
+    <div class="ml-auto text-sm">100</div>
   </div>
 </template>
 <script setup>
