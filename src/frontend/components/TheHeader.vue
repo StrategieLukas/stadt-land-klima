@@ -32,7 +32,7 @@
           <label tabindex="0"></label>
           <ul tabindex="0" class="menu dropdown-content rounded-box z-50 w-full bg-base-100 p-2 shadow">
             <li v-for="suggestion in suggestions">
-              <NuxtLink :to="suggestion.url" @click="handleSuggestionClick()">
+              <NuxtLink :to="suggestion.url" @click="handleSuggestionClick">
                 {{ suggestion.label }}
               </NuxtLink>
             </li>
@@ -67,8 +67,9 @@ function handleSearchBlur() {
   }, 100);
 }
 
-function handleSuggestionClick() {
+function handleSuggestionClick(event) {
   q.value = "";
+  return false;
 }
 
 function handleResetSearchClick() {
