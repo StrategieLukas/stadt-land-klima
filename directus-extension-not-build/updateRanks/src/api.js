@@ -3,26 +3,30 @@ export default {
   handler: ({}, { database, logger }) => {
     database
       .raw(
-        "WITH RankedScores AS ( \
-			SELECT \
-			id, \
-			DENSE_RANK() OVER (ORDER BY score_total DESC) AS place \
-			FROM \
-			public.municipalities \
-			WHERE status='published' \
-		) \
-		\
-			UPDATE public.municipalities AS t \
-			SET place = ( \
-				CASE \
-					WHEN t.status = 'published' THEN ( \
-						SELECT r.place \
-						FROM RankedScores r \
-						WHERE t.id = r.id \
+		"BEGIN; \
+		SELECT  FROM public.municipalities  \
+					ORDER BY id \
+					FOR UPDATE; \
+				WITH RankedScores AS ( \
+						SELECT \
+						id, \
+						DENSE_RANK() OVER (ORDER BY score_total DESC) AS place \
+						FROM \
+						public.municipalities \
+						WHERE status='published' \
 					) \
-					ELSE -1 \
-				END \
-			); \
+				UPDATE public.municipalities AS m \
+						SET place = ( \
+							CASE \
+								WHEN m.status = 'published' THEN ( \
+									SELECT r.place \
+									FROM RankedScores r \
+									WHERE m.id = r.id \
+								) \
+								ELSE -1 \
+							END \
+						); \
+				COMMIT;\
 		",
       )
       .then((results) => {
