@@ -131,7 +131,7 @@ meta:
               		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
               </g>
 
-              <path class="st3" d="M5,22v-5.8h25.5V22H5z"/>
+              <path class="st3" d="M15.6,30.4H9.3L19.8,7.7h6.3L15.6,30.4z"/>
 
               </svg>
           - text: $t:measure_rating.choices.green
@@ -321,7 +321,7 @@ meta:
               		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
               </g>
 
-              <path class="st3" d="M5,22v-5.8h25.5V22H5z"/>
+              <path class="st3" d="M15.6,30.4H9.3L19.8,7.7h6.3L15.6,30.4z"/>
 
               </svg>
           - text: $t:measure_rating.choices.light_green
