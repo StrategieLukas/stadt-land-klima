@@ -37,9 +37,9 @@ meta:
 schema:
   name: menus
   table: pages
-  data_type: character varying
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
