@@ -1,0 +1,47 @@
+name: updatePopulation
+icon: bolt
+color: null
+description: automatically set the municipality's type (i.e. Kleinstadt) when
+  its population is set
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - municipalities
+operations:
+  - name: Update Municipality Category
+    key: update_municipality_category
+    type: item-update
+    position_x: 41
+    position_y: 1
+    options:
+      collection: municipalities
+      payload:
+        municipality_type: "{{$last.type}}"
+      query:
+        filter:
+          id:
+            _eq: "{{$trigger.keys[0]}}"
+  - name: Determine city type
+    key: determine_city_type
+    type: exec
+    position_x: 19
+    position_y: 1
+    options:
+      code: |-
+        module.exports = async function(data) {
+        	if(data.$trigger.payload.population >= 100000) {
+                return {"type": "Großstadt"};
+            } else if(data.$trigger.payload.population > 20000) {
+                return {"type": "Mittelstadt"};
+            } else {
+                return {"type": "Kleinstadt"};
+            }
+        	
+        }
+    resolve_key: update_municipality_category
+operation_key: determine_city_type
