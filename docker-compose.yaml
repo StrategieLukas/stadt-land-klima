@@ -5,9 +5,11 @@ services:
     env_file: ./docker/db/.env
 #    volumes:
 #      - ./docker/data/db:/var/lib/postgresql/data
+    volumes:
+      - ./docker/db/health-check.sh:/bin/health-check.sh
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h db -U directus"] #TODO
-      interval: 5s
+      test: ["CMD", "health-check.sh"]
+      interval: 3s
       timeout: 5s
       retries: 10
 
