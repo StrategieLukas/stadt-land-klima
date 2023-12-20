@@ -3,9 +3,8 @@ services:
   db:
     image: postgis/postgis:13-3.1-alpine
     env_file: ./docker/db/.env
-#    volumes:
-#      - ./docker/data/db:/var/lib/postgresql/data
     volumes:
+      - ./docker/data/db:/var/lib/postgresql/data
       - ./docker/db/health-check.sh:/bin/health-check.sh
     healthcheck:
       test: ["CMD", "health-check.sh"]
