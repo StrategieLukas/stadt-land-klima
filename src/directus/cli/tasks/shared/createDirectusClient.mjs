@@ -5,7 +5,7 @@ import { staticToken } from '@directus/sdk/auth';
 
 dotenv.config();
 
-const directusUrl = process.env.FRONTEND_DIRECTUS_URL || 'http://directus:8055';
+export const directusUrl = process.env.FRONTEND_DIRECTUS_URL || 'http://directus:8055';
 const token = process.env.CLI_DIRECTUS_STATIC_TOKEN;
 
 function createDirectusClient() {
