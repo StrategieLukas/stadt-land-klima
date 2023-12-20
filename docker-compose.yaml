@@ -3,11 +3,21 @@ services:
   db:
     image: postgis/postgis:13-3.1-alpine
     env_file: ./docker/db/.env
-    volumes:
-      - ./docker/data/db:/var/lib/postgresql/data
+#    volumes:
+#      - ./docker/data/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h db -U directus"] #TODO
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   cache:
     image: redis:6
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   directus:
     build: ./docker/directus
@@ -26,8 +36,10 @@ services:
       - ./src/directus/cli/:/directus/cli
       - ./src/directus/.env/:/directus/.env
     depends_on:
-    - cache
-    - db
+      cache:
+        condition: service_healthy
+      db:
+        condition: service_healthy
 
   frontend:
     build: ./docker/frontend
