@@ -18,7 +18,8 @@ export default function authTasks(yargs) {
       'auth:test',
       'Test if this tool can authenticate with Directus',
       async () => await checkAuth()
-    );
+    )
+    .completion('completion');
 }
 
 async function checkAuth() {
