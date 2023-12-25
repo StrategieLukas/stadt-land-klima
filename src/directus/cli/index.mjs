@@ -7,6 +7,7 @@ import importTasks from './tasks/import/index.mjs';
 import authTasks from "./tasks/authTasks.mjs";
 
 const _yargs = yargs(hideBin(process.argv));
+_yargs.strict();
 exportTasks(_yargs);
 importTasks(_yargs);
 authTasks(_yargs);
