@@ -1,6 +1,6 @@
 {
 	"name": "directus-extension-set-municipality-type",
-	"description": "Please enter a description for your extension",
+	"description": "Automatically set municipality type when population is set",
 	"icon": "extension",
 	"version": "1.0.0",
 	"keywords": [
