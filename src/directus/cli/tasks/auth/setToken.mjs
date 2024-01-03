@@ -2,39 +2,11 @@ import {authentication, createDirectus, readMe, rest, updateMe, staticToken} fro
 import dotenv from 'dotenv';
 import fs from 'fs';
 import crypto from 'crypto';
-import createDirectusClient, {directusUrl} from "./shared/createDirectusClient.mjs";
+import directusUrl from "../shared/createDirectusClient.mjs";
 
 const envFile = '.env';
 
-export default function authTasks(yargs) {
-  return yargs
-    .command(
-      'auth:set-token',
-      'Generate a new static token and set it in Directus and .env',
-      async () => await setStaticToken()
-    )
-
-    .command(
-      'auth:test',
-      'Test if this tool can authenticate with Directus',
-      async () => await checkAuth()
-    );
-}
-
-async function checkAuth() {
-  try {
-    const directus = createDirectusClient();
-    await directus.request(readMe());
-    console.log('\x1b[32m%s\x1b[0m', 'Success!');
-
-  } catch (error) {
-    console.log(error);
-    process.exit(1);
-  }
-
-}
-
-async function setStaticToken() {
+export async function setStaticToken() {
   try {
     dotenv.config({path: envFile});
     const directus = createDirectus(directusUrl).with(authentication()).with(rest());
