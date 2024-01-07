@@ -4,7 +4,7 @@
       <h1 class="text-rating-0">
         Dies ist eine Test Version
         <br />
-        Bitte <a href="mailto:info@stadt-land-klima.de">schreibt</a> uns an falls ihr Fehler entdeckt :)
+        Bitte <a class="underline" href="mailto:info@stadt-land-klima.de">schreibt</a> uns an falls ihr Fehler entdeckt :)
       </h1>
     </div>
   </div>
