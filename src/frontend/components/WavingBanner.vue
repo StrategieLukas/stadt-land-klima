@@ -2,9 +2,9 @@
   <div class="w-full px-2">
     <div class="banner mb-3 w-full rounded border-2 border-double border-rating-0 text-center" ref="banner">
       <h1 class="text-rating-0">
-        Dies ist eine Test Version
+        Dies ist eine Test Version.
         <br />
-        Bitte schreibt uns an falls ihr Fehler entdeckt :)
+        Bitte <a class="underline" href="mailto:info@stadt-land-klima.de">schreibt</a> uns an, falls ihr Fehler entdeckt. :)
       </h1>
     </div>
   </div>
