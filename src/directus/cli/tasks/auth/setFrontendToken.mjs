@@ -24,9 +24,10 @@ export async function setFrontendToken() {
     console.log("Creating the frontend user...")
     await directus.request(
       createUser({
+        first_name: 'Frontend',
         email: 'frontend@example.com',
         token: 'frontend-dev-token',
-        role: roles[0].uuid
+        role: roles[0].id
       }));
 
     console.log('\x1b[32m%s\x1b[0m', 'Success!');
