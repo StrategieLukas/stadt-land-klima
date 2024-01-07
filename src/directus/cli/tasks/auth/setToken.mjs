@@ -37,6 +37,7 @@ export async function setStaticToken() {
     console.log(error);
     process.exit(1);
   }
-  console.log('\x1b[32m%s\x1b[0m', 'Success!');
+  console.log('\x1b[32m%s\x1b[0m', 'Success! Please run:');
+  console.log('\x1b[32m%s\x1b[0m', '    source .env');
   process.exit(0);
 }
