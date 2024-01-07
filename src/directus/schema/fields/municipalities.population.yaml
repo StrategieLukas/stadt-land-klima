@@ -19,8 +19,13 @@ meta:
   translations:
     - language: de-DE
       translation: Einwohnerzahl
-  validation: null
-  validation_message: null
+  validation:
+    _and:
+      - population:
+          _gt: "0"
+      - population:
+          _lt: "5000000"
+  validation_message: Die Einwohnerzahl der Stadt ist definitiv nicht gültig
   width: half
 schema:
   name: population
