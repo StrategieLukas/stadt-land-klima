@@ -25,9 +25,12 @@ https://www.figma.com/file/xOUA8jmhBBreYvmZRdlFSn/Klima2035-mobile?type=design&n
 
 ## Preparations
 
-- copy `docker/db/.env.example` to `docker/db/.env` and adjust to your needs
-- copy `src/directus/.env.example` to `src/directus/.env` and adjust to your needs
-- copy `src/frontend/.env.example` to `src/frontend/.env` and adjust to your needs
+Copy example env-files and adjust to your needs
+```
+cp docker/db/.env.example docker/db/.env
+cp src/directus/.env.example src/directus/.env
+cp src/frontend/.env.example src/frontend/.env
+```
 
 ## Start in development
 
@@ -82,3 +85,13 @@ then within the directus container:
 ```
 $ ./directus-cli --help
 ```
+
+For the cli tool to access directus it needs a static token for authentication.
+Create one via the directus web interface or use the following command:
+
+```
+$ ./directus-cli auth:set-token
+```
+
+This will create a token in directus and save it to the .env file.
+You might have to reload the .env file in the containers shell. (e.g. with `source .env`)
