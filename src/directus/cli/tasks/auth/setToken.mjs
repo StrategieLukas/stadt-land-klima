@@ -2,7 +2,7 @@ import {authentication, createDirectus, readMe, rest, updateMe, staticToken} fro
 import dotenv from 'dotenv';
 import fs from 'fs';
 import crypto from 'crypto';
-import directusUrl from "../shared/createDirectusClient.mjs";
+import {directusUrl} from "../shared/createDirectusClient.mjs";
 
 const envFile = '.env';
 
