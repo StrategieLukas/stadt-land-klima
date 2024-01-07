@@ -35,6 +35,7 @@ services:
       - ./src/directus/settings/:/directus/settings
       - ./src/directus/contents/:/directus/contents
       - ./src/directus/cli/:/directus/cli
+      - ./src/directus/cli/bash-completion.sh:/home/node/.bashrc
       - ./src/directus/.env/:/directus/.env
     depends_on:
       cache:
