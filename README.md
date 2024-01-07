@@ -82,3 +82,13 @@ then within the directus container:
 ```
 $ ./directus-cli --help
 ```
+
+For the cli tool to access directus it needs a static token for authentication.
+Create one via the directus web interface or use the following command:
+
+```
+$ ./directus-cli auth:set-token
+```
+
+This will create a token in directus and save it to the .env file.
+You might have to reload the .env file in the containers shell. (e.g. with `source .env`)
