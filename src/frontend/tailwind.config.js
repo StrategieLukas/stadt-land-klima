@@ -14,8 +14,8 @@ module.exports = {
         xs: "420px",
       },
       fontFamily: {
-        sans: "Inter, sans",
-        heading: "RobotoCondensed, sans",
+        sans: "Inter",
+        heading: "RobotoCondensed",
       },
       colors: {
         "ranking-0-2": "#D9000D",
