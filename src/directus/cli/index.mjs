@@ -12,3 +12,4 @@ exportTasks(_yargs);
 importTasks(_yargs);
 authTasks(_yargs);
 _yargs.parse();
+_yargs.completion();
