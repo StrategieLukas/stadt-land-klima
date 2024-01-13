@@ -24,14 +24,41 @@ https://www.figma.com/file/xOUA8jmhBBreYvmZRdlFSn/Klima2035-mobile?type=design&n
 
 
 ## Preparations
-
-Copy example env-files and adjust to your needs
+0. On Windows install Ubunut on Virtual Machine:
+1. Install Docker for your machine(https://docs.docker.com/engine/install/, https://docs.docker.com/desktop/)
+2. Clone this repo into your desired folder
+3. Copy example env-files and adjust to your needs:
 ```
+cd stadt-land-klima/
 cp docker/db/.env.example docker/db/.env
 cp src/directus/.env.example src/directus/.env
 cp src/frontend/.env.example src/frontend/.env
 ```
 
+## Installation: 
+Docker needs to be running  
+Give Permission to folder to write files and also subfolder: This is not optimal! 
+```
+$ cd stadt-land-klima/
+$ cd bin
+$ ./start_development.sh
+```
+This may take some time.
+When finished and started check http://localhost:8081 if directus started correctly. 
+In a new Terminal run :
+```
+$ cd stadt-land-klima/
+$ cd bin
+$ ./directus_bash.sh 
+$ ./directus-cli auth:set-token
+$ source .env
+$ cli/import-all.sh
+$ cli/import-all.sh
+$ ./directus-cli auth:set-frontend-token 
+```
+Import all needs to run tiwce otherwise permission for the roles don't get apllied.
+Now open http://localhost:8081 in your browser and login with the credentials provided in the .env file.
+To see the frontend open http://localhost:8080.
 ## Start in development
 
 ```
