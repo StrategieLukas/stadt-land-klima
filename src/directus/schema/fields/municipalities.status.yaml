@@ -31,7 +31,7 @@ meta:
         value: published
       - text: $t:draft
         value: draft
-  readonly: false
+  readonly: true
   required: false
   sort: 1
   special: null

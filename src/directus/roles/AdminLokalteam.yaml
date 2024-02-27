@@ -107,6 +107,10 @@ permissions:
       - id
       - place
       - description
+      - links-g1sxxi
+      - percantage_rated
+      - slug
+      - notice-kcc40f
   - collection: municipalities
     action: update
     permissions:

@@ -1,0 +1,25 @@
+collection: municipalities
+field: notice-kcc40f
+type: alias
+meta:
+  collection: municipalities
+  conditions: null
+  display: null
+  display_options: null
+  field: notice-kcc40f
+  group: null
+  hidden: false
+  interface: presentation-notice
+  note: null
+  options:
+    text: $t:municipalities.preview_explanation
+  readonly: false
+  required: false
+  sort: 15
+  special:
+    - alias
+    - no-data
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
