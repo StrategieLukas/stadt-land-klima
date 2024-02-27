@@ -1,5 +1,5 @@
 <template lang="">
-  <div class="fixed right-0 top-0 flex-none z-10">
+  <div class="fixed right-0 top-0 z-10 flex-none">
     <label
       id="page-drawer-toggle"
       for="page-drawer"

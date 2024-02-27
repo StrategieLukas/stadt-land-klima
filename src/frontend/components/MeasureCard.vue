@@ -6,9 +6,9 @@
       </h2>
 
       <div class="divide-y-2 divide-light-blue">
-        <MeasureDetails :measure=measure />
+        <MeasureDetails :measure="measure" />
 
-        <MeasureDescriptions :measure=measure />
+        <MeasureDescriptions :measure="measure" />
       </div>
       <p class="text-center">
         {{ $t("last_updated_at") + lastUpdatedAtStr }}

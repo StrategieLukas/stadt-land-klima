@@ -19,7 +19,7 @@ const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", () => {
 const page = pagesWithSlug.value[0] || null;
 
 //MetaTags
-const title = page ? ref(page.name) : $t('page_not_found');
+const title = page ? ref(page.name) : $t("page_not_found");
 
 useHead({
   title,

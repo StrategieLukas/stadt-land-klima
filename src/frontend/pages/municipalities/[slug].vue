@@ -1,9 +1,9 @@
 <template>
   <div>
     <waving-banner v-if="directusData.municipalities[0].status === 'draft'">
-      {{$t("municipalities.preview_text")}}
-      </waving-banner>
-    <NuxtLink :to="`/municipalities`" class="text-light-blue font-heading text-h4">
+      {{ $t("municipalities.preview_text") }}
+    </waving-banner>
+    <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
     <article class="mb-8 mt-10">
@@ -12,7 +12,7 @@
         :sorted-ratings="sortMeasuresBySectorDict"
       ></detail-municipality>
     </article>
-    <NuxtLink :to="`/municipalities`" class="text-light-blue font-heading text-h4">
+    <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
   </div>

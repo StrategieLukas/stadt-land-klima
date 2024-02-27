@@ -7,8 +7,9 @@
         <the-header></the-header>
         <waving-banner>
           Dies ist eine Test Version.
-        <br />
-        Bitte <a class="underline" href="mailto:info@stadt-land-klima.de">schreibt</a> uns an, falls ihr Fehler entdeckt. :)
+          <br />
+          Bitte <a class="underline" href="mailto:info@stadt-land-klima.de">schreibt</a> uns an, falls ihr Fehler
+          entdeckt. :)
         </waving-banner>
         <main class="flex grow flex-col bg-white px-2 py-4">
           <div class="mx-auto w-full max-w-screen-xl">
@@ -52,13 +53,15 @@ useHead({
       content: description,
     },
   ],
-  link: [{ rel: 'icon', type: 'image/png', href: '/favicon.png' }],
+  link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
   script: [
-    $appEnv === 'production' ? {
-      defer: true,
-      'data-domain': 'stadt-land-klima.de',
-      src: 'https://plausible.anzui.dev/js/script.js',
-    } : {},
+    $appEnv === "production"
+      ? {
+          defer: true,
+          "data-domain": "stadt-land-klima.de",
+          src: "https://plausible.anzui.dev/js/script.js",
+        }
+      : {},
   ],
 });
 //

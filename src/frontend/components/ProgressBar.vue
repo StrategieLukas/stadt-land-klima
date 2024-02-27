@@ -12,9 +12,9 @@
         :style="{ width: width + '%' }"
       >
         <div
-          class="mr-1 font-heading font-bold relative"
+          class="relative mr-1 font-heading font-bold"
           :class="[
-            layout === 'compact' ? colorClass.text_compact + ' text-sm top-0.25' : colorClass.text_default + ' text-xl',
+            layout === 'compact' ? colorClass.text_compact + ' top-0.25 text-sm' : colorClass.text_default + ' text-xl',
           ]"
         >
           {{ scoreTotal }}
@@ -40,8 +40,18 @@ const props = defineProps({
   },
 });
 const colors = {
-  0: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text_default: "text-black left-9", text_compact: "text-black left-5" },
-  5: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text_default: "text-black sm:text-white left-11 sm:left-0", text_compact: "text-black sm:text-white left-7 sm:left-0" },
+  0: {
+    bg: "bg-ranking-0-2",
+    border: "border-ranking-0-2",
+    text_default: "text-black left-9",
+    text_compact: "text-black left-5",
+  },
+  5: {
+    bg: "bg-ranking-0-2",
+    border: "border-ranking-0-2",
+    text_default: "text-black sm:text-white left-11 sm:left-0",
+    text_compact: "text-black sm:text-white left-7 sm:left-0",
+  },
   15: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text_default: "text-white", text_compact: "text-white" },
   20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text_default: "text-white", text_compact: "text-white" },
   40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text_default: "text-black", text_compact: "text-black" },

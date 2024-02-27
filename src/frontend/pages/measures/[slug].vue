@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NuxtLink :to="`/measures/sectors/${measure.sector}`" class="text-light-blue font-heading text-h4">
+    <NuxtLink :to="`/measures/sectors/${measure.sector}`" class="font-heading text-h4 text-light-blue">
       {{ $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) }}
     </NuxtLink>
 
