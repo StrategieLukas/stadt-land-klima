@@ -20,7 +20,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Pronzentzahl der bewerteten Masßnahmen
+      translation: Pronzentzahl der bewerteten Maßnahmen
   validation: null
   validation_message: null
   width: full
