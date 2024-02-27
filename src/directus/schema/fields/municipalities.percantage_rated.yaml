@@ -1,39 +1,37 @@
-collection: measures
-field: weight
-type: integer
+collection: municipalities
+field: percantage_rated
+type: decimal
 meta:
-  collection: measures
+  collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: weight
+  field: percantage_rated
   group: null
   hidden: false
   interface: input
   note: null
   options:
-    max: 100
-  readonly: false
-  required: true
-  sort: 11
+    placeholder: null
+    step: null
+  readonly: true
+  required: false
+  sort: 13
   special: null
   translations:
     - language: de-DE
-      translation: Gewichtung
-  validation:
-    _and:
-      - weight:
-          _gt: "0"
+      translation: Pronzentzahl der bewerteten Masßnahmen
+  validation: null
   validation_message: null
   width: full
 schema:
-  name: weight
-  table: measures
-  data_type: integer
+  name: percantage_rated
+  table: municipalities
+  data_type: numeric
   default_value: null
   max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  numeric_precision: 10
+  numeric_scale: 2
   is_nullable: true
   is_unique: false
   is_primary_key: false
