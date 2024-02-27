@@ -1,5 +1,8 @@
 <template>
   <div>
+    <waving-banner v-if="directusData.municipalities[0].status === 'draft'">
+      {{$t("municipalities.preview_text")}}
+      </waving-banner>
     <NuxtLink :to="`/municipalities`" class="text-light-blue font-heading text-h4">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>

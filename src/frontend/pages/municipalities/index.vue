@@ -34,6 +34,11 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
       fields: ["slug", "name", "score_total", "place", "state", "date_updated"],
       sort: "-score_total",
       limit: -1,
+      filter: {
+        status: {
+          _eq: "published",
+        },
+      },
     }),
   );
 });
