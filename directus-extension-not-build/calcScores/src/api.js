@@ -8,7 +8,7 @@ export default {
       const { ItemsService } = services;
       const schema = await getSchema();
       let maxScore = 100;
-      let percantageRatedForPublish = 95;
+      let percentageRatedForPublish = 95;
       // logger.info(accountability, "accountability");
       //logger.info(keys, "keys");
       accountability.admin = true;
@@ -180,12 +180,12 @@ export default {
         /* logger.info(scoreDict, "scoreDict"); */
         let scoresToPush = {};
 
-        //calculate the scores and percantage_rated
+        //calculate the scores and percentage_rated
         for (const key in scoreDict) {
           if (scoreDict.hasOwnProperty(key)) {
             if (scoreDict[key]["denominator"] > 0) {
               if (key === "numberOfRated") {
-                scoresToPush["percantage_rated"] =
+                scoresToPush["percentage_rated"] =
                   (scoreDict[key]["numerator"] /
                     scoreDict[key]["denominator"]) *
                   maxScore;
@@ -197,7 +197,7 @@ export default {
               }
             } else {
               if (key === "numberOfRated") {
-                scoresToPush["percantage_rated"] = 0;
+                scoresToPush["percentage_rated"] = 0;
               } else {
                 scoresToPush["score_" + key] = 0;
               }
@@ -205,8 +205,8 @@ export default {
           }
         }
 
-        //Update the status to published if more than percantageRatedForPublish are published
-        if (scoresToPush["percantage_rated"] >= percantageRatedForPublish) {
+        //Update the status to published if more than percentageRatedForPublish are published
+        if (scoresToPush["percentage_rated"] >= percentageRatedForPublish) {
           scoresToPush["status"] = "published";
         } else {
           scoresToPush["status"] = "draft";
