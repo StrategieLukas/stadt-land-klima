@@ -6,37 +6,6 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - collection: bewertungen_massnahmen
-    action: read
-    permissions:
-      _and:
-        - lokalteam_id:
-            _in:
-              - $CURRENT_USER.lokalteams.lokalteam_id
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: lokalteam
-    action: read
-    permissions:
-      _and:
-        - id:
-            _in:
-              - $CURRENT_USER.lokalteams.lokalteam_id
-    validation: {}
-    presets: null
-    fields:
-      - id
-      - status
-      - sort
-      - name
-      - slug
-      - admin_id
-      - user_updated
-      - date_created
-      - user_created
-      - date_updated
   - collection: ratings_measures
     action: read
     permissions:
@@ -158,6 +127,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - slug
   - collection: directus_users
     action: read
     permissions:
