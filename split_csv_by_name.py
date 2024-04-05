@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import sys
-
+import numpy as np
 if len(sys.argv) > 1:
     inFile = sys.argv[1]
 else:
@@ -12,7 +12,16 @@ else:
 
 def split_csv_by_column(csv_file, column_id):
     df = pd.read_csv(csv_file)
+    mapping = {
+        0: 'rot',
+        0.3333: 'gelb',
+        0.6666: 'hell grün',
+        1: 'grün',
+        np.nan: 'nicht bewertet',
+    }
 
+# Replace values according to the mapping
+    df['rating'] = df['rating'].replace(mapping)
     groups = df.groupby(column_id)
 
     output_folder = f"ratings_for_each_municipality"
@@ -24,5 +33,5 @@ def split_csv_by_column(csv_file, column_id):
         print(f"Saved '{group_name}' to '{file_name}'")
 
 csv_file = inFile
-column_id = "localteam_id.municipality_name"  
+column_id = "localteam_id.municipality_name"
 split_csv_by_column(csv_file, column_id)
