@@ -15,7 +15,7 @@ def split_csv_by_column(csv_file, column_id):
     mapping = {
         0: 'rot',
         0.3333: 'gelb',
-        0.6666: 'hell grün',
+        0.6666: 'hellgrün',
         1: 'grün',
         np.nan: 'nicht bewertet',
     }
