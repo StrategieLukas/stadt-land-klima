@@ -76,6 +76,8 @@ permissions:
       - place
       - description
       - status
+      - links-g1sxxi
+      - slug
   - collection: municipalities
     action: update
     permissions:
