@@ -8,6 +8,7 @@ export default {
       const { ItemsService } = services;
       const schema = await getSchema();
       let maxScore = 100;
+      let percentageRatedForPublish = 95;
       // logger.info(accountability, "accountability");
       //logger.info(keys, "keys");
       accountability.admin = true;
@@ -26,20 +27,19 @@ export default {
       let query = {
         limit: -1,
       };
-      // better to give measure id with and than only get the one measure, or read it by taking the 
+      // better to give measure id with and than only get the one measure, or read it by taking the
       // ratings_measures and the corresponding measures
       const measures = await measuresService.readByQuery(query);
       let ratings_measures;
-      let measureNotToConsider;
+      let measureNotToConsiderForCalc;
       if (measureIds === null || typeof measureIds === "undefined") {
-        measureNotToConsider = [];
+        measureNotToConsiderForCalc = [];
       } else {
-        measureNotToConsider = measureIds;
+        measureNotToConsiderForCalc = measureIds;
       }
-      //logger.info(measureNotToConsider, "measureNotToConsider");
+      //logger.info(measureNotToConsiderForCalc, "measureNotToConsiderForCalc");
 
-    
-      if (measureNotToConsider.length === 0) {
+      if (measureNotToConsiderForCalc.length === 0) {
         // when there is no measureId than read all rating measures with given key
         ratings_measures = await rantingsMeasuresService.readMany(keys, query);
         const municipalitiesToRead = Object.values(ratings_measures).map(
@@ -64,20 +64,24 @@ export default {
 
       // logger.info(municipalitiesToRead, "municipalitiesToRead");
 
+      //Reads all the municipalities which were in the updated ratings or all
       const municipalities = await municipalitiesService.readByQuery(query);
       // logger.info(municipalities, "municipalities");
       // logger.info(municipalities[0], "municipalities0");
       for (const municipality of municipalities) {
+        //Dict for Calculating the scores
         const scoreDict = {};
 
-        if (measureNotToConsider.length === 0) {
-          ratings_measures.forEach((item1) => {
-            if (item1.localteam_id === municipality.localteam_id) {
-              const item2 = measures.find(
-                (item2) => item2.id === item1.measure_id,
+        if (measureNotToConsiderForCalc.length === 0) {
+          //Add all Sectors which are present in ratings_measures to the scoreDict
+          ratings_measures.forEach((rating) => {
+            if (rating.localteam_id === municipality.localteam_id) {
+              //Find the the sector for the rating
+              const measureForSector = measures.find(
+                (measureTemp) => measureTemp.id === rating.measure_id,
               );
-              if (item2 !== undefined) {
-                scoreDict[item2.sector] = {
+              if (measureForSector !== undefined) {
+                scoreDict[measureForSector.sector] = {
                   denominator: 0,
                   numerator: 0,
                 };
@@ -85,9 +89,10 @@ export default {
             }
           });
         } else {
-          measures.forEach(function (item) {
-            if (measureNotToConsider.includes(item.id)) {
-              scoreDict[item.sector] = {
+          //Sets the measure we dont want to consider
+          measures.forEach(function (measureTemp) {
+            if (measureNotToConsiderForCalc.includes(measureTemp.id)) {
+              scoreDict[measureTemp.sector] = {
                 denominator: 0,
                 numerator: 0,
               };
@@ -95,6 +100,11 @@ export default {
           });
         }
         scoreDict["total"] = {
+          denominator: 0,
+          numerator: 0,
+        };
+        //The number of rated measures(numerator) and total measures(denominator)
+        scoreDict["numberOfRated"] = {
           denominator: 0,
           numerator: 0,
         };
@@ -111,10 +121,12 @@ export default {
             ],
           },
         };
-
+        //All Ratings for the municipality
         const allRatingsMeasures =
           await rantingsMeasuresService.readByQuery(query);
         /* logger.info(allRatingsMeasures, "allRatingsMeasures"); */
+
+        //Map the information from the measures to the ratings, for each measure there is always one rating even if its not rated yet
         let ratingsMeasureDetail = allRatingsMeasures.map((item1) => {
           const item2 = measures.find((item2) => item2.id === item1.measure_id);
           if (
@@ -149,14 +161,16 @@ export default {
           if (
             applicable &&
             measureStatus === "published" &&
-            !measureNotToConsider.includes(measure_id)
+            !measureNotToConsiderForCalc.includes(measure_id)
           ) {
             scoreDict["total"]["denominator"] += weight; //max value needs update
+            scoreDict["numberOfRated"]["denominator"] += 1;
             if (scoreDict[sector]) {
               scoreDict[sector]["denominator"] += weight;
             }
             if (approved && status === "published") {
               scoreDict["total"]["numerator"] += Number(rating) * weight;
+              scoreDict["numberOfRated"]["numerator"] += 1;
               if (scoreDict[sector]) {
                 scoreDict[sector]["numerator"] += Number(rating) * weight;
               }
@@ -165,21 +179,37 @@ export default {
         }
         /* logger.info(scoreDict, "scoreDict"); */
         let scoresToPush = {};
+
+        //calculate the scores and percentage_rated
         for (const key in scoreDict) {
           if (scoreDict.hasOwnProperty(key)) {
             if (scoreDict[key]["denominator"] > 0) {
-              scoresToPush["score_" + key] =
-                scoreDict[key]["numerator"] / scoreDict[key]["denominator"];
+              if (key === "numberOfRated") {
+                scoresToPush["percentage_rated"] =
+                  (scoreDict[key]["numerator"] /
+                    scoreDict[key]["denominator"]) *
+                  maxScore;
+              } else {
+                scoresToPush["score_" + key] =
+                  (scoreDict[key]["numerator"] /
+                    scoreDict[key]["denominator"]) *
+                  maxScore;
+              }
             } else {
-              scoresToPush["score_" + key] = 0;
-            }
-
-            if (key === "total") {
-              scoresToPush["score_" + key] *= maxScore;
-            } else {
-              scoresToPush["score_" + key] *= maxScore;
+              if (key === "numberOfRated") {
+                scoresToPush["percentage_rated"] = 0;
+              } else {
+                scoresToPush["score_" + key] = 0;
+              }
             }
           }
+        }
+
+        //Update the status to published if more than percentageRatedForPublish are published
+        if (scoresToPush["percentage_rated"] >= percentageRatedForPublish) {
+          scoresToPush["status"] = "published";
+        } else {
+          scoresToPush["status"] = "draft";
         }
         /* logger.info(scoresToPush, "scoresToPush"); */
         let result = await municipalitiesService.updateOne(

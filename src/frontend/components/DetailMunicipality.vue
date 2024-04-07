@@ -15,11 +15,11 @@
 
     <!-- Accordion -->
     <!-- Municipality description -->
-    <div class="collapse collapse-plus rounded-sm p-2 px-0 md:px-2 shadow-list">
+    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
 
-      <div class="collapse-title px-2 md:px-4 flex items-end gap-4">
-        <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
+      <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
+        <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
@@ -27,7 +27,7 @@
       </div>
 
       <div class="collapse-content px-2 md:px-4">
-        <div class="prose has-long-links" v-html="sanitizeHtml(municipality.description)"></div>
+        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.description)"></div>
       </div>
     </div>
 
@@ -35,12 +35,12 @@
     <div
       v-for="(sectorRatings, sector) in sortedRatings"
       :key="sector"
-      class="collapse-plus collapse rounded-sm p-2 px-0 md:px-2 shadow-list"
+      class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2"
     >
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
-      <div class="collapse-title px-2 md:px-4 flex items-start gap-4">
-        <img :src="sectorImages[sector]" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
+      <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
+        <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <div class="grow">
           <h2 class="mb-2 font-heading text-h2 leading-none text-green">
@@ -65,15 +65,12 @@
           <li
             v-for="item in sectorRatings"
             :key="item.id"
-            :class="[
-              ratingColorClass[transformToArrayPositions(item.rating)],
-              'bg-opacity-10',
-            ]"
+            :class="[ratingColorClass[transformToArrayPositions(item.rating)], 'bg-opacity-10']"
           >
             <div class="collapse-plus collapse">
               <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off" />
 
-              <div class="collapse-title px-2 md:px-4 pr-6 flex items-center justify-stretch gap-3 p-3">
+              <div class="collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4">
                 <div class="shrink-0">
                   <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
                 </div>
@@ -83,33 +80,33 @@
                 </div>
               </div>
 
-              <div class="collapse-content px-0 bg-white">
-                <MeasureDetails :measure=item.measure />
+              <div class="collapse-content bg-white px-0">
+                <MeasureDetails :measure="item.measure" />
 
                 <div class="mb-8">
                   <NuxtLink
                     :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-                    class="text-light-blue font-heading text-h4"
+                    class="font-heading text-h4 text-light-blue"
                     target="measure"
                   >
-                    {{ $t('municipality_rating.link_to_measure') }}↗
+                    {{ $t("municipality_rating.link_to_measure") }}↗
                   </NuxtLink>
                 </div>
 
                 <div v-if="item.achievement" class="mb-4">
-                  <h3 class="text-light-blue font-heading text-h4 mb-2">
+                  <h3 class="mb-2 font-heading text-h4 text-light-blue">
                     {{ $t("ratings_measure.achievement_heading") }}
                   </h3>
 
-                  <div class="prose has-long-links whitespace-pre-line" v-html="linkifyStr(item.achievement)" />
+                  <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.achievement)" />
                 </div>
 
                 <div v-if="item.source">
-                  <h3 class="text-light-blue font-heading text-h4 mb-2">
+                  <h3 class="mb-2 font-heading text-h4 text-light-blue">
                     {{ $t("ratings_measure.source_heading") }}
                   </h3>
 
-                  <div class="prose has-long-links whitespace-pre-line" v-html="linkifyStr(item.source)" />
+                  <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.source)" />
                 </div>
               </div>
 
@@ -123,11 +120,11 @@
     </div>
 
     <!-- Participate -->
-    <div class="collapse-plus collapse rounded-sm p-2 px-0 md:px-2 shadow-list">
+    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
-      <div class="collapse-title px-2 md:px-4 flex items-end gap-4">
-        <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
+      <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
+        <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.participate_heading") }}
@@ -135,18 +132,18 @@
       </div>
 
       <div class="collapse-content px-2 md:px-4">
-        <div class="prose has-long-links whitespace-pre-line">
+        <div class="has-long-links prose whitespace-pre-line">
           {{ $t("municipality.participate_body") }}
         </div>
       </div>
     </div>
 
     <!-- Data collection -->
-    <div class="collapse-plus collapse rounded-sm p-2 px-0 md:px-2 shadow-list">
+    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
-      <div class="collapse-title px-2 md:px-4 flex items-end gap-4">
-        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 md:w-14 lg:w-18 opacity-50" />
+      <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
+        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
           {{ $t("municipality.data_collection_heading") }}
@@ -163,8 +160,8 @@
 </template>
 <script setup>
 import lodash from "lodash";
-import sanitizeHtml from 'sanitize-html';
-import linkifyStr from 'linkify-string';
+import sanitizeHtml from "sanitize-html";
+import linkifyStr from "linkify-string";
 const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingImages from "../shared/ratingImages.js";
@@ -185,7 +182,7 @@ const ratingColorClass = {
   1: "bg-rating-1",
   0: "bg-rating-0",
 };
-let lastUpdatedAtStr = ref("");
+const lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(municipality.date_updated);
   lastUpdatedAtStr.value =

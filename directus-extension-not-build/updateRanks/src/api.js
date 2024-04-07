@@ -3,7 +3,7 @@ export default {
   handler: ({}, { database, logger }) => {
     database
       .raw(
-		"BEGIN; \
+        "BEGIN; \
 		SELECT  FROM public.municipalities  \
 					ORDER BY id \
 					FOR UPDATE; \
