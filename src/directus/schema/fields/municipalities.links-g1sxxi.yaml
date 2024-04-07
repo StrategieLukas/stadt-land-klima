@@ -15,7 +15,7 @@ meta:
     links:
       - label: $t:municipalities.preview
         type: info
-        url: http://localhost:8080/municipalities/{{slug}}
+        url: https://stadt-land-klima.de/municipalities/{{slug}}
         icon: preview
   readonly: false
   required: false
