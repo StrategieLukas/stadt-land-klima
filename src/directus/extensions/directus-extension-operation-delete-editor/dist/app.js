@@ -1,0 +1,1 @@
+var e={id:"delete-editor",name:"delete Editor",icon:"box",description:"This deletes the user for the correspond keys from the editor",overview:({keys:e})=>[{label:"Keys",text:e}],options:[{field:"keys",name:"EditorLocalteam Keys",type:"json",meta:{width:"full",interface:"input"}}]};export{e as default};

@@ -1,4 +1,4 @@
-name: AdminLokalteam
+name: EditorLocalteam
 icon: supervised_user_circle
 description: null
 ip_access: null
@@ -76,10 +76,6 @@ permissions:
       - id
       - place
       - description
-      - links-g1sxxi
-      - percantage_rated
-      - slug
-      - notice-kcc40f
   - collection: municipalities
     action: update
     permissions:
@@ -141,10 +137,10 @@ permissions:
               id:
                 _in:
                   - $CURRENT_USER.localteams.localteam_id
-    validation: {}
+    validation: null
     presets: null
     fields:
-      - "*"
+      - password
   - collection: directus_users
     action: update
     permissions:
@@ -155,48 +151,3 @@ permissions:
     presets: null
     fields:
       - password
-  - collection: editors
-    action: read
-    permissions:
-      _and:
-        - localteam_id:
-            admin_id:
-              _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - localteam_id
-      - email
-      - id
-  - collection: editors
-    action: create
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - localteam_id
-      - email
-  - collection: localteams
-    action: read
-    permissions:
-      _and:
-        - admin_id:
-            _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - id
-      - status
-      - name
-      - municipality_name
-      - admin_id
-  - collection: editors
-    action: delete
-    permissions:
-      _and:
-        - localteam_id:
-            admin_id:
-              _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields: null
