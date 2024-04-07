@@ -2,7 +2,7 @@
   <header class="mb-3 bg-white px-2 py-4 shadow">
     <div class="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-x-8 lg:flex-row lg:items-end">
       <NuxtLink to="/">
-        <img src="~/assets/images/StadtLandKlima-Logo.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
+        <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
       </NuxtLink>
       <form class="relative mb-1 overflow-visible" action="javascript:;">
         <div class="form-control">
@@ -27,7 +27,7 @@
 
         <div
           v-if="suggestions.length && searchFocused"
-          class="dropdown dropdown-open absolute left-0 right-0 top-24 w-full"
+          class="dropdown-open dropdown absolute left-0 right-0 top-24 w-full"
         >
           <label tabindex="0"></label>
           <ul tabindex="0" class="menu dropdown-content rounded-box z-50 w-full bg-base-100 p-2 shadow">
