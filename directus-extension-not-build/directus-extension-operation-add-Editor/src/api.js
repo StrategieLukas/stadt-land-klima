@@ -2,7 +2,7 @@ import { isEmpty } from 'lodash-es';
 import { toArray } from '@directus/utils';
 export default {
 	id: 'operation-add-editor',
-	handler: async ({ email, localteam_id }, { env, logger, accountability, services, getSchema },) => {
+	handler: async ({ email, localteam_id }, { logger, accountability, services, getSchema },) => {
 		let roleName = "EditorLocalteam"
 		accountability.admin = true;
 		logger.info(email, "email");

@@ -2,7 +2,7 @@ name: createEditorUser
 icon: bolt
 color: null
 description: create Editor-User when in the collection a editor is created
-status: inactive
+status: active
 trigger: event
 accountability: all
 options:
@@ -12,42 +12,12 @@ options:
   collections:
     - editors
 operations:
-  - name: Webhook / Request URL
-    key: request_48bbk
-    type: request
-    position_x: 30
-    position_y: 6
-    options:
-      url: "{{$last.publicUrl}}"
-      method: POST
-      headers:
-        - header: Authorization
-          value: Bearer jp9Sa0zDV4c_7wwX17TS-3VMnSMPKhDm
-      body: |-
-        {
-                	"email": "{{$trigger.payload.email}}",
-                	"password": "example",
-                  "lokalteam_id":  "{{$trigger.payload.lokalteam_id}}",
-                	"role": "18781584-6436-49b7-a69d-69f4f5e5db8b"
-        }
-  - name: Run Script
-    key: exec_9pcki
-    type: exec
-    position_x: 23
+  - name: Add Editor
+    key: operation_add_editor_ggff4
+    type: operation-add-editor
+    position_x: 11
     position_y: 25
     options:
-      code: |-
-        module.exports = async function(data) {
-        	const publicUrl = data.$env.PUBLIC_URL.toString();
-            console.log("publicUrl", publicUrl);
-            const staticToken = data.$env.CLI_DIRECTUS_STATIC_TOKEN.toString();
-              console.log("staticToken", staticToken);
-            let retData= {
-                staticToken:staticToken,
-                publicUrl:publicUrl+"/users"
-            
-            }
-               return {retData};
-        }
-    resolve_key: request_48bbk
-operation_key: exec_9pcki
+      email: "{{$trigger.payload.email}}"
+      localteam_id: "{{$trigger.payload.localteam_id}}"
+operation_key: operation_add_editor_ggff4

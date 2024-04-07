@@ -1,0 +1,22 @@
+name: deleteEditorUser
+icon: restore_from_trash
+color: "#E01B24"
+description: deletes the coresponding user
+status: active
+trigger: event
+accountability: all
+options:
+  type: filter
+  scope:
+    - items.delete
+  collections:
+    - editors
+operations:
+  - name: delete Editor
+    key: delete_editor_b27l9
+    type: delete-editor
+    position_x: 20
+    position_y: 1
+    options:
+      keys: "{{$trigger.payload}}"
+operation_key: delete_editor_b27l9
