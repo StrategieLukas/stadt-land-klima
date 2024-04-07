@@ -32,10 +32,10 @@ export default {
 		});
 
 		logger.info(roles[0].id);
-		const sender = await this.usersService.readOne(accountability.user, {
+		const sender = await usersService.readOne(accountability.user, {
 			fields: ['id', 'first_name', 'last_name', 'email'],
 		});
-		const localteam = await this.localteamService.readOne(accountability.user, {
+		const localteam = await localteamService.readOne(localteam_id, {
 			fields: ['id', 'municipality_name'],
 		});
 		logger.info(sender);
