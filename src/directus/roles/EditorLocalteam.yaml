@@ -55,7 +55,6 @@ permissions:
     validation: {}
     presets: null
     fields:
-      - status
       - user_updated
       - date_updated
       - name
@@ -76,6 +75,7 @@ permissions:
       - id
       - place
       - description
+      - status
   - collection: municipalities
     action: update
     permissions:
@@ -86,7 +86,6 @@ permissions:
     validation: {}
     presets: null
     fields:
-      - status
       - user_updated
       - date_updated
       - municipality_type

@@ -90,7 +90,6 @@ permissions:
     validation: {}
     presets: null
     fields:
-      - status
       - user_updated
       - date_updated
       - municipality_type
