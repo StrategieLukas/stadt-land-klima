@@ -43,7 +43,7 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
   );
 });
 
-let lastUpdatedAtStr = ref("");
+const lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(get(last(sortBy(municipalities.value, ["date_updated"])), "date_updated"));
   lastUpdatedAtStr.value =

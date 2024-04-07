@@ -27,15 +27,17 @@
 
         <div
           v-if="suggestions.length && searchFocused"
-          class="dropdown dropdown-open absolute left-0 right-0 top-24 w-full"
+          class="dropdown-open dropdown absolute left-0 right-0 top-24 w-full"
         >
           <label tabindex="0"></label>
           <ul tabindex="0" class="menu dropdown-content rounded-box z-50 w-full bg-base-100 p-2 shadow">
-            <li v-for="suggestion in suggestions">
-              <NuxtLink :to="suggestion.url" @click="handleSuggestionClick">
-                {{ suggestion.label }}
+            <div v-for="(suggestion, index) in suggestions" :key="index">
+              <NuxtLink :to="suggestion.url" class="p-0" @click="handleSuggestionClick">
+                <li>
+                  <div>{{ suggestion.label }}</div>
+                </li>
               </NuxtLink>
-            </li>
+            </div>
           </ul>
         </div>
       </form>
@@ -52,6 +54,11 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
     $readItems("municipalities", {
       fields: ["slug", "name"],
       sort: "name",
+      filter: {
+        status: {
+          _eq: "published",
+        },
+      },
       limit: -1,
     }),
   );
