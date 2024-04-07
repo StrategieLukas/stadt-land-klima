@@ -2,7 +2,7 @@ export default {
   id: "operation-add-editor",
   name: "Add Editor",
   icon: "box",
-  description: "This is adds an Editor",
+  description: "This adds an Editor",
   overview: ({ email, localteam_id }) => [
     {
       label: "Email",
