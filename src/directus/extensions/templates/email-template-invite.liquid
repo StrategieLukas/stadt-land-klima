@@ -1,9 +1,9 @@
-{% layout "base" %} {% block content %}
+{% layout "custom-base" %} {% block content %}
 
 <h1>Du wurdest zu {{ projectName }} eingeladen!</h1>
 
 <p style="padding-bottom: 30px">
-  Du wurdest von {{ sender.fullName }} eingeladen, dem Lokalteam {{ Kommunenname }} beizutreten!
+  Du wurdest von {{ fullName }} eingeladen, dem Lokalteam {{ municipality_name }} beizutreten!
   Klick auf den Button unten um die Einladung anzunehmen und deinen Account zu erstellen.
   Dort kannst du dann direkt ein sicheres Passwort für deinen Account vergeben.
 </p>
