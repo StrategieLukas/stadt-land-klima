@@ -7,10 +7,14 @@ export default {
 		accountability.admin = true;
 		logger.info(email, "email");
 		logger.info(localteam_id, "localteam_id");
-		const { UsersService, RolesService, MailService } = services;
+		
+		const { UsersService, RolesService, MailService, ItemsService} = services;
 		const schema = await getSchema();
 		const usersService = new UsersService({ schema,accountability});
 		const rolesService = new RolesService({ schema, accountability });
+		const localteamService = new ItemsService("localteams", {
+			schema,
+			accountability,});
 		const mailService = new MailService({
 			schema: schema,
 			accountability: accountability,
@@ -28,6 +32,14 @@ export default {
 		});
 
 		logger.info(roles[0].id);
+		const sender = await this.usersService.readOne(accountability.user, {
+			fields: ['id', 'first_name', 'last_name', 'email'],
+		});
+		const localteam = await this.localteamService.readOne(accountability.user, {
+			fields: ['id', 'municipality_name'],
+		});
+		logger.info(sender);
+		logger.info(localteam);
 		// Create user first to verify uniqueness if unknown
 		if (isEmpty(user)) {
 			
@@ -47,6 +59,7 @@ export default {
 					data: {
 						url: url,
 						email: email,
+
 					},
 				},
 			}); 
