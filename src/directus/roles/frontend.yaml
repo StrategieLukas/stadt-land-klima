@@ -17,10 +17,6 @@ permissions:
         - measure_id:
             status:
               _eq: published
-        - localteam_id:
-            municipality_id:
-              status:
-                _eq: published
     validation: null
     presets: null
     fields:
@@ -50,10 +46,7 @@ permissions:
       - sort
   - collection: municipalities
     action: read
-    permissions:
-      _and:
-        - status:
-            _eq: published
+    permissions: null
     validation: null
     presets: null
     fields:
@@ -78,6 +71,7 @@ permissions:
       - place
       - localteam_id
       - date_updated
+      - status
   - collection: measures
     action: read
     permissions:

@@ -1,33 +1,35 @@
 export default function useDirectusToken(directusApi) {
-	return {
-		addQueryToPath,
-		getToken,
-		addTokenToURL,
-	};
+  return {
+    addQueryToPath,
+    getToken,
+    addTokenToURL,
+  };
 
-	function addQueryToPath(path, query) {
-		const queryParams = [];
+  function addQueryToPath(path, query) {
+    const queryParams = [];
 
-		for (const [key, value] of Object.entries(query)) {
-			queryParams.push(`${key}=${value}`);
-		}
+    for (const [key, value] of Object.entries(query)) {
+      queryParams.push(`${key}=${value}`);
+    }
 
-		return path.includes('?') ? `${path}&${queryParams.join('&')}` : `${path}?${queryParams.join('&')}`;
-	}
+    return path.includes("?")
+      ? `${path}&${queryParams.join("&")}`
+      : `${path}?${queryParams.join("&")}`;
+  }
 
-	function getToken() {
-		return (
-			directusApi.defaults?.headers?.['Authorization']?.split(' ')[1] ||
-			directusApi.defaults?.headers?.common?.['Authorization']?.split(' ')[1] ||
-			null
-		);
-	}
+  function getToken() {
+    return (
+      directusApi.defaults?.headers?.["Authorization"]?.split(" ")[1] ||
+      directusApi.defaults?.headers?.common?.["Authorization"]?.split(" ")[1] ||
+      null
+    );
+  }
 
-	function addTokenToURL(url) {
-		const accessToken = getToken();
-		if (!accessToken) return url;
-		return addQueryToPath(url, {
-			access_token: accessToken,
-		});
-	}
+  function addTokenToURL(url) {
+    const accessToken = getToken();
+    if (!accessToken) return url;
+    return addQueryToPath(url, {
+      access_token: accessToken,
+    });
+  }
 }

@@ -2,7 +2,7 @@
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
       <div class="relative flex h-96 w-full items-center justify-center">
-        <div class="z-10 w-58/100 h-58/100">
+        <div class="z-10 h-58/100 w-58/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
       </div>
@@ -35,7 +35,7 @@ class CustomRadialLinearScale extends RadialLinearScale {
     super.draw();
   }
 }
-CustomRadialLinearScale.id = "customRadialLinear"; 
+CustomRadialLinearScale.id = "customRadialLinear";
 Chart.register(CategoryScale, LinearScale, CustomRadialLinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const props = defineProps({
@@ -120,11 +120,10 @@ function createSubScoreArray(subScoreObject) {
   scoresArray.push(subScoreObject.score_iec);
   scoresArray.push(subScoreObject.score_bh);
   scoresArray.push(subScoreObject.score_cpma);
-  return scoresArray.map(value => Math.round(Number(value) * 10) / 10);
+  return scoresArray.map((value) => Math.round(Number(value) * 10) / 10);
 }
 function scaleToArea(scoresArray) {
-  return scoresArray.map(value => Math.sqrt(value / 100) * 100);
-
+  return scoresArray.map((value) => Math.sqrt(value / 100) * 100);
 }
 function createColorArray(subScoresArray) {
   const tempColorsArray = [];
