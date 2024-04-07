@@ -58,7 +58,7 @@ export default {
       //send Email
 
       const subjectLine =
-        "Sie wurden zu Stadt.Land.Klima eingeladen! als Redakteur*in";
+        "Sie wurden zu Stadt.Land.Klima eingeladen als Redakteur*in!";
 
       await mailService.send({
         to: email,
@@ -69,7 +69,7 @@ export default {
             url: url,
             email: email,
             fullName: fullName,
-            municipality_name: localteam.name,
+            municipality_name: localteam.municipality_name,
           },
         },
       });
