@@ -15,7 +15,7 @@
 
     <!-- Accordion -->
     <!-- Municipality description -->
-    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
+    <div class="collapse collapse-plus rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
