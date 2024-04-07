@@ -6,7 +6,7 @@ status: active
 trigger: event
 accountability: all
 options:
-  type: action
+  type: filter
   scope:
     - items.create
   collections:
