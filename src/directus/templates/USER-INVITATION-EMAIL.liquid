@@ -1,0 +1,43 @@
+{% layout "base" %} {% block content %}
+
+<h1>Du wurdest zu {{ projectName }} eingeladen!</h1>
+
+<p style="padding-bottom: 30px">
+  Du wurdest von {{ sender.fullName }} eingeladen, dem Lokalteam {{ Kommunenname }} beizutreten!
+  Klick auf den Button unten um die Einladung anzunehmen und deinen Account zu erstellen.
+  Dort kannst du dann direkt ein sicheres Passwort für deinen Account vergeben.
+</p>
+
+<a
+  class="button"
+  rel="noopener"
+  target="_blank"
+  href="{{url}}"
+  style="
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    text-decoration: none;
+    display: inline-block;
+    padding: 11px 24px;
+    border-radius: 8px;
+    background: #171717;
+    border: 1px solid #ffffff;
+  "
+>
+  <!--[if mso]>
+    <i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt"
+      >&nbsp;</i
+    >
+  <![endif]-->
+  <span style="mso-text-raise: 15pt">Join {{ projectName }}</span>
+  <!--[if mso]>
+    <i style="letter-spacing: 25px; mso-font-width: -100%">&nbsp;</i>
+  <![endif]-->
+</a>
+
+<p style="padding-bottom: 30px">
+  Bei Fragen jeglicher Art kannst du uns gerne unter info@stadt-land-klima.de kontaktieren :)
+</p>
+
+{% endblock %}
