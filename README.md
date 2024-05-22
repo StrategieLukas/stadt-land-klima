@@ -1,4 +1,4 @@
-# staedtechallenge
+# Stadt.Land.Klima!
 
 ## Wichtige Dokumente
 
