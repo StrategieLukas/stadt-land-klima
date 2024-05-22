@@ -1,20 +1,6 @@
 # staedtechallenge
 
 ## Wichtige Dokumente
-Google Docs mit Anforderung:
-https://docs.google.com/document/d/1DSB9_bnTnlP7F6aUafDhUoNF9RX_G6uRDzuabH1Kz-k/edit?usp=sharingA
-
-User Storys in Tabellen Form:
-https://docs.google.com/document/d/10lof-yafsWQPbTtwueUrU8zVRYer35pNpyIi0zETYZo/edit
-
-Maßnahmenkatalog mit Bewertung:
-https://docs.google.com/spreadsheets/d/1NArv2lk6YDHgT8YhwcyCa_55C0TaTbrFnAlss8-Mju4/edit#gid=97166246
-
-Pad von Sitzung am 03.08.2023:
-https://pad.fridaysforfuture.is/p/1MTNMaPYsqpM-p2Doo9r
-
-Adobe Click Dummy: (nicht aktuell)
-https://xd.adobe.com/view/78b90913-6242-496d-98f2-6363e15715db-2dea/
 
 Figma Click Dummy Desktop 1280:
 https://www.figma.com/file/hfLAnnvP4Qj2h9ALUtPUMl/Klima2035-Desktop?type=design&node-id=1%3A2001&mode=design&t=HKdvCQFJntTMq0EZ-1
@@ -25,7 +11,7 @@ https://www.figma.com/file/xOUA8jmhBBreYvmZRdlFSn/Klima2035-mobile?type=design&n
 
 ## Preparations
 0. On Windows install Ubunut on Virtual Machine:
-1. Install Docker for your machine(https://docs.docker.com/engine/install/, https://docs.docker.com/desktop/)
+1. Install Docker for your machine (https://docs.docker.com/engine/install/, https://docs.docker.com/desktop/)
 2. Clone this repo into your desired folder
 3. Copy example env-files and adjust to your needs:
 ```
@@ -122,3 +108,23 @@ $ ./directus-cli auth:set-token
 
 This will create a token in directus and save it to the .env file.
 You might have to reload the .env file in the containers shell. (e.g. with `source .env`)
+
+### My local Directus instance is empty
+
+If your local Directus has no schemas/roles/objects, then you need to use the Directus-CLI tool to import them. This effectively reads the .yaml-files from the code and puts them into the running directus instance.
+To import all roles, you can use (more infos using the `--help` flag):
+```
+$ ./directus-cli import:roles
+```
+
+### I changed things locally in Directus, but I have no changes to commit?
+
+If you created changes through the Directus-UI, they need to be exported first using the Directus-CLI tool. This effectively saves the configuration state of your local running directus instance as .yaml files.
+The following command will export any changes made to the database schema:
+
+```
+$ ./directus-cli export:schema [dest]
+```
+
+The Directus-CLI has a `--help` flag to show all available exports and imports.
+
