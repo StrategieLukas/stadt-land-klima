@@ -46,6 +46,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - measure_id
   - collection: measures
     action: create
     permissions: {}
