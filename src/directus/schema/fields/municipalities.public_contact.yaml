@@ -1,8 +1,8 @@
-collection: localteams
+collection: municipalities
 field: public_contact
 type: text
 meta:
-  collection: localteams
+  collection: municipalities
   conditions: null
   display: null
   display_options: null
@@ -10,22 +10,24 @@ meta:
   group: null
   hidden: false
   interface: input-multiline
-  note: null
+  note: $t:public_contact_placeholder
   options:
-    placeholder: null
+    placeholder: $t:public_contact_placeholder
     softLength: 500
     trim: true
   readonly: false
   required: false
-  sort: 15
+  sort: 16
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Mitmachen
   validation: null
   validation_message: null
   width: full
 schema:
   name: public_contact
-  table: localteams
+  table: municipalities
   data_type: text
   default_value: null
   max_length: null
