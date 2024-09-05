@@ -28,8 +28,9 @@ permissions:
       - id
       - links-jv6and
       - choices
-      - achievement
       - source
+      - achievement
+      - current_progress
   - collection: ratings_measures
     action: update
     permissions:
@@ -44,8 +45,9 @@ permissions:
     fields:
       - status
       - rating
-      - achievement
+      - Source
       - source
+      - current_progress
   - collection: municipalities
     action: read
     permissions:
@@ -81,6 +83,7 @@ permissions:
       - percantage_rated
       - slug
       - notice-kcc40f
+      - public_contact
   - collection: municipalities
     action: update
     permissions:
@@ -100,6 +103,7 @@ permissions:
       - mayor
       - party_mayor
       - description
+      - public_contact
   - collection: measures
     action: read
     permissions:
@@ -190,6 +194,7 @@ permissions:
       - name
       - municipality_name
       - admin_id
+      - public_contact
   - collection: editors
     action: delete
     permissions:
@@ -200,3 +205,13 @@ permissions:
     validation: null
     presets: null
     fields: null
+  - collection: localteams
+    action: update
+    permissions:
+      _and:
+        - admin_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - public_contact
