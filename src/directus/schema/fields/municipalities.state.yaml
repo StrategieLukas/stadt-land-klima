@@ -46,7 +46,7 @@ meta:
       - text: Bremen
         value: Bremen
   readonly: false
-  required: false
+  required: true
   sort: 2
   special: null
   translations:
