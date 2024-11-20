@@ -1,0 +1,34 @@
+{
+	"name": "directus-extension-set-municipality-type",
+	"description": "Automatically set municipality type when population is set",
+	"icon": "extension",
+	"version": "1.0.0",
+	"keywords": [
+		"directus",
+		"directus-extension",
+		"directus-custom-hook"
+	],
+	"type": "module",
+	"scripts": {
+		"build": "directus-extension build",
+		"dev": "directus-extension build -w --no-minify",
+		"link": "directus-extension link",
+		"test": "jest"
+	},
+	"directus:extension": {
+		"type": "hook",
+		"path": "dist/index.js",
+		"source": "src/index.js",
+		"host": "^10.2.0"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.23.6",
+		"@babel/preset-env": "^7.23.6",
+		"@directus/extensions-sdk": "10.2.0",
+		"babel-jest": "^29.7.0",
+		"jest": "^29.7.0"
+	},
+	"dependencies": {
+		"@jest/globals": "^29.7.0"
+	}
+}
