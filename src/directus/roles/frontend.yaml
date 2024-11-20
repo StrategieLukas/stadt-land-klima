@@ -72,6 +72,7 @@ permissions:
       - localteam_id
       - date_updated
       - status
+      - overall_status_comment
   - collection: measures
     action: read
     permissions:
