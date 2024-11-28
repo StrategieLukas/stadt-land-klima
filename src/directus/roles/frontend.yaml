@@ -29,6 +29,7 @@ permissions:
       - Source
       - source
       - achievement
+      - current_progress
   - collection: pages
     action: read
     permissions:
@@ -72,6 +73,7 @@ permissions:
       - localteam_id
       - date_updated
       - status
+      - public_contact
   - collection: measures
     action: read
     permissions:

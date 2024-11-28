@@ -29,6 +29,7 @@ permissions:
       - links-jv6and
       - choices
       - source
+      - current_progress
   - collection: ratings_measures
     action: update
     permissions:
@@ -45,6 +46,7 @@ permissions:
       - rating
       - Source
       - source
+      - current_progress
   - collection: municipalities
     action: read
     permissions:
