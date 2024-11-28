@@ -72,6 +72,7 @@ permissions:
       - localteam_id
       - date_updated
       - status
+      - public_contact
   - collection: measures
     action: read
     permissions:
@@ -105,6 +106,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - measure_id
   - collection: directus_translations
     action: read
     permissions: {}
