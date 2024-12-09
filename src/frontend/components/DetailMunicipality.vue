@@ -141,7 +141,7 @@
     </div>
 
     <!-- Data collection -->
-    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
+    <!-- <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
@@ -157,7 +157,7 @@
           {{ $t("municipality.data_collection_body") }}
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 <script setup>
