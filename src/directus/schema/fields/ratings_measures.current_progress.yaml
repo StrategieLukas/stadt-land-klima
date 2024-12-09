@@ -16,7 +16,7 @@ meta:
     placeholder: $t:measure_rating.progress.placeholder
     softLength: 1500
   readonly: false
-  required: false
+  required: true
   sort: 15
   special: null
   translations:
