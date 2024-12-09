@@ -28,8 +28,8 @@ permissions:
       - id
       - links-jv6and
       - choices
+      - current_progress
       - source
-      - achievement
       - internal_note
   - collection: ratings_measures
     action: update
@@ -45,10 +45,9 @@ permissions:
     fields:
       - status
       - rating
-      - Source
+      - current_progress
       - source
       - internal_note
-      - achievement
   - collection: municipalities
     action: read
     permissions:

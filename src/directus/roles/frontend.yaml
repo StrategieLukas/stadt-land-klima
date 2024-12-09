@@ -29,6 +29,7 @@ permissions:
       - Source
       - source
       - achievement
+      - current_progress
   - collection: pages
     action: read
     permissions:

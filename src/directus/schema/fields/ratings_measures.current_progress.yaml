@@ -1,22 +1,23 @@
 collection: ratings_measures
-field: achievement
+field: current_progress
 type: text
 meta:
   collection: ratings_measures
   conditions: null
   display: null
   display_options: null
-  field: achievement
+  field: current_progress
   group: null
   hidden: false
   interface: input-multiline
   note: null
   options:
-    softLength: 500
-    trim: true
+    clear: true
+    placeholder: $t:measure_rating.progress.placeholder
+    softLength: 1500
   readonly: false
   required: false
-  sort: 16
+  sort: 15
   special: null
   translations:
     - language: de-DE
@@ -25,7 +26,7 @@ meta:
   validation_message: null
   width: full
 schema:
-  name: achievement
+  name: current_progress
   table: ratings_measures
   data_type: text
   default_value: null
