@@ -84,6 +84,7 @@ permissions:
       - percantage_rated
       - slug
       - notice-kcc40f
+      - overall_status_comment
       - public_contact
   - collection: municipalities
     action: update
@@ -104,6 +105,7 @@ permissions:
       - mayor
       - party_mayor
       - description
+      - overall_status_comment
       - public_contact
   - collection: measures
     action: read

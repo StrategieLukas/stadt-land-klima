@@ -45,7 +45,6 @@ permissions:
     fields:
       - status
       - rating
-      - Source
       - source
       - achievement
       - internal_note
@@ -82,6 +81,7 @@ permissions:
       - status
       - links-g1sxxi
       - slug
+      - overall_status_comment
   - collection: municipalities
     action: update
     permissions:
@@ -101,6 +101,7 @@ permissions:
       - mayor
       - party_mayor
       - description
+      - overall_status_comment
   - collection: measures
     action: read
     permissions:
