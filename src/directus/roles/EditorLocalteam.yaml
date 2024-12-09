@@ -28,8 +28,9 @@ permissions:
       - id
       - links-jv6and
       - choices
-      - source
       - current_progress
+      - source
+      - internal_note
   - collection: ratings_measures
     action: update
     permissions:
@@ -44,9 +45,9 @@ permissions:
     fields:
       - status
       - rating
-      - Source
-      - source
       - current_progress
+      - source
+      - internal_note
   - collection: municipalities
     action: read
     permissions:
@@ -80,6 +81,7 @@ permissions:
       - status
       - links-g1sxxi
       - slug
+      - overall_status_comment
   - collection: municipalities
     action: update
     permissions:
@@ -99,6 +101,7 @@ permissions:
       - mayor
       - party_mayor
       - description
+      - overall_status_comment
   - collection: measures
     action: read
     permissions:

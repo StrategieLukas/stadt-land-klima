@@ -1,30 +1,32 @@
 collection: ratings_measures
-field: source
+field: internal_note
 type: text
 meta:
   collection: ratings_measures
   conditions: null
   display: null
   display_options: null
-  field: source
+  field: internal_note
   group: null
   hidden: false
   interface: input-multiline
   note: null
   options:
-    softLength: 500
+    placeholder: $t:measure_rating.internal_note.placeholder
+    softLength: null
+    trim: true
   readonly: false
-  required: true
-  sort: 16
+  required: false
+  sort: 12
   special: null
   translations:
     - language: de-DE
-      translation: Quelle
+      translation: Interne Notizen zur Bewertung
   validation: null
   validation_message: null
   width: full
 schema:
-  name: source
+  name: internal_note
   table: ratings_measures
   data_type: text
   default_value: null
