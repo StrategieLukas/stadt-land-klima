@@ -29,6 +29,8 @@ permissions:
       - links-jv6and
       - choices
       - source
+      - achievement
+      - internal_note
   - collection: ratings_measures
     action: update
     permissions:
@@ -44,6 +46,8 @@ permissions:
       - status
       - rating
       - source
+      - achievement
+      - internal_note
   - collection: municipalities
     action: read
     permissions:
