@@ -1,36 +1,40 @@
-collection: municipalities
-field: slug
-type: string
+collection: ratings_measures
+field: internal_note
+type: text
 meta:
-  collection: municipalities
+  collection: ratings_measures
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: internal_note
   group: null
   hidden: false
-  interface: input
+  interface: input-multiline
   note: null
   options:
-    slug: true
+    placeholder: $t:measure_rating.internal_note.placeholder
+    softLength: null
+    trim: true
   readonly: false
   required: false
-  sort: 9
+  sort: 12
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Interne Notizen zur Bewertung
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: slug
-  table: municipalities
-  data_type: character varying
+  name: internal_note
+  table: ratings_measures
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
-  is_unique: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

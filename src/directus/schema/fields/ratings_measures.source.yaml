@@ -15,7 +15,7 @@ meta:
     softLength: 500
   readonly: false
   required: false
-  sort: 14
+  sort: 15
   special: null
   translations:
     - language: de-DE

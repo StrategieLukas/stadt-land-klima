@@ -136,9 +136,7 @@
       </div>
 
       <div class="collapse-content px-2 md:px-4">
-        <div class="has-long-links prose whitespace-pre-line">
-          {{ $t("municipality.participate_body") }}
-        </div>
+        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.public_contact)"></div>
       </div>
     </div>
 

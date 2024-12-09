@@ -1,6 +1,6 @@
 name: AdminLokalteam
 icon: supervised_user_circle
-description: null
+description: Verantwortliche Person eines Lokalteams
 ip_access: null
 enforce_tfa: false
 admin_access: false
@@ -29,6 +29,8 @@ permissions:
       - links-jv6and
       - choices
       - source
+      - achievement
+      - internal_note
   - collection: ratings_measures
     action: update
     permissions:
@@ -45,6 +47,8 @@ permissions:
       - rating
       - Source
       - source
+      - internal_note
+      - achievement
   - collection: municipalities
     action: read
     permissions:
@@ -80,6 +84,8 @@ permissions:
       - percantage_rated
       - slug
       - notice-kcc40f
+      - overall_status_comment
+      - public_contact
   - collection: municipalities
     action: update
     permissions:
@@ -99,6 +105,8 @@ permissions:
       - mayor
       - party_mayor
       - description
+      - overall_status_comment
+      - public_contact
   - collection: measures
     action: read
     permissions:
@@ -189,6 +197,7 @@ permissions:
       - name
       - municipality_name
       - admin_id
+      - public_contact
   - collection: editors
     action: delete
     permissions:
@@ -199,3 +208,13 @@ permissions:
     validation: null
     presets: null
     fields: null
+  - collection: localteams
+    action: update
+    permissions:
+      _and:
+        - admin_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - public_contact

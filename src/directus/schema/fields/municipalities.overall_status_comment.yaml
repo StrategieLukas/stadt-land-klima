@@ -1,35 +1,37 @@
 collection: municipalities
-field: population
-type: integer
+field: overall_status_comment
+type: text
 meta:
   collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: population
-  group: details
+  field: overall_status_comment
+  group: null
   hidden: false
-  interface: input
+  interface: input-multiline
   note: null
-  options: null
+  options:
+    placeholder: $t:municipalities.overall_status_comment
+    softLength: 500
   readonly: false
-  required: true
-  sort: 3
+  required: false
+  sort: 7
   special: null
   translations:
     - language: de-DE
-      translation: Einwohnerzahl
+      translation: Anmerkungen & Aktuelles zur Bewertung
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: population
+  name: overall_status_comment
   table: municipalities
-  data_type: integer
+  data_type: text
   default_value: null
   max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  numeric_precision: null
+  numeric_scale: null
   is_nullable: true
   is_unique: false
   is_primary_key: false
