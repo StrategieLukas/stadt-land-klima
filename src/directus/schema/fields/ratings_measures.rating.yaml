@@ -69,6 +69,35 @@ meta:
               <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
 
               </svg>
+          - text: Noch nicht bewertet
+            value: null
+            svg_icon: >
+              <?xml version="1.0" encoding="utf-8"?>
+
+              <!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
+              <style type="text/css">
+              	.st0{fill:#1EA64A;}
+              	.st1{fill:#AFCA0B;}
+              	.st2{fill:#E30613;}
+              	.st3{fill:#FFFFFF;}
+              	.st4{fill:#FFDD00;}
+              	.st5{fill:#F39200;}
+              	.st6{fill:#16BAE7;}
+              	.st7{fill:none;}
+                .st8{fill:#8C7873}
+              </style>
+
+              <g>
+              	<path class="st8" d="M35.5,17.7C35.5,7.9,27,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
+              		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
+              </g>
+
+              <path class="st3" d="M5,22v-5.8h25.5V22H5z"/>
+
+              </svg>
     - name: choices red, yellow , green
       rule:
         _and:
@@ -160,6 +189,35 @@ meta:
               </g>
 
               <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
+
+              </svg>
+          - text: Noch nicht bewertet
+            value: null
+            svg_icon: >
+              <?xml version="1.0" encoding="utf-8"?>
+
+              <!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
+              <style type="text/css">
+              	.st0{fill:#1EA64A;}
+              	.st1{fill:#AFCA0B;}
+              	.st2{fill:#E30613;}
+              	.st3{fill:#FFFFFF;}
+              	.st4{fill:#FFDD00;}
+              	.st5{fill:#F39200;}
+              	.st6{fill:#16BAE7;}
+              	.st7{fill:none;}
+                .st8{fill:#8C7873}
+              </style>
+
+              <g>
+              	<path class="st8" d="M35.5,17.7C35.5,7.9,27,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
+              		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
+              </g>
+
+              <path class="st3" d="M5,22v-5.8h25.5V22H5z"/>
 
               </svg>
     - name: choices red, lightgreen, green
@@ -257,6 +315,35 @@ meta:
               </g>
 
               <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
+
+              </svg>
+          - text: Noch nicht bewertet
+            value: null
+            svg_icon: >
+              <?xml version="1.0" encoding="utf-8"?>
+
+              <!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
+              <style type="text/css">
+              	.st0{fill:#1EA64A;}
+              	.st1{fill:#AFCA0B;}
+              	.st2{fill:#E30613;}
+              	.st3{fill:#FFFFFF;}
+              	.st4{fill:#FFDD00;}
+              	.st5{fill:#F39200;}
+              	.st6{fill:#16BAE7;}
+              	.st7{fill:none;}
+                .st8{fill:#8C7873}
+              </style>
+
+              <g>
+              	<path class="st8" d="M35.5,17.7C35.5,7.9,27,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
+              		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
+              </g>
+
+              <path class="st3" d="M5,22v-5.8h25.5V22H5z"/>
 
               </svg>
     - name: choices red, yellow, light green , green
@@ -384,6 +471,35 @@ meta:
               <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
 
               </svg>
+          - text: Noch nicht bewertet
+            value: null
+            svg_icon: >
+              <?xml version="1.0" encoding="utf-8"?>
+
+              <!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
+              <style type="text/css">
+              	.st0{fill:#1EA64A;}
+              	.st1{fill:#AFCA0B;}
+              	.st2{fill:#E30613;}
+              	.st3{fill:#FFFFFF;}
+              	.st4{fill:#FFDD00;}
+              	.st5{fill:#F39200;}
+              	.st6{fill:#16BAE7;}
+              	.st7{fill:none;}
+                .st8{fill:#8C7873}
+              </style>
+
+              <g>
+              	<path class="st8" d="M35.5,17.7C35.5,7.9,27,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
+              		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
+              </g>
+
+              <path class="st3" d="M5,22v-5.8h25.5V22H5z"/>
+
+              </svg>
   display: formatted-value
   display_options:
     conditionalFormatting:
@@ -407,6 +523,11 @@ meta:
         text: $t:measure_rating.choices.light_green
         icon: stars
         color: "#AFCA0B"
+      - operator: eq
+        value: "null"
+        color: "#A2B5CD"
+        text: Noch nicht bewertet
+        icon: question_mark
   field: rating
   group: null
   hidden: false
