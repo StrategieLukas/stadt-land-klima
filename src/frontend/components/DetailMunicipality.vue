@@ -86,15 +86,13 @@
               <!-- More info on the measure when clicked -->
               <div class="collapse-content md:px-12 lg:px-12">
                 <MeasureDetails :measure="item.measure" />
-
-                <div v-if="item.achievement" class="mb-4">
+                <div v-if="item.current_progress" class="mb-4">
                   <h4 class="mb-2 text-light-blue">
                     {{ $t("ratings_measure.achievement_heading") }}
                   </h4>
 
-                  <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.achievement)" />
+                  <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.current_progress)" />
                 </div>
-
                 <div v-if="item.source">
                   <h4 class="mb-2 text-light-blue">
                     {{ $t("ratings_measure.source_heading") }}

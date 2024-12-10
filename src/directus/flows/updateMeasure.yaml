@@ -3,7 +3,7 @@ icon: bolt
 color: null
 description: when measure evaluation or choices_rating are changed create new
   measure and unpublish old one
-status: active
+status: inactive
 trigger: event
 accountability: all
 options:
@@ -45,7 +45,7 @@ operations:
                                "localteam_id":data["$last"][i]["id"],
                                 "measure_id": data["$trigger"]["keys"][j],
                                 "choices": choice
-                                     
+
                             })
                   		}
                     }
@@ -94,7 +94,7 @@ operations:
                     }
                     let payload = data["$trigger"]["payload"];
                     for (const measure of measures) {
-                     
+
                         for (const key in payload) {
           					if (payload.hasOwnProperty(key)) {
             					measure[key]=payload[key];
