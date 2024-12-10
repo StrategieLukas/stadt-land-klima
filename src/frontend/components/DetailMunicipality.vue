@@ -39,6 +39,7 @@
     >
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
+      <!-- Sector header -->
       <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
         <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
@@ -51,6 +52,7 @@
       </div>
 
       <div class="collapse-content px-2 md:px-4">
+        <!-- Additional Info above the list of measure -->
         <h3 class="mb-2 font-heading text-h2 text-black">
           {{ $t("measure_sector.measures_in_detail") }}
         </h3>
@@ -61,6 +63,7 @@
           </li>
         </ul>
 
+        <!-- List of individual measure ratings for the given sector -->
         <ul class="mb-8 divide-y divide-slate-300">
           <li
             v-for="item in sectorRatings"
@@ -75,44 +78,45 @@
                   <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
                 </div>
 
-                <div class="grow font-bold">
+                <h3 class="font-heading text-h3 font-medium">
                   {{ item.measure.name }}
-                </div>
+                </h3>
               </div>
 
-              <div class="collapse-content bg-white px-0">
+              <!-- More info on the measure when clicked -->
+              <div class="collapse-content md:px-12 lg:px-12">
                 <MeasureDetails :measure="item.measure" />
 
-                <div class="mb-8">
-                  <NuxtLink
-                    :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-                    class="font-heading text-h4 text-light-blue"
-                    target="measure"
-                  >
-                    {{ $t("municipality_rating.link_to_measure") }}↗
-                  </NuxtLink>
-                </div>
-
                 <div v-if="item.achievement" class="mb-4">
-                  <h3 class="mb-2 font-heading text-h4 text-light-blue">
+                  <h4 class="mb-2 text-light-blue">
                     {{ $t("ratings_measure.achievement_heading") }}
-                  </h3>
+                  </h4>
 
                   <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.achievement)" />
                 </div>
 
                 <div v-if="item.source">
-                  <h3 class="mb-2 font-heading text-h4 text-light-blue">
+                  <h4 class="mb-2 text-light-blue">
                     {{ $t("ratings_measure.source_heading") }}
-                  </h3>
+                  </h4>
 
                   <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.source)" />
                 </div>
+
+                <div class="mt-8">
+                  <NuxtLink
+                    :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
+                    class="text-light-blue underline"
+                    target="measure"
+                  >
+                    {{ $t("municipality_rating.link_to_measure") }} ↗
+                  </NuxtLink>
+                </div>
+
+
+
               </div>
 
-              <!--
-
-              -->
             </div>
           </li>
         </ul>
@@ -137,7 +141,7 @@
     </div>
 
     <!-- Data collection -->
-    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
+    <!-- <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
@@ -153,7 +157,7 @@
           {{ $t("municipality.data_collection_body") }}
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 <script setup>

@@ -108,6 +108,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - measure_id
   - collection: directus_translations
     action: read
     permissions: {}

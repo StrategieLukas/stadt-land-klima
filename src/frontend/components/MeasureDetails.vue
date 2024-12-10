@@ -1,32 +1,26 @@
 <template>
-  <div v-if="measure.description_about" class="py-4">
-    <h3 class="mb-2 font-heading text-h3 text-light-blue">
+  <div class="py-4">
+    
+    <h3 class="mb-3 text-h3 font-heading text-light-blue">
       {{ $t("measure.description_about_heading") }}
     </h3>
 
-    <div class="mb-2 flex flex-row items-start gap-4">
+    <div v-if="measure.description_about" class="mb-2 flex flex-row items-start gap-4">
       <figure class="mt-0 flex shrink-0 flex-col">
-        <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-        <figcaption class="mt-0 text-center">
-          {{ $t("measure.description_about_icon_caption") }}
-        </figcaption>
-      </figure>
-
+        <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-10 opacity-50" />
+      </figure>     
       <div class="has-long-links prose" v-html="sanitizeHtml(measure.description_about)" />
     </div>
   </div>
 
   <div v-if="measure.description_evaluation_criteria" class="py-4">
-    <h3 class="mb-2 font-heading text-h3 text-light-blue">
+    <h3 class="mb-3 text-h3 font-heading text-light-blue">
       {{ $t("measure.evaluation_criteria_heading") }}
     </h3>
 
     <div class="mb-2 flex flex-row items-start gap-4">
       <figure class="mt-0 flex shrink-0 flex-col">
-        <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-        <figcaption class="mt-0 text-center">
-          {{ $t("measure.evaluation_criteria_icon_caption") }}
-        </figcaption>
+        <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-10 opacity-50" />
       </figure>
 
       <div class="has-long-links prose" v-html="measure.description_evaluation_criteria" />
@@ -34,7 +28,7 @@
   </div>
 
   <div class="py-4">
-    <h3 class="mb-2 font-heading text-h3 text-light-blue">
+    <h3 class="mb-3 text-h3 font-heading text-light-blue">
       {{ $t("measure.feasibility_heading") }}
     </h3>
 
