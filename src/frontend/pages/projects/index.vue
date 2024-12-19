@@ -47,4 +47,10 @@ function getOrganisation(org_id) {
   return organisations.value.find((org) => org.id === org_id);
 }
 
+//MetaTags
+const title = ref($t("projects.title"));
+useHead({
+  title,
+});
+
 </script>
