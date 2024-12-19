@@ -1,0 +1,101 @@
+<template>
+    <div class="card bg-white shadow-md border rounded-md overflow-hidden">
+        <div class="relative">
+
+            <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
+                <img :src="toAssetUrl(image_id)" alt="Project Image" class="object-cover w-full h-full" />
+                <div v-if="tag" class="absolute top-2 left-2 bg-yellow-400 text-xs px-2 py-1 rounded">
+                    {{ tag }}
+                </div>
+
+                <!-- Mini-Logo -->
+                <div class="absolute top-0 right-0 w-28 h-28 overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 w-0 h-0 border-t-[7rem] border-t-white border-l-[7rem] border-l-transparent">
+                    </div>
+                    <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`"
+                        class="absolute top-2 right-2 w-12 h-12" />
+                </div>
+            </NuxtLink>
+
+
+
+            <!-- Card Content -->
+            <div class="p-4">
+                <NuxtLink :to="`/projects/${slug}`">
+                    <h2 class="text-blue-500 font-semibold mb-2">
+                        {{ title }}
+                    </h2>
+                </NuxtLink>
+                <p class="text-sm font-bold mb-1">
+                    {{ location }}
+                </p>
+
+                <!-- Truncated abstract text -->
+                <p class="text-gray-600 text-sm mb-2">
+                    {{ truncatedAbstract }}
+                </p>
+
+                <!-- Date Section -->
+                <p class="text-gray-500 italic text-xs mb-2">
+                    {{ date.toLocaleDateString($locale) }}
+                </p>
+
+                <!-- Read more link -->
+                <NuxtLink :to="`/projects/${slug}`" class="text-blue-500 text-sm">{{ $t("article.read_more") }} →
+                </NuxtLink>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+    slug: String,
+    title: String,
+    municipality_name: String,
+    state: String,
+    abstract: String,
+    date: Date,
+    tag: String,
+    image_id: String,
+    organisation: Object,
+})
+
+const { $locale } = useNuxtApp();
+const config = useRuntimeConfig();
+
+const location = computed(() => {
+    if (props.municipality_name && props.state) {
+        return `${props.municipality_name}, ${props.state}`;
+    }
+    if (props.municipality_name) {
+        return props.municipality_name;
+    }
+    if (props.state) {
+        return props.state;
+    }
+    return '';
+});
+
+
+const truncatedAbstract = computed(() => {
+    if (props.abstract.length > 300) {
+        return props.abstract.substring(0, 300) + '...';
+    }
+    return props.abstract;
+});
+
+function toAssetUrl(asset_id) {
+    return `${config.public.clientDirectusUrl}/assets/${asset_id}`;
+};
+
+</script>
+
+<style scoped>
+.card img {
+    object-fit: cover;
+}
+</style>
