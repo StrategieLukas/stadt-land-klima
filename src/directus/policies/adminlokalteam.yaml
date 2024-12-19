@@ -1,0 +1,27 @@
+id: 0ccc99ec-8d50-40f8-82b5-87008b0880e5
+name: AdminLokalteam
+icon: supervised_user_circle
+description: Verantwortliche Person eines Lokalteams
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+  - 18
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 26
+  - 35
+  - 36
+  - 37
+  - 38
+  - 53
+users:
+  - 24d2f8e7-7469-4fbc-bd9f-3c2a11304594
+roles:
+  - 24d2f8e7-7469-4fbc-bd9f-3c2a11304594

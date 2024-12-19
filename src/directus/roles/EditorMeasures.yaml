@@ -1,0 +1,8 @@
+name: EditorMeasures
+icon: supervised_user_circle
+description: null
+parent: null
+children: []
+policies:
+  - bf37ce84-cccb-4011-bf97-fde4569b947c
+permissions: []

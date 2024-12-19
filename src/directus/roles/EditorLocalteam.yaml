@@ -1,0 +1,8 @@
+name: EditorLocalteam
+icon: supervised_user_circle
+description: null
+parent: null
+children: []
+policies:
+  - 0aa4c0d7-2d43-4614-94ae-b5733999b514
+permissions: []

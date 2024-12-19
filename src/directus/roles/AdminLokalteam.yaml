@@ -1,0 +1,8 @@
+name: AdminLokalteam
+icon: supervised_user_circle
+description: Verantwortliche Person eines Lokalteams
+parent: null
+children: []
+policies:
+  - 24d2f8e7-7469-4fbc-bd9f-3c2a11304594
+permissions: []

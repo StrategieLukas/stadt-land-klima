@@ -19,7 +19,7 @@ async function exportPolicies(dest, options = {verbose: false, overwrite: false}
     fse.mkdirSync(dest);
 
     policies.forEach((policy) => {
-      const destPath = path.join(dest, slugify(policy.name, '_') + '.yaml');
+      const destPath = path.join(dest, slugify(policy.name, { replacement: '_', remove: ":", lower: true}) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) {
