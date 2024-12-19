@@ -30,7 +30,7 @@ meta:
       - fullscreen
   readonly: false
   required: false
-  sort: 4
+  sort: 5
   special: null
   translations: null
   validation: null

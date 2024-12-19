@@ -9,6 +9,8 @@ app_access: false
 permissions:
   - 64
 users:
+  - 8a7daf89-ce80-411e-8485-6de2dd29d19e
   - 317a3439-e52a-4749-a583-e36f52f48d84
 roles:
+  - 8a7daf89-ce80-411e-8485-6de2dd29d19e
   - 317a3439-e52a-4749-a583-e36f52f48d84

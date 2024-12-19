@@ -1,34 +1,34 @@
 collection: articles
-field: picture
-type: uuid
+field: image_text
+type: string
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: picture
+  field: image_text
   group: content
   hidden: false
-  interface: file-image
+  interface: input
   note: null
-  options: null
+  options:
+    trim: true
   readonly: false
   required: false
-  sort: 2
-  special:
-    - file
+  sort: 3
+  special: null
   translations:
     - language: de-DE
-      translation: Artikelbild
+      translation: Bildunterschrift & Copyright
   validation: null
   validation_message: null
   width: full
 schema:
-  name: picture
+  name: image_text
   table: articles
-  data_type: uuid
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
@@ -38,5 +38,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: directus_files
-  foreign_key_column: id
+  foreign_key_table: null
+  foreign_key_column: null

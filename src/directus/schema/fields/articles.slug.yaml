@@ -1,34 +1,37 @@
 collection: articles
-field: sort
-type: integer
+field: slug
+type: string
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: sort
+  field: slug
   group: null
-  hidden: true
+  hidden: false
   interface: input
   note: null
-  options: null
+  options:
+    slug: true
   readonly: false
-  required: false
+  required: true
   sort: 4
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Slug (URL des Artikels)
   validation: null
   validation_message: null
   width: full
 schema:
-  name: sort
+  name: slug
   table: articles
-  data_type: integer
+  data_type: character varying
   default_value: null
-  max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
-  is_nullable: true
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
   is_unique: false
   is_indexed: false
   is_primary_key: false
