@@ -1,0 +1,16 @@
+id: 4e318eb8-ff34-4936-9571-4766071b6cdc
+name: LogoAccess
+icon: badge
+description: Zugriff auf den Dateiordner "logos"
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - 64
+users:
+  - 8a7daf89-ce80-411e-8485-6de2dd29d19e
+  - 317a3439-e52a-4749-a583-e36f52f48d84
+roles:
+  - 8a7daf89-ce80-411e-8485-6de2dd29d19e
+  - 317a3439-e52a-4749-a583-e36f52f48d84

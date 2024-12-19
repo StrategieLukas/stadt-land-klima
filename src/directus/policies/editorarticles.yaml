@@ -1,0 +1,21 @@
+id: de64507a-d6a7-49a8-9f48-85f5f13b709a
+name: EditorArticles
+icon: badge
+description: Kann Artikel verwalten und Organisationen erstellen
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - 56
+  - 57
+  - 58
+  - 59
+  - 60
+  - 61
+  - 62
+  - 63
+users:
+  - cf7b2455-af06-45d1-9c5a-d8c2115d415f
+roles:
+  - cf7b2455-af06-45d1-9c5a-d8c2115d415f

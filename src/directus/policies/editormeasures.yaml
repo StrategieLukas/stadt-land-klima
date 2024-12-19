@@ -1,0 +1,16 @@
+id: e18cec15-0bd3-4512-9eb8-76575cabc94d
+name: EditorMeasures
+icon: supervised_user_circle
+description: null
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+  - 27
+  - 28
+  - 29
+users:
+  - bf37ce84-cccb-4011-bf97-fde4569b947c
+roles:
+  - bf37ce84-cccb-4011-bf97-fde4569b947c

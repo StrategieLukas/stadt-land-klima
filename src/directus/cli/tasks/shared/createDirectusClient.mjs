@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { createDirectus } from '@directus/sdk';
-import { rest } from '@directus/sdk/rest';
-import { staticToken } from '@directus/sdk/auth';
+import { rest } from '@directus/sdk';
+import { staticToken } from '@directus/sdk';
 
 dotenv.config();
 

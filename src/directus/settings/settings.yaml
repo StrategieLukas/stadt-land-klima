@@ -40,3 +40,10 @@ default_theme_light: null
 theme_light_overrides: null
 default_theme_dark: null
 theme_dark_overrides: null
+report_error_url: null
+report_bug_url: null
+report_feature_url: null
+public_registration: false
+public_registration_verify_email: true
+public_registration_role: null
+public_registration_email_filter: null

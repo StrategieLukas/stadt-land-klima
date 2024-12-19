@@ -1,0 +1,44 @@
+collection: articles
+field: image
+type: uuid
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: image
+  group: content
+  hidden: false
+  interface: file-image
+  note: null
+  options:
+    folder: 0efb6b8c-5a2d-4b0d-8de1-f5e66a2cf165
+    letterbox: true
+  readonly: false
+  required: false
+  sort: 2
+  special:
+    - file
+  translations:
+    - language: de-DE
+      translation: Artikelbild
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: image
+  table: articles
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: directus_files
+  foreign_key_column: id

@@ -25,7 +25,7 @@ async function importSchema(src, options = {verbose: false}) {
 
     const diff = await client.request(schemaDiff(schema));
 
-    if (!diff) {
+    if (!diff || !diff.diff) {
       if (options.verbose) {
         console.info('No difference. Done');
       }
