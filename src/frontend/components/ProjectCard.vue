@@ -51,6 +51,8 @@
 
 <script setup>
 import { computed } from 'vue'
+import { buildLocationString, toAssetUrl }from '~/shared/utils';
+const { $locale } = useNuxtApp();
 
 const props = defineProps({
     slug: String,
@@ -64,21 +66,8 @@ const props = defineProps({
     organisation: Object,
 })
 
-const { $locale } = useNuxtApp();
-const config = useRuntimeConfig();
 
-const location = computed(() => {
-    if (props.municipality_name && props.state) {
-        return `${props.municipality_name}, ${props.state}`;
-    }
-    if (props.municipality_name) {
-        return props.municipality_name;
-    }
-    if (props.state) {
-        return props.state;
-    }
-    return '';
-});
+const location = computed(() => buildLocationString(props.municipality_name, props.state));
 
 
 const truncatedAbstract = computed(() => {
@@ -88,9 +77,6 @@ const truncatedAbstract = computed(() => {
     return props.abstract;
 });
 
-function toAssetUrl(asset_id) {
-    return `${config.public.clientDirectusUrl}/assets/${asset_id}`;
-};
 
 </script>
 

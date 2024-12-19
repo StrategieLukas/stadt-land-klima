@@ -27,7 +27,7 @@ const { $directus, $readItems, $t } = useNuxtApp();
 const { data: projects } = await useAsyncData("articles", () => {
   return $directus.request(
     $readItems("articles", {
-      fields: ["slug", "title", "subtitle", "image", "image_text", "abstract", "article_text", "author", "date_created", "municipality_name", "state", "organisation"],
+      fields: ["slug", "title", "image", "abstract", "date_created", "municipality_name", "state", "organisation"],
       sort: "-date_created",
       limit: -1,
     }),
