@@ -7,10 +7,33 @@ import importWebhooks from './importWebhooks.mjs';
 import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
 import importSettings from './importSettings.mjs';
+import importPolicies from './importPolicies.mjs';
 import importCollectionItems from './importCollectionItems.mjs';
 
 function importTasks(yargs) {
   return yargs
+  .command(
+    'import:policies [src]',
+    'imports the policies from the folder specified by "src". By default it will import from "policies"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: 'policies',
+      });
+    },
+    async (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing policies from ${argv.src}`);
+      }
+
+      await clearDirectusCache();
+      await importPolicies(argv.src, {
+        verbose: argv.verbose,
+      });
+    }
+  )
+
   .command(
     'import:schema [src]',
     'imports the schema from the folder specified by "src". By default it will import from "schema"',

@@ -101,15 +101,18 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
           return !find(operations, {flow_name: flow.name, key: operation.key});
         });
 
-        if (options.verbose && flowOperationsToDelete.length) {
-          console.info(`Removing ${flowOperationsToDelete.length} operations from flow ${flow.name}`);
+        if (flowOperationsToDelete.length) {
+          if(options.verbose) {
+            console.info(`Removing ${flowOperationsToDelete.length} operations from flow ${flow.name}`);
+          }
+          
+          try {
+            await client.request(deleteOperations(flowOperationsToDelete.map(property('id'))));
+          } catch (err) {
+            console.error(err, flow);
+          }
         }
-
-        try {
-          await client.request(deleteOperations(flowOperationsToDelete.map(property('id'))));
-        } catch (err) {
-          console.error(err, flow);
-        }
+        
       });
     }
 
