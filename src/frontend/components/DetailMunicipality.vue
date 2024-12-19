@@ -64,18 +64,19 @@
         </ul>
 
         <!-- List of individual measure ratings for the given sector -->
-        <ul class="mb-8 divide-y divide-slate-300">
+        <ul class="mb-8 divide-y-2 divide-slate-300">
           <li
             v-for="item in sectorRatings"
             :key="item.id"
-            :class="[ratingColorClass[transformToArrayPositions(item.rating)], 'bg-opacity-10']"
           >
-            <div class="collapse-plus collapse">
-              <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off" />
+            <div class="collapse-plus collapse rounded-none">
+              <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off"/>
 
-              <div class="collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4">
+              <div
+              :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']"
+              >
                 <div class="shrink-0">
-                  <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
+                  <img :src="ratingImages[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
                 </div>
 
                 <h3 class="font-heading text-h3 font-medium">
@@ -84,7 +85,9 @@
               </div>
 
               <!-- More info on the measure when clicked -->
-              <div class="collapse-content md:px-12 lg:px-12">
+              <div 
+              :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']"
+              >
                 <MeasureDetails :measure="item.measure" />
                 <div v-if="item.current_progress" class="mb-4">
                   <h4 class="mb-2 text-light-blue">
@@ -165,6 +168,7 @@ import linkifyStr from "linkify-string";
 const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingImages from "../shared/ratingImages.js";
+import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
 const { $t, $locale } = useNuxtApp();
 const props = defineProps({
   municipality: {
@@ -176,12 +180,7 @@ const props = defineProps({
     required: true,
   },
 });
-const ratingColorClass = {
-  3: "bg-rating-3",
-  2: "bg-rating-2",
-  1: "bg-rating-1",
-  0: "bg-rating-0",
-};
+
 const lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(municipality.date_updated);
@@ -203,7 +202,7 @@ function createSubScoreObject(municipality) {
   }
   return temp;
 }
-function transformToArrayPositions(value) {
+function ratingIndex(value) {
   const tempVal = Number(value);
   if (tempVal === 0) return 0;
   if (tempVal === 0.3333) return 1;

@@ -25,7 +25,7 @@ module.exports = {
         "ranking-8-10": "#1DA64A",
         "rating-3": "#1EA64A",
         "rating-2": "#AFCA0B",
-        "rating-1": "#FFDD00",
+        "rating-1": "#F39200",
         "rating-0": "#E30613",
         "light-green": "#AFCA0B",
         green: "#339737",
