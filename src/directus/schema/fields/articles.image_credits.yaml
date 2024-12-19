@@ -1,12 +1,12 @@
 collection: articles
-field: image_text
+field: image_credits
 type: string
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: image_text
+  field: image_credits
   group: content
   hidden: false
   interface: input
@@ -24,7 +24,7 @@ meta:
   validation_message: null
   width: full
 schema:
-  name: image_text
+  name: image_credits
   table: articles
   data_type: character varying
   default_value: null
