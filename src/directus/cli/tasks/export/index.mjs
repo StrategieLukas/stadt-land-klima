@@ -8,6 +8,7 @@ import exportWebhooks from './exportWebhooks.mjs';
 import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
 import exportSettings from './exportSettings.mjs';
+import exportPolicies from './exportPolicies.mjs'
 import exportCollectionItems from './exportCollectionItems.mjs';
 
 const clerDirOpts = {extensions: ['.yaml']};
@@ -27,6 +28,34 @@ async function clear(dest, options = {verbose: false}) {
 
 function exportTasks(yargs) {
   return yargs
+    .command(
+      'export:policies [dest]',
+      'export the policies to the folder specified by "dest". By default it will export into "policies"',
+      (yargs) => {
+        return yargs
+        .positional('dest', {
+          describe: 'destination folder',
+          default: 'policies',
+        });
+      },
+      async (argv) => {
+        if (argv.verbose) {
+          console.info(`Exporting policies to ${argv.dest}`);
+        }
+        if (argv.clear) {
+          clear(argv.dest, {
+            verbose: argv.verbose,
+          });
+        }
+
+        await clearDirectusCache();
+        await exportPolicies(argv.dest, {
+          verbose: argv.verbose,
+          overwrite: argv.force,
+        });
+      }
+    )
+
   .command(
     'export:schema [dest]',
     'export the schema to the folder specified by "dest". By default it will export into "schema"',
