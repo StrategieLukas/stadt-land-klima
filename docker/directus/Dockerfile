@@ -1,4 +1,4 @@
-FROM directus/directus:10
+FROM directus/directus:11
 
 COPY build.sh /build.sh
 COPY start_dev.sh /start_dev.sh
