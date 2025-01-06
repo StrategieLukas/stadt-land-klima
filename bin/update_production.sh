@@ -37,7 +37,7 @@ git submodule init
 git submodule sync --recursive
 git submodule update --recursive
 docker compose build && \
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d && \
+UID=${UID} GID=${GID} docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d && \
 if [[ $NO_DIRECTUS_BUILD != true ]]; then
   echo "building directus ..."
   docker compose exec -T directus sh /build.sh
