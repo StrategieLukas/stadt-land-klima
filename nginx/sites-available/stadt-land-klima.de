@@ -1,6 +1,7 @@
 # HTTP server
 server {
-  listen 0.0.0.0:80;
+  listen 80;
+  listen [::]:80;
 
   server_name stadt-land-klima.de;
   server_tokens off;
@@ -15,7 +16,8 @@ server {
 
 # HTTP server
 server {
-  listen 0.0.0.0:80;
+  listen 80;
+  listen [::]:80;
 
   server_name www.stadt-land-klima.de;
   server_tokens off;
@@ -32,7 +34,8 @@ server {
 server {
   # SSL configuration
   #
-  listen 0.0.0.0:443 ssl http2;
+  listen 443 ssl http2;
+	listen [::]:443 ssl http2;
 
   ## Strong SSL Security
   ## https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html & https://cipherli.st/
@@ -56,7 +59,8 @@ server {
 server {
   # SSL configuration
   #
-  listen 0.0.0.0:443 ssl http2;
+  listen 443 ssl http2;
+	listen [::]:443 ssl http2;
 
   ## Strong SSL Security
   ## https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html & https://cipherli.st/
