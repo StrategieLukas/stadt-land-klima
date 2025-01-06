@@ -6,6 +6,7 @@ COPY build.sh /build.sh
 COPY start_dev.sh /start_dev.sh
 COPY start_prod.sh /start_prod.sh
 
+USER root
 RUN apk add bash shadow
 
 RUN groupmod -g "${GID}" node && usermod -u "${UID}" -g "${GID}" node
