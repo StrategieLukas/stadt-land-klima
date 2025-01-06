@@ -8,7 +8,7 @@ RUN ln -s /directus/cli/index.mjs /directus/directus-cli
 USER root
 RUN apk add bash
 
-RUN groupmod -g "${GID}" node && usermod -u "${UID}" -g "${DOCKER_GID}" node
+RUN groupmod -g "${GID}" node && usermod -u "${UID}" -g "${GID}" node
 
 RUN \
   chown node:node /build.sh && \
