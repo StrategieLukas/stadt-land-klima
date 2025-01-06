@@ -20,7 +20,11 @@ services:
       retries: 3
 
   directus:
-    build: ./docker/directus
+    build:
+      context: ./docker/directus
+      args:
+        - "UID=${UID:-1000}"
+        - "GID=${GID:-1000}"
     env_file: ./src/directus/.env
     volumes:
       - ./src/directus/uploads:/directus/uploads
@@ -43,7 +47,11 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./docker/frontend
+    build:
+      context: ./docker/frontend
+      args:
+        - "UID=${UID:-1000}"
+        - "GID=${GID:-1000}"
     volumes:
       - ./src/frontend:/frontend
     env_file: ./src/frontend/.env
