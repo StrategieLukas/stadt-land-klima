@@ -2,6 +2,8 @@
 NO_DIRECTUS_BUILD=false
 NO_FRONTEND_BUILD=false
 NO_RESTART=false
+UID=${UID}
+GID=${GID}
 
 for arg in "$@"; do
   case $arg in
@@ -37,7 +39,7 @@ git submodule init
 git submodule sync --recursive
 git submodule update --recursive
 docker compose build && \
-UID=${UID} GID=${GID} docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d && \
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d && \
 if [[ $NO_DIRECTUS_BUILD != true ]]; then
   echo "building directus ..."
   docker compose exec -T directus sh /build.sh
