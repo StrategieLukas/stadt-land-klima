@@ -2,8 +2,8 @@
 NO_DIRECTUS_BUILD=false
 NO_FRONTEND_BUILD=false
 NO_RESTART=false
-UID=${UID}
-GID=${GID}
+UID="$(id -u)"
+GID="$(id -g)"
 
 for arg in "$@"; do
   case $arg in

@@ -2,6 +2,6 @@
 cd ..
 
 mkdir -p src/directus/uploads
-UID=${UID}
-GID=${GID}
+UID="$(id -u)"
+GID="$(id -g)"
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
