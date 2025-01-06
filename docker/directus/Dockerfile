@@ -5,10 +5,11 @@ ARG GID=1000
 COPY build.sh /build.sh
 COPY start_dev.sh /start_dev.sh
 COPY start_prod.sh /start_prod.sh
+
 RUN ln -s /directus/cli/index.mjs /directus/directus-cli
 
 USER root
-RUN apk add bash
+RUN apk add bash shadow
 
 RUN groupmod -g "${GID}" node && usermod -u "${UID}" -g "${GID}" node
 
