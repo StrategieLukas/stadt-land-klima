@@ -1,4 +1,6 @@
 FROM directus/directus:10
+ARG UID=1000
+ARG GID=1000
 
 COPY build.sh /build.sh
 COPY start_dev.sh /start_dev.sh
