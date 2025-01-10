@@ -9,19 +9,21 @@ meta:
     relative: true
   field: date_updated
   group: null
-  hidden: true
+  hidden: false
   interface: datetime
   note: null
   options: null
   readonly: true
   required: false
-  sort: 7
+  sort: 17
   special:
     - date-updated
-  translations: null
   validation: null
   validation_message: null
-  width: half
+  width: full
+  translations:
+    - language: de-DE
+      translation: Stand
 schema:
   name: date_updated
   table: ratings_measures
