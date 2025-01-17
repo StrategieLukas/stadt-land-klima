@@ -17,7 +17,7 @@
             layout === 'compact' ? colorClass.text_compact + ' top-0.25 text-sm' : colorClass.text_default + ' text-xl',
           ]"
         >
-          {{ scoreTotal }}
+          {{ scoreTotal.toFixed(1) }}
         </div>
       </div>
     </div>
