@@ -30,6 +30,7 @@ permissions:
       - source
       - achievement
       - current_progress
+      - date_updated
   - collection: pages
     action: read
     permissions:
