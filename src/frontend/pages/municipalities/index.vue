@@ -8,9 +8,6 @@
         {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
       </p>
     </div>
-    <div class="mx-auto mb-8 flex justify-center">
-      <implementation-traffic-light />
-    </div>
     <section>
       <the-ranking :municipalities="municipalities"></the-ranking>
     </section>
