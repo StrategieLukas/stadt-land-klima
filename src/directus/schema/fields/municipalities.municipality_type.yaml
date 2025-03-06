@@ -9,6 +9,8 @@ meta:
     choices:
       - text: Großstadt
         value: big_city
+      - text: Mittelstadt
+        value: medium_city
       - text: Kleinstadt
         value: small_city
   field: municipality_type
@@ -20,6 +22,8 @@ meta:
     choices:
       - text: Großstadt
         value: big_city
+      - text: Mittelstadt
+        value: medium_city
       - text: Kleinstadt
         value: small_city
   readonly: false
