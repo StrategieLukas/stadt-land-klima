@@ -80,7 +80,7 @@ permissions:
       - place
       - description
       - links-g1sxxi
-      - percantage_rated
+      - percentage_rated
       - slug
       - notice-kcc40f
       - overall_status_comment
