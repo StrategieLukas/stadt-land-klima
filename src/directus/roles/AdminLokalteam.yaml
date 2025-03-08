@@ -106,6 +106,7 @@ permissions:
       - description
       - overall_status_comment
       - public_contact
+      - status
   - collection: measures
     action: read
     permissions:
