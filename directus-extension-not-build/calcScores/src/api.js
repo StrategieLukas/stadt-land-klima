@@ -205,12 +205,6 @@ export default {
           }
         }
 
-        //Update the status to published if more than percentageRatedForPublish are published
-        if (scoresToPush["percentage_rated"] >= percentageRatedForPublish) {
-          scoresToPush["status"] = "published";
-        } else {
-          scoresToPush["status"] = "draft";
-        }
         /* logger.info(scoresToPush, "scoresToPush"); */
         let result = await municipalitiesService.updateOne(
           municipality.id,
