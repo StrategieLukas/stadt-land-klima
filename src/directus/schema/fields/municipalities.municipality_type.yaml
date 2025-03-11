@@ -22,7 +22,7 @@ meta:
         value: big_city
       - text: Kleinstadt
         value: small_city
-  readonly: false
+  readonly: true
   required: false
   sort: 10
   special: null
