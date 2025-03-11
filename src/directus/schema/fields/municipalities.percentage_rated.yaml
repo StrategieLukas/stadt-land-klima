@@ -1,12 +1,12 @@
 collection: municipalities
-field: percantage_rated
+field: percentage_rated
 type: decimal
 meta:
   collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: percantage_rated
+  field: percentage_rated
   group: null
   hidden: false
   interface: input
@@ -25,7 +25,7 @@ meta:
   validation_message: null
   width: full
 schema:
-  name: percantage_rated
+  name: percentage_rated
   table: municipalities
   data_type: numeric
   default_value: null

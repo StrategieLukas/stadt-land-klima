@@ -2,7 +2,7 @@ language: de-DE
 key: municipalities.preview_explanation
 value: >-
   Die Bewertung deiner Kommune wird erst dann im öffentlichen Ranking angezeigt,
-  wenn ihr Status auf "Veröffentlicht" steht - das passiert automatisch, sobald
+  wenn ihr Status auf "Veröffentlicht" steht - das könnt ihr einstellen, sobald
   ihr die Maßnahmen bewertet habt :)
 
 
