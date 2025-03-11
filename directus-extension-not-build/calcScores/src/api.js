@@ -8,7 +8,6 @@ export default {
       const { ItemsService } = services;
       const schema = await getSchema();
       let maxScore = 100;
-      let percentageRatedForPublish = 95;
       // logger.info(accountability, "accountability");
       //logger.info(keys, "keys");
       accountability.admin = true;
