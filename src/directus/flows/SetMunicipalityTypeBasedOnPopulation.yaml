@@ -54,7 +54,7 @@ operations:
         $trigger:
           payload:
             population:
-              _gt: 100000
+              _gte: 100000
     resolve_key: log_m6yar
     reject_key: log_m6yar_ffhhu
 operation_key: exec_agdg0
