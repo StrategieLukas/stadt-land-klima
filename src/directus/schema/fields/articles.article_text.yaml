@@ -1,0 +1,61 @@
+collection: articles
+field: article_text
+type: text
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: article_text
+  group: content
+  hidden: false
+  interface: input-rich-text-html
+  note: null
+  options:
+    toolbar:
+      - blockquote
+      - bold
+      - bullist
+      - code
+      - customImage
+      - customLink
+      - customMedia
+      - fullscreen
+      - h1
+      - h2
+      - h3
+      - hr
+      - italic
+      - numlist
+      - removeformat
+      - strikethrough
+      - subscript
+      - superscript
+      - table
+      - underline
+      - undo
+      - unlink
+  readonly: false
+  required: true
+  sort: 5
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: article_text
+  table: articles
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

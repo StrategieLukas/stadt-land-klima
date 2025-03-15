@@ -1,13 +1,13 @@
-collection: municipalities
+collection: articles
 field: state
 type: string
 meta:
-  collection: municipalities
+  collection: articles
   conditions: null
   display: null
   display_options: null
   field: state
-  group: details
+  group: null
   hidden: false
   interface: select-dropdown
   note: null
@@ -24,7 +24,7 @@ meta:
       - text: Brandenburg
         value: Brandenburg
       - text: Mecklenburg-Vorpommern
-        value: " Mecklenburg-Vorpommern"
+        value: Mecklenburg-Vorpommern
       - text: Hessen
         value: Hessen
       - text: Sachsen-Anhalt
@@ -46,8 +46,8 @@ meta:
       - text: Bremen
         value: Bremen
   readonly: false
-  required: true
-  sort: 2
+  required: false
+  sort: 11
   special: null
   translations:
     - language: de-DE
@@ -57,7 +57,7 @@ meta:
   width: half
 schema:
   name: state
-  table: municipalities
+  table: articles
   data_type: character varying
   default_value: null
   max_length: 255

@@ -1,0 +1,41 @@
+collection: organisations
+field: short_description
+type: text
+meta:
+  collection: organisations
+  conditions: null
+  display: null
+  display_options: null
+  field: short_description
+  group: null
+  hidden: false
+  interface: input-multiline
+  note: null
+  options:
+    softLength: 500
+  readonly: false
+  required: false
+  sort: 8
+  special: null
+  translations:
+    - language: de-DE
+      translation: Kurzbeschreibung
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: short_description
+  table: organisations
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null
