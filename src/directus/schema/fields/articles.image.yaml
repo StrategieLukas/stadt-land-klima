@@ -12,10 +12,10 @@ meta:
   interface: file-image
   note: null
   options:
-    folder: 0efb6b8c-5a2d-4b0d-8de1-f5e66a2cf165
+    folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
     letterbox: true
   readonly: false
-  required: false
+  required: true
   sort: 2
   special:
     - file
@@ -33,9 +33,8 @@ schema:
   max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: true
+  is_nullable: false
   is_unique: false
-  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <ProjectCard
-          v-for="(project, index) in projects"
+          v-for="(project, index) in projectList"
           :key="index"
           :slug="project.slug"
           :title="project.title"
@@ -13,7 +13,7 @@
           :date="new Date(project.date_created)"
           :tag="project.tag"
           :image_id="project.image"
-          :organisation="getOrganisation(project.organisation.key)"
+          :organisation="getOrganisation(project.organisation)"
         />
 
     </div>
@@ -31,8 +31,10 @@ const { data: projects } = await useAsyncData("articles", () => {
       sort: "-date_created",
       limit: -1,
     }),
-  )
+  );
 });
+
+const projectList = computed(() => projects.value || []);
 
 const { data: organisations } = await useAsyncData("organisations", () => {
   return $directus.request(
@@ -41,10 +43,9 @@ const { data: organisations } = await useAsyncData("organisations", () => {
     }));
 });
 
-
-
-function getOrganisation(org_id) {
-  return organisations.value.find((org) => org.id === org_id);
+function getOrganisation(org) {
+  if (!org || !organisations.value) return null;
+  return organisations.value.find((o) => o.id === org.key);
 }
 
 //MetaTags

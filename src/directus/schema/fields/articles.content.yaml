@@ -17,8 +17,8 @@ meta:
   sort: 12
   special:
     - alias
-    - no-data
     - group
+    - no-data
   translations:
     - language: de-DE
       translation: Inhalt

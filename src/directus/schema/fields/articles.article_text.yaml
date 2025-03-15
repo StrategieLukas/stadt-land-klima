@@ -13,28 +13,28 @@ meta:
   note: null
   options:
     toolbar:
-      - undo
+      - blockquote
       - bold
-      - italic
-      - underline
-      - strikethrough
-      - subscript
-      - superscript
+      - bullist
+      - code
+      - customImage
+      - customLink
+      - customMedia
+      - fullscreen
       - h1
       - h2
       - h3
-      - numlist
-      - bullist
-      - removeformat
-      - blockquote
-      - customLink
-      - unlink
-      - customImage
-      - customMedia
-      - table
       - hr
-      - code
-      - fullscreen
+      - italic
+      - numlist
+      - removeformat
+      - strikethrough
+      - subscript
+      - superscript
+      - table
+      - underline
+      - undo
+      - unlink
   readonly: false
   required: true
   sort: 5
@@ -53,7 +53,6 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
-  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

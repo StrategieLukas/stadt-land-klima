@@ -14,7 +14,7 @@ meta:
   options:
     trim: true
   readonly: false
-  required: false
+  required: true
   sort: 3
   special: null
   translations:
@@ -31,9 +31,8 @@ schema:
   max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: true
+  is_nullable: false
   is_unique: false
-  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

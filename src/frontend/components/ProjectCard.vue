@@ -3,13 +3,13 @@
         <div class="relative">
 
             <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
-                <img :src="toAssetUrl(image_id)" alt="Project Image" class="object-cover w-full h-full" />
+                <img v-if="organisation" :src="toAssetUrl(image_id)" alt="Project Image" class="object-cover w-full h-full" />
                 <div v-if="tag" class="absolute top-2 left-2 bg-yellow-400 text-xs px-2 py-1 rounded">
                     {{ tag }}
                 </div>
 
-                <!-- Mini-Logo -->
-                <div class="absolute top-0 right-0 w-28 h-28 overflow-hidden">
+                <!-- Mini-Logo, if article has associated organisation -->
+                <div v-if="organisation" class="absolute top-0 right-0 w-28 h-28 overflow-hidden">
                     <div
                         class="absolute top-0 right-0 w-0 h-0 border-t-[7rem] border-t-white border-l-[7rem] border-l-transparent">
                     </div>
@@ -63,7 +63,7 @@ const props = defineProps({
     date: Date,
     tag: String,
     image_id: String,
-    organisation: Object,
+    organisation: Object, // can be null
 })
 
 
@@ -71,7 +71,7 @@ const location = computed(() => buildLocationString(props.municipality_name, pro
 
 
 const truncatedAbstract = computed(() => {
-    if (props.abstract.length > 300) {
+    if (props.abstract && props.abstract.length > 300) {
         return props.abstract.substring(0, 300) + '...';
     }
     return props.abstract;
