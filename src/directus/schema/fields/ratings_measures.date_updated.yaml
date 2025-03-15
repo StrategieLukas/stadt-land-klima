@@ -18,10 +18,12 @@ meta:
   sort: 7
   special:
     - date-updated
-  translations: null
   validation: null
   validation_message: null
   width: half
+  translations:
+    - language: de-DE
+      translation: Zuletzt bearbeitet
 schema:
   name: date_updated
   table: ratings_measures

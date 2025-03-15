@@ -3,11 +3,11 @@ services:
     restart: always
 
   directus:
-    restart: always
+    restart: unless-stopped
     ports:
       - "9001:8055"
 
   frontend:
-    restart: always
+    restart: unless-stopped
     ports:
       - "9000:3000"

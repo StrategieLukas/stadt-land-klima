@@ -134,6 +134,7 @@ permissions:
       - description_funding
       - description_tutorial
       - slug
+      - measure_id
   - collection: directus_users
     action: read
     permissions:

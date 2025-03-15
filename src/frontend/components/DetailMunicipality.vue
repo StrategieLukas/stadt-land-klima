@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
+      {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />
@@ -15,7 +15,7 @@
 
     <!-- Accordion -->
     <!-- Municipality description -->
-    <div class="collapse collapse-plus rounded-sm p-2 px-0 shadow-list md:px-2">
+    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
 
       <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
@@ -57,25 +57,26 @@
           {{ $t("measure_sector.measures_in_detail") }}
         </h3>
         <ul class="mb-2 flex items-end justify-center gap-4">
-          <li v-for="(rating, index) in 4" class="flex flex-col items-center">
+          <li v-for="(rating, index) in 4" :key="`rating-image-${index}`" class="flex flex-col items-center">
             <img :src="ratingImages[index]" class="h-auto w-5" />
             <div class="text-sm">{{ $t(`measure_rating.${index}_caption`) }}</div>
           </li>
         </ul>
 
         <!-- List of individual measure ratings for the given sector -->
-        <ul class="mb-8 divide-y divide-slate-300">
+        <ul class="mb-8 divide-y-2 divide-slate-300">
           <li
             v-for="item in sectorRatings"
             :key="item.id"
-            :class="[ratingColorClass[transformToArrayPositions(item.rating)], 'bg-opacity-10']"
           >
-            <div class="collapse-plus collapse">
-              <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off" />
+            <div class="collapse-plus collapse rounded-none">
+              <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off"/>
 
-              <div class="collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4">
+              <div
+              :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']"
+              >
                 <div class="shrink-0">
-                  <img :src="ratingImages[transformToArrayPositions(item.rating)]" class="my-auto h-auto w-5" />
+                  <img :src="ratingImages[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
                 </div>
 
                 <h3 class="font-heading text-h3 font-medium">
@@ -84,7 +85,9 @@
               </div>
 
               <!-- More info on the measure when clicked -->
-              <div class="collapse-content md:px-12 lg:px-12">
+              <div 
+              :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']"
+              >
                 <MeasureDetails :measure="item.measure" />
                 <div v-if="item.current_progress" class="mb-4">
                   <h4 class="mb-2 text-light-blue">
@@ -100,6 +103,10 @@
 
                   <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.source)" />
                 </div>
+                <dl v-if="item.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
+                  <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
+                  <dd>{{ formatLastUpdated(item.date_updated) }}</dd>
+                </dl>
 
                 <div class="mt-8">
                   <NuxtLink
@@ -110,11 +117,7 @@
                     {{ $t("municipality_rating.link_to_measure") }} ↗
                   </NuxtLink>
                 </div>
-
-
-
               </div>
-
             </div>
           </li>
         </ul>
@@ -165,6 +168,7 @@ import linkifyStr from "linkify-string";
 const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingImages from "../shared/ratingImages.js";
+import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
 const { $t, $locale } = useNuxtApp();
 const props = defineProps({
   municipality: {
@@ -176,20 +180,19 @@ const props = defineProps({
     required: true,
   },
 });
-const ratingColorClass = {
-  3: "bg-rating-3",
-  2: "bg-rating-2",
-  1: "bg-rating-1",
-  0: "bg-rating-0",
+
+/**
+ * @param {string} dateString
+ * @returns {string} Properly formatted date and time
+ */
+const formatLastUpdated = (dateString) => {
+  const lastUpdatedAt = new Date(dateString);
+  return `${lastUpdatedAt.toLocaleDateString($locale, {
+    year: "numeric",
+    month: "2-digit",
+    day: "numeric",
+  })}, ${lastUpdatedAt.toLocaleTimeString($locale)}`;
 };
-const lastUpdatedAtStr = ref("");
-onMounted(() => {
-  const lastUpdatedAt = new Date(municipality.date_updated);
-  lastUpdatedAtStr.value =
-    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
-    ", " +
-    lastUpdatedAt.toLocaleTimeString($locale);
-});
 
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);
@@ -203,7 +206,7 @@ function createSubScoreObject(municipality) {
   }
   return temp;
 }
-function transformToArrayPositions(value) {
+function ratingIndex(value) {
   const tempVal = Number(value);
   if (tempVal === 0) return 0;
   if (tempVal === 0.3333) return 1;

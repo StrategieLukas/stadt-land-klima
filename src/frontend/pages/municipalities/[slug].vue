@@ -22,10 +22,7 @@ const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
 
 const { data: directusData } = await useAsyncData("municipality", async () => {
-  let municipalities;
-  let measures;
-  let ratingsMeasures;
-  [municipalities, measures] = await Promise.all([
+  const [municipalities, measures] = await Promise.all([
     $directus.request(
       $readItems("municipalities", {
         filter: { slug: { _eq: route.params.slug } },
@@ -34,7 +31,7 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
     ),
     $directus.request($readItems("measures", {})),
   ]);
-  ratingsMeasures = await $directus.request(
+  const ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
       filter: { localteam_id: { _eq: municipalities[0].localteam_id } },
     }),

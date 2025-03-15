@@ -1,0 +1,60 @@
+name: SetMunicipalityTypeBasedOnPopulation
+icon: bolt
+color: null
+description: null
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - municipalities
+operations:
+  - name: Skript ausführen
+    key: exec_agdg0
+    type: condition
+    position_x: 20
+    position_y: 1
+    options:
+      filter:
+        $trigger:
+          payload:
+            population:
+              _gt: 0
+    resolve_key: condition_656fu
+  - name: Konsolenausgabe
+    key: log_m6yar_ffhhu
+    type: item-update
+    position_x: 57
+    position_y: 18
+    options:
+      collection: municipalities
+      key: "{{$trigger.keys}}"
+      payload:
+        municipality_type: small_city
+  - name: Konsolenausgabe
+    key: log_m6yar
+    type: item-update
+    position_x: 56
+    position_y: 1
+    options:
+      collection: municipalities
+      key: "{{$trigger.keys}}"
+      payload:
+        municipality_type: big_city
+  - name: Kondition
+    key: condition_656fu
+    type: condition
+    position_x: 38
+    position_y: 1
+    options:
+      filter:
+        $trigger:
+          payload:
+            population:
+              _gte: 100000
+    resolve_key: log_m6yar
+    reject_key: log_m6yar_ffhhu
+operation_key: exec_agdg0
