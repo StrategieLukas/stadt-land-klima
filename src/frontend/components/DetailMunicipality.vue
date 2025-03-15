@@ -18,7 +18,7 @@
     <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
 
-      <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
+      <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
         <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
@@ -30,6 +30,24 @@
         <div class="has-long-links prose" v-html="sanitizeHtml(municipality.description)"></div>
       </div>
     </div>
+
+ <!-- Notice about current developments, if it exists -->
+ <div v-if="municipality.overall_status_comment" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
+      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
+
+      <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
+        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+
+        <h2 class="font-heading text-h2 leading-none text-green">
+          {{ $t("municipality.overall_status_heading") }}
+        </h2>
+      </div>
+
+      <div class="collapse-content px-2 md:px-4">
+        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.overall_status_comment)"></div>
+      </div>
+    </div>
+
 
     <!-- Measures -->
     <div
@@ -128,7 +146,7 @@
     <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
-      <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
+      <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
         <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">

@@ -14,6 +14,7 @@ meta:
   options:
     placeholder: $t:municipalities.overall_status_comment
     softLength: 500
+    trim: true
   readonly: false
   required: false
   sort: 7
