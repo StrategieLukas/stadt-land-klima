@@ -3,7 +3,7 @@
         <div class="relative">
 
             <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
-                <img v-if="organisation" :src="toAssetUrl(image_id)" alt="Project Image" class="object-cover w-full h-full" />
+                <img :src="toAssetUrl(image_id)" alt="Project Image" class="object-cover w-full h-full" />
                 <div v-if="tag" class="absolute top-2 left-2 bg-yellow-400 text-xs px-2 py-1 rounded">
                     {{ tag }}
                 </div>

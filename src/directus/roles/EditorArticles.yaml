@@ -100,3 +100,24 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
