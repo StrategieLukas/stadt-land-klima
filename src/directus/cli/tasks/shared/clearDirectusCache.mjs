@@ -1,7 +1,7 @@
 import createDirectusClient from "./createDirectusClient.mjs";
 import {
   clearCache,
-} from '@directus/sdk';
+} from '@directus/sdk/rest';
 
 async function clearDirectusCache(options = {verbose: false}) {
   const client = createDirectusClient();

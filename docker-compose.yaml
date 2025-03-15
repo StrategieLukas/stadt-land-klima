@@ -26,7 +26,6 @@ services:
       - ./src/directus/uploads:/directus/uploads
       - ./src/directus/extensions:/directus/extensions
       - ./src/directus/schema/:/directus/schema
-      - ./src/directus/policies/:/directus/policies
       - ./src/directus/roles/:/directus/roles
       - ./src/directus/presets/:/directus/presets
       - ./src/directus/webhooks/:/directus/webhooks

@@ -1,9 +1,118 @@
 name: frontend
 icon: web_asset
 description: null
-parent: null
-children: []
-policies:
-  - a5cbc503-025f-495a-8e82-137b08625a14
-  - 8a7daf89-ce80-411e-8485-6de2dd29d19e
-permissions: []
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: ratings_measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+        - approved:
+            _eq: true
+        - measure_id:
+            status:
+              _eq: published
+    validation: null
+    presets: null
+    fields:
+      - applicable
+      - rating
+      - localteam_id
+      - measure_id
+      - id
+      - sort
+      - Source
+      - source
+      - achievement
+      - current_progress
+  - collection: pages
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - menus
+      - contents
+      - slug
+      - sort
+  - collection: municipalities
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - sort
+      - slug
+      - municipality_type
+      - details
+      - score_cpma
+      - score_iec
+      - score_transport
+      - scores
+      - mayor
+      - state
+      - population
+      - party_mayor
+      - score_energy
+      - score_total
+      - score_ann
+      - score_bh
+      - name
+      - description
+      - place
+      - localteam_id
+      - date_updated
+      - status
+      - overall_status_comment
+      - public_contact
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - sort
+      - name
+      - sector
+      - slug
+      - impact
+      - weight
+      - feasibility_political
+      - feasibility
+      - feasibility_economical
+      - verification_description
+      - notes
+      - description
+      - date_updated
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+      - measure_id
+  - collection: directus_translations
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

@@ -1,8 +1,0 @@
-name: Administrator
-icon: verified
-description: $t:admin_description
-parent: null
-children: []
-policies:
-  - f4c66ce1-0ae9-411c-95f9-654021c7a8f4
-permissions: []
