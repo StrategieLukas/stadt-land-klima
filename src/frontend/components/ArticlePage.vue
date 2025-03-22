@@ -1,5 +1,6 @@
 <template>
-    <div class="project-page bg-white shadow-md border rounded-md overflow-hidden">
+  <!-- Mobile version -->
+  <div class="block lg:hidden project-page bg-white shadow-md rounded-md overflow-hidden">
       <div class="p-6">
         <!-- Location, Author, Date -->
         <p class="text-sm text-gray-600 mb-1">
@@ -42,7 +43,67 @@
         </div> -->
       </div>
     </div>
-  </template>
+
+
+  <!-- Desktop version -->
+  <div class="hidden lg:block project-page bg-[#F5FAFD] shadow-lg rounded-lg p-8 relative">
+    <!-- Top Right Logo with White Triangle Background -->
+    <div class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
+      <img src="/icons/logo.svg" alt="Logo" class="w-10 h-10" />
+    </div>
+    
+    <div class="grid grid-cols-3 gap-6">
+      <!-- Sidebar -->
+      <div class="flex flex-col text-sm text-gray-700 space-y-4 bg-white p-6 rounded-lg shadow-md">
+        <div class="w-full h-48 bg-gray-200 flex items-center justify-center mb-4 rounded-lg">
+          <span v-if="!image" class="text-gray-500">[Image Placeholder]</span>
+          <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover rounded-lg" />
+        </div>
+        <p class="pb-2 border-b border-gray-300"><strong>Kommune</strong></p>
+        <p class="pb-2 border-b border-gray-300"><strong>Großstadt/Einwohner</strong></p>
+        <p class="pb-2 border-b border-gray-300"><strong>Bundesland</strong></p>
+        <p class="pb-2 border-b border-gray-300"><strong>Kategorie(n)</strong></p>
+        <p class="pb-2 border-b border-gray-300"><strong>Datum</strong></p>
+        <p class="pb-2 border-b border-gray-300"><strong>Kontakt</strong></p>
+        <p class="pb-2 border-b border-gray-300"><strong>Quelle/Autor</strong></p>
+        
+        <!-- Social Media Icons -->
+        <div class="flex space-x-3 mt-4">
+          <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" />
+          <img src="/icons/instagram.svg" class="w-6 h-6" alt="Instagram" />
+          <img src="/icons/linkedin.svg" class="w-6 h-6" alt="LinkedIn" />
+          <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" />
+        </div>
+      </div>
+      
+      <!-- Main Content -->
+      <div class="col-span-2 flex flex-col">
+        <h1 class="text-3xl font-bold text-blue-600 mb-2">{{ title }}</h1>
+        <p class="text-lg text-gray-500 mb-6">{{ subtitle }}</p>
+        
+        <div class="text-gray-700 leading-relaxed flex-grow">
+          <div v-html="article_text"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer Buttons (Now below the text) -->
+    <div class="flex justify-center space-x-4 mt-8">
+      <button class="bg-[#009FE3] text-white px-6 py-3 rounded-full shadow-md hover:bg-[#0082C3] transition">
+        Übersicht Erfolgsprojekte
+      </button>
+      <button class="bg-[#009FE3] text-white px-6 py-3 rounded-full shadow-md hover:bg-[#0082C3] transition flex items-center">
+        <span class="mr-2">✖</span> Fenster schließen
+      </button>
+    </div>
+  </div>
+</template>
+
+<style>
+.clip-triangle {
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+}
+</style>
   
   <script setup>
     import { buildLocationString, toAssetUrl } from '~/shared/utils';
