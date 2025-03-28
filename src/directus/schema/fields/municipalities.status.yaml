@@ -7,10 +7,13 @@ meta:
     - name: AllowPublishIFRatingsAreDone
       rule:
         _and:
-          - percentage_rated:
-              _lt: "95"
           - status:
               _eq: draft
+          - _or:
+              - percentage_rated:
+                  _null: true
+              - percentage_rated:
+                  _lt: "95"
       readonly: true
       options:
         allowOther: false
