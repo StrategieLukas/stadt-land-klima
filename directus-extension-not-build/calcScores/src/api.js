@@ -8,7 +8,6 @@ export default {
       const { ItemsService } = services;
       const schema = await getSchema();
       let maxScore = 100;
-      let percentageRatedForPublish = 95;
       // logger.info(accountability, "accountability");
       //logger.info(keys, "keys");
       accountability.admin = true;
@@ -164,13 +163,13 @@ export default {
             !measureNotToConsiderForCalc.includes(measure_id)
           ) {
             scoreDict["total"]["denominator"] += weight; //max value needs update
-            scoreDict["numberOfRated"]["denominator"] += 1;
+            scoreDict["numberOfRated"]["denominator"] += weight;
             if (scoreDict[sector]) {
               scoreDict[sector]["denominator"] += weight;
             }
             if (approved && status === "published") {
               scoreDict["total"]["numerator"] += Number(rating) * weight;
-              scoreDict["numberOfRated"]["numerator"] += 1;
+              scoreDict["numberOfRated"]["numerator"] += weight;
               if (scoreDict[sector]) {
                 scoreDict[sector]["numerator"] += Number(rating) * weight;
               }
@@ -205,12 +204,6 @@ export default {
           }
         }
 
-        //Update the status to published if more than percentageRatedForPublish are published
-        if (scoresToPush["percentage_rated"] >= percentageRatedForPublish) {
-          scoresToPush["status"] = "published";
-        } else {
-          scoresToPush["status"] = "draft";
-        }
         /* logger.info(scoresToPush, "scoresToPush"); */
         let result = await municipalitiesService.updateOne(
           municipality.id,
