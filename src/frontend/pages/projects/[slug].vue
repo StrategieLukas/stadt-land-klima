@@ -1,15 +1,16 @@
 <template>
   <ArticlePage
+    :title="article.title"
+    :subtitle="article.subtitle"
     :municipality_name="article.municipality_name"
     :state="article.state"
     :author="article.author"
     :date="new Date(article.date_created)"
-    :title="article.title"
-    :subtitle="article.subtitle"
     :image="article.image"
     :image_credits="article.image_credits"
     :abstract="article.abstract"
     :article_text="article.article_text"
+    :link="article.link"
     :organisation="organisation"
   />
 </template>
@@ -23,7 +24,7 @@
   const { data: articles } = await useAsyncData("articles", () => {
     return $directus.request(
       $readItems("articles", {
-        fields: ["title", "subtitle", "image", "image_credits", "abstract", "article_text", "author", "date_created", "municipality_name", "state", "organisation"],
+        fields: ["title", "subtitle", "municipality_name", "state", "author", "date_created", "image", "image_credits", "abstract", "article_text", "link", "organisation"],
         filter: { slug: { _eq: route.params.slug } },
         limit: 1,
       }),

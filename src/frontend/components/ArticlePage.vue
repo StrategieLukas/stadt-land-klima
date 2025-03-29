@@ -92,7 +92,12 @@
         </p>
         <p v-if="link" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>Link</strong>
-          <span class="text-right">{{ link }}</span>
+          <a 
+            :href="link" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="text-blue-500 hover:underline"
+          >{{ link }}</a>
         </p>
         
         <!-- Missing categories: Tag, Municipality size, Contact for this project (i.e. from the local group that did the project, not necessarily the author) -->
@@ -156,16 +161,17 @@
     const { $t, $locale } = useNuxtApp()
     
     const props = defineProps({
+        title: String,
+        subtitle: String,
         municipality_name: String,
         state: String,
         author: String,
         date: Date,
-        title: String,
-        subtitle: String,
         image: String,
         image_credits: String,
         abstract: String,
         article_text: String,
+        link: String,
         organisation: Object, // can be null
     });
 
