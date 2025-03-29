@@ -117,3 +117,39 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: articles
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - status
+      - title
+      - slug
+      - date_updated
+      - author
+      - date_created
+      - municipality_name
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - link
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - link
+      - short_description
+      - logo
+      - id

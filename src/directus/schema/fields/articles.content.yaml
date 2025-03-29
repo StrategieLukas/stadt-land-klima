@@ -1,0 +1,27 @@
+collection: articles
+field: content
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: content
+  group: null
+  hidden: false
+  interface: group-detail
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 12
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Inhalt
+  validation: null
+  validation_message: null
+  width: full

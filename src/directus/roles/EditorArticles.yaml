@@ -1,0 +1,125 @@
+name: EditorArticles
+icon: supervised_user_circle
+description: null
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - state
+      - content
+      - subtitle
+      - image
+      - abstract
+      - image_credits
+      - article_text
+      - organisation
+      - author
+      - slug
+      - municipality_name
+      - status
+      - link
+  - collection: articles
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - municipality_name
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - slug
+      - author
+      - status
+      - link
+  - collection: articles
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - name
+      - short_description
+      - link
+      - logo
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - date_created
+      - date_updated
+      - short_description
+      - logo
+      - link
+      - name
+      - user_updated
+      - user_created
+  - collection: organisations
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - link
+      - logo
+      - short_description
+  - collection: organisations
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
