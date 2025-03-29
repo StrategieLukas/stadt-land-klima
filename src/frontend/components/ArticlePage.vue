@@ -73,19 +73,51 @@
           <span v-if="!image" class="text-gray-500">[Image Placeholder]</span>
           <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover rounded-lg" />
         </div>
-        <p class="pb-2 border-b border-gray-300"><strong>Kommune</strong></p>
-        <p class="pb-2 border-b border-gray-300"><strong>Großstadt/Einwohner</strong></p>
-        <p class="pb-2 border-b border-gray-300"><strong>Bundesland</strong></p>
-        <p class="pb-2 border-b border-gray-300"><strong>Kategorie(n)</strong></p>
-        <p class="pb-2 border-b border-gray-300"><strong>Datum</strong></p>
-        <p class="pb-2 border-b border-gray-300"><strong>Kontakt</strong></p>
-        <p class="pb-2 border-b border-gray-300"><strong>Quelle/Autor</strong></p>
+
+        <p v-if="municipality_name" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>Kommune</strong>
+          <span class="text-right">{{ municipality_name }}</span>
+        </p>
+        <p v-if="state" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>Bundesland</strong>
+          <span class="text-right">{{ state }}</span>
+        </p>
+        <p v-if="date" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>Datum</strong>
+          <span class="text-right">{{ date.toLocaleDateString($locale) }}</span>
+        </p>
+        <p v-if="author" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>Autor</strong>
+          <span class="text-right">{{ author }}</span>
+        </p>
+        <p v-if="link" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>Link</strong>
+          <span class="text-right">{{ link }}</span>
+        </p>
         
+        <!-- Missing categories: Tag, Municipality size, Contact for this project (i.e. from the local group that did the project, not necessarily the author) -->
+
         <!-- Social Media Icons -->
         <div class="flex space-x-3 mt-4">
           <!-- <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" /> -->
-          <img src="/icons/instagram.svg" class="w-6 h-6" alt="Instagram" />
-          <img src="/icons/linkedin.svg" class="w-6 h-6" alt="LinkedIn" />
+          <a 
+            href="https://www.instagram.com/stadt.land.klima/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="text-blue-500 hover:underline"
+          >
+            <img src="~/assets/icons/icon_instagram.svg" class="w-6 h-6" alt="Instagram" />
+          </a>
+
+          <a 
+            href="https://www.linkedin.com/company/stadt-land-klima" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="text-blue-500 hover:underline"
+          >
+            <img src="~/assets/icons/icon_linkedin.svg" class="w-6 h-6" alt="LinkedIn" />
+          </a>
+          
           <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
         </div>
       </div>
@@ -138,7 +170,5 @@
     });
 
     const location = computed(() => buildLocationString(props.municipality_name, props.state));
-    console.log("organisation");
-    console.log(props.organisation);
 
   </script>
