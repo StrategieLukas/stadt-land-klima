@@ -6,6 +6,27 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: articles
     action: create
     permissions: null
@@ -25,6 +46,7 @@ permissions:
       - slug
       - municipality_name
       - status
+      - link
   - collection: articles
     action: read
     permissions: {}
@@ -51,6 +73,7 @@ permissions:
       - slug
       - author
       - status
+      - link
   - collection: articles
     action: delete
     permissions: {}
@@ -95,27 +118,6 @@ permissions:
       - short_description
   - collection: organisations
     action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: create
     permissions: {}
     validation: {}
     presets: null

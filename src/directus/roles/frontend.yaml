@@ -141,6 +141,7 @@ permissions:
       - abstract
       - article_text
       - organisation
+      - link
   - collection: organisations
     action: read
     permissions: null
