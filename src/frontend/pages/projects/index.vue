@@ -10,6 +10,7 @@
           :municipality_name="project.municipality_name"
           :state="project.state"
           :abstract="project.abstract"
+          :author="project.author"
           :date="new Date(project.date_created)"
           :tag="project.tag"
           :image_id="project.image"
@@ -27,7 +28,7 @@ const { $directus, $readItems, $t } = useNuxtApp();
 const { data: projects } = await useAsyncData("articles", () => {
   return $directus.request(
     $readItems("articles", {
-      fields: ["slug", "title", "image", "abstract", "date_created", "municipality_name", "state", "organisation"],
+      fields: ["slug", "title", "image", "abstract", "author", "date_created", "municipality_name", "state", "organisation"],
       sort: "-date_created",
       limit: -1,
     }),

@@ -36,9 +36,9 @@
                     {{ truncatedAbstract }}
                 </p>
 
-                <!-- Date Section -->
+                <!-- Author and Date Section -->
                 <p class="text-gray-500 italic text-xs mb-2">
-                    {{ date.toLocaleDateString($locale) }}
+                    {{ author }}, {{ date.toLocaleDateString($locale) }}
                 </p>
 
                 <!-- Read more link -->
@@ -60,6 +60,7 @@ const props = defineProps({
     municipality_name: String,
     state: String,
     abstract: String,
+    author: String,
     date: Date,
     tag: String,
     image_id: String,

@@ -1,7 +1,10 @@
 <template>
   <!-- Mobile version -->
   <div class="block lg:hidden project-page bg-[#E8F9FD] shadow-md rounded-md overflow-hidden">
+
       <div class="p-6">
+
+        <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← zurück zur Übersicht</NuxtLink>
   
         <!-- Title and Subtitle -->
         <h1 class="text-2xl font-bold text-blue-500 mb-1">{{ title }}</h1>
@@ -57,6 +60,7 @@
 
   <!-- Desktop version -->
   <div class="hidden lg:block project-page bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
+    <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← zurück zur Übersicht</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
       <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
@@ -98,14 +102,14 @@
     </div>
     
     <!-- Footer Buttons -->
-    <div class="flex justify-center space-x-4 mt-8">
+    <!-- <div class="flex justify-center space-x-4 mt-8">
       <button class="bg-[#009FE3] text-white px-6 py-3 rounded-full shadow-md hover:bg-[#0082C3] transition">
         Übersicht Erfolgsprojekte
       </button>
       <button class="bg-[#009FE3] text-white px-6 py-3 rounded-full shadow-md hover:bg-[#0082C3] transition flex items-center">
         <span class="mr-2">✖</span> Fenster schließen
       </button>
-    </div>
+    </div> -->
   </div>
 </template>
 

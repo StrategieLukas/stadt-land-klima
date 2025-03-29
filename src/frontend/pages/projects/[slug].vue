@@ -44,7 +44,7 @@
   const result = await $directus.request(
     $readItems("organisations", {
       fields: ["id", "name", "logo", "link"],
-      filter: { id: { _eq: article.key } }, // todo how does this ever work????????????
+      filter: { id: { _eq: article.organisation.key } },
     })
   );
 
