@@ -10,6 +10,7 @@
     :image_credits="article.image_credits"
     :abstract="article.abstract"
     :article_text="article.article_text"
+    :organisation="organisation"
   />
 </template>
 
@@ -36,6 +37,16 @@
     useHead({
     title,
   });
+
+  const { data: organisations } = await useAsyncData("organisations", () => {
+  return $directus.request(
+    $readItems("organisations", {
+      fields: ["id", "name", "logo", "link"],
+      filter: { id: { _eq: article.key }}
+    }));
+  });
+
+  const organisation = organisations.value[0];
 
 
 </script>

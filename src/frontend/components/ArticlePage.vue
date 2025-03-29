@@ -48,8 +48,9 @@
   <!-- Desktop version -->
   <div class="hidden lg:block project-page bg-[#F5FAFD] shadow-lg rounded-lg p-8 relative">
     <!-- Top Right Logo with White Triangle Background -->
-    <div class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
-      <img src="/icons/logo.svg" alt="Logo" class="w-10 h-10" />
+    <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
+      <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
+      <!-- <img src="/icons/logo.svg" alt="Logo" class="w-10 h-10" /> -->
     </div>
     
     <div class="grid grid-cols-3 gap-6">
@@ -120,6 +121,7 @@
         image_credits: String,
         abstract: String,
         article_text: String,
+        organisation: Object, // can be null
     });
 
     const location = computed(() => buildLocationString(props.municipality_name, props.state));
