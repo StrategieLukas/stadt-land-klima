@@ -1,22 +1,27 @@
 <template>
   <!-- Mobile version -->
-  <div class="block lg:hidden project-page bg-white shadow-md rounded-md overflow-hidden">
+  <div class="block lg:hidden project-page bg-[#E8F9FD] shadow-md rounded-md overflow-hidden">
       <div class="p-6">
-        <!-- Location, Author, Date -->
-        <p class="text-sm text-gray-600 mb-1">
-          {{ location }}
-        </p>
-        <p class="text-sm text-gray-600 mb-1">
-          {{ date.toLocaleDateString($locale) }},  {{ author }}
-        </p>
   
         <!-- Title and Subtitle -->
         <h1 class="text-2xl font-bold text-blue-500 mb-1">{{ title }}</h1>
         <h2 class="text-lg text-gray-500 mb-4">{{ subtitle }}</h2>
+
+        <!-- Location, Author and Date -->
+        <p class="text-sm text-gray-600 mb-1">
+          {{ location }}
+        </p>
+        <p class="text-sm text-gray-600 mb-1">
+          <i>Artikel von {{ author }} vom {{ date.toLocaleDateString($locale) }}</i>
+        </p>
+
   
         <!-- Image and Image Credits -->
         <div class="relative mb-4">
           <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover" />
+          <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
+            <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
+          </div>
           <p v-if="image_credits" class="text-xs text-gray-500 mt-1">{{ image_credits }}</p>
         </div>
   
@@ -27,6 +32,11 @@
         <div class="text-gray-700 mb-4">
           <div v-html="article_text"></div>
         </div>
+
+        <!-- Organisation note -->
+        <p v-if="organisation" class="text-sm text-gray-600 mb-1">
+          Ein Projekt von {{ organisation.name }}
+        </p>
   
         <!-- Contact Information -->
         <!-- <div class="border-t pt-4 mt-4">
@@ -46,11 +56,10 @@
 
 
   <!-- Desktop version -->
-  <div class="hidden lg:block project-page bg-[#F5FAFD] shadow-lg rounded-lg p-8 relative">
+  <div class="hidden lg:block project-page bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
     <!-- Top Right Logo with White Triangle Background -->
     <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
       <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
-      <!-- <img src="/icons/logo.svg" alt="Logo" class="w-10 h-10" /> -->
     </div>
     
     <div class="grid grid-cols-3 gap-6">
@@ -70,10 +79,10 @@
         
         <!-- Social Media Icons -->
         <div class="flex space-x-3 mt-4">
-          <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" />
+          <!-- <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" /> -->
           <img src="/icons/instagram.svg" class="w-6 h-6" alt="Instagram" />
           <img src="/icons/linkedin.svg" class="w-6 h-6" alt="LinkedIn" />
-          <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" />
+          <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
         </div>
       </div>
       
@@ -88,7 +97,7 @@
       </div>
     </div>
     
-    <!-- Footer Buttons (Now below the text) -->
+    <!-- Footer Buttons -->
     <div class="flex justify-center space-x-4 mt-8">
       <button class="bg-[#009FE3] text-white px-6 py-3 rounded-full shadow-md hover:bg-[#0082C3] transition">
         Übersicht Erfolgsprojekte
@@ -125,6 +134,7 @@
     });
 
     const location = computed(() => buildLocationString(props.municipality_name, props.state));
-
+    console.log("organisation");
+    console.log(props.organisation);
 
   </script>

@@ -38,15 +38,18 @@
     title,
   });
 
-  const { data: organisations } = await useAsyncData("organisations", () => {
-  return $directus.request(
+  const { data: organisation } = await useAsyncData("organisation", async () => {
+  if (!article.organisation) return null;
+
+  const result = await $directus.request(
     $readItems("organisations", {
       fields: ["id", "name", "logo", "link"],
-      filter: { id: { _eq: article.key }}
-    }));
-  });
+      filter: { id: { _eq: article.key } }, // todo how does this ever work????????????
+    })
+  );
 
-  const organisation = organisations.value[0];
+  return result?.[0] || null; // Return the first organisation or null if empty
+});
 
 
 </script>
