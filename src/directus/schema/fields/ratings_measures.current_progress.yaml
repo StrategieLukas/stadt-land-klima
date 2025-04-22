@@ -3,7 +3,18 @@ field: current_progress
 type: text
 meta:
   collection: ratings_measures
-  conditions: null
+  conditions:
+    - name: Hide if measure is not applicable
+      rule:
+        _and:
+          - applicable:
+              _eq: false
+      readonly: true
+      hidden: true
+      options:
+        trim: false
+        font: sans-serif
+        clear: false
   display: null
   display_options: null
   field: current_progress

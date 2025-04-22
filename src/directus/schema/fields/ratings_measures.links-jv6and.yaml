@@ -19,7 +19,7 @@ meta:
         url: https://stadt-land-klima.de/measures/sectors/{{measure_id.sector}}#measure-{{measure_id.slug}}
   readonly: false
   required: false
-  sort: 10
+  sort: 9
   special:
     - alias
     - no-data
