@@ -1,0 +1,26 @@
+id: 99990
+bookmark: null
+user: null
+role: null
+collection: ratings_measures
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    limit: 35
+    fields:
+      - measure_id.sector
+      - measure_id.name
+      - status
+      - rating
+    page: 1
+    sort:
+      - measure_id.sector
+layout_options:
+  tabular:
+    widths:
+      measure_id.name: 500
+refresh_interval: null
+filter: null
+icon: bookmark
+color: null
