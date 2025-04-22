@@ -1,18 +1,22 @@
-id: 999999992
+id: 7
 bookmark: null
 user: null
-role: b8c043a2-a245-42d1-b28f-20c657270926
-collection: editors
+role: null
+collection: localteams
 search: null
 layout: tabular
 layout_query:
   tabular:
     fields:
-      - email
+      - municipality_name
+      - admin_id
+      - internal_comment
 layout_options:
   tabular:
     widths:
-      email: 1100
+      municipality_name: 280
+      admin_id: 350
+      internal_comment: 500
 refresh_interval: null
 filter: null
 icon: null

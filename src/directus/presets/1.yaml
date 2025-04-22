@@ -1,4 +1,4 @@
-id: 999999990
+id: 1
 bookmark: null
 user: null
 role: null
@@ -20,7 +20,7 @@ layout_query:
 layout_options:
   tabular:
     widths:
-      measure_id.sector: 275
+      measure_id.sector: 320
       measure_id.name: 500
       applicable: 135
       status: 95

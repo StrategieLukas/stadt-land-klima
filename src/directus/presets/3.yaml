@@ -1,22 +1,18 @@
-id: 999999993
+id: 3
 bookmark: null
 user: null
-role: null
-collection: municipalities
+role: b8c043a2-a245-42d1-b28f-20c657270926
+collection: editors
 search: null
 layout: tabular
 layout_query:
   tabular:
     fields:
-      - name
-      - municipality_type
-      - percentage_rated
-      - status
+      - email
 layout_options:
   tabular:
     widths:
-      municipality_type: 185
-      percentage_rated: 290
+      email: 1100
 refresh_interval: null
 filter: null
 icon: null
