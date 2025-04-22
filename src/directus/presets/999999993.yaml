@@ -1,26 +1,23 @@
-id: 1
+id: 999999993
 bookmark: null
 user: null
 role: null
-collection: ratings_measures
+collection: municipalities
 search: null
 layout: tabular
 layout_query:
   tabular:
-    limit: 35
     fields:
-      - measure_id.sector
-      - measure_id.name
+      - name
+      - municipality_type
+      - percentage_rated
       - status
-      - rating
-    page: 1
-    sort:
-      - measure_id.sector
 layout_options:
   tabular:
     widths:
-      measure_id.name: 500
+      municipality_type: 185
+      percentage_rated: 290
 refresh_interval: null
 filter: null
-icon: bookmark
+icon: null
 color: null

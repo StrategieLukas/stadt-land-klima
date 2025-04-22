@@ -1,4 +1,4 @@
-id: 99990
+id: 999999990
 bookmark: null
 user: null
 role: null
@@ -11,15 +11,19 @@ layout_query:
     fields:
       - measure_id.sector
       - measure_id.name
-      - status
+      - applicable
       - rating
+      - status
     page: 1
     sort:
       - measure_id.sector
 layout_options:
   tabular:
     widths:
+      measure_id.sector: 275
       measure_id.name: 500
+      applicable: 135
+      status: 95
 refresh_interval: null
 filter: null
 icon: bookmark

@@ -1,0 +1,19 @@
+id: 999999992
+bookmark: null
+user: null
+role: b8c043a2-a245-42d1-b28f-20c657270926
+collection: editors
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - email
+layout_options:
+  tabular:
+    widths:
+      email: 1100
+refresh_interval: null
+filter: null
+icon: null
+color: null
