@@ -153,3 +153,16 @@ permissions:
       - short_description
       - logo
       - id
+  - collection: feedback
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - content
+      - type
+      - reporter_name
+      - reporter_contact
+      - date_created
+      - status

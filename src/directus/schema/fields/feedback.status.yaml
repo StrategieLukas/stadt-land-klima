@@ -7,13 +7,15 @@ meta:
   display: labels
   display_options:
     choices:
-      - text: Eingereicht
-        value: Received
-      - text: In Bearbeitung
+      - text: $t:feedback.status.received
+        value: received
+        color: null
+      - text: $t:feedback.status.in_progress
         value: in_progress
-      - text: Bearbeitet
+        color: null
+      - text: $t:feedback.status.finished
         value: finished
-      - text: Ignoriert
+      - text: $t:feedback.status.ignored
         value: ignored
     showAsDot: true
   field: status
@@ -23,15 +25,22 @@ meta:
   note: null
   options:
     choices:
-      - text: $t:published
-        value: published
-        color: var(--theme--primary)
-      - text: $t:draft
-        value: draft
-        color: var(--theme--foreground)
-      - text: $t:archived
-        value: archived
-        color: var(--theme--warning)
+      - text: $t:feedback.status.received
+        value: received
+        icon: local_post_office
+        color: "#1A5FB4"
+      - text: $t:feedback.status.in_progress
+        value: in_progress
+        icon: hourglass_empty
+        color: "#E5A50A"
+      - text: $t:feedback.status.finished
+        value: finished
+        icon: check
+        color: "#2ECDA7"
+      - text: $t:feedback.status.ignored
+        value: ignored
+        icon: block
+        color: "#E35169"
   readonly: false
   required: true
   sort: 2
