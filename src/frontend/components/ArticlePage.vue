@@ -97,7 +97,7 @@
             target="_blank" 
             rel="noopener noreferrer" 
             class="text-blue-500 hover:underline"
-          >{{ link }}</a>
+          >Referenz</a>
         </p>
         
         <!-- Missing categories: Tag, Municipality size, Contact for this project (i.e. from the local group that did the project, not necessarily the author) -->

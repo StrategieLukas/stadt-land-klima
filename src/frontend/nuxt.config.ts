@@ -11,6 +11,9 @@ export default defineNuxtConfig({
     },
   },
   devtools: { enabled: true },
+  nitro: {
+    logLevel: 'debug',
+  },
   css: ["~/assets/css/main.css"],
   postcss: {
     plugins: {
