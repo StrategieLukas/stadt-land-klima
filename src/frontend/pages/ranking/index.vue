@@ -51,8 +51,8 @@ import townNotSelected from '~/assets/images/town-dark.svg'
 </script>
 
 <template>
-  <div class="flex flex-col items-center mb-10">
-    <div>
+
+<div>
       <div class="prose mb-8 mt-10 max-w-full text-center">
         <h1 class="mb-0 whitespace-pre-line">
           {{ $t("municipalities.heading") }}
@@ -63,30 +63,27 @@ import townNotSelected from '~/assets/images/town-dark.svg'
       </div>
     </div>
 
-    <!-- Button row -->
-    <div class="flex gap-2 mb-1">
-      <!-- Major cities -->
-      <img
-        :src="selected === 'city'
-          ? citySelected
-          : cityNotSelected"
-        alt="Großstädte"
-        class="cursor-pointer h-10"
-        @click="selected = 'city'"
-      />
+<!-- Button row -->
+<div class="flex flex-row justify-center gap-2 w-full px-4 sm:px-0 sm:w-auto sm:gap-4 mb-5 sm:mb-10">
 
-      <!-- Small cities -->
-      <img
-        :src="selected === 'town'
-          ? townSelected
-          : townNotSelected"
-        alt="Städte und Gemeinden"
-        class="cursor-pointer h-10"
-        @click="selected = 'town'"
-      />
-    </div>
 
-  </div>
+  <!-- Major cities -->
+  <img
+    :src="selected === 'city' ? citySelected : cityNotSelected"
+    alt="Großstädte"
+    class="cursor-pointer w-1/2 sm:w-[22%] max-w-[240px] h-auto"
+    @click="selected = 'city'"
+  />
+
+  <!-- Small cities -->
+  <img
+    :src="selected === 'town' ? townSelected : townNotSelected"
+    alt="Städte und Gemeinden"
+    class="cursor-pointer w-1/2 sm:w-[22%] max-w-[240px] h-auto"
+    @click="selected = 'town'"
+  />
+</div>
+
 
 
 
