@@ -51,11 +51,10 @@ onMounted(() => {
 // Toggle between cities, towns, or all
 const selected = ref('all')
 
-import citySelected from '~/assets/images/city-light.svg'
-import cityNotSelected from '~/assets/images/city-dark.svg'
-import townSelected from '~/assets/images/town-light.svg'
-import townNotSelected from '~/assets/images/town-dark.svg'
-// TODO - translations
+import majorCitySelected from '~/assets/images/major-city-light.svg'
+import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
+import minorCitySelected from '~/assets/images/minor-city-light.svg'
+import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 </script>
 
 <template>
@@ -75,10 +74,10 @@ import townNotSelected from '~/assets/images/town-dark.svg'
   <div class="flex flex-row justify-center gap-2 w-full px-4 sm:px-0 sm:w-auto sm:gap-4">
     <!-- Major cities -->
     <div class="flex flex-col items-center w-1/2 sm:w-[22%] max-w-[240px]">
-      <img :src="selected === 'city' ? citySelected : cityNotSelected" alt="Großstädte"
-        class="cursor-pointer w-full h-auto" @click="selected = (selected === 'city' ? 'all' : 'city')" />
-      <p v-if="selected === 'city'" class="text-xs text-center mt-1 italic">
-        ab 100.000 Personen
+      <img :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" 
+        class="cursor-pointer w-full h-auto" @click="selected = (selected === 'major_city' ? 'all' : 'major_city')" />
+      <p v-if="selected === 'major_city'" class="text-xs text-center mt-1 italic">
+        {{ $t("municipalities.major_city.threshold") }}
       </p>
       <!-- Blank space to stop menu from bobbing up and down when buttons are selected and subtitles appear -->
       <p v-else class="h-8"></p>
@@ -86,10 +85,10 @@ import townNotSelected from '~/assets/images/town-dark.svg'
 
     <!-- Small cities -->
     <div class="flex flex-col items-center w-1/2 sm:w-[22%] max-w-[240px]">
-      <img :src="selected === 'town' ? townSelected : townNotSelected" alt="Städte und Gemeinden"
-        class="cursor-pointer w-full h-auto" @click="selected = (selected === 'town' ? 'all' : 'town')" />
-      <p v-if="selected === 'town'" class="text-xs text-center mt-1 italic">
-        unter 100.000 Personen
+      <img :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')"
+        class="cursor-pointer w-full h-auto" @click="selected = (selected === 'minor_city' ? 'all' : 'minor_city')" />
+      <p v-if="selected === 'minor_city'" class="text-xs text-center mt-1 italic">
+        {{ $t("municipalities.minor_city.threshold") }}
       </p>
       <!-- Blank space to stop menu from bobbing up and down when buttons are selected and subtitles appear -->
       <p v-else class="h-8"></p>
@@ -99,12 +98,12 @@ import townNotSelected from '~/assets/images/town-dark.svg'
 
 
   <!-- Conditional Content -->
-  <div v-if="selected === 'city'">
+  <div v-if="selected === 'major_city'">
     <section>
       <the-ranking :municipalities="cities"></the-ranking>
     </section>
   </div>
-  <div v-if="selected === 'town'">
+  <div v-if="selected === 'minor_city'">
     <section>
       <the-ranking :municipalities="towns"></the-ranking>
     </section>
