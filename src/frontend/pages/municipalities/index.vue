@@ -48,8 +48,8 @@ onMounted(() => {
     lastUpdatedAt.toLocaleTimeString($locale);
 });
 
-// Toggle between "grossstaedte" and "gemeinden"
-const selected = ref('city')
+// Toggle between cities, towns, or all
+const selected = ref('all')
 
 import citySelected from '~/assets/images/city-light.svg'
 import cityNotSelected from '~/assets/images/city-dark.svg'
@@ -76,19 +76,23 @@ import townNotSelected from '~/assets/images/town-dark.svg'
     <!-- Major cities -->
     <div class="flex flex-col items-center w-1/2 sm:w-[22%] max-w-[240px]">
       <img :src="selected === 'city' ? citySelected : cityNotSelected" alt="Großstädte"
-        class="cursor-pointer w-full h-auto" @click="selected = 'city'" />
-      <p v-if="selected === 'city'" class="text-xs text-center mt-1">
-        mehr als 100.000 Menschen
+        class="cursor-pointer w-full h-auto" @click="selected = (selected === 'city' ? 'all' : 'city')" />
+      <p v-if="selected === 'city'" class="text-xs text-center mt-1 italic">
+        ab 100.000 Personen
       </p>
+      <!-- Blank space to stop menu from bobbing up and down when buttons are selected and subtitles appear -->
+      <p v-else class="h-8"></p>
     </div>
 
     <!-- Small cities -->
     <div class="flex flex-col items-center w-1/2 sm:w-[22%] max-w-[240px]">
       <img :src="selected === 'town' ? townSelected : townNotSelected" alt="Städte und Gemeinden"
-        class="cursor-pointer w-full h-auto" @click="selected = 'town'" />
-      <p v-if="selected === 'town'" class="text-xs text-center mt-1">
-        weniger als 100.000 Menschen
+        class="cursor-pointer w-full h-auto" @click="selected = (selected === 'town' ? 'all' : 'town')" />
+      <p v-if="selected === 'town'" class="text-xs text-center mt-1 italic">
+        unter 100.000 Personen
       </p>
+      <!-- Blank space to stop menu from bobbing up and down when buttons are selected and subtitles appear -->
+      <p v-else class="h-8"></p>
     </div>
   </div>
 
@@ -100,9 +104,14 @@ import townNotSelected from '~/assets/images/town-dark.svg'
       <the-ranking :municipalities="cities"></the-ranking>
     </section>
   </div>
-  <div v-else>
+  <div v-if="selected === 'town'">
     <section>
       <the-ranking :municipalities="towns"></the-ranking>
+    </section>
+  </div>
+  <div v-else>
+    <section>
+      <the-ranking :municipalities="municipalities"></the-ranking>
     </section>
   </div>
 
