@@ -18,9 +18,9 @@ meta:
   note: null
   options:
     choices:
-      - text: Großstadt
+      - text: $t:municipality.municipality_type.major_city
         value: big_city
-      - text: Kleinstadt
+      - text: $t:municipality.municipality_type.minor_city
         value: small_city
   readonly: true
   required: false
