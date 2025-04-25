@@ -76,22 +76,18 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
     <div class="flex flex-col items-center w-1/2 sm:w-[22%] max-w-[240px]">
       <img :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" 
         class="cursor-pointer w-full h-auto" @click="selected = (selected === 'major_city' ? 'all' : 'major_city')" />
-      <p v-if="selected === 'major_city'" class="text-xs text-center mt-1 italic">
+      <p class="text-xs text-center mt-1 italic h-8">
         {{ $t("municipalities.major_city.threshold") }}
       </p>
-      <!-- Blank space to stop menu from bobbing up and down when buttons are selected and subtitles appear -->
-      <p v-else class="h-8"></p>
     </div>
 
     <!-- Small cities -->
     <div class="flex flex-col items-center w-1/2 sm:w-[22%] max-w-[240px]">
       <img :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')"
         class="cursor-pointer w-full h-auto" @click="selected = (selected === 'minor_city' ? 'all' : 'minor_city')" />
-      <p v-if="selected === 'minor_city'" class="text-xs text-center mt-1 italic">
+      <p  class="text-xs text-center mt-1 italic h-8">
         {{ $t("municipalities.minor_city.threshold") }}
       </p>
-      <!-- Blank space to stop menu from bobbing up and down when buttons are selected and subtitles appear -->
-      <p v-else class="h-8"></p>
     </div>
   </div>
 
