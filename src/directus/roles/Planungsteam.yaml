@@ -1,4 +1,4 @@
-name: Planungsteam (Readonly)
+name: Planungsteam
 icon: supervised_user_circle
 description: null
 ip_access: null
@@ -283,3 +283,4 @@ permissions:
     presets: null
     fields:
       - status
+      - internal_response_summary
