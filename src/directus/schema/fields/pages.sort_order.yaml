@@ -1,0 +1,53 @@
+collection: pages
+field: sort_order
+type: integer
+meta:
+  collection: pages
+  conditions:
+    - name: Required if page is published
+      rule:
+        _and:
+          - status:
+              _eq: published
+      required: true
+      options:
+        font: sans-serif
+        trim: false
+        masked: false
+        clear: false
+        slug: false
+  display: null
+  display_options: null
+  field: sort_order
+  group: null
+  hidden: false
+  interface: input
+  note: null
+  options:
+    min: 0
+  readonly: false
+  required: false
+  sort: 10
+  special: null
+  translations:
+    - language: de-DE
+      translation: Sortierungsreihenfolge
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: sort_order
+  table: pages
+  data_type: integer
+  default_value: null
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
+  is_nullable: true
+  is_unique: true
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

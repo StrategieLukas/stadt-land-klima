@@ -22,10 +22,12 @@ meta:
         value: main
       - text: Footernavigation
         value: footer
-    itemsShown: 2
+      - text: $t:pages.navigation.top-bar-navigation
+        value: top-bar
+    itemsShown: 3
   readonly: false
   required: false
-  sort: 10
+  sort: 9
   special:
     - cast-csv
   translations:
