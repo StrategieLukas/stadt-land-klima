@@ -49,10 +49,14 @@
         <input v-model="captchaAnswer" type="number" class="w-full border rounded p-2" required />
       </div>
 
+      
+
       <!-- Submit Button -->
       <button type="submit" class="w-full bg-[#AFCA0B] text-white font-bold py-2 rounded hover:bg-green">
         {{ $t("feedback.form.submit") }}
       </button>
+
+      <p class="mt-4 text-xs italic">{{ $t('generic.privacy.disclaimer') }}</p>
     </form>
 
     <!-- Success Message -->
@@ -75,7 +79,7 @@ import { createItem } from '@directus/sdk'
 const { $t, $directus, $readItems } = useNuxtApp();
 
 //MetaTags
-const title = ref($t("contact.nav_label"));
+const title = ref($t("feedback.nav_label"));
 useHead({
   title,
 });
@@ -108,7 +112,7 @@ function generateCaptcha() {
 // Submit function
 async function submitFeedback() {
   if (parseInt(captchaAnswer.value) !== captcha.value.correctAnswer) {
-    errorMessage.value = 'CAPTCHA answer is incorrect. Please try again.'
+    errorMessage.value = $t('captcha.incorrect_answer')
     captcha.value = generateCaptcha()
     captchaAnswer.value = ''
     return
@@ -129,14 +133,14 @@ async function submitFeedback() {
       })
     )
 
-    successMessage.value = 'Thank you for your feedback!'
+    successMessage.value = $t('feedback.form.submit.success')
     form.value = { title: '', type: '', content: '', name: '', contact: '' }
     captcha.value = generateCaptcha()
     captchaAnswer.value = ''
 
   } catch (error) {
     console.error(error)
-    errorMessage.value = 'Something went wrong. Please try again later.'
+    errorMessage.value = $t('generic.technical_error')
   } finally {
     loading.value = false
   }
