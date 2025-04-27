@@ -9,15 +9,20 @@ meta:
     choices:
       - text: $t:feedback.status.received
         value: received
-        color: null
+        color: "#1A5FB4"
+        icon: local_post_office
       - text: $t:feedback.status.in_progress
         value: in_progress
-        color: null
+        color: "#E5A50A"
+        icon: hourglass_empty
       - text: $t:feedback.status.finished
         value: finished
+        color: "#2ECDA7"
+        icon: check
       - text: $t:feedback.status.ignored
         value: ignored
-    showAsDot: true
+        color: "#E35169"
+        icon: block
   field: status
   group: null
   hidden: false

@@ -55,8 +55,6 @@
       <button type="submit" class="w-full bg-[#AFCA0B] text-white font-bold py-2 rounded hover:bg-green">
         {{ $t("feedback.form.submit") }}
       </button>
-
-      <p class="mt-4 text-xs italic">{{ $t('generic.privacy.disclaimer') }}</p>
     </form>
 
     <!-- Success Message -->
@@ -67,6 +65,10 @@
     <p v-if="errorMessage" class="text-red font-semibold mt-4">
       {{ errorMessage }}
     </p>
+
+    <p class="mt-4 text-xs italic">{{ $t('generic.privacy.disclaimer') }}</p>
+
+
   </div>
 </template>
 
@@ -111,6 +113,9 @@ function generateCaptcha() {
 
 // Submit function
 async function submitFeedback() {
+  errorMessage.value = ''
+  successMessage.value = ''
+
   if (parseInt(captchaAnswer.value) !== captcha.value.correctAnswer) {
     errorMessage.value = $t('captcha.incorrect_answer')
     captcha.value = generateCaptcha()
@@ -119,8 +124,6 @@ async function submitFeedback() {
   }
 
   loading.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
 
   try {
     await $directus.request(

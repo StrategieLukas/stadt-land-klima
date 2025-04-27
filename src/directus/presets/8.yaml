@@ -15,7 +15,7 @@ layout_query:
 layout_options:
   tabular:
     widths:
-      type: 216
+      type: 235
       title: 606
 refresh_interval: null
 filter: null
