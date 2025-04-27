@@ -29,7 +29,9 @@ meta:
   required: true
   sort: 7
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Art der Anfrage
   validation: null
   validation_message: null
   width: full

@@ -162,7 +162,7 @@ permissions:
       - title
       - content
       - type
-      - reporter_name
-      - reporter_contact
+      - sender_name
+      - sender_contact
       - date_created
       - status

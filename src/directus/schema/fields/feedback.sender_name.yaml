@@ -1,12 +1,12 @@
 collection: feedback
-field: reporter_contact
+field: sender_name
 type: string
 meta:
   collection: feedback
   conditions: null
   display: null
   display_options: null
-  field: reporter_contact
+  field: sender_name
   group: null
   hidden: false
   interface: input
@@ -14,16 +14,16 @@ meta:
   options: null
   readonly: false
   required: true
-  sort: 10
+  sort: 9
   special: null
   translations:
     - language: de-DE
-      translation: Kontakt des Meldenden
+      translation: Name des Meldenden
   validation: null
   validation_message: null
   width: full
 schema:
-  name: reporter_contact
+  name: sender_name
   table: feedback
   data_type: character varying
   default_value: null

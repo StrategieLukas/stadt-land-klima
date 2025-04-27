@@ -1,0 +1,3 @@
+language: de-DE
+key: captcha.question
+value: Was ergibt :first + :second ?
