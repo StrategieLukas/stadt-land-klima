@@ -1,47 +1,80 @@
 <template lang="">
-  <header class="mb-3 bg-white px-2 py-4 shadow">
-    <div class="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-x-8 lg:flex-row lg:items-end">
-      <NuxtLink to="/">
-        <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
-      </NuxtLink>
-      <form class="relative mb-1 overflow-visible" action="javascript:;">
-        <div class="form-control">
-          <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
+  <header class="w-full border-b">
+    <div class="flex items-center justify-between px-4 py-4">
+      <!-- Logo -->
+      <div class="flex-shrink-0">
+        <NuxtLink to="/">
+          <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
+        </NuxtLink>
+      </div>
+
+      <!-- Right side (Search + Buttons) -->
+      <div class="flex items-center space-x-4">
+        <!-- Search bar -->
+        <div class="relative">
           <input
-            id="search-input"
-            v-model="q"
-            class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96"
-            name="q"
             type="text"
-            autocomplete="off"
-            @focus="handleSearchFocus()"
-            @blur="handleSearchBlur()"
+            placeholder="Suchen..."
+            class="border-b border-mid-gray focus:outline-none focus:border-mid-gray placeholder-mid-gray text-sm pl-6 pr-2 py-1"
           />
-          <button
-            class="absolute right-4 top-12 py-1 opacity-50 hover:opacity-60 focus:opacity-60"
-            @click="handleResetSearchClick()"
-          >
-            ✖️
-          </button>
+          <span class="absolute left-0 top-1/2 transform -translate-y-1/2 text-mid-gray">
+            🔍
+          </span>
         </div>
 
-        <div
-          v-if="suggestions.length && searchFocused"
-          class="dropdown-open dropdown absolute left-0 right-0 top-24 w-full"
-        >
-          <label tabindex="0"></label>
-          <ul tabindex="0" class="menu dropdown-content rounded-box z-50 w-full bg-base-100 p-2 shadow">
-            <div v-for="(suggestion, index) in suggestions" :key="index">
-              <NuxtLink :to="suggestion.url" class="p-0" @click="handleSuggestionClick">
-                <li>
-                  <div>{{ suggestion.label }}</div>
-                </li>
-              </NuxtLink>
-            </div>
-          </ul>
-        </div>
-      </form>
+        <!-- Log in button -->
+        <button class="border border-orange text-orange px-4 py-1 text-sm font-bold flex items-center space-x-1 hover:bg-orange">
+          <span>Log in</span>
+          <span>→</span>
+        </button>
+
+        <!-- Spenden button -->
+        <button class="bg-orange text-white px-4 py-1 text-sm font-bold flex items-center space-x-1 hover:bg-orange">
+          <span>Spenden</span>
+          <span>💳</span>
+        </button>
+      </div>
     </div>
+
+    <!-- Navigation Bar -->
+    <nav class="flex justify-center bg-mid-gray py-2">
+      <!--  -->
+      <!--  -->
+      <!--  -->
+      <!-- TODO: Use previous header implementation for mobile version -->
+      <!-- TODO: Fetch dynamically and sort - add sorting field to backend -->
+      <!-- TODO: Dynamically highlight current page in green -->
+      <!--  -->
+      <!--  -->
+      <!--  -->
+      <ul class="flex">
+        <li>
+          <a href="#" class="px-6 py-3 text-white font-bold bg-light-green">
+            Projekt
+          </a>
+        </li>
+        <li>
+          <a href="#" class="px-6 py-3 text-white font-bold border-l border-mid-gray hover:bg-mid-gray">
+            Ranking
+          </a>
+        </li>
+        <li>
+          <NuxtLink to="/" class="px-6 py-3 text-white font-bold border-l border-mid-gray hover:bg-mid-gray">
+            Erfolgsprojekte
+          </NuxtLink>
+        </li>
+        <li>
+          <a href="#" class="px-6 py-3 text-white font-bold border-l border-mid-gray hover:bg-mid-gray">
+            Klimatools
+          </a>
+        </li>
+        <li>
+          <a href="#" class="px-6 py-3 text-white font-bold border-l border-mid-gray hover:bg-mid-gray">
+            Kontakt
+          </a>
+        </li>
+      </ul>
+    </nav>
   </header>
 </template>
 <script setup>
