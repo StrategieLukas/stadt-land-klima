@@ -27,8 +27,8 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
 });
 
 // todo fix "place" for these views
-const cities = getSublist((municipality) => municipality.municipality_type === 'big_city');
-const towns = getSublist((municipality) => municipality.municipality_type === 'small_city');
+const majorCities = getSublist((municipality) => municipality.municipality_type === 'big_city');
+const minorCities = getSublist((municipality) => municipality.municipality_type === 'small_city');
 
 function getSublist(condition) {
   return (municipalities.value?.filter(condition) || [])
@@ -58,50 +58,97 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 </script>
 
 <template>
+<div class="flex flex-col items-center mb-10">
+  <div class="prose mb-8 mt-10 max-w-full text-center">
+    <h1 class="mb-0 whitespace-pre-line">
+      {{ $t("municipalities.heading") }}
+    </h1>
+    <p class="mt-0 text-xs">
+      {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
+    </p>
+  </div>
 
-  <div>
-    <div class="prose mb-8 mt-10 max-w-full text-center">
-      <h1 class="mb-0 whitespace-pre-line">
-        {{ $t("municipalities.heading") }}
-      </h1>
-      <p class="mt-0 text-xs">
-        {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
-      </p>
+  <!-- Button Row -->
+  <div class="flex flex-col w-full items-center gap-2 mb-5 md:flex-row md:justify-center md:max-w-4xl">
+    <!-- First row (1 button centered) -->
+    <div class="flex justify-center w-full md:w-auto">
+      <button
+        class="flex items-center p-2 rounded border transition w-1/2 md:w-auto hover:scale-105 text-xs md:text-sm group"
+        :class="selected === 'all' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
+        @click="selected = 'all'"
+      >
+        <div class="flex gap-0">
+          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.all')" />
+          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? majorCitySelected : majorCityNotSelected" />
+        </div>
+        <div class="flex items-center transition">
+          <div class="border-l h-6 mx-1 border-current"></div>
+          <span class="font-bold whitespace-nowrap">
+            {{ $t('municipalities.all') }}
+          </span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Second row (2 buttons) -->
+    <div class="flex w-full gap-2 md:w-auto">
+      <!-- Major cities -->
+      <button
+        class="flex items-center p-2 rounded border transition w-1/2 md:w-auto hover:scale-105 text-xs md:text-sm group"
+        :class="selected === 'major_city' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
+        @click="selected = 'major_city'"
+      >
+        <img class="h-6 w-6 flex-shrink-0" :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" />
+        <div class="flex items-center transition h-full">
+          <div class="border-l h-6 mx-1 border-current"></div>
+          <span class="font-bold whitespace-nowrap">
+            {{ $t('municipalities.major_city.plural') }}
+          </span>
+        </div>
+      </button>
+
+      <!-- Minor cities -->
+      <button
+        class="flex items-center p-2 rounded border transition w-1/2 md:w-auto hover:scale-105 text-xs md:text-sm group"
+        :class="selected === 'minor_city' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
+        @click="selected = 'minor_city'"
+      >
+        <img class="h-6 w-6 flex-shrink-0" :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')" />
+        <div class="flex items-center transition">
+          <div class="border-l h-6 mx-1 border-current"></div>
+          <span class="font-bold whitespace-nowrap">
+            {{ $t('municipalities.minor_city.plural') }}
+          </span>
+        </div>
+      </button>
     </div>
   </div>
 
-  <!-- Button row -->
-  <div class="flex flex-row justify-center gap-2 w-full px-4 sm:px-0 sm:w-auto sm:gap-4">
-    <!-- Major cities -->
-    <div class="flex flex-col items-center w-1/2 sm:w-[22%] max-w-[240px]">
-      <img :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" 
-        class="cursor-pointer w-full h-auto" @click="selected = (selected === 'major_city' ? 'all' : 'major_city')" />
-      <p class="text-xs text-center mt-1 italic h-8">
-        {{ $t("municipalities.major_city.threshold") }}
-      </p>
-    </div>
-
-    <!-- Small cities -->
-    <div class="flex flex-col items-center w-1/2 sm:w-[22%] max-w-[240px]">
-      <img :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')"
-        class="cursor-pointer w-full h-auto" @click="selected = (selected === 'minor_city' ? 'all' : 'minor_city')" />
-      <p  class="text-xs text-center mt-1 italic h-8">
-        {{ $t("municipalities.minor_city.threshold") }}
-      </p>
-    </div>
+  <!-- Subtitle below buttons -->
+  <div class="h-5">
+    <p v-if="selected === 'major_city'" class="text-xs text-center italic">
+      {{ $t("municipalities.major_city.threshold") }}
+    </p>
+    <p v-else-if="selected === 'minor_city'" class="text-xs text-center italic">
+      {{ $t("municipalities.minor_city.threshold") }}
+    </p>
   </div>
+</div>
+
+
+
 
 
 
   <!-- Conditional Content -->
   <div v-if="selected === 'major_city'">
     <section>
-      <the-ranking :municipalities="cities"></the-ranking>
+      <the-ranking :municipalities="majorCities"></the-ranking>
     </section>
   </div>
   <div v-if="selected === 'minor_city'">
     <section>
-      <the-ranking :municipalities="towns"></the-ranking>
+      <the-ranking :municipalities="minorCities"></the-ranking>
     </section>
   </div>
   <div v-else>
