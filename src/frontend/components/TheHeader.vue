@@ -80,9 +80,10 @@
               v-for="page in otherPages"
               :key="page.id"
               :to="`/${page.slug}`"
-              class="block px-4 py-2 text-black font-bold hover:bg-mid-gray"
+              class="block px-4 py-2 text-white font-bold"
               :class="{
-                'bg-light-green text-white hover:bg-green': '/' + page.slug === route.path,
+                'bg-light-green hover:bg-green': '/' + page.slug === route.path,
+                'bg-mid-gray hover:bg-gray' : '/' + page.slug !== route.path,
               }"
             >
               {{ page.name }}
