@@ -20,10 +20,12 @@
         
 
         <!-- Log in button -->
-        <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border-2 border-orange text-orange text-sm space-x-1 hover:bg-orange hover:text-white">
-          <span>{{ $t('generic.log_in') }}</span>
-          <span>→</span>
-        </button>
+        <a href="/backend">
+          <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border-2 border-orange text-orange text-sm space-x-1 hover:bg-orange hover:text-white">
+            <span>{{ $t('generic.log_in') }}</span>
+            <span>→</span>
+          </button>
+        </a>
 
         <!-- Spenden button -->
         <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white text-sm space-x-1 hover:brightness-110">
