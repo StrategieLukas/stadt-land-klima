@@ -97,8 +97,6 @@ const props = defineProps(["pages"]);
 
 const route = useRoute();
 
-const search = ref("");
-
 //Separate pages into "main" and "other" based on configured menus
 const mainPages = computed(() =>
   props?.pages?.filter((page) => page.menus && page.menus.includes('top-bar')) || []
@@ -112,61 +110,5 @@ const isActive = (slug) => {
   return route.path === slug || route.path === `/${slug}`;
 };
 
-// Search logic
-const q = ref("");
-const searchFocused = ref(false);
-const { data: municipalities } = await useAsyncData("municipalities", () => {
-  return $directus.request(
-    $readItems("municipalities", {
-      fields: ["slug", "name"],
-      sort: "name",
-      filter: {
-        status: {
-          _eq: "published",
-        },
-      },
-      limit: -1,
-    }),
-  );
-});
-
-function handleSearchFocus() {
-  searchFocused.value = true;
-}
-
-function handleSearchBlur() {
-  setTimeout(() => {
-    searchFocused.value = false;
-  }, 100);
-}
-
-function handleSuggestionClick(event) {
-  q.value = "";
-  return false;
-}
-
-function handleResetSearchClick() {
-  q.value = "";
-}
-
-const suggestions = computed(() => {
-  const _q = q.value.trim().toLowerCase();
-
-  if (!_q.length || !municipalities.value || !municipalities.value.length) {
-    return [];
-  }
-
-  return municipalities.value
-    .filter((municipality) => {
-      return municipality.name.toLowerCase().indexOf(_q) !== -1;
-    })
-    .map((municipality) => {
-      return {
-        url: `/municipalities/${municipality.slug}`,
-        label: municipality.name,
-      };
-    })
-    .slice(0, 5);
-});
 </script>
 <style lang=""></style>
