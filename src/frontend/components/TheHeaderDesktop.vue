@@ -1,6 +1,5 @@
 <template>
 
-<!-- TODO: Split header in mobile and desktop layout (using previous TheHeader-impl for mobile AND removing the drawer from the desktop version) -->
  <!-- TODO:  -->
 
   <header class="w-full">
@@ -12,20 +11,13 @@
         </NuxtLink>
       </div>
 
+      <!-- Search Bar in center -->
+      <MunicipalitySearchBar/>
+
       <!-- Right side (Search + Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
         <!-- Search bar -->
-        <div class="relative w-full md:w-auto">
-          <input
-            v-model="search"
-            type="text"
-            :placeholder="$t('generic.search')"
-            class="w-full border-b border-mid-gray focus:outline-none focus:border-mid-gray placeholder-mid-gray text-sm pl-6 pr-2 py-1"
-          />
-          <span class="absolute left-0 top-1/2 transform -translate-y-1/2 text-mid-gray">
-            🔍
-          </span>
-        </div>
+        
 
         <!-- Log in button -->
         <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border-2 border-orange text-orange text-sm space-x-1 hover:bg-orange hover:text-white">
@@ -36,7 +28,7 @@
         <!-- Spenden button -->
         <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white text-sm space-x-1 hover:brightness-110">
           <span>{{ $t('donate.label') }}</span>
-          <span>💳</span>
+          <img src="~/assets/icons/icon_hand_holding_heart.svg"/>
         </button>
       </div>
     </div>
@@ -67,8 +59,8 @@
           <div
             class="flex items-center justify-center px-6 text-white font-bold h-full cursor-pointer"
             :class="{
-              'bg-light-green text-white': otherPages.some(p => '/' + p.slug === route.path),
-              'hover:bg-mid-gray': !otherPages.some(p => '/' + p.slug === route.path),
+              'bg-light-green text-white': otherPages.some(p => isActive(p.slug)),
+              'hover:bg-mid-gray': !otherPages.some(p => isActive(p.slug)),
             }"
           >
             {{ $t('generic.other') }}
@@ -82,8 +74,8 @@
               :to="`/${page.slug}`"
               class="block px-4 py-2 text-white font-bold"
               :class="{
-                'bg-light-green hover:bg-green': '/' + page.slug === route.path,
-                'bg-mid-gray hover:bg-gray' : '/' + page.slug !== route.path,
+                'bg-light-green hover:bg-green': isActive(page.slug),
+                'bg-mid-gray hover:bg-gray' : !isActive(page.slug),
               }"
             >
               {{ page.name }}
@@ -99,29 +91,20 @@
 
 <script setup>
 import { computed, ref } from "vue";
-const { $t, $directus, $readItems } = useNuxtApp();
+import { defineProps } from "vue";
+const { $t } = useNuxtApp();
+const props = defineProps(["pages"]);
 
 const route = useRoute();
 
-// Simple local search
 const search = ref("");
-
-// Fetch pages from Directus
-const { data: pages } = await useAsyncData("pages", () => {
-  return $directus.request(
-    $readItems("pages", {
-      fields: ["name", "slug", "menus"],
-      sort: "sort_order",
-    })
-  );
-});
 
 //Separate pages into "main" and "other" based on configured menus
 const mainPages = computed(() =>
-  pages.value?.filter((page) => page.menus && page.menus.includes('top-bar')) || []
+  props?.pages?.filter((page) => page.menus && page.menus.includes('top-bar')) || []
 );
 const otherPages = computed(() =>
-  pages.value?.filter((page) => page.menus && page.menus.includes('main') && !page.menus.includes('top-bar')) || []
+  props?.pages?.filter((page) => page.menus && page.menus.includes('main') && !page.menus.includes('top-bar')) || []
 );
 
 // Function to check if a page is active
