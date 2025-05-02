@@ -33,7 +33,20 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
   ]);
   const ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
-      filter: { localteam_id: { _eq: municipalities[0].localteam_id } },
+      filter: {
+            _and: [
+              {
+                localteam_id: {
+                  _eq: municipalities[0].localteam_id,
+                },
+              },
+              {
+                applicable: {
+                  _eq: true,
+                },
+              },
+            ],
+          },
     }),
   );
   return {

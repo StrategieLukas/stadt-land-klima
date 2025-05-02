@@ -11,7 +11,7 @@ export default {
       // logger.info(accountability, "accountability");
       //logger.info(keys, "keys");
       accountability.admin = true;
-      const rantingsMeasuresService = new ItemsService("ratings_measures", {
+      const ratingsMeasuresService = new ItemsService("ratings_measures", {
         schema,
         accountability,
       });
@@ -40,7 +40,7 @@ export default {
 
       if (measureNotToConsiderForCalc.length === 0) {
         // when there is no measureId than read all rating measures with given key
-        ratings_measures = await rantingsMeasuresService.readMany(keys, query);
+        ratings_measures = await ratingsMeasuresService.readMany(keys, query);
         const municipalitiesToRead = Object.values(ratings_measures).map(
           (value) => value.localteam_id,
         );
@@ -89,9 +89,9 @@ export default {
           });
         } else {
           //Sets the measure we dont want to consider
-          measures.forEach(function (measureTemp) {
-            if (measureNotToConsiderForCalc.includes(measureTemp.id)) {
-              scoreDict[measureTemp.sector] = {
+          measures.forEach(function (m) {
+            if (measureNotToConsiderForCalc.includes(m.id)) {
+              scoreDict[m.sector] = {
                 denominator: 0,
                 numerator: 0,
               };
@@ -117,12 +117,16 @@ export default {
                   _eq: municipality.localteam_id,
                 },
               },
+              {
+                applicable: {
+                  _eq: true,
+                },
+              },
             ],
           },
         };
-        //All Ratings for the municipality
-        const allRatingsMeasures =
-          await rantingsMeasuresService.readByQuery(query);
+        //All Ratings for the municipality (excluding those marked as not applicable)
+        const allRatingsMeasures = await ratingsMeasuresService.readByQuery(query);
         /* logger.info(allRatingsMeasures, "allRatingsMeasures"); */
 
         //Map the information from the measures to the ratings, for each measure there is always one rating even if its not rated yet

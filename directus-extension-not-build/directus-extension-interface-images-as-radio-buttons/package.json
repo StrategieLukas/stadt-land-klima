@@ -1,6 +1,6 @@
 {
   "name": "directus-extension-interface-images-as-radio-buttons",
-  "description": "Please enter a description for your extension",
+  "description": "Allows images to be used as radio buttons",
   "icon": "extension",
   "version": "1.0.0",
   "keywords": [

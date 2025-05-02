@@ -1,0 +1,27 @@
+id: 5
+bookmark: null
+user: null
+role: null
+collection: pages
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - name
+      - menus
+      - status
+      - date_updated
+      - slug
+layout_options:
+  tabular:
+    widths:
+      name: 330
+      menus: 280
+      status: 95
+      date_updated: 185
+      slug: 250
+refresh_interval: null
+filter: null
+icon: null
+color: null

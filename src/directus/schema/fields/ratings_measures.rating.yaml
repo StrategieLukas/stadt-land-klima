@@ -500,6 +500,14 @@ meta:
               <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
 
               </svg>
+    - name: Cannot be edited and is hidden, if measure is marked as not applicable
+      rule:
+        _and:
+          - applicable:
+              _eq: false
+      readonly: true
+      hidden: true
+      options: {}
   display: formatted-value
   display_options:
     conditionalFormatting:
@@ -536,7 +544,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 14
+  sort: 15
   special: null
   translations: null
   validation:
