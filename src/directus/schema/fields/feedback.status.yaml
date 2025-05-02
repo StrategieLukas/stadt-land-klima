@@ -1,0 +1,72 @@
+collection: feedback
+field: status
+type: string
+meta:
+  collection: feedback
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: $t:feedback.status.received
+        value: received
+        color: "#1A5FB4"
+        icon: local_post_office
+      - text: $t:feedback.status.in_progress
+        value: in_progress
+        color: "#E5A50A"
+        icon: hourglass_empty
+      - text: $t:feedback.status.finished
+        value: finished
+        color: "#2ECDA7"
+        icon: check
+      - text: $t:feedback.status.ignored
+        value: ignored
+        color: "#E35169"
+        icon: block
+  field: status
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: $t:feedback.status.received
+        value: received
+        icon: local_post_office
+        color: "#1A5FB4"
+      - text: $t:feedback.status.in_progress
+        value: in_progress
+        icon: hourglass_empty
+        color: "#E5A50A"
+      - text: $t:feedback.status.finished
+        value: finished
+        icon: check
+        color: "#2ECDA7"
+      - text: $t:feedback.status.ignored
+        value: ignored
+        icon: block
+        color: "#E35169"
+  readonly: false
+  required: true
+  sort: 2
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: status
+  table: feedback
+  data_type: character varying
+  default_value: received
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

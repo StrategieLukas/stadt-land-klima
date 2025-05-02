@@ -1,0 +1,78 @@
+collection: feedback
+field: type
+type: string
+meta:
+  collection: feedback
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: $t:feedback.type.legal
+        value: legal
+        icon: gavel
+        color: "#9141AC"
+      - text: $t:feedback.type.bug
+        value: bug
+        icon: bug_report
+        color: "#E65100"
+      - text: $t:feedback.type.inaccuracy
+        value: inaccuracy
+        color: "#D32F2F"
+        icon: warning
+      - text: $t:feedback.type.suggestion
+        value: suggestion
+        icon: lightbulb
+        color: "#AFCA0B"
+      - text: $t:feedback.type.cooperation
+        value: cooperation
+        icon: handshake
+        color: "#2196F3"
+      - text: $t:feedback.type.other
+        value: other
+        icon: home_max_dots
+        color: "#505050"
+  field: type
+  group: null
+  hidden: false
+  interface: select-radio
+  note: null
+  options:
+    choices:
+      - text: $t:feedback.type.legal
+        value: legal
+      - text: $t:feedback.type.bug
+        value: bug
+      - text: $t:feedback.type.inaccuracy
+        value: inaccuracy
+      - text: $t:feedback.type.suggestion
+        value: suggestion
+      - text: $t:feedback.type.cooperation
+        value: cooperation
+      - text: $t:feedback.type.other
+        value: other
+  readonly: false
+  required: true
+  sort: 7
+  special: null
+  translations:
+    - language: de-DE
+      translation: Art der Anfrage
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: type
+  table: feedback
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

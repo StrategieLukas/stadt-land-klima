@@ -1,0 +1,5 @@
+language: de-DE
+key: feedback.internal_response_summary.placeholder
+value: 'Interner Kommentar dazu, wie wir mit dieser Meldung umgegangen sind,
+  z.B. wurde im Planungsteam besprochen mit Ergebnis xyz" oder "haben der Person
+  am 13.5.25 per Mail geantwortet" '
