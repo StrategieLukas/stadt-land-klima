@@ -105,6 +105,15 @@ module.exports = {
       },
     },
   },
+  safelist: [
+    'bg-rating-0',
+    'bg-rating-1',
+    'bg-rating-2',
+    'bg-rating-3',
+    'bg-opacity-10',
+    'bg-opacity-20',
+    'bg-opacity-30',
+    ],
   plugins: [require("daisyui"), require("@tailwindcss/typography")],
   daisyui: {
     themes: [
