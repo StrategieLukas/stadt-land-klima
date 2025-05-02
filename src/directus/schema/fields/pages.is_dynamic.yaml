@@ -16,7 +16,7 @@ meta:
   options:
     label: $t:pages.is_dynamic
   readonly: false
-  required: false
+  required: true
   sort: 10
   special:
     - cast-boolean
@@ -30,7 +30,7 @@ schema:
   name: is_dynamic
   table: pages
   data_type: boolean
-  default_value: null
+  default_value: false
   max_length: null
   numeric_precision: null
   numeric_scale: null
