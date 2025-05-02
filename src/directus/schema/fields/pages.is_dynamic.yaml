@@ -1,36 +1,40 @@
 collection: pages
-field: date_created
-type: timestamp
+field: is_dynamic
+type: boolean
 meta:
   collection: pages
   conditions: null
-  display: datetime
+  display: boolean
   display_options:
-    relative: true
-  field: date_created
+    labelOff: null
+    labelOn: null
+  field: is_dynamic
   group: null
-  hidden: true
-  interface: datetime
+  hidden: false
+  interface: boolean
   note: null
-  options: null
-  readonly: true
-  required: false
-  sort: 4
+  options:
+    label: $t:pages.is_dynamic
+  readonly: false
+  required: true
+  sort: 10
   special:
-    - date-created
-  translations: null
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Wird der Seiteninhalt dynamisch generiert?
   validation: null
   validation_message: null
   width: half
 schema:
-  name: date_created
+  name: is_dynamic
   table: pages
-  data_type: timestamp with time zone
-  default_value: null
+  data_type: boolean
+  default_value: false
   max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: true
+  is_nullable: false
   is_unique: false
   is_primary_key: false
   is_generated: false

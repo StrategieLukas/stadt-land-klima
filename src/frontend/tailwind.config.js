@@ -35,6 +35,7 @@ module.exports = {
         "localzero-yellow": "#ffc80c",
         "light-blue": "#16bae7",
         gray: "#505050",
+        "mid-gray": "#707070",
         black: "#000000",
       },
       boxShadow: {

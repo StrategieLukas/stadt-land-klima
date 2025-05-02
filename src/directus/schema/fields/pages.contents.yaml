@@ -3,7 +3,32 @@ field: contents
 type: text
 meta:
   collection: pages
-  conditions: null
+  conditions:
+    - name: Hide content-field if page is dynamic (as it will be ignored anyways)
+      rule:
+        _and:
+          - is_dynamic:
+              _eq: true
+      hidden: true
+      options:
+        toolbar:
+          - bold
+          - italic
+          - underline
+          - h1
+          - h2
+          - h3
+          - numlist
+          - bullist
+          - removeformat
+          - blockquote
+          - customLink
+          - customImage
+          - customMedia
+          - hr
+          - code
+          - fullscreen
+        font: sans-serif
   display: null
   display_options: null
   field: contents
@@ -14,7 +39,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 11
+  sort: 12
   special: null
   translations:
     - language: de-DE

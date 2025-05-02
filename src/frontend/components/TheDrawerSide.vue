@@ -1,34 +1,48 @@
-<template lang="">
+<template>
   <nav class="drawer-side z-20">
     <label for="page-drawer" class="drawer-overlay"></label>
-    <ul tabindex="0" class="menu min-h-full w-80 bg-light-green p-4">
-      <li>
-        <NuxtLink to="/" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
-          {{ $t("home.nav_label") }}
+    <ul tabindex="0" class="menu min-h-full w-80 bg-light-green font-semibold text-left text-white">
+      
+      <li v-for="page in pages" :key="page.id" class="w-full">
+        <NuxtLink
+          :to="'/' + page.slug"
+          class="text-md"
+          @click="closeDrawer"
+        >
+          <span class="text-lg">→</span> {{ page.name }}
         </NuxtLink>
       </li>
-      <li>
-        <NuxtLink to="/municipalities" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
-          {{ $t("municipalities.nav_label") }}
-        </NuxtLink>
+
+      <!-- Last two elements not NuxtLinks because they reference different applications -->
+
+      <li class="pt-4 border-t border-white mt-4 w-full">
+        <a
+          href="/backend"
+          class="text-md bg-orange"
+          @click="closeDrawer"
+        >
+          <span class="text-lg">→</span>{{ $t('generic.log_in') }}
+        </a>
       </li>
-      <li>
-        <NuxtLink to="/measures" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
-          {{ $t("measures.nav_label") }}
-        </NuxtLink>
+
+      <li class="pt-4 w-full">
+        <a
+          href="https://spenden.twingle.de/together-for-future-e-v/stadt-land-klima/tw6613dcb5d0a0d/page"
+          class="text-md bg-orange"
+          @click="closeDrawer"
+        >
+          <span class="text-lg">→</span>{{ $t('donate.label') }}
+          <img src="~/assets/icons/icon_hand_holding_heart.svg"/>
+        </a>
       </li>
-      <li v-for="page in pages" :key="page.id">
-        <NuxtLink :to="'/' + page.slug" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer">
-          {{ page.name }}
-        </NuxtLink>
-      </li>
-      <li>
-        <a href="/backend" class="text-md btn btn-ghost normal-case text-black" @click="closeDrawer"> Login </a>
-      </li>
+
     </ul>
   </nav>
 </template>
+
+
 <script setup>
+
 import { defineProps } from "vue";
 const { $t } = useNuxtApp();
 const props = defineProps(["pages"]);
@@ -36,5 +50,5 @@ const props = defineProps(["pages"]);
 function closeDrawer() {
   document.getElementById("page-drawer-toggle").click();
 }
+
 </script>
-<style lang=""></style>
