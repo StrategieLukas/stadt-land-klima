@@ -30,10 +30,20 @@
       </div>
     </main>
 
-    <!-- Footer (always rendered) -->
-    <the-footer
-      :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-    />
+    <!-- Footer (Mobile version) -->
+     <div class="block lg:hidden">
+        <the-footer-mobile
+        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+      />
+     </div>
+
+     <!-- Footer (Desktop version) -->
+     <div class="hidden lg:block">
+      <the-footer-desktop
+        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+      />
+     </div>
+    
   </div>
 </template>
 

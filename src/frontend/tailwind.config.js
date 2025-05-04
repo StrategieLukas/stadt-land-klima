@@ -30,6 +30,7 @@ module.exports = {
         "light-green": "#AFCA0B",
         green: "#339737",
         "ff-green": "#1da64a",
+        "olive-green" : "#3F8342",
         red: "#e30613",
         orange: "#f39200 ",
         "localzero-yellow": "#ffc80c",
