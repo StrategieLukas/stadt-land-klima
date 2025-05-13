@@ -30,6 +30,7 @@ module.exports = {
         "light-green": "#AFCA0B",
         green: "#339737",
         "ff-green": "#1da64a",
+        "olive-green" : "#3F8342",
         red: "#e30613",
         orange: "#f39200 ",
         "localzero-yellow": "#ffc80c",
@@ -105,6 +106,15 @@ module.exports = {
       },
     },
   },
+  safelist: [
+    'bg-rating-0',
+    'bg-rating-1',
+    'bg-rating-2',
+    'bg-rating-3',
+    'bg-opacity-10',
+    'bg-opacity-20',
+    'bg-opacity-30',
+    ],
   plugins: [require("daisyui"), require("@tailwindcss/typography")],
   daisyui: {
     themes: [

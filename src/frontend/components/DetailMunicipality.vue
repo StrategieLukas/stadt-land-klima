@@ -82,6 +82,7 @@
         </ul>
 
         <!-- List of individual measure ratings for the given sector -->
+
         <ul class="mb-8 divide-y-2 divide-slate-300">
           <li
             v-for="item in sectorRatings"

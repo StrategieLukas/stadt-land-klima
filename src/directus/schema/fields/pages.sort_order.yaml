@@ -3,19 +3,7 @@ field: sort_order
 type: integer
 meta:
   collection: pages
-  conditions:
-    - name: Required if page is published
-      rule:
-        _and:
-          - status:
-              _eq: published
-      required: true
-      options:
-        font: sans-serif
-        trim: false
-        masked: false
-        clear: false
-        slug: false
+  conditions: null
   display: null
   display_options: null
   field: sort_order
