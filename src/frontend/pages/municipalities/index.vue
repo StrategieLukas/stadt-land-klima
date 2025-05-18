@@ -146,7 +146,7 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
       <the-ranking :municipalities="majorCities"></the-ranking>
     </section>
   </div>
-  <div v-if="selected === 'minor_city'">
+  <div v-else-if="selected === 'minor_city'">
     <section>
       <the-ranking :municipalities="minorCities"></the-ranking>
     </section>
