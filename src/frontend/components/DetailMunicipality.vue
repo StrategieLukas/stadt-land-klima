@@ -92,7 +92,7 @@
               <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off"/>
 
               <div
-              :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']"
+              :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title text-black flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']"
               >
                 <div class="shrink-0">
                   <img :src="ratingImages[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />

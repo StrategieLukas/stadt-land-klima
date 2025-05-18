@@ -27,6 +27,7 @@ module.exports = {
         "rating-2": "#AFCA0B",
         "rating-1": "#F39200",
         "rating-0": "#E30613",
+        "rating-na": "#9D9D9C",
         "light-green": "#AFCA0B",
         green: "#339737",
         "ff-green": "#1da64a",
