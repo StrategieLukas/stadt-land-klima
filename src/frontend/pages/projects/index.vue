@@ -1,10 +1,12 @@
 <template>
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
+    
+    <div v-if="!projectList || projectList.length === 0">
+      {{ $t('projects.empty_placeholder') }}
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-if="!projectList">
-        {{ $t('projects.empty_placeholder') }}
-      </div>
       <ProjectCard
           v-for="(project, index) in projectList"
           :key="index"
