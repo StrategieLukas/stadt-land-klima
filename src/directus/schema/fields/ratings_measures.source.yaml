@@ -15,6 +15,7 @@ meta:
         trim: false
         font: sans-serif
         clear: false
+      required: false
   display: null
   display_options: null
   field: source
