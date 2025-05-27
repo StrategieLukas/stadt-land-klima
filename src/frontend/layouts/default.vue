@@ -43,7 +43,7 @@
         :pages="pages.filter((page) => includes(page.menus, 'footer'))"
       />
      </div>
-    
+
   </div>
 </template>
 
@@ -53,7 +53,7 @@
 
 import lodash from "lodash";
 const { includes } = lodash;
-const { $directus, $readItems, $appEnv } = useNuxtApp();
+const { $directus, $readItems, $appEnv, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
 
 const { data: pages } = await useAsyncData("pages", () => {
   return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
@@ -70,11 +70,11 @@ useHead({
   ],
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
   script: [
-    $appEnv === "production"
+    $plausibleAnalyticsUrl && $plausibleAnalyticsDomain
       ? {
           defer: true,
-          "data-domain": "stadt-land-klima.de",
-          src: "https://plausible.anzui.dev/js/script.js",
+          "data-domain": $plausibleAnalyticsDomain,
+          src: $plausibleAnalyticsUrl + "/js/script.js",
         }
       : {},
   ],

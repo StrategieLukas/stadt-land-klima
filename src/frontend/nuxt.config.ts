@@ -8,6 +8,8 @@ export default defineNuxtConfig({
       clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL,
       serverDirectusUrl: process.env.SERVER_DIRECTUS_URL,
       appEnv: process.env.APP_ENV,
+      plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
+      plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
     },
   },
   devtools: { enabled: true },
