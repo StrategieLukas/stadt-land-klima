@@ -1,18 +1,36 @@
 <template lang="">
-    <div class="w-fill grid grid-cols-6">
-      <h1 class="col-span-4 font-bold text-3xl text-black text-right pr-5 content-center">Stadt-Land-Ranking II/2024</h1>
-      <img src="~/assets/images/StadtLandKlima-Logo.svg" class="h-24 float-right flex-1"/>
+  <div class="px-5">
+    <!-- Logo + Legend -->
+    <div class="w-1/4 absolute top-10 right-0">
+      <img src="~/assets/images/StadtLandKlima-Logo.svg" class="w-5/6"/>
+    </div>
 
-      <div class="col-span-2">
-        <div class="mb-4">
-          <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
+    <!-- HEADING -->
+    <h1 class="font-bold text-2xl text-black text-center w-full content-center">
+      Stadt-Land-Ranking II/2024
+    </h1>
+
+    <div class="flex w-fill h-1/5">
+      <div class="grow-5 w-[15rem]">
+        <!-- Ploar chart + date -->
+        <div class="w-[15rem]">
+          <!-- plar chart-->
+          <div class="">
+            <municipality-polar-chart height="13rem" :sub-scores="subScores" :name-municipality="municipality.name" />
+          </div>
+          <!-- date -->
+          <p class="mb-2 mt-0 text-center text-[5px]">
+            {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
+          </p>
         </div>
-        <p class="mb-4 mt-0 text-center text-xs">
-          {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
-        </p>
+
+        <!-- Traffic lights -->
+        <div>
+          <implementation-traffic-light :small=true />
+        </div>
       </div>
 
-      <div class="col-span-2 relative grid grid-cols-6 gap-4 content-center p-10">
+      <div class="relative grid grid-cols-6 gap-4 content-center p-10 grow-2">
         <div class="relative h-full pt-6">
           <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
@@ -36,8 +54,8 @@
       </div>
 
       <!-- Legend -->
-      <div class="col-span-2 gap-3 grid grid-cols-8 text-black font-bold text-sm">
-        <div class="content-center"></div>
+      <div class="gap-3 grid grid-cols-8 font-bold text-[9px] w-96 self-center">
+        <div class="h-4"></div>
         <div class="col-span-8">Sektoren</div>
         <div class="content-center">
           <img src="~/assets/icons/icon_category_energy.svg" class=""/>
@@ -62,20 +80,15 @@
         <div class="content-center">
           <img src="~/assets/icons/icon_category_transport.svg" class=""/>
         </div>
-        <div class="col-span-7 content-center">VK –Verkehr</div>
+        <div class="col-span-7 content-center">VK – Verkehr</div>
       </div>
 
-      <!-- Traffic lights -->
-      <div class="text-xs col-span-3">
-        <implementation-traffic-light class=""/>
-      </div>
     </div>
 
-    <div>
-    </div>
 
+    <!-- Result Table -->
     <div class="w-full">
-      <table class="w-full text-black text-xs">
+      <table class="w-full text-black text-[10px]">
         <thead>
           <!-- First Row - Icons -->
           <tr class="h-5">
@@ -84,54 +97,52 @@
             <th>
             </th>
             <th class="text-neutral font-light">
-              <ul class="mb-2 flex items-end justify-center gap-4">
+              <ul class="flex items-end justify-center gap-4">
                 <li v-for="(rating, index) in 4" :key="`rating-image-${index}`" class="flex flex-col items-center">
                   <img :src="ratingImages[index]" class="h-5" />
-                  <div class="text-xs">{{ $t(`measure_rating.${index}_caption`) }}</div>
+                  <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
                 </li>
               </ul>
             </th>
             <th>
-              <img src="/assets/icons/icon_impact.svg" class="h-10 mx-auto"/>
+              <img src="/assets/icons/icon_impact.svg" class="h-[1.5rem] mx-auto"/>
             </th>
             <th>
-              <img src="/assets/icons/icon_politics.svg" class="h-10 mx-auto"/>
+              <img src="/assets/icons/icon_politics.svg" class="h-[1.5rem] mx-auto"/>
             </th>
             <th>
-              <img src="/assets/icons/icon_invest.svg" class="h-10 mx-auto"/>
+              <img src="/assets/icons/icon_invest.svg" class="h-[1.5rem] mx-auto"/>
             </th>
           </tr>
 
           <!-- Second Row Table Heading -->
           <tr class="bg-neutral-200">
-            <th>
-              .
-            </th>
+            <th></th>
             <th>
               Nummer
             </th>
             <th class="text-left">
               Maßnahme zur CO2-Reduktion
             </th>
-            <th>
+            <th class="w-10">
               Impact
             </th>
-            <th>
+            <th class="w-10">
               Politisch
             </th>
-            <th>
+            <th class="w-10">
               Invest
             </th>
           </tr>
         </thead>
-
+        
         <!-- Iterate Through Data -->
         <tbody>
           <template v-for="(sector, key) in sortedRatings" :key="index">
             <template v-for="(item, index) in sector" :key="key + '-' + index">
               <tr v-if="item.applicable" :class="[ratingColor[ratingIndex(item.rating)], 'bg-opacity-20']">
-                <td class="bg-white w-10">
-                  <img :src="ratingImages[ratingIndex(item.rating)]" class="h-5 mx-auto"/>
+                <td class="bg-white w-5">
+                  <img :src="ratingImages[ratingIndex(item.rating)]" class="h-[0.8rem] mx-auto"/>
                 </td>
                 <td class="text-center w-5">
                   {{item.measure.measure_id}}
@@ -140,13 +151,13 @@
                   {{item.measure.name}}
                 </td>
                 <td>
-                  <span v-for="star in item.measure.impact" :key="star">★</span>
+                  <span v-for="star in Math.max(0, parseInt(item.measure.impact, 10) || 0)" :key="star">★</span>
                 </td>
                 <td>
-                  <span v-for="star in item.measure.feasibility_political" :key="star">★</span>
+                  <span v-for="star in Math.max(0, parseInt(item.measure.feasibility_political, 10) || 0)" :key="star">★</span>
                 </td>
                 <td>
-                  <span v-for="star in item.measure.feasibility_economical" :key="star">★</span>
+                  <span v-for="star in Math.max(0, parseInt(item.measure.feasibility_economical, 10) || 0)" :key="star">★</span>
                 </td>
               </tr>
             </template>
@@ -155,7 +166,8 @@
       </table>
 
     </div>
-  </template>
+  </div>
+</template>
   
   
 <script setup>
@@ -221,11 +233,27 @@
 @media print {
 header, nav, #page-drawer-toggle, footer{
     display: none;
+  }
+* {
+  visibility: visible !important;
 }
 }
-
+* {
+  /*visibility: hidden;*/
+  height: --spacing(0.5);
+}
+td {
+  /* overflow: hidden; */
+  white-space: nowrap;
+}
+.grid {
+  gap: 5px;
+}
+.scale-polar {
+  transform: scale(0.6);
+}
 table, td, th {
-  border: 5px solid;
+  border: 3px solid;
   border-color: white;
   padding: 0 5px;
 }
