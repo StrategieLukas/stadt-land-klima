@@ -239,7 +239,7 @@ header, nav, #page-drawer-toggle, footer{
 }
 }
 * {
-  /*visibility: hidden;*/
+  visibility: hidden;
   height: --spacing(0.5);
 }
 td {
