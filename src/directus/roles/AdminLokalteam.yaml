@@ -31,6 +31,8 @@ permissions:
       - current_progress
       - source
       - internal_note
+      - applicable
+      - why_not_applicable
   - collection: ratings_measures
     action: update
     permissions:
@@ -48,6 +50,8 @@ permissions:
       - current_progress
       - source
       - internal_note
+      - applicable
+      - why_not_applicable
   - collection: municipalities
     action: read
     permissions:

@@ -1,0 +1,44 @@
+collection: pages
+field: is_dynamic
+type: boolean
+meta:
+  collection: pages
+  conditions: null
+  display: boolean
+  display_options:
+    labelOff: null
+    labelOn: null
+  field: is_dynamic
+  group: null
+  hidden: false
+  interface: boolean
+  note: null
+  options:
+    label: $t:pages.is_dynamic
+  readonly: false
+  required: true
+  sort: 10
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Wird der Seiteninhalt dynamisch generiert?
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: is_dynamic
+  table: pages
+  data_type: boolean
+  default_value: false
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

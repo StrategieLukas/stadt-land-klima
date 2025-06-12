@@ -20,7 +20,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Prozentzahl der bewerteten Maßnahmen
+      translation: Prozentzahl Maßnahmen bewertet
   validation: null
   validation_message: null
   width: full

@@ -1,41 +1,62 @@
 <template>
-  <div class="flex">
-    <div class="bg-gray-200 drawer text-neutral">
-      <input id="page-drawer" type="checkbox" class="drawer-toggle" />
-      <div class="drawer-content flex h-full min-h-screen flex-col items-stretch">
-        <the-drawer-side-toggle></the-drawer-side-toggle>
-        <the-header></the-header>
-        <main class="flex grow flex-col bg-white px-2 py-4">
-          <div class="mx-auto w-full max-w-screen-xl">
-            <slot />
+  <div class="flex flex-col min-h-screen text-neutral">
+
+    <!-- Always render both headers, control visibility with Tailwind -->
+    <div>
+      <!-- Mobile Header -->
+      <div class="block lg:hidden">
+        <div class="drawer">
+          <input id="page-drawer" type="checkbox" class="drawer-toggle" />
+          <div class="drawer-content flex flex-col">
+            <the-drawer-side-toggle />
+            <the-header-mobile />
           </div>
-        </main>
-        <the-footer
-          :pages="
-            pages.filter((page) => {
-              return includes(page.menus, 'footer');
-            })
-          "
-        />
+          <the-drawer-side
+            :pages="pages.filter((page) => includes(page.menus, 'main'))"
+          />
+        </div>
       </div>
-      <the-drawer-side
-        :pages="
-          pages.filter((page) => {
-            return includes(page.menus, 'main');
-          })
-        "
-      ></the-drawer-side>
+
+      <!-- Desktop Header -->
+      <div class="hidden lg:block">
+        <the-header-desktop :pages="pages" />
+      </div>
     </div>
+
+    <!-- Main Content (always rendered) -->
+    <main class="flex grow flex-col bg-white px-2 py-4">
+      <div class="mx-auto w-full max-w-screen-xl">
+        <slot />
+      </div>
+    </main>
+
+    <!-- Footer (Mobile version) -->
+     <div class="block lg:hidden">
+        <the-footer-mobile
+        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+      />
+     </div>
+
+     <!-- Footer (Desktop version) -->
+     <div class="hidden lg:block">
+      <the-footer-desktop
+        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+      />
+     </div>
+
   </div>
 </template>
+
+
+
 <script setup>
+
 import lodash from "lodash";
-import WavingBanner from "~/components/WavingBanner.vue";
 const { includes } = lodash;
-const { $directus, $readItems, $appEnv } = useNuxtApp();
+const { $directus, $readItems, $appEnv, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
 
 const { data: pages } = await useAsyncData("pages", () => {
-  return $directus.request($readItems("pages", { limit: -1 }));
+  return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
 });
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");
@@ -49,11 +70,11 @@ useHead({
   ],
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
   script: [
-    $appEnv === "production"
+    $plausibleAnalyticsUrl && $plausibleAnalyticsDomain
       ? {
           defer: true,
-          "data-domain": "stadt-land-klima.de",
-          src: "https://plausible.anzui.dev/js/script.js",
+          "data-domain": $plausibleAnalyticsDomain,
+          src: $plausibleAnalyticsUrl + "/js/script.js",
         }
       : {},
   ],

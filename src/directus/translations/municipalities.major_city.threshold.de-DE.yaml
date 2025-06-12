@@ -1,0 +1,3 @@
+language: de-DE
+key: municipalities.major_city.threshold
+value: ab 100.000 Personen

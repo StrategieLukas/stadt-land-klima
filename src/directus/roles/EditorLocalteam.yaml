@@ -31,6 +31,8 @@ permissions:
       - current_progress
       - source
       - internal_note
+      - applicable
+      - why_not_applicable
   - collection: ratings_measures
     action: update
     permissions:
@@ -48,6 +50,8 @@ permissions:
       - current_progress
       - source
       - internal_note
+      - applicable
+      - why_not_applicable
   - collection: municipalities
     action: read
     permissions:
@@ -82,6 +86,8 @@ permissions:
       - links-g1sxxi
       - slug
       - overall_status_comment
+      - public_contact
+      - percentage_rated
   - collection: municipalities
     action: update
     permissions:

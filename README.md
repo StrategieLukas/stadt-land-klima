@@ -16,27 +16,28 @@ cp docker/db/.env.example docker/db/.env
 cp src/directus/.env.example src/directus/.env
 cp src/frontend/.env.example src/frontend/.env
 ```
+Setting "CACHE_ENABLED=false" for development is recommended to quickly see changes made to data in the backend.
 
-## Installation: 
-Docker needs to be running  
-Give Permission to folder to write files and also subfolder: This is not optimal! 
+## Installation:
+Docker needs to be running
+Give Permission to folder to write files and also subfolder: This is not optimal!
 ```
 $ cd stadt-land-klima/
 $ cd bin
 $ ./start_development.sh
 ```
 This may take some time.
-When finished and started check http://localhost:8081 if directus started correctly. 
+When finished and started check http://localhost:8081 if directus started correctly.
 In a new Terminal run :
 ```
 $ cd stadt-land-klima/
 $ cd bin
-$ ./directus_bash.sh 
+$ ./directus_bash.sh
 $ ./directus-cli auth:set-token
 $ source .env
 $ cli/import-all.sh
 $ cli/import-all.sh
-$ ./directus-cli auth:set-frontend-token 
+$ ./directus-cli auth:set-frontend-token
 ```
 Import all needs to run tiwce otherwise permission for the roles don't get apllied.
 Now open http://localhost:8081 in your browser and login with the credentials provided in the .env file.

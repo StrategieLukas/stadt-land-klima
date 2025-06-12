@@ -69,7 +69,12 @@ export default {
       if (field == this.field) {
         this.$emit("input", value);
         nextTick().then((result) => {
-          this.$emit("setFieldValue", { field: "status", value: "published" });
+          if(value == null) {
+            this.$emit("setFieldValue", { field: "status", value: "draft" });
+          } else {
+            this.$emit("setFieldValue", { field: "status", value: "published" });
+          }
+          
         });
         //Vue.nextTick(() => this.$emit('setFieldValue', { field: 'status', value: 'published' })); //Known bug direcuts so this workaround
       }

@@ -1,0 +1,3 @@
+language: de-DE
+key: captcha.incorrect_answer
+value: Die Antwort auf das CAPTCHA ist leider falsch.

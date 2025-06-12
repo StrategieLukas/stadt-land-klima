@@ -46,6 +46,9 @@ permissions:
       - contents
       - slug
       - sort
+      - sort_order
+      - footer_column_desktop
+      - is_dynamic
   - collection: municipalities
     action: read
     permissions: null
@@ -153,3 +156,16 @@ permissions:
       - short_description
       - logo
       - id
+  - collection: feedback
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - content
+      - type
+      - sender_name
+      - sender_contact
+      - date_created
+      - status

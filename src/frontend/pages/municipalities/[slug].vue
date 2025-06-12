@@ -33,7 +33,20 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
   ]);
   const ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
-      filter: { localteam_id: { _eq: municipalities[0].localteam_id } },
+      filter: {
+            _and: [
+              {
+                localteam_id: {
+                  _eq: municipalities[0].localteam_id,
+                },
+              },
+              {
+                applicable: {
+                  _eq: true,
+                },
+              },
+            ],
+          },
     }),
   );
   return {
@@ -68,6 +81,30 @@ function sortMeasuresBySector(ratingsMeasuresArr, measuresArr) {
       dictMeasuresRatingSorted[sector].push(item);
     }
   }
+
+
+  // Sort each sector's array: by rating (desc), then measure_id (asc)
+  for (const sector in dictMeasuresRatingSorted) {
+    dictMeasuresRatingSorted[sector].sort((a, b) => {
+      const ratingA = a.rating;
+      const ratingB = b.rating;
+
+      // Handle nulls: treat null as lowest
+      if (ratingA == null && ratingB != null) return 1;
+      if (ratingA != null && ratingB == null) return -1;
+      if (ratingA != null && ratingB != null) {
+        if (ratingA !== ratingB) {
+          return ratingB - ratingA; // Descending
+        }
+      }
+
+      // Tiebreaker: sort by measure_id ascending
+      if (a.measure_id < b.measure_id) return -1;
+      if (a.measure_id > b.measure_id) return 1;
+      return 0;
+    });
+  }
+
   return dictMeasuresRatingSorted;
 }
 </script>
