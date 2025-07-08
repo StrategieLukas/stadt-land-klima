@@ -1,0 +1,25 @@
+collection: pages
+field: translations
+type: alias
+meta:
+  collection: pages
+  conditions: null
+  display: null
+  display_options: null
+  field: translations
+  group: null
+  hidden: false
+  interface: translations
+  note: null
+  options:
+    defaultLanguage: de-DE
+    languageField: name
+  readonly: false
+  required: false
+  sort: 14
+  special:
+    - translations
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
