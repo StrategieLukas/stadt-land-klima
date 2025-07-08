@@ -61,6 +61,7 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+
   nitro: {
     preset: 'node-server',
     routeRules: {
@@ -94,4 +95,23 @@ export default defineNuxtConfig({
       isCustomElement: (tag: string) => tag === 'altcha-widget',
     },
   },
+  modules: ["@nuxtjs/i18n"],
+  i18n: {
+    strategy: "prefix",
+    defaultLocale: "de-DE",
+    locales: [
+      {
+        code: "de-DE",
+      },
+      {
+        code: "it-IT",
+      },
+    ],
+    detectBrowserLanguage: {
+       useCookie: true,
+       cookieKey: "i18n_redirected",
+       redirectOn: "root",
+    },
+  },
+  plugins: ["~/plugins/directus.server.js", "~/plugins/directus.client.js", "~/plugins/i18n.init.js"],
 })

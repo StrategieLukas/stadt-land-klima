@@ -8,7 +8,7 @@
         <button
           class="flex items-center gap-2 w-full h-10 px-3 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-400 hover:bg-gray-100 transition-colors"
           @click="openSearch(); closeDrawer()"
-          :aria-label="$t('generic.search')"
+          :aria-label="t('generic.search')"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -140,14 +140,14 @@
           class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-orange hover:bg-orange/5 transition-colors"
           @click="closeDrawer"
         >
-          <span>→</span> {{ $t('generic.log_in') }}
+          <span>→</span> {{ t('generic.log_in') }}
         </a>
         <a
           href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
           class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-orange hover:bg-orange/5 transition-colors"
           @click="closeDrawer"
         >
-          <span>→</span> {{ $t('donate.label') }}
+          <span>→</span> {{ t('donate.label') }}
           <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-4 w-auto" />
         </a>
       </div>
@@ -161,8 +161,7 @@ import { useRuntimeConfig } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 
 const NuxtLink = resolveComponent('NuxtLink')
-
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const route = useRoute()
 const config = useRuntimeConfig()
 const { closeDrawer } = useDrawer()

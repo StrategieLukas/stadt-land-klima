@@ -2,7 +2,7 @@
   <!-- Social Media Section -->
   <div class="max-w-screen-xl mx-auto text-center mb-8">
     <p class="mb-4">
-      {{ $t('generic.social_media.support_by_sharing') }}
+      {{ t('generic.social_media.support_by_sharing') }}
     </p>
     <div class="flex justify-center items-center gap-6">
       <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
@@ -102,7 +102,7 @@
             <img
               src="~/assets/images/Stadt-Land-Klima-Logo.svg"
               class="h-24 w-auto"
-              :alt="$t('logo.alt')"
+              :alt="t('logo.alt')"
             />
           </NuxtLink>
         </div>
@@ -113,7 +113,7 @@
           <!-- Backend login button (always visible) -->
           <a href="/backend">
             <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
-              <span>{{ $t('generic.log_in') }}</span>
+              <span>{{ t('generic.log_in') }}</span>
               <span aria-hidden="true">→</span>
             </button>
           </a>
@@ -121,7 +121,7 @@
 
         <!-- Copyright + internal login -->
         <div class="text-sm text-white/80 text-center">
-          <div>{{ $t('footer.copyright') }}</div>
+          <div>{{ t('footer.copyright') }}</div>
           <button
             v-if="!isAuthenticated"
             class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
@@ -134,6 +134,7 @@
           </div>
         </div>
       </div>
+
     </div>
 
   </footer>
@@ -147,7 +148,7 @@ import DonateButton from '~/components/DonateButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
 
-const { $t } = useNuxtApp();
+const { t } = useI18n();
 const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
 

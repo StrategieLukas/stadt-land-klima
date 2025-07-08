@@ -17,7 +17,7 @@
         <img
           src="~/assets/images/Stadt-Land-Klima-Logo.svg"
           class="h-full w-auto"
-          :alt="$t('logo.alt')"
+          :alt="t('logo.alt')"
         />
       </NuxtLink>
 
@@ -29,7 +29,7 @@
         <button
           @click="open()"
           class="flex items-center justify-center h-9 w-9 flex-shrink-0 rounded-full border border-gray-200 bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-          :aria-label="$t('generic.search')"
+          :aria-label="t('generic.search')"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -44,7 +44,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const { open } = useSearchPalette()
 
 const scrolled = ref(false)
