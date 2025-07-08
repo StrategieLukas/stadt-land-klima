@@ -1,29 +1,28 @@
-collection: pages
-field: slug
+collection: languages
+field: name
 type: string
 meta:
-  collection: pages
+  collection: languages
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: name
   group: null
   hidden: false
   interface: input
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
   required: false
-  sort: 8
+  sort: 2
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
-  table: pages
+  name: name
+  table: languages
   data_type: character varying
   default_value: null
   max_length: 255

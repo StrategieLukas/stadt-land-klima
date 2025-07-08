@@ -49,6 +49,7 @@ permissions:
       - sort_order
       - footer_column_desktop
       - is_dynamic
+      - translations
   - collection: municipalities
     action: read
     permissions: null
@@ -169,3 +170,19 @@ permissions:
       - sender_contact
       - date_created
       - status
+  - collection: languages
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: pages_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - contents

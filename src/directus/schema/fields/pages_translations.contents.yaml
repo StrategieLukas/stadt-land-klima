@@ -1,32 +1,31 @@
-collection: pages
-field: slug
-type: string
+collection: pages_translations
+field: contents
+type: text
 meta:
-  collection: pages
+  collection: pages_translations
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: contents
   group: null
   hidden: false
-  interface: input
+  interface: input-rich-text-html
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
   required: false
-  sort: 8
+  sort: 5
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
-  table: pages
-  data_type: character varying
+  name: contents
+  table: pages_translations
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

@@ -1,37 +1,36 @@
-collection: pages
-field: slug
+collection: languages
+field: code
 type: string
 meta:
-  collection: pages
+  collection: languages
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: code
   group: null
   hidden: false
   interface: input
   note: null
-  options:
-    slug: true
+  options: null
   readonly: false
   required: false
-  sort: 8
+  sort: 1
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
-  table: pages
+  name: code
+  table: languages
   data_type: character varying
   default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: true
-  is_unique: false
-  is_primary_key: false
+  is_nullable: false
+  is_unique: true
+  is_primary_key: true
   is_generated: false
   generation_expression: null
   has_auto_increment: false
