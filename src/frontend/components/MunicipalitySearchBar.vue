@@ -1,7 +1,7 @@
 <template>
     <form class="relative mb-1 overflow-visible" action="javascript:;">
           <div class="form-control">
-            <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
+            <label for="search-input" class="label">{{ t("municipalities_search.label") }}</label>
             <input
               id="search-input"
               v-model="q"
@@ -19,7 +19,7 @@
               ✖️
             </button>
           </div>
-  
+
           <div
             v-if="suggestions.length && searchFocused"
             class="dropdown-open dropdown absolute left-0 right-0 top-24 w-full"
@@ -40,7 +40,8 @@
 
 <script setup>
 import { computed, ref } from "vue";
-const { $t, $directus, $readItems } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t } = useI18n();
 const q = ref("");
 const searchFocused = ref(false);
 const { data: municipalities } = await useAsyncData("municipalities", () => {
