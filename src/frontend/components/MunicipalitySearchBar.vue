@@ -27,11 +27,11 @@
             <label tabindex="0"></label>
             <ul tabindex="0" class="menu dropdown-content rounded-box z-50 w-full bg-base-100 p-2 shadow">
               <div v-for="(suggestion, index) in suggestions" :key="index">
-                <NuxtLink :to="suggestion.url" class="p-0" @click="handleSuggestionClick">
+                <NuxtLinkLocale :to="suggestion.url" class="p-0" @click="handleSuggestionClick">
                   <li>
                     <div>{{ suggestion.label }}</div>
                   </li>
-                </NuxtLink>
+                </NuxtLinkLocale>
               </div>
             </ul>
           </div>

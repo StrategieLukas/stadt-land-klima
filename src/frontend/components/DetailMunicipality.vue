@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
+      {{ t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />
@@ -22,7 +22,7 @@
         <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
-          {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
+          {{ t("municipality.about_heading", { ":name": municipality.name }) }}
         </h2>
       </div>
 
@@ -39,7 +39,7 @@
         <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
-          {{ $t("municipality.overall_status_heading") }}
+          {{ t("municipality.overall_status_heading") }}
         </h2>
       </div>
 
@@ -63,7 +63,7 @@
 
         <div class="grow">
           <h2 class="mb-2 font-heading text-h2 leading-none text-green">
-            {{ $t(`measure_sectors.${sector}.title`) }}
+            {{ t(`measure_sectors.${sector}.title`) }}
           </h2>
           <ProgressBar :score-total="Math.round(Number(municipality['score_' + sector]) * 10) / 10" layout="compact" />
         </div>
@@ -72,12 +72,12 @@
       <div class="collapse-content px-2 md:px-4">
         <!-- Additional Info above the list of measure -->
         <h3 class="mb-2 font-heading text-h2 text-black">
-          {{ $t("measure_sector.measures_in_detail") }}
+          {{ t("measure_sector.measures_in_detail") }}
         </h3>
         <ul class="mb-2 flex items-end justify-center gap-4">
           <li v-for="(rating, index) in 4" :key="`rating-image-${index}`" class="flex flex-col items-center">
             <img :src="ratingImages[index]" class="h-auto w-5" />
-            <div class="text-sm">{{ $t(`measure_rating.${index}_caption`) }}</div>
+            <div class="text-sm">{{ t(`measure_rating.${index}_caption`) }}</div>
           </li>
         </ul>
 
@@ -104,37 +104,37 @@
               </div>
 
               <!-- More info on the measure when clicked -->
-              <div 
+              <div
               :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']"
               >
                 <MeasureDetails :measure="item.measure" />
                 <div v-if="item.current_progress" class="mb-4">
                   <h4 class="mb-2 text-light-blue">
-                    {{ $t("ratings_measure.achievement_heading") }}
+                    {{ t("ratings_measure.achievement_heading") }}
                   </h4>
 
                   <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.current_progress)" />
                 </div>
                 <div v-if="item.source">
                   <h4 class="mb-2 text-light-blue">
-                    {{ $t("ratings_measure.source_heading") }}
+                    {{ t("ratings_measure.source_heading") }}
                   </h4>
 
                   <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.source)" />
                 </div>
                 <dl v-if="item.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
-                  <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
+                  <dt class="font-bold">{{ t("ratings_measure.last_updated") }}:</dt>
                   <dd>{{ formatLastUpdated(item.date_updated) }}</dd>
                 </dl>
 
                 <div class="mt-8">
-                  <NuxtLink
+                  <NuxtLinkLocale
                     :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
                     class="text-light-blue underline"
                     target="measure"
                   >
-                    {{ $t("municipality_rating.link_to_measure") }} ↗
-                  </NuxtLink>
+                    {{ t("municipality_rating.link_to_measure") }} ↗
+                  </NuxtLinkLocale>
                 </div>
               </div>
             </div>
@@ -151,7 +151,7 @@
         <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
-          {{ $t("municipality.participate_heading") }}
+          {{ t("municipality.participate_heading") }}
         </h2>
       </div>
 
@@ -168,13 +168,13 @@
         <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
 
         <h2 class="font-heading text-h2 leading-none text-green">
-          {{ $t("municipality.data_collection_heading") }}
+          {{ t("municipality.data_collection_heading") }}
         </h2>
       </div>
 
       <div class="collapse-content px-2 md:px-4">
         <div class="prose whitespace-pre-line">
-          {{ $t("municipality.data_collection_body") }}
+          {{ t("municipality.data_collection_body") }}
         </div>
       </div>
     </div> -->
@@ -188,7 +188,8 @@ const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingImages from "../shared/ratingImages.js";
 import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
-const { $t, $locale } = useNuxtApp();
+const { $locale } = useNuxtApp();
+const { t } = useI18n();
 const props = defineProps({
   municipality: {
     type: Object,

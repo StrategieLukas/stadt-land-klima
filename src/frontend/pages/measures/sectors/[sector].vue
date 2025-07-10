@@ -4,15 +4,15 @@
       <img :src="sectorImages[route.params.sector]" alt="" class="mt-0 h-auto w-24 opacity-50" />
 
       <div class="prose">
-        <h1>{{ $t(`measure_sectors.${route.params.sector}.title`) }}</h1>
-        <div v-html="$t(`measure_sectors.${route.params.sector}.description`)" />
+        <h1>{{ t(`measure_sectors.${route.params.sector}.title`) }}</h1>
+        <div v-html="t(`measure_sectors.${route.params.sector}.description`)" />
         <p>
-          {{ $t("measures_sector.count_measures_in_sector", { ":count": measures.length }) }}
+          {{ t("measures_sector.count_measures_in_sector", { ":count": measures.length }) }}
         </p>
 
-        <NuxtLink to="/measures" class="font-heading text-h4 text-light-blue">
-          ← {{ $t("measures_sector.back_label") }}
-        </NuxtLink>
+        <NuxtLinkLocale to="/measures" class="font-heading text-h4 text-light-blue">
+          ← {{ t("measures_sector.back_label") }}
+        </NuxtLinkLocale>
       </div>
     </div>
     <ul>
@@ -24,7 +24,8 @@
 </template>
 <script setup>
 import sectorImages from "../../shared/sectorImages.js";
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t } = useI18n();
 const route = useRoute();
 
 //MetaTags

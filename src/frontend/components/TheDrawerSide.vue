@@ -4,13 +4,13 @@
     <ul tabindex="0" class="menu min-h-full w-80 bg-light-green font-semibold text-left text-white">
 
       <li v-for="page in pages" :key="page.id" class="w-full">
-        <NuxtLink
+        <NuxtLinkLocale
           :to="'/' + page.slug"
           class="text-md"
           @click="closeDrawer"
         >
           <span class="text-lg">→</span> {{ page.name }}
-        </NuxtLink>
+        </NuxtLinkLocale>
       </li>
 
       <!-- Last two elements not NuxtLinks because they reference different applications -->

@@ -18,13 +18,13 @@
       <div class="flex items-start gap-12">
         <!-- Logo on the far left -->
         <div class="flex-shrink-0 pl-2">
-          <NuxtLink to="/">
+          <NuxtLinkLocale to="/">
             <img
               src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg"
               class="h-32 w-auto"
               :alt="t('logo.alt')"
             />
-          </NuxtLink>
+          </NuxtLinkLocale>
         </div>
 
         <!-- 4 columns -->
@@ -38,9 +38,9 @@
             ]"
           >
             <div v-for="page in pagesByColumn[col]" :key="page.id">
-              <NuxtLink :to="'/' + page.slug" class="hover:underline block">
+              <NuxtLinkLocale :to="'/' + page.slug" class="hover:underline block">
                 <span class="text-lg">→</span> {{ page.translations[0].name }}
-              </NuxtLink>
+              </NuxtLinkLocale>
             </div>
           </div>
         </div>

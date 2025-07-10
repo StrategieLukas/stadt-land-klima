@@ -3,9 +3,9 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between px-4 py-4">
       <!-- Logo -->
       <div class="flex-shrink-0 mb-4 md:mb-0">
-        <NuxtLink to="/">
+        <NuxtLinkLocale to="/">
           <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="t('logo.alt')" />
-        </NuxtLink>
+        </NuxtLinkLocale>
       </div>
 
       <!-- Search Bar in center -->
@@ -40,7 +40,7 @@
           :key="page.id"
           class="h-full"
         >
-          <NuxtLink
+          <NuxtLinkLocale
             :to="`/${page.slug}`"
             class="flex items-center justify-center px-6 text-white font-bold h-full"
             :class="{
@@ -49,7 +49,7 @@
             }"
           >
             {{ page.translations[0].name }}
-          </NuxtLink>
+          </NuxtLinkLocale>
         </li>
 
         <!-- Other Pages Dropdown -->
@@ -66,7 +66,7 @@
           <div
             class="absolute left-0 top-full mt-0 w-48 bg-white shadow-md hidden group-hover:block"
           >
-            <NuxtLink
+            <NuxtLinkLocale
               v-for="page in otherPages"
               :key="page.id"
               :to="`/${page.slug}`"
@@ -77,7 +77,7 @@
               }"
             >
               {{ page.translations[0].name }}
-            </NuxtLink>
+            </NuxtLinkLocale>
           </div>
         </li>
       </ul>

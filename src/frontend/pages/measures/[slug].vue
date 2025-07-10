@@ -1,8 +1,8 @@
 <template>
   <div>
-    <NuxtLink :to="`/measures/sectors/${measure.sector}`" class="font-heading text-h4 text-light-blue">
-      {{ $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) }}
-    </NuxtLink>
+    <NuxtLinkLocale :to="`/measures/sectors/${measure.sector}`" class="font-heading text-h4 text-light-blue">
+      {{ t("measure.back_label", { ":sector": t(`measure_sectors.${measure.sector}.title`) }) }}
+    </NuxtLinkLocale>
 
     <article class="mb-8 mt-10 flex items-start gap-4">
       <div class="prose">
@@ -13,7 +13,8 @@
   </div>
 </template>
 <script setup>
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t } = useI18n();
 const route = useRoute();
 
 const { data: measures } = await useAsyncData("measures", () => {
