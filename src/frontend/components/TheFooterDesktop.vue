@@ -39,7 +39,7 @@
           >
             <div v-for="page in pagesByColumn[col]" :key="page.id">
               <NuxtLink :to="'/' + page.slug" class="hover:underline block">
-                <span class="text-lg">→</span> {{ page.name }}
+                <span class="text-lg">→</span> {{ page.translations[0].name }}
               </NuxtLink>
             </div>
           </div>

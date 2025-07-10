@@ -52,11 +52,25 @@
 <script setup>
 
 import lodash from "lodash";
+const { locale } = useI18n();
 const { includes } = lodash;
 const { $directus, $readItems, $appEnv, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
 
 const { data: pages } = await useAsyncData("pages", () => {
-  return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
+  return $directus.request(
+    $readItems("pages", {
+      sort: "sort_order",
+      fields: ["*", "translations.*"],
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
+      limit: -1,
+    }),
+  );
 });
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");

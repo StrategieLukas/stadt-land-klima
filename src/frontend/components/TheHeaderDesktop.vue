@@ -48,7 +48,7 @@
               'hover:bg-mid-gray': '/' + page.slug !== route.path,
             }"
           >
-            {{ page.name }}
+            {{ page.translations[0].name }}
           </NuxtLink>
         </li>
 
@@ -76,7 +76,7 @@
                 'bg-mid-gray hover:bg-gray' : !isActive(page.slug),
               }"
             >
-              {{ page.name }}
+              {{ page.translations[0].name }}
             </NuxtLink>
           </div>
         </li>
