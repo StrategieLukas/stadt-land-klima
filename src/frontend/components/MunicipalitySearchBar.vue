@@ -26,7 +26,7 @@
         ref="dropdown"
       >
         <ul class="menu dropdown-content rounded-box w-full bg-base-100 p-2 shadow">
-          <NuxtLink
+          <NuxtLinkLocale
             v-for="(suggestion, index) in visibleSuggestions"
             :key="index"
             :to="suggestion.url"
@@ -34,7 +34,7 @@
             @click="handleSuggestionClick"
           >
             {{ suggestion.label }}
-          </NuxtLink>
+          </NuxtLinkLocale>
         </ul>
       </div>
     </form>

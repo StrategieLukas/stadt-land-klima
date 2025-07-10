@@ -123,13 +123,13 @@
       <!-- Fallback: flat pages list (when navItems is empty) -->
       <ul v-else class="flex-1 py-2">
         <li v-for="page in pages" :key="page.id">
-          <NuxtLink
+          <NuxtLinkLocale
             :to="'/' + page.slug"
             class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800 border-b border-gray-100 hover:bg-gray-50 transition-colors"
             @click="closeDrawer"
           >
             <span>→</span> {{ page.name }}
-          </NuxtLink>
+          </NuxtLinkLocale>
         </li>
       </ul>
 

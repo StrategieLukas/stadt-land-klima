@@ -16,7 +16,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         <div class="flex flex-wrap gap-2 items-center">
-          <NuxtLink
+          <NuxtLinkLocale
             v-for="cv in allVersions"
             :key="cv.id"
             :to="{ path: '/measures', query: { v: cv.name, ...(selectedSector ? { sector: selectedSector } : {}) } }"
@@ -26,7 +26,7 @@
               : 'bg-white border-gray text-gray hover:bg-[#f2f2f2]'"
           >
             {{ cv.name }}{{ cv.isCurrentFrontend ? ' ✓' : '' }}
-          </NuxtLink>
+          </NuxtLinkLocale>
 
           <!-- vertical divider -->
           <div class="self-stretch w-px bg-gray/20 mx-1" />
@@ -198,7 +198,7 @@
 
     <!-- List view -->
     <div v-if="viewMode === 'list'" class="grid grid-cols-1 gap-2">
-      <NuxtLink
+      <NuxtLinkLocale
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
         :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
@@ -217,26 +217,21 @@
               </p>
             </div>
           </div>
-        </div>
-      </NuxtLink>
-    </div>
-
     <!-- Link to the measure catalog -->
     <div class="mt-12 flex justify-center">
-      <NuxtLink
+      <NuxtLinkLocale
         v-if="currentCatalogVersion.name === 'v1.0'"
         :to="`/backend/assets/ac1df0cd-8a57-4082-bdd3-432f43e4a374.xslx`"
       >
         <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
-      </NuxtLink>
-      <NuxtLink
+      </NuxtLinkLocale>
+      <NuxtLinkLocale
         v-if="currentCatalogVersion.name === 'beta'"
         :to="`/backend/assets/9c270dd0-52dc-449b-9c2e-bbd5d5b829.xslx`"
       >
         <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
-      </NuxtLink>
+      </NuxtLinkLocale>
     </div>
-
   </div>
 </template>
 
@@ -245,6 +240,7 @@ import { ref, computed, watch } from "vue";
 import sectorImages from "~/shared/sectorImages.js";
 
 const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'];
+const { t } = useI18n();
 
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();

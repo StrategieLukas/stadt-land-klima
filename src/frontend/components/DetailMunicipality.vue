@@ -50,6 +50,8 @@
           />
         </div>
       </div>
+        </div>
+      </div>
       <p class="mb-4 mt-0 text-center text-xs">
         <ClientOnly>
           {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
@@ -294,7 +296,10 @@ const municipalElectionYear = computed(() => {
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
-
+import sectorImages from "../shared/sectorImages.js";
+import ratingImages from "../shared/ratingImages.js";
+import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
+const { t } = useI18n();
 const props = defineProps({
   municipalityScore: {
     type: Object,

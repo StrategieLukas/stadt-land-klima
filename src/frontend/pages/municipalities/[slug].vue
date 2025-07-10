@@ -1,9 +1,9 @@
 <template>
   <!-- Preview locked: unverified creator, no valid token (also covers municipalities with no scores yet) -->
   <div v-if="isPreviewLocked" class="mt-10">
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       &larr; {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <waving-banner class="mt-6">
       Diese Gemeinde wird aktuell durch ein Lokalteam eingerichtet und ist noch nicht öffentlich zugänglich.
     </waving-banner>
@@ -14,15 +14,16 @@
     <waving-banner v-if="directusData.municipalityScore.municipality.status === 'draft'">
       {{ $t("municipalities.preview_text") }}
     </waving-banner>
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <article class="mb-8 mt-10">
       <detail-municipality
         :municipalityScore="directusData.municipalityScore"
         :ratings-by-sector="directusData.ratingsBySector"
       ></detail-municipality>
     </article>
+
 
     <!-- CTA block based on rating completeness -->
     <div class="mb-8">
@@ -73,9 +74,9 @@
       :catalog-version-name="selectedCatalogVersion.name"
       class="my-8"
     />
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
   </div>
 
   <!-- Loading state: fetching from Stadt-Land-Zahl -->
@@ -98,9 +99,9 @@
 
   <!-- Case 2: No Directus data, but found in Stadt-Land-Zahl (ARS-based generic page) -->
   <div v-else-if="slzArea">
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <article class="mb-8 mt-10">
       <!-- Header band (mirrors ItemRanking, no score) -->
       <div class="relative mb-3 flex items-stretch gap-4 py-5 pl-10 pr-4" style="background-color: #e5e7eb;">
@@ -152,7 +153,7 @@
         </div>
 
         <!-- Stats link -->
-        <NuxtLink
+        <NuxtLinkLocale
           :to="`/stats/${slzArea.ars}`"
           class="shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
         >
@@ -280,9 +281,9 @@
       :catalog-version-name="selectedCatalogVersion.name"
       class="my-8"
     />
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
   </div>
 
   <!-- Case 3: Not found anywhere -->
@@ -305,6 +306,7 @@ import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 import { fetchMunicipalityData } from '~/shared/directus-calls/complex-data-fetches.js';
 import { getStateMunicipalElectionYear } from '~/shared/utils.js';
 import { useReferrer } from '~/composables/useReferrer';
+const { t } = useI18n();
 const route = useRoute();
 
 // Guard against browser devtools / extension source-map requests like "installHook.js.map"

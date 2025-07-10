@@ -3,15 +3,15 @@
 
     <!-- Back link with chevron + sibling navigation -->
     <div class="flex items-center gap-2 flex-wrap">
-      <NuxtLink :to="`/measures?sector=${measure?.sector}&v=${currentCatalogVersion.name}`" class="inline-flex items-center gap-1 font-heading text-h4 text-light-blue">
+      <NuxtLinkLocale :to="`/measures?sector=${measure?.sector}&v=${currentCatalogVersion.name}`" class="inline-flex items-center gap-1 font-heading text-h4 text-light-blue">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
         {{ measure?.sector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) : '← Zurück zu Maßnahmen' }}
-      </NuxtLink>
+      </NuxtLinkLocale>
 
       <div v-if="prevMeasure || nextMeasure" class="flex items-center gap-1 ml-2">
-        <NuxtLink
+        <NuxtLinkLocale
           v-if="prevMeasure"
           :to="`/measures/${prevMeasure.slug}?v=${currentCatalogVersion.name}&sector=${prevMeasure.sector}`"
           class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray/30 text-xs text-gray hover:bg-gray/5 transition-colors"
@@ -19,9 +19,9 @@
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
           {{ prevMeasure.measure_id }}
-        </NuxtLink>
+        </NuxtLinkLocale>
         <span class="text-xs text-gray/40">{{ siblingIndex + 1 }} / {{ siblingMeasures.length }}</span>
-        <NuxtLink
+        <NuxtLinkLocale
           v-if="nextMeasure"
           :to="`/measures/${nextMeasure.slug}?v=${currentCatalogVersion.name}&sector=${nextMeasure.sector}`"
           class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray/30 text-xs text-gray hover:bg-gray/5 transition-colors"
@@ -29,14 +29,14 @@
         >
           {{ nextMeasure.measure_id }}
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </NuxtLink>
+        </NuxtLinkLocale>
       </div>
     </div>
 
     <!-- Version switcher (only if this measure exists in multiple catalog versions) -->
     <div v-if="measureVersions && measureVersions.length > 1" class="mt-3 flex items-center gap-2 flex-wrap">
       <span class="text-xs text-gray-500">Version:</span>
-      <NuxtLink
+      <NuxtLinkLocale
         v-for="mv in measureVersions"
         :key="mv.catalog_version.id"
         :to="`/measures/${route.params.slug}?v=${mv.catalog_version.name}`"
@@ -46,7 +46,7 @@
           : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
       >
         {{ mv.catalog_version.name }}
-      </NuxtLink>
+      </NuxtLinkLocale>
     </div>
 
     <article v-if="measure" class="mb-8 mt-6">
@@ -79,12 +79,12 @@
         <div>
           <h3 class="font-heading font-bold text-gray mb-1">Haben Sie einen Hinweis zu dieser Maßnahme?</h3>
           <p class="text-sm text-gray-500 mb-3">Fehler, Ungenauigkeiten oder Verbesserungsvorschläge – teilen Sie uns Ihr Feedback mit.</p>
-          <NuxtLink
+          <NuxtLinkLocale
             :to="`/contact?title=${encodeURIComponent(measure?.measure_id + ': ' + measure?.name)}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure?.measure_id + '\nLink: /measures/' + route.params.slug + '?v=' + currentCatalogVersion.name + '\n\nMein Hinweis:\n')}`"
             class="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-bold bg-light-blue text-white hover:brightness-110 transition"
           >
             Feedback geben ↗
-          </NuxtLink>
+          </NuxtLinkLocale>
         </div>
       </div>
     </div>
@@ -103,6 +103,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 const { $directus, $readItems, $t } = useNuxtApp();
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 

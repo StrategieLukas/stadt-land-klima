@@ -98,14 +98,14 @@
       <div class="flex flex-col lg:flex-row items-center justify-between gap-6 w-full">
         <!-- Logo -->
         <div class="flex-shrink-0">
-          <NuxtLink to="/">
+          <NuxtLinkLocale to="/">
             <img
               src="~/assets/images/Stadt-Land-Klima-Logo.svg"
               class="h-24 w-auto"
               :alt="t('logo.alt')"
             />
-          </NuxtLink>
-        </div>
+          </NuxtLinkLocale>
+
 
         <!-- 4 columns in the center -->
         <div class="grid grid-cols-2 md:grid-cols-4 flex-grow gap-8 text-left text-lg w-full max-w-4xl px-4 lg:px-8">
@@ -118,9 +118,9 @@
             ]"
           >
             <div v-for="page in pagesByColumn[col]" :key="page.id">
-              <NuxtLink :to="'/' + page.slug" class="hover:underline block">
+              <NuxtLinkLocale :to="'/' + page.slug" class="hover:underline block">
                 <span class="text-base">→</span> <span class="text-sm lg:text-base">{{ page.translations?.[0]?.name || page.name }}</span>
-              </NuxtLink>
+              </NuxtLinkLocale>
             </div>
           </div>
         </div>

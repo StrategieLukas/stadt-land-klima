@@ -61,7 +61,7 @@ const { data: indexPages } = await useAsyncData("indexPages", () => {
 });
 const page = computed(() => indexPages.value?.[0] || null);
 
-<<<<<<< HEAD
+
 // Load blocks from Directus — always fresh (no client-side caching)
 const { data: blocksData } = await useAsyncData(
   'blocks-index',

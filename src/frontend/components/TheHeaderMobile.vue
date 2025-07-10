@@ -9,7 +9,7 @@
       :class="scrolled ? 'py-1' : 'py-2'"
     >
       <!-- Left: Logo -->
-      <NuxtLink
+      <NuxtLinkLocale
         to="/"
         class="flex-shrink-0 justify-self-start overflow-hidden transition-[height] duration-300 ease-in-out"
         :class="scrolled ? 'h-10' : 'h-14'"
@@ -19,7 +19,7 @@
           class="h-full w-auto"
           :alt="t('logo.alt')"
         />
-      </NuxtLink>
+      </NuxtLinkLocale>
 
       <!-- Centre: empty -->
       <div></div>

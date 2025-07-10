@@ -5,12 +5,12 @@
         v-for="municipalityScore in publishedMunicipalityScores"
         :key="municipalityScore.id"
       >
-        <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${catalogVersion.name}`">
+        <NuxtLinkLocale :to="`/municipalities/${municipalityScore.municipality.slug}?v=${catalogVersion.name}`">
           <item-ranking
             :municipality-score="municipalityScore"
             :is-ranking="true"
           />
-        </NuxtLink>
+        </NuxtLinkLocale>
       </li>
 
       <li

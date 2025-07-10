@@ -14,14 +14,15 @@
       :class="scrolled ? 'py-1.5' : 'py-3'"
     >
       <!-- Logo -->
-      <NuxtLink
+      <!-- Logo -->
+      <NuxtLinkLocale
         to="/"
         class="shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out"
         :class="scrolled ? 'h-14' : 'h-20'"
       >
         <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-full w-auto hidden lg:block" :alt="t('logo.alt')" />
         <img src="~/assets/images/Stadt-Land-Kima-Logo_quad.png" class="h-full w-auto block lg:hidden" :alt="t('logo.alt')" />
-      </NuxtLink>
+      </NuxtLinkLocale>
 
       <!-- Persistent Search Bar — absolutely centered in the header -->
       <div class="absolute left-1/2 -translate-x-1/2 w-full max-w-[28rem] px-4">

@@ -1,9 +1,9 @@
 <template>
   <!-- Social Media & Onboarding Section -->
   <div class="max-w-screen-xl mx-auto text-center mb-8">
-    <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
+    <NuxtLinkLocale v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
       <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
-    </NuxtLink>
+    </NuxtLinkLocale>
     <p class="mb-4">
       {{ $t('generic.social_media.support_by_sharing') }}
     </p>
@@ -14,6 +14,8 @@
       <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" aria-label="LinkedIn">
         <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
       </a>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -67,11 +69,11 @@
             {{ col.title }}
           </h6>
           <template v-for="link in col.links" :key="link.id">
-            <NuxtLink
+            <NuxtLinkLocale
               v-if="link.link_type === 'page'"
               :to="'/' + link.page_slug"
               class="link link-hover text-sm"
-            >{{ link.label }}</NuxtLink>
+            >{{ link.label }}</NuxtLinkLocale>
             <a
               v-else
               :href="link.external_url"
@@ -88,13 +90,13 @@
     <div class="w-full flex flex-col gap-6">
       <div class="w-full py-6 border-t border-white/30 md:border-t-0 flex flex-row items-center justify-between gap-4">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex-shrink-0">
+        <NuxtLinkLocale to="/" class="flex-shrink-0">
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo.svg"
             class="h-16 w-auto"
             :alt="$t('logo.alt')"
           />
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <!-- Backend login button (always visible) -->
         <div class="flex-shrink-0 flex items-center gap-3">

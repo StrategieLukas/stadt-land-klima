@@ -2,7 +2,7 @@
     <div class="card bg-white shadow-xl rounded-none overflow-hidden max-w-[400px]">
         <div class="relative">
 
-            <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
+            <NuxtLinkLocale :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
                 <SmartImg
                     :assetId="image_id"
                     :isRaster="image_is_raster"
@@ -27,17 +27,17 @@
                     <img fit="cover" class="absolute top-2 right-2" height="48" width="48" :alt="organisation.name" loading="lazy" 
                     :src="getRawUrl(organisation.logo)"/>
                 </div>
-            </NuxtLink>
+            </NuxtLinkLocale>
 
 
 
             <!-- Card Content -->
             <div class="p-4">
-                <NuxtLink :to="`/projects/${slug}`">
+                <NuxtLinkLocale :to="`/projects/${slug}`">
                     <h2 class="text-blue-500 font-semibold mb-2">
                         {{ title }}
                     </h2>
-                </NuxtLink>
+                </NuxtLinkLocale>
                 <p class="text-sm font-bold mb-1">
                     {{ location }}
                 </p>
@@ -53,8 +53,8 @@
                 </p>
 
                 <!-- Read more link -->
-                <NuxtLink :to="`/projects/${slug}`" class="text-blue-500 text-sm">{{ $t("article.read_more") }} →
-                </NuxtLink>
+                <NuxtLinkLocale :to="`/projects/${slug}`" class="text-blue-500 text-sm">{{ $t("article.read_more") }} →
+                </NuxtLinkLocale>
             </div>
         </div>
     </div>
