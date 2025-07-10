@@ -32,15 +32,15 @@
   </BlokkliProvider>
 
   <p v-else class="prose py-8">
-    {{ $t("page_not_found") }}
+    {{ t("page_not_found") }}
   </p>
 </template>
-
 <script setup>
 import { readItems } from '@directus/sdk'
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $directus, $readItems } = useNuxtApp()
+const { t } = useI18n()
 const { isAuthenticated, initialize } = useAuth()
 useBlockHashNavigation()
 const canEdit = ref(false)
@@ -124,7 +124,7 @@ const processedPageContent = computed(() => {
 })
 
 // MetaTags
-const title = computed(() => page.value ? page.value.name : $t("page_not_found"))
+const title = computed(() => page.value ? page.value.name : t("page_not_found"))
 
 useHead({
   title,

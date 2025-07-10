@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/leaflet',
     '@blokkli/editor',
+    '@nuxtjs/i18n'
   ],
   
   // blökkli configuration
@@ -95,7 +96,10 @@ export default defineNuxtConfig({
       isCustomElement: (tag: string) => tag === 'altcha-widget',
     },
   },
-  modules: ["@nuxtjs/i18n"],
+  build: {
+    transpile: ["@fortawesome/vue-fontawesome"],
+  },
+
   i18n: {
     strategy: "prefix",
     defaultLocale: "de-DE",
@@ -113,5 +117,10 @@ export default defineNuxtConfig({
        redirectOn: "root",
     },
   },
-  plugins: ["~/plugins/directus.server.js", "~/plugins/directus.client.js", "~/plugins/i18n.init.js"],
+  plugins: [
+    "~/plugins/directus.server.js",
+    "~/plugins/directus.client.js",
+    "~/plugins/i18n.init.js",
+    "~/plugins/fontawesome.js",
+  ],
 })
