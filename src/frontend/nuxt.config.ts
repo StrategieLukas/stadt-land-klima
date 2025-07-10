@@ -21,6 +21,10 @@ export default defineNuxtConfig({
     },
   },
 
+  build: {
+    transpile: ["@fortawesome/vue-fontawesome"],
+  },
+
   modules: ["@nuxtjs/i18n"],
 
   i18n: {
@@ -41,5 +45,10 @@ export default defineNuxtConfig({
     },
   },
 
-  plugins: ["~/plugins/directus.server.js", "~/plugins/directus.client.js", "~/plugins/i18n.init.js"],
+  plugins: [
+    "~/plugins/directus.server.js",
+    "~/plugins/directus.client.js",
+    "~/plugins/i18n.init.js",
+    "~/plugins/fontawesome.js",
+  ],
 });

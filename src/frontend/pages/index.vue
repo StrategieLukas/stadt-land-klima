@@ -27,7 +27,6 @@ const { data: indexPages } = await useAsyncData("indexPages", () => {
   );
 });
 
-console.log(indexPages.value);
 const page = indexPages.value[0] || null;
 
 //MetaTags

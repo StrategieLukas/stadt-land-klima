@@ -1,11 +1,12 @@
 <template>
   <article v-if="page" class="prose py-8" v-html="page.contents" />
   <p v-else class="prose py-8">
-    {{ $t("page_not_found") }}
+    {{ t("page_not_found") }}
   </p>
 </template>
 <script setup>
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t } = useI18n();
 const route = useRoute();
 
 const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", () => {
@@ -19,7 +20,7 @@ const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", () => {
 const page = pagesWithSlug.value[0] || null;
 
 //MetaTags
-const title = page ? ref(page.name) : $t("page_not_found");
+const title = page ? ref(page.name) : t("page_not_found");
 
 useHead({
   title,

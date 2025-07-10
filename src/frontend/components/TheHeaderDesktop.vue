@@ -15,7 +15,6 @@
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
         <!-- Search bar -->
 
-
         <!-- Log in button -->
         <a href="/backend">
           <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border-2 border-orange text-orange text-sm space-x-1 hover:bg-orange hover:text-white">
@@ -27,6 +26,8 @@
 
         <!-- Spenden button -->
          <DonateButton/>
+
+        <LanguageSelectorDesktop/>
       </div>
     </div>
 
