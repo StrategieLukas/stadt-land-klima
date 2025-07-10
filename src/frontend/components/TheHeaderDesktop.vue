@@ -70,19 +70,8 @@
       </div>
       </div>
 
-<<<<<<< HEAD
       <!-- Actions: Login + Donate -->
       <div class="ml-auto flex items-center gap-2">
-=======
-      <!-- Search Bar in center -->
-      <MunicipalitySearchBar/>
-
-      <!-- Right side (Search + Buttons) -->
-      <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
-        <!-- Search bar -->
-
-        <!-- Log in button -->
->>>>>>> 0c3e5bc (Desktop Language Selector)
         <a href="/backend">
           <button
             class="h-9 flex items-center gap-1 px-3 lg:px-4 rounded border-2 border-orange text-orange text-sm font-semibold hover:bg-orange hover:text-white transition-colors whitespace-nowrap"
@@ -95,27 +84,11 @@
             <span class="hidden lg:inline" aria-hidden="true">→</span>
           </button>
         </a>
-<<<<<<< HEAD
-        <a
-          href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
-          class="lg:hidden"
-          :aria-label="t('donate.label')"
-        >
-          <button class="h-9 w-9 flex items-center justify-center rounded bg-orange text-white hover:brightness-110">
-            <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-5 w-5" aria-hidden="true" />
-          </button>
-        </a>
         <div class="hidden lg:block">
           <DonateButton />
         </div>
-=======
-
-
-        <!-- Spenden button -->
-         <DonateButton/>
-
-        <LanguageSelectorDesktop/>
->>>>>>> 0c3e5bc (Desktop Language Selector)
+        <LanguageSelectorDesktop />
+      </div>
       </div>
     </div>
 

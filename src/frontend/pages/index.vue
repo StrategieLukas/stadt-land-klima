@@ -92,9 +92,7 @@ const { data: blocksData } = await useAsyncData(
   { watch: [page] }
 )
 const pageBlocks = computed(() => blocksData.value || [])
-=======
-const page = indexPages.value[0] || null;
->>>>>>> 0c3e5bc (Desktop Language Selector)
+
 
 //MetaTags
 const title = computed(() => {

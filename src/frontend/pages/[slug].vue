@@ -17,7 +17,7 @@
         />
 
         <!-- Fallback: render legacy HTML content when not editing and no blocks exist -->
-        <template v-if="!isEditing && pageBlocks.length === 0 && page.contents">
+        <template v-if="!isEditing && pageBlocks.length === 0 && (page.translations?.[0]?.contents || page.contents)">
           <template v-for="(block, index) in processedPageContent" :key="index">
             <div v-if="block.type === 'html'" v-html="block.html" />
             <component
@@ -30,7 +30,6 @@
       </article>
     </template>
   </BlokkliProvider>
-
   <p v-else class="prose py-8">
     {{ t("page_not_found") }}
   </p>
@@ -40,7 +39,7 @@ import { readItems } from '@directus/sdk'
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
 const { $directus, $readItems } = useNuxtApp()
-const { t } = useI18n()
+const { locale, t } = useI18n()
 const { isAuthenticated, initialize } = useAuth()
 useBlockHashNavigation()
 const canEdit = ref(false)
@@ -55,6 +54,14 @@ const { data: pagesWithSlug } = await useAsyncData(`page-${route.params.slug}`, 
   return $directus.request(
     $readItems("pages", {
       filter: { slug: { _eq: route.params.slug } },
+      fields: ["*", "translations.*"],
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
       limit: 1,
     })
   )
@@ -100,9 +107,10 @@ const pageBlocks = computed(() => blocksData.value || [])
 // Dynamically render component for [[[ONBOARDING_BOX]]] block
 // Split content into blocks and inject Vue component(s)
 const processedPageContent = computed(() => {
-  if (!page.value?.contents) return []
+  const content = page.value.translations?.[0]?.contents || page.value.contents
+  if (!content) return []
 
-  const parts = page.value.contents.split("[[[ONBOARDING_BOX]]]")
+  const parts = content.split("[[[ONBOARDING_BOX]]]")
   const blocks = []
 
   parts.forEach((html, idx) => {
@@ -124,7 +132,12 @@ const processedPageContent = computed(() => {
 })
 
 // MetaTags
-const title = computed(() => page.value ? page.value.name : t("page_not_found"))
+const title = computed(() => {
+  if (page.value) {
+    return page.value.translations?.[0]?.name || page.value.name;
+  }
+  return t("page_not_found");
+});
 
 useHead({
   title,

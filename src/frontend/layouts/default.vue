@@ -42,7 +42,10 @@
 
         <div v-if="hydrated">
           <div v-if="isDesktop" class="bg-mild-white">
-            <the-footer-desktop :nav-items="navigationConfig?.footer_columns || []" />
+            <the-footer-desktop
+              :nav-items="navigationConfig?.footer_columns || []"
+              :pages="pages"
+            />
           </div>
           <div v-if="!isDesktop" class="bg-mild-white">
             <the-footer-mobile :nav-items="navigationConfig?.footer_columns || []" />
@@ -80,6 +83,8 @@
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
+
+const { locale } = useI18n();
 const { includes } = lodash;
 const { $directus, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
@@ -169,7 +174,20 @@ onUnmounted(() => {
 
 
 const { data: pages } = await useAsyncData("pages", () => {
-  return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
+  return $directus.request(
+    $readItems("pages", {
+      sort: "sort_order",
+      fields: ["*", "translations.*"],
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
+      limit: -1,
+    }),
+  );
 });
 
 const { data: publishedMunicipalities } = await useAsyncData("municipalities", () => {
