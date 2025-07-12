@@ -21,7 +21,7 @@
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
 
-    <button @click="openPrintDialog" class="flex items-start h-3">PDF</button>
+    <!-- <button @click="openPrintDialog" class="flex items-start h-3">PDF</button> -->
 
     <div v-if="isRanking" class="flex items-start">
       <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
