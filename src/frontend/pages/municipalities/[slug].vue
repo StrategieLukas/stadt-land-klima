@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="directusData && directusData.municipalities">
     <waving-banner v-if="directusData.municipalities[0].status === 'draft'">
       {{ $t("municipalities.preview_text") }}
     </waving-banner>
@@ -16,7 +16,17 @@
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
   </div>
+  <div v-else>
+        <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
+      ← {{ $t("municipality.back_label") }}
+    </NuxtLink>
+    <waving-banner>
+      {{ $t("municipality_missing") }}
+    </waving-banner>
+  </div>
 </template>
+
+
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
@@ -31,6 +41,12 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
     ),
     $directus.request($readItems("measures", {})),
   ]);
+
+  // Early return if municipalities is empty or null
+  if (!municipalities || municipalities.length === 0) {
+    return { municipalities: null, measures: measures, ratingsMeasures: [] };
+  }
+
   const ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
       filter: {
@@ -46,13 +62,18 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
     ratingsMeasures,
   };
 });
+
+
 //MetaTags
-const title = ref(directusData.value.municipalities[0].name);
+const title = ref(directusData.value?.municipalities?.[0]?.name ?? '404');
 useHead({
   title,
 });
 
 const sortMeasuresBySectorDict = computed(() => {
+  if(directusData === null || directusData.value === null) {
+    return {};
+  }
   return sortMeasuresBySector(directusData.value.ratingsMeasures, directusData.value.measures);
 });
 
