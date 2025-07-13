@@ -5,13 +5,13 @@
     <form @submit.prevent="submitFeedback">
       <!-- Title -->
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.title") }}</label>
+        <label class="block mb-1 font-semibold">{{ $t("feedback.form.title") }}*</label>
         <input v-model="form.title" type="text" class="w-full border rounded p-2" required />
       </div>
 
       <!-- Type -->
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.type") }}</label>
+        <label class="block mb-1 font-semibold">{{ $t("feedback.form.type") }}*</label>
         <select v-model="form.type" class="w-full border rounded p-2" required>
           <option disabled value="">{{ $t("generic.form.please_select") }}</option>
           <option value="legal">{{ $t("feedback.type.legal") }}</option>
@@ -25,26 +25,26 @@
 
       <!-- Content -->
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.content") }}</label>
+        <label class="block mb-1 font-semibold">{{ $t("feedback.form.content") }}*</label>
         <textarea v-model="form.content" class="w-full border rounded p-2" rows="4" required></textarea>
       </div>
 
       <!-- Name -->
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.name") }}</label>
-        <input v-model="form.name" type="text" class="w-full border rounded p-2" />
+        <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.name") }}*</label>
+        <input v-model="form.name" type="text" class="w-full border rounded p-2" required />
       </div>
 
       <!-- Contact -->
       <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.contact") }}</label>
+        <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.contact") }}*</label>
         <input v-model="form.contact" type="email" class="w-full border rounded p-2" required />
       </div>
 
       <!-- Simple CAPTCHA -->
       <div class="mb-4">
         <label class="block mb-1 font-semibold">
-          {{ $t("captcha.question", { ":first": captcha.num1, ":second": captcha.num2 }) }}
+          {{ $t("captcha.question", { ":first": captcha.num1, ":second": captcha.num2 }) }}*
         </label>
         <input v-model="captchaAnswer" type="number" class="w-full border rounded p-2" required />
       </div>
