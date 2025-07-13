@@ -4,7 +4,7 @@
 
       <div class="p-6">
 
-        <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← zurück zur Übersicht</NuxtLink>
+        <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← {{ $t("navigation.return_to_overview") }}</NuxtLink>
   
         <!-- Title and Subtitle -->
         <h1 class="text-2xl font-bold text-blue-500 mb-1">{{ title }}</h1>
@@ -15,7 +15,7 @@
           {{ location }}
         </p>
         <p class="text-sm text-gray-600 mb-1">
-          <i>Artikel von {{ author }} vom {{ date.toLocaleDateString($locale) }}</i>
+          <i>{{ $t("article.author_date", { ":author": author, ":date": date.toLocaleDateString($locale) }) }}</i>
         </p>
 
   
@@ -38,7 +38,7 @@
 
         <!-- Organisation note -->
         <p v-if="organisation" class="text-sm text-gray-600 mb-1">
-          Ein Projekt von {{ organisation.name }}
+           {{ $t("article.project_by", { ":organisation": organisation.name }) }}
         </p>
   
         <!-- Contact Information -->
@@ -60,7 +60,7 @@
 
   <!-- Desktop version -->
   <div class="hidden lg:block project-page bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
-    <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← zurück zur Übersicht</NuxtLink>
+    <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← {{ $t("navigation.return_to_overview") }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
       <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
@@ -80,19 +80,19 @@
         </div>
 
         <p v-if="municipality_name" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Kommune</strong>
+          <strong>{{ $t("municipality") }}</strong>
           <span class="text-right">{{ municipality_name }}</span>
         </p>
         <p v-if="state" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Bundesland</strong>
+          <strong>{{ $t("state") }}</strong>
           <span class="text-right">{{ state }}</span>
         </p>
         <p v-if="date" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Datum</strong>
+          <strong>{{ $t("datum") }}</strong>
           <span class="text-right">{{ date.toLocaleDateString($locale) }}</span>
         </p>
         <p v-if="organisation" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Organisation</strong>
+          <strong>{{ $t("organisation") }}</strong>
           <span class="text-right">
             <a
             :href="organisation.link"
@@ -103,11 +103,11 @@
           </span>
         </p>
         <p v-if="author" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Autor</strong>
+          <strong>{{ $t("author") }}</strong>
           <span class="text-right">{{ author }}</span>
         </p>
         <p v-if="link" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Link</strong>
+          <strong>{{ $t("link") }}</strong>
           <a 
             :href="link.href" 
             target="_blank" 
