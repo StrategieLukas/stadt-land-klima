@@ -25,7 +25,7 @@
           <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
             <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
           </div>
-          <p v-if="image_credits" class="text-xs text-gray-500 mt-1">{{ image_credits }}</p>
+          <p v-if="image_credits" class="text-xs text-gray-500 mt-1 text-center italic">{{ image_credits }}</p>
         </div>
   
         <!-- Abstract -->
@@ -69,9 +69,14 @@
     <div class="grid grid-cols-3 gap-6">
       <!-- Sidebar -->
       <div class="flex flex-col text-sm text-gray-700 space-y-4 bg-white p-6 rounded-lg shadow-md">
-        <div class="w-full h-48 bg-gray-200 flex items-center justify-center mb-4 rounded-lg">
-          <span v-if="!image" class="text-gray-500">[Image Placeholder]</span>
-          <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover rounded-lg" />
+
+        <!-- Image and Credits -->
+        <div>
+          <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
+            <span v-if="!image" class="text-gray-500">[Image Placeholder]</span>
+            <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover rounded-lg" />
+          </div>
+          <p v-if="image_credits" class="text-xs text-gray-500 text-center italic">{{ image_credits }}</p>
         </div>
 
         <p v-if="municipality_name" class="pb-2 border-b border-gray-300 flex justify-between">
