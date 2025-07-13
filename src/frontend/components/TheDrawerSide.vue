@@ -151,6 +151,10 @@
           <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-4 w-auto" />
         </a>
       </div>
+
+      <div class="mt-auto border-t border-gray-100 py-4 px-5">
+        <LanguageSelectorMobile />
+      </div>
     </div>
   </nav>
 </template>

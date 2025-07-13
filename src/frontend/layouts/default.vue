@@ -1,4 +1,5 @@
 <template>
+
   <!-- Root is a plain block div — nothing here has overflow/transform/will-change
        so the header's sticky top-0 resolves against the viewport scroll container. -->
   <div class="flex flex-col min-h-screen text-neutral font-sans">
@@ -57,6 +58,8 @@
           </div>
         </div>
       </div>
+        </div>
+      </div>
 
       <!-- Drawer Side (Menu) -->
       <the-drawer-side
@@ -76,10 +79,7 @@
   </div>
 </template>
 
-
-
 <script setup>
-
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
@@ -173,7 +173,7 @@ onUnmounted(() => {
 })
 
 
-const { data: pages } = await useAsyncData("pages", () => {
+const fetchPages = async () => {
   return $directus.request(
     $readItems("pages", {
       sort: "sort_order",
@@ -188,7 +188,17 @@ const { data: pages } = await useAsyncData("pages", () => {
       limit: -1,
     }),
   );
-});
+};
+
+const { data: pages } = await useAsyncData("pages", fetchPages);
+
+watch(
+  locale,
+  async () => {
+    pages.value = await fetchPages();
+  },
+  { immediate: false },
+);
 
 const { data: publishedMunicipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
@@ -208,7 +218,6 @@ const { data: publishedMunicipalities } = await useAsyncData("municipalities", (
 const { data: navigationConfig } = await useAsyncData("navigation_config", () => {
   return $directus.request($readSingleton("navigation_config")).catch(() => null);
 });
-
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");
 useHead({
