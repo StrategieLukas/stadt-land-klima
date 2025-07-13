@@ -91,6 +91,17 @@
           <strong>Datum</strong>
           <span class="text-right">{{ date.toLocaleDateString($locale) }}</span>
         </p>
+        <p v-if="organisation" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>Organisation</strong>
+          <span class="text-right">
+            <a
+            :href="organisation.link"
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="text-blue-500 hover:underline"
+            >{{ organisation.name }}</a>
+          </span>
+        </p>
         <p v-if="author" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>Autor</strong>
           <span class="text-right">{{ author }}</span>
