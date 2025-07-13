@@ -108,6 +108,7 @@ permissions:
       - party_mayor
       - description
       - overall_status_comment
+      - status
   - collection: measures
     action: read
     permissions:
