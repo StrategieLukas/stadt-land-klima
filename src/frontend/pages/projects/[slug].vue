@@ -10,7 +10,7 @@
     :image_credits="article.image_credits"
     :abstract="article.abstract"
     :article_text="article.article_text"
-    :link="article.link"
+    :link="articleLink"
     :organisation="organisation"
   />
 </template>
@@ -40,18 +40,27 @@
   });
 
   const { data: organisation } = await useAsyncData("organisation", async () => {
-  if (!article.organisation) return null;
+    if (!article.organisation) return null;
 
-  const result = await $directus.request(
-    $readItems("organisations", {
-      fields: ["id", "name", "logo", "link"],
-      filter: { id: { _eq: article.organisation.key } },
-    })
-  );
+    const result = await $directus.request(
+      $readItems("organisations", {
+        fields: ["id", "name", "logo", "link"],
+        filter: { id: { _eq: article.organisation.key } },
+      })
+    );
 
-  return result?.[0] || null; // Return the first organisation or null if empty
-});
+    return result?.[0] || null; // Return the first organisation or null if empty
+  });
 
+  const articleLink = computed(() => {
+    if (!article.link) return null;
+    try {
+      return new URL(article.link);
+    } catch {
+      console.error("Invalid URL: " + article.link)
+      return null;
+    }
+  })
 
 </script>
   
