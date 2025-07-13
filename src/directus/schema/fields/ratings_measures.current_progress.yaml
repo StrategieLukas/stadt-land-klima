@@ -27,6 +27,7 @@ meta:
     clear: true
     placeholder: $t:measure_rating.progress.placeholder
     softLength: 1500
+    trim: true
   readonly: false
   required: true
   sort: 16

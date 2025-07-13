@@ -11,7 +11,8 @@ meta:
   hidden: true
   interface: input
   note: null
-  options: null
+  options:
+    trim: true
   readonly: true
   required: false
   sort: 2

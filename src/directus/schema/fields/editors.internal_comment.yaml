@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: input-multiline
   note: null
-  options: null
+  options:
+    trim: true
   readonly: false
   required: false
   sort: 9
