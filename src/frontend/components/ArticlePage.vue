@@ -88,7 +88,7 @@
           <span class="text-right">{{ state }}</span>
         </p>
         <p v-if="date" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>{{ $t("datum") }}</strong>
+          <strong>{{ $t("date") }}</strong>
           <span class="text-right">{{ date.toLocaleDateString($locale) }}</span>
         </p>
         <p v-if="organisation" class="pb-2 border-b border-gray-300 flex justify-between">
