@@ -1,6 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen text-neutral">
-
+  <div class="flex min-h-screen flex-col text-neutral">
     <!-- Always render both headers, control visibility with Tailwind -->
     <div>
       <!-- Mobile Header -->
@@ -11,9 +10,7 @@
             <the-drawer-side-toggle />
             <the-header-mobile />
           </div>
-          <the-drawer-side
-            :pages="pages.filter((page) => includes(page.menus, 'main'))"
-          />
+          <the-drawer-side :pages="pages.filter((page) => includes(page.menus, 'main'))" />
         </div>
       </div>
 
@@ -31,32 +28,26 @@
     </main>
 
     <!-- Footer (Mobile version) -->
-     <div class="block lg:hidden">
-        <the-footer-mobile
-        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-      />
-     </div>
+    <div class="block lg:hidden">
+      <the-footer-mobile :pages="pages.filter((page) => includes(page.menus, 'footer'))" />
+    </div>
 
-     <!-- Footer (Desktop version) -->
-     <div class="hidden lg:block">
-      <the-footer-desktop
-        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-      />
-     </div>
-
+    <!-- Footer (Desktop version) -->
+    <div class="hidden lg:block">
+      <the-footer-desktop :pages="pages.filter((page) => includes(page.menus, 'footer'))" />
+    </div>
   </div>
 </template>
 
-
-
 <script setup>
-
 import lodash from "lodash";
+import { watch } from "vue";
+
 const { locale } = useI18n();
 const { includes } = lodash;
 const { $directus, $readItems, $appEnv, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
 
-const { data: pages } = await useAsyncData("pages", () => {
+const fetchPages = async () => {
   return $directus.request(
     $readItems("pages", {
       sort: "sort_order",
@@ -71,7 +62,17 @@ const { data: pages } = await useAsyncData("pages", () => {
       limit: -1,
     }),
   );
-});
+};
+
+const { data: pages } = await useAsyncData("pages", fetchPages);
+
+watch(
+  locale,
+  async () => {
+    pages.value = await fetchPages();
+  },
+  { immediate: false },
+);
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");
 useHead({

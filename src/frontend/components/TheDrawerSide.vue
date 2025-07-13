@@ -9,7 +9,7 @@
           class="text-md"
           @click="closeDrawer"
         >
-          <span class="text-lg">→</span> {{ page.name }}
+          <span class="text-lg">→</span> {{ page.translations[0].name }}
         </NuxtLinkLocale>
       </li>
 
@@ -34,6 +34,10 @@
           <span class="text-lg">→</span>{{ t('donate.label') }}
           <img src="~/assets/icons/icon_hand_holding_heart.svg"/>
         </a>
+      </li>
+
+      <li class="w-full pt-4">
+        <LanguageSelectorMobile />
       </li>
 
     </ul>

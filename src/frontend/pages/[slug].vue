@@ -5,11 +5,13 @@
   </p>
 </template>
 <script setup>
+import { watch } from "vue";
+
 const { $directus, $readItems } = useNuxtApp();
 const { locale, t } = useI18n();
 const route = useRoute();
 
-const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", () => {
+const fetchSlugPage = async () => {
   return $directus.request(
     $readItems("pages", {
       filter: { slug: { _eq: route.params.slug } },
@@ -24,7 +26,18 @@ const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", () => {
       limit: 1,
     }),
   );
-});
+};
+
+const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", fetchSlugPage);
+
+watch(
+  locale,
+  async () => {
+    pagesWithSlug.value = await fetchSlugPage();
+  },
+  { immediate: false },
+);
+
 const page = pagesWithSlug.value[0] || null;
 
 //MetaTags
