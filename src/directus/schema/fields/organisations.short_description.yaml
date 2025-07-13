@@ -13,6 +13,7 @@ meta:
   note: null
   options:
     softLength: 500
+    trim: true
   readonly: false
   required: false
   sort: 8

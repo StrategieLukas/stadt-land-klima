@@ -13,6 +13,7 @@ meta:
   note: null
   options:
     slug: true
+    trim: true
   readonly: false
   required: false
   sort: 9
