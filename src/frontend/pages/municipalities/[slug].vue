@@ -34,19 +34,10 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
   const ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
       filter: {
-            _and: [
-              {
-                localteam_id: {
-                  _eq: municipalities[0].localteam_id,
-                },
-              },
-              {
-                applicable: {
-                  _eq: true,
-                },
-              },
-            ],
+          localteam_id: {
+            _eq: municipalities[0].localteam_id,
           },
+        },
     }),
   );
   return {
@@ -75,10 +66,18 @@ function sortMeasuresBySector(ratingsMeasuresArr, measuresArr) {
   for (const item of ratingsMeasuresArr) {
     const measure = measureMap.get(item.measure_id);
     if (measure) {
-      const { sector } = measure;
-      item.measure = measure;
-      dictMeasuresRatingSorted[sector] = dictMeasuresRatingSorted[sector] || [];
-      dictMeasuresRatingSorted[sector].push(item);
+      if(item.applicable && item.rating === null) {
+        console.error(`Item ${item.rating} hat kein rating, obwohl applicable=true. Unbewertete Massnahmen sollten nicht ans Frontend geschickt werden.`)
+        // Do not add the broken rating to the dict in this case
+      } else {
+        const { sector } = measure;
+        item.measure = measure;
+        if(!item.applicable) {
+          item.rating = null
+        }
+        dictMeasuresRatingSorted[sector] = dictMeasuresRatingSorted[sector] || [];
+        dictMeasuresRatingSorted[sector].push(item);
+      }
     }
   }
 

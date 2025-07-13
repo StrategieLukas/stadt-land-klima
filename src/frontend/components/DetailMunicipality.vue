@@ -75,9 +75,9 @@
           {{ $t("measure_sector.measures_in_detail") }}
         </h3>
         <ul class="mb-2 flex items-end justify-center gap-4">
-          <li v-for="(rating, index) in 4" :key="`rating-image-${index}`" class="flex flex-col items-center">
-            <img :src="ratingImages[index]" class="h-auto w-5" />
-            <div class="text-sm">{{ $t(`measure_rating.${index}_caption`) }}</div>
+          <li v-for="(rating, _) in [0,1,2,3,null]" :key="`rating-image-${rating}`" class="flex flex-col items-center">
+            <img :src="ratingImages[rating]" class="h-auto w-5" />
+            <div class="text-sm">{{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}</div>
           </li>
         </ul>
 
@@ -108,24 +108,37 @@
               :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']"
               >
                 <MeasureDetails :measure="item.measure" />
-                <div v-if="item.current_progress" class="mb-4">
-                  <h4 class="mb-2 text-light-blue">
-                    {{ $t("ratings_measure.achievement_heading") }}
-                  </h4>
+                
+                <div v-if="item.applicable">
+                  <div v-if="item.current_progress" class="mb-4">
+                    <h4 class="mb-2 text-light-blue">
+                      {{ $t("ratings_measure.achievement_heading") }}
+                    </h4>
 
-                  <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.current_progress)" />
-                </div>
-                <div v-if="item.source">
-                  <h4 class="mb-2 text-light-blue">
-                    {{ $t("ratings_measure.source_heading") }}
-                  </h4>
+                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.current_progress)" />
+                  </div>
+                  <div v-if="item.source">
+                    <h4 class="mb-2 text-light-blue">
+                      {{ $t("ratings_measure.source_heading") }}
+                    </h4>
 
-                  <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.source)" />
+                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.source)" />
+                  </div>
+                  <dl v-if="item.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
+                    <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
+                    <dd>{{ formatLastUpdated(item.date_updated) }}</dd>
+                  </dl>
                 </div>
-                <dl v-if="item.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
-                  <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
-                  <dd>{{ formatLastUpdated(item.date_updated) }}</dd>
-                </dl>
+
+                <div v-if="!item.applicable">
+                  <div v-if="item.why_not_applicable">
+                    <h4 class="mb-2 text-light-blue">
+                      {{ $t("ratings_measure.why_not_applicable_heading") }}
+                    </h4>
+
+                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.why_not_applicable)" />
+                  </div>
+                </div>
 
                 <div class="mt-8">
                   <NuxtLink
@@ -226,6 +239,7 @@ function createSubScoreObject(municipality) {
   return temp;
 }
 function ratingIndex(value) {
+  if(value === null) return null;
   const tempVal = Number(value);
   if (tempVal === 0) return 0;
   if (tempVal === 0.3333) return 1;
