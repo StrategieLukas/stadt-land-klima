@@ -1,5 +1,5 @@
 <template>
-  <article v-if="page" class="prose py-8" v-html="page.contents" />
+  <article v-if="page" class="prose py-8 self-center" v-html="page.contents" />
   <p v-else class="prose py-8">
     {{ $t("page_not_found") }}
   </p>
