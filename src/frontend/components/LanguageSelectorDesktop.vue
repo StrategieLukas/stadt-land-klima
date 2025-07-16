@@ -8,11 +8,17 @@
         <img :src="`${baseDirectusUrl}assets/${currentFlag}`" :alt="currentLanguage" class="h-4 w-6 rounded" />
         <span class="font-medium text-white">{{ currentLanguage }}</span>
       </div>
-      <FontAwesomeIcon
-        :icon="['fas', 'chevron-down']"
-        class="h-4 w-4 text-white transition-transform duration-300"
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 512 512"
+        fill="currentColor"
+        class="h-4 transition-transform duration-300"
         :class="{ 'rotate-180': dropdownOpen }"
-      />
+      >
+        <path
+          d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+        />
+      </svg>
     </button>
     <transition name="fade-slide">
       <div v-if="dropdownOpen" class="absolute left-0 top-full z-10 w-full text-sm font-bold shadow-lg">
@@ -33,7 +39,6 @@
 <script setup>
 import { ref, computed } from "vue";
 import { fetchAndApplyTranslations } from "#shared/loadTranslations";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 const { $directus, $readItems, $i18n } = useNuxtApp();
 const { locale, setLocale } = useI18n();
