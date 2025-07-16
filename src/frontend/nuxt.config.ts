@@ -96,9 +96,6 @@ export default defineNuxtConfig({
       isCustomElement: (tag: string) => tag === 'altcha-widget',
     },
   },
-  build: {
-    transpile: ["@fortawesome/vue-fontawesome"],
-  },
 
   i18n: {
     strategy: "prefix",
@@ -121,6 +118,5 @@ export default defineNuxtConfig({
     "~/plugins/directus.server.js",
     "~/plugins/directus.client.js",
     "~/plugins/i18n.init.js",
-    "~/plugins/fontawesome.js",
   ],
 })
