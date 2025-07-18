@@ -187,8 +187,13 @@ permissions:
       - status
   - collection: languages
     action: read
-    permissions: null
+    permissions:
+      _and:
+        - status:
+            _eq: published
     validation: null
     presets: null
     fields:
-      - "*"
+      - code
+      - name
+      - flag

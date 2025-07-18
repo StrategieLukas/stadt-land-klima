@@ -36,7 +36,7 @@
         </a>
       </li>
 
-      <li class="w-full pt-4">
+      <li v-if="num_languages > 1" class="w-full pt-4">
         <LanguageSelectorMobile />
       </li>
 
@@ -48,6 +48,7 @@
 <script setup>
 
 import { defineProps } from "vue";
+const { $directus, $readItems } = useNuxtApp();
 const { t } = useI18n();
 const props = defineProps(["pages"]);
 
@@ -55,4 +56,13 @@ function closeDrawer() {
   document.getElementById("page-drawer-toggle").click();
 }
 
+const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
+  return $directus.request(
+    $readItems("languages", {
+      limit: -1,
+    }),
+  );
+});
+
+const num_languages = fetchedLanguages.value.length;
 </script>

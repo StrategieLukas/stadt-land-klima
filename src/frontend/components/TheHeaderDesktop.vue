@@ -25,9 +25,9 @@
 
 
         <!-- Spenden button -->
-         <DonateButton/>
+        <DonateButton />
 
-        <LanguageSelectorDesktop/>
+        <LanguageSelectorDesktop v-if="num_languages > 1" />
       </div>
     </div>
 
@@ -90,6 +90,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { defineProps } from "vue";
+const { $directus, $readItems } = useNuxtApp();
 const { t } = useI18n();
 const props = defineProps(["pages"]);
 
@@ -108,5 +109,14 @@ const isActive = (slug) => {
   return route.path === slug || route.path === `/${slug}`;
 };
 
+const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
+  return $directus.request(
+    $readItems("languages", {
+      limit: -1,
+    }),
+  );
+});
+
+const num_languages = fetchedLanguages.value.length;
 </script>
 <style lang=""></style>
