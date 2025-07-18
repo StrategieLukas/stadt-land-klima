@@ -251,6 +251,7 @@ const currentCatalogVersion = ref(selectedCatalogVersion);
 onMounted(() => {
   setCatalogVersionUrl(route, router, selectedCatalogVersion);
 });
+});
 
 const title = ref($t("measures.nav_label"));
 useHead({ title });

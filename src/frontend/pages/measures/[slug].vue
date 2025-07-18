@@ -1,4 +1,3 @@
-<template>
   <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0 overflow-hidden">
 
     <!-- Back link with chevron + sibling navigation -->
@@ -99,6 +98,9 @@
     </ClientOnly>
 
   </div>
+  <p v-else class="prose py-8">
+    {{ t("page_not_found") }}
+  </p>
 </template>
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
@@ -191,7 +193,7 @@ watch(
 );
 
 //MetaTags
-const title = computed(() => measure.value?.name);
+const title = computed(() => measure.value?.name || t("page_not_found"));
 useHead({
   title,
 });

@@ -1,3 +1,4 @@
+<template></template>
 <script setup>
 const route = useRoute();
 const sector = route.params.sector;
