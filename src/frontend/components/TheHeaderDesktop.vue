@@ -88,7 +88,7 @@
         <div class="hidden lg:block">
           <DonateButton />
         </div>
-        <LanguageSelectorDesktop />
+        <LanguageSelectorDesktop v-if="num_languages > 1" />
       </div>
       </div>
     </div>
@@ -113,10 +113,12 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
 import { useHeaderHeight, useNavInputRect } from '~/composables/useHeaderHeight.js'
+
+const { $directus, $readItems } = useNuxtApp();
 
 const { t } = useI18n()
 const { isOpen, query, embeddedInput, close } = useSearchPalette()
@@ -231,6 +233,16 @@ onUnmounted(() => {
   if (removeResizeListener) removeResizeListener()
   if (resizeObserver)       resizeObserver.disconnect()
 })
+
+const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
+  return $directus.request(
+    $readItems("languages", {
+      limit: -1,
+    }),
+  );
+});
+
+const num_languages = computed(() => fetchedLanguages.value?.length || 0);
 </script>
 
 

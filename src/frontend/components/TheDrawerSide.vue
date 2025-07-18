@@ -152,7 +152,7 @@
         </a>
       </div>
 
-      <div class="mt-auto border-t border-gray-100 py-4 px-5">
+      <div v-if="num_languages > 1" class="mt-auto border-t border-gray-100 py-4 px-5">
         <LanguageSelectorMobile />
       </div>
     </div>
@@ -170,6 +170,7 @@ const route = useRoute()
 const config = useRuntimeConfig()
 const { closeDrawer } = useDrawer()
 const { open: openSearch } = useSearchPalette()
+const { $directus, $readItems } = useNuxtApp();
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },
@@ -231,6 +232,16 @@ function childrenWithImages(item) {
 function childrenWithoutImages(item) {
   return (item.children || []).filter(c => !c.image_id)
 }
+
+const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
+  return $directus.request(
+    $readItems("languages", {
+      limit: -1,
+    }),
+  );
+});
+
+const num_languages = computed(() => fetchedLanguages.value?.length || 0);
 </script>
 
 
