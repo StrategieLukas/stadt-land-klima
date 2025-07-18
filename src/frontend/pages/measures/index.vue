@@ -32,10 +32,10 @@ const { includes } = lodash;
 import { ref } from "vue";
 import sectorImages from "../../shared/sectorImages.js";
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
 const sectors = ref([]);
 
-const title = ref($t("measures.nav_label"));
+const title = ref(t("measures.nav_label"));
 useHead({
   title,
 });

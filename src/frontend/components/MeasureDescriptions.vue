@@ -7,7 +7,7 @@
 
       <div class="collapse-title px-2 pl-0 md:px-4">
         <h3 class="mt-0 font-heading text-h2 leading-none text-black">
-          {{ $t("measure.description_benefit_heading") }}
+          {{ t("measure.description_benefit_heading") }}
         </h3>
       </div>
 
@@ -22,7 +22,7 @@
 
       <div class="collapse-title px-2 pl-0 md:px-4">
         <h3 class="mt-0 font-heading text-h2 leading-none text-black">
-          {{ $t("measure.description_verification_heading") }}
+          {{ t("measure.description_verification_heading") }}
         </h3>
       </div>
 
@@ -37,7 +37,7 @@
 
       <div class="collapse-title px-2 pl-0 md:px-4">
         <h3 class="mt-0 font-heading text-h2 leading-none text-black">
-          {{ $t("measure.description_contribution_heading") }}
+          {{ t("measure.description_contribution_heading") }}
         </h3>
       </div>
 
@@ -52,7 +52,7 @@
 
       <div class="collapse-title px-2 pl-0 md:px-4">
         <h3 class="mt-0 font-heading text-h2 leading-none text-black">
-          {{ $t("measure.description_implementation_heading") }}
+          {{ t("measure.description_implementation_heading") }}
         </h3>
       </div>
 
@@ -67,7 +67,7 @@
 
       <div class="collapse-title px-2 pl-0 md:px-4">
         <h3 class="mt-0 font-heading text-h2 leading-none text-black">
-          {{ $t("measure.description_legal_heading") }}
+          {{ t("measure.description_legal_heading") }}
         </h3>
       </div>
 
@@ -97,7 +97,7 @@
 
       <div class="collapse-title px-2 pl-0 md:px-4">
         <h3 class="mt-0 font-heading text-h2 leading-none text-black">
-          {{ $t("measure.description_tutorial_heading") }}
+          {{ t("measure.description_tutorial_heading") }}
         </h3>
       </div>
 
@@ -110,7 +110,7 @@
 <script setup>
 import { defineProps } from "vue";
 import sanitizeHtml from "sanitize-html";
-const { $t, $locale } = useNuxtApp();
+const { t } = useI18n();
 const props = defineProps({
   measure: {
     type: Object,

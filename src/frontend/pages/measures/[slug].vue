@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="measure" >
     <NuxtLinkLocale :to="`/measures/sectors/${measure.sector}`" class="font-heading text-h4 text-light-blue">
       {{ t("measure.back_label", { ":sector": t(`measure_sectors.${measure.sector}.title`) }) }}
     </NuxtLinkLocale>
@@ -11,6 +11,9 @@
       </div>
     </article>
   </div>
+  <p v-else class="prose py-8">
+    {{ t("page_not_found") }}
+  </p>
 </template>
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
@@ -28,7 +31,7 @@ const { data: measures } = await useAsyncData("measures", () => {
 const measure = measures.value[0] || null;
 
 //MetaTags
-const title = ref(measure.name);
+const title = measure ? ref(measure.name) : t("page_not_found");
 useHead({
   title,
 });
