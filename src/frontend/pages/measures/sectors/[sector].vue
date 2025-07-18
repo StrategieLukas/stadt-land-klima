@@ -27,18 +27,37 @@
 </template>
 <script setup>
 import sectorImages from "../../shared/sectorImages.js";
+import { watch } from "vue";
 const { $directus, $readItems } = useNuxtApp();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const route = useRoute();
 
-const { data: measures } = await useAsyncData("measures", () => {
+const fetchMeasures = async () => {
   return $directus.request(
     $readItems("measures", {
       filter: { sector: { _eq: route.params.sector } },
+      fields: ["*", "translations.*"],
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
       limit: -1,
     }),
   );
-});
+};
+
+const { data: measures } = await useAsyncData("measures", fetchMeasures);
+
+watch(
+  locale,
+  async () => {
+    measures.value = await fetchMeasures();
+  },
+  { immediate: false },
+);
 
 const num_measures = measures.value.length;
 

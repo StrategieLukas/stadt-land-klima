@@ -1,35 +1,37 @@
-collection: measures
-field: name
-type: string
+collection: measures_translations
+field: notes
+type: text
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
-  field: name
+  field: notes
   group: null
   hidden: false
-  interface: input
+  interface: input-multiline
   note: null
   options: null
   readonly: false
-  required: true
-  sort: 7
+  required: false
+  sort: 11
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Hinweise
   validation: null
   validation_message: null
   width: full
 schema:
-  name: name
-  table: measures
-  data_type: character varying
+  name: notes
+  table: measures_translations
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
-  is_unique: true
+  is_nullable: true
+  is_unique: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

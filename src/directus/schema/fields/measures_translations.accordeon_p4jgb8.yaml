@@ -1,0 +1,26 @@
+collection: measures_translations
+field: accordeon_p4jgb8
+type: alias
+meta:
+  collection: measures_translations
+  conditions: null
+  display: null
+  display_options: null
+  field: accordeon_p4jgb8
+  group: null
+  hidden: false
+  interface: group-accordion
+  note: null
+  options:
+    accordionMode: false
+  readonly: false
+  required: false
+  sort: 8
+  special:
+    - alias
+    - group
+    - no-data
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

@@ -41,15 +41,22 @@ permissions:
     presets: null
     fields:
       - id
-      - name
       - menus
-      - contents
       - slug
       - sort
       - sort_order
       - footer_column_desktop
       - is_dynamic
       - translations
+  - collection: pages_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - contents
   - collection: municipalities
     action: read
     permissions: null
@@ -91,7 +98,6 @@ permissions:
     fields:
       - id
       - sort
-      - name
       - sector
       - slug
       - impact
@@ -99,11 +105,21 @@ permissions:
       - feasibility_political
       - feasibility
       - feasibility_economical
+      - description
+      - date_updated
+      - measure_id
+      - translations
+  - collection: measures_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
       - verification_description
       - notes
       - description
-      - date_updated
-      - accordion-p4jgb8
+      - accordion_p4jgb8
       - description_evaluation_criteria
       - description_about
       - description_benefit
@@ -113,7 +129,6 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
-      - measure_id
   - collection: directus_translations
     action: read
     permissions: {}
@@ -177,12 +192,3 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: pages_translations
-    action: read
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - languages_code
-      - name
-      - contents

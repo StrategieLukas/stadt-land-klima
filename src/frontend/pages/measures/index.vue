@@ -43,7 +43,7 @@ useHead({
 const { data: measures } = await useAsyncData("measures", () => {
   return $directus.request(
     $readItems("measures", {
-      fields: ["slug", "name", "sector"],
+      fields: ["sector"],
     }),
   );
 });

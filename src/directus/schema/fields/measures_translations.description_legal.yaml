@@ -1,13 +1,13 @@
-collection: measures
-field: description_benefit
+collection: measures_translations
+field: description_legal
 type: text
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
-  field: description_benefit
-  group: accordion-p4jgb8
+  field: description_legal
+  group: accordeon_p4jgb8
   hidden: false
   interface: input-rich-text-html
   note: null
@@ -32,17 +32,17 @@ meta:
       - underline
   readonly: false
   required: false
-  sort: 1
+  sort: 4
   special: null
   translations:
     - language: de-DE
-      translation: Was bringt diese Maßnahme?  Wieso hilft sie?
+      translation: Rechtliche Hürden, Möglichkeiten und Optionen
   validation: null
   validation_message: null
   width: full
 schema:
-  name: description_benefit
-  table: measures
+  name: description_legal
+  table: measures_translations
   data_type: text
   default_value: null
   max_length: null

@@ -1,12 +1,12 @@
-collection: measures
-field: description_verification
+collection: measures_translations
+field: description
 type: text
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
-  field: description_verification
+  field: description
   group: null
   hidden: false
   interface: input-rich-text-html
@@ -31,24 +31,24 @@ meta:
       - removeformat
       - underline
   readonly: false
-  required: true
-  sort: 16
+  required: false
+  sort: 9
   special: null
   translations:
     - language: de-DE
-      translation: "So findest du heraus, ob diese Maßnahme angenommen wurde:"
+      translation: Erklärung
   validation: null
   validation_message: null
   width: full
 schema:
-  name: description_verification
-  table: measures
+  name: description
+  table: measures_translations
   data_type: text
   default_value: null
   max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_primary_key: false
   is_generated: false
