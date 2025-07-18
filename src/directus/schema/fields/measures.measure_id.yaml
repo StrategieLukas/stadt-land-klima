@@ -13,6 +13,7 @@ meta:
   note: null
   options:
     placeholder: z.B. EN_2
+    trim: true
   readonly: false
   required: false
   sort: 2

@@ -24,6 +24,7 @@ meta:
   note: null
   options:
     placeholder: $t:measure_rating.why_not_applicable.placeholder
+    trim: true
   readonly: false
   required: false
   sort: 13

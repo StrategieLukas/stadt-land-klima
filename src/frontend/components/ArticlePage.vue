@@ -4,7 +4,7 @@
 
       <div class="p-6">
 
-        <NuxtLinkLocale :to="`/projects/`" class="text-blue-500 text-sm">← zurück zur Übersicht</NuxtLinkLocale>
+        <NuxtLinkLocale :to="`/projects/`" class="text-blue-500 text-sm">← {{ t("navigation.return_to_overview") }}</NuxtLinkLocale>
 
         <!-- Title and Subtitle -->
         <h1 class="text-2xl font-bold text-blue-500 mb-1">{{ title }}</h1>
@@ -15,7 +15,7 @@
           {{ location }}
         </p>
         <p class="text-sm text-gray-600 mb-1">
-          <i>Artikel von {{ author }} vom {{ date.toLocaleDateString($locale) }}</i>
+          <i>{{ t("article.author_date", { ":author": author, ":date": date.toLocaleDateString(locale) }) }}</i>
         </p>
 
 
@@ -25,7 +25,7 @@
           <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
             <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
           </div>
-          <p v-if="image_credits" class="text-xs text-gray-500 mt-1">{{ image_credits }}</p>
+          <p v-if="image_credits" class="text-xs text-gray-500 mt-1 text-center italic">{{ image_credits }}</p>
         </div>
 
         <!-- Abstract -->
@@ -38,7 +38,7 @@
 
         <!-- Organisation note -->
         <p v-if="organisation" class="text-sm text-gray-600 mb-1">
-          Ein Projekt von {{ organisation.name }}
+           {{ t("article.project_by", { ":organisation": organisation.name }) }}
         </p>
 
         <!-- Contact Information -->
@@ -51,8 +51,8 @@
 
         <!-- Navigation Links -->
         <!-- <div class="flex justify-between mt-6">
-          <NuxtLinkLocale to="#" class="text-blue-500 text-sm">← vorherige Story</NuxtLinkLocale>
-          <NuxtLinkLocale to="#" class="text-blue-500 text-sm">nächste Story →</NuxtLinkLocale>
+          <NuxtLink to="#" class="text-blue-500 text-sm">← vorherige Story</NuxtLink>
+          <NuxtLink to="#" class="text-blue-500 text-sm">nächste Story →</NuxtLink>
         </div> -->
       </div>
     </div>
@@ -60,7 +60,7 @@
 
   <!-- Desktop version -->
   <div class="hidden lg:block project-page bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
-    <NuxtLinkLocale :to="`/projects/`" class="text-blue-500 text-sm">← zurück zur Übersicht</NuxtLinkLocale>
+    <NuxtLinkLocale :to="`/projects/`" class="text-blue-500 text-sm">← {{ t("navigation.return_to_overview") }}</NuxtLinkLocale>
     <!-- Top Right Logo with White Triangle Background -->
     <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
       <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
@@ -69,35 +69,51 @@
     <div class="grid grid-cols-3 gap-6">
       <!-- Sidebar -->
       <div class="flex flex-col text-sm text-gray-700 space-y-4 bg-white p-6 rounded-lg shadow-md">
-        <div class="w-full h-48 bg-gray-200 flex items-center justify-center mb-4 rounded-lg">
-          <span v-if="!image" class="text-gray-500">[Image Placeholder]</span>
-          <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover rounded-lg" />
+
+        <!-- Image and Credits -->
+        <div>
+          <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
+            <span v-if="!image" class="text-gray-500">[Image Placeholder]</span>
+            <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover rounded-lg" />
+          </div>
+          <p v-if="image_credits" class="text-xs text-gray-500 text-center italic">{{ image_credits }}</p>
         </div>
 
         <p v-if="municipality_name" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Kommune</strong>
+          <strong>{{ t("municipality") }}</strong>
           <span class="text-right">{{ municipality_name }}</span>
         </p>
         <p v-if="state" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Bundesland</strong>
+          <strong>{{ t("state") }}</strong>
           <span class="text-right">{{ state }}</span>
         </p>
         <p v-if="date" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Datum</strong>
-          <span class="text-right">{{ date.toLocaleDateString($locale) }}</span>
+          <strong>{{ t("date") }}</strong>
+          <span class="text-right">{{ date.toLocaleDateString(locale) }}</span>
         </p>
-        <p v-if="author" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Autor</strong>
-          <span class="text-right">{{ author }}</span>
-        </p>
-        <p v-if="link" class="pb-2 border-b border-gray-300 flex justify-between">
-          <strong>Link</strong>
-          <a
-            :href="link"
+        <p v-if="organisation" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>{{ t("organisation") }}</strong>
+          <span class="text-right">
+            <a
+            :href="organisation.link"
             target="_blank"
             rel="noopener noreferrer"
             class="text-blue-500 hover:underline"
-          >{{ link }}</a>
+            >{{ organisation.name }}</a>
+          </span>
+        </p>
+        <p v-if="author" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>{{ t("author") }}</strong>
+          <span class="text-right">{{ author }}</span>
+        </p>
+        <p v-if="link" class="pb-2 border-b border-gray-300 flex justify-between">
+          <strong>{{ t("link") }}</strong>
+          <a
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-blue-500 hover:underline"
+          >{{ link.hostname }}</a>
         </p>
 
         <!-- Missing categories: Tag, Municipality size, Contact for this project (i.e. from the local group that did the project, not necessarily the author) -->
@@ -156,25 +172,25 @@
 }
 </style>
 
-  <script setup>
-    import { buildLocationString, toAssetUrl } from '~/shared/utils';
-    const { $t, $locale } = useNuxtApp()
+<script setup>
+  import { buildLocationString, toAssetUrl } from '~/shared/utils';
+  const { locale, t } = useI18n();
 
-    const props = defineProps({
-        title: String,
-        subtitle: String,
-        municipality_name: String,
-        state: String,
-        author: String,
-        date: Date,
-        image: String,
-        image_credits: String,
-        abstract: String,
-        article_text: String,
-        link: String,
-        organisation: Object, // can be null
-    });
+  const props = defineProps({
+      title: String,
+      subtitle: String,
+      municipality_name: String,
+      state: String,
+      author: String,
+      date: Date,
+      image: String,
+      image_credits: String,
+      abstract: String,
+      article_text: String,
+      link: URL,
+      organisation: Object, // can be null
+  });
 
-    const location = computed(() => buildLocationString(props.municipality_name, props.state));
+  const location = computed(() => buildLocationString(props.municipality_name, props.state));
 
-  </script>
+</script>

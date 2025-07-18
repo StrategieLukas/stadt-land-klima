@@ -95,7 +95,7 @@ const chartOptions = {
     r: {
       type: "customRadialLinear",
       grid: {
-        display: true,
+        display: false,
       },
       min: 0,
       max: 100,

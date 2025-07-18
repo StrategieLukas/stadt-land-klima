@@ -31,6 +31,7 @@ permissions:
       - achievement
       - current_progress
       - date_updated
+      - why_not_applicable
   - collection: pages
     action: read
     permissions:

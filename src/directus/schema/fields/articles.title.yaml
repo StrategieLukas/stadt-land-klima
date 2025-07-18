@@ -13,6 +13,7 @@ meta:
   note: null
   options:
     placeholder: null
+    trim: true
   readonly: false
   required: true
   sort: 3

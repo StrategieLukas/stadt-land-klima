@@ -22,7 +22,7 @@
 
     <!-- Main Content (always rendered) -->
     <main class="flex grow flex-col bg-white px-2 py-4">
-      <div class="mx-auto w-full max-w-screen-xl">
+      <div class="mx-auto w-full max-w-screen-xl flex flex-col">
         <slot />
       </div>
     </main>
