@@ -1,8 +1,8 @@
-collection: measures
+collection: measures_translations
 field: name
 type: string
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
@@ -14,8 +14,13 @@ meta:
   options:
     trim: true
   readonly: false
+<<<<<<<< HEAD:src/directus/schema/fields/measures/name.yaml
   required: true
   sort: 10
+========
+  required: false
+  sort: 4
+>>>>>>>> a061fea (change measures datamodel):src/directus/schema/fields/measures_translations.name.yaml
   special: null
   translations: null
   validation: null
@@ -23,13 +28,17 @@ meta:
   width: full
 schema:
   name: name
-  table: measures
+  table: measures_translations
   data_type: character varying
   default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
+<<<<<<<< HEAD:src/directus/schema/fields/measures/name.yaml
   is_nullable: true
+========
+  is_nullable: false
+>>>>>>>> a061fea (change measures datamodel):src/directus/schema/fields/measures_translations.name.yaml
   is_unique: false
   is_primary_key: false
   is_generated: false

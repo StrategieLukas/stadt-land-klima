@@ -210,14 +210,16 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap mb-1">
                 <span class="font-mono bg-gray text-white text-xs px-2 py-0.5 rounded flex-shrink-0">{{ measure.measure_id }}</span>
-                <h2 class="font-heading font-bold text-gray text-sm leading-snug">{{ measure.name }}</h2>
+                <h2 class="font-heading font-bold text-gray text-sm leading-snug">{{ measure.translations?.[0]?.name || measure.name }}</h2>
               </div>
-              <p v-if="measure.description_about" class="text-xs text-gray-500 line-clamp-2">
-                {{ truncateHtml(measure.description_about) }}
+              <p v-if="measure.translations?.[0]?.description_about || measure.description_about" class="text-xs text-gray-500 line-clamp-2">
+                {{ truncateHtml(measure.translations?.[0]?.description_about || measure.description_about) }}
               </p>
             </div>
           </div>
-    <!-- Link to the measure catalog -->
+        </div>
+      </NuxtLinkLocale>
+    </div>
     <div class="mt-12 flex justify-center">
       <NuxtLinkLocale
         v-if="currentCatalogVersion.name === 'v1.0'"
@@ -240,7 +242,7 @@ import { ref, computed, watch } from "vue";
 import sectorImages from "~/shared/sectorImages.js";
 
 const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'];
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
@@ -250,7 +252,6 @@ const currentCatalogVersion = ref(selectedCatalogVersion);
 
 onMounted(() => {
   setCatalogVersionUrl(route, router, selectedCatalogVersion);
-});
 });
 
 const title = ref($t("measures.nav_label"));
@@ -268,30 +269,34 @@ const { data: allVersions } = await useAsyncData('measure-catalog-versions', () 
   );
 });
 
-async function fetchMeasures(catalogVersionId) {
-  return useAsyncData(`measures-index-${catalogVersionId}`, () => {
-    return $directus.request(
-      $readItems("measures", {
-        fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight"],
-        filter: { catalog_version: { _eq: catalogVersionId } },
-        sort: "measure_id",
-        limit: -1,
-      }),
-    );
-  });
-}
+// Fetch measures with translations and handle version/locale reactivity
+const { data: measureList } = await useAsyncData(
+  () => `measures-index-${currentCatalogVersion.value.id}-${locale.value}`,
+  () => $directus.request(
+    $readItems("measures", {
+      fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight", "translations.*"],
+      filter: { catalog_version: { _eq: currentCatalogVersion.value.id } },
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
+      sort: "measure_id",
+      limit: -1,
+    }),
+  ),
+  { watch: [currentCatalogVersion, locale] }
+);
 
-let { data: measureList } = await fetchMeasures(selectedCatalogVersion.id);
-
-// ── Re-fetch when catalog version changes ────────────────────────────────────
+// ── Update currentCatalogVersion when route query changes ────────────────────────
 watch(
   () => route.query.v,
   async (newV, oldV) => {
     if (newV === oldV) return;
-    selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
-    currentCatalogVersion.value = selectedCatalogVersion;
-    const { data: newData } = await fetchMeasures(selectedCatalogVersion.id);
-    measureList.value = newData.value;
+    const newVersion = await getCatalogVersion($directus, $readItems, route, true);
+    currentCatalogVersion.value = newVersion;
   }
 );
 

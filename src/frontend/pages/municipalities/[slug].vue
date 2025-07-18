@@ -328,7 +328,7 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
   });
 }
 
-const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id);
+const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id, locale.value);
 
 // CTA type for directusData case:
 // 'complete'    → percentage_rated >= 98 → contact / feedback

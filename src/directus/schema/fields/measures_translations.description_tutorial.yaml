@@ -1,13 +1,13 @@
-collection: measures
+collection: measures_translations
 field: description_tutorial
 type: text
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
   field: description_tutorial
-  group: accordion-p4jgb8
+  group: accordeon_p4jgb8
   hidden: false
   interface: input-rich-text-md
   note: null
@@ -43,7 +43,7 @@ meta:
   width: full
 schema:
   name: description_tutorial
-  table: measures
+  table: measures_translations
   data_type: text
   default_value: null
   max_length: null

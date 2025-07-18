@@ -1,8 +1,8 @@
-collection: measures
+collection: measures_translations
 field: description
 type: text
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
@@ -11,10 +11,28 @@ meta:
   hidden: false
   interface: input-rich-text-html
   note: null
-  options: null
+  options:
+    toolbar:
+      - blockquote
+      - bold
+      - bullist
+      - code
+      - customImage
+      - customLink
+      - customMedia
+      - fullscreen
+      - h1
+      - h2
+      - h3
+      - hr
+      - italic
+      - numlist
+      - paste
+      - removeformat
+      - underline
   readonly: false
   required: false
-  sort: 21
+  sort: 9
   special: null
   translations:
     - language: de-DE
@@ -24,7 +42,7 @@ meta:
   width: full
 schema:
   name: description
-  table: measures
+  table: measures_translations
   data_type: text
   default_value: null
   max_length: null

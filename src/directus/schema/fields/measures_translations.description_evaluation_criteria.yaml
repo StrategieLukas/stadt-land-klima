@@ -1,12 +1,12 @@
-collection: measures
-field: description_about
+collection: measures_translations
+field: description_evaluation_criteria
 type: text
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
-  field: description_about
+  field: description_evaluation_criteria
   group: null
   hidden: false
   interface: input-rich-text-html
@@ -31,18 +31,23 @@ meta:
       - removeformat
       - underline
   readonly: false
+<<<<<<<< HEAD:src/directus/schema/fields/measures/description_evaluation_criteria.yaml
   required: true
-  sort: 17
+  sort: 18
+========
+  required: false
+  sort: 6
+>>>>>>>> a061fea (change measures datamodel):src/directus/schema/fields/measures_translations.description_evaluation_criteria.yaml
   special: null
   translations:
     - language: de-DE
-      translation: Was beinhaltet diese Maßnahme?  Um was geht es?
+      translation: Bewertungskriterien
   validation: null
   validation_message: null
   width: full
 schema:
-  name: description_about
-  table: measures
+  name: description_evaluation_criteria
+  table: measures_translations
   data_type: text
   default_value: null
   max_length: null

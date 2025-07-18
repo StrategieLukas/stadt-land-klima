@@ -340,6 +340,34 @@ permissions:
       - catalog_version
       - must_be_rated_again
       - choices_rating
+      - translations
+  - collection: measures_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - verification_description
+      - notes
+      - description
+      - accordeon_p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+  - collection: languages
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: municipalities
     action: read
     permissions: null
@@ -434,6 +462,16 @@ permissions:
       - page_category
       - is_dynamic
       - icon_svg
+      - translations
+  - collection: pages_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - contents
   - collection: questions
     action: read
     permissions: {}

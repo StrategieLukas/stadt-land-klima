@@ -1,0 +1,42 @@
+collection: measures_translations
+field: languages_code
+type: string
+meta:
+  collection: measures_translations
+  conditions: null
+  display: null
+  display_options: null
+  field: languages_code
+  group: null
+  hidden: true
+  interface: null
+  note: null
+  options: null
+  readonly: false
+  required: false
+<<<<<<<< HEAD:src/directus/schema/fields/measures/verification_description.yaml
+  sort: 22
+========
+  sort: 3
+>>>>>>>> a061fea (change measures datamodel):src/directus/schema/fields/measures_translations.languages_code.yaml
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: languages_code
+  table: measures_translations
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: languages
+  foreign_key_column: code

@@ -86,3 +86,69 @@ permissions:
       - creator_verified
       - preview_token
       - image
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - sort
+      - sector
+      - slug
+      - impact
+      - weight
+      - feasibility_political
+      - feasibility
+      - feasibility_economical
+      - description
+      - date_updated
+      - measure_id
+      - catalog_version
+      - translations
+  - collection: measures_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - verification_description
+      - notes
+      - description
+      - accordeon_p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+  - collection: languages
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: pages_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - contents
+  - collection: directus_translations
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

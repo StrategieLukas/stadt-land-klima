@@ -14,7 +14,7 @@
           v-if="prevMeasure"
           :to="`/measures/${prevMeasure.slug}?v=${currentCatalogVersion.name}&sector=${prevMeasure.sector}`"
           class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray/30 text-xs text-gray hover:bg-gray/5 transition-colors"
-          :title="`← ${prevMeasure.measure_id}: ${prevMeasure.name}`"
+          :title="`← ${prevMeasure.measure_id}: ${prevMeasure.translations?.[0]?.name || prevMeasure.name}`"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
           {{ prevMeasure.measure_id }}
@@ -24,7 +24,7 @@
           v-if="nextMeasure"
           :to="`/measures/${nextMeasure.slug}?v=${currentCatalogVersion.name}&sector=${nextMeasure.sector}`"
           class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray/30 text-xs text-gray hover:bg-gray/5 transition-colors"
-          :title="`${nextMeasure.measure_id}: ${nextMeasure.name} →`"
+          :title="`${nextMeasure.measure_id}: ${nextMeasure.translations?.[0]?.name || nextMeasure.name} →`"
         >
           {{ nextMeasure.measure_id }}
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
@@ -51,7 +51,7 @@
     <article v-if="measure" class="mb-8 mt-6">
       <div class="flex items-center gap-3 mb-4 flex-wrap">
         <span class="font-mono bg-gray text-base-100 px-2 py-1 rounded-lg flex-shrink-0">{{ measure.measure_id }}</span>
-        <h1 class="font-heading text-h1 font-bold text-gray">{{ measure.name }}</h1>
+        <h1 class="font-heading text-h1 font-bold text-gray">{{ measure.translations?.[0]?.name || measure.name }}</h1>
       </div>
 
       <div class="divide-y-2 divide-light-blue">
@@ -105,36 +105,32 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 const { $directus, $readItems, $t } = useNuxtApp();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
-// Use a ref so the reactive key below re-fetches automatically when the version changes.
-const currentCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route, false));
-
-onMounted(() => {
-  setCatalogVersionUrl(route, router, currentCatalogVersion.value);
-  window.addEventListener('keydown', handleArrowKey);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleArrowKey);
-});
-
-// Function key includes the version ID, so Nuxt never serves stale data from a different
-// version. The watch option triggers an automatic re-fetch when currentCatalogVersion changes.
+// Function key includes the version ID and locale, so Nuxt never serves stale data from a different
+// version or language. The watch option triggers an automatic re-fetch when dependencies change.
 const { data: measuresRaw } = await useAsyncData(
-  () => `measure-${route.params.slug}-${currentCatalogVersion.value.id}`,
+  () => `measure-${route.params.slug}-${currentCatalogVersion.value.id}-${locale.value}`,
   () => $directus.request(
     $readItems("measures", {
+      fields: ["*", "translations.*"],
       filter: {
         slug: { _eq: route.params.slug },
         catalog_version: { _eq: currentCatalogVersion.value.id },
       },
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
       limit: 1,
     }),
   ),
-  { watch: [currentCatalogVersion] },
+  { watch: [currentCatalogVersion, locale] },
 );
 
 // Fetch all catalog versions this measure appears in (for version switcher)
@@ -152,19 +148,26 @@ const measure = computed(() => measuresRaw.value?.[0] || null);
 
 // Fetch all measures in the same sector + version for prev/next navigation
 const { data: siblingMeasuresRaw } = await useAsyncData(
-  () => `measure-siblings-${route.params.slug}-${currentCatalogVersion.value.id}`,
+  () => `measure-siblings-${route.params.slug}-${currentCatalogVersion.value.id}-${locale.value}`,
   () => $directus.request(
     $readItems('measures', {
-      fields: ['id', 'slug', 'name', 'measure_id', 'sector'],
+      fields: ['id', 'slug', 'name', 'measure_id', 'sector', 'translations.*'],
       filter: {
         catalog_version: { _eq: currentCatalogVersion.value.id },
         sector: { _eq: measure.value?.sector ?? '' },
+      },
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
       },
       sort: ['measure_id'],
       limit: -1,
     }),
   ),
-  { watch: [currentCatalogVersion, measure] },
+  { watch: [currentCatalogVersion, measure, locale] },
 );
 
 const siblingMeasures = computed(() => siblingMeasuresRaw.value ?? []);
@@ -193,7 +196,7 @@ watch(
 );
 
 //MetaTags
-const title = computed(() => measure.value?.name || t("page_not_found"));
+const title = computed(() => (measure.value?.translations?.[0]?.name || measure.value?.name) || t("page_not_found"));
 useHead({
   title,
 });
