@@ -1,8 +1,8 @@
-collection: measures
+collection: measures_translations
 field: notes
 type: text
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
@@ -15,7 +15,7 @@ meta:
     trim: true
   readonly: false
   required: false
-  sort: 20
+  sort: 11
   special: null
   translations:
     - language: de-DE
@@ -25,7 +25,7 @@ meta:
   width: full
 schema:
   name: notes
-  table: measures
+  table: measures_translations
   data_type: text
   default_value: null
   max_length: null

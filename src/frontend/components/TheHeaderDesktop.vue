@@ -3,9 +3,9 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between px-4 py-4">
       <!-- Logo -->
       <div class="flex-shrink-0 mb-4 md:mb-0">
-        <NuxtLink to="/">
-          <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
-        </NuxtLink>
+        <NuxtLinkLocale to="/">
+          <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="t('logo.alt')" />
+        </NuxtLinkLocale>
       </div>
 
       <!-- Search Bar in center -->
@@ -14,19 +14,20 @@
       <!-- Right side (Search + Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
         <!-- Search bar -->
-        
 
         <!-- Log in button -->
         <a href="/backend">
           <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border-2 border-orange text-orange text-sm space-x-1 hover:bg-orange hover:text-white">
-            <span>{{ $t('generic.log_in') }}</span>
+            <span>{{ t('generic.log_in') }}</span>
             <span>→</span>
           </button>
         </a>
-        
-        
+
+
         <!-- Spenden button -->
-         <DonateButton/>
+        <DonateButton />
+
+        <LanguageSelectorDesktop v-if="num_languages > 1" />
       </div>
     </div>
 
@@ -39,7 +40,7 @@
           :key="page.id"
           class="h-full"
         >
-          <NuxtLink
+          <NuxtLinkLocale
             :to="`/${page.slug}`"
             class="flex items-center justify-center px-6 text-white font-bold h-full"
             :class="{
@@ -47,8 +48,8 @@
               'hover:bg-mid-gray': '/' + page.slug !== route.path,
             }"
           >
-            {{ page.name }}
-          </NuxtLink>
+            {{ page.translations[0].name }}
+          </NuxtLinkLocale>
         </li>
 
         <!-- Other Pages Dropdown -->
@@ -60,12 +61,12 @@
               'hover:bg-mid-gray': !otherPages.some(p => isActive(p.slug)),
             }"
           >
-            {{ $t('generic.other') }}
+            {{ t('generic.other') }}
           </div>
           <div
             class="absolute left-0 top-full mt-0 w-48 bg-white shadow-md hidden group-hover:block"
           >
-            <NuxtLink
+            <NuxtLinkLocale
               v-for="page in otherPages"
               :key="page.id"
               :to="`/${page.slug}`"
@@ -75,8 +76,8 @@
                 'bg-mid-gray hover:bg-gray' : !isActive(page.slug),
               }"
             >
-              {{ page.name }}
-            </NuxtLink>
+              {{ page.translations[0].name }}
+            </NuxtLinkLocale>
           </div>
         </li>
       </ul>
@@ -89,7 +90,8 @@
 <script setup>
 import { computed, ref } from "vue";
 import { defineProps } from "vue";
-const { $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t } = useI18n();
 const props = defineProps(["pages"]);
 
 const route = useRoute();
@@ -107,5 +109,14 @@ const isActive = (slug) => {
   return route.path === slug || route.path === `/${slug}`;
 };
 
+const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
+  return $directus.request(
+    $readItems("languages", {
+      limit: -1,
+    }),
+  );
+});
+
+const num_languages = fetchedLanguages.value.length;
 </script>
 <style lang=""></style>

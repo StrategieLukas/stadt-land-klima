@@ -15,7 +15,7 @@
         <MeasureDescriptions :measure="measure" />
       </div>
       <p class="text-center">
-        {{ $t("last_updated_at") + lastUpdatedAtStr }}
+        {{ t("last_updated_at") + lastUpdatedAtStr }}
       </p>
     </div>
   </article>
@@ -24,7 +24,8 @@
 import { defineProps } from "vue";
 import MeasureDetails from "./MeasureDetails.vue";
 import MeasureDescriptions from "./MeasureDescriptions.vue";
-const { $t, $locale } = useNuxtApp();
+
+const { t, locale } = useI18n();
 const props = defineProps({
   measure: {
     type: Object,
@@ -35,8 +36,8 @@ let lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(props.measure.date_updated);
   lastUpdatedAtStr.value =
-    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    lastUpdatedAt.toLocaleDateString(locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
-    lastUpdatedAt.toLocaleTimeString($locale);
+    lastUpdatedAt.toLocaleTimeString(locale);
 });
 </script>

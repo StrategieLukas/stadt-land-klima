@@ -1,28 +1,23 @@
 collection: measures
-field: accordion-p4jgb8
+field: translations
 type: alias
 meta:
   collection: measures
   conditions: null
   display: null
   display_options: null
-  field: accordion-p4jgb8
+  field: translations
   group: null
   hidden: false
-  interface: group-accordion
+  interface: translations
   note: null
-  options:
-    accordionMode: false
+  options: null
   readonly: false
   required: false
-  sort: 17
+  sort: 15
   special:
-    - alias
-    - group
-    - no-data
-  translations:
-    - language: de-DE
-      translation: Beschreibungen
+    - translations
+  translations: null
   validation: null
   validation_message: null
   width: full
