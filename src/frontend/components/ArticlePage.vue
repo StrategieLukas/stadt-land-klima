@@ -149,6 +149,7 @@
         <p class="text-lg text-gray-500 mb-6">{{ subtitle }}</p>
         
         <div class="text-gray-700 leading-relaxed flex-grow">
+          <div v-html="md.render(abstract)" class="prose max-w-none mb-8" />
           <div v-html="article_text"></div>
         </div>
       </div>
@@ -174,6 +175,9 @@
   
 <script setup>
   import { buildLocationString, toAssetUrl } from '~/shared/utils';
+  import MarkdownIt from 'markdown-it'
+  
+  const md = new MarkdownIt();
   const { $t, $locale } = useNuxtApp()
   
   const props = defineProps({
