@@ -27,7 +27,7 @@
 
       <li class="pt-4 w-full">
         <a
-          href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran""
+          href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
           class="text-md bg-orange"
           @click="closeDrawer"
         >
