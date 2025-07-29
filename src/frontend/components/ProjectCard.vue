@@ -2,7 +2,7 @@
     <div class="card bg-white shadow-md border rounded-md overflow-hidden">
         <div class="relative">
 
-            <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
+            <NuxtLinkLocale :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
                 <img :src="toAssetUrl(image_id)" alt="Project Image" class="object-cover w-full h-full" />
                 <div v-if="tag" class="absolute top-2 left-2 bg-yellow-400 text-xs px-2 py-1 rounded">
                     {{ tag }}
@@ -16,17 +16,17 @@
                     <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`"
                         class="absolute top-2 right-2 w-12 h-12" />
                 </div>
-            </NuxtLink>
+            </NuxtLinkLocale>
 
 
 
             <!-- Card Content -->
             <div class="p-4">
-                <NuxtLink :to="`/projects/${slug}`">
+                <NuxtLinkLocale :to="`/projects/${slug}`">
                     <h2 class="text-blue-500 font-semibold mb-2">
                         {{ title }}
                     </h2>
-                </NuxtLink>
+                </NuxtLinkLocale>
                 <p class="text-sm font-bold mb-1">
                     {{ location }}
                 </p>
@@ -42,8 +42,8 @@
                 </p>
 
                 <!-- Read more link -->
-                <NuxtLink :to="`/projects/${slug}`" class="text-blue-500 text-sm">{{ $t("article.read_more") }} →
-                </NuxtLink>
+                <NuxtLinkLocale :to="`/projects/${slug}`" class="text-blue-500 text-sm">{{ $t("article.read_more") }} →
+                </NuxtLinkLocale>
             </div>
         </div>
     </div>

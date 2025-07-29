@@ -1,13 +1,13 @@
-collection: measures
-field: description_implementation
+collection: measures_translations
+field: verification_description
 type: text
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
-  field: description_implementation
-  group: accordion-p4jgb8
+  field: verification_description
+  group: null
   hidden: false
   interface: input-rich-text-html
   note: null
@@ -32,17 +32,17 @@ meta:
       - underline
   readonly: false
   required: false
-  sort: 3
+  sort: 10
   special: null
   translations:
     - language: de-DE
-      translation: "So setzt die Kommune diese Maßnahme um:"
+      translation: Erklärung der Überprüfung
   validation: null
   validation_message: null
   width: full
 schema:
-  name: description_implementation
-  table: measures
+  name: verification_description
+  table: measures_translations
   data_type: text
   default_value: null
   max_length: null

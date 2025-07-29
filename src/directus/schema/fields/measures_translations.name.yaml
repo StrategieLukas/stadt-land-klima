@@ -1,36 +1,34 @@
-collection: measures
-field: verification_description
-type: text
+collection: measures_translations
+field: name
+type: string
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
-  field: verification_description
+  field: name
   group: null
   hidden: false
-  interface: input-rich-text-html
+  interface: input
   note: null
   options: null
   readonly: false
   required: false
-  sort: 19
+  sort: 4
   special: null
-  translations:
-    - language: de-DE
-      translation: Erklärung der Überprüfung
+  translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: verification_description
-  table: measures
-  data_type: text
+  name: name
+  table: measures_translations
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: true
+  is_nullable: false
   is_unique: false
   is_primary_key: false
   is_generated: false

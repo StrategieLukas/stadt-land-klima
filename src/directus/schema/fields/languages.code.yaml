@@ -1,29 +1,28 @@
-collection: measures
-field: name
+collection: languages
+field: code
 type: string
 meta:
-  collection: measures
+  collection: languages
   conditions: null
   display: null
   display_options: null
-  field: name
+  field: code
   group: null
   hidden: false
   interface: input
   note: null
-  options:
-    trim: true
+  options: null
   readonly: false
-  required: true
-  sort: 7
+  required: false
+  sort: 1
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: name
-  table: measures
+  name: code
+  table: languages
   data_type: character varying
   default_value: null
   max_length: 255
@@ -31,7 +30,7 @@ schema:
   numeric_scale: null
   is_nullable: false
   is_unique: true
-  is_primary_key: false
+  is_primary_key: true
   is_generated: false
   generation_expression: null
   has_auto_increment: false

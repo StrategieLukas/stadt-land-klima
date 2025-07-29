@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-screen-xl mx-auto text-center mb-8">
     <p class="mb-4">
-      {{ $t('generic.social_media.support_by_sharing') }}
+      {{ t('generic.social_media.support_by_sharing') }}
     </p>
     <div class="flex justify-center items-center gap-6">
       <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
@@ -18,13 +18,13 @@
       <div class="flex items-start gap-12">
         <!-- Logo on the far left -->
         <div class="flex-shrink-0 pl-2">
-          <NuxtLink to="/">
+          <NuxtLinkLocale to="/">
             <img
               src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg"
               class="h-32 w-auto"
-              :alt="$t('logo.alt')"
+              :alt="t('logo.alt')"
             />
-          </NuxtLink>
+          </NuxtLinkLocale>
         </div>
 
         <!-- 4 columns -->
@@ -38,9 +38,9 @@
             ]"
           >
             <div v-for="page in pagesByColumn[col]" :key="page.id">
-              <NuxtLink :to="'/' + page.slug" class="hover:underline block">
-                <span class="text-lg">→</span> {{ page.name }}
-              </NuxtLink>
+              <NuxtLinkLocale :to="'/' + page.slug" class="hover:underline block">
+                <span class="text-lg">→</span> {{ page.translations[0].name }}
+              </NuxtLinkLocale>
             </div>
           </div>
         </div>
@@ -53,7 +53,7 @@
           href="/backend"
           class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white hover:brightness-110"
         >
-          {{ $t('generic.log_in') }} <span class="text-lg ml-1">→</span>
+          {{ t('generic.log_in') }} <span class="text-lg ml-1">→</span>
         </a>
       </div>
     </div>
@@ -63,7 +63,7 @@
 <script setup>
 import { defineProps, computed } from "vue";
 import DonateButton from '~/components/DonateButton.vue';
-const { $t } = useNuxtApp();
+const { t } = useI18n();
 
 const props = defineProps({
   pages: {

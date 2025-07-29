@@ -1,33 +1,31 @@
-collection: measures
-field: description
-type: text
+collection: measures_translations
+field: languages_code
+type: string
 meta:
-  collection: measures
+  collection: measures_translations
   conditions: null
   display: null
   display_options: null
-  field: description
+  field: languages_code
   group: null
-  hidden: false
-  interface: input-rich-text-html
+  hidden: true
+  interface: null
   note: null
   options: null
   readonly: false
   required: false
-  sort: 18
+  sort: 3
   special: null
-  translations:
-    - language: de-DE
-      translation: Erklärung
+  translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: description
-  table: measures
-  data_type: text
+  name: languages_code
+  table: measures_translations
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
@@ -36,5 +34,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: null
-  foreign_key_column: null
+  foreign_key_table: languages
+  foreign_key_column: code

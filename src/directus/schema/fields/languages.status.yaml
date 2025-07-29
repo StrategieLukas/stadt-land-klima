@@ -1,30 +1,35 @@
-collection: pages
-field: slug
+collection: languages
+field: status
 type: string
 meta:
-  collection: pages
+  collection: languages
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: status
   group: null
   hidden: false
-  interface: input
+  interface: select-dropdown
   note: null
   options:
-    slug: true
-    trim: true
+    choices:
+      - text: $t:published
+        value: published
+      - text: $t:draft
+        value: draft
+      - text: $t:archived
+        value: archived
   readonly: false
   required: false
-  sort: 8
+  sort: 2
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: slug
-  table: pages
+  name: status
+  table: languages
   data_type: character varying
   default_value: null
   max_length: 255
