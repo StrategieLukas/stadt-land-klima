@@ -14,8 +14,7 @@ module.exports = {
         xs: "420px",
       },
       fontFamily: {
-        sans: "Inter",
-        heading: "RobotoCondensed",
+        sans: ['Inter', 'sans-serif'],
       },
       colors: {
         "ranking-0-2": "#D9000D",
@@ -66,28 +65,28 @@ module.exports = {
             "font-size": "1rem",
             "line-height": "1.5",
             h1: {
-              fontFamily: "RobotoCondensed",
+              fontFamily: "Inter",
               "font-size": "clamp(1.5rem, 4.69vw, 2rem)",
               "line-height": "1.5",
               color: "#000000",
               "font-weight": "bold",
             },
             h2: {
-              fontFamily: "RobotoCondensed",
+              fontFamily: "Inter",
               "font-size": "clamp(1.15rem, 3.32vw, 1.5rem)",
               "line-height": "1.5",
               color: "#000000",
               "font-Weight": "bold",
             },
             h3: {
-              fontFamily: "RobotoCondensed",
+              fontFamily: "Inter",
               "font-size": "clamp(1.15rem, 2.93vw, 1.5rem)",
               "line-height": "1.5",
               "font-weight": "normal",
               color: "#16bae7",
             },
             h4: {
-              fontFamily: "RobotoCondensed",
+              fontFamily: "Inter",
               "font-size": "clamp(1rem, 2.05vw, 1.5rem)",
               "line-height": "1.5",
               "font-weight": "normal",
