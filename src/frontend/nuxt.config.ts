@@ -20,4 +20,8 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  nitro: {
+    preset: 'node-server',
+    workers: 1, // Avoid spawning too many workers in limited environments
+  },
 });
