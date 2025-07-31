@@ -196,6 +196,4 @@
   });
 
   const location = computed(() => buildLocationString(props.municipality_name, props.state));
-  console.log(props.article_text);
-
 </script>
