@@ -66,7 +66,7 @@
       <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
     </div>
     
-    <div class="grid grid-cols-3 gap-6">
+    <div class="grid grid-cols-3 gap-6 prose max-w-none">
       <!-- Sidebar -->
       <div class="flex flex-col text-sm text-gray-700 space-y-4 bg-white p-6 rounded-lg shadow-md">
 
@@ -196,5 +196,6 @@
   });
 
   const location = computed(() => buildLocationString(props.municipality_name, props.state));
+  console.log(props.article_text);
 
 </script>
