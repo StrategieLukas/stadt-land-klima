@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen text-neutral">
+  <div class="flex flex-col min-h-screen text-neutral font-sans">
 
     <!-- Always render both headers, control visibility with Tailwind -->
     <div>
