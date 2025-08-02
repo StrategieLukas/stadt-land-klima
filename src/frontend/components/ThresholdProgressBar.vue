@@ -32,13 +32,35 @@
           :class="t.color"
         />
         <!-- Value Label -->
-        <div
-          class="absolute -top-6 px-1.5 py-0.5 text-xs font-semibold text-white rounded shadow-sm whitespace-nowrap"
-          :class="[t.color, 'bg-opacity-90']"
-        >
-          {{ t.value }}
-          <span class="hidden sm:inline">{{ unit }}</span>
-        </div>
+      <div
+        v-if="!(t.hideLabelOnMobile || t.hideLabelOnDesktop)"
+        class="absolute -top-6 px-1.5 py-0.5 text-xs font-semibold text-white rounded shadow-sm whitespace-nowrap"
+        :class="[t.color, 'bg-opacity-90']"
+      >
+        {{ t.value }}
+        <span class="hidden sm:inline">{{ unit }}</span>
+      </div>
+
+      <!-- Show only on mobile if desktop label should be hidden -->
+      <div
+        v-else-if="t.hideLabelOnDesktop && !t.hideLabelOnMobile"
+        class="absolute -top-6 px-1.5 py-0.5 text-xs font-semibold text-white rounded shadow-sm whitespace-nowrap block sm:hidden"
+        :class="[t.color, 'bg-opacity-90']"
+      >
+        {{ t.value }}
+        <span class="hidden sm:inline">{{ unit }}</span>
+      </div>
+
+      <!-- Show only on desktop if mobile label should be hidden -->
+      <div
+        v-else-if="t.hideLabelOnMobile && !t.hideLabelOnDesktop"
+        class="absolute -top-6 px-1.5 py-0.5 text-xs font-semibold text-white rounded shadow-sm whitespace-nowrap hidden sm:block"
+        :class="[t.color, 'bg-opacity-90']"
+      >
+        {{ t.value }}
+        <span class="hidden sm:inline">{{ unit }}</span>
+      </div>
+
       </div>
     </div>
 
@@ -77,18 +99,26 @@ onMounted(() => {
   })
 })
 
+const hideMobileLabels = computed(() => props.progress > 3 * props.darkGreenThreshold)
+const hideDesktopLabels = computed(() => props.progress > 5 * props.darkGreenThreshold)
+
 const thresholds = computed(() => {
   const scale = (value) => (value / maxValue.value) * 100
+
   return [
     {
       value: props.orangeThreshold,
       color: 'bg-rating-1',
       position: scale(props.orangeThreshold),
+      hideLabelOnMobile: hideMobileLabels.value,
+      hideLabelOnDesktop: hideDesktopLabels.value,
     },
     {
       value: props.lightGreenThreshold,
       color: 'bg-rating-2',
       position: scale(props.lightGreenThreshold),
+      hideLabelOnMobile: hideMobileLabels.value,
+      hideLabelOnDesktop: hideDesktopLabels.value,
     },
     {
       value: props.darkGreenThreshold,
@@ -97,6 +127,7 @@ const thresholds = computed(() => {
     },
   ]
 })
+
 
 // Include start marker with label
 const fullThresholds = computed(() => [
@@ -119,4 +150,7 @@ const currentRatingColor = computed(() => {
     return 'bg-rating-0'
   }
 })
+
+
+
 </script>
