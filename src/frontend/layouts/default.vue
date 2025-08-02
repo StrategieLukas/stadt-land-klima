@@ -1,5 +1,6 @@
 <template>
-  <div class="flex min-h-screen flex-col text-neutral">
+  <div class="flex flex-col min-h-screen text-neutral font-sans">
+
     <!-- Always render both headers, control visibility with Tailwind -->
     <div>
       <!-- Mobile Header -->
@@ -10,7 +11,9 @@
             <the-drawer-side-toggle />
             <the-header-mobile />
           </div>
-          <the-drawer-side :pages="pages.filter((page) => includes(page.menus, 'main'))" />
+          <the-drawer-side
+            :pages="pages.filter((page) => includes(page.menus, 'main'))"
+          />
         </div>
       </div>
 
@@ -28,18 +31,26 @@
     </main>
 
     <!-- Footer (Mobile version) -->
-    <div class="block lg:hidden">
-      <the-footer-mobile :pages="pages.filter((page) => includes(page.menus, 'footer'))" />
-    </div>
+     <div class="block lg:hidden">
+        <the-footer-mobile
+        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+      />
+     </div>
 
-    <!-- Footer (Desktop version) -->
-    <div class="hidden lg:block">
-      <the-footer-desktop :pages="pages.filter((page) => includes(page.menus, 'footer'))" />
-    </div>
+     <!-- Footer (Desktop version) -->
+     <div class="hidden lg:block">
+      <the-footer-desktop
+        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+      />
+     </div>
+
   </div>
 </template>
 
+
+
 <script setup>
+
 import lodash from "lodash";
 import { watch } from "vue";
 

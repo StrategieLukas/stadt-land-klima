@@ -66,7 +66,7 @@
       <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
     </div>
 
-    <div class="grid grid-cols-3 gap-6">
+    <div class="grid grid-cols-3 gap-6 prose max-w-none">
       <!-- Sidebar -->
       <div class="flex flex-col text-sm text-gray-700 space-y-4 bg-white p-6 rounded-lg shadow-md">
 
@@ -146,9 +146,10 @@
       <!-- Main Content -->
       <div class="col-span-2 flex flex-col">
         <h1 class="text-3xl font-bold text-blue-600 mb-2">{{ title }}</h1>
-        <p class="text-lg text-gray-500 mb-6">{{ subtitle }}</p>
+        <p v-if="subtitle" class="text-lg text-gray-500 mb-6">{{ subtitle }}</p>
 
         <div class="text-gray-700 leading-relaxed flex-grow">
+          <div v-html="md.render(abstract)" class="prose max-w-none mb-8" />
           <div v-html="article_text"></div>
         </div>
       </div>
@@ -176,6 +177,10 @@
   import { buildLocationString, toAssetUrl } from '~/shared/utils';
   const { locale, t } = useI18n();
 
+  import MarkdownIt from 'markdown-it'
+
+  const md = new MarkdownIt();
+
   const props = defineProps({
       title: String,
       subtitle: String,
@@ -192,5 +197,4 @@
   });
 
   const location = computed(() => buildLocationString(props.municipality_name, props.state));
-
 </script>

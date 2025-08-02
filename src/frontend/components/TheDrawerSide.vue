@@ -27,7 +27,7 @@
 
       <li class="pt-4 w-full">
         <a
-          href="https://spenden.twingle.de/together-for-future-e-v/stadt-land-klima/tw6613dcb5d0a0d/page"
+          href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
           class="text-md bg-orange"
           @click="closeDrawer"
         >
