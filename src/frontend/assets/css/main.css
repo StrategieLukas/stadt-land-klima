@@ -6,6 +6,12 @@
   word-break: break-all;
 }
 
+a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+
 .collapse-plus > .collapse-title::after {
   font-size: 1.5rem;
   line-height: 0.5rem;
