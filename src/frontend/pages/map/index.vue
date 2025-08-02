@@ -14,7 +14,23 @@
                     attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
                     layer-type="base" name="OpenStreetMap" />
                 <LMarker v-for="m in municipalities" :key="m.slug" :lat-lng="[m.lat, m.lng]" :icon="getCustomIcon(m)">
-                    <LPopup>{{ m.name }}</LPopup>
+                    <LPopup>
+                        <div class="text-sm space-y-1">
+                            <div class="font-semibold">{{ m.name }}</div>
+                            <template v-if="m.status === 'published'">
+                                <div>Score: {{ m.score_total }}</div>
+                                <NuxtLink :to="`/municipalities/${m.slug}`"
+                                    class="text-blue-600 underline hover:text-blue-800">
+                                    {{ $t("map.icon.popup.goToRanking") }}
+                                </NuxtLink>
+                            </template>
+                            <template v-else>
+                                <div>{{ $t("map.stillInProgress") }}</div>
+                                <div>{{ $t("map.icon.popup.percentageRated", { ":percentage_rated": m.percentage_rated }) }}</div>
+                            </template>
+                        </div>
+                    </LPopup>
+
                 </LMarker>
             </LMap>
         </div>
