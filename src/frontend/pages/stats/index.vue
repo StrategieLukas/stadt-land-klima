@@ -20,4 +20,10 @@ const allMunicipalities = [
   { name: 'Dresden', slug: 'dresden' },
   { name: 'Nürnberg', slug: 'nuernberg' }
 ];
+
+
+const title = ref($t("stats.title"));
+useHead({
+  title,
+});
 </script>

@@ -17,6 +17,7 @@
     :orange-threshold="30"
     :light-green-threshold="60"
     :dark-green-threshold="80"
+    unit="MWh"
   />
 </div>
 
@@ -29,6 +30,7 @@
     :orange-threshold="15"
     :light-green-threshold="40"
     :dark-green-threshold="70"
+    unit="MWh"
     />
 </div>
 
@@ -37,10 +39,11 @@
     E-Ladesäulen
   </div>
     <ThresholdProgressBar
-    :progress="62.7"
+    :progress="70.3"
     :orange-threshold="20"
     :light-green-threshold="30"
     :dark-green-threshold="50"
+    unit="MWh"
     />
 </div>
 
@@ -74,4 +77,12 @@ const allMunicipalities = [
 // onMounted(async () => {
 //   stats.value = await $municipalityApi.fetchStatsBySlug(route.params.slug);
 // });
+
+const municipality = allMunicipalities.find(m => m.slug === route.params.slug)
+const title = municipality?.name || 'n/a'
+
+// Set the page title
+useHead({
+  title
+})
 </script>
