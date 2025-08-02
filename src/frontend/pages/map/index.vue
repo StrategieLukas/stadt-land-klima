@@ -8,10 +8,10 @@
         style="height: 100%; width: 100%"
       >
         <LTileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&amp;copy; <a href=&quot;https://www.openstreetmap.org/&quot;>OpenStreetMap</a> contributors"
-            layer-type="base"
-            name="OpenStreetMap"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+          layer-type="base"
+          name="OpenStreetMap"
         />
         <LMarker
           v-for="m in municipalities"
@@ -26,54 +26,30 @@
   </client-only>
 </template>
 
-
 <script setup>
-
 import { onMounted, ref } from 'vue'
 const clientReady = ref(false)
 const municipalities = ref([])
+
 const { $directus, $readItems, $municipalityApi, $t } = useNuxtApp()
+
+const PinSvg = ref('')
 let DivIcon
 
+// Load SVG, Leaflet and municipalities
 onMounted(async () => {
   const leaflet = await import('leaflet')
   DivIcon = leaflet.DivIcon
-  
-  
+
+  const rawSvg = (await import('~/assets/images/Pin.svg?raw')).default
+  PinSvg.value = rawSvg
+
   clientReady.value = true
 
-  const PinSvg = (await import('~/assets/images/Pin.svg?raw')).default
-
-  getCustomIcon = (m) => {
-    let cssClass = 'rating-na'
-    const score = m.score_total
-    const status = m.status
-    const percentageRated = m.percentage_rated
-
-    if (status === 'published') {
-      if (score < 20) cssClass = 'rating-0-2'
-      else if (score < 40) cssClass = 'rating-2-4'
-      else if (score < 60) cssClass = 'rating-4-6'
-      else if (score < 80) cssClass = 'rating-6-8'
-      else cssClass = 'rating-8-10'
-    } else if (percentageRated <= 0) {
-      console.error('Municipality with percentage_rated of 0 should be filtered out before')
-    }
-
-    return new DivIcon({
-      className: '',
-      html: `<div class="${cssClass}">${PinSvg}</div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    })
-  }
-
-  // Fetch municipalities
   const baseData = await $directus.request(
     $readItems('municipalities', {
       fields: ['slug', 'name', 'score_total', 'status', 'percentage_rated'],
-      filter: { percentage_rated: { _gt: 0 } },
+      filter: { percentage_rated: { _gt: 95 } },
       limit: -1,
     })
   )
@@ -103,36 +79,38 @@ onMounted(async () => {
   console.log('[Map] Loaded municipalities:', merged.length)
 })
 
+/**
+ * Returns a Leaflet icon with colored SVG based on municipality rating
+ */
+function getCustomIcon(m) {
+  if (!DivIcon || !PinSvg.value) return null
 
+  let cssClass = 'rating-na'
+  const { score_total, status, percentage_rated } = m
 
+  if (status === 'published') {
+    if (score_total < 20) cssClass = 'ranking-0-2'
+    else if (score_total < 40) cssClass = 'ranking-2-4'
+    else if (score_total < 60) cssClass = 'ranking-4-6'
+    else if (score_total < 80) cssClass = 'ranking-6-8'
+    else cssClass = 'ranking-8-10'
+  }
+  if(percentage_rated <= 0) {
+    console.warn("Should have filtered out any municipalities with percentage_rated of 0 at this point in processing!")
+  }
 
-import PinSvg from '~/assets/images/Pin.svg?raw'
-
-function getCustomIcon(status, score, percentageRated) {
-    let cssClass = 'rating-na'
-
-    if (status === 'published') {
-        if (score < 20) cssClass = 'rating-0-2'
-        else if (score < 40) cssClass = 'rating-2-4'
-        else if (score < 60) cssClass = 'rating-4-6'
-        else if (score < 80) cssClass = 'rating-6-8'
-        else cssClass = 'rating-8-10'
-    } else if (percentageRated <= 0) {
-        console.error("Municipality with percentage_rated of 0 should be filtered out before")
-    }
-
-    return new DivIcon({
-        className: '',
-        html: `<div class="${cssClass}">${PinSvg}</div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32],
-    })
+  return new DivIcon({
+    className: '', // Don't use Leaflet default styles
+    html: `<div class="text-${cssClass} w-8 h-8">${PinSvg.value}</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  })
 }
 
-
-const title = ref($t("map.title"));
-useHead({
-  title,
-});
+const title = ref($t('map.title'))
+useHead({ title })
 </script>
+
+<!-- Safelist for Tailwind purge -->
+<!-- rating-na rating-0-2 rating-2-4 rating-4-6 rating-6-8 rating-8-10 -->
