@@ -6,7 +6,7 @@ const fetchSuggestions = async (query) => {
   const res = await fetch(url);
 
   if (!res.ok) {
-    console.error(`fetchSuggestions failed for query "${query}" – Response status: ${res.status}`);
+    console.error(`fetchSuggestions failed for query "${query}" - Response status: ${res.status}`);
     return [];
   }
 
@@ -18,7 +18,7 @@ const fetchStatsBySlug = async (slug) => {
   const res = await fetch(url);
 
   if (!res.ok) {
-    console.error(`fetchStatsBySlug failed for slug "${slug}" – Response status: ${res.status}`);
+    console.error(`fetchStatsBySlug failed for slug "${slug}" - Response status: ${res.status}`);
     return null;
   }
 

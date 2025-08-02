@@ -6,7 +6,6 @@
 </template>
 
 <script setup>
-import MunicipalitySearchBar from '@/components/MunicipalitySearchBar.vue';
 const { $t } = useNuxtApp();
 
 const allMunicipalities = [
