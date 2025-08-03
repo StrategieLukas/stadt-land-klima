@@ -7,7 +7,7 @@
       <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
     </div>
     <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
+      {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
     </p>
     <div class="mx-auto mb-8 flex justify-center">
       <implementation-traffic-light />
@@ -104,51 +104,10 @@
               </div>
 
               <!-- More info on the measure when clicked -->
-              <div 
+              <div
               :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']"
               >
-                <MeasureDetails :measure="item.measure" />
-                
-                <div v-if="item.applicable">
-                  <div v-if="item.current_progress" class="mb-4">
-                    <h4 class="mb-2 text-light-blue">
-                      {{ $t("ratings_measure.achievement_heading") }}
-                    </h4>
-
-                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.current_progress)" />
-                  </div>
-                  <div v-if="item.source">
-                    <h4 class="mb-2 text-light-blue">
-                      {{ $t("ratings_measure.source_heading") }}
-                    </h4>
-
-                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.source)" />
-                  </div>
-                  <dl v-if="item.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
-                    <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
-                    <dd>{{ formatLastUpdated(item.date_updated) }}</dd>
-                  </dl>
-                </div>
-
-                <div v-if="!item.applicable">
-                  <div v-if="item.why_not_applicable">
-                    <h4 class="mb-2 text-light-blue">
-                      {{ $t("ratings_measure.why_not_applicable_heading") }}
-                    </h4>
-
-                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.why_not_applicable)" />
-                  </div>
-                </div>
-
-                <div class="mt-8">
-                  <NuxtLink
-                    :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-                    class="text-light-blue underline"
-                    target="measure"
-                  >
-                    {{ $t("municipality_rating.link_to_measure") }} ↗
-                  </NuxtLink>
-                </div>
+                <MeasureDetails :measure_rating="item" />
               </div>
             </div>
           </li>
@@ -196,10 +155,11 @@
 <script setup>
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
-import linkifyStr from "linkify-string";
 const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingImages from "../shared/ratingImages.js";
+import { formatLastUpdated } from "../shared/utils.js";
+
 import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
 const { $t, $locale } = useNuxtApp();
 const props = defineProps({
@@ -213,18 +173,6 @@ const props = defineProps({
   },
 });
 
-/**
- * @param {string} dateString
- * @returns {string} Properly formatted date and time
- */
-const formatLastUpdated = (dateString) => {
-  const lastUpdatedAt = new Date(dateString);
-  return `${lastUpdatedAt.toLocaleDateString($locale, {
-    year: "numeric",
-    month: "2-digit",
-    day: "numeric",
-  })}, ${lastUpdatedAt.toLocaleTimeString($locale)}`;
-};
 
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);
@@ -239,7 +187,7 @@ function createSubScoreObject(municipality) {
   return temp;
 }
 function ratingIndex(value) {
-  if(value === null) return null;
+  if (value === null) return null;
   const tempVal = Number(value);
   if (tempVal === 0) return 0;
   if (tempVal === 0.3333) return 1;
