@@ -60,27 +60,27 @@
         <div class="content-center">
           <img src="~/assets/icons/icon_category_energy.svg" class=""/>
         </div>
-        <div class="col-span-7 content-center">EN – Energie</div>
+        <div class="col-span-7 content-center">EN - Energie</div>
         <div class="content-center">
           <img src="~/assets/icons/icon_category_bh.svg" class=""/>
         </div>
-        <div class="col-span-7 content-center">GW – Gebäude und Wärme</div>
+        <div class="col-span-7 content-center">GW - Gebäude und Wärme</div>
         <div class="content-center">
           <img src="~/assets/icons/icon_category_iec.svg" class=""/>
         </div>
-        <div class="col-span-7 content-center">IWK – Industrie, Wirtschaft & Konsum</div>
+        <div class="col-span-7 content-center">IWK - Industrie, Wirtschaft & Konsum</div>
         <div class="content-center">
           <img src="~/assets/icons/icon_category_cpma.svg" class=""/>
         </div>
-        <div class="col-span-7 content-center">KV – Klimaschutz & Verwaltung</div>
+        <div class="col-span-7 content-center">KV - Klimaschutz & Verwaltung</div>
         <div class="content-center">
           <img src="~/assets/icons/icon_category_ann.svg" class=""/>
         </div>
-        <div class="col-span-7 content-center">LNE – Landwirtschaft, Natur und Ernährung</div>
+        <div class="col-span-7 content-center">LNE - Landwirtschaft, Natur und Ernährung</div>
         <div class="content-center">
           <img src="~/assets/icons/icon_category_transport.svg" class=""/>
         </div>
-        <div class="col-span-7 content-center">VK – Verkehr</div>
+        <div class="col-span-7 content-center">VK - Verkehr</div>
       </div>
 
     </div>
@@ -99,7 +99,7 @@
             <th class="text-neutral font-light">
               <ul class="flex items-end justify-center gap-4">
                 <li v-for="(rating, index) in 4" :key="`rating-image-${index}`" class="flex flex-col items-center">
-                  <img :src="ratingImages[index]" class="h-5" />
+                  <img :src="ratingIcons[index]" class="h-5" />
                   <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
                 </li>
               </ul>
@@ -142,7 +142,7 @@
             <template v-for="(item, index) in sector" :key="key + '-' + index">
               <tr v-if="item.applicable" :class="[ratingColor[ratingIndex(item.rating)], 'bg-opacity-20']">
                 <td class="bg-white w-5">
-                  <img :src="ratingImages[ratingIndex(item.rating)]" class="h-[0.8rem] mx-auto"/>
+                  <img :src="ratingIcons[ratingIndex(item.rating)]" class="h-[0.8rem] mx-auto"/>
                 </td>
                 <td class="text-center w-5">
                   {{item.measure.measure_id}}
@@ -176,8 +176,9 @@
   import linkifyStr from "linkify-string";
   const { range } = lodash;
   import sectorImages from "../shared/sectorImages.js";
-  import ratingImages from "../shared/ratingImages.js";
+  import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
   import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
+import { ratingIndex } from "~/shared/ratingIcons.js";
   const { $t, $locale } = useNuxtApp();
   const props = defineProps({
     municipality: {
@@ -219,13 +220,7 @@
     }
     return temp;
   }
-  function ratingIndex(value) {
-    const tempVal = Number(value);
-    if (tempVal === 0) return 0;
-    if (tempVal === 0.3333) return 1;
-    if (tempVal === 0.6666) return 2;
-    return 3;
-  }
+
 </script>
 
 

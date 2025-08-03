@@ -76,7 +76,7 @@
         </h3>
         <ul class="mb-2 flex items-end justify-center gap-4">
           <li v-for="(rating, _) in [0,1,2,3,null]" :key="`rating-image-${rating}`" class="flex flex-col items-center">
-            <img :src="ratingImages[rating]" class="h-auto w-5" />
+            <img :src="ratingIcons[rating]" class="h-auto w-5" />
             <div class="text-sm">{{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}</div>
           </li>
         </ul>
@@ -95,7 +95,7 @@
               :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']"
               >
                 <div class="shrink-0">
-                  <img :src="ratingImages[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
+                  <img :src="ratingIcons[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
                 </div>
 
                 <h3 class="font-heading text-h3 font-medium">
@@ -157,7 +157,7 @@ import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
 const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
-import ratingImages from "../shared/ratingImages.js";
+import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
 import { formatLastUpdated } from "../shared/utils.js";
 
 import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
@@ -186,13 +186,6 @@ function createSubScoreObject(municipality) {
   }
   return temp;
 }
-function ratingIndex(value) {
-  if (value === null) return null;
-  const tempVal = Number(value);
-  if (tempVal === 0) return 0;
-  if (tempVal === 0.3333) return 1;
-  if (tempVal === 0.6666) return 2;
-  return 3;
-}
+
 </script>
 <style lang=""></style>
