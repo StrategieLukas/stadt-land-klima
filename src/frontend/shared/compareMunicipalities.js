@@ -10,34 +10,55 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 function similarityScore(m1, m2) {
-  // 1. Population similarity (proportional ratio)
-  const popRatio = m1.population / m2.population;
-  const populationScore = 1 / (Math.abs(Math.log2(popRatio)) + 1);
+  // 1. Population similarity (proportional ratio) - Max Score: 1.5
+  const popRatio = Number(m1.population) / Number(m2.population);
+  const populationScore = 1.5 / (Math.abs(Math.log2(popRatio)) + 1);
+  // console.log("Population Ratio", m1.name, m2.name, popRatio, populationScore);
 
-  // 2. Distance score (exponential decay from 30km)
-  const distance = haversine(m1.lat, m1.lng, m2.lat, m2.lng);
+  // 2. Distance score (exponential decay from 30km) - Max Score: 1
+  const distance = haversine(m1.lat, m1.lon, m2.lat, m2.lon);
   const decayRate = Math.log(2) / 170; // halves every 170km past 30km
   const distanceScore = distance <= 30 ? 1 : Math.exp(-decayRate * (distance - 30));
+  // console.log("Distance between", m1.name, m2.name, distance, distanceScore);
 
-  // 3. State similarity bonuses
-  const sameStateBonus = m1.state === m2.state ? 0.1 : 0;
+  // 3. Same state and east bonus
   const eastStates = ['Mecklenburg-Vorpommern', 'Brandenburg', 'Sachsen-Anhalt', 'Sachsen', 'Thüringen'];
   const inEast = (m) => eastStates.includes(m.state);
-  const eastBonus = (inEast(m1) && inEast(m2)) ? 0.2 : 0;
 
-  // 4. Governing party bonus
-  const partyBonus = (
-    m1.party_mayor &&
-    m2.party_mayor &&
-    m1.party_mayor === m2.party_mayor
-  ) ? 0.05 : 0;
+  let stateBonus = 0;
+  const sameState = m1.state === m2.state;
+  const bothEast = inEast(m1) && inEast(m2);
 
-  // Final score (80% distance/pop, 20% bonuses)
-  return 0.4 * populationScore + 0.4 * distanceScore + sameStateBonus + eastBonus + partyBonus;
+  // If the are in the same state in the east -> 0.3
+  if (sameState && bothEast) {
+  stateBonus = 0.3;
+  // If they are in the same state in the west -> 0.2
+  // If they are in different states, but both in the east -> 0.2
+  } else if (sameState || bothEast) {
+  stateBonus = 0.2;
+  }
+
+  // 4. Same governing party bonus - Max Score: 0.1
+    const partyBonus = (
+    m1.party_mayor && m2.party_mayor
+        // If same governing party - more similar (0.1), if different party - more different (0.0)
+        ? (m1.party_mayor === m2.party_mayor ? 0.1 : 0.0)
+        // If one of the municipalities does not have this field entered - put a neutral value (0.05)
+        : 0.05
+    );
+
+
+  // Final score
+  // console.log("Similiary scores:", populationScore, distanceScore, stateBonus, partyBonus);
+  return populationScore + distanceScore + stateBonus + partyBonus;
 }
 
-function sortBySimilarity(reference, others) {
-  return [...others].sort((a, b) =>
-    similarityScore(reference, b) - similarityScore(reference, a)
-  );
+export function sortBySimilarity(reference, others) {
+  return [...others]
+    .map(obj => {
+      const score = similarityScore(reference, obj);
+      return { ...obj, similarityScore: score };
+    })
+    .sort((a, b) => b.similarityScore - a.similarityScore);
 }
+

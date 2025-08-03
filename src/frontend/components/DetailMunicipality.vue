@@ -107,7 +107,7 @@
               <div
               :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']"
               >
-                <MeasureDetails :measure_rating="item" />
+                <MeasureDetails :measure_rating="item" :municipality="municipality" />
               </div>
             </div>
           </li>
