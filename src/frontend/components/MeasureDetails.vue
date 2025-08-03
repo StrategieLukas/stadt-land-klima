@@ -1,5 +1,5 @@
 <template>
-  <div class="py-4">
+  <div class="py-4" ref="measureDetailsSection">
 
     <h3 class="mb-3 text-h3 font-heading text-light-blue">
       {{ $t("measure.description_about_heading") }}
@@ -92,7 +92,7 @@
 
   <div class="mt-8">
     <NuxtLink
-      :to="`/measures/sectors/${sector}#measure-${measure_rating.measure.slug}`"
+      :to="`/measures/sectors/${measure_rating.measure.sector}#measure-${measure_rating.measure.slug}`"
       class="text-light-blue underline"
       target="measure"
     >
@@ -100,17 +100,34 @@
     </NuxtLink>
   </div>
 
+  <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
   <div>
-    <p v-if="rating < 1">Kommunen, die diese Maßnahme besser umgesetzt haben:</p>
+    <p>hahahah</p>
+    <p v-if="measure_rating.rating < 1">
+      Kommunen, die diese Maßnahme besser umgesetzt haben:
+    </p>
+
+    <ul v-if="similarExamples.length > 0">
+      <li v-for="example in similarExamples" :key="example.localteam.municipality.id">
+        <NuxtLink :to="`/municipalities/${example.localteam.municipality.slug}`" class="text-light-blue underline">
+          {{ example.localteam.municipality.name }}
+        </NuxtLink>
+      </li>
+    </ul>
+
+    <p v-if="loadingExamples">{{ $t("loading") }}...</p>
   </div>
+
+
 </template>
 <script setup>
 import { defineProps } from "vue";
 import sanitizeHtml from "sanitize-html";
 import linkifyStr from "linkify-string";
 import { formatLastUpdated } from "../shared/utils.js";
+import { onMounted, onBeforeUnmount, ref } from "vue";
 
-const { $t, $locale } = useNuxtApp();
+const { $t, $directus, $readItems, $locale } = useNuxtApp();
 const props = defineProps({
   measure_rating: {
     type: Object,
@@ -118,6 +135,83 @@ const props = defineProps({
   },
 });
 
+
+const measureDetailsSection = ref(null);
+const hasFetched = ref(false);
+let observer = null;
+
+// Register an observer that triggers the fetch for the similar municipalities when this MeasureDetails-object is expanded/uncollapsed
+// However, if this MeasureDetails has a perfect rating, skip all this (no need to provide better examples when already at max rating)
+onMounted(async () => {
+  await nextTick();
+
+  if (!measureDetailsSection.value || props.measure_rating.rating >= 1) return;
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      if (entry.isIntersecting && !hasFetched.value) {
+        hasFetched.value = true;
+        fetchSimilarExamples(props.measure_rating.measure.id, props.measure_rating.rating);
+        observer.disconnect();
+      }
+    },
+    {
+      threshold: 0.1,
+    }
+  );
+
+  observer.observe(measureDetailsSection.value);
+});
+
+onBeforeUnmount(() => {
+  if (observer) observer.disconnect();
+});
+
+
+// Load the similar municipalities when the element comes into view
+// But only once and cache the result in case user collapses/uncollapses the content again
+const similarExamples = ref([])
+const loadingExamples = ref(false)
+
+async function fetchSimilarExamples(measureId, currentRating) {
+  console.log("Fetching examples!");
+  loadingExamples.value = true
+  const result = await $directus.request(
+    $readItems('ratings_measures', {
+      filter: {
+        measure_id: { _eq: measureId },
+        status: { _eq: 'published' },
+          rating: {
+          _in: getHigherRatings(currentRating),
+        }
+      },
+      fields: [
+        'rating',
+        'localteam.municipality.id',
+        'localteam.municipality.name',
+        'localteam.municipality.slug',
+        'localteam.municipality.state',
+        'localteam.municipality.party_mayor',
+        'localteam.municipality.population',
+        // 'localteam.municipality.lat',
+        // 'localteam.municipality.lng',
+      ],
+      limit: -1
+    })
+  )
+  console.log(result);
+  similarExamples.value = result
+  loadingExamples.value = false
+}
+
+// Tragically, rating is a string and not a number, so can't filter with a "gt_"-clause :(
+function getHigherRatings(currentRating) {
+  const knownRatings = [0, 0.3333, 0.6666, 1]; // ordered list
+  const current = Number(currentRating);
+
+  return knownRatings.filter(r => r > current).map(String); // convert back to string
+}
 
 
 </script>

@@ -32,6 +32,8 @@ permissions:
       - current_progress
       - date_updated
       - why_not_applicable
+      - status
+      - measure_published
   - collection: pages
     action: read
     permissions:
@@ -80,6 +82,7 @@ permissions:
       - status
       - overall_status_comment
       - public_contact
+      - percentage_rated
   - collection: measures
     action: read
     permissions:
@@ -169,4 +172,13 @@ permissions:
       - sender_name
       - sender_contact
       - date_created
+      - status
+  - collection: localteams
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - municipality_id
       - status
