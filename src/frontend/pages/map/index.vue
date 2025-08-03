@@ -1,8 +1,41 @@
 <template>
+
+    <div class="space-y-1 text-sm">
+        <div class="flex items-center gap-2 text-ranking-8-10">
+            <div class="w-4 h-4" v-html="PinSvg"></div>
+            <span>Score 80-100%</span>
+        </div>
+        <div class="flex items-center gap-2 text-ranking-6-8">
+            <div class="w-4 h-4" v-html="PinSvg"></div>
+            <span>Score 60-79%</span>
+        </div>
+        <div class="flex items-center gap-2 text-ranking-4-6">
+            <div class="w-4 h-4" v-html="PinSvg"></div>
+            <span>Score 40-59%</span>
+        </div>
+        <div class="flex items-center gap-2 text-ranking-2-4">
+            <div class="w-4 h-4" v-html="PinSvg"></div>
+            <span>Score 20-39%</span>
+        </div>
+        <div class="flex items-center gap-2 text-ranking-0-2">
+            <div class="w-4 h-4" v-html="PinSvg"></div>
+            <span>Score 0-19%</span>
+        </div>
+        <div v-if="showMunicipalitiesWithUnfinishedRating" class="flex items-center gap-2 text-ranking-na">
+            <div class="w-4 h-4" v-html="PinSvg"></div>
+            <span>{{ $t('map.icon.popup.ratingNotFinished.short') }}</span>
+        </div>
+    </div>
+
+
+
+
+
+
     <div class="top-4 left-4 bg-white rounded shadow p-2 z-[1000]">
         <label class="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" v-model="showInProgress" class="toggle toggle-sm" />
-            {{ $t('map.showInProgress') }}
+            <input type="checkbox" v-model="showMunicipalitiesWithUnfinishedRating" class="toggle toggle-sm" />
+            {{ $t('map.showUnfinishedRatings') }}
         </label>
     </div>
 
@@ -18,15 +51,17 @@
                         <div class="text-sm space-y-1">
                             <div class="font-semibold">{{ m.name }}</div>
                             <template v-if="m.status === 'published'">
-                                <div>Score: {{ m.score_total }}</div>
+                                <div>Score: {{ Number(m.score_total).toFixed(2) }}</div>
                                 <NuxtLink :to="`/municipalities/${m.slug}`"
                                     class="text-blue-600 underline hover:text-blue-800">
                                     {{ $t("map.icon.popup.goToRanking") }}
                                 </NuxtLink>
                             </template>
                             <template v-else>
-                                <div>{{ $t("map.stillInProgress") }}</div>
-                                <div>{{ $t("map.icon.popup.percentageRated", { ":percentage_rated": m.percentage_rated }) }}</div>
+                                <div>{{ $t("map.icon.popup.ratingNotFinished") }}</div>
+                                <div>{{ $t("map.icon.popup.percentageRated", {
+                                    ":percentage_rated": m.percentage_rated
+                                }) }}</div>
                             </template>
                         </div>
                     </LPopup>
@@ -40,9 +75,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 // Toggle for whether municipalities, where the rating is currently in progress, should be displayed
-const showInProgress = ref(false)
+const showMunicipalitiesWithUnfinishedRating = ref(false)
 
-watch(showInProgress, () => {
+watch(showMunicipalitiesWithUnfinishedRating, () => {
     fetchMunicipalities()
 })
 
@@ -74,7 +109,7 @@ onMounted(async () => {
 function getCustomIcon(m) {
     if (!DivIcon || !PinSvg.value) return null
 
-    let cssClass = 'rating-na'
+    let cssClass = 'ranking-na'
     const { score_total, status, percentage_rated } = m
 
     if (status === 'published') {
@@ -100,7 +135,7 @@ function getCustomIcon(m) {
 async function fetchMunicipalities() {
     // When "show in progress" is toggled on, show any municipality where percentage_rated > 0 (i.e. rating was started)
     // Otherwise, only show the published ones
-    const filter = showInProgress.value
+    const filter = showMunicipalitiesWithUnfinishedRating.value
         ? { percentage_rated: { _gt: 0 } }
         : { status: { _eq: 'published' } }
 
