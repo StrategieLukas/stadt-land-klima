@@ -10,9 +10,9 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 function similarityScore(m1, m2) {
-  // 1. Population similarity (proportional ratio) - Max Score: 1.5
+  // 1. Population similarity (proportional ratio) - Max Score: 2
   const popRatio = Number(m1.population) / Number(m2.population);
-  const populationScore = 1.5 / (Math.abs(Math.log2(popRatio)) + 1);
+  const populationScore = 2 / (Math.abs(Math.log2(popRatio)) + 1);
   // console.log("Population Ratio", m1.name, m2.name, popRatio, populationScore);
 
   // 2. Distance score (exponential decay from 30km) - Max Score: 1
@@ -53,12 +53,11 @@ function similarityScore(m1, m2) {
   return populationScore + distanceScore + stateBonus + partyBonus;
 }
 
-export function sortBySimilarity(reference, others) {
+export function calculateAndAddSimilarityScores(reference, others) {
   return [...others]
     .map(obj => {
       const score = similarityScore(reference, obj);
       return { ...obj, similarityScore: score };
-    })
-    .sort((a, b) => b.similarityScore - a.similarityScore);
+    });
 }
 
