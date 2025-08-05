@@ -12,38 +12,29 @@ options:
   collections:
     - municipalities
 operations:
-  - name: Skript ausführen
-    key: exec_agdg0
+  - name: Kondition
+    key: condition_zgy0a
     type: condition
-    position_x: 20
-    position_y: 1
+    position_x: 56
+    position_y: 17
     options:
       filter:
         $trigger:
           payload:
             population:
-              _gt: 0
-    resolve_key: condition_656fu
+              _gte: 20000
+    resolve_key: log_m6yar_ffhhu_dgqff_tzibk
+    reject_key: log_m6yar_ffhhu_dgqff
   - name: Konsolenausgabe
-    key: log_m6yar_ffhhu
+    key: log_m6yar_ffhhu_dgqff_tzibk
     type: item-update
-    position_x: 57
-    position_y: 18
+    position_x: 77
+    position_y: 14
     options:
       collection: municipalities
       key: "{{$trigger.keys}}"
       payload:
-        municipality_type: small_city
-  - name: Konsolenausgabe
-    key: log_m6yar
-    type: item-update
-    position_x: 56
-    position_y: 1
-    options:
-      collection: municipalities
-      key: "{{$trigger.keys}}"
-      payload:
-        municipality_type: big_city
+        municipality_type: medium_city
   - name: Kondition
     key: condition_656fu
     type: condition
@@ -56,5 +47,37 @@ operations:
             population:
               _gte: 100000
     resolve_key: log_m6yar
-    reject_key: log_m6yar_ffhhu
+    reject_key: condition_zgy0a
+  - name: Konsolenausgabe
+    key: log_m6yar
+    type: item-update
+    position_x: 56
+    position_y: 1
+    options:
+      collection: municipalities
+      key: "{{$trigger.keys}}"
+      payload:
+        municipality_type: big_city
+  - name: Konsolenausgabe
+    key: log_m6yar_ffhhu_dgqff
+    type: item-update
+    position_x: 74
+    position_y: 31
+    options:
+      collection: municipalities
+      key: "{{$trigger.keys}}"
+      payload:
+        municipality_type: small_city
+  - name: Skript ausführen
+    key: exec_agdg0
+    type: condition
+    position_x: 20
+    position_y: 1
+    options:
+      filter:
+        $trigger:
+          payload:
+            population:
+              _gt: 0
+    resolve_key: condition_656fu
 operation_key: exec_agdg0
