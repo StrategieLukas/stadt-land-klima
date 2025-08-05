@@ -1,36 +1,46 @@
 collection: articles
-field: link
-type: string
+field: sources
+type: text
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: link
+  field: sources
   group: content
   hidden: false
-  interface: input
+  interface: input-rich-text-md
   note: null
   options:
-    placeholder: $t:article.link
-    trim: true
+    toolbar:
+      - blockquote
+      - bold
+      - customImage
+      - customLink
+      - customMedia
+      - fullscreen
+      - h1
+      - h2
+      - h3
+      - hr
+      - italic
+      - link
+      - removeformat
+      - underline
   readonly: false
   required: false
-  sort: 7
+  sort: 6
   special: null
   translations: null
-  validation:
-    _and:
-      - link:
-          _regex: ^(https?:\/\/)?([\w-]+(\.[\w-]+)+)(\/[\w.,@?^=%&:/~+#-]*)?$
+  validation: null
   validation_message: null
   width: full
 schema:
-  name: link
+  name: sources
   table: articles
-  data_type: character varying
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

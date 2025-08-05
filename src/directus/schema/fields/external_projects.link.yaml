@@ -1,33 +1,28 @@
-collection: articles
+collection: external_projects
 field: link
 type: string
 meta:
-  collection: articles
+  collection: external_projects
   conditions: null
   display: null
   display_options: null
   field: link
-  group: content
+  group: null
   hidden: false
   interface: input
   note: null
-  options:
-    placeholder: $t:article.link
-    trim: true
+  options: null
   readonly: false
-  required: false
-  sort: 7
+  required: true
+  sort: 8
   special: null
   translations: null
-  validation:
-    _and:
-      - link:
-          _regex: ^(https?:\/\/)?([\w-]+(\.[\w-]+)+)(\/[\w.,@?^=%&:/~+#-]*)?$
+  validation: null
   validation_message: null
   width: full
 schema:
   name: link
-  table: articles
+  table: external_projects
   data_type: character varying
   default_value: null
   max_length: 255

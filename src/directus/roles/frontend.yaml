@@ -32,6 +32,8 @@ permissions:
       - current_progress
       - date_updated
       - why_not_applicable
+      - status
+      - measure_published
   - collection: pages
     action: read
     permissions:
@@ -80,6 +82,8 @@ permissions:
       - status
       - overall_status_comment
       - public_contact
+      - percentage_rated
+      - id
   - collection: measures
     action: read
     permissions:
@@ -146,6 +150,13 @@ permissions:
       - article_text
       - organisation
       - link
+      - sectors
+      - sources
+      - qualities
+      - ease_of_implementation
+      - similar_external_projects
+      - similar_articles
+      - impact
   - collection: organisations
     action: read
     permissions: null
@@ -170,3 +181,36 @@ permissions:
       - sender_contact
       - date_created
       - status
+  - collection: localteams
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - municipality_id
+      - status
+  - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_articles
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: external_projects
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - description
+      - title
+      - link

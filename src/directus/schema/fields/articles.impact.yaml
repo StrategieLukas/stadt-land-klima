@@ -1,38 +1,36 @@
 collection: articles
-field: link
-type: string
+field: impact
+type: integer
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: link
-  group: content
+  field: impact
+  group: qualities
   hidden: false
-  interface: input
+  interface: slider
   note: null
   options:
-    placeholder: $t:article.link
-    trim: true
+    maxValue: 5
+    minValue: 0
+    stepInterval: 1
   readonly: false
   required: false
-  sort: 7
+  sort: 1
   special: null
   translations: null
-  validation:
-    _and:
-      - link:
-          _regex: ^(https?:\/\/)?([\w-]+(\.[\w-]+)+)(\/[\w.,@?^=%&:/~+#-]*)?$
+  validation: null
   validation_message: null
   width: full
 schema:
-  name: link
+  name: impact
   table: articles
-  data_type: character varying
+  data_type: integer
   default_value: null
-  max_length: 255
-  numeric_precision: null
-  numeric_scale: null
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
   is_nullable: true
   is_unique: false
   is_primary_key: false
