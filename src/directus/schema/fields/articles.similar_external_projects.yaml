@@ -1,0 +1,25 @@
+collection: articles
+field: similar_external_projects
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{external_projects_id.title}}"
+  field: similar_external_projects
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: null
+  options:
+    template: "{{external_projects_id.title}}"
+  readonly: false
+  required: false
+  sort: 17
+  special:
+    - m2m
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

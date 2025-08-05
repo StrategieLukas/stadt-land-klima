@@ -1,27 +1,26 @@
 collection: articles
-field: content
+field: qualities
 type: alias
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: content
+  field: qualities
   group: null
   hidden: false
   interface: group-detail
   note: null
-  options: null
+  options:
+    start: closed
   readonly: false
   required: false
-  sort: 14
+  sort: 15
   special:
     - alias
     - group
     - no-data
-  translations:
-    - language: de-DE
-      translation: Inhalt
+  translations: null
   validation: null
   validation_message: null
   width: full

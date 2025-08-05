@@ -1,36 +1,38 @@
 collection: articles
-field: link
-type: string
+field: sectors
+type: json
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: link
-  group: content
+  field: sectors
+  group: null
   hidden: false
-  interface: input
+  interface: tags
   note: null
   options:
-    placeholder: $t:article.link
-    trim: true
+    allowCustom: false
+    alphabetize: true
+    presets:
+      - Energie
+      - Sonstige
+      - Verkehr
   readonly: false
-  required: false
-  sort: 7
-  special: null
+  required: true
+  sort: 13
+  special:
+    - cast-json
   translations: null
-  validation:
-    _and:
-      - link:
-          _regex: ^(https?:\/\/)?([\w-]+(\.[\w-]+)+)(\/[\w.,@?^=%&:/~+#-]*)?$
+  validation: null
   validation_message: null
   width: full
 schema:
-  name: link
+  name: sectors
   table: articles
-  data_type: character varying
+  data_type: json
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

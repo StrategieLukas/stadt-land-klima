@@ -1,32 +1,31 @@
-collection: articles
-field: organisation
-type: json
+collection: external_projects
+field: date_updated
+type: timestamp
 meta:
-  collection: articles
+  collection: external_projects
   conditions: null
-  display: null
-  display_options: null
-  field: organisation
+  display: datetime
+  display_options:
+    relative: true
+  field: date_updated
   group: null
-  hidden: false
-  interface: collection-item-dropdown
+  hidden: true
+  interface: datetime
   note: null
-  options:
-    selectedCollection: organisations
-    template: "{{name}}"
-  readonly: false
+  options: null
+  readonly: true
   required: false
-  sort: 12
+  sort: 5
   special:
-    - cast-json
+    - date-updated
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: organisation
-  table: articles
-  data_type: json
+  name: date_updated
+  table: external_projects
+  data_type: timestamp with time zone
   default_value: null
   max_length: null
   numeric_precision: null
