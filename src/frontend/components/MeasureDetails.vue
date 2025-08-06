@@ -194,112 +194,97 @@
   const loadingExamples = ref(false)
 
   async function fetchSimilarExamples(measureId, currentRating) {
-  loadingExamples.value = true;
+    loadingExamples.value = true;
 
-  // Step 1: Fetch better ratings
-  const higherRatings = getHigherRatings(currentRating);
-  if (higherRatings.length === 0) {
+    // Step 1: Fetch better ratings
+    const higherRatings = getHigherRatings(currentRating);
+    if (higherRatings.length === 0) {
+      loadingExamples.value = false;
+      return [];
+    }
+
+    const ratingsResult = await $directus.request(
+      $readItems('ratings_measures', {
+        filter: {
+          measure_id: { _eq: measureId },
+          status: { _eq: 'published' },
+          rating: { _in: higherRatings },
+        },
+        fields: ['rating', 'localteam_id'],
+        limit: -1,
+      })
+    );
+
+    const localteamIds = [...new Set(ratingsResult.map(r => r.localteam_id).filter(Boolean))];
+    if (!localteamIds.length) {
+      loadingExamples.value = false;
+      return [];
+    }
+
+    // Step 2: Get localteams and municipality_ids
+    const localteamsResult = await $directus.request(
+      $readItems('localteams', {
+        filter: { id: { _in: localteamIds } },
+        fields: ['id', 'municipality_id'],
+        limit: -1,
+      })
+    );
+
+    // Build localteam_id → municipality_id map
+    const localteamToMunicipality = Object.fromEntries(
+      localteamsResult.map(lt => [lt.id, Array.isArray(lt.municipality_id) ? lt.municipality_id[0] : lt.municipality_id])
+    );
+
+    // Step 3: Build municipality_id → rating map
+    const municipalityIdToRating = {};
+    for (const { localteam_id, rating } of ratingsResult) {
+      const municipalityId = localteamToMunicipality[localteam_id];
+      if (municipalityId) municipalityIdToRating[municipalityId] = rating;
+    }
+
+    const municipalityIds = [...new Set(Object.keys(municipalityIdToRating))];
+    if (!municipalityIds.length) {
+      loadingExamples.value = false;
+      return [];
+    }
+
+    // Step 4: Get municipality details (including geolocation)
+    const municipalitiesResult = await $directus.request(
+      $readItems('municipalities', {
+        filter: { id: { _in: municipalityIds } },
+        fields: ['id', 'name', 'slug', 'state', 'party_mayor', 'population', 'geolocation'],
+        limit: -1,
+      })
+    );
+
+    // Step 5: Combine details for all matched municipalities with null-safety
+    const municipalitiesWithDetails = municipalitiesResult.map(m => ({
+      ...m,
+      lat: m?.geolocation ? m.geolocation.coordinates[1] : null,
+      lon: m?.geolocation ? m.geolocation.coordinates[0] : null,
+      rating: municipalityIdToRating[m.id] ?? null
+    }));
+
+
+    // Step 6: Calculate similarity to current municipality
+    const withSimilarity = calculateAndAddSimilarityScores(props.municipality, municipalitiesWithDetails);
+
+    // Step 7: Sort by "best rating for this measure", and then for highest similarity among those.
+    const finalSorted = withSimilarity
+      .sort((a, b) => {
+        const r1 = parseFloat(a.rating ?? 0);
+        const r2 = parseFloat(b.rating ?? 0);
+        if (r2 !== r1) return r2 - r1;
+        return (b.similarityScore ?? 0) - (a.similarityScore ?? 0);
+      })
+      .slice(0, 5);
+
     loadingExamples.value = false;
-    return [];
+    similarExamples.value = finalSorted;
+    console.log(finalSorted);
+    return finalSorted;
   }
 
-  const ratingsResult = await $directus.request(
-    $readItems('ratings_measures', {
-      filter: {
-        measure_id: { _eq: measureId },
-        status: { _eq: 'published' },
-        rating: { _in: higherRatings },
-      },
-      fields: ['rating', 'localteam_id'],
-      limit: -1,
-    })
-  );
-
-  const localteamIds = [...new Set(ratingsResult.map(r => r.localteam_id).filter(Boolean))];
-  if (!localteamIds.length) {
-    loadingExamples.value = false;
-    return [];
-  }
-
-  // Step 2: Get localteams and municipality_ids
-  const localteamsResult = await $directus.request(
-    $readItems('localteams', {
-      filter: { id: { _in: localteamIds } },
-      fields: ['id', 'municipality_id'],
-      limit: -1,
-    })
-  );
-
-  // Build localteam_id → municipality_id map
-  const localteamToMunicipality = Object.fromEntries(
-    localteamsResult.map(lt => [lt.id, Array.isArray(lt.municipality_id) ? lt.municipality_id[0] : lt.municipality_id])
-  );
-
-  // Step 3: Build municipality_id → rating map
-  const municipalityIdToRating = {};
-  for (const { localteam_id, rating } of ratingsResult) {
-    const municipalityId = localteamToMunicipality[localteam_id];
-    if (municipalityId) municipalityIdToRating[municipalityId] = rating;
-  }
-
-  const municipalityIds = [...new Set(Object.keys(municipalityIdToRating))];
-  if (!municipalityIds.length) {
-    loadingExamples.value = false;
-    return [];
-  }
-
-  // Step 4: Get municipality details
-  const municipalitiesResult = await $directus.request(
-    $readItems('municipalities', {
-      filter: { id: { _in: municipalityIds } },
-      fields: ['id', 'name', 'slug', 'state', 'party_mayor', 'population'],
-      limit: -1,
-    })
-  );
-
-  // Step 5: Get lat/lon for all relevant slugs
-  const slugsToLookup = [
-    props.municipality.slug,
-    ...municipalitiesResult.map(m => m.slug)
-  ];
-  const latLonResults = await magicApi([...new Set(slugsToLookup)]);
-
-  const slugToCoords = Object.fromEntries(
-    latLonResults.map(c => [c.slug, { lat: c.lat, lon: c.lon }])
-  );
-
-  // Step 6: Build reference municipality
-  const refCoords = slugToCoords[props.municipality.slug] || { lat: null, lon: null };
-  const referenceMunicipality = {
-    ...props.municipality,
-    lat: refCoords.lat,
-    lon: refCoords.lon,
-  };
-
-  // Step 7: Combine data for all matched municipalities
-  const municipalitiesWithDetails = municipalitiesResult.map(m => ({
-    ...m,
-    lat: slugToCoords[m.slug]?.lat ?? null,
-    lon: slugToCoords[m.slug]?.lon ?? null,
-    rating: municipalityIdToRating[m.id] ?? null
-  }));
-
-  // Step 8: Sort by similarity
-  const withSimilarity = calculateAndAddSimilarityScores(referenceMunicipality, municipalitiesWithDetails);
-
-  // Step 9: Sort by rating desc, similarityScore as tiebreaker
-  const finalSorted = withSimilarity.sort((a, b) => {
-    const r1 = parseFloat(a.rating ?? 0);
-    const r2 = parseFloat(b.rating ?? 0);
-    if (r2 !== r1) return r2 - r1;
-    return (b.similarityScore ?? 0) - (a.similarityScore ?? 0);
-  }).slice(0, 5); // Only show first 5 results
-
-  loadingExamples.value = false;
-  similarExamples.value = finalSorted;
-  console.log(finalSorted);
-  return finalSorted;
-}
 
 
   // Tragically, rating is a string and not a number, so can't filter with a "gt_"-clause :(
@@ -310,22 +295,5 @@
     return knownRatings.filter(r => r > current).map(String); // convert back to string
   }
 
-  // TODO CRITICAL replace magicApi with actual API
-  async function magicApi(slugs) {
-    // Simulate async API call
-    return new Promise((resolve) => {
-      const results = slugs.map(slug => ({
-        slug,
-        ...randomLatLon()
-      }));
-      setTimeout(() => resolve(results), 100); // simulate latency
-    });
-  }
-  function randomLatLon() {
-    // Germany roughly: lat 47-55, lon 5-15
-    const lat = 47 + Math.random() * (55 - 47);
-    const lon = 5 + Math.random() * (15 - 5);
-    return { lat, lon };
-  }
 
 </script>

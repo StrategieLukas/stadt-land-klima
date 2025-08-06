@@ -82,6 +82,8 @@ permissions:
       - status
       - overall_status_comment
       - public_contact
+      - ars
+      - geolocation
       - percentage_rated
       - id
   - collection: measures

@@ -152,15 +152,16 @@
     </div> -->
   </div>
 </template>
+
 <script setup>
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
-const { range } = lodash;
 import sectorImages from "../shared/sectorImages.js";
 import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
 import { formatLastUpdated } from "../shared/utils.js";
-
 import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
+
+const { range } = lodash;
 const { $t, $locale } = useNuxtApp();
 const props = defineProps({
   municipality: {

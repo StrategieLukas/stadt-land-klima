@@ -16,10 +16,28 @@ function similarityScore(m1, m2) {
   // console.log("Population Ratio", m1.name, m2.name, popRatio, populationScore);
 
   // 2. Distance score (exponential decay from 30km) - Max Score: 1
-  const distance = haversine(m1.lat, m1.lon, m2.lat, m2.lon);
-  const decayRate = Math.log(2) / 170; // halves every 170km past 30km
-  const distanceScore = distance <= 30 ? 1 : Math.exp(-decayRate * (distance - 30));
-  // console.log("Distance between", m1.name, m2.name, distance, distanceScore);
+  let distanceScore;
+
+  const m1Loc = m1?.geolocation;
+  const m2Loc = m2?.geolocation;
+
+  if (typeof m1Loc?.lat === 'number' && typeof m1Loc?.lon === 'number' && typeof m2Loc?.lat === 'number' && typeof m2Loc?.lon === 'number') {
+    const distance = haversine(m1Loc.lat, m1Loc.lon, m2Loc.lat, m2Loc.lon);
+    const decayRate = Math.log(2) / 170; // halves every 170km past 30km
+    distanceScore = distance <= 30 ? 1 : Math.exp(-decayRate * (distance - 30));
+    // console.log("Distance between", m1.name, m2.name, distance, distanceScore);
+  } else {
+    // If geodata is missing, then log a warning and use a plausible default value
+    if (!m1Loc) {
+      console.warn(`Die Geodaten von der Kommune "${m1?.name ?? 'unknown'}" fehlen`);
+    }
+    if (!m2Loc) {
+      console.warn(`Die Geodaten von der Kommune "${m2?.name ?? 'unknown'}" fehlen`);
+    }
+    // This is roughly the average score you would expect if you picked random municipalities, I guess?
+    distanceScore = 0.2;
+  }
+
 
   // 3. Same state and east bonus
   const eastStates = ['Mecklenburg-Vorpommern', 'Brandenburg', 'Sachsen-Anhalt', 'Sachsen', 'Thüringen'];
