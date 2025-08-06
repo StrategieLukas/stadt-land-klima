@@ -15,7 +15,7 @@
 
     <!-- Accordion -->
     <!-- Municipality description -->
-    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
+    <div v-if="municipality.description" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
 
       <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
@@ -31,8 +31,8 @@
       </div>
     </div>
 
- <!-- Notice about current developments, if it exists -->
- <div v-if="municipality.overall_status_comment" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
+    <!-- Notice about current developments, if it exists -->
+    <div v-if="municipality.overall_status_comment" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
       <input type="checkbox" name="sectors-accordion" autocomplete="off" />
 
       <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
@@ -43,7 +43,7 @@
         </h2>
       </div>
 
-      <div class="collapse-content px-2 md:px-4">
+      <div v-if="municipality.overall_status_comment" class="collapse-content px-2 md:px-4">
         <div class="has-long-links prose" v-html="sanitizeHtml(linkifyStr(municipality.overall_status_comment))"></div>
       </div>
     </div>
@@ -168,7 +168,7 @@
         </h2>
       </div>
 
-      <div class="collapse-content px-2 md:px-4">
+      <div v-if="municipality.public_contact" class="collapse-content px-2 md:px-4">
         <div class="has-long-links prose" v-html="sanitizeHtml(linkifyStr(municipality.public_contact))"></div>
       </div>
     </div>
