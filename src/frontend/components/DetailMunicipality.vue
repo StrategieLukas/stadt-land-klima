@@ -27,7 +27,7 @@
       </div>
 
       <div class="collapse-content px-2 md:px-4">
-        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.description)"></div>
+        <div class="has-long-links prose" v-html="sanitizeHtml(linkifyStr(municipality.description))"></div>
       </div>
     </div>
 
@@ -44,7 +44,7 @@
       </div>
 
       <div class="collapse-content px-2 md:px-4">
-        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.overall_status_comment)"></div>
+        <div class="has-long-links prose" v-html="sanitizeHtml(linkifyStr(municipality.overall_status_comment))"></div>
       </div>
     </div>
 
@@ -169,7 +169,7 @@
       </div>
 
       <div class="collapse-content px-2 md:px-4">
-        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.public_contact)"></div>
+        <div class="has-long-links prose" v-html="sanitizeHtml(linkifyStr(municipality.public_contact))"></div>
       </div>
     </div>
 
