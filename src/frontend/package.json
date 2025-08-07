@@ -29,10 +29,12 @@
   },
   "dependencies": {
     "@directus/sdk": "^11.0.3",
+    "@nuxtjs/leaflet": "^1.3.2",
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.15",
     "chart.js": "^4.4.0",
     "daisyui": "^3.7.3",
+    "leaflet": "^1.9.4",
     "linkify-string": "^4.1.3",
     "linkifyjs": "^4.1.3",
     "lodash": "^4.17.21",

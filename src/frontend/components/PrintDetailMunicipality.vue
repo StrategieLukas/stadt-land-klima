@@ -174,11 +174,11 @@
   import lodash from "lodash";
   import sanitizeHtml from "sanitize-html";
   import linkifyStr from "linkify-string";
-  const { range } = lodash;
   import sectorImages from "../shared/sectorImages.js";
   import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
   import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
-import { ratingIndex } from "~/shared/ratingIcons.js";
+
+  const { range } = lodash;
   const { $t, $locale } = useNuxtApp();
   const props = defineProps({
     municipality: {
