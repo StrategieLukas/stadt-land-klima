@@ -133,43 +133,39 @@ function getCustomIcon(m) {
 }
 
 async function fetchMunicipalities() {
-    // When "show in progress" is toggled on, show any municipality where percentage_rated > 0 (i.e. rating was started)
-    // Otherwise, only show the published ones
-    const filter = showMunicipalitiesWithUnfinishedRating.value
-        ? { percentage_rated: { _gt: 0 } }
-        : { status: { _eq: 'published' } }
+  // When "show in progress" is toggled on, show any municipality where percentage_rated > 0 (i.e. rating was started)
+  // Otherwise, only show the published ones
+  const filter = showMunicipalitiesWithUnfinishedRating.value
+    ? { percentage_rated: { _gt: 0 } }
+    : { status: { _eq: 'published' } };
 
-    const baseData = await $directus.request(
-        $readItems('municipalities', {
-            fields: ['slug', 'name', 'score_total', 'status', 'percentage_rated'],
-            filter,
-            limit: -1,
-        })
-    )
+  const baseData = await $directus.request(
+    $readItems('municipalities', {
+      fields: ['slug', 'name', 'score_total', 'status', 'percentage_rated', 'geolocation'],
+      filter,
+      limit: -1,
+    })
+  );
 
-    const slugs = baseData.map((m) => m.slug)
-    const locationData = await $municipalityApi.getMunicipalityLocations(slugs)
-    const locationMap = new Map(locationData.map((m) => [m.slug, m]))
+  const merged = baseData
+    .map((m) => {
+      const coords = m.geolocation?.coordinates;
+      return {
+        ...m,
+        lat: typeof coords?.[1] === 'number' ? coords[1] : null,
+        lng: typeof coords?.[0] === 'number' ? coords[0] : null,
+      };
+    })
+    .filter((m) => {
+      const isValid = typeof m.lat === 'number' && typeof m.lng === 'number';
+      if (!isValid) {
+        console.debug(`[Map] Municipality '${m.slug}' filtered out due to missing or invalid geolocation`);
+      }
+      return isValid;
+    });
 
-    const merged = baseData
-        .map((m) => {
-            const loc = locationMap.get(m.slug)
-            return {
-                ...m,
-                lat: loc?.lat,
-                lng: loc?.lng,
-            }
-        })
-        .filter((m) => {
-            const isValid = typeof m.lat === 'number' && typeof m.lng === 'number'
-            if (!isValid) {
-                console.warn(`[Map] Municipality '${m.slug}' filtered out due to missing lat/lng`)
-            }
-            return isValid
-        })
-
-    municipalities.value = merged
-    console.log('[Map] Loaded municipalities:', merged.length)
+  municipalities.value = merged;
+  console.log('[Map] Loaded municipalities:', merged.length);
 }
 
 
