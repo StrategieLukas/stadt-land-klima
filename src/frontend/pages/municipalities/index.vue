@@ -139,7 +139,7 @@
     </div>
     
     <!-- Right Column: Success Projects (1/3 width) -->
-    <div class="lg:col-span-1" v-if="projects && projects.length > 0">
+    <div class="lg:col-span-1 mb-3" v-if="projects && projects.length > 0">
       <div class="sticky top-8">
         <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2>
         <div class="space-y-4 max-w-md mx-auto">
