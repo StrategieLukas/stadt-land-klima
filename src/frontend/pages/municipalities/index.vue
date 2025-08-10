@@ -117,7 +117,7 @@
   </div>
 
   <!-- Desktop: Two column layout -->
-  <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8">
+  <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8 w-full">
     <!-- Left Column: Municipality Ranking (2/3 width) -->
     <div class="lg:col-span-2">
       <!-- Conditional Content -->
@@ -141,8 +141,8 @@
     <!-- Right Column: Success Projects (1/3 width) -->
     <div class="lg:col-span-1" v-if="projects && projects.length > 0">
       <div class="sticky top-8">
-        <h2 class="text-2xl font-bold mb-6">Erfolgreiche Projekte</h2>
-        <div class="space-y-4">
+        <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2>
+        <div class="space-y-4 max-w-md mx-auto">
           <ProjectCard 
             v-for="project in projects" 
             :key="project.id"
