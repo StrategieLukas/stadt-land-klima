@@ -94,26 +94,6 @@
         <the-ranking :municipalities="municipalities"></the-ranking>
       </section>
     </div>
-
-    <!-- Project Cards on Mobile (below ranking) -->
-    <section v-if="articles && articles.length > 0" class="mt-12">
-      <h2 class="text-2xl font-bold mb-6 text-center">Erfolgreiche Projekte</h2>
-      <div class="space-y-4">
-        <ProjectCard 
-          v-for="article in articles" 
-          :key="article.id"
-          :slug="article.slug"
-          :title="article.title"
-          :municipality_name="article.municipality_name"
-          :state="article.state"
-          :abstract="article.abstract"
-          :author="article.author"
-          :date="new Date(article.date_created)"
-          :image_id="article.image"
-          :organisation="article.organisation"
-        />
-      </div>
-    </section>
   </div>
 
   <!-- Desktop: Two column layout -->
@@ -141,7 +121,7 @@
     <!-- Right Column: Success Projects (1/3 width) -->
     <div class="lg:col-span-1 mb-3" v-if="projects && projects.length > 0">
       <div class="sticky top-8">
-        <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2>
+        <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
           <ProjectCard 
             v-for="project in projects" 
