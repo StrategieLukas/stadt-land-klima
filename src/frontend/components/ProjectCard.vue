@@ -1,5 +1,5 @@
 <template>
-    <div class="card bg-white shadow-md border rounded-md overflow-hidden">
+    <div class="card bg-white shadow-md border rounded-none overflow-hidden">
         <div class="relative">
 
             <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
