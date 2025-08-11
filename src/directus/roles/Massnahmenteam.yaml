@@ -119,3 +119,10 @@ permissions:
       - date_updated
       - date_created
       - status
+  - collection: directus_dashboards
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
