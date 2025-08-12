@@ -39,10 +39,12 @@
         </label>
     </div>
 
+
     <client-only>
-        <div class="w-full h-screen">
+        <div class="w-full h-screen z-0">
             <LMap v-if="clientReady && municipalities.length" :zoom="6" :center="[51.1657, 10.4515]"
-                style="height: 100%; width: 100%">
+                style="height: 100%; width: 100%"
+                @ready="addLegend">
                 <LTileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
                     layer-type="base" name="OpenStreetMap" />
@@ -70,6 +72,7 @@
             </LMap>
         </div>
     </client-only>
+
 </template>
 
 <script setup>
@@ -89,6 +92,24 @@ const { $directus, $readItems, $municipalityApi, $t } = useNuxtApp()
 
 const PinSvg = ref('')
 let DivIcon
+
+function addLegend(map) {
+  const legend = L.control({ position: "topright" });
+
+  legend.onAdd = function () {
+    const div = L.DomUtil.create("div", "leaflet-legend");
+    div.innerHTML = `
+      <strong>Legend</strong><br>
+      🟢 Good rating<br>
+      🟡 Medium rating<br>
+      🔴 Poor rating<br>
+      ⚪ No rating
+    `;
+    return div;
+  };
+
+  legend.addTo(map);
+}
 
 onMounted(async () => {
     const leaflet = await import('leaflet')
