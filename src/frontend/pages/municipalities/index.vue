@@ -140,10 +140,17 @@
       </div>
     </div>
   </div>
+    <div class="w-full" style="min-height: 600px;">
+  <div id="my-cal-inline-onboarding" class="overflow-y-auto" style="max-height: 80vh;"></div>
+</div>
+
 </template>
 
-
 <script setup>
+import majorCitySelected from '~/assets/images/major-city-light.svg'
+import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
+import minorCitySelected from '~/assets/images/minor-city-light.svg'
+import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 import { ref } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
@@ -201,9 +208,6 @@ onMounted(() => {
 // Toggle between cities, towns, or all
 const selected = ref('all')
 
-import majorCitySelected from '~/assets/images/major-city-light.svg'
-import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
-import minorCitySelected from '~/assets/images/minor-city-light.svg'
-import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
+
 </script>
 
