@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Redakteur*innen
-      singular: Redakteur*in
-      plural: Redakteur*innen
+      translation: Team
+      singular: Teammitglied
+      plural: Teammitglieder
   unarchive_value: null
   versioning: false
 schema:
