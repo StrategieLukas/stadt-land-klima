@@ -1,8 +1,11 @@
 <script setup>
 import { ref } from 'vue'
+import TheMap from "~/components/TheMap.vue"
 import lodash from "lodash";
+
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const mapToggle = ref(true)
 
 //MetaTags
 const title = ref($t("municipalities.nav_label"));
@@ -14,7 +17,7 @@ useHead({
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type"],
+      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
       sort: "-score_total",
       limit: -1,
       filter: {
@@ -22,8 +25,8 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
           _eq: "published",
         },
       },
-    }),
-  );
+    })
+  )
 });
 
 // todo fix "place" for these views
@@ -137,24 +140,42 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 
 
 
-
-
-
-  <!-- Conditional Content -->
-  <div v-if="selected === 'major_city'">
-    <section>
-      <the-ranking :municipalities="majorCities"></the-ranking>
-    </section>
+  <!-- Show map if mapToggle is true -->
+  <div v-if="mapToggle">
+    <div v-if="selected === 'major_city'">
+      <section>
+        <TheMap :municipalities="majorCities" />
+      </section>
+    </div>
+    <div v-else-if="selected === 'minor_city'">
+      <section>
+        <TheMap :municipalities="minorCities"/>
+      </section>
+    </div>
+    <div v-else>
+      <section>
+        <TheMap :municipalities="municipalities"/>
+      </section>
+    </div>
   </div>
-  <div v-else-if="selected === 'minor_city'">
-    <section>
-      <the-ranking :municipalities="minorCities"></the-ranking>
-    </section>
-  </div>
+
+  <!-- Show rankings if mapToggle is false -->
   <div v-else>
-    <section>
-      <the-ranking :municipalities="municipalities"></the-ranking>
-    </section>
+    <div v-if="selected === 'major_city'">
+      <section>
+        <TheRanking :municipalities="majorCities"/>
+      </section>
+    </div>
+    <div v-else-if="selected === 'minor_city'">
+      <section>
+        <TheRanking :municipalities="minorCities"/>
+      </section>
+    </div>
+    <div v-else>
+      <section>
+        <TheRanking :municipalities="municipalities"/>
+      </section>
+    </div>
   </div>
 
 </template>

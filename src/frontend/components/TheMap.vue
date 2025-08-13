@@ -13,18 +13,19 @@
         :zoom="6"
         :center="[51.1657, 10.4515]"
         style="height: 100%; width: 100%"
-        ref="mapRef"
         @ready="onMapReady"
+        ref="mapRef"
       >
         <LTileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
         />
 
+        <!-- Only render markers with valid coordinates -->
         <LMarker
           v-for="m in filteredMunicipalities"
           :key="m.slug"
-          :lat-lng="[m.lat, m.lng]"
+          :lat-lng="[m.lat, m.lon]"
           :icon="getCustomIcon(m)"
         >
           <LPopup>
@@ -56,13 +57,8 @@ import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 
 const props = defineProps({
-  municipalities: {
-    type: Array,
-    required: true
-  }
+  municipalities: { type: Array, required: true }
 })
-
-console.log(props.municipalities);
 
 const showMunicipalitiesWithUnfinishedRating = ref(false)
 const clientReady = ref(false)
@@ -73,13 +69,17 @@ let legendControl = null
 const PinSvg = ref("")
 
 const filteredMunicipalities = computed(() => {
-  return props.municipalities.filter(m => {
-    if (showMunicipalitiesWithUnfinishedRating.value) {
-      return m.percentage_rated > 0 || m.status === "published"
-    } else {
-      return m.status === "published"
-    }
-  })
+  return props.municipalities
+    .map(m => {
+      const coords = m.geolocation?.coordinates
+      return {
+        ...m,
+        lat: typeof coords?.[1] === 'number' ? coords[1] : null,
+        lon: typeof coords?.[0] === 'number' ? coords[0] : null
+      }
+    })
+    .filter(m => typeof m.lat === 'number' && typeof m.lon === 'number')
+    .filter(m => showMunicipalitiesWithUnfinishedRating.value ? (m.percentage_rated > 0 || m.status === "published") : m.status === "published")
 })
 
 onMounted(async () => {
@@ -89,16 +89,7 @@ onMounted(async () => {
   clientReady.value = true
 })
 
-// update legend whenever toggle changes
-watch(showMunicipalitiesWithUnfinishedRating, () => {
-  if (mapInstance) {
-    if (legendControl) mapInstance.removeControl(legendControl)
-    addLegend(mapInstance)
-  }
-})
-
-// update legend whenever filtered municipalities change (optional)
-watch(filteredMunicipalities, () => {
+watch([showMunicipalitiesWithUnfinishedRating, filteredMunicipalities], () => {
   if (mapInstance) {
     if (legendControl) mapInstance.removeControl(legendControl)
     addLegend(mapInstance)
