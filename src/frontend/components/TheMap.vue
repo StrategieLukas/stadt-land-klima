@@ -21,7 +21,17 @@
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
         />
 
-        <!-- Only render markers with valid coordinates -->
+        <!-- Germany border -->
+        <LGeoJson :geojson="germanyPolygon" :options="germanyStyle" />
+
+        <!-- State borders -->
+        <LGeoJson :geojson="statePolygons" :options="stateStyle" />
+
+        <LRectangle
+        :bounds="[[-90, -180], [90, 180]]"
+        :path-options="{ fillColor: '#000', fillOpacity: 0.25, weight: 0, interactive: false }"
+        />
+        <!-- Municipality markers -->
         <LMarker
           v-for="m in filteredMunicipalities"
           :key="m.slug"
@@ -53,8 +63,10 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
+import { LMap, LTileLayer, LMarker, LPopup, LGeoJson } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
+import germanyGeoJson from '~/assets/germany-polygon.json?raw'
+import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
 
 const props = defineProps({
   municipalities: { type: Array, required: true }
@@ -67,6 +79,31 @@ let DivIcon = null
 let mapInstance = null
 let legendControl = null
 const PinSvg = ref("")
+
+const germanyPolygon = JSON.parse(germanyGeoJson)
+const statePolygons = JSON.parse(germanyStatesGeoJson)
+
+
+const germanyStyle = {
+  color: '#1E3A8A', 
+  weight: 2,
+  fillOpacity: 0      // no fill
+}
+
+const stateStyle = {
+  color: '#1E40AF', 
+  weight: 1,
+  fillOpacity: 0      // no fill
+}
+
+const maskStyle = {
+  fillColor: '#000',
+  fillOpacity: 0.25,
+  weight: 0,
+  interactive: false
+}
+
+
 
 const filteredMunicipalities = computed(() => {
   return props.municipalities
