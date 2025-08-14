@@ -27,10 +27,15 @@
         <!-- State borders -->
         <LGeoJson :geojson="statePolygons" :options="stateStyle" />
 
+        <!-- Global grey mask -->
         <LRectangle
-        :bounds="[[-90, -180], [90, 180]]"
-        :path-options="{ fillColor: '#000', fillOpacity: 0.25, weight: 0, interactive: false }"
+          :bounds="[[-90, -180], [90, 180]]"
+          :path-options="maskStyle"
         />
+
+        <!-- Germany cover to reveal map underneath -->
+        <LGeoJson :geojson="germanyPolygon" :options="germanyCoverStyle" />
+
         <!-- Municipality markers -->
         <LMarker
           v-for="m in filteredMunicipalities"
@@ -63,7 +68,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { LMap, LTileLayer, LMarker, LPopup, LGeoJson } from '@vue-leaflet/vue-leaflet'
+import { LMap, LTileLayer, LMarker, LPopup, LGeoJson, LRectangle } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 import germanyGeoJson from '~/assets/germany-polygon.json?raw'
 import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
@@ -83,27 +88,31 @@ const PinSvg = ref("")
 const germanyPolygon = JSON.parse(germanyGeoJson)
 const statePolygons = JSON.parse(germanyStatesGeoJson)
 
-
 const germanyStyle = {
-  color: '#1E3A8A', 
+  color: '#1E3A8A',
   weight: 2,
   fillOpacity: 0      // no fill
 }
 
 const stateStyle = {
-  color: '#1E40AF', 
+  color: '#1E40AF',
   weight: 1,
   fillOpacity: 0      // no fill
 }
 
 const maskStyle = {
-  fillColor: '#000',
-  fillOpacity: 0.25,
+  fillColor: '#808080',
+  fillOpacity: 0.1,
   weight: 0,
   interactive: false
 }
 
-
+const germanyCoverStyle = {
+  fillColor: '#FFFFFF',
+  fillOpacity: 0.3,
+  weight: 0,
+  interactive: false
+}
 
 const filteredMunicipalities = computed(() => {
   return props.municipalities
