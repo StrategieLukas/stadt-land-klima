@@ -1,5 +1,5 @@
 <template>
-    <form class="relative mb-1 overflow-visible" action="javascript:;">
+    <form class="relative overflow-visible" action="javascript:;">
           <div class="form-control">
             <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
             <input
