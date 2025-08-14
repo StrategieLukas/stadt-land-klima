@@ -156,6 +156,7 @@
 <script setup>
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
+import linkifyStr from "linkify-string";
 import sectorImages from "../shared/sectorImages.js";
 import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
 import { formatLastUpdated } from "../shared/utils.js";
