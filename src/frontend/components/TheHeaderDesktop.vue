@@ -9,7 +9,17 @@
       </div>
 
       <!-- Search Bar in center -->
-      <MunicipalitySearchBar/>
+      <div class="flex items-end space-x-4">
+        <MunicipalitySearchBar/>
+        <button
+          :class="{'invisible': route.path !== '/municipalities'}"
+          :aria-hidden="route.path !== '/municipalities'"
+          @click="toggleView"
+          class="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100"
+        >
+          <span v-html="isMapView ? listViewIcon : mapViewIcon" class="w-12 h-12 flex-none"></span>
+        </button>
+      </div>
 
       <!-- Right side (Search + Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
@@ -87,12 +97,30 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { defineProps } from "vue";
 const { $t } = useNuxtApp();
 const props = defineProps(["pages"]);
 
 const route = useRoute();
+const router = useRouter();
+
+import mapViewIcon from '~/assets/icons/icon_map_view.svg?raw';
+import listViewIcon from '~/assets/icons/icon_list_view.svg?raw';
+
+const isMapView = computed(() => route.query.view !== 'list'); // Default to map view if no query param or 'map'
+
+const toggleView = () => {
+  const newView = isMapView.value ? 'list' : 'map';
+
+  if (route.path !== '/municipalities') {
+    // If not on the municipalities page, navigate there with the view query
+    router.push({ path: '/municipalities', query: { ...route.query, view: newView } });
+  } else {
+    // If already on the municipalities page, just update the query param
+    router.push({ query: { ...route.query, view: newView } });
+  }
+};
 
 //Separate pages into "main" and "other" based on configured menus
 const mainPages = computed(() =>

@@ -8,13 +8,6 @@
 
   <!-- Toggle Buttons -->
   <div class="flex flex-wrap gap-2 justify-center mb-5 max-w-4xl">
-    <!-- Dummy MapToggle button -->
-    <button @click="mapToggle = !mapToggle"
-      class="p-2 border rounded text-xs md:text-sm hover:scale-105 transition"
-    >
-      {{ mapToggle ? 'Show Rankings' : 'Show Map' }}
-    </button>
-
     <!-- All / Major / Minor cities buttons -->
     <button
       class="flex items-center p-2 rounded border transition hover:scale-105 text-xs md:text-sm"
@@ -55,27 +48,29 @@
 
   <!-- Map / Rankings display -->
   <div class="w-full max-w-screen-xl mt-4">
-    <TheMap v-if="mapToggle && selected === 'major_city'" :municipalities="majorCities"/>
-    <TheMap v-else-if="mapToggle && selected === 'minor_city'" :municipalities="minorCities"/>
-    <TheMap v-else-if="mapToggle" :municipalities="municipalities"/>
+    <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+    <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+    <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
 
-    <TheRanking v-if="!mapToggle && selected === 'major_city'" :municipalities="majorCities"/>
-    <TheRanking v-else-if="!mapToggle && selected === 'minor_city'" :municipalities="minorCities"/>
-    <TheRanking v-else-if="!mapToggle" :municipalities="municipalities"/>
+    <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+    <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+    <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
   </div>
 </div>
 </template>
 
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import TheMap from "~/components/TheMap.vue"
 import TheRanking from "~/components/TheRanking.vue"
 import lodash from "lodash";
 
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
-const mapToggle = ref(true)
+
+const route = useRoute();
+const isMapView = computed(() => route.query.view !== 'list'); // Default to map view if no query param or 'map'
 const selected = ref('all')
 
 //MetaTags
