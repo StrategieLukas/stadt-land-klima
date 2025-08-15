@@ -9,7 +9,7 @@
       </div>
 
       <!-- Search Bar in center -->
-      <MunicipalitySearchBar/>
+      <MunicipalitySearchBar basePath="/municipalities" :label="$t('municipalities_search.label')" :municipalities="publishedMunicipalities"/>
 
       <!-- Right side (Search + Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
@@ -101,6 +101,21 @@ const mainPages = computed(() =>
 const otherPages = computed(() =>
   props?.pages?.filter((page) => page.menus && page.menus.includes('main') && !page.menus.includes('top-bar')) || []
 );
+
+const { data: publishedMunicipalities } = await useAsyncData("municipalities", () => {
+  return $directus.request(
+    $readItems("municipalities", {
+      fields: ["slug", "name"],
+      sort: "name",
+      filter: {
+        status: {
+          _eq: "published",
+        },
+      },
+      limit: -1,
+    }),
+  );
+});
 
 // Function to check if a page is active
 const isActive = (slug) => {

@@ -1,99 +1,113 @@
 <template>
-    <form class="relative mb-1 overflow-visible" action="javascript:;">
-          <div class="form-control">
-            <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
-            <input
-              id="search-input"
-              v-model="q"
-              class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96"
-              name="q"
-              type="text"
-              autocomplete="off"
-              @focus="handleSearchFocus()"
-              @blur="handleSearchBlur()"
-            />
-            <button
-              class="absolute right-4 top-12 py-1 opacity-50 hover:opacity-60 focus:opacity-60"
-              @click="handleResetSearchClick()"
-            >
-              ✖️
-            </button>
-          </div>
-  
-          <div
-            v-if="suggestions.length && searchFocused"
-            class="dropdown-open dropdown absolute left-0 right-0 top-24 w-full"
-          >
-            <label tabindex="0"></label>
-            <ul tabindex="0" class="menu dropdown-content rounded-box z-50 w-full bg-base-100 p-2 shadow">
-              <div v-for="(suggestion, index) in suggestions" :key="index">
-                <NuxtLink :to="suggestion.url" class="p-0" @click="handleSuggestionClick">
-                  <li>
-                    <div>{{ suggestion.label }}</div>
-                  </li>
-                </NuxtLink>
-              </div>
-            </ul>
-          </div>
-        </form>
+  <div class="relative w-full max-w-md">
+    <label class="label" for="search-input">{{ label }}</label>
+    <div class="relative">
+      <input
+        id="search-input"
+        v-model="q"
+        type="text"
+        autocomplete="off"
+        class="input input-bordered input-primary w-full bg-white pr-12"
+        @input="onInput"
+        @focus="focused = true"
+        @keydown.down.prevent="moveFocus(1)"
+        @keydown.up.prevent="moveFocus(-1)"
+        @keydown.enter.prevent="goToFocused()"
+      />
+      <button
+        v-if="q"
+        class="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80"
+        @click="clear"
+      >
+        ✖️
+      </button>
+    </div>
+
+    <!-- Suggestions Dropdown -->
+    <ul
+      v-if="visibleSuggestions.length && focused"
+      class="absolute z-50 mt-1 w-full rounded-md border bg-base-100 p-2 shadow"
+      @mouseleave="focusedIndex = -1"
+    >
+      <li
+        v-for="(s, i) in visibleSuggestions"
+        :key="s.slug"
+        :class="[
+          'cursor-pointer rounded p-2 hover:bg-base-200',
+          focusedIndex === i ? 'bg-base-200' : ''
+        ]"
+        @mousedown.prevent="goTo(s.url)"
+        @mouseenter="focusedIndex = i"
+      >
+        {{ s.label }}
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-const { $t, $directus, $readItems } = useNuxtApp();
-const q = ref("");
-const searchFocused = ref(false);
-const { data: municipalities } = await useAsyncData("municipalities", () => {
-  return $directus.request(
-    $readItems("municipalities", {
-      fields: ["slug", "name"],
-      sort: "name",
-      filter: {
-        status: {
-          _eq: "published",
-        },
-      },
-      limit: -1,
-    }),
-  );
+import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+
+const props = defineProps({
+  municipalities: {
+    type: Array,
+    required: true,
+  },
+  label: {
+    type: String,
+    required: true,
+  },
+  basePath: {
+    type: String,
+    required: true,
+  },
 });
 
-function handleSearchFocus() {
-  searchFocused.value = true;
+const q = ref('');
+const focused = ref(false);
+const focusedIndex = ref(-1);
+const router = useRouter();
+
+const visibleSuggestions = computed(() => {
+  const term = q.value.trim().toLowerCase();
+  if (!term) return [];
+  return props.municipalities
+    .filter((m) => m.name.toLowerCase().includes(term))
+    .slice(0, 5)
+    .map((m) => ({
+      label: m.name,
+      url: `${props.basePath}/${m.slug}`,
+    }));
+});
+
+function onInput() {
+  focusedIndex.value = -1;
 }
 
-function handleSearchBlur() {
-  setTimeout(() => {
-    searchFocused.value = false;
-  }, 100);
+function clear() {
+  q.value = '';
+  focusedIndex.value = -1;
 }
 
-function handleSuggestionClick(event) {
-  q.value = "";
-  return false;
+function goTo(url) {
+  q.value = '';
+  focusedIndex.value = -1;
+  focused.value = false;
+  router.push(url);
 }
 
-function handleResetSearchClick() {
-  q.value = "";
+function moveFocus(direction) {
+  const max = visibleSuggestions.value.length - 1;
+  focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + direction));
 }
 
-const suggestions = computed(() => {
-  const _q = q.value.trim().toLowerCase();
+function goToFocused() {
+  const suggestion = visibleSuggestions.value[focusedIndex.value];
+  if (suggestion) goTo(suggestion.url);
+}
 
-  if (!_q.length || !municipalities.value || !municipalities.value.length) {
-    return [];
-  }
-
-  return municipalities.value
-    .filter((municipality) => {
-      return municipality.name.toLowerCase().indexOf(_q) !== -1;
-    })
-    .map((municipality) => {
-      return {
-        url: `/municipalities/${municipality.slug}`,
-        label: municipality.name,
-      };
-    })
-    .slice(0, 5);
+watch(() => document.activeElement, (el) => {
+  if (!el || el.id !== 'search-input') focused.value = false;
 });
 </script>
