@@ -10,7 +10,7 @@
         <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
       </div>
       <p class="mb-4 mt-0 text-center text-xs">
-        {{ $t("municipalities.last_updated_at") + municipality.date_updated }}
+        {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
       </p>
       <div class="mx-auto mb-8 flex justify-center">
         <implementation-traffic-light />
@@ -169,7 +169,7 @@
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
-      <div class="lg:col-span-1">
+      <div class="lg:col-span-1 pb-4">
         <div class="sticky top-8 space-y-6">
           <!-- Municipality Quick Info -->
           <div class="rounded-sm shadow-list">
@@ -210,7 +210,7 @@
                   <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
                   <span class="text-sm text-gray-700">{{ $t("state") }}</span>
                 </div>
-                <span class="text-sm font-medium text-gray-900">{{ municipality.state }}</span>
+                <span class="text-sm font-bold text-gray-900">{{ municipality.state }}</span>
               </div>
 
               <div v-if="municipality?.population" class="flex items-center justify-between">
@@ -300,7 +300,7 @@
           <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
             <div class="flex items-center gap-2 text-sm text-gray-600">
               <img src="~/assets/icons/icon_info.svg" class="h-4 w-4 opacity-60" />
-              <span>{{ $t("municipalities.last_updated_at") + municipality.date_updated }}</span>
+              <span>{{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}</span>
             </div>
           </div>
         </div>
