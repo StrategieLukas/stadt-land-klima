@@ -1,12 +1,5 @@
 <template lang="">
-  <!-- Loading state if municipality data is not available -->
-  <div v-if="!hasMunicipalityData" class="flex items-center justify-center py-8">
-    <div class="loading loading-spinner loading-md text-green"></div>
-    <span class="ml-2 text-gray-600">{{ $t("generic.loading") }}</span>
-  </div>
-
-  <!-- Content when municipality data is available -->
-  <div v-else>
+  <div>
     <!-- Mobile: Single column layout -->
     <div class="block lg:hidden w-full flex-col justify-center">
       <div class="mb-8">
@@ -108,9 +101,6 @@
         <div class="mb-4">
           <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
         </div>
-        <p class="mb-4 mt-0 text-center text-xs">
-          {{ $t("municipalities.last_updated_at") + safeFormatLastUpdated(municipality.date_updated, $locale) }}
-        </p>
         <div class="mx-auto mb-8 flex justify-center">
           <implementation-traffic-light />
         </div>
@@ -189,7 +179,7 @@
               <div v-if="municipality?.state && municipality.state !== 'Berlin' && municipality.state !== 'Hamburg'" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
-                  <span class="text-sm text-gray-700">Bundesland</span>
+                  <span class="text-sm text-gray-700">{{ $t("municipality.state") }}</span>
                 </div>
                 <span class="text-sm font-medium text-gray-900">{{ municipality.state }}</span>
               </div>
@@ -197,9 +187,9 @@
               <div v-if="municipality?.population" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                  <span class="text-sm text-gray-700">Einwohner</span>
+                  <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
                 </div>
-                <span class="text-sm font-medium text-gray-900">{{ municipality.population.toLocaleString() }}</span>
+                <span class="text-sm font-bold text-gray-900">{{ municipality.population.toLocaleString() }}</span>
               </div>
               
               <div v-if="municipality?.party_mayor" class="flex items-center justify-between">
@@ -207,27 +197,27 @@
                   <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
                   <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
                 </div>
-                <span v-if="municipality.party_mayor" class="text-sm font-medium text-gray-900">{{ municipality.mayor }} ({{ municipality.party_mayor }})</span>
-                <span v-else class="text-sm font-medium text-gray-900">{{ municipality.party_mayor }}</span>
+                <span v-if="municipality.party_mayor" class="text-sm font-bold text-gray-900">{{ municipality.mayor }} ({{ municipality.party_mayor }})</span>
+                <span v-else class="text-sm font-bold text-gray-900">{{ municipality.party_mayor }}</span>
               </div>
               
               <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <div v-if="municipality.municipality_type === 'big_city'" v-html="majorCityIcon" class="h-5 w-5 opacity-60"></div>
                   <div v-else v-html="minorCityIcon" class="h-5 w-5 opacity-60"></div>
-                  <span class="text-sm text-gray-700">Typ</span>
+                  <span class="text-sm text-gray-700">{{ $t("municipality.municipality_type") }}</span>
                 </div>
-                <span class="text-sm font-medium text-gray-900">
-                  {{ municipality.municipality_type === 'big_city' ? 'Großstadt' : 'Kleinstadt' }}
+                <span class="text-sm font-bold text-gray-900">
+                  {{ municipality.municipality_type === 'big_city' ? $t("municipality.municipality_type.major_city") : $t("municipality.municipality_type.minor_city") }}
                 </span>
               </div>
               <div v-if="municipality?.score_total">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm font-medium text-gray-700">Gesamtbewertung</span>
+                      <span class="text-sm font-medium text-gray-700">{{ $t("municipality.overall_score") }}</span>
                   </div>
-                  <span class="text-lg font-bold" :class="`text-${getScoreColor(municipality.score_total)}`">{{ Math.round(Number(municipality.score_total) * 10) / 10 }}%</span>
+                  <span class="text-sm font-bold" :class="`text-${getScoreColor(municipality.score_total)}`">{{ Math.round(Number(municipality.score_total) * 10) / 10 }}%</span>
                 </div>
               </div>
             </div>
@@ -265,9 +255,8 @@
           <div v-if="municipalityProjects && municipalityProjects.length > 0" class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
             <div class="flex items-center gap-3 mb-4">
               <img src="~/assets/icons/icon_invest.svg" class="h-6 w-6 opacity-60" />
-              <h3 class="font-heading text-h3 text-green">Erfolgsprojekte</h3>
+              <h3 class="font-heading text-h3 text-green">{{ $t("municipality.success_projects") }}</h3>
             </div>
-            <p class="text-sm text-gray-600 mb-4">Projekte und Initiativen aus {{ municipality?.name || 'dieser Gemeinde' }}</p>
             <div class="space-y-4">
               <ProjectCard 
                 v-for="project in municipalityProjects" 
@@ -285,23 +274,11 @@
             </div>
           </div>
 
-          <!-- Loading Projects -->
-          <div v-else-if="loadingProjects" class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <div class="flex items-center gap-3 mb-4">
-              <img src="~/assets/icons/icon_invest.svg" class="h-6 w-6 opacity-60" />
-              <h3 class="font-heading text-h3 text-green">Erfolgsprojekte</h3>
-            </div>
-            <div class="flex items-center justify-center py-8">
-              <div class="loading loading-spinner loading-md text-green"></div>
-              <span class="ml-2 text-gray-600">{{ $t("generic.loading") }}</span>
-            </div>
-          </div>
-
           <!-- Last Update Info -->
           <div v-if="municipality?.date_updated" class="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <div class="flex items-center gap-2 text-sm text-gray-600">
               <img src="~/assets/icons/icon_info.svg" class="h-4 w-4 opacity-60" />
-              <span>Letzte Aktualisierung: {{ safeFormatLastUpdated(municipality.date_updated, $locale) }}</span>
+              <span>{{ $t("municipalities.last_updated_at") + safeFormatLastUpdated(municipality.date_updated, $locale) }}</span>
             </div>
           </div>
         </div>
