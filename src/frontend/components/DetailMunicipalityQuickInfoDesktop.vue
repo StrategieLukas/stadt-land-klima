@@ -61,8 +61,7 @@
 
             <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                <img v-if="municipality.municipality_type === 'big_city'" src="~/assets/images/major-city-dark.svg" class="h-5 w-5 opacity-60">
-                <img v-else src="~/assets/images/minor-city-dark.svg" class="h-5 w-5 opacity-60">
+                <div v-html="MunicipalitySvg" class="h-5 w-5 opacity-60"/>
                 <span class="text-sm text-gray-700">{{ $t("municipality.municipality_type") }}</span>
                 </div>
                 <span class="text-sm font-bold text-gray-900">
@@ -88,16 +87,29 @@
 </template>
 
 <script setup>
+import majorCity from '~/assets/images/major-city-dark.svg?raw';
+import minorCity from '~/assets/images/minor-city-dark.svg?raw';
 import sanitizeHtml from "sanitize-html";
 import linkifyStr from "linkify-string";
 import { getScoreColor } from "../shared/utils.js"
+import { overwriteSvgStyles } from "../shared/svg-logic.js"
 const { $t } = useNuxtApp();
+
+const MunicipalitySvg = ref('')
+
 
 const props = defineProps({
   municipality: {
     type: Object,
     required: true,
   },
+});
+
+onMounted(async () => {
+    MunicipalitySvg.value = await overwriteSvgStyles(props.municipality.municipality_type === 'big_city' ? majorCity : minorCity, {
+        "st0" : "fill-white",
+        "st1" : "fill-black",
+    })
 });
 
 </script>
