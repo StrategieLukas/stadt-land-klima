@@ -28,3 +28,18 @@ export function formatLastUpdated(dateString, locale) {
     day: "numeric",
   })}, ${lastUpdatedAt.toLocaleTimeString(locale)}`;
 };
+
+export function getScoreColor(score) {
+  const numericScore = Number(score);
+  if(numericScore >= 80) {
+    return "ranking-8-10";
+  } else if(numericScore >= 60) {
+    return "ranking-6-8";
+  } else if(numericScore >= 40) {
+    return "ranking-4-6";
+  } else if(numericScore >= 20) {
+    return "ranking-2-4";
+  } else if(numericScore >= 0) {
+    return "ranking-0-2";
+  }
+};

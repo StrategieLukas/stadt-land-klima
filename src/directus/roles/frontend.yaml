@@ -152,6 +152,7 @@ permissions:
       - article_text
       - organisation
       - link
+      - id
   - collection: organisations
     action: read
     permissions: null

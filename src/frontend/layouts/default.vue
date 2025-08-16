@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen text-neutral font-sans">
+  <div class="flex flex-col min-h-screen text-neutral font-sans ">
 
     <!-- Always render both headers, control visibility with Tailwind -->
     <div>
@@ -24,21 +24,21 @@
     </div>
 
     <!-- Main Content (always rendered) -->
-    <main class="flex grow flex-col bg-white px-2 py-4">
+    <main class="flex grow flex-col px-2 py-4 bg-mild-white">
       <div class="mx-auto w-full max-w-screen-xl flex flex-col">
         <slot />
       </div>
     </main>
 
     <!-- Footer (Mobile version) -->
-     <div class="block lg:hidden">
+     <div class="block lg:hidden bg-mild-white">
         <the-footer-mobile
         :pages="pages.filter((page) => includes(page.menus, 'footer'))"
       />
      </div>
 
      <!-- Footer (Desktop version) -->
-     <div class="hidden lg:block">
+     <div class="hidden lg:block bg-mild-white">
       <the-footer-desktop
         :pages="pages.filter((page) => includes(page.menus, 'footer'))"
       />
