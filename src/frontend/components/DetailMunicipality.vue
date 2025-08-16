@@ -148,10 +148,6 @@ import DetailMunicipalityQuickInfoDesktop from "~/components/DetailMunicipalityQ
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
 
-// Dynamic SVG imports for city type icons
-const majorCityIcon = ref('');
-const minorCityIcon = ref('');
-
 const props = defineProps({
   municipality: {
     type: Object,
@@ -176,14 +172,6 @@ const hasMunicipalityData = computed(() => {
 });
 
 onMounted(async () => {
-  // Load SVG icons
-  try {
-    majorCityIcon.value = (await import('~/assets/images/major-city-dark.svg?raw')).default;
-    minorCityIcon.value = (await import('~/assets/images/minor-city-dark.svg?raw')).default;
-  } catch (error) {
-    console.warn('Failed to load SVG icons:', error);
-  }
-  
   // Fetch municipality projects
   if (hasMunicipalityData.value) {
     await fetchMunicipalityProjects();

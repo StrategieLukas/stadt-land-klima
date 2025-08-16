@@ -53,10 +53,10 @@
             <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
             <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
             </div>
-            <span v-if="municipality.party_mayor" class="text-sm font-bold text-gray-900">
+            <span v-if="municipality.party_mayor" class="text-sm font-bold text-gray-900 text-right">
             {{ municipality.mayor }} ({{ municipality.party_mayor }})
             </span>
-            <span v-else class="text-sm font-bold text-gray-900">{{ municipality.party_mayor }}</span>
+            <span v-else class="text-sm font-bold text-gray-900 text-right">{{ municipality.party_mayor }}</span>
         </div>
 
         <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
@@ -92,11 +92,25 @@ import sanitizeHtml from "sanitize-html";
 import linkifyStr from "linkify-string";
 import { getScoreColor } from "../shared/utils.js"
 
+// Dynamic SVG imports for city type icons
+const majorCityIcon = ref('');
+const minorCityIcon = ref('');
+
 const props = defineProps({
   municipality: {
     type: Object,
     required: true,
   },
+});
+
+onMounted(async () => {
+  // Load SVG icons
+  try {
+    majorCityIcon.value = (await import('~/assets/images/major-city-dark.svg?raw')).default;
+    minorCityIcon.value = (await import('~/assets/images/minor-city-dark.svg?raw')).default;
+  } catch (error) {
+    console.warn('Failed to load SVG icons:', error);
+  }
 });
 
 </script>
