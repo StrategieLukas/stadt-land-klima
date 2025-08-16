@@ -205,9 +205,10 @@
               <div v-if="municipality?.party_mayor" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
-                  <span class="text-sm text-gray-700">Bürgermeister</span>
+                  <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
                 </div>
-                <span class="text-sm font-medium text-gray-900">{{ municipality.party_mayor }}</span>
+                <span v-if="municipality.party_mayor" class="text-sm font-medium text-gray-900">{{ municipality.mayor }} ({{ municipality.party_mayor }})</span>
+                <span v-else class="text-sm font-medium text-gray-900">{{ municipality.party_mayor }}</span>
               </div>
               
               <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
@@ -220,15 +221,13 @@
                   {{ municipality.municipality_type === 'big_city' ? 'Großstadt' : 'Kleinstadt' }}
                 </span>
               </div>
-
-              <!-- Overall Score -->
-              <div v-if="municipality?.score_total" class="pt-3 border-t border-gray-200">
+              <div v-if="municipality?.score_total">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-5 w-5 opacity-60" />
                     <span class="text-sm font-medium text-gray-700">Gesamtbewertung</span>
                   </div>
-                  <span class="text-lg font-bold" :class="getScoreColor(municipality.score_total)">{{ Math.round(Number(municipality.score_total) * 10) / 10 }}/10</span>
+                  <span class="text-lg font-bold" :class="`text-${getScoreColor(municipality.score_total)}`">{{ Math.round(Number(municipality.score_total) * 10) / 10 }}%</span>
                 </div>
               </div>
             </div>
@@ -318,7 +317,7 @@ import sanitizeHtml from "sanitize-html";
 import linkifyStr from "linkify-string";
 import sectorImages from "../shared/sectorImages.js";
 import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
-import { formatLastUpdated } from "../shared/utils.js";
+import { formatLastUpdated, getScoreColor } from "../shared/utils.js";
 import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
 import ProjectCard from "~/components/ProjectCard.vue";
 import ProgressBar from "~/components/ProgressBar.vue";
@@ -456,13 +455,6 @@ function createSubScoreObject(municipality) {
   return temp;
 }
 
-// Helper function to get color based on score
-const getScoreColor = (score) => {
-  const numericScore = Number(score);
-  if (numericScore >= 7) return 'text-green';
-  if (numericScore >= 4) return 'text-yellow';
-  return 'text-red';
-};
 </script>
 
 <style lang=""></style>
