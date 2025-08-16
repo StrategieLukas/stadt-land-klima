@@ -36,7 +36,14 @@
       <ul class="mb-8 divide-y-2 divide-slate-300">
         <li v-for="item in sectorRatings" :key="item.id">
           <div class="collapse-plus collapse rounded-none">
-            <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off" />
+            <input
+              type="checkbox"
+              :id="`rating-${item.id}-accordion`"
+              v-model="openItems[item.id]"
+              autocomplete="off"
+            />
+
+            <!-- Header -->
             <div
               :class="[
                 ratingColor[ratingIndex(item.rating)],
@@ -45,12 +52,18 @@
               ]"
             >
               <div class="shrink-0">
-                <img :src="ratingIcons[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
+                <img
+                  :src="ratingIcons[ratingIndex(item.rating)]"
+                  class="my-auto h-auto w-5"
+                />
               </div>
+
               <h3 class="font-heading text-h3 font-medium">
                 {{ item.measure.name }}
               </h3>
             </div>
+
+            <!-- Content (lazy loaded) -->
             <div
               :class="[
                 ratingColor[ratingIndex(item.rating)],
@@ -58,7 +71,14 @@
                 'collapse-content md:px-12 lg:px-12'
               ]"
             >
-              <MeasureDetails :measure_rating="item" :municipality="municipality" />
+              <!-- Mount only when collapse is opened -->
+              <KeepAlive>
+                <MeasureDetails
+                  v-if="openItems[item.id]"
+                  :measure_rating="item"
+                  :municipality="municipality"
+                />
+              </KeepAlive>
             </div>
           </div>
         </li>
@@ -73,6 +93,10 @@ import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
 import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
+import { reactive } from 'vue'
+
+// Track which collapses are open
+const openItems = reactive({})
 
 const props = defineProps({
   municipality: {
