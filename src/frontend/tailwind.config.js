@@ -39,6 +39,7 @@ module.exports = {
         gray: "#505050",
         "mid-gray": "#707070",
         black: "#000000",
+        "mild-white": "#fbfbfb",
       },
       boxShadow: {
         list: "0 3pt 6pt #00000029",

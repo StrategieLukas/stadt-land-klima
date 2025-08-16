@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen text-neutral font-sans">
+  <div class="flex flex-col min-h-screen text-neutral font-sans bg-mild-white">
 
     <!-- Always render both headers, control visibility with Tailwind -->
     <div>
@@ -24,7 +24,7 @@
     </div>
 
     <!-- Main Content (always rendered) -->
-    <main class="flex grow flex-col bg-white px-2 py-4">
+    <main class="flex grow flex-col px-2 py-4">
       <div class="mx-auto w-full max-w-screen-xl flex flex-col">
         <slot />
       </div>
