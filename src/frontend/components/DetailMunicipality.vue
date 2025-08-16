@@ -10,7 +10,7 @@
         <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
       </div>
       <p class="mb-4 mt-0 text-center text-xs">
-        {{ $t("municipalities.last_updated_at") + safeFormatLastUpdated(municipality.date_updated, $locale) }}
+        {{ $t("municipalities.last_updated_at") + municipality.date_updated }}
       </p>
       <div class="mx-auto mb-8 flex justify-center">
         <implementation-traffic-light />
@@ -300,7 +300,7 @@
           <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
             <div class="flex items-center gap-2 text-sm text-gray-600">
               <img src="~/assets/icons/icon_info.svg" class="h-4 w-4 opacity-60" />
-              <span>{{ $t("municipalities.last_updated_at") + safeFormatLastUpdated(municipality.date_updated, $locale) }}</span>
+              <span>{{ $t("municipalities.last_updated_at") + municipality.date_updated }}</span>
             </div>
           </div>
         </div>
@@ -341,17 +341,6 @@ const props = defineProps({
 
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);
-
-// Safe date formatting function
-const safeFormatLastUpdated = (dateString, locale) => {
-  try {
-    if (!dateString) return 'Unbekannt';
-    return formatLastUpdated(dateString, locale);
-  } catch (error) {
-    console.warn('Failed to format date:', error);
-    return 'Unbekannt';
-  }
-};
 
 // Fetch projects associated with this municipality
 const municipalityProjects = ref([]);
