@@ -123,6 +123,7 @@
       <div class="sticky top-8">
         <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
+          <OnboardingBox :name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=250&height=250"/>
           <ProjectCard 
             v-for="project in projects" 
             :key="project.id"
@@ -140,9 +141,7 @@
       </div>
     </div>
   </div>
-    <div class="w-full" style="min-height: 600px;">
-  <div id="my-cal-inline-onboarding" class="overflow-y-auto" style="max-height: 80vh;"></div>
-</div>
+    
 
 </template>
 
@@ -151,6 +150,7 @@ import majorCitySelected from '~/assets/images/major-city-light.svg'
 import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
 import minorCitySelected from '~/assets/images/minor-city-light.svg'
 import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
+import OnboardingBox from '~/components/OnboardingBox.vue'
 import { ref } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
