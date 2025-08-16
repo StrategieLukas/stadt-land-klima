@@ -106,7 +106,7 @@ const props = defineProps({
 onMounted(async () => {
   // Load SVG icons
   try {
-    majorCityIcon.value = (await import('~/assets/images/major-city-dark.svg?raw')).default;
+    // majorCityIcon.value = (await import('~/assets/images/major-city-dark.svg?raw')).default;
     minorCityIcon.value = (await import('~/assets/images/minor-city-dark.svg?raw')).default;
   } catch (error) {
     console.warn('Failed to load SVG icons:', error);
