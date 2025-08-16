@@ -1,5 +1,5 @@
+// plugins/cal.client.ts
 export default () => {
-  // Generated from https://cal.com/help/embedding/embed-snippet-generator
   (function (C, A, L) {
     let p = function (a, ar) { a.q.push(ar) }
     let d = C.document
@@ -29,21 +29,14 @@ export default () => {
     }
   })(window, "https://app.cal.com/embed/embed.js", "init")
 
-  // Init your instance here
+  // Init + UI only (NO inline here)
   window.Cal("init", "onboarding", { origin: "https://app.cal.com" })
-
-  window.Cal.ns.onboarding("inline", {
-    elementOrSelector: "#my-cal-inline-onboarding",
-    config: { layout: "month_view" },
-    calLink: "stadt-land-klima/onboarding",
-  })
-
   window.Cal.ns.onboarding("ui", {
     cssVarsPerTheme: {
       light: { "cal-brand": "#678203" },
-      dark: { "cal-brand": "#fafafa" }
+      dark:  { "cal-brand": "#fafafa" }
     },
     hideEventTypeDetails: false,
-    layout: "month_view"
+    layout: "month_view",
   })
 }
