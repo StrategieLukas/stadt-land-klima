@@ -44,52 +44,7 @@
         </div>
       </div>
 
-      <!-- Mobile: Measures -->
-      <div
-        v-for="(sectorRatings, sector) in sortedRatings"
-        :key="sector"
-        class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4"
-      >
-        <input type="checkbox" name="sectors-accordion" autocomplete="off" />
-        <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
-          <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-          <div class="grow">
-            <h2 class="mb-2 font-heading text-h2 leading-none text-green">
-              {{ $t(`measure_sectors.${sector}.title`) }}
-            </h2>
-            <ProgressBar :score-total="Math.round(Number(municipality['score_' + sector]) * 10) / 10" layout="compact" />
-          </div>
-        </div>
-        <div class="collapse-content px-2 md:px-4">
-          <h3 class="mb-2 font-heading text-h2 text-black">
-            {{ $t("measure_sector.measures_in_detail") }}
-          </h3>
-          <ul class="mb-2 flex items-end justify-center gap-4">
-            <li v-for="(rating, _) in [0,1,2,3,null]" :key="`rating-image-${rating}`" class="flex flex-col items-center">
-              <img :src="ratingIcons[rating]" class="h-auto w-5" />
-              <div class="text-sm">{{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}</div>
-            </li>
-          </ul>
-          <ul class="mb-8 divide-y-2 divide-slate-300">
-            <li v-for="item in sectorRatings" :key="item.id">
-              <div class="collapse-plus collapse rounded-none">
-                <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off"/>
-                <div :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']">
-                  <div class="shrink-0">
-                    <img :src="ratingIcons[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
-                  </div>
-                  <h3 class="font-heading text-h3 font-medium">
-                    {{ item.measure.name }}
-                  </h3>
-                </div>
-                <div :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']">
-                  <MeasureDetails :measure_rating="item" :municipality="municipality" />
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
+      <DetailMunicipalitySectorCards :municipality="municipality" :sortedRatings="sortedRatings"/>
     </div>
 
     <!-- Desktop: Two column layout -->
@@ -120,144 +75,14 @@
           </div>
         </div>
 
-        <!-- Measures -->
-        <div
-          v-for="(sectorRatings, sector) in sortedRatings"
-          :key="sector"
-          class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4"
-        >
-          <input type="checkbox" name="sectors-accordion" autocomplete="off" />
-          <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
-            <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-            <div class="grow">
-              <h2 class="mb-2 font-heading text-h2 leading-none text-green">
-                {{ $t(`measure_sectors.${sector}.title`) }}
-              </h2>
-              <ProgressBar :score-total="Math.round(Number(municipality['score_' + sector]) * 10) / 10" layout="compact" />
-            </div>
-          </div>
-          <div class="collapse-content px-2 md:px-4">
-            <h3 class="mb-2 font-heading text-h2 text-black">
-              {{ $t("measure_sector.measures_in_detail") }}
-            </h3>
-            <ul class="mb-2 flex items-end justify-center gap-4">
-              <li v-for="(rating, _) in [0,1,2,3,null]" :key="`rating-image-${rating}`" class="flex flex-col items-center">
-                <img :src="ratingIcons[rating]" class="h-auto w-5" />
-                <div class="text-sm">{{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}</div>
-              </li>
-            </ul>
-            <ul class="mb-8 divide-y-2 divide-slate-300">
-              <li v-for="item in sectorRatings" :key="item.id">
-                <div class="collapse-plus collapse rounded-none">
-                  <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off"/>
-                  <div :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']">
-                    <div class="shrink-0">
-                      <img :src="ratingIcons[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
-                    </div>
-                    <h3 class="font-heading text-h3 font-medium">
-                      {{ item.measure.name }}
-                    </h3>
-                  </div>
-                  <div :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']">
-                    <MeasureDetails :measure_rating="item" :municipality="municipality" />
-                  </div>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <DetailMunicipalitySectorCards :municipality="municipality" :sortedRatings="sortedRatings"/>
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
       <div class="lg:col-span-1 pb-4">
         <div class="sticky top-8 space-y-6">
           <!-- Municipality Quick Info -->
-          <div class="rounded-sm shadow-list">
-            <!-- Header with collapse toggle -->
-            <div class="collapse collapse-plus rounded-sm">
-              <input
-                v-if="municipality?.description"
-                type="checkbox"
-                name="municipality-description"
-                autocomplete="off"
-              />
-              <div class="collapse-title flex items-center justify-between px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <img src="~/assets/icons/icon_location.svg" class="h-6 w-6 opacity-60" />
-                  <h3 class="font-heading text-h3 text-green">Infos zur Kommune</h3>
-                </div>
-              </div>
-
-              <!-- Collapsible description only -->
-              <div
-                v-if="municipality?.description"
-                class="collapse-content px-6 pb-4"
-              >
-                <div
-                  class="has-long-links prose prose-sm max-w-none"
-                  v-html="sanitizeHtml(linkifyStr(municipality.description))"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Info grid (always visible, outside collapse) -->
-            <div class="px-6 pb-6 space-y-3">
-              <div
-                v-if="municipality?.state && municipality.state !== 'Berlin' && municipality.state !== 'Hamburg'"
-                class="flex items-center justify-between"
-              >
-                <div class="flex items-center gap-2">
-                  <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
-                  <span class="text-sm text-gray-700">{{ $t("state") }}</span>
-                </div>
-                <span class="text-sm font-bold text-gray-900">{{ municipality.state }}</span>
-              </div>
-
-              <div v-if="municipality?.population" class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                  <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
-                </div>
-                <span class="text-sm font-bold text-gray-900">{{ municipality.population.toLocaleString() }}</span>
-              </div>
-
-              <div v-if="municipality?.party_mayor" class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
-                  <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
-                </div>
-                <span v-if="municipality.party_mayor" class="text-sm font-bold text-gray-900">
-                  {{ municipality.mayor }} ({{ municipality.party_mayor }})
-                </span>
-                <span v-else class="text-sm font-bold text-gray-900">{{ municipality.party_mayor }}</span>
-              </div>
-
-              <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div v-if="municipality.municipality_type === 'big_city'" v-html="majorCityIcon" class="h-5 w-5 opacity-60"></div>
-                  <div v-else v-html="minorCityIcon" class="h-5 w-5 opacity-60"></div>
-                  <span class="text-sm text-gray-700">{{ $t("municipality.municipality_type") }}</span>
-                </div>
-                <span class="text-sm font-bold text-gray-900">
-                  {{ municipality.municipality_type === 'big_city'
-                    ? $t("municipality.municipality_type.major_city")
-                    : $t("municipality.municipality_type.minor_city") }}
-                </span>
-              </div>
-
-              <div v-if="municipality?.score_total">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm font-medium text-gray-700">{{ $t("municipality.overall_score") }}</span>
-                  </div>
-                  <span class="text-sm font-bold" :class="`text-${getScoreColor(municipality.score_total)}`">
-                    {{ Math.round(Number(municipality.score_total) * 10) / 10 }}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DetailMunicipalityQuickInfoDesktop :municipality="municipality"/>
 
           <!-- Participate Section -->
           <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
@@ -314,12 +139,11 @@ import { ref, onMounted, computed } from 'vue';
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
 import linkifyStr from "linkify-string";
-import sectorImages from "../shared/sectorImages.js";
-import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
-import { formatLastUpdated, getScoreColor } from "../shared/utils.js";
-import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
+import { formatLastUpdated } from "../shared/utils.js";
 import ProjectCard from "~/components/ProjectCard.vue";
 import ProgressBar from "~/components/ProgressBar.vue";
+import DetailMunicipalitySectorCards from "~/components/DetailMunicipalitySectorCards.vue"
+import DetailMunicipalityQuickInfoDesktop from "~/components/DetailMunicipalityQuickInfoDesktop.vue"
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
