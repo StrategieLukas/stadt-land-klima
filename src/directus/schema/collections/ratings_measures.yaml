@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Maßnahmenratings
-      singular: Maßnahmenbewertung
-      plural: Maßnahmenratings
+      translation: Bewertungen
+      singular: Bewertung
+      plural: Bewertungen
   unarchive_value: draft
   versioning: false
 schema:

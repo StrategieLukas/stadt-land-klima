@@ -15,6 +15,7 @@ meta:
         trim: false
         font: sans-serif
         clear: false
+      required: false
   display: null
   display_options: null
   field: current_progress
@@ -26,6 +27,7 @@ meta:
     clear: true
     placeholder: $t:measure_rating.progress.placeholder
     softLength: 1500
+    trim: true
   readonly: false
   required: true
   sort: 16

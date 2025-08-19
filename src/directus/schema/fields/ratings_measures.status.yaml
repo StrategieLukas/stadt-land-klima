@@ -9,6 +9,8 @@ meta:
         _and:
           - rating:
               _null: true
+          - applicable:
+              _eq: true
       readonly: true
       options:
         allowOther: false

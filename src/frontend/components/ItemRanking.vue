@@ -6,9 +6,10 @@
     <div class="relative h-full pt-6">
       <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
-      <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black">
+      <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black break-keep whitespace-nowrap">
         {{ municipality.place || "?" }}
       </div>
+
     </div>
 
     <div class="grow">
@@ -20,6 +21,8 @@
       </div>
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
+
+    <!-- <button @click="openPrintDialog" class="flex items-start h-3">PDF</button> -->
 
     <div v-if="isRanking" class="flex items-start">
       <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
@@ -48,6 +51,32 @@ const colorClass = computed(() => {
 
   return c;
 });
+
+const openPrintDialog = () => {
+  // Deaktiviere Animationen
+  // document.body.classList.add('no-animations');
+
+  // Die aktuelle URL abrufen
+  const buttonUrl = window.location.origin;
+  const printUrl = buttonUrl + "/municipalities/" + municipality.slug + "_print";
+
+  // Öffne die URL in einem neuen Tab
+  const newTab = window.open(printUrl, '_blank');
+
+  // Warte eine kurze Zeit, um sicherzustellen, dass alles geladen ist
+  newTab.onabort = function () {
+    newTab.close()
+  }
+  newTab.onafterprint = function () {
+    newTab.close()
+  }
+  setTimeout(() => {
+    newTab.print();
+    newTab.close();
+  }, 2000); // 2000 ms Verzögerung, passe dies nach Bedarf an
+};
+
+
 
 const props = defineProps({
   municipality: {

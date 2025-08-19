@@ -108,6 +108,7 @@ permissions:
       - party_mayor
       - description
       - overall_status_comment
+      - status
   - collection: measures
     action: read
     permissions:
@@ -164,3 +165,122 @@ permissions:
     presets: null
     fields:
       - password
+  - collection: articles
+    action: read
+    permissions:
+      _and:
+        - _or:
+            - status:
+                _eq: published
+            - user_created:
+                _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - title
+      - status
+      - slug
+      - user_created
+      - user_updated
+      - date_updated
+      - author
+      - date_created
+      - municipality_name
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - link
+      - id
+  - collection: articles
+    action: update
+    permissions:
+      _and:
+        - _and:
+            - user_created:
+                _eq: $CURRENT_USER
+            - status:
+                _eq: draft
+    validation: null
+    presets: null
+    fields:
+      - title
+      - slug
+      - author
+      - municipality_name
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - link
+  - collection: articles
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - slug
+      - author
+      - municipality_name
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - link
+  - collection: articles
+    action: delete
+    permissions:
+      _and:
+        - _and:
+            - user_created:
+                _eq: $CURRENT_USER
+            - status:
+                _neq: published
+    validation: null
+    presets: null
+    fields: null
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - short_description
+      - link
+      - logo
+      - id
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

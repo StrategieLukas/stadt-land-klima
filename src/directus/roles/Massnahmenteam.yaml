@@ -1,0 +1,128 @@
+name: Maßnahmenteam
+icon: supervised_user_circle
+description: null
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - status
+      - measure_id
+      - date_created
+      - date_updated
+      - name
+      - slug
+      - sector
+      - impact
+      - weight
+      - feasibility
+      - feasibility_political
+      - feasibility_economical
+      - choices_rating
+      - description_about
+      - description_evaluation_criteria
+      - description_verification
+      - accordion-p4jgb8
+      - description_benefit
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+      - description
+      - verification_description
+      - notes
+  - collection: ratings_measures
+    action: read
+    permissions:
+      _and:
+        - measure_published:
+            _eq: true
+        - measure_id:
+            status:
+              _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - status
+      - measure_published
+      - date_created
+      - date_updated
+      - measure_id
+      - links-jv6and
+      - internal_note
+      - applicable
+      - localteam_id
+      - why_not_applicable
+      - choices
+      - rating
+      - current_progress
+      - source
+      - approved
+  - collection: municipalities
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - status
+      - id
+      - date_created
+      - date_updated
+      - overall_status_comment
+      - name
+      - slug
+      - municipality_type
+      - localteam_id
+      - details
+      - description
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - geolocation
+      - scores
+      - place
+      - score_total
+      - score_transport
+      - score_energy
+      - score_bh
+      - score_iec
+      - score_ann
+      - score_cpma
+      - percentage_rated
+      - notice-kcc40f
+      - public_contact
+      - links-g1sxxi
+  - collection: localteams
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - municipality_name
+      - municipality_id
+      - slug
+      - date_updated
+      - date_created
+      - status
+  - collection: directus_dashboards
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

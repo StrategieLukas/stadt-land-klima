@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen text-neutral">
+  <div class="flex flex-col min-h-screen text-neutral font-sans">
 
     <!-- Always render both headers, control visibility with Tailwind -->
     <div>
@@ -25,7 +25,7 @@
 
     <!-- Main Content (always rendered) -->
     <main class="flex grow flex-col bg-white px-2 py-4">
-      <div class="mx-auto w-full max-w-screen-xl">
+      <div class="mx-auto w-full max-w-screen-xl flex flex-col">
         <slot />
       </div>
     </main>
@@ -43,7 +43,7 @@
         :pages="pages.filter((page) => includes(page.menus, 'footer'))"
       />
      </div>
-    
+
   </div>
 </template>
 
@@ -53,7 +53,7 @@
 
 import lodash from "lodash";
 const { includes } = lodash;
-const { $directus, $readItems, $appEnv } = useNuxtApp();
+const { $directus, $readItems, $appEnv, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
 
 const { data: pages } = await useAsyncData("pages", () => {
   return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
@@ -70,11 +70,11 @@ useHead({
   ],
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
   script: [
-    $appEnv === "production"
+    $plausibleAnalyticsUrl && $plausibleAnalyticsDomain
       ? {
           defer: true,
-          "data-domain": "stadt-land-klima.de",
-          src: "https://plausible.anzui.dev/js/script.js",
+          "data-domain": $plausibleAnalyticsDomain,
+          src: $plausibleAnalyticsUrl + "/js/script.js",
         }
       : {},
   ],

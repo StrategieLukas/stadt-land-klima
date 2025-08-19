@@ -4,10 +4,10 @@
       {{ $t('generic.social_media.support_by_sharing') }}
     </p>
     <div class="flex justify-center items-center gap-6">
-      <a href="https://instagram.com" target="_blank" aria-label="Instagram">
+      <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
         <img src="~/assets/icons/icon_instagram.svg" alt="Instagram" class="h-12 w-12" />
       </a>
-      <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn">
+      <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" aria-label="LinkedIn">
         <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
       </a>
     </div>

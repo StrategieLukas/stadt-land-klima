@@ -1,5 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  modules: [
+    '@nuxtjs/leaflet'
+  ],
   runtimeConfig: {
     // The private keys which are only available within server-side
     // Keys within public, will be also exposed to the client-side
@@ -8,6 +11,8 @@ export default defineNuxtConfig({
       clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL,
       serverDirectusUrl: process.env.SERVER_DIRECTUS_URL,
       appEnv: process.env.APP_ENV,
+      plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
+      plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
     },
   },
   devtools: { enabled: true },
@@ -18,4 +23,8 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-});
+  nitro: {
+    preset: 'node-server',
+    workers: 1, // Avoid spawning too many workers in limited environments
+  },
+})

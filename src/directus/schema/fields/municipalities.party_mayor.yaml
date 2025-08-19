@@ -11,10 +11,11 @@ meta:
   hidden: false
   interface: input
   note: null
-  options: null
+  options:
+    trim: true
   readonly: false
   required: false
-  sort: 5
+  sort: 4
   special: null
   translations:
     - language: de-DE
