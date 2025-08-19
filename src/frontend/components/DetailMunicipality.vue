@@ -92,7 +92,8 @@
               <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off"/>
 
               <div
-              :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']"
+                :class="[`${ratingColor[ratingIndex(item.rating)]}-light`,
+                'collapse-title text-black flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']"
               >
                 <div class="shrink-0">
                   <img :src="ratingIcons[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
@@ -105,7 +106,10 @@
 
               <!-- More info on the measure when clicked -->
               <div
-              :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']"
+                :class="[
+                  `${ratingColor[ratingIndex(item.rating)]}-very-light`,
+                  'collapse-content md:px-12 lg:px-12'
+                ]"
               >
                 <MeasureDetails :measure_rating="item" :municipality="municipality" />
               </div>
@@ -160,7 +164,7 @@ import linkifyStr from "linkify-string";
 import sectorImages from "../shared/sectorImages.js";
 import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
 import { formatLastUpdated } from "../shared/utils.js";
-import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
+import { ratingColor } from "../shared/ratingColors.js";
 
 const { range } = lodash;
 const { $t, $locale } = useNuxtApp();
