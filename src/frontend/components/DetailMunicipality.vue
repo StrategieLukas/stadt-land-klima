@@ -105,8 +105,8 @@
               <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
             </div>
             <div class="space-y-4">
-              <ProjectCard 
-                v-for="project in municipalityProjects" 
+              <ProjectCard
+                v-for="project in municipalityProjects"
                 :key="project.id"
                 :slug="project.slug"
                 :title="project.title"
@@ -180,7 +180,7 @@ onMounted(async () => {
 
 async function fetchMunicipalityProjects() {
   if (!municipality?.slug) return;
-  
+
   loadingProjects.value = true;
   try {
     const articles = await $directus.request(
