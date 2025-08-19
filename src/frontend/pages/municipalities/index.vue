@@ -79,21 +79,17 @@
   <!-- Mobile: Single column layout -->
   <div class="block lg:hidden">
     <!-- Conditional Content -->
-    <div v-if="selected === 'major_city'">
+     <div>
       <section>
-        <the-ranking :municipalities="majorCities"></the-ranking>
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
       </section>
-    </div>
-    <div v-else-if="selected === 'minor_city'">
-      <section>
-        <the-ranking :municipalities="minorCities"></the-ranking>
-      </section>
-    </div>
-    <div v-else>
-      <section>
-        <the-ranking :municipalities="municipalities"></the-ranking>
-      </section>
-    </div>
+     </div>
   </div>
 
   <!-- Desktop: Two column layout -->
@@ -101,30 +97,24 @@
     <!-- Left Column: Municipality Ranking (2/3 width) -->
     <div class="lg:col-span-2">
       <!-- Conditional Content -->
-      <div v-if="selected === 'major_city'">
-        <section>
-          <the-ranking :municipalities="majorCities"></the-ranking>
-        </section>
-      </div>
-      <div v-else-if="selected === 'minor_city'">
-        <section>
-          <the-ranking :municipalities="minorCities"></the-ranking>
-        </section>
-      </div>
-      <div v-else>
-        <section>
-          <the-ranking :municipalities="municipalities"></the-ranking>
-        </section>
+      <div class="w-full max-w-screen-xl">
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
       </div>
     </div>
-    
+
     <!-- Right Column: Success Projects (1/3 width) -->
     <div class="lg:col-span-1 mb-3" v-if="projects && projects.length > 0">
       <div class="sticky top-8">
         <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
-          <ProjectCard 
-            v-for="project in projects" 
+          <ProjectCard
+            v-for="project in projects"
             :key="project.id"
             :slug="project.slug"
             :title="project.title"
@@ -144,7 +134,7 @@
 
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
 const { $fetchArticlesWithOrganisations, $directus, $readItems, $t, $locale } = useNuxtApp();
@@ -155,20 +145,19 @@ useHead({
   title,
 });
 
+const route = useRoute();
+const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
+
 // Fetch all published municipalities from directus
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type"],
+      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
       sort: "-score_total",
       limit: -1,
-      filter: {
-        status: {
-          _eq: "published",
-        },
-      },
-    }),
-  );
+      filter: { status: { _eq: "published" } },
+    })
+  )
 });
 
 const { data: projects } = await useAsyncData(
