@@ -2,7 +2,7 @@
   <!-- Search Bar and map toggle-->
   <div class="flex items-end space-x-4">
     <!-- Search Bar -->
-    <form class="relative overflow-visible" action="javascript:;">
+    <form class="relative overflow-visible" @submit.prevent>
       <div class="form-control">
         <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
         <input
@@ -12,12 +12,12 @@
           name="q"
           type="text"
           autocomplete="off"
-          @focus="handleSearchFocus()"
-          @blur="handleSearchBlur()"
+          @focus="searchFocused = true"
         />
         <button
+          type="button"
           class="absolute right-4 top-12 py-1 opacity-50 hover:opacity-60 focus:opacity-60"
-          @click="handleResetSearchClick()"
+          @click="handleResetSearchClick"
         >
           ✖️
         </button>
@@ -25,17 +25,19 @@
 
       <div
         v-if="suggestions.length && searchFocused"
-        class="dropdown-open dropdown absolute left-0 right-0 top-24 w-full"
+        class="absolute left-0 right-0 top-24 w-full z-50"
+        ref="dropdown"
       >
-        <label tabindex="0"></label>
-        <ul tabindex="0" class="menu dropdown-content rounded-box z-50 w-full bg-base-100 p-2 shadow">
-          <div v-for="(suggestion, index) in suggestions" :key="index">
-            <NuxtLink :to="suggestion.url" class="p-0" @click="handleSuggestionClick">
-              <li>
-                <div>{{ suggestion.label }}</div>
-              </li>
-            </NuxtLink>
-          </div>
+        <ul class="menu dropdown-content rounded-box w-full bg-base-100 p-2 shadow">
+          <NuxtLink
+            v-for="(suggestion, index) in suggestions"
+            :key="index"
+            :to="suggestion.url"
+            class="block w-full p-2 hover:bg-primary/20 rounded cursor-pointer"
+            @click="handleSuggestionClick"
+          >
+            {{ suggestion.label }}
+          </NuxtLink>
         </ul>
       </div>
     </form>
@@ -57,10 +59,13 @@
 
 
 // Search bar logic
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+
+const q = ref('')
+const searchFocused = ref(false)
+const dropdown = ref(null)
+
 const { $t, $directus, $readItems } = useNuxtApp();
-const q = ref("");
-const searchFocused = ref(false);
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
@@ -75,25 +80,6 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
     }),
   );
 });
-
-function handleSearchFocus() {
-  searchFocused.value = true;
-}
-
-function handleSearchBlur() {
-  setTimeout(() => {
-    searchFocused.value = false;
-  }, 100);
-}
-
-function handleSuggestionClick(event) {
-  q.value = "";
-  return false;
-}
-
-function handleResetSearchClick() {
-  q.value = "";
-}
 
 const suggestions = computed(() => {
   const _q = q.value.trim().toLowerCase();
@@ -114,6 +100,35 @@ const suggestions = computed(() => {
     })
     .slice(0, 5);
 });
+
+
+function handleResetSearchClick() {
+  q.value = ''
+  suggestions.value = []
+  searchFocused.value = false
+}
+
+function handleSuggestionClick() {
+  searchFocused.value = false
+}
+
+function handleClickOutside(event) {
+  if (
+    dropdown.value &&
+    !dropdown.value.contains(event.target) &&
+    !event.target.closest('form')
+  ) {
+    searchFocused.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 
 
