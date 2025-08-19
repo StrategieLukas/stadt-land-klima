@@ -46,8 +46,7 @@
             <!-- Header -->
             <div
               :class="[
-                ratingColor[ratingIndex(item.rating)],
-                ratingHeaderOpacity[ratingIndex(item.rating)],
+                `${ratingColor[ratingIndex(item.rating)]}-light`,
                 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4'
               ]"
             >
@@ -58,7 +57,7 @@
                 />
               </div>
 
-              <h3 class="font-heading text-h3 font-medium">
+              <h3 class="font-heading text-h3 text-black font-medium">
                 {{ item.measure.name }}
               </h3>
             </div>
@@ -66,10 +65,9 @@
             <!-- Content (lazy loaded) -->
             <div
               :class="[
-                ratingColor[ratingIndex(item.rating)],
-                ratingTextOpacity[ratingIndex(item.rating)],
-                'collapse-content md:px-12 lg:px-12'
-              ]"
+                  `${ratingColor[ratingIndex(item.rating)]}-very-light`,
+                  'collapse-content md:px-12 lg:px-12'
+                ]"
             >
               <!-- Mount only when collapse is opened -->
               <KeepAlive>
@@ -90,7 +88,7 @@
 <script setup>
 import sectorImages from "../shared/sectorImages.js";
 import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
-import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
+import { ratingColor } from "../shared/ratingColors.js";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
 import { reactive } from 'vue'
