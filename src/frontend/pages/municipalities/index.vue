@@ -79,21 +79,17 @@
   <!-- Mobile: Single column layout -->
   <div class="block lg:hidden">
     <!-- Conditional Content -->
-    <div v-if="selected === 'major_city'">
+     <div>
       <section>
-        <the-ranking :municipalities="majorCities"></the-ranking>
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
       </section>
-    </div>
-    <div v-else-if="selected === 'minor_city'">
-      <section>
-        <the-ranking :municipalities="minorCities"></the-ranking>
-      </section>
-    </div>
-    <div v-else>
-      <section>
-        <the-ranking :municipalities="municipalities"></the-ranking>
-      </section>
-    </div>
+     </div>
   </div>
 
   <!-- Desktop: Two column layout -->
