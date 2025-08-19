@@ -148,14 +148,15 @@ useHead({
 const route = useRoute();
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
-// Fetch all published municipalities from directus
+// Fetch all relevant municipalities from directus
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
       fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
       sort: "-score_total",
       limit: -1,
-      filter: { status: { _eq: "published" } },
+      // Fetching even non-published municipalities to show as 'in progress' in map view, but filtered out for list view
+      filter: { percentage_rated: { _gt: 0 } },
     })
   )
 });

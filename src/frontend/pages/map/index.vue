@@ -16,7 +16,11 @@ async function fetchMunicipalities() {
   municipalities.value = await $directus.request(
     $readItems('municipalities', {
       fields: ['slug', 'name', 'score_total', 'status', 'percentage_rated', 'geolocation'],
-      limit: -1
+      limit: -1,
+      filter: { 
+        percentage_rated: { _gt: 0 },
+        geolocation: { _nnull: true }
+       },
     })
   )
 }
