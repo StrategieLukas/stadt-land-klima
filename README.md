@@ -125,3 +125,8 @@ $ ./directus-cli export:schema [dest]
 
 The Directus-CLI has a `--help` flag to show all available exports and imports.
 
+# Deployment Notes
+
+- robots.txt must be added manually for each environment to in src/frontend/public/robots.txt
+- Must do ./cli/import-all for directus changes to apply. Must do this TWICE for permissions to work as well.
+- If there's a docker permission issue, chmod 777 everything :(

@@ -136,3 +136,5 @@ out
 
 package.json
 package-lock.json
+
+**/robots.txt

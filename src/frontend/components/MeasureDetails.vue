@@ -1,7 +1,7 @@
 <template>
   <div class="py-4" ref="measureDetailsSection">
 
-    <h3 class="mb-3 text-h3 font-heading text-light-blue">
+    <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.description_about_heading") }}
     </h3>
 
@@ -14,7 +14,7 @@
   </div>
 
   <div v-if="measure_rating.measure.description_evaluation_criteria" class="py-4">
-    <h3 class="mb-3 text-h3 font-heading text-light-blue">
+    <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.evaluation_criteria_heading") }}
     </h3>
 
@@ -28,7 +28,7 @@
   </div>
 
   <div class="py-4">
-    <h3 class="mb-3 text-h3 font-heading text-light-blue">
+    <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.feasibility_heading") }}
     </h3>
 
@@ -61,14 +61,14 @@
 
   <div v-if="measure_rating.applicable">
     <div v-if="measure_rating.current_progress" class="mb-4">
-      <h4 class="mb-2 text-light-blue">
+      <h4 class="mb-2 font-bold text-black">
         {{ $t("ratings_measure.achievement_heading") }}
       </h4>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(measure_rating.current_progress)" />
     </div>
     <div v-if="measure_rating.source">
-      <h4 class="mb-2 text-light-blue">
+      <h4 class="mb-2 font-bold text-black">
         {{ $t("ratings_measure.source_heading") }}
       </h4>
 
@@ -82,7 +82,7 @@
 
   <div v-if="!measure_rating.applicable">
     <div v-if="measure_rating.why_not_applicable">
-      <h4 class="mb-2 text-light-blue">
+      <h4 class="mb-2 font-bold text-black">
         {{ $t("ratings_measure.why_not_applicable_heading") }}
       </h4>
 
@@ -93,7 +93,7 @@
   <div class="mt-8">
     <NuxtLink
       :to="`/measures/sectors/${measure_rating.measure.sector}#measure-${measure_rating.measure.slug}`"
-      class="text-light-blue underline"
+      class="text-black underline"
       target="measure"
     >
       {{ $t("municipality_rating.link_to_measure") }} ↗
@@ -102,7 +102,7 @@
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
   <div v-if="measure_rating.rating < 1" class="mt-4">
-    <h3 class="mb-3 text-h3 font-heading text-light-blue">
+    <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure_rating.better_examples.title") }}:
     </h3>
 
@@ -121,9 +121,9 @@
         />
         <NuxtLink
           :to="`/municipalities/${example.slug}`"
-          class="text-light-blue underline"
+          class="text-black underline"
         >
-          {{ example.name }}
+          {{ example.name }} ↗
         </NuxtLink>
       </li>
     </ul>
