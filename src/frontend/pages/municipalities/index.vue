@@ -150,7 +150,7 @@ useHead({
 });
 
 const route = useRoute();
-const isMapView = computed(() => route.query.view !== 'list'); // Default to map view if no query param or 'map'
+const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
 // Fetch all published municipalities from directus
 const { data: municipalities } = await useAsyncData("municipalities", () => {
