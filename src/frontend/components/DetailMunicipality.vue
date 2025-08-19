@@ -107,7 +107,7 @@
               <!-- More info on the measure when clicked -->
               <div
                 :class="[
-                  `${ratingColor[ratingIndex(item.rating)]}-light`,
+                  `${ratingColor[ratingIndex(item.rating)]}-very-light`,
                   'collapse-content md:px-12 lg:px-12'
                 ]"
               >
