@@ -73,6 +73,8 @@ import 'leaflet/dist/leaflet.css'
 import germanyGeoJson from '~/assets/germany-polygon.json?raw'
 import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
 
+const { $t } = useNuxtApp()
+
 const props = defineProps({
   municipalities: { type: Array, required: true }
 })
@@ -159,7 +161,7 @@ function addLegend(map) {
       ['text-ranking-4-6', 'Score 40-59%'],
       ['text-ranking-2-4', 'Score 20-39%'],
       ['text-ranking-0-2', 'Score 0-19%'],
-      ['text-ranking-na', 'Not finished', !showMunicipalitiesWithUnfinishedRating.value]
+      ['text-ranking-na', $t('map.icon.popup.ratingNotFinished.short'), !showMunicipalitiesWithUnfinishedRating.value]
     ]
     div.innerHTML = lines.map(([cls, text, hidden]) => {
       const style = hidden ? 'height:0; overflow:hidden; margin:0; padding:0;' : ''
