@@ -1,12 +1,12 @@
 collection: articles
-field: qualities
+field: additional_infos
 type: alias
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: qualities
+  field: additional_infos
   group: null
   hidden: false
   interface: group-accordion

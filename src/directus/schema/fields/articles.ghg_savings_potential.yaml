@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: ghg_savings_potential
-  group: qualities
+  group: additional_infos
   hidden: false
   interface: input-rich-text-md
   note: null

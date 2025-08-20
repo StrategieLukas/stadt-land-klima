@@ -1,12 +1,12 @@
 collection: articles
-field: qualities-divider
+field: additional-infos-divider
 type: alias
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: qualities-divider
+  field: additional-infos-divider
   group: null
   hidden: false
   interface: presentation-divider
