@@ -16,7 +16,9 @@ meta:
   required: false
   sort: 5
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Weitere Vorteile
   validation: null
   validation_message: null
   width: full

@@ -9,7 +9,7 @@ meta:
   field: qualities
   group: null
   hidden: false
-  interface: group-detail
+  interface: group-accordion
   note: null
   options:
     start: closed

@@ -20,7 +20,9 @@ meta:
   sort: 17
   special:
     - m2m
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Ähnliche Projekte (aus unserer Datenbank)
   validation: null
   validation_message: null
   width: full

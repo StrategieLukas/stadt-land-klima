@@ -16,7 +16,9 @@ meta:
   required: true
   sort: 6
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Titel
   validation: null
   validation_message: null
   width: full
