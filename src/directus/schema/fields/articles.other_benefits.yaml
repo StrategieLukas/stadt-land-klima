@@ -1,39 +1,27 @@
 collection: articles
-field: article_text
+field: other_benefits
 type: text
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: article_text
-  group: content
+  field: other_benefits
+  group: null
   hidden: false
   interface: input-rich-text-md
   note: null
-  options:
-    toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - code
-      - empty
-      - heading
-      - italic
-      - link
-      - numlist
-      - strikethrough
-      - table
+  options: null
   readonly: false
-  required: true
-  sort: 5
+  required: false
+  sort: 20
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: article_text
+  name: other_benefits
   table: articles
   data_type: text
   default_value: null

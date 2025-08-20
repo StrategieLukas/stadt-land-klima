@@ -1,6 +1,6 @@
 collection: articles
 field: ease_of_implementation
-type: integer
+type: text
 meta:
   collection: articles
   conditions: null
@@ -9,15 +9,12 @@ meta:
   field: ease_of_implementation
   group: qualities
   hidden: false
-  interface: slider
+  interface: input-rich-text-md
   note: null
-  options:
-    maxValue: 5
-    minValue: 0
-    stepInterval: 1
+  options: null
   readonly: false
   required: false
-  sort: 2
+  sort: 1
   special: null
   translations: null
   validation: null
@@ -26,11 +23,11 @@ meta:
 schema:
   name: ease_of_implementation
   table: articles
-  data_type: integer
+  data_type: text
   default_value: null
   max_length: null
-  numeric_precision: 32
-  numeric_scale: 0
+  numeric_precision: null
+  numeric_scale: null
   is_nullable: true
   is_unique: false
   is_primary_key: false

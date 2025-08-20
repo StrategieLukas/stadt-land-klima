@@ -14,10 +14,20 @@ meta:
   options:
     allowCustom: false
     alphabetize: true
+    placeholder: null
     presets:
-      - Energie
-      - Sonstige
+      - Abfallwirtschaft
+      - Finanzierung
+      - Gebäude
+      - Governance
+      - Industrie
+      - Kraftstoffe
+      - LULUCF
+      - Landwirtschaft
+      - Sonstiges
+      - Strom
       - Verkehr
+      - Wärme
   readonly: false
   required: true
   sort: 13
