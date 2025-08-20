@@ -16,9 +16,11 @@ meta:
     trim: true
   readonly: false
   required: false
-  sort: 7
+  sort: 2
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Link zum Projekt
   validation:
     _and:
       - link:

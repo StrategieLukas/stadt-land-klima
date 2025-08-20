@@ -18,7 +18,10 @@ meta:
   sort: 12
   special:
     - m2o
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Organisation die den Artikel hier schreibt (nicht die, die das
+        Projekt umgesetzt hat!)
   validation: null
   validation_message: null
   width: full

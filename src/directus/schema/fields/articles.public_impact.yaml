@@ -11,7 +11,19 @@ meta:
   hidden: false
   interface: input-rich-text-md
   note: null
-  options: null
+  options:
+    toolbar:
+      - blockquote
+      - bold
+      - bullist
+      - code
+      - empty
+      - heading
+      - italic
+      - link
+      - numlist
+      - strikethrough
+      - table
   readonly: false
   required: false
   sort: 2

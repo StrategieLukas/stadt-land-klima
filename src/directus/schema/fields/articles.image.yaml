@@ -16,7 +16,7 @@ meta:
     letterbox: true
   readonly: false
   required: true
-  sort: 2
+  sort: 3
   special:
     - file
   translations:

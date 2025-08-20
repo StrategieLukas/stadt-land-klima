@@ -15,6 +15,7 @@ meta:
     toolbar:
       - blockquote
       - bold
+      - bullist
       - customImage
       - customLink
       - customMedia
@@ -25,11 +26,14 @@ meta:
       - hr
       - italic
       - link
+      - numlist
       - removeformat
+      - strikethrough
+      - table
       - underline
   readonly: false
   required: false
-  sort: 6
+  sort: 7
   special: null
   translations: null
   validation: null
