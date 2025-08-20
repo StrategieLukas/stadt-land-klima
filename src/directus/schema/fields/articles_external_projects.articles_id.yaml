@@ -1,33 +1,28 @@
-collection: articles
-field: organisation
+collection: articles_external_projects
+field: articles_id
 type: integer
 meta:
-  collection: articles
+  collection: articles_external_projects
   conditions: null
   display: null
   display_options: null
-  field: organisation
+  field: articles_id
   group: null
-  hidden: false
-  interface: select-dropdown-m2o
+  hidden: true
+  interface: null
   note: null
-  options:
-    template: "{{name}}"
+  options: null
   readonly: false
   required: false
-  sort: 12
-  special:
-    - m2o
-  translations:
-    - language: de-DE
-      translation: Organisation die den Artikel hier schreibt (nicht die, die das
-        Projekt umgesetzt hat!)
+  sort: 2
+  special: null
+  translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: organisation
-  table: articles
+  name: articles_id
+  table: articles_external_projects
   data_type: integer
   default_value: null
   max_length: null
@@ -39,5 +34,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: organisations
+  foreign_key_table: articles
   foreign_key_column: id

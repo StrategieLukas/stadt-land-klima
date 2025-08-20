@@ -1,12 +1,12 @@
 collection: articles
-field: article_text
+field: sources
 type: text
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: article_text
+  field: sources
   group: content
   hidden: false
   interface: input-rich-text-md
@@ -16,26 +16,31 @@ meta:
       - blockquote
       - bold
       - bullist
-      - code
-      - empty
-      - heading
+      - customImage
+      - customLink
+      - customMedia
+      - fullscreen
+      - h1
+      - h2
+      - h3
+      - hr
       - italic
       - link
       - numlist
+      - removeformat
       - strikethrough
       - table
+      - underline
   readonly: false
-  required: true
-  sort: 6
+  required: false
+  sort: 7
   special: null
-  translations:
-    - language: de-DE
-      translation: Artikeltext
+  translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: article_text
+  name: sources
   table: articles
   data_type: text
   default_value: null

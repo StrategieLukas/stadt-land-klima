@@ -74,7 +74,7 @@ function similarityScore(m1, m2) {
 export function calculateAndAddSimilarityScores(reference, others) {
   return [...others]
     .map(obj => {
-      const score = similarityScore(reference, obj);
+      const score = similarityScore(reference, obj.municipality);
       return { ...obj, similarityScore: score };
     });
 }

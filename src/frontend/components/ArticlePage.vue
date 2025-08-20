@@ -150,7 +150,7 @@
         
         <div class="text-gray-700 leading-relaxed flex-grow">
           <div v-html="md.render(abstract)" class="prose max-w-none mb-8" />
-          <div v-html="article_text"></div>
+          <div v-html="md.render(article_text)"></div>
         </div>
       </div>
     </div>

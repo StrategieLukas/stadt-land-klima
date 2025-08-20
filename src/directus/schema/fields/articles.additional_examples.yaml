@@ -1,12 +1,12 @@
 collection: articles
-field: article_text
+field: additional_examples
 type: text
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: article_text
+  field: additional_examples
   group: content
   hidden: false
   interface: input-rich-text-md
@@ -25,17 +25,17 @@ meta:
       - strikethrough
       - table
   readonly: false
-  required: true
-  sort: 6
+  required: false
+  sort: 8
   special: null
   translations:
     - language: de-DE
-      translation: Artikeltext
+      translation: Ergänzende Beispiele
   validation: null
   validation_message: null
   width: full
 schema:
-  name: article_text
+  name: additional_examples
   table: articles
   data_type: text
   default_value: null

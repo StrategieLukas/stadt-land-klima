@@ -1,43 +1,46 @@
 collection: articles
-field: article_text
-type: text
+field: sectors
+type: json
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: article_text
-  group: content
+  field: sectors
+  group: null
   hidden: false
-  interface: input-rich-text-md
+  interface: tags
   note: null
   options:
-    toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - code
-      - empty
-      - heading
-      - italic
-      - link
-      - numlist
-      - strikethrough
-      - table
+    allowCustom: false
+    alphabetize: true
+    placeholder: null
+    presets:
+      - Abfallwirtschaft
+      - Finanzierung
+      - Gebäude
+      - Governance
+      - Industrie
+      - Kraftstoffe
+      - LULUCF
+      - Landwirtschaft
+      - Sonstiges
+      - Strom
+      - Verkehr
+      - Wärme
   readonly: false
   required: true
-  sort: 6
-  special: null
-  translations:
-    - language: de-DE
-      translation: Artikeltext
+  sort: 13
+  special:
+    - cast-json
+  translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: article_text
+  name: sectors
   table: articles
-  data_type: text
+  data_type: json
   default_value: null
   max_length: null
   numeric_precision: null

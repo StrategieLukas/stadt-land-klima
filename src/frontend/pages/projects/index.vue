@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
-    
+
     <div v-if="!projectList || projectList.length === 0">
       {{ $t('projects.empty_placeholder') }}
     </div>
@@ -28,12 +28,27 @@
 
 <script setup>
 import ProjectCard from "~/components/ProjectCard.vue";
-const { $fetchArticlesWithOrganisations, $t } = useNuxtApp();
+const { $directus, $readItems, $t } = useNuxtApp();
 
-const { data: projectList } = await useAsyncData(
-  "articles-with-organisations",
-  () => $fetchArticlesWithOrganisations()
+const { data: projectList } = await useAsyncData("articles", () => {
+  return  $directus.request(
+  $readItems("articles", {
+    fields: [
+      "slug",
+      "title",
+      "image",
+      "abstract",
+      "author",
+      "date_created",
+      "municipality_name",
+      "state",
+      { organisation: ["logo"]}
+    ],
+    sort: "-date_created",
+    limit: -1,
+  })
 );
+});
 
 //MetaTags
 const title = ref($t("projects.title"));

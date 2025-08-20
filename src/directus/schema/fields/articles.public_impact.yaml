@@ -1,13 +1,13 @@
 collection: articles
-field: article_text
+field: public_impact
 type: text
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: article_text
-  group: content
+  field: public_impact
+  group: additional_infos
   hidden: false
   interface: input-rich-text-md
   note: null
@@ -25,17 +25,17 @@ meta:
       - strikethrough
       - table
   readonly: false
-  required: true
-  sort: 6
+  required: false
+  sort: 2
   special: null
   translations:
     - language: de-DE
-      translation: Artikeltext
+      translation: Öffentliche Wirkung
   validation: null
   validation_message: null
   width: full
 schema:
-  name: article_text
+  name: public_impact
   table: articles
   data_type: text
   default_value: null

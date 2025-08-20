@@ -1,13 +1,13 @@
-collection: articles
-field: article_text
+collection: external_projects
+field: description
 type: text
 meta:
-  collection: articles
+  collection: external_projects
   conditions: null
   display: null
   display_options: null
-  field: article_text
-  group: content
+  field: description
+  group: null
   hidden: false
   interface: input-rich-text-md
   note: null
@@ -26,17 +26,17 @@ meta:
       - table
   readonly: false
   required: true
-  sort: 6
+  sort: 7
   special: null
   translations:
     - language: de-DE
-      translation: Artikeltext
+      translation: Beschreibung des externen Projekts
   validation: null
   validation_message: null
   width: full
 schema:
-  name: article_text
-  table: articles
+  name: description
+  table: external_projects
   data_type: text
   default_value: null
   max_length: null

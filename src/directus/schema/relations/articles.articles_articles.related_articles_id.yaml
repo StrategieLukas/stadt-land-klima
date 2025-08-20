@@ -1,0 +1,21 @@
+collection: articles_articles
+field: related_articles_id
+related_collection: articles
+meta:
+  junction_field: articles_id
+  many_collection: articles_articles
+  many_field: related_articles_id
+  one_allowed_collections: null
+  one_collection: articles
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: null
+  sort_field: null
+schema:
+  table: articles_articles
+  column: related_articles_id
+  foreign_key_table: articles
+  foreign_key_column: id
+  constraint_name: articles_articles_related_articles_id_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL
