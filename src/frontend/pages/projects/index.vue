@@ -42,7 +42,7 @@ const { data: projectList } = await useAsyncData("articles", () => {
       "date_created",
       "municipality_name",
       "state",
-      { organisation: ["name", "logo", "link"]}
+      { organisation: ["logo"]}
     ],
     sort: "-date_created",
     limit: -1,
