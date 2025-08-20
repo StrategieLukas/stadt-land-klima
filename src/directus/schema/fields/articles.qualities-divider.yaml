@@ -12,7 +12,7 @@ meta:
   interface: presentation-divider
   note: null
   options:
-    title: $t:qualities-divider
+    title: $t:generic.additional_details
   readonly: false
   required: false
   sort: 16

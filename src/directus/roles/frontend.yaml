@@ -160,6 +160,11 @@ permissions:
       - similar_articles
       - impact
       - id
+      - additional_examples
+      - economic_efficiency
+      - public_impact
+      - ghg_savings_potential
+      - other_benefits
   - collection: organisations
     action: read
     permissions: null
@@ -220,3 +225,5 @@ permissions:
       - description
       - title
       - link
+      - date_updated
+      - date_created

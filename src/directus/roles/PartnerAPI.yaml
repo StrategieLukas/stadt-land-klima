@@ -39,6 +39,11 @@ permissions:
       - similar_external_projects
       - similar_articles
       - impact
+      - additional_examples
+      - economic_efficiency
+      - ghg_savings_potential
+      - public_impact
+      - other_benefits
   - collection: organisations
     action: read
     permissions: null
@@ -68,6 +73,7 @@ permissions:
       - party_mayor
       - geolocation
       - slug
+      - ars
   - collection: articles_articles
     action: read
     permissions: {}
@@ -92,3 +98,5 @@ permissions:
       - description
       - link
       - title
+      - date_created
+      - date_updated
