@@ -1,27 +1,29 @@
 collection: articles
-field: ghg_savings_potential
+field: additional_examples
 type: text
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: ghg_savings_potential
-  group: qualities
+  field: additional_examples
+  group: null
   hidden: false
   interface: input-rich-text-md
   note: null
   options: null
   readonly: false
   required: false
-  sort: 3
+  sort: 16
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Ergänzende Beispiele
   validation: null
   validation_message: null
   width: full
 schema:
-  name: ghg_savings_potential
+  name: additional_examples
   table: articles
   data_type: text
   default_value: null

@@ -9,32 +9,16 @@ meta:
   field: description
   group: null
   hidden: false
-  interface: input-rich-text-html
+  interface: input-rich-text-md
   note: null
-  options:
-    toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - customImage
-      - customLink
-      - customMedia
-      - fullscreen
-      - hr
-      - italic
-      - numlist
-      - redo
-      - removeformat
-      - strikethrough
-      - subscript
-      - superscript
-      - underline
-      - undo
+  options: null
   readonly: false
   required: true
   sort: 7
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Beschreibung des externen Projekts
   validation: null
   validation_message: null
   width: full

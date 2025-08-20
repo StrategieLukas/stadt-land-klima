@@ -7,14 +7,14 @@ meta:
   display: null
   display_options: null
   field: other_benefits
-  group: null
+  group: qualities
   hidden: false
   interface: input-rich-text-md
   note: null
   options: null
   readonly: false
   required: false
-  sort: 20
+  sort: 5
   special: null
   translations: null
   validation: null
