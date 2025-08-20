@@ -6,7 +6,6 @@
  * @returns {Promise<string>} - SVG HTML string
  */
 export async function overwriteSvgStyles(rawSvg, classMap = {}) {
-    console.log(rawSvg);
   // Remove any embedded <style> blocks
   // Regex on html tags, i know... but should be okay for a locally-controlled svg
   rawSvg = rawSvg.replace(/<style[\s\S]*?<\/style>/g, '');

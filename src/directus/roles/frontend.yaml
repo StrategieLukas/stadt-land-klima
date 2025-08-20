@@ -193,6 +193,9 @@ permissions:
       - id
       - municipality_id
       - status
+      - municipality_name
+      - slug
+      - name
   - collection: articles_external_projects
     action: read
     permissions: {}

@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
-    
+
     <div v-if="!projectList || projectList.length === 0">
       {{ $t('projects.empty_placeholder') }}
     </div>
@@ -49,8 +49,6 @@ const { data: projectList } = await useAsyncData("articles", () => {
   })
 );
 });
-
-console.log(projectList);
 
 //MetaTags
 const title = ref($t("projects.title"));

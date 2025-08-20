@@ -131,3 +131,6 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 - Must do ./cli/import-all for directus changes to apply. Must do this TWICE for permissions to work as well.
 - If there's a docker permission issue, chmod 777 everything :(
 - Always back up the DB beforehand, obviously
+
+# Relevant migration notes for the release 1.0:
+- articles.organisation is changed: need to first do import:schema with that articles.organisation.yaml and organisations.articles.organisation.yaml file missing, then the fields get cleared and then import again with these.
