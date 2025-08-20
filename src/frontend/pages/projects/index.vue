@@ -28,12 +28,29 @@
 
 <script setup>
 import ProjectCard from "~/components/ProjectCard.vue";
-const { $fetchArticlesWithOrganisations, $t } = useNuxtApp();
+const { $directus, $readItems, $t } = useNuxtApp();
 
-const { data: projectList } = await useAsyncData(
-  "articles-with-organisations",
-  () => $fetchArticlesWithOrganisations()
+const { data: projectList } = await useAsyncData("articles", () => {
+  return  $directus.request(
+  $readItems("articles", {
+    fields: [
+      "slug",
+      "title",
+      "image",
+      "abstract",
+      "author",
+      "date_created",
+      "municipality_name",
+      "state",
+      { partner_organisation: ["name", "logo", "link"]}
+    ],
+    sort: "-date_created",
+    limit: -1,
+  })
 );
+});
+
+console.log(projectList);
 
 //MetaTags
 const title = ref($t("projects.title"));

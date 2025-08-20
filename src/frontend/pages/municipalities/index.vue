@@ -137,7 +137,7 @@
 import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
-const { $fetchArticlesWithOrganisations, $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $directus, $readItems, $t, $locale } = useNuxtApp();
 
 //MetaTags
 const title = ref($t("municipalities.nav_label"));
@@ -161,10 +161,25 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
   )
 });
 
-const { data: projects } = await useAsyncData(
-  "articles-with-organisations",
-  () => $fetchArticlesWithOrganisations()
-);
+const { data: projects } = await useAsyncData("articles", () => {
+  return $directus.request(
+    $readItems("articles", {
+      fields: [
+        "slug",
+        "title",
+        "image",
+        "abstract",
+        "author",
+        "date_created",
+        "municipality_name",
+        "state",
+        { organisation: ["name", "logo", "link"] }
+      ],
+      sort: "-date_created",
+      limit: -1,
+    })
+  );
+});
 
 
 // todo fix "place" for these views
