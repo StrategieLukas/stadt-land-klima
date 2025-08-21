@@ -11,10 +11,33 @@ export function buildLocationString(municipality_name, state) {
     return '';
 }
 
-export function toAssetUrl(asset_id) {
-    const config = useRuntimeConfig();
-    return `${config.public.clientDirectusUrl}/assets/${asset_id}`;
-};
+
+export async function toAssetUrl(assetId, opts = {}) {
+  if(assetId == null) return null;
+
+  const config = useRuntimeConfig();
+  const assetUrl = `${config.public.clientDirectusUrl}/assets/${assetId}`
+
+  const meta = await $fetch(`${config.public.clientDirectusUrl}/files/${assetId}?fields=id,type`)
+  const type = meta?.data?.type || ''
+  const isRaster = type.startsWith('image/') && !type.includes('svg')
+
+  if (!isRaster) {
+    // SVG / video / pdf → deliver raw
+    return assetUrl;
+  }
+
+  // Build transformed URL
+  const p = new URLSearchParams()
+  if (opts.width) p.set('width', String(opts.width))
+  if (opts.height) p.set('height', String(opts.height))
+  if (opts.quality) p.set('quality', String(opts.quality))
+  if (opts.fit) p.set('fit', opts.fit)
+
+  // Return assetUrl with additional parameters
+  return p.toString() ? `${assetUrl}?${p.toString()}` : assetUrl
+}
+
 
 /**
  * @param {string} dateString
