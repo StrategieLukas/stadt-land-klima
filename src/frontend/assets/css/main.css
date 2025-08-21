@@ -24,23 +24,27 @@ a {
     src: url("~/assets/fonts/Inter-Bold.ttf") format("truetype");
     font-weight: bold;
     font-style: normal;
+    font-display: swap;
   }
   @font-face {
     font-family: "Inter";
     src: url("~/assets/fonts/Inter-Regular.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
   }
   @font-face {
     font-family: "RobotoCondensed";
     src: url("~/assets/fonts/RobotoCondensed-Bold.ttf") format("truetype");
     font-weight: bold;
     font-style: normal;
+    font-display: swap;
   }
   @font-face {
     font-family: "RobotoCondensed";
     src: url("~/assets/fonts/RobotoCondensed-Regular.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
   }
 }
