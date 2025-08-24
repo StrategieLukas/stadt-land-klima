@@ -47,6 +47,17 @@ permissions:
       - municipality_name
       - status
       - link
+      - sectors
+      - sources
+      - additional_examples
+      - economic_efficiency
+      - additional_infos
+      - public_impact
+      - ghg_savings_potential
+      - other_benefits
+      - ease_of_implementation
+      - similar_articles
+      - similar_external_projects
   - collection: articles
     action: read
     permissions: {}
@@ -74,6 +85,17 @@ permissions:
       - author
       - status
       - link
+      - sectors
+      - sources
+      - additional_examples
+      - additional_infos
+      - economic_efficiency
+      - ghg_savings_potential
+      - public_impact
+      - ease_of_implementation
+      - other_benefits
+      - similar_articles
+      - similar_external_projects
   - collection: articles
     action: delete
     permissions: {}
@@ -123,3 +145,28 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - link
+      - description
+  - collection: external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: external_projects
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - description
+      - link
+      - title

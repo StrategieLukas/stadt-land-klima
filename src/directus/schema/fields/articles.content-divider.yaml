@@ -1,0 +1,25 @@
+collection: articles
+field: content-divider
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: content-divider
+  group: null
+  hidden: false
+  interface: presentation-divider
+  note: null
+  options:
+    title: $t:generic.content
+  readonly: false
+  required: false
+  sort: 14
+  special:
+    - alias
+    - no-data
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
