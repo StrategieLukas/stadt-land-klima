@@ -103,6 +103,26 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: directus_users
+    action: read
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: { }
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_users
+    action: update
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - password
   - collection: organisations
     action: create
     permissions: {}
