@@ -19,12 +19,12 @@
         </p>
 
   
-        <!-- Image and Image Credits -->
+        <!-- Image and Image Credits (Passing the expected maxwidth of 960 for mobile to avoid fetching excessively large images)-->
         <div class="relative mb-4">
           <SmartImg v-if="image"
             :assetId="image"
             :alt="title"
-            :quality="70"
+            :width="960"
             fit="cover"
             format="webp" 
             img-class="object-cover w-full h-full"
@@ -33,7 +33,6 @@
             <SmartImg
               :assetId="organisation.logo"
               :alt="organisation.name"
-              :quality="70"
               :height="56"
               :width="56" 
               fit="cover"
@@ -81,7 +80,6 @@
       <SmartImg
               :assetId="organisation.logo"
               :alt="organisation.name"
-              :quality="70"
               :height="56"
               :width="56" 
               fit="cover"
@@ -100,7 +98,6 @@
             <SmartImg v-if="image"
               :assetId="image"
               :alt="title"
-              :quality="70"
               fit="cover"
               format="webp" 
               img-class="w-full h-full object-cover rounded-lg"
@@ -207,6 +204,7 @@
   import { ref, watchEffect } from 'vue'
   import { buildLocationString, toAssetUrl } from '~/shared/utils';
   import MarkdownIt from 'markdown-it'
+  
   
   const md = new MarkdownIt();
   const { $t, $locale } = useNuxtApp()

@@ -7,8 +7,6 @@
       :class="imgClass"
       :width="width || null"
       :height="height || null"
-      :srcset="srcset || null"
-      :sizes="sizes || null"
     />
 </template>
   
@@ -26,12 +24,13 @@
     // Transform options
     width: { type: Number, default: null },
     height: { type: Number, default: null },
-    quality: { type: Number, default: 70 },
+    // Quality for uploads is already reduced to 70 on upload, this would further decrease it
+    quality: { type: Number, default: 100 },
     fit: { type: String, default: 'cover' },
   
     // Optional responsive srcset
-    responsiveWidths: { type: Array, default: () => [] }, // e.g. [400, 800, 1200]
-    sizes: { type: String, default: '' } // e.g. "(max-width: 640px) 400px, 800px"
+    // responsiveWidths: { type: Array, default: () => [] }, // e.g. [400, 800, 1200]
+    // sizes: { type: String, default: '' } // e.g. "(max-width: 640px) 400px, 800px"
   })
   
   const runtime = useRuntimeConfig()
@@ -46,13 +45,13 @@
     src.value = await toAssetUrl(props.assetId, { width: props.width, height: props.height, quality: props.quality, fit: props.fit });
   
     // Optional responsive srcset (keeps height constant, varies width)
-    if (props.responsiveWidths.length && props.height) {
-      srcset.value = props.responsiveWidths.map(w => {
-        const pp = new URLSearchParams(p)
-        pp.set('width', String(w))
-        return `${runtime.public.clientDirectusUrl}/assets/${props.assetId}?${pp.toString()} ${w}w`
-      }).join(', ')
-    }
+    // if (props.responsiveWidths.length && props.height) {
+    //   srcset.value = props.responsiveWidths.map(w => {
+    //     const pp = new URLSearchParams(p)
+    //     pp.set('width', String(w))
+    //     return `${runtime.public.clientDirectusUrl}/assets/${props.assetId}?${pp.toString()} ${w}w`
+    //   }).join(', ')
+    // }
   })
 </script>
   

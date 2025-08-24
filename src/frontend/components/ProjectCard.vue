@@ -7,7 +7,6 @@
                     :assetId="image_id"
                     :alt="title"
                     :height="160"
-                    :quality="70"
                     :width="400"
                     fit="cover"
                     sizes="(max-width: 768px) 312px, 400px" 
@@ -26,7 +25,6 @@
                     <SmartImg
                         :assetId="organisation.logo"
                         :alt="organisation.name"
-                        :quality="70"
                         :height="48"
                         :width="48" 
                         fit="cover"
