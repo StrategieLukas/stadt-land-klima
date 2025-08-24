@@ -21,28 +21,28 @@ a {
 @layer base {
   @font-face {
     font-family: "Inter";
-    src: url("/fonts/Inter-Bold.ttf") format("truetype");
+    src: url("/fonts/Inter-Bold.woff2") format("truetype");
     font-weight: bold;
     font-style: normal;
     font-display: swap;
   }
   @font-face {
     font-family: "Inter";
-    src: url("/fonts/Inter-Regular.ttf") format("truetype");
+    src: url("/fonts/Inter-Regular.woff2") format("truetype");
     font-weight: normal;
     font-style: normal;
     font-display: swap;
   }
   @font-face {
     font-family: "RobotoCondensed";
-    src: url("/fonts/RobotoCondensed-Bold.ttf") format("truetype");
+    src: url("/fonts/RobotoCondensed-Bold.woff2") format("truetype");
     font-weight: bold;
     font-style: normal;
     font-display: swap;
   }
   @font-face {
     font-family: "RobotoCondensed";
-    src: url("/fonts/RobotoCondensed-Regular.ttf") format("truetype");
+    src: url("/fonts/RobotoCondensed-Regular.woff2") format("truetype");
     font-weight: normal;
     font-style: normal;
     font-display: swap;
