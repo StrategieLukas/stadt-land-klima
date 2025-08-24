@@ -136,3 +136,4 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 - need to first do import:schema with that articles.description.yaml, articles.organisation.yaml and external_projects.description file missing, then the fields get cleared and then import again with these.
 - > this applies to articles.organisation, articles.article_text
 So first manually delete the yamls on the environment, then import-all, then git restore them and import-all again for clean wipe of fields.
+- update env to have the new env keys for the image resizing

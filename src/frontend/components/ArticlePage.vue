@@ -21,9 +21,24 @@
   
         <!-- Image and Image Credits -->
         <div class="relative mb-4">
-          <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover" />
+          <SmartImg v-if="image"
+            :assetId="image"
+            :alt="title"
+            :quality="70"
+            fit="cover"
+            format="webp" 
+            img-class="object-cover w-full h-full"
+            />
           <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
-            <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
+            <SmartImg
+              :assetId="organisation.logo"
+              :alt="organisation.name"
+              :quality="70"
+              :height="56"
+              :width="56" 
+              fit="cover"
+              img-class="absolute top-2 right-2 w-14 h-14"
+              />
           </div>
           <p v-if="image_credits" class="text-xs text-gray-500 mt-1 text-center italic">{{ image_credits }}</p>
         </div>
@@ -63,7 +78,15 @@
     <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← {{ $t("navigation.return_to_overview") }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
-      <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`" class="absolute top-2 right-2 w-14 h-14" />
+      <SmartImg
+              :assetId="organisation.logo"
+              :alt="organisation.name"
+              :quality="70"
+              :height="56"
+              :width="56" 
+              fit="cover"
+              img-class="absolute top-2 right-2 w-14 h-14"
+              />
     </div>
     
     <div class="grid grid-cols-3 gap-6 prose max-w-none">
@@ -74,7 +97,14 @@
         <div>
           <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
             <span v-if="!image" class="text-gray-500">[Image Placeholder]</span>
-            <img v-if="image" :src="toAssetUrl(image)" class="w-full h-full object-cover rounded-lg" />
+            <SmartImg v-if="image"
+              :assetId="image"
+              :alt="title"
+              :quality="70"
+              fit="cover"
+              format="webp" 
+              img-class="w-full h-full object-cover rounded-lg"
+              />
           </div>
           <p v-if="image_credits" class="text-xs text-gray-500 text-center italic">{{ image_credits }}</p>
         </div>
@@ -174,6 +204,7 @@
 </style>
   
 <script setup>
+  import { ref, watchEffect } from 'vue'
   import { buildLocationString, toAssetUrl } from '~/shared/utils';
   import MarkdownIt from 'markdown-it'
   
@@ -193,6 +224,13 @@
       article_text: String,
       link: URL,
       organisation: Object, // can be null
+  });
+
+  const src = ref(null);
+
+  watchEffect(async () => {
+    src.value = null;
+    src.value = await toAssetUrl(props.assetId, { width: props.width, height: props.height, quality: props.quality, fit: props.fit });
   });
 
   const location = computed(() => buildLocationString(props.municipality_name, props.state));
