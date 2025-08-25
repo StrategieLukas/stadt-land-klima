@@ -44,6 +44,7 @@ permissions:
       - ghg_savings_potential
       - public_impact
       - other_benefits
+      - additional_infos
   - collection: organisations
     action: read
     permissions: null

@@ -244,6 +244,36 @@ permissions:
       - similar_external_projects
       - similar_articles
   - collection: articles
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - slug
+      - author
+      - municipality_name
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - link
+      - sectors
+      - additional_examples
+      - sources
+      - economic_efficiency
+      - additional_infos
+      - public_impact
+      - ghg_savings_potential
+      - other_benefits
+      - ease_of_implementation
+      - similar_articles
+      - similar_external_projects
+  - collection: articles
     action: delete
     permissions:
       _and:
@@ -317,36 +347,6 @@ permissions:
     fields:
       - articles_id
       - related_articles_id
-  - collection: articles
-    action: create
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - title
-      - slug
-      - author
-      - municipality_name
-      - state
-      - content
-      - subtitle
-      - image
-      - image_credits
-      - abstract
-      - article_text
-      - organisation
-      - link
-      - sectors
-      - additional_examples
-      - sources
-      - economic_efficiency
-      - additional_infos
-      - public_impact
-      - ghg_savings_potential
-      - other_benefits
-      - ease_of_implementation
-      - similar_articles
-      - similar_external_projects
   - collection: external_projects
     action: create
     permissions: null
@@ -387,35 +387,3 @@ permissions:
     validation: null
     presets: null
     fields: null
-  - collection: organisations
-    action: read
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - name
-      - short_description
-      - link
-      - logo
-      - id
-  - collection: directus_files
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
