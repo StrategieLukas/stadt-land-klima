@@ -207,6 +207,10 @@ permissions:
       - similar_external_projects
       - similar_articles
       - sectors
+      - ghg_savings_level
+      - public_impact_effects
+      - is_profitable
+      - can_do_autonomously
   - collection: articles
     action: update
     permissions:
@@ -243,6 +247,10 @@ permissions:
       - other_benefits
       - similar_external_projects
       - similar_articles
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
   - collection: articles
     action: create
     permissions: null
@@ -273,6 +281,10 @@ permissions:
       - ease_of_implementation
       - similar_articles
       - similar_external_projects
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
   - collection: articles
     action: delete
     permissions:

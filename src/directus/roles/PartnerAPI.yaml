@@ -45,6 +45,10 @@ permissions:
       - public_impact
       - other_benefits
       - additional_infos
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
   - collection: organisations
     action: read
     permissions: null
