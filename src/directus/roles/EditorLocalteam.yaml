@@ -196,6 +196,17 @@ permissions:
       - organisation
       - link
       - id
+      - additional_examples
+      - sources
+      - additional_infos
+      - economic_efficiency
+      - public_impact
+      - ghg_savings_potential
+      - ease_of_implementation
+      - other_benefits
+      - similar_external_projects
+      - similar_articles
+      - sectors
   - collection: articles
     action: update
     permissions:
@@ -221,6 +232,91 @@ permissions:
       - article_text
       - organisation
       - link
+      - sectors
+      - sources
+      - additional_examples
+      - additional_infos
+      - economic_efficiency
+      - ghg_savings_potential
+      - public_impact
+      - ease_of_implementation
+      - other_benefits
+      - similar_external_projects
+      - similar_articles
+  - collection: articles
+    action: delete
+    permissions:
+      _and:
+        - _and:
+            - user_created:
+                _eq: $CURRENT_USER
+            - status:
+                _neq: published
+    validation: null
+    presets: null
+    fields: null
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - short_description
+      - link
+      - logo
+      - id
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - articles_id
+      - external_projects_id
+  - collection: articles_articles
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_articles
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - articles_id
+      - related_articles_id
   - collection: articles
     action: create
     permissions: null
@@ -240,15 +336,54 @@ permissions:
       - article_text
       - organisation
       - link
-  - collection: articles
+      - sectors
+      - additional_examples
+      - sources
+      - economic_efficiency
+      - additional_infos
+      - public_impact
+      - ghg_savings_potential
+      - other_benefits
+      - ease_of_implementation
+      - similar_articles
+      - similar_external_projects
+  - collection: external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - link
+      - description
+  - collection: external_projects
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - link
+      - description
+      - id
+  - collection: external_projects
+    action: update
+    permissions:
+      _and:
+        - user_created:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - title
+      - link
+      - description
+  - collection: external_projects
     action: delete
     permissions:
       _and:
-        - _and:
-            - user_created:
-                _eq: $CURRENT_USER
-            - status:
-                _neq: published
+        - user_created:
+            _eq: $CURRENT_USER
     validation: null
     presets: null
     fields: null

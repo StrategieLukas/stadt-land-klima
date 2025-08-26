@@ -170,3 +170,53 @@ permissions:
       - description
       - link
       - title
+  - collection: directus_users
+    action: read
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_users
+    action: update
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - password
+  - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_articles
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_articles
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - articles_id
+      - related_articles_id
+  - collection: articles_external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - articles_id
+      - external_projects_id
