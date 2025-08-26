@@ -1,45 +1,40 @@
 collection: articles
-field: other_benefits
-type: text
+field: ghg_savings_level
+type: string
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: other_benefits
-  group: other_benefits_block
+  field: ghg_savings_level
+  group: ghg_savings_potential_block
   hidden: false
-  interface: input-rich-text-md
+  interface: select-radio
   note: null
   options:
-    toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - code
-      - empty
-      - heading
-      - italic
-      - link
-      - numlist
-      - strikethrough
-      - table
+    choices:
+      - text: $t:articles.ghg_savings_level.none
+        value: none
+      - text: $t:articles.ghg_savings.level.high
+        value: high
+      - text: $t:articles.ghg_savings.level.very_high
+        value: very_high
   readonly: false
   required: false
   sort: 1
   special: null
   translations:
     - language: de-DE
-      translation: Erläuterung
+      translation: Höhe des Einsparpotenzials
   validation: null
   validation_message: null
   width: full
 schema:
-  name: other_benefits
+  name: ghg_savings_level
   table: articles
-  data_type: text
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

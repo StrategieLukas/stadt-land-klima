@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: public_impact
-  group: additional_infos
+  group: public_impact_block
   hidden: false
   interface: input-rich-text-md
   note: null
@@ -30,7 +30,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Öffentliche Wirkung
+      translation: Erläuterung
   validation: null
   validation_message: null
   width: full

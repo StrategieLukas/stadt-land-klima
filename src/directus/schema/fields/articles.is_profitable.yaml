@@ -1,43 +1,32 @@
 collection: articles
-field: other_benefits
-type: text
+field: is_profitable
+type: boolean
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: other_benefits
-  group: other_benefits_block
+  field: is_profitable
+  group: economic_efficiency_block
   hidden: false
-  interface: input-rich-text-md
+  interface: boolean
   note: null
-  options:
-    toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - code
-      - empty
-      - heading
-      - italic
-      - link
-      - numlist
-      - strikethrough
-      - table
+  options: null
   readonly: false
   required: false
   sort: 1
-  special: null
+  special:
+    - cast-boolean
   translations:
     - language: de-DE
-      translation: Erläuterung
+      translation: Die Maßnahme amortisiert sich
   validation: null
   validation_message: null
   width: full
 schema:
-  name: other_benefits
+  name: is_profitable
   table: articles
-  data_type: text
+  data_type: boolean
   default_value: null
   max_length: null
   numeric_precision: null
