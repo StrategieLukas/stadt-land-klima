@@ -5,22 +5,17 @@ import { readRoles, readPermissions } from '@directus/sdk';
 import slugify from 'slugify';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 
-async function exportRoles(dest, options = { verbose: false, overwrite: false }) {
+async function exportRoles(dest, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
-    const roles = await client.request(readRoles({ limit: -1 }));
-    const permissions = await client.request(readPermissions({ limit: -1 }));
+    const roles = await client.request(readRoles({limit: -1}));
+    const permissions = await client.request(readPermissions({limit: -1}));
 
-    fse.mkdirSync(dest, { recursive: true });
+    fse.mkdirSync(dest);
 
-    // Add public role
-    roles.push({ id: null, name: "public" });
-
-    roles
-    .filter((role) => role.name !== 'Administrator')
-    .forEach((role) => {
-      const destPath = path.join(dest, slugify(role.name, "_") + ".yaml");
+    roles.forEach((role) => {
+      const destPath = path.join(dest, slugify(role.name, '_') + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) {
@@ -29,20 +24,23 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         return;
       }
 
-      const rolePermissions = permissions
-        .filter((permission) => permission.role === role.id)
-        .map((permission) => {
-          delete permission.id;
-          delete permission.role;
-          return permission;
-        });
+      delete role.users;
 
-      const roleData = { ...role };
-      delete roleData.users;
-      delete roleData.id;
-      roleData.permissions = rolePermissions;
+      role.permissions = permissions.filter((permission) => {
+        return permission.role === role.id;
+      }).map((permission) => {
+        delete permission.id;
+        delete permission.role;
+        return permission;
+      });
 
-      fse.writeFileSync(destPath, stringify(roleData), { encoding: "utf8" });
+      delete role.id;
+
+      fse.writeFileSync(
+        destPath,
+        stringify(role),
+        { encoding: 'utf8' }
+      );
 
       if (options.verbose) {
         console.info(`Exported role ${destPath}`);
@@ -50,14 +48,12 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
     });
 
     if (options.verbose) {
-      console.info("All roles exported.");
+      console.info('All roles exported.');
     }
   } catch (err) {
     console.error(err);
     return process.exit(1);
   }
 }
-
-
 
 export default exportRoles;
