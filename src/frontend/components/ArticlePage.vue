@@ -149,7 +149,7 @@
         <p v-if="subtitle" class="text-lg text-gray-500 mb-6">{{ subtitle }}</p>
         
         <div class="text-gray-700 leading-relaxed flex-grow">
-          <div v-html="md.render(abstract)" class="prose max-w-none mb-8" />
+          <div v-if="abstract" v-html="md.render(abstract)" class="prose max-w-none mb-8" />
           <div v-html="md.render(article_text)"></div>
         </div>
       </div>
