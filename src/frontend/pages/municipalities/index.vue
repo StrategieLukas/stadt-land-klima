@@ -113,6 +113,7 @@
       <div class="sticky top-8">
         <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
+          <OnboardingBox :name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"/>
           <ProjectCard
             v-for="project in projects"
             :key="project.id"
@@ -130,10 +131,17 @@
       </div>
     </div>
   </div>
+
+
 </template>
 
-
 <script setup>
+import majorCitySelected from '~/assets/images/major-city-light.svg'
+import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
+import minorCitySelected from '~/assets/images/minor-city-light.svg'
+import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
+
+import OnboardingBox from '~/components/OnboardingBox.vue'
 import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
@@ -206,9 +214,5 @@ onMounted(() => {
 // Toggle between cities, towns, or all
 const selected = ref('all')
 
-import majorCitySelected from '~/assets/images/major-city-light.svg'
-import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
-import minorCitySelected from '~/assets/images/minor-city-light.svg'
-import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 </script>
 
