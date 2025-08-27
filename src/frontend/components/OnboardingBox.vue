@@ -1,7 +1,7 @@
 <template>
-  <div class="card bg-white shadow-xl rounded-none overflow-hidden border-2 border-green p-4">
+  <div class="card bg-white shadow-xl rounded-none overflow-hidden border-2 border-green p-4 h-52 max-w-md">
     <!-- Title -->
-    <h2 class="text-2xl font-bold text-green text-center mb-4">
+    <h2 class="text-2xl font-bold text-green text-center mb-4 mt-0">
       {{ $t("onboarding.title") }}
     </h2>
 
@@ -9,19 +9,19 @@
     <div class="flex items-center gap-6 ">
       <!-- Avatar -->
       <div class="avatar">
-        <div class="w-24 h-24 rounded-full bg-black flex-shrink-0">
+        <div class="w-24 h-24 rounded-full flex-shrink-0">
           <img
             v-if="avatarSrc"
             :src="avatarSrc"
             :alt="name"
-            class="w-full h-full object-cover rounded-full"
+            class="w-full h-full object-cover rounded-full mt-0"
           />
         </div>
       </div>
 
       <!-- Text -->
       <p class="text-base">
-        {{ $t("onboarding.book_appointment.long") }}!
+        {{ $t("onboarding.book_appointment.long") }}
       </p>
     </div>
 

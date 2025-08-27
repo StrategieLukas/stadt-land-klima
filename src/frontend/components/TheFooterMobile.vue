@@ -1,5 +1,8 @@
 <template lang="">
   <div class="max-w-screen-xl mx-auto text-center mb-8">
+    <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen">
+      <img src="~/assets/icons/icon_klimachecker.svg" class="m-4" :alt="$t('logo.alt')" />
+    </NuxtLink>
     <p class="mb-4">
       {{ $t('generic.social_media.support_by_sharing') }}
     </p>
@@ -34,5 +37,7 @@
 import { defineProps } from "vue";
 const { $t } = useNuxtApp();
 const props = defineProps(["pages"]);
+const route = useRoute();
+const shouldDisplayOnboardingLink = !(route.path === "/" || route.path.includes("mitmachen"))
 </script>
 <style lang=""></style>
