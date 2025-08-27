@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: ease_of_implementation
-  group: additional_infos
+  group: ease_of_implementation_block
   hidden: false
   interface: input-rich-text-md
   note: null
@@ -26,11 +26,11 @@ meta:
       - table
   readonly: false
   required: false
-  sort: 4
+  sort: 2
   special: null
   translations:
     - language: de-DE
-      translation: Wie schwierig ist die Umsetzung?
+      translation: Erläuterung
   validation: null
   validation_message: null
   width: full

@@ -145,11 +145,11 @@
       
       <!-- Main Content -->
       <div class="col-span-2 flex flex-col">
-        <h1 class="text-3xl font-bold text-blue-600 mb-2">{{ title }}</h1>
+        <h1 class="text-3xl font-bold text-blue-600 mb-2 pr-10">{{ title }}</h1>
         <p v-if="subtitle" class="text-lg text-gray-500 mb-6">{{ subtitle }}</p>
         
         <div class="text-gray-700 leading-relaxed flex-grow">
-          <div v-html="md.render(abstract)" class="prose max-w-none mb-8" />
+          <div v-if="abstract" v-html="md.render(abstract)" class="prose max-w-none mb-8" />
           <div v-html="md.render(article_text)"></div>
         </div>
       </div>

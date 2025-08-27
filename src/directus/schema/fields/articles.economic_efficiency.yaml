@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: economic_efficiency
-  group: additional_infos
+  group: economic_efficiency_block
   hidden: false
   interface: input-rich-text-md
   note: null
@@ -26,11 +26,11 @@ meta:
       - table
   readonly: false
   required: false
-  sort: 1
+  sort: 2
   special: null
   translations:
     - language: de-DE
-      translation: Wirtschaftlichkeit
+      translation: Erläuterung
   validation: null
   validation_message: null
   width: full

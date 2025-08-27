@@ -58,6 +58,10 @@ permissions:
       - ease_of_implementation
       - similar_articles
       - similar_external_projects
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
   - collection: articles
     action: read
     permissions: {}
@@ -96,6 +100,10 @@ permissions:
       - other_benefits
       - similar_articles
       - similar_external_projects
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
   - collection: articles
     action: delete
     permissions: {}

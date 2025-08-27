@@ -1,43 +1,37 @@
 collection: articles
-field: other_benefits
-type: text
+field: public_impact_effects
+type: json
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: other_benefits
-  group: other_benefits_block
+  field: public_impact_effects
+  group: public_impact_block
   hidden: false
-  interface: input-rich-text-md
+  interface: select-multiple-checkbox
   note: null
   options:
-    toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - code
-      - empty
-      - heading
-      - italic
-      - link
-      - numlist
-      - strikethrough
-      - table
+    choices:
+      - text: $t:articles.public_impact.effect.role_model
+        value: role_model
+      - text: $t:articles.public_impact.effect.increase_acceptance
+        value: increase_acceptance
   readonly: false
   required: false
   sort: 1
-  special: null
+  special:
+    - cast-json
   translations:
     - language: de-DE
-      translation: Erläuterung
+      translation: Dieses Projekt ist ein Beispiel für...
   validation: null
   validation_message: null
   width: full
 schema:
-  name: other_benefits
+  name: public_impact_effects
   table: articles
-  data_type: text
+  data_type: json
   default_value: null
   max_length: null
   numeric_precision: null
