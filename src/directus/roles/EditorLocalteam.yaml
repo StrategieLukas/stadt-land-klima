@@ -207,6 +207,10 @@ permissions:
       - similar_external_projects
       - similar_articles
       - sectors
+      - ghg_savings_level
+      - public_impact_effects
+      - is_profitable
+      - can_do_autonomously
   - collection: articles
     action: update
     permissions:
@@ -243,6 +247,44 @@ permissions:
       - other_benefits
       - similar_external_projects
       - similar_articles
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
+  - collection: articles
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - slug
+      - author
+      - municipality_name
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - link
+      - sectors
+      - additional_examples
+      - sources
+      - economic_efficiency
+      - additional_infos
+      - public_impact
+      - ghg_savings_potential
+      - other_benefits
+      - ease_of_implementation
+      - similar_articles
+      - similar_external_projects
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
   - collection: articles
     action: delete
     permissions:
@@ -317,36 +359,6 @@ permissions:
     fields:
       - articles_id
       - related_articles_id
-  - collection: articles
-    action: create
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - title
-      - slug
-      - author
-      - municipality_name
-      - state
-      - content
-      - subtitle
-      - image
-      - image_credits
-      - abstract
-      - article_text
-      - organisation
-      - link
-      - sectors
-      - additional_examples
-      - sources
-      - economic_efficiency
-      - additional_infos
-      - public_impact
-      - ghg_savings_potential
-      - other_benefits
-      - ease_of_implementation
-      - similar_articles
-      - similar_external_projects
   - collection: external_projects
     action: create
     permissions: null
@@ -387,35 +399,3 @@ permissions:
     validation: null
     presets: null
     fields: null
-  - collection: organisations
-    action: read
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - name
-      - short_description
-      - link
-      - logo
-      - id
-  - collection: directus_files
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
