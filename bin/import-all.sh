@@ -1,7 +1,7 @@
 #!/bin/bash
+cd ..
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml exec directus /directus/cli/import-all.sh
 # Now reset all permissions for the public role to be safe
-cd ..
 if [ -f src/directus/.env ]; then
   source src/directus/.env
 fi
