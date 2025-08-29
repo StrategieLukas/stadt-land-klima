@@ -1,20 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg id="Ebene_2" data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35.54 56.7">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: #fff;
-      }
-
-      .cls-2 {
-        fill: #fd0;
-      }
-    </style>
-  </defs>
-  <g id="Beschriftung">
-    <g>
-      <path class="cls-2" d="M35.52,17.7C35.52,7.9,26.92,0,17.82,0S.02,8,.02,17.7c0,1.8-.4,3.8,2.2,10.7,1.5,3.7,15.5,28.3,15.5,28.3,0,0,14-24.5,15.5-28.3,2.7-6.9,2.3-8.8,2.3-10.7Z"/>
-      <path class="cls-1" d="M15.62,30.4h-6.3L19.82,7.7h6.3l-10.5,22.7Z"/>
-    </g>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35.54 56.7">
+  <style>
+    .st2{fill:#FFDD00}
+    .st5{fill:#FFF}
+  </style>
+  <path class="st2" d="M35.52 17.7C35.52 7.9 26.92 0 17.82 0S.02 8 .02 17.7c0 1.8-.4 3.8 2.2 10.7 1.5 3.7 15.5 28.3 15.5 28.3s14-24.5 15.5-28.3c2.7-6.9 2.3-8.8 2.3-10.7z"/>
+  <path class="st5" d="M15.62 30.4h-6.3L19.82 7.7h6.3l-10.5 22.7z"/>
 </svg>
