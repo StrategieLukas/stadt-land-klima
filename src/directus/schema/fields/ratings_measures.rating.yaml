@@ -387,99 +387,81 @@ meta:
           - text: $t:measure_rating.choices.red
             value: "0"
             svg_icon: >
-              <?xml version="1.0" encoding="utf-8"?>
+              <?xml version="1.0" encoding="UTF-8"?> <svg id="Ebene_2"
+              data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0
+              0 35.56 56.7">
+                <defs>
+                  <style>
+                    .cls-1 {
+                      fill: #fff;
+                    }
 
-              <!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-
-              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-              	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
-              <style type="text/css">
-              	.st0{fill:#1EA64A;}
-              	.st1{fill:#AFCA0B;}
-              	.st2{fill:#E30613;}
-              	.st3{fill:#FFFFFF;}
-              	.st4{fill:#FFDD00;}
-              	.st5{fill:#F39200;}
-              	.st6{fill:#16BAE7;}
-              	.st7{fill:none;}
-              </style>
-
-              <g>
-              	<path class="st2" d="M35.5,17.7C35.5,7.9,27,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
-              		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
-              </g>
-
-              <path class="st3" d="M5,22v-5.8h25.5V22H5z"/>
-
+                    .cls-2 {
+                      fill: #e30613;
+                    }
+                  </style>
+                </defs>
+                <g id="Beschriftung">
+                  <g>
+                    <path class="cls-2" d="M35.52,17.7C35.52,7.9,27.02,0,17.82,0S.02,8,.02,17.7c0,1.8-.4,3.8,2.2,10.7,1.5,3.7,15.5,28.3,15.5,28.3,0,0,14-24.5,15.5-28.3,2.8-6.9,2.3-8.8,2.3-10.7Z"/>
+                    <path class="cls-1" d="M10.88,29.37l-4.1-4.1,6.93-6.93-7-7,4.1-4.1,6.93,6.93,7-7,4.1,4.1-6.93,6.93,6.93,6.93-4.17,4.17-6.93-6.93-6.93,6.93.07.07Z"/>
+                  </g>
+                </g>
               </svg>
           - text: $t:measure_rating.choices.yellow
-            value: "0.3333"
+            value: "0.5"
             svg_icon: >
-              <?xml version="1.0" encoding="utf-8"?>
+              <?xml version="1.0" encoding="UTF-8"?> <svg id="Ebene_2"
+              data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0
+              0 35.54 56.7">
+                <defs>
+                  <style>
+                    .cls-1 {
+                      fill: #fff;
+                    }
 
-              <!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-
-              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-              	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
-              <style type="text/css">
-              	.st0{fill:#1EA64A;}
-              	.st1{fill:#AFCA0B;}
-              	.st2{fill:#E30613;}
-              	.st3{fill:#FFFFFF;}
-              	.st4{fill:#FFDD00;}
-              	.st5{fill:#F39200;}
-              	.st6{fill:#16BAE7;}
-              	.st7{fill:none;}
-              </style>
-
-              <g>
-              	<path class="st5" d="M35.5,17.7C35.5,7.9,27,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
-              		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
-              </g>
-
-              <path class="st3" d="M15.6,30.4H9.3L19.8,7.7h6.3L15.6,30.4z"/>
-
+                    .cls-2 {
+                      fill: #fd0;
+                    }
+                  </style>
+                </defs>
+                <g id="Beschriftung">
+                  <g>
+                    <path class="cls-2" d="M35.52,17.7C35.52,7.9,26.92,0,17.82,0S.02,8,.02,17.7c0,1.8-.4,3.8,2.2,10.7,1.5,3.7,15.5,28.3,15.5,28.3,0,0,14-24.5,15.5-28.3,2.7-6.9,2.3-8.8,2.3-10.7Z"/>
+                    <path class="cls-1" d="M15.62,30.4h-6.3L19.82,7.7h6.3l-10.5,22.7Z"/>
+                  </g>
+                </g>
               </svg>
           - text: $t:measure_rating.choices.light_green
-            value: "0.6666"
+            value: "0.75"
             svg_icon: >
-              <?xml version="1.0" encoding="utf-8"?>
+              <?xml version="1.0" encoding="UTF-8"?> <svg id="Ebene_2"
+              data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0
+              0 35.54 56.7">
+                <defs>
+                  <style>
+                    .cls-1 {
+                      fill: #fff;
+                    }
 
-              <!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-
-              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-              	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
-              <style type="text/css">
-              	.st0{fill:#1EA64A;}
-              	.st1{fill:#AFCA0B;}
-              	.st2{fill:#E30613;}
-              	.st3{fill:#FFFFFF;}
-              	.st4{fill:#FFDD00;}
-              	.st5{fill:#F39200;}
-              	.st6{fill:#16BAE7;}
-              	.st7{fill:none;}
-              	.st8{font-family:'ArialMT';}
-              	.st9{font-size:12px;}
-              </style>
-
-              <g>
-              	<path class="st1" d="M35.5,17.7C35.5,7.9,26.9,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
-              		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
-              </g>
-
-              <text transform="matrix(1 0 0 1 16.0326 0)" class="st8 st9"> </text>
-
-              <path class="st3" d="M20.6,31.8h-5.8V22H4.9v-5.8h9.8V6.3h5.8v9.8h9.8V22h-9.8V31.8z"/>
-
+                    .cls-2 {
+                      fill: #afca15;
+                    }
+                  </style>
+                </defs>
+                <g id="Beschriftung">
+                  <g>
+                    <path class="cls-2" d="M35.52,17.7C35.52,7.9,26.92,0,17.82,0S.02,8,.02,17.7c0,1.8-.4,3.8,2.2,10.7,1.5,3.7,15.5,28.3,15.5,28.3,0,0,14-24.5,15.5-28.3,2.7-6.9,2.3-8.8,2.3-10.7Z"/>
+                    <path class="cls-1" d="M20.62,31.8h-5.8v-9.8H4.92v-5.8h9.8V6.3h5.8v9.8h9.8v5.9h-9.8v9.8h.1Z"/>
+                  </g>
+                </g>
               </svg>
           - text: $t:measure_rating.choices.green
             value: "1"
             svg_icon: >
-              <?xml version="1.0" encoding="utf-8"?>
-
-              <!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-
-              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              <?xml version="1.0" encoding="utf-8"?> <svg version="1.1"
+              id="Ebene_1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
               	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
               <style type="text/css">
               	.st0{fill:#1EA64A;}
@@ -490,16 +472,10 @@ meta:
               	.st5{fill:#F39200;}
               	.st6{fill:#16BAE7;}
               	.st7{fill:none;}
-              </style>
-
-              <g>
+              </style> <g>
               	<path class="st0" d="M35.4,17.7C35.4,7.9,26.9,0,17.7,0S-0.1,8-0.1,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
               		s14-24.5,15.5-28.3C35.9,21.5,35.4,19.6,35.4,17.7z"/>
-              </g>
-
-              <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
-
-              </svg>
+              </g> <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/> </svg>
     - name: Cannot be edited and is hidden, if measure is marked as not applicable
       rule:
         _and:
@@ -511,11 +487,12 @@ meta:
     - name: All Choices
       options:
         choices:
-          - text: $t:measure_rating.choices.orange
-            value: "0.25"
-            svg_icon: >-
-              <?xml version="1.0" encoding="utf-8"?>
-              <svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+          - text: $t:measure_rating.choices.not_rated
+            value: null
+            svg_icon: >
+              <?xml version="1.0" encoding="utf-8"?> <svg version="1.1"
+              id="Ebene_1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
               	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
               <style type="text/css">
               	.st0{fill:#1EA64A;}
@@ -526,16 +503,123 @@ meta:
               	.st5{fill:#F39200;}
               	.st6{fill:#16BAE7;}
               	.st7{fill:none;}
-              </style>
-
-              <g>
+                .st8{fill:#8C7873}
+              </style> <g>
+              	<path class="st8" d="M35.5,17.7C35.5,7.9,27,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
+              		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
+              </g> <path class="st3" d="M5,22v-5.8h25.5V22H5z"/> </svg>
+          - text: $t:measure_rating.choices.red
+            value: "0"
+            svg_icon: >
+              <?xml version="1.0" encoding="UTF-8"?> <svg id="Ebene_2"
+              data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0
+              0 35.56 56.7">
+                <defs>
+                  <style>
+                    .cls-1 {
+                      fill: #fff;
+                    }
+                    .cls-2 {
+                      fill: #e30613;
+                    }
+                  </style>
+                </defs>
+                <g id="Beschriftung">
+                  <g>
+                    <path class="cls-2" d="M35.52,17.7C35.52,7.9,27.02,0,17.82,0S.02,8,.02,17.7c0,1.8-.4,3.8,2.2,10.7,1.5,3.7,15.5,28.3,15.5,28.3,0,0,14-24.5,15.5-28.3,2.8-6.9,2.3-8.8,2.3-10.7Z"/>
+                    <path class="cls-1" d="M10.88,29.37l-4.1-4.1,6.93-6.93-7-7,4.1-4.1,6.93,6.93,7-7,4.1,4.1-6.93,6.93,6.93,6.93-4.17,4.17-6.93-6.93-6.93,6.93.07.07Z"/>
+                  </g>
+                </g>
+              </svg>
+          - text: $t:measure_rating.choices.orange
+            value: "0.25"
+            svg_icon: >
+              <?xml version="1.0" encoding="UTF-8"?> <svg id="Ebene_2"
+              data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0
+              0 35.54 56.7">
+                <defs>
+                  <style>
+                    .cls-1 {
+                      fill: #f39200;
+                    }
+                    .cls-2 {
+                      fill: #fff;
+                    }
+                  </style>
+                </defs>
+                <g id="Beschriftung">
+                  <g>
+                    <path class="cls-1" d="M35.52,17.7C35.52,7.9,27.02,0,17.82,0S.02,8,.02,17.7c0,1.8-.4,3.8,2.2,10.7,1.5,3.7,15.5,28.3,15.5,28.3,0,0,14-24.5,15.5-28.3,2.7-6.9,2.3-8.8,2.3-10.7Z"/>
+                    <path class="cls-2" d="M5.02,22v-5.8h25.5v5.8H5.02Z"/>
+                  </g>
+                </g>
+              </svg>
+          - text: $t:measure_rating.choices.yellow
+            value: "0.5"
+            svg_icon: >
+              <?xml version="1.0" encoding="UTF-8"?> <svg id="Ebene_2"
+              data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0
+              0 35.54 56.7">
+                <defs>
+                  <style>
+                    .cls-1 {
+                      fill: #fff;
+                    }
+                    .cls-2 {
+                      fill: #fd0;
+                    }
+                  </style>
+                </defs>
+                <g id="Beschriftung">
+                  <g>
+                    <path class="cls-2" d="M35.52,17.7C35.52,7.9,26.92,0,17.82,0S.02,8,.02,17.7c0,1.8-.4,3.8,2.2,10.7,1.5,3.7,15.5,28.3,15.5,28.3,0,0,14-24.5,15.5-28.3,2.7-6.9,2.3-8.8,2.3-10.7Z"/>
+                    <path class="cls-1" d="M15.62,30.4h-6.3L19.82,7.7h6.3l-10.5,22.7Z"/>
+                  </g>
+                </g>
+              </svg>
+          - text: $t:measure_rating.choices.light_green
+            value: "0.75"
+            svg_icon: >
+              <?xml version="1.0" encoding="UTF-8"?> <svg id="Ebene_2"
+              data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0
+              0 35.54 56.7">
+                <defs>
+                  <style>
+                    .cls-1 {
+                      fill: #fff;
+                    }
+                    .cls-2 {
+                      fill: #afca15;
+                    }
+                  </style>
+                </defs>
+                <g id="Beschriftung">
+                  <g>
+                    <path class="cls-2" d="M35.52,17.7C35.52,7.9,26.92,0,17.82,0S.02,8,.02,17.7c0,1.8-.4,3.8,2.2,10.7,1.5,3.7,15.5,28.3,15.5,28.3,0,0,14-24.5,15.5-28.3,2.7-6.9,2.3-8.8,2.3-10.7Z"/>
+                    <path class="cls-1" d="M20.62,31.8h-5.8v-9.8H4.92v-5.8h9.8V6.3h5.8v9.8h9.8v5.9h-9.8v9.8h.1Z"/>
+                  </g>
+                </g>
+              </svg>
+          - text: $t:measure_rating.choices.green
+            value: "1"
+            svg_icon: >
+              <?xml version="1.0" encoding="utf-8"?> <svg version="1.1"
+              id="Ebene_1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
+              <style type="text/css">
+              	.st0{fill:#1EA64A;}
+              	.st1{fill:#AFCA0B;}
+              	.st2{fill:#E30613;}
+              	.st3{fill:#FFFFFF;}
+              	.st4{fill:#FFDD00;}
+              	.st5{fill:#F39200;}
+              	.st6{fill:#16BAE7;}
+              	.st7{fill:none;}
+              </style> <g>
               	<path class="st0" d="M35.4,17.7C35.4,7.9,26.9,0,17.7,0S-0.1,8-0.1,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
               		s14-24.5,15.5-28.3C35.9,21.5,35.4,19.6,35.4,17.7z"/>
-              </g>
-
-              <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
-
-              </svg>
+              </g> <polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/> </svg>
   display: formatted-value
   display_options:
     conditionalFormatting:
@@ -545,15 +629,10 @@ meta:
         icon: stars
         text: $t:measure_rating.choices.red
       - operator: eq
-        value: "1"
-        color: "#1EA64A"
-        icon: stars
-        text: $t:measure_rating.choices.green
-      - operator: eq
         value: "0.25"
-        text: $t:measure_rating.choices.orange
+        color: "#F39200"
         icon: stars
-        color: "#AFCA0B"
+        text: $t:measure_rating.choices.orange
       - operator: eq
         value: "0.5"
         color: "#FFDD00"
@@ -564,6 +643,11 @@ meta:
         text: $t:measure_rating.choices.light_green
         icon: stars
         color: "#AFCA0B"
+      - operator: eq
+        value: "1"
+        color: "#1EA64A"
+        text: $t:measure_rating.choices.green
+        icon: stars
       - operator: eq
         value: "null"
         color: "#A2B5CD"
