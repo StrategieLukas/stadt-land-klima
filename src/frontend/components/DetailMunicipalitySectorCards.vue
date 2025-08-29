@@ -29,7 +29,7 @@
       </h3>
       <ul class="mb-2 flex items-end justify-center gap-4">
         <li
-          v-for="(rating, _) in [0, 1, 2, 3, null]"
+          v-for="(rating, _) in [0, 1, 2, 3, 4, null]"
           :key="`rating-image-${rating}`"
           class="flex flex-col items-center"
         >
