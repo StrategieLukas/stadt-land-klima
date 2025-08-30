@@ -1,27 +1,25 @@
-id: 5
 bookmark: null
 user: null
 role: null
-collection: pages
+collection: measures
 search: null
 layout: tabular
 layout_query:
   tabular:
     fields:
+      - measure_id
+      - sector
       - name
-      - menus
-      - status
-      - date_updated
-      - slug
+      - weight
+    sort:
+      - -weight
+    page: 1
 layout_options:
   tabular:
     widths:
-      name: 330
-      menus: 280
-      status: 95
-      date_updated: 185
-      slug: 250
+      sector: 320
+      name: 500
 refresh_interval: null
 filter: null
-icon: null
+icon: bookmark
 color: null

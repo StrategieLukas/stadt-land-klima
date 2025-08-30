@@ -1,26 +1,22 @@
-id: 2
 bookmark: null
 user: null
 role: null
-collection: measures
+collection: municipalities
 search: null
 layout: tabular
 layout_query:
   tabular:
     fields:
-      - measure_id
-      - sector
       - name
-      - weight
-    sort:
-      - -weight
-    page: 1
+      - municipality_type
+      - percentage_rated
+      - status
 layout_options:
   tabular:
     widths:
-      sector: 320
-      name: 500
+      municipality_type: 185
+      percentage_rated: 290
 refresh_interval: null
 filter: null
-icon: bookmark
+icon: null
 color: null

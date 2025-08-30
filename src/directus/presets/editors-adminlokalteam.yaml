@@ -1,22 +1,17 @@
-id: 8
 bookmark: null
 user: null
-role: null
-collection: feedback
+role: b8c043a2-a245-42d1-b28f-20c657270926
+collection: editors
 search: null
 layout: tabular
 layout_query:
   tabular:
     fields:
-      - type
-      - date_created
-      - status
-      - title
+      - email
 layout_options:
   tabular:
     widths:
-      type: 235
-      title: 606
+      email: 1100
 refresh_interval: null
 filter: null
 icon: null

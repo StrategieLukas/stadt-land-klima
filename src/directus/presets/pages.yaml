@@ -1,22 +1,25 @@
-id: 4
 bookmark: null
 user: null
 role: null
-collection: municipalities
+collection: pages
 search: null
 layout: tabular
 layout_query:
   tabular:
     fields:
       - name
-      - municipality_type
-      - percentage_rated
+      - menus
       - status
+      - date_updated
+      - slug
 layout_options:
   tabular:
     widths:
-      municipality_type: 185
-      percentage_rated: 290
+      name: 330
+      menus: 280
+      status: 95
+      date_updated: 185
+      slug: 250
 refresh_interval: null
 filter: null
 icon: null
