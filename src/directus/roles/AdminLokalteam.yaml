@@ -33,6 +33,7 @@ permissions:
       - internal_note
       - applicable
       - why_not_applicable
+      - measure_info_preview
   - collection: ratings_measures
     action: update
     permissions:
