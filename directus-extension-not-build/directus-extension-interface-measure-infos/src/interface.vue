@@ -29,6 +29,17 @@
         <div v-if="measureData[fieldKey]" class="field-content" v-html="measureData[fieldKey]"></div>
         <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
       </div>
+
+      <!-- frontend link -->
+      <div v-if="measureData.slug && measureData.sector" class="measure-link">
+        <a
+          :href="`https://stadt-land-klima.de/measures/sectors/${measureData.sector}#measure-${measureData.slug}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ $t('view_measure_on_frontend') }}
+        </a>
+      </div>
     </div>
     
     <div v-else class="v-notice warning">
@@ -103,10 +114,11 @@ export default {
   },
   methods: {
     async fetchCurrentItem() {
-      if (!this.primaryKey || !this.api) return;
+      const id = this.primaryKey || this.value;
+      if (!id || !this.api) return;
       
       try {
-        const response = await this.api.get(`/items/${this.collection}/${this.primaryKey}`);
+        const response = await this.api.get(`/items/${this.collection}/${id}`);
         this.currentItem = response.data.data;
         
         const measureId = this.currentItem[this.measureField];
@@ -128,7 +140,7 @@ export default {
       try {
         const response = await this.api.get(`/items/measures/${id}`, {
           params: {
-            fields: this.fieldsToDisplay.join(',')
+            fields: [...this.fieldsToDisplay, 'sector', 'slug'].join(',')
           }
         });
         
@@ -148,30 +160,11 @@ export default {
     },
 
     getFieldLabel(fieldKey) {
-      // Try to get the translated field name from the stores
-      if (this.$stores) {
-        try {
-          const { useFieldsStore } = this.$stores();
-          const fieldsStore = useFieldsStore();
-          const field = fieldsStore.getField('measures', fieldKey);
-          if (field && field.meta && field.meta.translations) {
-            // Get the current locale
-            const locale = this.$i18n?.locale || 'en-US';
-            const translation = field.meta.translations.find(t => t.language === locale);
-            if (translation && translation.translation) {
-              return translation.translation;
-            }
-          }
-          // Fallback to field name from meta
-          if (field && field.meta && field.meta.field) {
-            return field.meta.field;
-          }
-        } catch (e) {
-          console.warn('Could not get field translation:', e);
-        }
-      }
-      
-      // Fallback to formatted field key
+      const key = `ratings_measures.fields.${fieldKey}`;
+      const translated = this.$t(key);
+      if (translated && translated !== key) return translated;
+
+      // fallback: make it pretty
       return fieldKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
   }
@@ -215,14 +208,14 @@ export default {
 
 .field-label {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--theme--foreground);
 }
 
 .field-content {
   color: var(--theme--foreground);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .field-content.empty {
@@ -262,5 +255,15 @@ export default {
 
 .v-notice {
   --v-notice-margin: 0;
+}
+
+.measure-link {
+  margin-top: 16px;
+}
+
+.measure-link a {
+  color: var(--theme--primary);
+  text-decoration: underline;
+  font-weight: 500;
 }
 </style>
