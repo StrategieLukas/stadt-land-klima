@@ -21,6 +21,14 @@ meta:
         value: "2"
       - text: $t:measure_choices.red_yellow_lightGreen_green
         value: "3"
+      - text: $t:measure_choices.red_orange_yellow_lightGreen_green
+        value: "4"
+      - text: $t:measure_choices.red_orange_yellow_green
+        value: "5"
+      - text: $t:measure_choices.red_orange_green
+        value: "6"
+      - text: $t:measure_choices.red_orange_lightGreen_green
+        value: "7"
     step: null
   readonly: true
   required: true
