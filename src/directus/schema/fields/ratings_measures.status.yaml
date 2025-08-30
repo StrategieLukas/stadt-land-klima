@@ -46,7 +46,9 @@ meta:
   required: false
   sort: 2
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Status der Bewertung
   validation:
     _and:
       - status:
