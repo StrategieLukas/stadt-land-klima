@@ -9,7 +9,14 @@ async function exportRoles(dest, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
-    const roles = await client.request(readRoles({limit: -1}));
+    const roles = await client.request(
+      readRoles({
+        limit: -1,
+        filter: {
+          name: { _neq: "Administrator" },
+        },
+      })
+    );
     const permissions = await client.request(readPermissions({limit: -1}));
 
     fse.mkdirSync(dest);
