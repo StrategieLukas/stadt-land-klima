@@ -30,7 +30,7 @@ meta:
     trim: true
   readonly: false
   required: true
-  sort: 17
+  sort: 15
   special: null
   translations:
     - language: de-DE

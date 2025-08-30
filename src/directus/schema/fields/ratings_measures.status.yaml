@@ -56,7 +56,7 @@ meta:
             - published
             - draft
   validation_message: null
-  width: full
+  width: half
 schema:
   name: status
   table: ratings_measures

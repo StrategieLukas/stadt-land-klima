@@ -9,14 +9,14 @@ meta:
     template: "{{municipality_id.name}}"
   field: localteam_id
   group: null
-  hidden: false
+  hidden: true
   interface: select-dropdown-m2o
   note: null
   options:
     template: "{{municipality_id.name}}"
   readonly: true
   required: true
-  sort: 13
+  sort: 10
   special:
     - m2o
   translations:
