@@ -8,7 +8,7 @@ meta:
   display_options: null
   field: measure_published
   group: null
-  hidden: false
+  hidden: true
   interface: boolean
   note: null
   options: null

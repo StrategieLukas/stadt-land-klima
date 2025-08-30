@@ -16,7 +16,7 @@ meta:
     template: "{{municipality_id.name}}"
   readonly: true
   required: true
-  sort: 12
+  sort: 13
   special:
     - m2o
   translations:

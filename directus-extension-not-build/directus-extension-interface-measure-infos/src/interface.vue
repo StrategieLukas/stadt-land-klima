@@ -41,8 +41,6 @@
 </template>
 
 <script>
-import useDirectusToken from "./use-directus-token";
-
 export default {
   name: 'MeasurePreview',
   inject: ["api"],

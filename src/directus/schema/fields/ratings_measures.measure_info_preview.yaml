@@ -1,37 +1,29 @@
 collection: ratings_measures
-field: choices
+field: measure_info_preview
 type: string
 meta:
   collection: ratings_measures
   conditions: null
   display: null
   display_options: null
-  field: choices
+  field: measure_info_preview
   group: null
-  hidden: true
-  interface: select-radio
+  hidden: false
+  interface: measure-preview
   note: null
-  options:
-    choices:
-      - text: $t:measure_choices.red_green
-        value: "0"
-      - text: $t:measure_choices.red_yellow_green
-        value: "1"
-      - text: $t:measure_choices.red_lightGreen_green
-        value: "2"
-      - text: $t:measure_choices.red_yellow_lightGreen_green
-        value: "3"
-    step: null
+  options: null
   readonly: true
-  required: true
-  sort: 15
+  required: false
+  sort: 9
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Maßnahmeninfos
   validation: null
   validation_message: null
   width: full
 schema:
-  name: choices
+  name: measure_info_preview
   table: ratings_measures
   data_type: character varying
   default_value: null
