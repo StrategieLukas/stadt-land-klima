@@ -1,5 +1,16 @@
 <template>
   <div class="measure-preview">
+    <!-- Link to Frontend -->
+    <div v-if="measureData.slug && measureData.sector" class="measure-link">
+      <a
+        :href="`https://stadt-land-klima.de/measures/sectors/${measureData.sector}#measure-${measureData.slug}`"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {{ $t('directus.fields.view_measure_on_frontend') }}
+      </a>
+    </div>
+    
     <div v-if="!measureId" class="v-notice info">
       <v-icon name="info" />
       <div class="content">
@@ -30,16 +41,6 @@
         <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
       </div>
 
-      <!-- frontend link -->
-      <div v-if="measureData.slug && measureData.sector" class="measure-link">
-        <a
-          :href="`https://stadt-land-klima.de/measures/sectors/${measureData.sector}#measure-${measureData.slug}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {{ $t('view_measure_on_frontend') }}
-        </a>
-      </div>
     </div>
     
     <div v-else class="v-notice warning">
@@ -96,63 +97,93 @@ export default {
     }
   },
   watch: {
-    primaryKey: {
-      immediate: true,
-      handler(newKey) {
-        if (newKey) {
-          this.fetchCurrentItem();
-        }
-      }
-    }
+    primaryKey: { immediate: true, handler() { this.ensureMeasureLoaded(); } },
+    value(newVal) { /* if your setup uses `value`, re-run */ this.ensureMeasureLoaded(); },
+    options: { deep: true, handler() { this.ensureMeasureLoaded(); } }
   },
   mounted() {
     this.fieldsToDisplay = this.fields_to_display;
-    
-    if (this.primaryKey) {
-      this.fetchCurrentItem();
-    }
+    this.ensureMeasureLoaded();
   },
   methods: {
-    async fetchCurrentItem() {
-      const id = this.primaryKey || this.value;
-      if (!id || !this.api) return;
-      
-      try {
-        const response = await this.api.get(`/items/${this.collection}/${id}`);
-        this.currentItem = response.data.data;
-        
-        const measureId = this.currentItem[this.measureField];
+    // call at mounted() and/or whenever primaryKey/value/options change
+    async ensureMeasureLoaded() {
+      // measure_field option name (the relation column on the ratings_measures item)
+      const measureField = (this.options && this.options.measure_field) || this.measure_field || 'measure_id';
+
+      // If we're attached *to* the measure_id field itself, value may already be the measure PK.
+      // If attached to a separate field, primaryKey is needed to fetch the record and read measure_id.
+      const pk = this.primaryKey ?? null; // Directus prop
+      const boundValue = this.value ?? null; // some setups also provide `value` prop
+
+      // CASE A: we have a proper item id (edit mode)
+      if (pk && pk !== '+') {
+        // fetch parent item only if we need to (i.e. we are not attached to the measure_id directly)
+        // if our interface is attached to the measure field itself we could skip this fetch and use boundValue
+        if (this.field === measureField) {
+          // interface attached to the measure_id column -> value or boundValue is the measure id
+          const measureId = boundValue || this.value || null;
+          if (measureId) {
+            await this.fetchMeasure(measureId);
+          } else {
+            // nothing selected on this item
+            this.measureData = {};
+            this.measureId = null;
+          }
+        } else {
+          // interface attached to another field (test1234). Need to read the parent item to find the measure id.
+          try {
+            const resp = await this.api.get(`/items/${this.collection}/${pk}`);
+            const item = resp?.data?.data || {};
+            const measureId = item[measureField] ?? null;
+            if (measureId) {
+              this.measureId = measureId;
+              await this.fetchMeasure(measureId);
+            } else {
+              this.measureData = {};
+              this.measureId = null;
+            }
+          } catch (err) {
+            // If you hit a 403 here, make sure the role/session has read permission for the collection
+            console.error('[MeasurePreview] Error fetching parent item:', err);
+            this.measureData = {};
+            this.measureId = null;
+          }
+        }
+        return;
+      }
+
+      // CASE B: create/new-item mode or no primaryKey — try to use value if interface is on measure_id
+      if (this.field === measureField) {
+        const measureId = boundValue || null;
         if (measureId) {
           this.measureId = measureId;
-          this.fetchMeasure(measureId);
+          await this.fetchMeasure(measureId);
+        } else {
+          this.measureData = {};
+          this.measureId = null;
         }
-      } catch (err) {
-        console.error('[MeasurePreview] Error fetching current item:', err);
+        return;
       }
+
+      // CASE C: nothing to do (create mode and interface not on measure field)
+      this.measureData = {};
+      this.measureId = null;
     },
 
+    // your existing fetchMeasure method - unchanged
     async fetchMeasure(id) {
       if (!id || !this.api) return;
-      
       this.loading = true;
       this.error = null;
-
       try {
         const response = await this.api.get(`/items/measures/${id}`, {
-          params: {
-            fields: [...this.fieldsToDisplay, 'sector', 'slug'].join(',')
-          }
+          params: { fields: [...this.fieldsToDisplay, 'sector', 'slug'].join(',') }
         });
-        
-        if (response.data && response.data.data) {
-          this.measureData = response.data.data;
-        } else {
-          this.measureData = response.data || {};
-        }
-        
+        this.measureData = response?.data?.data || {};
       } catch (err) {
         console.error('[MeasurePreview] Error fetching measure:', err);
-        this.error = err.message || this.$t('failed_to_fetch_measure_data');
+        this.error = err?.message || 'Failed to fetch measure';
         this.measureData = {};
       } finally {
         this.loading = false;
@@ -167,7 +198,7 @@ export default {
       // fallback: make it pretty
       return fieldKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
-  }
+  },
 };
 </script>
 
