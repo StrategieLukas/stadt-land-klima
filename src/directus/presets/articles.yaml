@@ -1,22 +1,28 @@
-id: 7
 bookmark: null
 user: null
 role: null
-collection: localteams
+collection: articles
 search: null
 layout: tabular
 layout_query:
   tabular:
     fields:
+      - date_created
+      - title
+      - author
+      - status
       - municipality_name
-      - admin_id
-      - internal_comment
+      - slug
+    sort:
+      - -date_created
+    page: 1
 layout_options:
   tabular:
     widths:
-      municipality_name: 280
-      admin_id: 350
-      internal_comment: 500
+      title: 290
+      author: 210
+      status: 95
+      municipality_name: 185
 refresh_interval: null
 filter: null
 icon: null
