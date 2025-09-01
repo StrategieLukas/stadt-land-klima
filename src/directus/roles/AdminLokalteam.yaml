@@ -310,6 +310,11 @@ permissions:
       - is_profitable
       - public_impact_effects
       - ghg_savings_level
+      - other_benefits_block
+      - ghg_savings_potential_block
+      - public_impact_block
+      - economic_efficiency_block
+      - ease_of_implementation_block
   - collection: articles
     action: delete
     permissions:
@@ -418,6 +423,11 @@ permissions:
       - can_do_autonomously
       - public_impact_effects
       - ghg_savings_level
+      - other_benefits_block
+      - ghg_savings_potential_block
+      - public_impact_block
+      - economic_efficiency_block
+      - ease_of_implementation_block
   - collection: external_projects
     action: create
     permissions: null

@@ -62,6 +62,11 @@ permissions:
       - is_profitable
       - public_impact_effects
       - ghg_savings_level
+      - public_impact_block
+      - ghg_savings_potential_block
+      - economic_efficiency_block
+      - other_benefits_block
+      - ease_of_implementation_block
   - collection: articles
     action: read
     permissions: {}
@@ -95,7 +100,6 @@ permissions:
       - additional_infos
       - economic_efficiency
       - ghg_savings_potential
-      - public_impact
       - ease_of_implementation
       - other_benefits
       - similar_articles
@@ -104,6 +108,12 @@ permissions:
       - is_profitable
       - public_impact_effects
       - ghg_savings_level
+      - public_impact
+      - ghg_savings_potential_block
+      - other_benefits_block
+      - economic_efficiency_block
+      - public_impact_block
+      - ease_of_implementation_block
   - collection: articles
     action: delete
     permissions: {}
