@@ -8,12 +8,12 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
-async function importRoles(src, options = {verbose: false, remove: false, overwrite: false}) {
+async function importRoles(src, options = { verbose: false, remove: false, overwrite: false }) {
   const client = createDirectusClient();
 
   try {
-    const existingRoles = await client.request(readRoles({limit: -1}));
-    const existingPermissions = await client.request(readPermissions({limit: -1}));
+    let existingRoles = await client.request(readRoles({ limit: -1 }));
+    let existingPermissions = await client.request(readPermissions({ limit: -1 }));
     const roles = readYamlFiles(path.join(src));
     let permissions = [];
 
@@ -22,10 +22,13 @@ async function importRoles(src, options = {verbose: false, remove: false, overwr
     const permissionsToCreate = [];
     const permissionsToUpdate = [];
 
+    // Split roles and permissions
     roles.forEach((role) => {
       const existingRole = find(existingRoles, ['name', role.name]);
-      const rolePermissions = role.permissions;
-      permissions = permissions.concat(rolePermissions);
+      const rolePermissions = role.permissions || [];
+      permissions = permissions.concat(
+        rolePermissions.map((p) => ({ ...p, role_name: role.name }))
+      );
       delete role.permissions;
 
       if (existingRole) {
@@ -34,125 +37,101 @@ async function importRoles(src, options = {verbose: false, remove: false, overwr
       } else {
         rolesToCreate.push(role);
       }
-
-      rolePermissions.forEach((permission) => {
-        permission.role_name = role.name;
-        const existingRole = find(existingRoles, ['name', permission.role_name]);
-
-        const existingPermission = existingRole
-        ? find(existingPermissions, {
-          action: permission.action,
-          role: existingRole.id,
-          collection: permission.collection,
-        }) : null;
-
-        if (existingPermission) {
-          permission.id = existingPermission.id;
-          permission.role = existingRole.id;
-          permissionsToUpdate.push(permission);
-        } else {
-          permissionsToCreate.push(permission);
-        }
-      });
     });
 
-    // Roles
-
+    // Create new roles
     if (rolesToCreate.length) {
-      if (options.verbose) {
-        console.info(`Creating ${rolesToCreate.length} roles`);
-      }
-
+      if (options.verbose) console.info(`Creating ${rolesToCreate.length} roles`);
       await client.request(createRoles(rolesToCreate));
+      // 🔑 Re-fetch roles to get fresh IDs for new ones
+      existingRoles = await client.request(readRoles({ limit: -1 }));
     }
 
+    // Update roles
     if (options.overwrite && rolesToUpdate.length) {
-      if (options.verbose) {
-        console.info(`Updating ${rolesToUpdate.length} roles`);
+      if (options.verbose) console.info(`Updating ${rolesToUpdate.length} roles`);
+      await Promise.all(
+        rolesToUpdate.map((role) =>
+          client.request(updateRole(role.id, role)).catch((err) => console.error(err, role))
+        )
+      );
+      // Re-fetch to sync state after updates
+      existingRoles = await client.request(readRoles({ limit: -1 }));
+    }
+
+    // Match permissions
+    permissions.forEach((permission) => {
+      const role = find(existingRoles, ['name', permission.role_name]);
+
+      if (!role) return;
+
+      // Handle "Public" role explicitly
+      if (role.name === 'Public') {
+        permission.role = null;
+      } else {
+        permission.role = role.id;
       }
 
-      rolesToUpdate.forEach(async (role) => {
-        try {
-          await client.request(updateRole(role.id, role));
-        } catch (err) {
-          console.error(err, role);
-        }
+      const existingPermission = find(existingPermissions, {
+        action: permission.action,
+        role: permission.role,
+        collection: permission.collection,
       });
-    }
 
-    // set role ids to permissions before creating or updating them
-    permissions.forEach((permission) => {
-      const role = find(roles, ['name', permission.role_name]);
-      permission.role = role.id;
+      if (existingPermission) {
+        permission.id = existingPermission.id;
+        permissionsToUpdate.push(permission);
+      } else {
+        permissionsToCreate.push(permission);
+      }
     });
 
-    // Permissions
-
+    // Create permissions
     if (permissionsToCreate.length) {
-      if (options.verbose) {
-        console.info(`Creating ${permissionsToCreate.length} permissions`);
-      }
-
+      if (options.verbose) console.info(`Creating ${permissionsToCreate.length} permissions`);
       await client.request(createPermissions(permissionsToCreate));
     }
 
+    // Update permissions
     if (permissionsToUpdate.length) {
-      if (options.verbose) {
-        console.info(`Updating ${permissionsToUpdate.length} permissions`);
-      }
-
-      permissionsToUpdate.forEach(async (permission) => {
-        try {
-          await client.request(updatePermission(permission.id, permission));
-        } catch (err) {
-          console.error(err, permission);
-        }
-      });
+      if (options.verbose) console.info(`Updating ${permissionsToUpdate.length} permissions`);
+      await Promise.all(
+        permissionsToUpdate.map((permission) =>
+          client.request(updatePermission(permission.id, permission)).catch((err) =>
+            console.error(err, permission)
+          )
+        )
+      );
     }
 
-    // Remove
+    // Remove obsolete roles/permissions
     if (options.remove) {
-      const rolesToDelete = existingRoles.filter((role) => {
-        return !find(roles, ['name', role.name]);
-      });
-
+      const rolesToDelete = existingRoles.filter((role) => !find(roles, ['name', role.name]));
       const permissionsToDelete = existingPermissions.filter((permission) => {
-        if (!(permission.id && permission.role)) {
-          return false;
-        }
-
-        const existingRole = find(existingRoles, ['id', permission.role]);
-
-        return !existingRole || !find(permissions, {
+        if (!(permission.id && (permission.role || permission.role === null))) return false;
+        const role = find(existingRoles, ['id', permission.role]) || (permission.role === null && { name: 'Public' });
+        return !role || !find(permissions, {
           action: permission.action,
-          role_name: existingRole.name,
+          role_name: role.name,
           collection: permission.collection,
         });
       });
 
       if (permissionsToDelete.length) {
-        if (options.verbose) {
-          console.info(`Removing ${permissionsToDelete.length} permissions`);
-        }
-
+        if (options.verbose) console.info(`Removing ${permissionsToDelete.length} permissions`);
         await client.request(deletePermissions(permissionsToDelete.map(property('id'))));
       }
 
       if (rolesToDelete.length) {
-        if (options.verbose) {
-          console.info(`Removing ${rolesToDelete.length} roles`);
-        }
-
+        if (options.verbose) console.info(`Removing ${rolesToDelete.length} roles`);
         await client.request(deleteRoles(rolesToDelete.map(property('id'))));
       }
     }
 
-    if (options.verbose) {
-      console.info('Roles imported');
-    }
+    if (options.verbose) console.info('Roles imported');
   } catch (err) {
     console.error(err);
-    return process.exit(1);
+    process.exit(1);
   }
 }
 
