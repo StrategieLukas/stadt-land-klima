@@ -2,7 +2,7 @@
 
 import() {
     echo "Importing $1 ..."
-    ./directus-cli -f import:$1
+    ./directus-cli -f -r import:$1
     echo "Done"
     echo ""
 }
