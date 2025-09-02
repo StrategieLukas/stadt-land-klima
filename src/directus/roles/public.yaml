@@ -1,0 +1,10 @@
+name: Public
+description: Unauthenticated access
+permissions:
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

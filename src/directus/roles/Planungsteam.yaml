@@ -6,50 +6,29 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - collection: directus_files
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
+  - collection: articles
     action: read
     permissions: {}
-    validation: null
+    validation: {}
     presets: null
     fields:
       - "*"
-  - collection: directus_files
-    action: update
+  - collection: articles_articles
+    action: read
     permissions: {}
-    validation: null
+    validation: {}
     presets: null
     fields:
       - "*"
-  - collection: directus_files
-    action: delete
+  - collection: articles_external_projects
+    action: read
     permissions: {}
-    validation: null
+    validation: {}
     presets: null
     fields:
       - "*"
   - collection: directus_dashboards
     action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_dashboards
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_dashboards
-    action: update
     permissions: {}
     validation: null
     presets: null
@@ -62,50 +41,65 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: directus_panels
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_panels
+  - collection: directus_dashboards
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_panels
+  - collection: directus_dashboards
     action: update
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_panels
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
     action: delete
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_folders
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
+  - collection: directus_files
     action: read
     permissions: {}
     validation: null
     presets: null
     fields:
       - "*"
-  - collection: directus_folders
+  - collection: directus_files
     action: update
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_flows
+    action: read
+    permissions:
+      trigger:
+        _eq: manual
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - name
+      - icon
+      - color
+      - options
+      - trigger
+  - collection: directus_folders
+    action: create
     permissions: {}
     validation: null
     presets: null
@@ -117,6 +111,92 @@ permissions:
     validation: null
     presets: null
     fields: null
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: update
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_panels
+    action: create
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_panels
+    action: delete
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_panels
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_panels
+    action: update
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_roles
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_shares
+    action: create
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_shares
+    action: delete
+    permissions:
+      user_created:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_shares
+    action: read
+    permissions:
+      _or:
+        - role:
+            _eq: $CURRENT_ROLE
+        - role:
+            _null: true
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_shares
+    action: update
+    permissions:
+      user_created:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
   - collection: directus_users
     action: read
     permissions: {}
@@ -147,72 +227,6 @@ permissions:
       - theme_light_overrides
       - theme_dark_overrides
       - tfa_secret
-  - collection: directus_roles
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_shares
-    action: read
-    permissions:
-      _or:
-        - role:
-            _eq: $CURRENT_ROLE
-        - role:
-            _null: true
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_shares
-    action: create
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_shares
-    action: update
-    permissions:
-      user_created:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_shares
-    action: delete
-    permissions:
-      user_created:
-        _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_flows
-    action: read
-    permissions:
-      trigger:
-        _eq: manual
-    validation: null
-    presets: null
-    fields:
-      - id
-      - status
-      - name
-      - icon
-      - color
-      - options
-      - trigger
-  - collection: articles
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
   - collection: editors
     action: read
     permissions: {}
@@ -220,6 +234,28 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: feedback
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: feedback
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - status
+      - internal_response_summary
   - collection: junction_directus_users_localteams
     action: read
     permissions: {}
@@ -263,42 +299,6 @@ permissions:
     fields:
       - "*"
   - collection: ratings_measures
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: feedback
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: feedback
-    action: update
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - status
-      - internal_response_summary
-  - collection: articles_articles
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: articles_external_projects
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: external_projects
     action: read
     permissions: {}
     validation: {}

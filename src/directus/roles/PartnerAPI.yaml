@@ -49,36 +49,6 @@ permissions:
       - is_profitable
       - public_impact_effects
       - ghg_savings_level
-  - collection: organisations
-    action: read
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - id
-      - name
-      - link
-      - short_description
-      - logo
-  - collection: municipalities
-    action: read
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - id
-      - status
-      - name
-      - municipality_type
-      - details
-      - description
-      - state
-      - population
-      - mayor
-      - party_mayor
-      - geolocation
-      - slug
-      - ars
   - collection: articles_articles
     action: read
     permissions: {}
@@ -105,3 +75,33 @@ permissions:
       - title
       - date_created
       - date_updated
+  - collection: municipalities
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - name
+      - municipality_type
+      - details
+      - description
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - geolocation
+      - slug
+      - ars
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - link
+      - short_description
+      - logo

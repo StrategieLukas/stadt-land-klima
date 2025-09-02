@@ -6,224 +6,57 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - collection: ratings_measures
-    action: read
-    permissions:
-      _and:
-        - localteam_id:
-            _in:
-              - $CURRENT_USER.localteams.localteam_id
-        - measure_published:
-            _eq: true
-    validation: null
-    presets: null
-    fields:
-      - measure_id
-      - rating
-      - approved
-      - Source
-      - status
-      - user_updated
-      - date_updated
-      - id
-      - links-jv6and
-      - choices
-      - current_progress
-      - source
-      - internal_note
-      - applicable
-      - why_not_applicable
-      - measure_info_preview
-  - collection: ratings_measures
-    action: update
-    permissions:
-      _and:
-        - localteam_id:
-            _in:
-              - $CURRENT_USER.localteams.localteam_id
-        - measure_published:
-            _eq: true
-    validation: null
-    presets: null
-    fields:
-      - status
-      - rating
-      - current_progress
-      - source
-      - internal_note
-      - applicable
-      - why_not_applicable
-  - collection: municipalities
-    action: read
-    permissions:
-      _and:
-        - localteam_id:
-            _in:
-              - $CURRENT_USER.localteams.localteam_id
-    validation: {}
-    presets: null
-    fields:
-      - status
-      - user_updated
-      - date_updated
-      - name
-      - municipality_type
-      - details
-      - state
-      - population
-      - mayor
-      - party_mayor
-      - scores
-      - score_total
-      - score_transport
-      - score_energy
-      - score_iec
-      - score_ann
-      - score_cpma
-      - score_bh
-      - id
-      - place
-      - description
-      - links-g1sxxi
-      - percentage_rated
-      - slug
-      - notice-kcc40f
-      - overall_status_comment
-      - public_contact
-  - collection: municipalities
-    action: update
-    permissions:
-      _and:
-        - localteam_id:
-            _in:
-              - $CURRENT_USER.localteams.localteam_id
-    validation: {}
-    presets: null
-    fields:
-      - user_updated
-      - date_updated
-      - municipality_type
-      - details
-      - state
-      - population
-      - mayor
-      - party_mayor
-      - description
-      - overall_status_comment
-      - public_contact
-      - status
-  - collection: measures
-    action: read
-    permissions:
-      _and:
-        - status:
-            _eq: published
-    validation: {}
-    presets: null
-    fields:
-      - name
-      - sector
-      - impact
-      - weight
-      - feasibility
-      - feasibility_political
-      - feasibility_economical
-      - description
-      - verification_description
-      - notes
-      - id
-      - status
-      - accordion-p4jgb8
-      - description_evaluation_criteria
-      - description_about
-      - description_benefit
-      - description_verification
-      - description_contribution
-      - description_implementation
-      - description_legal
-      - description_funding
-      - description_tutorial
-      - slug
-      - measure_id
-  - collection: directus_users
-    action: read
-    permissions:
-      _and:
-        - localteams:
-            localteam_id:
-              id:
-                _in:
-                  - $CURRENT_USER.localteams.localteam_id
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_users
-    action: update
-    permissions:
-      _and:
-        - id:
-            _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - password
-  - collection: editors
-    action: read
-    permissions:
-      _and:
-        - localteam_id:
-            admin_id:
-              _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - localteam_id
-      - email
-      - id
-  - collection: editors
+  - collection: articles
     action: create
     permissions: null
     validation: null
     presets: null
     fields:
-      - localteam_id
-      - email
-  - collection: localteams
-    action: read
-    permissions:
-      _and:
-        - admin_id:
-            _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - id
-      - status
-      - name
+      - title
+      - slug
+      - author
       - municipality_name
-      - admin_id
-      - public_contact
-  - collection: editors
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - link
+      - sectors
+      - additional_examples
+      - sources
+      - economic_efficiency
+      - additional_infos
+      - public_impact
+      - ghg_savings_potential
+      - other_benefits
+      - ease_of_implementation
+      - similar_articles
+      - similar_external_projects
+      - is_profitable
+      - can_do_autonomously
+      - public_impact_effects
+      - ghg_savings_level
+      - other_benefits_block
+      - ghg_savings_potential_block
+      - public_impact_block
+      - economic_efficiency_block
+      - ease_of_implementation_block
+  - collection: articles
     action: delete
     permissions:
       _and:
-        - localteam_id:
-            admin_id:
-              _eq: $CURRENT_USER
+        - _and:
+            - user_created:
+                _eq: $CURRENT_USER
+            - status:
+                _neq: published
     validation: null
     presets: null
     fields: null
-  - collection: localteams
-    action: update
-    permissions:
-      _and:
-        - admin_id:
-            _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - public_contact
   - collection: articles
     action: read
     permissions:
@@ -315,29 +148,36 @@ permissions:
       - public_impact_block
       - economic_efficiency_block
       - ease_of_implementation_block
-  - collection: articles
-    action: delete
-    permissions:
-      _and:
-        - _and:
-            - user_created:
-                _eq: $CURRENT_USER
-            - status:
-                _neq: published
-    validation: null
+  - collection: articles_articles
+    action: create
+    permissions: {}
+    validation: {}
     presets: null
-    fields: null
-  - collection: organisations
+    fields:
+      - articles_id
+      - related_articles_id
+  - collection: articles_articles
     action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: create
     permissions: null
     validation: null
     presets: null
     fields:
-      - name
-      - short_description
-      - link
-      - logo
-      - id
+      - articles_id
+      - external_projects_id
+  - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: directus_files
     action: create
     permissions: {}
@@ -359,75 +199,60 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: articles_external_projects
+  - collection: directus_users
     action: read
-    permissions: {}
+    permissions:
+      _and:
+        - localteams:
+            localteam_id:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
     validation: {}
     presets: null
     fields:
       - "*"
-  - collection: articles_external_projects
+  - collection: directus_users
+    action: update
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - password
+  - collection: editors
     action: create
     permissions: null
     validation: null
     presets: null
     fields:
-      - articles_id
-      - external_projects_id
-  - collection: articles_articles
+      - localteam_id
+      - email
+  - collection: editors
+    action: delete
+    permissions:
+      _and:
+        - localteam_id:
+            admin_id:
+              _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields: null
+  - collection: editors
     action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: articles_articles
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - articles_id
-      - related_articles_id
-  - collection: articles
-    action: create
-    permissions: null
+    permissions:
+      _and:
+        - localteam_id:
+            admin_id:
+              _eq: $CURRENT_USER
     validation: null
     presets: null
     fields:
-      - title
-      - slug
-      - author
-      - municipality_name
-      - state
-      - content
-      - subtitle
-      - image
-      - image_credits
-      - abstract
-      - article_text
-      - organisation
-      - link
-      - sectors
-      - additional_examples
-      - sources
-      - economic_efficiency
-      - additional_infos
-      - public_impact
-      - ghg_savings_potential
-      - other_benefits
-      - ease_of_implementation
-      - similar_articles
-      - similar_external_projects
-      - is_profitable
-      - can_do_autonomously
-      - public_impact_effects
-      - ghg_savings_level
-      - other_benefits_block
-      - ghg_savings_potential_block
-      - public_impact_block
-      - economic_efficiency_block
-      - ease_of_implementation_block
+      - localteam_id
+      - email
+      - id
   - collection: external_projects
     action: create
     permissions: null
@@ -437,6 +262,15 @@ permissions:
       - title
       - link
       - description
+  - collection: external_projects
+    action: delete
+    permissions:
+      _and:
+        - user_created:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields: null
   - collection: external_projects
     action: read
     permissions: null
@@ -459,12 +293,178 @@ permissions:
       - title
       - link
       - description
-  - collection: external_projects
-    action: delete
+  - collection: localteams
+    action: read
     permissions:
       _and:
-        - user_created:
+        - admin_id:
             _eq: $CURRENT_USER
     validation: null
     presets: null
-    fields: null
+    fields:
+      - id
+      - status
+      - name
+      - municipality_name
+      - admin_id
+      - public_contact
+  - collection: localteams
+    action: update
+    permissions:
+      _and:
+        - admin_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - public_contact
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - name
+      - sector
+      - impact
+      - weight
+      - feasibility
+      - feasibility_political
+      - feasibility_economical
+      - description
+      - verification_description
+      - notes
+      - id
+      - status
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+      - slug
+      - measure_id
+  - collection: municipalities
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - status
+      - user_updated
+      - date_updated
+      - name
+      - municipality_type
+      - details
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - scores
+      - score_total
+      - score_transport
+      - score_energy
+      - score_iec
+      - score_ann
+      - score_cpma
+      - score_bh
+      - id
+      - place
+      - description
+      - links-g1sxxi
+      - percentage_rated
+      - slug
+      - notice-kcc40f
+      - overall_status_comment
+      - public_contact
+  - collection: municipalities
+    action: update
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - user_updated
+      - date_updated
+      - municipality_type
+      - details
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - description
+      - overall_status_comment
+      - public_contact
+      - status
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - short_description
+      - link
+      - logo
+      - id
+  - collection: ratings_measures
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+        - measure_published:
+            _eq: true
+    validation: null
+    presets: null
+    fields:
+      - measure_id
+      - rating
+      - approved
+      - Source
+      - status
+      - user_updated
+      - date_updated
+      - id
+      - links-jv6and
+      - choices
+      - current_progress
+      - source
+      - internal_note
+      - applicable
+      - why_not_applicable
+      - measure_info_preview
+  - collection: ratings_measures
+    action: update
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+        - measure_published:
+            _eq: true
+    validation: null
+    presets: null
+    fields:
+      - status
+      - rating
+      - current_progress
+      - source
+      - internal_note
+      - applicable
+      - why_not_applicable

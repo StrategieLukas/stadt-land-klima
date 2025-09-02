@@ -6,27 +6,6 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
   - collection: articles
     action: create
     permissions: null
@@ -67,6 +46,13 @@ permissions:
       - economic_efficiency_block
       - other_benefits_block
       - ease_of_implementation_block
+  - collection: articles
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: articles
     action: read
     permissions: {}
@@ -114,13 +100,102 @@ permissions:
       - economic_efficiency_block
       - public_impact_block
       - ease_of_implementation_block
-  - collection: articles
-    action: delete
+  - collection: articles_articles
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - articles_id
+      - related_articles_id
+  - collection: articles_articles
+    action: read
     permissions: {}
     validation: {}
     presets: null
     fields:
       - "*"
+  - collection: articles_external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - articles_id
+      - external_projects_id
+  - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_users
+    action: read
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_users
+    action: update
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - password
+  - collection: external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - link
+      - description
+  - collection: external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: external_projects
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - description
+      - link
+      - title
   - collection: organisations
     action: create
     permissions: {}
@@ -131,6 +206,13 @@ permissions:
       - short_description
       - link
       - logo
+  - collection: organisations
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: organisations
     action: read
     permissions: null
@@ -156,85 +238,3 @@ permissions:
       - link
       - logo
       - short_description
-  - collection: organisations
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: external_projects
-    action: create
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - title
-      - link
-      - description
-  - collection: external_projects
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: external_projects
-    action: update
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - description
-      - link
-      - title
-  - collection: directus_users
-    action: read
-    permissions:
-      _and:
-        - id:
-            _eq: $CURRENT_USER
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_users
-    action: update
-    permissions:
-      _and:
-        - id:
-            _eq: $CURRENT_USER
-    validation: null
-    presets: null
-    fields:
-      - password
-  - collection: articles_external_projects
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: articles_articles
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: articles_articles
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - articles_id
-      - related_articles_id
-  - collection: articles_external_projects
-    action: create
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - articles_id
-      - external_projects_id
