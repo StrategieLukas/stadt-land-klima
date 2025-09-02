@@ -35,7 +35,10 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       permissions = permissions.concat(rolePermissions);
       delete role.permissions;
 
-      if (role.name === 'Public') {
+      if (role.name === 'Administrator') {
+        // 🔹 Skip Administrator entirely
+        return;
+      } else if (role.name === 'Public') {
         // 🔹 Public has no DB entry
         role.id = null;
       } else {
@@ -87,10 +90,11 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       await client.request(createRoles(rolesToCreate));
     }
 
-    if (options.overwrite && rolesToUpdate.length) {
-      if (options.verbose) console.info(`Updating ${rolesToUpdate.length} roles`);
+    const safeRolesToUpdate = rolesToUpdate.filter((r) => r.name !== 'Administrator');
+    if (safeRolesToUpdate.length) {
+      if (options.verbose) console.info(`Updating ${safeRolesToUpdate.length} roles`);
       await Promise.all(
-        rolesToUpdate.map((role) =>
+        safeRolesToUpdate.map((role) =>
           client.request(updateRole(role.id, role)).catch((err) => {
             console.error(err, role);
           })
@@ -98,9 +102,13 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       );
     }
 
+
     // --- Map role IDs onto permissions ---
     permissions.forEach((permission) => {
-      if (permission.role_name === 'Public') {
+      if (permission.role_name === 'Administrator') {
+        // 🔹 Never touch Administrator permissions
+        return;
+      } else if (permission.role_name === 'Public') {
         permission.role = null;
       } else {
         const role = find(roles, ['name', permission.role_name]);
@@ -128,6 +136,8 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
     // --- Remove ---
     if (options.remove) {
       const rolesToDelete = existingRoles.filter((role) => {
+        // 🔹 Never delete Administrator
+        if (role.name === 'Administrator') return false;
         return !find(roles, ['name', role.name]);
       });
 

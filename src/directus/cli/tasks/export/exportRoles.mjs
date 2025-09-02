@@ -38,6 +38,14 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
           delete permission.id;
           delete permission.role;
           return permission;
+        })
+        // 🔹 Ensure deterministic order
+        .sort((a, b) => {
+          if (a.collection === b.collection) {
+            if (a.action === b.action) return 0;
+            return a.action < b.action ? -1 : 1;
+          }
+          return a.collection < b.collection ? -1 : 1;
         });
 
       delete role.id;
