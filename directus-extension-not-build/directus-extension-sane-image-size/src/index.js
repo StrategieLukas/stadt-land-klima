@@ -6,32 +6,49 @@ export default defineHook(({ action }, { services, logger, env }) => {
   const maxSize = env.EXTENSIONS_SANE_IMAGE_SIZE_MAXSIZE ?? 1920;
 
   action("files.upload", async ({ payload, key }, context) => {
-    if (payload.optimized !== true) {
-      const transformation = getTransformation(payload.type, quality, maxSize);
-      if (transformation !== undefined) {
-        const serviceOptions = { ...context, knex: context.database };
-        const assets = new AssetsService(serviceOptions);
-        const files = new FilesService(serviceOptions);
+    if (payload.optimized === true) return;
 
-        const { stream, stat } = await assets.getAsset(key, transformation);
-        if (stat.size < payload.filesize) {
-          await sleep(4000);
+    const transformation = getTransformation(payload.type, quality, maxSize);
+    if (!transformation) return;
 
-          // Check for existing thumbnails
-          delete payload.width;
-          delete payload.height;
-          delete payload.size;
-          files.uploadOne(
-            stream,
-            {
-              ...payload,
-              optimized: true,
-            },
-            key,
-            { emitEvents: false }
-          );
-        }
+    const serviceOptions = { ...context, knex: context.database };
+    const assets = new AssetsService(serviceOptions);
+    const files = new FilesService(serviceOptions);
+
+    try {
+      const { stream, stat } = await assets.getAsset(key, transformation);
+
+      if (stat.size < payload.filesize) {
+        // Wait briefly to avoid conflicts with original upload
+        await sleep(4000);
+
+        // Remove potentially stale metadata, Directus will regenerate
+        delete payload.width;
+        delete payload.height;
+        delete payload.size;
+
+        await files.uploadOne(
+          stream,
+          {
+            ...payload,
+            optimized: true,
+          },
+          key,
+          { emitEvents: false }
+        );
+
+        logger.info(
+          `Optimized image "${payload.filename_download}" (${payload.filesize} → ${stat.size} bytes)`
+        );
+      } else {
+        logger.info(
+          `Skipped optimization for "${payload.filename_download}" (no size improvement)`
+        );
       }
+    } catch (err) {
+      logger.warn(
+        `Image optimization failed for "${payload.filename_download}": ${err.message}`
+      );
     }
   });
 });
@@ -40,9 +57,7 @@ function getTransformation(type, quality, maxSize) {
   const format = type.split("/")[1] ?? "";
   if (["jpg", "jpeg", "png", "webp", "tiff", "avif"].includes(format)) {
     const transforms = [["withMetadata"]];
-    if (format === "jpeg" || format === "jpg") {
-      transforms.push([format, { progressive: true }]);
-    }
+    // No progressive encoding (to avoid libvips SOS errors)
     return {
       transformationParams: {
         format,
