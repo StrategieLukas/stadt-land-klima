@@ -40,6 +40,7 @@ mkdir -p "$BACKUP_DIR"
 DATE=$(date +"%d-%m-%Y")
 FILENAME="backupOnUpdate-$DATE.sql"
 # run the export and redirect to file
+echo "Making backup before update..."
 ./db_export.sh > "$BACKUP_DIR/$FILENAME"
 
 echo "Backup saved to $BACKUP_DIR/$FILENAME"

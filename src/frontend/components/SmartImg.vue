@@ -22,10 +22,9 @@
     imgClass: { type: String, default: '' },
   
     // Transform options
-    width: { type: Number, default: null },
+    width: { type: Number, default: 1280 },
     height: { type: Number, default: null },
-    // Quality for uploads is already reduced to 70 on upload, this would further decrease it
-    quality: { type: Number, default: 100 },
+    quality: { type: Number, default: 70 },
     fit: { type: String, default: 'cover' },
   
     // Optional responsive srcset
