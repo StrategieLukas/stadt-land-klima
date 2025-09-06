@@ -138,6 +138,13 @@ permissions:
     fields:
       - "*"
   - collection: directus_files
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
     action: read
     permissions: {}
     validation: {}
