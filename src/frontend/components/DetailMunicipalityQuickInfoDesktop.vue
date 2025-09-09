@@ -22,12 +22,13 @@
             >
                 <div
                 class="has-long-links prose prose-sm max-w-none"
-                v-html="sanitizeHtml(linkifyStr(municipality.description))"
+                v-html="sanitizeHtml(saneLinkifyStr(municipality.description))"
                 ></div>
             </div>
             </div>
 
             <!-- Info grid (always visible, outside collapse) -->
+            <!-- Berlin and Hamburg are the only states which have one municpality (Bremen has Bremen and Bremerhaven) -->
             <div class="px-6 pb-6 space-y-3">
             <div
                 v-if="municipality?.state && municipality.state !== 'Berlin' && municipality.state !== 'Hamburg'"
@@ -90,8 +91,7 @@
 import majorCity from '~/assets/images/major-city-dark.svg?raw';
 import minorCity from '~/assets/images/minor-city-dark.svg?raw';
 import sanitizeHtml from "sanitize-html";
-import linkifyStr from "linkify-string";
-import { getScoreColor } from "../shared/utils.js"
+import { getScoreColor, saneLinkifyStr } from "../shared/utils.js"
 import { overwriteSvgStyles } from "../shared/svg-logic.js"
 const { $t } = useNuxtApp();
 

@@ -26,7 +26,7 @@
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="sanitizeHtml(linkifyStr(municipality.description))"></div>
+          <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.description))"></div>
         </div>
       </div>
 
@@ -40,7 +40,7 @@
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="sanitizeHtml(linkifyStr(municipality.public_contact))"></div>
+          <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.public_contact))"></div>
         </div>
       </div>
 
@@ -71,7 +71,7 @@
             </h2>
           </div>
           <div class="collapse-content px-2 md:px-4">
-            <div class="has-long-links prose" v-html="sanitizeHtml(linkifyStr(municipality.overall_status_comment))"></div>
+            <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.overall_status_comment))"></div>
           </div>
         </div>
 
@@ -94,7 +94,7 @@
               </h3>
             </div>
             <div class="collapse-content px-2 md:px-4">
-              <div class="has-long-links prose prose-sm max-w-none" v-html="sanitizeHtml(linkifyStr(municipality.public_contact))"></div>
+              <div class="has-long-links prose prose-sm max-w-none" v-html="sanitizeHtml(saneLinkifyStr(municipality.public_contact))"></div>
             </div>
           </div>
 
@@ -138,8 +138,7 @@
 import { ref, onMounted, computed } from 'vue';
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
-import linkifyStr from "linkify-string";
-import { formatLastUpdated } from "../shared/utils.js";
+import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
 import ProjectCard from "~/components/ProjectCard.vue";
 import ProgressBar from "~/components/ProgressBar.vue";
 import DetailMunicipalitySectorCards from "~/components/DetailMunicipalitySectorCards.vue"

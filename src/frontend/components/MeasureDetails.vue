@@ -65,14 +65,14 @@
         {{ $t("ratings_measure.achievement_heading") }}
       </h4>
 
-      <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(measure_rating.current_progress)" />
+      <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.current_progress)" />
     </div>
     <div v-if="measure_rating.source">
       <h4 class="mb-2 font-bold text-black">
         {{ $t("ratings_measure.source_heading") }}
       </h4>
 
-      <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(measure_rating.source)" />
+      <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.source)" />
     </div>
     <dl v-if="measure_rating.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
       <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
@@ -86,7 +86,7 @@
         {{ $t("ratings_measure.why_not_applicable_heading") }}
       </h4>
 
-      <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(measure_rating.why_not_applicable)" />
+      <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.why_not_applicable)" />
     </div>
   </div>
 
@@ -136,8 +136,7 @@
 <script setup>
   import { defineProps } from "vue";
   import sanitizeHtml from "sanitize-html";
-  import linkifyStr from "linkify-string";
-  import { formatLastUpdated } from "../shared/utils.js";
+  import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
   import { calculateAndAddSimilarityScores } from "../shared/compareMunicipalities.js";
   import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
   import { onMounted, onBeforeUnmount, ref } from "vue";

@@ -66,3 +66,16 @@ export function getScoreColor(score) {
     return "ranking-0-2";
   }
 };
+
+
+import linkifyStr from "linkify-string";
+
+export function saneLinkifyStr(text) {
+  return linkifyStr(text, {
+    validate: {
+      // don't linkify Stadt.Land.Klima substrings
+      // we now require a protocol (http:// or https://) to create a link
+      url: (value) => /^https?:\/\//.test(value),
+    },
+  });
+}
