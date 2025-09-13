@@ -11,15 +11,24 @@ export async function fetchMunicipalityScores($directus, $readItems, slug) {
 }
 
 
-export async function fetchFullMunicipalityScores($directus, $readItems, slug, catalogVersionId) {
+export async function fetchFullMunicipalityScores($directus, $readItems, slug, catalogVersionId, locale = null) {
   if(!$directus || !$readItems) throw Error("Did not pass $directus and $readItems to fetchFullMunicipalityScores");
   if(!slug) throw Error("Tried to fetch full municipalityScores for a null slug");
   if(!catalogVersionId) throw Error("Tried to fetch municipality scores for a null catalogVersionId");
 
   return $directus.request(
       $readItems("municipality_scores", {
-        fields: ["*", { municipality: ["*"]}, { catalog_version: ["*"]}],
+        fields: ["*", { municipality: ["*", "translations.*"]}, { catalog_version: ["*"]}],
         filter: { catalog_version: { _eq: catalogVersionId }, municipality: { slug: { _eq: slug } }},
+        deep: {
+          municipality: {
+            translations: {
+              _filter: {
+                languages_code: { _eq: locale },
+              },
+            },
+          },
+        },
         limit: 1,
       }),
     );

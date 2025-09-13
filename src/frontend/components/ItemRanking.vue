@@ -15,7 +15,7 @@
     <div class="grow">
       <div class="flex flex-row items-start">
         <div class="mb-2">
-          <h3 class="font-heading text-h2 font-bold text-black">{{ municipality.name }}</h3>
+          <h3 class="font-heading text-h2 font-bold text-black">{{ municipality.translations[0].name }}</h3>
           <p>{{ municipality.state }}</p>
         </div>
       </div>

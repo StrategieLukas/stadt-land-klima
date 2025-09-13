@@ -233,13 +233,7 @@ function childrenWithoutImages(item) {
   return (item.children || []).filter(c => !c.image_id)
 }
 
-const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
-  return $directus.request(
-    $readItems("languages", {
-      limit: -1,
-    }),
-  );
-});
+const { data: fetchedLanguages } = await fetchLanguages();
 
 const num_languages = computed(() => fetchedLanguages.value?.length || 0);
 </script>

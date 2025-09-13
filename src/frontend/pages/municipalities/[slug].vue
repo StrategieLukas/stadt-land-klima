@@ -288,11 +288,11 @@
 
   <!-- Case 3: Not found anywhere -->
   <div v-else>
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <waving-banner>
-      {{ $t("municipality_missing") }}
+      {{ t("municipality_missing") }}
     </waving-banner>
   </div>
 </template>
@@ -306,7 +306,8 @@ import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 import { fetchMunicipalityData } from '~/shared/directus-calls/complex-data-fetches.js';
 import { getStateMunicipalElectionYear } from '~/shared/utils.js';
 import { useReferrer } from '~/composables/useReferrer';
-const { t } = useI18n();
+
+const { t, locale } = useI18n();
 const route = useRoute();
 
 // Guard against browser devtools / extension source-map requests like "installHook.js.map"
@@ -328,14 +329,15 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
   });
 }
 
-const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id, locale.value);
+const { data: directusData } = await useAsyncData(
+  `municipality-data-${route.params.slug}-${selectedCatalogVersion.id}`,
+  () => fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id, locale.value),
+  { watch: [locale] }
+);
 
 // CTA type for directusData case:
-// 'complete'    → percentage_rated >= 98 → contact / feedback
-// 'in-progress' → localteam exists but rating incomplete → help the team
-// null          → no localteam (shouldn't normally occur in directusData case)
 const ctaType = computed(() => {
-  const score = directusData?.municipalityScore;
+  const score = directusData.value?.municipalityScore;
   if (!score) return null;
   if (score.percentage_rated >= 98) return 'complete';
   if (score.municipality?.localteam_id) return 'in-progress';
@@ -344,12 +346,13 @@ const ctaType = computed(() => {
 
 const isPreviewLocked = computed(() => {
   // Use municipality from scores if available, otherwise fall back to the direct slug lookup
-  const muni = directusData?.municipalityScore?.municipality ?? directusMuniBySlug.value;
+  const muni = directusData.value?.municipalityScore?.municipality ?? directusMuniBySlug.value;
   if (!muni) return false;
   // Published municipalities are always publicly accessible
   if (muni.status === 'published') return false;
   if (muni.creator_verified) return false;
   return route.query.preview !== muni.preview_token;
+});
 });
 
 // If no Directus data, fetch from Stadt-Land-Zahl with a loading state

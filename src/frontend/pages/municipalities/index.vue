@@ -188,6 +188,7 @@ import { isRaster } from "~/shared/utils";
 
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const { locale } = useI18n();
 const rankingColumn = ref(null)
 const rankingColumnHeight = ref(0)
 
@@ -220,9 +221,8 @@ watchEffect(async () => {
   updateRankingColumnHeight()
 })
 
-
 //MetaTags
-const title = ref($t("municipalities.nav_label"));
+const title = ref(t("municipalities.nav_label"));
 useHead({
   title,
 });
@@ -239,16 +239,27 @@ onMounted(() => {
 // Fetch all relevant municipalityScores from directus
 async function fetchMunicipalityScores(catalogVersionId) {
   return await useAsyncData(`municipalities_ranking_scores_${catalogVersionId}`, () => {
-  return $directus.request(
-    $readItems("municipality_scores", {
-      fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
-      { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
-      filter: { catalog_version: { _eq: catalogVersionId }, percentage_rated: { _gt: 0} },
-      limit: -1,
-      sort: "-score_total",
-    })
-  )
-});
+    return $directus.request(
+      $readItems("municipality_scores", {
+        fields: [
+          "id", "catalog_version", "rank", "score_total", "percentage_rated",
+          { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated", "translations.*"] }
+        ],
+        filter: { catalog_version: { _eq: catalogVersionId }, percentage_rated: { _gt: 0} },
+        limit: -1,
+        sort: "-score_total",
+        deep: {
+          municipality: {
+            translations: {
+              _filter: {
+                languages_code: { _eq: locale.value },
+              },
+            },
+          },
+        },
+      })
+    )
+  }, { watch: [locale] });
 };
 
 let { data: municipalityScores } = await fetchMunicipalityScores(selectedCatalogVersion.id);
@@ -327,13 +338,13 @@ onMounted(() => {
   const lastUpdatedAt = new Date(latest);
 
   lastUpdatedAtStr.value =
-    lastUpdatedAt.toLocaleDateString($locale, {
+    lastUpdatedAt.toLocaleDateString(locale.value, {
       year: "numeric",
       month: "2-digit",
       day: "numeric"
     }) +
     ", " +
-    lastUpdatedAt.toLocaleTimeString($locale);
+    lastUpdatedAt.toLocaleTimeString(locale);
 });
 
 // Toggle between cities, towns, or all — persisted in the URL so catalog changes retain it
@@ -349,4 +360,5 @@ const selected = computed({
 
 
 </script>
+
 

@@ -28,8 +28,108 @@ permissions:
     validation: {}
     presets: null
     fields:
+<<<<<<< HEAD
       - "*"
   - collection: answers
+=======
+      - id
+      - menus
+      - slug
+      - sort
+      - sort_order
+      - footer_column_desktop
+      - is_dynamic
+      - translations
+  - collection: pages_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - contents
+  - collection: municipalities
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - sort
+      - slug
+      - municipality_type
+      - details
+      - score_cpma
+      - score_iec
+      - score_transport
+      - scores
+      - mayor
+      - state
+      - population
+      - party_mayor
+      - score_energy
+      - score_total
+      - score_ann
+      - score_bh
+      - place
+      - localteam_id
+      - date_updated
+      - status
+      - overall_status_comment
+      - public_contact
+  - collection: municipalities_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - description
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - sort
+      - sector
+      - slug
+      - impact
+      - weight
+      - feasibility_political
+      - feasibility
+      - feasibility_economical
+      - description
+      - date_updated
+      - measure_id
+      - translations
+  - collection: measures_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - verification_description
+      - notes
+      - description
+      - accordion_p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+  - collection: directus_translations
+>>>>>>> 168a296 (municipalities translations)
     action: read
     permissions: {}
     validation: {}
@@ -398,6 +498,7 @@ permissions:
       - preview_token
       - date_created
       - image
+      - translations
   - collection: municipality_scores
     action: read
     permissions: {}

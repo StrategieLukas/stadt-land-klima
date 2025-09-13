@@ -39,6 +39,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import { fetchAndApplyTranslations } from "#shared/loadTranslations";
+import { fetchLanguages } from "~/composables/fetchLanguages";
 
 const { $directus, $readItems, $i18n } = useNuxtApp();
 const { locale, setLocale } = useI18n();
@@ -48,13 +49,7 @@ if (!baseDirectusUrl.endsWith("/")) {
   baseDirectusUrl += "/";
 }
 
-const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
-  return $directus.request(
-    $readItems("languages", {
-      limit: -1,
-    }),
-  );
-});
+const { data: fetchedLanguages } = await fetchLanguages();
 
 const languages = computed(() => {
   return fetchedLanguages.value.map((language) => {

@@ -14,7 +14,7 @@ export async function fetchMunicipalityData($directus, $readItems, slug, catalog
     }
     
     const [municipalityScores, measures] = await Promise.all([
-      fetchFullMunicipalityScores($directus, $readItems, slug, catalogVersionId),
+      fetchFullMunicipalityScores($directus, $readItems, slug, catalogVersionId, locale),
       fetchMeasuresForCatalog($directus, $readItems, catalogVersionId, locale)
     ]);
   
