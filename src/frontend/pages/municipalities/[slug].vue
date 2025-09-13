@@ -18,25 +18,35 @@
   </div>
   <div v-else>
         <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
-      ← {{ $t("municipality.back_label") }}
+      ← {{ t("municipality.back_label") }}
     </NuxtLink>
     <waving-banner>
-      {{ $t("municipality_missing") }}
+      {{ t("municipality_missing") }}
     </waving-banner>
   </div>
 </template>
 
 
 <script setup>
-const { t } = useI18n();
+import { watch } from "vue";
+
+const { t, locale } = useI18n();
 const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
 
-const { data: directusData } = await useAsyncData("municipality", async () => {
+const fetchDirectusData = async () => {
   const [municipalities, measures] = await Promise.all([
     $directus.request(
-      $readItems("municipalities", {
+      $readItems("municipalities_slug", {
         filter: { slug: { _eq: route.params.slug } },
+        fields: ["*", "translations.*"],
+        deep: {
+          translations: {
+            _filter: {
+              languages_code: { _eq: locale.value },
+            },
+          },
+        },
         limit: 1,
       }),
     ),
@@ -51,10 +61,10 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
   const ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
       filter: {
-          localteam_id: {
-            _eq: municipalities[0].localteam_id,
-          },
+        localteam_id: {
+          _eq: municipalities[0].localteam_id,
         },
+      },
     }),
   );
   return {
@@ -62,8 +72,19 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
     measures,
     ratingsMeasures,
   };
-});
+};
 
+const { data: directusData } = await useAsyncData("municipality", fetchDirectusData);
+
+watch(
+  locale,
+  async () => {
+    directusData.value = await fetchDirectusData();
+  },
+  { immediate: false },
+);
+
+console.log(directusData.value?.municipalities?.[0]);
 
 //MetaTags
 const title = ref(directusData.value?.municipalities?.[0]?.name ?? '404');

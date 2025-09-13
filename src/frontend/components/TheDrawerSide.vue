@@ -56,13 +56,7 @@ function closeDrawer() {
   document.getElementById("page-drawer-toggle").click();
 }
 
-const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
-  return $directus.request(
-    $readItems("languages", {
-      limit: -1,
-    }),
-  );
-});
+const { data: fetchedLanguages } = await fetchLanguages();
 
 const num_languages = fetchedLanguages.value.length;
 </script>

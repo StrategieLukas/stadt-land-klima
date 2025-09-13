@@ -97,11 +97,10 @@ const props = defineProps(["pages"]);
 const route = useRoute();
 
 //Separate pages into "main" and "other" based on configured menus
-const mainPages = computed(() =>
-  props?.pages?.filter((page) => page.menus && page.menus.includes('top-bar')) || []
-);
-const otherPages = computed(() =>
-  props?.pages?.filter((page) => page.menus && page.menus.includes('main') && !page.menus.includes('top-bar')) || []
+const mainPages = computed(() => props?.pages?.filter((page) => page.menus && page.menus.includes("top-bar")) || []);
+const otherPages = computed(
+  () =>
+    props?.pages?.filter((page) => page.menus && page.menus.includes("main") && !page.menus.includes("top-bar")) || [],
 );
 
 // Function to check if a page is active
@@ -109,13 +108,7 @@ const isActive = (slug) => {
   return route.path === slug || route.path === `/${slug}`;
 };
 
-const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
-  return $directus.request(
-    $readItems("languages", {
-      limit: -1,
-    }),
-  );
-});
+const { data: fetchedLanguages } = await fetchLanguages();
 
 const num_languages = fetchedLanguages.value.length;
 </script>

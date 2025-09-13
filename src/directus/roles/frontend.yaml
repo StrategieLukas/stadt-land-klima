@@ -80,14 +80,21 @@ permissions:
       - score_total
       - score_ann
       - score_bh
-      - name
-      - description
       - place
       - localteam_id
       - date_updated
       - status
       - overall_status_comment
       - public_contact
+  - collection: municipalities_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - description
   - collection: measures
     action: read
     permissions:

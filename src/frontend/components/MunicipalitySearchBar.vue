@@ -44,14 +44,21 @@ const { $directus, $readItems } = useNuxtApp();
 const { t } = useI18n();
 const q = ref("");
 const searchFocused = ref(false);
-const { data: municipalities } = await useAsyncData("municipalities", () => {
+const { data: municipalities } = await useAsyncData("municipalities_search", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name"],
-      sort: "name",
+      fields: ["slug", "translations.name"],
+      sort: "translations.name",
       filter: {
         status: {
           _eq: "published",
+        },
+      },
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
         },
       },
       limit: -1,

@@ -17,7 +17,7 @@ const route = useRoute();
 const { data: directusData } = await useAsyncData("municipality", async () => {
   const [municipalities, measures] = await Promise.all([
     $directus.request(
-      $readItems("municipalities", {
+      $readItems("municipalities_slug_print", {
         filter: { slug: { _eq: route.params.slug } },
         limit: 1,
       }),

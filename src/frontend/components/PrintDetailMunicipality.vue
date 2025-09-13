@@ -20,7 +20,7 @@
           </div>
           <!-- date -->
           <p class="mb-2 mt-0 text-center text-[5px]">
-            {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
+            {{ t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
           </p>
         </div>
 
@@ -100,7 +100,7 @@
               <ul class="flex items-end justify-center gap-4">
                 <li v-for="(rating, index) in 4" :key="`rating-image-${index}`" class="flex flex-col items-center">
                   <img :src="ratingImages[index]" class="h-5" />
-                  <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
+                  <div>{{ t(`measure_rating.${index}_caption`) }}</div>
                 </li>
               </ul>
             </th>
@@ -135,7 +135,7 @@
             </th>
           </tr>
         </thead>
-        
+
         <!-- Iterate Through Data -->
         <tbody>
           <template v-for="(sector, key) in sortedRatings" :key="index">
@@ -168,8 +168,8 @@
     </div>
   </div>
 </template>
-  
-  
+
+
 <script setup>
   import lodash from "lodash";
   import sanitizeHtml from "sanitize-html";
@@ -178,7 +178,7 @@
   import sectorImages from "../shared/sectorImages.js";
   import ratingImages from "../shared/ratingImages.js";
   import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
-  const { $t, $locale } = useNuxtApp();
+  const { t, locale } = useI18n();
   const props = defineProps({
     municipality: {
       type: Object,
@@ -189,7 +189,7 @@
       required: true,
     },
   });
-  
+
 
 
   const scoreTotalRounded = Math.round(Number(props.municipality.score_total) * 10) / 10;
@@ -200,16 +200,16 @@
    */
   const formatLastUpdated = (dateString) => {
     const lastUpdatedAt = new Date(dateString);
-    return `${lastUpdatedAt.toLocaleDateString($locale, {
+    return `${lastUpdatedAt.toLocaleDateString(locale, {
       year: "numeric",
       month: "2-digit",
       day: "numeric",
-    })}, ${lastUpdatedAt.toLocaleTimeString($locale)}`;
+    })}, ${lastUpdatedAt.toLocaleTimeString(locale)}`;
   };
-  
+
   const municipality = props.municipality;
   const subScores = createSubScoreObject(municipality);
-  
+
   function createSubScoreObject(municipality) {
     const temp = {};
     for (const [key, value] of Object.entries(municipality)) {
@@ -266,4 +266,3 @@ td {
   height: min-content;
 }
 </style>
-  

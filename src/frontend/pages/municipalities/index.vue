@@ -2,10 +2,11 @@
 import { ref } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t, locale } = useI18n();
 
 //MetaTags
-const title = ref($t("municipalities.nav_label"));
+const title = ref(t("municipalities.nav_label"));
 useHead({
   title,
 });
@@ -14,7 +15,7 @@ useHead({
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type"],
+      fields: ["slug", "translations.name", "score_total", "place", "state", "date_updated", "municipality_type"],
       sort: "-score_total",
       limit: -1,
       filter: {
@@ -22,9 +23,18 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
           _eq: "published",
         },
       },
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
     }),
   );
 });
+
+console.log(municipalities.value);
 
 // todo fix "place" for these views
 const majorCities = getSublist((municipality) => municipality.municipality_type === 'big_city');
@@ -43,9 +53,9 @@ const lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(get(last(sortBy(municipalities.value, ["date_updated"])), "date_updated"));
   lastUpdatedAtStr.value =
-    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    lastUpdatedAt.toLocaleDateString(locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
-    lastUpdatedAt.toLocaleTimeString($locale);
+    lastUpdatedAt.toLocaleTimeString(locale);
 });
 
 // Toggle between cities, towns, or all
@@ -61,10 +71,10 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 <div class="flex flex-col items-center mb-10">
   <div class="prose mb-8 mt-10 max-w-full text-center">
     <h1 class="mb-0 whitespace-pre-line">
-      {{ $t("municipalities.heading") }}
+      {{ t("municipalities.heading") }}
     </h1>
     <p class="mt-0 text-xs">
-      {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
+      {{ t("municipalities.last_updated_at") + lastUpdatedAtStr }}
     </p>
   </div>
 
@@ -78,13 +88,13 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
         @click="selected = 'all'"
       >
         <div class="flex gap-0">
-          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.all')" />
+          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? minorCitySelected : minorCityNotSelected" :alt="t('municipalities.all')" />
           <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? majorCitySelected : majorCityNotSelected" />
         </div>
         <div class="flex items-center transition">
           <div class="border-l h-6 mx-1 border-current"></div>
           <span class="font-bold whitespace-nowrap">
-            {{ $t('municipalities.all') }}
+            {{ t('municipalities.all') }}
           </span>
         </div>
       </button>
@@ -98,11 +108,11 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
         :class="selected === 'major_city' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
         @click="selected = 'major_city'"
       >
-        <img class="h-6 w-6 flex-shrink-0" :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" />
+        <img class="h-6 w-6 flex-shrink-0" :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="t('municipalities.major_city.plural')" />
         <div class="flex items-center transition h-full">
           <div class="border-l h-6 mx-1 border-current"></div>
           <span class="font-bold whitespace-nowrap">
-            {{ $t('municipalities.major_city.plural') }}
+            {{ t('municipalities.major_city.plural') }}
           </span>
         </div>
       </button>
@@ -113,11 +123,11 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
         :class="selected === 'minor_city' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
         @click="selected = 'minor_city'"
       >
-        <img class="h-6 w-6 flex-shrink-0" :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')" />
+        <img class="h-6 w-6 flex-shrink-0" :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="t('municipalities.minor_city.plural')" />
         <div class="flex items-center transition">
           <div class="border-l h-6 mx-1 border-current"></div>
           <span class="font-bold whitespace-nowrap">
-            {{ $t('municipalities.minor_city.plural') }}
+            {{ t('municipalities.minor_city.plural') }}
           </span>
         </div>
       </button>
@@ -127,10 +137,10 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
   <!-- Subtitle below buttons -->
   <div class="h-5">
     <p v-if="selected === 'major_city'" class="text-xs text-center italic">
-      {{ $t("municipalities.major_city.threshold") }}
+      {{ t("municipalities.major_city.threshold") }}
     </p>
     <p v-else-if="selected === 'minor_city'" class="text-xs text-center italic">
-      {{ $t("municipalities.minor_city.threshold") }}
+      {{ t("municipalities.minor_city.threshold") }}
     </p>
   </div>
 </div>

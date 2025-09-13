@@ -1,7 +1,7 @@
 <template lang="">
   <div class="max-w-screen-xl mx-auto text-center mb-8">
     <p class="mb-4">
-      {{ $t('generic.social_media.support_by_sharing') }}
+      {{ t('generic.social_media.support_by_sharing') }}
     </p>
     <div class="flex justify-center items-center gap-6">
       <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
@@ -12,7 +12,7 @@
       </a>
     </div>
   </div>
-  
+
   <footer class="bg-light-green px-2 py-4 text-black">
     <div class="mx-auto w-full max-w-screen-xl">
 
@@ -32,7 +32,7 @@
 </template>
 <script setup>
 import { defineProps } from "vue";
-const { $t } = useNuxtApp();
+const { t } = useI18n();
 const props = defineProps(["pages"]);
 </script>
 <style lang=""></style>
