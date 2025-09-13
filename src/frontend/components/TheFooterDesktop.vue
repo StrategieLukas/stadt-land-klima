@@ -13,7 +13,7 @@
     </div>
   </div>
 
-  <footer class="bg-olive-green text-white px-4 pt-0 pb-20">
+  <footer class="bg-olive-green text-white px-4 pt-0 pb-20 inset-shadow-xl">
     <div class="mx-auto pt-8 border-t border-white/30">
       <div class="flex items-start gap-12">
         <!-- Logo on the far left -->

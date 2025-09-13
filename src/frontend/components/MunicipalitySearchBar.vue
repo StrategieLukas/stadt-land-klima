@@ -4,19 +4,19 @@
     <!-- Search Bar -->
     <form class="relative overflow-visible" @submit.prevent>
       <div class="form-control">
-        <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
         <input
           id="search-input"
           v-model="q"
           class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96"
           name="q"
           type="text"
+          :placeholder="$t('municipalities_search.label')"
           autocomplete="off"
           @focus="searchFocused = true"
         />
         <button
           type="button"
-          class="absolute right-4 top-12 py-1 opacity-50 hover:opacity-60 focus:opacity-60"
+          class="absolute right-4 top-2 py-1 opacity-50 hover:opacity-60 focus:opacity-60"
           @click="handleResetSearchClick"
         >
           ✖️
@@ -25,7 +25,7 @@
 
       <div
         v-if="suggestions.length && searchFocused"
-        class="absolute left-0 right-0 top-24 w-full z-50"
+        class="absolute left-0 right-0 top-14 w-full z-50"
         ref="dropdown"
       >
         <ul class="menu dropdown-content rounded-box w-full bg-base-100 p-2 shadow">

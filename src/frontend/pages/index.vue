@@ -1,17 +1,32 @@
 <template>
   <div>
     <!-- Hero Section -->
-    <section class="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-blue-50">
-      <div class="text-center px-8">
-        <h1 class="text-6xl font-bold text-gray-800 mb-6">
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <!-- Video Background -->
+      <video
+        autoplay
+        muted
+        loop
+        playsinline
+        class="absolute inset-0 w-full h-full object-cover z-0"
+      >
+        <source src="/media/istockphoto-918035744-640_adpp_is.mp4" type="video/mp4">
+      </video>
+      
+      <!-- Overlay for better text readability -->
+      <div class="absolute inset-0 bg-black bg-opacity-40 z-10"></div>
+      
+      <!-- Content -->
+      <div class="relative z-20 text-center px-8 pt-24 lg:pt-32">
+        <h1 class="text-6xl font-bold text-white mb-6 drop-shadow-lg">
           Komm, wir machen unsere<br>
-          <span class="text-green-600">Kommunen klimaneutral!</span>
+          <span class="text-green-400">Kommunen klimaneutral!</span>
         </h1>
-        <p class="text-2xl text-gray-600 max-w-4xl mx-auto">
+        <p class="text-2xl text-white max-w-4xl mx-auto drop-shadow-lg">
           Scroll nach unten und entdecke, wie du Teil der Bewegung werden kannst
         </p>
         <div class="mt-12 animate-bounce">
-          <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-8 h-8 mx-auto text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
           </svg>
         </div>
@@ -240,7 +255,7 @@
             <div class="relative max-w-md mx-auto">
               <input
                 type="text"
-                placeholder="Kommune suchen..."
+                placeholder="Suche nach Ort..."
                 class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-green-500 focus:outline-none"
                 v-model="searchTerm"
               >

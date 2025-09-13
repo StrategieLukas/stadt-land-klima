@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="max-w-xl h-[70%] mx-auto p-6 bg-white rounded shadow">
     <TheMap :municipalities="municipalities" />
   </div>
 </template>

@@ -1,5 +1,5 @@
 <template>
-  <div class="top-4 left-4 bg-white rounded shadow p-2 z-[1000]">
+  <div class="top-4 left-4 bg-white rounded shadow p-2">
     <label class="flex items-center gap-2 text-sm font-medium">
       <input type="checkbox" v-model="showMunicipalitiesWithUnfinishedRating" class="toggle toggle-sm" />
       {{ $t('map.showUnfinishedRatings') }}
@@ -7,7 +7,7 @@
   </div>
 
   <ClientOnly>
-    <div class="w-full h-screen z-0">
+    <div class="w-full h-screen">
       <LMap
         v-if="clientReady"
         :zoom="6"
@@ -15,6 +15,7 @@
         style="height: 100%; width: 100%"
         @ready="onMapReady"
         ref="mapRef"
+        :style="{ zIndex: 1 }"
       >
         <LTileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

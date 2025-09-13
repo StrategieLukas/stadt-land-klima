@@ -80,7 +80,7 @@
 
       <!-- Right Column: Info and Projects (1/3 width) -->
       <div class="lg:col-span-1 pb-4">
-        <div class="sticky top-8 space-y-6">
+        <div class="sticky" style="top: var(--header-height);" :style="{top: 'var(--header-height)'}">
           <!-- Municipality Quick Info -->
           <DetailMunicipalityQuickInfoDesktop :municipality="municipality"/>
 
