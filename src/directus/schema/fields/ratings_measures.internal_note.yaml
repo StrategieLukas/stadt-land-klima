@@ -3,7 +3,17 @@ field: internal_note
 type: text
 meta:
   collection: ratings_measures
-  conditions: null
+  conditions:
+    - name: Hide if rating is marked as not applicable
+      rule:
+        _and:
+          - applicable:
+              _eq: false
+      hidden: true
+      options:
+        trim: false
+        font: sans-serif
+        clear: false
   display: null
   display_options: null
   field: internal_note
@@ -17,7 +27,7 @@ meta:
     trim: true
   readonly: false
   required: false
-  sort: 10
+  sort: 18
   special: null
   translations:
     - language: de-DE

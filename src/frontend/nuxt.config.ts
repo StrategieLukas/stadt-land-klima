@@ -1,5 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  modules: [
+    '@nuxtjs/leaflet'
+  ],
   runtimeConfig: {
     // The private keys which are only available within server-side
     // Keys within public, will be also exposed to the client-side
@@ -13,6 +16,13 @@ export default defineNuxtConfig({
     },
   },
   devtools: { enabled: true },
+  app: {
+    head: {
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+      ]
+    }
+  },
   css: ["~/assets/css/main.css"],
   postcss: {
     plugins: {
@@ -47,4 +57,4 @@ export default defineNuxtConfig({
     preset: "node-server",
     workers: 1, // Avoid spawning too many workers in limited environments
   },
-});
+})

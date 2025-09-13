@@ -2,7 +2,7 @@
 
 import() {
     echo "Importing $1 ..."
-    ./directus-cli -f import:$1
+    ./directus-cli -f -r import:$1
     echo "Done"
     echo ""
 }
@@ -13,5 +13,4 @@ import "flows"
 import "presets"
 import "translations"
 import "webhooks"
-#import "items"
 import "settings"

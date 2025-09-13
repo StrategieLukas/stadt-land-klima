@@ -1,9 +1,18 @@
 <template>
-    <div class="card bg-white shadow-md border rounded-md overflow-hidden">
+    <div class="card bg-white shadow-xl rounded-none overflow-hidden max-w-[400px]">
         <div class="relative">
 
             <NuxtLinkLocale :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
-                <img :src="toAssetUrl(image_id)" alt="Project Image" class="object-cover w-full h-full" />
+                <SmartImg
+                    :assetId="image_id"
+                    :alt="title"
+                    :height="160"
+                    :width="400"
+                    fit="cover"
+                    sizes="(max-width: 768px) 312px, 400px"
+                    format="webp"
+                    img-class="object-cover w-full h-full"
+                    />
                 <div v-if="tag" class="absolute top-2 left-2 bg-yellow-400 text-xs px-2 py-1 rounded">
                     {{ tag }}
                 </div>
@@ -13,8 +22,14 @@
                     <div
                         class="absolute top-0 right-0 w-0 h-0 border-t-[7rem] border-t-white border-l-[7rem] border-l-transparent">
                     </div>
-                    <img :src="toAssetUrl(organisation.logo)" :alt="`${organisation.name} Logo`"
-                        class="absolute top-2 right-2 w-12 h-12" />
+                    <SmartImg
+                        :assetId="organisation.logo"
+                        :alt="organisation.name"
+                        :height="48"
+                        :width="48"
+                        fit="cover"
+                        img-class="absolute top-2 right-2 rounded-lg w-12 h-12"
+                        />
                 </div>
             </NuxtLinkLocale>
 
@@ -38,7 +53,7 @@
 
                 <!-- Author and Date Section -->
                 <p class="text-gray-500 italic text-xs mb-2">
-                    {{ author }}, {{ date.toLocaleDateString($locale) }}
+                    {{ author }}, {{ date.toLocaleDateString(locale) }}
                 </p>
 
                 <!-- Read more link -->
@@ -52,7 +67,7 @@
 <script setup>
 import { computed } from 'vue'
 import { buildLocationString, toAssetUrl }from '~/shared/utils';
-const { $locale } = useNuxtApp();
+const { locale } = useI18n();
 
 const props = defineProps({
     slug: String,

@@ -12,7 +12,7 @@
         :style="{ width: width + '%' }"
       >
         <div
-          class="relative mr-1 font-heading font-bold"
+          class="relative mr-1 font-heading font-bold whitespace-nowrap"
           :class="[
             layout === 'compact' ? colorClass.text_compact + ' top-0.25 text-sm' : colorClass.text_default + ' text-xl',
           ]"
@@ -52,7 +52,12 @@ const colors = {
     text_default: "text-black sm:text-white left-11 sm:left-0",
     text_compact: "text-black sm:text-white left-7 sm:left-0",
   },
-  15: { bg: "bg-ranking-0-2", border: "border-ranking-0-2", text_default: "text-white", text_compact: "text-white" },
+  12: {
+    bg: "bg-ranking-0-2",
+    border: "border-ranking-0-2",
+    text_default: "text-black sm:text-white left-14 sm:left-0",
+    text_compact: "text-black sm:text-white left-9 sm:left-0",
+  },
   20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text_default: "text-white", text_compact: "text-white" },
   40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text_default: "text-black", text_compact: "text-black" },
   60: { bg: "bg-ranking-6-8", border: "border-ranking-6-8", text_default: "text-white", text_compact: "text-white" },

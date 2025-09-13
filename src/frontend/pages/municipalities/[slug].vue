@@ -17,9 +17,9 @@
     </NuxtLinkLocale>
   </div>
   <div v-else>
-        <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
+        <NuxtLinkLocale :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
       ← {{ t("municipality.back_label") }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <waving-banner>
       {{ t("municipality_missing") }}
     </waving-banner>

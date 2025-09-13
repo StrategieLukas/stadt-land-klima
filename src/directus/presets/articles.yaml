@@ -1,0 +1,29 @@
+bookmark: null
+user: null
+role: null
+collection: articles
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - date_created
+      - title
+      - author
+      - status
+      - municipality_name
+      - slug
+    sort:
+      - -date_created
+    page: 1
+layout_options:
+  tabular:
+    widths:
+      title: 290
+      author: 210
+      status: 95
+      municipality_name: 185
+refresh_interval: null
+filter: null
+icon: null
+color: null

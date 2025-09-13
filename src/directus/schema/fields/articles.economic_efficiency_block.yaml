@@ -1,0 +1,27 @@
+collection: articles
+field: economic_efficiency_block
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: economic_efficiency_block
+  group: additional_infos
+  hidden: false
+  interface: group-raw
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 2
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Wirtschaftlichkeit
+  validation: null
+  validation_message: null
+  width: full

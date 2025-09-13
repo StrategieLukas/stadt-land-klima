@@ -13,6 +13,7 @@ meta:
   note: null
   options:
     toolbar:
+      - blockquote
       - bold
       - bullist
       - code
@@ -25,12 +26,14 @@ meta:
       - h3
       - hr
       - italic
+      - link
       - numlist
       - removeformat
+      - strikethrough
       - underline
   readonly: false
   required: false
-  sort: 4
+  sort: 5
   special: null
   translations: null
   validation: null

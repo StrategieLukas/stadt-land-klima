@@ -8,12 +8,10 @@
         </NuxtLinkLocale>
       </div>
 
-      <!-- Search Bar in center -->
       <MunicipalitySearchBar/>
 
-      <!-- Right side (Search + Buttons) -->
+      <!-- Right side (Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
-        <!-- Search bar -->
 
         <!-- Log in button -->
         <a href="/backend">
@@ -88,19 +86,18 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
 import { defineProps } from "vue";
-const { $directus, $readItems } = useNuxtApp();
+
 const { t } = useI18n();
+const route = useRoute();
 const props = defineProps(["pages"]);
 
-const route = useRoute();
-
 //Separate pages into "main" and "other" based on configured menus
-const mainPages = computed(() => props?.pages?.filter((page) => page.menus && page.menus.includes("top-bar")) || []);
-const otherPages = computed(
-  () =>
-    props?.pages?.filter((page) => page.menus && page.menus.includes("main") && !page.menus.includes("top-bar")) || [],
+const mainPages = computed(() =>
+  props?.pages?.filter((page) => page.menus && page.menus.includes('top-bar')) || []
+);
+const otherPages = computed(() =>
+  props?.pages?.filter((page) => page.menus && page.menus.includes('main') && !page.menus.includes('top-bar')) || []
 );
 
 // Function to check if a page is active

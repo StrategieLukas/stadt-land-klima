@@ -9,7 +9,7 @@ meta:
   field: article_text
   group: content
   hidden: false
-  interface: input-rich-text-html
+  interface: input-rich-text-md
   note: null
   options:
     toolbar:
@@ -17,29 +17,20 @@ meta:
       - bold
       - bullist
       - code
-      - customImage
-      - customLink
-      - customMedia
-      - fullscreen
-      - h1
-      - h2
-      - h3
-      - hr
+      - empty
+      - heading
       - italic
+      - link
       - numlist
-      - removeformat
       - strikethrough
-      - subscript
-      - superscript
       - table
-      - underline
-      - undo
-      - unlink
   readonly: false
   required: true
-  sort: 5
+  sort: 6
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Artikeltext
   validation: null
   validation_message: null
   width: full

@@ -50,7 +50,7 @@ function exportTasks(yargs) {
       await clearDirectusCache();
       await exportSchema(argv.dest, {
         verbose: argv.verbose,
-        overwrite: argv.force,
+        remove: argv.clear,
       });
     }
   )

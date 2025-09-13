@@ -1,0 +1,107 @@
+name: PartnerAPI
+icon: volunteer_activism
+description: Access to parts of our API for partners
+ip_access: null
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: articles
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - title
+      - status
+      - slug
+      - date_updated
+      - date_created
+      - author
+      - municipality_name
+      - state
+      - content
+      - image
+      - subtitle
+      - image_credits
+      - abstract
+      - organisation
+      - article_text
+      - link
+      - sectors
+      - sources
+      - qualities
+      - ease_of_implementation
+      - similar_external_projects
+      - similar_articles
+      - impact
+      - additional_examples
+      - economic_efficiency
+      - ghg_savings_potential
+      - public_impact
+      - other_benefits
+      - additional_infos
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
+  - collection: articles_articles
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: external_projects
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - description
+      - link
+      - title
+      - date_created
+      - date_updated
+  - collection: municipalities
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - name
+      - municipality_type
+      - details
+      - description
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - geolocation
+      - slug
+      - ars
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - link
+      - short_description
+      - logo
