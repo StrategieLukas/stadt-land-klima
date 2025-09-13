@@ -58,9 +58,9 @@ const page = pagesWithSlug.value[0] || null;
 // Dynamically render component for [[[ONBOARDING_BOX]]] block
 // Split content into blocks and inject Vue component(s)
 const processedPageContent = computed(() => {
-  if (!page?.contents) return []
+  if (!page?.translations[0].contents) return []
 
-  const parts = page.contents.split("[[[ONBOARDING_BOX]]]")
+  const parts = page.translations[0].contents.split("[[[ONBOARDING_BOX]]]")
   const blocks = []
 
   parts.forEach((html, idx) => {
