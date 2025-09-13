@@ -15,7 +15,13 @@ export default defineNuxtConfig({
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
     },
   },
-  devtools: { enabled: true },
+  devtools: {
+    enabled: true,
+
+    timeline: {
+      enabled: true,
+    },
+  },
   app: {
     head: {
       meta: [
