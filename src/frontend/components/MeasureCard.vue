@@ -2,7 +2,7 @@
   <article :id="`measure-${measure.slug}`" class="card card-compact shadow">
     <div class="card-body">
       <h2 class="font-heading text-h2 font-bold text-gray">
-        {{ measure.name }}
+        {{ measure.translations[0].name }}
       </h2>
 
       <div>
@@ -10,7 +10,7 @@
       </div>
 
       <div class="divide-y-2 divide-light-blue md:px-1 lg:px-2">
-        <MeasureDetails :measure="measure" />
+        <MeasureDetails :measure_rating="{'measure': measure}" />
 
         <MeasureDescriptions :measure="measure" />
       </div>

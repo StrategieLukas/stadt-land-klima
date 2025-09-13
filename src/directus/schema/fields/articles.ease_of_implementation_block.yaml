@@ -1,0 +1,27 @@
+collection: articles
+field: ease_of_implementation_block
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: ease_of_implementation_block
+  group: additional_infos
+  hidden: false
+  interface: group-raw
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 1
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Wie schwierig ist die Umsetzung?
+  validation: null
+  validation_message: null
+  width: full

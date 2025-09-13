@@ -1,0 +1,41 @@
+collection: articles
+field: can_do_autonomously
+type: boolean
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: can_do_autonomously
+  group: ease_of_implementation_block
+  hidden: false
+  interface: boolean
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 1
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Eine Kommune kann dieses Projekt eigenständig umsetzen
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: can_do_autonomously
+  table: articles
+  data_type: boolean
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

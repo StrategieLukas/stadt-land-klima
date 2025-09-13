@@ -1,0 +1,5 @@
+language: de-DE
+key: municipality.ars.validation_fail
+value: Das ist kein gültiger Amtlicher Regionalschlüssel (ARS). Dieser ist
+  12-stellig. Vielleicht hast du versucht, einen Amtlichen Gemeindegeschlüssel
+  (AGS) einzugeben (der wäre 8-stellig)?

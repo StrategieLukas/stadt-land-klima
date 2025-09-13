@@ -6,6 +6,12 @@
   word-break: break-all;
 }
 
+a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+
 .collapse-plus > .collapse-title::after {
   font-size: 1.5rem;
   line-height: 0.5rem;
@@ -15,26 +21,30 @@
 @layer base {
   @font-face {
     font-family: "Inter";
-    src: url("~/assets/fonts/Inter-Bold.ttf") format("truetype");
+    src: url("/fonts/Inter-Bold.woff2") format("truetype");
     font-weight: bold;
     font-style: normal;
+    font-display: swap;
   }
   @font-face {
     font-family: "Inter";
-    src: url("~/assets/fonts/Inter-Regular.ttf") format("truetype");
+    src: url("/fonts/Inter-Regular.woff2") format("truetype");
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
   }
   @font-face {
     font-family: "RobotoCondensed";
-    src: url("~/assets/fonts/RobotoCondensed-Bold.ttf") format("truetype");
+    src: url("/fonts/RobotoCondensed-Bold.woff2") format("truetype");
     font-weight: bold;
     font-style: normal;
+    font-display: swap;
   }
   @font-face {
     font-family: "RobotoCondensed";
-    src: url("~/assets/fonts/RobotoCondensed-Regular.ttf") format("truetype");
+    src: url("/fonts/RobotoCondensed-Regular.woff2") format("truetype");
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
   }
 }

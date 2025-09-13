@@ -1,0 +1,45 @@
+collection: municipalities
+field: ars
+type: string
+meta:
+  collection: municipalities
+  conditions: null
+  display: null
+  display_options: null
+  field: ars
+  group: details
+  hidden: false
+  interface: input
+  note: null
+  options:
+    max: 100000000000
+    min: 0
+  readonly: false
+  required: false
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Amtlicher Regionalschlüssel (ARS)
+  validation:
+    _and:
+      - ars:
+          _regex: ^(0[1-9]|1[0-6])[0-9]{10}$
+  validation_message: $t:municipality.ars.validation_fail
+  width: full
+schema:
+  name: ars
+  table: municipalities
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

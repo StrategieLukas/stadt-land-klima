@@ -17,9 +17,9 @@
     </NuxtLinkLocale>
   </div>
   <div v-else>
-        <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
+        <NuxtLinkLocale :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
       ← {{ t("municipality.back_label") }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <waving-banner>
       {{ t("municipality_missing") }}
     </waving-banner>
@@ -37,7 +37,7 @@ const route = useRoute();
 const fetchDirectusData = async () => {
   const [municipalities, measures] = await Promise.all([
     $directus.request(
-      $readItems("municipalities_slug", {
+      $readItems("municipalities", {
         filter: { slug: { _eq: route.params.slug } },
         fields: ["*", "translations.*"],
         deep: {
@@ -84,10 +84,8 @@ watch(
   { immediate: false },
 );
 
-console.log(directusData.value?.municipalities?.[0]);
-
 //MetaTags
-const title = ref(directusData.value?.municipalities?.[0]?.name ?? '404');
+const title = ref(directusData.value?.municipalities?.[0]?.translations[0].name ?? '404');
 useHead({
   title,
 });

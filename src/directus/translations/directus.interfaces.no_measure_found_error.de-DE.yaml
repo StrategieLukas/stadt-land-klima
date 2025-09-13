@@ -1,0 +1,4 @@
+language: de-DE
+key: directus.interfaces.no_measure_found_error
+value: Es wurde keine Maßnahme gefunden. Ggf liegt ein Problem mit der
+  measure_id vor? Dies ist ein technischer Fehler -> bitte melden!
