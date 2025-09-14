@@ -7,10 +7,10 @@
         <item-ranking :municipality="municipality" />
       </div>
       <div class="mb-4">
-        <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
+        <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.translations[0].name" />
       </div>
       <p class="mb-4 mt-0 text-center text-xs">
-        {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
+        {{ t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, locale) }}
       </p>
       <div class="mx-auto mb-8 flex justify-center">
         <implementation-traffic-light />
@@ -22,7 +22,7 @@
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
           <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
           <h2 class="font-heading text-h2 leading-none text-green">
-            {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
+            {{ t("municipality.about_heading", { ":name": municipality.name }) }}
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
@@ -36,7 +36,7 @@
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
           <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
           <h2 class="font-heading text-h2 leading-none text-green">
-            {{ $t("municipality.participate_heading") }}
+            {{ t("municipality.participate_heading") }}
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
@@ -55,7 +55,7 @@
           <item-ranking :municipality="municipality" />
         </div>
         <div class="mb-4">
-          <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
+          <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.translations[0].name" />
         </div>
         <div class="mx-auto mb-8 flex justify-center">
           <implementation-traffic-light />
@@ -67,7 +67,7 @@
           <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
             <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
             <h2 class="font-heading text-h2 leading-none text-green">
-              {{ $t("municipality.overall_status_heading") }}
+              {{ t("municipality.overall_status_heading") }}
             </h2>
           </div>
           <div class="collapse-content px-2 md:px-4">
@@ -90,7 +90,7 @@
             <div class="collapse-title flex items-center gap-3 px-2 md:px-4">
               <img src="~/assets/icons/icon_team.svg" class="h-6 w-6 opacity-60" />
               <h3 class="font-heading text-h3 text-green">
-                {{ $t("municipality.participate_heading") }}
+                {{ t("municipality.participate_heading") }}
               </h3>
             </div>
             <div class="collapse-content px-2 md:px-4">
@@ -102,7 +102,7 @@
           <div v-if="municipalityProjects && municipalityProjects.length > 0" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
             <div class="flex items-center gap-3 mb-4">
               <img src="~/assets/icons/icon_invest.svg" class="h-6 w-6 opacity-60" />
-              <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
+              <h3 class="font-heading text-h3 text-green">{{ t("projects.title") }}</h3>
             </div>
             <div class="space-y-4">
               <ProjectCard
@@ -125,7 +125,7 @@
           <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
             <div class="flex items-center gap-2 text-sm text-gray-600">
               <img src="~/assets/icons/icon_info.svg" class="h-4 w-4 opacity-60" />
-              <span>{{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}</span>
+              <span>{{ t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, locale) }}</span>
             </div>
           </div>
         </div>
@@ -145,7 +145,8 @@ import DetailMunicipalitySectorCards from "~/components/DetailMunicipalitySector
 import DetailMunicipalityQuickInfoDesktop from "~/components/DetailMunicipalityQuickInfoDesktop.vue"
 
 const { range } = lodash;
-const { $t, $locale, $directus, $readItems } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t, locale } = useI18n();
 
 const props = defineProps({
   municipality: {

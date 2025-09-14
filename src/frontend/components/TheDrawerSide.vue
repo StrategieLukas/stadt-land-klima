@@ -2,15 +2,15 @@
   <nav class="drawer-side z-20">
     <label for="page-drawer" class="drawer-overlay"></label>
     <ul tabindex="0" class="menu min-h-full w-80 bg-light-green font-semibold text-left text-white">
-      
+
       <li v-for="page in pages" :key="page.id" class="w-full">
-        <NuxtLink
+        <NuxtLinkLocale
           :to="'/' + page.slug"
           class="text-md"
           @click="closeDrawer"
         >
-          <span class="text-lg">→</span> {{ page.name }}
-        </NuxtLink>
+          <span class="text-lg">→</span> {{ page.translations[0].name }}
+        </NuxtLinkLocale>
       </li>
 
       <!-- Last two elements not NuxtLinks because they reference different applications -->
@@ -21,7 +21,7 @@
           class="text-md bg-orange"
           @click="closeDrawer"
         >
-          <span class="text-lg">→</span>{{ $t('generic.log_in') }}
+          <span class="text-lg">→</span>{{ t('generic.log_in') }}
         </a>
       </li>
 
@@ -31,9 +31,13 @@
           class="text-md bg-orange"
           @click="closeDrawer"
         >
-          <span class="text-lg">→</span>{{ $t('donate.label') }}
+          <span class="text-lg">→</span>{{ t('donate.label') }}
           <img src="~/assets/icons/icon_hand_holding_heart.svg"/>
         </a>
+      </li>
+
+      <li v-if="num_languages > 1" class="w-full pt-4">
+        <LanguageSelectorMobile />
       </li>
 
     </ul>
@@ -44,11 +48,15 @@
 <script setup>
 
 import { defineProps } from "vue";
-const { $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t } = useI18n();
 const props = defineProps(["pages"]);
 
 function closeDrawer() {
   document.getElementById("page-drawer-toggle").click();
 }
 
+const { data: fetchedLanguages } = await fetchLanguages();
+
+const num_languages = fetchedLanguages.value.length;
 </script>

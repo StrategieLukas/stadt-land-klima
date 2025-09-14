@@ -2,7 +2,7 @@
   <article :id="`measure-${measure.slug}`" class="card card-compact shadow">
     <div class="card-body">
       <h2 class="font-heading text-h2 font-bold text-gray">
-        {{ measure.name }}
+        {{ measure.translations[0].name }}
       </h2>
 
       <div>
@@ -10,12 +10,12 @@
       </div>
 
       <div class="divide-y-2 divide-light-blue md:px-1 lg:px-2">
-        <MeasureDetails :measure="measure" />
+        <MeasureDetails :measure_rating="{'measure': measure}" />
 
         <MeasureDescriptions :measure="measure" />
       </div>
       <p class="text-center">
-        {{ $t("last_updated_at") + lastUpdatedAtStr }}
+        {{ t("last_updated_at") + lastUpdatedAtStr }}
       </p>
     </div>
   </article>
@@ -24,7 +24,8 @@
 import { defineProps } from "vue";
 import MeasureDetails from "./MeasureDetails.vue";
 import MeasureDescriptions from "./MeasureDescriptions.vue";
-const { $t, $locale } = useNuxtApp();
+
+const { t, locale } = useI18n();
 const props = defineProps({
   measure: {
     type: Object,
@@ -35,8 +36,8 @@ let lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(props.measure.date_updated);
   lastUpdatedAtStr.value =
-    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    lastUpdatedAt.toLocaleDateString(locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
-    lastUpdatedAt.toLocaleTimeString($locale);
+    lastUpdatedAt.toLocaleTimeString(locale);
 });
 </script>

@@ -14,32 +14,53 @@
   </article>
 
   <p v-else class="prose py-8">
-    {{ $t("page_not_found") }}
+    {{ t("page_not_found") }}
   </p>
 </template>
 
 <script setup>
 import OnboardingBox from "@/components/OnboardingBox.vue"
-const { $directus, $readItems, $t } = useNuxtApp()
-const route = useRoute()
+import { watch } from "vue";
 
-// Fetch page by slug
-const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", () => {
+const { $directus, $readItems } = useNuxtApp();
+const { locale, t } = useI18n();
+const route = useRoute();
+
+const fetchSlugPage = async () => {
   return $directus.request(
     $readItems("pages", {
       filter: { slug: { _eq: route.params.slug } },
+      fields: ["*", "translations.*"],
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
       limit: 1,
-    })
-  )
-})
-const page = pagesWithSlug.value[0] || null
+    }),
+  );
+};
+
+const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", fetchSlugPage);
+
+watch(
+  locale,
+  async () => {
+    pagesWithSlug.value = await fetchSlugPage();
+  },
+  { immediate: false },
+);
+
+const page = pagesWithSlug.value[0] || null;
 
 // Dynamically render component for [[[ONBOARDING_BOX]]] block
 // Split content into blocks and inject Vue component(s)
 const processedPageContent = computed(() => {
-  if (!page?.contents) return []
+  if (!page?.translations[0].contents) return []
 
-  const parts = page.contents.split("[[[ONBOARDING_BOX]]]")
+  const parts = page.translations[0].contents.split("[[[ONBOARDING_BOX]]]")
   const blocks = []
 
   parts.forEach((html, idx) => {
@@ -61,7 +82,7 @@ const processedPageContent = computed(() => {
 })
 
 // MetaTags
-const title = page ? ref(page.name) : $t("page_not_found")
+const title = page ? ref(page.translations[0].name) : t("page_not_found");
 
 useHead({
   title,

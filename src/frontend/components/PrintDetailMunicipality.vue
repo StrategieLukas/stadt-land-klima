@@ -20,7 +20,7 @@
           </div>
           <!-- date -->
           <p class="mb-2 mt-0 text-center text-[5px]">
-            {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
+            {{ t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
           </p>
         </div>
 
@@ -100,7 +100,7 @@
               <ul class="flex items-end justify-center gap-4">
                 <li v-for="(rating, index) in 4" :key="`rating-image-${index}`" class="flex flex-col items-center">
                   <img :src="ratingIcons[index]" class="h-5" />
-                  <div>{{ $t(`measure_rating.${index}_caption`) }}</div>
+                  <div>{{ t(`measure_rating.${index}_caption`) }}</div>
                 </li>
               </ul>
             </th>
@@ -179,7 +179,7 @@
   import { ratingColor } from "../shared/ratingColors.js";
 
   const { range } = lodash;
-  const { $t, $locale } = useNuxtApp();
+  const { t, locale } = useI18n();
   const props = defineProps({
     municipality: {
       type: Object,
@@ -201,11 +201,11 @@
    */
   const formatLastUpdated = (dateString) => {
     const lastUpdatedAt = new Date(dateString);
-    return `${lastUpdatedAt.toLocaleDateString($locale, {
+    return `${lastUpdatedAt.toLocaleDateString(locale, {
       year: "numeric",
       month: "2-digit",
       day: "numeric",
-    })}, ${lastUpdatedAt.toLocaleTimeString($locale)}`;
+    })}, ${lastUpdatedAt.toLocaleTimeString(locale)}`;
   };
 
   const municipality = props.municipality;

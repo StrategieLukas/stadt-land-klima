@@ -2,10 +2,10 @@
   <div class="flex flex-col items-center mb-10">
     <div class="prose mb-8 mt-10 max-w-full text-center">
       <h1 class="mb-0 whitespace-pre-line">
-        {{ $t("municipalities.heading") }}
+        {{ t("municipalities.heading") }}
       </h1>
       <p class="mt-0 text-xs">
-        {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
+        {{ t("municipalities.last_updated_at") + lastUpdatedAtStr }}
       </p>
     </div>
 
@@ -19,13 +19,13 @@
           @click="selected = 'all'"
         >
           <div class="flex gap-0">
-            <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.all')" />
+            <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? minorCitySelected : minorCityNotSelected" :alt="t('municipalities.all')" />
             <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? majorCitySelected : majorCityNotSelected" />
           </div>
           <div class="flex items-center transition">
             <div class="border-l h-6 mx-1 border-current"></div>
             <span class="font-bold whitespace-nowrap">
-              {{ $t('municipalities.all') }}
+              {{ t('municipalities.all') }}
             </span>
           </div>
         </button>
@@ -39,11 +39,11 @@
           :class="selected === 'major_city' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
           @click="selected = 'major_city'"
         >
-          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" />
+          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="t('municipalities.major_city.plural')" />
           <div class="flex items-center transition h-full">
             <div class="border-l h-6 mx-1 border-current"></div>
             <span class="font-bold whitespace-nowrap">
-              {{ $t('municipalities.major_city.plural') }}
+              {{ t('municipalities.major_city.plural') }}
             </span>
           </div>
         </button>
@@ -54,11 +54,11 @@
           :class="selected === 'minor_city' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
           @click="selected = 'minor_city'"
         >
-          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')" />
+          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="t('municipalities.minor_city.plural')" />
           <div class="flex items-center transition">
             <div class="border-l h-6 mx-1 border-current"></div>
             <span class="font-bold whitespace-nowrap">
-              {{ $t('municipalities.minor_city.plural') }}
+              {{ t('municipalities.minor_city.plural') }}
             </span>
           </div>
         </button>
@@ -68,10 +68,10 @@
     <!-- Subtitle below buttons -->
     <div class="h-5">
       <p v-if="selected === 'major_city'" class="text-xs text-center italic">
-        {{ $t("municipalities.major_city.threshold") }}
+        {{ t("municipalities.major_city.threshold") }}
       </p>
       <p v-else-if="selected === 'minor_city'" class="text-xs text-center italic">
-        {{ $t("municipalities.minor_city.threshold") }}
+        {{ t("municipalities.minor_city.threshold") }}
       </p>
     </div>
   </div>
@@ -94,9 +94,45 @@
 
   <!-- Desktop: Two column layout -->
   <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8 w-full">
-    <!-- Left Column: Municipality Ranking (2/3 width) -->
-    <div class="lg:col-span-2">
-      <!-- Conditional Content -->
+    <div v-if="projects && projects.length > 0">
+      <!-- Left Column: Municipality Ranking (2/3 width) -->
+      <div class="lg:col-span-2">
+        <!-- Conditional Content -->
+        <div class="w-full max-w-screen-xl">
+          <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+          <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+          <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+
+          <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+          <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+          <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
+        </div>
+      </div>
+
+      <!-- Right Column: Success Projects (1/3 width) -->
+      <div class="lg:col-span-1 mb-3" v-if="projects && projects.length > 0">
+        <div class="sticky top-8">
+          <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ t("projects.title")}}</h2> -->
+          <div class="space-y-4 max-w-md mx-auto">
+            <OnboardingBox :name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"/>
+            <ProjectCard
+              v-for="project in projects"
+              :key="project.id"
+              :slug="project.slug"
+              :title="project.title"
+              :municipality_name="project.municipality_name"
+              :state="project.state"
+              :abstract="project.abstract"
+              :author="project.author"
+              :date="new Date(project.date_created)"
+              :image_id="project.image"
+              :organisation="project.organisation"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-else class="lg:col-span-3">
       <div class="w-full max-w-screen-xl">
         <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
         <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
@@ -105,29 +141,6 @@
         <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
         <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
         <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
-      </div>
-    </div>
-
-    <!-- Right Column: Success Projects (1/3 width) -->
-    <div class="lg:col-span-1 mb-3" v-if="projects && projects.length > 0">
-      <div class="sticky top-8">
-        <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
-        <div class="space-y-4 max-w-md mx-auto">
-          <OnboardingBox :name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"/>
-          <ProjectCard
-            v-for="project in projects"
-            :key="project.id"
-            :slug="project.slug"
-            :title="project.title"
-            :municipality_name="project.municipality_name"
-            :state="project.state"
-            :abstract="project.abstract"
-            :author="project.author"
-            :date="new Date(project.date_created)"
-            :image_id="project.image"
-            :organisation="project.organisation"
-          />
-        </div>
       </div>
     </div>
   </div>
@@ -145,10 +158,11 @@ import OnboardingBox from '~/components/OnboardingBox.vue'
 import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t, locale } = useI18n();
 
 //MetaTags
-const title = ref($t("municipalities.nav_label"));
+const title = ref(t("municipalities.nav_label"));
 useHead({
   title,
 });
@@ -160,11 +174,18 @@ const isMapView = computed(() => route.query.view === 'map'); // Default to map 
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
+      fields: ["slug", "translations.name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
       sort: "-score_total",
       limit: -1,
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
       // Fetching even non-published municipalities to show as 'in progress' in map view, but filtered out for list view
-      filter: { percentage_rated: { _gt: 0 } },
+      // filter: { percentage_rated: { _gt: 0 } },
     })
   )
 });
@@ -206,9 +227,9 @@ const lastUpdatedAtStr = ref("");
 onMounted(() => {
   const lastUpdatedAt = new Date(get(last(sortBy(municipalities.value, ["date_updated"])), "date_updated"));
   lastUpdatedAtStr.value =
-    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    lastUpdatedAt.toLocaleDateString(locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
-    lastUpdatedAt.toLocaleTimeString($locale);
+    lastUpdatedAt.toLocaleTimeString(locale);
 });
 
 // Toggle between cities, towns, or all

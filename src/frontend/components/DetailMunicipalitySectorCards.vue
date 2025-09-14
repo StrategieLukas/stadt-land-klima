@@ -9,7 +9,7 @@
       <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
       <div class="grow">
         <h2 class="mb-2 font-heading text-h2 leading-none text-green">
-          {{ $t(`measure_sectors.${sector}.title`) }}
+          {{ t(`measure_sectors.${sector}.title`) }}
         </h2>
         <ProgressBar
           :score-total="Math.round(Number(municipality['score_' + sector]) * 10) / 10"
@@ -19,7 +19,7 @@
     </div>
     <div class="collapse-content px-2 md:px-4">
       <h3 class="mb-2 font-heading text-h2 text-black">
-        {{ $t("measure_sector.measures_in_detail") }}
+        {{ t("measure_sector.measures_in_detail") }}
       </h3>
       <ul class="mb-2 flex items-end justify-center gap-4">
         <li
@@ -29,7 +29,7 @@
         >
           <img :src="ratingIcons[rating]" class="h-auto w-5" />
           <div class="text-sm">
-            {{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}
+            {{ t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}
           </div>
         </li>
       </ul>
@@ -92,6 +92,7 @@ import { ratingColor } from "../shared/ratingColors.js";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
 import { reactive } from 'vue'
+const { t } = useI18n();
 
 // Track which collapses are open
 const openItems = reactive({})

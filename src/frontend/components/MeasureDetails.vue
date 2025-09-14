@@ -2,20 +2,20 @@
   <div class="py-4" ref="measureDetailsSection">
 
     <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.description_about_heading") }}
+      {{ t("measure.description_about_heading") }}
     </h3>
 
-    <div v-if="measure_rating.measure.description_about" class="mb-2 flex flex-row measure_ratings-start gap-4">
+    <div v-if="measure_rating.measure.translations[0].description_about" class="mb-2 flex flex-row measure_ratings-start gap-4">
       <figure class="mt-0 flex shrink-0 flex-col">
         <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-10 opacity-50" />
       </figure>
-      <div class="has-long-links prose" v-html="sanitizeHtml(measure_rating.measure.description_about)" />
+      <div class="has-long-links prose" v-html="sanitizeHtml(measure_rating.measure.translations[0].description_about)" />
     </div>
   </div>
 
-  <div v-if="measure_rating.measure.description_evaluation_criteria" class="py-4">
+  <div v-if="measure_rating.measure.translations[0].description_evaluation_criteria" class="py-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.evaluation_criteria_heading") }}
+      {{ t("measure.evaluation_criteria_heading") }}
     </h3>
 
     <div class="mb-2 flex flex-row measure_ratings-start gap-4">
@@ -23,13 +23,13 @@
         <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-10 opacity-50" />
       </figure>
 
-      <div class="has-long-links prose" v-html="measure_rating.measure.description_evaluation_criteria" />
+      <div class="has-long-links prose" v-html="measure_rating.measure.translations[0].description_evaluation_criteria" />
     </div>
   </div>
 
   <div class="py-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.feasibility_heading") }}
+      {{ t("measure.feasibility_heading") }}
     </h3>
 
     <div class="grid max-w-md grid-cols-3 justify-between gap-4">
@@ -37,7 +37,7 @@
         key="impact"
         class="xs:mr-auto"
         icon="/assets/icons/icon_impact.svg"
-        :label="$t('measure.impact_label')"
+        :label="t('measure.impact_label')"
         :value="Number(measure_rating.measure.impact)"
       />
 
@@ -45,7 +45,7 @@
         key="politics"
         class="xs:mx-auto"
         icon="/assets/icons/icon_politics.svg"
-        :label="$t('measure.feasibility_political_label')"
+        :label="t('measure.feasibility_political_label')"
         :value="Number(measure_rating.measure.feasibility_political)"
       />
 
@@ -53,7 +53,7 @@
         key="invest"
         class="xs:ml-auto"
         icon="/assets/icons/icon_invest.svg"
-        :label="$t('measure.feasibility_economical_label')"
+        :label="t('measure.feasibility_economical_label')"
         :value="Number(measure_rating.measure.feasibility_economical)"
       />
     </div>
@@ -62,28 +62,28 @@
   <div v-if="measure_rating.applicable">
     <div v-if="measure_rating.current_progress" class="mb-4">
       <h4 class="mb-2 font-bold text-black">
-        {{ $t("ratings_measure.achievement_heading") }}
+        {{ t("ratings_measure.achievement_heading") }}
       </h4>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.current_progress)" />
     </div>
     <div v-if="measure_rating.source">
       <h4 class="mb-2 font-bold text-black">
-        {{ $t("ratings_measure.source_heading") }}
+        {{ t("ratings_measure.source_heading") }}
       </h4>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.source)" />
     </div>
     <dl v-if="measure_rating.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
-      <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
-      <dd>{{ formatLastUpdated(measure_rating.date_updated, $locale) }}</dd>
+      <dt class="font-bold">{{ t("ratings_measure.last_updated") }}:</dt>
+      <dd>{{ formatLastUpdated(measure_rating.date_updated, locale) }}</dd>
     </dl>
   </div>
 
   <div v-if="!measure_rating.applicable">
     <div v-if="measure_rating.why_not_applicable">
       <h4 class="mb-2 font-bold text-black">
-        {{ $t("ratings_measure.why_not_applicable_heading") }}
+        {{ t("ratings_measure.why_not_applicable_heading") }}
       </h4>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.why_not_applicable)" />
@@ -96,17 +96,17 @@
       class="text-black underline"
       target="measure"
     >
-      {{ $t("municipality_rating.link_to_measure") }} ↗
+      {{ t("municipality_rating.link_to_measure") }} ↗
     </NuxtLink>
   </div>
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
   <div v-if="measure_rating.rating < 1" class="mt-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure_rating.better_examples.title") }}:
+      {{ t("measure_rating.better_examples.title") }}:
     </h3>
 
-    <p v-if="loadingExamples">{{ $t("loading") }}...</p>
+    <p v-if="loadingExamples">{{ t("loading") }}...</p>
 
     <ul v-else-if="similarExamples.length > 0" class="space-y-2 mt-4">
       <li
@@ -120,15 +120,16 @@
           class="w-4 h-4"
         />
         <NuxtLink
+          v-if="municipality"
           :to="`/municipalities/${example.municipality.slug}`"
           class="text-black underline"
         >
-          {{ example.municipality.name }} ↗
+          {{ example.municipality.translations[0].name }} ↗
         </NuxtLink>
       </li>
     </ul>
 
-    <p v-else class="text-sm text-gray-500 italic">{{ $t("measure_rating.better_examples.not_found") }}.</p>
+    <p v-else class="text-sm text-gray-500 italic">{{ t("measure_rating.better_examples.not_found") }}.</p>
   </div>
 
 
@@ -141,7 +142,8 @@
   import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
   import { onMounted, onBeforeUnmount, ref } from "vue";
 
-  const { $t, $directus, $readItems, $locale } = useNuxtApp();
+  const { $directus, $readItems } = useNuxtApp();
+  const { t } = useI18n();
   const props = defineProps({
     measure_rating: {
       type: Object,
@@ -149,7 +151,7 @@
     },
     municipality: {
       type: Object,
-      required: true,
+      required: false,
     },
   });
 

@@ -1,0 +1,39 @@
+collection: languages
+field: flag
+type: uuid
+meta:
+  collection: languages
+  conditions: null
+  display: null
+  display_options: null
+  field: flag
+  group: null
+  hidden: false
+  interface: file-image
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 3
+  special:
+    - file
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: flag
+  table: languages
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: directus_files
+  foreign_key_column: id

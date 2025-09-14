@@ -4,7 +4,7 @@
     <!-- Search Bar -->
     <form class="relative overflow-visible" @submit.prevent>
       <div class="form-control">
-        <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
+        <label for="search-input" class="label">{{ t("municipalities_search.label") }}</label>
         <input
           id="search-input"
           v-model="q"
@@ -65,15 +65,23 @@ const q = ref('')
 const searchFocused = ref(false)
 const dropdown = ref(null)
 
-const { $t, $directus, $readItems } = useNuxtApp();
-const { data: municipalities } = await useAsyncData("municipalities", () => {
+const { $directus, $readItems } = useNuxtApp();
+const { t, locale } = useI18n();
+const { data: municipalities } = await useAsyncData("municipalities_search", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name"],
-      sort: "name",
+      fields: ["slug", "translations.name"],
+      sort: "translations.name",
       filter: {
         status: {
           _eq: "published",
+        },
+      },
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
         },
       },
       limit: -1,
@@ -90,12 +98,12 @@ const suggestions = computed(() => {
 
   return municipalities.value
     .filter((municipality) => {
-      return municipality.name.toLowerCase().indexOf(_q) !== -1;
+      return municipality.translations[0].name.toLowerCase().indexOf(_q) !== -1;
     })
     .map((municipality) => {
       return {
         url: `/municipalities/${municipality.slug}`,
-        label: municipality.name,
+        label: municipality.translations[0].name,
       };
     })
     .slice(0, 5);
@@ -109,7 +117,8 @@ function handleResetSearchClick() {
 }
 
 function handleSuggestionClick() {
-  searchFocused.value = false
+  searchFocused.value = false;
+  q.value = '';
 }
 
 function handleClickOutside(event) {

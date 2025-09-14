@@ -2,9 +2,9 @@
   <div class="flex flex-col">
     <ul>
       <li v-for="municipality in publishedMunicipalities" :key="municipality.id">
-        <NuxtLink :to="`/municipalities/${municipality.slug}`">
+        <NuxtLinkLocale :to="`/municipalities/${municipality.slug}`">
           <item-ranking :municipality="municipality" :is-ranking="true" />
-        </NuxtLink>
+        </NuxtLinkLocale>
       </li>
     </ul>
   </div>

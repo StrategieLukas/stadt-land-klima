@@ -2,7 +2,7 @@
   <div class="top-4 left-4 bg-white rounded shadow p-2 z-[1000]">
     <label class="flex items-center gap-2 text-sm font-medium">
       <input type="checkbox" v-model="showMunicipalitiesWithUnfinishedRating" class="toggle toggle-sm" />
-      {{ $t('map.showUnfinishedRatings') }}
+      {{ t('map.showUnfinishedRatings') }}
     </label>
   </div>
 
@@ -48,14 +48,14 @@
               <div class="font-semibold">{{ m.name }}</div>
               <template v-if="m.status === 'published'">
                 <div>Score: {{ Number(m.score_total).toFixed(2) }}</div>
-                <NuxtLink :to="`/municipalities/${m.slug}`" class="text-blue-600 underline hover:text-blue-800">
-                  {{ $t("map.icon.popup.goToRanking") }}
-                </NuxtLink>
+                <NuxtLinkLocale :to="`/municipalities/${m.slug}`" class="text-blue-600 underline hover:text-blue-800">
+                  {{ t("map.icon.popup.goToRanking") }}
+                </NuxtLinkLocale>
               </template>
               <template v-else>
-                <div>{{ $t("map.icon.popup.ratingNotFinished") }}</div>
+                <div>{{ t("map.icon.popup.ratingNotFinished") }}</div>
                 <div>
-                  {{ $t("map.icon.popup.percentageRated", { ":percentage_rated": m.percentage_rated }) }}
+                  {{ t("map.icon.popup.percentageRated", { ":percentage_rated": m.percentage_rated }) }}
                 </div>
               </template>
             </div>
@@ -73,7 +73,7 @@ import 'leaflet/dist/leaflet.css'
 import germanyGeoJson from '~/assets/germany-polygon.json?raw'
 import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
 
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 
 const props = defineProps({
   municipalities: { type: Array, required: true }
@@ -161,7 +161,7 @@ function addLegend(map) {
       ['text-ranking-4-6', 'Score 40-59%'],
       ['text-ranking-2-4', 'Score 20-39%'],
       ['text-ranking-0-2', 'Score 0-19%'],
-      ['text-ranking-na', $t('map.icon.popup.ratingNotFinished.short'), !showMunicipalitiesWithUnfinishedRating.value]
+      ['text-ranking-na', t('map.icon.popup.ratingNotFinished.short'), !showMunicipalitiesWithUnfinishedRating.value]
     ]
     div.innerHTML = lines.map(([cls, text, hidden]) => {
       const style = hidden ? 'height:0; overflow:hidden; margin:0; padding:0;' : ''

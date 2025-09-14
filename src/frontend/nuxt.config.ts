@@ -1,8 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: [
-    '@nuxtjs/leaflet'
-  ],
+  modules: ["@nuxtjs/leaflet", "@nuxtjs/i18n"],
+
   runtimeConfig: {
     // The private keys which are only available within server-side
     // Keys within public, will be also exposed to the client-side
@@ -15,7 +14,9 @@ export default defineNuxtConfig({
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
     },
   },
+
   devtools: { enabled: true },
+
   app: {
     head: {
       meta: [
@@ -23,15 +24,44 @@ export default defineNuxtConfig({
       ]
     }
   },
+
   css: ["~/assets/css/main.css"],
+
   postcss: {
     plugins: {
       tailwindcss: {},
       autoprefixer: {},
     },
   },
-  nitro: {
-    preset: 'node-server',
-    workers: 1, // Avoid spawning too many workers in limited environments
+
+  i18n: {
+    strategy: "prefix",
+    defaultLocale: "de-DE",
+    locales: [
+      {
+        code: "de-DE",
+      },
+      {
+        code: "it-IT",
+      },
+    ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_redirected",
+      redirectOn: "root",
+    },
   },
-})
+
+  plugins: [
+    "~/plugins/directus.server.js",
+    "~/plugins/directus.client.js",
+    "~/plugins/i18n.init.js",
+    "~/plugins/embed-calender.client.js",
+  ],
+
+  nitro: {
+    preset: "node-server"
+  },
+
+  compatibilityDate: "2025-09-13",
+});

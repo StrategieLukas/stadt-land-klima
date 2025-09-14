@@ -2,15 +2,15 @@
     <div class="card bg-white shadow-xl rounded-none overflow-hidden max-w-[400px]">
         <div class="relative">
 
-            <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
+            <NuxtLinkLocale :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
                 <SmartImg
                     :assetId="image_id"
                     :alt="title"
                     :height="160"
                     :width="400"
                     fit="cover"
-                    sizes="(max-width: 768px) 312px, 400px" 
-                    format="webp" 
+                    sizes="(max-width: 768px) 312px, 400px"
+                    format="webp"
                     img-class="object-cover w-full h-full"
                     />
                 <div v-if="tag" class="absolute top-2 left-2 bg-yellow-400 text-xs px-2 py-1 rounded">
@@ -26,22 +26,22 @@
                         :assetId="organisation.logo"
                         :alt="organisation.name"
                         :height="48"
-                        :width="48" 
+                        :width="48"
                         fit="cover"
                         img-class="absolute top-2 right-2 rounded-lg w-12 h-12"
                         />
                 </div>
-            </NuxtLink>
+            </NuxtLinkLocale>
 
 
 
             <!-- Card Content -->
             <div class="p-4">
-                <NuxtLink :to="`/projects/${slug}`">
+                <NuxtLinkLocale :to="`/projects/${slug}`">
                     <h2 class="text-blue-500 font-semibold mb-2">
                         {{ title }}
                     </h2>
-                </NuxtLink>
+                </NuxtLinkLocale>
                 <p class="text-sm font-bold mb-1">
                     {{ location }}
                 </p>
@@ -53,12 +53,12 @@
 
                 <!-- Author and Date Section -->
                 <p class="text-gray-500 italic text-xs mb-2">
-                    {{ author }}, {{ date.toLocaleDateString($locale) }}
+                    {{ author }}, {{ date.toLocaleDateString(locale) }}
                 </p>
 
                 <!-- Read more link -->
-                <NuxtLink :to="`/projects/${slug}`" class="text-blue-500 text-sm">{{ $t("article.read_more") }} →
-                </NuxtLink>
+                <NuxtLinkLocale :to="`/projects/${slug}`" class="text-blue-500 text-sm">{{ $t("article.read_more") }} →
+                </NuxtLinkLocale>
             </div>
         </div>
     </div>
@@ -67,7 +67,7 @@
 <script setup>
 import { computed } from 'vue'
 import { buildLocationString, toAssetUrl }from '~/shared/utils';
-const { $locale } = useNuxtApp();
+const { locale } = useI18n();
 
 const props = defineProps({
     slug: String,
