@@ -25,11 +25,11 @@
                 v-html="sanitizeHtml(saneLinkifyStr(municipality.description))"
                 ></div>
             </div>
-            </div>
+        </div>
 
-            <!-- Info grid (always visible, outside collapse) -->
-            <!-- Berlin and Hamburg are the only states which have one municpality (Bremen has Bremen and Bremerhaven) -->
-            <div class="px-6 pb-6 space-y-3">
+        <!-- Info grid (always visible, outside collapse) -->
+        <!-- Berlin and Hamburg are the only states which have one municpality (Bremen has Bremen and Bremerhaven) -->
+        <div class="px-6 pb-6 space-y-3">
             <div
                 v-if="municipality?.state && municipality.state !== 'Berlin' && municipality.state !== 'Hamburg'"
                 class="flex items-center justify-between"
@@ -84,6 +84,7 @@
                 </div>
             </div>
         </div>
+        
     </div>
 </template>
 

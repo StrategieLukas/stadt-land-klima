@@ -1,0 +1,40 @@
+collection: municipalities
+field: photo
+type: uuid
+meta:
+  collection: municipalities
+  conditions: null
+  display: null
+  display_options: null
+  field: photo
+  group: details
+  hidden: false
+  interface: file-image
+  note: null
+  options:
+    folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
+  readonly: false
+  required: false
+  sort: 8
+  special:
+    - file
+  translations: null
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: photo
+  table: municipalities
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: directus_files
+  foreign_key_column: id

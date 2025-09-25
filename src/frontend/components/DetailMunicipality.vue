@@ -81,6 +81,22 @@
       <!-- Right Column: Info and Projects (1/3 width) -->
       <div class="lg:col-span-1 pb-4">
         <div class="sticky top-8 space-y-6">
+
+          <!-- Municipality Photo -->
+          <div v-if="municipality.photo" class="p-2 rounded-sm shadow-list">
+            <SmartImg
+              :assetId="municipality.photo"
+              :alt="municipality.name"
+              fit="cover"
+              sizes="(max-width: 768px) 312px, 400px" 
+              format="webp" 
+              img-class="object-cover w-full h-full"
+            />
+            <div v-if="municipality.photo_attribution" class="px-4 py-2 text-sm text-gray-600">
+              {{ municipality.photo_attribution }}
+            </div>
+          </div>
+
           <!-- Municipality Quick Info -->
           <DetailMunicipalityQuickInfoDesktop :municipality="municipality"/>
 

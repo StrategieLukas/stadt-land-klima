@@ -175,6 +175,8 @@ permissions:
       - geolocation
       - percentage_rated
       - id
+      - photo_attribution
+      - photo
   - collection: organisations
     action: read
     permissions: null

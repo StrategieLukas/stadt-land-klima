@@ -1,29 +1,37 @@
 <template>
+  
   <div v-if="directusData && directusData.municipalities">
     <waving-banner v-if="directusData.municipalities[0].status === 'draft'">
       {{ $t("municipalities.preview_text") }}
     </waving-banner>
+    
     <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
+    
     <article class="mb-8 mt-10">
       <detail-municipality
         :municipality="directusData.municipalities[0]"
         :sorted-ratings="sortMeasuresBySectorDict"
       ></detail-municipality>
     </article>
+    
     <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
+  
   </div>
+  
   <div v-else>
-        <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
+    <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
+    
     <waving-banner>
       {{ $t("municipality_missing") }}
     </waving-banner>
   </div>
+
 </template>
 
 
