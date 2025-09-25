@@ -4,25 +4,15 @@
       'flex flex-col md:flex-row md:items-center md:justify-between px-4 transition-all duration-300',
       isScrolled ? 'py-2' : 'py-4'
     ]">
-      <!-- Logo/Icon Morph Animation -->
+      <!-- Logo with size transition -->
       <div class="w-[400px] flex-shrink-0 mb-4 md:mb-0 transition-all duration-300 relative flex items-center" :class="isScrolled ? 'h-12 md:h-16' : 'h-24 md:h-32'">
         <NuxtLink to="/">
-          <transition name="logo-morph" mode="out-in">
-            <img
-              v-if="!isScrolled"
-              key="logo"
-              src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg"
-              class="origin-left h-24 w-auto md:h-32 transition-transform duration-500"
-              :alt="$t('logo.alt')"
-            />
-            <img
-              v-else
-              key="icon"
-              src="/favicon.png"
-              class="origin-left h-12 w-auto md:h-16 md:w-auto transition-transform duration-500"
-              :alt="$t('logo.alt')"
-            />
-          </transition>
+          <img
+            src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg"
+            class="origin-left transition-all duration-300"
+            :class="isScrolled ? 'h-16' : 'h-24 md:h-32'"
+            :alt="$t('logo.alt')"
+          />
         </NuxtLink>
       </div>
 
@@ -132,18 +122,3 @@ const isActive = (slug) => {
   return route.path === slug || route.path === `/${slug}`;
 };
 </script>
-
-<style lang="css">
-/* Fade and scale morph transition for logo/icon */
-.logo-morph-enter-active, .logo-morph-leave-active {
-  transition: opacity 0.3s, transform 0.5s cubic-bezier(0.4,0,0.2,1);
-}
-.logo-morph-enter-from, .logo-morph-leave-to {
-  opacity: 0;
-  transform: scale(0.7) translateY(20px);
-}
-.logo-morph-enter-to, .logo-morph-leave-from {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-}
-</style>
