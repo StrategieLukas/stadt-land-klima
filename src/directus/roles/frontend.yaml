@@ -204,6 +204,7 @@ permissions:
       - sort_order
       - footer_column_desktop
       - is_dynamic
+      - icon_svg
   - collection: ratings_measures
     action: read
     permissions:
