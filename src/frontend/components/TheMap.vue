@@ -12,7 +12,7 @@
         v-if="clientReady"
         :zoom="6"
         :center="[51.1657, 10.4515]"
-        style="height: 100%; width: 100%"
+        style="height: 70%; width: 100%"
         @ready="onMapReady"
         ref="mapRef"
         :style="{ zIndex: 1 }"
