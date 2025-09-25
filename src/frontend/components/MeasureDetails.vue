@@ -1,6 +1,5 @@
 <template>
-  <div class="py-4" ref="measureDetailsSection">
-
+  <div class="mt-4 py-4 border border-gray-300 rounded-lg p-4 mb-4" ref="measureDetailsSection">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.description_about_heading") }}
     </h3>
@@ -13,7 +12,7 @@
     </div>
   </div>
 
-  <div v-if="measure_rating.measure.description_evaluation_criteria" class="py-4">
+  <div v-if="measure_rating.measure.description_evaluation_criteria" class="py-4 border border-gray-300 rounded-lg p-4 mb-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.evaluation_criteria_heading") }}
     </h3>
@@ -27,15 +26,14 @@
     </div>
   </div>
 
-  <div class="py-4">
+  <div class="py-4 border border-gray-300 rounded-lg p-4 mb-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.feasibility_heading") }}
     </h3>
 
-    <div class="grid max-w-md grid-cols-3 justify-between gap-4">
+    <div class="flex flex-row width-full justify-around">
       <FeasibilityBarChart
         key="impact"
-        class="xs:mr-auto"
         icon="/assets/icons/icon_impact.svg"
         :label="$t('measure.impact_label')"
         :value="Number(measure_rating.measure.impact)"
@@ -43,7 +41,6 @@
 
       <FeasibilityBarChart
         key="politics"
-        class="xs:mx-auto"
         icon="/assets/icons/icon_politics.svg"
         :label="$t('measure.feasibility_political_label')"
         :value="Number(measure_rating.measure.feasibility_political)"
@@ -51,7 +48,6 @@
 
       <FeasibilityBarChart
         key="invest"
-        class="xs:ml-auto"
         icon="/assets/icons/icon_invest.svg"
         :label="$t('measure.feasibility_economical_label')"
         :value="Number(measure_rating.measure.feasibility_economical)"
@@ -59,7 +55,7 @@
     </div>
   </div>
 
-  <div v-if="measure_rating.applicable">
+  <div v-if="measure_rating.applicable" class="border border-gray-300 rounded-lg p-4 mb-4">
     <div v-if="measure_rating.current_progress" class="mb-4">
       <h4 class="mb-2 font-bold text-black">
         {{ $t("ratings_measure.achievement_heading") }}
@@ -80,7 +76,7 @@
     </dl>
   </div>
 
-  <div v-if="!measure_rating.applicable">
+  <div v-if="!measure_rating.applicable" class="border border-gray-300 rounded-lg p-4 mb-4">
     <div v-if="measure_rating.why_not_applicable">
       <h4 class="mb-2 font-bold text-black">
         {{ $t("ratings_measure.why_not_applicable_heading") }}
@@ -90,7 +86,7 @@
     </div>
   </div>
 
-  <div class="mt-8">
+  <div class="border border-gray-300 rounded-lg p-4 mb-4">
     <NuxtLink
       :to="`/measures/sectors/${measure_rating.measure.sector}#measure-${measure_rating.measure.slug}`"
       class="text-black underline"
@@ -101,7 +97,7 @@
   </div>
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
-  <div v-if="measure_rating.rating < 1" class="mt-4">
+  <div v-if="measure_rating.rating < 1" class="mt-4 border border-gray-300 rounded-lg p-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure_rating.better_examples.title") }}:
     </h3>
@@ -120,7 +116,7 @@
           class="w-4 h-4"
         />
         <NuxtLink
-          :to="`/municipalities/${example.municipality.slug}`"
+          :to="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.slug}`"
           class="text-black underline"
         >
           {{ example.municipality.name }} ↗
