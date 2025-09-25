@@ -22,7 +22,7 @@
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
 
-    <!-- <button @click="openPrintDialog" class="flex items-start h-3">PDF</button> -->
+    <button @click="pdfService(municipality)" class="flex items-start h-3">PDF</button>
 
     <div v-if="isRanking" class="flex items-start">
       <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
@@ -52,31 +52,33 @@ const colorClass = computed(() => {
   return c;
 });
 
-const openPrintDialog = () => {
-  // Deaktiviere Animationen
-  // document.body.classList.add('no-animations');
 
-  // Die aktuelle URL abrufen
-  const buttonUrl = window.location.origin;
-  const printUrl = buttonUrl + "/municipalities/" + municipality.slug + "_print";
+const pdfService = async (municipality) => {
+  try {
+    const { data } = await useFetch("/api/pdf", {
+      method: "POST",
+      body: municipality,
+      responseType: "blob",
+    });
 
-  // Öffne die URL in einem neuen Tab
-  const newTab = window.open(printUrl, '_blank');
+    // Create a blob from the response data
+    const blob = new Blob([data.value], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
 
-  // Warte eine kurze Zeit, um sicherzustellen, dass alles geladen ist
-  newTab.onabort = function () {
-    newTab.close()
+    // Create a link element to trigger the download
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${municipality.name || "municipality"}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error generating PDF:", error);
   }
-  newTab.onafterprint = function () {
-    newTab.close()
-  }
-  setTimeout(() => {
-    newTab.print();
-    newTab.close();
-  }, 2000); // 2000 ms Verzögerung, passe dies nach Bedarf an
 };
-
-
 
 const props = defineProps({
   municipality: {

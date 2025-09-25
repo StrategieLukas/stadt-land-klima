@@ -14,16 +14,25 @@
     ranking, 
     progress,
     circular_barplot_values,
-    unit
+    unit,
+    show_qr_code,
+    show_border,
   ) = [
   #let color = colors.select_color_from_range(progress);
   #let Pin_colored = Pin.replace("currentColor", color.to-hex())
 
+  #let rect_color = color
+
+  #if not show_border{
+    rect_color = white
+  }
   #set rect(
-    inset: 1.5*unit,
-    stroke: 0.5pt + color,
+    inset: 0.5*unit,
+    stroke: 0.5pt + rect_color,
     width: 100%
   )
+  
+  
   // Outer Rectangle
   #rect[
     // Header with Ranking and Place Name
@@ -71,8 +80,8 @@
         img_height: .87*height,
         img_width: .87*width,
         unit: 0.08*unit,
-        area_scale: false,
-        auxiliaryCircles: true,
+        area_scale: true,
+        auxiliaryCircles: false,
         background_image: image("/slk_resources/some3.svg", width: 100%),
       )
     )
@@ -81,13 +90,15 @@
     #align(center, text("Letzte Aktualisierung: 28.01.2024, 20:21:59", size: 0.8*unit))
 
     // QR Code
-    #place(right + bottom, qr-code(
-      "https://www.stadt-land-klima.de/municipalities/osnabrueck",
-      width: 5*unit,
-      height: auto,
-      alt: "https://www.stadt-land-klima.de/municipalities/osnabrueck",
-      quiet-zone: false,
-    ))
+    #if show_qr_code [
+      #place(right + bottom, qr-code(
+        "https://www.stadt-land-klima.de/municipalities/", 
+        width: 5*unit,
+        height: auto,
+        alt: "https://www.stadt-land-klima.de/municipalities/",
+        quiet-zone: false,
+      ))
+    ]
 
   ]
 ]
