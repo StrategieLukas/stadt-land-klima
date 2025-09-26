@@ -23,7 +23,6 @@
   margin: (x: 9mm),
 );
 
-// #let data = json(sys.inputs.data)
 #let data = json(bytes(sys.inputs.data))
 // #let data = (
 //     municipality: "Beispielstadt",
@@ -40,8 +39,7 @@
 //     progress: 22,
 // )
 
-// #text(json(bytes(sys.inputs.data)))
-// #text(sys.inputs.data)
+
 #align(
   center, 
   box(
@@ -119,7 +117,7 @@
     [#align(left+horizon, [*VK - Verkehr*])],
   )
 )
-// #let tdata = json("tdata.json")
+#let tdata = json("tdata.json")
 
 #let table_data = (
   (rating: "0", id: "KV_1", description: "Maßnahme 1", impact: 1, politic: 1, invest: 4),
