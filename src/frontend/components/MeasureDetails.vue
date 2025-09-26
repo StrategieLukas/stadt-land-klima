@@ -115,12 +115,13 @@
           alt="rating icon"
           class="w-4 h-4"
         />
-        <NuxtLink
-          :to="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.slug}`"
+        <a
+          :href="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.slug}`"
           class="text-black underline"
+          target="_blank"
         >
           {{ example.municipality.name }} ↗
-        </NuxtLink>
+    </a>
       </li>
     </ul>
 
