@@ -1,4 +1,4 @@
-#import "colors.typ"
+#import "utils.typ" as colors
 
 /// 100²*pi = a
 /// x²*pi = a*(val/100)
@@ -11,16 +11,17 @@
   }
 )
 
-#let draw_slice(values,
+#let num_slices = 6;
+
+#let draw_slice(value,
                 position,
                 img_height,
                 img_width,
                 unit,
                 area_scale: true
                ) = [
-  #let num_slices = values.len();
-  #let value = values.at(position);
-  #let color = colors.select_color_from_range(values.at(position));
+  #let value = float(value);
+  #let color = colors.select_color_from_range(value);
   #let radius = scale(value, area_scale: area_scale);
   #let arc_0 = position * 2 * calc.pi / num_slices;
   #let arc_3 = (position + 1) * 2 * calc.pi / num_slices;
@@ -58,17 +59,22 @@
           background_image: none
          ) = block[
   #box(height: img_height * unit, width: img_width * unit)[
-    #for i in range(values.len()) [
-      #draw_slice(values, i, img_height, img_width, unit, area_scale: area_scale)
-    ]
-    #for i in range(values.len()) [
+    
+    #draw_slice(values.score_energy, 0, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(values.score_transport, 1, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(values.score_ann, 2, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(values.score_iec, 3, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(values.score_bh, 4, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(values.score_cpma, 5, img_height, img_width, unit, area_scale: area_scale)
+    
+    #for i in range(num_slices) [
       #place(dx: img_width * 0.5 * unit, dy: img_height * 0.5 * unit,
         line(
           stroke: lines,
           start: (0 * unit, 0 * unit),
           end: (
-            100 *  calc.sin(i * 2 * calc.pi / values.len()) * unit,
-            100 * calc.cos(i * 2 * calc.pi / values.len()) * unit,
+            100 *  calc.sin(i * 2 * calc.pi / num_slices) * unit,
+            100 * calc.cos(i * 2 * calc.pi / num_slices) * unit,
           ),
         )
       )

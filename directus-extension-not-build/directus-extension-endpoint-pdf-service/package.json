@@ -1,6 +1,6 @@
 {
 	"name": "pdf-service",
-  "description": "Generate a PDF for a municipality",
+  	"description": "Generate a PDF for a municipality",
 	"icon": "extension",
 	"version": "1.0.0",
 	"keywords": [

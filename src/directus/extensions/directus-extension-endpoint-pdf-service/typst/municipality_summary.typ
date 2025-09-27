@@ -1,0 +1,90 @@
+#import "visualization/muicipality_overview.typ" as item_ranking
+#import "visualization/footer.typ"
+#import "visualization/header.typ"
+#import "visualization/utils.typ" as util
+#import "visualization/progress_bar.typ" as progress_bar
+#import "visualization/overview_table.typ"
+#import "visualization/rated_measures_table.typ"
+
+
+#let municipality = json(bytes(sys.inputs.municipality))
+#let rating_measures = json(bytes(sys.inputs.measures))
+
+// #let municipality = json("sample_data/municipality.json")
+// #let rating_measures = json("sample_data/sorted_measures.json")
+
+
+#let unit = 0.75em;
+
+#set text(
+  font: "Roboto",
+  hyphenate: true,
+  lang: "de",
+  overhang: false,
+  size: 12pt,
+)
+
+
+#set page(
+  paper: "a4",
+  header: header.header,
+  header-ascent: 100% - 2em,
+  footer: footer.footer,
+  footer-descent: 100% - 1.5em,
+  margin: (x: 9mm, top:20mm, bottom:10mm),
+);
+
+#align(
+  center, 
+  box(
+    width: 70%,
+    [
+      #box(
+        item_ranking.item_ranking(
+          municipality,
+          unit,
+          true,
+          true,
+        ),
+        width: 100%,
+      )
+      #align(
+        left,
+        [
+          = Anmerkungen & Aktuelles zur Bewertung
+          #lorem(30)
+        ]
+      )
+    
+    ]
+  )
+)
+
+// SECOND PAGE
+
+#pagebreak()
+
+#place(center+top, dy: -1.6cm, image("/slk_resources/StadtLandKlima-Logo.svg", height: 1.4cm, width: 6cm, fit: "contain"))
+#show table.cell: set text(size: 8pt)
+#grid(
+  columns: (33%, 67%),
+  align: (center + bottom, center + bottom),
+
+  place(dy: -1.5cm,
+    scale(
+      x: 50%,
+      y: 50%,
+      origin: top + left,
+      reflow: true,
+      item_ranking.item_ranking(
+        municipality,
+        unit,
+        false,
+        false,
+      )
+    )
+  ),
+  overview_table.draw_overview_table(municipality, rating_measures)
+)
+
+#rated_measures_table.draw_measures_table(rating_measures)
