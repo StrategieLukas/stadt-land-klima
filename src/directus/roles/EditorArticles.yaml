@@ -6,27 +6,6 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_folders
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
   - collection: articles
     action: create
     permissions: null
@@ -47,6 +26,33 @@ permissions:
       - municipality_name
       - status
       - link
+      - sectors
+      - sources
+      - additional_examples
+      - economic_efficiency
+      - additional_infos
+      - public_impact
+      - ghg_savings_potential
+      - other_benefits
+      - ease_of_implementation
+      - similar_articles
+      - similar_external_projects
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
+      - public_impact_block
+      - ghg_savings_potential_block
+      - economic_efficiency_block
+      - other_benefits_block
+      - ease_of_implementation_block
+  - collection: articles
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: articles
     action: read
     permissions: {}
@@ -74,13 +80,129 @@ permissions:
       - author
       - status
       - link
-  - collection: articles
-    action: delete
+      - sectors
+      - sources
+      - additional_examples
+      - additional_infos
+      - economic_efficiency
+      - ghg_savings_potential
+      - ease_of_implementation
+      - other_benefits
+      - similar_articles
+      - similar_external_projects
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
+      - public_impact
+      - ghg_savings_potential_block
+      - other_benefits_block
+      - economic_efficiency_block
+      - public_impact_block
+      - ease_of_implementation_block
+  - collection: articles_articles
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - articles_id
+      - related_articles_id
+  - collection: articles_articles
+    action: read
     permissions: {}
     validation: {}
     presets: null
     fields:
       - "*"
+  - collection: articles_external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - articles_id
+      - external_projects_id
+  - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_users
+    action: read
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_users
+    action: update
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - password
+  - collection: external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - link
+      - description
+  - collection: external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: external_projects
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - description
+      - link
+      - title
   - collection: organisations
     action: create
     permissions: {}
@@ -91,6 +213,13 @@ permissions:
       - short_description
       - link
       - logo
+  - collection: organisations
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: organisations
     action: read
     permissions: null
@@ -116,10 +245,3 @@ permissions:
       - link
       - logo
       - short_description
-  - collection: organisations
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"

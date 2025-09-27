@@ -1,7 +1,7 @@
 <template lang="">
   <div class="flex flex-col">
     <ul>
-      <li v-for="municipality in municipalities" :key="municipality.id">
+      <li v-for="municipality in publishedMunicipalities" :key="municipality.id">
         <NuxtLink :to="`/municipalities/${municipality.slug}`">
           <item-ranking :municipality="municipality" :is-ranking="true" />
         </NuxtLink>
@@ -16,5 +16,10 @@ const props = defineProps({
     required: true,
   },
 });
+
+// Hide unpublished municipalities from the Ranking view
+const publishedMunicipalities = computed(() => {
+  return props.municipalities.filter(m => m.status === "published") || []
+})
 </script>
 <style lang=""></style>

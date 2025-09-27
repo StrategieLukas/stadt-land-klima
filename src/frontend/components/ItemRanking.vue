@@ -6,9 +6,10 @@
     <div class="relative h-full pt-6">
       <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
-      <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black">
+      <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black break-keep whitespace-nowrap">
         {{ municipality.place || "?" }}
       </div>
+
     </div>
 
     <div class="grow">
@@ -63,10 +64,10 @@ const openPrintDialog = () => {
   const newTab = window.open(printUrl, '_blank');
 
   // Warte eine kurze Zeit, um sicherzustellen, dass alles geladen ist
-  newTab.onabort = function(){
+  newTab.onabort = function () {
     newTab.close()
   }
-  newTab.onafterprint = function(){
+  newTab.onafterprint = function () {
     newTab.close()
   }
   setTimeout(() => {

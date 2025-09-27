@@ -1,0 +1,28 @@
+collection: articles
+field: similar_articles
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{related_articles_id.title}}"
+  field: similar_articles
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: null
+  options:
+    enableCreate: false
+    template: "{{related_articles_id.title}}"
+  readonly: false
+  required: false
+  sort: 18
+  special:
+    - m2m
+  translations:
+    - language: de-DE
+      translation: Ähnliche Projekte (aus unserer Datenbank)
+  validation: null
+  validation_message: null
+  width: full

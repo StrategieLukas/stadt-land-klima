@@ -1,51 +1,75 @@
 <template>
-  <div class="relative w-full max-w-md">
-    <label class="label" for="search-input">{{ label }}</label>
-    <div class="relative">
-      <input
-        id="search-input"
-        v-model="q"
-        type="text"
-        autocomplete="off"
-        class="input input-bordered input-primary w-full bg-white pr-12"
-        @input="onInput"
-        @focus="focused = true"
-        @keydown.down.prevent="moveFocus(1)"
-        @keydown.up.prevent="moveFocus(-1)"
-        @keydown.enter.prevent="goToFocused()"
-      />
-      <button
+  <!-- Search Bar and map toggle-->
+  <div class="flex items-end space-x-4">
+    <!-- Search Bar -->
+    <form class="relative overflow-visible" @submit.prevent>
+      <div class="form-control">
+        <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
+        <input
+          id="search-input"
+          v-model="q"
+          class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96"
+          name="q"
+          type="text"
+          autocomplete="off"
+                @input="onInput"
+                @focus="searchFocused = true"
+                @keydown.down.prevent="moveFocus(1)"
+                @keydown.up.prevent="moveFocus(-1)"
+                @keydown.enter.prevent="goToFocused()"
+        />
+        <button
         v-if="q"
         class="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80"
-        @click="clear"
-      >
-        ✖️
-      </button>
-    </div>
+          @click="clear"
+        >
+          ✖️
+        </button>
+      </div>
 
-    <!-- Suggestions Dropdown -->
-    <ul
-      v-if="visibleSuggestions.length && focused"
-      class="absolute z-50 mt-1 w-full rounded-md border bg-base-100 p-2 shadow"
-      @mouseleave="focusedIndex = -1"
-    >
-      <li
-        v-for="(s, i) in visibleSuggestions"
-        :key="s.slug"
-        :class="[
-          'cursor-pointer rounded p-2 hover:bg-base-200',
-          focusedIndex === i ? 'bg-base-200' : ''
-        ]"
-        @mousedown.prevent="goTo(s.url)"
-        @mouseenter="focusedIndex = i"
+      <div
+        v-if="visibleSuggestions.length && searchFocused"
+        class="absolute left-0 right-0 top-24 w-full z-50"
+        ref="dropdown"
       >
-        {{ s.label }}
-      </li>
-    </ul>
+        <ul class="menu dropdown-content rounded-box w-full bg-base-100 p-2 shadow">
+          <NuxtLink
+            v-for="(suggestion, index) in visibleSuggestions"
+            :key="index"
+            :to="suggestion.url"
+            class="block w-full p-2 hover:bg-primary/20 rounded cursor-pointer"
+            @click="handleSuggestionClick"
+          >
+            {{ suggestion.label }}
+          </NuxtLink>
+        </ul>
+      </div>
+    </form>
+
+    <!-- Map/List toggle -->
+    <button
+      :class="{'invisible': route.path !== '/municipalities'}"
+      :aria-hidden="route.path !== '/municipalities'"
+      @click="toggleView"
+      class="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100"
+    >
+      <span v-html="isMapView ? listViewIcon : mapViewIcon" class="w-12 h-12 flex-none"></span>
+    </button>
   </div>
 </template>
 
 <script setup>
+
+
+
+// Search bar logic
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+
+const q = ref('')
+const searchFocused = ref(false)
+const dropdown = ref(null)
+
+const { $t, $directus, $readItems } = useNuxtApp();
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -65,7 +89,7 @@ const props = defineProps({
 });
 
 const q = ref('');
-const focused = ref(false);
+const searchFocused = ref(false);
 const focusedIndex = ref(-1);
 const router = useRouter();
 
@@ -93,7 +117,7 @@ function clear() {
 function goTo(url) {
   q.value = '';
   focusedIndex.value = -1;
-  focused.value = false;
+  searchFocused.value = false;
   router.push(url);
 }
 
@@ -108,6 +132,59 @@ function goToFocused() {
 }
 
 watch(() => document.activeElement, (el) => {
-  if (!el || el.id !== 'search-input') focused.value = false;
+  if (!el || el.id !== 'search-input') searchFocused.value = false;
 });
+
+
+function handleResetSearchClick() {
+  q.value = ''
+  suggestions.value = []
+  searchFocused.value = false
+}
+
+function handleSuggestionClick() {
+  searchFocused.value = false
+}
+
+function handleClickOutside(event) {
+  if (
+    dropdown.value &&
+    !dropdown.value.contains(event.target) &&
+    !event.target.closest('form')
+  ) {
+    searchFocused.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+
+
+// Map toggle logic
+const route = useRoute();
+const router = useRouter();
+
+import mapViewIcon from '~/assets/icons/icon_map_view.svg?raw';
+import listViewIcon from '~/assets/icons/icon_list_view.svg?raw';
+
+
+const isMapView = computed(() => route.query.view === 'map');
+
+const toggleView = () => {
+  const newView = isMapView.value ? 'list' : 'map';
+
+  if (route.path !== '/municipalities') {
+    // If not on the municipalities page, navigate there with the view query
+    router.push({ path: '/municipalities', query: { ...route.query, view: newView } });
+  } else {
+    // If already on the municipalities page, just update the query param
+    router.push({ query: { ...route.query, view: newView } });
+  }
+};
 </script>

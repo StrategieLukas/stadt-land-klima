@@ -9,12 +9,12 @@ meta:
   field: content
   group: null
   hidden: false
-  interface: group-detail
+  interface: group-accordion
   note: null
   options: null
   readonly: false
   required: false
-  sort: 12
+  sort: 15
   special:
     - alias
     - group

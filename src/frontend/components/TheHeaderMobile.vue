@@ -4,14 +4,14 @@
         <NuxtLink to="/">
           <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
         </NuxtLink>
-        <MunicipalitySearchBar/>
+          <!-- Search Bar and map toggle in center -->
+          <MunicipalitySearchBar/>
       </div>
     </header>
   </template>
 
 <script setup>
-
-  const { $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 
 </script>
 <style lang=""></style>

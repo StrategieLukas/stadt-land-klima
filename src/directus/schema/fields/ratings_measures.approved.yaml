@@ -8,13 +8,13 @@ meta:
   display_options: null
   field: approved
   group: null
-  hidden: false
+  hidden: true
   interface: boolean
   note: null
   options: null
   readonly: false
   required: true
-  sort: 18
+  sort: 17
   special:
     - cast-boolean
   translations:

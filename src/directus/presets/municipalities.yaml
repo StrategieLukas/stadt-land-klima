@@ -1,0 +1,22 @@
+bookmark: null
+user: null
+role: null
+collection: municipalities
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - name
+      - municipality_type
+      - percentage_rated
+      - status
+layout_options:
+  tabular:
+    widths:
+      municipality_type: 185
+      percentage_rated: 290
+refresh_interval: null
+filter: null
+icon: null
+color: null

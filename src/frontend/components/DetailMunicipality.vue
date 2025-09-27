@@ -1,207 +1,152 @@
 <template lang="">
-  <div class="w-full flex-col justify-center">
-    <div class="mb-8">
-      <item-ranking :municipality="municipality" />
-    </div>
-    <div class="mb-4">
-      <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
-    </div>
-    <p class="mb-4 mt-0 text-center text-xs">
-      {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated) }}
-    </p>
-    <div class="mx-auto mb-8 flex justify-center">
-      <implementation-traffic-light />
-    </div>
-
-    <!-- Accordion -->
-    <!-- Municipality description -->
-    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
-      <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
-
-      <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
-        <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-
-        <h2 class="font-heading text-h2 leading-none text-green">
-          {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
-        </h2>
+  <!-- Content when municipality data is available -->
+  <div>
+    <!-- Mobile: Single column layout -->
+    <div class="block lg:hidden w-full flex-col justify-center">
+      <div class="mb-8">
+        <item-ranking :municipality="municipality" />
+      </div>
+      <div class="mb-4">
+        <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
+      </div>
+      <p class="mb-4 mt-0 text-center text-xs">
+        {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
+      </p>
+      <div class="mx-auto mb-8 flex justify-center">
+        <implementation-traffic-light />
       </div>
 
-      <div class="collapse-content px-2 md:px-4">
-        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.description)"></div>
-      </div>
-    </div>
-
- <!-- Notice about current developments, if it exists -->
- <div v-if="municipality.overall_status_comment" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
-      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
-
-      <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
-        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-
-        <h2 class="font-heading text-h2 leading-none text-green">
-          {{ $t("municipality.overall_status_heading") }}
-        </h2>
-      </div>
-
-      <div class="collapse-content px-2 md:px-4">
-        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.overall_status_comment)"></div>
-      </div>
-    </div>
-
-
-    <!-- Measures -->
-    <div
-      v-for="(sectorRatings, sector) in sortedRatings"
-      :key="sector"
-      class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2"
-    >
-      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
-
-      <!-- Sector header -->
-      <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
-        <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-
-        <div class="grow">
-          <h2 class="mb-2 font-heading text-h2 leading-none text-green">
-            {{ $t(`measure_sectors.${sector}.title`) }}
+      <!-- Mobile: About Section -->
+      <div v-if="municipality.description" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
+        <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
+        <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
+          <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+          <h2 class="font-heading text-h2 leading-none text-green">
+            {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
           </h2>
-          <ProgressBar :score-total="Math.round(Number(municipality['score_' + sector]) * 10) / 10" layout="compact" />
+        </div>
+        <div class="collapse-content px-2 md:px-4">
+          <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.description))"></div>
         </div>
       </div>
 
-      <div class="collapse-content px-2 md:px-4">
-        <!-- Additional Info above the list of measure -->
-        <h3 class="mb-2 font-heading text-h2 text-black">
-          {{ $t("measure_sector.measures_in_detail") }}
-        </h3>
-        <ul class="mb-2 flex items-end justify-center gap-4">
-          <li v-for="(rating, _) in [0,1,2,3,null]" :key="`rating-image-${rating}`" class="flex flex-col items-center">
-            <img :src="ratingImages[rating]" class="h-auto w-5" />
-            <div class="text-sm">{{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}</div>
-          </li>
-        </ul>
+      <!-- Mobile: Participate Section -->
+      <div v-if="municipality.public_contact" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
+        <input type="checkbox" name="sectors-accordion" autocomplete="off" />
+        <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
+          <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+          <h2 class="font-heading text-h2 leading-none text-green">
+            {{ $t("municipality.participate_heading") }}
+          </h2>
+        </div>
+        <div class="collapse-content px-2 md:px-4">
+          <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.public_contact))"></div>
+        </div>
+      </div>
 
-        <!-- List of individual measure ratings for the given sector -->
+      <DetailMunicipalitySectorCards :municipality="municipality" :sortedRatings="sortedRatings"/>
+    </div>
 
-        <ul class="mb-8 divide-y-2 divide-slate-300">
-          <li
-            v-for="item in sectorRatings"
-            :key="item.id"
-          >
-            <div class="collapse-plus collapse rounded-none">
-              <input type="checkbox" :name="`rating-${item.id}-accordion`" autocomplete="off"/>
+    <!-- Desktop: Two column layout -->
+    <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8 w-full">
+      <!-- Left Column: Main content (2/3 width) -->
+      <div class="lg:col-span-2">
+        <div class="mb-8">
+          <item-ranking :municipality="municipality" />
+        </div>
+        <div class="mb-4">
+          <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
+        </div>
+        <div class="mx-auto mb-8 flex justify-center">
+          <implementation-traffic-light />
+        </div>
 
-              <div
-              :class="[ratingColor[ratingIndex(item.rating)], ratingHeaderOpacity[ratingIndex(item.rating)], 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4']"
-              >
-                <div class="shrink-0">
-                  <img :src="ratingImages[ratingIndex(item.rating)]" class="my-auto h-auto w-5" />
-                </div>
+        <!-- Notice about current developments, if it exists -->
+        <div v-if="municipality.overall_status_comment" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
+          <input type="checkbox" name="sectors-accordion" autocomplete="off" />
+          <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
+            <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+            <h2 class="font-heading text-h2 leading-none text-green">
+              {{ $t("municipality.overall_status_heading") }}
+            </h2>
+          </div>
+          <div class="collapse-content px-2 md:px-4">
+            <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.overall_status_comment))"></div>
+          </div>
+        </div>
 
-                <h3 class="font-heading text-h3 font-medium">
-                  {{ item.measure.name }}
-                </h3>
-              </div>
+        <DetailMunicipalitySectorCards :municipality="municipality" :sortedRatings="sortedRatings"/>
+      </div>
 
-              <!-- More info on the measure when clicked -->
-              <div 
-              :class="[ratingColor[ratingIndex(item.rating)], ratingTextOpacity[ratingIndex(item.rating)], 'collapse-content md:px-12 lg:px-12']"
-              >
-                <MeasureDetails :measure="item.measure" />
-                
-                <div v-if="item.applicable">
-                  <div v-if="item.current_progress" class="mb-4">
-                    <h4 class="mb-2 text-light-blue">
-                      {{ $t("ratings_measure.achievement_heading") }}
-                    </h4>
+      <!-- Right Column: Info and Projects (1/3 width) -->
+      <div class="lg:col-span-1 pb-4">
+        <div class="sticky top-8 space-y-6">
+          <!-- Municipality Quick Info -->
+          <DetailMunicipalityQuickInfoDesktop :municipality="municipality"/>
 
-                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.current_progress)" />
-                  </div>
-                  <div v-if="item.source">
-                    <h4 class="mb-2 text-light-blue">
-                      {{ $t("ratings_measure.source_heading") }}
-                    </h4>
-
-                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.source)" />
-                  </div>
-                  <dl v-if="item.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
-                    <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
-                    <dd>{{ formatLastUpdated(item.date_updated) }}</dd>
-                  </dl>
-                </div>
-
-                <div v-if="!item.applicable">
-                  <div v-if="item.why_not_applicable">
-                    <h4 class="mb-2 text-light-blue">
-                      {{ $t("ratings_measure.why_not_applicable_heading") }}
-                    </h4>
-
-                    <div class="has-long-links prose whitespace-pre-line" v-html="linkifyStr(item.why_not_applicable)" />
-                  </div>
-                </div>
-
-                <div class="mt-8">
-                  <NuxtLink
-                    :to="`/measures/sectors/${sector}#measure-${item.measure.slug}`"
-                    class="text-light-blue underline"
-                    target="measure"
-                  >
-                    {{ $t("municipality_rating.link_to_measure") }} ↗
-                  </NuxtLink>
-                </div>
-              </div>
+          <!-- Participate Section -->
+          <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
+            <input type="checkbox" name="contact-accordion" autocomplete="off" />
+            <div class="collapse-title flex items-center gap-3 px-2 md:px-4">
+              <img src="~/assets/icons/icon_team.svg" class="h-6 w-6 opacity-60" />
+              <h3 class="font-heading text-h3 text-green">
+                {{ $t("municipality.participate_heading") }}
+              </h3>
             </div>
-          </li>
-        </ul>
-      </div>
-    </div>
+            <div class="collapse-content px-2 md:px-4">
+              <div class="has-long-links prose prose-sm max-w-none" v-html="sanitizeHtml(saneLinkifyStr(municipality.public_contact))"></div>
+            </div>
+          </div>
 
-    <!-- Participate -->
-    <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
-      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
+          <!-- Associated Projects -->
+          <div v-if="municipalityProjects && municipalityProjects.length > 0" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
+            <div class="flex items-center gap-3 mb-4">
+              <img src="~/assets/icons/icon_invest.svg" class="h-6 w-6 opacity-60" />
+              <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
+            </div>
+            <div class="space-y-4">
+              <ProjectCard
+                v-for="project in municipalityProjects"
+                :key="project.id"
+                :slug="project.slug"
+                :title="project.title"
+                :municipality_name="project.municipality_name"
+                :state="project.state"
+                :abstract="project.abstract"
+                :author="project.author"
+                :date="new Date(project.date_created)"
+                :image_id="project.image"
+                :organisation="project.organisation"
+              />
+            </div>
+          </div>
 
-      <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
-        <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-
-        <h2 class="font-heading text-h2 leading-none text-green">
-          {{ $t("municipality.participate_heading") }}
-        </h2>
-      </div>
-
-      <div class="collapse-content px-2 md:px-4">
-        <div class="has-long-links prose" v-html="sanitizeHtml(municipality.public_contact)"></div>
-      </div>
-    </div>
-
-    <!-- Data collection -->
-    <!-- <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2">
-      <input type="checkbox" name="sectors-accordion" autocomplete="off" />
-
-      <div class="collapse-title flex items-end gap-4 px-2 md:px-4">
-        <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-
-        <h2 class="font-heading text-h2 leading-none text-green">
-          {{ $t("municipality.data_collection_heading") }}
-        </h2>
-      </div>
-
-      <div class="collapse-content px-2 md:px-4">
-        <div class="prose whitespace-pre-line">
-          {{ $t("municipality.data_collection_body") }}
+          <!-- Last Update Info -->
+          <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+              <img src="~/assets/icons/icon_info.svg" class="h-4 w-4 opacity-60" />
+              <span>{{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div> -->
+    </div>
   </div>
 </template>
+
 <script setup>
+import { ref, onMounted, computed } from 'vue';
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
-import linkifyStr from "linkify-string";
+import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
+import ProjectCard from "~/components/ProjectCard.vue";
+import ProgressBar from "~/components/ProgressBar.vue";
+import DetailMunicipalitySectorCards from "~/components/DetailMunicipalitySectorCards.vue"
+import DetailMunicipalityQuickInfoDesktop from "~/components/DetailMunicipalityQuickInfoDesktop.vue"
+
 const { range } = lodash;
-import sectorImages from "../shared/sectorImages.js";
-import ratingImages from "../shared/ratingImages.js";
-import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
-const { $t, $locale } = useNuxtApp();
+const { $t, $locale, $directus, $readItems } = useNuxtApp();
+
 const props = defineProps({
   municipality: {
     type: Object,
@@ -213,21 +158,91 @@ const props = defineProps({
   },
 });
 
-/**
- * @param {string} dateString
- * @returns {string} Properly formatted date and time
- */
-const formatLastUpdated = (dateString) => {
-  const lastUpdatedAt = new Date(dateString);
-  return `${lastUpdatedAt.toLocaleDateString($locale, {
-    year: "numeric",
-    month: "2-digit",
-    day: "numeric",
-  })}, ${lastUpdatedAt.toLocaleTimeString($locale)}`;
-};
-
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);
+
+// Fetch projects associated with this municipality
+const municipalityProjects = ref([]);
+const loadingProjects = ref(false);
+
+// Defensive check for municipality data
+const hasMunicipalityData = computed(() => {
+  return municipality && typeof municipality === 'object';
+});
+
+onMounted(async () => {
+  // Fetch municipality projects
+  if (hasMunicipalityData.value) {
+    await fetchMunicipalityProjects();
+  }
+});
+
+async function fetchMunicipalityProjects() {
+  if (!municipality?.slug) return;
+
+  loadingProjects.value = true;
+  try {
+    const articles = await $directus.request(
+      $readItems("articles", {
+        fields: [
+          "id",
+          "slug",
+          "title",
+          "image",
+          "abstract",
+          "author",
+          "date_created",
+          "municipality_name",
+          "state",
+          "organisation"
+        ],
+        filter: {
+          municipality_name: { _eq: municipality.name }
+        },
+        sort: "-date_created",
+        limit: 5, // Limit to 5 most recent projects
+      })
+    );
+
+    // Get organisation details if articles have organisations
+    const orgIds = [...new Set(
+      articles
+        .map(article => {
+          const org = article.organisation;
+          if (org == null) return null;
+          return typeof org === 'object' ? org.key : org;
+        })
+        .filter(id => id != null)
+    )];
+
+    let organisations = [];
+    if (orgIds.length > 0) {
+      organisations = await $directus.request(
+        $readItems("organisations", {
+          fields: ["id", "name", "logo", "link"],
+          filter: { id: { _in: orgIds } }
+        })
+      );
+    }
+
+    const orgMap = new Map(organisations.map(org => [org.id, org]));
+
+    municipalityProjects.value = articles.map(article => {
+      const orgRaw = article.organisation;
+      if (orgRaw == null) return { ...article, organisation: null };
+      const orgId = typeof orgRaw === 'object' ? orgRaw.key : orgRaw;
+      return {
+        ...article,
+        organisation: orgMap.get(orgId) || null
+      };
+    });
+  } catch (err) {
+    console.error("❌ Failed to fetch municipality projects:", err);
+    municipalityProjects.value = [];
+  } finally {
+    loadingProjects.value = false;
+  }
+}
 
 function createSubScoreObject(municipality) {
   const temp = {};
@@ -238,13 +253,7 @@ function createSubScoreObject(municipality) {
   }
   return temp;
 }
-function ratingIndex(value) {
-  if(value === null) return null;
-  const tempVal = Number(value);
-  if (tempVal === 0) return 0;
-  if (tempVal === 0.3333) return 1;
-  if (tempVal === 0.6666) return 2;
-  return 3;
-}
+
 </script>
+
 <style lang=""></style>
