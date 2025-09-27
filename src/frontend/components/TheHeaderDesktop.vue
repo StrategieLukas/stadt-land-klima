@@ -9,7 +9,7 @@
       </div>
 
       <!-- Search Bar in center -->
-      <MunicipalitySearchBar basePath="/municipalities" :label="$t('municipalities_search.label')" :municipalities="publishedMunicipalities"/>
+      <MunicipalitySearchBar basePath="/municipalities" :label="$t('municipalities_search.label')" :municipalities="municipalities"/>
 
       <!-- Right side (Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
@@ -85,11 +85,19 @@
 </template>
 
 <script setup>
-import { defineProps } from "vue";
-
 const { $t } = useNuxtApp();
+
 const route = useRoute();
-const props = defineProps(["pages"]);
+const props = defineProps({
+  municipalities: {
+    type: Array,
+    required: true,
+  },
+  pages: {
+    type: Array,
+    required: true,
+  },
+});
 
 //Separate pages into "main" and "other" based on configured menus
 const mainPages = computed(() =>
@@ -99,20 +107,7 @@ const otherPages = computed(() =>
   props?.pages?.filter((page) => page.menus && page.menus.includes('main') && !page.menus.includes('top-bar')) || []
 );
 
-const { data: publishedMunicipalities } = await useAsyncData("municipalities", () => {
-  return $directus.request(
-    $readItems("municipalities", {
-      fields: ["slug", "name"],
-      sort: "name",
-      filter: {
-        status: {
-          _eq: "published",
-        },
-      },
-      limit: -1,
-    }),
-  );
-});
+
 
 // Function to check if a page is active
 const isActive = (slug) => {

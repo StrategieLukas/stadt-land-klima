@@ -5,13 +5,19 @@
           <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
         </NuxtLink>
           <!-- Search Bar and map toggle in center -->
-          <MunicipalitySearchBar/>
+          <MunicipalitySearchBar basePath="/municipalities" :label="$t('municipalities_search.label')" :municipalities="municipalities"/>
       </div>
     </header>
   </template>
 
 <script setup>
 const { $t } = useNuxtApp();
+const props = defineProps({
+  municipalities: {
+    type: Array,
+    required: true,
+  },
+});
 
 </script>
 <style lang=""></style>

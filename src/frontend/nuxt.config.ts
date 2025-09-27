@@ -34,4 +34,11 @@ export default defineNuxtConfig({
     preset: 'node-server',
     workers: 1, // Avoid spawning too many workers in limited environments
   },
+  vite: {
+     define: {
+          __VUE_OPTIONS_API__: false,
+          __VUE_PROD_DEVTOOLS__: false,
+          __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+        },
+  },
 })
