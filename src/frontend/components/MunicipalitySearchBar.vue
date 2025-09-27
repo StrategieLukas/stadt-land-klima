@@ -75,11 +75,6 @@ const props = defineProps({
 });
 
 
-if(!props.municipalities) {
-  console.error('Municipalities are required');
-}
-console.log("municipality props",props.municipalities);
-
 const dropdown = ref(null)
 const q = ref('');
 const searchFocused = ref(false);
