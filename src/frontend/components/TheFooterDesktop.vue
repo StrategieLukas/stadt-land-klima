@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from "vue";
+import { computed } from "vue";
 import DonateButton from '~/components/DonateButton.vue';
 const { $t } = useNuxtApp();
 

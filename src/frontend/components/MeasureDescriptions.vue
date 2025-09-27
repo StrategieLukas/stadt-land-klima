@@ -108,7 +108,6 @@
   </div>
 </template>
 <script setup>
-import { defineProps } from "vue";
 import sanitizeHtml from "sanitize-html";
 const { $t, $locale } = useNuxtApp();
 const props = defineProps({

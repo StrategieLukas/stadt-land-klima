@@ -21,7 +21,6 @@
   </article>
 </template>
 <script setup>
-import { defineProps } from "vue";
 import MeasureDetails from "./MeasureDetails.vue";
 import MeasureDescriptions from "./MeasureDescriptions.vue";
 const { $t, $locale } = useNuxtApp();

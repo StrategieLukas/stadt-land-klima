@@ -12,19 +12,12 @@
           name="q"
           type="text"
           autocomplete="off"
-                @input="onInput"
-                @focus="searchFocused = true"
-                @keydown.down.prevent="moveFocus(1)"
-                @keydown.up.prevent="moveFocus(-1)"
-                @keydown.enter.prevent="goToFocused()"
+          @input="onInput"
+          @focus="searchFocused = true"
+          @keydown.down.prevent="moveFocus(1)"
+          @keydown.up.prevent="moveFocus(-1)"
+          @keydown.enter.prevent="goToFocused()"
         />
-        <button
-        v-if="q"
-        class="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80"
-          @click="clear"
-        >
-          ✖️
-        </button>
       </div>
 
       <div
@@ -60,18 +53,11 @@
 
 <script setup>
 
-
-
 // Search bar logic
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
-
-const q = ref('')
-const searchFocused = ref(false)
-const dropdown = ref(null)
-
-const { $t, $directus, $readItems } = useNuxtApp();
-import { ref, computed, watch } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router';
+
+const { $t } = useNuxtApp();
 
 const props = defineProps({
   municipalities: {
@@ -88,10 +74,18 @@ const props = defineProps({
   },
 });
 
+
+if(!props.municipalities) {
+  console.error('Municipalities are required');
+}
+console.log("municipality props",props.municipalities);
+
+const dropdown = ref(null)
 const q = ref('');
 const searchFocused = ref(false);
 const focusedIndex = ref(-1);
 const router = useRouter();
+const route = useRoute();
 
 const visibleSuggestions = computed(() => {
   const term = q.value.trim().toLowerCase();
@@ -109,10 +103,6 @@ function onInput() {
   focusedIndex.value = -1;
 }
 
-function clear() {
-  q.value = '';
-  focusedIndex.value = -1;
-}
 
 function goTo(url) {
   q.value = '';
@@ -136,14 +126,10 @@ watch(() => document.activeElement, (el) => {
 });
 
 
-function handleResetSearchClick() {
-  q.value = ''
-  suggestions.value = []
-  searchFocused.value = false
-}
-
 function handleSuggestionClick() {
+  q.value = '';
   searchFocused.value = false
+  focusedIndex.value = -1;
 }
 
 function handleClickOutside(event) {
@@ -167,9 +153,6 @@ onBeforeUnmount(() => {
 
 
 // Map toggle logic
-const route = useRoute();
-const router = useRouter();
-
 import mapViewIcon from '~/assets/icons/icon_map_view.svg?raw';
 import listViewIcon from '~/assets/icons/icon_list_view.svg?raw';
 
