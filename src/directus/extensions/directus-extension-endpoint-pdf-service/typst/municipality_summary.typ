@@ -51,8 +51,11 @@
       #align(
         left,
         [
-          = Anmerkungen & Aktuelles zur Bewertung
-          #lorem(30)
+          #if(municipality.overall_status_comment != none){
+          [
+            = Anmerkungen & Aktuelles zur Bewertung
+            #text(municipality.overall_status_comment)]
+          }
         ]
       )
     
