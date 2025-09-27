@@ -7,14 +7,11 @@
           <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
         </NuxtLink>
       </div>
-
-      <!-- Search Bar in center -->
+   
       <MunicipalitySearchBar/>
 
-      <!-- Right side (Search + Buttons) -->
+      <!-- Right side (Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
-        <!-- Search bar -->
-        
 
         <!-- Log in button -->
         <a href="/backend">
@@ -87,12 +84,11 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
 import { defineProps } from "vue";
-const { $t } = useNuxtApp();
-const props = defineProps(["pages"]);
 
+const { $t } = useNuxtApp();
 const route = useRoute();
+const props = defineProps(["pages"]);
 
 //Separate pages into "main" and "other" based on configured menus
 const mainPages = computed(() =>
@@ -106,6 +102,5 @@ const otherPages = computed(() =>
 const isActive = (slug) => {
   return route.path === slug || route.path === `/${slug}`;
 };
-
 </script>
 <style lang=""></style>

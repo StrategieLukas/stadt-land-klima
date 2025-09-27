@@ -1,0 +1,21 @@
+collection: articles_external_projects
+field: articles_id
+related_collection: articles
+meta:
+  junction_field: external_projects_id
+  many_collection: articles_external_projects
+  many_field: articles_id
+  one_allowed_collections: null
+  one_collection: articles
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: similar_external_projects
+  sort_field: null
+schema:
+  table: articles_external_projects
+  column: articles_id
+  foreign_key_table: articles
+  foreign_key_column: id
+  constraint_name: articles_external_projects_articles_id_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL

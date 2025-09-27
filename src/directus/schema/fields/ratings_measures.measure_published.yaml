@@ -8,13 +8,13 @@ meta:
   display_options: null
   field: measure_published
   group: null
-  hidden: false
+  hidden: true
   interface: boolean
   note: null
   options: null
   readonly: true
   required: true
-  sort: 3
+  sort: 5
   special:
     - cast-boolean
   translations:

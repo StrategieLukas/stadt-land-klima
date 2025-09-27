@@ -135,7 +135,7 @@
             </th>
           </tr>
         </thead>
-        
+
         <!-- Iterate Through Data -->
         <tbody>
           <template v-for="(sector, key) in sortedRatings" :key="index">
@@ -168,15 +168,15 @@
     </div>
   </div>
 </template>
-  
-  
+
+
 <script setup>
   import lodash from "lodash";
   import sanitizeHtml from "sanitize-html";
-  import linkifyStr from "linkify-string";
+  import { saneLinkifyStr } from "../shared/utils.js";
   import sectorImages from "../shared/sectorImages.js";
   import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
-  import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
+  import { ratingColor } from "../shared/ratingColors.js";
 
   const { range } = lodash;
   const { $t, $locale } = useNuxtApp();
@@ -190,7 +190,7 @@
       required: true,
     },
   });
-  
+
 
 
   const scoreTotalRounded = Math.round(Number(props.municipality.score_total) * 10) / 10;
@@ -207,10 +207,10 @@
       day: "numeric",
     })}, ${lastUpdatedAt.toLocaleTimeString($locale)}`;
   };
-  
+
   const municipality = props.municipality;
   const subScores = createSubScoreObject(municipality);
-  
+
   function createSubScoreObject(municipality) {
     const temp = {};
     for (const [key, value] of Object.entries(municipality)) {
@@ -261,4 +261,3 @@ td {
   height: min-content;
 }
 </style>
-  

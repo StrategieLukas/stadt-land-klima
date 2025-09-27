@@ -79,21 +79,17 @@
   <!-- Mobile: Single column layout -->
   <div class="block lg:hidden">
     <!-- Conditional Content -->
-    <div v-if="selected === 'major_city'">
+     <div>
       <section>
-        <the-ranking :municipalities="majorCities"></the-ranking>
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
       </section>
-    </div>
-    <div v-else-if="selected === 'minor_city'">
-      <section>
-        <the-ranking :municipalities="minorCities"></the-ranking>
-      </section>
-    </div>
-    <div v-else>
-      <section>
-        <the-ranking :municipalities="municipalities"></the-ranking>
-      </section>
-    </div>
+     </div>
   </div>
 
   <!-- Desktop: Two column layout -->
@@ -101,30 +97,25 @@
     <!-- Left Column: Municipality Ranking (2/3 width) -->
     <div class="lg:col-span-2">
       <!-- Conditional Content -->
-      <div v-if="selected === 'major_city'">
-        <section>
-          <the-ranking :municipalities="majorCities"></the-ranking>
-        </section>
-      </div>
-      <div v-else-if="selected === 'minor_city'">
-        <section>
-          <the-ranking :municipalities="minorCities"></the-ranking>
-        </section>
-      </div>
-      <div v-else>
-        <section>
-          <the-ranking :municipalities="municipalities"></the-ranking>
-        </section>
+      <div class="w-full max-w-screen-xl">
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
+        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
       </div>
     </div>
-    
+
     <!-- Right Column: Success Projects (1/3 width) -->
     <div class="lg:col-span-1 mb-3" v-if="projects && projects.length > 0">
       <div class="sticky top-8">
         <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
-          <ProjectCard 
-            v-for="project in projects" 
+          <OnboardingBox :name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"/>
+          <ProjectCard
+            v-for="project in projects"
             :key="project.id"
             :slug="project.slug"
             :title="project.title"
@@ -140,14 +131,21 @@
       </div>
     </div>
   </div>
+
+
 </template>
 
-
 <script setup>
-import { ref } from 'vue'
+import majorCitySelected from '~/assets/images/major-city-light.svg'
+import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
+import minorCitySelected from '~/assets/images/minor-city-light.svg'
+import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
+
+import OnboardingBox from '~/components/OnboardingBox.vue'
+import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
-const { $fetchArticlesWithOrganisations, $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $directus, $readItems, $t, $locale } = useNuxtApp();
 
 //MetaTags
 const title = ref($t("municipalities.nav_label"));
@@ -155,26 +153,41 @@ useHead({
   title,
 });
 
-// Fetch all published municipalities from directus
+const route = useRoute();
+const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
+
+// Fetch all relevant municipalities from directus
 const { data: municipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type"],
+      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
       sort: "-score_total",
       limit: -1,
-      filter: {
-        status: {
-          _eq: "published",
-        },
-      },
-    }),
-  );
+      // Fetching even non-published municipalities to show as 'in progress' in map view, but filtered out for list view
+      filter: { percentage_rated: { _gt: 0 } },
+    })
+  )
 });
 
-const { data: projects } = await useAsyncData(
-  "articles-with-organisations",
-  () => $fetchArticlesWithOrganisations()
-);
+const { data: projects } = await useAsyncData("articles", () => {
+  return $directus.request(
+    $readItems("articles", {
+      fields: [
+        "slug",
+        "title",
+        "image",
+        "abstract",
+        "author",
+        "date_created",
+        "municipality_name",
+        "state",
+        { organisation: ["name", "logo", "link"] }
+      ],
+      sort: "-date_created",
+      limit: -1,
+    })
+  );
+});
 
 
 // todo fix "place" for these views
@@ -201,9 +214,5 @@ onMounted(() => {
 // Toggle between cities, towns, or all
 const selected = ref('all')
 
-import majorCitySelected from '~/assets/images/major-city-light.svg'
-import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
-import minorCitySelected from '~/assets/images/minor-city-light.svg'
-import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 </script>
 

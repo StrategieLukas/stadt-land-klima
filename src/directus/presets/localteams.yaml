@@ -1,0 +1,22 @@
+bookmark: null
+user: null
+role: null
+collection: localteams
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - municipality_name
+      - admin_id
+      - internal_comment
+layout_options:
+  tabular:
+    widths:
+      municipality_name: 280
+      admin_id: 350
+      internal_comment: 500
+refresh_interval: null
+filter: null
+icon: null
+color: null

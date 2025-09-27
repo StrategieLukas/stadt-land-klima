@@ -11,10 +11,33 @@ export function buildLocationString(municipality_name, state) {
     return '';
 }
 
-export function toAssetUrl(asset_id) {
-    const config = useRuntimeConfig();
-    return `${config.public.clientDirectusUrl}/assets/${asset_id}`;
-};
+
+export async function toAssetUrl(assetId, opts = {}) {
+  if(assetId == null) return null;
+
+  const config = useRuntimeConfig();
+  const assetUrl = `${config.public.clientDirectusUrl}/assets/${assetId}`
+
+  const meta = await $fetch(`${config.public.clientDirectusUrl}/files/${assetId}?fields=id,type`)
+  const type = meta?.data?.type || ''
+  const isRaster = type.startsWith('image/') && !type.includes('svg')
+
+  if (!isRaster) {
+    // SVG / video / pdf → deliver raw
+    return assetUrl;
+  }
+
+  // Build transformed URL
+  const p = new URLSearchParams()
+  if (opts.width) p.set('width', String(opts.width))
+  if (opts.height) p.set('height', String(opts.height))
+  if (opts.quality) p.set('quality', String(opts.quality))
+  if (opts.fit) p.set('fit', opts.fit)
+
+  // Return assetUrl with additional parameters
+  return p.toString() ? `${assetUrl}?${p.toString()}` : assetUrl
+}
+
 
 /**
  * @param {string} dateString
@@ -28,3 +51,31 @@ export function formatLastUpdated(dateString, locale) {
     day: "numeric",
   })}, ${lastUpdatedAt.toLocaleTimeString(locale)}`;
 };
+
+export function getScoreColor(score) {
+  const numericScore = Number(score);
+  if(numericScore >= 80) {
+    return "ranking-8-10";
+  } else if(numericScore >= 60) {
+    return "ranking-6-8";
+  } else if(numericScore >= 40) {
+    return "ranking-4-6";
+  } else if(numericScore >= 20) {
+    return "ranking-2-4";
+  } else if(numericScore >= 0) {
+    return "ranking-0-2";
+  }
+};
+
+
+import linkifyStr from "linkify-string";
+
+export function saneLinkifyStr(text) {
+  return linkifyStr(text, {
+    validate: {
+      // don't linkify Stadt.Land.Klima substrings
+      // we now require a protocol (http:// or https://) to create a link
+      url: (value) => /^https?:\/\//.test(value),
+    },
+  });
+}

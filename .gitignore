@@ -134,5 +134,5 @@ out
 # IntelliJ
 .idea
 
-package.json
-package-lock.json
+
+**/robots.txt

@@ -1,0 +1,46 @@
+collection: articles
+field: public_impact_effects
+type: json
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: public_impact_effects
+  group: public_impact_block
+  hidden: false
+  interface: select-multiple-checkbox
+  note: null
+  options:
+    choices:
+      - text: $t:articles.public_impact.effect.role_model
+        value: role_model
+      - text: $t:articles.public_impact.effect.increase_acceptance
+        value: increase_acceptance
+  readonly: false
+  required: false
+  sort: 1
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Dieses Projekt ist ein Beispiel für...
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: public_impact_effects
+  table: articles
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

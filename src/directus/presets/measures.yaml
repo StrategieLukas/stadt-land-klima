@@ -1,0 +1,25 @@
+bookmark: null
+user: null
+role: null
+collection: measures
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - measure_id
+      - sector
+      - name
+      - weight
+    sort:
+      - -weight
+    page: 1
+layout_options:
+  tabular:
+    widths:
+      sector: 320
+      name: 500
+refresh_interval: null
+filter: null
+icon: bookmark
+color: null
