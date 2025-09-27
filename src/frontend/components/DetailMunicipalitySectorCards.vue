@@ -114,8 +114,6 @@ const props = defineProps({
   },
 });
 
-console.log(props.sortedRatings)
-
 // Create mapping of sectors to measurement slugs
 const sectorToMeasureSlugs = computed(() => {
   const mapping = {}
