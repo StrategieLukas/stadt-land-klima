@@ -1,4 +1,4 @@
-#import "colors.typ"
+#import "utils.typ" as colors
 #import "progress_bar.typ"
 #import "rating_utils.typ"
 

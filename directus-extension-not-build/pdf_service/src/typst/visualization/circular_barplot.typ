@@ -1,4 +1,4 @@
-#import "colors.typ"
+#import "utils.typ" as colors
 
 /// 100²*pi = a
 /// x²*pi = a*(val/100)

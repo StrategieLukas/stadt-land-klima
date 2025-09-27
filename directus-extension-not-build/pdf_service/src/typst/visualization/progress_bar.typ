@@ -1,4 +1,4 @@
-#import "colors.typ"
+#import "utils.typ" as colors
 
 #let draw_progress_bar(progress, unit) = [
   #let color = colors.select_color_from_range(progress);

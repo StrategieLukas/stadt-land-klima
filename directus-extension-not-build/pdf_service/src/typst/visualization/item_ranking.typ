@@ -1,4 +1,4 @@
-#import "colors.typ"
+#import "utils.typ" as colors
 #import "progress_bar.typ"
 #import "circular_barplot.typ"
 #import "@preview/rustycure:0.1.0": qr-code
