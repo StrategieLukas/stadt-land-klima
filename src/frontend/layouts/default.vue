@@ -65,7 +65,7 @@ const { includes } = lodash;
 const { $directus, $readItems, $appEnv, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
 
 const { data: pages } = await useAsyncData("pages", () => {
-  return $directus.request($readItems("pages", { fields: ["*", "icon_svg"], sort: "sort_order", limit: -1 }));
+  return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
 });
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");
