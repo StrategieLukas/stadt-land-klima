@@ -41,7 +41,7 @@
       </ul>
       <ul class="mb-8 divide-y-2 divide-slate-300">
         <li v-for="item in sectorRatings" :key="item.id">
-          <div class="collapse-plus collapse rounded-none" :name="item.measure.measure_id">
+          <div class="collapse-plus collapse rounded-none" :name="`measure-${item.measure.measure_id}`">
             <input
               type="checkbox"
               :id="`rating-${item.id}-accordion`"
@@ -114,21 +114,21 @@ const props = defineProps({
   },
 });
 
-// Create mapping of sectors to measurement slugs
-const sectorToMeasureSlugs = computed(() => {
+// Create mapping of sectors to measurement IDs
+const sectorToMeasureIDs = computed(() => {
   const mapping = {}
   Object.entries(props.sortedRatings).forEach(([sector, ratings]) => {
-    mapping[sector] = ratings.map(rating => rating.measure.slug)
+    mapping[sector] = ratings.map(rating => rating.measure.measure_id)
   })
   return mapping
 })
 
-// Create mapping of measurement slugs to sectors
-const measureSlugToSector = computed(() => {
+// Create mapping of measurement IDs to sectors
+const measureIDToSector = computed(() => {
   const mapping = {}
-  Object.entries(sectorToMeasureSlugs.value).forEach(([sector, measureSlugs]) => {
-    measureSlugs.forEach(measureSlug => {
-      mapping[measureSlug] = sector
+  Object.entries(sectorToMeasureIDs.value).forEach(([sector, measureIDs]) => {
+    measureIDs.forEach(measureID => {
+      mapping[measureID] = sector
     })
   })
   return mapping
@@ -195,18 +195,18 @@ const handleNavigation = async () => {
     }
   } else if (hash.startsWith('measure-')) {
     // Navigate to measure
-    const measureSlug = hash.replace('measure-', '')
-    const sector = measureSlugToSector.value[measureSlug]
-    
+    const measureID = hash.replace('measure-', '')
+    const sector = measureIDToSector.value[measureID]
+
     if (sector) {
       // Open both sector and measure
       openSectors[sector] = true
-      openItems[measureSlug] = true
-      
+      openItems[measureID] = true
+
       await nextTick()
       // Wait longer for content to load and animations to complete
       setTimeout(() => {
-        const element = findVisibleElementByName(`measure-${measureSlug}`)
+        const element = findVisibleElementByName(`measure-${measureID}`)
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
