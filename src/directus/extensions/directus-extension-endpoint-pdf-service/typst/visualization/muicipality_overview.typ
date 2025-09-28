@@ -25,8 +25,8 @@
     rect_color = white
   }
   #set rect(
-    inset: 0.5*unit,
-    stroke: 0.5pt + rect_color,
+    inset: 1.3*unit,
+    stroke: 1pt + rect_color,
     width: 100%
   )
   
