@@ -22,7 +22,7 @@
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
 
-    <button @click="pdfService(municipality)" class="flex items-start h-3">PDF</button>
+    <button @click="fetchPDF(municipality)" class="flex items-start h-3">PDF</button>
 
     <div v-if="isRanking" class="flex items-start">
       <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
@@ -52,33 +52,35 @@ const colorClass = computed(() => {
   return c;
 });
 
+const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config
 
-const pdfService = async (municipality) => {
+async function fetchPDF(municipality) {
+  console.log("municipality: ", municipality)
+  if (!municipality.slug) return;
+
   try {
-    const { data } = await useFetch("/api/pdf", {
-      method: "POST",
-      body: municipality,
-      responseType: "blob",
+    const baseUrl = config.public.clientDirectusUrl;
+    const token = config.public.directusToken;
+
+    const response = await fetch(`${baseUrl}/pdf-service/municipality/${municipality.slug}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ slug: municipality.slug }),
     });
 
-    // Create a blob from the response data
-    const blob = new Blob([data.value], { type: "application/pdf" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const blob = await response.blob();
     const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
 
-    // Create a link element to trigger the download
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${municipality.name || "municipality"}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-
-    // Clean up
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Error generating PDF:", error);
+  } catch (err) {
+    console.error('Error fetching PDF:', err);
   }
-};
+}
 
 const props = defineProps({
   municipality: {
