@@ -146,6 +146,14 @@ import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const rankingColumn = ref(null)
+const rankingColumnHeight = ref(0)
+
+function updateRankingColumnHeight() {
+  if (rankingColumn.value) {
+    rankingColumnHeight.value = rankingColumn.value.offsetHeight
+  }
+}
 
 //MetaTags
 const title = ref($t("municipalities.nav_label"));
@@ -209,7 +217,11 @@ onMounted(() => {
     lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
     lastUpdatedAt.toLocaleTimeString($locale);
+
+  
 });
+await nextTick()
+updateRankingColumnHeight()
 
 // Toggle between cities, towns, or all
 const selected = ref('all')
