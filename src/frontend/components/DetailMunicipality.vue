@@ -50,7 +50,7 @@
     <!-- Desktop: Two column layout -->
     <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8 w-full">
       <!-- Left Column: Main content (2/3 width) -->
-      <div class="lg:col-span-2">
+      <div ref="rankingDesktop" class="lg:col-span-2">
         <div class="mb-8">
           <item-ranking :municipality="municipality" />
         </div>
@@ -79,7 +79,7 @@
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
-      <div class="lg:col-span-1 pb-4">
+      <div ref="projectsDesktop" class="lg:col-span-1 pb-4" :style="{ maxHeight: rankingDesktopColumnHeight + 'px' }">
         <div class="sticky top-8 space-y-6">
           <!-- Municipality Quick Info -->
           <DetailMunicipalityQuickInfoDesktop :municipality="municipality"/>
@@ -139,10 +139,6 @@ import { ref, onMounted, computed } from 'vue';
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
 import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
-import ProjectCard from "~/components/ProjectCard.vue";
-import ProgressBar from "~/components/ProgressBar.vue";
-import DetailMunicipalitySectorCards from "~/components/DetailMunicipalitySectorCards.vue"
-import DetailMunicipalityQuickInfoDesktop from "~/components/DetailMunicipalityQuickInfoDesktop.vue"
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
@@ -157,6 +153,9 @@ const props = defineProps({
     required: true,
   },
 });
+
+const rankingDesktop = ref(null)
+const rankingDesktopColumnHeight = ref(0)
 
 const municipality = props.municipality;
 const subScores = createSubScoreObject(municipality);
@@ -241,6 +240,16 @@ async function fetchMunicipalityProjects() {
     municipalityProjects.value = [];
   } finally {
     loadingProjects.value = false;
+  }
+
+  await nextTick()
+  updateLeftHeight()
+
+}
+
+function updateLeftHeight() {
+  if (rankingDesktop.value) {
+    rankingDesktopColumnHeight.value = rankingDesktop.value.offsetHeight
   }
 }
 
