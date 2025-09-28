@@ -46,3 +46,12 @@
   set text(a)
   it
 })
+
+
+#let is_major_city(population) = {
+  if (population > 100000){
+    true
+  }else{
+    false
+  }
+}

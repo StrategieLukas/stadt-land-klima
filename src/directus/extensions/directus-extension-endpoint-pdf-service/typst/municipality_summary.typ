@@ -24,10 +24,10 @@
   size: 12pt,
 )
 
-
+#let is_major_city = util.is_major_city(municipality.population)
 #set page(
   paper: "a4",
-  header: header.header,
+  header: header.header(is_major_city: is_major_city),
   header-ascent: 100% - 2em,
   footer: footer.footer,
   footer-descent: 100% - 1.5em,
