@@ -3,25 +3,37 @@
 #let slk_yellow = rgb(255, 212, 0)
 #let slk_light_green = rgb(175, 202, 11)
 #let slk_dark_green = rgb(29, 166, 74)
+#let slk_gray = rgb(155,155,155)
 
-#let select_color_from_range(value) = (
-  (
-    (float(value) >= 0 and float(value) < 20, slk_red),
-    (float(value) >= 20 and float(value) < 40, slk_orange),
-    (float(value) >= 40 and float(value) < 60, slk_yellow),
-    (float(value) >= 60 and float(value) < 80, slk_light_green),
-    (float(value) >= 80 and float(value) <= 100, slk_dark_green),
-  ).find(c => c.at(0)).at(1)
-)
+#let select_color_from_range(value, factor : 1) = {
+  let parsed_value = 0
+  if(value == none){
+    slk_gray
+  }else{
+    parsed_value = float(value) * factor
+    (
+      (parsed_value >= 0 and parsed_value < 20, slk_red),
+      (parsed_value >= 20 and parsed_value < 40, slk_orange),
+      (parsed_value >= 40 and parsed_value < 60, slk_yellow),
+      (parsed_value >= 60 and parsed_value < 80, slk_light_green),
+      (parsed_value >= 80 and parsed_value <= 100, slk_dark_green),
+    ).find(c => c.at(0)).at(1)
+  }
+}
 
-#let select_pin_from_range(value) = (
-  (
-    (float(value) >= 0 and float(value) < 25, "/slk_resources/icon_rating_0.svg"),
-    (float(value) >= 25 and float(value) < 50, "/slk_resources/icon_rating_1.svg"),
-    (float(value) >= 50 and float(value) < 75, "/slk_resources/icon_rating_2.svg"),
-    (float(value) >= 75 and float(value) <= 100, "/slk_resources/icon_rating_3.svg"),
-  ).find(c => c.at(0)).at(1)
-)
+#let select_pin_from_range(value) = {
+  if(value == none){
+    "/slk_resources/icon_rating_na.svg"
+  }else{
+    let parsed_value = float(value) * 100
+    (
+      (parsed_value >= 0 and parsed_value < 25, "/slk_resources/icon_rating_0.svg"),
+      (parsed_value >= 25 and parsed_value < 50, "/slk_resources/icon_rating_1.svg"),
+      (parsed_value >= 50 and parsed_value < 75, "/slk_resources/icon_rating_2.svg"),
+      (parsed_value >= 75 and parsed_value <= 100, "/slk_resources/icon_rating_3.svg"),
+    ).find(c => c.at(0)).at(1)
+  }
+}
 
 
 // adapted from https://forum.typst.app/t/how-to-auto-size-text-and-images/1290/2

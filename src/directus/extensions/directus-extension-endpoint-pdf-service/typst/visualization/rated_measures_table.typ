@@ -94,11 +94,10 @@
     
     ..for (sector, ratings) in rating_measures{
       for (rating, measure) in ratings {
-        let float_rating = float(rating) * 100
-        let table_row_color = util.select_color_from_range(float_rating).transparentize(80%)
+        let table_row_color = util.select_color_from_range(rating, factor : 100).transparentize(80%)
         
         (
-          table_pin(float_rating),
+          table_pin(rating),
           (
             measure.measure_id, 
             measure.name, 
