@@ -1,33 +1,35 @@
 collection: organisations
-field: date_updated
-type: timestamp
+field: instagram
+type: string
 meta:
   collection: organisations
   conditions: null
-  display: datetime
-  display_options:
-    relative: true
-  field: date_updated
-  group: null
-  hidden: true
-  interface: datetime
+  display: null
+  display_options: null
+  field: instagram
+  group: social_media_segment
+  hidden: false
+  interface: input
   note: null
-  options: null
-  readonly: true
+  options:
+    placeholder: https://www.instagram.com/stadt.land.klima
+  readonly: false
   required: false
-  sort: 5
-  special:
-    - date-updated
+  sort: 1
+  special: null
   translations: null
-  validation: null
+  validation:
+    _and:
+      - instagram:
+          _regex: ^(https?:\/\/)?(www\.)?instagram\.com\/.+$
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: date_updated
+  name: instagram
   table: organisations
-  data_type: timestamp with time zone
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

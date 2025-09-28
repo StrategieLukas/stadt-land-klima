@@ -33,7 +33,9 @@ meta:
   sort: 13
   special:
     - cast-json
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Sektoren
   validation: null
   validation_message: null
   width: full

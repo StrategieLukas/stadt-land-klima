@@ -1,35 +1,35 @@
-collection: organisations
-field: short_description
-type: text
+collection: articles
+field: instagram
+type: string
 meta:
-  collection: organisations
+  collection: articles
   conditions: null
   display: null
   display_options: null
-  field: short_description
-  group: null
+  field: instagram
+  group: social_media
   hidden: false
-  interface: input-multiline
+  interface: input
   note: null
   options:
-    softLength: 500
-    trim: true
+    placeholder: https://www.instagram.com/stadt.land.klima
   readonly: false
   required: false
-  sort: 7
+  sort: 1
   special: null
-  translations:
-    - language: de-DE
-      translation: Kurzbeschreibung
-  validation: null
+  translations: null
+  validation:
+    _and:
+      - instagram:
+          _regex: ^(https?:\/\/)?(www\.)?instagram\.com\/.+$
   validation_message: null
   width: full
 schema:
-  name: short_description
-  table: organisations
-  data_type: text
+  name: instagram
+  table: articles
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

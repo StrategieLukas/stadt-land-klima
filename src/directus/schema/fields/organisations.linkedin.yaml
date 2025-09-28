@@ -1,35 +1,35 @@
 collection: organisations
-field: short_description
-type: text
+field: linkedin
+type: string
 meta:
   collection: organisations
   conditions: null
   display: null
   display_options: null
-  field: short_description
-  group: null
+  field: linkedin
+  group: social_media_segment
   hidden: false
-  interface: input-multiline
+  interface: input
   note: null
   options:
-    softLength: 500
-    trim: true
+    placeholder: https://www.linkedin.com/company/stadt-land-klima
   readonly: false
   required: false
-  sort: 7
+  sort: 2
   special: null
-  translations:
-    - language: de-DE
-      translation: Kurzbeschreibung
-  validation: null
+  translations: null
+  validation:
+    _and:
+      - linkedin:
+          _regex: ^(https?:\/\/)?(www\.)?linkedin\.com\/.+$
   validation_message: null
   width: full
 schema:
-  name: short_description
+  name: linkedin
   table: organisations
-  data_type: text
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
