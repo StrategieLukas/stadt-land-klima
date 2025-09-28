@@ -4,38 +4,38 @@
 
   <StaticMeasureDetails :measure="measure_rating.measure" />
 
-  <div v-if="measure_rating.applicable" class="border border-gray-300 rounded-lg p-4 mb-4">
-    <div v-if="measure_rating.current_progress" class="mb-4">
-      <h4 class="mb-2 font-bold text-black">
+  <div v-if="measure_rating.applicable" class="border-gray-300 mb-4">
+    <div v-if="measure_rating.current_progress" class="p-4 border-t-4 mb-4">
+      <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.achievement_heading") }}
-      </h4>
+      </h3>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.current_progress)" />
     </div>
-    <div v-if="measure_rating.source">
-      <h4 class="mb-2 font-bold text-black">
+    <div v-if="measure_rating.source" class="p-4 border-t-4 mb-4">
+      <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.source_heading") }}
-      </h4>
+      </h3>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.source)" />
     </div>
-    <dl v-if="measure_rating.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
+    <dl v-if="measure_rating.date_updated" class="px-4 mt-2 flex flex-row gap-2 text-sm">
       <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
       <dd>{{ formatLastUpdated(measure_rating.date_updated, $locale) }}</dd>
     </dl>
   </div>
 
-  <div v-if="!measure_rating.applicable" class="border border-gray-300 rounded-lg p-4 mb-4">
+  <div v-if="!measure_rating.applicable" class="border-t-4 border-gray-300 p-4 mb-4">
     <div v-if="measure_rating.why_not_applicable">
-      <h4 class="mb-2 font-bold text-black">
+      <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.why_not_applicable_heading") }}
-      </h4>
+      </h3>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.why_not_applicable)" />
     </div>
   </div>
 
-  <div class="border border-gray-300 rounded-lg p-4 mb-4">
+  <div class="border-t-4 border-gray-300 p-4 mb-4">
     <NuxtLink
       :to="`/measures/sectors/${measure_rating.measure.sector}#${measure_rating.measure.measure_id}`"
       class="text-black underline"
@@ -46,7 +46,7 @@
   </div>
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
-  <div v-if="measure_rating.rating < 1" class="mt-4 border border-gray-300 rounded-lg p-4">
+  <div v-if="measure_rating.rating < 1" class="mt-4 border-t-4 border-gray-300 p-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure_rating.better_examples.title") }}:
     </h3>
@@ -64,13 +64,13 @@
           alt="rating icon"
           class="w-4 h-4"
         />
-        <a
+        <NuxtLink
           :href="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.measure_id}`"
           class="text-black underline"
           target="_blank"
         >
           {{ example.municipality.name }} ↗
-    </a>
+        </NuxtLink>
       </li>
     </ul>
 

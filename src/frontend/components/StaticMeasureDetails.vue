@@ -1,5 +1,5 @@
 <template>
-<div class="mt-4 py-4 border border-gray-300 rounded-lg p-4 mb-4">
+  <div class="mt-4 py-4 p-4 mb-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.description_about_heading") }}
     </h3>
@@ -12,7 +12,7 @@
     </div>
   </div>
 
-  <div v-if="measure.description_evaluation_criteria" class="py-4 border border-gray-300 rounded-lg p-4 mb-4">
+  <div v-if="measure.description_evaluation_criteria" class="p-4 border-t-4 border-gray-300p-4 mb-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.evaluation_criteria_heading") }}
     </h3>
@@ -26,7 +26,7 @@
     </div>
   </div>
 
-  <div class="py-4 border border-gray-300 rounded-lg p-4 mb-4">
+  <div class="border-t-4 border-gray-300 p-4 mb-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.feasibility_heading") }}
     </h3>
