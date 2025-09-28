@@ -65,7 +65,7 @@
           class="w-4 h-4"
         />
         <a
-          :href="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.slug}`"
+          :href="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.measure_id}`"
           class="text-black underline"
           target="_blank"
         >
