@@ -95,7 +95,7 @@
   <!-- Desktop: Two column layout -->
   <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8 w-full">
     <!-- Left Column: Municipality Ranking (2/3 width) -->
-    <div class="lg:col-span-2">
+    <div ref="rankingColumn" class="lg:col-span-2">
       <!-- Conditional Content -->
       <div class="w-full max-w-screen-xl">
         <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
@@ -109,11 +109,11 @@
     </div>
 
     <!-- Right Column: Success Projects (1/3 width) -->
-    <div class="lg:col-span-1 mb-3" v-if="projects && projects.length > 0">
-      <div class="sticky top-8">
+    <div class="lg:col-span-1 mb-3 overflow-y-auto" v-if="projects && projects.length > 0"  :style="{ maxHeight: rankingColumnHeight + 'px' }">
+      <div class="sticky">
         <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
-          <OnboardingBox :name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"/>
+          <OnboardingBox name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"/>
           <ProjectCard
             v-for="project in projects"
             :key="project.id"
@@ -146,6 +146,36 @@ import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const rankingColumn = ref(null)
+const rankingColumnHeight = ref(0)
+
+function updateRankingColumnHeight() {
+  console.log("Updated");
+  if (rankingColumn.value) {
+    const h = rankingColumn.value.offsetHeight
+    if (h !== rankingColumnHeight.value) {
+      rankingColumnHeight.value = h
+    }
+  }
+}
+
+onMounted(() => {
+  // Initial measurement after DOM renders
+  nextTick(updateRankingColumnHeight)
+
+  // Re-measure on window resize (only on client)
+  if (process.client) {
+    window.addEventListener('resize', updateRankingColumnHeight)
+  }
+})
+
+// Also re-measure whenever the DOM changes (reactively)
+watchEffect(async () => {
+  // wait for DOM updates after reactive changes
+  await nextTick()
+  updateRankingColumnHeight()
+})
+
 
 //MetaTags
 const title = ref($t("municipalities.nav_label"));
@@ -209,6 +239,8 @@ onMounted(() => {
     lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
     ", " +
     lastUpdatedAt.toLocaleTimeString($locale);
+
+  
 });
 
 // Toggle between cities, towns, or all
