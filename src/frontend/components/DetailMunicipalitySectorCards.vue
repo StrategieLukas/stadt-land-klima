@@ -41,11 +41,11 @@
       </ul>
       <ul class="mb-8 divide-y-2 divide-slate-300">
         <li v-for="item in sectorRatings" :key="item.id">
-          <div class="collapse-plus collapse rounded-none" :name="`measure-${item.measure.slug}`">
+          <div class="collapse-plus collapse rounded-none" :name="item.measure.measure_id">
             <input
               type="checkbox"
               :id="`rating-${item.id}-accordion`"
-              v-model="openItems[item.measure.slug]"
+              v-model="openItems[item.measure.measure_id]"
               autocomplete="off"
             />
 
@@ -78,7 +78,7 @@
               <!-- Mount only when collapse is opened -->
               <KeepAlive>
                 <MeasureDetails
-                  v-if="openItems[item.measure.slug]"
+                  v-if="openItems[item.measure.measure_id]"
                   :measure_rating="item"
                   :municipality="municipality"
                 />
