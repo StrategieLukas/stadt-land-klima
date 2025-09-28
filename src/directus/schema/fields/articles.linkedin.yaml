@@ -21,7 +21,7 @@ meta:
   validation:
     _and:
       - linkedin:
-          _regex: ^https?:\/\/(www\.)?linkedin\.com\/.+$
+          _regex: ^(https?:\/\/)?(www\.)?linkedin\.com\/.+$
   validation_message: null
   width: full
 schema:

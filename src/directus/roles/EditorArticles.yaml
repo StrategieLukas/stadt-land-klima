@@ -213,6 +213,9 @@ permissions:
       - short_description
       - link
       - logo
+      - social_media_segment
+      - linkedin
+      - instagram
   - collection: organisations
     action: delete
     permissions: {}
@@ -235,6 +238,9 @@ permissions:
       - name
       - user_updated
       - user_created
+      - social_media_segment
+      - linkedin
+      - instagram
   - collection: organisations
     action: update
     permissions: null
@@ -243,5 +249,8 @@ permissions:
     fields:
       - name
       - link
-      - logo
       - short_description
+      - logo
+      - social_media_segment
+      - linkedin
+      - instagram

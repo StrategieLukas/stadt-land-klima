@@ -116,3 +116,6 @@ permissions:
       - link
       - short_description
       - logo
+      - instagram
+      - linkedin
+      - social_media_segment

@@ -447,6 +447,9 @@ permissions:
       - link
       - logo
       - id
+      - social_media_segment
+      - linkedin
+      - instagram
   - collection: ratings_measures
     action: read
     permissions:

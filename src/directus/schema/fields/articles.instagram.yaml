@@ -12,7 +12,7 @@ meta:
   interface: input
   note: null
   options:
-    placeholder: https://www.instagram.com/reel/DEmYQV4tsEl
+    placeholder: https://www.instagram.com/stadt.land.klima
   readonly: false
   required: false
   sort: 1
@@ -21,7 +21,7 @@ meta:
   validation:
     _and:
       - instagram:
-          _regex: ^https?:\/\/(www\.)?instagram\.com\/.+$
+          _regex: ^(https?:\/\/)?(www\.)?instagram\.com\/.+$
   validation_message: null
   width: full
 schema:

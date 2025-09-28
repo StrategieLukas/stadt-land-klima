@@ -197,6 +197,9 @@ permissions:
       - short_description
       - logo
       - id
+      - instagram
+      - linkedin
+      - social_media_segment
   - collection: pages
     action: read
     permissions:
