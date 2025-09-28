@@ -9,7 +9,8 @@
   )
 ]
 
-#let draw_rating_bars(measures, height) = [
+#let draw_rating_bars(rated_measures, height) = [
+  #let sorted_measures = rated_measures.sorted(key: it => it.rating)
   #let height = 2*height
   #box(
     width: 100%,
@@ -20,15 +21,15 @@
           width: 50%,
           height: height,
           stack(
-            dir: rtl,
+            dir: ltr,
             spacing: 2.5pt,
-            ..measures.map(measure => measure_block(measure))
+            ..sorted_measures.map(measure => measure_block(measure))
           )
           
         )
       ]
       #place(right+horizon)[
-        *#measures.len() von #measures.len()*
+        *#rated_measures.len() von #rated_measures.len()*
       ]
     ]
   )
