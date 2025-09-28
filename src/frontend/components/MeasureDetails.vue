@@ -1,7 +1,7 @@
 <template>
   <!-- Invisible div just to carry the ref needed for the observer -->
   <div ref="measureDetailsSection"></div>
-  
+
   <StaticMeasureDetails :measure="measure_rating.measure" />
 
   <div v-if="measure_rating.applicable" class="border border-gray-300 rounded-lg p-4 mb-4">
@@ -37,7 +37,7 @@
 
   <div class="border border-gray-300 rounded-lg p-4 mb-4">
     <NuxtLink
-      :to="`/measures/sectors/${measure_rating.measure.sector}#measure-${measure_rating.measure.slug}`"
+      :to="`/measures/sectors/${measure_rating.measure.sector}#${measure_rating.measure.measure_id}`"
       class="text-black underline"
       target="measure"
     >

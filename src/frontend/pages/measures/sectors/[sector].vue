@@ -17,7 +17,7 @@
     </div>
     <ul>
       <li v-for="measure in measures" class="mb-4">
-        <MeasureCard :measure="measure" />
+        <StaticMeasureCard :measure="measure" />
       </li>
     </ul>
   </div>

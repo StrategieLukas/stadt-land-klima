@@ -3,7 +3,7 @@
     <!-- Link to Frontend -->
     <div v-if="measureData.slug && measureData.sector" class="measure-link">
       <a
-        :href="`https://stadt-land-klima.de/measures/sectors/${measureData.sector}#measure-${measureData.slug}`"
+        :href="`https://stadt-land-klima.de/measures/sectors/${measureData.sector}#${measureData.measure_id}`"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -133,7 +133,7 @@ export default {
       this.loading = true; this.error = null;
       try {
         const response = await this.api.get(`/items/measures/${id}`, {
-          params: { fields: [...this.fieldsToDisplay, 'sector', 'slug'].join(',') },
+          params: { fields: [...this.fieldsToDisplay, 'sector', 'slug', 'measure_id'].join(',') },
         });
         this.measureData = response?.data?.data || {};
       } catch (err) {
