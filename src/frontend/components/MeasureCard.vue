@@ -10,7 +10,7 @@
       </div>
 
       <div class="divide-y-2 divide-light-blue md:px-1 lg:px-2">
-        <MeasureDetails :measure="measure" />
+        <StaticMeasureDetails :measure="measure" />
 
         <MeasureDescriptions :measure="measure" />
       </div>
@@ -22,7 +22,7 @@
 </template>
 <script setup>
 import { defineProps } from "vue";
-import MeasureDetails from "./MeasureDetails.vue";
+import StaticMeasureDetails from "./StaticMeasureDetails.vue";
 import MeasureDescriptions from "./MeasureDescriptions.vue";
 const { $t, $locale } = useNuxtApp();
 const props = defineProps({
