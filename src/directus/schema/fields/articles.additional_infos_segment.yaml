@@ -1,25 +1,28 @@
 collection: articles
-field: content-divider
+field: additional_infos_segment
 type: alias
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: content-divider
+  field: additional_infos_segment
   group: null
   hidden: false
-  interface: presentation-divider
+  interface: group-detail
   note: null
   options:
-    title: $t:generic.content
+    start: closed
   readonly: false
   required: false
-  sort: 14
+  sort: 15
   special:
     - alias
+    - group
     - no-data
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Zusätzliche Infos
   validation: null
   validation_message: null
   width: full

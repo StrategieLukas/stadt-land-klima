@@ -49,6 +49,17 @@ permissions:
       - is_profitable
       - public_impact_effects
       - ghg_savings_level
+      - content_segment
+      - social_media
+      - instagram
+      - additional_infos_segment
+      - linkedin
+      - ease_of_implementation_block
+      - economic_efficiency_block
+      - public_impact_block
+      - ghg_savings_potential_block
+      - other_benefits_block
+      - similar_projects_segment
   - collection: articles_articles
     action: read
     permissions: {}

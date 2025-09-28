@@ -45,6 +45,12 @@ permissions:
       - public_impact_block
       - economic_efficiency_block
       - ease_of_implementation_block
+      - content_segment
+      - social_media
+      - instagram
+      - linkedin
+      - additional_infos_segment
+      - similar_projects_segment
   - collection: articles
     action: delete
     permissions:
@@ -103,6 +109,17 @@ permissions:
       - public_impact_effects
       - is_profitable
       - can_do_autonomously
+      - content_segment
+      - social_media
+      - instagram
+      - linkedin
+      - additional_infos_segment
+      - ease_of_implementation_block
+      - economic_efficiency_block
+      - public_impact_block
+      - ghg_savings_potential_block
+      - other_benefits_block
+      - similar_projects_segment
   - collection: articles
     action: update
     permissions:
@@ -148,6 +165,12 @@ permissions:
       - public_impact_block
       - economic_efficiency_block
       - ease_of_implementation_block
+      - content_segment
+      - social_media
+      - instagram
+      - linkedin
+      - additional_infos_segment
+      - similar_projects_segment
   - collection: articles_articles
     action: create
     permissions: {}
@@ -186,14 +209,14 @@ permissions:
     fields:
       - "*"
   - collection: directus_files
-    action: update
+    action: read
     permissions: {}
     validation: {}
     presets: null
     fields:
       - "*"
   - collection: directus_files
-    action: read
+    action: update
     permissions: {}
     validation: {}
     presets: null
