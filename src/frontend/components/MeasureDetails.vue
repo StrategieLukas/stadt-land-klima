@@ -1,59 +1,8 @@
 <template>
-  <div class="mt-4 py-4 border border-gray-300 rounded-lg p-4 mb-4" ref="measureDetailsSection">
-    <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.description_about_heading") }}
-    </h3>
-
-    <div v-if="measure_rating.measure.description_about" class="mb-2 flex flex-row measure_ratings-start gap-4">
-      <figure class="mt-0 flex shrink-0 flex-col">
-        <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-10 opacity-50" />
-      </figure>
-      <div class="has-long-links prose" v-html="sanitizeHtml(measure_rating.measure.description_about)" />
-    </div>
-  </div>
-
-  <div v-if="measure_rating.measure.description_evaluation_criteria" class="py-4 border border-gray-300 rounded-lg p-4 mb-4">
-    <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.evaluation_criteria_heading") }}
-    </h3>
-
-    <div class="mb-2 flex flex-row measure_ratings-start gap-4">
-      <figure class="mt-0 flex shrink-0 flex-col">
-        <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-10 opacity-50" />
-      </figure>
-
-      <div class="has-long-links prose" v-html="measure_rating.measure.description_evaluation_criteria" />
-    </div>
-  </div>
-
-  <div class="py-4 border border-gray-300 rounded-lg p-4 mb-4">
-    <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.feasibility_heading") }}
-    </h3>
-
-    <div class="flex flex-row width-full justify-around">
-      <FeasibilityBarChart
-        key="impact"
-        icon="/assets/icons/icon_impact.svg"
-        :label="$t('measure.impact_label')"
-        :value="Number(measure_rating.measure.impact)"
-      />
-
-      <FeasibilityBarChart
-        key="politics"
-        icon="/assets/icons/icon_politics.svg"
-        :label="$t('measure.feasibility_political_label')"
-        :value="Number(measure_rating.measure.feasibility_political)"
-      />
-
-      <FeasibilityBarChart
-        key="invest"
-        icon="/assets/icons/icon_invest.svg"
-        :label="$t('measure.feasibility_economical_label')"
-        :value="Number(measure_rating.measure.feasibility_economical)"
-      />
-    </div>
-  </div>
+  <!-- Invisible div just to carry the ref needed for the observer -->
+  <div ref="measureDetailsSection"></div>
+  
+  <StaticMeasureDetails :measure="measure_rating.measure" />
 
   <div v-if="measure_rating.applicable" class="border border-gray-300 rounded-lg p-4 mb-4">
     <div v-if="measure_rating.current_progress" class="mb-4">
@@ -132,11 +81,11 @@
 </template>
 <script setup>
   import { defineProps } from "vue";
-  import sanitizeHtml from "sanitize-html";
   import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
   import { calculateAndAddSimilarityScores } from "../shared/compareMunicipalities.js";
   import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
   import { onMounted, onBeforeUnmount, ref } from "vue";
+  import StaticMeasureDetails from '~/components/StaticMeasureDetails.vue'
 
   const { $t, $directus, $readItems, $locale } = useNuxtApp();
   const props = defineProps({
@@ -190,6 +139,7 @@
   const loadingExamples = ref(false)
 
   async function fetchSimilarExamples(measureId, currentRating) {
+    console.log("Fetching similar examples...");
     loadingExamples.value = true;
 
     // Step 1: Check if we are the highest rating and then return immediately
