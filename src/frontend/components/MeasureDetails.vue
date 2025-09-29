@@ -134,7 +134,6 @@
 
 </template>
 <script setup>
-  import { defineProps } from "vue";
   import sanitizeHtml from "sanitize-html";
   import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
   import { calculateAndAddSimilarityScores } from "../shared/compareMunicipalities.js";

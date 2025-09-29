@@ -17,7 +17,6 @@
 </template>
 <script setup>
 import lodash from "lodash";
-import { defineProps } from "vue";
 const { range } = lodash;
 
 const props = defineProps({
