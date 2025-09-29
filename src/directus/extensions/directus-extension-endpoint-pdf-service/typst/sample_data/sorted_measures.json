@@ -14,13 +14,13 @@
       "measure_published": true,
       "measure": {
         "id": "49ad949c-3984-4054-9260-11fc05301088",
-        "name": "k8",
+        "name": "Mitglied beim Bundesverband erneuerbare Energie e.V. (anstatt DIE GAS- UND WASSERSTOFFWIRTSCHAFT e.V.)",
         "sector": "cpma",
-        "slug": "k8",
-        "impact": 3,
+        "slug": "GW_11",
+        "impact": 6,
         "weight": 3,
-        "feasibility_political": "2",
-        "feasibility_economical": "3",
+        "feasibility_political": "6",
+        "feasibility_economical": "6",
         "verification_description": null,
         "notes": null,
         "description": null,
@@ -34,7 +34,7 @@
         "description_legal": null,
         "description_funding": null,
         "description_tutorial": null,
-        "measure_id": "k8"
+        "measure_id": "GW_11"
       }
     },
     {
@@ -130,7 +130,7 @@
         "slug": "k7",
         "impact": 5,
         "weight": 2,
-        "feasibility_political": "5",
+        "feasibility_political": "6",
         "feasibility_economical": "3",
         "verification_description": null,
         "notes": null,

@@ -5,15 +5,17 @@
     let num = int(num_of_stars)
     align(bottom, 
     for (i) in range(0, num) {
-      text([*★*], size: 1.4em)
+      text([*★*], size: 1.3em)
     }
     )
   }
 }
 
 #let table_row_height = 1.3em
+
 #let table_pin(rating) = table.cell(
   fill: white,
+  inset: 0pt,
 )[#align(center+horizon, image(util.select_pin_from_range(rating), height: table_row_height+0.2em))]
 
 
@@ -27,7 +29,7 @@
   )
 
   table(
-    columns: (8fr, 16fr, 122fr, 21fr, 21fr, 21fr),
+    columns: (0.6cm, 1.1cm, 100%-6.4cm, 1.7cm, 1.7cm, 1.7cm),
     stroke: white + 0.2em,
     rows: (2.5em, table_row_height),
     table.cell(colspan: 3)[
@@ -90,7 +92,7 @@
     [#align(center + horizon, [#image("../slk_resources/icon_impact.svg")])], 
     [#align(center + horizon, [#image("../slk_resources/icon_politics.svg")])], 
     [#align(center + horizon, [#image("../slk_resources/icon_invest.svg")])],
-    [], [Nummer], [Maßnahme], [Impact], [Politisch], [Invest],
+    [], [ID], [Maßnahme], [Impact], [Politisch], [Invest],
     
     ..for (sector, ratings) in rating_measures{
       for (rating, measure) in ratings {
@@ -100,7 +102,9 @@
           table_pin(rating),
           (
             measure.measure_id, 
-            measure.name, 
+            measure.name,
+            // thing(measure.name),
+            // thing2(measure.name),
             star_generator(measure.impact), 
             star_generator(measure.feasibility_political), 
             star_generator(measure.feasibility_economical)
