@@ -1,5 +1,5 @@
 <template>
-    <div class="dock dock-xl bg-white/80 backdrop-blur-lg border-top border-gray-200 text-color-black flex justify-around items-center border-t">
+    <div class="dock dock-xl bg-white/80 backdrop-blur-lg border-t border-gray-200 text-color-black flex justify-around items-center">
         <button 
             v-for="page in pages" 
             :key="page.id"
