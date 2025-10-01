@@ -139,10 +139,6 @@ import { ref, onMounted, computed } from 'vue';
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
 import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
-import ProjectCard from "~/components/ProjectCard.vue";
-import ProgressBar from "~/components/ProgressBar.vue";
-import DetailMunicipalitySectorCards from "~/components/DetailMunicipalitySectorCards.vue"
-import DetailMunicipalityQuickInfoDesktop from "~/components/DetailMunicipalityQuickInfoDesktop.vue"
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
