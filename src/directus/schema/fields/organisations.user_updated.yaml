@@ -15,7 +15,7 @@ meta:
     template: "{{avatar}} {{first_name}} {{last_name}}"
   readonly: true
   required: false
-  sort: 5
+  sort: 4
   special:
     - user-updated
   translations: null

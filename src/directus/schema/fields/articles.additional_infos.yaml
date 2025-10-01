@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: additional_infos
-  group: null
+  group: additional_infos_segment
   hidden: false
   interface: group-accordion
   note: null
@@ -15,7 +15,7 @@ meta:
     start: closed
   readonly: false
   required: false
-  sort: 17
+  sort: 1
   special:
     - alias
     - group

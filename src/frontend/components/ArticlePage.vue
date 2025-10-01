@@ -10,6 +10,31 @@
         <h1 class="text-2xl font-bold text-blue-500 mb-1">{{ title }}</h1>
         <h2 class="text-lg text-gray-500 mb-4">{{ subtitle }}</h2>
 
+        <!-- Social Media Icons -->
+        <div class="flex my-2">
+          <!-- <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" /> -->
+                    
+          <a v-if="article_instagram"
+            :href="article_instagram" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="text-blue-500 hover:underline"
+          >
+            <img src="~/assets/icons/icon_instagram.svg" class="w-6 h-6 my-0 mr-2" alt="Instagram" />
+          </a>
+
+          <a v-if="article_linkedin"
+            :href="article_linkedin" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="text-blue-500 hover:underline"
+          >
+            <img src="~/assets/icons/icon_linkedin.svg" class="w-6 h-6 my-0" alt="LinkedIn" />
+          </a>
+          
+          <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
+        </div>
+
         <!-- Location, Author and Date -->
         <p class="text-sm text-gray-600 mb-1">
           {{ location }}
@@ -114,10 +139,10 @@
           <strong>{{ $t("state") }}</strong>
           <span class="text-right">{{ state }}</span>
         </p>
-        <p v-if="date" class="pb-2 border-b border-gray-300 flex justify-between">
+        <!-- <p v-if="date" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>{{ $t("date") }}</strong>
           <span class="text-right">{{ date.toLocaleDateString($locale) }}</span>
-        </p>
+        </p> -->
         <p v-if="organisation" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>{{ $t("organisation") }}</strong>
           <span class="text-right">
@@ -146,28 +171,33 @@
         <!-- Missing categories: Tag, Municipality size, Contact for this project (i.e. from the local group that did the project, not necessarily the author) -->
 
         <!-- Social Media Icons -->
-        <div class="flex space-x-3 mt-4">
-          <!-- <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" /> -->
-          <a 
-            href="https://www.instagram.com/stadt.land.klima/" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            class="text-blue-500 hover:underline"
-          >
-            <img src="~/assets/icons/icon_instagram.svg" class="w-6 h-6" alt="Instagram" />
-          </a>
+        <p v-if="articleHasSocialMedia" class="flex justify-between space-x-3">
+          <strong>{{  $t("generic.social_media") }}</strong>
+          <div class="flex">
+            <!-- <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" /> -->
+                      
+            <a v-if="article_instagram"
+              :href="article_instagram" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="text-blue-500 hover:underline"
+            >
+              <img src="~/assets/icons/icon_instagram.svg" class="w-6 h-6 my-0 mr-2" alt="Instagram" />
+            </a>
 
-          <a 
-            href="https://www.linkedin.com/company/stadt-land-klima" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            class="text-blue-500 hover:underline"
-          >
-            <img src="~/assets/icons/icon_linkedin.svg" class="w-6 h-6" alt="LinkedIn" />
-          </a>
+            <a v-if="article_linkedin"
+              :href="article_linkedin" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="text-blue-500 hover:underline"
+            >
+              <img src="~/assets/icons/icon_linkedin.svg" class="w-6 h-6 my-0" alt="LinkedIn" />
+            </a>
+            
+            <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
+          </div>
           
-          <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
-        </div>
+        </p>
       </div>
       
       <!-- Main Content -->
@@ -221,8 +251,13 @@
       abstract: String,
       article_text: String,
       link: URL,
+      article_instagram: String,
+      article_linkedin: String,
       organisation: Object, // can be null
   });
+
+  const articleHasSocialMedia = props.article_instagram || props.article_linkedin;
+  // const organisationHasSocialMedia = props.organisation && (props.organisation.instagram || props.organisation.linkedin);
 
   const src = ref(null);
 

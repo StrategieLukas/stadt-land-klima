@@ -8,7 +8,7 @@ meta:
   display_options:
     template: "{{external_projects_id.title}}"
   field: similar_external_projects
-  group: null
+  group: similar_projects_segment
   hidden: false
   interface: list-m2m
   note: null
@@ -16,7 +16,7 @@ meta:
     template: "{{external_projects_id.title}}"
   readonly: false
   required: false
-  sort: 20
+  sort: 2
   special:
     - m2m
   translations:

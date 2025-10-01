@@ -1,27 +1,25 @@
-collection: articles
-field: content
+collection: organisations
+field: social_media_segment
 type: alias
 meta:
-  collection: articles
+  collection: organisations
   conditions: null
   display: null
   display_options: null
-  field: content
-  group: content_segment
+  field: social_media_segment
+  group: null
   hidden: false
-  interface: group-accordion
+  interface: group-raw
   note: null
   options: null
   readonly: false
   required: false
-  sort: 1
+  sort: 10
   special:
     - alias
     - group
     - no-data
-  translations:
-    - language: de-DE
-      translation: Inhalt
+  translations: null
   validation: null
   validation_message: null
   width: full
