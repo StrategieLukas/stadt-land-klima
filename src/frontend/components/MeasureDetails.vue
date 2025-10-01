@@ -156,6 +156,11 @@
           measure_id: { _eq: measureId },
           status: { _eq: 'published' },
           rating: { _in: higherRatings },
+          localteam_id: {
+            municipality_id: {
+              status: { _eq: 'published' }
+            }
+          }
         },
         fields: ['rating', { localteam_id: ["municipality_name", { municipality_id: ['id', 'name', 'slug', 'state', 'party_mayor', 'population', 'geolocation']}]}],
         limit: -1,
