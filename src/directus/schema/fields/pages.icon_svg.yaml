@@ -1,31 +1,31 @@
-collection: organisations
-field: date_updated
-type: timestamp
+collection: pages
+field: icon_svg
+type: text
 meta:
-  collection: organisations
+  collection: pages
   conditions: null
-  display: datetime
-  display_options:
-    relative: true
-  field: date_updated
+  display: raw
+  display_options: null
+  field: icon_svg
   group: null
-  hidden: true
-  interface: datetime
+  hidden: false
+  interface: input-code
   note: null
-  options: null
-  readonly: true
+  options:
+    language: xml
+    template: ""
+  readonly: false
   required: false
-  sort: 5
-  special:
-    - date-updated
+  sort: 13
+  special: null
   translations: null
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: date_updated
-  table: organisations
-  data_type: timestamp with time zone
+  name: icon_svg
+  table: pages
+  data_type: text
   default_value: null
   max_length: null
   numeric_precision: null

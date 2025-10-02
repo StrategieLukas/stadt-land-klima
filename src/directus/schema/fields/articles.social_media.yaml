@@ -1,27 +1,28 @@
 collection: articles
-field: content
+field: social_media
 type: alias
 meta:
   collection: articles
   conditions: null
   display: null
   display_options: null
-  field: content
-  group: content_segment
+  field: social_media
+  group: content
   hidden: false
-  interface: group-accordion
+  interface: group-raw
   note: null
-  options: null
+  options:
+    start: closed
   readonly: false
   required: false
-  sort: 1
+  sort: 9
   special:
     - alias
     - group
     - no-data
   translations:
     - language: de-DE
-      translation: Inhalt
+      translation: Social Media des Projekts
   validation: null
   validation_message: null
   width: full

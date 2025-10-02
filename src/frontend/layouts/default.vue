@@ -1,49 +1,58 @@
 <template>
-  <div class="flex flex-col min-h-screen text-neutral font-sans ">
+  <div class="drawer">
+    <!-- Drawer Toggle Checkbox (Hidden) -->
+    <input id="page-drawer" type="checkbox" class="drawer-toggle" />
 
-    <!-- Always render both headers, control visibility with Tailwind -->
-    <div>
-      <!-- Mobile Header -->
-      <div class="block lg:hidden">
-        <div class="drawer">
-          <input id="page-drawer" type="checkbox" class="drawer-toggle" />
-          <div class="drawer-content flex flex-col">
-            <the-drawer-side-toggle />
-            <the-header-mobile />
-          </div>
-          <the-drawer-side
+    <!-- Drawer Content (Main Page Content) -->
+    <div class="drawer-content flex flex-col min-h-screen text-neutral font-sans">
+      <!-- Always render both headers, control visibility with Tailwind -->
+      <div>
+        <!-- Mobile Header -->
+        <div class="block lg:hidden">
+          <the-header-mobile
+            :pages="pages.filter((page) => includes(page.menus, 'main'))"
+          />
+        </div>
+
+        <!-- Desktop Header -->
+        <div class="hidden lg:block">
+          <the-header-desktop
             :pages="pages.filter((page) => includes(page.menus, 'main'))"
           />
         </div>
       </div>
 
-      <!-- Desktop Header -->
-      <div class="hidden lg:block">
-        <the-header-desktop :pages="pages" />
+      <!-- Main Content (always rendered) -->
+      <main class="flex grow flex-col px-2 py-4 bg-mild-white">
+        <div class="mx-auto w-full max-w-screen-xl flex flex-col">
+          <slot />
+        </div>
+      </main>
+
+      <!-- Footer (Mobile version) -->
+      <div class="block lg:hidden bg-mild-white">
+        <the-footer-mobile
+          :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+        />
+      </div>
+
+      <!-- Footer (Desktop version) -->
+      <div class="hidden lg:block bg-mild-white">
+        <the-footer-desktop
+          :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+        />
       </div>
     </div>
 
-    <!-- Main Content (always rendered) -->
-    <main class="flex grow flex-col px-2 py-4 bg-mild-white">
-      <div class="mx-auto w-full max-w-screen-xl flex flex-col">
-        <slot />
-      </div>
-    </main>
+    <!-- Drawer Side (Menu) -->
+    <the-drawer-side
+      :pages="pages.filter((page) => includes(page.menus, 'main'))"
+    />
 
-    <!-- Footer (Mobile version) -->
-     <div class="block lg:hidden bg-mild-white">
-        <the-footer-mobile
-        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-      />
-     </div>
-
-     <!-- Footer (Desktop version) -->
-     <div class="hidden lg:block bg-mild-white">
-      <the-footer-desktop
-        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-      />
-     </div>
-
+    <!-- Dock (Mobile version - always visible, sticky) -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 block lg:hidden">
+      <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
+    </div>
   </div>
 </template>
 

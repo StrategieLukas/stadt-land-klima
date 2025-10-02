@@ -8,7 +8,7 @@ meta:
   display_options:
     template: "{{related_articles_id.title}}"
   field: similar_articles
-  group: null
+  group: similar_projects_segment
   hidden: false
   interface: list-m2m
   note: null
@@ -17,7 +17,7 @@ meta:
     template: "{{related_articles_id.title}}"
   readonly: false
   required: false
-  sort: 18
+  sort: 1
   special:
     - m2m
   translations:
