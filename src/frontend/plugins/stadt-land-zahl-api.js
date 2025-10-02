@@ -116,8 +116,9 @@ export default defineNuxtPlugin(() => {
                     }
                   }
                   publicTransportScore {
-                    stdDevTravelTimeMinutes
                     meanTravelTimeMinutes
+                    stdDevTravelTimeMinutes
+                    simulationCount
                   }
                 }
               }

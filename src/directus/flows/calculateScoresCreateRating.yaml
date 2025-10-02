@@ -20,12 +20,6 @@ operations:
     options:
       keys: "{{$last.keys}}"
     resolve_key: update_ranks_w2afr
-  - name: updatesRanks
-    key: update_ranks_w2afr
-    type: updateRanks
-    position_x: 21
-    position_y: 22
-    options: {}
   - name: Transform Payload
     key: transform_k2nt3
     type: transform
@@ -36,4 +30,10 @@ operations:
         keys:
           - "{{ $trigger.key }}"
     resolve_key: operation_calculate_scores_k3swm
+  - name: updatesRanks
+    key: update_ranks_w2afr
+    type: updateRanks
+    position_x: 21
+    position_y: 22
+    options: {}
 operation_key: transform_k2nt3

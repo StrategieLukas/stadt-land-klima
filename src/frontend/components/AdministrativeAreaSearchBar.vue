@@ -11,7 +11,7 @@
           name="q"
           type="text"
           autocomplete="off"
-          :placeholder="$t('municipalities_search.placeholder')"
+          :placeholder="$t('administrative_areas.search.placeholder')"
           @input="onInput"
           @focus="searchFocused = true"
           @keydown.down.prevent="moveFocus(1)"
@@ -22,7 +22,7 @@
 
       <div
         v-if="visibleSuggestions.length && searchFocused"
-        class="absolute left-0 right-0 top-24 w-full z-50"
+        class="absolute left-0 right-0 top-24 w-full z-[9999]"
         ref="dropdown"
       >
         <div class="bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto">

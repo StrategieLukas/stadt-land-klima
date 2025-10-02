@@ -1,10 +1,10 @@
 <template>
   <div 
-    class="flex items-center justify-between p-4 bg-base-100 shadow-md mt-2 mb-2 cursor-pointer"
+    class="flex flex-col gap-6 lg:flex-row items-center justify-between p-4 bg-base-100 shadow-md mt-2 mb-2 cursor-pointer"
     @click="toggle"
   >
     <!-- Title + Unit -->
-    <div class="w-40">
+    <div class="text-center lg:text-left w-40">
       <div class="font-medium text-base-content">
         {{ title }}
       </div>
@@ -12,7 +12,7 @@
     </div>
 
     <!-- Progress bar or other content slot -->
-    <div class="flex-1 flex justify-center">
+    <div class="flex-1 flex w-full justify-center">
       <slot name="content" :expanded="expanded" :toggle="toggle" />
     </div>
 
