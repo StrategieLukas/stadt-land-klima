@@ -85,7 +85,7 @@
         unit: 0.08*unit,
         area_scale: true,
         auxiliaryCircles: false,
-        background_image: image("/slk_resources/some3.svg", width: 100%),
+        background_image: image("/slk_resources/polar-chart-ring.svg", width: 100%),
       )
     )
 
