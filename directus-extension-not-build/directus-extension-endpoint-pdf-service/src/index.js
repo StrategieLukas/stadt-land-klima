@@ -1,6 +1,6 @@
 import path from "path";
 import { execFile } from "child_process";
-import { writeFileSync } from 'fs';
+import { writeFileSync, unlinkSync } from 'fs';
 
 function sortMeasuresBySector(ratingsMeasuresArr, measuresArr) {
   if (!Array.isArray(ratingsMeasuresArr) || !Array.isArray(measuresArr)) {
@@ -75,19 +75,36 @@ export default {
         
         
         const typstDir = path.join(process.cwd(), "/extensions/directus-extension-endpoint-pdf-service/typst");
-        const typFilePath = path.join(typstDir, "municipality_summary.typ");
+        const typstFilePath = path.join(typstDir, "municipality_summary.typ");
         // writeFileSync(`${typstDir}/sorted_measures.json`, JSON.stringify(sorted_measures, null, 2));
 
+        // Create temporary files for municipality and measures
+        const timestamp = Date.now();
+        const municipalityFile = `municipality_${timestamp}.json`;
+        const measuresFile = `measures_${timestamp}.json`;
+        const municipalityFilePath = path.join(typstDir, municipalityFile);
+        const measuresFilePath = path.join(typstDir, measuresFile);
+
+        writeFileSync(municipalityFilePath, JSON.stringify(municipality));
+        writeFileSync(measuresFilePath, JSON.stringify(sorted_measures));
         const args = [
           "compile",
-          "--input", `municipality=${JSON.stringify(municipality)}`,
-          "--input", `measures=${JSON.stringify(sorted_measures)}`,
+          "--input", `municipality=${municipalityFile}`,
+          "--input", `measures=${measuresFile}`,
           "--font-path", `${typstDir}/fonts`,
-          typFilePath,
+          typstFilePath,
           "-"
         ];
 
         execFile("typst", args, { maxBuffer: 1024 * 1024 * 50, encoding: "buffer" }, (err, stdout, stderr) => {
+          // Cleanup temporary files after execution
+          try {
+            unlinkSync(municipalityFilePath);
+            unlinkSync(measuresFilePath);
+          } catch (cleanupErr) {
+            console.error("Error cleaning up temporary files:", cleanupErr);
+          }
+
           if (err) {
             console.error("Typst error:", err);
             return res.status(500).send("PDF generation failed");

@@ -7,8 +7,8 @@
 #import "visualization/rated_measures_table.typ"
 
 
-#let municipality = json(bytes(sys.inputs.municipality))
-#let rating_measures = json(bytes(sys.inputs.measures))
+#let municipality = json(sys.inputs.municipality)
+#let rating_measures = json(sys.inputs.measures)
 
 // #let municipality = json("sample_data/municipality.json")
 // #let rating_measures = json("sample_data/sorted_measures.json")
