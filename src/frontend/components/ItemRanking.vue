@@ -22,11 +22,12 @@
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
 
-    <button @click="fetchPDF(municipality)" class="flex items-start h-3">PDF</button>
-
+    
     <div v-if="isRanking" class="flex items-start">
       <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
     </div>
+    <button v-else @click="fetchPDF(municipality)" class="flex items-start h-3">PDF</button>
+    
   </div>
 </template>
 <script setup>
