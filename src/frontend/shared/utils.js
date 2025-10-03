@@ -55,15 +55,15 @@ export function formatLastUpdated(dateString, locale) {
 export function getScoreColor(score) {
   const numericScore = Number(score);
   if(numericScore >= 80) {
-    return "ranking-8-10";
+    return "rating-4";
   } else if(numericScore >= 60) {
-    return "ranking-6-8";
+    return "rating-3";
   } else if(numericScore >= 40) {
-    return "ranking-4-6";
+    return "rating-2";
   } else if(numericScore >= 20) {
-    return "ranking-2-4";
+    return "rating-1";
   } else if(numericScore >= 0) {
-    return "ranking-0-2";
+    return "rating-0";
   }
 };
 
