@@ -78,7 +78,7 @@
                     <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-5 w-5 opacity-60" />
                     <span class="text-sm font-medium text-gray-700">{{ $t("municipality.overall_score") }}</span>
                 </div>
-                <span class="text-sm font-bold" :class="`text-${getScoreColor(municipality.score_total)}`">
+                <span class="text-sm font-bold" :class="`text-${getScorePercentageColor(municipality.score_total)}`">
                     {{ Math.round(Number(municipality.score_total) * 10) / 10 }}%
                 </span>
                 </div>
@@ -91,7 +91,7 @@
 import majorCity from '~/assets/images/major-city-dark.svg?raw';
 import minorCity from '~/assets/images/minor-city-dark.svg?raw';
 import sanitizeHtml from "sanitize-html";
-import { getScoreColor, saneLinkifyStr } from "../shared/utils.js"
+import { getScorePercentageColor, saneLinkifyStr } from "../shared/utils.js"
 import { overwriteSvgStyles } from "../shared/svg-logic.js"
 const { $t } = useNuxtApp();
 
