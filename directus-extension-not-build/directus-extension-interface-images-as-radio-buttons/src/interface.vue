@@ -27,7 +27,7 @@
     >
       <span class="label type-text">
         <span
-          v--if="item.svg_icon"
+          v-if="item.svg_icon"
           class="v-icon"
           v-html="item.svg_icon"
         ></span>
@@ -227,7 +227,7 @@ export default {
     &.block {
       border-color: var(--theme--primary);
       .label {
-        color: var(--theme--primary);
+        color: black;
       }
       &::before {
         background-color: var(--theme--primary);
@@ -238,9 +238,9 @@ export default {
 }
 .v-icon-radio.checked.rating-0  { background-color: #fad3d0; }
 .v-icon-radio.checked.rating-1  { background-color: #fbdeb2; }
-.v-icon-radio.checked.rating-2  { background-color: #fffce3; }
-.v-icon-radio.checked.rating-3  { background-color: #f6f9e3; }
-.v-icon-radio.checked.rating-4  { background-color: #ebf7ef; }
-.v-icon-radio.checked.rating-na { background-color: #8C7873; }
+.v-icon-radio.checked.rating-2  { background-color: #fff4cd; }
+.v-icon-radio.checked.rating-3  { background-color: #e7efb5; }
+.v-icon-radio.checked.rating-4  { background-color: #d2eddb; }
+.v-icon-radio.checked.rating-na { background-color: #d0d0d0; }
 
 </style>
