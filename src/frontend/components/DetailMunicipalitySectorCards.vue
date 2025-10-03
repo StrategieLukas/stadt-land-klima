@@ -52,7 +52,7 @@
             <!-- Header -->
             <div
               :class="[
-                `${ratingColor[ratingIndex(item.rating)]}-light`,
+                `bg-${getRatingDecimalColor(item.rating)}-light`,
                 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4'
               ]"
             >
@@ -71,7 +71,7 @@
             <!-- Content (lazy loaded) -->
             <div
               :class="[
-                  `${ratingColor[ratingIndex(item.rating)]}-very-light`,
+                  `bg-${getRatingDecimalColor(item.rating)}-very-light`,
                   'collapse-content md:px-12 lg:px-12'
                 ]"
             >
@@ -94,7 +94,7 @@
 <script setup>
 import sectorImages from "../shared/sectorImages.js";
 import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
-import { ratingColor } from "../shared/ratingColors.js";
+import { getRatingDecimalColor } from "../shared/utils.js";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
 import { reactive, computed, onMounted, nextTick, watch } from 'vue'

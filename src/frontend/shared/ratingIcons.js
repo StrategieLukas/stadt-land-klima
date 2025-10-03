@@ -8,6 +8,7 @@ export default {
 };
 
 export function ratingIndex(value) {
+  // Yes we actually use "null" as an index here
   if (value === null) return null;
   const tempVal = Number(value);
   const isClose = (a, b) => Math.abs(a - b) < 0.001;
