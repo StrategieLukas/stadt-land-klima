@@ -51,6 +51,12 @@ module.exports = {
         "mid-gray": "#707070",
         black: "#000000",
         "mild-white": "#fbfbfb",
+        "stats-dark": "#006e94",
+        "stats-light": "#d6f5ff",
+        "projects-dark": "#16bae7",
+        "projects-light": "#e8f7fd",
+        "ranking-dark": "#afca0b",
+        "ranking-light": "#f9fde1"
       },
       boxShadow: {
         list: "0 3pt 6pt #00000029",

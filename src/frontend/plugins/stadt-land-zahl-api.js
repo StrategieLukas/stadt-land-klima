@@ -21,12 +21,12 @@ export default defineNuxtPlugin(() => {
     connectToDevTools: true,
   })
 
-  const searchThroughAdministrativeAreasByName = async (name_slice) => {
+  const searchThroughAdministrativeAreasByName = async (name_slice, options) => {
     try {
       const result = await apolloClient.query({
         query: gql`
-          query allAdministrativeAreas($name_Icontains: String!) {
-            allAdministrativeAreas(name_Icontains: $name_Icontains) {
+          query allAdministrativeAreas($name_Icontains: String!, $isReasonableForMunicipalRating: Boolean) {
+            allAdministrativeAreas(name_Icontains: $name_Icontains, isReasonableForMunicipalRating: $isReasonableForMunicipalRating) {
               edges {
                 node {
                   prefix
@@ -37,12 +37,13 @@ export default defineNuxtPlugin(() => {
                     scoreTotal
                     percentageRated
                   }
+                  isReasonableForMunicipalRating
                 }
               }
             }
           }
         `,
-        variables: { name_Icontains: name_slice }
+        variables: { name_Icontains: name_slice, isReasonableForMunicipalRating: options.isReasonableForMunicipalRating }
       })
 
       return result.data
@@ -65,6 +66,7 @@ export default defineNuxtPlugin(() => {
                   ars
                   geoCenter
                   geoArea
+                  isReasonableForMunicipalRating
                   stadtlandklimaData {
                     slug
                     scoreTotal
@@ -73,8 +75,11 @@ export default defineNuxtPlugin(() => {
                     population
                     license {
                       name
+                      text
+                      url
                     }
                     dataSourceDownload {
+                      effectiveDt
                       attribution
                       attributionUrl
                     }
@@ -85,8 +90,11 @@ export default defineNuxtPlugin(() => {
                     powerUnit
                     license {
                       name
+                      text
+                      url
                     }
                     dataSourceDownload {
+                      effectiveDt
                       attribution
                       attributionUrl
                     }
@@ -97,8 +105,11 @@ export default defineNuxtPlugin(() => {
                     powerUnit
                     license {
                       name
+                      text
+                      url
                     }
                     dataSourceDownload {
+                      effectiveDt
                       attribution
                       attributionUrl
                     }
@@ -109,16 +120,31 @@ export default defineNuxtPlugin(() => {
                     powerUnit
                     license {
                       name
+                      text
+                      url
                     }
                     dataSourceDownload {
+                      effectiveDt
                       attribution
                       attributionUrl
                     }
                   }
-                  publicTransportScore {
+                  publicTransportScoreData {
                     meanTravelTimeMinutes
                     stdDevTravelTimeMinutes
                     simulationCount
+                    pipelineRun {
+                      downloads {
+                        effectiveDt
+                        license {
+                          name
+                          text
+                          url
+                        }
+                        attribution
+                        attributionUrl
+                      }
+                    }
                   }
                 }
               }

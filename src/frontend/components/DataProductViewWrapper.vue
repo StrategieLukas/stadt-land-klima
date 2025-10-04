@@ -39,27 +39,66 @@
       <p>{{ calculation }}</p>
     </div>
     
-    <div v-if="dataSource">
-      <p class="font-bold">{{ $t('stats.labels.data_source') }}</p>
-      <div v-if="dataSource">
-        <p v-if="dataSource.attribution">{{ dataSource.attribution }}</p>
-        <p v-if="dataSource.attributionUrl">
-          <a :href="dataSource.attributionUrl" target="_blank" rel="noopener noreferrer" class="underline text-primary hover:text-primary/70">
-            {{ dataSource.attributionUrl }}
-          </a>
-        </p>
-      </div>
-    </div>
-    
-    <div v-if="dataLicense">
-      <p class="font-bold">{{ $t('stats.labels.data_license') }}</p>
-      <div>
-        <p v-if="dataLicense.name">{{ dataLicense.name }}</p>
-        <p v-if="dataLicense.url">
-          <a :href="dataLicense.url" target="_blank" rel="noopener noreferrer" class="underline text-primary hover:text-primary/70">
-            {{ dataLicense.url }}
-          </a>
-        </p>
+    <div v-if="dataSources.length">
+      <p class="font-bold">{{ dataSources.length === 1 ? $t('stats.labels.data_source.singular') : $t('stats.labels.data_source.plural') }}</p>
+      <div class="grid gap-3 mt-2">
+        <div v-for="dataSource in dataSources" :key="dataSource.id" class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+          <!-- Date Badge -->
+          <div v-if="dataSource.effectiveDt" class="flex justify-between items-start mb-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {{ new Date(dataSource.effectiveDt).toLocaleDateString() }}
+            </span>
+          </div>
+          
+          <!-- License Information -->
+          <div v-if="dataSource.license" class="mb-3">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">License</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <a v-if="dataSource.license.url" 
+                 :href="dataSource.license.url" 
+                 target="_blank" 
+                 rel="noopener noreferrer" 
+                 class="inline-flex items-center py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors">
+                {{ dataSource.license.name }}
+                <svg class="ml-1 w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+              </a>
+              <span v-else class="inline-flex items-center py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                {{ dataSource.license.name }}
+              </span>
+            </div>
+            <p v-if="dataSource.license.text" class="text-sm text-gray-600 mt-2">
+              {{ dataSource.license.text }}
+            </p>
+          </div>
+          
+          <!-- Attribution -->
+          <div v-if="dataSource.attribution" class="mb-3">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Attribution</span>
+            </div>
+            <p class="text-sm text-gray-700">{{ dataSource.attribution }}</p>
+          </div>
+          
+          <!-- Attribution URL -->
+          <div v-if="dataSource.attributionUrl" class="mb-2">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Source</span>
+            </div>
+            <a :href="dataSource.attributionUrl" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="inline-flex items-center text-sm text-primary hover:text-primary/70 underline break-all">
+              {{ dataSource.attributionUrl }}
+              <svg class="ml-1 w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -101,14 +140,9 @@ const props = defineProps({
     type: String,
     default: null
   },
-  dataSource: {
-    type: Object,
-    default: null
-  },
-  // Legacy support for string dataSource
-  legacyDataSource: {
-    type: String,
-    default: null
+  dataSources: {
+    type: Array,
+    default: () => []
   },
   dataLicense: {
     type: Object,
