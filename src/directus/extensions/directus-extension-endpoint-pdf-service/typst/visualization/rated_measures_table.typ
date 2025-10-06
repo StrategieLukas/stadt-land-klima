@@ -95,16 +95,16 @@
     [], [ID], [Maßnahme], [Impact], [Politisch], [Invest],
     
     ..for (sector, ratings) in rating_measures{
-      for (rating, measure) in ratings {
-        let table_row_color = util.select_color_from_range(rating, factor : 100).transparentize(80%)
+      for (rating, measure, applicable) in ratings {
+        let corrected_rating = if(applicable){ rating }else{ none }
+
+        let table_row_color = util.select_color_from_range(corrected_rating, factor : 100).transparentize(80%)
         
         (
-          table_pin(rating),
+          table_pin(corrected_rating),
           (
             measure.measure_id, 
             measure.name,
-            // thing(measure.name),
-            // thing2(measure.name),
             star_generator(measure.impact), 
             star_generator(measure.feasibility_political), 
             star_generator(measure.feasibility_economical)

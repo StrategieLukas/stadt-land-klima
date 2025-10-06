@@ -1,11 +1,16 @@
 #import "utils.typ" as colors
 
 #let measure_block(measure) = [
+  #let color = if(measure.applicable){ 
+    colors.select_color_from_range(measure.rating, factor: 100)
+  }else{
+    colors.select_color_from_range(none)
+  }
   #rect(
-    fill: colors.select_color_from_range(measure.rating, factor: 100),
+    fill: color,
     height: 100%,
     width: 0.35em,
-    stroke: colors.select_color_from_range(measure.rating, factor: 100)
+    stroke: color
   )
 ]
 
@@ -14,7 +19,6 @@
   #let unapplicable_measures = rated_measures.filter(it => not it.applicable)
   #let height = 2*height
 
-  #let total_num_of_measures = rated_measures.len() + unapplicable_measures.len()
   #box(
     width: 100%,
     height: height,
@@ -33,7 +37,7 @@
         )
       ]
       #place(right+horizon)[
-        *#rated_measures.len() von #total_num_of_measures*
+        *#sorted_measures.len() von #rated_measures.len()*
       ]
     ]
   )
