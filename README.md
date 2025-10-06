@@ -127,6 +127,7 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 
 # Deployment Notes
 
+MEASURES NEED TO BE 0-padded BEFORE VERSIONING! i.e. EN_3 -> EN_03
 - robots.txt must be added manually for each environment to in src/frontend/public/robots.txt
 - Must call ./import-all.sh *ON THE HOST MACHINE IN /bin* for directus changes to apply. Must do this TWICE for permissions to work as well.
 Do not just use the ./cli/import-all.sh from inside the directus container, as the version in the /bin folder also cleans up permissions
