@@ -7,7 +7,7 @@
         <input
           id="admin-search-input"
           v-model="q"
-          class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96"
+          class="input input-bordered w-64 max-w-full bg-white pr-12 sm:w-96 border-stats-dark focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
           name="q"
           type="text"
           autocomplete="off"
@@ -88,7 +88,8 @@
             type="radio"
             value="reasonable"
             v-model="filterType"
-            class="radio radio-primary radio-sm"
+            class="radio radio-sm"
+            style="--chkbg: #006e94; --chkfg: white;"
             @change="handleFilterChange"
           />
           <span class="text-sm">{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</span>
@@ -99,7 +100,8 @@
             type="radio"
             value="all"
             v-model="filterType"
-            class="radio radio-primary radio-sm"
+            class="radio radio-sm"
+            style="--chkbg: #006e94; --chkfg: white;"
             @change="handleFilterChange"
           />
           <span class="text-sm">{{ $t('all_administrative_areas') }}</span>

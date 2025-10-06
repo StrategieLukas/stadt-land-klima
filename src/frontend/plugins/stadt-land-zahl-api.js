@@ -26,12 +26,13 @@ export default defineNuxtPlugin(() => {
       const result = await apolloClient.query({
         query: gql`
           query allAdministrativeAreas($name_Icontains: String!, $isReasonableForMunicipalRating: Boolean) {
-            allAdministrativeAreas(name_Icontains: $name_Icontains, isReasonableForMunicipalRating: $isReasonableForMunicipalRating) {
+            allAdministrativeAreas(orderBy: "-population", name_Icontains: $name_Icontains, isReasonableForMunicipalRating: $isReasonableForMunicipalRating) {
               edges {
                 node {
                   prefix
                   name
                   ars
+                  population
                   stadtlandklimaData {
                     slug
                     scoreTotal
@@ -66,10 +67,22 @@ export default defineNuxtPlugin(() => {
                   ars
                   geoCenter
                   geoArea
+                  level
                   isReasonableForMunicipalRating
+                  containedBy {
+                    edges {
+                      node {
+                        name
+                        level
+                        prefix
+                        ars
+                      }
+                    }
+                  }
                   stadtlandklimaData {
                     slug
                     scoreTotal
+                    percentageRated
                   }
                   populationData {
                     population
@@ -154,17 +167,67 @@ export default defineNuxtPlugin(() => {
         variables: { ars }
       })
       
-      return result.data.allAdministrativeAreas.edges[0]?.node || null
+      // Get the node and create a mutable copy
+      const node = result.data.allAdministrativeAreas.edges[0]?.node
+      if (!node) return null
+      
+      // Create a deep copy of the node to make it mutable
+      const mutableNode = JSON.parse(JSON.stringify(node))
+      
+      // Sort contained by areas by level ascending on the mutable copy
+      if (mutableNode.containedBy?.edges) {
+        mutableNode.containedBy.edges.sort((a, b) => a.node.level - b.node.level)
+      }
+      
+      return mutableNode
     } catch (error) {
       console.error(`fetchStatsByARS failed for ars "${ars}":`, error)
       return null
     }
   };
 
+  const getNearbyAdministrativeAreas = async (latitude, longitude, radius_km, level_In) => {
+    try {
+      const result = await apolloClient.query({
+        query: gql`
+          query allAdministrativeAreas($geoCenterDistance: String!, $level_In: [Int!]) {
+            allAdministrativeAreas(geoCenterDistance: $geoCenterDistance, isReasonableForMunicipalRating: true, orderBy: "-population", level_In: $level_In) {
+              edges {
+                node {
+                  prefix
+                  name
+                  ars
+                  population
+                  geoCenter
+                  geoArea
+                  level
+                  stadtlandklimaData {
+                    slug
+                    scoreTotal
+                    percentageRated
+                  }
+                  isReasonableForMunicipalRating
+                }
+              }
+            }
+          }
+        `,
+        variables: { level_In: level_In, geoCenterDistance: JSON.stringify({ "lat": latitude, "lon": longitude, "distance": radius_km }) }
+      })
+      console.log('getNearbyAdministrativeAreas result:', result)
+      return result.data
+    } catch (error) {
+      console.error(`getNearbyAdministrativeAreas failed for lat "${latitude}", lon "${longitude}", radius_km "${radius_km}":`, error)
+      return null
+    }
+  };
+
+  // Expose the API methods via the plugin
+
   const stadtlandzahlAPI = {
     searchThroughAdministrativeAreasByName,
     fetchStatsByARS,
-    apolloClient
+    getNearbyAdministrativeAreas
   };
 
   return {

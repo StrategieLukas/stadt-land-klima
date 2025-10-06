@@ -5,119 +5,107 @@
       base-path="/stats" 
     />
 
-    <div class="bg-stats-light px-4 mt-2 pt-8 pb-8 shadow-lg">
-      <p class="mb-0 uppercase font-bold">{{ stats?.prefix || $t('generic.loading') }}</p>
-      <h1 class="text-2xl font-bold">{{ stats?.name || $t('generic.loading') }}</h1>
-      <h3 v-if="stats">{{ stats.state }}</h3>
-      
-      <!-- ARS and Rating Info -->
-      <div v-if="stats" class="mt-2 mb-4 space-y-1">
-        <div class="text-sm text-gray-600">
-          <span class="font-medium">ARS:</span> {{ stats.ars }}
-        </div>
-        <div class="text-sm">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                :class="stats.isReasonableForMunicipalRating ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
-            {{ stats.isReasonableForMunicipalRating ? $t('administrative_areas.reasonable_for_rating') : $t('administrative_areas.not_reasonable_for_rating') }}
-          </span>
-        </div>
+    <!-- Main Info Container -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6">
+      <!-- Breadcrumbs section from contaned by -->
+      <div class="breadcrumbs mx-full bg-gray-50 px-6 py-3 text-sm text-gray-600">
+        <ul>
+          <li v-for="containedArea in stats?.containedBy?.edges" :key="containedArea.node.ars">
+            <NuxtLink :to="`/stats/${containedArea.node.ars}`" class="hover:underline">
+              {{ containedArea.node.prefix }} {{ containedArea.node.name }}
+            </NuxtLink>
+          </li>
+        </ul>
       </div>
+      
 
-      <!-- Rating Info and Links Section -->
-      <div v-if="stats" class="mt-4 mb-4">
-        <!-- Case 1: Reasonable for rating AND has rating -->
-        <div v-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.slug">
-          <div class="flex flex-wrap gap-2 mb-3">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              {{ Math.round(stats.stadtlandklimaData.scoreTotal * 10) / 10 }}% {{ $t('administrative_areas.overall_score') }}
-            </span>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              {{ stats.stadtlandklimaData.percentageRated }}% {{ $t('administrative_areas.rated') }}
-            </span>
-          </div>
-          <NuxtLink 
-            :to="`/municipalities/${stats.stadtlandklimaData.slug}`"
-            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            {{ $t('stats.view_municipality_ranking') }}
-          </NuxtLink>
+      <!-- Header Section -->
+      <div class="flex flex-row w-full justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-8">
+        <!-- Left Column: Location Info -->
+        <div>
+
+          <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+            {{ stats?.prefix || $t('generic.loading') }}
+          </p>
+
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            {{ stats?.name || $t('generic.loading') }}
+          </h1>
+
+          <p class="text-lg text-gray-600">{{ stats?.state || '' }}</p>
         </div>
-
-        <!-- Case 2: Reasonable for rating BUT no rating -->
-        <div v-else-if="stats.isReasonableForMunicipalRating && !stats.stadtlandklimaData?.slug">
-          <div class="mb-3">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        
+        <!-- Right Column: Rating Status & Action -->
+        <div class="text-right space-y-3">
+          <!-- ARS -->
+          <div class="text-right">
+            <p class="text-xs text-gray-500 font-semibold">ARS</p>
+            <p class="text-sm font-mono text-gray-700">{{ stats?.ars || '-' }}</p>
+          </div>
+          <!-- Rating Status Badge -->
+          <div v-if="stats">
+            <span v-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.slug" 
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+              {{ stats.stadtlandklimaData?.percentageRated }}% {{ $t('administrative_areas.rated') }}
+            </span>
+            <span v-else-if="stats.isReasonableForMunicipalRating"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
               {{ $t('administrative_areas.not_rated_yet') }}
             </span>
+            <span v-else 
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+              {{ $t('administrative_areas.not_reasonable_for_rating') }}
+            </span>
           </div>
-          <NuxtLink 
-            :to="'/mitmachen'"
-            class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            {{ $t('stats.participate') }}
-          </NuxtLink>
-        </div>
+          
+          <!-- Action Button -->
+          <div v-if="stats">
+            <!-- Case 1: Has rating - link to ranking -->
+            <NuxtLink v-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.percentageRated == 100 && stats.stadtlandklimaData?.slug"
+                      :to="`/municipalities/${stats.stadtlandklimaData.slug}`"
+                      class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              {{ $t('stats.view_municipality_ranking') }}
+            </NuxtLink>
+            
+            <!-- Case 2: Unfinished rating - get in touch with your local team -->
+            <NuxtLink v-else-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.percentageRated < 90 && stats.stadtlandklimaData?.slug"
+                      :to="'/kontakt'"
+                      class="inline-flex items-center px-4 py-2 bg-secondary text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              </svg>
+              {{ $t('stats.participate.contact_your_local_team') }}
+            </NuxtLink>
 
-        <!-- Case 3: Not reasonable for rating - show nearby alternatives -->
-        <div v-else-if="!stats.isReasonableForMunicipalRating">
-          <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <h4 class="text-sm font-medium text-blue-900 mb-2">
-              {{ $t('administrative_areas.nearby_alternatives') }}
-            </h4>
-            <p class="text-xs text-blue-700 mb-3">
-              {{ $t('administrative_areas.nearby_alternatives_description') }}
-            </p>
-            
-            <!-- Loading state -->
-            <div v-if="loadingNearbyAreas" class="text-sm text-blue-600">
-              {{ $t('generic.loading') }}...
-            </div>
-            
-            <!-- Nearby areas list -->
-            <ul v-else-if="nearbyAreas.length > 0" class="space-y-2">
-              <li v-for="area in nearbyAreas" :key="area.ars" class="flex items-center justify-between">
-                <div class="flex-1">
-                  <div class="text-sm font-medium text-blue-900">{{ area.name }}</div>
-                  <div class="text-xs text-blue-600">{{ area.prefix }}</div>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <span v-if="area.hasRating" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                    {{ Math.round(area.stadtlandklimaData.scoreTotal * 10) / 10 }}%
-                  </span>
-                  <NuxtLink 
-                    :to="area.hasRating ? `/municipalities/${area.stadtlandklimaData.slug}` : `/stats/${area.ars}`"
-                    class="text-blue-600 hover:text-blue-800 text-xs underline"
-                  >
-                    {{ area.hasRating ? $t('stats.view_ranking') : $t('stats.view_stats') }}
-                  </NuxtLink>
-                </div>
-              </li>
-            </ul>
-            
-            <!-- No alternatives found -->
-            <div v-else class="text-sm text-blue-600">
-              {{ $t('administrative_areas.no_alternatives_found') }}
-            </div>
+            <!-- Case 3: No rating - participate button -->
+            <NuxtLink v-else-if="stats.isReasonableForMunicipalRating"
+                      :to="'/mitmachen'"
+                      class="inline-flex items-center px-4 py-2 bg-ranking-dark text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              {{ $t('stats.participate.start_to_rank_your_municipality') }}
+            </NuxtLink>
           </div>
         </div>
       </div>
-      
-      <!-- Map Section -->
-      <div v-if="stats && (stats.geoCenter || stats.geoArea)" class="mt-2 mb-2">
-        <AdministrativeAreaMap
-          :geo-center="stats.geoCenter"
-          :geo-area="stats.geoArea"
-          :administrative-area-name="stats.name"
-          :zoom="3"
-        />
-      </div>
+    </div>
 
+    <!-- Map Section -->
+    <div v-if="stats && (stats.geoCenter || stats.geoArea)" class="mt-6">
+      <AdministrativeAreaMap
+        :geo-center="stats.geoCenter"
+        :geo-area="stats.geoArea"
+        :administrative-area-name="stats.name"
+        :zoom="3"
+      />
+    </div>
+
+    <!-- Data Sections -->
+    <div class="mt-6 space-y-6">
       <!-- Population Data -->
       <DataProductViewWrapper
         v-if="stats?.populationData"
@@ -211,13 +199,112 @@
           </div>
         </template>
       </DataProductViewWrapper>
+
+      <!-- Alternatives Section -->
+      <div v-if="stats?.level >= 4" class="border-t bg-blue-50 px-6 py-6">
+        <div class="mb-4">
+          <h3 class="text-lg font-semibold text-blue-900 mb-2">
+            {{ $t('administrative_areas.nearby_alternatives') }}
+          </h3>
+          <p class="text-sm text-blue-700">
+            {{ $t('administrative_areas.nearby_alternatives_description') }}
+          </p>
+        </div>
+        
+        <!-- Loading State -->
+        <div v-if="loadingNearbyAreas" class="flex items-center justify-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span class="ml-2 text-blue-600">{{ $t('generic.loading') }}...</span>
+        </div>
+        
+        <!-- Alternatives Carousel -->
+        <div v-else-if="nearbyAreas.length > 0" class="relative">
+          <div 
+            class="carousel-container relative"
+            ref="carouselContainer"
+          >
+            <!-- Left Shadow -->
+            <div 
+              class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-blue-50 to-transparent z-10 pointer-events-none transition-opacity duration-300"
+              :class="{ 'opacity-0': !showLeftShadow }"
+            ></div>
+            
+            <!-- Right Shadow -->
+            <div 
+              class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-blue-50 to-transparent z-10 pointer-events-none transition-opacity duration-300"
+              :class="{ 'opacity-0': !showRightShadow }"
+            ></div>
+            
+            <!-- Scrollable Content -->
+            <div 
+              class="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
+              ref="scrollContainer"
+              @scroll="updateShadows"
+            >
+              <div v-for="area in nearbyAreas" :key="area.ars" 
+                   class="flex-none w-80 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                
+                <!-- Mini Map Placeholder -->
+                <div class="h-32 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center relative">
+                  <LMap
+                    :zoom="10"
+                    :center="[area.geoCenter?.coordinates[1] || 51.1657, area.geoCenter?.coordinates[0] || 10.4515]"
+                    class="h-full w-full z-0"
+                    :options="{ zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false }"
+                  >
+                    <LTileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    <LGeoJson
+                      v-if="area.geoArea"
+                      :geojson="area.geoArea"
+                      :options="{ style: { color: '#3B82F6', weight: 2, fillColor: '#3B82F6', fillOpacity: 0.3 } }"
+                    />
+                  </LMap>
+                </div>
+                
+                <!-- Card Content -->
+                <div class="p-4">
+                  <div class="mb-3">
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                      {{ area.prefix }}
+                    </p>
+                    <h4 class="text-sm font-bold text-gray-900 leading-tight">
+                      {{ area.name }}
+                    </h4>
+                  </div>
+                  
+                  <NuxtLink :to="area.hasRating ? `/municipalities/${area.stadtlandklimaData.slug}` : `/stats/${area.ars}`"
+                            class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    {{ area.hasRating ? $t('stats.view_ranking') : $t('stats.view_stats') }}
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </NuxtLink>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- No Alternatives -->
+        <div v-else class="text-center py-8">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.016-5.707-2.572" />
+          </svg>
+          <p class="mt-2 text-sm text-gray-500">
+            {{ $t('administrative_areas.no_alternatives_found') }}
+          </p>
+        </div>
+      </div>
     </div>
   </main>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router';
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, nextTick } from 'vue';
 import AdministrativeAreaSearchBar from '~/components/AdministrativeAreaSearchBar.vue';
 import DataProductViewWrapper from '~/components/DataProductViewWrapper.vue';
 import AdministrativeAreaMap from '~/components/AdministrativeAreaMap.vue';
@@ -228,6 +315,24 @@ const stats = ref(null);
 const nearbyAreas = ref([]);
 const loadingNearbyAreas = ref(false);
 
+// Carousel shadow state
+const scrollContainer = ref(null);
+const carouselContainer = ref(null);
+const showLeftShadow = ref(false);
+const showRightShadow = ref(true);
+
+const updateShadows = () => {
+  if (!scrollContainer.value) return;
+  
+  const { scrollLeft, scrollWidth, clientWidth } = scrollContainer.value;
+  
+  // Show left shadow if scrolled right
+  showLeftShadow.value = scrollLeft > 0;
+  
+  // Show right shadow if not scrolled to the end
+  showRightShadow.value = scrollLeft < scrollWidth - clientWidth - 1;
+};
+
 onMounted(async () => {
   try {
     const result = await $stadtlandzahlAPI.fetchStatsByARS(route.params.ars);
@@ -237,15 +342,13 @@ onMounted(async () => {
     if (result) {
       stats.value = result;
       
-      // If area is not reasonable for rating, fetch nearby alternatives
-      if (!result.isReasonableForMunicipalRating) {
-        await fetchNearbyAlternatives(result);
-      }
-    } else {
-      console.error('No data found for ARS:', route.params.ars);
-      stats.value = { name: 'Keine Daten gefunden', prefix: '' };
+      await fetchNearbyAlternatives(result);
+      
+      // Update shadows after content is loaded
+      await nextTick();
+      updateShadows();
     }
-    
+
     console.log('Stats set to:', stats.value);
   } catch (error) {
     console.error('Error fetching stats:', error);
@@ -254,25 +357,36 @@ onMounted(async () => {
 });
 
 async function fetchNearbyAlternatives(currentArea) {
-  if (!currentArea.geoCenter) return;
+  if (!currentArea.geoCenter || [1,2,3].includes(currentArea.level)) return;
   
   loadingNearbyAreas.value = true;
   try {
     // Fetch nearby reasonable alternatives
-    const result = await $stadtlandzahlAPI.findNearbyReasonableAreas(
+    console.log('Fetching nearby alternatives for:', currentArea.geoCenter);
+    const result = await $stadtlandzahlAPI.getNearbyAdministrativeAreas(
       currentArea.geoCenter.coordinates[1], // latitude
       currentArea.geoCenter.coordinates[0], // longitude
-      5 // limit to 5 areas
+      15, // limit to 15 km radius
+      [4,5,6]
     );
-    
-    if (result?.nearbyAreas) {
-      nearbyAreas.value = result.nearbyAreas.map(area => ({
-        ars: area.ars,
-        name: area.name,
-        prefix: area.prefix,
-        hasRating: area.stadtlandklimaData && area.stadtlandklimaData.slug,
-        stadtlandklimaData: area.stadtlandklimaData
+    console.log('getNearbyAdministrativeAreas result:', result);
+
+    if (result?.allAdministrativeAreas?.edges) {
+      // and filter out the current area
+      nearbyAreas.value = result.allAdministrativeAreas.edges.filter(area => area.node.ars !== currentArea.ars).map(area => ({
+        ars: area.node.ars,
+        name: area.node.name,
+        prefix: area.node.prefix,
+        hasRating: area.node.stadtlandklimaData && area.node.stadtlandklimaData.slug,
+        stadtlandklimaData: area.node.stadtlandklimaData,
+        geoCenter: area.node.geoCenter,
+        geoArea: area.node.geoArea,
       }));
+      console.log('Nearby areas set to:', nearbyAreas.value);
+      
+      // Update shadows after nearby areas are loaded
+      await nextTick();
+      updateShadows();
     }
   } catch (error) {
     console.error('Error fetching nearby areas:', error);
@@ -294,3 +408,19 @@ useHead({
   title
 })
 </script>
+
+<style scoped>
+/* Hide scrollbar for webkit browsers */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Ensure the carousel container maintains proper positioning */
+.carousel-container {
+  position: relative;
+}
+</style>
