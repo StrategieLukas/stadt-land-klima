@@ -95,13 +95,26 @@
     </div>
 
     <!-- Map Section -->
-    <div v-if="stats && (stats.geoCenter || stats.geoArea)" class="mt-6">
+    <div v-if="stats && (stats.geoCenter || stats.geoArea)" class="mt-6 bg-base-100 shadow-md">
       <AdministrativeAreaMap
         :geo-center="stats.geoCenter"
         :geo-area="stats.geoArea"
         :administrative-area-name="stats.name"
         :zoom="3"
       />
+      <!-- centroid coordinates and area in km^2-->
+      <div v-if="stats.geoCenter && stats.geoAreaKm2" class="text-sm text-gray-600 mt-2 pb-2 text-center">
+        <p>
+          {{ $t('administrative_areas.centroid_coordinates') }}: 
+          <span class="font-mono">
+            [{{ stats.geoCenter.coordinates[1].toFixed(4) }}, {{ stats.geoCenter.coordinates[0].toFixed(4) }}]
+          </span>
+          {{ $t('administrative_areas.area') }}: 
+          <span class="font-mono">
+            {{ stats.geoAreaKm2.toLocaleString() }} km²
+          </span>
+        </p>
+      </div>
     </div>
 
     <!-- Data Sections -->
@@ -298,6 +311,12 @@
           </p>
         </div>
       </div>
+
+      <!-- Available soon-->
+      <div class="border-t bg-gray-50 px-6 py-6 text-center text-gray-500">
+        <p class="text-sm" v-html="saneLinkifyStr($t('stats.more_data_coming_soon'))"></p>
+      </div>
+
     </div>
   </main>
 </template>
@@ -308,6 +327,8 @@ import { onMounted, ref, computed, nextTick } from 'vue';
 import AdministrativeAreaSearchBar from '~/components/AdministrativeAreaSearchBar.vue';
 import DataProductViewWrapper from '~/components/DataProductViewWrapper.vue';
 import AdministrativeAreaMap from '~/components/AdministrativeAreaMap.vue';
+
+import { saneLinkifyStr } from '~/shared/utils';
 
 const route = useRoute();
 const { $t, $stadtlandzahlAPI } = useNuxtApp();

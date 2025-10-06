@@ -67,6 +67,7 @@ export default defineNuxtPlugin(() => {
                   ars
                   geoCenter
                   geoArea
+                  geoAreaKm2
                   level
                   isReasonableForMunicipalRating
                   containedBy {
@@ -86,60 +87,60 @@ export default defineNuxtPlugin(() => {
                   }
                   populationData {
                     population
-                    license {
-                      name
-                      text
-                      url
-                    }
                     dataSourceDownload {
                       effectiveDt
                       attribution
                       attributionUrl
+                      license {
+                        name
+                        text
+                        url
+                      }
                     }
                   }
                   evChargingData {
                     nStations
                     power
                     powerUnit
-                    license {
-                      name
-                      text
-                      url
-                    }
                     dataSourceDownload {
                       effectiveDt
                       attribution
                       attributionUrl
+                      license {
+                        name
+                        text
+                        url
+                      }
                     }
                   }
                   solarPowerData {
                     nUnits
                     power
                     powerUnit
-                    license {
-                      name
-                      text
-                      url
-                    }
                     dataSourceDownload {
                       effectiveDt
                       attribution
                       attributionUrl
+                      license {
+                        name
+                        text
+                        url
+                      }
                     }
                   }
                   windPowerData {
                     nTurbines
                     power
                     powerUnit
-                    license {
-                      name
-                      text
-                      url
-                    }
                     dataSourceDownload {
                       effectiveDt
                       attribution
                       attributionUrl
+                      license {
+                        name
+                        text
+                        url
+                      }
                     }
                   }
                   publicTransportScoreData {
