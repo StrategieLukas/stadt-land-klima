@@ -92,15 +92,23 @@
     // Last updated
     #align(center, text("Letzte Aktualisierung: " + data.date_updated, size: 0.8*unit))
 
+    
+
+    #let url = "https://www.stadt-land-klima.de/municipalities/" + data.slug
     // QR Code
     #if show_qr_code [
-      #place(right + bottom, qr-code(
-        "https://www.stadt-land-klima.de/municipalities/" + data.slug, 
-        width: 5*unit,
-        height: auto,
-        alt: "https://www.stadt-land-klima.de/municipalities/"+data.slug,
-        quiet-zone: false,
-      ))
+      #place(right + bottom, 
+        [
+          #qr-code(
+            url, 
+            width: 6*unit,
+            height: auto,
+            alt: url,
+            quiet-zone: false,
+          )
+        ]
+      )
+      #text(url, size: 0.8*unit)
     ]
 
   ]
