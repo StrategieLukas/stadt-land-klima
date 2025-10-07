@@ -148,6 +148,8 @@ export default defineNuxtPlugin(() => {
                     stdDevTravelTimeMinutes
                     commonTravelVelocity
                     commonTravelVelocityStd
+                    validSinceDt
+                    validUntilDt
                     simulationCount
                     pipelineRun {
                       downloads {

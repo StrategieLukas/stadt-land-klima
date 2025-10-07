@@ -204,7 +204,7 @@
         :title="$t('stats.data.public_transport.title')"
         unit="min"
         :description="$t('stats.data.public_transport.description')"
-        :calculation="`Monte-Carlo-Simulation mit n=${stats.publicTransportScoreData.simulationCount} Simulationen innerhalb des Verwaltungsgebiets. Für das Routing wurde die Programmbibliothek r5py genutzt. Zeitliches Sampling aus der Zeitverwendungsstudie 2022, räumliches aus der Bevölkerungsdichte (JRC Census 2021 Daten) .`"
+        :calculation="`Monte-Carlo-Simulation mit n=${stats.publicTransportScoreData.simulationCount} Simulationen innerhalb des Verwaltungsgebiets. Für das Routing wurde die Programmbibliothek r5py genutzt. Zeitliches Sampling aus der Zeitverwendungsstudie 2022, räumliches aus der Bevölkerungsdichte (JRC Census 2021 Daten). Die Fahrplansolldaten gelten für den Zeitraum von ${formatDateDetailed(stats.publicTransportScoreData.validSinceDt)} bis ${formatDateDetailed(stats.publicTransportScoreData.validUntilDt)}.`"
         :show-measure-link="false"
         :data-sources="stats.publicTransportScoreData.pipelineRun?.downloads"
       >
@@ -456,6 +456,46 @@ const title = computed(() => {
 useHead({
   title
 })
+
+// Format date to detailed string
+const formatDateDetailed = (dateString) => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  
+  // Format options for detailed date display
+  const options = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Berlin', // Adjust timezone as needed
+    timeZoneName: 'short'
+  };
+  
+  // Format the date
+  const formatter = new Intl.DateTimeFormat('de-DE', options);
+  const formattedDate = formatter.format(date);
+  
+  // Add ordinal suffix to day
+  const day = date.getDate();
+  const ordinalSuffix = getOrdinalSuffix(day);
+  
+  // Replace the day number with ordinal version
+  return formattedDate.replace(` ${day} `, ` ${day}${ordinalSuffix} `);
+};
+
+const getOrdinalSuffix = (day) => {
+  if (day >= 11 && day <= 13) return '.';
+  switch (day % 10) {
+    case 1: return '.';
+    case 2: return '.';
+    case 3: return '.';
+    default: return '.';
+  }
+};
 </script>
 
 <style scoped>
