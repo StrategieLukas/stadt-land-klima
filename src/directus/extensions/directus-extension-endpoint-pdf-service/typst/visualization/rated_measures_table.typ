@@ -28,6 +28,23 @@
 
   )
 
+  let rating_table_data = ()
+
+  for sector in rating_measures.keys(){
+    let sector_measures = rating_measures.at(sector)
+    for measure in sector_measures{
+      measure.insert("sortable_rating", 0)
+      if not measure.applicable{
+        measure.rating = none
+        measure.sortable_rating = 1     // 1 to reverse sorting order
+      }else{
+        measure.sortable_rating = -float(measure.rating) // *(-1) to reverse sorting order
+      }
+      rating_table_data.push(measure)
+    }
+  }
+  rating_table_data = rating_table_data.flatten().sorted(key: it => (it.sortable_rating, lower(it.measure.measure_id)))
+  
   table(
     columns: (0.6cm, 1.1cm, 100%-6.4cm, 1.7cm, 1.7cm, 1.7cm),
     stroke: white + 0.2em,
@@ -94,14 +111,11 @@
     [#align(center + horizon, [#image("../slk_resources/icon_invest.svg")])],
     [], [ID], [Maßnahme], [Impact], [Politisch], [Invest],
     
-    ..for (sector, ratings) in rating_measures{
-      for (rating, measure, applicable) in ratings {
-        let corrected_rating = if(applicable){ rating }else{ none }
-
-        let table_row_color = util.select_color_from_range(corrected_rating, factor : 100).transparentize(80%)
+    ..for (rating, measure, applicable) in rating_table_data{
+        let table_row_color = util.select_color_from_range(rating, factor : 100).transparentize(80%)
         
         (
-          table_pin(corrected_rating),
+          table_pin(rating),
           (
             measure.measure_id, 
             measure.name,
@@ -110,7 +124,6 @@
             star_generator(measure.feasibility_economical)
           ).map(cell => (table.cell(fill: table_row_color)[#cell]))
         ).flatten()
-    }
     }
   )
 }
