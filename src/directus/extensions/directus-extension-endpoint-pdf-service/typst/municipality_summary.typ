@@ -34,6 +34,7 @@
   margin: (x: 9mm, top:20mm, bottom:10mm),
 );
 
+#v(2*unit)
 #align(
   center, 
   box(
@@ -67,7 +68,6 @@
 
 #pagebreak()
 
-#place(center+top, dy: -1.6cm, image("/slk_resources/StadtLandKlima-Logo.svg", height: 1.4cm, width: 6cm, fit: "contain"))
 #show table.cell: set text(size: 8pt)
 #grid(
   columns: (33%, 67%),
