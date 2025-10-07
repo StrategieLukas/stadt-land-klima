@@ -146,6 +146,8 @@ export default defineNuxtPlugin(() => {
                   publicTransportScoreData {
                     meanTravelTimeMinutes
                     stdDevTravelTimeMinutes
+                    commonTravelVelocity
+                    commonTravelVelocityStd
                     simulationCount
                     pipelineRun {
                       downloads {
@@ -157,6 +159,19 @@ export default defineNuxtPlugin(() => {
                         }
                         attribution
                         attributionUrl
+                      }
+                    }
+                  }
+                  cyclewayInfrastructureData {
+                    bicycleInfrastructureRatio
+                    dataSourceDownload {
+                      attribution
+                      attributionUrl
+                      downloadDt
+                      license {
+                        name
+                        text
+                        url
                       }
                     }
                   }

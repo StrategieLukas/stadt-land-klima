@@ -122,10 +122,9 @@
       <!-- Population Data -->
       <DataProductViewWrapper
         v-if="stats?.populationData"
-        :title="$t('stats.population.title')"
+        :title="$t('stats.data.population.title')"
         :show-measure-link="false"
         :data-sources="[stats.populationData.dataSourceDownload]"
-        :data-license="stats.populationData.license"
       >
         <template #content>
           <div class="text-center">
@@ -137,13 +136,12 @@
       <!-- Freiflächen-PV -->
       <DataProductViewWrapper
         v-if="stats?.solarPowerData"
-        :title="$t('stats.solar_power.title')"
+        :title="$t('stats.data.solar_power.title')"
         :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
         code="EN_1"
-        :description="$t('stats.en_1.description')"
-        :calculation="$t('stats.en_1.calculation')"
+        :description="$t('stats.data.solar_power.description')"
+        :calculation="$t('stats.data.solar_power.calculation')"
         :data-sources="[stats.solarPowerData.dataSourceDownload]"
-        :data-license="stats.solarPowerData.license"
       >
         <template #content>
           <ThresholdProgressBar
@@ -159,12 +157,13 @@
       <!-- Windkraft -->
       <DataProductViewWrapper
         v-if="stats?.windPowerData"
-        :title="$t('stats.wind_power.title')"
+        :title="$t('stats.data.wind_power.title')"
         :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
         :show-measure-link="false"
-        description="das ist nur die Windkraft, die auf dem Gebiet der Kommune ist. Wenn die Kommune Windkraft in weiteren Orten betreibt, muss dies dazugerechnet werden."
+        :description="$t('stats.data.wind_power.description')"
+        :calculation="$t('stats.data.wind_power.calculation')"
+        code="EN_2"
         :data-sources="[stats.windPowerData.dataSourceDownload]"
-        :data-license="stats.windPowerData.license"
       >
         <template #content>
           <ThresholdProgressBar
@@ -180,9 +179,12 @@
       <!-- E-Ladesäulen -->
       <DataProductViewWrapper
         v-if="stats?.evChargingData"
-        :title="$t('stats.ev_charging.title')"
+        :title="$t('stats.data.ev_charging.title')"
         :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
         :show-measure-link="false"
+        :description="$t('stats.data.ev_charging.description')"
+        :calculation="$t('stats.data.ev_charging.calculation')"
+        code="VE_?"
         :data-sources="[stats.evChargingData.dataSourceDownload]"
       >
         <template #content>
@@ -199,17 +201,43 @@
       <!-- Öffentlicher Nahverkehr -->
       <DataProductViewWrapper
         v-if="stats?.publicTransportScoreData"
-        :title="$t('stats.public_transport.title')"
+        :title="$t('stats.data.public_transport.title')"
         unit="min"
-        description="Mittlere Reisezeit mit dem Nahverkehr innerhalb des Verwaltungsgebiets zu gewöhnlichen Zeiten (aus Zeitverwendungsstudie 2022) von gewöhnlichen Abfahrt- und Ankunfsorten (Bevölkerungsdichte-gewichtet)."
+        :description="$t('stats.data.public_transport.description')"
         :calculation="`Monte-Carlo-Simulation mit n=${stats.publicTransportScoreData.simulationCount} Simulationen innerhalb des Verwaltungsgebiets. Für das Routing wurde die Programmbibliothek r5py genutzt. Zeitliches Sampling aus der Zeitverwendungsstudie 2022, räumliches aus der Bevölkerungsdichte (JRC Census 2021 Daten) .`"
         :show-measure-link="false"
-        :data-sources="stats.publicTransportScoreData.pipelineRun.downloads"
+        :data-sources="stats.publicTransportScoreData.pipelineRun?.downloads"
       >
         <template #content>
-          <div class="text-center">
+          <div class="text-center flex lg:flex-row flex-col lg:space-x-4 space-y-2 lg:space-y-0 items-center justify-center space-between">
+            <!-- Mean Travel Time -->
             <span class="text-2xl font-bold">{{ `(${Math.round(stats.publicTransportScoreData.meanTravelTimeMinutes)} ± ${Math.round(stats.publicTransportScoreData.stdDevTravelTimeMinutes)}) min` }}</span>
+            <!-- Common Travel velocity -->
+            <span class="text-2xl font-bold">{{ `(${Math.round(stats.publicTransportScoreData.commonTravelVelocity)} ± ${Math.round(stats.publicTransportScoreData.commonTravelVelocityStd)}) km/h` }}</span>
           </div>
+        </template>
+      </DataProductViewWrapper>
+
+      <!-- Radwege Infrastruktur Daten -->
+      <DataProductViewWrapper
+        v-if="stats?.cyclewayInfrastructureData"
+        :title="$t('stats.data.cyclewayInfrastructureData.title')"
+        :description="$t('stats.data.cyclewayInfrastructureData.description')"
+        :calculation="$t('stats.data.cyclewayInfrastructureData.calculation')"
+        code="VE_2"
+        unit="%"
+        :show-measure-link="false"
+        :data-sources="[stats.cyclewayInfrastructureData.dataSourceDownload]"
+
+      >
+        <template #content>
+          <ThresholdProgressBar
+            :progress="stats.cyclewayInfrastructureData.bicycleInfrastructureRatio*100"
+            :orange-threshold="20"
+            :light-green-threshold="50"
+            :dark-green-threshold="80"
+            unit="%"
+          />
         </template>
       </DataProductViewWrapper>
 

@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.data.cyclewayInfrastructureData.calculation
+value: OSM-Daten wuden ausgewertet. Für Autostreckenkilometer wurden highway Elemente mit den Tags 'primary', 'secondary', 'tertiary', 'residential', 'service', 'unclassified', 'trunk', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link' berücksichtigt. Für Radwege wurden highway=cycleway, highway=path mit bicycle=yes oder designated oder cycleway=lane, track oder bicycle_road=yes oder highway=living_street genutzt. Die Daten sind nicht vollständig und können von der Realität abweichen.

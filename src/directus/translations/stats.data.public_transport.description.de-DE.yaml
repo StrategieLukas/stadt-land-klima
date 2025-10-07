@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.data.public_transport.description
+value: Gewöhnliche Reisezeit und Reisegeschwindigkeit (Luftlinie) mit dem Nahverkehr (inklusive Fußweg) innerhalb des Verwaltungsgebiets zu gewöhnlichen Abfahrtszeiten (aus Zeitverwendungsstudie 2022) von gewöhnlichen Abfahrt- und Ankunfsorten (Bevölkerungsdichte-gewichtet).

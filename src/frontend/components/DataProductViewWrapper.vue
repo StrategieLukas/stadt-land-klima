@@ -144,10 +144,6 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
-  dataLicense: {
-    type: Object,
-    default: null
-  },
   showMeasureLink: {
     type: Boolean,
     default: true
