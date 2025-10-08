@@ -52,18 +52,27 @@ export function formatLastUpdated(dateString, locale) {
   })}, ${lastUpdatedAt.toLocaleTimeString(locale)}`;
 };
 
-export function getScoreColor(score) {
+export function getRatingDecimalColor(score) {
+  if(score === null) return "rating-na";
+  return getScorePercentageColor(Number(score) * 100);
+}
+
+export function getScorePercentageColor(score) {
+  if(score === null) return "rating-na";
   const numericScore = Number(score);
   if(numericScore >= 80) {
-    return "ranking-8-10";
+    return "rating-4";
   } else if(numericScore >= 60) {
-    return "ranking-6-8";
+    return "rating-3";
   } else if(numericScore >= 40) {
-    return "ranking-4-6";
+    return "rating-2";
   } else if(numericScore >= 20) {
-    return "ranking-2-4";
+    return "rating-1";
   } else if(numericScore >= 0) {
-    return "ranking-0-2";
+    if(numericScore > 0 && numericScore < 1) {
+      console.warn("Score is between 0 and 1 - is this intentional or did we pass a decimal instead of a percentage?");
+    }
+    return "rating-0";
   }
 };
 

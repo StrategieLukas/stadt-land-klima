@@ -14,8 +14,9 @@ def split_csv_by_column(csv_file, column_id):
     df = pd.read_csv(csv_file)
     score_mapping = {
         0: 'Rot',
-        0.3333: 'Gelb',
-        0.6666: 'Hellgrün',
+        0.25: 'Orange',
+        0.5: 'Gelb',
+        0.75: 'Hellgrün',
         1: 'Dunkelgrün',
         np.nan: '-',
     }

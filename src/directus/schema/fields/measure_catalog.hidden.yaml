@@ -1,0 +1,41 @@
+collection: measure_catalog
+field: hidden
+type: boolean
+meta:
+  collection: measure_catalog
+  conditions: null
+  display: null
+  display_options: null
+  field: hidden
+  group: null
+  hidden: false
+  interface: boolean
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 9
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Diese Version ist archiviert / inaktiv / soll nirgendwo angezeigt werden
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: hidden
+  table: measure_catalog
+  data_type: boolean
+  default_value: false
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -15,7 +15,7 @@ meta:
     slug: true
   readonly: false
   required: false
-  sort: 8
+  sort: 11
   special: null
   translations: null
   validation: null

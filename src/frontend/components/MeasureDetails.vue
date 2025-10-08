@@ -205,7 +205,7 @@
 
   // Tragically, rating is a string and not a number, so can't filter with a "gt_"-clause :(
   function getHigherRatings(currentRating) {
-    const knownRatings = [0, 0.3333, 0.6666, 1]; // ordered list
+    const knownRatings = [0, 0.25, 0.5, 0.75, 1]; // ordered list
     const current = Number(currentRating);
 
     return knownRatings.filter(r => r > current).map(String); // convert back to string
