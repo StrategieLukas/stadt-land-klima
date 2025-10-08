@@ -131,6 +131,9 @@ permissions:
       _and:
         - status:
             _eq: published
+        - catalog_version:
+            hidden:
+              _eq: false
     validation: null
     presets: null
     fields:
@@ -159,6 +162,9 @@ permissions:
       - description_funding
       - description_tutorial
       - measure_id
+      - catalog_version
+      - must_be_rated_again
+      - choices_rating
   - collection: municipalities
     action: read
     permissions: null
@@ -237,6 +243,10 @@ permissions:
         - measure_id:
             status:
               _eq: published
+        - measure_id:
+            catalog_version:
+              hidden:
+                _eq: false
     validation: null
     presets: null
     fields:

@@ -60,6 +60,9 @@ permissions:
       _and:
         - status:
             _eq: published
+        - catalog_version:
+            hidden:
+              _eq: false
     validation: {}
     presets: null
     fields:
@@ -134,6 +137,10 @@ permissions:
         - measure_id:
             status:
               _eq: published
+        - measure_id:
+            catalog_version:
+              hidden:
+                _eq: false
     validation: {}
     presets: null
     fields:

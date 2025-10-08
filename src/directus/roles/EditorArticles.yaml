@@ -203,13 +203,6 @@ permissions:
       - description
       - link
       - title
-  - collection: measure_catalog
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
   - collection: organisations
     action: create
     permissions: {}

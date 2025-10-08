@@ -292,19 +292,18 @@ permissions:
       - title
       - link
       - description
-  - collection: measure_catalog
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
   - collection: measures
     action: read
     permissions:
       _and:
         - status:
             _eq: published
+        - catalog_version:
+            isCurrentBackend:
+              _eq: true
+        - catalog_version:
+            hidden:
+              _eq: false
     validation: {}
     presets: null
     fields:
@@ -412,6 +411,14 @@ permissions:
               - $CURRENT_USER.localteams.localteam_id
         - measure_published:
             _eq: true
+        - measure_id:
+            catalog_version:
+              isCurrentBackend:
+                _eq: true
+        - measure_id:
+            catalog_version:
+              hidden:
+                _eq: false
     validation: null
     presets: null
     fields:
