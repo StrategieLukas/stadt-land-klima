@@ -17,6 +17,36 @@ async function migrateRatings(oldVersion, newVersion) {
 
   const client = createDirectusClient();
 
+  // Check if user input refers to valid versions
+  console.log("📥 Fetching measure catalog versions...");
+
+  // ✅ Validate both catalog versions exist in measure_catalog
+  const catalogs = await client.request(
+    readItems("measure_catalog", {
+      filter: { name: { _in: [oldVersion, newVersion] } },
+      fields: ["id", "name", "is_active"],
+    })
+  );
+
+  const oldCatalog = catalogs.find((c) => c.name === oldVersion);
+  const newCatalog = catalogs.find((c) => c.name === newVersion);
+
+  if (!oldCatalog || !newCatalog) {
+    console.error(
+      `❌ Version(s) not found in measure_catalog: missing ${[
+        !oldCatalog ? oldVersion : "",
+        !newCatalog ? newVersion : "",
+      ]
+        .filter(Boolean)
+        .join(", ")}`
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    `📚 Found catalog entries: ${oldCatalog.name} (id=${oldCatalog.id}), ${newCatalog.name} (id=${newCatalog.id})`
+  );
+
   // Safety confirmation
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const confirm = await new Promise((resolve) => {
@@ -37,35 +67,6 @@ async function migrateRatings(oldVersion, newVersion) {
   const startTime = Date.now();
 
   try {
-    console.log("📥 Fetching measure catalog versions...");
-
-    // ✅ Validate both catalog versions exist in measure_catalog
-    const catalogs = await client.request(
-      readItems("measure_catalog", {
-        filter: { name: { _in: [oldVersion, newVersion] } },
-        fields: ["id", "name", "is_active"],
-      })
-    );
-
-    const oldCatalog = catalogs.find((c) => c.name === oldVersion);
-    const newCatalog = catalogs.find((c) => c.name === newVersion);
-
-    if (!oldCatalog || !newCatalog) {
-      console.error(
-        `❌ Version(s) not found in measure_catalog: missing ${[
-          !oldCatalog ? oldVersion : "",
-          !newCatalog ? newVersion : "",
-        ]
-          .filter(Boolean)
-          .join(", ")}`
-      );
-      process.exit(1);
-    }
-
-    console.log(
-      `📚 Found catalog entries: ${oldCatalog.name} (id=${oldCatalog.id}), ${newCatalog.name} (id=${newCatalog.id})`
-    );
-
     console.log("📥 Fetching measures...");
     const [oldMeasures, newMeasures] = await Promise.all([
       client.request(
@@ -146,12 +147,13 @@ async function migrateRatings(oldVersion, newVersion) {
       const mustBeRatedAgain = !!newMeasure.must_be_rated_again;
 
       if(mustBeRatedAgain) {
-        console.log(`\n Measure "${measureId}" must be rated again, so only copying over internal note`);
+        console.log(`\n Measure "${measureId}" must be rated again, so only copying over internal note...`);
       } else {
-        console.log(`\n Measure "${measureId}" must NOT be rated again, so only copying over the entire rating info`);
+        console.log(`\n Measure "${measureId}" must NOT be rated again, so copying over the entire rating info...`);
       }
 
       let updatedForThisMeasure = 0;
+      let hasLoggedDetailedError = false;
 
       for (const oldRating of oldRatings) {
         const target = newByLocalteam.get(oldRating.localteam_id);
@@ -174,7 +176,13 @@ async function migrateRatings(oldVersion, newVersion) {
           updatedCount++;
           updatedForThisMeasure++;
         } catch (err) {
-          console.log(err);
+          // Log the first error in full detail, but not repeats
+          if(!hasLoggedDetailedError) {
+            console.log(err);
+            console.log(updateData);
+            hasLoggedDetailedError = true;
+          }
+
           console.error(
             `   ❌ Failed to update rating for localteam ${oldRating.localteam_id}: ${err.message}`
           );
