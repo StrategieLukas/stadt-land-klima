@@ -8,8 +8,8 @@
     <!-- Main Info Container -->
     <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6">
       <!-- Breadcrumbs section from contaned by -->
-      <div class="breadcrumbs mx-full bg-gray-50 px-6 py-3 text-sm text-gray-600">
-        <ul>
+      <div class="breadcrumbs mx-full bg-gray-50 px-6 py-3 text-sm text-gray items-start!">
+        <ul class="lg:flex-row flex-col items-start!">
           <li v-for="containedArea in stats?.containedBy?.edges" :key="containedArea.node.ars">
             <NuxtLink :to="`/stats/${containedArea.node.ars}`" class="hover:underline">
               {{ containedArea.node.prefix }} {{ containedArea.node.name }}
@@ -20,7 +20,7 @@
       
 
       <!-- Header Section -->
-      <div class="flex flex-row w-full justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-8">
+      <div class="flex flex-col lg:flex-row w-full justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-8">
         <!-- Left Column: Location Info -->
         <div>
 
@@ -125,6 +125,12 @@
         :title="$t('stats.data.population.title')"
         :show-measure-link="false"
         :data-sources="[stats.populationData.dataSourceDownload]"
+        :histogram-config="{
+          dataType: 'populationData',
+          attributeName: 'population',
+          currentValue: stats.populationData.population,
+          populationNormalized: false
+        }"
       >
         <template #content>
           <div class="text-center">
@@ -142,6 +148,12 @@
         :description="$t('stats.data.solar_power.description')"
         :calculation="$t('stats.data.solar_power.calculation')"
         :data-sources="[stats.solarPowerData.dataSourceDownload]"
+        :histogram-config="{
+          dataType: 'solarPowerData',
+          attributeName: 'power',
+          currentValue: stats.solarPowerData.power / stats.populationData.population * 1000,
+          populationNormalized: true
+        }"
       >
         <template #content>
           <ThresholdProgressBar
@@ -164,6 +176,12 @@
         :calculation="$t('stats.data.wind_power.calculation')"
         code="EN_2"
         :data-sources="[stats.windPowerData.dataSourceDownload]"
+        :histogram-config="{
+          dataType: 'windPowerData',
+          attributeName: 'power',
+          currentValue: stats.windPowerData.power / stats.populationData.population * 1000,
+          populationNormalized: true
+        }"
       >
         <template #content>
           <ThresholdProgressBar
@@ -186,6 +204,12 @@
         :calculation="$t('stats.data.ev_charging.calculation')"
         code="VE_?"
         :data-sources="[stats.evChargingData.dataSourceDownload]"
+        :histogram-config="{
+          dataType: 'evChargingData',
+          attributeName: 'power',
+          currentValue: stats.evChargingData.power,
+          populationNormalized: false
+        }"
       >
         <template #content>
           <ThresholdProgressBar
@@ -207,6 +231,12 @@
         :calculation="`Monte-Carlo-Simulation mit n=${stats.publicTransportScoreData.simulationCount} Simulationen innerhalb des Verwaltungsgebiets. Für das Routing wurde die Programmbibliothek r5py genutzt. Zeitliches Sampling aus der Zeitverwendungsstudie 2022, räumliches aus der Bevölkerungsdichte (JRC Census 2021 Daten). Die Fahrplansolldaten gelten für den Zeitraum von ${formatDateDetailed(stats.publicTransportScoreData.validSinceDt)} bis ${formatDateDetailed(stats.publicTransportScoreData.validUntilDt)}.`"
         :show-measure-link="false"
         :data-sources="stats.publicTransportScoreData.pipelineRun?.downloads"
+        :histogram-config="{
+          dataType: 'publicTransportScoreData',
+          attributeName: 'meanTravelTimeMinutes',
+          currentValue: stats.publicTransportScoreData.meanTravelTimeMinutes,
+          populationNormalized: false
+        }"
       >
         <template #content>
           <div class="text-center flex lg:flex-row flex-col lg:space-x-4 space-y-2 lg:space-y-0 items-center justify-center space-between">
@@ -228,7 +258,12 @@
         unit="%"
         :show-measure-link="false"
         :data-sources="[stats.cyclewayInfrastructureData.dataSourceDownload]"
-
+        :histogram-config="{
+          dataType: 'cyclewayInfrastructureData',
+          attributeName: 'bicycleInfrastructureRatio',
+          currentValue: stats.cyclewayInfrastructureData.bicycleInfrastructureRatio * 100,
+          populationNormalized: false
+        }"
       >
         <template #content>
           <ThresholdProgressBar
@@ -278,7 +313,7 @@
             
             <!-- Scrollable Content -->
             <div 
-              class="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
+              class="flex space-x-4 overflow-x-auto pb-4"
               ref="scrollContainer"
               @scroll="updateShadows"
             >

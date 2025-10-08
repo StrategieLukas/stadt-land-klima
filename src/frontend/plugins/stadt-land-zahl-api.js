@@ -1,4 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client/core'
+import { data } from 'autoprefixer';
 import gql from 'graphql-tag'
 
 export default defineNuxtPlugin(() => {
@@ -26,7 +27,7 @@ export default defineNuxtPlugin(() => {
       const result = await apolloClient.query({
         query: gql`
           query allAdministrativeAreas($name_Icontains: String!, $isReasonableForMunicipalRating: Boolean) {
-            allAdministrativeAreas(orderBy: "-population", name_Icontains: $name_Icontains, isReasonableForMunicipalRating: $isReasonableForMunicipalRating) {
+            allAdministrativeAreas(first: 5, orderBy: "-population", name_Icontains: $name_Icontains, isReasonableForMunicipalRating: $isReasonableForMunicipalRating) {
               edges {
                 node {
                   prefix
@@ -59,7 +60,7 @@ export default defineNuxtPlugin(() => {
       const result = await apolloClient.query({
         query: gql`
           query allAdministrativeAreas($ars: String!) {
-            allAdministrativeAreas(ars: $ars) {
+            allAdministrativeAreas(ars: $ars, first: 1) {
               edges {
                 node {
                   prefix
@@ -209,7 +210,7 @@ export default defineNuxtPlugin(() => {
       const result = await apolloClient.query({
         query: gql`
           query allAdministrativeAreas($geoCenterDistance: String!, $level_In: [Int!]) {
-            allAdministrativeAreas(geoCenterDistance: $geoCenterDistance, isReasonableForMunicipalRating: true, orderBy: "-population", level_In: $level_In) {
+            allAdministrativeAreas(first: 15, geoCenterDistance: $geoCenterDistance, isReasonableForMunicipalRating: true, orderBy: "-population", level_In: $level_In) {
               edges {
                 node {
                   prefix
@@ -240,12 +241,74 @@ export default defineNuxtPlugin(() => {
     }
   };
 
+  const fetchHistogramData = async (dataType, attributeName) => {
+    try {
+      let query = '';
+      let variables = {};
+      
+
+      query = gql`
+        query allAdministrativeAreas($after: String) {
+          allAdministrativeAreas(
+            isReasonableForMunicipalRating: true,
+            after: $after,
+            first: 500
+          ) {
+            edges {
+              node {
+                name
+                prefix
+                ars
+                ${dataType} {
+                  ${attributeName}
+                }
+                populationData {
+                  population
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      `;
+
+      // Fetch all data using cursor pagination
+      let allData = [];
+      let hasNextPage = true;
+      let cursor = null;
+
+      while (hasNextPage) {
+        variables.after = cursor;
+        const result = await apolloClient.query({
+          query,
+          variables
+        });
+        console.log(result)
+
+        const edges = result.data.allAdministrativeAreas.edges;
+        allData = allData.concat(edges.map(edge => edge.node));
+        
+        hasNextPage = result.data.allAdministrativeAreas.pageInfo.hasNextPage;
+        cursor = result.data.allAdministrativeAreas.pageInfo.endCursor;
+      }
+      console.log('fetchHistogramData allData:', allData);
+      return allData;
+    } catch (error) {
+      console.error(`fetchHistogramData failed for dataType "${dataType}", attributeName "${attributeName}":`, error);
+      return [];
+    }
+  };
+
   // Expose the API methods via the plugin
 
   const stadtlandzahlAPI = {
     searchThroughAdministrativeAreasByName,
     fetchStatsByARS,
-    getNearbyAdministrativeAreas
+    getNearbyAdministrativeAreas,
+    fetchHistogramData
   };
 
   return {

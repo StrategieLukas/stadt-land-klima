@@ -102,6 +102,20 @@
       </div>
     </div>
     
+    <!-- Histogram Section -->
+    <div v-if="histogramConfig">
+      <p class="font-bold">{{ $t('stats.labels.distribution') }}</p>
+      <div class="mt-2 bg-gray-50 rounded-lg p-4">
+        <DataHistogram
+          :data-type="histogramConfig.dataType"
+          :attribute-name="histogramConfig.attributeName"
+          :current-value="histogramConfig.currentValue"
+          :unit="unit"
+          :population-normalized="histogramConfig.populationNormalized"
+        />
+      </div>
+    </div>
+
     <!-- Custom expandable content slot -->
     <slot name="expandable-content" :expanded="expanded" />
     
@@ -118,6 +132,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import DataHistogram from '~/components/DataHistogram.vue'
 
 const props = defineProps({
   title: {
@@ -151,6 +166,10 @@ const props = defineProps({
   defaultExpanded: {
     type: Boolean,
     default: false
+  },
+  histogramConfig: {
+    type: Object,
+    default: null
   }
 })
 
