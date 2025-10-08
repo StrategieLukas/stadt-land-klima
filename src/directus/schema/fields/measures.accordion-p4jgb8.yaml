@@ -15,7 +15,7 @@ meta:
     accordionMode: false
   readonly: false
   required: false
-  sort: 17
+  sort: 20
   special:
     - alias
     - group

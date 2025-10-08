@@ -1,31 +1,32 @@
 collection: measures
-field: description
-type: text
+field: must_be_rated_again
+type: boolean
 meta:
   collection: measures
   conditions: null
   display: null
   display_options: null
-  field: description
+  field: must_be_rated_again
   group: null
   hidden: false
-  interface: input-rich-text-html
+  interface: boolean
   note: null
   options: null
   readonly: false
-  required: false
-  sort: 21
-  special: null
+  required: true
+  sort: 5
+  special:
+    - cast-boolean
   translations:
     - language: de-DE
-      translation: Erklärung
+      translation: Maßnahme muss neu bewertet werden
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: description
+  name: must_be_rated_again
   table: measures
-  data_type: text
+  data_type: boolean
   default_value: null
   max_length: null
   numeric_precision: null

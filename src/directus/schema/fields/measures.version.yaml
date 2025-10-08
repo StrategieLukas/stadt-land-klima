@@ -1,54 +1,41 @@
 collection: measures
-field: description_about
-type: text
+field: version
+type: string
 meta:
   collection: measures
   conditions: null
   display: null
   display_options: null
-  field: description_about
+  field: version
   group: null
   hidden: false
-  interface: input-rich-text-html
+  interface: select-dropdown
   note: null
   options:
-    toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - code
-      - customImage
-      - customLink
-      - customMedia
-      - fullscreen
-      - h1
-      - h2
-      - h3
-      - hr
-      - italic
-      - numlist
-      - paste
-      - removeformat
-      - underline
+    choices:
+      - text: Beta
+        value: beta
+      - text: Release v1.0
+        value: v1.0
   readonly: false
   required: true
-  sort: 17
+  sort: 4
   special: null
   translations:
     - language: de-DE
-      translation: Was beinhaltet diese Maßnahme?  Um was geht es?
+      translation: Maßnahmenkatalog-Version
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: description_about
+  name: version
   table: measures
-  data_type: text
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_primary_key: false
   is_generated: false

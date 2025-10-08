@@ -41,7 +41,7 @@ meta:
         value: transport
   readonly: false
   required: true
-  sort: 9
+  sort: 12
   special: null
   translations:
     - language: de-DE
