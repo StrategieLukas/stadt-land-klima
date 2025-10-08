@@ -1,35 +1,34 @@
-collection: measures
-field: measure_id
-type: string
+collection: measure_catalog
+field: hidden
+type: boolean
 meta:
-  collection: measures
+  collection: measure_catalog
   conditions: null
   display: null
   display_options: null
-  field: measure_id
+  field: hidden
   group: null
   hidden: false
-  interface: input
+  interface: boolean
   note: null
-  options:
-    placeholder: z.B. EN_2
-    trim: true
+  options: null
   readonly: false
   required: false
-  sort: 3
-  special: null
+  sort: 9
+  special:
+    - cast-boolean
   translations:
     - language: de-DE
-      translation: Maßnahmen-ID
+      translation: Diese Version ist archiviert / inaktiv / soll nirgendwo angezeigt werden
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: measure_id
-  table: measures
-  data_type: character varying
-  default_value: null
-  max_length: 255
+  name: hidden
+  table: measure_catalog
+  data_type: boolean
+  default_value: false
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

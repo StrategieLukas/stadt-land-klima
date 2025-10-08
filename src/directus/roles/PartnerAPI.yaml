@@ -86,6 +86,13 @@ permissions:
       - title
       - date_created
       - date_updated
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: municipalities
     action: read
     permissions: null
