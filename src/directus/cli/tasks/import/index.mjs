@@ -6,6 +6,7 @@ import importPresets from './importPresets.mjs';
 import importWebhooks from './importWebhooks.mjs';
 import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
+import importDashboards from './importDashboards.mjs';
 import importSettings from './importSettings.mjs';
 import importCollectionItems from './importCollectionItems.mjs';
 
@@ -146,6 +147,30 @@ function importTasks(yargs) {
 
       await clearDirectusCache();
       await importTranslations(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
+    'import:dashboards [src]',
+    'imports the dashboards from the folder specified by "src". By default it will import from "dashboards"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: 'dashboards',
+      });
+    },
+    async (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing dashboards from ${argv.src}`);
+      }
+
+      await clearDirectusCache();
+      await importDashboards(argv.src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
         overwrite: argv.force,
