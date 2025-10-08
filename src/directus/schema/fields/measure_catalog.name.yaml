@@ -1,32 +1,32 @@
-collection: measures
-field: measure_id
+collection: measure_catalog
+field: name
 type: string
 meta:
-  collection: measures
+  collection: measure_catalog
   conditions: null
   display: null
   display_options: null
-  field: measure_id
+  field: name
   group: null
   hidden: false
   interface: input
   note: null
   options:
-    placeholder: z.B. EN_2
+    placeholder: v1.0
     trim: true
   readonly: false
-  required: false
-  sort: 3
+  required: true
+  sort: 2
   special: null
   translations:
     - language: de-DE
-      translation: Maßnahmen-ID
+      translation: Versionsname
   validation: null
   validation_message: null
   width: half
 schema:
-  name: measure_id
-  table: measures
+  name: name
+  table: measure_catalog
   data_type: character varying
   default_value: null
   max_length: 255

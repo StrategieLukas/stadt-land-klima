@@ -363,6 +363,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: measures
     action: create
     permissions: {}

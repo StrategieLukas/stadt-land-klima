@@ -1,38 +1,34 @@
-collection: measures
-field: version
-type: string
+collection: measure_catalog
+field: isCurrentBackend
+type: boolean
 meta:
-  collection: measures
+  collection: measure_catalog
   conditions: null
   display: null
   display_options: null
-  field: version
+  field: isCurrentBackend
   group: null
   hidden: false
-  interface: select-dropdown
+  interface: boolean
   note: null
-  options:
-    choices:
-      - text: Beta
-        value: beta
-      - text: Release v1.0
-        value: v1.0
+  options: null
   readonly: false
   required: true
-  sort: 4
-  special: null
+  sort: 7
+  special:
+    - cast-boolean
   translations:
     - language: de-DE
-      translation: Maßnahmenkatalog-Version
+      translation: Ist aktuelle Version im Backend
   validation: null
   validation_message: null
   width: half
 schema:
-  name: version
-  table: measures
-  data_type: character varying
+  name: isCurrentBackend
+  table: measure_catalog
+  data_type: boolean
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

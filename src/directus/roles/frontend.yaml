@@ -118,6 +118,13 @@ permissions:
       - municipality_name
       - slug
       - name
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: measures
     action: read
     permissions:

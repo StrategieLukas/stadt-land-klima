@@ -1,35 +1,33 @@
-collection: measures
-field: measure_id
-type: string
+collection: measure_catalog
+field: date_created
+type: timestamp
 meta:
-  collection: measures
+  collection: measure_catalog
   conditions: null
-  display: null
-  display_options: null
-  field: measure_id
+  display: datetime
+  display_options:
+    relative: true
+  field: date_created
   group: null
   hidden: false
-  interface: input
+  interface: datetime
   note: null
-  options:
-    placeholder: z.B. EN_2
-    trim: true
-  readonly: false
+  options: null
+  readonly: true
   required: false
-  sort: 3
-  special: null
-  translations:
-    - language: de-DE
-      translation: Maßnahmen-ID
+  sort: 6
+  special:
+    - date-created
+  translations: null
   validation: null
   validation_message: null
   width: half
 schema:
-  name: measure_id
-  table: measures
-  data_type: character varying
+  name: date_created
+  table: measure_catalog
+  data_type: timestamp with time zone
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
