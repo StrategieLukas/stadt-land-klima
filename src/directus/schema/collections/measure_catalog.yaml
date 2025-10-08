@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: measure_catalog
   color: null
-  display_template: null
+  display_template: "{{name}}"
   group: null
   hidden: true
   icon: null

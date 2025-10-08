@@ -4,8 +4,9 @@ type: uuid
 meta:
   collection: measures
   conditions: null
-  display: null
-  display_options: null
+  display: related-values
+  display_options:
+    template: "{{name}}"
   field: catalog_version
   group: null
   hidden: false
