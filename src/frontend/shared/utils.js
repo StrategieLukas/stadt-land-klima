@@ -79,12 +79,14 @@ export function getScorePercentageColor(score) {
 
 import linkifyStr from "linkify-string";
 
-export function saneLinkifyStr(text) {
+export function saneLinkifyStr(text, newTab = true) {
   return linkifyStr(text, {
     validate: {
       // don't linkify Stadt.Land.Klima substrings
       // we now require a protocol (http:// or https://) to create a link
       url: (value) => /^https?:\/\//.test(value),
     },
+    target: newTab ? "_blank" : "_self",
+    rel: "noopener noreferrer",
   });
 }

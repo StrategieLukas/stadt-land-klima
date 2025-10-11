@@ -171,7 +171,7 @@
         <!-- Missing categories: Tag, Municipality size, Contact for this project (i.e. from the local group that did the project, not necessarily the author) -->
 
         <!-- Social Media Icons -->
-        <p v-if="articleHasSocialMedia" class="flex justify-between space-x-3">
+        <div v-if="articleHasSocialMedia" class="flex justify-between space-x-3">
           <strong>{{  $t("generic.social_media") }}</strong>
           <div class="flex">
             <!-- <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" /> -->
@@ -197,7 +197,7 @@
             <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
           </div>
           
-        </p>
+        </div>
       </div>
       
       <!-- Main Content -->

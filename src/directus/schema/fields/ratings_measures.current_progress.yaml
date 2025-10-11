@@ -16,6 +16,17 @@ meta:
         font: sans-serif
         clear: false
       required: false
+    - name: Field not required if selected rating is "not rated yet" to allow
+        intermittent saving
+      rule:
+        _and:
+          - rating:
+              _null: true
+      required: false
+      options:
+        trim: false
+        font: sans-serif
+        clear: false
   display: null
   display_options: null
   field: current_progress

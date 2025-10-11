@@ -22,11 +22,12 @@
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
 
-    <!-- <button @click="openPrintDialog" class="flex items-start h-3">PDF</button> -->
-
+    
     <div v-if="isRanking" class="flex items-start">
       <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
     </div>
+    <button v-else @click="fetchPDF(municipality)" class="flex items-start h-3">PDF</button>
+    
   </div>
 </template>
 <script setup>
@@ -52,31 +53,35 @@ const colorClass = computed(() => {
   return c;
 });
 
-const openPrintDialog = () => {
-  // Deaktiviere Animationen
-  // document.body.classList.add('no-animations');
+const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config
 
-  // Die aktuelle URL abrufen
-  const buttonUrl = window.location.origin;
-  const printUrl = buttonUrl + "/municipalities/" + municipality.slug + "_print";
+async function fetchPDF(municipality) {
+  console.log("municipality: ", municipality)
+  if (!municipality.slug) return;
 
-  // Öffne die URL in einem neuen Tab
-  const newTab = window.open(printUrl, '_blank');
+  try {
+    const baseUrl = config.public.clientDirectusUrl;
+    const token = config.public.directusToken;
 
-  // Warte eine kurze Zeit, um sicherzustellen, dass alles geladen ist
-  newTab.onabort = function () {
-    newTab.close()
+    const response = await fetch(`${baseUrl}/pdf-service/municipality/${municipality.slug}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ slug: municipality.slug }),
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+
+  } catch (err) {
+    console.error('Error fetching PDF:', err);
   }
-  newTab.onafterprint = function () {
-    newTab.close()
-  }
-  setTimeout(() => {
-    newTab.print();
-    newTab.close();
-  }, 2000); // 2000 ms Verzögerung, passe dies nach Bedarf an
-};
-
-
+}
 
 const props = defineProps({
   municipality: {

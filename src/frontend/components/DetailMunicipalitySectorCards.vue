@@ -27,14 +27,14 @@
       <h3 class="mb-2 font-heading text-h2 text-black">
         {{ $t("measure_sector.measures_in_detail") }}
       </h3>
-      <ul class="mb-2 flex items-end justify-center gap-4">
+      <ul class="my-4 flex flex-wrap items-end justify-center gap-3 sm:gap-4 text-center">
         <li
           v-for="(rating, _) in [0, 1, 2, 3, 4, null]"
           :key="`rating-image-${rating}`"
-          class="flex flex-col items-center"
+          class="flex w-16 h-14 flex-col items-center sm:w-auto"
         >
-          <img :src="ratingIcons[rating]" class="h-auto w-5" />
-          <div class="text-sm">
+          <img :src="ratingIcons[rating]" class="h-[calc(1.25rem*1.595)] w-5 shrink-0 top-0" />
+          <div class="text-xs sm:text-sm leading-tight break-words">
             {{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}
           </div>
         </li>
