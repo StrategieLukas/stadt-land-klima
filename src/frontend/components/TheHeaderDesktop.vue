@@ -7,8 +7,9 @@
           <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
         </NuxtLink>
       </div>
-   
-      <MunicipalitySearchBar/>
+
+      <!-- Search Bar in center -->
+      <MunicipalitySearchBar basePath="/municipalities" :label="$t('municipalities_search.label')" :municipalities="municipalities"/>
 
       <!-- Right side (Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
@@ -20,8 +21,8 @@
             <span>→</span>
           </button>
         </a>
-        
-        
+
+
         <!-- Spenden button -->
          <DonateButton/>
       </div>
@@ -84,11 +85,19 @@
 </template>
 
 <script setup>
-import { defineProps } from "vue";
-
 const { $t } = useNuxtApp();
+
 const route = useRoute();
-const props = defineProps(["pages"]);
+const props = defineProps({
+  municipalities: {
+    type: Array,
+    required: true,
+  },
+  pages: {
+    type: Array,
+    required: true,
+  },
+});
 
 //Separate pages into "main" and "other" based on configured menus
 const mainPages = computed(() =>
@@ -97,6 +106,8 @@ const mainPages = computed(() =>
 const otherPages = computed(() =>
   props?.pages?.filter((page) => page.menus && page.menus.includes('main') && !page.menus.includes('top-bar')) || []
 );
+
+
 
 // Function to check if a page is active
 const isActive = (slug) => {
