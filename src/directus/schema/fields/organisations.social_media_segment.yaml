@@ -1,0 +1,25 @@
+collection: organisations
+field: social_media_segment
+type: alias
+meta:
+  collection: organisations
+  conditions: null
+  display: null
+  display_options: null
+  field: social_media_segment
+  group: null
+  hidden: false
+  interface: group-raw
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 10
+  special:
+    - alias
+    - group
+    - no-data
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

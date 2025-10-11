@@ -7,14 +7,14 @@ meta:
   display: null
   display_options: null
   field: content
-  group: null
+  group: content_segment
   hidden: false
   interface: group-accordion
   note: null
   options: null
   readonly: false
   required: false
-  sort: 15
+  sort: 1
   special:
     - alias
     - group

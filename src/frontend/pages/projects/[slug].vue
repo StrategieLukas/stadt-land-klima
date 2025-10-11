@@ -11,6 +11,8 @@
     :abstract="article.abstract"
     :article_text="article.article_text"
     :link="articleLink"
+    :article_instagram="article.instagram"
+    :article_linkedin="article.linkedin"
     :organisation="article.organisation"
   />
 </template>
@@ -25,7 +27,7 @@
     return $directus.request(
       $readItems("articles", {
         fields: [
-          "title", "subtitle", "municipality_name", "state", "author", "date_created", "image", "image_credits", "abstract", "article_text", "link", 
+          "title", "subtitle", "municipality_name", "state", "author", "date_created", "image", "image_credits", "abstract", "article_text", "link", "instagram", "linkedin",
           { organisation: ["name", "logo", "link"] }],
         filter: { slug: { _eq: route.params.slug } },
         limit: 1,
@@ -34,7 +36,6 @@
   });
 
   const article = articles.value[0];
-
 
   const articleLink = computed(() => {
     if (!article.link) return null;

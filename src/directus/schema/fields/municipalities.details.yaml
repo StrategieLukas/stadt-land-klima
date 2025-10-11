@@ -11,8 +11,7 @@ meta:
   hidden: false
   interface: group-detail
   note: null
-  options:
-    start: closed
+  options: {}
   readonly: false
   required: false
   sort: 12

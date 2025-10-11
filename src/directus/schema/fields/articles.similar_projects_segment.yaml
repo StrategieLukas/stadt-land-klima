@@ -1,0 +1,28 @@
+collection: articles
+field: similar_projects_segment
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: similar_projects_segment
+  group: null
+  hidden: false
+  interface: group-detail
+  note: null
+  options:
+    start: closed
+  readonly: false
+  required: false
+  sort: 16
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Ähnliche Projekte
+  validation: null
+  validation_message: null
+  width: full

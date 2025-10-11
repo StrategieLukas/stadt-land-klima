@@ -1,7 +1,7 @@
 <template lang="">
   <div class="flex w-full justify-center">
-    <div :style="{ height: height }" class="relative flex w-full items-center justify-center">
-      <div :style="{ height: height }" class="relative flex w-full items-center justify-center">
+    <div class="relative flex h-96 w-full items-center justify-center">
+      <div class="relative flex h-96 w-full items-center justify-center">
         <div class="z-10 h-58/100 w-58/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
@@ -46,10 +46,6 @@ const props = defineProps({
   nameMunicipality: {
     type: String,
     required: true,
-  },
-  height: {
-    type: String,
-    default: '24rem' // default height (h-96 is 24rem)
   }
 });
 const subScoresArray = createSubScoreArray(props.subScores);

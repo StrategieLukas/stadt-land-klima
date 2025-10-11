@@ -1,0 +1,42 @@
+collection: organisations
+field: instagram
+type: string
+meta:
+  collection: organisations
+  conditions: null
+  display: null
+  display_options: null
+  field: instagram
+  group: social_media_segment
+  hidden: false
+  interface: input
+  note: null
+  options:
+    placeholder: https://www.instagram.com/stadt.land.klima
+  readonly: false
+  required: false
+  sort: 1
+  special: null
+  translations: null
+  validation:
+    _and:
+      - instagram:
+          _regex: ^(https?:\/\/)?(www\.)?instagram\.com\/.+$
+  validation_message: null
+  width: full
+schema:
+  name: instagram
+  table: organisations
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

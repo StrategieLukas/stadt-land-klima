@@ -22,14 +22,9 @@
                     <div
                         class="absolute top-0 right-0 w-0 h-0 border-t-[7rem] border-t-white border-l-[7rem] border-l-transparent">
                     </div>
-                    <SmartImg
-                        :assetId="organisation.logo"
-                        :alt="organisation.name"
-                        :height="48"
-                        :width="48" 
-                        fit="cover"
-                        img-class="absolute top-2 right-2 rounded-lg w-12 h-12"
-                        />
+                    <!-- Using raw image url (no width parameter) for easier request caching as organisation logos should be small -->
+                    <img fit="cover" class="absolute top-2 right-2 rounded-lg w-12 h-12" height="48" width="48" :alt="organisation.name" loading="lazy" 
+                    :src="getRawUrl(organisation.logo)"/>
                 </div>
             </NuxtLink>
 
@@ -66,7 +61,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { buildLocationString, toAssetUrl }from '~/shared/utils';
+import { buildLocationString }from '~/shared/utils';
 const { $locale } = useNuxtApp();
 
 const props = defineProps({
@@ -82,7 +77,7 @@ const props = defineProps({
     organisation: Object, // can be null
 })
 
-
+const config = useRuntimeConfig();
 const location = computed(() => buildLocationString(props.municipality_name, props.state));
 
 
@@ -92,6 +87,10 @@ const truncatedAbstract = computed(() => {
     }
     return props.abstract;
 });
+
+function getRawUrl(assetId) {
+    return `${config.public.clientDirectusUrl}/assets/${assetId}`;
+}
 
 
 </script>

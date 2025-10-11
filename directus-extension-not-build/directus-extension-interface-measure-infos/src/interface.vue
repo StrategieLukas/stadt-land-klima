@@ -1,9 +1,10 @@
 <template>
   <div class="measure-preview">
+  <p class="id-info">ID: {{ measureData.measure_id }}</p>
     <!-- Link to Frontend -->
     <div v-if="measureData.slug && measureData.sector" class="measure-link">
       <a
-        :href="`https://stadt-land-klima.de/measures/sectors/${measureData.sector}#measure-${measureData.slug}`"
+        :href="`https://stadt-land-klima.de/measures/sectors/${measureData.sector}#${measureData.measure_id}`"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -133,7 +134,7 @@ export default {
       this.loading = true; this.error = null;
       try {
         const response = await this.api.get(`/items/measures/${id}`, {
-          params: { fields: [...this.fieldsToDisplay, 'sector', 'slug'].join(',') },
+          params: { fields: [...this.fieldsToDisplay, 'sector', 'slug', 'measure_id'].join(',') },
         });
         this.measureData = response?.data?.data || {};
       } catch (err) {
@@ -174,6 +175,7 @@ export default {
 .loading-container { display:flex; align-items:center; gap:12px; padding:16px; color:var(--theme--foreground-subdued); }
 .loading-text { font-size:14px; }
 .v-notice { --v-notice-margin:0; }
-.measure-link { margin-top:16px; margin-bottom:8px; }
+.measure-link { margin-top:4px; margin-bottom:8px; }
 .measure-link a { color:var(--theme--primary); text-decoration:underline; font-weight:500; }
+.id-info { font-size: 14px; }
 </style>

@@ -1,12 +1,15 @@
 <template>
-  <div class="flex flex-col min-h-screen text-neutral font-sans ">
+  <div class="drawer">
+    <!-- Drawer Toggle Checkbox (Hidden) -->
+    <input id="page-drawer" type="checkbox" class="drawer-toggle" />
 
+    <div class="drawer-content flex flex-col min-h-screen text-neutral font-sans">
     <!-- Only render the appropriate header based on the viewport -->
     <div>
       <div v-if="hydrated">
         <!-- Desktop Header -->
         <div v-if="isDesktop">
-          <the-header-desktop :pages="pages" :municipalities="publishedMunicipalities" />
+          <the-header-desktop :pages="pages.filter((page) => includes(page.menus, 'main'))" :municipalities="publishedMunicipalities" />
         </div>
 
         <!-- Mobile Header -->
@@ -28,12 +31,12 @@
       </div>
     </div>
 
-    <!-- Main Content (always rendered) -->
-    <main class="flex grow flex-col px-2 py-4 bg-mild-white">
-      <div class="mx-auto w-full max-w-screen-xl flex flex-col">
-        <slot />
-      </div>
-    </main>
+      <!-- Main Content (always rendered) -->
+      <main class="flex grow flex-col px-2 py-4 bg-mild-white">
+        <div class="mx-auto w-full max-w-screen-xl flex flex-col">
+          <slot />
+        </div>
+      </main>
 
 
     <div v-if="hydrated">
@@ -52,6 +55,16 @@
     </div>
   </div>
 
+
+    <!-- Drawer Side (Menu) -->
+    <the-drawer-side
+      :pages="pages.filter((page) => includes(page.menus, 'main'))"
+    />
+
+    <!-- Dock (Mobile version - always visible, sticky) -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 block lg:hidden">
+      <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
+    </div>
 
   </div>
 </template>

@@ -1,98 +1,43 @@
 <template>
-  <div class="py-4" ref="measureDetailsSection">
+  <!-- Invisible div just to carry the ref needed for the observer -->
+  <div ref="measureDetailsSection"></div>
 
-    <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.description_about_heading") }}
-    </h3>
+  <StaticMeasureDetails :measure="measure_rating.measure" />
 
-    <div v-if="measure_rating.measure.description_about" class="mb-2 flex flex-row measure_ratings-start gap-4">
-      <figure class="mt-0 flex shrink-0 flex-col">
-        <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-10 opacity-50" />
-      </figure>
-      <div class="has-long-links prose" v-html="sanitizeHtml(measure_rating.measure.description_about)" />
-    </div>
-  </div>
-
-  <div v-if="measure_rating.measure.description_evaluation_criteria" class="py-4">
-    <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.evaluation_criteria_heading") }}
-    </h3>
-
-    <div class="mb-2 flex flex-row measure_ratings-start gap-4">
-      <figure class="mt-0 flex shrink-0 flex-col">
-        <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-10 opacity-50" />
-      </figure>
-
-      <div class="has-long-links prose" v-html="measure_rating.measure.description_evaluation_criteria" />
-    </div>
-  </div>
-
-  <div class="py-4">
-    <h3 class="mb-3 text-h3 font-bold text-black">
-      {{ $t("measure.feasibility_heading") }}
-    </h3>
-
-    <div class="grid max-w-md grid-cols-3 justify-between gap-4">
-      <FeasibilityBarChart
-        key="impact"
-        class="xs:mr-auto"
-        icon="/assets/icons/icon_impact.svg"
-        :label="$t('measure.impact_label')"
-        :value="Number(measure_rating.measure.impact)"
-      />
-
-      <FeasibilityBarChart
-        key="politics"
-        class="xs:mx-auto"
-        icon="/assets/icons/icon_politics.svg"
-        :label="$t('measure.feasibility_political_label')"
-        :value="Number(measure_rating.measure.feasibility_political)"
-      />
-
-      <FeasibilityBarChart
-        key="invest"
-        class="xs:ml-auto"
-        icon="/assets/icons/icon_invest.svg"
-        :label="$t('measure.feasibility_economical_label')"
-        :value="Number(measure_rating.measure.feasibility_economical)"
-      />
-    </div>
-  </div>
-
-  <div v-if="measure_rating.applicable">
-    <div v-if="measure_rating.current_progress" class="mb-4">
-      <h4 class="mb-2 font-bold text-black">
+  <div v-if="measure_rating.applicable" class="border-gray-300 mb-4">
+    <div v-if="measure_rating.current_progress" class="p-4 border-t-4 mb-4">
+      <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.achievement_heading") }}
-      </h4>
+      </h3>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.current_progress)" />
     </div>
-    <div v-if="measure_rating.source">
-      <h4 class="mb-2 font-bold text-black">
+    <div v-if="measure_rating.source" class="p-4 border-t-4 mb-4">
+      <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.source_heading") }}
-      </h4>
+      </h3>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.source)" />
     </div>
-    <dl v-if="measure_rating.date_updated" class="mt-2 flex flex-row gap-2 text-sm">
+    <dl v-if="measure_rating.date_updated" class="px-4 mt-2 flex flex-row gap-2 text-sm">
       <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
       <dd>{{ formatLastUpdated(measure_rating.date_updated, $locale) }}</dd>
     </dl>
   </div>
 
-  <div v-if="!measure_rating.applicable">
+  <div v-if="!measure_rating.applicable" class="border-t-4 border-gray-300 p-4 mb-4">
     <div v-if="measure_rating.why_not_applicable">
-      <h4 class="mb-2 font-bold text-black">
+      <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.why_not_applicable_heading") }}
-      </h4>
+      </h3>
 
       <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.why_not_applicable)" />
     </div>
   </div>
 
-  <div class="mt-8">
+  <div class="border-t-4 border-gray-300 p-4 mb-4">
     <NuxtLink
-      :to="`/measures/sectors/${measure_rating.measure.sector}#measure-${measure_rating.measure.slug}`"
+      :to="`/measures/sectors/${measure_rating.measure.sector}#${measure_rating.measure.measure_id}`"
       class="text-black underline"
       target="measure"
     >
@@ -101,7 +46,7 @@
   </div>
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
-  <div v-if="measure_rating.rating < 1" class="mt-4">
+  <div v-if="measure_rating.rating < 1" class="mt-4 border-t-4 border-gray-300 p-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure_rating.better_examples.title") }}:
     </h3>
@@ -120,8 +65,9 @@
           class="w-4 h-4"
         />
         <NuxtLink
-          :to="`/municipalities/${example.municipality.slug}`"
+          :href="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.measure_id}`"
           class="text-black underline"
+          target="_blank"
         >
           {{ example.municipality.name }} ↗
         </NuxtLink>
@@ -135,6 +81,7 @@
 </template>
 <script setup>
   import sanitizeHtml from "sanitize-html";
+  import { defineProps } from "vue";
   import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
   import { calculateAndAddSimilarityScores } from "../shared/compareMunicipalities.js";
   import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
@@ -192,6 +139,7 @@
   const loadingExamples = ref(false)
 
   async function fetchSimilarExamples(measureId, currentRating) {
+    console.log("Fetching similar examples...");
     loadingExamples.value = true;
 
     // Step 1: Check if we are the highest rating and then return immediately
@@ -208,6 +156,11 @@
           measure_id: { _eq: measureId },
           status: { _eq: 'published' },
           rating: { _in: higherRatings },
+          localteam_id: {
+            municipality_id: {
+              status: { _eq: 'published' }
+            }
+          }
         },
         fields: ['rating', { localteam_id: ["municipality_name", { municipality_id: ['id', 'name', 'slug', 'state', 'party_mayor', 'population', 'geolocation']}]}],
         limit: -1,

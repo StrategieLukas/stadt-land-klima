@@ -1,5 +1,5 @@
 <template>
-  <article :id="`measure-${measure.slug}`" class="card card-compact shadow">
+  <article :id="measure.measure_id" class="card card-compact shadow">
     <div class="card-body">
       <h2 class="font-heading text-h2 font-bold text-gray">
         {{ measure.name }}
@@ -10,7 +10,7 @@
       </div>
 
       <div class="divide-y-2 divide-light-blue md:px-1 lg:px-2">
-        <MeasureDetails :measure="measure" />
+        <StaticMeasureDetails :measure="measure" />
 
         <MeasureDescriptions :measure="measure" />
       </div>
@@ -21,8 +21,7 @@
   </article>
 </template>
 <script setup>
-import MeasureDetails from "./MeasureDetails.vue";
-import MeasureDescriptions from "./MeasureDescriptions.vue";
+import { defineProps } from "vue";
 const { $t, $locale } = useNuxtApp();
 const props = defineProps({
   measure: {

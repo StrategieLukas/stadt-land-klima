@@ -11,6 +11,10 @@ meta:
         value: main
       - text: Footernavigation
         value: footer
+      - text: Mobile Dock
+        value: dock
+      - text: $t:pages.navigation.top-bar-navigation
+        value: top-bar
   field: menus
   group: null
   hidden: false
@@ -22,9 +26,11 @@ meta:
         value: main
       - text: Footernavigation
         value: footer
+      - text: Mobile Dock
+        value: dock
       - text: $t:pages.navigation.top-bar-navigation
         value: top-bar
-    itemsShown: 3
+    itemsShown: 4
   readonly: false
   required: false
   sort: 11

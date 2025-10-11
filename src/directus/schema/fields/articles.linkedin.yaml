@@ -1,0 +1,42 @@
+collection: articles
+field: linkedin
+type: string
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: linkedin
+  group: social_media
+  hidden: false
+  interface: input
+  note: null
+  options:
+    placeholder: https://www.linkedin.com/company/stadt-land-klima
+  readonly: false
+  required: false
+  sort: 2
+  special: null
+  translations: null
+  validation:
+    _and:
+      - linkedin:
+          _regex: ^(https?:\/\/)?(www\.)?linkedin\.com\/.+$
+  validation_message: null
+  width: full
+schema:
+  name: linkedin
+  table: articles
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -19,7 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Artikel
+      translation: Erfolgsprojekte
+      singular: Erfolgsprojekt
+      plural: Erfolgsprojekte
   unarchive_value: draft
   versioning: false
 schema:
