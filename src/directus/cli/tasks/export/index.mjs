@@ -7,7 +7,6 @@ import exportPresets from './exportPresets.mjs';
 import exportWebhooks from './exportWebhooks.mjs';
 import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
-import exportDashboards from './exportDashboards.mjs';
 import exportSettings from './exportSettings.mjs';
 import exportCollectionItems from './exportCollectionItems.mjs';
 
@@ -190,34 +189,6 @@ function exportTasks(yargs) {
 
       await clearDirectusCache();
       await exportTranslations(argv.dest, {
-        verbose: argv.verbose,
-        overwrite: argv.force,
-      });
-    }
-  )
-
-  .command(
-    'export:dashboards [dest]',
-    'export all dashboards to the folder specified by "dest". By default it will export into "dashboards"',
-    (yargs) => {
-      return yargs
-      .positional('dest', {
-        describe: 'destination folder',
-        default: 'dashboards',
-      });
-    },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Exporting dashboards to ${argv.dest}`);
-      }
-      if (argv.clear) {
-        clear(argv.dest, {
-          verbose: argv.verbose,
-        });
-      }
-
-      await clearDirectusCache();
-      await exportDashboards(argv.dest, {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
