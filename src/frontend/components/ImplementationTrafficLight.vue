@@ -11,17 +11,4 @@
 </template>
 <script setup>
 const { $t } = useNuxtApp();
-
-const props = defineProps({
-  small: {  // display traffic light smaller used for pdf export
-    type: Boolean,
-    default: false 
-  }
-});
 </script>
-
-<style scoped>
-.small_light{
-  font-size: 7px;
-}
-</style>
