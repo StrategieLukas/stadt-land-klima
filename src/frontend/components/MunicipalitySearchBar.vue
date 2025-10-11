@@ -8,7 +8,7 @@
         <input
           id="search-input"
           v-model="q"
-          class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96"
+          class="input input-bordered input-primary w-64 max-w-full bg-white pr-12 sm:w-96 rounded-full"
           name="q"
           type="text"
           autocomplete="off"
