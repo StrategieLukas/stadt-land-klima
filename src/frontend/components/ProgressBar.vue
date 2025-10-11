@@ -41,27 +41,27 @@ const props = defineProps({
 });
 const colors = {
   0: {
-    bg: "bg-ranking-0-2",
-    border: "border-ranking-0-2",
+    bg: "bg-rating-0",
+    border: "border-rating-0",
     text_default: "text-black left-9",
     text_compact: "text-black left-5",
   },
   5: {
-    bg: "bg-ranking-0-2",
-    border: "border-ranking-0-2",
+    bg: "bg-rating-0",
+    border: "border-rating-0",
     text_default: "text-black sm:text-white left-11 sm:left-0",
     text_compact: "text-black sm:text-white left-7 sm:left-0",
   },
   12: {
-    bg: "bg-ranking-0-2",
-    border: "border-ranking-0-2",
+    bg: "bg-rating-0",
+    border: "border-rating-0",
     text_default: "text-black sm:text-white left-14 sm:left-0",
     text_compact: "text-black sm:text-white left-9 sm:left-0",
   },
-  20: { bg: "bg-ranking-2-4", border: "border-ranking-2-4", text_default: "text-white", text_compact: "text-white" },
-  40: { bg: "bg-ranking-4-6", border: "border-ranking-4-6", text_default: "text-black", text_compact: "text-black" },
-  60: { bg: "bg-ranking-6-8", border: "border-ranking-6-8", text_default: "text-white", text_compact: "text-white" },
-  80: { bg: "bg-ranking-8-10", border: "border-ranking-8-10", text_default: "text-white", text_compact: "text-white" },
+  20: { bg: "bg-rating-1", border: "border-rating-1", text_default: "text-white", text_compact: "text-white" },
+  40: { bg: "bg-rating-2", border: "border-rating-2", text_default: "text-black", text_compact: "text-black" },
+  60: { bg: "bg-rating-3", border: "border-rating-3", text_default: "text-white", text_compact: "text-white" },
+  80: { bg: "bg-rating-4", border: "border-rating-4", text_default: "text-white", text_compact: "text-white" },
 };
 const durations = {
   0: "duration-[500ms]",

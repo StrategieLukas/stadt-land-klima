@@ -3,9 +3,7 @@
   <div
     v-else
     class="radio-icon-buttons"
-    :style="{
-      '--v-radio-color': color,
-    }"
+    :style="containerStyle"
   >
     <input
       :value="value"
@@ -21,12 +19,15 @@
       type="button"
       :aria-pressed="isChecked(value, item.value) ? 'true' : 'false'"
       :disabled="disabled"
-      :class="{ checked: isChecked(value, item.value), block }"
+      :class="[
+        { checked: isChecked(value, item.value), block },
+        valueToClass(item.value)
+      ]"
       @click="selectOption(item.value, field)"
     >
       <span class="label type-text">
         <span
-          v--if="item.svg_icon"
+          v-if="item.svg_icon"
           class="v-icon"
           v-html="item.svg_icon"
         ></span>
@@ -38,7 +39,8 @@
 
 <script>
 import useDirectusToken from "./use-directus-token";
-import { nextTick } from "vue";
+import { nextTick, computed } from "vue";
+
 export default {
   inject: ["api"],
   props: {
@@ -58,25 +60,32 @@ export default {
       default: null,
     },
   },
-  emits: ["input"],
+  emits: ["input", "setFieldValue"],
+  setup(props) {
+    const containerStyle = computed(() => ({
+      "--v-radio-color": "var(--theme--primary)",
+      "--columns": props.choices?.length || 1,
+    }));
+    return { containerStyle };
+  },
   mounted() {
-    console.log(`BatchMode: ${this.batchMode}`);
-    console.log(`Choices:`);
+    console.log(`BatchMode: ${this.batchMode ?? "N/A"}`);
+    console.log("Choices:");
     console.log(this.choices);
+    if (this.choices && this.choices.length) {
+      console.log("Number of choices: ", this.choices.length);
+    }
   },
   methods: {
     selectOption(value, field) {
       if (field == this.field) {
         this.$emit("input", value);
-        nextTick().then((result) => {
-          if(value == null) {
-            this.$emit("setFieldValue", { field: "status", value: "draft" });
-          } else {
-            this.$emit("setFieldValue", { field: "status", value: "published" });
-          }
-          
+        nextTick().then(() => {
+          this.$emit("setFieldValue", {
+            field: "status",
+            value: value == null ? "draft" : "published",
+          });
         });
-        //Vue.nextTick(() => this.$emit('setFieldValue', { field: 'status', value: 'published' })); //Known bug direcuts so this workaround
       }
     },
     isChecked(input, value) {
@@ -86,28 +95,47 @@ export default {
       if (file_id === null) return;
       const { addTokenToURL } = useDirectusToken(this.api);
       return addTokenToURL(
-        `/assets/${file_id}?width=42&height=42&fit=cover&cache-buster=${modified_on}`,
+        `/assets/${file_id}?width=42&height=42&fit=cover&cache-buster=${modified_on}`
       );
     },
     handleChange(value, field) {
-      //This is a fallback if anything outside of this interface changes the value.
       if (field == this.field) {
-        console.log(`handleChange:`);
+        console.log("handleChange:");
         this.$emit("input", value);
+      }
+    },
+    valueToClass(val) {
+      const num =
+        val === "" || val === undefined ? null : val === null ? null : Number(val);
+      switch (num) {
+        case 0:
+          return "rating-0";
+        case 0.25:
+          return "rating-1";
+        case 0.5:
+          return "rating-2";
+        case 0.75:
+          return "rating-3";
+        case 1:
+          return "rating-4";
+        default:
+          return "rating-na";
       }
     },
   },
 };
 </script>
+
 <style lang="scss" scoped>
 .radio-icon-buttons {
-  --columns: 5;
   display: grid;
-  grid-gap: 12px 32px;
-  grid-template-columns: repeat(var(--columns), 1fr);
+  grid-gap: 12px 12px;
 
+  grid-template-columns: repeat(var(--columns, 6), 1fr);
+
+  /* force 3 columns on mobile regardless of inline var */
   @media (max-width: 600px) {
-    --columns: 3;
+    grid-template-columns: repeat(3, 1fr) !important;
   }
 }
 
@@ -199,7 +227,7 @@ export default {
     &.block {
       border-color: var(--theme--primary);
       .label {
-        color: var(--theme--primary);
+        color: black;
       }
       &::before {
         background-color: var(--theme--primary);
@@ -208,4 +236,11 @@ export default {
     }
   }
 }
+.v-icon-radio.checked.rating-0  { background-color: #fad3d0; }
+.v-icon-radio.checked.rating-1  { background-color: #fbdeb2; }
+.v-icon-radio.checked.rating-2  { background-color: #fff4cd; }
+.v-icon-radio.checked.rating-3  { background-color: #e7efb5; }
+.v-icon-radio.checked.rating-4  { background-color: #d2eddb; }
+.v-icon-radio.checked.rating-na { background-color: #d0d0d0; }
+
 </style>
