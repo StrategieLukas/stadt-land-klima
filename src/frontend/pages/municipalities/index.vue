@@ -187,7 +187,7 @@ const route = useRoute();
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
 // Fetch all relevant municipalities from directus
-const { data: municipalities } = await useAsyncData("municipalities", () => {
+const { data: municipalities } = await useAsyncData("municipalities_ranking", () => {
   return $directus.request(
     $readItems("municipalities", {
       fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
@@ -199,7 +199,7 @@ const { data: municipalities } = await useAsyncData("municipalities", () => {
   )
 });
 
-const { data: projects } = await useAsyncData("articles", () => {
+const { data: projects } = await useAsyncData("articles_ranking", () => {
   return $directus.request(
     $readItems("articles", {
       fields: [
