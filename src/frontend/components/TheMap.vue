@@ -157,12 +157,12 @@ function addLegend(map) {
   legendControl.onAdd = () => {
     const div = L.DomUtil.create('div', 'bg-white rounded-lg shadow-lg p-3 m-2 space-y-1 text-sm')
     const lines = [
-      ['text-ranking-8-10', 'Score 80-100%'],
-      ['text-ranking-6-8', 'Score 60-79%'],
-      ['text-ranking-4-6', 'Score 40-59%'],
-      ['text-ranking-2-4', 'Score 20-39%'],
-      ['text-ranking-0-2', 'Score 0-19%'],
-      ['text-ranking-na', $t('map.icon.popup.ratingNotFinished.short'), !showMunicipalitiesWithUnfinishedRating.value]
+      ['text-rating-4', 'Score 80-100%'],
+      ['text-rating-3', 'Score 60-79%'],
+      ['text-rating-2', 'Score 40-59%'],
+      ['text-rating-1', 'Score 20-39%'],
+      ['text-rating-0', 'Score 0-19%'],
+      ['text-rating-na', $t('map.icon.popup.ratingNotFinished.short'), !showMunicipalitiesWithUnfinishedRating.value]
     ]
     div.innerHTML = lines.map(([cls, text, hidden]) => {
       const style = hidden ? 'height:0; overflow:hidden; margin:0; padding:0;' : ''
@@ -178,14 +178,14 @@ function addLegend(map) {
 
 function getCustomIcon(m) {
   if (!DivIcon || !PinSvg.value) return null
-  let cssClass = "ranking-na"
+  let cssClass = "rating-na"
   const { score_total, status } = m
   if (status === "published") {
-    if (score_total < 20) cssClass = "ranking-0-2"
-    else if (score_total < 40) cssClass = "ranking-2-4"
-    else if (score_total < 60) cssClass = "ranking-4-6"
-    else if (score_total < 80) cssClass = "ranking-6-8"
-    else cssClass = "ranking-8-10"
+    if (score_total < 20) cssClass = "rating-0"
+    else if (score_total < 40) cssClass = "rating-1"
+    else if (score_total < 60) cssClass = "rating-2"
+    else if (score_total < 80) cssClass = "rating-3"
+    else cssClass = "rating-4"
   }
   return new DivIcon({
     className: "",

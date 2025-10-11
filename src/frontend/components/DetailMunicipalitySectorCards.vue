@@ -27,14 +27,14 @@
       <h3 class="mb-2 font-heading text-h2 text-black">
         {{ $t("measure_sector.measures_in_detail") }}
       </h3>
-      <ul class="mb-2 flex items-end justify-center gap-4">
+      <ul class="my-4 flex flex-wrap items-end justify-center gap-3 sm:gap-4 text-center">
         <li
-          v-for="(rating, _) in [0, 1, 2, 3, null]"
+          v-for="(rating, _) in [0, 1, 2, 3, 4, null]"
           :key="`rating-image-${rating}`"
-          class="flex flex-col items-center"
+          class="flex w-16 h-14 flex-col items-center sm:w-auto"
         >
-          <img :src="ratingIcons[rating]" class="h-auto w-5" />
-          <div class="text-sm">
+          <img :src="ratingIcons[rating]" class="h-[calc(1.25rem*1.595)] w-5 shrink-0 top-0" />
+          <div class="text-xs sm:text-sm leading-tight break-words">
             {{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}
           </div>
         </li>
@@ -52,7 +52,7 @@
             <!-- Header -->
             <div
               :class="[
-                `${ratingColor[ratingIndex(item.rating)]}-light`,
+                `bg-${getRatingDecimalColor(item.rating)}-light`,
                 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4'
               ]"
             >
@@ -71,7 +71,7 @@
             <!-- Content (lazy loaded) -->
             <div
               :class="[
-                  `${ratingColor[ratingIndex(item.rating)]}-very-light`,
+                  `bg-${getRatingDecimalColor(item.rating)}-very-light`,
                   'collapse-content md:px-12 lg:px-12'
                 ]"
             >
@@ -94,7 +94,7 @@
 <script setup>
 import sectorImages from "../shared/sectorImages.js";
 import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
-import { ratingColor } from "../shared/ratingColors.js";
+import { getRatingDecimalColor } from "../shared/utils.js";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
 import { reactive, computed, onMounted, nextTick, watch } from 'vue'

@@ -32,11 +32,11 @@
 </template>
 <script setup>
 const colors = {
-  0: { bg: "bg-ranking-0-2" },
-  20: { bg: "bg-ranking-2-4" },
-  40: { bg: "bg-ranking-4-6" },
-  60: { bg: "bg-ranking-6-8" },
-  80: { bg: "bg-ranking-8-10" },
+  0: { bg: "bg-rating-0" },
+  20: { bg: "bg-rating-1" },
+  40: { bg: "bg-rating-2" },
+  60: { bg: "bg-rating-3" },
+  80: { bg: "bg-rating-4" },
 };
 
 const colorClass = computed(() => {

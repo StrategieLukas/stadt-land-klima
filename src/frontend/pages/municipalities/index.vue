@@ -141,7 +141,6 @@ import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
 import minorCitySelected from '~/assets/images/minor-city-light.svg'
 import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 
-import OnboardingBox from '~/components/OnboardingBox.vue'
 import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
 const { sortBy, last, get } = lodash;

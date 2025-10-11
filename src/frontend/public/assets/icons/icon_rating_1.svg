@@ -1,17 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill:#F39200;}
-	.st1{fill:#FFFFFF;}
-	.st2{font-family:'ArialMT';}
-	.st3{font-size:12px;}
-</style>
-<g>
-	<path class="st0" d="M35.5,17.7C35.5,7.9,26.9,0,17.8,0S0,8,0,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3
-		s14-24.5,15.5-28.3C35.9,21.5,35.5,19.6,35.5,17.7z"/>
-</g>
-<path class="st1" d="M15.6,30.4H9.3L19.8,7.7h6.3L15.6,30.4z"/>
-<text transform="matrix(1 0 0 1 16.0334 0)" class="st2 st3"> </text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35.54 56.7">
+  <style>
+    .st1{fill:#F39200}
+    .st5{fill:#FFF}
+  </style>
+  <path class="st1" d="M35.52 17.7C35.52 7.9 27.02 0 17.82 0S.02 8 .02 17.7c0 1.8-.4 3.8 2.2 10.7 1.5 3.7 15.5 28.3 15.5 28.3s14-24.5 15.5-28.3c2.7-6.9 2.3-8.8 2.3-10.7z"/>
+  <path class="st5" d="M5.02 22v-5.8h25.5v5.8H5.02z"/>
 </svg>
