@@ -3,7 +3,7 @@
 #let star_generator(num_of_stars) = {
   if(num_of_stars != none){
     let num = int(num_of_stars)
-    align(bottom, 
+    align(bottom,
     for (i) in range(0, num) {
       text([*★*], size: 1.3em)
     }
@@ -44,9 +44,9 @@
     }
   }
   rating_table_data = rating_table_data.flatten().sorted(key: it => (it.sortable_rating, lower(it.measure.measure_id)))
-  
+
   table(
-    columns: (0.6cm, 1.1cm, 100%-6.4cm, 1.7cm, 1.7cm, 1.7cm),
+    columns: (0.6cm, 1.1cm, 100%-6.7cm, 1.8cm, 1.8cm, 1.8cm),
     stroke: white + 0.2em,
     rows: (2.5em, table_row_height),
     table.cell(colspan: 3)[
@@ -58,8 +58,8 @@
           align(center + top)[
             #stack(
               dir: ttb,
-              image("../slk_resources/icon_rating_0.svg", height: 100%-3pt),  
-              text(size: 6pt, fill: gray, "nicht erfüllt"), 
+              image("../slk_resources/icon_rating_0.svg", height: 100%-3pt),
+              text(size: 6pt, fill: gray, "nicht erfüllt"),
             )
           ]),
         box(
@@ -67,30 +67,30 @@
             #stack(
               dir: ttb,
               spacing: 3pt,
-              image("../slk_resources/icon_rating_1.svg", height: 100%-3pt), 
-              text(size: 6pt, fill: gray, "1/3 erfüllt"), 
+              image("../slk_resources/icon_rating_1.svg", height: 100%-3pt),
+              text(size: 6pt, fill: gray, "ansatzweise erfüllt"),
             )
           ]
-          
+
         ),
         box(
           align(center + horizon)[
             #stack(
               dir: ttb,
               spacing: 3pt,
-              image("../slk_resources/icon_rating_2.svg", height: 100%-3pt), 
-              text(size: 6pt, fill: gray, "2/3 erfüllt"), 
+              image("../slk_resources/icon_rating_2.svg", height: 100%-3pt),
+              text(size: 6pt, fill: gray, "halbwegs erfüllt"),
             )
           ]
-          
+
           ),
         box(
           align(center + horizon)[
             #stack(
               dir: ttb,
-              spacing: 3pt, 
-              image("../slk_resources/icon_rating_3.svg", height: 100%-3pt), 
-              text(size: 6pt, fill: gray, "erfüllt"), 
+              spacing: 3pt,
+              image("../slk_resources/icon_rating_3.svg", height: 100%-3pt),
+              text(size: 6pt, fill: gray, "größtenteils erfüllt"),
             )
           ]
         ),
@@ -98,29 +98,39 @@
           align(center + horizon)[
             #stack(
               dir: ttb,
-              spacing: 3pt, 
-              image("../slk_resources/icon_rating_na.svg", height: 100%-3pt), 
-              text(size: 6pt, fill: gray, "nicht anwendbar"), 
+              spacing: 3pt,
+              image("../slk_resources/icon_rating_4.svg", height: 100%-3pt),
+              text(size: 6pt, fill: gray, "vollständig erfüllt"),
+            )
+          ]
+        ),
+        box(
+          align(center + horizon)[
+            #stack(
+              dir: ttb,
+              spacing: 3pt,
+              image("../slk_resources/icon_rating_na.svg", height: 100%-3pt),
+              text(size: 6pt, fill: gray, "nicht anwendbar"),
             )
           ]
         )
       )
-    ], 
-    [#align(center + horizon, [#image("../slk_resources/icon_impact.svg")])], 
-    [#align(center + horizon, [#image("../slk_resources/icon_politics.svg")])], 
+    ],
+    [#align(center + horizon, [#image("../slk_resources/icon_impact.svg")])],
+    [#align(center + horizon, [#image("../slk_resources/icon_politics.svg")])],
     [#align(center + horizon, [#image("../slk_resources/icon_invest.svg")])],
-    [], [ID], [Maßnahme], [Impact], [Politisch], [Invest],
-    
+    [], [ID], [Maßnahme], [Impact], [Kontroverse], [Preis],
+
     ..for (rating, measure, applicable) in rating_table_data{
         let table_row_color = util.select_color_from_range(rating, factor : 100).transparentize(80%)
-        
+
         (
           table_pin(rating),
           (
-            measure.measure_id, 
+            measure.measure_id,
             measure.name,
-            star_generator(measure.impact), 
-            star_generator(measure.feasibility_political), 
+            star_generator(measure.impact),
+            star_generator(measure.feasibility_political),
             star_generator(measure.feasibility_economical)
           ).map(cell => (table.cell(fill: table_row_color)[#cell]))
         ).flatten()

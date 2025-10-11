@@ -30,7 +30,8 @@
       (parsed_value >= 0 and parsed_value < 25, "/slk_resources/icon_rating_0.svg"),
       (parsed_value >= 25 and parsed_value < 50, "/slk_resources/icon_rating_1.svg"),
       (parsed_value >= 50 and parsed_value < 75, "/slk_resources/icon_rating_2.svg"),
-      (parsed_value >= 75 and parsed_value <= 100, "/slk_resources/icon_rating_3.svg"),
+      (parsed_value >= 75 and parsed_value < 99, "/slk_resources/icon_rating_3.svg"),
+      (parsed_value > 99, "/slk_resources/icon_rating_4.svg"),
     ).find(c => c.at(0)).at(1)
   }
 }

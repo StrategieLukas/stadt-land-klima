@@ -1,18 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 35.4 56.7" style="enable-background:new 0 0 35.4 56.7;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill:#1EA64A;}
-	.st1{fill:#AFCA0B;}
-	.st2{fill:#E30613;}
-	.st3{fill:#FFFFFF;}
-	.st4{fill:#FFDD00;}
-	.st5{fill:#F39200;}
-	.st6{fill:#16BAE7;}
-	.st7{fill:none;}
-</style>
-<g>
-	<path class="st0" d="M35.4,17.7C35.4,7.9,26.9,0,17.7,0S-0.1,8-0.1,17.7c0,1.8-0.4,3.8,2.2,10.7c1.5,3.7,15.5,28.3,15.5,28.3   s14-24.5,15.5-28.3C35.9,21.5,35.4,19.6,35.4,17.7z"/>
-</g>
-<polygon class="st3" points="24.1,8.7 14.5,26 10,17.5 5,20 14.6,37.1 30.4,8.7 "/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35.54 56.7">
+  <style>
+    .st3{fill:#AFCA0B}
+    .st5{fill:#FFF}
+  </style>
+  <path class="st3" d="M35.52 17.7C35.52 7.9 26.92 0 17.82 0S.02 8 .02 17.7c0 1.8-.4 3.8 2.2 10.7 1.5 3.7 15.5 28.3 15.5 28.3s14-24.5 15.5-28.3c2.7-6.9 2.3-8.8 2.3-10.7z"/>
+  <path class="st5" d="M20.62 31.8h-5.8v-9.8H4.92v-5.8h9.8V6.3h5.8v9.8h9.8v5.9h-9.8v9.8h.1z"/>
 </svg>
