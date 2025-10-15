@@ -159,6 +159,7 @@
           <ThresholdProgressBar
             :progress="stats.solarPowerData.power / stats.populationData.population * 1000"
             :orange-threshold="30"
+            :yellow-threshold="20"
             :light-green-threshold="60"
             :dark-green-threshold="80"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
@@ -186,7 +187,9 @@
         <template #content>
           <ThresholdProgressBar
             :progress="stats.windPowerData.power / stats.populationData.population * 1000"
+            :red-threshold="5"
             :orange-threshold="15"
+            :yellow-threshold="25"
             :light-green-threshold="40"
             :dark-green-threshold="70"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
@@ -215,6 +218,7 @@
           <ThresholdProgressBar
             :progress="stats.evChargingData.power / stats.populationData.population * 1000"
             :orange-threshold="20"
+            :yellow-threshold="25"
             :light-green-threshold="30"
             :dark-green-threshold="50"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
@@ -226,24 +230,31 @@
       <DataProductViewWrapper
         v-if="stats?.publicTransportScoreData"
         :title="$t('stats.data.public_transport.title')"
-        unit="min"
+        unit="km/h"
         :description="$t('stats.data.public_transport.description')"
         :calculation="`Monte-Carlo-Simulation mit n=${stats.publicTransportScoreData.simulationCount} Simulationen innerhalb des Verwaltungsgebiets. Für das Routing wurde die Programmbibliothek r5py genutzt. Zeitliches Sampling aus der Zeitverwendungsstudie 2022, räumliches aus der Bevölkerungsdichte (JRC Census 2021 Daten). Die Fahrplansolldaten gelten für den Zeitraum von ${formatDateDetailed(stats.publicTransportScoreData.validSinceDt)} bis ${formatDateDetailed(stats.publicTransportScoreData.validUntilDt)}.`"
         :show-measure-link="false"
         :data-sources="stats.publicTransportScoreData.pipelineRun?.downloads"
         :histogram-config="{
           dataType: 'publicTransportScoreData',
-          attributeName: 'meanTravelTimeMinutes',
-          currentValue: stats.publicTransportScoreData.meanTravelTimeMinutes,
+          attributeName: 'commonTravelVelocity',
+          currentValue: stats.publicTransportScoreData.commonTravelVelocity,
           populationNormalized: false
         }"
       >
         <template #content>
-          <div class="text-center flex lg:flex-row flex-col lg:space-x-4 space-y-2 lg:space-y-0 items-center justify-center space-between">
+          <div class="w-full text-center flex-col flex space-y-2">
+            <ThresholdProgressBar
+              :progress="stats.publicTransportScoreData.commonTravelVelocity"
+              :red-threshold="2"
+              :orange-threshold="4"
+              :yellow-threshold="6"
+              :light-green-threshold="8"
+              :dark-green-threshold="10"
+              :unit="`km/h`"
+            />
             <!-- Mean Travel Time -->
-            <span class="text-2xl font-bold">{{ `(${Math.round(stats.publicTransportScoreData.meanTravelTimeMinutes)} ± ${Math.round(stats.publicTransportScoreData.stdDevTravelTimeMinutes)}) min` }}</span>
-            <!-- Common Travel velocity -->
-            <span class="text-2xl font-bold">{{ `(${Math.round(stats.publicTransportScoreData.commonTravelVelocity)} ± ${Math.round(stats.publicTransportScoreData.commonTravelVelocityStd)}) km/h` }}</span>
+            <span class="font-bold text-left">Reisezeit: {{ `(${Math.round(stats.publicTransportScoreData.meanTravelTimeMinutes)} ± ${Math.round(stats.publicTransportScoreData.stdDevTravelTimeMinutes)}) min` }}</span>
           </div>
         </template>
       </DataProductViewWrapper>

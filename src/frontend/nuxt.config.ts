@@ -13,6 +13,7 @@ export default defineNuxtConfig({
       appEnv: process.env.APP_ENV,
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
+      stadtlandzahlUrl: process.env.STADTLANDZAHL_URL,
     },
   },
   devtools: { enabled: true },

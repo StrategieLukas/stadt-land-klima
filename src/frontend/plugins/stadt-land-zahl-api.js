@@ -1,13 +1,15 @@
+import { useRuntimeConfig } from "#app";
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client/core'
 import { data } from 'autoprefixer';
 import gql from 'graphql-tag'
 
 export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig()
+  const runtimeConfig = useRuntimeConfig();
+  const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl;
   
   // Create HTTP link
   const httpLink = new HttpLink({
-    uri: config.public.graphqlEndpoint || 'http://localhost:8000/graphql/', // url needs to end with a trailing slash
+    uri: stadtlandzahlURL || 'http://localhost:8000/graphql/', // url needs to end with a trailing slash
   })
 
   // Create Apollo client

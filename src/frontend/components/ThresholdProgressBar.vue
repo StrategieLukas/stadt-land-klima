@@ -17,7 +17,7 @@
 
       <!-- Threshold Markers -->
       <div
-        v-for="(t, index) in fullThresholds"
+        v-for="(t, index) in thresholds"
         :key="index"
         class="absolute flex flex-col items-center transition-all duration-300 ease-out"
         :style="{
@@ -77,7 +77,9 @@ import { computed, ref, onMounted } from 'vue'
 const props = defineProps({
   progress: Number,
   unit: String,
+  redThreshold: Number,
   orangeThreshold: Number,
+  yellowThreshold: Number,
   lightGreenThreshold: Number,
   darkGreenThreshold: Number,
 })
@@ -107,42 +109,47 @@ const thresholds = computed(() => {
 
   return [
     {
+      value: props.redThreshold,
+      color: 'bg-rating-0',
+      position: scale(props.redThreshold),
+      hideLabelOnMobile: hideMobileLabels.value,
+      hideLabelOnDesktop: hideDesktopLabels.value,
+    },
+    {
       value: props.orangeThreshold,
       color: 'bg-rating-1',
       position: scale(props.orangeThreshold),
       hideLabelOnMobile: hideMobileLabels.value,
       hideLabelOnDesktop: hideDesktopLabels.value,
     },
+      {
+      value: props.yellowThreshold,
+      color: 'bg-rating-2',
+      position: scale(props.yellowThreshold),
+      hideLabelOnMobile: hideMobileLabels.value,
+      hideLabelOnDesktop: hideDesktopLabels.value,
+    },
     {
       value: props.lightGreenThreshold,
-      color: 'bg-rating-2',
+      color: 'bg-rating-3',
       position: scale(props.lightGreenThreshold),
       hideLabelOnMobile: hideMobileLabels.value,
       hideLabelOnDesktop: hideDesktopLabels.value,
     },
     {
       value: props.darkGreenThreshold,
-      color: 'bg-rating-3',
+      color: 'bg-rating-4',
       position: scale(props.darkGreenThreshold),
     },
   ]
 })
 
-
-// Include start marker with label
-const fullThresholds = computed(() => [
-  {
-    value: 0,
-    color: 'bg-rating-0',
-    position: 0,
-  },
-  ...thresholds.value,
-])
-
 const currentRatingColor = computed(() => {
   if (props.progress > props.darkGreenThreshold) {
-    return 'bg-rating-3'
+    return 'bg-rating-4'
   } else if (props.progress > props.lightGreenThreshold) {
+    return 'bg-rating-3'
+  } else if (props.progress > props.yellowThreshold) {
     return 'bg-rating-2'
   } else if (props.progress > props.orangeThreshold) {
     return 'bg-rating-1'
