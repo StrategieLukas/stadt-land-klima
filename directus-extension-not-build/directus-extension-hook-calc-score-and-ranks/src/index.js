@@ -1,171 +1,134 @@
-export default {
-  id: 'municipality-score-and-rank-handler',
-  handlers: {
-    // 1) Trigger when ratings_measures are created or updated
-    'items.create.ratings_measures': async (meta, ctx) => {
-      await calculateScoresHandler(meta, ctx);
-    },
-    'items.update.ratings_measures': async (meta, ctx) => {
-      await calculateScoresHandler(meta, ctx);
-    },
+const { defineHook } = require('@directus/extensions-sdk');
 
-    // 2) Trigger when a municipality’s status changes → published
-    'items.update.municipalities': async (meta, ctx) => {
-      if (meta.payload?.status !== 'published') return;
-      await calculateScoresHandler({}, ctx);
-      await updateRanksHandler({}, ctx);
-    },
+module.exports = defineHook(({ action, filter }, { services, database, getSchema, logger }) => {
+  const adminAccountability = { admin: true };
 
-    // 3) Trigger when deleting a measure — safe delete logic
-    'items.delete.measures': async (meta, ctx) => {
-      await safeMeasureDeleteHandler(meta, ctx);
-    }
-  }
-};
-
-async function calculateScoresHandler({ keys, measureIds }, { services, getSchema, accountability, logger }) {
-  try {
-    const { ItemsService } = services;
-    const schema = await getSchema();
-    accountability.admin = true;
-
-    const ratingsMeasuresService = new ItemsService('ratings_measures', { schema, accountability });
-    const measuresService = new ItemsService('measures', { schema, accountability });
-    const municipalitiesService = new ItemsService('municipalities', { schema, accountability });
-
-    const maxScore = 100;
-    let query = { limit: -1 };
-    const measures = await measuresService.readByQuery(query);
-
-    const measureNotToConsiderForCalc = measureIds ?? [];
-    let ratings_measures;
-
-    if (measureNotToConsiderForCalc.length === 0 && keys) {
-      ratings_measures = await ratingsMeasuresService.readMany(keys, query);
-      const municipalitiesToRead = Object.values(ratings_measures).map((v) => v.localteam_id);
-      if (municipalitiesToRead.length === 0) return;
-      query = { filter: { localteam_id: { _in: municipalitiesToRead } } };
-    }
-
-    const municipalities = await municipalitiesService.readByQuery(query);
-    for (const municipality of municipalities) {
-      const scoreDict = {};
-      const measuresToExclude = new Set(measureNotToConsiderForCalc);
-
-      if (measuresToExclude.size === 0 && ratings_measures) {
-        ratings_measures.forEach((rating) => {
-          if (rating.localteam_id === municipality.localteam_id) {
-            const measureForSector = measures.find((m) => m.id === rating.measure_id);
-            if (measureForSector) scoreDict[measureForSector.sector] = { denominator: 0, numerator: 0 };
-          }
-        });
-      } else {
-        measures.forEach((m) => {
-          if (measuresToExclude.has(m.id)) scoreDict[m.sector] = { denominator: 0, numerator: 0 };
-        });
-      }
-
-      scoreDict.total = { denominator: 0, numerator: 0 };
-      scoreDict.numberOfRated = { denominator: 0, numerator: 0 };
-
-      const allRatingsMeasures = await ratingsMeasuresService.readByQuery({
-        filter: {
-          _and: [
-            { localteam_id: { _eq: municipality.localteam_id } },
-            { applicable: { _eq: true } }
-          ]
-        }
-      });
-
-      const ratingsMeasureDetail = allRatingsMeasures.map((item1) => {
-        const item2 = measures.find((m) => m.id === item1.measure_id);
-        return {
-          ...item1,
-          weight: item2?.weight ?? 0,
-          sector: item2?.sector ?? 'total',
-          measureStatus: item2?.status ?? 'draft'
-        };
-      });
-
-      for (const { measure_id, applicable, weight, approved, status, rating, sector, measureStatus } of ratingsMeasureDetail) {
-        if (applicable && measureStatus === 'published' && !measuresToExclude.has(measure_id)) {
-          scoreDict.total.denominator += weight;
-          scoreDict.numberOfRated.denominator += weight;
-          if (scoreDict[sector]) scoreDict[sector].denominator += weight;
-          if (approved && status === 'published') {
-            scoreDict.total.numerator += Number(rating) * weight;
-            scoreDict.numberOfRated.numerator += weight;
-            if (scoreDict[sector]) scoreDict[sector].numerator += Number(rating) * weight;
-          }
-        }
-      }
-
-      const scoresToPush = {};
-      for (const key in scoreDict) {
-        const { numerator, denominator } = scoreDict[key];
-        if (denominator > 0) {
-          if (key === 'numberOfRated') {
-            scoresToPush.percentage_rated = (numerator / denominator) * maxScore;
-          } else {
-            scoresToPush['score_' + key] = (numerator / denominator) * maxScore;
-          }
-        } else {
-          scoresToPush[key === 'numberOfRated' ? 'percentage_rated' : 'score_' + key] = 0;
-        }
-      }
-
-      await municipalitiesService.updateOne(municipality.id, scoresToPush);
-    }
-  } catch (e) {
-    logger.error(e);
-    throw e;
-  }
-}
-
-async function updateRanksHandler(_, { database, logger }) {
-  try {
-    await database.raw(`
+  const updateRanks = async () => {
+    const sql = `
       BEGIN;
       SELECT FROM public.municipalities ORDER BY id FOR UPDATE;
       WITH RankedScores AS (
         SELECT id, DENSE_RANK() OVER (ORDER BY score_total DESC) AS place
         FROM public.municipalities
-        WHERE status = 'published'
+        WHERE status='published'
       )
       UPDATE public.municipalities AS m
-      SET place = (
-        CASE
-          WHEN m.status = 'published' THEN (SELECT r.place FROM RankedScores r WHERE m.id = r.id)
-          ELSE -1
-        END
-      );
+      SET place = CASE WHEN m.status='published'
+        THEN (SELECT r.place FROM RankedScores r WHERE r.id=m.id)
+        ELSE -1
+      END;
       COMMIT;
-    `);
-  } catch (error) {
-    logger.error(error);
-    throw error;
-  }
-}
+    `;
+    await database.raw(sql);
+  };
 
-async function safeMeasureDeleteHandler(meta, { services, getSchema, logger }) {
-  const { ItemsService } = services;
-  const schema = await getSchema();
-  const accountability = { admin: true };
-  const ratingsService = new ItemsService('ratings_measures', { schema, accountability });
+  const calculateScores = async ({ keys = null, measureIds = null } = {}) => {
+    const schema = await getSchema();
+    const ratingsService = new services.ItemsService('ratings_measures', { schema, accountability: adminAccountability });
+    const measuresService = new services.ItemsService('measures', { schema, accountability: adminAccountability });
+    const municipalitiesService = new services.ItemsService('municipalities', { schema, accountability: adminAccountability });
 
-  for (const measureId of meta.keys) {
-    const publishedRatings = await ratingsService.readByQuery({
-      filter: { measure_id: { _eq: measureId }, status: { _eq: 'published' } },
-      limit: 1
+    const measuresResp = await measuresService.readByQuery({
+      limit: -1,
+      filter: { 'catalog_version.isCurrentBackend': { _eq: true } },
     });
+    const measures = measuresResp?.data ?? measuresResp ?? [];
+    logger.info(`[CalcScores] Loaded ${measures.length} measures`);
 
-    if (publishedRatings?.length > 0) {
-      throw new Error(`Cannot delete measure ${measureId}: published ratings exist.`);
+    // fetch ratings
+    let ratings = [];
+    if (keys && keys.length) {
+      ratings = (await ratingsService.readMany(keys, { limit: -1 })).data ?? [];
+    } else {
+      ratings = (await ratingsService.readByQuery({ limit: -1 })).data ?? [];
     }
 
-    await ratingsService.deleteByQuery({ filter: { measure_id: { _eq: measureId } } });
-    logger.info(`Deleted draft ratings_measures for measure ${measureId}`);
-  }
+    const municipalitiesIds = [...new Set(ratings.map(r => r.localteam_id).filter(Boolean))];
+    if (!municipalitiesIds.length) return;
+    const municipalities = (await municipalitiesService.readByQuery({
+      filter: { localteam_id: { _in: municipalitiesIds } },
+      limit: -1,
+    })).data ?? [];
 
-  return meta;
-}
+    logger.info(`[CalcScores] Processing ${municipalities.length} municipalities`);
+
+    for (const m of municipalities) {
+      const scoreDict = { total: { numerator: 0, denominator: 0 }, numberOfRated: { numerator: 0, denominator: 0 } };
+      measures.forEach(measure => { scoreDict[measure.sector] = { numerator: 0, denominator: 0 }; });
+
+      const mRatings = ratings.filter(r => r.localteam_id === m.localteam_id);
+      mRatings.forEach(r => {
+        const measure = measures.find(mm => mm.id === r.measure_id);
+        if (!measure) return;
+        const sector = measure.sector;
+        const weight = measure.weight ?? 0;
+        scoreDict.total.denominator += weight;
+        scoreDict.numberOfRated.denominator += weight;
+        scoreDict[sector].denominator += weight;
+        if (r.approved && r.status === 'published') {
+          scoreDict.total.numerator += r.rating * weight;
+          scoreDict.numberOfRated.numerator += weight;
+          scoreDict[sector].numerator += r.rating * weight;
+        }
+      });
+
+      const toPush = {};
+      for (const key in scoreDict) {
+        const { numerator, denominator } = scoreDict[key];
+        toPush[key === 'numberOfRated' ? 'percentage_rated' : 'score_' + key] = denominator > 0 ? (numerator / denominator) * 100 : 0;
+      }
+
+      await municipalitiesService.updateOne(m.id, toPush);
+      logger.info(`[CalcScores] Municipality ${m.id} updated: ${JSON.stringify(toPush)}`);
+    }
+  };
+
+  // --- Register actions ---
+  action('items.create.ratings_measures', async (input) => {
+    logger.info('[Hook] ratings_measures.create triggered');
+    await calculateScores({ keys: input.keys });
+    await updateRanks();
+  });
+
+  action('items.update.ratings_measures', async (input) => {
+    logger.info('[Hook] ratings_measures.update triggered');
+    await calculateScores({ keys: input.keys });
+    await updateRanks();
+  });
+
+  action('items.update.municipalities', async (input) => {
+    if (!input.payload || input.payload.status !== 'published') return;
+    logger.info('[Hook] municipalities.update triggered for published status');
+
+    const schema = await getSchema();
+    const ratingsService = new services.ItemsService('ratings_measures', { schema, accountability: adminAccountability });
+    const munService = new services.ItemsService('municipalities', { schema, accountability: adminAccountability });
+
+    const municipalityId = Array.isArray(input.keys) ? input.keys[0] : input.keys;
+    const mun = await munService.readOne(municipalityId);
+    if (!mun) return;
+
+    const ratingsResp = await ratingsService.readByQuery({ filter: { localteam_id: { _eq: mun.localteam_id } }, limit: -1 });
+    const keys = (ratingsResp?.data ?? []).map(r => r.id);
+    if (keys.length) await calculateScores({ keys });
+    else await calculateScores({});
+
+    await updateRanks();
+  });
+
+  // --- Block delete if published ratings exist ---
+  filter('items.delete.measures', async (input) => {
+    const schema = await getSchema();
+    const ratingsService = new services.ItemsService('ratings_measures', { schema, accountability: adminAccountability });
+    for (const measureId of input.keys) {
+      const found = await ratingsService.readByQuery({ filter: { measure_id: { _eq: measureId }, status: { _eq: 'published' } }, limit: 1 });
+      if ((found?.data ?? []).length) {
+        const err = new Error(`Cannot delete measure ${measureId}: published ratings exist.`);
+        err.code = 'FORBIDDEN';
+        throw err;
+      }
+      await ratingsService.deleteByQuery({ filter: { measure_id: { _eq: measureId } } });
+    }
+    return input;
+  });
+});
