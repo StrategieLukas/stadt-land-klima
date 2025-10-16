@@ -183,7 +183,32 @@ useHead({
 });
 
 const route = useRoute();
+const router = useRouter()
+
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
+const measureCatalogVersion = computed(() => route.query.v)
+const allowedVersions = ['beta', '1.0'];
+const currentDefaultVersion = 'beta';
+
+// decide which version to use
+const version = computed(() => {
+  const v = versionParam.value
+  if (allowedVersions.includes(v)) return v
+  // fallback for invalid value / missing value
+  return currentDefaultVersion
+})
+
+// For invalid values, change the route to the current default version as well to avoid confusion for the user
+watchEffect(() => {
+  const v = route.query.v
+  if (!allowedVersions.includes(v)) {
+    // Replace the current route with a corrected query
+    router.replace({
+      query: { ...route.query, v: currentDefaultVersion },
+    })
+  }
+})
+
 
 // Fetch all relevant municipalities from directus
 const { data: municipalities } = await useAsyncData("municipalities_ranking", () => {
