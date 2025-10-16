@@ -1,36 +1,38 @@
-collection: measures
-field: description
-type: text
+collection: measure_catalog
+field: name
+type: string
 meta:
-  collection: measures
+  collection: measure_catalog
   conditions: null
   display: null
   display_options: null
-  field: description
+  field: name
   group: null
   hidden: false
-  interface: input-rich-text-html
+  interface: input
   note: null
-  options: null
+  options:
+    placeholder: v1.0
+    trim: true
   readonly: false
-  required: false
-  sort: 21
+  required: true
+  sort: 2
   special: null
   translations:
     - language: de-DE
-      translation: Erklärung
+      translation: Versionsname
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: description
-  table: measures
-  data_type: text
+  name: name
+  table: measure_catalog
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: true
+  is_nullable: false
   is_unique: false
   is_primary_key: false
   is_generated: false

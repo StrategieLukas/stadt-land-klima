@@ -1,32 +1,33 @@
-collection: measures
-field: description
-type: text
+collection: measure_catalog
+field: hidden
+type: boolean
 meta:
-  collection: measures
+  collection: measure_catalog
   conditions: null
   display: null
   display_options: null
-  field: description
+  field: hidden
   group: null
   hidden: false
-  interface: input-rich-text-html
+  interface: boolean
   note: null
   options: null
   readonly: false
   required: false
-  sort: 21
-  special: null
+  sort: 9
+  special:
+    - cast-boolean
   translations:
     - language: de-DE
-      translation: Erklärung
+      translation: Diese Version ist archiviert / inaktiv / soll nirgendwo angezeigt werden
   validation: null
   validation_message: null
   width: full
 schema:
-  name: description
-  table: measures
-  data_type: text
-  default_value: null
+  name: hidden
+  table: measure_catalog
+  data_type: boolean
+  default_value: false
   max_length: null
   numeric_precision: null
   numeric_scale: null

@@ -1,31 +1,31 @@
-collection: measures
-field: description
-type: text
+collection: measure_catalog
+field: date_created
+type: timestamp
 meta:
-  collection: measures
+  collection: measure_catalog
   conditions: null
-  display: null
-  display_options: null
-  field: description
+  display: datetime
+  display_options:
+    relative: true
+  field: date_created
   group: null
   hidden: false
-  interface: input-rich-text-html
+  interface: datetime
   note: null
   options: null
-  readonly: false
+  readonly: true
   required: false
-  sort: 21
-  special: null
-  translations:
-    - language: de-DE
-      translation: Erklärung
+  sort: 6
+  special:
+    - date-created
+  translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: description
-  table: measures
-  data_type: text
+  name: date_created
+  table: measure_catalog
+  data_type: timestamp with time zone
   default_value: null
   max_length: null
   numeric_precision: null

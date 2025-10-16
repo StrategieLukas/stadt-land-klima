@@ -1,0 +1,28 @@
+{
+  "name": "directus-extension-hook-calc-score-and-ranks",
+  "version": "0.1.0",
+  "description": "Combined hook: recalc municipality scores on ratings/measures changes and update ranking; protect measures delete",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link"
+  },
+  "keywords": [
+    "directus-extension",
+    "directus",
+    "hook"
+  ],
+  "author": "your-name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@directus/extensions-sdk": "^10.0.0"
+  },
+  "directus:extension": {
+    "type": "hook",
+    "host": "^10.0.0",
+    "path": "./dist/index.js",
+    "source": "src/index.js"
+  }
+}
