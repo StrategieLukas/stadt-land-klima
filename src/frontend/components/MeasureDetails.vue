@@ -43,6 +43,16 @@
     >
       {{ $t("municipality_rating.link_to_measure") }} ↗
     </NuxtLink>
+    <NuxtLink
+      :to="`/feedback`"
+      class="ml-4 text-black underline"
+      target="feedback"
+    >
+    <div class="mt-2 flex flex-row gap-2">
+      <img src="~/assets/icons/icon_hint.svg" alt="" class="h-auto w-5 opacity-50" />
+      {{ $t("feedback.link.feedback_on_rating") }} ↗
+      </div>
+    </NuxtLink>
   </div>
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
