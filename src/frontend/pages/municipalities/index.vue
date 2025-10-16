@@ -209,6 +209,9 @@ watchEffect(() => {
   }
 })
 
+// TODO CRITICAL - fetch CatalogVersion to check if isCurrentFrontend and use that as default above ("currentDefaultVersion"). Also get the allowedVersions dynamically.
+
+// TODO CRITICAL - adjust the model and the query to fetch the score_total for the proper version? i.e. version all scores and duplicate all fields?
 
 // Fetch all relevant municipalities from directus
 const { data: municipalities } = await useAsyncData("municipalities_ranking", () => {
