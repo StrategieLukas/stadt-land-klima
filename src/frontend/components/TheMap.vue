@@ -7,7 +7,7 @@
   </div>
 
   <ClientOnly>
-    <div class="w-full h-screen z-0">
+    <div class="w-full h-[75svh] z-0">
       <LMap
         v-if="clientReady"
         :zoom="6"
