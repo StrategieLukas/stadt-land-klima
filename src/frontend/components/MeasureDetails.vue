@@ -90,12 +90,12 @@
 
 </template>
 <script setup>
+  import sanitizeHtml from "sanitize-html";
   import { defineProps } from "vue";
   import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
   import { calculateAndAddSimilarityScores } from "../shared/compareMunicipalities.js";
   import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
   import { onMounted, onBeforeUnmount, ref } from "vue";
-  import StaticMeasureDetails from '~/components/StaticMeasureDetails.vue'
 
   const { $t, $directus, $readItems, $locale } = useNuxtApp();
   const props = defineProps({

@@ -13,6 +13,7 @@ export default defineNuxtConfig({
       appEnv: process.env.APP_ENV,
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
+      stadtlandzahlUrl: process.env.STADTLANDZAHL_URL,
     },
   },
   devtools: { enabled: true },
@@ -33,5 +34,12 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'node-server',
     workers: 1, // Avoid spawning too many workers in limited environments
+  },
+  vite: {
+     define: {
+          __VUE_OPTIONS_API__: false,
+          __VUE_PROD_DEVTOOLS__: false,
+          __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+        },
   },
 })

@@ -15,7 +15,7 @@
       </a>
     </div>
   </div>
-  
+
   <footer class="bg-light-green px-2 py-4 text-black">
     <div class="mx-auto w-full max-w-screen-xl">
 
@@ -34,7 +34,6 @@
   </footer>
 </template>
 <script setup>
-import { defineProps } from "vue";
 const { $t } = useNuxtApp();
 const props = defineProps(["pages"]);
 const route = useRoute();

@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.data.solar_power.description
+value: Stromerzeugung aus Freiflächen-Photovoltaikanlagen, die im Markststammdatenregister hinterlegt sind. Virtuelle EEG-Umlage Anlagen sind nicht enthalten!

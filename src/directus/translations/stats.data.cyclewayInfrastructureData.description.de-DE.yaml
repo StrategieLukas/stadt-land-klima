@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.data.cyclewayInfrastructureData.description
+value: Streckenkilometer des Radwege-Netzes geteilt durch die Streckenkilometer der Straßen (ohne Autobahnen und Bundesstraßen). Ein Wert von 100% bedeutet, dass es genauso viele Kilometer Radwege wie (Auto)Straßen gibt. 

@@ -24,6 +24,19 @@ operations:
             population:
               _gt: 0
     resolve_key: condition_656fu
+  - name: Kondition
+    key: condition_656fu
+    type: condition
+    position_x: 38
+    position_y: 1
+    options:
+      filter:
+        $trigger:
+          payload:
+            population:
+              _gte: 100000
+    resolve_key: log_m6yar
+    reject_key: log_m6yar_ffhhu
   - name: Konsolenausgabe
     key: log_m6yar_ffhhu
     type: item-update
@@ -44,17 +57,4 @@ operations:
       key: "{{$trigger.keys}}"
       payload:
         municipality_type: big_city
-  - name: Kondition
-    key: condition_656fu
-    type: condition
-    position_x: 38
-    position_y: 1
-    options:
-      filter:
-        $trigger:
-          payload:
-            population:
-              _gte: 100000
-    resolve_key: log_m6yar
-    reject_key: log_m6yar_ffhhu
 operation_key: exec_agdg0
