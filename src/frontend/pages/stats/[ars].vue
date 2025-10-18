@@ -158,8 +158,8 @@
         <template #content>
           <ThresholdProgressBar
             :progress="stats.solarPowerData.power / stats.populationData.population * 1000"
-            :orange-threshold="30"
-            :yellow-threshold="20"
+            :orange-threshold="20"
+            :yellow-threshold="40"
             :light-green-threshold="60"
             :dark-green-threshold="80"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
@@ -187,7 +187,6 @@
         <template #content>
           <ThresholdProgressBar
             :progress="stats.windPowerData.power / stats.populationData.population * 1000"
-            :red-threshold="5"
             :orange-threshold="15"
             :yellow-threshold="25"
             :light-green-threshold="40"
@@ -246,7 +245,6 @@
           <div class="w-full text-center flex-col flex space-y-2">
             <ThresholdProgressBar
               :progress="stats.publicTransportScoreData.commonTravelVelocity"
-              :red-threshold="2"
               :orange-threshold="4"
               :yellow-threshold="6"
               :light-green-threshold="8"

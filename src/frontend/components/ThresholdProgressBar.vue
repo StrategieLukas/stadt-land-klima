@@ -77,7 +77,6 @@ import { computed, ref, onMounted } from 'vue'
 const props = defineProps({
   progress: Number,
   unit: String,
-  redThreshold: Number,
   orangeThreshold: Number,
   yellowThreshold: Number,
   lightGreenThreshold: Number,
@@ -111,7 +110,7 @@ const thresholds = computed(() => {
     {
       value: props.redThreshold,
       color: 'bg-rating-0',
-      position: scale(props.redThreshold),
+      position: 0,
       hideLabelOnMobile: hideMobileLabels.value,
       hideLabelOnDesktop: hideDesktopLabels.value,
     },
