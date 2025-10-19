@@ -154,6 +154,7 @@ permissions:
     presets: null
     fields:
       - password
+      - agb_accepted
   - collection: directus_users
     action: update
     permissions:
@@ -164,3 +165,29 @@ permissions:
     presets: null
     fields:
       - password
+      - agb_accepted
+  - collection: pages
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - slug
+      - name
+      - contents
+  - collection: junction_directus_users_localteams
+    action: read
+    permissions:
+      _and:
+        - directus_users_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - localteam_id
+      - directus_users_id
+      - id

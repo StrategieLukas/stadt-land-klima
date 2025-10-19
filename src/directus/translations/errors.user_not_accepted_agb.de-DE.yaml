@@ -1,0 +1,4 @@
+language: de-DE
+key: errors.user_not_accepted_agb
+value: Die AGB wurden noch nicht akzeptiert, bitte akzeptiere die AGB auf der
+  Startseite (auf die Rakete im linken Menü klicken)

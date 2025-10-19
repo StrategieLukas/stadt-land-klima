@@ -80,3 +80,37 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+  - collection: pages
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - slug
+      - contents
+  - collection: directus_users
+    action: update
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - password
+      - agb_accepted
+  - collection: directus_users
+    action: read
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - agb_accepted

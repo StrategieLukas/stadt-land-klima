@@ -147,6 +147,7 @@ permissions:
       - theme_light_overrides
       - theme_dark_overrides
       - tfa_secret
+      - agb_accepted
   - collection: directus_roles
     action: read
     permissions: {}

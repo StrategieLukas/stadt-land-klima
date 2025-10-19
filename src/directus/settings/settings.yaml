@@ -16,6 +16,9 @@ basemaps: null
 mapbox_key: null
 module_bar:
   - type: module
+    id: landing-page
+    enabled: true
+  - type: module
     id: content
     enabled: true
   - type: module
