@@ -1,6 +1,7 @@
-const { defineHook } = require('@directus/extensions-sdk');
-
-module.exports = defineHook(({ action, filter }, { services, database, getSchema, logger }) => {
+console.log("Extension read");
+export default ({ action, filter }, { services, database, getSchema, logger }) => {
+  console.log("Entering hook consolelog");
+  logger.info("Entering hook loggerinfo")
   const adminAccountability = { admin: true };
 
   const updateRanks = async () => {
@@ -19,7 +20,9 @@ module.exports = defineHook(({ action, filter }, { services, database, getSchema
       END;
       COMMIT;
     `;
-    await database.raw(sql);
+    logger.info(sql);
+    const x = await database.raw(sql);
+    logger.warn(x);
   };
 
   const calculateScores = async ({ keys = null, measureIds = null } = {}) => {
@@ -30,7 +33,12 @@ module.exports = defineHook(({ action, filter }, { services, database, getSchema
 
     const measuresResp = await measuresService.readByQuery({
       limit: -1,
-      filter: { 'catalog_version.isCurrentBackend': { _eq: true } },
+      filter: {
+        status: { _eq: "published" },
+        catalog_version: {
+          isCurrentBackend: { _eq: true }
+        }
+      },
     });
     const measures = measuresResp?.data ?? measuresResp ?? [];
     logger.info(`[CalcScores] Loaded ${measures.length} measures`);
@@ -83,28 +91,33 @@ module.exports = defineHook(({ action, filter }, { services, database, getSchema
     }
   };
 
+  logger.info("Registering actions/hooks");
   // --- Register actions ---
-  action('items.create.ratings_measures', async (input) => {
+  action('items.create', async (meta, context) => {
+    if(meta.collection !== "ratings_measures") return;
     logger.info('[Hook] ratings_measures.create triggered');
-    await calculateScores({ keys: input.keys });
+    await calculateScores({ keys: meta.keys });
     await updateRanks();
   });
 
-  action('items.update.ratings_measures', async (input) => {
+  action('items.update', async (meta, context) => {
+  if(meta.collection !== "ratings_measures") return;
     logger.info('[Hook] ratings_measures.update triggered');
-    await calculateScores({ keys: input.keys });
+    await calculateScores({ keys: meta.keys });
     await updateRanks();
   });
 
-  action('items.update.municipalities', async (input) => {
-    if (!input.payload || input.payload.status !== 'published') return;
+  action('items.update', async (meta, context) => {
+    if(meta.collection !== "municipalities") return;
+
+    if (!meta.payload || meta.payload.status !== 'published') return;
     logger.info('[Hook] municipalities.update triggered for published status');
 
     const schema = await getSchema();
     const ratingsService = new services.ItemsService('ratings_measures', { schema, accountability: adminAccountability });
     const munService = new services.ItemsService('municipalities', { schema, accountability: adminAccountability });
 
-    const municipalityId = Array.isArray(input.keys) ? input.keys[0] : input.keys;
+    const municipalityId = Array.isArray(meta.keys) ? meta.keys[0] : meta.keys;
     const mun = await munService.readOne(municipalityId);
     if (!mun) return;
 
@@ -117,10 +130,11 @@ module.exports = defineHook(({ action, filter }, { services, database, getSchema
   });
 
   // --- Block delete if published ratings exist ---
-  filter('items.delete.measures', async (input) => {
+  filter('items.delete', async (meta, context) => {
+      if(meta.collection !== "measures") return;
     const schema = await getSchema();
     const ratingsService = new services.ItemsService('ratings_measures', { schema, accountability: adminAccountability });
-    for (const measureId of input.keys) {
+    for (const measureId of meta.keys) {
       const found = await ratingsService.readByQuery({ filter: { measure_id: { _eq: measureId }, status: { _eq: 'published' } }, limit: 1 });
       if ((found?.data ?? []).length) {
         const err = new Error(`Cannot delete measure ${measureId}: published ratings exist.`);
@@ -129,6 +143,6 @@ module.exports = defineHook(({ action, filter }, { services, database, getSchema
       }
       await ratingsService.deleteByQuery({ filter: { measure_id: { _eq: measureId } } });
     }
-    return input;
+    return meta;
   });
-});
+};
