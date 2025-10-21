@@ -2,7 +2,7 @@ name: CreateEmptyRatings
 icon: bolt
 color: null
 description: Creates an empty rating for the corresponding measure and localteam
-status: active
+status: inactive
 trigger: operation
 accountability: all
 options:
