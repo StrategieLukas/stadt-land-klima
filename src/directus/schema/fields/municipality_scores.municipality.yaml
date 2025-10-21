@@ -14,6 +14,7 @@ meta:
   note: null
   options:
     enableCreate: false
+    enableSelect: false
     template: "{{name}}"
   readonly: false
   required: true

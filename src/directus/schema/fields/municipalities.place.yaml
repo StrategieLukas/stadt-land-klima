@@ -7,7 +7,7 @@ meta:
   display: null
   display_options: null
   field: place
-  group: scores
+  group: null
   hidden: false
   interface: input
   note: null
