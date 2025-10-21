@@ -15,7 +15,7 @@ meta:
     trim: true
   readonly: true
   required: false
-  sort: 2
+  sort: 3
   special:
     - uuid
   translations: null

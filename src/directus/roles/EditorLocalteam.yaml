@@ -367,6 +367,10 @@ permissions:
       - overall_status_comment
       - public_contact
       - percentage_rated
+      - ars
+      - geolocation
+      - localteam_id
+      - notice-kcc40f
   - collection: municipalities
     action: update
     permissions:
@@ -388,6 +392,32 @@ permissions:
       - description
       - overall_status_comment
       - status
+  - collection: municipality_scores
+    action: read
+    permissions:
+      _and:
+        - municipality:
+            localteam_id:
+              _eq: $CURRENT_USER.localteams.localteam_id
+        - catalog_version:
+            hidden:
+              _neq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - date_updated
+      - date_created
+      - catalog_version
+      - score_total
+      - score_buildings
+      - municipality
+      - percentage_rated
+      - score_energy
+      - score_industry
+      - score_agriculture
+      - score_management
+      - score_transport
   - collection: organisations
     action: read
     permissions: null

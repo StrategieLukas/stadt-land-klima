@@ -18,7 +18,7 @@ meta:
       bewertet)"
   readonly: false
   required: false
-  sort: 18
+  sort: 8
   special:
     - o2m
   translations: null

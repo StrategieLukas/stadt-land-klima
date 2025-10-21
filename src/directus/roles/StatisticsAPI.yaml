@@ -426,6 +426,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: municipality_scores
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: organisations
     action: create
     permissions: {}
