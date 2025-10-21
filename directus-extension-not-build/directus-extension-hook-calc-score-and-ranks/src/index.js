@@ -1,98 +1,106 @@
-console.log("Extension read");
+console.log("Extension loaded");
 
 export default ({ action, filter }, { services, database, getSchema, logger }) => {
   const adminAccountability = { admin: true };
 
-  /** ========== Utility functions ========== **/
+  /** ---------- Utility Functions ---------- **/
 
-  const updateRanks = async (database, logger) => {
-    const sql = `
-      BEGIN;
-      SELECT FROM public.municipalities ORDER BY id FOR UPDATE;
-      WITH RankedScores AS (
-        SELECT id, DENSE_RANK() OVER (ORDER BY score_total DESC) AS place
-        FROM public.municipalities
-        WHERE status='published'
-      )
-      UPDATE public.municipalities AS m
-      SET place = CASE WHEN m.status='published'
-        THEN (SELECT r.place FROM RankedScores r WHERE r.id=m.id)
-        ELSE -1
-      END;
-      COMMIT;
-    `;
-    await database.raw(sql);
-    logger.info("[updateRanks] Municipality ranks updated.");
+  const calculateScores = async (params, ctx) => {
+    const { calculateScores } = await import("./calculateScores.js");
+    return await calculateScores(params, ctx);
   };
 
-  const seedRatingsForMeasure = async (measureId, catalogVersionId, { services, getSchema, logger }) => {
+  const updateRanks = async ({ catalogVersionId }, { services, getSchema, logger }) => {
     const schema = await getSchema();
-    const municipalitiesService = new services.ItemsService('municipalities', { schema, accountability: { admin: true } });
-    const ratingsService = new services.ItemsService('ratings_measures', { schema, accountability: { admin: true } });
+    const municipalityScoresService = new services.ItemsService("municipality_scores", {
+      schema,
+      accountability: { admin: true },
+    });
 
-    const municipalities = (await municipalitiesService.readByQuery({ limit: -1 }))?.data ?? [];
-    if (!municipalities.length) return;
+    // Load all municipality_scores for this catalog version
+    const scores = await municipalityScoresService.readByQuery({
+      limit: -1,
+      filter: {
+        catalog_version: { _eq: catalogVersionId },
+        municipality: { status: { _eq: "published" } },
+      },
+      fields: ["id", "score_total"],
+    });
 
-    const toCreate = municipalities.map(mun => ({
-      measure_id: measureId,
-      catalog_version: catalogVersionId,
-      localteam_id: mun.localteam_id,
-      status: 'draft',
-      approved: false,
-      rating: null
-    }));
+    if (!scores?.length) return logger.info(`[updateRanks] No scores found for catalogVersion=${catalogVersionId}`);
 
-    await ratingsService.createMany(toCreate);
-    logger.info(`[SeedRatings] Created ${toCreate.length} rating stubs for measure=${measureId}`);
+    // Sort and rank
+    const ranked = scores
+      .sort((a, b) => (b.score_total ?? 0) - (a.score_total ?? 0))
+      .map((s, i, arr) => ({
+        id: s.id,
+        rank:
+          i === 0 || s.score_total !== arr[i - 1].score_total
+            ? i + 1
+            : arr[i - 1].rank,
+      }));
+
+    // Apply updates
+    for (const r of ranked) {
+      await municipalityScoresService.updateOne(r.id, { rank: r.rank });
+    }
+
+    logger.info(`[updateRanks] Updated ranks for ${ranked.length} municipality_scores`);
   };
 
-  const seedRatingsForMunicipality = async (municipality, { services, getSchema, logger }) => {
+  const createEmptyRatingsForMunicipality = async (municipality, { services, getSchema, logger }) => {
     const schema = await getSchema();
-    const measuresService = new services.ItemsService('measures', { schema, accountability: adminAccountability });
-    const ratingsService = new services.ItemsService('ratings_measures', { schema, accountability: adminAccountability });
+    const measuresService = new services.ItemsService("measures", { schema, accountability: adminAccountability });
+    const ratingsService = new services.ItemsService("ratings_measures", {
+      schema,
+      accountability: adminAccountability,
+    });
 
     const publishedMeasures = await measuresService.readByQuery({
       limit: -1,
-      filter: { status: { _eq: "published" } }
+      filter: { status: { _eq: "published" } },
     });
 
-    if (!publishedMeasures.length) {
-      logger.info(`[SeedRatings] No published measures found for new municipality ${municipality.name}`);
+    if (!publishedMeasures?.length) {
+      logger.info(`[createEmptyRatings] No published measures found for new municipality ${municipality.name}`);
       return;
     }
 
-    const toCreate = publishedMeasures.map(measure => ({
+    const toCreate = publishedMeasures.map((measure) => ({
       measure_id: measure.id,
-      catalog_version: typeof measure.catalog_version === 'object'
-        ? measure.catalog_version.id
-        : measure.catalog_version,
+      catalog_version:
+        typeof measure.catalog_version === "object"
+          ? measure.catalog_version.id
+          : measure.catalog_version,
       localteam_id: municipality.localteam_id,
-      status: 'draft',
+      status: "draft",
       approved: false,
-      rating: null
+      choices: measure.choices_rating,
+      rating: null,
     }));
 
-    await ratingsService.createMany(toCreate);
-    logger.info(`[SeedRatings] Created ${toCreate.length} empty ratings for new municipality=${municipality.name}`);
+    // Create silently (do not emit hooks)
+    await ratingsService.createMany(toCreate, { emitEvents: false });
+    logger.info(`[createEmptyRatings] Created ${toCreate.length} ratings_measures silently for municipality=${municipality.name}`);
   };
 
-  /** ========== Handlers ========== **/
-
-  const handleMunicipalityCreated = async (meta, { services, getSchema, logger }) => {
-    logger.info("[Hook] municipalities.create triggered");
-
+  const createEmptyScoresForMunicipality = async (municipality, { services, getSchema, logger }) => {
     const schema = await getSchema();
-    const munService = new services.ItemsService('municipalities', { schema, accountability: adminAccountability });
-    const measureCatalogService = new services.ItemsService('measure_catalog', { schema, accountability: adminAccountability });
-    const municipalityScoresService = new services.ItemsService('municipality_scores', { schema, accountability: adminAccountability });
+    const measureCatalogService = new services.ItemsService("measure_catalog", {
+      schema,
+      accountability: adminAccountability,
+    });
+    const municipalityScoresService = new services.ItemsService("municipality_scores", {
+      schema,
+      accountability: adminAccountability,
+    });
+    const munService = new services.ItemsService("municipalities", {
+      schema,
+      accountability: adminAccountability,
+    });
 
-    const municipalityId = meta.key;
-    const municipality = await munService.readOne(municipalityId);
-    if (!municipality) return;
-
-    // Create empty municipality_scores for all catalog versions
     const measureCatalogs = await measureCatalogService.readByQuery({ limit: -1 });
-    const scoresToCreate = measureCatalogs.map(cv => ({
+    const scoresToCreate = measureCatalogs.map((cv) => ({
       municipality: municipality.id,
       catalog_version: cv.id,
       score_total: 0,
@@ -102,89 +110,139 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
       score_management: 0,
       score_energy: 0,
       score_industry: 0,
-      score_transport: 0
+      score_transport: 0,
     }));
 
-    const createdScores = await municipalityScoresService.createMany(scoresToCreate);
-    await munService.updateOne(municipality.id, { scores: createdScores });
+    const createdIds = await municipalityScoresService.createMany(scoresToCreate);
+    await munService.updateOne(municipality.id, { scores: createdIds });
 
-    logger.info(`[Hook] Created ${createdScores.length} municipality_scores for ${municipality.name}`);
-
-    // Create empty ratings for all published measures
-    await seedRatingsForMunicipality(municipality, { services, getSchema, logger });
+    logger.info(`[createEmptyScores] Created ${createdIds.length} municipality_scores for ${municipality.name}`);
   };
 
-  const handleMeasureCreated = async (meta, { services, getSchema, logger }) => {
+  const createEmptyRatingsForMeasure = async (measure, { services, getSchema, logger }) => {
     const schema = await getSchema();
-    const measureService = new services.ItemsService('measures', { schema, accountability: adminAccountability });
+    const municipalitiesService = new services.ItemsService("municipalities", {
+      schema,
+      accountability: adminAccountability,
+    });
+    const ratingsService = new services.ItemsService("ratings_measures", {
+      schema,
+      accountability: adminAccountability,
+    });
 
+    const municipalities = await municipalitiesService.readByQuery({ limit: -1 });
+    if (!municipalities?.length) return;
+
+    const toCreate = municipalities.map((mun) => ({
+      measure_id: measure.id,
+      catalog_version:
+        typeof measure.catalog_version === "object"
+          ? measure.catalog_version.id
+          : measure.catalog_version,
+      localteam_id: mun.localteam_id,
+      status: "draft",
+      approved: false,
+      rating: null,
+    }));
+
+    await ratingsService.createMany(toCreate);
+    logger.info(`[createEmptyRatingsForMeasure] Created ${toCreate.length} ratings for measure=${measure.id}`);
+  };
+
+  /** ---------- Handlers ---------- **/
+
+  const handleMunicipalityCreated = async (meta, ctx) => {
+    const schema = await getSchema();
+    const munService = new services.ItemsService("municipalities", { schema, accountability: adminAccountability });
+    const municipality = await munService.readOne(meta.key);
+    if (!municipality) return;
+
+    await createEmptyScoresForMunicipality(municipality, ctx);
+    await createEmptyRatingsForMunicipality(municipality, ctx);
+  };
+
+  const handleMeasureCreatedOrPublished = async (meta, ctx) => {
+    const schema = await getSchema();
+    const measureService = new services.ItemsService("measures", { schema, accountability: adminAccountability });
     const measureId = Array.isArray(meta.keys) ? meta.keys[0] : meta.keys;
     const measure = await measureService.readOne(measureId);
     if (!measure || measure.status !== "published") return;
 
-    const catalogVersionId = typeof measure.catalog_version === 'object' ? measure.catalog_version.id : measure.catalog_version;
-    await seedRatingsForMeasure(measureId, catalogVersionId, { services, getSchema, logger });
+    await createEmptyRatingsForMeasure(measure, ctx);
+    const catalogVersionId =
+      typeof measure.catalog_version === "object"
+        ? measure.catalog_version.id
+        : measure.catalog_version;
+
+    await calculateScores({ catalogVersionId }, ctx);
   };
 
-  const handleMeasureUpdated = async (meta, { services, getSchema, logger }) => {
+  const handleRatingsMeasureUpdated = async (meta, ctx) => {
     const schema = await getSchema();
-    const measureService = new services.ItemsService('measures', { schema, accountability: adminAccountability });
-    const measureId = Array.isArray(meta.keys) ? meta.keys[0] : meta.keys;
-    const measure = await measureService.readOne(measureId);
+    const ratingsService = new services.ItemsService("ratings_measures", { schema, accountability: adminAccountability });
+    const ratingId = meta.key ?? meta.keys[0]
+    const rating = await ratingsService.readOne(ratingId, {
+      fields: [
+        "localteam_id.municipality_id",
+        "measure_id.catalog_version"
+      ]
+    });
 
-    if (meta.payload?.status === "published" && measure.status === "published") {
-      const catalogVersionId = typeof measure.catalog_version === 'object' ? measure.catalog_version.id : measure.catalog_version;
-      await seedRatingsForMeasure(measureId, catalogVersionId, { services, getSchema, logger });
-    }
+    const municipalityId = rating.localteam_id?.municipality_id;
+    const catalogVersionId =
+      typeof rating.measure_id.catalog_version === "object"
+        ? rating.measure_id.catalog_version.id
+        : rating.measure_id.catalog_version;
+
+    if (!municipalityId || !catalogVersionId) return;
+
+    await calculateScores({ municipalityIds: [municipalityId], catalogVersionId }, ctx);
+    await updateRanks({ catalogVersionId }, ctx);
   };
 
-  const handleRatingsMeasureChanged = async (meta, { services, getSchema, database, logger }) => {
-    const { calculateScores } = await import("./calculateScores.js"); // if you want to separate logic further
-    await calculateScores({ keys: meta.keys }, { services, getSchema, logger });
-    await updateRanks(database, logger);
-  };
+  /** ---------- Hook Bindings ---------- **/
 
-  /** ========== Hook bindings ========== **/
+  // Adds extra diagnostics logging
+  const safeCall = (fnName, fn) => async (meta, ctx) => {
+    try {
+      logger.info(`[HOOK] entering ${fnName} — collection=${meta.collection} key=${meta.key} keys=${meta.keys}`);
+      // Basic introspection
+      logger.info(`[HOOK] ctx keys: ${Object.keys(ctx || {}).join(", ")}`);
+      logger.info(`[HOOK] services available: ${Object.keys(services || {}).slice(0,20).join(", ")}`);
 
-  action("items.create", async (meta, context) => {
-    switch (meta.collection) {
-      case "municipalities":
-        return await handleMunicipalityCreated(meta, { services, getSchema, logger });
-      case "measures":
-        return await handleMeasureCreated(meta, { services, getSchema, logger });
-      case "ratings_measures":
-        return await handleRatingsMeasureChanged(meta, { services, getSchema, database, logger });
-    }
-  });
-
-  action("items.update", async (meta, context) => {
-    switch (meta.collection) {
-      case "measures":
-        return await handleMeasureUpdated(meta, { services, getSchema, logger });
-      case "ratings_measures":
-        return await handleRatingsMeasureChanged(meta, { services, getSchema, database, logger });
-    }
-  });
-
-  filter("items.delete", async (meta, context) => {
-    if (meta.collection !== "measures") return meta;
-
-    const schema = await getSchema();
-    const ratingsService = new services.ItemsService('ratings_measures', { schema, accountability: adminAccountability });
-
-    for (const measureId of meta.keys) {
-      const found = await ratingsService.readByQuery({
-        filter: { measure_id: { _eq: measureId }, status: { _eq: 'published' } },
-        limit: 1
-      });
-      if ((found?.data ?? []).length) {
-        const err = new Error(`Cannot delete measure ${measureId}: published ratings exist.`);
-        err.code = "FORBIDDEN";
-        throw err;
+      // Validate meta shape quickly
+      if (!meta || !meta.collection) {
+        logger.warn(`[HOOK:${fnName}] meta missing or malformed: ${JSON.stringify(meta)}`);
       }
-      await ratingsService.deleteByQuery({ filter: { measure_id: { _eq: measureId } } });
-    }
 
-    return meta;
-  });
+      // Run the handler
+      await fn(meta, { services, getSchema, database, logger });
+    } catch (err) {
+      // Full error dump with helpful runtime inspection
+      logger.error(`[HOOK:${fnName}] Caught error: ${err?.message}`);
+      logger.error(err?.stack ?? err);
+
+      // Rethrow so Directus still sees the hook failure if you want — comment out to swallow
+      throw err;
+    }
+  };
+
+  // map handlers you already defined to safeCall wrappers
+  action("items.create", safeCall("items.create", async (meta, ctx) => {
+    switch (meta.collection) {
+      case "municipalities": return await handleMunicipalityCreated(meta, ctx);
+      case "measures": return await handleMeasureCreatedOrPublished(meta, ctx);
+      case "ratings_measures": return await handleRatingsMeasureUpdated(meta, ctx);
+      default: return;
+    }
+  }));
+
+  action("items.update", safeCall("items.update", async (meta, ctx) => {
+    switch (meta.collection) {
+      case "measures": return await handleMeasureCreatedOrPublished(meta, ctx);
+      case "ratings_measures": return await handleRatingsMeasureUpdated(meta, ctx);
+      default: return;
+    }
+  }));
+
 };
