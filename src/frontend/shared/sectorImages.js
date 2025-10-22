@@ -1,8 +1,8 @@
 export default {
   energy: "/assets/icons/icon_category_energy.svg",
-  bh: "/assets/icons/icon_category_bh.svg",
-  iec: "/assets/icons/icon_category_iec.svg",
-  cpma: "/assets/icons/icon_category_cpma.svg",
-  ann: "/assets/icons/icon_category_ann.svg",
+  buildings: "/assets/icons/icon_category_buildings.svg",
+  industry: "/assets/icons/icon_category_industry.svg",
+  management: "/assets/icons/icon_category_management.svg",
+  agriculture: "/assets/icons/icon_category_agriculture.svg",
   transport: "/assets/icons/icon_category_transport.svg",
 };

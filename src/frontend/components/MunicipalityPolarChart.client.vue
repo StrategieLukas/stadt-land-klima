@@ -116,10 +116,10 @@ function createSubScoreArray(subScoreObject) {
   let scoresArray = [];
   scoresArray.push(subScoreObject.score_energy);
   scoresArray.push(subScoreObject.score_transport);
-  scoresArray.push(subScoreObject.score_ann);
-  scoresArray.push(subScoreObject.score_iec);
-  scoresArray.push(subScoreObject.score_bh);
-  scoresArray.push(subScoreObject.score_cpma);
+  scoresArray.push(subScoreObject.score_agriculture);
+  scoresArray.push(subScoreObject.score_industry);
+  scoresArray.push(subScoreObject.score_buildings);
+  scoresArray.push(subScoreObject.score_management);
   return scoresArray.map((value) => Math.round(Number(value) * 10) / 10);
 }
 function scaleToArea(scoresArray) {

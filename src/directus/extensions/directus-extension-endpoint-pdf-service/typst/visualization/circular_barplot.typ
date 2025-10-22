@@ -59,14 +59,14 @@
           background_image: none
          ) = block[
   #box(height: img_height * unit, width: img_width * unit)[
-    
+
     #draw_slice(values.score_energy, 0, img_height, img_width, unit, area_scale: area_scale)
     #draw_slice(values.score_transport, 1, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_ann, 2, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_iec, 3, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_bh, 4, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_cpma, 5, img_height, img_width, unit, area_scale: area_scale)
-    
+    #draw_slice(values.score_agriculture, 2, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(values.score_industry, 3, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(values.score_buildings, 4, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(values.score_management, 5, img_height, img_width, unit, area_scale: area_scale)
+
     #for i in range(num_slices) [
       #place(dx: img_width * 0.5 * unit, dy: img_height * 0.5 * unit,
         line(
