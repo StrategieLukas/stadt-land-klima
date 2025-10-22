@@ -27,7 +27,7 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
       fields: ["id", "score_total"],
     });
 
-    if (!scores?.length) return logger.info(`[updateRanks] No scores found for catalogVersion=${catalogVersionId}`);
+    if (!scores?.length) return logger.info(`[updateRanks] No published scores found for catalogVersion=${catalogVersionId}, thus not recalculating scores`);
 
     // Sort and rank
     const ranked = scores
@@ -74,7 +74,7 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
           : measure.catalog_version,
       localteam_id: municipality.localteam_id,
       status: "draft",
-      approved: false,
+      approved: true,
       choices: measure.choices_rating,
       rating: null,
     }));

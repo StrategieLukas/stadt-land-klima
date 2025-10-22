@@ -30,13 +30,13 @@ meta:
       - text: $t:measure_categories.energie.title
         value: energy
       - text: $t:measure_sectors.bh.title
-        value: bh
+        value: buildings
       - text: $t:measure_sectors.iec.title
-        value: iec
+        value: industry
       - text: $t:measure_sectors.cpma.title
-        value: cpma
+        value: management
       - text: $t:measure_sectors.ann.title
-        value: ann
+        value: agriculture
       - text: $t:measure_sectors.transport.title
         value: transport
   readonly: false

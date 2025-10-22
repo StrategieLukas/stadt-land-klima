@@ -1,12 +1,12 @@
 collection: municipality_scores
-field: score_energy
-type: decimal
+field: rank
+type: integer
 meta:
   collection: municipality_scores
   conditions: null
   display: null
   display_options: null
-  field: score_energy
+  field: rank
   group: null
   hidden: false
   interface: input
@@ -14,20 +14,20 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 10
+  sort: 6
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: score_energy
+  name: rank
   table: municipality_scores
-  data_type: numeric
-  default_value: null
+  data_type: integer
+  default_value: -1
   max_length: null
-  numeric_precision: 10
-  numeric_scale: 5
+  numeric_precision: 32
+  numeric_scale: 0
   is_nullable: true
   is_unique: false
   is_primary_key: false

@@ -14,7 +14,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 8
+  sort: 9
   special: null
   translations: null
   validation: null
