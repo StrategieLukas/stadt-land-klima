@@ -19,6 +19,11 @@ export async function calculateScores(
     accountability: { admin: true },
   });
 
+  const municipalityScoresService = new services.ItemsService("municipality_scores", {
+    schema,
+    accountability: { admin: true },
+  });
+
   try {
     // --- Load measures that are published and belong to this catalog version
     const measures = await measuresService.readByQuery({
@@ -166,8 +171,24 @@ export async function calculateScores(
         `[calculateScores] Completed scoring for "${municipality.name}".`
       );
 
-      // --- Write to municipality
-      await municipalitiesService.updateOne(municipality.id, scoresToPush);
+      // --- Update municipality_scores record for this municipality & catalog version
+      // --- Find the existing municipality_scores record
+      const [scoreRecord] = await municipalityScoresService.readByQuery({
+        limit: 1,
+        filter: {
+          municipality: { _eq: municipality.id },
+          catalog_version: { _eq: catalogVersionId },
+        },
+        fields: ["id"],
+      });
+
+      if (scoreRecord?.id) {
+        await municipalityScoresService.updateOne(scoreRecord.id, scoresToPush);
+        logger.info(`[calculateScores] Updated municipality_scores for "${municipality.name}" (${scoreRecord.id}).`);
+      } else {
+        logger.warn(`[calculateScores] No municipality_scores record found for "${municipality.name}".`);
+      }
+
     }
 
     logger.info(`[calculateScores] Completed calculations for catalog ${catalogVersionId}.`);
