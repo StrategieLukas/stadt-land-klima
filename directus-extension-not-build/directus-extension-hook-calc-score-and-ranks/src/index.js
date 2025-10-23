@@ -227,6 +227,90 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
     }
   };
 
+    /**
+     * Creates missing municipality_scores for all municipality × catalog_version combinations,
+     * recalculates scores, and updates ranks.
+     */
+    const syncAllMunicipalityScores = async ({ services, getSchema, logger }) => {
+      const schema = await getSchema();
+
+      const municipalityService = new services.ItemsService("municipalities", {
+        schema,
+        accountability: adminAccountability,
+      });
+      const catalogService = new services.ItemsService("measure_catalog", {
+        schema,
+        accountability: adminAccountability,
+      });
+      const scoresService = new services.ItemsService("municipality_scores", {
+        schema,
+        accountability: adminAccountability,
+      });
+
+      logger.info("[syncAllMunicipalityScores] Fetching municipalities and catalog versions...");
+      const municipalities = await municipalityService.readByQuery({ limit: -1 });
+      const catalogs = await catalogService.readByQuery({ limit: -1 });
+
+      if (!municipalities?.length || !catalogs?.length) {
+        logger.warn("[syncAllMunicipalityScores] No municipalities or catalog versions found.");
+        return;
+      }
+
+      const existing = await scoresService.readByQuery({
+        limit: -1,
+        fields: ["id", "municipality", "catalog_version"],
+      });
+
+      const existingSet = new Set(
+        existing.map((s) => `${s.municipality}:${s.catalog_version}`)
+      );
+
+      const toCreate = [];
+      for (const mun of municipalities) {
+        for (const cv of catalogs) {
+          const key = `${mun.id}:${cv.id}`;
+          if (!existingSet.has(key)) {
+            toCreate.push({
+              municipality: mun.id,
+              catalog_version: cv.id,
+              score_total: 0,
+              percentage_rated: 0,
+              score_agriculture: 0,
+              score_buildings: 0,
+              score_management: 0,
+              score_energy: 0,
+              score_industry: 0,
+              score_transport: 0,
+            });
+          }
+        }
+      }
+
+      if (toCreate.length) {
+        logger.info(`[syncAllMunicipalityScores] Creating ${toCreate.length} missing municipality_scores...`);
+        await scoresService.createMany(toCreate);
+      } else {
+        logger.info("[syncAllMunicipalityScores] No missing municipality_scores found.");
+      }
+
+      // Calculate scores and ranks for each catalog version
+      for (const cv of catalogs) {
+        logger.info(`[syncAllMunicipalityScores] Calculating scores for catalog version ${cv.id}...`);
+        await calculateScores({ catalogVersionId: cv.id }, { services, getSchema, logger });
+
+        logger.info(`[syncAllMunicipalityScores] Updating ranks for catalog version ${cv.id}...`);
+        await updateRanks({ catalogVersionId: cv.id }, { services, getSchema, logger });
+      }
+
+      logger.info("[syncAllMunicipalityScores] Sync completed.");
+    };
+
+//   Uncomment to trigger once at startup:
+   (async () => {
+     await syncAllMunicipalityScores({ services, getSchema, logger });
+   })();
+
+
   // map handlers you already defined to safeCall wrappers
   action("items.create", safeCall("items.create", async (meta, ctx) => {
     switch (meta.collection) {
