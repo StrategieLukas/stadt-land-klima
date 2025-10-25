@@ -205,10 +205,10 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
   // Adds extra diagnostics logging
   const safeCall = (fnName, fn) => async (meta, ctx) => {
     try {
-      logger.info(`[HOOK] entering ${fnName} — collection=${meta.collection} key=${meta.key} keys=${meta.keys}`);
+//      logger.info(`[HOOK] entering ${fnName} — collection=${meta.collection} key=${meta.key} keys=${meta.keys}`);
       // Basic introspection
-      logger.info(`[HOOK] ctx keys: ${Object.keys(ctx || {}).join(", ")}`);
-      logger.info(`[HOOK] services available: ${Object.keys(services || {}).slice(0,20).join(", ")}`);
+//      logger.info(`[HOOK] ctx keys: ${Object.keys(ctx || {}).join(", ")}`);
+//      logger.info(`[HOOK] services available: ${Object.keys(services || {}).slice(0,20).join(", ")}`);
 
       // Validate meta shape quickly
       if (!meta || !meta.collection) {
@@ -227,49 +227,49 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
     }
   };
 
-    /**
-     * Creates missing municipality_scores for all municipality × catalog_version combinations,
-     * recalculates scores, and updates ranks.
-     */
-    const syncAllMunicipalityScores = async ({ services, getSchema, logger }) => {
-      const schema = await getSchema();
+      /**
+       * Creates missing municipality_scores for all municipality × catalog_version combinations,
+       * recalculates scores, and updates ranks.
+       *
+       * Runs automatically at startup, but only if municipality_scores is completely empty.
+       */
+      const syncAllMunicipalityScores = async ({ services, getSchema, logger }) => {
+        const schema = await getSchema();
 
-      const municipalityService = new services.ItemsService("municipalities", {
-        schema,
-        accountability: adminAccountability,
-      });
-      const catalogService = new services.ItemsService("measure_catalog", {
-        schema,
-        accountability: adminAccountability,
-      });
-      const scoresService = new services.ItemsService("municipality_scores", {
-        schema,
-        accountability: adminAccountability,
-      });
+        const municipalityService = new services.ItemsService("municipalities", {
+          schema,
+          accountability: adminAccountability,
+        });
+        const catalogService = new services.ItemsService("measure_catalog", {
+          schema,
+          accountability: adminAccountability,
+        });
+        const scoresService = new services.ItemsService("municipality_scores", {
+          schema,
+          accountability: adminAccountability,
+        });
 
-      logger.info("[syncAllMunicipalityScores] Fetching municipalities and catalog versions...");
-      const municipalities = await municipalityService.readByQuery({ limit: -1 });
-      const catalogs = await catalogService.readByQuery({ limit: -1 });
+        logger.info("[syncAllMunicipalityScores] Checking if municipality_scores is empty...");
 
-      if (!municipalities?.length || !catalogs?.length) {
-        logger.warn("[syncAllMunicipalityScores] No municipalities or catalog versions found.");
-        return;
-      }
+        const existingCount = await scoresService.count();
+        if (existingCount > 0) {
+          logger.info(`[syncAllMunicipalityScores] municipality_scores already contains ${existingCount} entries. Skipping full sync.`);
+          return;
+        }
 
-      const existing = await scoresService.readByQuery({
-        limit: -1,
-        fields: ["id", "municipality", "catalog_version"],
-      });
+        logger.info("[syncAllMunicipalityScores] municipality_scores is empty — performing initial sync.");
 
-      const existingSet = new Set(
-        existing.map((s) => `${s.municipality}:${s.catalog_version}`)
-      );
+        const municipalities = await municipalityService.readByQuery({ limit: -1 });
+        const catalogs = await catalogService.readByQuery({ limit: -1 });
 
-      const toCreate = [];
-      for (const mun of municipalities) {
-        for (const cv of catalogs) {
-          const key = `${mun.id}:${cv.id}`;
-          if (!existingSet.has(key)) {
+        if (!municipalities?.length || !catalogs?.length) {
+          logger.warn("[syncAllMunicipalityScores] No municipalities or catalog versions found.");
+          return;
+        }
+
+        const toCreate = [];
+        for (const mun of municipalities) {
+          for (const cv of catalogs) {
             toCreate.push({
               municipality: mun.id,
               catalog_version: cv.id,
@@ -284,31 +284,37 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
             });
           }
         }
-      }
 
-      if (toCreate.length) {
-        logger.info(`[syncAllMunicipalityScores] Creating ${toCreate.length} missing municipality_scores...`);
-        await scoresService.createMany(toCreate);
-      } else {
-        logger.info("[syncAllMunicipalityScores] No missing municipality_scores found.");
-      }
+        if (toCreate.length) {
+          logger.info(`[syncAllMunicipalityScores] Creating ${toCreate.length} initial municipality_scores...`);
+          await scoresService.createMany(toCreate);
+        } else {
+          logger.info("[syncAllMunicipalityScores] No entries to create (unexpected).");
+          return;
+        }
 
-      // Calculate scores and ranks for each catalog version
-      for (const cv of catalogs) {
-        logger.info(`[syncAllMunicipalityScores] Calculating scores for catalog version ${cv.id}...`);
-        await calculateScores({ catalogVersionId: cv.id }, { services, getSchema, logger });
+        // Calculate scores and ranks for each catalog version
+        for (const cv of catalogs) {
+          logger.info(`[syncAllMunicipalityScores] Calculating scores for catalog version ${cv.id}...`);
+          await calculateScores({ catalogVersionId: cv.id }, { services, getSchema, logger });
 
-        logger.info(`[syncAllMunicipalityScores] Updating ranks for catalog version ${cv.id}...`);
-        await updateRanks({ catalogVersionId: cv.id }, { services, getSchema, logger });
-      }
+          logger.info(`[syncAllMunicipalityScores] Updating ranks for catalog version ${cv.id}...`);
+          await updateRanks({ catalogVersionId: cv.id }, { services, getSchema, logger });
+        }
 
-      logger.info("[syncAllMunicipalityScores] Sync completed.");
-    };
+        logger.info("[syncAllMunicipalityScores] Initial sync completed successfully.");
+      };
 
-//   Uncomment to trigger once at startup:
-   (async () => {
-     await syncAllMunicipalityScores({ services, getSchema, logger });
-   })();
+      // 🔹 Automatically trigger once at startup (only if municipality_scores is empty)
+      (async () => {
+        try {
+          await syncAllMunicipalityScores({ services, getSchema, logger });
+        } catch (err) {
+          logger.error(`[syncAllMunicipalityScores] Failed during startup: ${err.message}`);
+          logger.error(err.stack);
+        }
+      })();
+
 
 
   // map handlers you already defined to safeCall wrappers
