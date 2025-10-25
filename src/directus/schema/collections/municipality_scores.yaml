@@ -17,7 +17,11 @@ meta:
   singleton: false
   sort: null
   sort_field: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Punktzahlen
+      singular: Punktzahl
+      plural: Punktzahlen
   unarchive_value: null
   versioning: false
 schema:

@@ -11,6 +11,7 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
   };
 
   const updateRanks = async ({ catalogVersionId }, { services, getSchema, logger }) => {
+    logger.info(`Updating ranks for catalogVersionId=${catalogVersionId}`)
     const schema = await getSchema();
     const municipalityScoresService = new services.ItemsService("municipality_scores", {
       schema,
@@ -28,7 +29,7 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
       fields: ["id", "score_total"],
     });
 
-    if (!scores?.length) return logger.info(`[updateRanks] No published scores found for catalogVersion=${catalogVersionId}, thus not recalculating scores`);
+    if (!scores?.length) return logger.info(`[updateRanks] No published scores with percentage_rated > 95 found for catalogVersion=${catalogVersionId}, thus not recalculating scores`);
 
     // Sort and rank
     const ranked = scores
@@ -164,7 +165,6 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
 
   const handleMeasureCreatedOrPublished = async (meta, ctx) => {
     logger.info("handleMeasureCreatedOrPublished");
-    logger.info(meta.payload);
 
     // By checking the payload for the status, we only target either create-operations which publish it immediately,
     // or update-operations where the status is changed. If the status is not changed in the update, it is not part
@@ -180,7 +180,7 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
 
     let catalogVersionId = meta.payload.catalog_version;
     let ratingChoices = meta.payload.choices_rating;
-    logger.info(`Catalog version from payload: ${catalogVersionId} / Rating choices from payload: ${ratingChoices}`);
+    logger.info(`Catalog version from payload: ${catalogVersionId} | Rating choices from payload: ${ratingChoices}`);
     // If we don't have the catalog version or choices in the payload (i.e. update on measure that doesn't change this field),
     // then we fetch the measure using its id to figure it out
     if(!catalogVersionId || !ratingChoices) {
