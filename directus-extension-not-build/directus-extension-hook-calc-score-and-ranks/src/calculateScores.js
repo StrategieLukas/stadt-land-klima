@@ -2,6 +2,7 @@ export async function calculateScores(
   { municipalityIds = null, catalogVersionId },
   { services, getSchema, logger }
 ) {
+  logger.info("Recalculating scores for " + (municipalityIds?.length ? municipalityIds?.length : "all") + " municipalities")
   const schema = await getSchema();
 
   const ratingsService = new services.ItemsService("ratings_measures", {
@@ -161,15 +162,15 @@ export async function calculateScores(
       }
 
       // Log structure and result
-      logger.info(
-        {
-          municipality: municipality.name,
-          totals,
-          sectors,
-          scoresToPush,
-        },
-        `[calculateScores] Completed scoring for "${municipality.name}".`
-      );
+//      logger.info(
+//        {
+//          municipality: municipality.name,
+//          totals,
+//          sectors,
+//          scoresToPush,
+//        },
+//        `[calculateScores] Completed scoring for "${municipality.name}".`
+//      );
 
       // --- Update municipality_scores record for this municipality & catalog version
       // --- Find the existing municipality_scores record
@@ -184,9 +185,9 @@ export async function calculateScores(
 
       if (scoreRecord?.id) {
         await municipalityScoresService.updateOne(scoreRecord.id, scoresToPush);
-        logger.info(`[calculateScores] Updated municipality_scores for "${municipality.name}" (${scoreRecord.id}).`);
+        logger.info(`[calculateScores] Completed scoring and updated municipality_scores for "${municipality.name}" (${scoreRecord.id}).`);
       } else {
-        logger.warn(`[calculateScores] No municipality_scores record found for "${municipality.name}".`);
+        logger.warn(`[calculateScores] Completed scoring, but no municipality_scores record found for "${municipality.name}" and thus could not update scores!`);
       }
 
     }

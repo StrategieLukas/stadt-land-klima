@@ -17,12 +17,13 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
       accountability: { admin: true },
     });
 
-    // Load all municipality_scores for this catalog version
+    // Load all municipality_scores for this catalog version where the municipality is published AND more than 95% rated
     const scores = await municipalityScoresService.readByQuery({
       limit: -1,
       filter: {
         catalog_version: { _eq: catalogVersionId },
         municipality: { status: { _eq: "published" } },
+        percentage_rated: { _gt: 95 }
       },
       fields: ["id", "score_total"],
     });
@@ -48,7 +49,7 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
     logger.info(`[updateRanks] Updated ranks for ${ranked.length} municipality_scores`);
   };
 
-  const createEmptyRatingsForMunicipality = async (municipality, { services, getSchema, logger }) => {
+  const createEmptyRatingsForNewMunicipality = async (municipality, { services, getSchema, logger }) => {
     const schema = await getSchema();
     const measuresService = new services.ItemsService("measures", { schema, accountability: adminAccountability });
     const ratingsService = new services.ItemsService("ratings_measures", {
@@ -119,7 +120,8 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
     logger.info(`[createEmptyScores] Created ${createdIds.length} municipality_scores for ${municipality.name}`);
   };
 
-  const createEmptyRatingsForMeasure = async (measure, { services, getSchema, logger }) => {
+  const createEmptyRatingsForNewMeasure = async (measureUUID, catalogVersionId, ratingChoices, { services, getSchema, logger }) => {
+  logger.info(`Creating empty ratings_measures for measure ${measureUUID}`)
     const schema = await getSchema();
     const municipalitiesService = new services.ItemsService("municipalities", {
       schema,
@@ -134,19 +136,18 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
     if (!municipalities?.length) return;
 
     const toCreate = municipalities.map((mun) => ({
-      measure_id: measure.id,
-      catalog_version:
-        typeof measure.catalog_version === "object"
-          ? measure.catalog_version.id
-          : measure.catalog_version,
+      measure_id: measureUUID,
+      catalog_version: catalogVersionId,
       localteam_id: mun.localteam_id,
       status: "draft",
-      approved: false,
+      approved: true,
+      choices: ratingChoices,
       rating: null,
     }));
 
-    await ratingsService.createMany(toCreate);
-    logger.info(`[createEmptyRatingsForMeasure] Created ${toCreate.length} ratings for measure=${measure.id}`);
+    // DO NOT EMIT EVENTS HERE FOR THE CREATIONS - We handle calculateScores and updateRanks in the calling function
+    await ratingsService.createMany(toCreate, { emitEvents: false });
+    logger.info(`[createEmptyRatingsForNewMeasure] Created ${toCreate.length} ratings for measure=${measureUUID} and catalogVersion=${catalogVersionId}`);
   };
 
   /** ---------- Handlers ---------- **/
@@ -158,26 +159,54 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
     if (!municipality) return;
 
     await createEmptyScoresForMunicipality(municipality, ctx);
-    await createEmptyRatingsForMunicipality(municipality, ctx);
+    await createEmptyRatingsForNewMunicipality(municipality, ctx);
   };
 
   const handleMeasureCreatedOrPublished = async (meta, ctx) => {
-    const schema = await getSchema();
-    const measureService = new services.ItemsService("measures", { schema, accountability: adminAccountability });
-    const measureId = Array.isArray(meta.keys) ? meta.keys[0] : meta.keys;
-    const measure = await measureService.readOne(measureId);
-    if (!measure || measure.status !== "published") return;
+    logger.info("handleMeasureCreatedOrPublished");
+    logger.info(meta.payload);
 
-    await createEmptyRatingsForMeasure(measure, ctx);
-    const catalogVersionId =
-      typeof measure.catalog_version === "object"
-        ? measure.catalog_version.id
-        : measure.catalog_version;
+    // By checking the payload for the status, we only target either create-operations which publish it immediately,
+    // or update-operations where the status is changed. If the status is not changed in the update, it is not part
+    // of the payload, so we don't trigger multiple times on changes
+    const isPublished = meta.payload.status === "published";
+    logger.info("[DEBUG] Measure is being published in this change " + isPublished);
+    if(!isPublished) return;
 
+
+    const measureUUID = Array.isArray(meta.keys) ? meta.keys[0] : meta.key;
+    logger.info(`Measureid ${measureUUID}`)
+
+
+    let catalogVersionId = meta.payload.catalog_version;
+    let ratingChoices = meta.payload.choices_rating;
+    logger.info(`Catalog version from payload: ${catalogVersionId} / Rating choices from payload: ${ratingChoices}`);
+    // If we don't have the catalog version or choices in the payload (i.e. update on measure that doesn't change this field),
+    // then we fetch the measure using its id to figure it out
+    if(!catalogVersionId || !ratingChoices) {
+      logger.info("Fetching measure as catalogVersion/ratingChoices are not in the update payload. This is normal for updates.");
+      const schema = await getSchema();
+      const measureService = new services.ItemsService("measures", { schema, accountability: adminAccountability });
+      const measure = await measureService.readOne(measureUUID);
+      if(!measure || !measure.catalog_version) {
+        logger.error(`Unable to fetch newly created measure: ${measureUUID}`)
+        return;
+      }
+      catalogVersionId = typeof measure.catalog_version === "object"
+                                 ? measure.catalog_version.id
+                                 : measure.catalog_version;
+      ratingChoices = measure.choices_rating;
+    }
+
+    logger.info("Creating empty ratings for measure " + measureUUID + " and catalog_version " + catalogVersionId);
+    await createEmptyRatingsForNewMeasure(measureUUID, catalogVersionId, ratingChoices, ctx);
+    // Recalculate scores for all
     await calculateScores({ catalogVersionId }, ctx);
+    // Update ranks - even though the rank order itself shouldn't change, some may dip below the 95% threshold
+    await updateRanks({ catalogVersionId }, ctx);
   };
 
-  const handleRatingsMeasureUpdated = async (meta, ctx) => {
+  const handleRatingsMeasureUpdatedOrCreated = async (meta, ctx) => {
     const schema = await getSchema();
     const ratingsService = new services.ItemsService("ratings_measures", { schema, accountability: adminAccountability });
     const ratingId = meta.key ?? meta.keys[0]
@@ -251,11 +280,17 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
 
         logger.info("[syncAllMunicipalityScores] Checking if municipality_scores is empty...");
 
-        const existingCount = await scoresService.count();
-        if (existingCount > 0) {
-          logger.info(`[syncAllMunicipalityScores] municipality_scores already contains ${existingCount} entries. Skipping full sync.`);
+        // Fetch just one record efficiently
+        const existing = await scoresService.readByQuery({
+          limit: 1,
+          fields: ["id"], // minimal
+        });
+
+        if (existing && existing.length > 0) {
+          logger.info("[syncAllMunicipalityScores] municipality_scores already has entries. Skipping full sync.");
           return;
         }
+
 
         logger.info("[syncAllMunicipalityScores] municipality_scores is empty — performing initial sync.");
 
@@ -322,7 +357,7 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
     switch (meta.collection) {
       case "municipalities": return await handleMunicipalityCreated(meta, ctx);
       case "measures": return await handleMeasureCreatedOrPublished(meta, ctx);
-      case "ratings_measures": return await handleRatingsMeasureUpdated(meta, ctx);
+      case "ratings_measures": return await handleRatingsMeasureUpdatedOrCreated(meta, ctx);
       default: return;
     }
   }));
@@ -330,7 +365,7 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
   action("items.update", safeCall("items.update", async (meta, ctx) => {
     switch (meta.collection) {
       case "measures": return await handleMeasureCreatedOrPublished(meta, ctx);
-      case "ratings_measures": return await handleRatingsMeasureUpdated(meta, ctx);
+      case "ratings_measures": return await handleRatingsMeasureUpdatedOrCreated(meta, ctx);
       default: return;
     }
   }));
