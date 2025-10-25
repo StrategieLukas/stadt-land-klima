@@ -76,7 +76,8 @@ import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
 const { $t } = useNuxtApp()
 
 const props = defineProps({
-  municipalities: { type: Array, required: true }
+  municipalities: { type: Array, required: true },
+  catalogVersion: { required: true}
 })
 
 const showMunicipalitiesWithUnfinishedRating = ref(false)

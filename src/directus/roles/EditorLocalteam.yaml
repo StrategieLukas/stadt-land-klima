@@ -418,6 +418,7 @@ permissions:
       - score_agriculture
       - score_management
       - score_transport
+      - rank
   - collection: organisations
     action: read
     permissions: null

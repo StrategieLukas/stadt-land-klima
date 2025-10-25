@@ -15,11 +15,14 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  catalogVersion: {
+    required: true,
+  }
 });
 
-// Hide unpublished municipalities from the Ranking view
+// Hide unpublished municipalities and those with percentage_rated < 95% for the catalog version from the Ranking view
 const publishedMunicipalities = computed(() => {
-  return props.municipalities.filter(m => m.status === "published") || []
+  return props.municipalities.filter(m => m.status === "published" && m.scores && m.scores.filter(s => s.catalog_version === props.catalogVersion && s.percentage_rated > 95)) || []
 })
 </script>
 <style lang=""></style>

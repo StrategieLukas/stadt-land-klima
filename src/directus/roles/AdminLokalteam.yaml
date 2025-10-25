@@ -473,6 +473,7 @@ permissions:
       - score_industry
       - score_agriculture
       - score_energy
+      - rank
   - collection: organisations
     action: read
     permissions: null

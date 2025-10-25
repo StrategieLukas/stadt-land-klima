@@ -81,13 +81,13 @@
     <!-- Conditional Content -->
      <div>
       <section>
-        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
-        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
-        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities" :catalog-version="catalogVersion"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities" :catalog-version="catalogVersion"/>
+        <TheMap v-else-if="isMapView" :municipalities="municipalities" :catalog-version="catalogVersion"/>
 
-        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
-        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
-        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities" :catalog-version="catalogVersion"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities" :catalog-version="catalogVersion"/>
+        <TheRanking v-else-if="!isMapView" :municipalities="municipalities" :catalog-version="catalogVersion"/>
       </section>
      </div>
   </div>
@@ -98,13 +98,13 @@
     <div ref="rankingColumn" class="lg:col-span-2">
       <!-- Conditional Content -->
       <div class="w-full max-w-screen-xl">
-        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
-        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
-        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities" :catalog-version="catalogVersion"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities" :catalog-version="catalogVersion"/>
+        <TheMap v-else-if="isMapView" :municipalities="municipalities" :catalog-version="catalogVersion"/>
 
-        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
-        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
-        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities" :catalog-version="catalogVersion"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities" :catalog-version="catalogVersion"/>
+        <TheRanking v-else-if="!isMapView" :municipalities="municipalities" :catalog-version="catalogVersion"/>
       </div>
     </div>
 
@@ -183,33 +183,17 @@ useHead({
 });
 
 const route = useRoute();
-const router = useRouter()
-
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
-const measureCatalogVersion = computed(() => route.query.v)
-const allowedVersions = ['beta', '1.0'];
-const currentDefaultVersion = 'beta';
 
-// decide which version to use
-const version = computed(() => {
-  const v = versionParam.value
-  if (allowedVersions.includes(v)) return v
-  // fallback for invalid value / missing value
-  return currentDefaultVersion
-})
+const selectedCatalogVersion = useCatalogVersion($directus, $readItems);
 
-// For invalid values, change the route to the current default version as well to avoid confusion for the user
-watchEffect(() => {
-  const v = route.query.v
-  if (!allowedVersions.includes(v)) {
-    // Replace the current route with a corrected query
-    router.replace({
-      query: { ...route.query, v: currentDefaultVersion },
-    })
-  }
-})
 
-// TODO CRITICAL - fetch CatalogVersion to check if isCurrentFrontend and use that as default above ("currentDefaultVersion"). Also get the allowedVersions dynamically.
+console.log("hiho");
+console.log(selectedCatalogVersion);
+console.log(selectedCatalogVersion?.value);
+// console.log(selectedCatalogVersion.value?.id);
+console.log("byho");
+
 
 // TODO CRITICAL - adjust the model and the query to fetch the score_total for the proper version? i.e. version all scores and duplicate all fields?
 
@@ -217,14 +201,28 @@ watchEffect(() => {
 const { data: municipalities } = await useAsyncData("municipalities_ranking", () => {
   return $directus.request(
     $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
-      sort: "-score_total",
+      fields: ["slug", "name","state", "date_updated", "municipality_type", "scores", "status", "geolocation"],
       limit: -1,
-      // Fetching even non-published municipalities to show as 'in progress' in map view, but filtered out for list view
-      filter: { percentage_rated: { _gt: 0 } },
     })
   )
 });
+
+
+const { data: scores } = await useAsyncData("municipalities_ranking_scores", () => {
+  return $directus.request(
+    $readItems("municipality_scores", {
+      fields: ["catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", "municipality.id", "municipality.slug"],
+      filter: {   catalog_version: { id: { _eq: selectedCatalogVersion.id } }, percentage_rated: { _gt: 95}, },
+      limit: -1,
+    })
+  )
+});
+
+console.log(scores);
+console.log("h4evn");
+
+console.log(municipalities.value);
+console.log("H3ll");
 
 const { data: projects } = await useAsyncData("articles_ranking", () => {
   return $directus.request(
