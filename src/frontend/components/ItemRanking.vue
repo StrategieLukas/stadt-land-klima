@@ -7,7 +7,7 @@
       <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
       <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black break-keep whitespace-nowrap">
-        {{ municipality.place || "?" }}
+        {{ municipalityScore.rank || "?" }}
       </div>
 
     </div>
@@ -84,7 +84,7 @@ async function fetchPDF(municipality) {
 }
 
 const props = defineProps({
-  municipality: {
+  municipalityScore: {
     type: Object,
     required: true,
   },
@@ -94,7 +94,7 @@ const props = defineProps({
     default: false,
   },
 });
-const municipality = props.municipality;
-const scoreTotalRounded = Math.round(Number(municipality.score_total) * 10) / 10;
+const municipality = props.municipalityScore.municipality;
+const scoreTotalRounded = Math.round(Number(props.municipalityScore.score_total) * 10) / 10;
 </script>
 <style lang=""></style>

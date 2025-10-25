@@ -1,9 +1,9 @@
 <template lang="">
   <div class="flex flex-col">
     <ul>
-      <li v-for="municipality in publishedMunicipalities" :key="municipality.id">
-        <NuxtLink :to="`/municipalities/${municipality.slug}`">
-          <item-ranking :municipality="municipality" :is-ranking="true" />
+      <li v-for="municipalityScore in publishedMunicipalityScores" :key="municipalityScore.id">
+        <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}`">
+          <item-ranking :municipality-score="municipalityScore" :is-ranking="true" />
         </NuxtLink>
       </li>
     </ul>
@@ -11,7 +11,7 @@
 </template>
 <script setup>
 const props = defineProps({
-  municipalities: {
+  municipalityScores: {
     type: Array,
     required: true,
   },
@@ -20,9 +20,12 @@ const props = defineProps({
   }
 });
 
+console.log(props.municipalityScores);
+console.log(props.municipalityScores[0]);
 // Hide unpublished municipalities and those with percentage_rated < 95% for the catalog version from the Ranking view
-const publishedMunicipalities = computed(() => {
-  return props.municipalities.filter(m => m.status === "published" && m.scores && m.scores.filter(s => s.catalog_version === props.catalogVersion && s.percentage_rated > 95)) || []
+const publishedMunicipalityScores = computed(() => {
+  return props.municipalityScores.filter(s => s.municipality.status === "published" && s.percentage_rated > 95) || []
 })
+console.log(publishedMunicipalityScores.value);
 </script>
 <style lang=""></style>
