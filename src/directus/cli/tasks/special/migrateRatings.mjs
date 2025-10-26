@@ -24,7 +24,7 @@ async function migrateRatings(oldVersion, newVersion) {
   const catalogs = await client.request(
     readItems("measure_catalog", {
       filter: { name: { _in: [oldVersion, newVersion] } },
-      fields: ["id", "name", "is_active"],
+      fields: ["id", "name"],
     })
   );
 
