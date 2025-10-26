@@ -39,19 +39,24 @@ export default {
       }
 
       try {
-        const itemService_municipalities = new ItemsService('municipalities', { schema, accountability });
-
-        // Query municipality by slug
-        const municipalities_results = await itemService_municipalities.readByQuery({
-          filter: { slug: { _eq: municipalitySlug } },
+        const municipalityScoreService = new ItemsService('municipality_scores', { schema, accountability });
+        const municipalityScores = await municipalityScoreService.readByQuery({
+          fields: ["date_updated", "score_total", "score_buildings", "score_energy", "score_transport", "score_industry",
+          "score_management", "score_agriculture", "percentage_rated", "rank",
+          // municipality fields
+          "municipality.id", "municipality.name", "municipality.slug", "municipality.localteam_id", "municipality.population",
+          "municipality.state", "municipality.overall_status_comment",
+          ],
+          filter: { catalog_version: { name: { _eq: catalogVersionName } }, municipality: { slug: { _eq: municipalitySlug}}},
           limit: 1
         });
 
-        if (!municipalities_results || !municipalities_results[0]) {
-          return res.status(404).send(`Municipality "${municipalitySlug}" not found or access denied`);
+        if (!municipalityScores || !municipalityScores[0]) {
+          return res.status(404).send(`No scores found for municipality "${municipalitySlug}" or access denied`);
         }
 
-        const municipality = municipalities_results[0];
+        const municipalityScore = municipalityScores[0];
+        console.log(municipalityScore);
 
         // Query measures
         const itemService_measures = new ItemsService('measures', { schema, accountability });
@@ -64,7 +69,7 @@ export default {
         // Query rating measures by localteam_id
         const itemService_ratingMeasures = new ItemsService('ratings_measures', { schema, accountability })
         const ratingMeasures_results = await itemService_ratingMeasures.readByQuery({
-          filter: { localteam_id: {_eq: municipality.localteam_id}}
+          filter: { localteam_id: {_eq: municipalityScore.municipality.localteam_id}}
         })
 
         if (!ratingMeasures_results) {
@@ -80,16 +85,16 @@ export default {
 
         // Create temporary files for municipality and measures
         const timestamp = Date.now();
-        const municipalityFile = `municipality_${timestamp}.json`;
+        const municipalityScoreFile = `municipalityScore_${timestamp}.json`;
         const measuresFile = `measures_${timestamp}.json`;
-        const municipalityFilePath = path.join(typstDir, municipalityFile);
+        const municipalityScoreFilePath = path.join(typstDir, municipalityScoreFile);
         const measuresFilePath = path.join(typstDir, measuresFile);
 
-        writeFileSync(municipalityFilePath, JSON.stringify(municipality));
+        writeFileSync(municipalityScoreFilePath, JSON.stringify(municipalityScore));
         writeFileSync(measuresFilePath, JSON.stringify(sorted_measures));
         const args = [
           "compile",
-          "--input", `municipality=${municipalityFile}`,
+          "--input", `municipalityScore=${municipalityScoreFile}`,
           "--input", `measures=${measuresFile}`,
           "--font-path", `${typstDir}/fonts`,
           typstFilePath,
@@ -99,7 +104,7 @@ export default {
         execFile("typst", args, { maxBuffer: 1024 * 1024 * 50, encoding: "buffer" }, (err, stdout, stderr) => {
           // Cleanup temporary files after execution
           try {
-            unlinkSync(municipalityFilePath);
+            unlinkSync(municipalityScoreFilePath);
             unlinkSync(measuresFilePath);
           } catch (cleanupErr) {
             console.error("Error cleaning up temporary files:", cleanupErr);

@@ -49,8 +49,8 @@
 ]
 
 #let lines = 1pt + gray
-/// `values`: An array of `float` values in the range [0.0;100.0]
-#let draw(values,
+/// `municipalityScore`: A municipalityScore object containing `float` values for scores in the range [0.0;100.0]
+#let draw(municipalityScore,
           img_height: 300,
           img_width: 300,
           unit: 1em,
@@ -60,12 +60,12 @@
          ) = block[
   #box(height: img_height * unit, width: img_width * unit)[
 
-    #draw_slice(values.score_energy, 0, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_transport, 1, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_agriculture, 2, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_industry, 3, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_buildings, 4, img_height, img_width, unit, area_scale: area_scale)
-    #draw_slice(values.score_management, 5, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(municipalityScore.score_energy, 0, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(municipalityScore.score_transport, 1, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(municipalityScore.score_agriculture, 2, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(municipalityScore.score_industry, 3, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(municipalityScore.score_buildings, 4, img_height, img_width, unit, area_scale: area_scale)
+    #draw_slice(municipalityScore.score_management, 5, img_height, img_width, unit, area_scale: area_scale)
 
     #for i in range(num_slices) [
       #place(dx: img_width * 0.5 * unit, dy: img_height * 0.5 * unit,
