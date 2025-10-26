@@ -78,6 +78,7 @@ export default {
 
         // Sort Measures
         const sorted_measures = sortMeasuresBySector(ratingMeasures_results, measures_results)
+        console.log(sorted_measures);
 
         const typstDir = path.join(process.cwd(), "/extensions/directus-extension-endpoint-pdf-service/typst");
         const typstFilePath = path.join(typstDir, "municipality_summary.typ");

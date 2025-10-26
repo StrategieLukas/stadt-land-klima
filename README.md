@@ -139,3 +139,4 @@ So first manually delete the yamls on the environment, then import-all, then git
 - update env to have the new env keys for the image resizing
 - extension is expected to crash at first startup when schema doesn't have municipality_scores yet. Need to import-all and restart.
 - need to create all new measures manually for the new catalog version and connect it, then call migrate in the cli tool and ratings_measures are updated.
+- manually bulk-edit measures from the old sector names to the new ones -> need to restart for calculatescores to work properly.
