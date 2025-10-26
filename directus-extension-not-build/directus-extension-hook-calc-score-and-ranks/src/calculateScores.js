@@ -2,7 +2,7 @@ export async function calculateScores(
   { municipalityIds = null, catalogVersionId },
   { services, getSchema, logger }
 ) {
-  logger.info("Recalculating scores for " + (municipalityIds?.length ? municipalityIds?.length : "all") + " municipalities")
+  logger.info("Recalculating scores for " + (municipalityIds?.length ? municipalityIds?.length : "all") + " municipalities and catalogVersion: " + catalogVersionId)
   const schema = await getSchema();
 
   const ratingsService = new services.ItemsService("ratings_measures", {

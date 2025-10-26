@@ -286,59 +286,59 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
           fields: ["id"], // minimal
         });
 
-        if (existing && existing.length > 0) {
-          logger.info("[syncAllMunicipalityScores] municipality_scores already has entries. Skipping full sync.");
-          return;
-        }
-
-
-        logger.info("[syncAllMunicipalityScores] municipality_scores is empty — performing initial sync.");
-
-        const municipalities = await municipalityService.readByQuery({ limit: -1 });
         const catalogs = await catalogService.readByQuery({ limit: -1 });
 
-        if (!municipalities?.length || !catalogs?.length) {
-          logger.warn("[syncAllMunicipalityScores] No municipalities or catalog versions found.");
-          return;
-        }
+        // Create new ratings only if it is currently empty
+        if (!existing || existing.length == 0) {
+          logger.info("[syncAllMunicipalityScores] municipality_scores is empty - creating new blank ratings");
 
-        const toCreate = [];
-        for (const mun of municipalities) {
-          for (const cv of catalogs) {
-            toCreate.push({
-              municipality: mun.id,
-              catalog_version: cv.id,
-              score_total: 0,
-              percentage_rated: 0,
-              score_agriculture: 0,
-              score_buildings: 0,
-              score_management: 0,
-              score_energy: 0,
-              score_industry: 0,
-              score_transport: 0,
-            });
+          const municipalities = await municipalityService.readByQuery({ limit: -1 });
+
+          if (!municipalities?.length || !catalogs?.length) {
+            logger.warn("[syncAllMunicipalityScores] No municipalities or catalog versions found.");
+            return;
           }
-        }
 
-        if (toCreate.length) {
-          logger.info(`[syncAllMunicipalityScores] Creating ${toCreate.length} initial municipality_scores...`);
-          await scoresService.createMany(toCreate);
+          const toCreate = [];
+          for (const mun of municipalities) {
+            for (const cv of catalogs) {
+              toCreate.push({
+                municipality: mun.id,
+                catalog_version: cv.id,
+                score_total: 0,
+                percentage_rated: 0,
+                score_agriculture: 0,
+                score_buildings: 0,
+                score_management: 0,
+                score_energy: 0,
+                score_industry: 0,
+                score_transport: 0,
+              });
+            }
+          }
+
+          if (toCreate.length) {
+            logger.info(`[syncAllMunicipalityScores] Creating ${toCreate.length} initial municipality_scores...`);
+            await scoresService.createMany(toCreate);
+          } else {
+            logger.info("[syncAllMunicipalityScores] No entries to create (unexpected).");
+            return;
+          }
         } else {
-          logger.info("[syncAllMunicipalityScores] No entries to create (unexpected).");
-          return;
+          logger.info("[syncAllMunicipalityScores] municipality_scores already exist - only calculating scores and not creating any new ones.")
         }
 
-        // Calculate scores and ranks for each catalog version
-        for (const cv of catalogs) {
-          logger.info(`[syncAllMunicipalityScores] Calculating scores for catalog version ${cv.id}...`);
-          await calculateScores({ catalogVersionId: cv.id }, { services, getSchema, logger });
+      // Calculate scores and ranks for each catalog version (on every startup)
+      for (const cv of catalogs) {
+        logger.info(`[syncAllMunicipalityScores] Calculating scores for catalog version ${cv.id}...`);
+        await calculateScores({ catalogVersionId: cv.id }, { services, getSchema, logger });
 
-          logger.info(`[syncAllMunicipalityScores] Updating ranks for catalog version ${cv.id}...`);
-          await updateRanks({ catalogVersionId: cv.id }, { services, getSchema, logger });
-        }
+        logger.info(`[syncAllMunicipalityScores] Updating ranks for catalog version ${cv.id}...`);
+        await updateRanks({ catalogVersionId: cv.id }, { services, getSchema, logger });
+      }
 
-        logger.info("[syncAllMunicipalityScores] Initial sync completed successfully.");
-      };
+      logger.info("[syncAllMunicipalityScores] Initial sync completed successfully.");
+    };
 
       // 🔹 Automatically trigger once at startup (only if municipality_scores is empty)
       (async () => {
