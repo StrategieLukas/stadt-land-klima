@@ -72,14 +72,14 @@
                 </span>
             </div>
 
-            <div v-if="municipality?.score_total">
+            <div v-if="municipalityScore?.score_total">
                 <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-5 w-5 opacity-60" />
                     <span class="text-sm font-medium text-gray-700">{{ $t("municipality.overall_score") }}</span>
                 </div>
-                <span class="text-sm font-bold" :class="`text-${getScorePercentageColor(municipality.score_total)}`">
-                    {{ Math.round(Number(municipality.score_total) * 10) / 10 }}%
+                <span class="text-sm font-bold" :class="`text-${getScorePercentageColor(municipalityScore.score_total)}`">
+                    {{ Math.round(Number(municipalityScore.score_total) * 10) / 10 }}%
                 </span>
                 </div>
             </div>
@@ -99,14 +99,16 @@ const MunicipalitySvg = ref('')
 
 
 const props = defineProps({
-  municipality: {
+  municipalityScore: {
     type: Object,
     required: true,
   },
 });
 
+const municipality = props.municipalityScore.municipality;
+
 onMounted(async () => {
-    MunicipalitySvg.value = await overwriteSvgStyles(props.municipality.municipality_type === 'big_city' ? majorCity : minorCity, {
+    MunicipalitySvg.value = await overwriteSvgStyles(props.municipalityScore.municipality.municipality_type === 'big_city' ? majorCity : minorCity, {
         "st0" : "fill-white",
         "st1" : "fill-black",
     })

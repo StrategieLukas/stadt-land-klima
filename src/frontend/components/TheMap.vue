@@ -118,7 +118,6 @@ const germanyCoverStyle = {
 }
 
 const filteredMunicipalityScores = computed(() => {
-  console.log(props.municipalityScores);
   return props.municipalityScores
     .map(s => {
       const coords = s.municipality.geolocation?.coordinates
@@ -138,7 +137,6 @@ const filteredMunicipalityScores = computed(() => {
     .filter(s => shouldShow(s))
 })
 
-console.log(filteredMunicipalityScores.value);
 
 onMounted(async () => {
   leaflet.value = await import('leaflet')

@@ -37,6 +37,5 @@ const props = defineProps({
 const publishedMunicipalityScores = computed(() => {
   return props.municipalityScores.filter(s => s.municipality.status === "published" && s.percentage_rated > 95) || []
 })
-console.log(publishedMunicipalityScores.value);
 </script>
 <style lang=""></style>

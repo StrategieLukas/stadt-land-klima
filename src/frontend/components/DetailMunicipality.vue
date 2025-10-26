@@ -4,7 +4,7 @@
     <!-- Mobile: Single column layout -->
     <div class="block lg:hidden w-full flex-col justify-center">
       <div class="mb-8">
-        <item-ranking :municipality="municipality" />
+        <item-ranking :municipalityScore="municipalityScore" />
       </div>
       <div class="mb-4">
         <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <DetailMunicipalitySectorCards :municipality="municipality" :sortedRatings="sortedRatings"/>
+      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :sortedRatings="sortedRatings"/>
     </div>
 
     <!-- Desktop: Two column layout -->
@@ -52,7 +52,7 @@
       <!-- Left Column: Main content (2/3 width) -->
       <div class="lg:col-span-2">
         <div class="mb-8">
-          <item-ranking :municipality="municipality" />
+          <item-ranking :municipalityScore="municipalityScore" />
         </div>
         <div class="mb-4">
           <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
@@ -75,14 +75,14 @@
           </div>
         </div>
 
-        <DetailMunicipalitySectorCards :municipality="municipality" :sortedRatings="sortedRatings"/>
+        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :sortedRatings="sortedRatings"/>
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
       <div class="lg:col-span-1 pb-4">
         <div class="sticky top-8 space-y-6">
           <!-- Municipality Quick Info -->
-          <DetailMunicipalityQuickInfoDesktop :municipality="municipality"/>
+          <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore"/>
 
           <!-- Participate Section -->
           <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
@@ -144,7 +144,7 @@ const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
 
 const props = defineProps({
-  municipality: {
+  municipalityScore: {
     type: Object,
     required: true,
   },
@@ -154,8 +154,10 @@ const props = defineProps({
   },
 });
 
-const municipality = props.municipality;
-const subScores = createSubScoreObject(municipality);
+const municipalityScore = props.municipalityScore;
+const municipality = municipalityScore.municipality;
+console.log(municipalityScore);
+const subScores = createSubScoreObject(municipalityScore);
 
 // Fetch projects associated with this municipality
 const municipalityProjects = ref([]);
@@ -240,9 +242,9 @@ async function fetchMunicipalityProjects() {
   }
 }
 
-function createSubScoreObject(municipality) {
+function createSubScoreObject(municipalityScore) {
   const temp = {};
-  for (const [key, value] of Object.entries(municipality)) {
+  for (const [key, value] of Object.entries(municipalityScore)) {
     if (key.includes("score")) {
       temp[key] = Number(value);
     }
