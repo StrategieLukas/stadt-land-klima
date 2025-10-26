@@ -202,7 +202,7 @@ const { data: municipalityScores } = await useAsyncData("municipalities_ranking_
   return $directus.request(
     $readItems("municipality_scores", {
       fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
-      { municipality: ["id", "slug", "state", "municipality_type", "status"] }],
+      { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation"] }],
       filter: { catalog_version: { _eq: selectedCatalogVersion.id }, percentage_rated: { _gt: 0} },
       limit: -1,
       sort: "-score_total",
