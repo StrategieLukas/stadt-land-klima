@@ -78,7 +78,7 @@ async function fetchPDF(municipality) {
     const baseUrl = config.public.clientDirectusUrl;
     const token = config.public.directusToken;
 
-    const response = await fetch(`${baseUrl}/pdf-service/municipality/${municipality.slug}`, {
+    const response = await fetch(`${baseUrl}/pdf-service/municipality/${municipality.slug}/${props.municipalityScore.catalog_version.name}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

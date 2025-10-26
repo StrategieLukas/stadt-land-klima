@@ -45,7 +45,7 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
   const [municipalityScores, measures] = await Promise.all([
     $directus.request(
       $readItems("municipality_scores", {
-        fields: ["*", { municipality: ["*"]}],
+        fields: ["*", { municipality: ["*"]}, { catalog_version: ["*"]}],
         filter: { catalog_version: { _eq: selectedCatalogVersion.id }, municipality: {slug: { _eq: route.params.slug } }},
         limit: 1,
       }),

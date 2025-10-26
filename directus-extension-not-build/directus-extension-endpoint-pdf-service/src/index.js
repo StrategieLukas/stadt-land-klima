@@ -28,10 +28,11 @@ export default {
 
     router.get('/', (req, res) => res.send('Hello, World!'));
 
-    router.post('/municipality/:slug', async (req, res) => {
+    router.post('/municipality/:slug/:version', async (req, res) => {
       const accountability = req.accountability; // use frontend user's auth
       const schema = await getSchema();
       const municipalitySlug = req.params.slug;
+      const catalogVersionName = req.params.version;
 
       if (!municipalitySlug) {
         return res.status(400).send("Missing municipality slug in path");
@@ -51,11 +52,11 @@ export default {
         }
 
         const municipality = municipalities_results[0];
-        
+
         // Query measures
         const itemService_measures = new ItemsService('measures', { schema, accountability });
         const measures_results = await itemService_measures.readByQuery({})
-        
+
         if (!measures_results) {
           return res.status(404).send(`Measures not found or access denied`);
         }
@@ -72,8 +73,7 @@ export default {
 
         // Sort Measures
         const sorted_measures = sortMeasuresBySector(ratingMeasures_results, measures_results)
-        
-        
+
         const typstDir = path.join(process.cwd(), "/extensions/directus-extension-endpoint-pdf-service/typst");
         const typstFilePath = path.join(typstDir, "municipality_summary.typ");
         // writeFileSync(`${typstDir}/sorted_measures.json`, JSON.stringify(sorted_measures, null, 2));
