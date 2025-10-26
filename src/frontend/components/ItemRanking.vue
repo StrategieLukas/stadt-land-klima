@@ -31,6 +31,21 @@
   </div>
 </template>
 <script setup>
+
+const props = defineProps({
+  municipalityScore: {
+    type: Object,
+    required: true,
+  },
+  isRanking: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+});
+const municipality = props.municipalityScore.municipality;
+const scoreTotalRounded = Math.round(Number(props.municipalityScore.score_total) * 10) / 10;
+
 const colors = {
   0: { bg: "bg-rating-0" },
   20: { bg: "bg-rating-1" },
@@ -43,7 +58,7 @@ const colorClass = computed(() => {
   let c = colors[0];
 
   for (const score in colors) {
-    if (Number(municipality.score_total) < score) {
+    if (Number(props.municipalityScore.score_total) < score) {
       return c;
     }
 
@@ -83,18 +98,6 @@ async function fetchPDF(municipality) {
   }
 }
 
-const props = defineProps({
-  municipalityScore: {
-    type: Object,
-    required: true,
-  },
-  isRanking: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-});
-const municipality = props.municipalityScore.municipality;
-const scoreTotalRounded = Math.round(Number(props.municipalityScore.score_total) * 10) / 10;
+
 </script>
 <style lang=""></style>

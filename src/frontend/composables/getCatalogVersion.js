@@ -11,7 +11,7 @@ export async function getCatalogVersion($directus, $readItems, route) {
 
   const param = route.query.v;
   const matched = versions.find(v => v.name === param);
-  if (matched) return { version: matched, needsRewrite: false };
+  if (matched) return matched;
 
   const defaults = versions.filter(v => v.isCurrentFrontend === true);
   if (defaults.length !== 1) {

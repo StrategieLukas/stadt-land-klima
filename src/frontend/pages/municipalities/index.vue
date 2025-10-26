@@ -149,11 +149,13 @@ const rankingColumn = ref(null)
 const rankingColumnHeight = ref(0)
 
 function updateRankingColumnHeight() {
-  console.log("Updated");
   if (rankingColumn.value) {
-    const h = rankingColumn.value.offsetHeight
+    const measured = rankingColumn.value.offsetHeight;
+    const minHeight = 500;
+    const h = Math.max(measured, minHeight);
+
     if (h !== rankingColumnHeight.value) {
-      rankingColumnHeight.value = h
+      rankingColumnHeight.value = h;
     }
   }
 }
@@ -195,22 +197,19 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
   });
 }
 
-console.log("hiho");
-console.log(selectedCatalogVersion.id);
-
 // Fetch all relevant municipalityScores from directus
 const { data: municipalityScores } = await useAsyncData("municipalities_ranking_scores", () => {
   return $directus.request(
     $readItems("municipality_scores", {
-      fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", "municipality.id", "municipality.slug", "municipality.state", "municipality.municipality_type"],
+      fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
+      { municipality: ["id", "slug", "state", "municipality_type", "status"] }],
       filter: { catalog_version: { _eq: selectedCatalogVersion.id }, percentage_rated: { _gt: 0} },
       limit: -1,
+      sort: "-score_total",
     })
   )
 });
 
-console.log(municipalityScores.value);
-console.log("h4evn");
 
 
 const { data: projects } = await useAsyncData("articles_ranking", () => {
@@ -241,7 +240,7 @@ function getSublist(condition) {
   return (municipalityScores.value?.filter(condition) || [])
     .map((item, index) => ({
       ...item,
-      place: index + 1,
+      rank: index + 1,
     }));
 }
 
