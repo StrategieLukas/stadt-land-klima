@@ -363,6 +363,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: measures
     action: create
     permissions: {}
@@ -414,6 +421,13 @@ permissions:
       - "*"
   - collection: municipalities
     action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: municipality_scores
+    action: read
     permissions: {}
     validation: {}
     presets: null

@@ -18,7 +18,7 @@
           {{ $t(`measure_sectors.${sector}.title`) }}
         </h2>
         <ProgressBar
-          :score-total="Math.round(Number(municipality['score_' + sector]) * 10) / 10"
+          :score-total="Math.round(Number(municipalityScore['score_' + sector]) * 10) / 10"
           layout="compact"
         />
       </div>
@@ -104,7 +104,7 @@ const openItems = reactive({})
 const openSectors = reactive({})
 
 const props = defineProps({
-  municipality: {
+  municipalityScore: {
     type: Object,
     required: true,
   },
@@ -113,6 +113,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+const municipality = props.municipalityScore.municipality;
 
 // Create mapping of sectors to measurement IDs
 const sectorToMeasureIDs = computed(() => {

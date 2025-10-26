@@ -1,6 +1,6 @@
 <template>
-  <div v-if="directusData && directusData.municipalities">
-    <waving-banner v-if="directusData.municipalities[0].status === 'draft'">
+  <div v-if="directusData && directusData.municipalityScores">
+    <waving-banner v-if="directusData.municipalityScores[0].municipality.status === 'draft'">
       {{ $t("municipalities.preview_text") }}
     </waving-banner>
     <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
@@ -8,7 +8,7 @@
     </NuxtLink>
     <article class="mb-8 mt-10">
       <detail-municipality
-        :municipality="directusData.municipalities[0]"
+        :municipalityScore="directusData.municipalityScores[0]"
         :sorted-ratings="sortMeasuresBySectorDict"
       ></detail-municipality>
     </article>
@@ -30,12 +30,23 @@
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
+const router = useRouter();
+const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+
+// Change the URL to match the catalog version, if it didn't to begin with
+if (process.client && route.query.v != selectedCatalogVersion.name) {
+  onMounted(() => {
+    router.replace({ query: { ...route.query, v: selectedCatalogVersion.name } });
+  });
+}
+
 
 const { data: directusData } = await useAsyncData("municipality", async () => {
-  const [municipalities, measures] = await Promise.all([
+  const [municipalityScores, measures] = await Promise.all([
     $directus.request(
-      $readItems("municipalities", {
-        filter: { slug: { _eq: route.params.slug } },
+      $readItems("municipality_scores", {
+        fields: ["*", { municipality: ["*"]}, { catalog_version: ["*"]}],
+        filter: { catalog_version: { _eq: selectedCatalogVersion.id }, municipality: {slug: { _eq: route.params.slug } }},
         limit: 1,
       }),
     ),
@@ -43,21 +54,21 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
   ]);
 
   // Early return if municipalities is empty or null
-  if (!municipalities || municipalities.length === 0) {
-    return { municipalities: null, measures: measures, ratingsMeasures: [] };
+  if (!municipalityScores || municipalityScores.length === 0) {
+    return { municipalityScores: null, measures: measures, ratingsMeasures: [] };
   }
 
   const ratingsMeasures = await $directus.request(
     $readItems("ratings_measures", {
       filter: {
-          localteam_id: {
-            _eq: municipalities[0].localteam_id,
-          },
+          localteam_id: { _eq: municipalityScores[0].municipality.localteam_id },
+          measure_id: { catalog_version: { _eq: selectedCatalogVersion.id } }
         },
     }),
   );
+
   return {
-    municipalities,
+    municipalityScores,
     measures,
     ratingsMeasures,
   };
@@ -65,7 +76,7 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
 
 
 //MetaTags
-const title = ref(directusData.value?.municipalities?.[0]?.name ?? '404');
+const title = ref(directusData.value?.municipalityScores?.[0]?.municipality?.name ?? '404');
 useHead({
   title,
 });

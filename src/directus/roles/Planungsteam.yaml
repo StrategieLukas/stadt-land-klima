@@ -270,6 +270,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: measures
     action: read
     permissions: {}
@@ -278,6 +285,13 @@ permissions:
     fields:
       - "*"
   - collection: municipalities
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: municipality_scores
     action: read
     permissions: {}
     validation: {}

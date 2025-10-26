@@ -9,17 +9,18 @@ meta:
   field: scores
   group: null
   hidden: false
-  interface: group-detail
+  interface: list-o2m
   note: null
   options:
-    start: closed
+    enableCreate: false
+    enableSelect: false
+    template: "{{catalog_version.name}}: {{score_total}} ({{percentage_rated}} %
+      bewertet)"
   readonly: false
   required: false
-  sort: 13
+  sort: 8
   special:
-    - alias
-    - group
-    - no-data
+    - o2m
   translations: null
   validation: null
   validation_message: null

@@ -16,14 +16,14 @@ meta:
     trim: true
   readonly: false
   required: false
-  sort: 2
+  sort: 3
   special: null
   translations:
     - language: de-DE
       translation: Maßnahmen-ID
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: measure_id
   table: measures

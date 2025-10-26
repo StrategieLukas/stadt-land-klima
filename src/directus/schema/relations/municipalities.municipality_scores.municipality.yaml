@@ -1,0 +1,21 @@
+collection: municipality_scores
+field: municipality
+related_collection: municipalities
+meta:
+  junction_field: null
+  many_collection: municipality_scores
+  many_field: municipality
+  one_allowed_collections: null
+  one_collection: municipalities
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: scores
+  sort_field: null
+schema:
+  table: municipality_scores
+  column: municipality
+  foreign_key_table: municipalities
+  foreign_key_column: id
+  constraint_name: municipality_scores_municipality_foreign
+  on_update: NO ACTION
+  on_delete: NO ACTION

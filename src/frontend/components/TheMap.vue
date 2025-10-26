@@ -38,24 +38,24 @@
 
         <!-- Municipality markers -->
         <LMarker
-          v-for="m in filteredMunicipalities"
-          :key="m.slug"
-          :lat-lng="[m.lat, m.lon]"
-          :icon="getCustomIcon(m)"
+          v-for="s in filteredMunicipalityScores"
+          :key="s.municipality.slug"
+          :lat-lng="[s.municipality.lat, s.municipality.lon]"
+          :icon="getCustomIcon(s)"
         >
           <LPopup>
             <div class="text-sm space-y-1">
-              <div class="font-semibold">{{ m.name }}</div>
-              <template v-if="m.status === 'published'">
-                <div>Score: {{ Number(m.score_total).toFixed(2) }}</div>
-                <NuxtLink :to="`/municipalities/${m.slug}`" class="text-blue-600 underline hover:text-blue-800">
+              <div class="font-semibold">{{ s.municipality.name }}</div>
+              <template v-if="s.municipality.status === 'published' && s.percentage_rated > 95">
+                <div>Score: {{ Number(s.score_total).toFixed(2) }}</div>
+                <NuxtLink :to="`/municipalities/${s.municipality.slug}`" class="text-blue-600 underline hover:text-blue-800">
                   {{ $t("map.icon.popup.goToRanking") }}
                 </NuxtLink>
               </template>
               <template v-else>
                 <div>{{ $t("map.icon.popup.ratingNotFinished") }}</div>
                 <div>
-                  {{ $t("map.icon.popup.percentageRated", { ":percentage_rated": m.percentage_rated }) }}
+                  {{ $t("map.icon.popup.percentageRated", { ":percentage_rated": s.percentage_rated }) }}
                 </div>
               </template>
             </div>
@@ -76,7 +76,8 @@ import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
 const { $t } = useNuxtApp()
 
 const props = defineProps({
-  municipalities: { type: Array, required: true }
+  municipalityScores: { type: Array, required: true },
+  catalogVersion: { required: true}
 })
 
 const showMunicipalitiesWithUnfinishedRating = ref(false)
@@ -116,19 +117,26 @@ const germanyCoverStyle = {
   interactive: false
 }
 
-const filteredMunicipalities = computed(() => {
-  return props.municipalities
-    .map(m => {
-      const coords = m.geolocation?.coordinates
-      return {
-        ...m,
+const filteredMunicipalityScores = computed(() => {
+  return props.municipalityScores
+    .map(s => {
+      const coords = s.municipality.geolocation?.coordinates
+      // Inject lat/lon fields into municipality
+      const mun = { 
+        ...s.municipality, 
         lat: typeof coords?.[1] === 'number' ? coords[1] : null,
         lon: typeof coords?.[0] === 'number' ? coords[0] : null
       }
+      // Return new scores object with the municipality's scores added
+      return {
+        ...s,
+        municipality: mun
+      }
     })
-    .filter(m => typeof m.lat === 'number' && typeof m.lon === 'number')
-    .filter(m => showMunicipalitiesWithUnfinishedRating.value ? (m.percentage_rated > 0 || m.status === "published") : m.status === "published")
+    .filter(s => typeof s.municipality.lat === 'number' && typeof s.municipality.lon === 'number')
+    .filter(s => shouldShow(s))
 })
+
 
 onMounted(async () => {
   leaflet.value = await import('leaflet')
@@ -137,12 +145,16 @@ onMounted(async () => {
   clientReady.value = true
 })
 
-watch([showMunicipalitiesWithUnfinishedRating, filteredMunicipalities], () => {
+watch([showMunicipalitiesWithUnfinishedRating, filteredMunicipalityScores], () => {
   if (mapInstance) {
     if (legendControl) mapInstance.removeControl(legendControl)
     addLegend(mapInstance)
   }
 })
+
+function shouldShow(municipalityScore) {
+  return showMunicipalitiesWithUnfinishedRating.value ? municipalityScore.percentage_rated > 0 : (municipalityScore.municipality.status === "published" && municipalityScore.percentage_rated > 95);
+}
 
 function onMapReady(map) {
   mapInstance = map
@@ -175,11 +187,11 @@ function addLegend(map) {
   legendControl.addTo(map)
 }
 
-function getCustomIcon(m) {
+function getCustomIcon(municipalityScore) {
   if (!DivIcon || !PinSvg.value) return null
+  const score_total = municipalityScore.score_total;
   let cssClass = "rating-na"
-  const { score_total, status } = m
-  if (status === "published") {
+  if (municipalityScore.municipality.status === "published" && municipalityScore.percentage_rated > 95) {
     if (score_total < 20) cssClass = "rating-0"
     else if (score_total < 40) cssClass = "rating-1"
     else if (score_total < 60) cssClass = "rating-2"

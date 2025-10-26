@@ -9,13 +9,13 @@
 #let width = height;
 
 #let item_ranking(
-    data,
+    municipalityScore,
     unit,
     show_qr_code,
     show_border,
   ) = [
-  #let progress = data.score_total
-  #let ranking = data.place
+  #let progress = municipalityScore.score_total
+  #let ranking = municipalityScore.rank
   #let color = colors.select_color_from_range(progress);
   #let Pin_colored = Pin.replace("currentColor", color.to-hex())
 
@@ -29,9 +29,9 @@
     stroke: 1pt + rect_color,
     width: 100%
   )
-  
+
   #let heading_size = 4*unit
-  
+
   // Outer Rectangle
   #rect()[
     // Header with Ranking and Place Name
@@ -63,12 +63,12 @@
           columns: auto,
           rows: (auto, auto, auto),
           gutter: 1*unit,
-          text(colors.fill-height-with-text(data.name, max: heading_size), weight: "bold"),
-          text(data.state, size: 1.2*unit, fill: gray),
+          text(colors.fill-height-with-text(municipalityScore.municipality.name, max: heading_size), weight: "bold"),
+          text(municipalityScore.municipality.state, size: 1.2*unit, fill: gray),
           v(unit/2),
           box(width: 28*unit, progress_bar.draw_progress_bar(progress, unit, scale_text : true)),
         )
-      ] 
+      ]
       ],
     )
     ]
@@ -77,9 +77,9 @@
 
     // Circular Barplot
     #align(
-      center, 
+      center,
       circular_barplot.draw(
-        data,
+        municipalityScore,
         img_height: .87*height,
         img_width: .87*width,
         unit: 0.08*unit,
@@ -90,17 +90,15 @@
     )
 
     // Last updated
-    #align(center, text("Letzte Aktualisierung: " + data.date_updated, size: 0.8*unit))
+    #align(center, text("Letzte Aktualisierung: " + municipalityScore.date_updated, size: 0.8*unit))
 
-    
-
-    #let url = "https://www.stadt-land-klima.de/municipalities/" + data.slug
+    #let url = "https://www.stadt-land-klima.de/municipalities/" + municipalityScore.municipality.slug
     // QR Code
     #if show_qr_code [
-      #place(right + bottom, 
+      #place(right + bottom,
         [
           #qr-code(
-            url, 
+            url,
             width: 6*unit,
             height: auto,
             alt: url,
