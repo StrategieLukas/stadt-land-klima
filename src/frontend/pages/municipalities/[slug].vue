@@ -3,7 +3,7 @@
     <waving-banner v-if="directusData.municipalityScores[0].municipality.status === 'draft'">
       {{ $t("municipalities.preview_text") }}
     </waving-banner>
-    <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
+    <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
     <article class="mb-8 mt-10">
@@ -12,12 +12,12 @@
         :sorted-ratings="sortMeasuresBySectorDict"
       ></detail-municipality>
     </article>
-    <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
+    <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
   </div>
   <div v-else>
-        <NuxtLink :to="`/municipalities`" class="font-heading text-h4 text-light-blue">
+        <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
     <waving-banner>
