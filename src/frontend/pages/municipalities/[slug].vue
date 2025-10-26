@@ -76,7 +76,7 @@ const { data: directusData } = await useAsyncData("municipality", async () => {
 
 
 //MetaTags
-const title = ref(directusData.value?.municipalities?.[0]?.name ?? '404');
+const title = ref(directusData.value?.municipalityScores?.[0]?.municipality?.name ?? '404');
 useHead({
   title,
 });
