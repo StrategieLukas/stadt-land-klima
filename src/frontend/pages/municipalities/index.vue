@@ -202,7 +202,7 @@ const { data: municipalityScores } = await useAsyncData("municipalities_ranking_
   return $directus.request(
     $readItems("municipality_scores", {
       fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
-      { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation"] }],
+      { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
       filter: { catalog_version: { _eq: selectedCatalogVersion.id }, percentage_rated: { _gt: 0} },
       limit: -1,
       sort: "-score_total",
@@ -246,13 +246,25 @@ function getSublist(condition) {
 
 const lastUpdatedAtStr = ref("");
 onMounted(() => {
-  const lastUpdatedAt = new Date(get(last(sortBy(municipalityScores.value.municipality, ["date_updated"])), "date_updated"));
+  const scores = municipalityScores.value;
+  if (!Array.isArray(scores) || scores.length === 0) return;
+
+  // sort by nested municipality.date_updated
+  const sorted = sortBy(scores, (s) => get(s, "municipality.date_updated"));
+
+  const latest = get(last(sorted), "municipality.date_updated");
+  if (!latest) return;
+
+  const lastUpdatedAt = new Date(latest);
+
   lastUpdatedAtStr.value =
-    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    lastUpdatedAt.toLocaleDateString($locale, {
+      year: "numeric",
+      month: "2-digit",
+      day: "numeric"
+    }) +
     ", " +
     lastUpdatedAt.toLocaleTimeString($locale);
-
-  
 });
 
 // Toggle between cities, towns, or all
