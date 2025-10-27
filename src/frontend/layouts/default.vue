@@ -3,50 +3,58 @@
     <!-- Drawer Toggle Checkbox (Hidden) -->
     <input id="page-drawer" type="checkbox" class="drawer-toggle" />
 
-    <div class="drawer-content flex flex-col min-h-screen text-neutral font-sans">
-    <!-- Only render the appropriate header based on the viewport -->
-    <div>
-      <div v-if="hydrated">
-        <!-- Desktop Header -->
-        <div v-if="isDesktop">
-          <the-header-desktop :pages="pages.filter((page) => includes(page.menus, 'main'))" :municipalities="publishedMunicipalities" />
-        </div>
+    <div class="drawer-content flex flex-col min-h-screen text-neutral font-sans min-w-0 overflow-x-hidden">
+      <!-- Only render the appropriate header based on the viewport -->
+      <div>
+        <div v-if="hydrated">
+          <!-- Desktop Header -->
+          <div v-if="isDesktop">
+            <the-header-desktop :pages="pages.filter((page) => includes(page.menus, 'main'))" :municipalities="publishedMunicipalities" />
+          </div>
 
-        <!-- Mobile Header -->
-        <div v-else>
-          <the-header-mobile :municipalities="publishedMunicipalities" />
+          <!-- Mobile Header -->
+          <div v-else>
+            <the-header-mobile :municipalities="publishedMunicipalities" />
+          </div>
+        </div>
+        <div v-else class="mb-3 bg-white px-2 py-4 shadow">
+          <!-- Placeholder space to prevent layout shift during hydration -->
+          <div class="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-x-8 lg:flex-row lg:items-end">
+            <div class="h-32 w-auto opacity-0"><!-- Logo placeholder --></div>
+            <div class="flex-1 opacity-0"><!-- Search placeholder --></div>
+          </div>
         </div>
       </div>
-      <div v-else>
-        <!-- blank space to keep layout stable for hydration -->
-      </div>
-    </div>
 
-      <!-- Main Content (always rendered) -->
-      <main class="flex grow flex-col px-2 py-4 bg-mild-white">
-        <div class="mx-auto w-full max-w-screen-xl flex flex-col">
-          <slot />
+        <!-- Main Content (always rendered) -->
+        <main class="flex grow flex-col px-2 py-4 bg-mild-white min-w-0">
+          <div class="mx-auto w-full max-w-screen-xl flex flex-col min-w-0 overflow-hidden">
+            <slot />
+          </div>
+        </main>
+
+
+      <div v-if="hydrated" class="pb-[84px] lg:pb-0">
+        <!-- Footer (Desktop version) -->
+        <div v-if="isDesktop" class="bg-mild-white">
+          <the-footer-desktop
+            :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+          />
         </div>
-      </main>
 
-
-    <div v-if="hydrated">
-    <!-- Footer (Desktop version) -->
-    <div v-if="isDesktop" class="bg-mild-white">
-      <the-footer-desktop
-        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-      />
-    </div>
-
-    <!-- Footer (Mobile version) -->
-    <div v-if="!isDesktop" class="bg-mild-white">
-      <the-footer-mobile
-        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-      />
-    </div>
-  </div>
-
-
+        <!-- Footer (Mobile version) -->
+        <div v-if="!isDesktop" class="bg-mild-white">
+          <the-footer-mobile
+            :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+          />
+        </div>
+      </div>
+      <div v-else class="pb-[84px] lg:pb-0">
+        <!-- Footer placeholder to prevent layout shift -->
+        <div class="bg-mild-white opacity-0">
+          <div class="h-20"><!-- Footer placeholder --></div>
+        </div>
+      </div>
     </div>
 
     <!-- Drawer Side (Menu) - unified for both mobile and desktop -->
@@ -67,19 +75,53 @@
 <script setup>
 
 import lodash from "lodash";
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 const { includes } = lodash;
 const { $directus, $readItems, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
 
 const hydrated = ref(false)
 const isDesktop = ref(false)
+let cleanup = null
 
 onMounted(() => {
   hydrated.value = true
+  
+  // Initial desktop state detection
+  const checkDesktop = () => window.innerWidth >= 1024
+  isDesktop.value = checkDesktop()
+  
+  // Media query for more reliable detection
   const mq = window.matchMedia('(min-width: 1024px)')
-  const update = () => (isDesktop.value = mq.matches)
+  const update = () => {
+    const wasDesktop = isDesktop.value
+    isDesktop.value = mq.matches
+    
+    // If desktop state changed, force layout recalculation
+    if (wasDesktop !== isDesktop.value) {
+      nextTick(() => {
+        window.dispatchEvent(new Event('resize'))
+        // Force reflow
+        document.body.offsetHeight
+      })
+    }
+  }
+  
+  // Listen to both media query changes and resize events
   mq.addEventListener('change', update)
+  window.addEventListener('resize', update)
+  
+  // Initial update
   update()
+  
+  // Store cleanup function
+  cleanup = () => {
+    mq.removeEventListener('change', update)
+    window.removeEventListener('resize', update)
+  }
+})
+
+onUnmounted(() => {
+  if (cleanup) cleanup()
 })
 
 
@@ -125,3 +167,38 @@ useHead({
 });
 //
 </script>
+
+<style>
+/* Ensure consistent layout regardless of hydration state */
+.drawer-content {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Force main content to be properly centered */
+main {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+main > div {
+  width: 100%;
+  max-width: 1280px; /* max-w-screen-xl */
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Prevent layout shifts during hydration */
+@media (max-width: 1023px) {
+  .pb-\[84px\] {
+    padding-bottom: 84px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:pb-0 {
+    padding-bottom: 0;
+  }
+}
+</style>
