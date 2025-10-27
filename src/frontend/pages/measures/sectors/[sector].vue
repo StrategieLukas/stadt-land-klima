@@ -23,7 +23,7 @@
   </div>
 </template>
 <script setup>
-import sectorImages from "../../shared/sectorImages.js";
+import sectorImages from "../../../shared/sectorImages.js";
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
 
