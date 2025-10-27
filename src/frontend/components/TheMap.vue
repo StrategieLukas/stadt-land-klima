@@ -15,6 +15,7 @@
         style="height: 100%; width: 100%"
         @ready="onMapReady"
         ref="mapRef"
+        class="z-10000"
       >
         <LTileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

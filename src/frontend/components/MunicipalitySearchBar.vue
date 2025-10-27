@@ -12,25 +12,22 @@
           name="q"
           type="text"
           autocomplete="off"
+          @input="onInput"
           @focus="searchFocused = true"
+          @keydown.down.prevent="moveFocus(1)"
+          @keydown.up.prevent="moveFocus(-1)"
+          @keydown.enter.prevent="goToFocused()"
         />
-        <button
-          type="button"
-          class="absolute right-4 top-12 py-1 opacity-50 hover:opacity-60 focus:opacity-60"
-          @click="handleResetSearchClick"
-        >
-          ✖️
-        </button>
       </div>
 
       <div
-        v-if="suggestions.length && searchFocused"
+        v-if="visibleSuggestions.length && searchFocused"
         class="absolute left-0 right-0 top-24 w-full z-50"
         ref="dropdown"
       >
         <ul class="menu dropdown-content rounded-box w-full bg-base-100 p-2 shadow">
           <NuxtLink
-            v-for="(suggestion, index) in suggestions"
+            v-for="(suggestion, index) in visibleSuggestions"
             :key="index"
             :to="suggestion.url"
             class="block w-full p-2 hover:bg-primary/20 rounded cursor-pointer"
@@ -56,60 +53,78 @@
 
 <script setup>
 
-
-
 // Search bar logic
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRouter } from 'vue-router';
 
-const q = ref('')
-const searchFocused = ref(false)
+const { $t } = useNuxtApp();
+
+const props = defineProps({
+  municipalities: {
+    type: Array,
+    required: true,
+  },
+  label: {
+    type: String,
+    required: true,
+  },
+  basePath: {
+    type: String,
+    required: true,
+  },
+});
+
+
 const dropdown = ref(null)
+const q = ref('');
+const searchFocused = ref(false);
+const focusedIndex = ref(-1);
+const router = useRouter();
+const route = useRoute();
 
-const { $t, $directus, $readItems } = useNuxtApp();
-const { data: municipalities } = await useAsyncData("municipalities", () => {
-  return $directus.request(
-    $readItems("municipalities", {
-      fields: ["slug", "name"],
-      sort: "name",
-      filter: {
-        status: {
-          _eq: "published",
-        },
-      },
-      limit: -1,
-    }),
-  );
+const visibleSuggestions = computed(() => {
+  const term = q.value.trim().toLowerCase();
+  if (!term) return [];
+  return props.municipalities
+    .filter((m) => m.name.toLowerCase().includes(term))
+    .slice(0, 5)
+    .map((m) => ({
+      label: m.name,
+      url: `${props.basePath}/${m.slug}`,
+    }));
 });
 
-const suggestions = computed(() => {
-  const _q = q.value.trim().toLowerCase();
-
-  if (!_q.length || !municipalities.value || !municipalities.value.length) {
-    return [];
-  }
-
-  return municipalities.value
-    .filter((municipality) => {
-      return municipality.name.toLowerCase().indexOf(_q) !== -1;
-    })
-    .map((municipality) => {
-      return {
-        url: `/municipalities/${municipality.slug}`,
-        label: municipality.name,
-      };
-    })
-    .slice(0, 5);
-});
-
-
-function handleResetSearchClick() {
-  q.value = ''
-  suggestions.value = []
-  searchFocused.value = false
+function onInput() {
+  focusedIndex.value = -1;
 }
 
+
+function goTo(url) {
+  q.value = '';
+  focusedIndex.value = -1;
+  searchFocused.value = false;
+  router.push(url);
+}
+
+function moveFocus(direction) {
+  const max = visibleSuggestions.value.length - 1;
+  focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + direction));
+}
+
+function goToFocused() {
+  const suggestion = visibleSuggestions.value[focusedIndex.value];
+  if (suggestion) goTo(suggestion.url);
+}
+
+watch(() => document.activeElement, (el) => {
+  if (!el || el.id !== 'search-input') searchFocused.value = false;
+});
+
+
 function handleSuggestionClick() {
+  q.value = '';
   searchFocused.value = false
+  focusedIndex.value = -1;
 }
 
 function handleClickOutside(event) {
@@ -133,9 +148,6 @@ onBeforeUnmount(() => {
 
 
 // Map toggle logic
-const route = useRoute();
-const router = useRouter();
-
 import mapViewIcon from '~/assets/icons/icon_map_view.svg?raw';
 import listViewIcon from '~/assets/icons/icon_list_view.svg?raw';
 

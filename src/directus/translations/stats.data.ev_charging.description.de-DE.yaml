@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.data.ev_charging.description
+value: Zusammengezählte Nettonennleistung der Elektroladesäulen im Gebiet.
