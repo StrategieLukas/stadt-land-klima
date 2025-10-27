@@ -156,7 +156,6 @@ const props = defineProps({
 
 const municipalityScore = props.municipalityScore;
 const municipality = municipalityScore.municipality;
-console.log(municipalityScore);
 const subScores = createSubScoreObject(municipalityScore);
 
 // Fetch projects associated with this municipality

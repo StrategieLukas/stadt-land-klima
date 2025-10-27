@@ -180,8 +180,6 @@
       })
     );
 
-    console.log(rawRatingResultsBeforeFilter);
-
     // client-side filter: percentage_rated > 95 for this catalog version
     // this is a workaround because adding the filters with _some does not work for some reason...
     const rawRatingResults = (rawRatingResultsBeforeFilter ?? []).filter((row) => {
@@ -192,8 +190,6 @@
         return cv === props.municipalityScore.catalog_version.id && Number(pr) > 95;
       });
     });
-
-    console.log(rawRatingResults);
 
     // Step 3: Transform better ratings to have the hierarchy we expect
     const betterMunicipalities = rawRatingResults.map(r => {

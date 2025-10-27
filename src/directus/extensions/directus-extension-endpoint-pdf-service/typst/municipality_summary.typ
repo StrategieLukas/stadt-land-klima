@@ -24,7 +24,7 @@
   size: 12pt,
 )
 
-#let is_major_city = util.is_major_city(municipalityScore.municipality.population)
+#let is_major_city = (municipalityScore.municipality.municipality_type == "big_city")
 #set page(
   paper: "a4",
   header: header.header(is_major_city: is_major_city),

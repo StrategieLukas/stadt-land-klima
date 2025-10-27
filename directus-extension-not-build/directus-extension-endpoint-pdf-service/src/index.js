@@ -44,7 +44,7 @@ export default {
           fields: ["date_updated", "score_total", "score_buildings", "score_energy", "score_transport", "score_industry",
           "score_management", "score_agriculture", "percentage_rated", "rank",
           // municipality fields
-          "municipality.id", "municipality.name", "municipality.slug", "municipality.localteam_id", "municipality.population",
+          "municipality.id", "municipality.name", "municipality.slug", "municipality.localteam_id", "municipality.municipality_type",
           "municipality.state", "municipality.overall_status_comment",
           ],
           filter: { catalog_version: { name: { _eq: catalogVersionName } }, municipality: { slug: { _eq: municipalitySlug}}},
@@ -56,7 +56,7 @@ export default {
         }
 
         const municipalityScore = municipalityScores[0];
-        console.log(municipalityScore);
+//        console.log(municipalityScore);
 
         // Query measures
         const itemService_measures = new ItemsService('measures', { schema, accountability });
