@@ -346,6 +346,17 @@ permissions:
     presets: null
     fields:
       - public_contact
+  - collection: measure_catalog
+    action: read
+    permissions:
+      _and:
+        - hidden:
+            _neq: true
+    validation: null
+    presets: null
+    fields:
+      - name
+      - id
   - collection: measures
     action: read
     permissions:

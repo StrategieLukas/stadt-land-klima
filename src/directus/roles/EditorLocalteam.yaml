@@ -292,6 +292,17 @@ permissions:
       - title
       - link
       - description
+  - collection: measure_catalog
+    action: read
+    permissions:
+      _and:
+        - hidden:
+            _neq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
   - collection: measures
     action: read
     permissions:
