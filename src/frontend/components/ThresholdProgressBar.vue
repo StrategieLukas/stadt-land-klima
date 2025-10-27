@@ -108,7 +108,7 @@ const thresholds = computed(() => {
 
   return [
     {
-      value: props.redThreshold,
+      value: 0,
       color: 'bg-rating-0',
       position: 0,
       hideLabelOnMobile: hideMobileLabels.value,
@@ -139,6 +139,8 @@ const thresholds = computed(() => {
       value: props.darkGreenThreshold,
       color: 'bg-rating-4',
       position: scale(props.darkGreenThreshold),
+      hideLabelOnMobile: hideMobileLabels.value,
+      hideLabelOnDesktop: hideDesktopLabels.value,
     },
   ]
 })

@@ -292,7 +292,7 @@
       </DataProductViewWrapper>
 
       <!-- Alternatives Section -->
-      <div v-if="stats?.level >= 4" class="border-t bg-blue-50 px-6 py-6">
+      <div v-if="stats?.level >= 4" class="border-t border-b bg-blue-50 px-6 py-6">
         <div class="mb-4">
           <h3 class="text-lg font-semibold text-blue-900 mb-2">
             {{ $t('administrative_areas.nearby_alternatives') }}
@@ -391,8 +391,8 @@
       </div>
 
       <!-- Available soon-->
-      <div class="border-t bg-gray-50 px-6 py-6 text-center text-gray-500">
-        <p class="text-sm" v-html="saneLinkifyStr($t('stats.more_data_coming_soon'))"></p>
+      <div class="bg-gray-50 px-6 py-6 text-center text-gray-500">
+        <p class="text-md" v-html="saneLinkifyStr($t('stats.more_data_coming_soon'))"></p>
       </div>
 
     </div>
