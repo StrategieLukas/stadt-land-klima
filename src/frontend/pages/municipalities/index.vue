@@ -188,6 +188,7 @@ const route = useRoute();
 const router = useRouter();
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
+import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
 const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 
 // Change the URL to match the catalog version, if it didn't to begin with

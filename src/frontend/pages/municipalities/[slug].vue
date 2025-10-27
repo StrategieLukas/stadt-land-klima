@@ -31,6 +31,7 @@
 const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
+import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
 const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 
 // Change the URL to match the catalog version, if it didn't to begin with

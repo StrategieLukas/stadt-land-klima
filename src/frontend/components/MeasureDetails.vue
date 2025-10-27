@@ -75,7 +75,7 @@
           class="w-4 h-4"
         />
         <NuxtLink
-          :href="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.measure_id}`"
+          :href="`/municipalities/${example.municipality.slug}/?v=${selectedCatalogVersion.name}#measure-${measure_rating.measure.measure_id}`"
           class="text-black underline"
           target="_blank"
         >
@@ -96,8 +96,13 @@
   import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
   import { onMounted, onBeforeUnmount, ref } from "vue";
   import StaticMeasureDetails from '~/components/StaticMeasureDetails.vue'
+  import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
 
   const { $t, $directus, $readItems, $locale } = useNuxtApp();
+
+  const route = useRoute();
+  const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+
   const props = defineProps({
     measure_rating: {
       type: Object,
