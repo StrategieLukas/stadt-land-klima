@@ -88,8 +88,7 @@
             type="radio"
             value="reasonable"
             v-model="filterType"
-            class="radio radio-sm"
-            style="--chkbg: #006e94; --chkfg: white;"
+            class="radio radio-sm bg-white checked:bg-blue-800"
             @change="handleFilterChange"
           />
           <span class="text-sm">{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</span>
@@ -100,8 +99,7 @@
             type="radio"
             value="all"
             v-model="filterType"
-            class="radio radio-sm"
-            style="--chkbg: #006e94; --chkfg: white;"
+            class="radio radio-sm bg-white checked:bg-blue-800"
             @change="handleFilterChange"
           />
           <span class="text-sm">{{ $t('all_administrative_areas') }}</span>
