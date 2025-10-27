@@ -80,7 +80,7 @@
                 <MeasureDetails
                   v-if="openItems[item.measure.measure_id]"
                   :measure_rating="item"
-                  :municipality="municipality"
+                  :municipalityScore="municipalityScore"
                 />
               </KeepAlive>
             </div>
