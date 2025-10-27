@@ -372,7 +372,6 @@ permissions:
       - percentage_rated
       - ars
       - geolocation
-      - localteam_id
       - notice-kcc40f
   - collection: municipalities
     action: update
@@ -401,7 +400,8 @@ permissions:
       _and:
         - municipality:
             localteam_id:
-              _eq: $CURRENT_USER.localteams.localteam_id
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
         - catalog_version:
             hidden:
               _neq: true

@@ -323,8 +323,9 @@ permissions:
     action: read
     permissions:
       _and:
-        - admin_id:
-            _eq: $CURRENT_USER
+        - id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
@@ -456,7 +457,8 @@ permissions:
       _and:
         - municipality:
             localteam_id:
-              _eq: $CURRENT_USER.localteams.localteam_id
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
         - catalog_version:
             hidden:
               _neq: true
