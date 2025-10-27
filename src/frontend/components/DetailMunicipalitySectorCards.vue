@@ -92,9 +92,9 @@
 </template>
 
 <script setup>
-import sectorImages from "../shared/sectorImages.js";
-import ratingIcons, { ratingIndex } from "../shared/ratingIcons.js";
-import { getRatingDecimalColor } from "../shared/utils.js";
+import sectorImages from "~/shared/sectorImages.js";
+import ratingIcons, { ratingIndex } from "~/shared/ratingIcons.js";
+import { getRatingDecimalColor } from "~/shared/utils.js";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
 import { reactive, computed, onMounted, nextTick, watch } from 'vue'

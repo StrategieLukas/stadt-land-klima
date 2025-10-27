@@ -91,8 +91,8 @@
 import majorCity from '~/assets/images/major-city-dark.svg?raw';
 import minorCity from '~/assets/images/minor-city-dark.svg?raw';
 import sanitizeHtml from "sanitize-html";
-import { getScorePercentageColor, saneLinkifyStr } from "../shared/utils.js"
-import { overwriteSvgStyles } from "../shared/svg-logic.js"
+import { getScorePercentageColor, saneLinkifyStr } from "~/shared/utils.js"
+import { overwriteSvgStyles } from "~/shared/svg-logic.js"
 const { $t } = useNuxtApp();
 
 const MunicipalitySvg = ref('')
