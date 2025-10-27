@@ -143,7 +143,6 @@
       <DataProductViewWrapper
         v-if="stats?.solarPowerData"
         :title="$t('stats.data.solar_power.title')"
-        :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
         code="EN_1"
         :description="$t('stats.data.solar_power.description')"
         :calculation="$t('stats.data.solar_power.calculation')"
@@ -151,19 +150,22 @@
         :histogram-config="{
           dataType: 'solarPowerData',
           attributeName: 'power',
-          currentValue: stats.solarPowerData.power / stats.populationData.population * 1000,
-          populationNormalized: true
+          currentValue: stats.solarPowerData.power,
+          populationNormalized: false
         }"
       >
         <template #content>
-          <ThresholdProgressBar
+          <div class="text-center">
+            <span class="text-2xl font-bold">{{ stats.solarPowerData.power?.toLocaleString() }} kW</span>
+          </div>
+          <!-- <ThresholdProgressBar
             :progress="stats.solarPowerData.power / stats.populationData.population * 1000"
             :orange-threshold="20"
             :yellow-threshold="40"
             :light-green-threshold="60"
             :dark-green-threshold="80"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-          />
+          /> -->
         </template>
       </DataProductViewWrapper>
 
@@ -171,7 +173,6 @@
       <DataProductViewWrapper
         v-if="stats?.windPowerData"
         :title="$t('stats.data.wind_power.title')"
-        :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
         :show-measure-link="false"
         :description="$t('stats.data.wind_power.description')"
         :calculation="$t('stats.data.wind_power.calculation')"
@@ -180,19 +181,22 @@
         :histogram-config="{
           dataType: 'windPowerData',
           attributeName: 'power',
-          currentValue: stats.windPowerData.power / stats.populationData.population * 1000,
-          populationNormalized: true
+          currentValue: stats.windPowerData.power,
+          populationNormalized: false
         }"
       >
         <template #content>
-          <ThresholdProgressBar
+          <div class="text-center">
+            <span class="text-2xl font-bold">{{ stats.windPowerData.power?.toLocaleString() }} kW</span>
+          </div>
+          <!-- <ThresholdProgressBar
             :progress="stats.windPowerData.power / stats.populationData.population * 1000"
             :orange-threshold="15"
             :yellow-threshold="25"
             :light-green-threshold="40"
             :dark-green-threshold="70"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-          />
+          /> -->
         </template>
       </DataProductViewWrapper>
 
@@ -204,22 +208,22 @@
         :show-measure-link="false"
         :description="$t('stats.data.ev_charging.description')"
         :calculation="$t('stats.data.ev_charging.calculation')"
-        code="VE_?"
+        code="VK_1"
         :data-sources="[stats.evChargingData.dataSourceDownload]"
         :histogram-config="{
           dataType: 'evChargingData',
           attributeName: 'power',
           currentValue: stats.evChargingData.power,
-          populationNormalized: false
+          populationNormalized: true
         }"
       >
         <template #content>
           <ThresholdProgressBar
             :progress="stats.evChargingData.power / stats.populationData.population * 1000"
-            :orange-threshold="20"
-            :yellow-threshold="25"
-            :light-green-threshold="30"
-            :dark-green-threshold="50"
+            :orange-threshold="25"
+            :yellow-threshold="50"
+            :light-green-threshold="100"
+            :dark-green-threshold="150"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
           />
         </template>
@@ -234,6 +238,7 @@
         :calculation="`Monte-Carlo-Simulation mit n=${stats.publicTransportScoreData.simulationCount} Simulationen innerhalb des Verwaltungsgebiets. Für das Routing wurde die Programmbibliothek r5py genutzt. Zeitliches Sampling aus der Zeitverwendungsstudie 2022, räumliches aus der Bevölkerungsdichte (JRC Census 2021 Daten). Die Fahrplansolldaten gelten für den Zeitraum von ${formatDateDetailed(stats.publicTransportScoreData.validSinceDt)} bis ${formatDateDetailed(stats.publicTransportScoreData.validUntilDt)}.`"
         :show-measure-link="false"
         :data-sources="stats.publicTransportScoreData.pipelineRun?.downloads"
+        code="VK_5"
         :histogram-config="{
           dataType: 'publicTransportScoreData',
           attributeName: 'commonTravelVelocity',
@@ -263,7 +268,7 @@
         :title="$t('stats.data.cyclewayInfrastructureData.title')"
         :description="$t('stats.data.cyclewayInfrastructureData.description')"
         :calculation="$t('stats.data.cyclewayInfrastructureData.calculation')"
-        code="VE_2"
+        code="VK_16"
         unit="%"
         :show-measure-link="false"
         :data-sources="[stats.cyclewayInfrastructureData.dataSourceDownload]"
@@ -278,7 +283,8 @@
           <ThresholdProgressBar
             :progress="stats.cyclewayInfrastructureData.bicycleInfrastructureRatio*100"
             :orange-threshold="20"
-            :light-green-threshold="50"
+            :yellow-threshold="40"
+            :light-green-threshold="60"
             :dark-green-threshold="80"
             unit="%"
           />
