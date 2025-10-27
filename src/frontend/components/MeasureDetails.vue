@@ -37,7 +37,7 @@
 
   <div class="border-t-4 border-gray-300 p-4 mb-4">
     <NuxtLink
-      :to="`/measures/sectors/${measure_rating.measure.sector}#${measure_rating.measure.measure_id}`"
+      :to="`/measures/sectors/${measure_rating.measure.sector}?v=${municipalityScore.catalog_version.name}#${measure_rating.measure.measure_id}`"
       class="text-black underline"
       target="measure"
     >
@@ -75,7 +75,7 @@
           class="w-4 h-4"
         />
         <NuxtLink
-          :href="`/municipalities/${example.municipality.slug}/#measure-${measure_rating.measure.measure_id}`"
+          :href="`/municipalities/${example.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure_rating.measure.measure_id}`"
           class="text-black underline"
           target="_blank"
         >
@@ -103,13 +103,13 @@
       type: Object,
       required: true,
     },
-    municipality: {
+    municipalityScore: {
       type: Object,
       required: true,
     },
   });
 
-
+  const municipality = props.municipalityScore.municipality;
   const measureDetailsSection = ref(null);
   const hasFetched = ref(false);
   let observer = null;
@@ -158,24 +158,42 @@
       loadingExamples.value = false;
       return [];
     }
+    
 
     // Step 2: Fetch better ratings
-    const rawRatingResults = await $directus.request(
+    const rawRatingResultsBeforeFilter = await $directus.request(
       $readItems('ratings_measures', {
         filter: {
+          // Using the uuid of the measure here, so only returns results for that measure and not from the same "Measure-ID" (as in EN_2).
+          // This ensure that we only look for better examples in the same catalog version
           measure_id: { _eq: measureId },
           status: { _eq: 'published' },
           rating: { _in: higherRatings },
           localteam_id: {
             municipality_id: {
-              status: { _eq: 'published' }
+              status: { _eq: 'published' },
             }
           }
         },
-        fields: ['rating', { localteam_id: ["municipality_name", { municipality_id: ['id', 'name', 'slug', 'state', 'party_mayor', 'population', 'geolocation']}]}],
+        fields: ['rating', { localteam_id: ["municipality_name", { municipality_id: ['id', 'name', 'slug', 'state', 'party_mayor', 'population', 'geolocation', { scores: ['catalog_version', 'percentage_rated']}]}]}],
         limit: -1,
       })
     );
+
+    console.log(rawRatingResultsBeforeFilter);
+
+    // client-side filter: percentage_rated > 95 for this catalog version
+    // this is a workaround because adding the filters with _some does not work for some reason...
+    const rawRatingResults = (rawRatingResultsBeforeFilter ?? []).filter((row) => {
+      const scores = row?.localteam_id?.municipality_id?.[0]?.scores ?? [];
+      return scores.some((s) => {
+        const cv = typeof s.catalog_version === 'object' ? s.catalog_version?.id : s.catalog_version;
+        const pr = typeof s.percentage_rated === 'string' ? parseFloat(s.percentage_rated) : s.percentage_rated;
+        return cv === props.municipalityScore.catalog_version.id && Number(pr) > 95;
+      });
+    });
+
+    console.log(rawRatingResults);
 
     // Step 3: Transform better ratings to have the hierarchy we expect
     const betterMunicipalities = rawRatingResults.map(r => {
@@ -194,7 +212,7 @@
 
 
     // Step 4: Calculate similarity to current municipality
-    const betterMunicipalitiesWithSimiliarityScore = calculateAndAddSimilarityScores(props.municipality, betterMunicipalities);
+    const betterMunicipalitiesWithSimiliarityScore = calculateAndAddSimilarityScores(props.municipalityScore.municipality, betterMunicipalities);
 
     // Step 5: Sort by "best rating for this measure", and then for highest similarity among those.
     const finalSorted = betterMunicipalitiesWithSimiliarityScore

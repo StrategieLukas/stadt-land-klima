@@ -292,6 +292,17 @@ permissions:
       - title
       - link
       - description
+  - collection: measure_catalog
+    action: read
+    permissions:
+      _and:
+        - hidden:
+            _neq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
   - collection: measures
     action: read
     permissions:
@@ -351,15 +362,7 @@ permissions:
       - mayor
       - party_mayor
       - scores
-      - score_total
-      - score_transport
-      - score_energy
-      - score_iec
-      - score_ann
-      - score_cpma
-      - score_bh
       - id
-      - place
       - description
       - status
       - links-g1sxxi
@@ -369,7 +372,6 @@ permissions:
       - percentage_rated
       - ars
       - geolocation
-      - localteam_id
       - notice-kcc40f
   - collection: municipalities
     action: update
@@ -398,7 +400,8 @@ permissions:
       _and:
         - municipality:
             localteam_id:
-              _eq: $CURRENT_USER.localteams.localteam_id
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
         - catalog_version:
             hidden:
               _neq: true
