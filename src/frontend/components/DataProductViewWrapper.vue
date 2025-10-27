@@ -113,6 +113,7 @@
           :unit="unit"
           :population-normalized="histogramConfig.populationNormalized"
         />
+        <p>Legende: Rot: Klasse, in der diese Kommune vertreten ist. Orange: Unteres und obere 5%-Percentile zusammengefasst.</p>
       </div>
     </div>
 
