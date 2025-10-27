@@ -1,17 +1,19 @@
 <template>
-  <main class="px-4 py-8 max-w-4xl mx-auto w-full">
-    <AdministrativeAreaSearchBar 
-      :label="$t('administrative_areas.search.label')" 
-      base-path="/stats" 
-    />
+  <main class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0 overflow-hidden">
+    <div class="flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 sm:mx-4 my-4 p-3 sm:p-4 justify-center overflow-hidden">
+      <AdministrativeAreaSearchBar 
+        :label="$t('administrative_areas.search.label')" 
+        base-path="/stats" 
+      />
+    </div>
 
     <!-- Main Info Container -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6 min-w-0 max-w-full">
       <!-- Breadcrumbs section from contaned by -->
-      <div class="breadcrumbs mx-full bg-gray-50 px-6 py-3 text-sm text-gray items-start!">
-        <ul class="lg:flex-row flex-col items-start!">
-          <li v-for="containedArea in stats?.containedBy?.edges" :key="containedArea.node.ars">
-            <NuxtLink :to="`/stats/${containedArea.node.ars}`" class="hover:underline">
+      <div class="breadcrumbs bg-gray-50 px-3 sm:px-4 lg:px-6 py-3 text-sm text-gray-600 overflow-x-auto">
+        <ul class="flex flex-row flex-nowrap items-center min-w-0">
+          <li v-for="containedArea in stats?.containedBy?.edges" :key="containedArea.node.ars" class="flex-shrink-0">
+            <NuxtLink :to="`/stats/${containedArea.node.ars}`" class="hover:underline whitespace-nowrap text-xs sm:text-sm">
               {{ containedArea.node.prefix }} {{ containedArea.node.name }}
             </NuxtLink>
           </li>
@@ -20,25 +22,25 @@
       
 
       <!-- Header Section -->
-      <div class="flex flex-col lg:flex-row w-full justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-8">
+      <div class="flex flex-col lg:flex-row w-full justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 gap-4 lg:gap-0 overflow-hidden">
         <!-- Left Column: Location Info -->
-        <div>
+        <div class="flex-1 min-w-0 max-w-full">
 
           <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
             {{ stats?.prefix || $t('generic.loading') }}
           </p>
 
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">
             {{ stats?.name || $t('generic.loading') }}
           </h1>
 
-          <p class="text-lg text-gray-600">{{ stats?.state || '' }}</p>
+          <p class="text-base lg:text-lg text-gray-600">{{ stats?.state || '' }}</p>
         </div>
         
         <!-- Right Column: Rating Status & Action -->
-        <div class="text-right space-y-3">
+        <div class="flex flex-col lg:text-right space-y-3 flex-shrink-0">
           <!-- ARS -->
-          <div class="text-right">
+          <div class="lg:text-right">
             <p class="text-xs text-gray-500 font-semibold">ARS</p>
             <p class="text-sm font-mono text-gray-700">{{ stats?.ars || '-' }}</p>
           </div>
@@ -63,31 +65,31 @@
             <!-- Case 1: Has rating - link to ranking -->
             <NuxtLink v-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.percentageRated == 100 && stats.stadtlandklimaData?.slug"
                       :to="`/municipalities/${stats.stadtlandklimaData.slug}`"
-                      class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      class="inline-flex items-center px-3 sm:px-4 py-2 bg-primary text-white text-xs sm:text-sm font-medium rounded-lg transition-colors shadow-sm">
+              <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              {{ $t('stats.view_municipality_ranking') }}
+              <span class="truncate">{{ $t('stats.view_municipality_ranking') }}</span>
             </NuxtLink>
             
             <!-- Case 2: Unfinished rating - get in touch with your local team -->
             <NuxtLink v-else-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.percentageRated < 90 && stats.stadtlandklimaData?.slug"
                       :to="'/kontakt'"
-                      class="inline-flex items-center px-4 py-2 bg-secondary text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      class="inline-flex items-center px-3 sm:px-4 py-2 bg-secondary text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+              <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
               </svg>
-              {{ $t('stats.participate.contact_your_local_team') }}
+              <span class="truncate">{{ $t('stats.participate.contact_your_local_team') }}</span>
             </NuxtLink>
 
             <!-- Case 3: No rating - participate button -->
             <NuxtLink v-else-if="stats.isReasonableForMunicipalRating"
                       :to="'/mitmachen'"
-                      class="inline-flex items-center px-4 py-2 bg-ranking-dark text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      class="inline-flex items-center px-3 sm:px-4 py-2 bg-ranking-dark text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm">
+              <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              {{ $t('stats.participate.start_to_rank_your_municipality') }}
+              <span class="truncate">{{ $t('stats.participate.start_to_rank_your_municipality') }}</span>
             </NuxtLink>
           </div>
         </div>
@@ -95,7 +97,7 @@
     </div>
 
     <!-- Map Section -->
-    <div v-if="stats && (stats.geoCenter || stats.geoArea)" class="mt-6 bg-base-100 shadow-md">
+    <div v-if="stats && (stats.geoCenter || stats.geoArea)" class="mt-6 bg-base-100 shadow-md overflow-hidden max-w-full">
       <AdministrativeAreaMap
         :geo-center="stats.geoCenter"
         :geo-area="stats.geoArea"
@@ -103,14 +105,15 @@
         :zoom="3"
       />
       <!-- centroid coordinates and area in km^2-->
-      <div v-if="stats.geoCenter && stats.geoAreaKm2" class="text-sm text-gray-600 mt-2 pb-2 text-center">
-        <p>
-          {{ $t('administrative_areas.centroid_coordinates') }}: 
-          <span class="font-mono">
+      <div v-if="stats.geoCenter && stats.geoAreaKm2" class="text-xs sm:text-sm text-gray-600 mt-2 pb-2 text-center px-2 overflow-hidden">
+        <p class="break-all max-w-full overflow-hidden">
+          <span class="block sm:inline">{{ $t('administrative_areas.centroid_coordinates') }}:</span> 
+          <span class="font-mono text-xs break-all">
             [{{ stats.geoCenter.coordinates[1].toFixed(4) }}, {{ stats.geoCenter.coordinates[0].toFixed(4) }}]
           </span>
-          {{ $t('administrative_areas.area') }}: 
-          <span class="font-mono">
+          <br class="sm:hidden">
+          <span class="block sm:inline sm:ml-2">{{ $t('administrative_areas.area') }}:</span> 
+          <span class="font-mono break-all">
             {{ stats.geoAreaKm2.toLocaleString() }} km²
           </span>
         </p>
@@ -118,7 +121,7 @@
     </div>
 
     <!-- Data Sections -->
-    <div class="mt-6 space-y-6">
+    <div class="mt-6 space-y-6 min-w-0 max-w-full overflow-hidden">
       <!-- Population Data -->
       <DataProductViewWrapper
         v-if="stats?.populationData"
@@ -133,8 +136,8 @@
         }"
       >
         <template #content>
-          <div class="text-center">
-            <span class="text-2xl font-bold">{{ stats.populationData.population?.toLocaleString() }}</span>
+          <div class="text-center max-w-full overflow-hidden">
+            <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.populationData.population?.toLocaleString() }}</span>
           </div>
         </template>
       </DataProductViewWrapper>
@@ -155,8 +158,8 @@
         }"
       >
         <template #content>
-          <div class="text-center">
-            <span class="text-2xl font-bold">{{ stats.solarPowerData.power?.toLocaleString() }} kW</span>
+          <div class="text-center max-w-full overflow-hidden">
+            <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.solarPowerData.power?.toLocaleString() }} kW</span>
           </div>
           <!-- <ThresholdProgressBar
             :progress="stats.solarPowerData.power / stats.populationData.population * 1000"
@@ -186,8 +189,8 @@
         }"
       >
         <template #content>
-          <div class="text-center">
-            <span class="text-2xl font-bold">{{ stats.windPowerData.power?.toLocaleString() }} kW</span>
+          <div class="text-center max-w-full overflow-hidden">
+            <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.windPowerData.power?.toLocaleString() }} kW</span>
           </div>
           <!-- <ThresholdProgressBar
             :progress="stats.windPowerData.power / stats.populationData.population * 1000"
@@ -247,7 +250,7 @@
         }"
       >
         <template #content>
-          <div class="w-full text-center flex-col flex space-y-2">
+          <div class="grow">
             <ThresholdProgressBar
               :progress="stats.publicTransportScoreData.commonTravelVelocity"
               :orange-threshold="4"
@@ -257,7 +260,11 @@
               :unit="`km/h`"
             />
             <!-- Mean Travel Time -->
-            <span class="font-bold text-left">Reisezeit: {{ `(${Math.round(stats.publicTransportScoreData.meanTravelTimeMinutes)} ± ${Math.round(stats.publicTransportScoreData.stdDevTravelTimeMinutes)}) min` }}</span>
+            <div class="max-w-full overflow-hidden">
+              <span class="font-bold text-left text-xs sm:text-sm lg:text-base break-all inline-block max-w-full">
+                Reisezeit: {{ `(${Math.round(stats.publicTransportScoreData.meanTravelTimeMinutes)} ± ${Math.round(stats.publicTransportScoreData.stdDevTravelTimeMinutes)}) min` }}
+              </span>
+            </div>
           </div>
         </template>
       </DataProductViewWrapper>
@@ -292,7 +299,7 @@
       </DataProductViewWrapper>
 
       <!-- Alternatives Section -->
-      <div v-if="stats?.level >= 4" class="border-t border-b bg-blue-50 px-6 py-6">
+      <div v-if="stats?.level >= 4" class="border-t border-b bg-blue-50 px-3 sm:px-4 lg:px-6 py-6 max-w-full overflow-hidden">
         <div class="mb-4">
           <h3 class="text-lg font-semibold text-blue-900 mb-2">
             {{ $t('administrative_areas.nearby_alternatives') }}
@@ -328,12 +335,12 @@
             
             <!-- Scrollable Content -->
             <div 
-              class="flex space-x-4 overflow-x-auto pb-4"
+              class="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
               ref="scrollContainer"
               @scroll="updateShadows"
             >
               <div v-for="area in nearbyAreas" :key="area.ars" 
-                   class="flex-none w-80 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                   class="flex-none w-64 sm:w-72 lg:w-80 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow max-w-full">
                 
                 <!-- Mini Map Placeholder -->
                 <div class="h-32 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center relative">
@@ -356,20 +363,20 @@
                 </div>
                 
                 <!-- Card Content -->
-                <div class="p-4">
+                <div class="p-3 sm:p-4">
                   <div class="mb-3">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                       {{ area.prefix }}
                     </p>
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight">
+                    <h4 class="text-sm font-bold text-gray-900 leading-tight break-words">
                       {{ area.name }}
                     </h4>
                   </div>
                   
                   <NuxtLink :to="area.hasRating ? `/municipalities/${area.stadtlandklimaData.slug}` : `/stats/${area.ars}`"
-                            class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    {{ area.hasRating ? $t('stats.view_ranking') : $t('stats.view_stats') }}
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="inline-flex items-center text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    <span class="truncate">{{ area.hasRating ? $t('stats.view_ranking') : $t('stats.view_stats') }}</span>
+                    <svg class="w-4 h-4 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                   </NuxtLink>
@@ -391,8 +398,8 @@
       </div>
 
       <!-- Available soon-->
-      <div class="bg-gray-50 px-6 py-6 text-center text-gray-500">
-        <p class="text-md" v-html="saneLinkifyStr($t('stats.more_data_coming_soon'))"></p>
+      <div class="bg-gray-50 px-3 sm:px-4 lg:px-6 py-6 text-center text-gray-500 max-w-full overflow-hidden">
+        <p class="text-sm sm:text-base break-words" v-html="saneLinkifyStr($t('stats.more_data_coming_soon'))"></p>
       </div>
 
     </div>
@@ -549,17 +556,12 @@ const getOrdinalSuffix = (day) => {
 </script>
 
 <style scoped>
-/* Hide scrollbar for webkit browsers */
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Safari and Chrome */
-}
 
-/* Ensure the carousel container maintains proper positioning */
-.carousel-container {
-  position: relative;
+/* Ensure no element can expand beyond viewport */
+main {
+  max-width: 100vw;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-wrap: break-word;
 }
 </style>

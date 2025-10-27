@@ -1,13 +1,13 @@
 <template>
   <!-- Search Bar -->
-  <div class="flex items-end space-x-4">
-    <form class="relative overflow-visible" @submit.prevent>
-      <div class="form-control">
+  <div class="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-6">
+    <form class="relative overflow-visible flex-1" @submit.prevent>
+      <div class="form-control w-full">
         <label for="admin-search-input" class="label">{{ label }}</label>
         <input
           id="admin-search-input"
           v-model="q"
-          class="input input-bordered w-64 max-w-full bg-white pr-12 sm:w-96 border-stats-dark focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
+          class="input input-bordered w-full bg-white pr-12 border-stats-dark focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
           name="q"
           type="text"
           autocomplete="off"
@@ -22,7 +22,7 @@
 
       <div
         v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !searchResults.length)) && searchFocused"
-        class="absolute left-0 right-0 top-24 w-full z-[9999]"
+        class="absolute left-0 right-0 top-20 sm:top-24 w-full z-[9999]"
         ref="dropdown"
       >
         <div class="bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto">
@@ -44,29 +44,29 @@
             <div
               v-for="(suggestion, index) in visibleSuggestions"
               :key="suggestion.ars"
-              class="px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+              class="px-3 sm:px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
               :class="{ 'bg-stats-light': index === focusedIndex }"
               @click="goTo(suggestion.url); handleSuggestionClick()"
             >
-              <div class="flex items-center justify-between">
-                <div class="flex-1">
-                  <div class="text-xs font-medium uppercase text-gray-500">
+              <div class="flex items-start sm:items-center justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs font-medium uppercase text-gray-500 truncate">
                     {{ suggestion.prefix }}
                   </div>
-                  <div class="text-md font-semibold text-gray-900">
+                  <div class="text-sm sm:text-base font-semibold text-gray-900 break-words">
                     {{ suggestion.name }}
                   </div>
                 </div>
-                <div class="flex flex-col items-end space-y-1">
-                  <div v-if="suggestion.hasRating" class="flex space-x-2">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <div class="flex flex-col items-end space-y-1 flex-shrink-0">
+                  <div v-if="suggestion.hasRating" class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
                       {{ suggestion.scoreDisplay }}
                     </span>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
                       {{ suggestion.percentageDisplay }}
                     </span>
                   </div>
-                  <div v-else class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  <div v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 whitespace-nowrap">
                     {{ $t('administrative_areas.not_rated_yet') }}
                   </div>
                 </div>
@@ -78,28 +78,28 @@
     </form>
 
     <!-- Filter Radio Group -->
-    <div class="form-control" ref="radioGroup">
+    <div class="form-control flex-shrink-0 lg:min-w-0" ref="radioGroup">
       <label class="label">
         <span class="label-text">{{ $t('administrative_areas.search.filter_settings') }}</span>
       </label>
-      <div class="flex flex-col space-y-2">
-        <label class="flex items-center space-x-2 cursor-pointer">
+      <div class="flex flex-col gap-1.5 space-y-2 lg:space-y-0">
+        <label class="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
           <input
             type="radio"
             value="reasonable"
             v-model="filterType"
-            class="radio radio-sm bg-white checked:bg-blue-800"
+            class="radio radio-sm bg-white checked:bg-blue-800 flex-shrink-0"
             @change="handleFilterChange"
           />
           <span class="text-sm">{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</span>
         </label>
         
-        <label class="flex items-center space-x-2 cursor-pointer">
+        <label class="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
           <input
             type="radio"
             value="all"
             v-model="filterType"
-            class="radio radio-sm bg-white checked:bg-blue-800"
+            class="radio radio-sm bg-white checked:bg-blue-800 flex-shrink-0"
             @change="handleFilterChange"
           />
           <span class="text-sm">{{ $t('all_administrative_areas') }}</span>

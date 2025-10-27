@@ -14,16 +14,7 @@
 
         <!-- Mobile Header -->
         <div v-else>
-          <div class="drawer">
-            <input id="page-drawer" type="checkbox" class="drawer-toggle" />
-            <div class="drawer-content flex flex-col">
-              <the-drawer-side-toggle />
-              <the-header-mobile :municipalities="publishedMunicipalities" />
-            </div>
-            <the-drawer-side
-              :pages="pages.filter((page) => includes(page.menus, 'main'))"
-            />
-          </div>
+          <the-header-mobile :municipalities="publishedMunicipalities" />
         </div>
       </div>
       <div v-else>
@@ -39,15 +30,6 @@
       </main>
 
 
-    <!-- Footer (Mobile version) -->
-    <div v-if="!isDesktop" class="bg-mild-white">
-      <the-footer-mobile
-        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-      />
-      <div class="h-[48px]"></div> <!-- Spacer to accommodate the dock height -->
-    </div>
-  </div>
-
     <div v-if="hydrated">
     <!-- Footer (Desktop version) -->
     <div v-if="isDesktop" class="bg-mild-white">
@@ -56,20 +38,27 @@
       />
     </div>
 
+    <!-- Footer (Mobile version) -->
+    <div v-if="!isDesktop" class="bg-mild-white">
+      <the-footer-mobile
+        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+      />
+    </div>
+  </div>
 
 
+    </div>
 
-    <!-- Drawer Side (Menu) -->
+    <!-- Drawer Side (Menu) - unified for both mobile and desktop -->
     <the-drawer-side
       :pages="pages.filter((page) => includes(page.menus, 'main'))"
     />
 
     <!-- Dock (Mobile version - always visible, sticky) -->
-    <div class="fixed bottom-0 left-0 right-0 z-[2000] block lg:hidden">
+    <div class="fixed bottom-0 left-0 right-0 z-50 block lg:hidden">
       <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
     </div>
 
-  </div>
   </div>
 </template>
 
