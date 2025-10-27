@@ -29,7 +29,7 @@
 import lodash from "lodash";
 const { includes } = lodash;
 import { ref } from "vue";
-import sectorImages from "../../shared/sectorImages.js";
+import sectorImages from "~/shared/sectorImages.js";
 
 const { $directus, $readItems, $t } = useNuxtApp();
 const sectors = ref([]);

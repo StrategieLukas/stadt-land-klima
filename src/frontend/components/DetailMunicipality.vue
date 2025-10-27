@@ -138,7 +138,7 @@
 import { ref, onMounted, computed } from 'vue';
 import lodash from "lodash";
 import sanitizeHtml from "sanitize-html";
-import { formatLastUpdated, saneLinkifyStr } from "../shared/utils.js";
+import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils.js";
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
