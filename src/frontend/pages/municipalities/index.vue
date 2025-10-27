@@ -81,13 +81,13 @@
     <!-- Conditional Content -->
      <div>
       <section>
-        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
-        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
-        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipality-scores="majorCityScores" :catalog-version="selectedCatalogVersion"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipality-scores="minorCitiesScores" :catalog-version="selectedCatalogVersion"/>
+        <TheMap v-else-if="isMapView" :municipality-scores="municipalityScores" :catalog-version="selectedCatalogVersion"/>
 
-        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
-        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
-        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipality-scores="majorCityScores" :catalog-version="selectedCatalogVersion"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipality-scores="minorCitiesScores" :catalog-version="selectedCatalogVersion"/>
+        <TheRanking v-else-if="!isMapView" :municipality-scores="municipalityScores" :catalog-version="selectedCatalogVersion"/>
       </section>
      </div>
   </div>
@@ -98,13 +98,13 @@
     <div ref="rankingColumn" class="lg:col-span-2">
       <!-- Conditional Content -->
       <div class="w-full max-w-screen-xl">
-        <TheMap v-if="isMapView && selected === 'major_city'" :municipalities="majorCities"/>
-        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
-        <TheMap v-else-if="isMapView" :municipalities="municipalities"/>
+        <TheMap v-if="isMapView && selected === 'major_city'" :municipality-scores="majorCityScores" :catalog-version="selectedCatalogVersion"/>
+        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipality-scores="minorCitiesScores" :catalog-version="selectedCatalogVersion"/>
+        <TheMap v-else-if="isMapView" :municipality-scores="municipalityScores" :catalog-version="selectedCatalogVersion"/>
 
-        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipalities="majorCities"/>
-        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipalities="minorCities"/>
-        <TheRanking v-else-if="!isMapView" :municipalities="municipalities"/>
+        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipality-scores="majorCityScores" :catalog-version="selectedCatalogVersion"/>
+        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipality-scores="minorCitiesScores" :catalog-version="selectedCatalogVersion"/>
+        <TheRanking v-else-if="!isMapView" :municipality-scores="municipalityScores" :catalog-version="selectedCatalogVersion"/>
       </div>
     </div>
 
@@ -149,11 +149,13 @@ const rankingColumn = ref(null)
 const rankingColumnHeight = ref(0)
 
 function updateRankingColumnHeight() {
-  console.log("Updated");
   if (rankingColumn.value) {
-    const h = rankingColumn.value.offsetHeight
+    const measured = rankingColumn.value.offsetHeight;
+    const minHeight = 500;
+    const h = Math.max(measured, minHeight);
+
     if (h !== rankingColumnHeight.value) {
-      rankingColumnHeight.value = h
+      rankingColumnHeight.value = h;
     }
   }
 }
@@ -183,20 +185,32 @@ useHead({
 });
 
 const route = useRoute();
+const router = useRouter();
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
-// Fetch all relevant municipalities from directus
-const { data: municipalities } = await useAsyncData("municipalities_ranking", () => {
+const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+
+// Change the URL to match the catalog version, if it didn't to begin with
+if (process.client && route.query.v != selectedCatalogVersion.name) {
+  onMounted(() => {
+    router.replace({ query: { ...route.query, v: selectedCatalogVersion.name } });
+  });
+}
+
+// Fetch all relevant municipalityScores from directus
+const { data: municipalityScores } = await useAsyncData("municipalities_ranking_scores", () => {
   return $directus.request(
-    $readItems("municipalities", {
-      fields: ["slug", "name", "score_total", "place", "state", "date_updated", "municipality_type", "percentage_rated", "status", "geolocation"],
-      sort: "-score_total",
+    $readItems("municipality_scores", {
+      fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
+      { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
+      filter: { catalog_version: { _eq: selectedCatalogVersion.id }, percentage_rated: { _gt: 0} },
       limit: -1,
-      // Fetching even non-published municipalities to show as 'in progress' in map view, but filtered out for list view
-      filter: { percentage_rated: { _gt: 0 } },
+      sort: "-score_total",
     })
   )
 });
+
+
 
 const { data: projects } = await useAsyncData("articles_ranking", () => {
   return $directus.request(
@@ -219,27 +233,38 @@ const { data: projects } = await useAsyncData("articles_ranking", () => {
 });
 
 
-// todo fix "place" for these views
-const majorCities = getSublist((municipality) => municipality.municipality_type === 'big_city');
-const minorCities = getSublist((municipality) => municipality.municipality_type === 'small_city');
+const majorCityScores = getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'big_city');
+const minorCitiesScores = getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'small_city');
 
 function getSublist(condition) {
-  return (municipalities.value?.filter(condition) || [])
+  return (municipalityScores.value?.filter(condition) || [])
     .map((item, index) => ({
       ...item,
-      place: index + 1,
+      rank: index + 1,
     }));
 }
 
 const lastUpdatedAtStr = ref("");
 onMounted(() => {
-  const lastUpdatedAt = new Date(get(last(sortBy(municipalities.value, ["date_updated"])), "date_updated"));
+  const scores = municipalityScores.value;
+  if (!Array.isArray(scores) || scores.length === 0) return;
+
+  // sort by nested municipality.date_updated
+  const sorted = sortBy(scores, (s) => get(s, "municipality.date_updated"));
+
+  const latest = get(last(sorted), "municipality.date_updated");
+  if (!latest) return;
+
+  const lastUpdatedAt = new Date(latest);
+
   lastUpdatedAtStr.value =
-    lastUpdatedAt.toLocaleDateString($locale, { year: "numeric", month: "2-digit", day: "numeric" }) +
+    lastUpdatedAt.toLocaleDateString($locale, {
+      year: "numeric",
+      month: "2-digit",
+      day: "numeric"
+    }) +
     ", " +
     lastUpdatedAt.toLocaleTimeString($locale);
-
-  
 });
 
 // Toggle between cities, towns, or all

@@ -1,0 +1,42 @@
+collection: municipality_scores
+field: catalog_version
+type: uuid
+meta:
+  collection: municipality_scores
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{name}}"
+  field: catalog_version
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: null
+  options:
+    enableCreate: false
+    template: "{{name}}"
+  readonly: false
+  required: true
+  sort: 4
+  special:
+    - m2o
+  translations: null
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: catalog_version
+  table: municipality_scores
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: measure_catalog
+  foreign_key_column: id

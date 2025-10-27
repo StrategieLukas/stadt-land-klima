@@ -118,12 +118,22 @@ permissions:
       - municipality_name
       - slug
       - name
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: measures
     action: read
     permissions:
       _and:
         - status:
             _eq: published
+        - catalog_version:
+            hidden:
+              _eq: false
     validation: null
     presets: null
     fields:
@@ -152,6 +162,9 @@ permissions:
       - description_funding
       - description_tutorial
       - measure_id
+      - catalog_version
+      - must_be_rated_again
+      - choices_rating
   - collection: municipalities
     action: read
     permissions: null
@@ -186,6 +199,13 @@ permissions:
       - geolocation
       - percentage_rated
       - id
+  - collection: municipality_scores
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: organisations
     action: read
     permissions: null
@@ -230,6 +250,10 @@ permissions:
         - measure_id:
             status:
               _eq: published
+        - measure_id:
+            catalog_version:
+              hidden:
+                _eq: false
     validation: null
     presets: null
     fields:

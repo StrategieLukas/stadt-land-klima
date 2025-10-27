@@ -30,7 +30,7 @@
 
     <!-- Navigation Bar -->
     <nav class="flex justify-center bg-mid-gray h-12">
-      <ul class="flex h-full">
+      <ul class="flex h-full z-50">
         <!-- Main Pages -->
         <li
           v-for="page in mainPages"

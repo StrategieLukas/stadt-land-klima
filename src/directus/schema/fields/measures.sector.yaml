@@ -29,19 +29,19 @@ meta:
     choices:
       - text: $t:measure_categories.energie.title
         value: energy
-      - text: $t:measure_sectors.bh.title
-        value: bh
-      - text: $t:measure_sectors.iec.title
-        value: iec
-      - text: $t:measure_sectors.cpma.title
-        value: cpma
-      - text: $t:measure_sectors.ann.title
-        value: ann
+      - text: $t:measure_sectors.buildings.title
+        value: buildings
+      - text: $t:measure_sectors.industry.title
+        value: industry
+      - text: $t:measure_sectors.management.title
+        value: management
+      - text: $t:measure_sectors.agriculture.title
+        value: agriculture
       - text: $t:measure_sectors.transport.title
         value: transport
   readonly: false
   required: true
-  sort: 9
+  sort: 12
   special: null
   translations:
     - language: de-DE

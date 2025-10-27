@@ -7,7 +7,7 @@
 #import "visualization/rated_measures_table.typ"
 
 
-#let municipality = json(sys.inputs.municipality)
+#let municipalityScore = json(sys.inputs.municipalityScore)
 #let rating_measures = json(sys.inputs.measures)
 
 // #let municipality = json("sample_data/municipality.json")
@@ -24,7 +24,7 @@
   size: 12pt,
 )
 
-#let is_major_city = util.is_major_city(municipality.population)
+#let is_major_city = util.is_major_city(municipalityScore.municipality.population)
 #set page(
   paper: "a4",
   header: header.header(is_major_city: is_major_city),
@@ -36,13 +36,13 @@
 
 #v(2*unit)
 #align(
-  center, 
+  center,
   box(
     width: 70%,
     [
       #box(
         item_ranking.item_ranking(
-          municipality,
+          municipalityScore,
           unit,
           true,
           true,
@@ -52,14 +52,14 @@
       #align(
         left,
         [
-          #if(municipality.overall_status_comment != none){
+          #if(municipalityScore.municipality.overall_status_comment != none){
           [
             = Anmerkungen & Aktuelles zur Bewertung
-            #text(municipality.overall_status_comment)]
+            #text(municipalityScore.municipality.overall_status_comment)]
           }
         ]
       )
-    
+
     ]
   )
 )
@@ -80,14 +80,14 @@
       origin: top + left,
       reflow: true,
       item_ranking.item_ranking(
-        municipality,
+        municipalityScore,
         unit,
         false,
         false,
       )
     )
   ),
-  overview_table.draw_overview_table(municipality, rating_measures)
+  overview_table.draw_overview_table(municipalityScore, rating_measures)
 )
 
 #rated_measures_table.draw_measures_table(rating_measures)

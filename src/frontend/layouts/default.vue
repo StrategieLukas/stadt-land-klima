@@ -39,6 +39,15 @@
       </main>
 
 
+    <!-- Footer (Mobile version) -->
+    <div v-if="!isDesktop" class="bg-mild-white">
+      <the-footer-mobile
+        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+      />
+      <div class="h-[48px]"></div> <!-- Spacer to accommodate the dock height -->
+    </div>
+  </div>
+
     <div v-if="hydrated">
     <!-- Footer (Desktop version) -->
     <div v-if="isDesktop" class="bg-mild-white">
@@ -47,13 +56,7 @@
       />
     </div>
 
-    <!-- Footer (Mobile version) -->
-    <div v-if="!isDesktop" class="bg-mild-white">
-      <the-footer-mobile
-        :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-      />
-    </div>
-  </div>
+
 
 
     <!-- Drawer Side (Menu) -->
@@ -62,7 +65,7 @@
     />
 
     <!-- Dock (Mobile version - always visible, sticky) -->
-    <div class="fixed bottom-0 left-0 right-0 z-50 block lg:hidden">
+    <div class="fixed bottom-0 left-0 right-0 z-[2000] block lg:hidden">
       <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
     </div>
 

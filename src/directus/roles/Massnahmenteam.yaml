@@ -47,12 +47,22 @@ permissions:
       - date_updated
       - date_created
       - status
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: measures
     action: read
     permissions:
       _and:
         - status:
             _eq: published
+        - catalog_version:
+            hidden:
+              _eq: false
     validation: {}
     presets: null
     fields:
@@ -118,6 +128,13 @@ permissions:
       - notice-kcc40f
       - public_contact
       - links-g1sxxi
+  - collection: municipality_scores
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: ratings_measures
     action: read
     permissions:
@@ -127,6 +144,10 @@ permissions:
         - measure_id:
             status:
               _eq: published
+        - measure_id:
+            catalog_version:
+              hidden:
+                _eq: false
     validation: {}
     presets: null
     fields:
