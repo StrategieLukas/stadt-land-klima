@@ -4,7 +4,7 @@
   #box(
     width: 100%,
     [
-    #place(center+horizon, dy: 0.5em, image("/slk_resources/StadtLandKlima-Logo.svg", height: 1.4cm, width: 6cm, fit: "contain"))
+    #place(center+horizon, dy: 0.5em, image("/slk_resources/Stadt-Land-Klima-Logo.svg", height: 1.4cm, width: 6cm, fit: "contain"))
     #place(
       horizon+right,
       // Logo and Text
@@ -20,7 +20,7 @@
             city_types.minor_city
           }
         )
-        
+
       )
     )]
   )

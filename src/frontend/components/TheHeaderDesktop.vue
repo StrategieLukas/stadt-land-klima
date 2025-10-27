@@ -4,7 +4,7 @@
       <!-- Logo -->
       <div class="flex-shrink-0 mb-4 md:mb-0">
         <NuxtLink to="/">
-          <img src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
+          <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-32 w-auto" :alt="$t('logo.alt')" />
         </NuxtLink>
       </div>
 
