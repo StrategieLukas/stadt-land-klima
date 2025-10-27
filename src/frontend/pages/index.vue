@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <article v-if="page" class="prose py-8" v-html="page.contents" />
-    <p v-else class="prose py-8">
+  <div class="w-full">
+    <article v-if="page" class="prose px-4 py-8 max-w-4xl mx-auto w-full" v-html="page.contents" />
+    <p v-else class="prose px-4 py-8 max-w-4xl mx-auto w-full">
       {{ $t("page_not_found") }}
     </p>
   </div>

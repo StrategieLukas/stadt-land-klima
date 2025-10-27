@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="flex flex-col gap-6 lg:flex-row items-center justify-between p-4 bg-base-100 shadow-md mt-2 mb-2 cursor-pointer"
+    class="flex border min-h-[100px] flex-col gap-6 lg:flex-row items-center p-4 bg-base-100 shadow-md mt-2 cursor-pointer"
     @click="toggle"
   >
     <!-- Title + Unit -->
@@ -12,7 +12,7 @@
     </div>
 
     <!-- Progress bar or other content slot -->
-    <div class="flex-1 flex w-full justify-center">
+    <div class="w-full justify-center grow">
       <slot name="content" :expanded="expanded" :toggle="toggle" />
     </div>
 
@@ -28,7 +28,7 @@
   </div>
 
   <!-- Expandable section -->
-  <div v-if="expanded" class="p-4 border-t space-y-3 text-sm text-black bg-base-100 shadow-md">
+  <div v-if="expanded" class="p-4 space-y-3 text-sm text-black bg-base-100 shadow-md">
     <div v-if="description">
       <p class="font-bold">{{ $t('stats.labels.description') }}</p>
       <p>{{ description }}</p>
@@ -119,15 +119,6 @@
 
     <!-- Custom expandable content slot -->
     <slot name="expandable-content" :expanded="expanded" />
-    
-    <div v-if="showMeasureLink">
-      <NuxtLink
-        to="/measures"
-        class="underline text-primary hover:text-primary/70"
-      >
-        {{ $t("stats.measure.link") }}
-      </NuxtLink>
-    </div>
   </div>
 </template>
 
