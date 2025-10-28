@@ -112,7 +112,8 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { debounce } from 'lodash'
+import lodash from 'lodash'
+const { debounce } = lodash
 
 const { $t, $stadtlandzahlAPI } = useNuxtApp()
 
