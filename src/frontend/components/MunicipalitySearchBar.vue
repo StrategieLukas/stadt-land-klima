@@ -1,6 +1,6 @@
 <template>
   <!-- Search Bar and map toggle-->
-  <div class="flex items-end space-x-4">
+  <div class="z-[9999] flex items-end space-x-4">
     <!-- Search Bar -->
     <form class="relative overflow-visible" @submit.prevent>
       <div class="form-control">

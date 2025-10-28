@@ -1,6 +1,6 @@
 <template>
-  <main class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0 overflow-hidden">
-    <div class="flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 sm:mx-4 my-4 p-3 sm:p-4 justify-center overflow-hidden">
+  <main class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0">
+    <div class="flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 sm:mx-4 my-4 p-3 sm:p-4 justify-center">
       <AdministrativeAreaSearchBar 
         :label="$t('administrative_areas.search.label')" 
         base-path="/stats" 
