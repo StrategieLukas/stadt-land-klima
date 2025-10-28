@@ -47,6 +47,10 @@ permissions:
       - ease_of_implementation_block
       - instagram
       - linkedin
+      - content_segment
+      - social_media
+      - additional_infos_segment
+      - similar_projects_segment
   - collection: articles
     action: delete
     permissions:

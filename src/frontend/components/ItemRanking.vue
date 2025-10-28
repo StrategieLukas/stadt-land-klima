@@ -26,7 +26,7 @@
     <div v-if="isRanking" class="flex items-start">
       <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
     </div>
-    <button v-else @click="fetchPDF(municipality)" class="p-4 flex items-center justify-end text-white bg-gray h-10">PDF</button>
+    <button v-else @click="fetchPDF()" class="p-4 flex items-center justify-end text-white bg-gray h-10">PDF</button>
     
   </div>
 </template>
@@ -70,7 +70,7 @@ const colorClass = computed(() => {
 
 const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config
 
-async function fetchPDF(municipality) {
+async function fetchPDF() {
   console.log("municipality: ", municipality)
   if (!municipality.slug) return;
 

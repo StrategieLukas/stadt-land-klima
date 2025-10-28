@@ -38,7 +38,13 @@ const publishedMunicipalityScores = computed(() => {
   if (!props.municipalityScores || !Array.isArray(props.municipalityScores)) {
     return []
   }
-  return props.municipalityScores.filter(s => s.municipality.status === "published" && s.percentage_rated > 95) || []
+  return props.municipalityScores
+    .filter(s => s.municipality.status === "published" && s.percentage_rated > 95)
+    // Recalculate indices
+    .map((item, index) => ({
+        ...item,
+        rank: index + 1,
+      })) || []
 })
 </script>
 <style lang=""></style>

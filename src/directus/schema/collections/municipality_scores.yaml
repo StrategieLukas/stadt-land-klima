@@ -9,7 +9,7 @@ meta:
   color: null
   display_template: null
   group: null
-  hidden: false
+  hidden: true
   icon: null
   item_duplication_fields: null
   note: null
