@@ -49,6 +49,7 @@ const { data: measures } = await useAsyncData(`measures-sector-${route.params.se
         sector: { _eq: route.params.sector },
         catalog_version: { _eq: selectedCatalogVersion.id }
       },
+      sort: "measure_id",
       limit: -1,
     }),
   );
