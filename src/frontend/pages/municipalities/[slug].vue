@@ -29,8 +29,10 @@
 
 <script setup>
 const { $directus, $readItems } = useNuxtApp();
-const route = useRoute();
 const router = useRouter();
+
+import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
+const route = useRoute();
 const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 
 // Change the URL to match the catalog version, if it didn't to begin with
@@ -41,7 +43,7 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
 }
 
 
-const { data: directusData } = await useAsyncData("municipality", async () => {
+const { data: directusData } = await useAsyncData(`municipality_${route.params.slug}_${selectedCatalogVersion.id}`, async () => {
   const [municipalityScores, measures] = await Promise.all([
     $directus.request(
       $readItems("municipality_scores", {

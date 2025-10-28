@@ -1,11 +1,12 @@
 <template>
   <ArticlePage
+    v-if="article.title"
     :title="article.title"
     :subtitle="article.subtitle"
     :municipality_name="article.municipality_name"
     :state="article.state"
     :author="article.author"
-    :date="new Date(article.date_created)"
+    :date="article.date_created ? new Date(article.date_created) : null"
     :image="article.image"
     :image_credits="article.image_credits"
     :abstract="article.abstract"
@@ -15,6 +16,11 @@
     :article_linkedin="article.linkedin"
     :organisation="article.organisation"
   />
+  <div v-else class="container mx-auto px-4 py-8">
+    <div class="text-center">
+      <div class="animate-pulse">{{ $t("generic.loading") }}</div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -23,7 +29,7 @@
 
   const route = useRoute();
 
-  const { data: articles } = await useAsyncData("articles", () => {
+  const { data: articles } = await useAsyncData(`article-${route.params.slug}`, () => {
     return $directus.request(
       $readItems("articles", {
         fields: [
@@ -35,20 +41,20 @@
     )
   });
 
-  const article = articles.value[0];
+  const article = computed(() => articles.value?.[0] || {});
 
   const articleLink = computed(() => {
-    if (!article.link) return null;
+    if (!article.value.link) return null;
     try {
-      return new URL(article.link);
+      return new URL(article.value.link);
     } catch {
-      console.error("Invalid URL: " + article.link)
+      console.error("Invalid URL: " + article.value.link)
       return null;
     }
   })
 
   //MetaTags
-  const title = ref(article.title);
+  const title = computed(() => article.value.title || '');
     useHead({
     title,
   });

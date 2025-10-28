@@ -10,5 +10,12 @@
   </div>
 </template>
 <script setup>
+const props = defineProps({
+  small: {
+    type: Boolean,
+    default: false
+  }
+})
+
 const { $t } = useNuxtApp();
 </script>

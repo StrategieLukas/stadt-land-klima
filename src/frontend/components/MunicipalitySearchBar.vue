@@ -1,6 +1,6 @@
 <template>
   <!-- Search Bar and map toggle-->
-  <div class="flex items-end space-x-4">
+  <div class="z-[9999] flex items-end space-x-4">
     <!-- Search Bar -->
     <form class="relative overflow-visible" @submit.prevent>
       <div class="form-control">
@@ -44,7 +44,7 @@
       :class="{'invisible': route.path !== '/municipalities'}"
       :aria-hidden="route.path !== '/municipalities'"
       @click="toggleView"
-      class="flex items-center justify-center w-12 h-12 rounded-md hover:bg-gray-100"
+      class="flex items-center justify-center w-12 h-12 rounded-md text-base-100 hover:bg-gray-100"
     >
       <span v-html="isMapView ? listViewIcon : mapViewIcon" class="w-12 h-12 flex-none"></span>
     </button>

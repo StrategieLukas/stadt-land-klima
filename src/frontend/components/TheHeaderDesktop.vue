@@ -41,8 +41,8 @@
             :to="`/${page.slug}`"
             class="flex items-center justify-center px-6 text-white font-bold h-full"
             :class="{
-              'bg-light-green text-white': '/' + page.slug === route.path,
-              'hover:bg-mid-gray': '/' + page.slug !== route.path,
+              'bg-light-green text-white': isActive(page.slug),
+              'hover:bg-mid-gray': !isActive(page.slug),
             }"
           >
             {{ page.name }}
@@ -109,9 +109,10 @@ const otherPages = computed(() =>
 
 
 
-// Function to check if a page is active
+// Function to check if a page is active (including nested routes)
 const isActive = (slug) => {
-  return route.path === slug || route.path === `/${slug}`;
+  const fullPath = `/${slug}`;
+  return route.path === fullPath || route.path.startsWith(fullPath + '/');
 };
 </script>
 <style lang=""></style>

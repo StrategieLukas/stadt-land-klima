@@ -13,13 +13,19 @@
   </div>
 </template>
 <script setup>
+import { ref } from 'vue';
+import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
+const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 
-const { data: measures } = await useAsyncData("measures", () => {
+const { data: measures } = await useAsyncData(`measure-${route.params.slug}-${selectedCatalogVersion.id}`, () => {
   return $directus.request(
     $readItems("measures", {
-      filter: { slug: { _eq: route.params.slug } },
+      filter: { 
+        slug: { _eq: route.params.slug },
+        catalog_version: { _eq: selectedCatalogVersion.id }
+      },
       limit: 1,
     }),
   );

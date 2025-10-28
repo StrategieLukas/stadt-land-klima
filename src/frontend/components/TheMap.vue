@@ -77,7 +77,7 @@ import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
 const { $t } = useNuxtApp()
 
 const props = defineProps({
-  municipalityScores: { type: Array, required: true },
+  municipalityScores: { type: Array, default: () => [] },
   catalogVersion: { required: true}
 })
 
@@ -119,6 +119,10 @@ const germanyCoverStyle = {
 }
 
 const filteredMunicipalityScores = computed(() => {
+  if (!props.municipalityScores || !Array.isArray(props.municipalityScores)) {
+    return []
+  }
+  
   return props.municipalityScores
     .map(s => {
       const coords = s.municipality.geolocation?.coordinates
