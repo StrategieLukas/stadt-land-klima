@@ -20,7 +20,7 @@
         <div class="flex-shrink-0 pl-2">
           <NuxtLink to="/">
             <img
-              src="~/assets/images/Stadt-Land-Klima-Logo-Beta.svg"
+              src="~/assets/images/Stadt-Land-Klima-Logo.svg"
               class="h-32 w-auto"
               :alt="$t('logo.alt')"
             />
