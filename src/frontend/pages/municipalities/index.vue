@@ -5,7 +5,9 @@
         {{ $t("municipalities.heading") }}
       </h1>
       <p class="mt-0 text-xs">
-        {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
+        <ClientOnly>
+          {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
+        </ClientOnly>
       </p>
     </div>
 

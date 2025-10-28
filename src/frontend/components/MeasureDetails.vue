@@ -21,7 +21,9 @@
     </div>
     <dl v-if="measure_rating.date_updated" class="px-4 mt-2 flex flex-row gap-2 text-sm">
       <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
-      <dd>{{ formatLastUpdated(measure_rating.date_updated, $locale) }}</dd>
+      <ClientOnly>
+        <dd>{{ formatLastUpdated(measure_rating.date_updated, $locale) }}</dd>
+      </ClientOnly>
     </dl>
   </div>
 
