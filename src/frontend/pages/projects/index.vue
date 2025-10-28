@@ -16,7 +16,7 @@
           :state="project.state"
           :abstract="project.abstract"
           :author="project.author"
-          :date="new Date(project.date_created)"
+          :date="project.date_created ? new Date(project.date_created) : null"
           :tag="project.tag"
           :image_id="project.image"
           :organisation="project.organisation"
@@ -30,7 +30,7 @@
 import ProjectCard from "~/components/ProjectCard.vue";
 const { $directus, $readItems, $t } = useNuxtApp();
 
-const { data: projectList } = await useAsyncData("articles", () => {
+const { data: projectList } = await useAsyncData("articles-index", () => {
   return  $directus.request(
   $readItems("articles", {
     fields: [
