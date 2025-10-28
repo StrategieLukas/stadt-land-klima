@@ -145,6 +145,7 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 
 import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
+import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 const rankingColumn = ref(null)
@@ -200,7 +201,7 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
 }
 
 // Fetch all relevant municipalityScores from directus
-const { data: municipalityScores } = await useAsyncData("municipalities_ranking_scores", () => {
+const { data: municipalityScores } = await useAsyncData(`municipalities_ranking_scores_${selectedCatalogVersion.id}`, () => {
   return $directus.request(
     $readItems("municipality_scores", {
       fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
