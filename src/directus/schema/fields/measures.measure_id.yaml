@@ -12,7 +12,7 @@ meta:
   interface: input
   note: null
   options:
-    placeholder: z.B. EN_2
+    placeholder: z.B. EN_02
     trim: true
   readonly: false
   required: false
