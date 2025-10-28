@@ -60,7 +60,9 @@ export default {
 
         // Query measures
         const itemService_measures = new ItemsService('measures', { schema, accountability });
-        const measures_results = await itemService_measures.readByQuery({})
+        const measures_results = await itemService_measures.readByQuery({
+          filter: { catalog_version: { name: { _eq: catalogVersionName } } }
+        })
 
         if (!measures_results) {
           return res.status(404).send(`Measures not found or access denied`);
