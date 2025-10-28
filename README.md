@@ -130,13 +130,6 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 - Must call ./import-all.sh *ON THE HOST MACHINE IN /bin* for directus changes to apply.
 Do not just use the ./cli/import-all.sh from inside the directus container, as the version in the /bin folder also cleans up permissions
 - If there's a docker permission issue, chmod 777 everything :(
+  - This applies specifically to PDF generation as well. At least the typst directory under /directus/extensions (not to be confused with directus-extensions-not-build) must be 777 for PDF generation to create files.
 - Always back up the DB beforehand, obviously. This is done locally automatically when calling ./update_production.sh
-
-# Relevant migration notes for the release 1.0:
-- need to first do import:schema with that articles.description.yaml, articles.organisation.yaml and external_projects.description file missing, then the fields get cleared and then import again with these.
-- > this applies to articles.organisation, articles.article_text
-So first manually delete the yamls on the environment, then import-all, then git restore them and import-all again for clean wipe of fields.
-- update env to have the new env keys for the image resizing
-- extension is expected to crash at first startup when schema doesn't have municipality_scores yet. Need to import-all and restart.
-- need to create all new measures manually for the new catalog version and connect it, then call migrate in the cli tool and ratings_measures are updated.
-- manually bulk-edit measures from the old sector names to the new ones -> need to restart for calculatescores to work properly.
+- Migrate ratings from one version to another using ./directus-cli migrate <old> <new>. Avoid using this when the "new" version is already in use, as it overwrites all ratings that do not need re-evaluation.
