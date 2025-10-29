@@ -1,5 +1,5 @@
 <template>
-  <nav class="drawer-side z-40">
+  <nav class="drawer drawer-side z-40">
     <label for="page-drawer" class="drawer-overlay" @click="closeDrawer"></label>
     <ul tabindex="0" class="menu min-h-full w-80 bg-light-green font-semibold text-left text-white">
 
@@ -44,11 +44,7 @@
 const { $t } = useNuxtApp();
 const props = defineProps(["pages"]);
 
-function closeDrawer() {
-  const drawerCheckbox = document.getElementById('page-drawer');
-  if (drawerCheckbox) {
-    drawerCheckbox.checked = false;
-  }
-}
+// Use the shared drawer state
+const { closeDrawer } = useDrawer();
 
 </script>

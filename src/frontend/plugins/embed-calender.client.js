@@ -1,5 +1,5 @@
 // plugins/cal.client.ts
-export default () => {
+export default defineNuxtPlugin(() => {
   (function (C, A, L) {
     let p = function (a, ar) { a.q.push(ar) }
     let d = C.document
@@ -39,4 +39,4 @@ export default () => {
     hideEventTypeDetails: false,
     layout: "month_view",
   })
-}
+})

@@ -1,9 +1,12 @@
 <template>
   <div class="drawer">
     <!-- Drawer Toggle Checkbox (Hidden) -->
-    <input id="page-drawer" type="checkbox" class="drawer-toggle" />
+    <input id="page-drawer" type="checkbox" class="drawer-toggle" ref="drawerToggle" />
 
-    <div class="drawer-content flex flex-col min-h-screen text-neutral font-sans min-w-0 overflow-x-hidden">
+    <div 
+      class="drawer-content flex flex-col min-h-screen text-neutral font-sans min-w-0 overflow-x-hidden"
+      @click="closeDrawerOnOutsideClick"
+    >
       <!-- Only render the appropriate header based on the viewport -->
       <div>
         <div v-if="hydrated">
@@ -60,10 +63,11 @@
     <!-- Drawer Side (Menu) - unified for both mobile and desktop -->
     <the-drawer-side
       :pages="pages.filter((page) => includes(page.menus, 'main'))"
+      class="z-[9999]"
     />
 
     <!-- Dock (Mobile version - always visible, sticky) -->
-    <div class="fixed bottom-0 left-0 right-0 z-50 block lg:hidden">
+    <div class="fixed bottom-0 left-0 right-0 z-50 block lg:hidden z-[10000]">
       <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
     </div>
 
@@ -75,13 +79,38 @@
 <script setup>
 
 import lodash from "lodash";
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 const { includes } = lodash;
 const { $directus, $readItems, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
+const route = useRoute();
+const { closeDrawer, syncDrawerState } = useDrawer();
 
 const hydrated = ref(false)
 const isDesktop = ref(false)
+const drawerToggle = ref(null)
 let cleanup = null
+
+// Close drawer when clicking outside
+const closeDrawerOnOutsideClick = (event) => {
+  // Only close if drawer is open and click is not on drawer toggle button
+  if (drawerToggle.value && drawerToggle.value.checked) {
+    const drawerSide = document.querySelector('.drawer-side')
+    const drawerToggleButton = document.querySelector('label[for="page-drawer"]')
+    
+    // Check if click is outside drawer and not on toggle button
+    if (drawerSide && !drawerSide.contains(event.target) && 
+        (!drawerToggleButton || !drawerToggleButton.contains(event.target))) {
+      closeDrawer()
+    }
+  }
+}
+
+// Handle escape key
+const handleEscapeKey = (event) => {
+  if (event.key === 'Escape' && drawerToggle.value && drawerToggle.value.checked) {
+    closeDrawer()
+  }
+}
 
 onMounted(() => {
   hydrated.value = true
@@ -110,6 +139,15 @@ onMounted(() => {
   mq.addEventListener('change', update)
   window.addEventListener('resize', update)
   
+  // Add escape key listener
+  document.addEventListener('keydown', handleEscapeKey)
+  
+  // Monitor drawer checkbox changes to sync state
+  const drawerCheckbox = document.getElementById('page-drawer')
+  if (drawerCheckbox) {
+    drawerCheckbox.addEventListener('change', syncDrawerState)
+  }
+  
   // Initial update
   update()
   
@@ -117,6 +155,10 @@ onMounted(() => {
   cleanup = () => {
     mq.removeEventListener('change', update)
     window.removeEventListener('resize', update)
+    document.removeEventListener('keydown', handleEscapeKey)
+    if (drawerCheckbox) {
+      drawerCheckbox.removeEventListener('change', syncDrawerState)
+    }
   }
 })
 

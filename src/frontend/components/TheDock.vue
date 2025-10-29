@@ -4,7 +4,7 @@
             v-for="page in pages" 
             :key="page.id"
             :class="{ 'dock-active': isPageActive(page.slug) }"
-            @click="followLink(page.slug)"
+            @click="followLink(page.slug); closeDrawer()"
             class="flex flex-col items-center justify-end min-w-0 min-h-[48px] py-3"
         >
             <div class="size-[3em]">
@@ -28,12 +28,13 @@
 </template>
 
 <script setup>
-import { defineProps, ref, onMounted } from "vue";
+import { defineProps } from "vue";
 const { $t } = useNuxtApp();
 const route = useRoute();
 const props = defineProps(["pages"]);
 
-const isDrawerOpen = ref(false);
+// Use the shared drawer state
+const { isDrawerOpen, toggleDrawer, closeDrawer } = useDrawer();
 
 // Check if current page is active - mimicking TheHeaderDesktop.vue logic
 const isPageActive = (slug) => {
@@ -44,25 +45,6 @@ const followLink = (pageSlug) => {
     const nuxtApp = useNuxtApp();
     nuxtApp.$router.push('/' + pageSlug);
 };
-
-// Toggle drawer function
-const toggleDrawer = () => {
-    const drawerCheckbox = document.getElementById('page-drawer');
-    if (drawerCheckbox) {
-        drawerCheckbox.checked = !drawerCheckbox.checked;
-        isDrawerOpen.value = drawerCheckbox.checked;
-    }
-};
-
-// Monitor drawer state changes
-onMounted(() => {
-    const drawerCheckbox = document.getElementById('page-drawer');
-    if (drawerCheckbox) {
-        drawerCheckbox.addEventListener('change', () => {
-            isDrawerOpen.value = drawerCheckbox.checked;
-        });
-    }
-});
 </script>
 
 <style scoped>
