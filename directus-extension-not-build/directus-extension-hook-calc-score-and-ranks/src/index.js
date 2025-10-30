@@ -24,12 +24,12 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
       filter: {
         catalog_version: { _eq: catalogVersionId },
         municipality: { status: { _eq: "published" } },
-        percentage_rated: { _gt: 95 }
+        percentage_rated: { _gt: 99.9 }
       },
       fields: ["id", "score_total"],
     });
 
-    if (!scores?.length) return logger.info(`[updateRanks] No published scores with percentage_rated > 95 found for catalogVersion=${catalogVersionId}, thus not recalculating scores`);
+    if (!scores?.length) return logger.info(`[updateRanks] No published scores with percentage_rated > 99.9 found for catalogVersion=${catalogVersionId}, thus not recalculating scores`);
 
     // Sort and rank
     const ranked = scores

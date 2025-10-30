@@ -160,7 +160,7 @@
       loadingExamples.value = false;
       return [];
     }
-    
+
 
     // Step 2: Fetch better ratings
     const rawRatingResultsBeforeFilter = await $directus.request(
@@ -182,14 +182,14 @@
       })
     );
 
-    // client-side filter: percentage_rated > 95 for this catalog version
+    // client-side filter: percentage_rated == 100 for this catalog version
     // this is a workaround because adding the filters with _some does not work for some reason...
     const rawRatingResults = (rawRatingResultsBeforeFilter ?? []).filter((row) => {
       const scores = row?.localteam_id?.municipality_id?.[0]?.scores ?? [];
       return scores.some((s) => {
         const cv = typeof s.catalog_version === 'object' ? s.catalog_version?.id : s.catalog_version;
         const pr = typeof s.percentage_rated === 'string' ? parseFloat(s.percentage_rated) : s.percentage_rated;
-        return cv === props.municipalityScore.catalog_version.id && Number(pr) > 95;
+        return cv === props.municipalityScore.catalog_version.id && Number(pr) > 99.9;
       });
     });
 
