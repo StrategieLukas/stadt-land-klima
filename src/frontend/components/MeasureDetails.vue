@@ -189,7 +189,7 @@
       return scores.some((s) => {
         const cv = typeof s.catalog_version === 'object' ? s.catalog_version?.id : s.catalog_version;
         const pr = typeof s.percentage_rated === 'string' ? parseFloat(s.percentage_rated) : s.percentage_rated;
-        return cv === props.municipalityScore.catalog_version.id && Number(pr) > 99.9;
+        return cv === props.municipalityScore.catalog_version.id && Number(pr) > 98;
       });
     });
 

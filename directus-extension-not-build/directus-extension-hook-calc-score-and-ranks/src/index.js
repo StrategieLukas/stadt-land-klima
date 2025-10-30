@@ -18,18 +18,18 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
       accountability: { admin: true },
     });
 
-    // Load all municipality_scores for this catalog version where the municipality is published AND more than 95% rated
+    // Load all municipality_scores for this catalog version where the municipality is published AND more than 98% rated
     const scores = await municipalityScoresService.readByQuery({
       limit: -1,
       filter: {
         catalog_version: { _eq: catalogVersionId },
         municipality: { status: { _eq: "published" } },
-        percentage_rated: { _gt: 99.9 }
+        percentage_rated: { _gt: 98 }
       },
       fields: ["id", "score_total"],
     });
 
-    if (!scores?.length) return logger.info(`[updateRanks] No published scores with percentage_rated > 99.9 found for catalogVersion=${catalogVersionId}, thus not recalculating scores`);
+    if (!scores?.length) return logger.info(`[updateRanks] No published scores with percentage_rated > 98 found for catalogVersion=${catalogVersionId}, thus not recalculating scores`);
 
     // Sort and rank
     const ranked = scores
