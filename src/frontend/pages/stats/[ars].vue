@@ -189,17 +189,17 @@
         }"
       >
         <template #content>
-          <!-- <div class="text-center max-w-full overflow-hidden">
+          <div class="text-center max-w-full overflow-hidden">
             <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.windPowerData.power?.toLocaleString() }} kW</span>
-          </div> -->
-          <ThresholdProgressBar
+          </div>
+          <!-- <ThresholdProgressBar
             :progress="stats.windPowerData.power / stats.populationData.population * 1000"
-            :orange-threshold="15"
-            :yellow-threshold="25"
-            :light-green-threshold="40"
-            :dark-green-threshold="70"
+            :orange-threshold="350"
+            :yellow-threshold="600"
+            :light-green-threshold="900"
+            :dark-green-threshold="1500"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-          />
+          /> -->
         </template>
       </DataProductViewWrapper>
 
