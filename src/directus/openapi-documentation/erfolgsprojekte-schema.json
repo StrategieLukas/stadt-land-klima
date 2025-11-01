@@ -1,0 +1,504 @@
+{
+  "collections": {
+    "articles": {
+      "fields": [
+        {
+          "name": "author",
+          "type": "string",
+          "required": true,
+          "is_nullable": true,
+          "max_length": 255
+        },
+        {
+          "name": "date_created",
+          "type": "timestamp",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "date_updated",
+          "type": "timestamp",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "id",
+          "type": "integer",
+          "required": false,
+          "is_nullable": false,
+          "default_value": "nextval('articles_id_seq'::regclass)"
+        },
+        {
+          "name": "link",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "validation": {
+            "_and": [
+              {
+                "link": {
+                  "_regex": "^(https?:\\/\\/)?([\\w-]+(\\.[\\w-]+)+)(\\/[\\w.,@?^=%&:/~+#-]*)?$"
+                }
+              }
+            ]
+          },
+          "max_length": 255
+        },
+        {
+          "name": "municipality_name",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "max_length": 255
+        },
+        {
+          "name": "slug",
+          "type": "string",
+          "required": true,
+          "is_nullable": false,
+          "max_length": 255
+        },
+        {
+          "name": "state",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "options": {
+            "choices": [
+              {
+                "text": "Bayern",
+                "value": "Bayern"
+              },
+              {
+                "text": "Niedersachsen",
+                "value": "Niedersachsen"
+              },
+              {
+                "text": "Baden-Württemberg",
+                "value": "Baden-Württemberg"
+              },
+              {
+                "text": "Nordrhein-Westfalen",
+                "value": "Nordrhein-Westfalen"
+              },
+              {
+                "text": "Brandenburg",
+                "value": "Brandenburg"
+              },
+              {
+                "text": "Mecklenburg-Vorpommern",
+                "value": "Mecklenburg-Vorpommern"
+              },
+              {
+                "text": "Hessen",
+                "value": "Hessen"
+              },
+              {
+                "text": "Sachsen-Anhalt",
+                "value": "Sachsen-Anhalt"
+              },
+              {
+                "text": "Rheinland-Pfalz",
+                "value": "Rheinland-Pfalz"
+              },
+              {
+                "text": "Sachsen",
+                "value": "Sachsen"
+              },
+              {
+                "text": "Thüringen",
+                "value": "Thüringen"
+              },
+              {
+                "text": "Schleswig-Holstein",
+                "value": "Schleswig-Holstein"
+              },
+              {
+                "text": "Saarland",
+                "value": "Saarland"
+              },
+              {
+                "text": "Berlin",
+                "value": "Berlin"
+              },
+              {
+                "text": "Hamburg",
+                "value": "Hamburg"
+              },
+              {
+                "text": "Bremen",
+                "value": "Bremen"
+              }
+            ]
+          },
+          "max_length": 255
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": false,
+          "is_nullable": false,
+          "options": {
+            "choices": [
+              {
+                "color": "var(--theme--primary)",
+                "text": "$t:published",
+                "value": "published"
+              },
+              {
+                "color": "var(--theme--foreground)",
+                "text": "$t:draft",
+                "value": "draft"
+              },
+              {
+                "color": "var(--theme--warning)",
+                "text": "$t:archived",
+                "value": "archived"
+              }
+            ]
+          },
+          "max_length": 255,
+          "default_value": "draft"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "is_nullable": true,
+          "max_length": 255
+        },
+        {
+          "name": "user_created",
+          "type": "uuid",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "user_updated",
+          "type": "uuid",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "abstract",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "image",
+          "type": "uuid",
+          "required": true,
+          "is_nullable": false
+        },
+        {
+          "name": "image_credits",
+          "type": "string",
+          "required": true,
+          "is_nullable": false,
+          "max_length": 255
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "max_length": 255
+        },
+        {
+          "name": "sectors",
+          "type": "json",
+          "required": true,
+          "is_nullable": true
+        },
+        {
+          "name": "sources",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "organisation",
+          "type": "integer",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "ease_of_implementation",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "ghg_savings_potential",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "economic_efficiency",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "other_benefits",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "public_impact",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "article_text",
+          "type": "text",
+          "required": true,
+          "is_nullable": true
+        },
+        {
+          "name": "additional_examples",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "can_do_autonomously",
+          "type": "boolean",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "ghg_savings_level",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "options": {
+            "choices": [
+              {
+                "text": "$t:articles.ghg_savings_level.none",
+                "value": "none"
+              },
+              {
+                "text": "$t:articles.ghg_savings.level.high",
+                "value": "high"
+              },
+              {
+                "text": "$t:articles.ghg_savings.level.very_high",
+                "value": "very_high"
+              }
+            ]
+          },
+          "max_length": 255
+        },
+        {
+          "name": "is_profitable",
+          "type": "boolean",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "public_impact_effects",
+          "type": "json",
+          "required": false,
+          "is_nullable": true,
+          "options": {
+            "choices": [
+              {
+                "text": "$t:articles.public_impact.effect.role_model",
+                "value": "role_model"
+              },
+              {
+                "text": "$t:articles.public_impact.effect.increase_acceptance",
+                "value": "increase_acceptance"
+              }
+            ]
+          }
+        },
+        {
+          "name": "instagram",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "validation": {
+            "_and": [
+              {
+                "instagram": {
+                  "_regex": "^(https?:\\/\\/)?(www\\.)?instagram\\.com\\/.+$"
+                }
+              }
+            ]
+          },
+          "max_length": 255
+        },
+        {
+          "name": "linkedin",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "validation": {
+            "_and": [
+              {
+                "linkedin": {
+                  "_regex": "^(https?:\\/\\/)?(www\\.)?linkedin\\.com\\/.+$"
+                }
+              }
+            ]
+          },
+          "max_length": 255
+        }
+      ]
+    },
+    "external_projects": {
+      "fields": [
+        {
+          "name": "date_created",
+          "type": "timestamp",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "date_updated",
+          "type": "timestamp",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "id",
+          "type": "integer",
+          "required": false,
+          "is_nullable": false,
+          "default_value": "nextval('external_projects_id_seq'::regclass)"
+        },
+        {
+          "name": "link",
+          "type": "string",
+          "required": true,
+          "is_nullable": true,
+          "max_length": 255
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "is_nullable": true,
+          "max_length": 255
+        },
+        {
+          "name": "user_created",
+          "type": "uuid",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "user_updated",
+          "type": "uuid",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true,
+          "is_nullable": true
+        }
+      ]
+    },
+    "organisations": {
+      "fields": [
+        {
+          "name": "date_created",
+          "type": "timestamp",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "date_updated",
+          "type": "timestamp",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "id",
+          "type": "integer",
+          "required": false,
+          "is_nullable": false,
+          "default_value": "nextval('organisations_id_seq'::regclass)"
+        },
+        {
+          "name": "link",
+          "type": "string",
+          "required": true,
+          "is_nullable": true,
+          "max_length": 255
+        },
+        {
+          "name": "logo",
+          "type": "uuid",
+          "required": true,
+          "is_nullable": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "is_nullable": true,
+          "max_length": 255
+        },
+        {
+          "name": "short_description",
+          "type": "text",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "user_created",
+          "type": "uuid",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "user_updated",
+          "type": "uuid",
+          "required": false,
+          "is_nullable": true
+        },
+        {
+          "name": "instagram",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "validation": {
+            "_and": [
+              {
+                "instagram": {
+                  "_regex": "^(https?:\\/\\/)?(www\\.)?instagram\\.com\\/.+$"
+                }
+              }
+            ]
+          },
+          "max_length": 255
+        },
+        {
+          "name": "linkedin",
+          "type": "string",
+          "required": false,
+          "is_nullable": true,
+          "validation": {
+            "_and": [
+              {
+                "linkedin": {
+                  "_regex": "^(https?:\\/\\/)?(www\\.)?linkedin\\.com\\/.+$"
+                }
+              }
+            ]
+          },
+          "max_length": 255
+        }
+      ]
+    }
+  }
+}
