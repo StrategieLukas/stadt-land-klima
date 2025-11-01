@@ -23,7 +23,7 @@
                         class="absolute top-0 right-0 w-0 h-0 border-t-[7rem] border-t-white border-l-[7rem] border-l-transparent">
                     </div>
                     <!-- Using raw image url (no width parameter) for easier request caching as organisation logos should be small -->
-                    <img fit="cover" class="absolute top-2 right-2 rounded-lg w-12 h-12" height="48" width="48" :alt="organisation.name" loading="lazy" 
+                    <img fit="cover" class="absolute top-2 right-2" height="48" width="48" :alt="organisation.name" loading="lazy" 
                     :src="getRawUrl(organisation.logo)"/>
                 </div>
             </NuxtLink>
