@@ -4,8 +4,10 @@ type: alias
 meta:
   collection: municipalities
   conditions: null
-  display: null
-  display_options: null
+  display: related-values
+  display_options:
+    template: "{{catalog_version.name}}: {{score_total}} ( {{percentage_rated}}%
+      bewertet)"
   field: scores
   group: null
   hidden: false

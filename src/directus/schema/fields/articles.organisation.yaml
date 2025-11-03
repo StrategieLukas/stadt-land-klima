@@ -4,8 +4,9 @@ type: integer
 meta:
   collection: articles
   conditions: null
-  display: null
-  display_options: null
+  display: related-values
+  display_options:
+    template: "{{name}}"
   field: organisation
   group: null
   hidden: false
