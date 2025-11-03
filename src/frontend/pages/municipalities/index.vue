@@ -1,13 +1,30 @@
 <template>
   <div class="flex flex-col items-center mb-10">
     <div class="prose mb-8 mt-10 max-w-full text-center">
-      <h1 class="mb-0 whitespace-pre-line">
-        {{ $t("municipalities.heading") }}
+      <h1 v-if="selectedCatalogVersion.name === 'beta'" class="mb-0 whitespace-pre-line">
+        {{ $t("municipalities.heading") }} <br/>2025
+      </h1>
+      <h1 v-else class="mb-0 whitespace-pre-line">
+        {{ $t("municipalities.heading") }} <br/>2026
       </h1>
       <p class="mt-0 text-xs">
         <ClientOnly>
           {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
         </ClientOnly>
+      </p>
+      <p v-if="selectedCatalogVersion.name === 'beta'">
+        <NuxtLink to="/municipalities?v=v1.0" class="text-blue-500">
+          {{ $t("ranking.preview_2026") }}
+        </NuxtLink>
+      </p>
+      <p v-else>
+        <span class="font-bold text-red">
+          {{ $t("ranking.warn_preview") }}
+        </span>
+        <br/>
+        <NuxtLink to="/municipalities?v=beta" class="text-blue-500">
+        {{ $t("ranking.view_current") }}
+      </NuxtLink>
       </p>
     </div>
 
@@ -191,7 +208,7 @@ const route = useRoute();
 const router = useRouter();
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
-const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+let selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 
 // Change the URL to match the catalog version, if it didn't to begin with
 if (process.client && route.query.v != selectedCatalogVersion.name) {
@@ -201,17 +218,21 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
 }
 
 // Fetch all relevant municipalityScores from directus
-const { data: municipalityScores } = await useAsyncData(`municipalities_ranking_scores_${selectedCatalogVersion.id}`, () => {
+async function fetchMunicipalityScores(catalogVersionId) {
+  return await useAsyncData(`municipalities_ranking_scores_${catalogVersionId}`, () => {
   return $directus.request(
     $readItems("municipality_scores", {
       fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
       { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
-      filter: { catalog_version: { _eq: selectedCatalogVersion.id }, percentage_rated: { _gt: 0} },
+      filter: { catalog_version: { _eq: catalogVersionId }, percentage_rated: { _gt: 0} },
       limit: -1,
       sort: "-score_total",
     })
   )
 });
+};
+
+let { data: municipalityScores } = await fetchMunicipalityScores(selectedCatalogVersion.id);
 
 
 
@@ -234,6 +255,25 @@ const { data: projects } = await useAsyncData("articles_ranking", () => {
     })
   );
 });
+
+
+
+watch(
+  () => route.query.v,
+  async (newV, oldV) => {
+    if (newV === oldV) return;
+
+    // Fetch new catalog version info
+    selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+
+    // Refresh municipality scores with new version
+    const { data: newData } = await fetchMunicipalityScores(selectedCatalogVersion.id);
+    municipalityScores.value = newData.value;
+
+    // Optionally refresh articles too
+    await refreshNuxtData("articles_ranking");
+  }
+);
 
 
 const majorCityScores = getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'big_city');
@@ -272,6 +312,7 @@ onMounted(() => {
 
 // Toggle between cities, towns, or all
 const selected = ref('all')
+
 
 </script>
 
