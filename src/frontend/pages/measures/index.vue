@@ -10,7 +10,7 @@
       <NuxtLink 
         v-for="sector in sectors" 
         :key="sector" 
-        :to="`/measures/sectors/${sector}`" 
+        :to="`/measures/sectors/${sector}?v=${selectedCatalogVersion.name}`" 
         class="card card-compact shadow hover:shadow-lg transition-shadow duration-200 block"
       >
         <div class="card-body flex flex-col items-center text-center p-6">
@@ -29,11 +29,15 @@ import lodash from "lodash";
 const { includes } = lodash;
 import { ref } from "vue";
 import sectorImages from "~/shared/sectorImages.js";
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
-const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+const router = useRouter();
+const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
+onMounted(() => {
+  setCatalogVersionUrl(route, router, selectedCatalogVersion);
+});
+
 const sectors = ref([]);
 
 const title = ref($t("measures.nav_label"));

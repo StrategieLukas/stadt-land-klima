@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NuxtLink :to="`/measures/sectors/${measure.sector}`" class="font-heading text-h4 text-light-blue">
+    <NuxtLink :to="`/measures/sectors/${measure.sector}?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
       {{ $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) }}
     </NuxtLink>
 
@@ -14,10 +14,13 @@
 </template>
 <script setup>
 import { ref } from 'vue';
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
-const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+const router = useRouter();
+const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
+onMounted(() => {
+  setCatalogVersionUrl(route, router, selectedCatalogVersion);
+});
 
 const { data: measures } = await useAsyncData(`measure-${route.params.slug}-${selectedCatalogVersion.id}`, () => {
   return $directus.request(

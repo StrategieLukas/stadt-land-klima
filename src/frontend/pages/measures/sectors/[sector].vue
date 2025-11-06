@@ -10,7 +10,7 @@
           {{ $t("measures_sector.count_measures_in_sector", { ":count": measures?.length || 0 }) }}
         </p>
 
-        <NuxtLink to="/measures" class="font-heading text-h4 text-light-blue">
+        <NuxtLink :to="`/measures?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
           ← {{ $t("measures_sector.back_label") }}
         </NuxtLink>
       </div>
@@ -26,7 +26,11 @@ import sectorImages from "~/shared/sectorImages.js";
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
-const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+const router = useRouter();
+const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
+onMounted(() => {
+  setCatalogVersionUrl(route, router, selectedCatalogVersion);
+});
 
 //MetaTags
 const title = ref($t(`measure_sectors.${route.params.sector}.title`));

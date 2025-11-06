@@ -162,7 +162,6 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 
 import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 const rankingColumn = ref(null)
@@ -209,13 +208,9 @@ const router = useRouter();
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
 let selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
-
-// Change the URL to match the catalog version, if it didn't to begin with
-if (process.client && route.query.v != selectedCatalogVersion.name) {
-  onMounted(() => {
-    router.replace({ query: { ...route.query, v: selectedCatalogVersion.name } });
-  });
-}
+onMounted(() => {
+  setCatalogVersionUrl(route, router, selectedCatalogVersion);
+});
 
 // Fetch all relevant municipalityScores from directus
 async function fetchMunicipalityScores(catalogVersionId) {
