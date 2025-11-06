@@ -455,6 +455,8 @@ permissions:
       - overall_status_comment
       - public_contact
       - status
+      - ars
+      - geolocation
   - collection: municipality_scores
     action: read
     permissions:
