@@ -21,25 +21,26 @@
         :key="index"
         class="absolute flex flex-col items-center transition-all duration-300 ease-out"
         :style="{
-          left: t.position === 0 ? '0%' : `calc(${t.position}% - 3px)`,
+          left: `calc(${t.position}% - 1px)`,
           top: '50%',
           transform: 'translate(-50%, -50%)',
         }"
       >
         <!-- Marker -->
         <div
-          class="w-[10px] h-8 rounded-sm border border-black group-hover:shadow-md"
+          class="w-[9px] h-8 rounded-sm border border-black group-hover:shadow-md"
           :class="t.color"
         />
         <!-- Value Label -->
       <div
         v-if="!(t.hideLabelOnMobile || t.hideLabelOnDesktop)"
         class="absolute -top-6 px-1.5 py-0.5 text-xs font-semibold text-white rounded shadow-sm whitespace-nowrap"
-        :class="[t.color, 'bg-opacity-90']"
+        :class="[t.color, 'bg-opacity-90', 'hover:z-50 z-10']"
       >
         {{ t.value }}
         <span class="hidden sm:inline">{{ unit }}</span>
       </div>
+
 
       <!-- Show only on mobile if desktop label should be hidden -->
       <div

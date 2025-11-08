@@ -3,7 +3,7 @@
   <div class="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-6">
     <form class="relative overflow-visible flex-1" @submit.prevent>
       <div class="form-control w-full">
-        <label for="admin-search-input" class="label">{{ label }}</label>
+        <label for="admin-search-input" class="label">{{ translatedLabel }}</label>
         <input
           id="admin-search-input"
           v-model="q"
@@ -11,7 +11,7 @@
           name="q"
           type="text"
           autocomplete="off"
-          :placeholder="$t('administrative_areas.search.placeholder')"
+          :placeholder="translatedPlaceholder"
           @input="onInput"
           @focus="searchFocused = true"
           @keydown.down.prevent="moveFocus(1)"
@@ -118,10 +118,6 @@ const { debounce } = lodash
 const { $t, $stadtlandzahlAPI } = useNuxtApp()
 
 const props = defineProps({
-  label: {
-    type: String,
-    required: true,
-  },
   basePath: {
     type: String,
     required: true,
@@ -186,6 +182,19 @@ const visibleSuggestions = computed(() => {
     }
   })
 })
+
+// Show different placeholder and label depending on the optoin selected
+const translatedLabel = computed(() =>
+  filterType.value === 'reasonable'
+    ? $t('administrative_areas.search.reasonable_municipality.label')
+    : $t('administrative_areas.search.all_administrative_areas.label')
+)
+
+const translatedPlaceholder = computed(() =>
+  filterType.value === 'reasonable'
+    ? $t('administrative_areas.search.reasonable_municipality.placeholder')
+    : $t('administrative_areas.search.all_administrative_areas.placeholder')
+)
 
 function onInput() {
   focusedIndex.value = -1

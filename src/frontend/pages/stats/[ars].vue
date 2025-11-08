@@ -2,7 +2,6 @@
   <main class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0">
     <div class="flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 sm:mx-4 my-4 p-3 sm:p-4 justify-center">
       <AdministrativeAreaSearchBar 
-        :label="$t('administrative_areas.search.label')" 
         base-path="/stats" 
       />
     </div>
@@ -73,7 +72,7 @@
             </NuxtLink>
             
             <!-- Case 2: Unfinished rating - get in touch with your local team -->
-            <NuxtLink v-else-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.percentageRated < 90 && stats.stadtlandklimaData?.slug"
+            <NuxtLink v-else-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.percentageRated < 95 && stats.stadtlandklimaData?.slug"
                       :to="'/kontakt'"
                       class="inline-flex items-center px-3 sm:px-4 py-2 bg-secondary text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
               <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +145,7 @@
       <DataProductViewWrapper
         v-if="stats?.solarPowerData"
         :title="$t('stats.data.solar_power.title')"
-        code="EN_1"
+        code="EN_01"
         :description="$t('stats.data.solar_power.description')"
         :calculation="$t('stats.data.solar_power.calculation')"
         :data-sources="[stats.solarPowerData.dataSourceDownload]"
@@ -158,17 +157,17 @@
         }"
       >
         <template #content>
-          <div class="text-center max-w-full overflow-hidden">
+          <!-- <div class="text-center max-w-full overflow-hidden">
             <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.solarPowerData.power?.toLocaleString() }} kW</span>
-          </div>
-          <!-- <ThresholdProgressBar
+          </div> -->
+          <ThresholdProgressBar
             :progress="stats.solarPowerData.power / stats.populationData.population * 1000"
-            :orange-threshold="20"
-            :yellow-threshold="40"
-            :light-green-threshold="60"
-            :dark-green-threshold="80"
+            :orange-threshold="1"
+            :yellow-threshold="100"
+            :light-green-threshold="350"
+            :dark-green-threshold="1000"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-          /> -->
+          />
         </template>
       </DataProductViewWrapper>
 
@@ -179,7 +178,7 @@
         :show-measure-link="false"
         :description="$t('stats.data.wind_power.description')"
         :calculation="$t('stats.data.wind_power.calculation')"
-        code="EN_2"
+        code="EN_02"
         :data-sources="[stats.windPowerData.dataSourceDownload]"
         :histogram-config="{
           dataType: 'windPowerData',
@@ -189,17 +188,17 @@
         }"
       >
         <template #content>
-          <div class="text-center max-w-full overflow-hidden">
+          <!-- <div class="text-center max-w-full overflow-hidden">
             <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.windPowerData.power?.toLocaleString() }} kW</span>
-          </div>
-          <!-- <ThresholdProgressBar
+          </div> -->
+          <ThresholdProgressBar
             :progress="stats.windPowerData.power / stats.populationData.population * 1000"
-            :orange-threshold="350"
-            :yellow-threshold="600"
-            :light-green-threshold="900"
+            :orange-threshold="1"
+            :yellow-threshold="200"
+            :light-green-threshold="550"
             :dark-green-threshold="1500"
             :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-          /> -->
+          />
         </template>
       </DataProductViewWrapper>
 
@@ -241,7 +240,7 @@
         :calculation="`Monte-Carlo-Simulation mit n=${stats.publicTransportScoreData.simulationCount} Simulationen innerhalb des Verwaltungsgebiets. Für das Routing wurde die Programmbibliothek r5py genutzt. Zeitliches Sampling aus der Zeitverwendungsstudie 2022, räumliches aus der Bevölkerungsdichte (JRC Census 2021 Daten). Die Fahrplansolldaten gelten für den Zeitraum von ${formatDateDetailed(stats.publicTransportScoreData.validSinceDt)} bis ${formatDateDetailed(stats.publicTransportScoreData.validUntilDt)}.`"
         :show-measure-link="false"
         :data-sources="stats.publicTransportScoreData.pipelineRun?.downloads"
-        code="VK_5"
+        code="VK_05"
         :histogram-config="{
           dataType: 'publicTransportScoreData',
           attributeName: 'commonTravelVelocity',
@@ -253,10 +252,10 @@
           <div class="grow">
             <ThresholdProgressBar
               :progress="stats.publicTransportScoreData.commonTravelVelocity"
-              :orange-threshold="4"
-              :yellow-threshold="6"
-              :light-green-threshold="8"
-              :dark-green-threshold="10"
+              :orange-threshold="3.0"
+              :yellow-threshold="3.5"
+              :light-green-threshold="4.5"
+              :dark-green-threshold="5.5"
               :unit="`km/h`"
             />
             <!-- Mean Travel Time -->
@@ -289,10 +288,10 @@
         <template #content>
           <ThresholdProgressBar
             :progress="stats.cyclewayInfrastructureData.bicycleInfrastructureRatio*100"
-            :orange-threshold="20"
-            :yellow-threshold="40"
-            :light-green-threshold="60"
-            :dark-green-threshold="80"
+            :orange-threshold="10"
+            :yellow-threshold="15"
+            :light-green-threshold="20"
+            :dark-green-threshold="25"
             unit="%"
           />
         </template>
@@ -409,10 +408,6 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { onMounted, ref, computed, nextTick } from 'vue';
-import AdministrativeAreaSearchBar from '~/components/AdministrativeAreaSearchBar.vue';
-import DataProductViewWrapper from '~/components/DataProductViewWrapper.vue';
-import AdministrativeAreaMap from '~/components/AdministrativeAreaMap.vue';
-
 import { saneLinkifyStr } from '~/shared/utils';
 
 const route = useRoute();
