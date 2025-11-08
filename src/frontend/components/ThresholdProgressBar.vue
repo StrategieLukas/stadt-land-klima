@@ -28,7 +28,7 @@
       >
         <!-- Marker -->
         <div
-          class="w-[9px] h-8 rounded-sm border border-black group-hover:shadow-md"
+          class="w-[9px] h-8 border border-black group-hover:shadow-md"
           :class="t.color"
         />
         <!-- Value Label -->

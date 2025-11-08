@@ -210,7 +210,7 @@
         :show-measure-link="false"
         :description="$t('stats.data.ev_charging.description')"
         :calculation="$t('stats.data.ev_charging.calculation')"
-        code="VK_1"
+        code="VK_01"
         :data-sources="[stats.evChargingData.dataSourceDownload]"
         :histogram-config="{
           dataType: 'evChargingData',
