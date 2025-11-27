@@ -24,7 +24,7 @@ const { $directus, $readItems, $t } = useNuxtApp()
 const route = useRoute()
 
 // Fetch page by slug
-const { data: pagesWithSlug } = await useAsyncData("pagesWithSlug", () => {
+const { data: pagesWithSlug } = await useAsyncData(`page-${route.params.slug}`, () => {
   return $directus.request(
     $readItems("pages", {
       filter: { slug: { _eq: route.params.slug } },
