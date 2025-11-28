@@ -1,6 +1,6 @@
 <template>
   <main class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0">
-    <div class="flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 sm:mx-4 my-4 p-3 sm:p-4 justify-center">
+    <div class="flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 my-4 p-3 sm:p-4 justify-center">
       <AdministrativeAreaSearchBar 
         base-path="/stats" 
       />
@@ -8,12 +8,12 @@
 
     <!-- Main Info Container -->
     <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6 min-w-0 max-w-full">
-      <!-- Breadcrumbs section from contaned by -->
+      <!-- Breadcrumbs section from contained_by -->
       <div class="breadcrumbs bg-gray-50 px-3 sm:px-4 lg:px-6 py-3 text-sm text-gray-600 overflow-x-auto">
         <ul class="flex flex-row flex-nowrap items-center min-w-0">
-          <li v-for="containedArea in stats?.containedBy?.edges" :key="containedArea.node.ars" class="flex-shrink-0">
-            <NuxtLink :to="`/stats/${containedArea.node.ars}`" class="hover:underline whitespace-nowrap text-xs sm:text-sm">
-              {{ containedArea.node.prefix }} {{ containedArea.node.name }}
+          <li v-for="containedArea in stats?.contained_by" :key="containedArea.ars" class="flex-shrink-0">
+            <NuxtLink :to="`/stats/${containedArea.ars}`" class="hover:underline whitespace-nowrap text-xs sm:text-sm">
+              {{ containedArea.prefix }} {{ containedArea.name }}
             </NuxtLink>
           </li>
         </ul>
@@ -45,11 +45,11 @@
           </div>
           <!-- Rating Status Badge -->
           <div v-if="stats">
-            <span v-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.slug" 
+            <span v-if="stats.is_reasonable_for_municipal_rating && stats.data_products?.stadtlandklima_data?.slug" 
                   class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              {{ stats.stadtlandklimaData?.percentageRated }}% {{ $t('administrative_areas.rated') }}
+              {{ stats.data_products?.stadtlandklima_data?.percentage_rated }}% {{ $t('administrative_areas.rated') }}
             </span>
-            <span v-else-if="stats.isReasonableForMunicipalRating"
+            <span v-else-if="stats.is_reasonable_for_municipal_rating"
                   class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
               {{ $t('administrative_areas.not_rated_yet') }}
             </span>
@@ -62,8 +62,8 @@
           <!-- Action Button -->
           <div v-if="stats">
             <!-- Case 1: Has rating - link to ranking -->
-            <NuxtLink v-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.percentageRated == 100 && stats.stadtlandklimaData?.slug"
-                      :to="`/municipalities/${stats.stadtlandklimaData.slug}`"
+            <NuxtLink v-if="stats.is_reasonable_for_municipal_rating && stats.data_products?.stadtlandklima_data?.percentage_rated == 100 && stats.data_products?.stadtlandklima_data?.slug"
+                      :to="`/municipalities/${stats.data_products.stadtlandklima_data.slug}`"
                       class="inline-flex items-center px-3 sm:px-4 py-2 bg-primary text-white text-xs sm:text-sm font-medium rounded-lg transition-colors shadow-sm">
               <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -72,7 +72,7 @@
             </NuxtLink>
             
             <!-- Case 2: Unfinished rating - get in touch with your local team -->
-            <NuxtLink v-else-if="stats.isReasonableForMunicipalRating && stats.stadtlandklimaData?.percentageRated < 95 && stats.stadtlandklimaData?.slug"
+            <NuxtLink v-else-if="stats.is_reasonable_for_municipal_rating && stats.data_products?.stadtlandklima_data?.percentage_rated < 95 && stats.data_products?.stadtlandklima_data?.slug"
                       :to="'/kontakt'"
                       class="inline-flex items-center px-3 sm:px-4 py-2 bg-secondary text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
               <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@
             </NuxtLink>
 
             <!-- Case 3: No rating - participate button -->
-            <NuxtLink v-else-if="stats.isReasonableForMunicipalRating"
+            <NuxtLink v-else-if="stats.is_reasonable_for_municipal_rating"
                       :to="'/mitmachen'"
                       class="inline-flex items-center px-3 sm:px-4 py-2 bg-ranking-dark text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm">
               <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,206 +96,78 @@
     </div>
 
     <!-- Map Section -->
-    <div v-if="stats && (stats.geoCenter || stats.geoArea)" class="mt-6 bg-base-100 shadow-md overflow-hidden max-w-full">
+    <div v-if="stats && (stats.geo_center || stats.geo_area)" class="mt-6 bg-base-100 shadow-md overflow-hidden max-w-full">
       <AdministrativeAreaMap
-        :geo-center="stats.geoCenter"
-        :geo-area="stats.geoArea"
+        :geo-center="stats.geo_center"
+        :geo-area="stats.geo_area"
         :administrative-area-name="stats.name"
         :zoom="3"
       />
       <!-- centroid coordinates and area in km^2-->
-      <div v-if="stats.geoCenter && stats.geoAreaKm2" class="text-xs sm:text-sm text-gray-600 mt-2 pb-2 text-center px-2 overflow-hidden">
+      <div v-if="stats.geo_center && stats.geo_area_km2" class="text-xs sm:text-sm text-gray-600 mt-2 pb-2 text-center px-2 overflow-hidden">
         <p class="break-all max-w-full overflow-hidden">
           <span class="block sm:inline">{{ $t('administrative_areas.centroid_coordinates') }}:</span> 
           <span class="font-mono text-xs break-all">
-            [{{ stats.geoCenter.coordinates[1].toFixed(4) }}, {{ stats.geoCenter.coordinates[0].toFixed(4) }}]
+            [{{ stats.geo_center.coordinates[1].toFixed(4) }}, {{ stats.geo_center.coordinates[0].toFixed(4) }}]
           </span>
           <br class="sm:hidden">
-          <span class="block sm:inline sm:ml-2">{{ $t('administrative_areas.area') }}:</span> 
-          <span class="font-mono break-all">
-            {{ stats.geoAreaKm2.toLocaleString() }} km²
+          <span class="block sm:inline sm:ml-2">{{ $t('administrative_areas.area') }}: </span> 
+          <span class="font-mono text-xs break-all">
+            {{ stats.geo_area_km2.toLocaleString() }} km²
           </span>
         </p>
       </div>
     </div>
 
     <!-- Data Sections -->
-    <div class="mt-6 space-y-6 min-w-0 max-w-full overflow-hidden">
-      <!-- Population Data -->
-      <DataProductViewWrapper
-        v-if="stats?.populationData"
-        :title="$t('stats.data.population.title')"
-        :show-measure-link="false"
-        :data-sources="[stats.populationData.dataSourceDownload]"
-        :histogram-config="{
-          dataType: 'populationData',
-          attributeName: 'population',
-          currentValue: stats.populationData.population,
-          populationNormalized: false
-        }"
-      >
-        <template #content>
-          <div class="text-center max-w-full overflow-hidden">
-            <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.populationData.population?.toLocaleString() }}</span>
-          </div>
+    <div class="mt-6 space-y-6 w-full max-w-full overflow-hidden">
+      <!-- Dynamic Data Products -->
+      <template v-if="stats?.data_products">
+        <template v-for="(productData, productKey) in stats.data_products" :key="productKey">
+          <DataProductViewWrapper
+            v-if="productData && productData.property_info"
+            :title="getProductTitle(productData)"
+            :code="productData.property_info?.catalog_version && productData.property_info?.measure_id ? productData.property_info.measure_id : undefined"
+            :description="getProductDescription(productData)"
+            :calculation="getProductCalculation(productData)"
+            :show-measure-link="!!(productData.property_info?.measure_id && productData.property_info?.catalog_version)"
+            :data-sources="getDataSources(productData)"
+            :histogram-config="getHistogramConfig(productKey, productData)"
+          >
+            <template #content>
+              <div v-if="productData.property_info?.display_config?.render">
+                <div v-for="(renderItem, idx) in productData.property_info.display_config.render" :key="idx">
+                  <!-- BigNumber display type -->
+                  <div v-if="renderItem.type === 'BigNumber'" class="text-center max-w-full overflow-hidden">
+                    <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">
+                      {{ formatValue(productData[renderItem.key]) }}
+                      {{ getUnit(renderItem.unit) }}
+                    </span>
+                  </div>
+                  
+                  <!-- ThresholdBar display type -->
+                  <ThresholdProgressBar
+                    v-else-if="renderItem.type === 'ThresholdBar'"
+                    className="w-full"
+                    :progress="calculateProgress(productData, renderItem)"
+                    :orange-threshold="renderItem.thresholds.orange || 0"
+                    :yellow-threshold="renderItem.thresholds.yellow || 0"
+                    :light-green-threshold="renderItem.thresholds.lightgreen || 0"
+                    :dark-green-threshold="renderItem.thresholds.darkgreen || 0"
+                    :unit="getUnit(renderItem)"
+                  />
+                </div>
+              </div>
+            </template>
+          </DataProductViewWrapper>
         </template>
-      </DataProductViewWrapper>
-      
-      <!-- Freiflächen-PV -->
-      <DataProductViewWrapper
-        v-if="stats?.solarPowerData"
-        :title="$t('stats.data.solar_power.title')"
-        code="EN_01"
-        :description="$t('stats.data.solar_power.description')"
-        :calculation="$t('stats.data.solar_power.calculation')"
-        :data-sources="[stats.solarPowerData.dataSourceDownload]"
-        :histogram-config="{
-          dataType: 'solarPowerData',
-          attributeName: 'power',
-          currentValue: stats.solarPowerData.power,
-          populationNormalized: false
-        }"
-      >
-        <template #content>
-          <!-- <div class="text-center max-w-full overflow-hidden">
-            <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.solarPowerData.power?.toLocaleString() }} kW</span>
-          </div> -->
-          <ThresholdProgressBar
-            :progress="stats.solarPowerData.power / stats.populationData.population * 1000"
-            :orange-threshold="1"
-            :yellow-threshold="100"
-            :light-green-threshold="350"
-            :dark-green-threshold="1000"
-            :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-          />
-        </template>
-      </DataProductViewWrapper>
+      </template>
 
-      <!-- Windkraft -->
-      <DataProductViewWrapper
-        v-if="stats?.windPowerData"
-        :title="$t('stats.data.wind_power.title')"
-        :show-measure-link="false"
-        :description="$t('stats.data.wind_power.description')"
-        :calculation="$t('stats.data.wind_power.calculation')"
-        code="EN_02"
-        :data-sources="[stats.windPowerData.dataSourceDownload]"
-        :histogram-config="{
-          dataType: 'windPowerData',
-          attributeName: 'power',
-          currentValue: stats.windPowerData.power,
-          populationNormalized: false
-        }"
-      >
-        <template #content>
-          <!-- <div class="text-center max-w-full overflow-hidden">
-            <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">{{ stats.windPowerData.power?.toLocaleString() }} kW</span>
-          </div> -->
-          <ThresholdProgressBar
-            :progress="stats.windPowerData.power / stats.populationData.population * 1000"
-            :orange-threshold="1"
-            :yellow-threshold="200"
-            :light-green-threshold="550"
-            :dark-green-threshold="1500"
-            :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-          />
-        </template>
-      </DataProductViewWrapper>
-
-      <!-- E-Ladesäulen -->
-      <DataProductViewWrapper
-        v-if="stats?.evChargingData"
-        :title="$t('stats.data.ev_charging.title')"
-        :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-        :show-measure-link="false"
-        :description="$t('stats.data.ev_charging.description')"
-        :calculation="$t('stats.data.ev_charging.calculation')"
-        code="VK_01"
-        :data-sources="[stats.evChargingData.dataSourceDownload]"
-        :histogram-config="{
-          dataType: 'evChargingData',
-          attributeName: 'power',
-          currentValue: stats.evChargingData.power,
-          populationNormalized: true
-        }"
-      >
-        <template #content>
-          <ThresholdProgressBar
-            :progress="stats.evChargingData.power / stats.populationData.population * 1000"
-            :orange-threshold="25"
-            :yellow-threshold="50"
-            :light-green-threshold="100"
-            :dark-green-threshold="150"
-            :unit="`W / ${$t('stats.inhabitants_abbrev')}`"
-          />
-        </template>
-      </DataProductViewWrapper>
-
-      <!-- Öffentlicher Nahverkehr -->
-      <DataProductViewWrapper
-        v-if="stats?.publicTransportScoreData"
-        :title="$t('stats.data.public_transport.title')"
-        unit="km/h"
-        :description="$t('stats.data.public_transport.description')"
-        :calculation="`Monte-Carlo-Simulation mit n=${stats.publicTransportScoreData.simulationCount} Simulationen innerhalb des Verwaltungsgebiets. Für das Routing wurde die Programmbibliothek r5py genutzt. Zeitliches Sampling aus der Zeitverwendungsstudie 2022, räumliches aus der Bevölkerungsdichte (JRC Census 2021 Daten). Die Fahrplansolldaten gelten für den Zeitraum von ${formatDateDetailed(stats.publicTransportScoreData.validSinceDt)} bis ${formatDateDetailed(stats.publicTransportScoreData.validUntilDt)}.`"
-        :show-measure-link="false"
-        :data-sources="stats.publicTransportScoreData.pipelineRun?.downloads"
-        code="VK_05"
-        :histogram-config="{
-          dataType: 'publicTransportScoreData',
-          attributeName: 'commonTravelVelocity',
-          currentValue: stats.publicTransportScoreData.commonTravelVelocity,
-          populationNormalized: false
-        }"
-      >
-        <template #content>
-          <div class="grow">
-            <ThresholdProgressBar
-              :progress="stats.publicTransportScoreData.commonTravelVelocity"
-              :orange-threshold="3.0"
-              :yellow-threshold="3.5"
-              :light-green-threshold="4.5"
-              :dark-green-threshold="5.5"
-              :unit="`km/h`"
-            />
-            <!-- Mean Travel Time -->
-            <div class="max-w-full overflow-hidden">
-              <span class="font-bold text-left text-xs sm:text-sm lg:text-base break-all inline-block max-w-full">
-                Reisezeit: {{ `(${Math.round(stats.publicTransportScoreData.meanTravelTimeMinutes)} ± ${Math.round(stats.publicTransportScoreData.stdDevTravelTimeMinutes)}) min` }}
-              </span>
-            </div>
-          </div>
-        </template>
-      </DataProductViewWrapper>
-
-      <!-- Radwege Infrastruktur Daten -->
-      <DataProductViewWrapper
-        v-if="stats?.cyclewayInfrastructureData"
-        :title="$t('stats.data.cyclewayInfrastructureData.title')"
-        :description="$t('stats.data.cyclewayInfrastructureData.description')"
-        :calculation="$t('stats.data.cyclewayInfrastructureData.calculation')"
-        code="VK_16"
-        unit="%"
-        :show-measure-link="false"
-        :data-sources="[stats.cyclewayInfrastructureData.dataSourceDownload]"
-        :histogram-config="{
-          dataType: 'cyclewayInfrastructureData',
-          attributeName: 'bicycleInfrastructureRatio',
-          currentValue: stats.cyclewayInfrastructureData.bicycleInfrastructureRatio * 100,
-          populationNormalized: false
-        }"
-      >
-        <template #content>
-          <ThresholdProgressBar
-            :progress="stats.cyclewayInfrastructureData.bicycleInfrastructureRatio*100"
-            :orange-threshold="10"
-            :yellow-threshold="15"
-            :light-green-threshold="20"
-            :dark-green-threshold="25"
-            unit="%"
-          />
-        </template>
-      </DataProductViewWrapper>
+      <!-- Debug: Show if no data products -->
+      <div v-else-if="stats && !stats.data_products" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p class="text-sm text-yellow-800">No data_products found in stats object</p>
+        <pre class="text-xs mt-2 overflow-auto">{{ JSON.stringify(Object.keys(stats), null, 2) }}</pre>
+      </div>
 
       <!-- Alternatives Section -->
       <div v-if="stats?.level >= 4" class="border-t border-b bg-blue-50 px-3 sm:px-4 lg:px-6 py-6 max-w-full overflow-hidden">
@@ -344,10 +216,12 @@
                 <!-- Mini Map Placeholder -->
                 <div class="h-32 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center relative">
                   <LMap
+                    :ref="el => { if (el) nearbyMapRefs[area.ars] = el }"
                     :zoom="10"
                     :center="[area.geoCenter?.coordinates[1] || 51.1657, area.geoCenter?.coordinates[0] || 10.4515]"
                     class="h-full w-full z-0"
                     :options="{ zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false }"
+                    @ready="() => onNearbyMapReady(area.ars, area.geoArea)"
                   >
                     <LTileLayer
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -357,6 +231,7 @@
                       v-if="area.geoArea"
                       :geojson="area.geoArea"
                       :options="{ style: { color: '#3B82F6', weight: 2, fillColor: '#3B82F6', fillOpacity: 0.3 } }"
+                      @ready="() => onNearbyGeoJsonReady(area.ars, area.geoArea)"
                     />
                   </LMap>
                 </div>
@@ -415,6 +290,7 @@ const { $t, $stadtlandzahlAPI } = useNuxtApp();
 const stats = ref(null);
 const nearbyAreas = ref([]);
 const loadingNearbyAreas = ref(false);
+const nearbyMapRefs = ref({});
 
 // Carousel shadow state
 const scrollContainer = ref(null);
@@ -434,12 +310,71 @@ const updateShadows = () => {
   showRightShadow.value = scrollLeft < scrollWidth - clientWidth - 1;
 };
 
+const fitBoundsToGeoArea = (ars, geoArea) => {
+  const mapRef = nearbyMapRefs.value[ars];
+  if (!geoArea || !mapRef?.leafletObject) {
+    return;
+  }
+
+  try {
+    const leafletMap = mapRef.leafletObject;
+    const geoJsonLayer = L.geoJSON(geoArea);
+    const bounds = geoJsonLayer.getBounds();
+    
+    if (bounds.isValid()) {
+      leafletMap.fitBounds(bounds, { 
+        padding: [20, 20],
+        maxZoom: 12
+      });
+    }
+  } catch (error) {
+    console.warn('Could not fit bounds to geoArea for nearby map:', error);
+  }
+};
+
+const onNearbyMapReady = (ars, geoArea) => {
+  setTimeout(() => {
+    const mapRef = nearbyMapRefs.value[ars];
+    if (mapRef?.leafletObject) {
+      mapRef.leafletObject.invalidateSize();
+      fitBoundsToGeoArea(ars, geoArea);
+    }
+  }, 100);
+  
+  setTimeout(() => {
+    const mapRef = nearbyMapRefs.value[ars];
+    if (mapRef?.leafletObject) {
+      mapRef.leafletObject.invalidateSize();
+      fitBoundsToGeoArea(ars, geoArea);
+    }
+  }, 500);
+};
+
+const onNearbyGeoJsonReady = (ars, geoArea) => {
+  nextTick(() => {
+    const mapRef = nearbyMapRefs.value[ars];
+    if (mapRef?.leafletObject) {
+      mapRef.leafletObject.invalidateSize();
+      fitBoundsToGeoArea(ars, geoArea);
+    }
+  });
+  
+  setTimeout(() => {
+    const mapRef = nearbyMapRefs.value[ars];
+    if (mapRef?.leafletObject) {
+      mapRef.leafletObject.invalidateSize();
+      fitBoundsToGeoArea(ars, geoArea);
+    }
+  }, 300);
+};
+
 onMounted(async () => {
   try {
     const result = await $stadtlandzahlAPI.fetchStatsByARS(route.params.ars);
     console.log('API result:', result);
+    console.log('data_products:', result?.data_products);
+    console.log('data_products keys:', result?.data_products ? Object.keys(result.data_products) : 'none');
     
-    // Extract the first administrative area from the GraphQL response
     if (result) {
       stats.value = result;
       
@@ -457,16 +392,113 @@ onMounted(async () => {
   }
 });
 
+// Helper functions for dynamic data product rendering
+const getProductTitle = (productData) => {
+  return productData?.property_info?.title?.['de-DE'] || productData?.property_info?.title?.['en-US'] || ''
+}
+
+const getProductDescription = (productData) => {
+  return productData?.property_info?.description?.['de-DE'] || productData?.property_info?.description?.['en-US'] || ''
+}
+
+const getProductCalculation = (productData) => {
+  return productData?.property_info?.calculation?.['de-DE'] || productData?.property_info?.calculation?.['en-US'] || ''
+}
+
+const getDataSources = (productData) => {
+  if (productData?.data_source_download) {
+    return [productData.data_source_download]
+  }
+  if (productData?.pipeline_run?.downloads) {
+    return productData.pipeline_run.downloads
+  }
+  return []
+}
+
+const getHistogramConfig = (productKey, productData) => {
+  // Get the first render item to determine the primary attribute
+  const firstRender = productData?.property_info?.display_config?.render?.[0]
+  if (!firstRender) return null
+  
+  // Check if histogram URL is available
+  const histogramUrl = productData?.histograms?.[firstRender.key]
+  if (!histogramUrl) return null
+  
+  // Get the unit to check if it's a percentage
+  let unit = firstRender.unit
+  if (typeof firstRender.unit === 'object') {
+    unit = firstRender.unit['de-DE'] || firstRender.unit['en-US'] || ''
+  }
+  const isPercentage = unit === '%' || unit.includes('%')
+  
+  // Pass the productKey directly (snake_case format like 'ev_charging_data')
+  // The mapping to GraphQL field names is handled by the components
+  return {
+    histogramUrl: histogramUrl,
+    dataType: productKey,
+    attributeName: firstRender.key,
+    currentValue: productData[firstRender.key],
+    municipalityName: stats.value?.name || null,
+    title: getProductTitle(productData),
+    unit: unit,
+    populationNormalized: firstRender.population_normalized || false,
+    population: stats.value?.populationData?.population || null,
+    isPercentage: isPercentage,
+    orangeThreshold: firstRender.thresholds?.orange || null,
+    yellowThreshold: firstRender.thresholds?.yellow || null,
+    lightGreenThreshold: firstRender.thresholds?.lightgreen || null,
+    darkGreenThreshold: firstRender.thresholds?.darkgreen || null
+  }
+}
+
+const formatValue = (value) => {
+  if (typeof value === 'number') {
+    return value.toLocaleString()
+  }
+  return value
+}
+
+const getUnit = (renderItem) => {
+  let unit = renderItem.unit
+  if (typeof renderItem.unit === 'object') {
+    unit = renderItem.unit['de-DE'] || renderItem.unit['en-US'] || ''
+  }
+  if (renderItem.population_normalized) {
+    unit += " / 1000 " + $t('stats.inhabitants_abbrev')
+  }
+  return unit
+}
+
+const calculateProgress = (productData, renderItem) => {
+  let value = productData[renderItem.key]
+  
+  // If value is not available, return 0
+  if (value === null || value === undefined) return 0
+  
+  // Check if we need to normalize by population
+  if (renderItem.population_normalized && stats.value?.data_products?.population_data?.population) {
+    const population = stats.value.data_products.population_data.population
+    // Normalize and convert to per-1000-inhabitants (multiply by 1000)
+    value = (value / population) * 1000
+  }
+  if (renderItem.is_percentage) {
+    // If it's a percentage, ensure it's between 0 and 100
+    value = value * 100
+  }
+  
+  return value
+}
+
 async function fetchNearbyAlternatives(currentArea) {
-  if (!currentArea.geoCenter || [1,2,3].includes(currentArea.level)) return;
+  if (!currentArea.geo_center || [1,2,3].includes(currentArea.level)) return;
   
   loadingNearbyAreas.value = true;
   try {
     // Fetch nearby reasonable alternatives
-    console.log('Fetching nearby alternatives for:', currentArea.geoCenter);
+    console.log('Fetching nearby alternatives for:', currentArea.geo_center);
     const result = await $stadtlandzahlAPI.getNearbyAdministrativeAreas(
-      currentArea.geoCenter.coordinates[1], // latitude
-      currentArea.geoCenter.coordinates[0], // longitude
+      currentArea.geo_center.coordinates[1], // latitude
+      currentArea.geo_center.coordinates[0], // longitude
       15, // limit to 15 km radius
       [4,5,6]
     );

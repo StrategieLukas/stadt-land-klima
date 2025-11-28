@@ -46,6 +46,17 @@
         </div>
       </div>
 
+      <!-- Mobile: Statistics Section Link -->
+      <NuxtLink
+        :to="`/stats/${municipality.ars}`"
+        class="mb-4 shadow-md flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-2 text-sm font-medium text-blue-100 hover:bg-blue-200"
+      >
+        <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+        <h2 class="font-heading text-h2 text-blue-600">
+          {{ $t("stats.title") }} →
+        </h2>
+      </NuxtLink>
+
       <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :sortedRatings="sortedRatings"/>
     </div>
 
@@ -86,6 +97,17 @@
           <!-- Municipality Quick Info -->
           <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore"/>
 
+          <!-- Statistics Section Link -->
+          <NuxtLink
+            :to="`/stats/${municipality.ars}`"
+            class="shadow-md flex items-center gap-3 rounded-sm bg-blue-100 p-5 text-sm font-medium text-light-blue hover:bg-blue-200"
+          >
+            <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
+            <h3 class="font-heading text-h3 text-blue-600">
+              {{ $t("stats.title") }} →
+            </h3>
+          </NuxtLink>
+
           <!-- Participate Section -->
           <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
             <input type="checkbox" name="contact-accordion" autocomplete="off" />
@@ -102,9 +124,10 @@
 
           <!-- Associated Projects -->
           <div v-if="municipalityProjects && municipalityProjects.length > 0" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
-            <div class="flex items-center gap-3 mb-4">
+            <div class="p-3 flex items-center gap-3 mb-4">
               <img src="~/assets/icons/icon_invest.svg" class="h-6 w-6 opacity-60" />
               <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
+
             </div>
             <div class="space-y-4">
               <ProjectCard
