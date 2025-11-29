@@ -169,8 +169,8 @@
         <pre class="text-xs mt-2 overflow-auto">{{ JSON.stringify(Object.keys(stats), null, 2) }}</pre>
       </div>
 
-      <!-- Alternatives Section -->
-      <div v-if="stats?.level >= 4" class="border-t border-b bg-blue-50 px-3 sm:px-4 lg:px-6 py-6 max-w-full overflow-hidden">
+      <!-- Nearby Areas Section -->
+      <div v-if="stats?.is_reasonable_for_municipal_rating" class="border-t border-b bg-blue-50 px-3 sm:px-4 lg:px-6 py-6 max-w-full overflow-hidden">
         <div class="mb-4">
           <h3 class="text-lg font-semibold text-blue-900 mb-2">
             {{ $t('administrative_areas.nearby_alternatives') }}
@@ -490,30 +490,41 @@ const calculateProgress = (productData, renderItem) => {
 }
 
 async function fetchNearbyAlternatives(currentArea) {
-  if (!currentArea.geo_center || [1,2,3].includes(currentArea.level)) return;
+  console.log("Fetching nearby alternatives for area:", currentArea);
+  if (currentArea.is_reasonable_for_municipal_rating === false || !currentArea.ars) {
+    console.log('Area not reasonable for municipal rating or missing ARS, skipping nearby alternatives fetch.');
+    return;
+  }
   
   loadingNearbyAreas.value = true;
   try {
-    // Fetch nearby reasonable alternatives
-    console.log('Fetching nearby alternatives for:', currentArea.geo_center);
-    const result = await $stadtlandzahlAPI.getNearbyAdministrativeAreas(
-      currentArea.geo_center.coordinates[1], // latitude
-      currentArea.geo_center.coordinates[0], // longitude
-      15, // limit to 15 km radius
-      [4,5,6]
-    );
-    console.log('getNearbyAdministrativeAreas result:', result);
+    // Fetch bordering municipalities using REST API
+    console.log('Fetching bordering municipalities for:', currentArea.ars);
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.stadtlandzahlUrl?.replace('/graphql/', '').replace('/graphql', '') || 'http://localhost:8000';
+    const apiUrl = `${baseUrl}/api/areas/${currentArea.ars}/bordering-municipalities/`;
+    
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Bordering municipalities result:', result);
 
-    if (result?.allAdministrativeAreas?.edges) {
-      // and filter out the current area
-      nearbyAreas.value = result.allAdministrativeAreas.edges.filter(area => area.node.ars !== currentArea.ars).map(area => ({
-        ars: area.node.ars,
-        name: area.node.name,
-        prefix: area.node.prefix,
-        hasRating: area.node.stadtlandklimaData && area.node.stadtlandklimaData.slug,
-        stadtlandklimaData: area.node.stadtlandklimaData,
-        geoCenter: area.node.geoCenter,
-        geoArea: area.node.geoArea,
+    if (result?.bordering_municipalities) {
+      nearbyAreas.value = result.bordering_municipalities.map(area => ({
+        ars: area.ars,
+        name: area.name,
+        prefix: area.prefix,
+        hasRating: area.stadtlandklima_data && area.stadtlandklima_data.slug,
+        stadtlandklimaData: area.stadtlandklima_data ? {
+          slug: area.stadtlandklima_data.slug,
+          scoreTotal: area.stadtlandklima_data.score_total,
+          percentageRated: area.stadtlandklima_data.percentage_rated,
+        } : null,
+        geoCenter: area.geo_center,
+        geoArea: area.geo_area,
       }));
       console.log('Nearby areas set to:', nearbyAreas.value);
       
@@ -522,7 +533,7 @@ async function fetchNearbyAlternatives(currentArea) {
       updateShadows();
     }
   } catch (error) {
-    console.error('Error fetching nearby areas:', error);
+    console.error('Error fetching bordering municipalities:', error);
   } finally {
     loadingNearbyAreas.value = false;
   }
