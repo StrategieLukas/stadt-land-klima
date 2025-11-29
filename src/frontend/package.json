@@ -34,6 +34,7 @@
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.15",
     "chart.js": "^4.4.0",
+    "chartjs-chart-treemap": "^3.1.0",
     "daisyui": "^3.7.3",
     "graphql": "^16.11.0",
     "graphql-tag": "^2.12.6",

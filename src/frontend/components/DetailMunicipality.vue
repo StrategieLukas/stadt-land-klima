@@ -4,18 +4,48 @@
     <!-- Mobile: Single column layout -->
     <div class="block lg:hidden w-full flex-col justify-center">
       <div class="mb-8">
-        <item-ranking :municipalityScore="municipalityScore" />
+        <ItemRanking :municipalityScore="municipalityScore" />
       </div>
       <div class="mb-4">
-        <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
+        <div role="tablist" class="tabs tabs-boxed w-fit">
+          <a 
+            role="tab" 
+            class="tab" 
+            :class="{ 'tab-active': activeTab === 'polar' }"
+            @click="activeTab = 'polar'"
+          >
+            Polardiagramm
+          </a>
+          <a 
+            role="tab" 
+            class="tab" 
+            :class="{ 'tab-active': activeTab === 'treemap' }"
+            @click="activeTab = 'treemap'"
+          >
+            Treemap
+          </a>
+        </div>
+        <div class="mt-4 bg-base-100 border-base-300 rounded-box p-6">
+          <MunicipalityPolarChart 
+            v-if="activeTab === 'polar'"
+            :sub-scores="subScores" 
+            :name-municipality="municipality.name" 
+          />
+          <MunicipalityTreeMap 
+            v-if="activeTab === 'treemap'"
+            :sorted-ratings="sortedRatings" 
+            :name-municipality="municipality.name" 
+          />
+        </div>
       </div>
       <p class="mb-4 mt-0 text-center text-xs">
         <ClientOnly>
           {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
         </ClientOnly>
       </p>
+
       <div class="mx-auto mb-8 flex justify-center">
-        <implementation-traffic-light />
+        <ImplementationTrafficLight v-if="activeTab === 'polar'" />
       </div>
 
       <!-- Mobile: About Section -->
@@ -49,7 +79,7 @@
       <!-- Mobile: Statistics Section Link -->
       <NuxtLink
         :to="`/stats/${municipality.ars}`"
-        class="mb-4 shadow-md flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-2 text-sm font-medium text-blue-100 hover:bg-blue-200"
+        class="mb-4 shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
       >
         <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
         <h2 class="font-heading text-h2 text-blue-600">
@@ -68,10 +98,39 @@
           <item-ranking :municipalityScore="municipalityScore" />
         </div>
         <div class="mb-4">
-          <municipality-polar-chart :sub-scores="subScores" :name-municipality="municipality.name" />
+          <div role="tablist" class="tabs tabs-boxed w-fit">
+            <a 
+              role="tab" 
+              class="tab" 
+              :class="{ 'tab-active': activeTab === 'polar' }"
+              @click="activeTab = 'polar'"
+            >
+              Polardiagramm
+            </a>
+            <a 
+              role="tab" 
+              class="tab" 
+              :class="{ 'tab-active': activeTab === 'treemap' }"
+              @click="activeTab = 'treemap'"
+            >
+              Treemap
+            </a>
+          </div>
+          <div class="mt-4 bg-base-100 border-base-300 rounded-box p-6">
+            <municipality-polar-chart 
+              v-if="activeTab === 'polar'"
+              :sub-scores="subScores" 
+              :name-municipality="municipality.name" 
+            />
+            <municipality-tree-map 
+              v-if="activeTab === 'treemap'"
+              :sorted-ratings="sortedRatings" 
+              :name-municipality="municipality.name" 
+            />
+          </div>
         </div>
         <div class="mx-auto mb-8 flex justify-center">
-          <implementation-traffic-light />
+          <implementation-traffic-light v-if="activeTab === 'polar'" />
         </div>
 
         <!-- Notice about current developments, if it exists -->
@@ -100,7 +159,7 @@
           <!-- Statistics Section Link -->
           <NuxtLink
             :to="`/stats/${municipality.ars}`"
-            class="shadow-md flex items-center gap-3 rounded-sm bg-blue-100 p-5 text-sm font-medium text-light-blue hover:bg-blue-200"
+            class="shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
           >
             <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
             <h3 class="font-heading text-h3 text-blue-600">
@@ -184,6 +243,9 @@ const props = defineProps({
 const municipalityScore = props.municipalityScore;
 const municipality = municipalityScore.municipality;
 const subScores = createSubScoreObject(municipalityScore);
+
+// Tab state
+const activeTab = ref('polar');
 
 // Fetch projects associated with this municipality
 const municipalityProjects = ref([]);
