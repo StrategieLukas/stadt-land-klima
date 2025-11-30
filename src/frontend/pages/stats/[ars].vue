@@ -45,9 +45,9 @@
           </div>
           <!-- Rating Status Badge -->
           <div v-if="stats">
-            <span v-if="stats.is_reasonable_for_municipal_rating && stats.data_products?.stadtlandklima_data?.slug" 
+            <span v-if="stats.is_reasonable_for_municipal_rating && stats.stadtlandklima_data?.slug" 
                   class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              {{ stats.data_products?.stadtlandklima_data?.percentage_rated }}% {{ $t('administrative_areas.rated') }}
+              {{ stats.stadtlandklima_data?.percentage_rated.toFixed(1) }}% {{ $t('administrative_areas.rated') }}
             </span>
             <span v-else-if="stats.is_reasonable_for_municipal_rating"
                   class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">

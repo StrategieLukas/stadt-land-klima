@@ -271,8 +271,8 @@ watch(
 );
 
 
-const majorCityScores = getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'big_city');
-const minorCitiesScores = getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'small_city');
+const majorCityScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'big_city'));
+const minorCitiesScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'small_city'));
 
 function getSublist(condition) {
   return (municipalityScores.value?.filter(condition) || [])
