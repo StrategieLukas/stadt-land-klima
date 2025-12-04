@@ -36,63 +36,130 @@
           <p class="text-base lg:text-lg text-gray-600">{{ stats?.state || '' }}</p>
         </div>
         
-        <!-- Right Column: Rating Status & Action -->
+        <!-- Right Column: ARS info only -->
         <div class="flex flex-col lg:text-right space-y-3 flex-shrink-0">
           <!-- ARS -->
           <div class="lg:text-right">
             <p class="text-xs text-gray-500 font-semibold">ARS</p>
             <p class="text-sm font-mono text-gray-700">{{ stats?.ars || '-' }}</p>
           </div>
-          <!-- Rating Status Badge -->
-          <div v-if="stats">
-            <span v-if="stats.is_reasonable_for_municipal_rating && stats.stadtlandklima_data?.slug" 
-                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              {{ stats.stadtlandklima_data?.percentage_rated.toFixed(1) }}% {{ $t('administrative_areas.rated') }}
-            </span>
-            <span v-else-if="stats.is_reasonable_for_municipal_rating"
-                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-              {{ $t('administrative_areas.not_rated_yet') }}
-            </span>
-            <span v-else 
-                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-              {{ $t('administrative_areas.not_reasonable_for_rating') }}
-            </span>
-          </div>
-          
-          <!-- Action Button -->
-          <div v-if="stats">
-            <!-- Case 1: Has rating - link to ranking -->
-            <NuxtLink v-if="stats.is_reasonable_for_municipal_rating && stats.data_products?.stadtlandklima_data?.percentage_rated == 100 && stats.data_products?.stadtlandklima_data?.slug"
-                      :to="`/municipalities/${stats.data_products.stadtlandklima_data.slug}`"
-                      class="inline-flex items-center px-3 sm:px-4 py-2 bg-primary text-white text-xs sm:text-sm font-medium rounded-lg transition-colors shadow-sm">
-              <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              <span class="truncate">{{ $t('stats.view_municipality_ranking') }}</span>
-            </NuxtLink>
-            
-            <!-- Case 2: Unfinished rating - get in touch with your local team -->
-            <NuxtLink v-else-if="stats.is_reasonable_for_municipal_rating && stats.data_products?.stadtlandklima_data?.percentage_rated < 95 && stats.data_products?.stadtlandklima_data?.slug"
-                      :to="'/kontakt'"
-                      class="inline-flex items-center px-3 sm:px-4 py-2 bg-secondary text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
-              <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-              </svg>
-              <span class="truncate">{{ $t('stats.participate.contact_your_local_team') }}</span>
-            </NuxtLink>
+        </div>
+      </div>
+    </div>
 
-            <!-- Case 3: No rating - participate button -->
-            <NuxtLink v-else-if="stats.is_reasonable_for_municipal_rating"
-                      :to="'/mitmachen'"
-                      class="inline-flex items-center px-3 sm:px-4 py-2 bg-ranking-dark text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm">
-              <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span class="truncate">{{ $t('stats.participate.start_to_rank_your_municipality') }}</span>
-            </NuxtLink>
+    <!-- Measure Catalog Comparison Section -->
+    <div v-if="stats?.is_reasonable_for_municipal_rating && allCatalogVersions.length > 0" class="min-h-[100px] flex-col gap-6 lg:flex-row items-center p-4 bg-base-100 shadow-md mt-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4 px-2">{{ t('stats.measure_catalog_comparison', 'Bewertungen in den verschiedenen Maßnahmenkatalogen') }}</h2>
+      
+      <!-- Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div v-for="catalog in allCatalogVersions" :key="catalog.id" 
+             class="card rounded-none bg-white shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+          <div class="card-body p-4">
+            <!-- Catalog Header -->
+            <div class="flex flex-col items-center text-center mb-3">
+              <h3 class="card-title text-sm font-semibold mb-2">{{ catalog.name }}</h3>
+              <div class="flex flex-wrap justify-center gap-1">
+                <!-- Current Frontend Badge -->
+                <div v-if="catalog.isCurrentFrontend" 
+                     class="badge badge-primary">
+                  {{ t('stats.catalog_status.current_frontend', 'Momentan gültig') }}
+                </div>
+                <!-- Current Backend Badge -->
+                <div v-if="catalog.isCurrentBackend" 
+                     class="badge badge-info">
+                  {{ t('stats.catalog_status.current_backend', 'Momentan im Bewerten') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Rating Status -->
+            <div class="flex justify-center mb-3">
+              <div v-if="municipalityScoresByCatalog[catalog.id]">
+                <div v-if="municipalityScoresByCatalog[catalog.id].percentage_rated >= 98"
+                     class="badge badge-success">
+                  {{ t('stats.rating_status.complete', 'Vollständig bewertet') }}
+                </div>
+                <div v-else
+                     class="badge badge-warning">
+                  {{ typeof municipalityScoresByCatalog[catalog.id].percentage_rated === 'number' 
+                      ? municipalityScoresByCatalog[catalog.id].percentage_rated.toFixed(1) 
+                      : parseFloat(municipalityScoresByCatalog[catalog.id].percentage_rated).toFixed(1) || '0.0' }}% {{ $t('administrative_areas.rated') }}
+                </div>
+              </div>
+              <div v-else>
+                <div class="badge badge-outline">
+                  {{ t('stats.rating_status.no_data', 'Keine Daten') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="card-actions justify-center">
+              <!-- Case 1: Complete rating (≥98%) -->
+              <div v-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated >= 98 && municipalityScoresByCatalog[catalog.id]?.municipality?.slug"
+                   class="w-full">
+                <NuxtLink 
+                  :to="`/municipalities/${municipalityScoresByCatalog[catalog.id].municipality.slug}?v=${catalog.name}`"
+                  class="btn btn-primary btn-sm w-full text-xs">
+                  <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span v-if="catalog.isCurrentFrontend">{{ t('stats.action.current_rating', 'zur aktuellen Bewertung') }}</span>
+                  <span v-else-if="catalog.isCurrentBackend">{{ t('stats.action.preview_rating', 'zur Bewertung (Vorschau)') }}</span>
+                  <span v-else>{{ t('stats.action.historical_rating', 'Historische Bewertung') }}</span>
+                </NuxtLink>
+              </div>
+              
+              <!-- Case 2: Incomplete rating (<98%) -->
+              <div v-else-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated > 0 && municipalityScoresByCatalog[catalog.id]?.percentage_rated < 98"
+                   class="w-full">
+                <!-- Only show contact button for current backend catalog -->
+                <NuxtLink v-if="catalog.isCurrentBackend" 
+                  to="/kontakt" 
+                  class="btn btn-secondary btn-sm w-full text-xs">
+                  <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                  </svg>
+                  {{ t('stats.action.help_local_team', 'Helfe diesem Lokalteam') }}
+                </NuxtLink>
+                <!-- No action button for current frontend catalog with incomplete rating -->
+                <span v-else-if="catalog.isCurrentFrontend" class="text-sm text-gray-500 text-center block">
+                  {{ t('stats.action.rating_in_progress', 'Bewertung unvollständig') }}
+                </span>
+                <!-- Historical catalogs with incomplete rating -->
+                <span v-else class="text-xs text-gray-400 text-center block">
+                  {{ t('stats.action.historical_incomplete', 'Historisch unvollständig') }}
+                </span>
+              </div>
+              
+              <!-- Case 3: No data -->
+              <div v-else class="w-full">
+                <!-- Show "Start Rating" button only for non-current-frontend catalogs -->
+                <NuxtLink v-if="!catalog.isCurrentFrontend" 
+                  to="/mitmachen" 
+                  class="btn btn-accent btn-sm w-full text-xs">
+                  <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  {{ t('stats.action.start_rating', 'Beginne Bewertung') }}
+                </NuxtLink>
+                <!-- For current frontend with no data, show status text -->
+                <span v-else class="text-xs text-gray-500 text-center block">
+                  {{ t('stats.action.no_data_current', 'Keine Daten verfügbar') }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Municipality not suitable message -->
+    <div v-else-if="stats && !stats.is_reasonable_for_municipal_rating" class="flex border min-h-[100px] flex-col lg:flex-row justify-center p-4 bg-base-100 shadow-md mt-6">
+      <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+        {{ $t('administrative_areas.not_reasonable_for_rating') }}
+      </span>
     </div>
 
     <!-- Map Section -->
@@ -133,6 +200,10 @@
             :show-measure-link="!!(productData.property_info?.measure_id && productData.property_info?.catalog_version)"
             :data-sources="getDataSources(productData)"
             :histogram-config="getHistogramConfig(productKey, productData)"
+            :map-enabled="isMapSupportedForProduct(productKey)"
+            :ars="stats?.ars"
+            :data-product-type="productKey"
+            :area-bounds="stats?.geo_area"
           >
             <template #content>
               <div v-if="productData.property_info?.display_config?.render">
@@ -150,10 +221,10 @@
                     v-else-if="renderItem.type === 'ThresholdBar'"
                     className="w-full"
                     :progress="calculateProgress(productData, renderItem)"
-                    :orange-threshold="renderItem.thresholds.orange || 0"
-                    :yellow-threshold="renderItem.thresholds.yellow || 0"
-                    :light-green-threshold="renderItem.thresholds.lightgreen || 0"
-                    :dark-green-threshold="renderItem.thresholds.darkgreen || 0"
+                    :orange-threshold="renderItem.is_percentage ? renderItem.thresholds.orange * 100 : renderItem.thresholds.orange|| 0"
+                    :yellow-threshold="renderItem.is_percentage ? renderItem.thresholds.yellow * 100 : renderItem.thresholds.yellow || 0"
+                    :light-green-threshold="renderItem.is_percentage ? renderItem.thresholds.lightgreen * 100 : renderItem.thresholds.lightgreen || 0"
+                    :dark-green-threshold="renderItem.is_percentage ? renderItem.thresholds.darkgreen * 100 : renderItem.thresholds.darkgreen || 0"
                     :unit="getUnit(renderItem)"
                   />
                 </div>
@@ -247,7 +318,7 @@
                     </h4>
                   </div>
                   
-                  <NuxtLink :to="area.hasRating ? `/municipalities/${area.stadtlandklimaData.slug}` : `/stats/${area.ars}`"
+                  <NuxtLink :to="area.hasRating ? `/municipalities/${area.stadtlandklimaData.slug}?v=${selectedCatalogVersion.name}` : `/stats/${area.ars}?v=${selectedCatalogVersion.name}`"
                             class="inline-flex items-center text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium">
                     <span class="truncate">{{ area.hasRating ? $t('stats.view_ranking') : $t('stats.view_stats') }}</span>
                     <svg class="w-4 h-4 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,19 +355,150 @@
 import { useRoute } from 'vue-router';
 import { onMounted, ref, computed, nextTick } from 'vue';
 import { saneLinkifyStr } from '~/shared/utils';
+import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
+import { getAllCatalogVersions } from '~/composables/getAllCatalogVersions.js';
 
 const route = useRoute();
-const { $t, $stadtlandzahlAPI } = useNuxtApp();
+const { $t, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp();
+
+// Get the current catalog version and all available catalog versions
+const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route));
+const allCatalogVersions = ref(await getAllCatalogVersions($directus, $readItems));
+
 const stats = ref(null);
 const nearbyAreas = ref([]);
 const loadingNearbyAreas = ref(false);
 const nearbyMapRefs = ref({});
+
+// Municipality scores from Directus for all catalog versions
+const municipalityScoresByCatalog = ref({});
+
+// Helper function for translation with fallbacks
+const t = (key, fallback) => {
+  const translation = $t(key);
+  return translation === key ? fallback : translation;
+};
+
+// Function to fetch municipality score from Directus for all catalog versions
+const fetchAllMunicipalityScores = async (ars) => {
+  const scores = {};
+  
+  try {
+    // First find the municipality by ARS
+    const municipalities = await $directus.request($readItems("municipalities", {
+      fields: ["id", "slug", "name", "ars", "localteam_id", "status"],
+      filter: { ars: { _eq: ars } },
+      limit: 1
+    }));
+
+    if (!municipalities || municipalities.length === 0) {
+      console.log(`No municipality found for ARS: ${ars}`);
+      return scores;
+    }
+
+    const municipality = municipalities[0];
+
+    // Fetch municipality scores for all catalog versions in parallel
+    const scorePromises = allCatalogVersions.value.map(async (catalog) => {
+      try {
+        const municipalityScores = await $directus.request($readItems("municipality_scores", {
+          fields: ["*"],
+          filter: { 
+            municipality: { _eq: municipality.id },
+            catalog_version: { _eq: catalog.id }
+          },
+          limit: 1
+        }));
+
+        if (municipalityScores && municipalityScores.length > 0) {
+          return {
+            catalogId: catalog.id,
+            data: {
+              ...municipalityScores[0],
+              municipality: municipality
+            }
+          };
+        }
+        return { catalogId: catalog.id, data: null };
+      } catch (error) {
+        console.error(`Error fetching municipality score for catalog ${catalog.name}:`, error);
+        return { catalogId: catalog.id, data: null };
+      }
+    });
+
+    const results = await Promise.all(scorePromises);
+    
+    // Convert results to an object keyed by catalog ID
+    results.forEach(({ catalogId, data }) => {
+      scores[catalogId] = data;
+    });
+
+    return scores;
+  } catch (error) {
+    console.error('Error fetching municipality scores:', error);
+    return scores;
+  }
+};
+
+// Function to fetch municipality score from Directus
+const fetchMunicipalityScore = async (ars, catalogVersionId) => {
+  try {
+    // First find the municipality by ARS
+    const municipalities = await $directus.request($readItems("municipalities", {
+      fields: ["id", "slug", "name", "ars", "localteam_id", "status"],
+      filter: { ars: { _eq: ars } },
+      limit: 1
+    }));
+
+    if (!municipalities || municipalities.length === 0) {
+      console.log(`No municipality found for ARS: ${ars}`);
+      return null;
+    }
+
+    const municipality = municipalities[0];
+
+    // Then fetch the municipality score for this municipality and catalog version
+    const scores = await $directus.request($readItems("municipality_scores", {
+      fields: ["*"],
+      filter: { 
+        municipality: { _eq: municipality.id },
+        catalog_version: { _eq: catalogVersionId }
+      },
+      limit: 1
+    }));
+
+    if (!scores || scores.length === 0) {
+      console.log(`No municipality score found for municipality ID: ${municipality.id} and catalog version: ${catalogVersionId}`);
+      return null;
+    }
+
+    return {
+      ...scores[0],
+      municipality: municipality
+    };
+  } catch (error) {
+    console.error('Error fetching municipality score:', error);
+    return null;
+  }
+};
 
 // Carousel shadow state
 const scrollContainer = ref(null);
 const carouselContainer = ref(null);
 const showLeftShadow = ref(false);
 const showRightShadow = ref(true);
+
+// Computed property to get the correct stadtlandklima_data for the current catalog version
+const filteredStadtlandklimaData = computed(() => {
+  const currentCatalogScore = municipalityScoresByCatalog.value[selectedCatalogVersion.value.id];
+  if (!currentCatalogScore) return null;
+  
+  return {
+    slug: currentCatalogScore.municipality?.slug,
+    percentage_rated: parseFloat(currentCatalogScore.percentage_rated),
+    score_total: parseFloat(currentCatalogScore.score_total)
+  };
+});
 
 const updateShadows = () => {
   if (!scrollContainer.value) return;
@@ -370,10 +572,18 @@ const onNearbyGeoJsonReady = (ars, geoArea) => {
 
 onMounted(async () => {
   try {
-    const result = await $stadtlandzahlAPI.fetchStatsByARS(route.params.ars);
+    // Start both fetches in parallel for better performance
+    const [result, scores] = await Promise.all([
+      $stadtlandzahlAPI.fetchStatsByARS(route.params.ars),
+      fetchAllMunicipalityScores(route.params.ars)
+    ]);
+
     console.log('API result:', result);
     console.log('data_products:', result?.data_products);
     console.log('data_products keys:', result?.data_products ? Object.keys(result.data_products) : 'none');
+    
+    // Set municipality scores for all catalogs immediately
+    municipalityScoresByCatalog.value = scores;
     
     if (result) {
       stats.value = result;
@@ -386,6 +596,7 @@ onMounted(async () => {
     }
 
     console.log('Stats set to:', stats.value);
+    console.log('Municipality scores by catalog set to:', municipalityScoresByCatalog.value);
   } catch (error) {
     console.error('Error fetching stats:', error);
     stats.value = { name: 'Fehler beim Laden', prefix: '' };
@@ -513,19 +724,28 @@ async function fetchNearbyAlternatives(currentArea) {
     console.log('Bordering municipalities result:', result);
 
     if (result?.bordering_municipalities) {
-      nearbyAreas.value = result.bordering_municipalities.map(area => ({
-        ars: area.ars,
-        name: area.name,
-        prefix: area.prefix,
-        hasRating: area.stadtlandklima_data && area.stadtlandklima_data.slug,
-        stadtlandklimaData: area.stadtlandklima_data ? {
-          slug: area.stadtlandklima_data.slug,
-          scoreTotal: area.stadtlandklima_data.score_total,
-          percentageRated: area.stadtlandklima_data.percentage_rated,
-        } : null,
-        geoCenter: area.geo_center,
-        geoArea: area.geo_area,
-      }));
+      // Fetch municipality scores for each nearby area from Directus
+      const nearbyAreasWithScores = await Promise.all(
+        result.bordering_municipalities.map(async (area) => {
+          const score = await fetchMunicipalityScore(area.ars, selectedCatalogVersion.value.id);
+          
+          return {
+            ars: area.ars,
+            name: area.name,
+            prefix: area.prefix,
+            hasRating: score && score.municipality?.slug && score.percentage_rated > 0,
+            stadtlandklimaData: score ? {
+              slug: score.municipality?.slug,
+              scoreTotal: score.score_total,
+              percentageRated: score.percentage_rated,
+            } : null,
+            geoCenter: area.geo_center,
+            geoArea: area.geo_area,
+          };
+        })
+      );
+      
+      nearbyAreas.value = nearbyAreasWithScores;
       console.log('Nearby areas set to:', nearbyAreas.value);
       
       // Update shadows after nearby areas are loaded
@@ -552,36 +772,6 @@ useHead({
   title
 })
 
-// Format date to detailed string
-const formatDateDetailed = (dateString) => {
-  if (!dateString) return '';
-  
-  const date = new Date(dateString);
-  
-  // Format options for detailed date display
-  const options = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Europe/Berlin', // Adjust timezone as needed
-    timeZoneName: 'short'
-  };
-  
-  // Format the date
-  const formatter = new Intl.DateTimeFormat('de-DE', options);
-  const formattedDate = formatter.format(date);
-  
-  // Add ordinal suffix to day
-  const day = date.getDate();
-  const ordinalSuffix = getOrdinalSuffix(day);
-  
-  // Replace the day number with ordinal version
-  return formattedDate.replace(` ${day} `, ` ${day}${ordinalSuffix} `);
-};
-
 const getOrdinalSuffix = (day) => {
   if (day >= 11 && day <= 13) return '.';
   switch (day % 10) {
@@ -591,6 +781,18 @@ const getOrdinalSuffix = (day) => {
     default: return '.';
   }
 };
+
+// Check if a product type supports map visualization
+const isMapSupportedForProduct = (productKey) => {
+  const supportedProducts = [
+    'ev_charging_data',
+    'public_transport_data', 
+    'wind_power_data',
+    'solar_power_data',
+    'cycleway_infrastructure_data'
+  ]
+  return supportedProducts.includes(productKey)
+}
 </script>
 
 <style scoped>
@@ -601,5 +803,10 @@ main {
   width: 100%;
   overflow-x: hidden;
   overflow-wrap: break-word;
+}
+
+/* Fix breadcrumb arrows z-index issue */
+.breadcrumbs ul li + li:before {
+  z-index: 10 !important;
 }
 </style>

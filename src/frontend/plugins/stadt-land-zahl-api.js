@@ -36,10 +36,11 @@ export default defineNuxtPlugin(() => {
                   name
                   ars
                   population
-                  stadtlandklimaData {
+                  stadtlandklimaDataAll {
                     slug
                     scoreTotal
                     percentageRated
+                    measureCatalogName
                   }
                   isReasonableForMunicipalRating
                 }
@@ -100,11 +101,6 @@ export default defineNuxtPlugin(() => {
                   geoCenter
                   geoArea
                   level
-                  stadtlandklimaData {
-                    slug
-                    scoreTotal
-                    percentageRated
-                  }
                   isReasonableForMunicipalRating
                 }
               }

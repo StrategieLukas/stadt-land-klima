@@ -202,6 +202,19 @@
       </div>
     </div>
 
+    <!-- Map Section -->
+    <div v-if="mapEnabled && ars && dataProductType">
+      <p class="font-bold">{{ $t('stats.labels.map') || 'Map' }}</p>
+      <div class="mt-2 bg-gray-50 rounded-lg p-4">
+        <DataProductMap
+          :ars="ars"
+          :data-product-type="dataProductType"
+          :area-bounds="areaBounds"
+          height="h-96"
+        />
+      </div>
+    </div>
+
     <!-- Custom expandable content slot -->
     <slot name="expandable-content" :expanded="expanded" />
   </div>
@@ -211,6 +224,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import DataHistogram from '~/components/DataHistogram.vue'
 import DataHistogramLegacy from '~/components/DataHistogramLegacy.vue'
+import DataProductMap from '~/components/DataProductMap.vue'
 
 const props = defineProps({
   title: {
@@ -246,6 +260,22 @@ const props = defineProps({
     default: false
   },
   histogramConfig: {
+    type: Object,
+    default: null
+  },
+  mapEnabled: {
+    type: Boolean,
+    default: false
+  },
+  ars: {
+    type: String,
+    default: null
+  },
+  dataProductType: {
+    type: String,
+    default: null
+  },
+  areaBounds: {
     type: Object,
     default: null
   }

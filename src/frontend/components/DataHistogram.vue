@@ -152,6 +152,7 @@ const markerPosition = computed(() => {
   for (let i = 0; i < numBins; i++) {
     const binStart = binEdges[i];
     const binEnd = binEdges[i + 1];
+    
     if (valueToCompare >= binStart && valueToCompare < binEnd) {
       currentValueBinIndex = i;
       break;
@@ -202,6 +203,7 @@ const getBarColor = (binMidpoint) => {
     return '#9ca3af';
   }
   
+  // Thresholds and binMidpoint should be in the same format from the API
   if (props.darkGreenThreshold !== null && binMidpoint >= props.darkGreenThreshold) {
     return '#22c55e';
   } else if (props.lightGreenThreshold !== null && binMidpoint >= props.lightGreenThreshold) {
@@ -230,29 +232,30 @@ const getDarkerColor = (color) => {
 const getThresholdRanges = () => {
   const ranges = [];
   
+  // Thresholds should be in the same format as the data from the API
   // Below orange (red)
   if (props.orangeThreshold !== null) {
-    ranges.push({ key: 'below_orange', label: '< ' + props.orangeThreshold, color: '#ef4444' });
+    ranges.push({ key: 'below_orange', label: '< ' + formatValue(props.orangeThreshold), color: '#ef4444' });
   }
   
   // Orange to yellow
   if (props.orangeThreshold !== null && props.yellowThreshold !== null) {
-    ranges.push({ key: 'orange_to_yellow', label: props.orangeThreshold + ' - ' + props.yellowThreshold, color: '#f97316' });
+    ranges.push({ key: 'orange_to_yellow', label: formatValue(props.orangeThreshold) + ' - ' + formatValue(props.yellowThreshold), color: '#f97316' });
   }
   
   // Yellow to light green
   if (props.yellowThreshold !== null && props.lightGreenThreshold !== null) {
-    ranges.push({ key: 'yellow_to_lightgreen', label: props.yellowThreshold + ' - ' + props.lightGreenThreshold, color: '#eab308' });
+    ranges.push({ key: 'yellow_to_lightgreen', label: formatValue(props.yellowThreshold) + ' - ' + formatValue(props.lightGreenThreshold), color: '#eab308' });
   }
   
   // Light green to dark green
   if (props.lightGreenThreshold !== null && props.darkGreenThreshold !== null) {
-    ranges.push({ key: 'lightgreen_to_darkgreen', label: props.lightGreenThreshold + ' - ' + props.darkGreenThreshold, color: '#84cc16' });
+    ranges.push({ key: 'lightgreen_to_darkgreen', label: formatValue(props.lightGreenThreshold) + ' - ' + formatValue(props.darkGreenThreshold), color: '#84cc16' });
   }
   
   // Above dark green
   if (props.darkGreenThreshold !== null) {
-    ranges.push({ key: 'above_darkgreen', label: '≥ ' + props.darkGreenThreshold, color: '#22c55e' });
+    ranges.push({ key: 'above_darkgreen', label: '≥ ' + formatValue(props.darkGreenThreshold), color: '#22c55e' });
   }
   
   // If no thresholds, return single gray range

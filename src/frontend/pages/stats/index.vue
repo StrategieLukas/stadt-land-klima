@@ -197,7 +197,7 @@ async function fetchStatsForCatalog(catalogVersionId) {
       limit: -1,
     })),
     $directus.request($readItems("municipality_scores", {
-      fields: ["*", { municipality: ["id", "name", "slug", "localteam_id"] }],
+      fields: ["*", { municipality: ["id", "name", "slug", "localteam_id", "status"] }],
       filter: { catalog_version: { _eq: catalogVersionId } },
       limit: -1,
     })),
@@ -231,8 +231,8 @@ function processStats() {
   if (!statsData.value) return;
   
   const totalMunicipalities = statsData.value.municipalities.length;
-  const ratedMunicipalities = statsData.value.municipalityScores.filter(s => s.percentage_rated > 0).length;
-  const completedMunicipalities = statsData.value.municipalityScores.filter(s => s.percentage_rated >= 100).length;
+  const ratedMunicipalities = statsData.value.municipalityScores.filter(s => s.percentage_rated > 1).length;
+  const completedMunicipalities = statsData.value.municipalityScores.filter(s => s.percentage_rated >= 98 && s.municipality.status === 'published').length;
 
   generalStats.value = {
     totalMunicipalities,
@@ -242,7 +242,7 @@ function processStats() {
 
   // Create a map of localteam_id to municipality data - only for municipalities with >= 98% rating for bar plots
   const localteamToMunicipality = {};
-  const municipalitiesForStats = statsData.value.municipalityScores.filter(s => s.percentage_rated >= 98);
+  const municipalitiesForStats = statsData.value.municipalityScores.filter(s => s.percentage_rated >= 98. && s.municipality.status === 'published');
   
   municipalitiesForStats.forEach(munScore => {
     const mun = munScore.municipality;
