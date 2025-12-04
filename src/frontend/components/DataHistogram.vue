@@ -136,25 +136,36 @@ const markerPosition = computed(() => {
     return null;
   }
   
-  // If the histogram is population normalized, we need to transform the current value
-  // to match the bin edges (which are in normalized format)
   let valueToCompare = props.currentValue;
+  
+  let binEdges = histogramApiData.value.bin_edges;
+  const binCounts = histogramApiData.value.bin_counts;
+  
+  console.log('markerPosition - original valueToCompare:', valueToCompare);
+  console.log('markerPosition - original binEdges:', binEdges.slice(0, 3));
+  
+  // Transform both value and bin edges if population normalization is enabled
   if (props.populationNormalized && props.population) {
-    valueToCompare = (props.currentValue / props.population) * 1000;
+    valueToCompare = valueToCompare / props.population * 1000;
+    binEdges = binEdges.map(edge => edge / props.population * 1000);
+    console.log('markerPosition - normalized valueToCompare:', valueToCompare);
+    console.log('markerPosition - normalized binEdges:', binEdges.slice(0, 3));
   }
   
-  const binEdges = histogramApiData.value.bin_edges;
-  const binCounts = histogramApiData.value.bin_counts;
   const numBins = binCounts.length;
   
   // Find which bin the current value falls into
   let currentValueBinIndex = -1;
+  let binStart = 0;
+  let binEnd = 0;
+  
   for (let i = 0; i < numBins; i++) {
-    const binStart = binEdges[i];
-    const binEnd = binEdges[i + 1];
+    binStart = binEdges[i];
+    binEnd = binEdges[i + 1];
     
     if (valueToCompare >= binStart && valueToCompare < binEnd) {
       currentValueBinIndex = i;
+      console.log('markerPosition - found bin:', i, 'binStart:', binStart, 'binEnd:', binEnd);
       break;
     }
   }
@@ -162,6 +173,8 @@ const markerPosition = computed(() => {
   // If value is exactly at the max edge, put it in the last bin
   if (currentValueBinIndex === -1 && valueToCompare === binEdges[binEdges.length - 1]) {
     currentValueBinIndex = numBins - 1;
+    binStart = binEdges[currentValueBinIndex];
+    binEnd = binEdges[currentValueBinIndex + 1];
   }
   
   if (currentValueBinIndex === -1) {
@@ -176,12 +189,18 @@ const markerPosition = computed(() => {
       const containerWidth = chartContainerRef.value.offsetWidth;
       
       if (xScale && containerWidth > 0) {
-        // Get the pixel position of the bin center
-        // Chart.js uses the center of each bar/category
-        const pixelPosition = xScale.getPixelForValue(currentValueBinIndex);
+        // Calculate the exact position within the bin
+        const binStartPixel = xScale.getPixelForValue(currentValueBinIndex) - (xScale.getPixelForValue(1) - xScale.getPixelForValue(0)) / 2;
+        const binEndPixel = xScale.getPixelForValue(currentValueBinIndex) + (xScale.getPixelForValue(1) - xScale.getPixelForValue(0)) / 2;
+        
+        // Calculate the relative position of the value within the bin (0 to 1)
+        const relativePosition = (valueToCompare - binStart) / (binEnd - binStart);
+        
+        // Calculate the exact x position
+        const exactPixelPosition = binStartPixel + relativePosition * (binEndPixel - binStartPixel);
         
         // Convert to percentage of container width
-        const percentage = (pixelPosition / containerWidth) * 100;
+        const percentage = (exactPixelPosition / containerWidth) * 100;
         return percentage;
       }
     } catch (error) {
@@ -189,12 +208,18 @@ const markerPosition = computed(() => {
     }
   }
   
-  // Fallback to simple calculation (this is the old buggy version)
+  // Fallback to simple calculation
+  // Calculate the relative position within the bin
+  const relativePosition = (valueToCompare - binStart) / (binEnd - binStart);
+  console.log('markerPosition - relativePosition:', relativePosition, 'valueToCompare:', valueToCompare, 'binStart:', binStart, 'binEnd:', binEnd);
+  
   // Each bin takes up (100 / numBins)% of the width
   const binWidth = 100 / numBins;
-  const binCenter = (currentValueBinIndex + 0.5) * binWidth;
+  const binStartPercent = currentValueBinIndex * binWidth;
+  const exactPosition = binStartPercent + relativePosition * binWidth;
   
-  return binCenter;
+  console.log('markerPosition - final position:', exactPosition);
+  return exactPosition;
 });
 
 const getBarColor = (binMidpoint) => {
@@ -203,7 +228,8 @@ const getBarColor = (binMidpoint) => {
     return '#9ca3af';
   }
   
-  // Thresholds and binMidpoint should be in the same format from the API
+  // binMidpoint is already in normalized format (if normalization was applied)
+  // thresholds should be in the same format
   if (props.darkGreenThreshold !== null && binMidpoint >= props.darkGreenThreshold) {
     return '#22c55e';
   } else if (props.lightGreenThreshold !== null && binMidpoint >= props.lightGreenThreshold) {
@@ -232,30 +258,38 @@ const getDarkerColor = (color) => {
 const getThresholdRanges = () => {
   const ranges = [];
   
-  // Thresholds should be in the same format as the data from the API
+  // Get normalized thresholds for display if needed
+  let orangeThreshold = props.orangeThreshold;
+  let yellowThreshold = props.yellowThreshold; 
+  let lightGreenThreshold = props.lightGreenThreshold;
+  let darkGreenThreshold = props.darkGreenThreshold;
+  
+  // Note: Thresholds are already in the correct format (normalized if needed)
+  // so we don't need to transform them here
+  
   // Below orange (red)
-  if (props.orangeThreshold !== null) {
-    ranges.push({ key: 'below_orange', label: '< ' + formatValue(props.orangeThreshold), color: '#ef4444' });
+  if (orangeThreshold !== null) {
+    ranges.push({ key: 'below_orange', label: '< ' + formatValue(orangeThreshold), color: '#ef4444' });
   }
   
   // Orange to yellow
-  if (props.orangeThreshold !== null && props.yellowThreshold !== null) {
-    ranges.push({ key: 'orange_to_yellow', label: formatValue(props.orangeThreshold) + ' - ' + formatValue(props.yellowThreshold), color: '#f97316' });
+  if (orangeThreshold !== null && yellowThreshold !== null) {
+    ranges.push({ key: 'orange_to_yellow', label: formatValue(orangeThreshold) + ' - ' + formatValue(yellowThreshold), color: '#f97316' });
   }
   
   // Yellow to light green
-  if (props.yellowThreshold !== null && props.lightGreenThreshold !== null) {
-    ranges.push({ key: 'yellow_to_lightgreen', label: formatValue(props.yellowThreshold) + ' - ' + formatValue(props.lightGreenThreshold), color: '#eab308' });
+  if (yellowThreshold !== null && lightGreenThreshold !== null) {
+    ranges.push({ key: 'yellow_to_lightgreen', label: formatValue(yellowThreshold) + ' - ' + formatValue(lightGreenThreshold), color: '#eab308' });
   }
   
   // Light green to dark green
-  if (props.lightGreenThreshold !== null && props.darkGreenThreshold !== null) {
-    ranges.push({ key: 'lightgreen_to_darkgreen', label: formatValue(props.lightGreenThreshold) + ' - ' + formatValue(props.darkGreenThreshold), color: '#84cc16' });
+  if (lightGreenThreshold !== null && darkGreenThreshold !== null) {
+    ranges.push({ key: 'lightgreen_to_darkgreen', label: formatValue(lightGreenThreshold) + ' - ' + formatValue(darkGreenThreshold), color: '#84cc16' });
   }
   
   // Above dark green
-  if (props.darkGreenThreshold !== null) {
-    ranges.push({ key: 'above_darkgreen', label: '≥ ' + formatValue(props.darkGreenThreshold), color: '#22c55e' });
+  if (darkGreenThreshold !== null) {
+    ranges.push({ key: 'above_darkgreen', label: '≥ ' + formatValue(darkGreenThreshold), color: '#22c55e' });
   }
   
   // If no thresholds, return single gray range
@@ -287,22 +321,27 @@ const chartData = computed(() => {
     return null;
   }
 
-  const binEdges = histogramApiData.value.bin_edges;
+  let binEdges = histogramApiData.value.bin_edges;
   const binCounts = histogramApiData.value.bin_counts;
+  
+  // Transform bin edges if population normalization is enabled
+  // API returns raw values, we need to normalize them for display to match currentValue format
+  console.log("populationNormalized:", props.populationNormalized, "population:", props.population);
+  console.log("currentValue:", props.currentValue);
+  console.log("original bin edges:", binEdges.slice(0, 3));
+  
+  if (props.populationNormalized && props.population) {
+    console.log("normalizing bin edges with population", props.population);
+    binEdges = binEdges.map(edge => edge / props.population * 1000);
+    console.log("normalized bin edges:", binEdges.slice(0, 3));
+  }
   
   const labels = [];
   const bins = [];
   
   for (let i = 0; i < binCounts.length; i++) {
-    let binStart = binEdges[i];
-    let binEnd = binEdges[i + 1];
-    
-    // Transform values for display if needed
-    // Note: API returns raw values, we need to transform them for display
-    if (props.populationNormalized && props.population) {
-      binStart = (binStart / props.population) * 1000;
-      binEnd = (binEnd / props.population) * 1000;
-    }
+    const binStart = binEdges[i];
+    const binEnd = binEdges[i + 1];
     
     const binMidpoint = (binStart + binEnd) / 2;
     
@@ -323,14 +362,14 @@ const chartData = computed(() => {
   
   let currentValueBinIndex = -1;
   if (props.currentValue !== null && !isNaN(Number(props.currentValue))) {
-    // Transform the current value the same way we transformed the bin edges
-    let valueToCompare = props.currentValue;
+    // Normalize the current value the same way as bin edges if needed
+    let normalizedCurrentValue = props.currentValue;
     if (props.populationNormalized && props.population) {
-      valueToCompare = (props.currentValue / props.population) * 1000;
+      normalizedCurrentValue = normalizedCurrentValue / props.population * 1000;
     }
     
     currentValueBinIndex = bins.findIndex(bin => 
-      valueToCompare >= bin.start && valueToCompare < bin.end
+      normalizedCurrentValue >= bin.start && normalizedCurrentValue < bin.end
     );
   }
   
@@ -397,27 +436,32 @@ const municipalityLinePlugin = {
       return;
     }
 
-    // Transform the current value the same way we transformed the bin edges
     let valueToCompare = props.currentValue;
-    if (props.populationNormalized && props.population) {
-      valueToCompare = (props.currentValue / props.population) * 1000;
-    }
 
-    const binEdges = histogramApiData.value.bin_edges;
+    let binEdges = histogramApiData.value.bin_edges;
     const binCounts = histogramApiData.value.bin_counts;
+    
+    console.log('municipalityLinePlugin - original valueToCompare:', valueToCompare);
+    console.log('municipalityLinePlugin - original binEdges:', binEdges.slice(0, 3));
+    
+    // Transform both value and bin edges if population normalization is enabled
+    if (props.populationNormalized && props.population) {
+      valueToCompare = valueToCompare / props.population * 1000;
+      binEdges = binEdges.map(edge => edge / props.population * 1000);
+      console.log('municipalityLinePlugin - normalized valueToCompare:', valueToCompare);
+      console.log('municipalityLinePlugin - normalized binEdges:', binEdges.slice(0, 3));
+    }
+    
     const numBins = binCounts.length;
 
     // Find which bin the current value falls into
     let currentValueBinIndex = -1;
+    let binStart = 0;
+    let binEnd = 0;
+    
     for (let i = 0; i < numBins; i++) {
-      let binStart = binEdges[i];
-      let binEnd = binEdges[i + 1];
-      
-      // Transform for comparison
-      if (props.populationNormalized && props.population) {
-        binStart = (binStart / props.population) * 1000;
-        binEnd = (binEnd / props.population) * 1000;
-      }
+      binStart = binEdges[i];
+      binEnd = binEdges[i + 1];
       
       if (valueToCompare >= binStart && valueToCompare < binEnd) {
         currentValueBinIndex = i;
@@ -428,6 +472,8 @@ const municipalityLinePlugin = {
     // If value is exactly at the max edge, put it in the last bin
     if (currentValueBinIndex === -1 && valueToCompare === binEdges[binEdges.length - 1]) {
       currentValueBinIndex = numBins - 1;
+      binStart = binEdges[currentValueBinIndex];
+      binEnd = binEdges[currentValueBinIndex + 1];
     }
 
     if (currentValueBinIndex === -1) {
@@ -438,8 +484,17 @@ const municipalityLinePlugin = {
     const xScale = chart.scales.x;
     const yScale = chart.scales.y;
 
-    // Get the x position at the center of the bin
-    const x = xScale.getPixelForValue(currentValueBinIndex);
+    // Calculate the exact position within the bin
+    // Get the pixel positions for the start and end of the bin
+    const binStartPixel = xScale.getPixelForValue(currentValueBinIndex) - (xScale.getPixelForValue(1) - xScale.getPixelForValue(0)) / 2;
+    const binEndPixel = xScale.getPixelForValue(currentValueBinIndex) + (xScale.getPixelForValue(1) - xScale.getPixelForValue(0)) / 2;
+    
+    // Calculate the relative position of the value within the bin (0 to 1)
+    const relativePosition = (valueToCompare - binStart) / (binEnd - binStart);
+    
+    // Calculate the exact x position
+    const x = binStartPixel + relativePosition * (binEndPixel - binStartPixel);
+    
     const yTop = yScale.top;
     const yBottom = yScale.bottom;
 
@@ -590,17 +645,21 @@ async function fetchData() {
 function categorizeValueByThreshold(value) {
   if (value === null || value === undefined) return null;
   
-  // The value from the API should already be in the same format as the thresholds
-  // (both are either raw or population-normalized based on how the histogram was generated)
+  // The value from the API is in raw format, but thresholds might be in normalized format
+  // We need to normalize the value if population normalization is enabled
+  let valueToCompare = value;
+  if (props.populationNormalized && props.population) {
+    valueToCompare = value / props.population * 1000;
+  }
   
-  // Categorize based on thresholds
-  if (props.darkGreenThreshold !== null && value >= props.darkGreenThreshold) {
+  // Categorize based on thresholds (thresholds should be in the same format as the normalized value)
+  if (props.darkGreenThreshold !== null && valueToCompare >= props.darkGreenThreshold) {
     return 'above_darkgreen';
-  } else if (props.lightGreenThreshold !== null && value >= props.lightGreenThreshold) {
+  } else if (props.lightGreenThreshold !== null && valueToCompare >= props.lightGreenThreshold) {
     return 'lightgreen_to_darkgreen';
-  } else if (props.yellowThreshold !== null && value >= props.yellowThreshold) {
+  } else if (props.yellowThreshold !== null && valueToCompare >= props.yellowThreshold) {
     return 'yellow_to_lightgreen';
-  } else if (props.orangeThreshold !== null && value >= props.orangeThreshold) {
+  } else if (props.orangeThreshold !== null && valueToCompare >= props.orangeThreshold) {
     return 'orange_to_yellow';
   } else {
     return 'below_orange';
@@ -654,6 +713,8 @@ async function calculateThresholdBreakdown() {
             thresholdCounts[category]++;
           }
         });
+        
+        console.log(`Bin ${result.binIndex} threshold counts:`, thresholdCounts);
         
         return {
           bin_index: result.binIndex,

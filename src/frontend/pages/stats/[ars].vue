@@ -626,6 +626,7 @@ const getDataSources = (productData) => {
   return []
 }
 
+
 const getHistogramConfig = (productKey, productData) => {
   // Get the first render item to determine the primary attribute
   const firstRender = productData?.property_info?.display_config?.render?.[0]
@@ -653,7 +654,7 @@ const getHistogramConfig = (productKey, productData) => {
     title: getProductTitle(productData),
     unit: unit,
     populationNormalized: firstRender.population_normalized || false,
-    population: stats.value?.populationData?.population || null,
+    population: stats.value?.data_products?.population_data?.population || null,
     isPercentage: isPercentage,
     orangeThreshold: firstRender.thresholds?.orange || null,
     yellowThreshold: firstRender.thresholds?.yellow || null,

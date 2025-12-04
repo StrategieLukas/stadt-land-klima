@@ -119,7 +119,7 @@
           :municipality-name="histogramConfig.municipalityName"
           :unit="histogramConfig.unit || unit"
           :data-product-name="histogramConfig.title || name"
-          :population-normalized="histogramConfig.populationNormalized"
+          :populationNormalized="histogramConfig.populationNormalized"
           :population="histogramConfig.population"
           :is-percentage="histogramConfig.isPercentage"
           :orange-threshold="histogramConfig.orangeThreshold"
@@ -296,8 +296,8 @@ const sortedAreas = computed(() => {
     let displayValue = area.value
     
     // Apply population normalization if needed
-    if (props.histogramConfig?.populationNormalized && area.population) {
-      displayValue = (area.value / area.population) * 1000
+    if (props.histogramConfig?.populationNormalized && props.histogramConfig?.population) {
+      displayValue = (area.value / props.histogramConfig?.population) * 1000
     }
     
     return {
