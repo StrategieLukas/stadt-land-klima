@@ -789,8 +789,7 @@ const isMapSupportedForProduct = (productKey) => {
     'ev_charging_data',
     'public_transport_data', 
     'wind_power_data',
-    'solar_power_data',
-    'cycleway_infrastructure_data'
+    'solar_power_data'
   ]
   return supportedProducts.includes(productKey)
 }
