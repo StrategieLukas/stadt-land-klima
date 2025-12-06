@@ -9,9 +9,20 @@ meta:
   field: description
   group: details
   hidden: false
-  interface: input-multiline
+  interface: input-rich-text-md
   note: null
   options:
+    softLength: 1000
+    toolbar:
+      - blockquote
+      - bold
+      - bullist
+      - empty
+      - heading
+      - italic
+      - numlist
+      - strikethrough
+      - table
     trim: true
   readonly: false
   required: false

@@ -9,11 +9,21 @@ meta:
   field: public_contact
   group: null
   hidden: false
-  interface: input-multiline
+  interface: input-rich-text-md
   note: $t:public_contact_placeholder
   options:
     placeholder: $t:public_contact_placeholder
-    softLength: 500
+    softLength: 1000
+    toolbar:
+      - blockquote
+      - bold
+      - bullist
+      - empty
+      - heading
+      - italic
+      - numlist
+      - strikethrough
+      - table
     trim: true
   readonly: false
   required: false

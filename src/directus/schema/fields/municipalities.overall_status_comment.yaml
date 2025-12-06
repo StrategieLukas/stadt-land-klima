@@ -9,11 +9,21 @@ meta:
   field: overall_status_comment
   group: null
   hidden: false
-  interface: input-multiline
+  interface: input-rich-text-md
   note: null
   options:
     placeholder: $t:municipalities.overall_status_comment
-    softLength: 500
+    softLength: 1000
+    toolbar:
+      - blockquote
+      - bold
+      - bullist
+      - empty
+      - heading
+      - italic
+      - numlist
+      - strikethrough
+      - table
     trim: true
   readonly: false
   required: false
