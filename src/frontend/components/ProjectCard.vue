@@ -5,6 +5,7 @@
             <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
                 <SmartImg
                     :assetId="image_id"
+                    :isRaster="image_is_raster"
                     :alt="title"
                     :height="160"
                     :width="400"
@@ -74,6 +75,7 @@ const props = defineProps({
     date: Date,
     tag: String,
     image_id: String,
+    image_is_raster: Boolean,
     organisation: Object, // can be null
 })
 

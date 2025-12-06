@@ -11,19 +11,18 @@ export function buildLocationString(municipality_name, state) {
     return '';
 }
 
+export function isRaster(type) {
+  return type.startsWith('image/') && !type.includes('svg');
+}
 
-export async function toAssetUrl(assetId, opts = {}) {
+export async function toAssetUrl(assetId, isRaster, opts = {}) {
   if(assetId == null) return null;
 
   const config = useRuntimeConfig();
   const assetUrl = `${config.public.clientDirectusUrl}/assets/${assetId}`
 
-  const meta = await $fetch(`${config.public.clientDirectusUrl}/files/${assetId}?fields=id,type`)
-  const type = meta?.data?.type || ''
-  const isRaster = type.startsWith('image/') && !type.includes('svg')
-
+  // SVG / video / pdf → deliver raw
   if (!isRaster) {
-    // SVG / video / pdf → deliver raw
     return assetUrl;
   }
 

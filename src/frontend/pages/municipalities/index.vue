@@ -143,7 +143,8 @@
             :abstract="project.abstract"
             :author="project.author"
             :date="new Date(project.date_created)"
-            :image_id="project.image"
+            :image_id="project.image.id"
+            :image_is_raster="isRaster(project.image.type)"
             :organisation="project.organisation"
           />
         </div>
@@ -162,6 +163,8 @@ import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
 
 import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";
+import { isRaster } from "~/shared/utils";
+
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 const rankingColumn = ref(null)
@@ -237,13 +240,13 @@ const { data: projects } = await useAsyncData("articles_ranking", () => {
       fields: [
         "slug",
         "title",
-        "image",
         "abstract",
         "author",
         "date_created",
         "municipality_name",
         "state",
-        { organisation: ["name", "logo", "link"] }
+        { image: ["id", "type"] },
+        { organisation: ["id", "name", "logo", "link"] }
       ],
       sort: "-date_created",
       limit: -1,

@@ -18,7 +18,8 @@
           :author="project.author"
           :date="project.date_created ? new Date(project.date_created) : null"
           :tag="project.tag"
-          :image_id="project.image"
+          :image_id="project.image.id"
+          :image_is_raster="isRaster(project.image.type)"
           :organisation="project.organisation"
         />
 
@@ -27,27 +28,27 @@
 </template>
 
 <script setup>
-import ProjectCard from "~/components/ProjectCard.vue";
+import { isRaster } from "~/shared/utils";
 const { $directus, $readItems, $t } = useNuxtApp();
 
 const { data: projectList } = await useAsyncData("articles-index", () => {
   return  $directus.request(
-  $readItems("articles", {
-    fields: [
-      "slug",
-      "title",
-      "image",
-      "abstract",
-      "author",
-      "date_created",
-      "municipality_name",
-      "state",
-      { organisation: ["logo"]}
-    ],
-    sort: "-date_created",
-    limit: -1,
-  })
-);
+    $readItems("articles", {
+      fields: [
+        "slug",
+        "title",
+        "abstract",
+        "author",
+        "date_created",
+        "municipality_name",
+        "state",
+        { image: ["id", "type"] },
+        { organisation: ["id", "name", "logo"]}
+      ],
+      sort: "-date_created",
+      limit: -1,
+    })
+  );
 });
 
 //MetaTags

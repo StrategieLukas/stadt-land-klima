@@ -17,7 +17,8 @@
   import { toAssetUrl } from '~/shared/utils';
   
   const props = defineProps({
-    assetId: { type: String, default: null },
+    assetId: { type: String, required: true },
+    isRaster: { type: Boolean, required: true },
     alt: { type: String, default: '' },
     imgClass: { type: String, default: '' },
   
@@ -42,7 +43,7 @@
     src.value = null
     srcset.value = null
 
-    src.value = await toAssetUrl(props.assetId, { width: props.width, height: props.height, quality: props.quality, fit: props.fit });
+    src.value = await toAssetUrl(props.assetId, props.isRaster, { width: props.width, height: props.height, quality: props.quality, fit: props.fit });
   
     // Optional responsive srcset (keeps height constant, varies width)
     // if (props.responsiveWidths.length && props.height) {

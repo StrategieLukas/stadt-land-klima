@@ -7,7 +7,8 @@
     :state="article.state"
     :author="article.author"
     :date="article.date_created ? new Date(article.date_created) : null"
-    :image="article.image"
+    :image_id="article.image.id"
+    :image_is_raster="isRaster(article.image.type)"
     :image_credits="article.image_credits"
     :abstract="article.abstract"
     :article_text="article.article_text"
@@ -25,6 +26,7 @@
 
 <script setup>
   import ArticlePage from '~/components/ArticlePage.vue';
+  import { isRaster } from '~/shared/utils';
   const { $directus, $readItems } = useNuxtApp();
 
   const route = useRoute();
@@ -33,13 +35,16 @@
     return $directus.request(
       $readItems("articles", {
         fields: [
-          "title", "subtitle", "municipality_name", "state", "author", "date_created", "image", "image_credits", "abstract", "article_text", "link", "instagram", "linkedin",
-          { organisation: ["name", "logo", "link"] }],
+          "title", "subtitle", "municipality_name", "state", "author", "date_created", "image_credits", "abstract", "article_text", "link", "instagram", "linkedin",
+          { image: ["id", "type"] },
+          { organisation: ["name", "logo", "link"] }
+        ],
         filter: { slug: { _eq: route.params.slug } },
         limit: 1,
       }),
     )
   });
+
 
   const article = computed(() => articles.value?.[0] || {});
 
