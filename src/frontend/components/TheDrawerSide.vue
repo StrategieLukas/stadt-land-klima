@@ -36,6 +36,9 @@
         </a>
       </li>
 
+      <!-- Vertical placeholder -->
+      <div style="height: 93px;"></div>
+
     </ul>
   </nav>
 </template>

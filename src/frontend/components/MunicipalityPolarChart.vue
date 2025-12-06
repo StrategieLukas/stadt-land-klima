@@ -1,7 +1,7 @@
 <template lang="">
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
-      <div class="relative flex h-96 w-full items-center justify-center">
+      <div class="relative flex h-96 w-full items-center justify-center cursor-pointer">
         <div class="z-10 h-58/100 w-58/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
@@ -70,10 +70,28 @@ const chartData = {
     },
   ],
 };
+// Mapping from chart data index to sector keys
+const sectorKeys = [
+  "energy",
+  "transport",
+  "agriculture",
+  "industry",
+  "buildings",
+  "management",
+];
+
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   animation: { animateScale: false },
+  onClick: (event, elements) => {
+    if (elements.length > 0) {
+      const index = elements[0].index;
+      const sectorKey = sectorKeys[index];
+      // Navigate to the sector by setting the hash
+      window.location.hash = `sector-${sectorKey}`;
+    }
+  },
   plugins: {
     legend: {
       display: false,

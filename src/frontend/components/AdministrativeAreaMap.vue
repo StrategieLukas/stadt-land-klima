@@ -118,15 +118,43 @@ const onMapReady = () => {
   mapReady.value = true
   // Small delay to ensure map is fully initialized
   setTimeout(() => {
+    const leafletMap = map.value?.leafletObject
+    if (leafletMap) {
+      // Force map to recalculate its size
+      leafletMap.invalidateSize()
+    }
     fitBoundsToGeoArea()
   }, 100)
+  
+  // Additional invalidation after a longer delay for large polygons
+  setTimeout(() => {
+    const leafletMap = map.value?.leafletObject
+    if (leafletMap) {
+      leafletMap.invalidateSize()
+      fitBoundsToGeoArea()
+    }
+  }, 500)
 }
 
 const onGeoJsonReady = () => {
   // Fit bounds when GeoJSON is ready
   nextTick(() => {
+    const leafletMap = map.value?.leafletObject
+    if (leafletMap) {
+      // Force map to recalculate its size
+      leafletMap.invalidateSize()
+    }
     fitBoundsToGeoArea()
   })
+  
+  // Additional invalidation for large multipolygons
+  setTimeout(() => {
+    const leafletMap = map.value?.leafletObject
+    if (leafletMap) {
+      leafletMap.invalidateSize()
+      fitBoundsToGeoArea()
+    }
+  }, 300)
 }
 
 // Watch for changes in geoArea and refit bounds
@@ -158,5 +186,16 @@ onMounted(() => {
   } else {
     zoom.value = 6
   }
+  
+  // Force map to recalculate after mount for large polygons
+  nextTick(() => {
+    setTimeout(() => {
+      const leafletMap = map.value?.leafletObject
+      if (leafletMap) {
+        leafletMap.invalidateSize()
+        fitBoundsToGeoArea()
+      }
+    }, 200)
+  })
 })
 </script>

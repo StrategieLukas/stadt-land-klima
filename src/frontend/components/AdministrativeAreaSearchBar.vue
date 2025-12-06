@@ -6,6 +6,7 @@
         <label for="admin-search-input" class="label">{{ translatedLabel }}</label>
         <input
           id="admin-search-input"
+          ref="inputRef"
           v-model="q"
           class="input input-bordered w-full bg-white pr-12 border-stats-dark focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
           name="q"
@@ -13,19 +14,25 @@
           autocomplete="off"
           :placeholder="translatedPlaceholder"
           @input="onInput"
-          @focus="searchFocused = true"
+          @focus="handleFocus"
           @keydown.down.prevent="moveFocus(1)"
           @keydown.up.prevent="moveFocus(-1)"
           @keydown.enter.prevent="goToFocused()"
         />
       </div>
 
-      <div
-        v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !searchResults.length)) && searchFocused"
-        class="absolute left-0 right-0 top-20 sm:top-24 w-full z-[9999]"
-        ref="dropdown"
-      >
-        <div class="bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto">
+      <!-- Teleport dropdown to body to escape stacking context -->      
+      <Teleport to="body">
+        <div
+          v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !searchResults.length)) && searchFocused && dropdownPosition.show"
+          class="fixed z-[99999] bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto"
+          :style="{
+            top: dropdownPosition.top + 'px',
+            left: dropdownPosition.left + 'px',
+            width: dropdownPosition.width + 'px'
+          }"
+          ref="dropdown"
+        >
           <div v-if="isLoading">
             <div class="text-gray-500 italic text-sm px-4 py-3">
               {{ $t('generic.loading') }}
@@ -59,11 +66,16 @@
                 </div>
                 <div class="flex flex-col items-end space-y-1 flex-shrink-0">
                   <div v-if="suggestion.hasRating" class="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
+                    <!-- Score Total chip with rating color -->
+                    <span 
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap text-white"
+                      :class="`bg-${suggestion.scoreTotalColorClass}`"
+                    >
                       {{ suggestion.scoreDisplay }}
                     </span>
+                    <!-- Percentage Rated chip with light blue background -->
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
-                      {{ suggestion.percentageDisplay }}
+                      {{ suggestion.percentageDisplay }} bewertet
                     </span>
                   </div>
                   <div v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 whitespace-nowrap">
@@ -74,7 +86,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </Teleport>
     </form>
 
     <!-- Filter Radio Group -->
@@ -111,11 +123,18 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import lodash from 'lodash'
 const { debounce } = lodash
+import { getScorePercentageColor } from '~/shared/utils.js'
+import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
 
-const { $t, $stadtlandzahlAPI } = useNuxtApp()
+const { $t, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp()
+
+// Get the current catalog version
+const route = useRoute()
+const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route))
 
 const props = defineProps({
   basePath: {
@@ -126,6 +145,7 @@ const props = defineProps({
 
 const dropdown = ref(null)
 const radioGroup = ref(null)
+const inputRef = ref(null)
 const q = ref('')
 const searchFocused = ref(false)
 const focusedIndex = ref(-1)
@@ -133,6 +153,14 @@ const filterType = ref('reasonable')
 const router = useRouter()
 const searchResults = ref([])
 const isLoading = ref(false)
+
+// Dynamic dropdown positioning
+const dropdownPosition = ref({
+  top: 0,
+  left: 0,
+  width: 0,
+  show: false
+})
 
 // Computed property to convert filterType to boolean for API call
 const filterReasonable = computed(() => filterType.value === 'reasonable')
@@ -168,7 +196,12 @@ const visibleSuggestions = computed(() => {
   if (!searchResults.value.length) return []
   
   return searchResults.value.slice(0, 5).map((area) => {
-    const hasRating = area.stadtlandklimaData && area.stadtlandklimaData.slug
+    // Filter stadtlandklimaDataAll by current catalog version
+    const filteredData = area.stadtlandklimaDataAll?.find(
+      data => data.measureCatalogName === selectedCatalogVersion.value.name
+    )
+    
+    const hasRating = filteredData && filteredData.slug
     let url = `${props.basePath}/${area.ars}`
 
     return {
@@ -177,8 +210,11 @@ const visibleSuggestions = computed(() => {
       name: area.name,
       url,
       hasRating,
-      scoreDisplay: hasRating ? `${Math.round(area.stadtlandklimaData.scoreTotal * 10) / 10}%` : null,
-      percentageDisplay: hasRating ? `${area.stadtlandklimaData.percentageRated}% bewertet` : null,
+      scoreTotal: hasRating ? parseFloat(filteredData.scoreTotal) : null,
+      percentageRated: hasRating ? parseFloat(filteredData.percentageRated) : null,
+      scoreDisplay: hasRating ? `${Math.round(filteredData.scoreTotal * 10) / 10}%` : null,
+      percentageDisplay: hasRating ? `${Math.round(filteredData.percentageRated)}%` : null,
+      scoreTotalColorClass: hasRating ? getScorePercentageColor(filteredData.scoreTotal) : null,
     }
   })
 })
@@ -204,10 +240,28 @@ function onInput() {
   debouncedSearch(q.value)
 }
 
+function calculateDropdownPosition() {
+  if (!inputRef.value) return
+  
+  const inputRect = inputRef.value.getBoundingClientRect()
+  dropdownPosition.value = {
+    top: inputRect.bottom + window.scrollY + 4,
+    left: inputRect.left + window.scrollX,
+    width: inputRect.width,
+    show: true
+  }
+}
+
+function handleFocus() {
+  searchFocused.value = true
+  calculateDropdownPosition()
+}
+
 function goTo(url) {
   q.value = ''
   focusedIndex.value = -1
   searchFocused.value = false
+  dropdownPosition.value.show = false
   router.push(url)
 }
 
@@ -229,14 +283,21 @@ function handleFilterChange() {
   }
 }
 
-watch(() => document.activeElement, (el) => {
-  if (!el || el.id !== 'admin-search-input') searchFocused.value = false
-})
+// Only watch document.activeElement on client side to avoid SSR issues
+if (process.client) {
+  watch(() => document.activeElement, (el) => {
+    if (!el || el.id !== 'admin-search-input') {
+      searchFocused.value = false
+      dropdownPosition.value.show = false
+    }
+  })
+}
 
 function handleSuggestionClick() {
   q.value = ''
   searchFocused.value = false
   focusedIndex.value = -1
+  dropdownPosition.value.show = false
 }
 
 function handleClickOutside(event) {
@@ -249,6 +310,7 @@ function handleClickOutside(event) {
     !radioGroup.value.contains(event.target)
   ) {
     searchFocused.value = false
+    dropdownPosition.value.show = false
   }
 }
 

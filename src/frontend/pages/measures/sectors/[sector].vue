@@ -16,20 +16,58 @@
       </div>
     </div>
     <div class="space-y-6">
-      <StaticMeasureCard v-for="measure in measures" :key="measure.measure_id" :measure="measure" />
+      <StaticMeasureCard 
+        v-for="measure in measures" 
+        :key="measure.measure_id" 
+        :measure="measure" 
+      />
     </div>
   </div>
 </template>
 <script setup>
-import { ref } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import sectorImages from "~/shared/sectorImages.js";
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
+import { getCatalogVersion, setCatalogVersionUrl } from '~/composables/getCatalogVersion.js';
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
+
+// Hash navigation functionality
+const handleNavigation = async () => {
+  const hash = window.location.hash.substring(1);
+  
+  if (!hash) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  if (hash.startsWith('measure-')) {
+    await nextTick();
+    
+    // Wait a bit for DOM to be fully rendered
+    setTimeout(() => {
+      const element = document.getElementById(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 300); // Increased timeout to allow for expansion
+  }
+};
+
 onMounted(() => {
   setCatalogVersionUrl(route, router, selectedCatalogVersion);
+  
+  // Handle initial hash navigation
+  handleNavigation();
+  
+  // Listen for hash changes
+  window.addEventListener('hashchange', handleNavigation);
+});
+
+// Cleanup hash change listener
+onBeforeUnmount(() => {
+  window.removeEventListener('hashchange', handleNavigation);
 });
 
 //MetaTags

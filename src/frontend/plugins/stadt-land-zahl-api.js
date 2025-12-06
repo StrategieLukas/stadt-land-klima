@@ -36,10 +36,11 @@ export default defineNuxtPlugin(() => {
                   name
                   ars
                   population
-                  stadtlandklimaData {
+                  stadtlandklimaDataAll {
                     slug
                     scoreTotal
                     percentageRated
+                    measureCatalogName
                   }
                   isReasonableForMunicipalRating
                 }
@@ -59,148 +60,26 @@ export default defineNuxtPlugin(() => {
 
   const fetchStatsByARS = async (ars) => {
     try {
-      const result = await apolloClient.query({
-        query: gql`
-          query allAdministrativeAreas($ars: String!) {
-            allAdministrativeAreas(ars: $ars, first: 1) {
-              edges {
-                node {
-                  prefix
-                  name
-                  ars
-                  geoCenter
-                  geoArea
-                  geoAreaKm2
-                  level
-                  isReasonableForMunicipalRating
-                  containedBy {
-                    edges {
-                      node {
-                        name
-                        level
-                        prefix
-                        ars
-                      }
-                    }
-                  }
-                  stadtlandklimaData {
-                    slug
-                    scoreTotal
-                    percentageRated
-                  }
-                  populationData {
-                    population
-                    dataSourceDownload {
-                      effectiveDt
-                      attribution
-                      attributionUrl
-                      license {
-                        name
-                        text
-                        url
-                      }
-                    }
-                  }
-                  evChargingData {
-                    nStations
-                    power
-                    powerUnit
-                    dataSourceDownload {
-                      effectiveDt
-                      attribution
-                      attributionUrl
-                      license {
-                        name
-                        text
-                        url
-                      }
-                    }
-                  }
-                  solarPowerData {
-                    nUnits
-                    power
-                    powerUnit
-                    dataSourceDownload {
-                      effectiveDt
-                      attribution
-                      attributionUrl
-                      license {
-                        name
-                        text
-                        url
-                      }
-                    }
-                  }
-                  windPowerData {
-                    nTurbines
-                    power
-                    powerUnit
-                    dataSourceDownload {
-                      effectiveDt
-                      attribution
-                      attributionUrl
-                      license {
-                        name
-                        text
-                        url
-                      }
-                    }
-                  }
-                  publicTransportScoreData {
-                    meanTravelTimeMinutes
-                    stdDevTravelTimeMinutes
-                    commonTravelVelocity
-                    commonTravelVelocityStd
-                    validSinceDt
-                    validUntilDt
-                    simulationCount
-                    pipelineRun {
-                      downloads {
-                        effectiveDt
-                        license {
-                          name
-                          text
-                          url
-                        }
-                        attribution
-                        attributionUrl
-                      }
-                    }
-                  }
-                  cyclewayInfrastructureData {
-                    bicycleInfrastructureRatio
-                    dataSourceDownload {
-                      attribution
-                      attributionUrl
-                      downloadDt
-                      license {
-                        name
-                        text
-                        url
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        `,
-        variables: { ars }
-      })
+      // Remove /graphql/ from the URL and construct the API endpoint
+      const baseUrl = stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
+      const url = `${baseUrl}/api/areas/${ars}/?format=json`
+      console.log('Fetching from URL:', url)
       
-      // Get the node and create a mutable copy
-      const node = result.data.allAdministrativeAreas.edges[0]?.node
-      if (!node) return null
+      const response = await fetch(url)
       
-      // Create a deep copy of the node to make it mutable
-      const mutableNode = JSON.parse(JSON.stringify(node))
-      
-      // Sort contained by areas by level ascending on the mutable copy
-      if (mutableNode.containedBy?.edges) {
-        mutableNode.containedBy.edges.sort((a, b) => a.node.level - b.node.level)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
       
-      return mutableNode
+      const data = await response.json()
+      console.log('Fetched data:', data)
+      
+      // Sort contained_by areas by level ascending
+      if (data.contained_by) {
+        data.contained_by.sort((a, b) => a.level - b.level)
+      }
+      
+      return data
     } catch (error) {
       console.error(`fetchStatsByARS failed for ars "${ars}":`, error)
       return null
@@ -222,11 +101,6 @@ export default defineNuxtPlugin(() => {
                   geoCenter
                   geoArea
                   level
-                  stadtlandklimaData {
-                    slug
-                    scoreTotal
-                    percentageRated
-                  }
                   isReasonableForMunicipalRating
                 }
               }
@@ -248,6 +122,24 @@ export default defineNuxtPlugin(() => {
       let query = '';
       let variables = {};
       
+      // Map new snake_case dataType to legacy GraphQL field names
+      const dataTypeToGraphQLField = {
+        'ev_charging_data': 'evChargingData',
+        'wind_power_data': 'windPowerData',
+        'solar_power_data': 'solarPowerData',
+        'cycleway_infrastructure_data': 'cyclewayInfrastructureData',
+        'population_data': 'populationData',
+        'public_transport_score_data': 'publicTransportScoreData'
+      };
+      
+      const graphqlFieldName = dataTypeToGraphQLField[dataType] || `${dataType}Data`;
+      
+      // Convert snake_case attribute names to camelCase for GraphQL
+      const snakeToCamel = (str) => {
+        return str.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+      };
+      
+      const graphqlAttributeName = snakeToCamel(attributeName);
 
       query = gql`
         query allAdministrativeAreas($after: String) {
@@ -261,8 +153,8 @@ export default defineNuxtPlugin(() => {
                 name
                 prefix
                 ars
-                ${dataType} {
-                  ${attributeName}
+                ${graphqlFieldName} {
+                  ${graphqlAttributeName}
                 }
                 populationData {
                   population

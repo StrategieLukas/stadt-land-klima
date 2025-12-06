@@ -1,5 +1,5 @@
 <template>
-  <article :id="measure.measure_id" class="card card-compact shadow max-w-4xl mx-auto">
+  <article :id="`measure-${measure.measure_id}`" class="card card-compact shadow max-w-4xl mx-auto">
     <div class="card-body">
       <div 
         class="cursor-pointer flex items-center justify-between"
@@ -46,7 +46,7 @@
   </article>
 </template>
 <script setup>
-import { defineProps, ref, onMounted } from "vue";
+import { defineProps, ref, onMounted, onBeforeUnmount } from "vue";
 const { $t, $locale } = useNuxtApp();
 
 const props = defineProps({
@@ -62,7 +62,27 @@ let lastUpdatedAtStr = ref("");
 const toggleExpanded = () => {
   isExpanded.value = !isExpanded.value;
 };
+
+const expandCard = () => {
+  isExpanded.value = true;
+};
+
+// Listen for hash navigation
+const handleHashNavigation = () => {
+  const hash = window.location.hash.substring(1);
+  if (hash === `measure-${props.measure.measure_id}`) {
+    expandCard();
+  }
+};
+
 onMounted(() => {
+  // Handle initial hash navigation
+  handleHashNavigation();
+  
+  // Listen for hash changes
+  window.addEventListener('hashchange', handleHashNavigation);
+  
+  // Handle date formatting
   if (props.measure.date_updated) {
     const lastUpdatedAt = new Date(props.measure.date_updated);
     if (!isNaN(lastUpdatedAt.getTime())) {
@@ -76,5 +96,10 @@ onMounted(() => {
   } else {
     lastUpdatedAtStr.value = "No update date available";
   }
+});
+
+// Cleanup
+onBeforeUnmount(() => {
+  window.removeEventListener('hashchange', handleHashNavigation);
 });
 </script>
