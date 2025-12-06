@@ -1,4 +1,4 @@
-#import "visualization/muicipality_overview.typ" as item_ranking
+#import "visualization/municipality_overview.typ" as item_ranking
 #import "visualization/footer.typ"
 #import "visualization/header.typ"
 #import "visualization/utils.typ" as util

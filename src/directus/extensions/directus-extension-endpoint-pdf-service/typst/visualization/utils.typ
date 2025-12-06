@@ -60,3 +60,13 @@
   it
 })
 
+// Typst does not support any datetime parsers yet, so have to manually do string manipulation
+#let format-datetime = s => {
+  let y = s.slice(0, 4)
+  let m = s.slice(5, 7)
+  let d = s.slice(8, 10)
+  let h = s.slice(11, 13)
+  let min = s.slice(14, 16)
+  d + "." + m + "." + y + " um " + h + ":" + min
+}
+

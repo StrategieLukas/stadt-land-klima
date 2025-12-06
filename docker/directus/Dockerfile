@@ -11,11 +11,11 @@ RUN ln -s /directus/cli/index.mjs /directus/directus-cli
 USER root
 
 # install typst
-RUN wget https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-unknown-linux-musl.tar.xz \
+RUN wget https://github.com/typst/typst/releases/download/v0.14.1/typst-x86_64-unknown-linux-musl.tar.xz \
     && tar -xf typst-x86_64-unknown-linux-musl.tar.xz \
     && mv typst-x86_64-unknown-linux-musl/typst /usr/local/bin/
 
-    
+
 RUN apk add bash shadow
 
 RUN groupmod -g "${GID}" node && usermod -u "${UID}" -g "${GID}" node
