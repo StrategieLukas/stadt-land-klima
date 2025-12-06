@@ -46,8 +46,9 @@
   
         <!-- Image and Image Credits (Passing the expected maxwidth of 960 for mobile to avoid fetching excessively large images)-->
         <div class="relative mb-4">
-          <SmartImg v-if="image"
-            :assetId="image"
+          <SmartImg v-if="image_id"
+            :assetId="image_id"
+            :isRaster="image_is_raster"
             :alt="title"
             :width="960"
             fit="cover"
@@ -119,9 +120,10 @@
         <!-- Image and Credits -->
         <div>
           <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
-            <span v-if="!image" class="text-gray-500">[Image Placeholder]</span>
-            <SmartImg v-if="image"
-              :assetId="image"
+            <span v-if="!image_id" class="text-gray-500">{{  $t("generic.loading") }}</span>
+            <SmartImg v-if="image_id"
+              :assetId="image_id"
+              :isRaster="image_is_raster"
               :alt="title"
               fit="cover"
               format="webp" 
@@ -246,7 +248,8 @@
       state: String,
       author: String,
       date: Date,
-      image: String,
+      image_id: String,
+      image_is_raster: Boolean,
       image_credits: String,
       abstract: String,
       article_text: String,
@@ -261,10 +264,11 @@
 
   const src = ref(null);
 
-  watchEffect(async () => {
-    src.value = null;
-    src.value = await toAssetUrl(props.assetId, { width: props.width, height: props.height, quality: props.quality, fit: props.fit });
-  });
+  // does nothing?
+  // watchEffect(async () => {
+  //   src.value = null;
+  //   src.value = await toAssetUrl(props.assetId, { width: props.width, height: props.height, quality: props.quality, fit: props.fit });
+  // });
 
   const location = computed(() => buildLocationString(props.municipality_name, props.state));
 </script>
