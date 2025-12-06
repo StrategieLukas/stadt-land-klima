@@ -48,7 +48,7 @@ export function formatLastUpdated(dateString, locale) {
     year: "numeric",
     month: "2-digit",
     day: "numeric",
-  })}, ${lastUpdatedAt.toLocaleTimeString(locale)}`;
+  })}, ${lastUpdatedAt.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`;
 };
 
 export function getRatingDecimalColor(score) {
@@ -89,3 +89,7 @@ export function saneLinkifyStr(text, newTab = true) {
     rel: "noopener noreferrer",
   });
 }
+
+
+
+

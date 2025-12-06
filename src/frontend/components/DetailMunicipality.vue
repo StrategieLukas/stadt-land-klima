@@ -58,7 +58,7 @@
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.description))"></div>
+          <div class="has-long-links prose" v-html="md.render(municipality.description)"></div>
         </div>
       </div>
 
@@ -72,7 +72,7 @@
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.public_contact))"></div>
+          <div class="has-long-links prose" v-html="md.render(municipality.public_contact)"></div>
         </div>
       </div>
 
@@ -143,7 +143,7 @@
             </h2>
           </div>
           <div class="collapse-content px-2 md:px-4">
-            <div class="has-long-links prose" v-html="sanitizeHtml(saneLinkifyStr(municipality.overall_status_comment))"></div>
+            <div class="has-long-links prose" v-html="md.render(municipality.overall_status_comment)"></div>
           </div>
         </div>
 
@@ -177,7 +177,7 @@
               </h3>
             </div>
             <div class="collapse-content px-2 md:px-4">
-              <div class="has-long-links prose prose-sm max-w-none" v-html="sanitizeHtml(saneLinkifyStr(municipality.public_contact))"></div>
+              <div class="has-long-links prose prose-sm max-w-none" v-html="md.render(municipality.public_contact)"></div>
             </div>
           </div>
 
@@ -223,8 +223,17 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import lodash from "lodash";
+import MarkdownIt from 'markdown-it'
+
+const md = new MarkdownIt({
+  html: false, // XSS safety
+  linkify: true, // Linkify the text
+  breaks: true,
+});
+
 import sanitizeHtml from "sanitize-html";
 import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils.js";
+
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
