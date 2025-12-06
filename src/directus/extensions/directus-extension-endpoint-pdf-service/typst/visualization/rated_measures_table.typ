@@ -53,13 +53,12 @@
       #stack(
         dir: ltr,
         spacing: 2em,
-        "Bewertungsampel\nMaßnahmen",
         box(
           align(center + top)[
             #stack(
               dir: ttb,
               image("../slk_resources/icon_rating_0.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "nicht erfüllt"),
+              text(size: 8pt, fill: black, "nicht erfüllt"),
             )
           ]),
         box(
@@ -68,7 +67,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_1.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "ansatzweise erfüllt"),
+              text(size: 8pt, fill: black, "ansatzweise erfüllt"),
             )
           ]
 
@@ -79,7 +78,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_2.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "halbwegs erfüllt"),
+              text(size: 8pt, fill: black, "halbwegs erfüllt"),
             )
           ]
 
@@ -90,7 +89,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_3.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "größtenteils erfüllt"),
+              text(size: 8pt, fill: black, "größtenteils erfüllt"),
             )
           ]
         ),
@@ -100,7 +99,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_4.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "vollständig erfüllt"),
+              text(size: 8pt, fill: black, "vollständig erfüllt"),
             )
           ]
         ),
@@ -110,7 +109,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_na.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "nicht anwendbar"),
+              text(size: 8pt, fill: black, "nicht anwendbar"),
             )
           ]
         )
