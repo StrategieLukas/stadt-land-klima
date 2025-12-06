@@ -11,7 +11,7 @@
   }
 }
 
-#let table_row_height = 1.3em
+#let table_row_height = 1.6em
 
 #let table_pin(rating) = table.cell(
   fill: white,
@@ -22,6 +22,7 @@
 #let draw_measures_table(rating_measures) = {
   let color_gray = rgb("#EDEDED")
   show table.cell.where(y: 1): strong
+  show table.cell.where(y: 1): set text(size: 9pt)
   set table(
     fill: (x, y) =>
       if y == 1{ color_gray },
@@ -46,20 +47,19 @@
   rating_table_data = rating_table_data.flatten().sorted(key: it => (it.sortable_rating, lower(it.measure.measure_id)))
 
   table(
-    columns: (0.6cm, 1.1cm, 100%-6.7cm, 1.8cm, 1.8cm, 1.8cm),
-    stroke: white + 0.2em,
-    rows: (2.5em, table_row_height),
+    columns: (0.5cm, 1.4cm, 100%-7.0cm, 1.9cm, 1.9cm, 1.9cm),
+    stroke: white + 0.25em,
+    rows: (3em, table_row_height),
     table.cell(colspan: 3)[
       #stack(
         dir: ltr,
         spacing: 2em,
-        "Bewertungsampel\nMaßnahmen",
         box(
           align(center + top)[
             #stack(
               dir: ttb,
               image("../slk_resources/icon_rating_0.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "nicht erfüllt"),
+              text(size: 8pt, fill: black, "nicht erfüllt"),
             )
           ]),
         box(
@@ -68,7 +68,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_1.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "ansatzweise erfüllt"),
+              text(size: 8pt, fill: black, "ansatzweise erfüllt"),
             )
           ]
 
@@ -79,7 +79,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_2.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "halbwegs erfüllt"),
+              text(size: 8pt, fill: black, "halbwegs erfüllt"),
             )
           ]
 
@@ -90,7 +90,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_3.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "größtenteils erfüllt"),
+              text(size: 8pt, fill: black, "größtenteils erfüllt"),
             )
           ]
         ),
@@ -100,7 +100,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_4.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "vollständig erfüllt"),
+              text(size: 8pt, fill: black, "vollständig erfüllt"),
             )
           ]
         ),
@@ -110,7 +110,7 @@
               dir: ttb,
               spacing: 3pt,
               image("../slk_resources/icon_rating_na.svg", height: 100%-3pt),
-              text(size: 6pt, fill: gray, "nicht anwendbar"),
+              text(size: 8pt, fill: black, "nicht anwendbar"),
             )
           ]
         )
@@ -119,7 +119,7 @@
     [#align(center + horizon, [#image("../slk_resources/icon_impact.svg")])],
     [#align(center + horizon, [#image("../slk_resources/icon_politics.svg")])],
     [#align(center + horizon, [#image("../slk_resources/icon_invest.svg")])],
-    [], [ID], [Maßnahme], [Impact], [Kontroverse], [Preis],
+    [], [ID], [Maßnahme], [Impact], [Kontroverse], [Kosten],
 
     ..for (rating, measure, applicable) in rating_table_data{
         let table_row_color = util.select_color_from_range(rating, factor : 100).transparentize(80%)
@@ -132,7 +132,9 @@
             star_generator(measure.impact),
             star_generator(measure.feasibility_political),
             star_generator(measure.feasibility_economical)
-          ).map(cell => (table.cell(fill: table_row_color)[#cell]))
+          ).map(cell => table.cell(fill: table_row_color)[
+             #text(size: 10pt)[#cell]
+           ])
         ).flatten()
     }
   )

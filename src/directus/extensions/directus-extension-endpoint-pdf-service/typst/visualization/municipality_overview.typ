@@ -1,4 +1,4 @@
-#import "utils.typ" as colors
+#import "utils.typ"
 #import "progress_bar.typ"
 #import "circular_barplot.typ"
 #import "@preview/rustycure:0.1.0": qr-code
@@ -16,8 +16,12 @@
   ) = [
   #let progress = municipalityScore.score_total
   #let ranking = municipalityScore.rank
-  #let color = colors.select_color_from_range(progress);
+  #let color = utils.select_color_from_range(progress);
   #let Pin_colored = Pin.replace("currentColor", color.to-hex())
+  #let last_updated = utils.format-datetime(municipalityScore.date_updated)
+
+  #show link: set text(fill: blue, size: 1.0*unit)
+  #show link: underline
 
   #let rect_color = color
 
@@ -63,7 +67,7 @@
           columns: auto,
           rows: (auto, auto, auto),
           gutter: 1*unit,
-          text(colors.fill-height-with-text(municipalityScore.municipality.name, max: heading_size), weight: "bold"),
+          text(utils.fill-height-with-text(municipalityScore.municipality.name, max: heading_size), weight: "bold"),
           text(municipalityScore.municipality.state, size: 1.2*unit, fill: gray),
           v(unit/2),
           box(width: 28*unit, progress_bar.draw_progress_bar(progress, unit, scale_text : true)),
@@ -90,7 +94,7 @@
     )
 
     // Last updated
-    #align(center, text("Letzte Aktualisierung: " + municipalityScore.date_updated, size: 0.8*unit))
+    #align(center, text("Letzte Aktualisierung: " + last_updated, size: 1.2*unit))
 
     #let url = "https://www.stadt-land-klima.de/municipalities/" + municipalityScore.municipality.slug
     // QR Code
@@ -106,7 +110,7 @@
           )
         ]
       )
-      #text(url, size: 0.8*unit)
+      #link(url)
     ]
 
   ]
