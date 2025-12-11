@@ -55,6 +55,9 @@ import {
   LinearScale
 } from 'chart.js';
 
+const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl;
+const stadtlandzahlBaseURL = stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
+
 // Register Chart.js components
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
@@ -141,15 +144,10 @@ const markerPosition = computed(() => {
   let binEdges = histogramApiData.value.bin_edges;
   const binCounts = histogramApiData.value.bin_counts;
   
-  console.log('markerPosition - original valueToCompare:', valueToCompare);
-  console.log('markerPosition - original binEdges:', binEdges.slice(0, 3));
-  
   // Transform both value and bin edges if population normalization is enabled
   if (props.populationNormalized && props.population) {
     valueToCompare = valueToCompare / props.population * 1000;
     binEdges = binEdges.map(edge => edge / props.population * 1000);
-    console.log('markerPosition - normalized valueToCompare:', valueToCompare);
-    console.log('markerPosition - normalized binEdges:', binEdges.slice(0, 3));
   }
   
   const numBins = binCounts.length;
@@ -165,7 +163,6 @@ const markerPosition = computed(() => {
     
     if (valueToCompare >= binStart && valueToCompare < binEnd) {
       currentValueBinIndex = i;
-      console.log('markerPosition - found bin:', i, 'binStart:', binStart, 'binEnd:', binEnd);
       break;
     }
   }
@@ -211,14 +208,12 @@ const markerPosition = computed(() => {
   // Fallback to simple calculation
   // Calculate the relative position within the bin
   const relativePosition = (valueToCompare - binStart) / (binEnd - binStart);
-  console.log('markerPosition - relativePosition:', relativePosition, 'valueToCompare:', valueToCompare, 'binStart:', binStart, 'binEnd:', binEnd);
   
   // Each bin takes up (100 / numBins)% of the width
   const binWidth = 100 / numBins;
   const binStartPercent = currentValueBinIndex * binWidth;
   const exactPosition = binStartPercent + relativePosition * binWidth;
   
-  console.log('markerPosition - final position:', exactPosition);
   return exactPosition;
 });
 
@@ -326,14 +321,9 @@ const chartData = computed(() => {
   
   // Transform bin edges if population normalization is enabled
   // API returns raw values, we need to normalize them for display to match currentValue format
-  console.log("populationNormalized:", props.populationNormalized, "population:", props.population);
-  console.log("currentValue:", props.currentValue);
-  console.log("original bin edges:", binEdges.slice(0, 3));
   
   if (props.populationNormalized && props.population) {
-    console.log("normalizing bin edges with population", props.population);
     binEdges = binEdges.map(edge => edge / props.population * 1000);
-    console.log("normalized bin edges:", binEdges.slice(0, 3));
   }
   
   const labels = [];
@@ -441,15 +431,10 @@ const municipalityLinePlugin = {
     let binEdges = histogramApiData.value.bin_edges;
     const binCounts = histogramApiData.value.bin_counts;
     
-    console.log('municipalityLinePlugin - original valueToCompare:', valueToCompare);
-    console.log('municipalityLinePlugin - original binEdges:', binEdges.slice(0, 3));
-    
     // Transform both value and bin edges if population normalization is enabled
     if (props.populationNormalized && props.population) {
       valueToCompare = valueToCompare / props.population * 1000;
       binEdges = binEdges.map(edge => edge / props.population * 1000);
-      console.log('municipalityLinePlugin - normalized valueToCompare:', valueToCompare);
-      console.log('municipalityLinePlugin - normalized binEdges:', binEdges.slice(0, 3));
     }
     
     const numBins = binCounts.length;
@@ -582,7 +567,7 @@ async function fetchBinData(binIndex) {
   loadingBinData.value = true;
   clickedBinIndex.value = binIndex;
   try {
-    const url = `http://localhost:8000/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
+    const url = `http://${stadtlandzahlBaseURL}/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -680,7 +665,7 @@ async function calculateThresholdBreakdown() {
     // Fetch all bins in parallel
     const fetchPromises = [];
     for (let binIndex = 0; binIndex < binCounts.length; binIndex++) {
-      const url = `http://localhost:8000/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
+      const url = `http://${stadtlandzahlBaseURL}/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
       fetchPromises.push(
         fetch(url)
           .then(response => response.ok ? response.json() : null)
@@ -713,8 +698,6 @@ async function calculateThresholdBreakdown() {
             thresholdCounts[category]++;
           }
         });
-        
-        console.log(`Bin ${result.binIndex} threshold counts:`, thresholdCounts);
         
         return {
           bin_index: result.binIndex,
