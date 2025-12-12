@@ -55,6 +55,7 @@ import {
   LinearScale
 } from 'chart.js';
 
+const runtimeConfig = useRuntimeConfig();
 const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl;
 const stadtlandzahlBaseURL = stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
 
