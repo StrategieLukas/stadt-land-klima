@@ -55,6 +55,7 @@ import {
   LinearScale
 } from 'chart.js';
 
+const runtimeConfig = useRuntimeConfig();
 const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl;
 const stadtlandzahlBaseURL = stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
 
@@ -567,7 +568,7 @@ async function fetchBinData(binIndex) {
   loadingBinData.value = true;
   clickedBinIndex.value = binIndex;
   try {
-    const url = `http://${stadtlandzahlBaseURL}/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
+    const url = `${stadtlandzahlBaseURL}/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -665,7 +666,7 @@ async function calculateThresholdBreakdown() {
     // Fetch all bins in parallel
     const fetchPromises = [];
     for (let binIndex = 0; binIndex < binCounts.length; binIndex++) {
-      const url = `http://${stadtlandzahlBaseURL}/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
+      const url = `${stadtlandzahlBaseURL}/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
       fetchPromises.push(
         fetch(url)
           .then(response => response.ok ? response.json() : null)
