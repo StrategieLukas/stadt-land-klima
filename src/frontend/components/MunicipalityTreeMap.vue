@@ -14,7 +14,7 @@ import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
 Chart.register(TreemapController, TreemapElement);
 
 const props = defineProps({
-  sortedRatings: {
+  ratingsBySector: {
     type: Object,
     required: true,
   },
@@ -41,7 +41,7 @@ const sectorNames = {
 const treeData = computed(() => {
   const data = [];
   
-  Object.entries(props.sortedRatings).forEach(([sector, ratings]) => {
+  Object.entries(props.ratingsBySector).forEach(([sector, ratings]) => {
     ratings.forEach((item) => {
       // Only include applicable measures with weight
       if (item.applicable && item.measure?.weight > 0) {

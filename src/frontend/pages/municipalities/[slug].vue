@@ -9,7 +9,7 @@
     <article class="mb-8 mt-10">
       <detail-municipality
         :municipalityScore="directusData.municipalityScore"
-        :sorted-ratings="directusData.sortedRatings"
+        :ratings-by-sector="directusData.ratingsBySector"
       ></detail-municipality>
     </article>
     <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
@@ -42,7 +42,6 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
     router.replace({ query: { ...route.query, v: selectedCatalogVersion.name } });
   });
 }
-
 
 const { data: directusData } = await fetchMunicipalityData(route.params.slug, selectedCatalogVersion.id);
 console.log(directusData)

@@ -33,7 +33,7 @@
           />
           <MunicipalityTreeMap 
             v-if="activeTab === 'treemap'"
-            :sorted-ratings="sortedRatings" 
+            :ratings-by-sector="ratingsBySector" 
             :name-municipality="municipality.name" 
           />
         </div>
@@ -87,7 +87,7 @@
         </h2>
       </NuxtLink>
 
-      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :sortedRatings="sortedRatings"/>
+      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector"/>
     </div>
 
     <!-- Desktop: Two column layout -->
@@ -117,17 +117,17 @@
             </a>
           </div>
           <div class="mt-4 bg-base-100 border-base-300 rounded-box p-6">
-            <municipality-polar-chart 
-              v-if="activeTab === 'polar'"
-              :sub-scores="subScores" 
-              :name-municipality="municipality.name" 
-            />
-            <municipality-tree-map 
-              v-if="activeTab === 'treemap'"
-              :sorted-ratings="sortedRatings" 
-              :name-municipality="municipality.name" 
-            />
-          </div>
+          <MunicipalityPolarChart 
+            v-if="activeTab === 'polar'"
+            :sub-scores="subScores" 
+            :name-municipality="municipality.name" 
+          />
+          <MunicipalityTreeMap 
+            v-if="activeTab === 'treemap'"
+            :ratings-by-sector="ratingsBySector" 
+            :name-municipality="municipality.name" 
+          />
+        </div>
         </div>
         <div class="mx-auto mb-8 flex justify-center">
           <implementation-traffic-light v-if="activeTab === 'polar'" />
@@ -147,7 +147,7 @@
           </div>
         </div>
 
-        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :sortedRatings="sortedRatings"/>
+        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector"/>
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
@@ -262,7 +262,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  sortedRatings: {
+  ratingsBySector: {
     type: Object,
     required: true,
   },

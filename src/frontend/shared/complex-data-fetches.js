@@ -43,7 +43,7 @@ export async function fetchMunicipalityData(slug, catalogVersionId) {
       municipalityScore,
       measures,
       ratingsMeasures,
-      sortedRatings: sortRatingsBySector(ratingsMeasures, measures),
+      ratingsBySector: sortRatingsBySector(ratingsMeasures, measures),
     };
   });
 }

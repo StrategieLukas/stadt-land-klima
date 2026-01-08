@@ -1,6 +1,6 @@
 <template>
   <div
-    v-for="(sectorRatings, sector) in sortedRatings"
+    v-for="(sectorRatings, sector) in ratingsBySector"
     :key="sector"
     :name="`sector-${sector}`"
     class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4"
@@ -108,7 +108,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  sortedRatings: {
+  ratingsBySector: {
     type: Object,
     required: true,
   },
@@ -119,7 +119,7 @@ const municipality = props.municipalityScore.municipality;
 // Create mapping of sectors to measurement IDs
 const sectorToMeasureIDs = computed(() => {
   const mapping = {}
-  Object.entries(props.sortedRatings).forEach(([sector, ratings]) => {
+  Object.entries(props.ratingsBySector).forEach(([sector, ratings]) => {
     mapping[sector] = ratings.map(rating => rating.measure.measure_id)
   })
   return mapping
@@ -182,7 +182,7 @@ const handleNavigation = async () => {
 
   if (hash.startsWith('sector-')) {
     const sector = hash.replace('sector-', '')
-    if (props.sortedRatings[sector]) {
+    if (props.ratingsBySector[sector]) {
       openSectors[sector] = true
       await nextTick()
       
