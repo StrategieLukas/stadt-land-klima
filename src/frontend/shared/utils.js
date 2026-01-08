@@ -91,5 +91,32 @@ export function saneLinkifyStr(text, newTab = true) {
 }
 
 
+const MUNICIPAL_ELECTION_YEARS = {
+  'Bayern': 2026,
+  'Hessen': 2026,
+  'Niedersachsen': 2026,
+  'Berlin': 2026,
+
+  'Bremen': 2027,
+  
+  'Schleswig-Holstein': 2028,
+
+  'Baden-Württemberg': 2029,
+  'Brandenburg': 2029,
+  'Mecklenburg-Vorpommern': 2029,
+  'Rheinland-Pfalz': 2029,
+  'Saarland': 2029,
+  'Sachsen': 2029,
+  'Sachsen-Anhalt': 2029,
+  'Thüringen': 2029,
+
+  'Nordrhein-Westfalen': 2030,
+  'Hamburg': 2030,
+}
+
+export function getStateMunicipalElectionYear(state) {
+  if(state == null) return null;
+  return MUNICIPAL_ELECTION_YEARS[state] ?? null;
+}
 
 
