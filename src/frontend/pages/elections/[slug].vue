@@ -19,7 +19,7 @@
   <div v-if="directusData">
     <ElectionInfo
       :municipality-score="directusData.municipalityScore"
-      :sorted-ratings="directusData.sortedRatings"
+      :ratings-measures="directusData.ratingsMeasures"
     />
   </div>
   <div v-else>
