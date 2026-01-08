@@ -169,7 +169,7 @@
 
           <!-- Kommunalwahl Question Generation Link -->
           <NuxtLink
-            :to="`/election/${municipality.slug}`"
+            :to="`/elections/${municipality.slug}`"
             class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
           >
             <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
@@ -247,36 +247,10 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-import { formatLastUpdated } from "~/shared/utils.js";
-
-const MUNICIPAL_ELECTION_YEARS = {
-  'Bayern': 2026,
-  'Hessen': 2026,
-  'Niedersachsen': 2026,
-  'Berlin': 2026,
-
-  'Bremen': 2027,
-  
-  'Schleswig-Holstein': 2028,
-
-  'Baden-Württemberg': 2029,
-  'Brandenburg': 2029,
-  'Mecklenburg-Vorpommern': 2029,
-  'Rheinland-Pfalz': 2029,
-  'Saarland': 2029,
-  'Sachsen': 2029,
-  'Sachsen-Anhalt': 2029,
-  'Thüringen': 2029,
-
-  'Nordrhein-Westfalen': 2030,
-  'Hamburg': 2030,
-}
-
+import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils.js";
 
 const municipalElectionYear = computed(() => {
-  const state = municipality?.state
-  if (!state) return null
-  return MUNICIPAL_ELECTION_YEARS[state] ?? null
+  return getStateMunicipalElectionYear(municipality?.state);
 })
 
 
