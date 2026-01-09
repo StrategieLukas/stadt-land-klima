@@ -82,9 +82,24 @@
         class="mb-4 shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
       >
         <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-        <h2 class="font-heading text-h2 text-blue-600">
+        <h2 class="font-heading text-h2">
           {{ $t("stats.title") }} →
         </h2>
+      </NuxtLink>
+
+      <!-- Mobile: Kommunalwahl Question Generation Link -->
+      <NuxtLink
+        :to="`/elections/${municipality.slug}`"
+        class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
+      >
+        <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+        <h3 class="font-heading text-h2 ">
+          {{
+            $t("local_elections.title", {
+              ":year": municipalElectionYear ?? ""
+            })
+          }} →
+        </h3>
       </NuxtLink>
 
       <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector"/>
@@ -180,7 +195,6 @@
                 })
               }} →
             </h3>
-
           </NuxtLink>
 
           <!-- Participate Section -->
