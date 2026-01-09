@@ -172,7 +172,7 @@
             :to="`/elections/${municipality.slug}`"
             class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
           >
-            <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
+            <img src="~/assets/icons/icon_politics.svg" class="h-6 w-6 opacity-60" />
             <h3 class="font-heading text-h3">
               {{
                 $t("local_elections.title", {

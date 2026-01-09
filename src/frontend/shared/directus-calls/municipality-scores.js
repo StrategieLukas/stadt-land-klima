@@ -6,7 +6,6 @@ export async function fetchMunicipalityScores($directus, $readItems, slug) {
       $readItems("municipality_scores", {
       fields: ["*", { catalog_version: ["*"]}],
       filter: { municipality: { slug: { _eq: slug } }},
-      limit: 1,
       }),
     );
 }
