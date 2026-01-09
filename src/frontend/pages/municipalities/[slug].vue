@@ -32,7 +32,7 @@ const { $directus, $readItems } = useNuxtApp();
 const router = useRouter();
 
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
-import { fetchMunicipalityData } from '~/shared/complex-data-fetches.js';
+import { fetchMunicipalityData } from '~/shared/directus-calls/complex-data-fetches.js';
 const route = useRoute();
 const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 
@@ -43,11 +43,10 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
   });
 }
 
-const { data: directusData } = await fetchMunicipalityData(route.params.slug, selectedCatalogVersion.id);
-console.log(directusData)
+const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id);
 
 //MetaTags
-const title = ref(directusData.value?.municipalityScore?.municipality?.name ?? '404');
+const title = ref(directusData?.municipalityScore?.municipality?.name ?? '404');
 useHead({
   title,
 });

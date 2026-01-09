@@ -4,6 +4,7 @@
   <!-- <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore"/> -->
 
   <p class="text-h3">Fragen zur Kommunalwahl auf Basis der Bewertung:</p>
+  <p v-if="usingFallbackCatalog">Diese Fragen wurden auf Basis der BETA-Bewertung generiert, da die Kommune noch nicht für die v1.0 bewertet wurde.</p>
   <ul>
     <li v-for="(measure, index) in sortedMeasures.slice(0, 10)" :key="measure.measure_id">
       <strong>{{ index + 1 }}. {{ measure.name }}</strong>  
@@ -14,6 +15,7 @@
       Weight: {{ measure.weight }}
     </li>
   </ul>
+ >
 </template>
 
 <script setup>
@@ -26,10 +28,20 @@
       type: Object,
       required: true,
     },
+    usingFallbackCatalog: {
+      type: Boolean,
+      default: false,
+    }
   });
+
+  console.log("props", props);
 
 
   const sortedMeasures = props.ratingsMeasures
+  .filter(item =>
+    item.applicable === true &&
+    item.rating !== null
+  )
   .map(item => {
       const rating = parseFloat(item.rating) || 0
       const weight = item.measure?.weight || 0
