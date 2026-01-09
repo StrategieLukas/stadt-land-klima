@@ -43,7 +43,7 @@
       class="text-black underline"
       target="measure"
     >
-      {{ $t("municipality_rating.link_to_measure") }} ↗
+      {{ $t("municipality_rating.link_to_measure") }} ({{ measure_rating.measure.measure_id }})↗
     </NuxtLink>
     <NuxtLink
       :to="`/feedback`"

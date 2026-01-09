@@ -62,14 +62,6 @@
       const potential = (1 - rating) * weight
       const difficulty = (feasibilityPolitical + feasibilityEconomical) / 2
 
-      if(item.measure_id == "KV_02") {
-        console.log("HEIAWFEF");
-        console.log(item.rating)
-      }
-
-      const improvementString =
-        (measureImprovementStrings[item.measure?.measure_id] || {})[item.rating] || []
-
 
       return {
         measure_id: item.measure?.measure_id || "",
@@ -82,7 +74,7 @@
         feasibility_political: feasibilityPolitical,
         feasibility_economical: feasibilityEconomical,
         difficulty: difficulty,
-        improvementString: improvementString,
+        improvementString: fetchImprovementString(item.measure?.measure_id, item.rating),
       }
   })
   .sort((a, b) => {
@@ -95,6 +87,15 @@
       // Final tiebreaker: measure_id alphabetically
       return a.measure_id.localeCompare(b.measure_id)
   })
+
+  function fetchImprovementString(measureId, rating) {
+      // Fetch base String from map
+      let rawString = (measureImprovementStrings[measureId] || {})[rating] || ""
+
+      // Replace dynamic labels with their values
+      return rawString
+        .replaceAll("MUNICIPALITY", props.municipalityScore.municipality.name)
+  }
 
 
 </script>
