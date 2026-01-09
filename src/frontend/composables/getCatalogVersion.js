@@ -22,8 +22,7 @@ export async function getCatalogVersion($directus, $readItems, route, showCurren
   return defaults[0];
 }
 
-export async function getCurrentFrontendCatalogVersion() {
-  const { $directus, $readItems } = useNuxtApp();
+export async function getCurrentFrontendCatalogVersion($directus, $readItems) {
   const response = await $directus.request(
     $readItems("measure_catalog", {
       fields: ["id", "name", "isCurrentFrontend", "isCurrentBackend"],

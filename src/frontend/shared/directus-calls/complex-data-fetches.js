@@ -1,21 +1,21 @@
-export async function fetchMunicipalityData(slug, catalogVersionId) {
+import { fetchFullMunicipalityScores } from './municipality-scores.js'
+import { fetchMeasuresForCatalog } from './measures.js'
+import { fetchRatingsMeasures } from './ratings-measures.js'
+
+export async function fetchMunicipalityData($directus, $readItems, slug, catalogVersionId) {
+  if(!$directus || !$readItems) throw Error("Did not pass $directus and $readItems to fetchMunicipalityData");
+  if(!slug) throw Error("Tried to fetch municipalityData for a null slug");
+  if(!catalogVersionId) throw Error("Tried to fetch municipalityData for a null catalogVersionId");
+
     console.log("fetching municipality data for", slug, catalogVersionId);
     if(slug == null || catalogVersionId == null) {
         console.error(`Cannot fetchMunicipalityData: slug=${slug} | catalogVersionId=${catalogVersionId}`);
         return {};
     }
-    const { $directus, $readItems } = useNuxtApp();
-
-    return await useAsyncData(`municipality_${slug}_${catalogVersionId}`, async () => {
+    
     const [municipalityScores, measures] = await Promise.all([
-      $directus.request(
-        $readItems("municipality_scores", {
-          fields: ["*", { municipality: ["*"]}, { catalog_version: ["*"]}],
-          filter: { catalog_version: { _eq: catalogVersionId }, municipality: {slug: { _eq: slug } }},
-          limit: 1,
-        }),
-      ),
-      $directus.request($readItems("measures", {})),
+      fetchFullMunicipalityScores($directus, $readItems, slug, catalogVersionId),
+      fetchMeasuresForCatalog($directus, $readItems, catalogVersionId)
     ]);
   
     // Early return if municipalities is empty or null
@@ -30,27 +30,19 @@ export async function fetchMunicipalityData(slug, catalogVersionId) {
     }
     const municipalityScore = municipalityScores[0]
   
-    const ratingsMeasures = await $directus.request(
-      $readItems("ratings_measures", {
-        filter: {
-            localteam_id: { _eq: municipalityScore.municipality.localteam_id },
-            measure_id: { catalog_version: { _eq: catalogVersionId } }
-          },
-      }),
-    );
-
+    const ratingsMeasures = await fetchRatingsMeasures($directus, $readItems, municipalityScore.municipality.localteam_id, catalogVersionId);
     return {
       municipalityScore,
       measures,
       ratingsMeasures,
       ratingsBySector: sortRatingsBySector(ratingsMeasures, measures),
     };
-  });
 }
 
 // Sort ratings by sector and measure_id (used inside fetchMunicipalityData)
 function sortRatingsBySector(ratingsMeasures, measures) {
     if(ratingsMeasures === null || measures === null || !Array.isArray(ratingsMeasures) || !Array.isArray(measures)) {
+      console.error(`sortRatingsBySector called with null params; ratingsMeasures=${ratingsMeasures} | measures=${measures}`)
         return {};
     }
     const measureMap = new Map(measures.map((measure) => [measure.id, measure]));
