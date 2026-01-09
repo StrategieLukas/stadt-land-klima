@@ -5,7 +5,6 @@
   import { getCurrentFrontendCatalogVersion } from '~/composables/getCatalogVersion.js';
   import { ref } from "vue"
 
-  const featureUnavailable = ref(false)
   const usingFallbackCatalog = ref(false)
   const directusData = ref(null)
 
@@ -13,15 +12,14 @@
   const { $directus, $readItems } = useNuxtApp();
 
   const municipalityScores = await fetchMunicipalityScores($directus, $readItems, route.params.slug)
+  const municipalityMissing = !municipalityScores || municipalityScores.length === 0
   const currentCatalogVersion = await getCurrentFrontendCatalogVersion($directus, $readItems)
 
   const sufficientlyRatedMunicipalities = municipalityScores.filter(
     item => item.percentage_rated > 80
   )
 
-  if (sufficientlyRatedMunicipalities.length === 0) {
-    featureUnavailable.value = true
-  } else {
+  if (sufficientlyRatedMunicipalities.length !== 0) {
     let selectedEntry = sufficientlyRatedMunicipalities.find(
       item => item.catalog_version?.id === currentCatalogVersion.id
     )
@@ -47,10 +45,8 @@
     directusData.value = result
   }
 
-  console.log("directusData", directusData);
-
   // Set title
-  const title = ref(directusData?.municipalityScore?.municipality?.name ?? '404');
+  const title = ref(directusData?.value?.municipalityScore?.municipality?.name ?? '404');
   useHead({
     title,
   });
@@ -63,13 +59,17 @@
       :municipality-score="directusData.municipalityScore"
       :ratings-measures="directusData.ratingsMeasures"
       :using-fallback-catalog="usingFallbackCatalog"
+      :current-catalog-version="currentCatalogVersion"
     />
   </div>
-  <div v-else-if="featureUnavailable">
-    <p>Diese Kommune wurde noch nicht ausreichend bewertet, daher kann auch kein Kommunalwahl-Guide auf Basis der Bewertung erstellt werden.</p>
+  <!-- Municipality completely missing -->
+  <div v-else-if="municipalityMissing">
+    <p>Diese Kommune wurde noch nicht bewertet, daher kann auch kein Kommunalwahl-Guide auf Basis der Bewertung erstellt werden. Bewerte die Kommune!</p>
   </div>
+  <!-- Municipality exists, but not sufficiently rated to generate questions -->
   <div v-else>
-    <p>Diese Kommune wurde noch nicht bewertet, daher kann auch kein Kommunalwahl-Guide auf Basis der Bewertung erstellt werden.</p>
+    <p>Diese Kommune wurde noch nicht vollständig bewertet, daher kann auch kein Kommunalwahl-Guide auf Basis der Bewertung erstellt werden. Hilf dem Team!</p>
   </div>
+  
 </template>
     

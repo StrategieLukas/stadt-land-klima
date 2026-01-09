@@ -4,21 +4,28 @@
   <!-- <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore"/> -->
 
   <p class="text-h3">Fragen zur Kommunalwahl auf Basis der Bewertung:</p>
-  <p v-if="usingFallbackCatalog">Diese Fragen wurden auf Basis der BETA-Bewertung generiert, da die Kommune noch nicht für die v1.0 bewertet wurde.</p>
+  <p class="text-red" v-if="usingFallbackCatalog">Diese Fragen wurden auf Basis einer alten Bewertung ({{ municipalityScore.catalog_version.name }}) generiert, da die Kommune noch nicht für die neuste Version ({{ currentCatalogVersion.name }}) bewertet wurde.</p>
   <ul>
     <li v-for="(measure, index) in sortedMeasures.slice(0, 10)" :key="measure.measure_id">
-      <strong>{{ index + 1 }}. {{ measure.name }}</strong>  
+      <strong>{{ index + 1 }}. {{ measure.name }}</strong> ({{ measure.measure_id }})
       <br>
       Potential: {{ measure.potential.toFixed(2) }}, 
       Difficulty: {{ measure.difficulty.toFixed(2) }},
       Rating: {{ measure.rating }}
       Weight: {{ measure.weight }}
+      <br>
+      {{ measure.improvementString }}. Wie haben Sie vor, dies zu ändern?
+      <br>
+      <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`" class="text-blue-600 underline hover:text-blue-800">
+        {{ $t("map.icon.popup.goToRanking") }}
+      </NuxtLink>
     </li>
   </ul>
- >
 </template>
 
 <script setup>
+  import measureImprovementStrings from "~/assets/measure-improvement-strings.json"
+
   const props = defineProps({
     municipalityScore: {
       type: Object,
@@ -31,10 +38,14 @@
     usingFallbackCatalog: {
       type: Boolean,
       default: false,
-    }
+    },
+    currentCatalogVersion: {
+      type: Object,
+      required: true,
+    },
   });
 
-  console.log("props", props);
+  console.log(measureImprovementStrings);
 
 
   const sortedMeasures = props.ratingsMeasures
@@ -51,17 +62,27 @@
       const potential = (1 - rating) * weight
       const difficulty = (feasibilityPolitical + feasibilityEconomical) / 2
 
+      if(item.measure_id == "KV_02") {
+        console.log("HEIAWFEF");
+        console.log(item.rating)
+      }
+
+      const improvementString =
+        (measureImprovementStrings[item.measure?.measure_id] || {})[item.rating] || []
+
+
       return {
         measure_id: item.measure?.measure_id || "",
         name: item.measure?.name || "",
         sector: item.measure?.sector || "",
         potential,
         weight,
-        rating: rating,
+        rating: item.rating,
         impact: item.measure?.impact ?? null,
         feasibility_political: feasibilityPolitical,
         feasibility_economical: feasibilityEconomical,
         difficulty: difficulty,
+        improvementString: improvementString,
       }
   })
   .sort((a, b) => {
@@ -69,13 +90,11 @@
       if (b.potential !== a.potential) return b.potential - a.potential
 
       // Tiebreaker: difficulty ascending
-      if (a._difficulty !== b._difficulty) return a._difficulty - b._difficulty
+      if (a.difficulty !== b.difficulty) return a.difficulty - b.difficulty
 
       // Final tiebreaker: measure_id alphabetically
       return a.measure_id.localeCompare(b.measure_id)
   })
-
-  console.log(sortedMeasures)
 
 
 </script>
