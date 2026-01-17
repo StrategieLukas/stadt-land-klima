@@ -1,0 +1,35 @@
+collection: decision_trees
+field: date_updated
+type: timestamp
+meta:
+  collection: decision_trees
+  conditions: null
+  display: datetime
+  display_options:
+    relative: true
+  field: date_updated
+  group: null
+  hidden: true
+  interface: datetime
+  note: null
+  options: null
+  readonly: true
+  required: false
+  sort: 9
+  special:
+    - date-updated
+  translations: null
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: date_updated
+  table: decision_trees
+  data_type: timestamp with time zone
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

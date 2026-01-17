@@ -1,0 +1,28 @@
+collection: rating_sources
+meta:
+  accountability: all
+  archive_app_filter: false
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: rating_sources
+  color: null
+  display_template: "{{title}}"
+  group: null
+  hidden: false
+  icon: source
+  item_duplication_fields: null
+  note: "Manages citations and documentary sources for rating criteria"
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Quellen
+      singular: Quelle
+      plural: Quellen
+  unarchive_value: null
+  versioning: false
+schema:
+  name: rating_sources

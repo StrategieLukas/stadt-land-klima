@@ -1,0 +1,36 @@
+collection: rating_criteria_values
+field: value_categorical
+type: string
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: null
+  display_options: null
+  field: value_categorical
+  group: null
+  hidden: false
+  interface: input
+  note: "Category value (for categorical criteria)"
+  options:
+    placeholder: "Category value"
+  readonly: false
+  required: false
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Kategorie
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: value_categorical
+  table: rating_criteria_values
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

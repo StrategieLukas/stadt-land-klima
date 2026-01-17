@@ -1,0 +1,36 @@
+collection: rating_criteria_values
+field: last_verified_at
+type: timestamp
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: datetime
+  display_options:
+    relative: true
+  field: last_verified_at
+  group: null
+  hidden: false
+  interface: datetime
+  note: "When this value was last verified"
+  options: null
+  readonly: false
+  required: false
+  sort: 9
+  special: null
+  translations:
+    - language: de-DE
+      translation: Zuletzt verifiziert
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: last_verified_at
+  table: rating_criteria_values
+  data_type: timestamp with time zone
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

@@ -1,0 +1,35 @@
+collection: rating_resources
+field: description
+type: text
+meta:
+  collection: rating_resources
+  conditions: null
+  display: null
+  display_options: null
+  field: description
+  group: null
+  hidden: false
+  interface: input-rich-text-md
+  note: "Detailed description of this resource"
+  options: null
+  readonly: false
+  required: false
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Beschreibung
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: description
+  table: rating_resources
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

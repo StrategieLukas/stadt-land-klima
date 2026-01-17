@@ -1,0 +1,28 @@
+collection: rating_criteria_values
+meta:
+  accountability: all
+  archive_app_filter: false
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: rating_criteria_values
+  color: null
+  display_template: null
+  group: null
+  hidden: false
+  icon: edit_note
+  item_duplication_fields: null
+  note: "Stores actual criterion values for each municipality rating"
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Kriterienwerte
+      singular: Kriterienwert
+      plural: Kriterienwerte
+  unarchive_value: null
+  versioning: false
+schema:
+  name: rating_criteria_values

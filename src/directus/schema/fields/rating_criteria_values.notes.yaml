@@ -1,0 +1,36 @@
+collection: rating_criteria_values
+field: notes
+type: text
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: null
+  display_options: null
+  field: notes
+  group: null
+  hidden: false
+  interface: input-multiline
+  note: "Optional notes about this value"
+  options:
+    placeholder: "Anmerkungen zum Wert..."
+  readonly: false
+  required: false
+  sort: 8
+  special: null
+  translations:
+    - language: de-DE
+      translation: Anmerkungen
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: notes
+  table: rating_criteria_values
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

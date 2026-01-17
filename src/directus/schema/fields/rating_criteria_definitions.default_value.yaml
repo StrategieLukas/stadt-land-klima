@@ -1,0 +1,38 @@
+collection: rating_criteria_definitions
+field: default_value
+type: json
+meta:
+  collection: rating_criteria_definitions
+  conditions: null
+  display: null
+  display_options: null
+  field: default_value
+  group: null
+  hidden: false
+  interface: input-code
+  note: "Default value for this criterion (type-appropriate)"
+  options:
+    language: json
+    placeholder: "null"
+  readonly: false
+  required: false
+  sort: 11
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Standardwert
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: default_value
+  table: rating_criteria_definitions
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

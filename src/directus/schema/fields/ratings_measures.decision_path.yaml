@@ -1,0 +1,51 @@
+collection: ratings_measures
+field: decision_path
+type: json
+meta:
+  collection: ratings_measures
+  conditions: null
+  display: null
+  display_options: null
+  field: decision_path
+  group: null
+  hidden: true
+  interface: input-code
+  note: "Array of decision tree node IDs traversed to reach the computed rating"
+  options:
+    language: json
+    lineNumber: true
+    template: |
+      [
+        {
+          "nodeId": "root",
+          "question": "Existiert ein Klimaschutzkonzept?",
+          "answer": "Ja",
+          "nextNode": "has_plan"
+        },
+        {
+          "nodeId": "has_plan",
+          "rating": "dark_green"
+        }
+      ]
+  readonly: true
+  required: false
+  sort: 24
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Entscheidungspfad
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: decision_path
+  table: ratings_measures
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

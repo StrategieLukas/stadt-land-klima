@@ -1,0 +1,55 @@
+collection: decision_trees
+field: status
+type: string
+meta:
+  collection: decision_trees
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Entwurf
+        value: draft
+        background: "#FEF3C7"
+        foreground: "#92400E"
+      - text: Aktiv
+        value: active
+        background: "#D1FAE5"
+        foreground: "#065F46"
+      - text: Archiviert
+        value: archived
+        background: "#E5E7EB"
+        foreground: "#374151"
+  field: status
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: "Only ONE decision tree per measure can be active"
+  options:
+    choices:
+      - text: Entwurf
+        value: draft
+      - text: Aktiv
+        value: active
+      - text: Archiviert
+        value: archived
+  readonly: false
+  required: true
+  sort: 7
+  special: null
+  translations:
+    - language: de-DE
+      translation: Status
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: status
+  table: decision_trees
+  data_type: varchar
+  default_value: draft
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

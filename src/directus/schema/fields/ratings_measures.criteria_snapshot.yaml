@@ -1,0 +1,38 @@
+collection: ratings_measures
+field: criteria_snapshot
+type: json
+meta:
+  collection: ratings_measures
+  conditions: null
+  display: null
+  display_options: null
+  field: criteria_snapshot
+  group: null
+  hidden: true
+  interface: input-code
+  note: "Snapshot of criteria values at rating computation time for audit trail"
+  options:
+    language: json
+    lineNumber: true
+  readonly: true
+  required: false
+  sort: 23
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Kriterien-Snapshot
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: criteria_snapshot
+  table: ratings_measures
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

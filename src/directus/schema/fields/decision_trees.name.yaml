@@ -1,0 +1,36 @@
+collection: decision_trees
+field: name
+type: string
+meta:
+  collection: decision_trees
+  conditions: null
+  display: null
+  display_options: null
+  field: name
+  group: null
+  hidden: false
+  interface: input
+  note: "Descriptive name for this decision tree"
+  options:
+    placeholder: "Klimaschutzplan Bewertungslogik"
+  readonly: false
+  required: true
+  sort: 3
+  special: null
+  translations:
+    - language: de-DE
+      translation: Name
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: name
+  table: decision_trees
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

@@ -26,7 +26,7 @@
     <div v-if="isRanking" class="flex items-start">
       <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
     </div>
-    <button v-else @click="fetchPDF()" class="p-4 flex items-center justify-end text-white bg-gray h-10">PDF</button>
+    <button v-else @click="fetchPDF()" class="p-4 flex items-center justify-end text-white bg-custom-gray h-10">PDF</button>
     
   </div>
 </template>

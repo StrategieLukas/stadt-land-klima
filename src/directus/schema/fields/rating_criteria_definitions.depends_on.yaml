@@ -1,0 +1,38 @@
+collection: rating_criteria_definitions
+field: depends_on
+type: json
+meta:
+  collection: rating_criteria_definitions
+  conditions: null
+  display: null
+  display_options: null
+  field: depends_on
+  group: null
+  hidden: false
+  interface: input-code
+  note: "Array of criterion keys this depends on (shown conditionally)"
+  options:
+    language: json
+    placeholder: '["has_climate_action_plan"]'
+  readonly: false
+  required: false
+  sort: 13
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Abhängig von
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: depends_on
+  table: rating_criteria_definitions
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

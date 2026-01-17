@@ -1,0 +1,36 @@
+collection: rating_sources
+field: publication_date
+type: date
+meta:
+  collection: rating_sources
+  conditions: null
+  display: datetime
+  display_options:
+    format: short
+  field: publication_date
+  group: null
+  hidden: false
+  interface: datetime
+  note: "When the source was published"
+  options: null
+  readonly: false
+  required: false
+  sort: 7
+  special: null
+  translations:
+    - language: de-DE
+      translation: Veröffentlichungsdatum
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: publication_date
+  table: rating_sources
+  data_type: date
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

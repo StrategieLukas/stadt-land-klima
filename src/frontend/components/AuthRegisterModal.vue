@@ -15,7 +15,7 @@
         />
         
         <!-- Modal Panel -->
-        <div class="flex min-h-full items-center justify-center p-4">
+        <div class="flex min-h-full items-center justify-center p-4 pb-24 lg:pb-4">
           <div 
             class="relative bg-white rounded-lg shadow-xl w-full max-w-lg transform transition-all"
             @click.stop
@@ -43,24 +43,36 @@
             
             <!-- Success State -->
             <div v-if="registrationSuccess" class="px-6 py-8 text-center">
-              <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 class="text-lg font-medium text-gray-900 mb-2">
+              <h3 class="text-xl font-bold text-gray-900 mb-3">
                 {{ $t('auth.register_success_title') }}
               </h3>
-              <p class="text-sm text-gray-500 mb-6">
+              <p class="text-base text-gray-600 mb-6 leading-relaxed">
                 {{ $t('auth.register_success_message') }}
               </p>
-              <button
-                type="button"
-                @click="closeModal"
-                class="w-full px-4 py-2 bg-orange text-white font-medium rounded hover:brightness-110"
-              >
-                {{ $t('auth.close') }}
-              </button>
+              <div class="flex flex-col gap-3">
+                <a
+                  href="https://cal.com/stadt-land-klima/onboarding"
+                  target="_blank"
+                  class="w-full px-4 py-3 bg-orange text-white font-medium rounded hover:brightness-110 inline-flex items-center justify-center gap-2"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {{ $t('auth.book_onboarding') }}
+                </a>
+                <button
+                  type="button"
+                  @click="closeModal"
+                  class="w-full px-4 py-2 text-gray-600 font-medium rounded border border-gray-300 hover:bg-gray-50"
+                >
+                  {{ $t('auth.close') }}
+                </button>
+              </div>
             </div>
             
             <!-- Form -->
@@ -68,9 +80,12 @@
               <!-- Error Message -->
               <div 
                 v-if="error" 
-                class="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-600"
+                class="p-4 bg-red-50 border-2 border-red-500 rounded-lg text-sm text-red-700 flex items-start gap-3"
               >
-                {{ error }}
+                <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>{{ error }}</span>
               </div>
               
               <!-- Name Fields -->
@@ -425,6 +440,7 @@ async function handleSubmit() {
     
     // Create registration request via Directus
     // The registration will be stored in user_registrations collection
+    // Note: status is set via presets in Directus permissions, not sent from frontend
     const registrationData = {
       first_name: form.value.firstName.trim(),
       last_name: form.value.lastName.trim(),
@@ -435,27 +451,34 @@ async function handleSubmit() {
         has_existing_team: m.hasExistingTeam
       })),
       motivation: form.value.motivation.trim() || null,
-      status: 'pending',
       // Approval type depends on whether joining existing team or creating new
       requires_admin_approval: newTeamMunis.length > 0,
       requires_localteam_approval: hasExistingTeamMunis.length > 0
     };
     
-    // Submit to Directus (public endpoint via custom extension or flow)
-    const response = await fetch(`${config.public.clientDirectusUrl}/items/user_registrations`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.public.directusToken}`
-      },
-      body: JSON.stringify(registrationData)
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+    // Submit to Directus via the SDK
+    // The user_registrations collection should be set up with public create access
+    // or use a Directus Flow to handle registrations
+    try {
+      const { createItem } = await import('@directus/sdk');
       
-      if (response.status === 400 && errorData.errors?.[0]?.message?.includes('unique')) {
+      await $directus.request(
+        createItem('user_registrations', registrationData)
+      );
+    } catch (apiError) {
+      console.error('Registration API error:', apiError);
+      
+      // Check for specific error types
+      const errorMessage = apiError?.errors?.[0]?.message || apiError?.message || '';
+      
+      if (errorMessage.includes('unique') || errorMessage.includes('duplicate')) {
         throw new Error('auth.email_already_registered');
+      }
+      
+      if (errorMessage.includes('permission') || errorMessage.includes('forbidden') || apiError.status === 403) {
+        // Collection might not exist or have proper permissions
+        console.error('Permission error - ensure user_registrations collection exists with public create access');
+        throw new Error('auth.registration_error');
       }
       
       throw new Error('auth.registration_error');

@@ -1,0 +1,38 @@
+collection: decision_trees
+field: measure_id
+type: uuid
+meta:
+  collection: decision_trees
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{name}} ({{measure_id}})"
+  field: measure_id
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: "The measure this decision tree belongs to"
+  options:
+    template: "{{name}} ({{measure_id}})"
+  readonly: false
+  required: true
+  sort: 2
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Maßnahme
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: measure_id
+  table: decision_trees
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

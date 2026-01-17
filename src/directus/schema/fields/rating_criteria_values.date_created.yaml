@@ -1,0 +1,35 @@
+collection: rating_criteria_values
+field: date_created
+type: timestamp
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: datetime
+  display_options:
+    relative: true
+  field: date_created
+  group: null
+  hidden: true
+  interface: datetime
+  note: null
+  options: null
+  readonly: true
+  required: false
+  sort: 12
+  special:
+    - date-created
+  translations: null
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: date_created
+  table: rating_criteria_values
+  data_type: timestamp with time zone
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

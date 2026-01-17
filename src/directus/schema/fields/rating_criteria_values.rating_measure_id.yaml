@@ -1,0 +1,38 @@
+collection: rating_criteria_values
+field: rating_measure_id
+type: uuid
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{localteam_id.municipality_name}} - {{measure_id.name}}"
+  field: rating_measure_id
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: "The rating this criterion value belongs to"
+  options:
+    template: "{{localteam_id.municipality_name}} - {{measure_id.name}}"
+  readonly: false
+  required: true
+  sort: 2
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Bewertung
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: rating_measure_id
+  table: rating_criteria_values
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

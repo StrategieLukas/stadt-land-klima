@@ -1,0 +1,67 @@
+collection: rating_sources
+field: source_type
+type: string
+meta:
+  collection: rating_sources
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: URL/Webseite
+        value: url
+        background: "#3B82F6"
+        foreground: "#FFFFFF"
+      - text: Dokument
+        value: document
+        background: "#8B5CF6"
+        foreground: "#FFFFFF"
+      - text: Amtliches Register
+        value: official_registry
+        background: "#10B981"
+        foreground: "#FFFFFF"
+      - text: Persönliche Kommunikation
+        value: personal_communication
+        background: "#F59E0B"
+        foreground: "#FFFFFF"
+      - text: Sonstiges
+        value: other
+        background: "#6B7280"
+        foreground: "#FFFFFF"
+  field: source_type
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: "Type of source"
+  options:
+    choices:
+      - text: URL/Webseite
+        value: url
+      - text: Dokument (PDF, etc.)
+        value: document
+      - text: Amtliches Register
+        value: official_registry
+      - text: Persönliche Kommunikation
+        value: personal_communication
+      - text: Sonstiges
+        value: other
+  readonly: false
+  required: true
+  sort: 3
+  special: null
+  translations:
+    - language: de-DE
+      translation: Quellentyp
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: source_type
+  table: rating_sources
+  data_type: varchar
+  default_value: url
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

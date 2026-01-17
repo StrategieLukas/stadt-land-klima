@@ -1,0 +1,47 @@
+collection: rating_criteria_definitions
+field: enum_options
+type: json
+meta:
+  collection: rating_criteria_definitions
+  conditions:
+    - name: Only for categorical
+      rule:
+        _and:
+          - type:
+              _eq: categorical
+      hidden: false
+      options: null
+      readonly: false
+      required: true
+  display: null
+  display_options: null
+  field: enum_options
+  group: null
+  hidden: true
+  interface: input-code
+  note: 'JSON array of options: [{value, label, description}]'
+  options:
+    language: json
+    placeholder: '[{"value": "high", "label": "Hoch"}, {"value": "medium", "label": "Mittel"}, {"value": "low", "label": "Niedrig"}]'
+  readonly: false
+  required: false
+  sort: 10
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Auswahloptionen
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: enum_options
+  table: rating_criteria_definitions
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

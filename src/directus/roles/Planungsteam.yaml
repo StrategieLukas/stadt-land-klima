@@ -277,8 +277,50 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: measure_catalog
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measure_catalog
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measure_catalog
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: measures
     action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: delete
     permissions: {}
     validation: {}
     presets: null

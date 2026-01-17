@@ -1,0 +1,28 @@
+collection: catalog_migrations
+meta:
+  accountability: all
+  archive_app_filter: false
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: catalog_migrations
+  color: null
+  display_template: "{{source_version.name}} → {{target_version.name}}"
+  group: null
+  hidden: false
+  icon: sync_alt
+  item_duplication_fields: null
+  note: "Tracks catalog version migration history and status"
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Katalog-Migrationen
+      singular: Katalog-Migration
+      plural: Katalog-Migrationen
+  unarchive_value: null
+  versioning: false
+schema:
+  name: catalog_migrations

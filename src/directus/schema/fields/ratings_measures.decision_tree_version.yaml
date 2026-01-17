@@ -1,0 +1,35 @@
+collection: ratings_measures
+field: decision_tree_version
+type: integer
+meta:
+  collection: ratings_measures
+  conditions: null
+  display: null
+  display_options: null
+  field: decision_tree_version
+  group: null
+  hidden: true
+  interface: input
+  note: "Version of the decision tree used for last computation"
+  options: null
+  readonly: true
+  required: false
+  sort: 27
+  special: null
+  translations:
+    - language: de-DE
+      translation: Entscheidungsbaum-Version
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: decision_tree_version
+  table: ratings_measures
+  data_type: integer
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

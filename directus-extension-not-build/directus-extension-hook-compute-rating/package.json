@@ -1,0 +1,21 @@
+{
+  "name": "directus-extension-hook-compute-rating",
+  "description": "Computes measure ratings based on decision trees and criteria values",
+  "icon": "calculate",
+  "version": "1.0.0",
+  "keywords": ["directus", "extension", "hook", "rating", "decision-tree"],
+  "type": "module",
+  "directus:extension": {
+    "type": "hook",
+    "path": "index.js",
+    "source": "src/index.js",
+    "host": "^10.0.0"
+  },
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "^10.0.0"
+  }
+}

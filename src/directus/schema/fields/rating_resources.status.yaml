@@ -1,0 +1,55 @@
+collection: rating_resources
+field: status
+type: string
+meta:
+  collection: rating_resources
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Entwurf
+        value: draft
+        background: "#FEF3C7"
+        foreground: "#92400E"
+      - text: Veröffentlicht
+        value: published
+        background: "#D1FAE5"
+        foreground: "#065F46"
+      - text: Archiviert
+        value: archived
+        background: "#E5E7EB"
+        foreground: "#374151"
+  field: status
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: Entwurf
+        value: draft
+      - text: Veröffentlicht
+        value: published
+      - text: Archiviert
+        value: archived
+  readonly: false
+  required: true
+  sort: 7
+  special: null
+  translations:
+    - language: de-DE
+      translation: Status
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: status
+  table: rating_resources
+  data_type: varchar
+  default_value: draft
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

@@ -1,0 +1,31 @@
+collection: ratings_measures
+field: criteria_values
+type: alias
+meta:
+  collection: ratings_measures
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{criterion_definition_id.display_name}}: {{value_quantitative}}{{value_categorical}}{{value_logical}}"
+  field: criteria_values
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: "All criterion values for this rating"
+  options:
+    template: "{{criterion_definition_id.display_name}}"
+    enableCreate: true
+    enableSelect: false
+    enableLink: true
+  readonly: false
+  required: false
+  sort: 28
+  special:
+    - o2m
+  translations:
+    - language: de-DE
+      translation: Kriterienwerte
+  validation: null
+  validation_message: null
+  width: full
+schema: null

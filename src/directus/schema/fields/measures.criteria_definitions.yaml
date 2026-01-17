@@ -1,0 +1,31 @@
+collection: measures
+field: criteria_definitions
+type: alias
+meta:
+  collection: measures
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{display_name}}"
+  field: criteria_definitions
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: "Criteria definitions for rating this measure"
+  options:
+    template: "{{display_name}} ({{type}})"
+    enableCreate: true
+    enableSelect: false
+    enableLink: true
+  readonly: false
+  required: false
+  sort: 50
+  special:
+    - o2m
+  translations:
+    - language: de-DE
+      translation: Kriteriendefinitionen
+  validation: null
+  validation_message: null
+  width: full
+schema: null

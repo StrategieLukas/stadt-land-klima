@@ -1,0 +1,28 @@
+collection: measure_rating_resources
+meta:
+  accountability: all
+  archive_app_filter: false
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: measure_rating_resources
+  color: null
+  display_template: null
+  group: null
+  hidden: true
+  icon: link
+  item_duplication_fields: null
+  note: "Junction table linking measures to required rating resources"
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Maßnahmen-Ressourcen
+      singular: Maßnahmen-Ressource
+      plural: Maßnahmen-Ressourcen
+  unarchive_value: null
+  versioning: false
+schema:
+  name: measure_rating_resources

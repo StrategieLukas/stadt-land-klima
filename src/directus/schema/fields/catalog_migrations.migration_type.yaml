@@ -1,0 +1,61 @@
+collection: catalog_migrations
+field: migration_type
+type: string
+meta:
+  collection: catalog_migrations
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Neue Maßnahmen
+        value: new_measures
+        background: "#D1FAE5"
+        foreground: "#065F46"
+      - text: Geänderte Kriterien
+        value: criteria_change
+        background: "#FEF3C7"
+        foreground: "#92400E"
+      - text: Entfernte Maßnahmen
+        value: removed_measures
+        background: "#FEE2E2"
+        foreground: "#991B1B"
+      - text: Strukturänderung
+        value: structure_change
+        background: "#E0E7FF"
+        foreground: "#3730A3"
+  field: migration_type
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: "Type of catalog change"
+  options:
+    choices:
+      - text: Neue Maßnahmen
+        value: new_measures
+      - text: Geänderte Kriterien
+        value: criteria_change
+      - text: Entfernte Maßnahmen
+        value: removed_measures
+      - text: Strukturänderung
+        value: structure_change
+  readonly: false
+  required: true
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Migrationstyp
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: migration_type
+  table: catalog_migrations
+  data_type: varchar
+  default_value: null
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

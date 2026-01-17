@@ -1,0 +1,31 @@
+collection: measures
+field: decision_trees
+type: alias
+meta:
+  collection: measures
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{name}} (v{{version}})"
+  field: decision_trees
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: "Decision trees for computing ratings"
+  options:
+    template: "{{name}} - {{status}}"
+    enableCreate: true
+    enableSelect: false
+    enableLink: true
+  readonly: false
+  required: false
+  sort: 51
+  special:
+    - o2m
+  translations:
+    - language: de-DE
+      translation: Entscheidungsbäume
+  validation: null
+  validation_message: null
+  width: full
+schema: null

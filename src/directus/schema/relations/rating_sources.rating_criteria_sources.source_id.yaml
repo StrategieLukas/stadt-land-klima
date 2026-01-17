@@ -1,0 +1,21 @@
+collection: rating_criteria_sources
+field: source_id
+related_collection: rating_sources
+meta:
+  junction_field: criteria_value_id
+  many_collection: rating_criteria_sources
+  many_field: source_id
+  one_allowed_collections: null
+  one_collection: rating_sources
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: criteria_value_links
+  sort_field: null
+schema:
+  table: rating_criteria_sources
+  column: source_id
+  foreign_key_table: rating_sources
+  foreign_key_column: id
+  constraint_name: rating_criteria_sources_source_id_foreign
+  on_update: NO ACTION
+  on_delete: CASCADE

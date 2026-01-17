@@ -1,0 +1,40 @@
+collection: measure_catalog
+field: version_number
+type: integer
+meta:
+  collection: measure_catalog
+  conditions: null
+  display: formatted-value
+  display_options: null
+  field: version_number
+  group: null
+  hidden: false
+  interface: input
+  note: "Versionsnummer des Katalogs (z.B. 1, 2, 3)"
+  options:
+    min: 1
+  readonly: false
+  required: true
+  sort: 2
+  special: null
+  translations:
+    - language: de-DE
+      translation: Versionsnummer
+  validation: null
+  width: half
+schema:
+  data_type: integer
+  default_value: 1
+  foreign_key_column: null
+  foreign_key_table: null
+  generation_expression: null
+  has_auto_increment: false
+  is_generated: false
+  is_nullable: false
+  is_primary_key: false
+  is_unique: false
+  max_length: null
+  name: version_number
+  numeric_precision: 32
+  numeric_scale: 0
+  table: measure_catalog

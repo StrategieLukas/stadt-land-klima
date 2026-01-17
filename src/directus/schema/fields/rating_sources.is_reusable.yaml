@@ -1,0 +1,39 @@
+collection: rating_sources
+field: is_reusable
+type: boolean
+meta:
+  collection: rating_sources
+  conditions: null
+  display: boolean
+  display_options:
+    labelOn: Ja
+    labelOff: Nein
+  field: is_reusable
+  group: null
+  hidden: false
+  interface: boolean
+  note: "Can this source be used across multiple ratings?"
+  options:
+    label: "Wiederverwendbar (für andere sichtbar)"
+  readonly: false
+  required: true
+  sort: 11
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Wiederverwendbar
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: is_reusable
+  table: rating_sources
+  data_type: boolean
+  default_value: true
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

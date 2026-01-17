@@ -1,0 +1,36 @@
+collection: rating_criteria_sources
+field: page_reference
+type: string
+meta:
+  collection: rating_criteria_sources
+  conditions: null
+  display: null
+  display_options: null
+  field: page_reference
+  group: null
+  hidden: false
+  interface: input
+  note: "Specific page or section reference"
+  options:
+    placeholder: "S. 15-17"
+  readonly: false
+  required: false
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Seitenreferenz
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: page_reference
+  table: rating_criteria_sources
+  data_type: varchar
+  default_value: null
+  max_length: 100
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

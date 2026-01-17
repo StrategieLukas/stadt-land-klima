@@ -1,0 +1,54 @@
+collection: measure_catalog
+field: catalog_type
+type: string
+meta:
+  collection: measure_catalog
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Klimaschutz (Mitigation)
+        value: climate_mitigation
+        foreground: "#FFFFFF"
+        background: "#2E7D32"
+      - text: Klimaanpassung (Adaption)
+        value: climate_adaption
+        foreground: "#FFFFFF"
+        background: "#1565C0"
+    format: true
+  field: catalog_type
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: "Art des Maßnahmenkatalogs: Klimaschutz oder Klimaanpassung"
+  options:
+    choices:
+      - text: Klimaschutz (Mitigation)
+        value: climate_mitigation
+      - text: Klimaanpassung (Adaption)
+        value: climate_adaption
+  readonly: false
+  required: true
+  sort: 3
+  special: null
+  translations:
+    - language: de-DE
+      translation: Katalogtyp
+  validation: null
+  width: half
+schema:
+  data_type: varchar
+  default_value: climate_mitigation
+  foreign_key_column: null
+  foreign_key_table: null
+  generation_expression: null
+  has_auto_increment: false
+  is_generated: false
+  is_nullable: false
+  is_primary_key: false
+  is_unique: false
+  max_length: 50
+  name: catalog_type
+  numeric_precision: null
+  numeric_scale: null
+  table: measure_catalog

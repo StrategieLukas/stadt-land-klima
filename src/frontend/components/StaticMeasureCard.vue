@@ -7,8 +7,8 @@
       >
         <div class="flex-1">
           <div class="flex flex-row items-center gap-3">
-            <span class="w-fit font-mono bg-gray text-base-100 px-2 py-1 rounded-lg mr-3">{{ measure.measure_id }}</span>
-            <h2 class="grow font-heading text-h2 font-bold text-gray break-words">
+            <span class="w-fit font-mono bg-custom-gray text-base-100 px-2 py-1 rounded-lg mr-3">{{ measure.measure_id }}</span>
+            <h2 class="grow font-heading text-h2 font-bold text-custom-gray break-words">
               {{ measure.name }}
             </h2>
           </div>

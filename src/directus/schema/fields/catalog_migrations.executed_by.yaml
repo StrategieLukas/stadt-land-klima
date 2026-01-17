@@ -1,0 +1,39 @@
+collection: catalog_migrations
+field: executed_by
+type: uuid
+meta:
+  collection: catalog_migrations
+  conditions: null
+  display: user
+  display_options: null
+  field: executed_by
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: "User who executed this migration"
+  options:
+    template: "{{avatar.$thumbnail}} {{first_name}} {{last_name}}"
+  readonly: false
+  required: false
+  sort: 10
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Ausgeführt von
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: executed_by
+  table: catalog_migrations
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  foreign_key_table: directus_users
+  foreign_key_column: id

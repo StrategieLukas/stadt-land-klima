@@ -1,0 +1,43 @@
+collection: catalog_migrations
+field: affected_measures
+type: json
+meta:
+  collection: catalog_migrations
+  conditions: null
+  display: null
+  display_options: null
+  field: affected_measures
+  group: null
+  hidden: false
+  interface: input-code
+  note: "JSON array of measure IDs affected by this migration"
+  options:
+    language: json
+    lineNumber: true
+    template: |
+      [
+        "measure-uuid-1",
+        "measure-uuid-2"
+      ]
+  readonly: false
+  required: false
+  sort: 6
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Betroffene Maßnahmen
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: affected_measures
+  table: catalog_migrations
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

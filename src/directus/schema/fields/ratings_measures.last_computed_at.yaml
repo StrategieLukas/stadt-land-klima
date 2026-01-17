@@ -1,0 +1,36 @@
+collection: ratings_measures
+field: last_computed_at
+type: timestamp
+meta:
+  collection: ratings_measures
+  conditions: null
+  display: datetime
+  display_options:
+    relative: true
+  field: last_computed_at
+  group: null
+  hidden: false
+  interface: datetime
+  note: "Timestamp of the last automatic rating computation"
+  options: null
+  readonly: true
+  required: false
+  sort: 26
+  special: null
+  translations:
+    - language: de-DE
+      translation: Zuletzt berechnet
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: last_computed_at
+  table: ratings_measures
+  data_type: timestamp with time zone
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

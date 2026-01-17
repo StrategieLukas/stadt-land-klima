@@ -1,0 +1,62 @@
+collection: catalog_migrations
+field: migration_script
+type: json
+meta:
+  collection: catalog_migrations
+  conditions: null
+  display: null
+  display_options: null
+  field: migration_script
+  group: null
+  hidden: false
+  interface: input-code
+  note: "JSON defining the migration transformation logic"
+  options:
+    language: json
+    lineNumber: true
+    template: |
+      {
+        "actions": [
+          {
+            "type": "add_criterion",
+            "measure_id": "uuid",
+            "criterion": {
+              "key": "new_criterion",
+              "type": "quantitative",
+              "display_name": "Neues Kriterium"
+            }
+          },
+          {
+            "type": "remove_criterion",
+            "measure_id": "uuid",
+            "criterion_key": "old_criterion"
+          },
+          {
+            "type": "transform_value",
+            "criterion_key": "existing_criterion",
+            "transformation": "value * 1.1"
+          }
+        ]
+      }
+  readonly: false
+  required: false
+  sort: 7
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Migrationsskript
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: migration_script
+  table: catalog_migrations
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

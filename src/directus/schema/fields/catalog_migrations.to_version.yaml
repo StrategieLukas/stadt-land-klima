@@ -1,0 +1,36 @@
+collection: catalog_migrations
+field: to_version
+type: string
+meta:
+  collection: catalog_migrations
+  conditions: null
+  display: null
+  display_options: null
+  field: to_version
+  group: null
+  hidden: false
+  interface: input
+  note: "Target catalog version"
+  options:
+    placeholder: "2.1"
+  readonly: false
+  required: true
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Zu Version
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: to_version
+  table: catalog_migrations
+  data_type: varchar
+  default_value: null
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

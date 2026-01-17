@@ -1,0 +1,67 @@
+collection: catalog_migrations
+field: status
+type: string
+meta:
+  collection: catalog_migrations
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Ausstehend
+        value: pending
+        background: "#FEF3C7"
+        foreground: "#92400E"
+      - text: In Bearbeitung
+        value: in_progress
+        background: "#DBEAFE"
+        foreground: "#1E40AF"
+      - text: Abgeschlossen
+        value: completed
+        background: "#D1FAE5"
+        foreground: "#065F46"
+      - text: Fehlgeschlagen
+        value: failed
+        background: "#FEE2E2"
+        foreground: "#991B1B"
+      - text: Zurückgerollt
+        value: rolled_back
+        background: "#E5E7EB"
+        foreground: "#374151"
+  field: status
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: Ausstehend
+        value: pending
+      - text: In Bearbeitung
+        value: in_progress
+      - text: Abgeschlossen
+        value: completed
+      - text: Fehlgeschlagen
+        value: failed
+      - text: Zurückgerollt
+        value: rolled_back
+  readonly: false
+  required: true
+  sort: 8
+  special: null
+  translations:
+    - language: de-DE
+      translation: Status
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: status
+  table: catalog_migrations
+  data_type: varchar
+  default_value: pending
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

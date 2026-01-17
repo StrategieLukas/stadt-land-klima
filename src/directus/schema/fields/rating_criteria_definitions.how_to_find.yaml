@@ -1,0 +1,41 @@
+collection: rating_criteria_definitions
+field: how_to_find
+type: text
+meta:
+  collection: rating_criteria_definitions
+  conditions: null
+  display: null
+  display_options: null
+  field: how_to_find
+  group: null
+  hidden: false
+  interface: input-rich-text-html
+  note: "Instructions for finding this information"
+  options:
+    toolbar:
+      - bold
+      - italic
+      - link
+      - bullist
+      - numlist
+  readonly: false
+  required: false
+  sort: 12
+  special: null
+  translations:
+    - language: de-DE
+      translation: Recherche-Hinweise
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: how_to_find
+  table: rating_criteria_definitions
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

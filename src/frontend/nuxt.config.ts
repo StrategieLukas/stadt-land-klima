@@ -14,6 +14,10 @@ export default defineNuxtConfig({
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
       stadtlandzahlUrl: process.env.STADTLANDZAHL_URL,
+      // Listmonk Newsletter Configuration
+      listmonkEndpoint: process.env.NUXT_PUBLIC_LISTMONK_ENDPOINT,
+      listmonkApiToken: process.env.NUXT_PUBLIC_LISTMONK_API_TOKEN,
+      listmonkListId: process.env.NUXT_PUBLIC_LISTMONK_LIST_ID || '1',
     },
   },
   devtools: { enabled: true },
@@ -41,5 +45,15 @@ export default defineNuxtConfig({
           __VUE_PROD_DEVTOOLS__: false,
           __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
         },
+     server: {
+       hmr: {
+         protocol: 'ws',
+         host: '0.0.0.0',
+         port: 24678,
+       },
+       watch: {
+         usePolling: true,
+       },
+     },
   },
 })

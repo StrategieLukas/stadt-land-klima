@@ -1,0 +1,36 @@
+collection: rating_criteria_values
+field: value_quantitative
+type: float
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: null
+  display_options: null
+  field: value_quantitative
+  group: null
+  hidden: false
+  interface: input
+  note: "Numeric value (for quantitative criteria)"
+  options:
+    placeholder: "0.00"
+  readonly: false
+  required: false
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Zahlenwert
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: value_quantitative
+  table: rating_criteria_values
+  data_type: real
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

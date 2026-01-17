@@ -1,0 +1,37 @@
+collection: decision_trees
+field: version
+type: integer
+meta:
+  collection: decision_trees
+  conditions: null
+  display: null
+  display_options: null
+  field: version
+  group: null
+  hidden: false
+  interface: input
+  note: "Version number (auto-incremented per measure)"
+  options:
+    min: 1
+    placeholder: "1"
+  readonly: false
+  required: true
+  sort: 6
+  special: null
+  translations:
+    - language: de-DE
+      translation: Version
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: version
+  table: decision_trees
+  data_type: integer
+  default_value: 1
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

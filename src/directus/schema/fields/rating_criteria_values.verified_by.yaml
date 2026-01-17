@@ -1,0 +1,39 @@
+collection: rating_criteria_values
+field: verified_by
+type: uuid
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: user
+  display_options: null
+  field: verified_by
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: "Who verified this value"
+  options:
+    template: "{{first_name}} {{last_name}}"
+  readonly: false
+  required: false
+  sort: 10
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Verifiziert von
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: verified_by
+  table: rating_criteria_values
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  foreign_key_table: directus_users
+  foreign_key_column: id

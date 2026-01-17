@@ -1,0 +1,68 @@
+collection: ratings_measures
+field: computed_rating
+type: string
+meta:
+  collection: ratings_measures
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Dunkelgrün
+        value: dark_green
+        background: "#065F46"
+        foreground: "#FFFFFF"
+      - text: Hellgrün
+        value: light_green
+        background: "#10B981"
+        foreground: "#FFFFFF"
+      - text: Gelb
+        value: yellow
+        background: "#FBBF24"
+        foreground: "#000000"
+      - text: Orange
+        value: orange
+        background: "#F97316"
+        foreground: "#FFFFFF"
+      - text: Rot
+        value: red
+        background: "#EF4444"
+        foreground: "#FFFFFF"
+  field: computed_rating
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: "Auto-calculated rating from decision tree traversal"
+  options:
+    choices:
+      - text: Dunkelgrün
+        value: dark_green
+      - text: Hellgrün
+        value: light_green
+      - text: Gelb
+        value: yellow
+      - text: Orange
+        value: orange
+      - text: Rot
+        value: red
+    allowNone: true
+  readonly: true
+  required: false
+  sort: 20
+  special: null
+  translations:
+    - language: de-DE
+      translation: Berechnete Bewertung
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: computed_rating
+  table: ratings_measures
+  data_type: varchar
+  default_value: null
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

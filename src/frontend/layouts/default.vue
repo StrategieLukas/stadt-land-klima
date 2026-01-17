@@ -12,7 +12,7 @@
         <div v-if="hydrated">
           <!-- Desktop Header -->
           <div v-if="isDesktop">
-            <the-header-desktop :pages="pages.filter((page) => includes(page.menus, 'main'))" :municipalities="publishedMunicipalities" />
+            <the-header-desktop :pages="pages?.filter((page) => includes(page.menus, 'main')) || []" :municipalities="publishedMunicipalities" />
           </div>
 
           <!-- Mobile Header -->
@@ -41,14 +41,14 @@
         <!-- Footer (Desktop version) -->
         <div v-if="isDesktop" class="bg-mild-white">
           <the-footer-desktop
-            :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+            :pages="pages?.filter((page) => includes(page.menus, 'footer')) || []"
           />
         </div>
 
         <!-- Footer (Mobile version) -->
         <div v-if="!isDesktop" class="bg-mild-white">
           <the-footer-mobile
-            :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+            :pages="pages?.filter((page) => includes(page.menus, 'footer')) || []"
           />
         </div>
       </div>
@@ -63,7 +63,7 @@
     <!-- Drawer Side (Menu) - unified for both mobile and desktop -->
     <the-drawer-side
       v-if="isDesktop"
-      :pages="pages.filter((page) => includes(page.menus, 'main'))"
+      :pages="pages?.filter((page) => includes(page.menus, 'main')) || []"
       class="z-[9999]"
     />
 
@@ -71,13 +71,13 @@
     <MobileMenuModal
       v-if="!isDesktop"
       :is-open="isMobileMenuOpen"
-      :pages="pages.filter((page) => includes(page.menus, 'main'))"
+      :pages="pages?.filter((page) => includes(page.menus, 'main')) || []"
       @close="closeMobileMenu"
     />
 
     <!-- Dock (Mobile version - always visible, sticky) -->
     <div class="fixed bottom-0 left-0 right-0 z-50 block lg:hidden z-[10000]">
-      <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
+      <the-dock :pages="pages?.filter((page) => includes(page.menus, 'dock')) || []" />
     </div>
 
   </div>
@@ -183,7 +183,11 @@ onUnmounted(() => {
 
 
 const { data: pages } = await useAsyncData("pages", () => {
-  return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
+  return $directus.request($readItems("pages", { 
+    fields: ["*", "page_category"], // Include all fields plus explicitly request hidden page_category field
+    sort: "sort_order", 
+    limit: -1 
+  }));
 });
 
 const { data: publishedMunicipalities } = await useAsyncData("municipalities", () => {

@@ -1,0 +1,39 @@
+collection: ratings_measures
+field: manual_override
+type: boolean
+meta:
+  collection: ratings_measures
+  conditions: null
+  display: boolean
+  display_options:
+    labelOn: "Ja"
+    labelOff: "Nein"
+  field: manual_override
+  group: null
+  hidden: false
+  interface: boolean
+  note: "If true, the 'rating' field overrides 'computed_rating'"
+  options:
+    label: "Manuelle Überschreibung aktiv"
+  readonly: false
+  required: false
+  sort: 21
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Manuelle Überschreibung
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: manual_override
+  table: ratings_measures
+  data_type: boolean
+  default_value: false
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

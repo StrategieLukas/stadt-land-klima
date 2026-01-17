@@ -1,0 +1,38 @@
+collection: rating_criteria_sources
+field: source_id
+type: uuid
+meta:
+  collection: rating_criteria_sources
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{title}}"
+  field: source_id
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: "The source document/URL"
+  options:
+    template: "{{title}}"
+  readonly: false
+  required: true
+  sort: 3
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Quelle
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: source_id
+  table: rating_criteria_sources
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

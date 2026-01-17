@@ -1,0 +1,36 @@
+collection: rating_sources
+field: author
+type: string
+meta:
+  collection: rating_sources
+  conditions: null
+  display: null
+  display_options: null
+  field: author
+  group: null
+  hidden: false
+  interface: input
+  note: "Author or organization"
+  options:
+    placeholder: "Landeshauptstadt München"
+  readonly: false
+  required: false
+  sort: 6
+  special: null
+  translations:
+    - language: de-DE
+      translation: Autor/Organisation
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: author
+  table: rating_sources
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

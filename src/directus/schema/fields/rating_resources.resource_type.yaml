@@ -1,0 +1,61 @@
+collection: rating_resources
+field: resource_type
+type: string
+meta:
+  collection: rating_resources
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Concept
+        value: concept
+        background: "#DBEAFE"
+        foreground: "#1E40AF"
+      - text: Threshold
+        value: threshold
+        background: "#FEF3C7"
+        foreground: "#92400E"
+      - text: Category Set
+        value: category_set
+        background: "#E0E7FF"
+        foreground: "#3730A3"
+      - text: Benchmark
+        value: benchmark
+        background: "#D1FAE5"
+        foreground: "#065F46"
+  field: resource_type
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: "Type of reusable rating resource"
+  options:
+    choices:
+      - text: Concept
+        value: concept
+      - text: Threshold
+        value: threshold
+      - text: Category Set
+        value: category_set
+      - text: Benchmark
+        value: benchmark
+  readonly: false
+  required: true
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Ressourcentyp
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: resource_type
+  table: rating_resources
+  data_type: varchar
+  default_value: concept
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

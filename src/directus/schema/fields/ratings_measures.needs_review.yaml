@@ -1,0 +1,41 @@
+collection: ratings_measures
+field: needs_review
+type: boolean
+meta:
+  collection: ratings_measures
+  conditions: null
+  display: boolean
+  display_options:
+    labelOn: "Ja"
+    labelOff: "Nein"
+    colorOn: "#FBBF24"
+    colorOff: "#10B981"
+  field: needs_review
+  group: null
+  hidden: false
+  interface: boolean
+  note: "Flag when criteria have changed and rating needs verification"
+  options:
+    label: "Überprüfung erforderlich"
+  readonly: false
+  required: false
+  sort: 25
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Überprüfung nötig
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: needs_review
+  table: ratings_measures
+  data_type: boolean
+  default_value: false
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

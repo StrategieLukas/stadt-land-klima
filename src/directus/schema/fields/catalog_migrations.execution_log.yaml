@@ -1,0 +1,36 @@
+collection: catalog_migrations
+field: execution_log
+type: text
+meta:
+  collection: catalog_migrations
+  conditions: null
+  display: null
+  display_options: null
+  field: execution_log
+  group: null
+  hidden: false
+  interface: input-multiline
+  note: "Log output from migration execution"
+  options:
+    placeholder: "Migration log..."
+  readonly: true
+  required: false
+  sort: 11
+  special: null
+  translations:
+    - language: de-DE
+      translation: Ausführungsprotokoll
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: execution_log
+  table: catalog_migrations
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

@@ -1,0 +1,28 @@
+collection: rating_resources
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: rating_resources
+  color: null
+  display_template: "{{display_name}} ({{key}})"
+  group: null
+  hidden: false
+  icon: inventory_2
+  item_duplication_fields: null
+  note: "Defines reusable rating objects/concepts (documents, infrastructure, policies)"
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Bewertungs-Ressourcen
+      singular: Bewertungs-Ressource
+      plural: Bewertungs-Ressourcen
+  unarchive_value: draft
+  versioning: false
+schema:
+  name: rating_resources

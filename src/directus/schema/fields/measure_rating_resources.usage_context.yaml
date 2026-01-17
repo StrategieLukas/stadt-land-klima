@@ -1,0 +1,36 @@
+collection: measure_rating_resources
+field: usage_context
+type: string
+meta:
+  collection: measure_rating_resources
+  conditions: null
+  display: null
+  display_options: null
+  field: usage_context
+  group: null
+  hidden: false
+  interface: input
+  note: "How this resource is used in the measure's rating logic"
+  options:
+    placeholder: "Used as threshold for criterion X"
+  readonly: false
+  required: false
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Verwendungskontext
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: usage_context
+  table: measure_rating_resources
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

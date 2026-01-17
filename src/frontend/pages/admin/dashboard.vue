@@ -65,7 +65,7 @@
                 <NuxtLink 
                   v-for="team in userLocalTeams" 
                   :key="team.id"
-                  :to="`/municipalities/${team.slug || team.municipality_name}`"
+                  :to="`/municipalities/${team.municipality_id?.[0]?.slug || team.slug}`"
                   class="font-medium text-orange hover:text-orange/80 block"
                 >
                   {{ team.municipality_name || team.name }} →
@@ -132,17 +132,35 @@
         <div v-if="canEditMeasures" class="bg-white shadow rounded-lg">
           <div class="px-4 py-5 sm:p-6">
             <h3 class="text-lg leading-6 font-medium text-gray-900">
-              Measure Catalog
+              {{ $t('admin.measure_catalog.title') }}
             </h3>
             <div class="mt-2 max-w-xl text-sm text-gray-500">
-              <p>Manage measures, rating criteria, and decision trees.</p>
+              <p>{{ $t('admin.measure_catalog.description') }}</p>
             </div>
-            <div class="mt-5 space-x-3">
+            <div class="mt-5 flex flex-wrap gap-3">
+              <NuxtLink
+                to="/admin/catalogs"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange hover:brightness-110"
+              >
+                <svg class="mr-2 -ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                {{ $t('admin.measure_catalog.manage_catalogs') }}
+              </NuxtLink>
+              <NuxtLink
+                to="/admin/measures"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange hover:brightness-110"
+              >
+                <svg class="mr-2 -ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                {{ $t('admin.measure_catalog.manage_measures') }}
+              </NuxtLink>
               <NuxtLink
                 to="/measures"
                 class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
-                View Measures
+                {{ $t('admin.measure_catalog.view_public') }}
               </NuxtLink>
             </div>
           </div>

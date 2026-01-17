@@ -1,0 +1,36 @@
+collection: rating_criteria_sources
+field: relevance_note
+type: text
+meta:
+  collection: rating_criteria_sources
+  conditions: null
+  display: null
+  display_options: null
+  field: relevance_note
+  group: null
+  hidden: false
+  interface: input-multiline
+  note: "How this source supports the criterion value"
+  options:
+    placeholder: "Seite 15, Abschnitt 3.2 beschreibt..."
+  readonly: false
+  required: false
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Relevanz-Hinweis
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: relevance_note
+  table: rating_criteria_sources
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

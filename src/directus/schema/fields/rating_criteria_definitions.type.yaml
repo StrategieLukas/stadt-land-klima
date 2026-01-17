@@ -1,0 +1,55 @@
+collection: rating_criteria_definitions
+field: type
+type: string
+meta:
+  collection: rating_criteria_definitions
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Quantitativ
+        value: quantitative
+        background: "#3B82F6"
+        foreground: "#FFFFFF"
+      - text: Kategorisch
+        value: categorical
+        background: "#8B5CF6"
+        foreground: "#FFFFFF"
+      - text: Logisch (Ja/Nein)
+        value: logical
+        background: "#10B981"
+        foreground: "#FFFFFF"
+  field: type
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: "Type of criterion value"
+  options:
+    choices:
+      - text: Quantitativ (Zahlenwert)
+        value: quantitative
+      - text: Kategorisch (Auswahl)
+        value: categorical
+      - text: Logisch (Ja/Nein)
+        value: logical
+  readonly: false
+  required: true
+  sort: 6
+  special: null
+  translations:
+    - language: de-DE
+      translation: Typ
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: type
+  table: rating_criteria_definitions
+  data_type: varchar
+  default_value: logical
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

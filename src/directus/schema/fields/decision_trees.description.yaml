@@ -1,0 +1,36 @@
+collection: decision_trees
+field: description
+type: text
+meta:
+  collection: decision_trees
+  conditions: null
+  display: null
+  display_options: null
+  field: description
+  group: null
+  hidden: false
+  interface: input-multiline
+  note: "Description of this decision tree logic"
+  options:
+    placeholder: "Beschreibung der Bewertungslogik..."
+  readonly: false
+  required: false
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Beschreibung
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: description
+  table: decision_trees
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

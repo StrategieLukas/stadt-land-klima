@@ -1,0 +1,48 @@
+collection: rating_resources
+field: data
+type: json
+meta:
+  collection: rating_resources
+  conditions: null
+  display: null
+  display_options: null
+  field: data
+  group: null
+  hidden: false
+  interface: input-code
+  note: "JSON data structure for this resource (thresholds, categories, etc.)"
+  options:
+    language: json
+    lineNumber: true
+    template: |
+      {
+        "thresholds": {
+          "dark_green": { "min": 90, "max": 100 },
+          "light_green": { "min": 70, "max": 89 },
+          "yellow": { "min": 50, "max": 69 },
+          "orange": { "min": 30, "max": 49 },
+          "red": { "min": 0, "max": 29 }
+        }
+      }
+  readonly: false
+  required: false
+  sort: 6
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Daten
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: data
+  table: rating_resources
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

@@ -1,0 +1,37 @@
+collection: rating_criteria_definitions
+field: sort_order
+type: integer
+meta:
+  collection: rating_criteria_definitions
+  conditions: null
+  display: null
+  display_options: null
+  field: sort_order
+  group: null
+  hidden: false
+  interface: input
+  note: "Display order within measure"
+  options:
+    min: 0
+    placeholder: "1"
+  readonly: false
+  required: true
+  sort: 14
+  special: null
+  translations:
+    - language: de-DE
+      translation: Sortierung
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: sort_order
+  table: rating_criteria_definitions
+  data_type: integer
+  default_value: 0
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

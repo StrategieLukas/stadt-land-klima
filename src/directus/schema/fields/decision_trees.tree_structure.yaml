@@ -1,0 +1,78 @@
+collection: decision_trees
+field: tree_structure
+type: json
+meta:
+  collection: decision_trees
+  conditions: null
+  display: null
+  display_options: null
+  field: tree_structure
+  group: null
+  hidden: false
+  interface: input-code
+  note: "JSON definition of the decision tree nodes and branches"
+  options:
+    language: json
+    lineNumber: true
+    template: |
+      {
+        "rootNodeId": "root",
+        "nodes": {
+          "root": {
+            "id": "root",
+            "type": "decision",
+            "criterionKey": "has_climate_action_plan",
+            "question": "Existiert ein Klimaschutzkonzept?",
+            "branches": [
+              {
+                "condition": { "type": "equals", "value": false },
+                "label": "Nein",
+                "targetNodeId": "no_plan"
+              },
+              {
+                "condition": { "type": "equals", "value": true },
+                "label": "Ja",
+                "targetNodeId": "has_plan"
+              }
+            ]
+          },
+          "no_plan": {
+            "id": "no_plan",
+            "type": "leaf",
+            "ratingFunction": {
+              "type": "direct_mapping",
+              "rating": "red"
+            }
+          },
+          "has_plan": {
+            "id": "has_plan",
+            "type": "leaf",
+            "ratingFunction": {
+              "type": "direct_mapping",
+              "rating": "dark_green"
+            }
+          }
+        }
+      }
+  readonly: false
+  required: true
+  sort: 5
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Baumstruktur
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: tree_structure
+  table: decision_trees
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

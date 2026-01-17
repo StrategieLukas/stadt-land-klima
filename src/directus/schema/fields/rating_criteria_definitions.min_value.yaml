@@ -1,0 +1,45 @@
+collection: rating_criteria_definitions
+field: min_value
+type: float
+meta:
+  collection: rating_criteria_definitions
+  conditions:
+    - name: Only for quantitative
+      rule:
+        _and:
+          - type:
+              _eq: quantitative
+      hidden: false
+      options: null
+      readonly: false
+      required: false
+  display: null
+  display_options: null
+  field: min_value
+  group: null
+  hidden: true
+  interface: input
+  note: "Minimum allowed value for validation"
+  options:
+    placeholder: "0"
+  readonly: false
+  required: false
+  sort: 8
+  special: null
+  translations:
+    - language: de-DE
+      translation: Minimalwert
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: min_value
+  table: rating_criteria_definitions
+  data_type: real
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

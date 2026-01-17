@@ -8,3 +8,17 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: user_registrations
+    action: create
+    permissions: {}
+    validation: {}
+    presets:
+      status: pending
+    fields:
+      - first_name
+      - last_name
+      - email
+      - motivation
+      - municipalities
+      - requires_admin_approval
+      - requires_localteam_approval

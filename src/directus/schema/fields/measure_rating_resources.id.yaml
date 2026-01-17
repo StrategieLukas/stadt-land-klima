@@ -1,0 +1,38 @@
+collection: measure_rating_resources
+field: id
+type: integer
+meta:
+  collection: measure_rating_resources
+  conditions: null
+  display: null
+  display_options: null
+  field: id
+  group: null
+  hidden: true
+  interface: input
+  note: null
+  options: null
+  readonly: true
+  required: false
+  sort: 1
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: id
+  table: measure_rating_resources
+  data_type: integer
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: true
+  is_primary_key: true
+  has_auto_increment: true
+  is_generated: false
+  generation_expression: null
+  foreign_key_table: null
+  foreign_key_column: null

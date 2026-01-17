@@ -1,0 +1,40 @@
+collection: rating_criteria_values
+field: value_logical
+type: boolean
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: boolean
+  display_options:
+    labelOn: Ja
+    labelOff: Nein
+  field: value_logical
+  group: null
+  hidden: false
+  interface: boolean
+  note: "Yes/No value (for logical criteria)"
+  options:
+    labelOn: Ja
+    labelOff: Nein
+  readonly: false
+  required: false
+  sort: 6
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Ja/Nein
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: value_logical
+  table: rating_criteria_values
+  data_type: boolean
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

@@ -1,0 +1,21 @@
+collection: measure_rating_resources
+field: resource_id
+related_collection: rating_resources
+meta:
+  junction_field: measure_id
+  many_collection: measure_rating_resources
+  many_field: resource_id
+  one_allowed_collections: null
+  one_collection: rating_resources
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: measure_links
+  sort_field: null
+schema:
+  table: measure_rating_resources
+  column: resource_id
+  foreign_key_table: rating_resources
+  foreign_key_column: id
+  constraint_name: measure_rating_resources_resource_id_foreign
+  on_update: NO ACTION
+  on_delete: CASCADE

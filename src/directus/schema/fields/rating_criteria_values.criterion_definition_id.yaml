@@ -1,0 +1,38 @@
+collection: rating_criteria_values
+field: criterion_definition_id
+type: uuid
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{display_name}}"
+  field: criterion_definition_id
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: "The criterion definition this value is for"
+  options:
+    template: "{{display_name}} ({{key}})"
+  readonly: false
+  required: true
+  sort: 3
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Kriterium
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: criterion_definition_id
+  table: rating_criteria_values
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

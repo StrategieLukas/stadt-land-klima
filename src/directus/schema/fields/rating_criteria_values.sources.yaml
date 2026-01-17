@@ -1,0 +1,31 @@
+collection: rating_criteria_values
+field: sources
+type: alias
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{source_id.title}}"
+  field: sources
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: "Sources supporting this criterion value"
+  options:
+    template: "{{source_id.title}}"
+    enableCreate: true
+    enableSelect: true
+    enableLink: true
+  readonly: false
+  required: false
+  sort: 11
+  special:
+    - o2m
+  translations:
+    - language: de-DE
+      translation: Quellen
+  validation: null
+  validation_message: null
+  width: full
+schema: null

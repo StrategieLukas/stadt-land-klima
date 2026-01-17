@@ -1,0 +1,68 @@
+collection: pages
+field: page_category
+type: string
+meta:
+  collection: pages
+  conditions:
+    - name: Only show if footer menu is enabled
+      rule:
+        _and:
+          - menus:
+              _contains: footer
+      hidden: false
+      options:
+        allowOther: false
+        allowNone: false
+      required: true
+  display: labels
+  display_options:
+    choices:
+      - text: $t:pages.page_category.municipality_rating
+        value: municipality_rating
+      - text: $t:pages.page_category.outreach_and_network
+        value: outreach_and_network
+      - text: $t:pages.page_category.information_and_participate
+        value: information_and_participate
+      - text: $t:pages.page_category.structures_and_legal
+        value: structures_and_legal
+  field: page_category
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: $t:pages.page_category.municipality_rating
+        value: municipality_rating
+      - text: $t:pages.page_category.outreach_and_network
+        value: outreach_and_network
+      - text: $t:pages.page_category.information_and_participate
+        value: information_and_participate
+      - text: $t:pages.page_category.structures_and_legal
+        value: structures_and_legal
+  readonly: false
+  required: false
+  sort: 12
+  special: null
+  translations:
+    - language: de-DE
+      translation: Seitenkategorie
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: page_category
+  table: pages
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

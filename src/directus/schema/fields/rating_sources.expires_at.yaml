@@ -1,0 +1,36 @@
+collection: rating_sources
+field: expires_at
+type: date
+meta:
+  collection: rating_sources
+  conditions: null
+  display: datetime
+  display_options:
+    format: short
+  field: expires_at
+  group: null
+  hidden: false
+  interface: datetime
+  note: "When this source should be re-verified (optional)"
+  options: null
+  readonly: false
+  required: false
+  sort: 9
+  special: null
+  translations:
+    - language: de-DE
+      translation: Läuft ab am
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: expires_at
+  table: rating_sources
+  data_type: date
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

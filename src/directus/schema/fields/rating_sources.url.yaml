@@ -1,0 +1,53 @@
+collection: rating_sources
+field: url
+type: string
+meta:
+  collection: rating_sources
+  conditions:
+    - name: Show for URL type
+      rule:
+        _or:
+          - source_type:
+              _eq: url
+          - source_type:
+              _eq: official_registry
+      hidden: false
+      options: null
+      readonly: false
+      required: false
+  display: null
+  display_options: null
+  field: url
+  group: null
+  hidden: false
+  interface: input
+  note: "Web URL of the source"
+  options:
+    placeholder: "https://www.example.com/document"
+    iconLeft: link
+  readonly: false
+  required: false
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: URL
+  validation:
+    _or:
+      - url:
+          _null: true
+      - url:
+          _regex: "^https?://"
+  validation_message: "Must be a valid URL starting with http:// or https://"
+  width: full
+schema:
+  name: url
+  table: rating_sources
+  data_type: varchar
+  default_value: null
+  max_length: 2000
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

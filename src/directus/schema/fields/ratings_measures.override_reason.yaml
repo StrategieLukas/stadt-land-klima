@@ -1,0 +1,43 @@
+collection: ratings_measures
+field: override_reason
+type: text
+meta:
+  collection: ratings_measures
+  conditions:
+    - name: Show when override is active
+      rule:
+        _and:
+          - manual_override:
+              _eq: true
+      options: null
+      hidden: false
+  display: null
+  display_options: null
+  field: override_reason
+  group: null
+  hidden: true
+  interface: input-multiline
+  note: "Reason for manually overriding the computed rating"
+  options:
+    placeholder: "Begründung für die manuelle Anpassung..."
+  readonly: false
+  required: false
+  sort: 22
+  special: null
+  translations:
+    - language: de-DE
+      translation: Überschreibungsgrund
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: override_reason
+  table: ratings_measures
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false

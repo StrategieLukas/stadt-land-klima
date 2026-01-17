@@ -1,0 +1,47 @@
+collection: rating_sources
+field: file
+type: uuid
+meta:
+  collection: rating_sources
+  conditions:
+    - name: Show for document type
+      rule:
+        _and:
+          - source_type:
+              _eq: document
+      hidden: false
+      options: null
+      readonly: false
+      required: false
+  display: file
+  display_options: null
+  field: file
+  group: null
+  hidden: false
+  interface: file
+  note: "Upload a document (PDF, image, etc.)"
+  options: null
+  readonly: false
+  required: false
+  sort: 5
+  special:
+    - file
+  translations:
+    - language: de-DE
+      translation: Datei
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: file
+  table: rating_sources
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  foreign_key_table: directus_files
+  foreign_key_column: id

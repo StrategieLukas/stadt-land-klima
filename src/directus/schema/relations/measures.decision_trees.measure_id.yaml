@@ -1,0 +1,21 @@
+collection: decision_trees
+field: measure_id
+related_collection: measures
+meta:
+  junction_field: null
+  many_collection: decision_trees
+  many_field: measure_id
+  one_allowed_collections: null
+  one_collection: measures
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: decision_trees
+  sort_field: null
+schema:
+  table: decision_trees
+  column: measure_id
+  foreign_key_table: measures
+  foreign_key_column: id
+  constraint_name: decision_trees_measure_id_foreign
+  on_update: NO ACTION
+  on_delete: CASCADE

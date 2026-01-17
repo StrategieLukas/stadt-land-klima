@@ -1,0 +1,36 @@
+collection: rating_criteria_definitions
+field: display_name
+type: string
+meta:
+  collection: rating_criteria_definitions
+  conditions: null
+  display: null
+  display_options: null
+  field: display_name
+  group: null
+  hidden: false
+  interface: input
+  note: "Human-readable name for the criterion"
+  options:
+    placeholder: "Klimaschutzkonzept vorhanden"
+  readonly: false
+  required: true
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Anzeigename
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: display_name
+  table: rating_criteria_definitions
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

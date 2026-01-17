@@ -1,0 +1,55 @@
+collection: rating_criteria_values
+field: confidence
+type: string
+meta:
+  collection: rating_criteria_values
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Verifiziert
+        value: verified
+        background: "#D1FAE5"
+        foreground: "#065F46"
+      - text: Geschätzt
+        value: estimated
+        background: "#FEF3C7"
+        foreground: "#92400E"
+      - text: Unbekannt
+        value: unknown
+        background: "#E5E7EB"
+        foreground: "#374151"
+  field: confidence
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: "How confident are we in this value?"
+  options:
+    choices:
+      - text: Verifiziert (mit Quelle)
+        value: verified
+      - text: Geschätzt
+        value: estimated
+      - text: Unbekannt
+        value: unknown
+  readonly: false
+  required: true
+  sort: 7
+  special: null
+  translations:
+    - language: de-DE
+      translation: Konfidenz
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: confidence
+  table: rating_criteria_values
+  data_type: varchar
+  default_value: unknown
+  max_length: 32
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

@@ -1,0 +1,36 @@
+collection: rating_sources
+field: title
+type: string
+meta:
+  collection: rating_sources
+  conditions: null
+  display: null
+  display_options: null
+  field: title
+  group: null
+  hidden: false
+  interface: input
+  note: "Source title or description"
+  options:
+    placeholder: "Klimaschutzkonzept der Stadt München 2023"
+  readonly: false
+  required: true
+  sort: 2
+  special: null
+  translations:
+    - language: de-DE
+      translation: Titel
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: title
+  table: rating_sources
+  data_type: varchar
+  default_value: null
+  max_length: 500
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false

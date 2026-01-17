@@ -47,6 +47,19 @@ permissions:
       - date_updated
       - date_created
       - status
+  - collection: editors
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - email
+      - internal_comment
+      - localteam_id
+      - organisation
+      - date_created
+      - date_updated
   - collection: measure_catalog
     action: read
     permissions: {}
@@ -54,45 +67,55 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: measures
-    action: read
-    permissions:
-      _and:
-        - status:
-            _eq: published
-        - catalog_version:
-            hidden:
-              _eq: false
+  - collection: measure_catalog
+    action: create
+    permissions: {}
     validation: {}
     presets: null
     fields:
-      - id
-      - status
-      - measure_id
-      - date_created
-      - date_updated
-      - name
-      - slug
-      - sector
-      - impact
-      - weight
-      - feasibility
-      - feasibility_political
-      - feasibility_economical
-      - choices_rating
-      - description_about
-      - description_evaluation_criteria
-      - description_verification
-      - accordion-p4jgb8
-      - description_benefit
-      - description_contribution
-      - description_implementation
-      - description_legal
-      - description_funding
-      - description_tutorial
-      - description
-      - verification_description
-      - notes
+      - "*"
+  - collection: measure_catalog
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measure_catalog
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: municipalities
     action: read
     permissions: {}
@@ -129,17 +152,7 @@ permissions:
       - "*"
   - collection: ratings_measures
     action: read
-    permissions:
-      _and:
-        - measure_published:
-            _eq: true
-        - measure_id:
-            status:
-              _eq: published
-        - measure_id:
-            catalog_version:
-              hidden:
-                _eq: false
+    permissions: {}
     validation: {}
     presets: null
     fields:

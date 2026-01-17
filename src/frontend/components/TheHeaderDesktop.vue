@@ -64,7 +64,7 @@
               class="block px-4 py-2 text-white font-bold"
               :class="{
                 'bg-light-green hover:bg-green': isActive(page.slug),
-                'bg-mid-gray hover:bg-gray' : !isActive(page.slug),
+                'bg-mid-gray hover:bg-custom-gray' : !isActive(page.slug),
               }"
             >
               {{ page.name }}

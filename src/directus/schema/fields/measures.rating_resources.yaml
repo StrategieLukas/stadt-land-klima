@@ -1,0 +1,32 @@
+collection: measures
+field: rating_resources
+type: alias
+meta:
+  collection: measures
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{rating_resources_id.name}}"
+  field: rating_resources
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: "Shared rating resources used by this measure"
+  options:
+    template: "{{rating_resources_id.name}}"
+    enableCreate: true
+    enableSelect: true
+    enableLink: true
+    junctionFieldsLocation: bottom
+  readonly: false
+  required: false
+  sort: 52
+  special:
+    - m2m
+  translations:
+    - language: de-DE
+      translation: Bewertungsressourcen
+  validation: null
+  validation_message: null
+  width: full
+schema: null
