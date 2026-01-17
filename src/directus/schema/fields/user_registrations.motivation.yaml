@@ -1,0 +1,18 @@
+collection: user_registrations
+field: motivation
+type: text
+meta:
+  collection: user_registrations
+  field: motivation
+  hidden: false
+  interface: input-multiline
+  required: false
+  sort: 8
+  width: full
+  translations:
+    - language: de-DE
+      translation: Motivation
+schema:
+  name: motivation
+  table: user_registrations
+  data_type: text

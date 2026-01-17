@@ -49,12 +49,7 @@
       <!-- Buttons: Donate + Login side by side -->
       <div class="mt-12 flex justify-center gap-6">
         <DonateButton />
-        <a
-          href="/backend"
-          class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white hover:brightness-110"
-        >
-          {{ $t('generic.log_in') }} <span class="text-lg ml-1">→</span>
-        </a>
+        <AuthUserMenu variant="footer" />
       </div>
     </div>
   </footer>

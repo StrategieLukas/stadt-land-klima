@@ -1,0 +1,49 @@
+collection: user_registrations
+field: status
+type: string
+meta:
+  collection: user_registrations
+  display: labels
+  display_options:
+    choices:
+      - text: Ausstehend
+        value: pending
+        foreground: '#FFFFFF'
+        background: '#FFA500'
+      - text: Genehmigt
+        value: approved
+        foreground: '#FFFFFF'
+        background: '#22C55E'
+      - text: Abgelehnt
+        value: rejected
+        foreground: '#FFFFFF'
+        background: '#EF4444'
+      - text: Archiviert
+        value: archived
+        foreground: '#FFFFFF'
+        background: '#6B7280'
+  field: status
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: Ausstehend
+        value: pending
+      - text: Genehmigt
+        value: approved
+      - text: Abgelehnt
+        value: rejected
+      - text: Archiviert
+        value: archived
+  required: true
+  sort: 3
+  width: half
+  translations:
+    - language: de-DE
+      translation: Status
+schema:
+  name: status
+  table: user_registrations
+  data_type: character varying
+  default_value: pending

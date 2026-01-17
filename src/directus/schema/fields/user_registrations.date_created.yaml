@@ -1,0 +1,20 @@
+collection: user_registrations
+field: date_created
+type: timestamp
+meta:
+  collection: user_registrations
+  display: datetime
+  display_options:
+    relative: true
+  field: date_created
+  hidden: true
+  interface: datetime
+  readonly: true
+  sort: 12
+  special:
+    - date-created
+  width: half
+schema:
+  name: date_created
+  table: user_registrations
+  data_type: timestamp with time zone

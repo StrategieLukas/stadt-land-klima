@@ -1,0 +1,20 @@
+collection: user_registrations
+field: date_updated
+type: timestamp
+meta:
+  collection: user_registrations
+  display: datetime
+  display_options:
+    relative: true
+  field: date_updated
+  hidden: true
+  interface: datetime
+  readonly: true
+  sort: 13
+  special:
+    - date-updated
+  width: half
+schema:
+  name: date_updated
+  table: user_registrations
+  data_type: timestamp with time zone

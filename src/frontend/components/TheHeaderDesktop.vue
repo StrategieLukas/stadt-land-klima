@@ -14,23 +14,17 @@
       <!-- Right side (Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
 
-        <!-- Log in button -->
-        <a href="/backend">
-          <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border-2 border-orange text-orange text-sm space-x-1 hover:bg-orange hover:text-white">
-            <span>{{ $t('generic.log_in') }}</span>
-            <span>→</span>
-          </button>
-        </a>
-
+        <!-- Auth User Menu (Login/User dropdown) -->
+        <AuthUserMenu />
 
         <!-- Spenden button -->
-         <DonateButton/>
+        <DonateButton/>
       </div>
     </div>
 
     <!-- Navigation Bar -->
-    <nav class="flex justify-center bg-mid-gray h-12">
-      <ul class="flex h-full z-50">
+    <nav class="flex justify-center bg-mid-gray h-12 relative z-40">
+      <ul class="flex h-full">
         <!-- Main Pages -->
         <li
           v-for="page in mainPages"

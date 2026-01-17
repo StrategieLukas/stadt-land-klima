@@ -62,8 +62,17 @@
 
     <!-- Drawer Side (Menu) - unified for both mobile and desktop -->
     <the-drawer-side
+      v-if="isDesktop"
       :pages="pages.filter((page) => includes(page.menus, 'main'))"
       class="z-[9999]"
+    />
+
+    <!-- Mobile Menu Modal (replaces drawer on mobile) -->
+    <MobileMenuModal
+      v-if="!isDesktop"
+      :is-open="isMobileMenuOpen"
+      :pages="pages.filter((page) => includes(page.menus, 'main'))"
+      @close="closeMobileMenu"
     />
 
     <!-- Dock (Mobile version - always visible, sticky) -->
@@ -83,12 +92,18 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 const { includes } = lodash;
 const { $directus, $readItems, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
 const route = useRoute();
-const { closeDrawer, syncDrawerState } = useDrawer();
+const { closeDrawer, syncDrawerState, isDrawerOpen } = useDrawer();
 
 const hydrated = ref(false)
 const isDesktop = ref(false)
 const drawerToggle = ref(null)
 let cleanup = null
+
+// Mobile menu state (for modal-based mobile menu)
+const isMobileMenuOpen = computed(() => !isDesktop.value && isDrawerOpen.value)
+const closeMobileMenu = () => {
+  closeDrawer()
+}
 
 // Close drawer when clicking outside
 const closeDrawerOnOutsideClick = (event) => {

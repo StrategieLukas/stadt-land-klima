@@ -1,0 +1,71 @@
+name: approveUserRegistration
+icon: how_to_reg
+color: "#22C55E"
+description: Creates a Directus user when a registration is approved
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - user_registrations
+operations:
+  - name: Check if approved
+    key: check_approved_r8kj2
+    type: condition
+    position_x: 11
+    position_y: 1
+    options:
+      filter:
+        _and:
+          - $trigger:
+              payload:
+                status:
+                  _eq: approved
+          - $trigger:
+              keys:
+                _nnull: true
+    resolve_key: read_registration_p4mn7
+
+  - name: Read Registration
+    key: read_registration_p4mn7
+    type: item-read
+    position_x: 23
+    position_y: 1
+    options:
+      collection: user_registrations
+      key: "{{$trigger.keys[0]}}"
+    resolve_key: create_user_x9ht3
+
+  - name: Create User
+    key: create_user_x9ht3
+    type: item-create
+    position_x: 35
+    position_y: 1
+    options:
+      collection: directus_users
+      payload:
+        email: "{{read_registration_p4mn7.email}}"
+        first_name: "{{read_registration_p4mn7.first_name}}"
+        last_name: "{{read_registration_p4mn7.last_name}}"
+        role: "{{$env.EDITOR_ROLE_ID}}"
+        status: invited
+    resolve_key: send_invite_email_k2nf5
+
+  - name: Send Invite Email
+    key: send_invite_email_k2nf5
+    type: mail
+    position_x: 47
+    position_y: 1
+    options:
+      to:
+        - "{{read_registration_p4mn7.email}}"
+      subject: "Willkommen bei Stadt.Land.Klima!"
+      template: email-template-invite
+      data:
+        email: "{{read_registration_p4mn7.email}}"
+        fullName: "{{read_registration_p4mn7.first_name}} {{read_registration_p4mn7.last_name}}"
+        municipality_name: "{{read_registration_p4mn7.municipalities[0].name}}"
+operation_key: check_approved_r8kj2

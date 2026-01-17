@@ -1,0 +1,21 @@
+collection: user_registrations
+field: first_name
+type: string
+meta:
+  collection: user_registrations
+  field: first_name
+  hidden: false
+  interface: input
+  options:
+    trim: true
+  required: true
+  sort: 4
+  width: half
+  translations:
+    - language: de-DE
+      translation: Vorname
+schema:
+  name: first_name
+  table: user_registrations
+  data_type: character varying
+  max_length: 255

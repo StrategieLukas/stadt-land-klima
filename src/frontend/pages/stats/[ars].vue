@@ -155,6 +155,26 @@
       </div>
     </div>
 
+    <!-- Participate CTA for municipalities that are reasonable for rating -->
+    <div v-if="stats?.is_reasonable_for_municipal_rating" class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-gradient-to-r from-orange/10 to-orange/5 border border-orange/20 rounded-lg shadow-md mt-6">
+      <div class="text-center sm:text-left">
+        <h3 class="text-lg font-semibold text-gray-900">
+          {{ $t('stats.participate') }}
+        </h3>
+        <p class="text-sm text-gray-600 mt-1">
+          {{ $t('stats.participate.start_to_rank_your_municipality') }}
+        </p>
+      </div>
+      <ParticipateButton 
+        :municipality="{
+          ars: stats.ars,
+          name: stats.name,
+          prefix: stats.prefix,
+          population: stats.population
+        }"
+      />
+    </div>
+
     <!-- Municipality not suitable message -->
     <div v-else-if="stats && !stats.is_reasonable_for_municipal_rating" class="flex border min-h-[100px] flex-col lg:flex-row justify-center p-4 bg-base-100 shadow-md mt-6">
       <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">

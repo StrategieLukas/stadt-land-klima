@@ -1,0 +1,3 @@
+language: de-DE
+key: auth.login_required
+value: Bitte melden Sie sich an, um auf das Dashboard zuzugreifen.

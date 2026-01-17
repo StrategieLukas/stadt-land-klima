@@ -1,0 +1,20 @@
+collection: user_registrations
+field: id
+type: uuid
+meta:
+  collection: user_registrations
+  field: id
+  hidden: true
+  interface: input
+  readonly: true
+  required: false
+  sort: 1
+  special:
+    - uuid
+schema:
+  name: id
+  table: user_registrations
+  data_type: uuid
+  is_primary_key: true
+  is_nullable: false
+  has_auto_increment: false

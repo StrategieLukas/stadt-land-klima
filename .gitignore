@@ -13,6 +13,10 @@
 # backup directory
 /backups/*
 
+# SQL dump files
+bin/staging_dump.sql
+bin/*.sql
+
 # Logs
 logs
 *.log

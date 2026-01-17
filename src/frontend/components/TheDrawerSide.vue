@@ -16,13 +16,7 @@
       <!-- Last two elements not NuxtLinks because they reference different applications -->
 
       <li class="pt-4 border-t border-white mt-4 w-full">
-        <a
-          href="/backend"
-          class="text-md bg-orange"
-          @click="closeDrawer"
-        >
-          <span class="text-lg">→</span>{{ $t('generic.log_in') }}
-        </a>
+        <AuthUserMenu variant="drawer" @close="closeDrawer" />
       </li>
 
       <li class="pt-4 w-full">

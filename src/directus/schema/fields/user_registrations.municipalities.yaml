@@ -1,0 +1,22 @@
+collection: user_registrations
+field: municipalities
+type: json
+meta:
+  collection: user_registrations
+  display: raw
+  field: municipalities
+  hidden: false
+  interface: input-code
+  options:
+    language: json
+  required: true
+  sort: 7
+  width: full
+  note: "JSON array of municipalities: [{ars, name, has_existing_team}]"
+  translations:
+    - language: de-DE
+      translation: Kommunen
+schema:
+  name: municipalities
+  table: user_registrations
+  data_type: json

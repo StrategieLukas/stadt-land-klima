@@ -63,7 +63,7 @@
       </div>
 
       <!-- Mobile: Participate Section -->
-      <div v-if="municipality.public_contact" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
+      <div class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
         <input type="checkbox" name="sectors-accordion" autocomplete="off" />
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
           <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
@@ -72,7 +72,11 @@
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="md.render(municipality.public_contact)"></div>
+          <div v-if="municipality.public_contact" class="has-long-links prose mb-4" v-html="md.render(municipality.public_contact)"></div>
+          <p class="text-sm text-gray-600 mb-4">
+            {{ $t("municipality.participate_body") }}
+          </p>
+          <ParticipateButton :municipality="municipality" />
         </div>
       </div>
 
@@ -168,7 +172,7 @@
           </NuxtLink>
 
           <!-- Participate Section -->
-          <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
+          <div class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
             <input type="checkbox" name="contact-accordion" autocomplete="off" />
             <div class="collapse-title flex items-center gap-3 px-2 md:px-4">
               <img src="~/assets/icons/icon_team.svg" class="h-6 w-6 opacity-60" />
@@ -177,7 +181,11 @@
               </h3>
             </div>
             <div class="collapse-content px-2 md:px-4">
-              <div class="has-long-links prose prose-sm max-w-none" v-html="md.render(municipality.public_contact)"></div>
+              <div v-if="municipality?.public_contact" class="has-long-links prose prose-sm max-w-none mb-4" v-html="md.render(municipality.public_contact)"></div>
+              <p class="text-sm text-gray-600 mb-4">
+                {{ $t("municipality.participate_body") }}
+              </p>
+              <ParticipateButton :municipality="municipality" />
             </div>
           </div>
 

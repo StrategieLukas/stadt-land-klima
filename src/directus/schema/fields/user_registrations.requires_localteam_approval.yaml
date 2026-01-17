@@ -1,0 +1,21 @@
+collection: user_registrations
+field: requires_localteam_approval
+type: boolean
+meta:
+  collection: user_registrations
+  display: boolean
+  field: requires_localteam_approval
+  hidden: false
+  interface: boolean
+  note: "True if registering to join an existing local team"
+  required: false
+  sort: 10
+  width: half
+  translations:
+    - language: de-DE
+      translation: Lokalteam-Genehmigung erforderlich
+schema:
+  name: requires_localteam_approval
+  table: user_registrations
+  data_type: boolean
+  default_value: false

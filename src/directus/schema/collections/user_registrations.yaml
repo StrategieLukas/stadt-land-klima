@@ -1,0 +1,28 @@
+collection: user_registrations
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: user_registrations
+  color: null
+  display_template: "{{first_name}} {{last_name}} - {{email}}"
+  group: null
+  hidden: false
+  icon: person_add
+  item_duplication_fields: null
+  note: "User registration requests awaiting approval"
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Registrierungen
+      singular: Registrierung
+      plural: Registrierungen
+  unarchive_value: pending
+  versioning: false
+schema:
+  name: user_registrations

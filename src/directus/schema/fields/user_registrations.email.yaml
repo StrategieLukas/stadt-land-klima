@@ -1,0 +1,27 @@
+collection: user_registrations
+field: email
+type: string
+meta:
+  collection: user_registrations
+  field: email
+  hidden: false
+  interface: input
+  options:
+    trim: true
+  required: true
+  sort: 6
+  width: full
+  validation:
+    _and:
+      - email:
+          _regex: ^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$
+  validation_message: Das ist keine gültige E-Mail-Adresse
+  translations:
+    - language: de-DE
+      translation: E-Mail
+schema:
+  name: email
+  table: user_registrations
+  data_type: character varying
+  max_length: 255
+  is_unique: true

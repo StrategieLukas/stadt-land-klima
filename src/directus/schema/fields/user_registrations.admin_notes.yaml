@@ -1,0 +1,19 @@
+collection: user_registrations
+field: admin_notes
+type: text
+meta:
+  collection: user_registrations
+  field: admin_notes
+  hidden: false
+  interface: input-multiline
+  note: "Internal notes from administrators"
+  required: false
+  sort: 11
+  width: full
+  translations:
+    - language: de-DE
+      translation: Admin-Notizen
+schema:
+  name: admin_notes
+  table: user_registrations
+  data_type: text

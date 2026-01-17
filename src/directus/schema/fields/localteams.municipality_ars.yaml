@@ -1,0 +1,22 @@
+collection: localteams
+field: municipality_ars
+type: string
+meta:
+  collection: localteams
+  field: municipality_ars
+  hidden: false
+  interface: input
+  options:
+    trim: true
+  required: false
+  sort: 5
+  width: half
+  note: "ARS (Amtlicher Regionalschlüssel) of the municipality"
+  translations:
+    - language: de-DE
+      translation: Kommune ARS
+schema:
+  name: municipality_ars
+  table: localteams
+  data_type: character varying
+  max_length: 12

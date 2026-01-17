@@ -1,0 +1,3 @@
+language: de-DE
+key: auth.registration_error
+value: Ein Fehler ist aufgetreten. Bitte versuche es später erneut.
