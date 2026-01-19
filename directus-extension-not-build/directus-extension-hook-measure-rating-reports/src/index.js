@@ -1,5 +1,5 @@
 import path from "path";
-import { writeFileSync } from 'fs';
+import { writeFileSync, unlinkSync } from 'fs';
 
 function jsonToCsv(jsonString) {
     // Parse the JSON string into an object
@@ -22,15 +22,22 @@ function jsonToCsv(jsonString) {
 }
 
 
-export default ({ schedule }, { services, database, getSchema }) => {
-	const { ItemsService } = services
+export default ({ schedule }, { accountability, services, database, getSchema }) => {
+	const { MailService, ItemsService } = services
 
     schedule('*/1 * * * *', async () => {
 		console.log("1 minute has passed");
 
+		const schema = await getSchema();
+
+		const mailService = new MailService({
+			schema: schema,
+			accountability: accountability,
+		});
+
 		const itemService_ratingMeasures = new ItemsService("ratings_measures", {
 			database,
-			schema: await getSchema(),
+			schema: schema,
 		})
 
 		const ratingMeasures_results = await itemService_ratingMeasures.readByQuery({limit: -1})
@@ -38,11 +45,30 @@ export default ({ schedule }, { services, database, getSchema }) => {
 		const hookDir = path.join(process.cwd(), "/extensions/directus-extension-hook-measure-rating-reports");
 		
         const timestamp = Date.now();
-        const fileName = `timestamp-${timestamp}.txt`;
+        const fileName = `rating_measures-${timestamp}.csv`;
         const filePath = path.join(hookDir, fileName);
 
 		const csv_string = jsonToCsv(JSON.stringify(ratingMeasures_results))
         writeFileSync(filePath, csv_string, {flag: 'w'});
+
+		// Send Mail
+		const subjectLine =
+        "Stadt.Land.Klima Wochenbericht";
+
+		const email = "TODO: info@stadt-land-klima.de";
+		await mailService.send({
+			to: email,
+			subject: subjectLine,
+			text: 'Please find attached the CSV file.',
+			attachments: [
+				{
+					filename: 'rating_measures.csv',
+					path: filePath
+				}
+			]
+		});
+
+		unlinkSync(filePath)
 
     });
 };
