@@ -20,6 +20,8 @@
         {{ $t("map.icon.popup.goToRanking") }}
       </NuxtLink>
     </li>
+   <button @click="fetchPDF()" class="p-4 flex items-center justify-end text-white bg-gray h-10">PDF</button>
+    
   </ul>
 </template>
 
@@ -97,5 +99,30 @@
         .replaceAll("MUNICIPALITY", props.municipalityScore.municipality.name)
   }
 
+  const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config
 
+  async function fetchPDF() {
+    try {
+      const baseUrl = config.public.clientDirectusUrl;
+      const token = config.public.directusToken;
+
+      const response = await fetch(`${baseUrl}/pdf-service/elections/${props.municipalityScore.municipality.name}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ measure_text: sortedMeasures}),
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+
+    } catch (err) {
+      console.error('Error fetching PDF:', err);
+    }
+  }
 </script>

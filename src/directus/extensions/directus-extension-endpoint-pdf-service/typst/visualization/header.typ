@@ -13,7 +13,7 @@
         stack(
           dir: ttb,
           spacing: 1.3em,
-          text("Kommunales Ranking 2025", size: 1em, weight: "bold"),
+          text("Kommunales Ranking 2026", size: 1em, weight: "bold"),
           if(is_major_city){
             city_types.major_city
           }else{
