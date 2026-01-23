@@ -26,8 +26,6 @@ export default {
   handler: async (router, { services, getSchema }) => {
     const { ItemsService } = services;
 
-    router.get('/', (req, res) => res.send('Hello, World!'));
-
     router.post('/municipality/:slug/:version', async (req, res) => {
       const accountability = req.accountability; // use frontend user's auth
       const schema = await getSchema();
@@ -128,6 +126,53 @@ export default {
         console.error("Error fetching municipality:", error);
         return res.status(500).send("Server error");
       }
+    });
+
+    router.post('/elections/:slug', async (req, res) => {
+      const accountability = req.accountability; // use frontend user's auth
+      const schema = await getSchema();
+      const measure_text = req.body.measure_text;
+      const municipalitySlug = req.params.slug;
+      console.log("elections pdf endpoint requested");
+
+      const typstDir = path.join(process.cwd(), "/extensions/directus-extension-endpoint-pdf-service/typst");
+      const typstFilePath = path.join(typstDir, "local_election_checklist_guide.typ");
+
+      // writeFileSync(`${typstDir}/election_text.json`, JSON.stringify({"measure_text": measure_text}, null, 2));
+
+      // Create temporary files for municipality and measures
+      const timestamp = Date.now();
+      const dataFileName = `elections_measure_text_${timestamp}.json`;
+      const dataFileNamePath = path.join(typstDir, dataFileName);
+
+      writeFileSync(dataFileNamePath, JSON.stringify({"measure_text": measure_text}));
+      const args = [
+        "compile",
+        "--input", `measureText=${dataFileName}`,
+        "--font-path", `${typstDir}/fonts`,
+        typstFilePath,
+        "-"
+      ];
+
+      execFile("typst", args, { maxBuffer: 1024 * 1024 * 50, encoding: "buffer" }, (err, stdout, stderr) => {
+        // Cleanup temporary files after execution
+        try {
+          unlinkSync(dataFileNamePath);
+        } catch (cleanupErr) {
+          console.error("Error cleaning up temporary files:", cleanupErr);
+        }
+
+        if (err) {
+          console.error("Typst error:", err);
+          return res.status(500).send("PDF generation failed");
+        }
+        if (stderr && stderr.length) console.warn("Typst warnings:", stderr.toString());
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", 'inline; filename="output.pdf"');
+        res.status(200).send(stdout);
+      });
+
     });
   },
 };
