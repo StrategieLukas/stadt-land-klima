@@ -16,6 +16,8 @@
       <br>
       {{ measure.improvementString }}. Wie haben Sie vor, dies zu ändern?
       <br>
+      Darum ist diese Massnahme wichtig (sollte dynamisches Feld der Massnahme sein, und auch bei beta-massnahmen nachtraeglich eingefuellt werden)
+      <br>
       <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`" class="text-blue-600 underline hover:text-blue-800">
         {{ $t("map.icon.popup.goToRanking") }}
       </NuxtLink>
