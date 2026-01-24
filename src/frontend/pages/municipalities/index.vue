@@ -7,23 +7,23 @@
       <h1 v-else class="mb-0 whitespace-pre-line">
         {{ $t("municipalities.heading") }} <br/>2026
       </h1>
-      <p class="mt-0 text-xs">
+      <p class="my-0 text-xs">
         <ClientOnly>
           {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
         </ClientOnly>
       </p>
       <p v-if="selectedCatalogVersion.name === 'beta'">
-        <NuxtLink to="/municipalities?v=v1.0" class="text-blue-500">
-          {{ $t("ranking.preview_2026") }}
-        </NuxtLink>
-      </p>
-      <p v-else>
         <span class="font-bold text-red">
-          {{ $t("ranking.warn_preview") }}
+          {{ $t("ranking.warn_archive_2025") }}
         </span>
         <br/>
-        <NuxtLink to="/municipalities?v=beta" class="text-blue-500">
-        {{ $t("ranking.view_current") }}
+        <NuxtLink to="/municipalities?v=v1.0" class="text-blue-500">
+          {{ $t("ranking.view_current") }}
+        </NuxtLink>
+      </p>
+      <p v-else class="mt-0">
+        <NuxtLink to="/municipalities?v=beta" class="text-blue-500 text-xs">
+        {{ $t("ranking.view_archive_last_year") }}
       </NuxtLink>
       </p>
     </div>
