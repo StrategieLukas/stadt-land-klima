@@ -16,7 +16,13 @@
       <br>
       {{ measure.improvementString }}. Wie haben Sie vor, dies zu ändern?
       <br>
-      Darum ist diese Massnahme wichtig (sollte dynamisches Feld der Massnahme sein, und auch bei beta-massnahmen nachtraeglich eingefuellt werden)
+      <p v-if="measure.description_benefit">
+        Darum ist diese Maßnahme wichtig: <div v-html="md.render(measure.description_benefit)"></div>
+      </p>
+      
+      <p v-if="measure.description_contribution">
+        So bringst du sie ein:  <div v-html="md.render(measure.description_contribution)"></div>
+      </p>
       <br>
       <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`" class="text-blue-600 underline hover:text-blue-800">
         {{ $t("map.icon.popup.goToRanking") }}
@@ -28,7 +34,10 @@
 </template>
 
 <script setup>
+  import MarkdownIt from 'markdown-it'
   import measureImprovementStrings from "~/assets/measure-improvement-strings.json"
+
+  const md = new MarkdownIt();
 
   const props = defineProps({
     municipalityScore: {
@@ -78,6 +87,8 @@
         feasibility_political: feasibilityPolitical,
         feasibility_economical: feasibilityEconomical,
         difficulty: difficulty,
+        description_benefit: item.measure?.description_benefit,
+        description_contribution: item.measure?.description_contribution,
         improvementString: fetchImprovementString(item.measure?.measure_id, item.rating),
       }
   })

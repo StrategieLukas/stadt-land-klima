@@ -9,7 +9,7 @@ meta:
   field: description_legal
   group: accordion-p4jgb8
   hidden: false
-  interface: input-rich-text-html
+  interface: input-rich-text-md
   note: null
   options:
     toolbar:
@@ -26,6 +26,7 @@ meta:
       - h3
       - hr
       - italic
+      - link
       - numlist
       - paste
       - removeformat
