@@ -25,6 +25,7 @@
 		"validate": "directus-extension validate"
 	},
 	"devDependencies": {
-		"@directus/extensions-sdk": "17.0.4"
+		"@directus/extensions-sdk": "17.0.4",
+		"csvjson": "5.1.0"
 	}
 }
