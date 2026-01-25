@@ -6,6 +6,7 @@
         {{ $t("measures.description") }}
       </p>
     </div>
+    <!-- Show the different sectors for measures -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
       <NuxtLink 
         v-for="sector in sectors" 
@@ -21,6 +22,23 @@
         </div>
       </NuxtLink>
     </div>
+    <!-- Link to the measure catalog -->
+     <div class="mt-12 flex justify-center">
+      <NuxtLink
+        v-if="selectedCatalogVersion.name == `v1.0`"
+        :to="`/backend/assets/ac1df0cd-8a57-4082-bdd3-432f43e4a374`"
+        >
+          <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{  $t("measure_catalog.download") }} ({{ selectedCatalogVersion.name }})</button>
+        </NuxtLink>
+
+        <NuxtLink
+        v-if="selectedCatalogVersion.name == `beta`"
+        :to="`/backend/assets/9c270dd0-52dc-449b-9c2e-bbd5d5b829`"
+        >
+          <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{  $t("measure_catalog.download") }} ({{ selectedCatalogVersion.name }})</button>
+      </NuxtLink>
+     </div>
+
   </div>
 </template>
 

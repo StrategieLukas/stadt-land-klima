@@ -4,21 +4,33 @@
   <!-- <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore"/> -->
 
   <p class="text-h3">Fragen zur Kommunalwahl auf Basis der Bewertung:</p>
+  <p>Wir haben auf Basis der Bewertung dieser Kommune einen Fragenkatalog für diese Kommune erstellt.
+    In dem Katalog werden die 10 Maßnahmen aufgeführt, bei denen diese Kommune das größte Verbesserungspotenzial hat.
+    Das Verbesserungspotenzial berechnet sich aus der Bewertung und der Gewichtung der Maßnahme, d.h. Maßnahmen mit niedriger Bewertung und hoher Gewichtung haben das größte Verbesserungspotenzial.
+  </p>
+  <p class="mt-1">Diesen Fragenkatalog könnt ihr als Vorlage nutzen, um Fragen an Kandiderenden bei der Kommunalwahl zu stellen - oder um eure Verwaltung bzw Stadt/Gemeinderat damit zu konfrontieren.
+    Mit dem Knopf unten könnt ihr euch direkt eine PDF generieren lassen, die ihr so verwenden könnt.
+  </p>
+
   <p class="text-red" v-if="usingFallbackCatalog">Diese Fragen wurden auf Basis einer alten Bewertung ({{ municipalityScore.catalog_version.name }}) generiert, da die Kommune noch nicht für die neuste Version ({{ currentCatalogVersion.name }}) bewertet wurde.</p>
   <ul>
     <li v-for="(measure, index) in sortedMeasures.slice(0, 10)" :key="measure.measure_id">
-      <strong>{{ index + 1 }}. {{ measure.name }}</strong> ({{ measure.measure_id }})
-      <br>
-      Potential: {{ measure.potential.toFixed(2) }}, 
-      Difficulty: {{ measure.difficulty.toFixed(2) }},
-      Rating: {{ measure.rating }}
-      Weight: {{ measure.weight }}
-      <br>
-      {{ measure.improvementString }}. Wie haben Sie vor, dies zu ändern?
-      <br>
-      <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`" class="text-blue-600 underline hover:text-blue-800">
-        {{ $t("map.icon.popup.goToRanking") }}
-      </NuxtLink>
+      <div class="my-3">
+        <p class="text-xl">
+          <strong>{{ index + 1 }}. {{ measure.name }}</strong> ({{ measure.measure_id }})
+        </p>
+        
+        <div v-if="measure.description_benefit" v-html="md.render(measure.description_benefit)" class="italic"></div>
+        <div v-if="measure.improvementString">{{ measure.improvementString }}. Wie haben Sie vor, dies zu ändern?</div>
+        <div v-if="measure.description_contribution" class="my-2">
+          <strong>So kannst du die Maßnahme einbringen</strong>
+          <div v-html="md.render(measure.description_contribution)"/>
+        </div>
+      
+        <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`" class="text-blue-600 underline hover:text-blue-800">
+          {{ $t("map.icon.popup.goToRanking") }}
+        </NuxtLink>
+      </div>
     </li>
    <button @click="fetchPDF()" class="p-4 flex items-center justify-end text-white bg-gray h-10">PDF</button>
     
@@ -26,7 +38,10 @@
 </template>
 
 <script setup>
+  import MarkdownIt from 'markdown-it'
   import measureImprovementStrings from "~/assets/measure-improvement-strings.json"
+
+  const md = new MarkdownIt();
 
   const props = defineProps({
     municipalityScore: {
@@ -76,6 +91,8 @@
         feasibility_political: feasibilityPolitical,
         feasibility_economical: feasibilityEconomical,
         difficulty: difficulty,
+        description_benefit: item.measure?.description_benefit,
+        description_contribution: item.measure?.description_contribution,
         improvementString: fetchImprovementString(item.measure?.measure_id, item.rating),
       }
   })
@@ -112,7 +129,7 @@
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ measure_text: sortedMeasures}),
+        body: JSON.stringify({ measure_text: sortedMeasures.slice(0,10)}),
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
