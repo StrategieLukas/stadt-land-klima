@@ -3,9 +3,19 @@
 #import "visualization/utils.typ" as util
 #import "visualization/progress_bar.typ" as progress_bar
 
+#import "visualization/overview_table.typ"
+#import "visualization/municipality_overview.typ" as item_ranking
 
-// #let data = json("sample_data_election.json")
-#let data = json(sys.inputs.measureText)
+
+#let municipalityScore = json("sample_data/municipalityScore.json")
+#let election_guide_questions = json("sample_data/elections_measure_text.json")
+#let rating_measures = json("sample_data/measures.json")
+
+
+// #let municipalityScore = json(sys.inputs.municipalityScore)
+// #let election_guide_questions = json(sys.inputs.electionGuideText)
+// #let rating_measures = json(sys.inputs.measures)
+
 
 #let unit = 1.5em
 #set text(
@@ -18,33 +28,67 @@
 
 #set page(
   paper: "a4",
-  header: header.header(),
-  header-ascent: 100% - 2em,
-  footer: footer.footer,
+  footer: footer.footer(footer_text: "Powered by"),
   footer-descent: 100% - 1.5em,
-  margin: (x: 9mm, top:20mm, bottom:10mm),
+  margin: (x: 10mm, top:20mm, bottom:10mm),
 );
 
-#let max_potential = data.measure_text.at(0).potential
-#v(unit)
-== Fragen zur Kommunalwahl auf Basis der Bewertung:
+#let level2text(level) = [
+  #if level == 1 {
+    "klein"
+  }
+  #if level == 2 {
+    "niedrig"
+  }
+  #if level == 3 {
+    "mittel"
+  }
+  #if level == 4 {
+    "hoch"
+  }
+  #if level == 5 {
+    "groß"
+  }
+]
 
-#v(unit)
-#for (i, measure) in data.measure_text.enumerate(){
-  [
+#show table.cell: set text(size: 8pt)
+#grid(
+  columns: (33%, 67%),
+  align: (center + bottom, center + bottom),
+
+  place(dy: -1.5cm,
+    scale(
+      x: 50%,
+      y: 50%,
+      origin: top + left,
+      reflow: true,
+      item_ranking.item_ranking(
+        municipalityScore,
+        0.75em,
+        false,
+        false,
+      )
+    )
+  ),
+  overview_table.draw_overview_table(municipalityScore, rating_measures)
+)
+
+#text(size: 16pt, weight: "bold")[#municipalityScore.municipality.name \ Fragen zur Kommunalwahl:]
+
+#for (i, measure) in election_guide_questions.measure_text.enumerate(){
+  box(width: 70%)[
     #box(image(util.select_pin_from_range(measure.rating), height: 1em, fit: "contain"), baseline: 1pt)
-    #strong(str(i+1) + ". " +measure.name) (#measure.measure_id)\
-    #text(fill: luma(50%), size: 0.75em, [
-    Potential: #box(width: 5em, baseline: -3pt)[#progress_bar.draw_progress_bar(measure.potential/max_potential*100, .5em, scale_text: true)] 
-    #h(1em)
-    Difficulty: #calc.round(float(measure.difficulty), digits: 2)
+    #strong(str(i+1) + ". " + measure.name + " | " + measure.measure_id)\
+    #text(fill: luma(30%), size: 10pt, [
+    Impact: #level2text(measure.impact),
+    Kontroverse: #level2text(measure.feasibility_political),
+    Kosten: #level2text(measure.feasibility_economical)
     // Bewertung: #calc.round(float(measure.rating), digits: 2) 
     // Gewicht: #calc.round(float(measure.weight), digits: 2)
     ])\
-    #measure.improvementString. 
-    Wie haben Sie vor, dies zu ändern?\
-    #v(unit*0.2)
+    #measure.improvementString
+    #v(unit*0.5)
   ]
 }
 
-// #data.measure_text
+// #election_guide_questions.measure_text
