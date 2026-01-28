@@ -7,14 +7,14 @@
 #import "visualization/municipality_overview.typ" as item_ranking
 
 
-#let municipalityScore = json("sample_data/municipalityScore.json")
-#let election_guide_questions = json("sample_data/elections_measure_text.json")
-#let rating_measures = json("sample_data/measures.json")
+// #let municipalityScore = json("sample_data/municipalityScore.json")
+// #let election_guide_questions = json("sample_data/elections_measure_text.json")
+// #let rating_measures = json("sample_data/measures.json")
 
 
-// #let municipalityScore = json(sys.inputs.municipalityScore)
-// #let election_guide_questions = json(sys.inputs.electionGuideText)
-// #let rating_measures = json(sys.inputs.measures)
+#let municipalityScore = json(sys.inputs.municipalityScore)
+#let election_guide_questions = json(sys.inputs.electionGuideText)
+#let rating_measures = json(sys.inputs.measures)
 
 
 #let unit = 1.5em
