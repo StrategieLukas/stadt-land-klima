@@ -86,6 +86,11 @@
     // Bewertung: #calc.round(float(measure.rating), digits: 2) 
     // Gewicht: #calc.round(float(measure.weight), digits: 2)
     ])\
+    #if(type(measure.description_benefit) == str){
+    [
+      #text(measure.description_benefit, style:"italic", size: 10pt)\
+    ]
+    }
     #measure.improvementString
     #v(unit*0.5)
   ]

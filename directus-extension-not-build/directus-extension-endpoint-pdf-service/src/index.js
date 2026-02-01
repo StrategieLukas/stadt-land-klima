@@ -1,6 +1,7 @@
 import path from "path";
 import { execFile } from "child_process";
 import { writeFileSync, unlinkSync } from 'fs';
+import { convert } from "html-to-text"; 
 
 function sortMeasuresBySector(ratingsMeasuresArr, measuresArr) {
   if (!Array.isArray(ratingsMeasuresArr) || !Array.isArray(measuresArr)) {
@@ -75,6 +76,16 @@ async function fetch_data(req, res, schema, ItemsService){
 
   return [municipalityScore, sorted_measures]
 }
+
+function convertDescriptionsToPlainText(data) {
+    data.forEach(item => {
+      if (item['description_benefit']) {
+        item['description_benefit'] = convert(item['description_benefit']);
+      }
+    });
+ }
+
+
 
 export default {
   id: 'pdf-service',
@@ -156,6 +167,8 @@ export default {
         console.error("Error fetching municipality:", error);
         return res.status(500).send("Server error: Error fetching municipality");
       }
+
+      convertDescriptionsToPlainText(measure_text)
       
       const typstFilePath = path.join(typstDir, "local_election_checklist_guide.typ");
 
