@@ -1,0 +1,224 @@
+{
+  "EN_01": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Es gibt keine FFPV-Anlage auf dem Gebiet der Kommune.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Es gibt FFPV-Anlagen, aber mit Gesamtleistung von weniger als 100 Watt pro Einwohner.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Es gibt FFPV-Anlagen mit Gesamtleistung von 100 bis 350 Watt pro Einwohner.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Es gibt FFPV-Anlagen mit Gesamtleistung von 350 bis 1000 Watt pro Einwohner."
+  },
+  "EN_02": {
+    "0": "Aktueller Stand in [MUNICIPALICY]\": Keine Windkraft auf dem Gebiet der Kommune und auch keine Beteiligungen an Projekten außerhalb.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Es existiert Windkraft auf dem Gebiet der Kommune oder Beteiligungen an Projekten außerhalb, aber mit einer gesamten Nennleistung von unter 200 Watt pro EW.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Gesamte Nennleistung der Windkraftprojekte ist zwischen 200 und 550 Watt pro EW.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Gesamte Nennleistung der Windkraftprojekte ist zwischen 550 und 1500 Watt pro EW."
+  },
+  "EN_03": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: keine Beratungsangebote.",
+    "0.25": "Aktueller Stand: [MUNICIPALICY] verlinkt auf ihrer Webseite aktiv Beratungsangebote zur Klimaneutralität.",
+    "0.5": "",
+    "0.75": "Aktueller Stand: [MUNICIPALICY] bewirbt UND bezuschusst Beratungsangebote zur Klimaneutralität."
+  },
+  "EN_05": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Es gibt keine Balkonsolarförderung.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Eine Balkonsolarförderung wurde beschlossen und angekündigt (innerhalb der letzten 2 Jahre).",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Es gibt eine Förderung (innerhalb der letzten 2 Jahre), die nicht alle Ansprüchen erfüllt."
+  },
+  "EN_06": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Greenwashing von Gas, es wird als klimaneutral verkauft o.ä..",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Gas wird angeboten, aber mit neutralem / faktischem Text.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Kommunewerke bieten aktiv Pakete und Programme an, wie Privatpersonen und/oder Unternehmen von Gas auf EE umsteigen können. Bsp: Leasing von Wärmepumpen, zusätzliche Fördermittel in Kooperation mit der Kommune, Unterstützung und Information für Fördermittelmanagement in Unternehmen, Fördermittelberatung und Abwicklung für Privatpersonen."
+  },
+  "EN_07": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: es wird kein Energiemonitoring von der Kommune veröffentlicht..",
+    "0.25": "Aktueller Stand in [MUNICIPALICY] bei „Ökostrom für kommunale Liegenschaften\": 33 % an Liegenschaften mit qualifiziertem Ökostrom.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: 70 % der kommunalen Liegenschaften mit qualifiziertem Ökostrom."
+  },
+  "EN_09": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Mitglied bei DIE GAS- UND WASSERSTOFFWIRTSCHAFT e.V. (ehem. Zukunft Gas).",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: In keinem (oder beiden) der Vereine Mitglied.",
+    "0.5": "",
+    "0.75": ""
+  },
+  "EN_10": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Es gibt keinen 100%-Ökostrom-Vertrag.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]\": Stadtwerke bieten 100 % Ökostrom-Verträge an, aber auch fossile Verträge.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Es werden ausschließlich Ökostrom-Verträge angeboten, es besteht aber keine Zertifizierung von einem seriösen Ökostromlabel.."
+  },
+  "EN_11": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: unter 25 % echter Ökostromanteil.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Mindestens 25% echter Ökostromanteil.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Mindestens 50% Ökostromanteil.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Mindestens 75% echter Ökostromanteil."
+  },
+  "EN_13": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: es gibt keine Bürgerenergiegenossenschaft und auch keine Unterstützungsangebote zur Gründung.",
+    "0.25": "Aktueller Stand: es gibt zwar noch keine Bürgerenergiegenossenschaft, aber [MUNICIPALICY] bietet Beratungsangebote und/oder finanzielle/rechtliche Unterstützung für die Gründung an.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: es gibt eine Bürgerenergiegenossenschaft, die allerdings noch kein Projekt umgesetzt hat.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: es gibt eine Bürgerenergiegenossenschaft mit mindestens einem umgesetzten Projekt."
+  },
+  "GW_02": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: es liegt kein Plan zur Dekarbonisierung des Fernwärmenetzes vor.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Plan mit Maßnahmen und Ziel der 100%igen Dekarbonisierung liegt vot, aber ohne Jahreszahl oder mit Ziel nach 2045.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Konkreter Plan mit Maßnahmen zu 100 % Dekarbonisierung bis 2045 und Meilensteinen/Zwischenzielen liegt vor.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Konkreter Plan mit Maßnahmen zu 100 % Dekarbonisierung bis 2040 und Meilensteinen/Zwischenzielen."
+  },
+  "GW_03": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: kein kommunales Energiemanagement und auch nicht geplant (kein Konzept, keine Maßnahmen/keine Verbrauchsdaten bekannt).",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Kommunales Energiemanagementkonzept liegt vor, erfüllt aber zu weinige Qualitätskriterien.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Kommunales Energiemanagementkonzept beschlossen, dass nur 2 von 6 Qualitätskriterien erfüllt.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Kommunales Energiemanagementkonzept beschlossen, dass mindestens 4 von 6 Qualitätskriterien erfüllt."
+  },
+  "GW_04": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: kein Beschluss, oder Sanierungsrate.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Beschluss zur Sanierung / Modernisierung ihrer Liegenschaften bei einer Sanierungsrate von mindestens 2 %.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Beschluss zur Sanierung / Modernisierung ihrer Liegenschaften bei einer Sanierungsrate von mindestens 3.5 %."
+  },
+  "GW_05": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: t0z Pflicht keine Erstellung eines kommunalen Wärmeplans.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Vergabe der kommunalen Wärmeplanung hat stattgefunden und ein Planungsbüro arbeitet an der Erstellung, die Planung ist aber noch nicht fertig.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: kommunale Wärmeplanung ist vorhanden und öffentlich einsehbar.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Wärmeplanung ist in der Umsetzung und es gibt ein Monitoring dazu, was zumindest grundlegende Informationen über den Fortschritt veröffentlicht (z.B: Ausweisung von Wärmenetz- oder Wasserstoffnetzausbaugebieten hat stattgefunden)."
+  },
+  "IWK_03": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: kein Beschluss zum energieautarken Betrieb der Kläranlagen ODER keine energieautarke Kläranlage.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Es reicht noch nicht!",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Es reicht noch nicht!",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Es reicht noch nicht!"
+  },
+  "IWK_05": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Existiert nicht, oder erfüllt nicht die Mindestanforderungen der Stufe 0.25.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Findet mindestens jährlich statt und zumindest kleine Maßnahmen/Projekte zu Nachhaltigkeitsthemen sind in den Berichten dokumentiert.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Mindestens halbjährliche Berichte, konkrete relevante Maßnahmen zu Nachhaltigkeit sind dem Bericht zu entnehmen und werden auch umgesetzt. Der Umbau zur Klimaneutralität von lokaler Industrie, Handwerk und Wirtschaft wird als Ziel genannt und plausible Maßnahmen zur Erreichung davon festgelegt. Der Großteil der Betriebe hat Selbstverpflichtungen zur Klimaneutralität mit Jahreszahlen von 2045 oder früher."
+  },
+  "IWK_08": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Existiert nicht, bzw. erfüllt nicht Qualitätsanspruch.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Zero Waste–Strategie erfüllt nicht den erforderlichen Qualitätsanspruch.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Zero Waste–Strategie erfüllt nicht den erforderlichen Qualitätsanspruch.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Zero Waste–Strategie erfüllt nicht den erforderlichen Qualitätsanspruch."
+  },
+  "IWK_10": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: es existieren weder Repaircafés, offene Werkstätten noch Materialinitiativen in der Kommune (bzw. sie werden nicht von der Kommune beworben/unterstützt)..",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Mindestens ein Repaircafé* existiert und wird auf der Website der Kommune beworben.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Repaircafés* werden auf der Website der Kommune beworben und von dieser gefördert.."
+  },
+  "IWK_11": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: keine Verpackungssteuer aktiv und auch nicht geplant.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Beschluss gefasst, aber noch nicht in Kraft.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Verpackungssteuer existiert.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Verpackungssteuer existiert und mind. 8 von 14 Punkten erreicht."
+  },
+  "KV_02": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: keine Formen von Bürgerbeteiligungen bzw. nichts auffindbar.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Die Qualität, Form und Art der Bürgerbeteilung muss verbessert werden.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Die Qualität, Form und Art der Bürgerbeteilung muss verbessert werden.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Die Qualität, Form und Art der Bürgerbeteilung muss verbessert werden."
+  },
+  "KV_03": {
+    "0": "Aktueller Stand ist, in [MUNICIPALICY] gibt es keinen lokalen Klimafonds.",
+    "0.25": "Aktueller Stand: [MUNICIPALICY] hat einen lokaler Klimafond, aber das reicht noch nicht.",
+    "0.5": "",
+    "0.75": "Aktueller Stand: [MUNICIPALICY] hat einen lokaler Klimafond, aber das reicht noch nicht."
+  },
+  "KV_07": {
+    "0": "Aktueller Stand: [MUNICIPALICY] führt keine Klimarelevanzprüfung von Beschlüssen durch.",
+    "0.25": "Aktueller Stand: [MUNICIPALICY] führt keine umfassende Klimarelevanzprüfung von Beschlüssen durch.",
+    "0.5": "",
+    "0.75": "Aktueller Stand: [MUNICIPALICY] führt keine umfassende Klimarelevanzprüfung von Beschlüssen durch."
+  },
+  "KV_08": {
+    "0": "Aktueller Stand: Das Klimaschutzmanagement in [MUNICIPALICY] ist mangelhaft.",
+    "0.25": "Aktueller Stand: Das Klimaschutzmanagement in [MUNICIPALICY] ist nicht ausreichend.",
+    "0.5": "",
+    "0.75": "Aktueller Stand: Das Klimaschutzmanagement in [MUNICIPALICY] ist weiter verbesserungswürdig."
+  },
+  "KV_09": {
+    "0": "Aktueller Stand: [MUNICIPALICY] führt kein Monitoring bei Klimaschutzmaßnahmen durch.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Das Berichtswesen zum Monitoring ist nicht ausreichend",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Das Berichtswesen zum Monitoring ist nicht ausreichend"
+  },
+  "KV_10": {
+    "0": "Aktueller Stand: Die Anstrengungen in [MUNICIPALICY] zur Erreichen der Klimaneutralität reichen bei weitem nicht aus.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Das Klimaschutzkonzept mit Ziel Klimaneutralität bis 2045 reicht nicht aus.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Das Klimaschutzkonzept mit Ziel Klimaneutralität bis 2040 reicht nicht aus."
+  },
+  "KV_11": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Es gibt keine Unterstützung.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Die Unterstützung ist nicht ausreichend.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Die Unterstützung ist nicht ausreichend.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Die Unterstützung ist nicht ausreichend."
+  },
+  "LNE_02": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Keine Beratungsangebote zur Umstellung auf ökologische Landwirtschaft.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Die Beratungsangebote zur Umstellung auf ökologische Landwirtschaft ist nicht ausreichend.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY] zum Beratungsangebot zur Umstellung auf ökologische Landwirtschaft\" ist nicht ausreichend."
+  },
+  "LNE_05": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: es gibt keinen Beschluss.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Es gibt einen Beschluss, dass es überall mindestens eine vollwertige vegetarische/vegane Option geben muss.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Es gibt einen Beschluss, dass es überall mehrere vollwertige vegetarische/vegane Optionen geben muss.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY: Es gibt einen Beschluss, dass es überall mehrere vollwertige vegetarische/vegane Optionen geben muss UND diese entweder aus ökologischer Landwirtschaft (Bio) ODER von regionalen Anbietern bezogen werden müssen."
+  },
+  "LNE_08": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: es gibt kein Klimaanpassungskonzept oder Teilkonzept.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Erstellung von einem Klimaanpassungskonzept wurde in Auftrag gegeben bzw. kein umfassendes Konzept, sondern nur Teilkonzept z.B. Hitzeschutzkonzept etc..",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Klimaanpassungskonzept wurde beschlossen, aber es bleibt hinter den Anforderungen zurück..",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Klimaanpassungskonzept wurde beschlossen, aber es bleibt hinter den Anforderungen zurück."
+  },
+  "VK_01": {
+    "0": "",
+    "0.25": "Aktueller Stand in [MUNICIPALICY] bei E-Ladesäulen: 25-49 Watt pro Einwohner.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY] bei „E-Ladesäulen\": 50-99 Watt pro Einwohner.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY] bei „E-Ladesäulen\": 100-149 Watt pro Einwohner."
+  },
+  "VK_03": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Es gibt keinen Plan und keine Fahrradabstellanlagen.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Es reicht nicht, es muss unbedingt nachgebessert werden",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Es reicht nicht, es muss unbedingt nachgebessert werden"
+  },
+  "VK_04": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Es gibt keinen Beschluss zur Reduktion/Umwidmung von Parkplätzen.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Es gibt einen Beschluss, aber unverbindlich.",
+    "0.5": "",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Es gibt einen Beschluss mit Ziel bis 2035."
+  },
+  "VK_05": {
+    "0": "Aktueller Stand: In [MUNICIPALICY] ist die Qualität der ÖPNV-Anbindung nicht ausreichend.",
+    "0.25": "Aktueller Stand: In [MUNICIPALICY] ist die Qualität der ÖPNV-Anbindung nicht ausreichend.",
+    "0.5": "Aktueller Stand: In [MUNICIPALICY] ist die Qualität der ÖPNV-Anbindung nicht ausreichend.",
+    "0.75": "Aktueller Stand: In [MUNICIPALICY] ist die Qualität der ÖPNV-Anbindung nicht ausreichend."
+  },
+  "VK_06": {
+    "0": "Aktueller Stand: In [MUNICIPALICY] gibt es keine Carsharing-Angebote.",
+    "0.25": "Aktueller Stand: MUNICIPALICY] hat einen Beschluss.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Das Carsharing erfüllt nicht die hohen Ansprüche  (Ankermieter, Mitfahrangebote, Parkplätze, E-Flotte, Sozialpreise).",
+    "0.75": "Aktueller Stand in [MUNICIPALICY] bei „Carsharing-Angebote\": Carsharing der Kommune erfüllt 3 von 5 Qualitätskriterien."
+  },
+  "VK_08": {
+    "0": "Aktueller Stand: In [MUNICIPALICY] gibt es keine öffentliche Information dazu.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY] bei „Elektrifizierung ÖPNV\": Beschluss vollständige Elektrifizierung bis spätestens 2035.",
+    "0.5": "",
+    "0.75": "Aktueller Stand: [MUNICIPALICY] hat einen Beschluss zur vollständige Elektrifizierung bis spätestens 2030 und mit der Umsetzung begonnen."
+  },
+  "VK_16": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Das Radverkehrsnetz ist kleiner als 10% des Straßennetzes.",
+    "0.25": "Aktueller Stand in [MUNICIPALICY]: Das Radverkehrsnetz ist zwischen 10% und 15% des Straßennetzes.",
+    "0.5": "Aktueller Stand in [MUNICIPALICY]: Das Radverkehrsnetz ist zwischen 15% und 20% des Straßennetzes.",
+    "0.75": "Aktueller Stand in [MUNICIPALICY]: Das Radverkehrsnetz ist zwischen 20% und 25% des Straßennetzes."
+  },
+  "VK_20": {
+    "0": "Aktueller Stand in [MUNICIPALICY]: Es gibt keinen Beschluss / Bekanntmachung der Kommune bzgl eines Mängelmelders.",
+    "0.25": "Aktueller Stand: [MUNICIPALICY] hat beschlossen, dass sie Mängelmeldung implementieren will.",
+    "0.5": "",
+    "0.75": "Aktueller Stand: [MUNICIPALICY] betreibt einen Mängelmelder für kommunale Radwege, aber der Bearbeitungsstatus gemeldeter Mängel ist NICHT transparent öffentlich aufgeführt (z.B mit einer Karte)."
+  }
+}

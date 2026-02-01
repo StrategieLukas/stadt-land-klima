@@ -21,7 +21,7 @@
         </p>
         
         <div v-if="measure.description_benefit" v-html="md.render(measure.description_benefit)" class="italic"></div>
-        <div v-if="measure.improvementString">{{ measure.improvementString }}. Wie haben Sie vor, dies zu ändern?</div>
+        <div v-if="measure.improvementString">{{ measure.currentProgress }}. {{ measure.politicalDemand }}</div>
         <div v-if="measure.description_contribution" class="my-2">
           <strong>So kannst du die Maßnahme einbringen</strong>
           <div v-html="md.render(measure.description_contribution)"/>
@@ -39,7 +39,8 @@
 
 <script setup>
   import MarkdownIt from 'markdown-it'
-  import measureImprovementStrings from "~/assets/measure-improvement-strings.json"
+  import measureCurrentProgressStrings from "~/assets/measure-current-progress-strings.json"
+  import measurePoliticalDemandStrings from "~/assets/measure-political-demand-strings.json"
 
   const md = new MarkdownIt();
 
@@ -61,8 +62,6 @@
       required: true,
     },
   });
-
-  console.log(measureImprovementStrings);
 
 
   const sortedMeasures = props.ratingsMeasures
@@ -93,7 +92,8 @@
         difficulty: difficulty,
         description_benefit: item.measure?.description_benefit,
         description_contribution: item.measure?.description_contribution,
-        improvementString: fetchImprovementString(item.measure?.measure_id, item.rating),
+        currentProgress: fetchCurrentProgressString(item.measure?.measure_id, item.rating),
+        politicalDemand: fetchPoliticalDemandString(item.measure?.measure_id, item.rating),
       }
   })
   .sort((a, b) => {
@@ -107,9 +107,18 @@
       return a.measure_id.localeCompare(b.measure_id)
   })
 
-  function fetchImprovementString(measureId, rating) {
+  function fetchCurrentProgressString(measureId, rating) {
       // Fetch base String from map
-      let rawString = (measureImprovementStrings[measureId] || {})[rating] || ""
+      let rawString = (measureCurrentProgressStrings[measureId] || {})[rating] || ""
+
+      // Replace dynamic labels with their values
+      return rawString
+        .replaceAll("MUNICIPALITY", props.municipalityScore.municipality.name)
+  }
+
+  function fetchPoliticalDemandString(measureId, rating) {
+      // Fetch base String from map
+      let rawString = (measurePoliticalDemandStrings[measureId] || {})[rating] || ""
 
       // Replace dynamic labels with their values
       return rawString
