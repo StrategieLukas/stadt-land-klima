@@ -21,7 +21,8 @@
         </p>
         
         <div v-if="measure.description_benefit" v-html="md.render(measure.description_benefit)" class="italic"></div>
-        <div v-if="measure.improvementString">{{ measure.currentProgress }}. {{ measure.politicalDemand }}</div>
+        <div v-if="measure.currentProgress">{{ measure.currentProgress }}</div>
+        <div v-if="measure.politicalDemand">{{ measure.politicalDemand }}</div>
         <div v-if="measure.description_contribution" class="my-2">
           <strong>So kannst du die Maßnahme einbringen</strong>
           <div v-html="md.render(measure.description_contribution)"/>
@@ -62,6 +63,9 @@
       required: true,
     },
   });
+
+  console.log(measurePoliticalDemandStrings)
+  console.log(measurePoliticalDemandStrings["EN_01"]["0.75"])
 
 
   const sortedMeasures = props.ratingsMeasures
@@ -113,7 +117,7 @@
 
       // Replace dynamic labels with their values
       return rawString
-        .replaceAll("MUNICIPALITY", props.municipalityScore.municipality.name)
+        .replaceAll("[MUNICIPALITY]", props.municipalityScore.municipality.name)
   }
 
   function fetchPoliticalDemandString(measureId, rating) {
@@ -122,7 +126,7 @@
 
       // Replace dynamic labels with their values
       return rawString
-        .replaceAll("MUNICIPALITY", props.municipalityScore.municipality.name)
+        .replaceAll("[MUNICIPALITY]", props.municipalityScore.municipality.name)
   }
 
   const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config

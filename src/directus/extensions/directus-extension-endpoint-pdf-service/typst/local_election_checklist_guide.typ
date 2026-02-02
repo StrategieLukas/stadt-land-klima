@@ -91,7 +91,9 @@
       #text(measure.description_benefit, style:"italic", size: 10pt)\
     ]
     }
-    #measure.improvementString
+    #measure.currentProgress
+    #v(unit*0.5)
+    #measure.politicalDemand
     #v(unit*0.5)
   ]
 }
