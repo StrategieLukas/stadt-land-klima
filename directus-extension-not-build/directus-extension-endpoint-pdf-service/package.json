@@ -25,6 +25,7 @@
 		"validate": "directus-extension validate"
 	},
 	"devDependencies": {
-		"@directus/extensions-sdk": "16.0.2"
+		"@directus/extensions-sdk": "16.0.2",
+		"html-to-text": "9.0.5"
 	}
 }

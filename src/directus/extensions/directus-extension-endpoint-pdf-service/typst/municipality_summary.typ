@@ -29,7 +29,7 @@
   paper: "a4",
   header: header.header(is_major_city: is_major_city),
   header-ascent: 100% - 2em,
-  footer: footer.footer,
+  footer: footer.footer(),
   footer-descent: 100% - 1.5em,
   margin: (x: 9mm, top:20mm, bottom:10mm),
 );

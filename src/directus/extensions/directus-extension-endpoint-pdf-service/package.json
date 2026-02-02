@@ -1,6 +1,6 @@
 {
 	"name": "pdf-service",
-	"description": "Generate a PDF for a municipality",
+  	"description": "Generate a PDF for a municipality",
 	"icon": "extension",
 	"version": "1.0.0",
 	"keywords": [
@@ -25,6 +25,7 @@
 		"validate": "directus-extension validate"
 	},
 	"devDependencies": {
-		"@directus/extensions-sdk": "16.0.2"
+		"@directus/extensions-sdk": "16.0.2",
+		"html-to-text": "9.0.5"
 	}
 }

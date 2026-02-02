@@ -22,13 +22,21 @@ export async function getCatalogVersion($directus, $readItems, route, showCurren
   return defaults[0];
 }
 
+export async function getCurrentFrontendCatalogVersion($directus, $readItems) {
+  const response = await $directus.request(
+    $readItems("measure_catalog", {
+      fields: ["id", "name", "isCurrentFrontend", "isCurrentBackend"],
+      filter: { hidden: { _eq: false }, isCurrentFrontend: { _eq: true } },
+      limit: -1,
+    })
+  );
+  return response?.[0];
+}
+
 // Fetches the catalog version and updates the URL to match it
 export async function setCatalogVersionUrl(route, router, selectedCatalogVersion) {
   // Change the URL to match the catalog version, if it didn't to begin with
-  console.log("TEST")
   if (process.client && route.query.v != selectedCatalogVersion.name) {
-    console.log("TEST2")
-      console.log("TEST3")
       router.replace({ query: { ...route.query, v: selectedCatalogVersion.name } });
   }
 }

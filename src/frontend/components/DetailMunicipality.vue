@@ -33,7 +33,7 @@
           />
           <MunicipalityTreeMap 
             v-if="activeTab === 'treemap'"
-            :sorted-ratings="sortedRatings" 
+            :ratings-by-sector="ratingsBySector" 
             :name-municipality="municipality.name" 
           />
         </div>
@@ -82,12 +82,27 @@
         class="mb-4 shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
       >
         <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-        <h2 class="font-heading text-h2 text-blue-600">
+        <h2 class="font-heading text-h2">
           {{ $t("stats.title") }} →
         </h2>
       </NuxtLink>
 
-      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :sortedRatings="sortedRatings"/>
+      <!-- Mobile: Kommunalwahl Question Generation Link -->
+      <NuxtLink
+        :to="`/elections/${municipality.slug}`"
+        class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
+      >
+        <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+        <h3 class="font-heading text-h2 ">
+          {{
+            $t("local_elections.title", {
+              ":year": municipalElectionYear ?? ""
+            })
+          }} →
+        </h3>
+      </NuxtLink>
+
+      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector"/>
     </div>
 
     <!-- Desktop: Two column layout -->
@@ -117,17 +132,17 @@
             </a>
           </div>
           <div class="mt-4 bg-base-100 border-base-300 rounded-box p-6">
-            <municipality-polar-chart 
-              v-if="activeTab === 'polar'"
-              :sub-scores="subScores" 
-              :name-municipality="municipality.name" 
-            />
-            <municipality-tree-map 
-              v-if="activeTab === 'treemap'"
-              :sorted-ratings="sortedRatings" 
-              :name-municipality="municipality.name" 
-            />
-          </div>
+          <MunicipalityPolarChart 
+            v-if="activeTab === 'polar'"
+            :sub-scores="subScores" 
+            :name-municipality="municipality.name" 
+          />
+          <MunicipalityTreeMap 
+            v-if="activeTab === 'treemap'"
+            :ratings-by-sector="ratingsBySector" 
+            :name-municipality="municipality.name" 
+          />
+        </div>
         </div>
         <div class="mx-auto mb-8 flex justify-center">
           <implementation-traffic-light v-if="activeTab === 'polar'" />
@@ -147,7 +162,7 @@
           </div>
         </div>
 
-        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :sortedRatings="sortedRatings"/>
+        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector"/>
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
@@ -158,12 +173,27 @@
 
           <!-- Statistics Section Link -->
           <NuxtLink
-            :to="`/stats/${municipality.ars}`"
+          :to="municipality.ars ? `/stats/${municipality.ars}` : '/stats'"
             class="shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
           >
             <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
-            <h3 class="font-heading text-h3 text-blue-600">
+            <h3 class="font-heading text-h3">
               {{ $t("stats.title") }} →
+            </h3>
+          </NuxtLink>
+
+          <!-- Kommunalwahl Question Generation Link -->
+          <NuxtLink
+            :to="`/elections/${municipality.slug}`"
+            class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
+          >
+            <img src="~/assets/icons/icon_politics.svg" class="h-6 w-6 opacity-60" />
+            <h3 class="font-heading text-h3">
+              {{
+                $t("local_elections.title", {
+                  ":year": municipalElectionYear ?? ""
+                })
+              }} →
             </h3>
           </NuxtLink>
 
@@ -231,8 +261,11 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-import sanitizeHtml from "sanitize-html";
-import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils.js";
+import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils.js";
+
+const municipalElectionYear = computed(() => {
+  return getStateMunicipalElectionYear(municipality?.state);
+})
 
 
 const { range } = lodash;
@@ -243,7 +276,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  sortedRatings: {
+  ratingsBySector: {
     type: Object,
     required: true,
   },

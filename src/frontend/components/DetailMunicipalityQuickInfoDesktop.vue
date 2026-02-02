@@ -28,7 +28,7 @@
             </div>
 
             <!-- Info grid (always visible, outside collapse) -->
-            <!-- Berlin and Hamburg are the only states which have one municpality (Bremen has Bremen and Bremerhaven) -->
+            <!-- Berlin and Hamburg are the only states which have one municipality (Bremen has Bremen and Bremerhaven) -->
             <div class="px-6 pb-6 space-y-3">
             <div
                 v-if="municipality?.state && municipality.state !== 'Berlin' && municipality.state !== 'Hamburg'"
@@ -46,7 +46,7 @@
                 <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
                 <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
                 </div>
-                <span class="text-sm font-bold text-gray-900">{{ municipality.population.toLocaleString() }}</span>
+                <span class="text-sm font-bold text-right text-gray-900">{{ municipality.population.toLocaleString() }}</span>
             </div>
 
             <div v-if="municipality?.mayor" class="flex items-center justify-between">
@@ -57,7 +57,7 @@
                 <span v-if="municipality.party_mayor" class="text-sm font-bold text-gray-900 text-right">
                 {{ municipality.mayor }} ({{ municipality.party_mayor }})
                 </span>
-                <span v-else class="text-sm font-bold text-gray-900 text-right">{{ municipality.party_mayor }}</span>
+                <span v-else class="text-sm font-bold text-right text-gray-900 text-right">{{ municipality.party_mayor }}</span>
             </div>
 
             <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
@@ -65,7 +65,7 @@
                 <div v-html="MunicipalitySvg" class="h-5 w-5 opacity-60"/>
                 <span class="text-sm text-gray-700">{{ $t("municipality.municipality_type") }}</span>
                 </div>
-                <span class="text-sm font-bold text-gray-900">
+                <span class="text-sm font-bold text-right text-gray-900">
                 {{ municipality.municipality_type === 'big_city'
                     ? $t("municipality.municipality_type.major_city")
                     : $t("municipality.municipality_type.minor_city") }}
@@ -76,7 +76,7 @@
                 <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm font-medium text-gray-700">{{ $t("municipality.overall_score") }}</span>
+                    <span class="text-sm font-medium text-right text-gray-700">{{ $t("municipality.overall_score") }}</span>
                 </div>
                 <span class="text-sm font-bold" :class="`text-${getScorePercentageColor(municipalityScore.score_total)}`">
                     {{ Math.round(Number(municipalityScore.score_total) * 10) / 10 }}%
