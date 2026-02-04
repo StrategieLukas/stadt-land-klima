@@ -14,37 +14,30 @@
   "EN_03": {
     "0": "Aktueller Stand in [MUNICIPALITY]: keine Beratungsangebote.",
     "0.25": "Aktueller Stand: [MUNICIPALITY] verlinkt auf ihrer Webseite aktiv Beratungsangebote zur Klimaneutralität.",
-    "0.5": "",
     "0.75": "Aktueller Stand: [MUNICIPALITY] bewirbt UND bezuschusst Beratungsangebote zur Klimaneutralität."
   },
   "EN_05": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Es gibt keine Balkonsolarförderung.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Eine Balkonsolarförderung wurde beschlossen und angekündigt (innerhalb der letzten 2 Jahre).",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Es gibt eine Förderung (innerhalb der letzten 2 Jahre), die nicht alle Ansprüchen erfüllt."
   },
   "EN_06": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Greenwashing von Gas, es wird als klimaneutral verkauft o.ä..",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Gas wird angeboten, aber mit neutralem / faktischem Text.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Kommunewerke bieten aktiv Pakete und Programme an, wie Privatpersonen und/oder Unternehmen von Gas auf EE umsteigen können. Bsp: Leasing von Wärmepumpen, zusätzliche Fördermittel in Kooperation mit der Kommune, Unterstützung und Information für Fördermittelmanagement in Unternehmen, Fördermittelberatung und Abwicklung für Privatpersonen."
   },
   "EN_07": {
     "0": "Aktueller Stand in [MUNICIPALITY]: es wird kein Energiemonitoring von der Kommune veröffentlicht..",
     "0.25": "Aktueller Stand in [MUNICIPALITY] bei „Ökostrom für kommunale Liegenschaften\": 33 % an Liegenschaften mit qualifiziertem Ökostrom.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: 70 % der kommunalen Liegenschaften mit qualifiziertem Ökostrom."
   },
   "EN_09": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Mitglied bei DIE GAS- UND WASSERSTOFFWIRTSCHAFT e.V. (ehem. Zukunft Gas).",
-    "0.25": "Aktueller Stand in [MUNICIPALITY]: In keinem (oder beiden) der Vereine Mitglied.",
-    "0.5": "",
-    "0.75": ""
+    "0.25": "Aktueller Stand in [MUNICIPALITY]: In keinem (oder beiden) der Vereine Mitglied."
   },
   "EN_10": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Es gibt keinen 100%-Ökostrom-Vertrag.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]\": Stadtwerke bieten 100 % Ökostrom-Verträge an, aber auch fossile Verträge.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Es werden ausschließlich Ökostrom-Verträge angeboten, es besteht aber keine Zertifizierung von einem seriösen Ökostromlabel.."
   },
   "EN_11": {
@@ -74,7 +67,6 @@
   "GW_04": {
     "0": "Aktueller Stand in [MUNICIPALITY]: kein Beschluss, oder Sanierungsrate.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Beschluss zur Sanierung / Modernisierung ihrer Liegenschaften bei einer Sanierungsrate von mindestens 2 %.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Beschluss zur Sanierung / Modernisierung ihrer Liegenschaften bei einer Sanierungsrate von mindestens 3.5 %."
   },
   "GW_05": {
@@ -92,7 +84,6 @@
   "IWK_05": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Existiert nicht, oder erfüllt nicht die Mindestanforderungen der Stufe 0.25.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Findet mindestens jährlich statt und zumindest kleine Maßnahmen/Projekte zu Nachhaltigkeitsthemen sind in den Berichten dokumentiert.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Mindestens halbjährliche Berichte, konkrete relevante Maßnahmen zu Nachhaltigkeit sind dem Bericht zu entnehmen und werden auch umgesetzt. Der Umbau zur Klimaneutralität von lokaler Industrie, Handwerk und Wirtschaft wird als Ziel genannt und plausible Maßnahmen zur Erreichung davon festgelegt. Der Großteil der Betriebe hat Selbstverpflichtungen zur Klimaneutralität mit Jahreszahlen von 2045 oder früher."
   },
   "IWK_08": {
@@ -104,7 +95,6 @@
   "IWK_10": {
     "0": "Aktueller Stand in [MUNICIPALITY]: es existieren weder Repaircafés, offene Werkstätten noch Materialinitiativen in der Kommune (bzw. sie werden nicht von der Kommune beworben/unterstützt)..",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Mindestens ein Repaircafé* existiert und wird auf der Website der Kommune beworben.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Repaircafés* werden auf der Website der Kommune beworben und von dieser gefördert.."
   },
   "IWK_11": {
@@ -122,31 +112,26 @@
   "KV_03": {
     "0": "Aktueller Stand ist, in [MUNICIPALITY] gibt es keinen lokalen Klimafonds.",
     "0.25": "Aktueller Stand: [MUNICIPALITY] hat einen lokaler Klimafond, aber das reicht noch nicht.",
-    "0.5": "",
     "0.75": "Aktueller Stand: [MUNICIPALITY] hat einen lokaler Klimafond, aber das reicht noch nicht."
   },
   "KV_07": {
     "0": "Aktueller Stand: [MUNICIPALITY] führt keine Klimarelevanzprüfung von Beschlüssen durch.",
     "0.25": "Aktueller Stand: [MUNICIPALITY] führt keine umfassende Klimarelevanzprüfung von Beschlüssen durch.",
-    "0.5": "",
     "0.75": "Aktueller Stand: [MUNICIPALITY] führt keine umfassende Klimarelevanzprüfung von Beschlüssen durch."
   },
   "KV_08": {
     "0": "Aktueller Stand: Das Klimaschutzmanagement in [MUNICIPALITY] ist mangelhaft.",
     "0.25": "Aktueller Stand: Das Klimaschutzmanagement in [MUNICIPALITY] ist nicht ausreichend.",
-    "0.5": "",
     "0.75": "Aktueller Stand: Das Klimaschutzmanagement in [MUNICIPALITY] ist weiter verbesserungswürdig."
   },
   "KV_09": {
     "0": "Aktueller Stand: [MUNICIPALITY] führt kein Monitoring bei Klimaschutzmaßnahmen durch.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Das Berichtswesen zum Monitoring ist nicht ausreichend",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Das Berichtswesen zum Monitoring ist nicht ausreichend"
   },
   "KV_10": {
     "0": "Aktueller Stand: Die Anstrengungen in [MUNICIPALITY] zur Erreichen der Klimaneutralität reichen bei weitem nicht aus.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Das Klimaschutzkonzept mit Ziel Klimaneutralität bis 2045 reicht nicht aus.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Das Klimaschutzkonzept mit Ziel Klimaneutralität bis 2040 reicht nicht aus."
   },
   "KV_11": {
@@ -158,7 +143,6 @@
   "LNE_02": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Keine Beratungsangebote zur Umstellung auf ökologische Landwirtschaft.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Die Beratungsangebote zur Umstellung auf ökologische Landwirtschaft ist nicht ausreichend.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY] zum Beratungsangebot zur Umstellung auf ökologische Landwirtschaft\" ist nicht ausreichend."
   },
   "LNE_05": {
@@ -182,13 +166,11 @@
   "VK_03": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Es gibt keinen Plan und keine Fahrradabstellanlagen.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Es reicht nicht, es muss unbedingt nachgebessert werden",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Es reicht nicht, es muss unbedingt nachgebessert werden"
   },
   "VK_04": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Es gibt keinen Beschluss zur Reduktion/Umwidmung von Parkplätzen.",
     "0.25": "Aktueller Stand in [MUNICIPALITY]: Es gibt einen Beschluss, aber unverbindlich.",
-    "0.5": "",
     "0.75": "Aktueller Stand in [MUNICIPALITY]: Es gibt einen Beschluss mit Ziel bis 2035."
   },
   "VK_05": {
@@ -206,7 +188,6 @@
   "VK_08": {
     "0": "Aktueller Stand: In [MUNICIPALITY] gibt es keine öffentliche Information dazu.",
     "0.25": "Aktueller Stand in [MUNICIPALITY] bei „Elektrifizierung ÖPNV\": Beschluss vollständige Elektrifizierung bis spätestens 2035.",
-    "0.5": "",
     "0.75": "Aktueller Stand: [MUNICIPALITY] hat einen Beschluss zur vollständige Elektrifizierung bis spätestens 2030 und mit der Umsetzung begonnen."
   },
   "VK_16": {
@@ -218,7 +199,6 @@
   "VK_20": {
     "0": "Aktueller Stand in [MUNICIPALITY]: Es gibt keinen Beschluss / Bekanntmachung der Kommune bzgl eines Mängelmelders.",
     "0.25": "Aktueller Stand: [MUNICIPALITY] hat beschlossen, dass sie Mängelmeldung implementieren will.",
-    "0.5": "",
     "0.75": "Aktueller Stand: [MUNICIPALITY] betreibt einen Mängelmelder für kommunale Radwege, aber der Bearbeitungsstatus gemeldeter Mängel ist NICHT transparent öffentlich aufgeführt (z.B mit einer Karte)."
   }
 }

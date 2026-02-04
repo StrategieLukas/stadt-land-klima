@@ -36,6 +36,22 @@
   }
 }
 
+#let select_label_from_range(value) = {
+  if value == none {
+    "nicht anwendbar"
+  } else {
+    let parsed_value = float(value) * 100
+    (
+      (parsed_value >= 0 and parsed_value < 25, "nicht erfüllt"),
+      (parsed_value >= 25 and parsed_value < 50, "ansatzweise erfüllt"),
+      (parsed_value >= 50 and parsed_value < 75, "halbwegs erfüllt"),
+      (parsed_value >= 75 and parsed_value < 99, "größtenteils erfüllt"),
+      (parsed_value > 99, "vollständig erfüllt"),
+    ).find(c => c.at(0)).at(1)
+  }
+}
+
+
 
 // adapted from https://forum.typst.app/t/how-to-auto-size-text-and-images/1290/2
 #let fill-height-with-text(min: 0.1em, max: 5em, eps: 0.1em, it) = layout(size => {

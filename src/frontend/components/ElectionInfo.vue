@@ -100,6 +100,8 @@
         politicalDemand: fetchPoliticalDemandString(item.measure?.measure_id, item.rating),
       }
   })
+  // Filter out measures that have no corresponding text (i.e. old BETA measures that have been removed)
+  .filter(item => item.currentProgress && item.politicalDemand)
   .sort((a, b) => {
       // Sort by potential descending
       if (b.potential !== a.potential) return b.potential - a.potential

@@ -14,37 +14,30 @@
   "EN_03": {
     "0": "Wir verlangen: [MUNICIPALITY] bewirbt UND bezuschusst Beratungsangebote zur Klimaneutralität. [MUNICIPALITY] organisiert eigene Beratungsangebote im Rathaus oder an anderen leicht zugänglichen Orten in der Kommune. Das Angebot kann auch von externen Anbietern sein (z. B. IHK, Handwerkskammer, Netzagentur ) oder von der Wirtschaftsförderung - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir verlangen: [MUNICIPALITY] organisiert eigene Beratungsangebote im Rathaus oder an anderen leicht zugänglichen Orten in der Kommune. Das Angebot kann auch von externen Anbietern sein (z. B. IHK, Handwerkskammer, Netzagentur ) oder von der Wirtschaftsförderung - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir verlangen: [MUNICIPALITY] organisiert eigene Beratungsangebote im Rathaus oder an anderen leicht zugänglichen Orten in der Kommune. Das Angebot kann auch von externen Anbietern sein (z. B. IHK, Handwerkskammer, Netzagentur ) oder von der Wirtschaftsförderung - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "EN_05": {
     "0": "Unsere Forderung: Es muss eine Förderung aufgelegt werden, die bevorzugt oder ausschließlich an Mieter:innen vergeben wird und eine Höhe von mindestens 200  hat - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Unsere Forderung: Es muss eine Förderung aufgelegt werden, die bevorzugt oder ausschließlich an Mieter:innen vergeben wird und eine Höhe von mindestens 200  hat - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Unsere Forderung: Es muss eine Förderung aufgelegt werden, die bevorzugt oder ausschließlich an Mieter:innen vergeben wird und eine Höhe von mindestens 200  hat - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "EN_06": {
     "0": "Wir fordern verbindlich: Entweder gar kein Gas angeboten, oder bei Gasverträgen ein Hinweis darauf, dass dies klimaschädlich ist / ein Auslaufmodell / stattdessen Wärmepumpen o.ä. empfohlen werden - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir fordern verbindlich: Entweder gar kein Gas angeboten, oder bei Gasverträgen ein Hinweis darauf, dass dies klimaschädlich ist / ein Auslaufmodell / stattdessen Wärmepumpen o.ä. empfohlen werden - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir fordern verbindlich: Entweder gar kein Gas angeboten, oder bei Gasverträgen ein Hinweis darauf, dass dies klimaschädlich ist / ein Auslaufmodell / stattdessen Wärmepumpen o.ä. empfohlen werden - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "EN_07": {
     "0": "Wir verlangen: Alle Liegenschaften mit qualiifiziertem Ökostrom - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir verlangen: Alle Liegenschaften mit qualiifiziertem Ökostrom - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir verlangen: Alle Liegenschaften mit qualiifiziertem Ökostrom - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "EN_09": {
     "0": "Wir erwarten: Mitglied beim Bundesverband erneuerbare Energie und NICHT bei DIE GAS- UND WASSERSTOFFWIRTSCHAFT e.V. (ehem. Zukunft Gas) - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.25": "Wir erwarten: Mitglied beim Bundesverband erneuerbare Energie und NICHT bei DIE GAS- UND WASSERSTOFFWIRTSCHAFT e.V. (ehem. Zukunft Gas) - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
-    "0.75": ""
+    "0.25": "Wir erwarten: Mitglied beim Bundesverband erneuerbare Energie und NICHT bei DIE GAS- UND WASSERSTOFFWIRTSCHAFT e.V. (ehem. Zukunft Gas) - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "EN_10": {
     "0": "Wir erwarten: Stadtwerke bieten ausschließlich 100 % Ökostrom-Verträge an, die von einem seriösen Ökostromlabel zertifiziert wurden  - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir erwarten: Stadtwerke bieten ausschließlich 100 % Ökostrom-Verträge an, die von einem seriösen Ökostromlabel zertifiziert wurden  - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir erwarten: Stadtwerke bieten ausschließlich 100 % Ökostrom-Verträge an, die von einem seriösen Ökostromlabel zertifiziert wurden  - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "EN_11": {
@@ -74,7 +67,6 @@
   "GW_04": {
     "0": "Wir verlangen: Beschluss zur Sanierung / Modernisierung ihrer Liegenschaften bei einer Sanierungsrate von mindestens 5 % UND Veröffentlichung eines konkreten Sanierungsplans für die nächsten 5 Jahre - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir verlangen: Beschluss zur Sanierung / Modernisierung ihrer Liegenschaften bei einer Sanierungsrate von mindestens 5 % UND Veröffentlichung eines konkreten Sanierungsplans für die nächsten 5 Jahre - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir verlangen: Beschluss zur Sanierung / Modernisierung ihrer Liegenschaften bei einer Sanierungsrate von mindestens 5 % UND Veröffentlichung eines konkreten Sanierungsplans für die nächsten 5 Jahre - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "GW_05": {
@@ -104,7 +96,6 @@
   "IWK_10": {
     "0": "Wir erwarten: Repaircafés werden auf der Website der Kommune beworben und von dieser gefördert. - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir erwarten: Repaircafés werden auf der Website der Kommune beworben und von dieser gefördert. - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir erwarten: Repaircafés werden auf der Website der Kommune beworben und von dieser gefördert. - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "IWK_11": {
@@ -122,31 +113,26 @@
   "KV_03": {
     "0": "Wir erwarten: Den Aufbau eines lokaler Klimafonds, der aktiv bei der Förderung regionaler Klimaschutzmaßnahmen mitwirkt. In den nächsten fünf Jahren sollen mindestens zwei Projekte umgesetzt werden - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir erwarten: Eine aktive Mitwirkung des lokaler Klimafonds bei der Förderung regionaler Klimaschutzmaßnahmen. In den nächsten fünf Jahren sollen mindestens zwei Projekte umgesetzt werden - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir erwarten: Eine aktive Mitwirkung des lokaler Klimafonds bei der Förderung regionaler Klimaschutzmaßnahmen. In den nächsten fünf Jahren sollen mindestens zwei Projekte umgesetzt werden - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "KV_07": {
     "0": "Wir erwarten: Es wird eine Klimarelevanzprüfung aller Beschlüsse durchgeführt und transparent dargestellt - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir erwarten: Es wird eine Klimarelevanzprüfung aller Beschlüsse durchgeführt und transparent dargestellt - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir erwarten: Es wird eine Klimarelevanzprüfung aller Beschlüsse durchgeführt und transparent dargestellt - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "KV_08": {
     "0": "Wir fordern verbindlich ein Dezernat/Geschäftsbereich o.ä. primär für Klimaschutz, die im Organigramm der Kommune mindestens gleichwertig mit der Baubehörde oder direkt unterm (Ober-)bürgermeister sind - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir fordern verbindlich ein Dezernat/Geschäftsbereich o.ä. primär für Klimaschutz, die im Organigramm der Kommune mindestens gleichwertig mit der Baubehörde oder direkt unterm (Ober-)bürgermeister sind - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir fordern verbindlich ein Dezernat/Geschäftsbereich o.ä. primär für Klimaschutz, die im Organigramm der Kommune mindestens gleichwertig mit der Baubehörde oder direkt unterm (Ober-)bürgermeister sind - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "KV_09": {
     "0": "Wir verlangen: Unabhängiges Monitoring nach Sektoren, einen regelmäßigen, öffentlichen Ist-Bericht (mindestens jährlich) mit verbindlichen Nachsteuerungsmechanismen - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir verlangen: Unabhängiges Monitoring nach Sektoren, einen regelmäßigen, öffentlichen Ist-Bericht (mindestens jährlich) mit verbindlichen Nachsteuerungsmechanismen - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir verlangen: Unabhängiges Monitoring nach Sektoren, einen regelmäßigen, öffentlichen Ist-Bericht (mindestens jährlich) mit verbindlichen Nachsteuerungsmechanismen - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "KV_10": {
     "0": "Wir verlangen ein nachvollziehbares Klimaschutzkonzept mit dem Ziel Klimaneutralität bis 2035 zu erreichen. Maßnahmen müssen konkret mit Jahreszahlen zu ihrer Umsetzung und Einsparpotenzialen verknüpft sein. Für jede Maßnahme gibt es zudem eine Kostenschätzung. - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir verlangen ein nachvollziehbares Klimaschutzkonzept mit dem Ziel Klimaneutralität bis 2035 zu erreichen. Maßnahmen müssen konkret mit Jahreszahlen zu ihrer Umsetzung und Einsparpotenzialen verknüpft sein. Für jede Maßnahme gibt es zudem eine Kostenschätzung. - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir verlangen ein nachvollziehbares Klimaschutzkonzept mit dem Ziel Klimaneutralität bis 2035 zu erreichen. Maßnahmen müssen konkret mit Jahreszahlen zu ihrer Umsetzung und Einsparpotenzialen verknüpft sein. Für jede Maßnahme gibt es zudem eine Kostenschätzung. - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "KV_11": {
@@ -174,7 +160,7 @@
     "0.75": "Unsere Forderung: Klimaanpassungskonzept muss überarbeitet werden, so das es den Anforderung für ein gute Klimakonzept erfüllt - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "VK_01": {
-    "0": "",
+    "0": "Wir verlangen mehr als 150 Watt pro Einwohner - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir verlangen mehr als 150 Watt pro Einwohner - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.5": "Wir verlangen mehr als 150 Watt pro Einwohner - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.75": "Wir verlangen mehr als 150 Watt pro Einwohner - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
@@ -182,13 +168,11 @@
   "VK_03": {
     "0": "Wir erwarten: Sofort in die Planung zu gehen. Ziel: An allen wichtigen (Bus-)bahnhöfen und ÖPNV-Knotenpunkten kostenlose (!), witterungsgeschützte und abschließbare Fahrradabstellanlagen. Sie enthalten auch Plätze für Lastenräder/Anhänger und die Möglichkeit, Akkus aufzuladen. müssen vorhanden sein - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir erwarten: An allen wichtigen (Bus-)bahnhöfen und ÖPNV-Knotenpunkten kostenlose (!), witterungsgeschützte und abschließbare Fahrradabstellanlagen. Sie enthalten auch Plätze für Lastenräder/Anhänger und die Möglichkeit, Akkus aufzuladen. müssen vorhanden sein - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir erwarten: An allen wichtigen (Bus-)bahnhöfen und ÖPNV-Knotenpunkten kostenlose (!), witterungsgeschützte und abschließbare Fahrradabstellanlagen. Sie enthalten auch Plätze für Lastenräder/Anhänger und die Möglichkeit, Akkus aufzuladen. müssen vorhanden sein - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "VK_04": {
     "0": "Wir fordern verbindlich: Einen Beschluss mit konkretem Umsetzungsplan und Zielsetzung bis spätestens 2030. [MUNICIPALITY] veröffentlicht außerdem grundlegende Zahlen zur Anzahl der Parkplätze - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir fordern verbindlich: Einen Beschluss mit Ziel bis 2030 und mit konkretem Umsetzungsplan. [MUNICIPALITY] veröffentlicht grundlegende Zahlen zur Anzahl der Parkplätze - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir fordern verbindlich: Einen Beschluss mit konkretem Umsetzungsplan und Zielsetzung bis spätestens 2030. [MUNICIPALITY] veröffentlicht grundlegende Zahlen zur Anzahl der Parkplätze - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "VK_05": {
@@ -206,7 +190,6 @@
   "VK_08": {
     "0": "Wir fordern verbindlich: Einen Beschluss zur vollständige Elektrifizierung bis spätestens 2030 und mit sofortigen Beginn der Umsetzung - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Wir fordern verbindlich: Die vollständige Elektrifizierung ist bis spätestens 2030 - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Wir fordern verbindlich: Alle Linienbusse sind elektrisch - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   },
   "VK_16": {
@@ -218,7 +201,6 @@
   "VK_20": {
     "0": "Unsere Forderung: [MUNICIPALITY] richtet einen Mängelmelder (z.B. Online-Formular, E-Mail) für kommunale Radwege ein und sichert eine transparente Bearbeitung gemeldeter Mängel  zu - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
     "0.25": "Unsere Forderung: [MUNICIPALITY] richtet sofort einen Mängelmelder (z.B. Online-Formular, E-Mail) für kommunale Radwege ein und sichert eine transparente Bearbeitung gemeldeter Mängel  zu - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt.",
-    "0.5": "",
     "0.75": "Unsere Forderung: [MUNICIPALITY] macht den Bearbeitungsstatus der gemeldeter Mängel transparent und öffentlich (z.B. mit einer Karte) - damit [MUNICIPALITY] auch in Zukunft ein lebenswerter Ort für alle bleibt."
   }
 }

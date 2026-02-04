@@ -5,7 +5,7 @@
 
 #import "visualization/overview_table.typ"
 #import "visualization/municipality_overview.typ" as item_ranking
-
+#import "visualization/rating_icon.typ": rating_icon
 
 // #let municipalityScore = json("sample_data/municipalityScore.json")
 // #let election_guide_questions = json("sample_data/elections_measure_text.json")
@@ -73,28 +73,47 @@
   overview_table.draw_overview_table(municipalityScore, rating_measures)
 )
 
-#text(size: 16pt, weight: "bold")[#municipalityScore.municipality.name \ Fragen zur Kommunalwahl:]
+#grid(
+  columns: 6,
+  gutter: 1fr,
+  align: center,
+
+  rating_icon(0),
+  rating_icon(0.25),
+  rating_icon(0.5),
+  rating_icon(0.75),
+  rating_icon(1),
+  rating_icon(none),
+)
+
+
+#text(size: 16pt, weight: "bold")[Fragen zur Kommunalwahl:]
 
 #for (i, measure) in election_guide_questions.measure_text.enumerate(){
-  box(width: 70%)[
-    #box(image(util.select_pin_from_range(measure.rating), height: 1em, fit: "contain"), baseline: 1pt)
-    #strong(str(i+1) + ". " + measure.name + " | " + measure.measure_id)\
+  box(width: 100%)[
+    //#box(image(util.select_pin_from_range(measure.rating), height: 1em, fit: "contain"), baseline: 1pt)
+    #text(size: 16pt)[
+      #strong(str(i+1) + ". " + measure.name + " | " + measure.measure_id)
+    ]\
     #text(fill: luma(30%), size: 10pt, [
-    Impact: #level2text(measure.impact),
-    Kontroverse: #level2text(measure.feasibility_political),
-    Kosten: #level2text(measure.feasibility_economical)
+    //Impact: #level2text(measure.impact),
+    //Kontroverse: #level2text(measure.feasibility_political),
+    //Kosten: #level2text(measure.feasibility_economical)
+    Aktuelle Bewertung:   #box(image(util.select_pin_from_range(measure.rating), height: 1.2em, fit: "contain"), baseline: 1pt) #box("  (" + util.select_label_from_range(measure.rating) + ")")
+
     // Bewertung: #calc.round(float(measure.rating), digits: 2) 
     // Gewicht: #calc.round(float(measure.weight), digits: 2)
-    ])\
+    ])
     #if(type(measure.description_benefit) == str){
     [
-      #text(measure.description_benefit, style:"italic", size: 10pt)\
+      #text(measure.description_benefit, style:"italic")
+      #v(unit*0.3)
     ]
     }
     #measure.currentProgress
-    #v(unit*0.5)
+    #v(unit*0.3)
     #measure.politicalDemand
-    #v(unit*0.5)
+    #v(unit*0.3)
   ]
 }
 

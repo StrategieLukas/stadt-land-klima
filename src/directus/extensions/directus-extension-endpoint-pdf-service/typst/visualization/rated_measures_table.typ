@@ -46,6 +46,7 @@
   }
   rating_table_data = rating_table_data.flatten().sorted(key: it => (it.sortable_rating, lower(it.measure.measure_id)))
 
+  // todo - refactor the cells from static svg/text to using the helper functions from utils for that
   table(
     columns: (0.5cm, 1.4cm, 100%-7.0cm, 1.9cm, 1.9cm, 1.9cm),
     stroke: white + 0.25em,
