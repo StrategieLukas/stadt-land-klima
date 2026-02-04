@@ -12,6 +12,10 @@
     Mit dem Knopf unten könnt ihr euch direkt eine PDF generieren lassen, die ihr so verwenden könnt.
   </p>
 
+  <div class="flex items-center justify-center my-4">
+    <button @click="fetchPDF()" class="p-4 flex items-center text-white bg-gray h-10">PDF generieren</button>
+  </div>
+
   <p class="text-red" v-if="usingFallbackCatalog">Diese Fragen wurden auf Basis einer alten Bewertung ({{ municipalityScore.catalog_version.name }}) generiert, da die Kommune noch nicht für die neuste Version ({{ currentCatalogVersion.name }}) bewertet wurde.</p>
   <ul>
     <li v-for="(measure, index) in sortedMeasures.slice(0, 10)" :key="measure.measure_id">
@@ -33,7 +37,9 @@
         </NuxtLink>
       </div>
     </li>
-   <button @click="fetchPDF()" class="p-4 flex items-center justify-end text-white bg-gray h-10">PDF</button>
+    <div class="flex items-center justify-center">
+      <button @click="fetchPDF()" class="p-4 flex items-center text-white bg-gray h-10">PDF generieren</button>
+    </div>
     
   </ul>
 </template>
