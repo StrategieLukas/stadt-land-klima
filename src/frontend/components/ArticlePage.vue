@@ -69,11 +69,11 @@
         </div>
   
         <!-- Abstract -->
-        <p class="text-gray-700 font-semibold mb-4">{{ abstract }}</p>
+        <p v-if="abstract" v-html="md.render(abstract)" class="text-gray-700 font-semibold mb-4"/>
   
         <!-- Main Text -->
         <div class="text-gray-700 mb-4">
-          <div v-html="article_text"></div>
+          <div v-html="md.render(article_text)"></div>
         </div>
 
         <!-- Organisation note -->
