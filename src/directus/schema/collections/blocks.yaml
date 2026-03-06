@@ -1,0 +1,28 @@
+collection: blocks
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: blocks
+  color: null
+  display_template: '{{bundle}} - {{field_name}}'
+  group: null
+  hidden: false
+  icon: view_module
+  item_duplication_fields: null
+  note: Stores individual block content for blökkli page builder
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: sort_order
+  translations:
+    - language: de-DE
+      translation: Blöcke
+      singular: Block
+      plural: Blöcke
+  unarchive_value: draft
+  versioning: false
+schema:
+  name: blocks

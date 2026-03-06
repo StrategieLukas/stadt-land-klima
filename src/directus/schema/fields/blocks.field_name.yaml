@@ -1,0 +1,21 @@
+collection: blocks
+field: field_name
+type: string
+meta:
+  collection: blocks
+  field: field_name
+  interface: input
+  note: Field name where this block belongs
+  required: true
+  sort: 7
+  translations:
+    - language: de-DE
+      translation: Feldname
+  width: half
+schema:
+  name: field_name
+  table: blocks
+  data_type: varchar
+  max_length: 255
+  is_nullable: false
+  is_indexed: true

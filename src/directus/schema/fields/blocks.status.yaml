@@ -1,0 +1,29 @@
+collection: blocks
+field: status
+type: string
+meta:
+  collection: blocks
+  field: status
+  interface: select-dropdown
+  note: Block status
+  options:
+    choices:
+      - text: Published
+        value: published
+      - text: Draft  
+        value: draft
+      - text: Archived
+        value: archived
+  required: false
+  sort: 10
+  translations:
+    - language: de-DE
+      translation: Status
+  width: half
+schema:
+  name: status
+  table: blocks
+  data_type: varchar
+  max_length: 255
+  default_value: draft
+  is_nullable: false

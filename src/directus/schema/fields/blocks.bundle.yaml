@@ -1,0 +1,40 @@
+collection: blocks
+field: bundle
+type: string
+meta:
+  collection: blocks
+  display: null
+  display_options: null
+  field: bundle
+  group: null
+  hidden: false
+  interface: input
+  note: Block type/component name
+  options: null
+  readonly: false
+  required: true
+  sort: 3
+  special: null
+  translations:
+    - language: de-DE
+      translation: Block-Typ
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: bundle
+  table: blocks
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_generated: false
+  generation_expression: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false
+  is_indexed: true
+  has_auto_increment: false
+  foreign_key_column: null
+  foreign_key_table: null

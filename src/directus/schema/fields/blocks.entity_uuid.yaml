@@ -1,0 +1,20 @@
+collection: blocks
+field: entity_uuid
+type: uuid
+meta:
+  collection: blocks
+  field: entity_uuid
+  interface: input
+  note: UUID of parent entity
+  required: true
+  sort: 6
+  translations:
+    - language: de-DE
+      translation: Entitäts-UUID
+  width: half
+schema:
+  name: entity_uuid
+  table: blocks
+  data_type: uuid
+  is_nullable: false
+  is_indexed: true
