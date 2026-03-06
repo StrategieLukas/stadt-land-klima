@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex">
+  <div class="bg-gray-50 flex">
     <!-- Sidebar -->
     <MeasuresSidebar
       :catalogs="catalogs"
@@ -13,7 +13,7 @@
     />
 
     <!-- Main Content -->
-    <div class="flex-1 overflow-auto">
+    <div class="flex-1">
       <!-- Header -->
       <header class="bg-white shadow sticky top-0 z-10">
         <div class="px-6 py-4">
@@ -42,12 +42,13 @@
               <button
                 v-if="canEditMeasures && selectedCatalog"
                 @click="showCreateMeasureModal = true"
-                class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                class="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                style="background-color: #16a34a !important; color: white !important; border: none !important;"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: white !important;">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Neue Maßnahme
+                <span style="color: white !important;">Neue Maßnahme</span>
               </button>
             </div>
           </div>
@@ -71,7 +72,7 @@
                 ? 'bg-white border border-b-white border-gray-200 text-green-600 -mb-px' 
                 : 'text-gray-500 hover:text-gray-700'"
             >
-              {{ $t(`sectors.${selectedSector}`) }}
+              {{ $t(`measure_sectors.${selectedSector}.title`) }}
             </button>
             <button
               v-if="selectedMeasure"
@@ -210,7 +211,7 @@
                   :alt="sector"
                   class="w-10 h-10 opacity-70"
                 />
-                <h3 class="font-bold text-gray-900">{{ $t(`sectors.${sector}`) }}</h3>
+                <h3 class="font-bold text-gray-900">{{ $t(`measure_sectors.${sector}.title`) }}</h3>
               </div>
               <div class="flex items-center justify-between text-sm">
                 <span class="text-gray-600">{{ sectorMeasures.length }} Maßnahmen</span>
@@ -231,7 +232,7 @@
               class="w-16 h-16 opacity-70"
             />
             <div>
-              <h2 class="text-xl font-bold text-gray-900">{{ $t(`sectors.${selectedSector}`) }}</h2>
+              <h2 class="text-xl font-bold text-gray-900">{{ $t(`measure_sectors.${selectedSector}.title`) }}</h2>
               <p class="text-gray-600">
                 {{ measuresBySector[selectedSector]?.length || 0 }} Maßnahmen in diesem Sektor
               </p>
@@ -254,6 +255,7 @@
         <!-- Measure Tab -->
         <div v-else-if="activeTab === 'measure' && selectedMeasure">
           <MeasureDetailView
+            :key="`${selectedCatalogId}-${selectedMeasureId}`"
             :measure="selectedMeasure"
             :catalog="selectedCatalog"
             :can-edit="canEditMeasures"
@@ -280,8 +282,13 @@ import { useRoute, useRouter } from 'vue-router';
 import { useNuxtApp, useRuntimeConfig } from '#app';
 import { createDirectus, rest, authentication, readItems } from '@directus/sdk';
 import { useAuthStore } from '~/stores/auth';
+import { useAuth } from '~/composables/useAuth';
 import { usePermissions } from '~/composables/usePermissions';
 import { useCatalogAdmin } from '~/composables/useCatalogAdmin';
+
+definePageMeta({
+  middleware: 'role-guard'
+});
 import sectorImages from '~/shared/sectorImages.js';
 import MeasuresSidebar from '~/components/admin/MeasuresSidebar.vue';
 import MeasureListItem from '~/components/admin/MeasureListItem.vue';
@@ -293,6 +300,7 @@ const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
 const authStore = useAuthStore();
+const { initialize } = useAuth();
 
 const { canEditMeasures, canManageCatalogVersions } = usePermissions();
 const { catalogs, fetchCatalogs, isLoading: catalogsLoading, error: catalogsError } = useCatalogAdmin();
@@ -437,6 +445,12 @@ watch(selectedCatalogId, () => {
 
 // Initialize
 onMounted(async () => {
+  console.log('📝 Measures Page: Checking permissions', {
+    canEditMeasures: canEditMeasures.value,
+    canManageCatalogVersions: canManageCatalogVersions.value,
+    catalogsLoading: catalogsLoading.value
+  });
+  
   try {
     await fetchCatalogs();
     

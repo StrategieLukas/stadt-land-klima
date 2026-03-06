@@ -112,10 +112,11 @@
           </button>
           <button
             @click="handleSubmit"
-            class="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
+            class="px-4 py-2 rounded-lg disabled:opacity-50"
+            style="background-color: #16a34a !important; color: white !important; border: none !important;"
             :disabled="isSubmitting"
           >
-            {{ isSubmitting ? 'Speichern...' : 'Speichern' }}
+            <span style="color: white !important;">{{ isSubmitting ? 'Speichern...' : 'Speichern' }}</span>
           </button>
         </div>
       </div>

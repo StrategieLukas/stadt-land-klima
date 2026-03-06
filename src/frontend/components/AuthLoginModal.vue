@@ -32,9 +32,6 @@
             <h2 id="login-modal-title" class="text-2xl font-bold text-gray-900">
               {{ $t('auth.login_title') }}
             </h2>
-            <p class="mt-1 text-sm text-gray-600">
-              {{ $t('auth.login_subtitle') }}
-            </p>
           </div>
           
           <!-- Login Form -->
@@ -112,7 +109,7 @@
                 </svg>
                 {{ $t('auth.logging_in') }}...
               </span>
-              <span v-else>{{ $t('auth.login') }}</span>
+              <span v-else>{{ $t('auth.login_title') }}</span>
             </button>
           </form>
           

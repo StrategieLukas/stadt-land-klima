@@ -6,7 +6,7 @@
  */
 
 import { ref, computed } from 'vue';
-import { createDirectus, rest, readItem, readItems, updateItem, createItem } from '@directus/sdk';
+import { createDirectus, rest, authentication, readItem, readItems, updateItem, createItem } from '@directus/sdk';
 import { useRuntimeConfig } from '#app';
 import { useAuthStore } from '~/stores/auth';
 import ratingEngine from '~/shared/ratingEngine';
@@ -22,7 +22,9 @@ function useDirectusClient() {
     ? config.public.clientDirectusUrl 
     : config.public.serverDirectusUrl;
   
-  const client = createDirectus(baseUrl || 'http://localhost:8055').with(rest());
+  const client = createDirectus(baseUrl || 'http://localhost:8055')
+    .with(rest())
+    .with(authentication('json'));
   
   // Note: accessToken is a readonly ref, so we need to access .value
   const token = authStore.accessToken?.value;

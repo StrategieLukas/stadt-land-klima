@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="bg-gray-50">
     <!-- Header -->
     <header class="bg-white shadow">
       <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -15,13 +15,15 @@
             </h1>
           </div>
           <button 
+            v-if="canManageCatalogVersions"
             @click="showCreateModal = true"
-            class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-md"
+            style="min-width: 150px; background-color: #16a34a !important; color: white !important; border: none !important;"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: white !important;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            {{ $t('admin.catalogs.create_new') }}
+            <span style="color: white !important;">{{ $t('admin.catalogs.create_new') }}</span>
           </button>
         </div>
       </div>
@@ -76,16 +78,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { usePermissions } from '~/composables/usePermissions';
 import { useCatalogAdmin } from '~/composables/useCatalogAdmin';
+import { useAuthStore } from '~/stores/auth';
+import { useAuth } from '~/composables/useAuth';
 import CatalogTypeSection from '~/components/admin/CatalogTypeSection.vue';
 import CreateCatalogModal from '~/components/admin/CreateCatalogModal.vue';
 import EditCatalogModal from '~/components/admin/EditCatalogModal.vue';
 
+definePageMeta({
+  middleware: 'role-guard'
+});
+
 const { $t } = useNuxtApp();
 const router = useRouter();
+const { initialize } = useAuth();
 
+const authStore = useAuthStore();
 const { canManageCatalogVersions } = usePermissions();
 const { 
   catalogs, 
@@ -120,6 +130,7 @@ const catalogTypes = [
 // Handlers
 async function handleSetCurrent(catalogId, field, catalogType) {
   await setCurrentCatalog(catalogId, field, catalogType);
+  await fetchCatalogs(true);
 }
 
 function handleEditCatalog(catalog) {
@@ -128,7 +139,11 @@ function handleEditCatalog(catalog) {
 
 async function handleDeleteCatalog(catalog) {
   if (confirm($t('admin.catalogs.confirm_delete', { name: catalog.name }))) {
-    await deleteCatalog(catalog.id);
+    const success = await deleteCatalog(catalog.id);
+    if (success) {
+      // deleteCatalog already calls fetchCatalogs internally
+      console.log('✅ Catalog deleted successfully');
+    }
   }
 }
 
@@ -136,14 +151,14 @@ function handleOpenCatalog(catalog) {
   router.push(`/admin/measures?catalog=${catalog.id}`);
 }
 
-function handleCatalogCreated() {
+async function handleCatalogCreated() {
   showCreateModal.value = false;
-  fetchCatalogs();
+  await fetchCatalogs(true);
 }
 
-function handleCatalogSaved() {
+async function handleCatalogSaved() {
   editingCatalog.value = null;
-  fetchCatalogs();
+  await fetchCatalogs(true);
 }
 
 // Page meta
@@ -151,10 +166,35 @@ useHead({
   title: 'Katalogverwaltung - Admin'
 });
 
-// Load data
-onMounted(() => {
+// Load data when auth is ready
+onMounted(async () => {
+  console.log('📋 Catalogs Page: Initializing auth...');
+  
+  // Ensure auth is initialized from storage
+  await initialize();
+  
+  console.log('📋 Catalogs Page: Checking permissions', {
+    canManageCatalogVersions: canManageCatalogVersions.value,
+    loading: isLoading.value,
+    authStore: {
+      isAuthenticated: authStore.isAuthenticated.value,
+      userRole: authStore.userRole.value,
+      user: authStore.user.value,
+      hasToken: !!authStore.accessToken?.value
+    }
+  });
+  
   if (canManageCatalogVersions.value) {
+    console.log('🔄 Fetching catalogs on mount...');
     fetchCatalogs();
   }
 });
+
+// Watch for auth changes and fetch catalogs when permission becomes available
+watch(canManageCatalogVersions, (newValue) => {
+  if (newValue) {
+    console.log('🔄 Auth/permission changed, fetching catalogs...');
+    fetchCatalogs();
+  }
+}, { immediate: true });
 </script>

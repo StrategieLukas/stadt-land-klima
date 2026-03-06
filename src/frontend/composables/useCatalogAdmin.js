@@ -45,33 +45,63 @@ export function useCatalogAdmin() {
   /**
    * Fetch all measure catalogs with related data
    */
-  async function fetchCatalogs() {
+  async function fetchCatalogs(forceFresh = false) {
     isLoading.value = true;
     error.value = null;
+    
+    console.log('🔄 useCatalogAdmin: Fetching catalogs...' + (forceFresh ? ' (force fresh)' : ''));
+    console.log('🔐 Auth state:', {
+      hasToken: !!authStore.accessToken?.value,
+      tokenLength: authStore.accessToken?.value?.length,
+      userRole: authStore.userRole?.value,
+      userId: authStore.user?.value?.id
+    });
     
     try {
       const directus = createAuthenticatedClient();
       
+      // Add cache busting timestamp to force fresh data
+      const query = {
+        fields: [
+          'id',
+          'name',
+          'description',
+          'catalog_type',
+          'uses_structured_ratings',
+          'version_number',
+          'isCurrentFrontend',
+          'isCurrentBackend',
+          'hidden',
+          'date_created'
+        ],
+        sort: ['-date_created'],
+        limit: -1
+      };
+      
+      // Force cache bypass
+      if (forceFresh) {
+        query.meta = '*';
+      }
+      
       const result = await directus.request(
-        readItems('measure_catalog', {
-          fields: [
-            'id',
-            'name',
-            'description',
-            'catalog_type',
-            'uses_structured_ratings',
-            'version_number',
-            'isCurrentFrontend',
-            'isCurrentBackend',
-            'hidden',
-            'date_created'
-          ],
-          sort: ['-date_created'],
-          limit: -1
-        })
+        readItems('measure_catalog', query)
       );
       
+      console.log('📦 Raw result from Directus:', result);
+      console.log('📦 Result length:', result?.length);
+      console.log('📦 Result details:', result?.map(c => ({ 
+        id: c.id, 
+        name: c.name, 
+        hidden: c.hidden,
+        isCurrentFrontend: c.isCurrentFrontend,
+        isCurrentBackend: c.isCurrentBackend
+      })));
+      
       catalogs.value = result || [];
+      console.log('✅ Fetched catalogs:', catalogs.value.length, catalogs.value.map(c => c.name));
+      
+      // Clear stats cache
+      catalogStats.value = {};
       
       // Fetch stats for each catalog
       await Promise.all(catalogs.value.map(c => fetchCatalogStats(c.id)));
@@ -79,7 +109,13 @@ export function useCatalogAdmin() {
       return catalogs.value;
     } catch (err) {
       error.value = err.message || 'Failed to fetch catalogs';
-      console.error('Error fetching catalogs:', err);
+      console.error('❌ Error fetching catalogs:', err);
+      console.error('Error details:', {
+        message: err.message,
+        errors: err.errors,
+        token: authStore.accessToken?.value ? 'Token present' : 'No token',
+        userRole: authStore.userRole?.value
+      });
       return [];
     } finally {
       isLoading.value = false;
@@ -216,7 +252,7 @@ export function useCatalogAdmin() {
           description: data.description || '',
           catalog_type: data.catalog_type || 'climate_mitigation',
           uses_structured_ratings: data.uses_structured_ratings || false,
-          version_number: data.version_number || '1.0.0',
+          version_number: parseInt(data.version_number) || 1,
           isCurrentFrontend: false,
           isCurrentBackend: false,
           hidden: data.hidden || false
@@ -233,6 +269,12 @@ export function useCatalogAdmin() {
     } catch (err) {
       error.value = err.message || 'Failed to create catalog';
       console.error('Error creating catalog:', err);
+      console.error('Error details:', {
+        message: err.message,
+        errors: err.errors,
+        response: err.response,
+        stack: err.stack
+      });
       return null;
     } finally {
       isLoading.value = false;
@@ -337,7 +379,8 @@ export function useCatalogAdmin() {
         deleteItem('measure_catalog', catalogId)
       );
       
-      await fetchCatalogs();
+      // Force fresh fetch after deletion
+      await fetchCatalogs(true);
       return true;
     } catch (err) {
       error.value = err.message || 'Failed to delete catalog';

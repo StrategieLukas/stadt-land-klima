@@ -66,7 +66,7 @@
             >
               <option value="">Sektor auswählen...</option>
               <option v-for="sector in sectors" :key="sector" :value="sector">
-                {{ $t(`sectors.${sector}`) }}
+                {{ $t(`measure_sectors.${sector}.title`) }}
               </option>
             </select>
           </div>
@@ -111,6 +111,86 @@
               />
             </div>
           </div>
+
+          <!-- Legacy Catalog Fields (only for catalogs without structured ratings) -->
+          <div v-if="!isStructuredCatalog" class="space-y-5 pt-4 border-t">
+            <div class="text-sm font-medium text-gray-700 mb-2">
+              Legacy Katalog - Zusätzliche Pflichtfelder
+            </div>
+
+            <!-- Choices Rating -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Bewertungsoptionen *
+              </label>
+              <select
+                v-model="formData.choices_rating"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">Optionen auswählen...</option>
+                <option value="0">Rot / Grün</option>
+                <option value="1">Rot / Gelb / Grün</option>
+                <option value="2">Rot / Hellgrün / Grün</option>
+                <option value="3">Rot / Gelb / Hellgrün / Grün</option>
+                <option value="4">Rot / Orange / Gelb / Hellgrün / Grün</option>
+                <option value="5">Rot / Orange / Gelb / Grün</option>
+                <option value="6">Rot / Orange / Grün</option>
+                <option value="7">Rot / Orange / Hellgrün / Grün</option>
+              </select>
+            </div>
+
+            <!-- Description About -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Was beinhaltet diese Maßnahme? *
+              </label>
+              <textarea
+                v-model="formData.description_about"
+                rows="3"
+                required
+                placeholder="Beschreibung was diese Maßnahme beinhaltet..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              ></textarea>
+            </div>
+
+            <!-- Description Evaluation Criteria -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Bewertungskriterien *
+              </label>
+              <textarea
+                v-model="formData.description_evaluation_criteria"
+                rows="3"
+                required
+                placeholder="Kriterien für die Bewertung dieser Maßnahme..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              ></textarea>
+            </div>
+
+            <!-- Description Verification -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Wie wird diese Maßnahme überprüft? *
+              </label>
+              <textarea
+                v-model="formData.description_verification"
+                rows="3"
+                required
+                placeholder="Beschreibung wie man herausfindet, ob diese Maßnahme angenommen wurde..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Structured Catalog Info -->
+          <div v-else class="pt-4 border-t">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p class="text-sm text-blue-800">
+                <strong>Strukturierter Katalog:</strong> Bewertungskriterien und Entscheidungsbäume können nach der Erstellung der Maßnahme hinzugefügt werden.
+              </p>
+            </div>
+          </div>
         </form>
 
         <!-- Footer -->
@@ -125,10 +205,11 @@
           </button>
           <button
             @click="handleSubmit"
-            class="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
+            class="px-4 py-2 rounded-lg disabled:opacity-50"
+            style="background-color: #16a34a !important; color: white !important; border: none !important;"
             :disabled="isSubmitting || !isValid"
           >
-            {{ isSubmitting ? 'Erstellen...' : 'Maßnahme erstellen' }}
+            <span style="color: white !important;">{{ isSubmitting ? 'Erstellen...' : 'Maßnahme erstellen' }}</span>
           </button>
         </div>
       </div>
@@ -138,9 +219,32 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useNuxtApp } from '#app';
+import { useNuxtApp, useRuntimeConfig } from '#app';
+import { createDirectus, rest, authentication } from '@directus/sdk';
+import { useAuthStore } from '~/stores/auth';
 
-const { $directus, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
+const config = useRuntimeConfig();
+const authStore = useAuthStore();
+
+// Create authenticated Directus client
+function createAuthenticatedClient() {
+  const token = authStore.accessToken?.value;
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
+  
+  const baseUrl = process.client 
+    ? config.public.clientDirectusUrl 
+    : config.public.serverDirectusUrl;
+  
+  const client = createDirectus(baseUrl || 'http://localhost:8055')
+    .with(rest())
+    .with(authentication('json'));
+  
+  client.setToken(token);
+  return client;
+}
 
 const props = defineProps({
   catalog: {
@@ -161,15 +265,35 @@ const formData = ref({
   sector: '',
   description: '',
   weight: 1,
-  impact: 3
+  impact: 3,
+  // Legacy catalog fields (only required if not structured)
+  choices_rating: '',
+  description_about: '',
+  description_evaluation_criteria: '',
+  description_verification: ''
 });
 
 const isSubmitting = ref(false);
 
+const isStructuredCatalog = computed(() => {
+  return props.catalog?.uses_structured_ratings === true;
+});
+
 const isValid = computed(() => {
-  return formData.value.measure_id.trim() && 
-         formData.value.name.trim() && 
-         formData.value.sector;
+  const basicValid = formData.value.measure_id.trim() && 
+                     formData.value.name.trim() && 
+                     formData.value.sector;
+  
+  // For legacy catalogs, also require the legacy fields
+  if (!isStructuredCatalog.value) {
+    return basicValid && 
+           formData.value.choices_rating &&
+           formData.value.description_about.trim() &&
+           formData.value.description_evaluation_criteria.trim() &&
+           formData.value.description_verification.trim();
+  }
+  
+  return basicValid;
 });
 
 async function handleSubmit() {
@@ -178,21 +302,47 @@ async function handleSubmit() {
   isSubmitting.value = true;
   
   try {
+    const directus = createAuthenticatedClient();
     const { createItem } = await import('@directus/sdk');
     
-    const newMeasure = await $directus.request(
-      createItem('measures', {
-        ...formData.value,
-        catalog_version: props.catalog.id,
-        status: 'draft',
-        slug: formData.value.measure_id.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
-      })
+    // Build the data object
+    const measureData = {
+      measure_id: formData.value.measure_id,
+      name: formData.value.name,
+      sector: formData.value.sector,
+      description: formData.value.description,
+      weight: formData.value.weight,
+      impact: formData.value.impact,
+      catalog_version: props.catalog.id,
+      status: 'draft',
+      slug: formData.value.measure_id.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
+    };
+    
+    // Only include legacy fields for legacy catalogs
+    if (!isStructuredCatalog.value) {
+      measureData.choices_rating = formData.value.choices_rating;
+      measureData.description_about = formData.value.description_about;
+      measureData.description_evaluation_criteria = formData.value.description_evaluation_criteria;
+      measureData.description_verification = formData.value.description_verification;
+    }
+    
+    console.log('Creating measure with data:', measureData);
+    
+    const newMeasure = await directus.request(
+      createItem('measures', measureData)
     );
     
+    console.log('Measure created successfully:', newMeasure);
     emit('created', newMeasure);
   } catch (err) {
     console.error('Error creating measure:', err);
-    alert('Fehler beim Erstellen: ' + err.message);
+    console.error('Error details:', {
+      message: err.message,
+      errors: err.errors,
+      response: err.response,
+      stack: err.stack
+    });
+    alert('Fehler beim Erstellen: ' + (err.errors?.[0]?.message || err.message));
   } finally {
     isSubmitting.value = false;
   }

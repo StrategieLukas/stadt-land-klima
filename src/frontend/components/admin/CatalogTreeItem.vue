@@ -21,16 +21,16 @@
         <span class="truncate font-medium">{{ catalog.name }}</span>
       </div>
       <div class="flex items-center gap-1 shrink-0 ml-2">
-        <span 
-          v-if="catalog.isCurrentFrontend"
-          class="w-2 h-2 bg-green-500 rounded-full"
-          title="Frontend aktiv"
-        ></span>
-        <span 
-          v-if="catalog.isCurrentBackend"
-          class="w-2 h-2 bg-blue-500 rounded-full"
+        <span v-if="catalog.isCurrentBackend"
+          class="px-2 py-0.5 text-xs font-semibold rounded-full"
+          style="background-color: #3b82f6 !important; color: white !important; border: 1px solid #2563eb !important;"
           title="Backend aktiv"
-        ></span>
+        >Backend aktiv</span>
+        <span v-if="catalog.isCurrentFrontend"
+          class="px-2 py-0.5 text-xs font-semibold rounded-full"
+          style="background-color: #ef4444 !important; color: white !important; border: 1px solid #dc2626 !important;"
+          title="Frontend aktiv"
+        >Frontend aktiv</span>
       </div>
     </button>
 
@@ -58,7 +58,7 @@
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <span class="truncate">{{ $t(`sectors.${sector}`) }}</span>
+            <span class="truncate">{{ $t(`measure_sectors.${sector}.title`) }}</span>
           </div>
           <span class="text-xs text-gray-400 shrink-0">{{ sectorMeasures.length }}</span>
         </div>

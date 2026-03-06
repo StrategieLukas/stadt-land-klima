@@ -9,7 +9,7 @@
  */
 
 import { useAuth } from '~/composables/useAuth';
-import { authStore } from '~/stores/auth';
+import { useAuthStore } from '~/stores/auth';
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
   // Skip middleware on server side
@@ -37,6 +37,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
   
   // Check if user has the required role
+  const authStore = useAuthStore();
   const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
   const hasRequiredRole = roles.some(role => authStore.hasRole(role));
   

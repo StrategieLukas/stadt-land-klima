@@ -1,5 +1,5 @@
 <template>
-  <aside class="w-72 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0">
+  <aside class="w-72 bg-white border-r border-gray-200 flex flex-col" style="height: 70vh;">
     <!-- Header -->
     <div class="p-4 border-b bg-gray-50">
       <h2 class="font-bold text-gray-900">Maßnahmenkataloge</h2>

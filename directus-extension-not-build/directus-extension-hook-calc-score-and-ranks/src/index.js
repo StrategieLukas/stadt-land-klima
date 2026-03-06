@@ -180,14 +180,18 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
 
     let catalogVersionId = meta.payload.catalog_version;
     let ratingChoices = meta.payload.choices_rating;
+    let usesStructuredRatings = false;
+    
     logger.info(`Catalog version from payload: ${catalogVersionId} | Rating choices from payload: ${ratingChoices}`);
     // If we don't have the catalog version or choices in the payload (i.e. update on measure that doesn't change this field),
     // then we fetch the measure using its id to figure it out
-    if(!catalogVersionId || !ratingChoices) {
-      logger.info("Fetching measure as catalogVersion/ratingChoices are not in the update payload. This is normal for updates.");
+    if(!catalogVersionId) {
+      logger.info("Fetching measure as catalogVersion is not in the update payload. This is normal for updates.");
       const schema = await getSchema();
       const measureService = new services.ItemsService("measures", { schema, accountability: adminAccountability });
-      const measure = await measureService.readOne(measureUUID);
+      const measure = await measureService.readOne(measureUUID, {
+        fields: ['*', 'catalog_version.uses_structured_ratings']
+      });
       if(!measure || !measure.catalog_version) {
         logger.error(`Unable to fetch newly created measure: ${measureUUID}`)
         return;
@@ -196,6 +200,15 @@ export default ({ action, filter }, { services, database, getSchema, logger }) =
                                  ? measure.catalog_version.id
                                  : measure.catalog_version;
       ratingChoices = measure.choices_rating;
+      usesStructuredRatings = typeof measure.catalog_version === "object" 
+                                ? measure.catalog_version.uses_structured_ratings 
+                                : false;
+    }
+    
+    // For structured catalogs, choices_rating may be null - that's OK
+    if (!usesStructuredRatings && !ratingChoices) {
+      logger.warn(`Legacy measure ${measureUUID} has no choices_rating - skipping rating creation`);
+      return;
     }
 
     logger.info("Creating empty ratings for measure " + measureUUID + " and catalog_version " + catalogVersionId);

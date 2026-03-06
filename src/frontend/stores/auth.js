@@ -96,12 +96,34 @@ const canRateMunicipality = (municipalityId) => {
   });
 };
 
+// Add logging for permission checks
 const canEditMeasures = computed(() => {
-  return hasRole(ROLES.MEASURE_EDITOR) || hasRole(ROLES.ADMINISTRATOR);
+  const result = hasRole(ROLES.MEASURE_EDITOR) || hasRole(ROLES.ADMINISTRATOR);
+  if (process.client && user.value) {
+    console.log('🔐 Permission Check: canEditMeasures', {
+      result,
+      userRole: userRole.value,
+      requiredRoles: [ROLES.MEASURE_EDITOR, ROLES.ADMINISTRATOR]
+    });
+  }
+  return result;
 });
 
 const canManageCatalogVersions = computed(() => {
-  return hasRole(ROLES.ADMINISTRATOR);
+  // Allow catalog management for measure editors and admin roles
+  const result = hasRole(ROLES.MASSNAHMENTEAM) || 
+         hasRole(ROLES.MEASURE_EDITOR) ||
+         hasRole(ROLES.ADMINISTRATOR);
+  
+  if (process.client && user.value) {
+    console.log('🔐 Permission Check: canManageCatalogVersions', {
+      result,
+      userRole: userRole.value,
+      requiredRoles: [ROLES.MASSNAHMENTEAM, ROLES.MEASURE_EDITOR, ROLES.ADMINISTRATOR]
+    });
+  }
+  
+  return result;
 });
 
 const canAccessDirectus = computed(() => {
@@ -125,6 +147,19 @@ function setAuth(newAccessToken, newRefreshToken, newUser) {
   refreshToken.value = newRefreshToken;
   user.value = newUser;
   error.value = null;
+  
+  // Debug logging for role verification
+  if (process.client) {
+    console.log('🔐 Auth: User authenticated', {
+      userId: newUser?.id,
+      email: newUser?.email,
+      role: newUser?.role,
+      roleName: typeof newUser?.role === 'object' ? newUser.role.name : newUser?.role,
+      roleId: typeof newUser?.role === 'object' ? newUser.role.id : null,
+      hasAccessToken: !!newAccessToken,
+      localTeams: newUser?.localteams?.length || 0
+    });
+  }
   
   // Persist to localStorage for client-side hydration
   if (process.client) {

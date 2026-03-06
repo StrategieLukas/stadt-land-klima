@@ -3,14 +3,22 @@ field: choices_rating
 type: string
 meta:
   collection: measures
-  conditions: null
+  conditions:
+    - name: Required for Legacy Catalogs
+      rule:
+        _and:
+          - catalog_version:
+              uses_structured_ratings:
+                _eq: false
+      required: true
+      hidden: false
   display: null
   display_options: null
   field: choices_rating
   group: null
   hidden: false
   interface: select-dropdown
-  note: null
+  note: "Nur für Legacy-Kataloge erforderlich (wenn strukturierte Bewertungen nicht verwendet werden)"
   options:
     choices:
       - text: $t:measure_choices.red_green
@@ -30,7 +38,7 @@ meta:
       - text: $t:measure_choices.red_orange_lightGreen_green
         value: "7"
   readonly: false
-  required: true
+  required: false
   sort: 16
   special: null
   translations:
@@ -58,7 +66,7 @@ schema:
   max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_primary_key: false
   is_generated: false

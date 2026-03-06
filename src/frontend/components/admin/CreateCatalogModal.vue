@@ -47,14 +47,19 @@
             <!-- Version Number -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Versionsnummer
+                Versionsnummer *
               </label>
               <input
-                v-model="formData.version_number"
-                type="text"
-                placeholder="z.B. 2.0.0"
+                v-model.number="formData.version_number"
+                type="number"
+                min="1"
+                required
+                placeholder="z.B. 1, 2, 3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
+              <p class="text-xs text-gray-500 mt-1">
+                Ganzzahl (z.B. 1, 2, 3), nicht "1.0.0"
+              </p>
             </div>
 
             <!-- Description -->
@@ -216,10 +221,11 @@
             </button>
             <button
               @click="handleSubmit"
-              class="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
+              class="px-4 py-2 rounded-lg disabled:opacity-50"
+              style="background-color: #16a34a !important; color: white !important; border: none !important;"
               :disabled="isSubmitting || !isValid"
             >
-              {{ isSubmitting ? 'Erstellen...' : 'Katalog erstellen' }}
+              <span style="color: white !important;">{{ isSubmitting ? 'Erstellen...' : 'Katalog erstellen' }}</span>
             </button>
           </div>
         </div>
@@ -250,7 +256,7 @@ const { createCatalog } = useCatalogAdmin();
 // Form state
 const formData = ref({
   name: '',
-  version_number: '',
+  version_number: 1,
   description: '',
   catalog_type: 'climate_mitigation',
   uses_structured_ratings: false,
@@ -263,7 +269,8 @@ const isSubmitting = ref(false);
 
 // Validation
 const isValid = computed(() => {
-  return formData.value.name.trim().length > 0;
+  return formData.value.name.trim().length > 0 && 
+         formData.value.version_number > 0;
 });
 
 // Reset form when modal opens
@@ -271,7 +278,7 @@ watch(() => props.visible, (visible) => {
   if (visible) {
     formData.value = {
       name: '',
-      version_number: '',
+      version_number: 1,
       description: '',
       catalog_type: 'climate_mitigation',
       uses_structured_ratings: false,

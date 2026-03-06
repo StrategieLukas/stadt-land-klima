@@ -46,24 +46,9 @@
             <tr 
               class="hover:bg-gray-50 transition-colors"
             >
-              <!-- Expand Button + Catalog Name -->
+              <!-- Catalog Name -->
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <button
-                    @click="toggleExpanded(catalog.id)"
-                    class="p-1 hover:bg-gray-100 rounded transition-colors"
-                    :title="expandedCatalogId === catalog.id ? 'Zuklappen' : 'Aufklappen'"
-                  >
-                    <svg 
-                      class="w-5 h-5 text-gray-400 transition-transform"
-                      :class="{ 'transform rotate-90': expandedCatalogId === catalog.id }"
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
                   <div>
                     <div class="font-medium text-gray-900">{{ catalog.name }}</div>
                     <div v-if="catalog.version_number" class="text-sm text-gray-500">
@@ -155,13 +140,6 @@
               </div>
             </td>
           </tr>
-          
-          <!-- Expanded Measures Row -->
-          <tr v-if="expandedCatalogId === catalog.id">
-            <td colspan="6" class="p-0">
-              <CatalogMeasuresList :catalog-id="catalog.id" />
-            </td>
-          </tr>
           </template>
         </tbody>
       </table>
@@ -178,9 +156,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import CatalogStatsDisplay from './CatalogStatsDisplay.vue';
-import CatalogMeasuresList from './CatalogMeasuresList.vue';
 
 const props = defineProps({
   catalogType: {
@@ -198,12 +175,6 @@ const props = defineProps({
 });
 
 defineEmits(['set-current', 'edit', 'delete', 'open']);
-
-const expandedCatalogId = ref(null);
-
-function toggleExpanded(catalogId) {
-  expandedCatalogId.value = expandedCatalogId.value === catalogId ? null : catalogId;
-}
 
 const headerClass = computed(() => {
   return props.catalogType.color === 'green'
