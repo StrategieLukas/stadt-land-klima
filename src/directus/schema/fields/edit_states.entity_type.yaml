@@ -1,0 +1,40 @@
+collection: edit_states
+field: entity_type
+type: string
+meta:
+  collection: edit_states
+  display: null
+  display_options: null
+  field: entity_type
+  group: null
+  hidden: false
+  interface: input
+  note: The content type (e.g. pages, articles)
+  options: null
+  readonly: false
+  required: true
+  sort: 2
+  special: null
+  translations:
+    - language: de-DE
+      translation: Entitätstyp
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: entity_type
+  table: edit_states
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_generated: false
+  generation_expression: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false
+  is_indexed: true
+  has_auto_increment: false
+  foreign_key_column: null
+  foreign_key_table: null

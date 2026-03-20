@@ -55,15 +55,55 @@
         >
           {{ $t('generic.log_in') }} <span class="text-lg ml-1">→</span>
         </a>
+        <!-- Blökkli editor login -->
+        <button
+          v-if="!isAuthenticated"
+          @click="showLoginModal = true"
+          class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
+        >
+          Interner Login
+        </button>
+        <div v-else class="flex items-center gap-3">
+          <span class="text-sm text-white/80">{{ userName }}</span>
+          <button
+            @click="handleLogout"
+            class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
       </div>
+
+      <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
     </div>
   </footer>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import DonateButton from '~/components/DonateButton.vue';
+import AuthLoginModal from '~/components/AuthLoginModal.vue';
+import { useAuth } from '~/composables/useAuth';
 const { $t } = useNuxtApp();
+
+const { isAuthenticated, user, logout, initialize } = useAuth();
+const showLoginModal = ref(false);
+
+const userName = computed(() => {
+  if (!user.value) return '';
+  return user.value.first_name
+    ? `${user.value.first_name} ${user.value.last_name || ''}`.trim()
+    : user.value.email;
+});
+
+async function handleLogout() {
+  await logout();
+}
+
+// Initialize auth from localStorage on client
+if (process.client) {
+  initialize();
+}
 
 const props = defineProps({
   pages: {

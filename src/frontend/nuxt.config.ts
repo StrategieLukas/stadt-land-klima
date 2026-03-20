@@ -7,58 +7,10 @@ export default defineNuxtConfig({
   
   // blökkli configuration
   blokkli: {
-    // Directory where block components are located
-    blocksDir: 'components/blocks',
-    // Auto-import block components
-    autoImport: true,
-    // Enable SSR support
-    ssr: true,
-    // Define available features
-    features: [
-      'block-add-list',
-      'clipboard',
-      'command-palette',
-      'comments',
-      'conversions',
-      'debug',
-      'delete',
-      'diff',
-      'dragging-overlay',
-      'duplicate',
-      'edit',
-      'editable-field',
-      'edit-form',
-      'entity-title',
-      'exit',
-      'field-areas',
-      'fragments',
-      'grid',
-      'artboard',
-      'help',
-      'history',
-      'import',
-      'library',
-      'media-library',
-      'multiselect',
-      'options',
-      'ownership',
-      'preview',
-      'preview-grant',
-      'proxy-view',
-      'publish',
-      'responsive-preview',
-      'revert',
-      'search',
-      'selection',
-      'settings',
-      'structure',
-      'theme',
-      'tour',
-      'touch-action-bar',
-      'transform',
-      'translations',
-      'validations',
-    ],
+    itemEntityType: 'block',
+    defaultLanguage: 'de',
+    // Block components location pattern
+    pattern: ['components/Blokkli/**/*.vue'],
   },
   runtimeConfig: {
     // The private keys which are only available within server-side
@@ -75,6 +27,9 @@ export default defineNuxtConfig({
   },
   devtools: { enabled: true },
   app: {
+    rootAttrs: {
+      id: 'nuxt-root',
+    },
     head: {
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }

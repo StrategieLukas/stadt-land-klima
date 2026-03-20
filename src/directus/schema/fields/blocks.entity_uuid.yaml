@@ -1,11 +1,11 @@
 collection: blocks
 field: entity_uuid
-type: uuid
+type: string
 meta:
   collection: blocks
   field: entity_uuid
   interface: input
-  note: UUID of parent entity
+  note: Slug or identifier of parent entity
   required: true
   sort: 6
   translations:
@@ -15,6 +15,7 @@ meta:
 schema:
   name: entity_uuid
   table: blocks
-  data_type: uuid
+  data_type: character varying
+  max_length: 255
   is_nullable: false
   is_indexed: true

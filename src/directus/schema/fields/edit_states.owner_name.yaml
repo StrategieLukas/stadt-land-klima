@@ -1,0 +1,40 @@
+collection: edit_states
+field: owner_name
+type: string
+meta:
+  collection: edit_states
+  display: null
+  display_options: null
+  field: owner_name
+  group: null
+  hidden: false
+  interface: input
+  note: Name of the user who owns this edit state
+  options: null
+  readonly: false
+  required: false
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Besitzer
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: owner_name
+  table: edit_states
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_generated: false
+  generation_expression: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_indexed: false
+  has_auto_increment: false
+  foreign_key_column: null
+  foreign_key_table: null

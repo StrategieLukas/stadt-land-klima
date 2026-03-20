@@ -1,8 +1,8 @@
-collection: blocks
+collection: edit_states
 field: id
 type: integer
 meta:
-  collection: blocks
+  collection: edit_states
   display: null
   display_options: null
   field: id
@@ -21,7 +21,7 @@ meta:
   width: full
 schema:
   name: id
-  table: blocks
+  table: edit_states
   data_type: integer
   default_value: null
   max_length: null
