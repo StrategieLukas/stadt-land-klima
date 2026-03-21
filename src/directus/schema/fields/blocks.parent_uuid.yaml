@@ -1,0 +1,20 @@
+collection: blocks
+field: parent_uuid
+type: uuid
+meta:
+  collection: blocks
+  field: parent_uuid
+  interface: input
+  note: UUID of parent block (for nested blocks)
+  required: false
+  sort: 8
+  translations:
+    - language: de-DE
+      translation: Eltern-UUID
+  width: half
+schema:
+  name: parent_uuid
+  table: blocks
+  data_type: uuid
+  is_nullable: true
+  is_indexed: true

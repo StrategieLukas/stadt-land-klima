@@ -1,8 +1,17 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
-    '@nuxtjs/leaflet'
+    '@nuxtjs/leaflet',
+    '@blokkli/editor',
   ],
+  
+  // blökkli configuration
+  blokkli: {
+    itemEntityType: 'block',
+    defaultLanguage: 'de',
+    // Block components location pattern
+    pattern: ['components/Blokkli/**/*.vue'],
+  },
   runtimeConfig: {
     // The private keys which are only available within server-side
     // Keys within public, will be also exposed to the client-side
@@ -18,6 +27,9 @@ export default defineNuxtConfig({
   },
   devtools: { enabled: true },
   app: {
+    rootAttrs: {
+      id: 'nuxt-root',
+    },
     head: {
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }

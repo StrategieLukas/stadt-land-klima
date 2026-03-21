@@ -1,0 +1,21 @@
+collection: blocks
+field: sort_order
+type: integer
+meta:
+  collection: blocks
+  field: sort_order
+  interface: input
+  note: Sort order within parent
+  required: false
+  sort: 9
+  translations:
+    - language: de-DE
+      translation: Sortierung
+  width: half
+schema:
+  name: sort_order
+  table: blocks
+  data_type: integer
+  default_value: 0
+  is_nullable: false
+  is_indexed: true

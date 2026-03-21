@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "@directus/sdk": "^20.1.0"
+    "@directus/sdk": "^20.1.0",
+    "@nuxt/kit": "^4.3.1",
+    "vue-tsc": "^3.2.5"
   }
 }

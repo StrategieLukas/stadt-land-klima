@@ -1,0 +1,42 @@
+collection: blocks
+field: options
+type: json
+meta:
+  collection: blocks
+  display: null
+  display_options: null
+  field: options
+  group: null
+  hidden: false
+  interface: input-code
+  note: Block display options (managed by blökkli editor)
+  options:
+    language: JSON
+  readonly: false
+  required: false
+  sort: 11
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Optionen
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: options
+  table: blocks
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_generated: false
+  generation_expression: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_indexed: false
+  has_auto_increment: false
+  foreign_key_column: null
+  foreign_key_table: null

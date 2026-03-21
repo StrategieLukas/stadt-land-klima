@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 24">
+  <!-- Normal text: 3 lines of medium height -->
+  <rect x="2" y="3" width="24" height="3.5" rx="1" fill="currentColor"/>
+  <rect x="2" y="10" width="20" height="3.5" rx="1" fill="currentColor"/>
+  <rect x="2" y="17" width="16" height="3.5" rx="1" fill="currentColor"/>
+</svg>

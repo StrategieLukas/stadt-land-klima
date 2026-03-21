@@ -1,0 +1,21 @@
+collection: blocks
+field: entity_type
+type: string
+meta:
+  collection: blocks
+  field: entity_type
+  interface: input
+  note: Type of parent entity (articles, pages, etc.)
+  required: true
+  sort: 5
+  translations:
+    - language: de-DE
+      translation: Entitätstyp
+  width: half
+schema:
+  name: entity_type
+  table: blocks
+  data_type: varchar
+  max_length: 255
+  is_nullable: false
+  is_indexed: true

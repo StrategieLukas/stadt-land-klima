@@ -19,7 +19,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
   try {
     const existingRoles = await client.request(readRoles({ limit: -1 }));
-    const existingPermissions = await client.request(readPermissions({ limit: -1 }));
+    const existingPermissions = await client.request(readPermissions({ limit: -1, fields: ['*'] }));
 
     const roles = readYamlFiles(path.join(src));
     let permissions = [];
@@ -73,7 +73,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
                 collection: permission.collection,
               });
 
-        if (existingPermission) {
+        if (existingPermission && existingPermission.id) {
           permission.id = existingPermission.id;
           permission.role = role.name === 'Public' ? null : existingRoleEntry.id;
           permissionsToUpdate.push(permission);

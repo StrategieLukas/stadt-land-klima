@@ -1,4 +1,5 @@
 <template>
+  <!-- Social Media Section -->
   <div class="max-w-screen-xl mx-auto text-center mb-8">
     <p class="mb-4">
       {{ $t('generic.social_media.support_by_sharing') }}
@@ -13,57 +14,93 @@
     </div>
   </div>
 
-  <footer class="bg-olive-green text-white px-4 pt-0 pb-20">
-    <div class="mx-auto pt-8 border-t border-white/30">
-      <div class="flex items-start gap-12">
-        <!-- Logo on the far left -->
-        <div class="flex-shrink-0 pl-2">
+  <!-- Main Footer -->
+  <footer class="footer footer-center bg-olive-green text-white p-10">
+    <!-- Navigation Links by Category -->
+    <div v-if="activeCategories.length > 0" class="w-full max-w-screen-xl mx-auto mb-8">
+      <div
+        class="grid gap-8 w-full"
+        :style="{ gridTemplateColumns: activeCategories.length > 0 ? `repeat(${activeCategories.length}, minmax(0, 1fr))` : 'repeat(1, 1fr)' }"
+      >
+        <nav
+          v-for="(category, index) in activeCategories"
+          :key="category.key"
+          :class="[
+            'flex flex-col gap-2 text-left',
+            index !== 0 ? 'border-l border-white/30 pl-6' : ''
+          ]"
+        >
+          <h6 class="footer-title opacity-100 text-white font-bold mb-2">
+            {{ $t(`pages.page_category.${category.key}`) }}
+          </h6>
+          <NuxtLink
+            v-for="page in category.pages"
+            :key="page.id"
+            :to="'/' + page.slug"
+            class="link link-hover text-base"
+          >
+            {{ page.name }}
+          </NuxtLink>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Bottom Section: Logo, Buttons, Copyright -->
+    <div class="w-full max-w-screen-xl mx-auto py-8 border-t border-white/30">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 w-full">
+        <!-- Logo -->
+        <div class="flex-shrink-0">
           <NuxtLink to="/">
             <img
               src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-              class="h-32 w-auto"
+              class="h-24 w-auto"
               :alt="$t('logo.alt')"
             />
           </NuxtLink>
         </div>
 
-        <!-- 4 columns -->
-        <div class="grid grid-cols-4 flex-grow gap-8 text-left text-lg w-full">
-          <div
-            v-for="col in 4"
-            :key="'col-'+col"
-            :class="[
-              'space-y-3 pl-4',
-              col !== 1 ? 'border-l border-white/30' : ''
-            ]"
+        <!-- Buttons: Donate + Login -->
+        <div class="flex items-center gap-4">
+          <DonateButton />
+          <!-- Blökkli editor login -->
+          <button
+            v-if="!isAuthenticated"
+            @click="showLoginModal = true"
+            class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
           >
-            <div v-for="page in pagesByColumn[col]" :key="page.id">
-              <NuxtLink :to="'/' + page.slug" class="hover:underline block">
-                <span class="text-lg">→</span> {{ page.name }}
-              </NuxtLink>
-            </div>
+            Interner Login
+          </button>
+          <div v-else class="flex items-center gap-3">
+            <span class="text-sm text-white/80">{{ userName }}</span>
+            <button
+              @click="handleLogout"
+              class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- Buttons: Donate + Login side by side -->
-      <div class="mt-12 flex justify-center gap-6">
-        <DonateButton />
-        <a
-          href="/backend"
-          class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white hover:brightness-110"
-        >
-          {{ $t('generic.log_in') }} <span class="text-lg ml-1">→</span>
-        </a>
+        <!-- Copyright -->
+        <div class="text-sm text-white/80">
+          {{ $t('footer.copyright') }}
+        </div>
       </div>
     </div>
+
+    <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
   </footer>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import DonateButton from '~/components/DonateButton.vue';
+import AuthLoginModal from '~/components/AuthLoginModal.vue';
+import { useAuth } from '~/composables/useAuth';
+
 const { $t } = useNuxtApp();
+const { isAuthenticated, user, logout, initialize } = useAuth();
+const showLoginModal = ref(false);
 
 const props = defineProps({
   pages: {
@@ -72,20 +109,50 @@ const props = defineProps({
   }
 });
 
-const pagesByColumn = computed(() => {
-  const columns = { 1: [], 2: [], 3: [], 4: [] };
+const userName = computed(() => {
+  if (!user.value) return '';
+  return user.value.first_name
+    ? `${user.value.first_name} ${user.value.last_name || ''}`.trim()
+    : user.value.email;
+});
 
-  props.pages.forEach((page) => {
-    const col = page.footer_column_desktop;
-    if (!col) {
-      console.warn(`Page "${page.name}" has no column defined`);
-    } else if (!columns[col]) {
-      console.warn(`Page "${page.name}" has an invalid column number: ${col}`);
-    } else {
-      columns[col].push(page);
+async function handleLogout() {
+  await logout();
+}
+
+onMounted(() => {
+  initialize();
+});
+
+// Define the category order
+const categoryOrder = [
+  'municipality_rating',
+  'outreach_and_network',
+  'information_and_participate',
+  'structures_and_legal'
+];
+
+// Group pages by category, only including categories that have pages
+const activeCategories = computed(() => {
+  if (!props.pages || !Array.isArray(props.pages)) {
+    return [];
+  }
+
+  const categoriesWithPages = [];
+
+  categoryOrder.forEach((categoryKey) => {
+    const pagesInCategory = props.pages.filter(
+      (page) => page && page.page_category === categoryKey
+    );
+
+    if (pagesInCategory.length > 0) {
+      categoriesWithPages.push({
+        key: categoryKey,
+        pages: pagesInCategory
+      });
     }
   });
 
-  return columns;
+  return categoriesWithPages;
 });
 </script>
