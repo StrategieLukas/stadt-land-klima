@@ -81,7 +81,8 @@
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 const { includes } = lodash;
-const { $directus, $readItems, $plausibleAnalyticsUrl, $plausibleAnalyticsDomain } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 const route = useRoute();
 const { closeDrawer, syncDrawerState } = useDrawer();
 
@@ -198,11 +199,11 @@ useHead({
   ],
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
   script: [
-    $plausibleAnalyticsUrl && $plausibleAnalyticsDomain
+    plausibleAnalyticsUrl && plausibleAnalyticsDomain
       ? {
           defer: true,
-          "data-domain": $plausibleAnalyticsDomain,
-          src: $plausibleAnalyticsUrl + "/js/script.js",
+          "data-domain": plausibleAnalyticsDomain,
+          src: plausibleAnalyticsUrl + "/js/script.js",
         }
       : {},
   ],
