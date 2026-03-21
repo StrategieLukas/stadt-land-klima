@@ -1,11 +1,10 @@
 <template>
   <component
     :is="headingTag"
+    v-blokkli-editable:text
     class="blokkli-block-heading font-bold"
-    :class="[colorClass]"
-  >
-    {{ props.text }}
-  </component>
+    :class="[colorClass, sizeClass]"
+  >{{ props.text || '' }}</component>
 </template>
 
 <script setup lang="ts">
@@ -39,7 +38,8 @@ const { options } = defineBlokkli({
     },
   },
   editor: {
-    addBehaviour: 'no-form',
+    addBehaviour: 'editable:text',
+    editTitle: (el) => el.textContent,
     mockProps: (text) => {
       return {
         text: text || 'Neue Überschrift',
@@ -53,6 +53,16 @@ const props = defineProps<{
 }>()
 
 const headingTag = computed(() => options.value.level || 'h2')
+
+const sizeClass = computed(() => {
+  const map: Record<string, string> = {
+    h1: 'text-4xl',
+    h2: 'text-3xl',
+    h3: 'text-2xl',
+    h4: 'text-xl',
+  }
+  return map[options.value.level] || 'text-3xl'
+})
 
 const colorClass = computed(() => {
   const map: Record<string, string> = {
@@ -70,6 +80,6 @@ const colorClass = computed(() => {
 .blokkli-block-heading {
   margin-top: 1rem;
   margin-bottom: 0.75rem;
-  line-height: 1.5;
+  line-height: 1.2;
 }
 </style>

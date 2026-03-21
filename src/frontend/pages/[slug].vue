@@ -6,6 +6,7 @@
     :entity-uuid="page.slug"
     :can-edit="canEdit"
     :entity="page"
+    class="self-center"
   >
     <template #default="{ isEditing }">
       <article class="prose py-8 self-center">
@@ -41,8 +42,11 @@ import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
 const { $directus, $readItems, $t } = useNuxtApp()
 const { isAuthenticated, initialize } = useAuth()
-if (process.client) { initialize(); }
-const canEdit = isAuthenticated;
+const canEdit = ref(false)
+onMounted(() => {
+  initialize()
+  watchEffect(() => { canEdit.value = isAuthenticated.value })
+})
 const route = useRoute()
 
 // Fetch page by slug
@@ -54,42 +58,45 @@ const { data: pagesWithSlug } = await useAsyncData(`page-${route.params.slug}`, 
     })
   )
 })
-const page = pagesWithSlug.value[0] || null
+const page = computed(() => pagesWithSlug.value?.[0] || null)
 
-// Load blocks for this page from Directus
-const pageBlocks = ref([])
-
-if (page) {
-  try {
-    const blocks = await $directus.request(
-      readItems('blocks', {
-        filter: {
-          entity_type: { _eq: 'pages' },
-          entity_uuid: { _eq: page.slug },
-          field_name: { _eq: 'content' },
-          status: { _neq: 'archived' },
-        },
-        sort: ['sort_order'],
-      })
-    )
-    pageBlocks.value = (blocks || []).map(block => ({
-      uuid: block.uuid,
-      bundle: block.bundle,
-      options: block.options || {},
-      props: block.props || {},
-    }))
-  } catch {
-    // blocks collection may not exist yet
-    pageBlocks.value = []
-  }
-}
+// Load blocks from Directus — always fresh (no client-side caching)
+const { data: blocksData } = await useAsyncData(
+  `blocks-${route.params.slug}`,
+  async () => {
+    if (!page.value) return []
+    try {
+      const blocks = await $directus.request(
+        readItems('blocks', {
+          filter: {
+            entity_type: { _eq: 'pages' },
+            entity_uuid: { _eq: page.value.slug },
+            field_name: { _eq: 'content' },
+            status: { _neq: 'archived' },
+          },
+          sort: ['sort_order'],
+        })
+      )
+      return (blocks || []).map(block => ({
+        uuid: block.uuid,
+        bundle: block.bundle,
+        options: block.options || {},
+        props: block.props || {},
+      }))
+    } catch {
+      return []
+    }
+  },
+  { watch: [page] }
+)
+const pageBlocks = computed(() => blocksData.value || [])
 
 // Dynamically render component for [[[ONBOARDING_BOX]]] block
 // Split content into blocks and inject Vue component(s)
 const processedPageContent = computed(() => {
-  if (!page?.contents) return []
+  if (!page.value?.contents) return []
 
-  const parts = page.contents.split("[[[ONBOARDING_BOX]]]")
+  const parts = page.value.contents.split("[[[ONBOARDING_BOX]]]")
   const blocks = []
 
   parts.forEach((html, idx) => {
@@ -111,7 +118,7 @@ const processedPageContent = computed(() => {
 })
 
 // MetaTags
-const title = page ? ref(page.name) : $t("page_not_found")
+const title = computed(() => page.value ? page.value.name : $t("page_not_found"))
 
 useHead({
   title,

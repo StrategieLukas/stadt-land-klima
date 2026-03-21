@@ -3,8 +3,8 @@
     class="blokkli-block-cta rounded-lg"
     :class="[bgClass, sizeClass]"
   >
-    <h3 v-if="props.title" class="font-bold mb-4 text-xl">{{ props.title }}</h3>
-    <p v-if="props.text" class="mb-6">{{ props.text }}</p>
+    <h3 v-if="props.title" v-blokkli-editable:title class="font-bold mb-4 text-xl">{{ props.title }}</h3>
+    <p v-if="props.text" v-blokkli-editable:text class="mb-6">{{ props.text }}</p>
     <div class="flex gap-4 flex-wrap">
       <a
         v-if="props.primaryButtonText && props.primaryButtonLink"

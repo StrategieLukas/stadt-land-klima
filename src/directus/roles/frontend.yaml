@@ -236,7 +236,7 @@ permissions:
       - slug
       - sort
       - sort_order
-      - footer_column_desktop
+      - page_category
       - is_dynamic
       - icon_svg
   - collection: ratings_measures

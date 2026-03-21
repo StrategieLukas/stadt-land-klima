@@ -3,16 +3,27 @@
     class="blokkli-block-image"
     :class="[sizeClass]"
   >
-    <img
-      v-if="imageUrl"
-      :src="imageUrl"
-      :alt="props.alt || ''"
-      loading="lazy"
-      class="w-full h-auto rounded"
-    />
+    <!-- v-blokkli-droppable:imageId enables drag-and-drop and media library selection -->
+    <div v-blokkli-droppable:imageId class="relative">
+      <img
+        v-if="imageUrl"
+        :src="imageUrl"
+        :alt="props.alt || ''"
+        loading="lazy"
+        class="w-full h-auto rounded"
+      />
+      <!-- Placeholder shown when no image is selected -->
+      <div
+        v-else
+        class="flex items-center justify-center bg-gray-100 rounded border-2 border-dashed border-gray-300 min-h-[12rem] text-gray-400"
+      >
+        <span class="text-sm">Bild aus Medienbibliothek auswählen oder hierher ziehen</span>
+      </div>
+    </div>
     <figcaption
       v-if="props.caption"
-      class="text-sm text-gray mt-2"
+      v-blokkli-editable:caption
+      class="text-sm text-gray mt-2 text-center italic"
     >
       {{ props.caption }}
     </figcaption>
@@ -38,6 +49,8 @@ const { options } = defineBlokkli({
   },
   editor: {
     addBehaviour: 'no-form',
+    editTitle: () => 'Bild',
+    mockProps: () => ({ imageId: '', alt: '', caption: '' }),
   },
 })
 

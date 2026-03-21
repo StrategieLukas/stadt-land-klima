@@ -1,54 +1,48 @@
 /**
  * blökkli Edit Adapter for Directus
  *
- * This file is automatically loaded by the @blokkli/editor module.
- * It implements the BlokkliAdapter interface to connect blökkli
- * with a Directus backend for block management.
+ * Maintains an in-memory block list, tracks mutations for undo/redo and
+ * publish/discard, and only persists to Directus on publish.
  */
 
 import { defineBlokkliEditAdapter } from '#blokkli/adapter'
 import type {
   MappedState,
+  MutationItem,
   FieldListItem,
-  MutatedField,
   FieldConfig,
+  EditableFieldConfig,
+  DroppableFieldConfig,
   BlockBundleDefinition,
   AddNewBlockEvent,
   MoveBlockEvent,
   MoveMultipleBlocksEvent,
-  EditEntity,
-  TranslationState,
+  UpdateFieldValueEvent,
 } from '#blokkli/types'
-import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk'
+import type {
+  GetMediaLibraryFunction,
+  MediaLibraryAddBlockEvent,
+  MediaLibraryReplaceMediaEvent,
+} from '#blokkli/adapter'
+import {
+  readItems,
+  readFiles,
+  createItem,
+  updateItem,
+  deleteItem,
+  clearCache,
+} from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 
-/**
- * The raw state shape returned by loadState() and used in MutationResponseLike<T>.
- */
-type DirectusState = {
-  editStateId: string | null
-  entityType: string
-  entityUuid: string
-  entityBundle: string
-  currentIndex: number
-  mutations: any[]
-  ownerName: string
-  currentUserIsOwner: boolean
-  fields: MutatedField[]
-  mutatedOptions: Record<string, Record<string, string>>
-  entity: EditEntity
+type AdapterState = {
+  blocks: FieldListItem[]
 }
 
-export default defineBlokkliEditAdapter((ctx) => {
+export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   const { $directus } = useNuxtApp()
   const config = useRuntimeConfig()
-  const { getAuthenticatedClient, isAuthenticated } = useAuth()
+  const { isAuthenticated, getAuthenticatedClient } = useAuth()
 
-  /**
-   * Get the appropriate Directus client.
-   * Uses authenticated user client for write operations,
-   * falls back to the static-token client for reads.
-   */
   function getClient() {
     if (isAuthenticated.value) {
       return getAuthenticatedClient()
@@ -56,161 +50,216 @@ export default defineBlokkliEditAdapter((ctx) => {
     return $directus
   }
 
-  /**
-   * Helper: load blocks for this entity from Directus
-   */
-  async function loadBlocksForEntity(): Promise<{ fields: MutatedField[]; mutatedOptions: Record<string, Record<string, string>> }> {
-    const blocks = await getClient().request(
-      readItems('blocks', {
-        filter: {
-          entity_type: { _eq: ctx.value.entityType },
-          entity_uuid: { _eq: ctx.value.entityUuid },
-          status: { _neq: 'archived' },
-        },
-        sort: ['sort_order'],
-        limit: -1,
-      }),
-    )
+  // --- Typed Directus SDK wrappers ---
 
-    // Group blocks by field_name and collect options
-    const fieldMap = new Map<string, FieldListItem[]>()
-    const optionsMap: Record<string, Record<string, string>> = {}
+  async function fetchBlocks(query: Record<string, any>): Promise<any[]> {
+    const cmd = (readItems as Function)('blocks', query)
+    const result = await getClient().request(cmd)
+    return Array.isArray(result) ? result : []
+  }
+
+  function doCreateItem(collection: string, data: Record<string, any>) {
+    return getClient().request((createItem as Function)(collection, data))
+  }
+
+  function doUpdateItem(
+    collection: string,
+    id: any,
+    data: Record<string, any>,
+  ) {
+    return getClient().request((updateItem as Function)(collection, id, data))
+  }
+
+  function doDeleteItem(collection: string, id: any) {
+    return getClient().request((deleteItem as Function)(collection, id))
+  }
+
+  // --- In-memory state ---
+
+  const state: AdapterState = { blocks: [] }
+  const blockIdMap = new Map<string, number>()
+
+  // --- Mutation tracking ---
+
+  let mutationIndex = -1
+  const mutationItems: MutationItem[] = []
+
+  // --- Initial state snapshot (for revert + publish diff) ---
+
+  let initialBlocks: FieldListItem[] = []
+  const initialBlockIds = new Map<string, number>()
+
+  /** Return success with current state. */
+  function ok(): Promise<{ success: true; state: AdapterState }> {
+    return Promise.resolve({ success: true, state })
+  }
+
+  /** Record a mutation for the history/undo UI. */
+  function trackMutation(label: string, affectedUuid?: string) {
+    // Clear any "future" mutations (if user had undone some)
+    if (mutationIndex < mutationItems.length - 1) {
+      mutationItems.splice(mutationIndex + 1)
+    }
+    mutationItems.push({
+      timestamp: Math.floor(Date.now() / 1000).toString(),
+      pluginId: label.toLowerCase().replace(/\s+/g, '_'),
+      plugin: {
+        label,
+        affectedItemUuid: affectedUuid,
+      },
+    })
+    mutationIndex = mutationItems.length - 1
+  }
+
+  // --- Load blocks from Directus ---
+
+  async function loadBlocksFromDirectus(): Promise<AdapterState> {
+    const blocks = await fetchBlocks({
+      filter: {
+        entity_type: { _eq: ctx.value.entityType },
+        entity_uuid: { _eq: ctx.value.entityUuid },
+        status: { _neq: 'archived' },
+      },
+      sort: ['sort_order'],
+      limit: -1,
+    })
+
+    state.blocks = []
+    blockIdMap.clear()
 
     for (const block of blocks) {
-      const fieldName = block.field_name || 'content'
-      if (!fieldMap.has(fieldName)) {
-        fieldMap.set(fieldName, [])
-      }
-      fieldMap.get(fieldName)!.push({
+      if (!block.uuid || !block.bundle) continue
+      state.blocks.push({
         uuid: block.uuid,
         bundle: block.bundle,
         options: block.options || {},
         props: block.props || {},
       })
+      blockIdMap.set(block.uuid, block.id)
+    }
 
-      // Build mutatedOptions keyed by block UUID
-      if (block.options && Object.keys(block.options).length > 0) {
-        const opts: Record<string, string> = {}
-        for (const [k, v] of Object.entries(block.options)) {
-          opts[k] = String(v)
-        }
-        optionsMap[block.uuid] = opts
+    // Save initial snapshot for revert/publish
+    initialBlocks = JSON.parse(JSON.stringify(state.blocks))
+    initialBlockIds.clear()
+    for (const [uuid, id] of blockIdMap) {
+      initialBlockIds.set(uuid, id)
+    }
+
+    return state
+  }
+
+  // --- Helper to move a block in the in-memory array ---
+
+  function moveBlockInArray(uuid: string, afterUuid?: string): boolean {
+    const blockIndex = state.blocks.findIndex((v) => v.uuid === uuid)
+    if (blockIndex === -1) return false
+
+    const block = state.blocks.splice(blockIndex, 1)[0]
+    const afterIndex = afterUuid
+      ? state.blocks.findIndex((v) => v.uuid === afterUuid)
+      : -1
+
+    if (afterIndex === -1) {
+      if (!afterUuid) {
+        state.blocks.unshift(block)
+      } else {
+        state.blocks.push(block)
       }
+    } else {
+      state.blocks.splice(afterIndex + 1, 0, block)
     }
 
-    const fields: MutatedField[] = []
-    for (const [name, list] of fieldMap) {
-      fields.push({
-        name,
-        entityType: ctx.value.entityType,
-        entityUuid: ctx.value.entityUuid,
-        list,
-      })
-    }
-
-    // If no blocks, still return an empty content field
-    if (fields.length === 0) {
-      fields.push({
-        name: 'content',
-        entityType: ctx.value.entityType,
-        entityUuid: ctx.value.entityUuid,
-        list: [],
-      })
-    }
-
-    return { fields, mutatedOptions: optionsMap }
+    return true
   }
 
-  /**
-   * Helper: build the full state object
-   */
-  async function buildState(): Promise<DirectusState> {
-    const { fields, mutatedOptions } = await loadBlocksForEntity()
+  // --- Default props per bundle ---
 
-    // Try to load existing edit_state
-    let editState: any = null
-    try {
-      const states = await getClient().request(
-        readItems('edit_states', {
-          filter: {
-            entity_type: { _eq: ctx.value.entityType },
-            entity_uuid: { _eq: ctx.value.entityUuid },
-          },
-          limit: 1,
-        }),
-      )
-      editState = states?.[0] || null
-    } catch {
-      // edit_states collection might not exist yet
-    }
-
-    // entityUuid is now the slug — use it directly as the label
-    const entityLabel = ctx.value.entityUuid
-
-    return {
-      editStateId: editState?.id || null,
-      entityType: ctx.value.entityType,
-      entityUuid: ctx.value.entityUuid,
-      entityBundle: ctx.value.entityBundle,
-      currentIndex: editState?.current_index || 0,
-      mutations: editState?.mutations || [],
-      ownerName: editState?.owner_name || '',
-      currentUserIsOwner: true, // Simplified: single-user editing
-      fields,
-      mutatedOptions,
-      entity: {
-        label: entityLabel,
-        status: true,
-        bundleLabel: ctx.value.entityBundle,
-      },
+  function getPropsForNewBlock(bundle: string): Record<string, any> {
+    switch (bundle) {
+      case 'text':
+        return { content: '<p>Text hier eingeben...</p>' }
+      case 'heading':
+        return { text: 'Neue Ueberschrift' }
+      case 'image':
+        return { imageId: '', alt: '', caption: '' }
+      case 'cta':
+        return {
+          title: 'Handeln Sie jetzt!',
+          text: 'Gemeinsam koennen wir den Klimaschutz vorantreiben.',
+          primaryButtonText: 'Mehr erfahren',
+          primaryButtonLink: '#',
+        }
+      case 'directus_page':
+        return { pageSlug: ctx.value.entityUuid }
+      default:
+        return {}
     }
   }
+
+  // ==========================================
+  // Adapter methods
+  // ==========================================
 
   return {
     /**
-     * Load the current state from Directus.
+     * Load state from Directus. Resets mutation tracking.
      */
-    async loadState(): Promise<DirectusState> {
-      return buildState()
+    async loadState(): Promise<AdapterState> {
+      mutationIndex = -1
+      mutationItems.length = 0
+      // Purge Directus Redis cache so we always load fresh block data
+      try {
+        await getClient().request(clearCache())
+      } catch (_) { /* non-critical */ }
+      return loadBlocksFromDirectus()
     },
 
     /**
-     * Map raw state to blökkli's MappedState format.
+     * Map in-memory state to blokkli's MappedState.
+     * Includes mutation tracking for publish/discard/undo UI.
      */
-    mapState(state: DirectusState): MappedState {
+    mapState(s: AdapterState): MappedState {
       return {
-        currentIndex: state.currentIndex,
-        mutations: state.mutations,
-        currentUserIsOwner: state.currentUserIsOwner,
-        ownerName: state.ownerName,
+        currentIndex: mutationIndex,
+        mutations: [...mutationItems],
+        currentUserIsOwner: true,
+        ownerName: '',
         mutatedState: {
-          fields: state.fields,
-          mutatedOptions: state.mutatedOptions,
-          violations: [],
+          mutatedOptions: s.blocks.reduce<
+            Record<string, Record<string, any>>
+          >((acc, block) => {
+            acc[block.uuid] = {}
+            Object.entries(block.options || {}).forEach(([key, value]) => {
+              acc[block.uuid][key] = value
+            })
+            return acc
+          }, {}),
+          fields: [
+            {
+              name: 'content',
+              entityType: ctx.value.entityType,
+              entityUuid: ctx.value.entityUuid,
+              list: s.blocks.map((b) => ({ ...b })),
+            },
+          ],
         },
-        entity: state.entity,
+        entity: {
+          label: ctx.value.entityUuid,
+          status: true,
+          bundleLabel: ctx.value.entityBundle,
+        },
         translationState: {
           isTranslatable: false,
-          sourceLanguage: 'de',
-          availableLanguages: [],
-          translations: [],
         },
       }
     },
 
-    /**
-     * Return all available block bundles.
-     */
-    async getAllBundles(): Promise<BlockBundleDefinition[]> {
-      return [
-        {
-          id: 'text',
-          label: 'Text',
-          description: 'Rich text content block',
-        },
+    getAllBundles(): Promise<BlockBundleDefinition[]> {
+      return Promise.resolve([
+        { id: 'text', label: 'Text', description: 'Rich text content block' },
         {
           id: 'heading',
-          label: 'Überschrift',
+          label: 'Ueberschrift',
           description: 'Heading block',
         },
         {
@@ -221,322 +270,330 @@ export default defineBlokkliEditAdapter((ctx) => {
         {
           id: 'cta',
           label: 'Call to Action',
-          description: 'Call to action block with buttons',
+          description: 'CTA block with buttons',
         },
         {
           id: 'directus_page',
           label: 'Directus Seite',
-          description: 'Legacy HTML/Markdown content from Directus editor',
+          description: 'Legacy HTML/Markdown content',
         },
-      ]
+      ])
     },
 
-    /**
-     * Return field configuration.
-     */
-    async getFieldConfig(): Promise<FieldConfig[]> {
-      return [
+    getFieldConfig(): Promise<FieldConfig[]> {
+      return Promise.resolve([
         {
           name: 'content',
           entityType: ctx.value.entityType,
           entityBundle: ctx.value.entityBundle,
           label: 'Inhalt',
-          cardinality: -1, // unlimited
+          cardinality: -1,
           canEdit: true,
-          allowedBundles: ['text', 'heading', 'image', 'cta', 'directus_page'],
+          allowedBundles: [
+            'text',
+            'heading',
+            'image',
+            'cta',
+            'directus_page',
+          ],
         },
-      ]
+      ])
     },
 
-    /**
-     * Add a new block.
-     */
-    async addNewBlock(e: AddNewBlockEvent) {
-      const { bundle, afterUuid, host } = e
-
-      // Determine sort_order
-      let sortOrder = 0
-      if (afterUuid) {
-        // Find the block to insert after
-        try {
-          const afterBlocks = await getClient().request(
-            readItems('blocks', {
-              filter: { uuid: { _eq: afterUuid } },
-              limit: 1,
-              fields: ['sort_order'],
-            }),
-          )
-          if (afterBlocks?.[0]) {
-            sortOrder = (afterBlocks[0].sort_order || 0) + 1
-          }
-        } catch {
-          // ignore
-        }
-        // Shift subsequent blocks
-        try {
-          const subsequentBlocks = await getClient().request(
-            readItems('blocks', {
-              filter: {
-                entity_type: { _eq: ctx.value.entityType },
-                entity_uuid: { _eq: ctx.value.entityUuid },
-                field_name: { _eq: host.fieldName },
-                sort_order: { _gte: sortOrder },
-              },
-              fields: ['id', 'sort_order'],
-              sort: ['sort_order'],
-            }),
-          )
-          for (const block of subsequentBlocks) {
-            await getClient().request(
-              updateItem('blocks', block.id, {
-                sort_order: (block.sort_order || 0) + 1,
-              }),
-            )
-          }
-        } catch {
-          // ignore
-        }
+    addNewBlock(e: AddNewBlockEvent) {
+      const newBlock: FieldListItem = {
+        uuid: crypto.randomUUID(),
+        bundle: e.bundle,
+        props: getPropsForNewBlock(e.bundle),
+        options: {},
       }
 
-      // Create the new block
-      const newUuid = crypto.randomUUID()
-      await getClient().request(
-        createItem('blocks', {
-          uuid: newUuid,
-          bundle,
-          entity_type: ctx.value.entityType,
-          entity_uuid: ctx.value.entityUuid,
-          field_name: host.fieldName,
-          sort_order: sortOrder,
-          status: 'draft',
-          props: {},
-          options: {},
-        }),
-      )
+      const afterIndex = e.afterUuid
+        ? state.blocks.findIndex((v) => v.uuid === e.afterUuid)
+        : -1
 
-      const state = await buildState()
-      return { success: true, state }
+      if (afterIndex === -1) {
+        state.blocks.push(newBlock)
+      } else {
+        state.blocks.splice(afterIndex + 1, 0, newBlock)
+      }
+
+      trackMutation("Add '" + e.bundle + "' block", newBlock.uuid)
+      return ok()
     },
 
-    /**
-     * Move a single block.
-     */
-    async moveBlock(e: MoveBlockEvent) {
-      const { item, afterUuid, host } = e
-
-      // Get all blocks in this field sorted
-      const fieldBlocks = await getClient().request(
-        readItems('blocks', {
-          filter: {
-            entity_type: { _eq: ctx.value.entityType },
-            entity_uuid: { _eq: ctx.value.entityUuid },
-            field_name: { _eq: host.fieldName },
-            uuid: { _neq: item.uuid },
-          },
-          sort: ['sort_order'],
-          fields: ['id', 'uuid', 'sort_order'],
-        }),
-      )
-
-      // Build new order: insert item after afterUuid
-      const newOrder: string[] = []
-      if (!afterUuid) {
-        newOrder.push(item.uuid)
+    moveBlock(e: MoveBlockEvent) {
+      const success = moveBlockInArray(e.item.uuid, e.afterUuid)
+      if (success) {
+        trackMutation("Move '" + e.item.itemBundle + "' block", e.item.uuid)
       }
-      for (const block of fieldBlocks) {
-        newOrder.push(block.uuid)
-        if (block.uuid === afterUuid) {
-          newOrder.push(item.uuid)
+      return Promise.resolve({ success, state })
+    },
+
+    moveMultipleBlocks(e: MoveMultipleBlocksEvent) {
+      e.uuids.forEach((uuid) => moveBlockInArray(uuid, e.afterUuid))
+      trackMutation('Move ' + e.uuids.length + ' blocks')
+      return ok()
+    },
+
+    deleteBlocks(uuids: string[]) {
+      state.blocks = state.blocks.filter((v) => !uuids.includes(v.uuid))
+      trackMutation('Delete ' + uuids.length + ' block(s)')
+      return ok()
+    },
+
+    duplicateBlocks(uuids: string[]) {
+      for (const uuid of uuids) {
+        const original = state.blocks.find((v) => v.uuid === uuid)
+        if (!original) continue
+
+        const duplicate: FieldListItem = {
+          uuid: crypto.randomUUID(),
+          bundle: original.bundle,
+          props: JSON.parse(JSON.stringify(original.props || {})),
+          options: JSON.parse(JSON.stringify(original.options || {})),
         }
+
+        const idx = state.blocks.indexOf(original)
+        state.blocks.splice(idx + 1, 0, duplicate)
       }
 
-      // Update sort_order for all blocks
-      for (let i = 0; i < newOrder.length; i++) {
-        const block = fieldBlocks.find((b: any) => b.uuid === newOrder[i])
+      trackMutation('Duplicate ' + uuids.length + ' block(s)')
+      return ok()
+    },
+
+    updateOptions(updates: Array<{ uuid: string; key: string; value: any }>) {
+      for (const update of updates) {
+        const block = state.blocks.find((v) => v.uuid === update.uuid)
         if (block) {
-          await getClient().request(
-            updateItem('blocks', block.id, { sort_order: i, field_name: host.fieldName }),
-          )
-        } else {
-          // This is the moved block — find its real ID
-          const movedBlocks = await getClient().request(
-            readItems('blocks', {
-              filter: { uuid: { _eq: item.uuid } },
-              limit: 1,
-              fields: ['id'],
-            }),
-          )
-          if (movedBlocks?.[0]) {
-            await getClient().request(
-              updateItem('blocks', movedBlocks[0].id, {
-                sort_order: i,
-                field_name: host.fieldName,
-              }),
-            )
+          if (!block.options) block.options = {}
+          block.options[update.key] = update.value
+        }
+      }
+      if (updates.length > 0) {
+        trackMutation('Update options')
+      }
+      return ok()
+    },
+
+    updateFieldValue(e: UpdateFieldValueEvent) {
+      const block = state.blocks.find((v) => v.uuid === e.uuid)
+      if (block) {
+        if (!block.props) block.props = {}
+        block.props[e.fieldName] = e.fieldValue
+        trackMutation("Edit '" + block.bundle + "' block", block.uuid)
+      }
+      return ok()
+    },
+
+    /**
+     * Revert all changes: restore from initial snapshot and clear mutations.
+     */
+    async revertAllChanges() {
+      state.blocks = JSON.parse(JSON.stringify(initialBlocks))
+      blockIdMap.clear()
+      for (const [uuid, id] of initialBlockIds) {
+        blockIdMap.set(uuid, id)
+      }
+      mutationIndex = -1
+      mutationItems.length = 0
+      return { success: true as const, state }
+    },
+
+    /**
+     * Publish: persist current in-memory state to Directus, then reset mutations.
+     */
+    async publish() {
+      const currentUuids = new Set(state.blocks.map((b) => b.uuid))
+
+      // Delete blocks that were removed
+      for (const [uuid, id] of initialBlockIds) {
+        if (!currentUuids.has(uuid)) {
+          try {
+            await doDeleteItem('blocks', id)
+          } catch (err) {
+            console.error('[blokkli] publish delete failed:', err)
           }
         }
       }
 
-      const state = await buildState()
-      return { success: true, state }
-    },
-
-    /**
-     * Move multiple blocks.
-     */
-    async moveMultipleBlocks(e: MoveMultipleBlocksEvent) {
-      const { uuids, afterUuid, host } = e
-
-      const movedUuids = new Set(uuids)
-
-      // Get all blocks in the field except the moved ones
-      const fieldBlocks = await getClient().request(
-        readItems('blocks', {
-          filter: {
-            entity_type: { _eq: ctx.value.entityType },
-            entity_uuid: { _eq: ctx.value.entityUuid },
-            field_name: { _eq: host.fieldName },
-            uuid: { _nin: Array.from(movedUuids) },
-          },
-          sort: ['sort_order'],
-          fields: ['id', 'uuid', 'sort_order'],
-        }),
-      )
-
-      const newOrder: string[] = []
-      if (!afterUuid) {
-        newOrder.push(...uuids)
-      }
-      for (const block of fieldBlocks) {
-        newOrder.push(block.uuid)
-        if (block.uuid === afterUuid) {
-          newOrder.push(...uuids)
-        }
-      }
-
-      // Update all sort orders
-      for (let i = 0; i < newOrder.length; i++) {
-        const allBlocks = await getClient().request(
-          readItems('blocks', {
-            filter: { uuid: { _eq: newOrder[i] } },
-            limit: 1,
-            fields: ['id'],
-          }),
-        )
-        if (allBlocks?.[0]) {
-          await getClient().request(
-            updateItem('blocks', allBlocks[0].id, {
+      // Create or update all current blocks
+      for (let i = 0; i < state.blocks.length; i++) {
+        const block = state.blocks[i]
+        const existingId = blockIdMap.get(block.uuid)
+        try {
+          if (existingId) {
+            await doUpdateItem('blocks', existingId, {
               sort_order: i,
-              field_name: host.fieldName,
-            }),
-          )
+              status: 'published',
+              props: block.props || {},
+              options: block.options || {},
+            })
+          } else {
+            const result: any = await doCreateItem('blocks', {
+              uuid: block.uuid,
+              bundle: block.bundle,
+              entity_type: ctx.value.entityType,
+              entity_uuid: ctx.value.entityUuid,
+              field_name: 'content',
+              sort_order: i,
+              status: 'published',
+              props: block.props || {},
+              options: block.options || {},
+            })
+            if (result?.id) {
+              blockIdMap.set(block.uuid, result.id)
+            }
+          }
+        } catch (err) {
+          console.error('[blokkli] publish create/update failed:', err)
         }
       }
 
-      const state = await buildState()
-      return { success: true, state }
-    },
+      // Save new initial state and reset mutations
+      initialBlocks = JSON.parse(JSON.stringify(state.blocks))
+      initialBlockIds.clear()
+      for (const [uuid, id] of blockIdMap) {
+        initialBlockIds.set(uuid, id)
+      }
+      mutationIndex = -1
+      mutationItems.length = 0
 
-    /**
-     * Delete blocks.
-     */
-    async deleteBlocks(uuids: string[]) {
-      for (const uuid of uuids) {
-        const blocks = await getClient().request(
-          readItems('blocks', {
-            filter: { uuid: { _eq: uuid } },
-            limit: 1,
-            fields: ['id'],
-          }),
-        )
-        if (blocks?.[0]) {
-          await getClient().request(deleteItem('blocks', blocks[0].id))
-        }
+      // Clear Directus Redis cache so subsequent reads get fresh data
+      try {
+        await getClient().request(clearCache())
+      } catch (e) {
+        console.warn('[blokkli] Directus cache clear failed:', e)
       }
 
-      const state = await buildState()
-      return { success: true, state }
+      // Refresh Nuxt data cache so the page re-fetches blocks immediately
+      await refreshNuxtData(`blocks-${ctx.value.entityUuid}`)
+
+      return { success: true as const, state }
     },
 
-    /**
-     * Update a block option.
-     */
-    async updateBlockOption(e: { uuid: string; key: string; value: any }) {
-      const blocks = await getClient().request(
-        readItems('blocks', {
-          filter: { uuid: { _eq: e.uuid } },
-          limit: 1,
-          fields: ['id', 'options'],
+    getEditableFieldConfig(): Promise<EditableFieldConfig[]> {
+      return Promise.resolve([
+        {
+          name: 'content',
+          entityType: 'block',
+          entityBundle: 'text',
+          label: 'Inhalt',
+          type: 'markup',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'text',
+          entityType: 'block',
+          entityBundle: 'heading',
+          label: 'Text',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'cta',
+          label: 'Titel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'text',
+          entityType: 'block',
+          entityBundle: 'cta',
+          label: 'Text',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+      ])
+    },
+
+    getDroppableFieldConfig(): Promise<DroppableFieldConfig[]> {
+      return Promise.resolve([
+        {
+          name: 'imageReference',
+          label: 'Image',
+          entityType: 'block',
+          entityBundle: 'image',
+          allowedEntityType: 'media',
+          allowedBundles: ['image'],
+          cardinality: 1,
+          required: false,
+        },
+      ])
+    },
+
+    getDisabledFeatures(): Promise<string[]> {
+      return Promise.resolve([
+        'comments',
+        'import',
+        'library',
+        'conversion',
+        'translations',
+        'assistant',
+        'search',
+      ])
+    },
+
+    mediaLibraryGetResults: (async (e) => {
+      const files = await getClient().request(
+        readFiles({
+          filter: { type: { _starts_with: 'image/' } } as any,
+          sort: ['-uploaded_on'] as any,
+          limit: 24,
+          page: e.page,
+          fields: ['id', 'title', 'filename_download'] as any,
         }),
       )
-      if (blocks?.[0]) {
-        const currentOptions = blocks[0].options || {}
-        await getClient().request(
-          updateItem('blocks', blocks[0].id, {
-            options: { ...currentOptions, [e.key]: e.value },
-          }),
-        )
+      return {
+        filters: {},
+        items: (files || []).map((file: any) => ({
+          mediaId: file.id,
+          label: file.title || file.filename_download,
+          context: 'directus',
+          targetBundles: ['image'],
+          thumbnail: `${config.public.clientDirectusUrl}/assets/${file.id}?width=200&quality=70`,
+        })),
+        total: (files || []).length,
+        perPage: 24,
+      }
+    }) as GetMediaLibraryFunction,
+
+    mediaLibraryAddBlock(e: MediaLibraryAddBlockEvent) {
+      const newBlock: FieldListItem = {
+        uuid: crypto.randomUUID(),
+        bundle: 'image',
+        props: { imageId: e.item.mediaId },
+        options: {},
       }
 
-      const state = await buildState()
-      return { success: true, state }
+      const afterIndex = e.preceedingUuid
+        ? state.blocks.findIndex((v) => v.uuid === e.preceedingUuid)
+        : -1
+
+      if (afterIndex === -1) {
+        state.blocks.push(newBlock)
+      } else {
+        state.blocks.splice(afterIndex + 1, 0, newBlock)
+      }
+
+      trackMutation('Add image block', newBlock.uuid)
+      return ok()
     },
 
-    /**
-     * Update block props (via edit form).
-     */
-    async updateBlock(e: { uuid: string; fields: Record<string, any> }) {
-      const blocks = await getClient().request(
-        readItems('blocks', {
-          filter: { uuid: { _eq: e.uuid } },
-          limit: 1,
-          fields: ['id', 'props'],
-        }),
-      )
-      if (blocks?.[0]) {
-        const currentProps = blocks[0].props || {}
-        await getClient().request(
-          updateItem('blocks', blocks[0].id, {
-            props: { ...currentProps, ...e.fields },
-          }),
-        )
+    mediaLibraryReplaceMedia(e: MediaLibraryReplaceMediaEvent) {
+      const block = state.blocks.find((v) => v.uuid === e.host.uuid)
+      if (block) {
+        if (!block.props) block.props = {}
+        block.props.imageId = e.mediaId
+        trackMutation('Replace image', block.uuid)
       }
-
-      const state = await buildState()
-      return { success: true, state }
-    },
-
-    /**
-     * Duplicate blocks.
-     */
-    async duplicateBlocks(uuids: string[]) {
-      for (const uuid of uuids) {
-        const blocks = await getClient().request(
-          readItems('blocks', {
-            filter: { uuid: { _eq: uuid } },
-            limit: 1,
-          }),
-        )
-        if (blocks?.[0]) {
-          const original = blocks[0]
-          await getClient().request(
-            createItem('blocks', {
-              uuid: crypto.randomUUID(),
-              bundle: original.bundle,
-              entity_type: original.entity_type,
-              entity_uuid: original.entity_uuid,
-              field_name: original.field_name,
-              sort_order: (original.sort_order || 0) + 1,
-              status: 'draft',
-              props: original.props || {},
-              options: original.options || {},
-            }),
-          )
-        }
-      }
-
-      const state = await buildState()
-      return { success: true, state }
+      return ok()
     },
   }
 })

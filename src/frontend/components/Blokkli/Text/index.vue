@@ -3,7 +3,7 @@
     class="blokkli-block-text prose prose-sm max-w-none"
     :class="[sizeClass]"
   >
-    <div v-html="props.content || ''"></div>
+    <div v-blokkli-editable:content v-html="props.content || ''" />
   </div>
 </template>
 
@@ -24,7 +24,8 @@ const { options } = defineBlokkli({
     },
   },
   editor: {
-    addBehaviour: 'no-form',
+    addBehaviour: 'editable:content',
+    editTitle: (el) => el.textContent,
     mockProps: (text) => {
       return {
         content: text || '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>',
