@@ -1,7 +1,7 @@
 <template>
   <div
     class="blokkli-block-text prose prose-sm max-w-none"
-    :class="[sizeClass]"
+    :class="[sizeClass, alignClass]"
   >
     <div v-blokkli-editable:content v-html="props.content || ''" />
   </div>
@@ -20,6 +20,17 @@ const { options } = defineBlokkli({
         small: { label: 'Small', hex: '#e0e0e0' },
         normal: { label: 'Normal', hex: '#90caf9' },
         large: { label: 'Large', hex: '#1565c0' },
+      },
+    },
+    align: {
+      type: 'radios',
+      label: 'Ausrichtung',
+      default: 'left',
+      options: {
+        left: 'Links',
+        center: 'Zentriert',
+        right: 'Rechts',
+        justify: 'Blocksatz',
       },
     },
   },
@@ -45,6 +56,16 @@ const sizeClass = computed(() => {
     large: 'prose-lg',
   }
   return map[options.value.size] || 'prose-base'
+})
+
+const alignClass = computed(() => {
+  const map: Record<string, string> = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right',
+    justify: 'text-justify',
+  }
+  return map[options.value.align] || 'text-left'
 })
 </script>
 

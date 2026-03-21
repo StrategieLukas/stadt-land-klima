@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 24">
+  <!-- Narrow width: dashed outer boundary, narrow centered solid content (~40% width) -->
+  <rect x="2" y="5" width="24" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 2" opacity="0.4"/>
+  <rect x="9" y="5" width="10" height="14" rx="2" fill="currentColor" opacity="0.85"/>
+</svg>

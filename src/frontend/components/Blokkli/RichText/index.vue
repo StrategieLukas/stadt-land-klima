@@ -1,14 +1,15 @@
 <template>
   <div
     class="blokkli-block-richtext"
-    :class="[sizeClass]"
+    :class="[sizeClass, alignClass]"
   >
     <!-- Edit mode: show raw markdown source for inline editing -->
     <pre
       v-if="isEditing"
       v-blokkli-editable:content
       class="markdown-source prose prose-sm max-w-none whitespace-pre-wrap font-mono text-sm bg-gray-50 p-3 rounded border border-gray-200 min-h-[6rem]"
-    >{{ props.content || '' }}</pre>
+      v-text="props.content || ''"
+    />
 
     <!-- View mode: render markdown as HTML -->
     <div
@@ -21,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-expect-error no types package needed at runtime
 import MarkdownIt from 'markdown-it'
 
 const md = new MarkdownIt({
@@ -37,20 +39,33 @@ const { options, isEditing } = defineBlokkli({
       type: 'radios',
       label: 'Text Size',
       default: 'normal',
-      displayAs: 'colors',
+      displayAs: 'icons',
       options: {
-        small: { label: 'Small', hex: '#e0e0e0' },
-        normal: { label: 'Normal', hex: '#90caf9' },
-        large: { label: 'Large', hex: '#1565c0' },
+        small: { icon: 'icon-blokkli-option-size-small', label: 'Small' },
+        normal: { icon: 'icon-blokkli-option-size-normal', label: 'Normal' },
+        large: { icon: 'icon-blokkli-option-size-large', label: 'Large' },
+      },
+    },
+    align: {
+      type: 'radios',
+      label: 'Ausrichtung',
+      default: 'left',
+      options: {
+        left: 'Links',
+        center: 'Zentriert',
+        right: 'Rechts',
+        justify: 'Blocksatz',
       },
     },
   },
   editor: {
     addBehaviour: 'editable:content',
     editTitle: (el) => el.textContent,
-    mockProps: (text) => ({
-      content: text || '## Überschrift\n\nHier können Sie **Markdown-Text** eingeben.\n\n- Punkt 1\n- Punkt 2\n- Punkt 3',
-    }),
+    mockProps: (text) => {
+      return {
+        content: text || '## Überschrift\n\nHier können Sie **Markdown** schreiben.',
+      }
+    },
   },
 })
 
@@ -70,6 +85,16 @@ const sizeClass = computed(() => {
     large: 'prose-lg',
   }
   return map[options.value.size] || 'prose-base'
+})
+
+const alignClass = computed(() => {
+  const map: Record<string, string> = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right',
+    justify: 'text-justify',
+  }
+  return map[options.value.align] || 'text-left'
 })
 </script>
 

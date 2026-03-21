@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 24">
+  <!-- Outer border = container, inner rect = content touching edges (no padding) -->
+  <rect x="2" y="2" width="24" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <rect x="2" y="2" width="24" height="20" rx="2" fill="currentColor" opacity="0.2"/>
+</svg>

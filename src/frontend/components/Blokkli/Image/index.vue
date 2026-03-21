@@ -3,54 +3,79 @@
     class="blokkli-block-image"
     :class="[sizeClass]"
   >
-    <!-- v-blokkli-droppable:imageId enables drag-and-drop and media library selection -->
-    <div v-blokkli-droppable:imageId class="relative">
-      <img
-        v-if="imageUrl"
-        :src="imageUrl"
-        :alt="props.alt || ''"
-        loading="lazy"
-        class="w-full h-auto rounded"
-      />
-      <!-- Placeholder shown when no image is selected -->
-      <div
-        v-else
-        class="flex items-center justify-center bg-gray-100 rounded border-2 border-dashed border-gray-300 min-h-[12rem] text-gray-400"
-      >
-        <span class="text-sm">Bild aus Medienbibliothek auswählen oder hierher ziehen</span>
+    <!-- Conditional link wrapper -->
+    <component
+      :is="linkTag"
+      v-bind="linkAttrs"
+      :class="options.linkType !== 'none' && !isEditing ? 'block' : ''"
+    >
+      <!-- v-blokkli-droppable:imageId enables drag-and-drop and media library selection -->
+      <div v-blokkli-droppable:imageId class="relative">
+        <img
+          v-if="imageUrl"
+          :src="imageUrl"
+          :alt="props.alt || ''"
+          loading="lazy"
+          class="w-full h-auto rounded"
+        />
+        <!-- Placeholder shown when no image is selected -->
+        <div
+          v-else
+          class="flex items-center justify-center bg-gray-100 rounded border-2 border-dashed border-gray-300 min-h-[12rem] text-gray-400"
+        >
+          <span class="text-sm">Bild aus Medienbibliothek auswählen oder hierher ziehen</span>
+        </div>
       </div>
-    </div>
+    </component>
     <figcaption
-      v-if="props.caption"
+      v-if="props.caption || isEditing"
       v-blokkli-editable:caption
       class="text-sm text-gray mt-2 text-center italic"
-    >
-      {{ props.caption }}
-    </figcaption>
+      v-text="props.caption"
+    />
   </figure>
 </template>
 
 <script setup lang="ts">
-const { options } = defineBlokkli({
+import { resolveComponent } from 'vue'
+
+const { options, isEditing } = defineBlokkli({
   bundle: 'image',
   options: {
     size: {
       type: 'radios',
-      label: 'Size',
+      label: 'Größe',
       default: 'full',
-      displayAs: 'colors',
       options: {
-        small: { label: 'Small (25%)', hex: '#e0e0e0' },
-        medium: { label: 'Medium (50%)', hex: '#90caf9' },
-        large: { label: 'Large (75%)', hex: '#42a5f5' },
-        full: { label: 'Full Width', hex: '#1565c0' },
+        small: 'Klein (25%)',
+        medium: 'Mittel (50%)',
+        large: 'Groß (75%)',
+        full: 'Volle Breite',
       },
+    },
+    linkType: {
+      type: 'radios',
+      label: 'Link-Typ',
+      default: 'none',
+      options: {
+        none: 'Kein',
+        internal: 'Intern',
+        external: 'Extern',
+      },
+    },
+    link: {
+      type: 'text',
+      label: 'Link (Slug oder URL)',
+      default: '',
+      inputType: 'text',
     },
   },
   editor: {
     addBehaviour: 'no-form',
     editTitle: () => 'Bild',
-    mockProps: () => ({ imageId: '', alt: '', caption: '' }),
+    mockProps: () => {
+      return { imageId: '', alt: '', caption: '' }
+    },
   },
 })
 
@@ -75,6 +100,22 @@ const sizeClass = computed(() => {
     full: 'max-w-full',
   }
   return map[options.value.size] || 'max-w-full'
+})
+
+const linkTag = computed(() => {
+  if (isEditing.value) return 'div'
+  if (options.value.linkType === 'external') return 'a'
+  if (options.value.linkType === 'internal') return resolveComponent('NuxtLink')
+  return 'div'
+})
+
+const linkAttrs = computed(() => {
+  if (isEditing.value || options.value.linkType === 'none') return {}
+  const lv = options.value.link || '#'
+  if (options.value.linkType === 'external') {
+    return { href: lv, target: '_blank', rel: 'noopener noreferrer' }
+  }
+  return { to: '/' + lv.replace(/^\//, '') }
 })
 </script>
 
