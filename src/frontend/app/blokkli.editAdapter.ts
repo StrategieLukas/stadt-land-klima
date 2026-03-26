@@ -31,7 +31,6 @@ import {
   createItem,
   updateItem,
   deleteItem,
-  clearCache,
 } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 
@@ -298,10 +297,6 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     async loadState(): Promise<AdapterState> {
       mutationIndex = -1
       mutationItems.length = 0
-      // Purge Directus Redis cache so we always load fresh block data
-      try {
-        await getClient().request(clearCache())
-      } catch (_) { /* non-critical */ }
       await loadEditState()
       return loadBlocksFromDirectus()
     },
@@ -605,14 +600,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       mutationIndex = -1
       mutationItems.length = 0
 
-      // Clear Directus Redis cache so subsequent reads get fresh data
-      try {
-        await getClient().request(clearCache())
-      } catch (e) {
-        console.warn('[blokkli] Directus cache clear failed:', e)
-      }
-
       // Refresh Nuxt data cache so the page re-fetches blocks immediately
+      // (Directus Redis cache is auto-purged on mutation via CACHE_AUTO_PURGE=true)
       await refreshNuxtData(`blocks-${ctx.value.entityUuid}`)
 
       // Clean up edit state on successful publish

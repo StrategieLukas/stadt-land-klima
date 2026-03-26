@@ -60,22 +60,27 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
           existingRoleEntry = find(existingRoles, ['name', permission.role_name]);
         }
 
+        // For Public: match permissions with role=null.
+        // For existing non-Public roles: match by role id.
+        // For NEW non-Public roles (existingRoleEntry is null): no existing permissions possible.
         const existingPermission =
-          existingRoleEntry
+          role.name === 'Public'
             ? find(existingPermissions, {
                 action: permission.action,
-                role: existingRoleEntry.id,
+                role: null,
                 collection: permission.collection,
               })
-            : find(existingPermissions, {
-                action: permission.action,
-                role: null, // 🔹 match public
-                collection: permission.collection,
-              });
+            : existingRoleEntry
+              ? find(existingPermissions, {
+                  action: permission.action,
+                  role: existingRoleEntry.id,
+                  collection: permission.collection,
+                })
+              : null;
 
         if (existingPermission && existingPermission.id) {
           permission.id = existingPermission.id;
-          permission.role = role.name === 'Public' ? null : existingRoleEntry.id;
+          permission.role = role.name === 'Public' ? null : existingRoleEntry?.id || null;
           permissionsToUpdate.push(permission);
         } else {
           permission.role = role.name === 'Public' ? null : existingRoleEntry?.id || null;
