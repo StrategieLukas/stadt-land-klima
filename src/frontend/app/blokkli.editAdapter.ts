@@ -19,11 +19,17 @@ import type {
   MoveMultipleBlocksEvent,
   UpdateFieldValueEvent,
   MutatedField,
+  MakeReusableEvent,
+  DetachReusableBlockEvent,
+  AddReusableItemEvent,
+  LibraryItem,
 } from '#blokkli/types'
 import type {
   GetMediaLibraryFunction,
   MediaLibraryAddBlockEvent,
   MediaLibraryReplaceMediaEvent,
+  BlokkliAdapterGetLibraryItemsData,
+  BlokkliAdapterGetLibraryItemsResult,
 } from '#blokkli/adapter'
 import {
   readItems,
@@ -221,6 +227,16 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { blocks: [] }
       case 'directus_page':
         return { pageSlug: ctx.value.entityUuid }
+      case 'video':
+        return { caption: '' }
+      case 'hero':
+        return { title: 'Überschrift', subtitle: '', imageId: '' }
+      case 'citation':
+        return { quote: 'Zitat...', attribution: '', source: '', imageId: '' }
+      case 'stat':
+        return { value: '100%', unit: '', label: 'Kennzahl', description: '' }
+      case 'vega_chart':
+        return { spec: '', query: '' }
       default:
         return {}
     }
@@ -367,19 +383,25 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
 
     getAllBundles(): Promise<BlockBundleDefinition[]> {
       return Promise.resolve([
-        { id: 'text', label: 'Text', description: 'Rich text content block' },
-        { id: 'richtext', label: 'Markdown', description: 'Rich text with Markdown editor' },
-        { id: 'heading', label: 'Ueberschrift', description: 'Heading block' },
-        { id: 'image', label: 'Bild', description: 'Image block with caption' },
-        { id: 'button', label: 'Button', description: 'Button with internal page link' },
-        { id: 'container', label: 'Container', description: 'Layout container with nested blocks' },
-        { id: 'directus_page', label: 'Directus Seite', description: 'Legacy HTML/Markdown content' },
+        { id: 'text', label: 'Text', description: 'Rich text content block', allowReusable: true },
+        { id: 'richtext', label: 'Markdown', description: 'Rich text with Markdown editor', allowReusable: true },
+        { id: 'heading', label: 'Ueberschrift', description: 'Heading block', allowReusable: true },
+        { id: 'image', label: 'Bild', description: 'Image block with caption', allowReusable: true },
+        { id: 'button', label: 'Button', description: 'Button with internal page link', allowReusable: true },
+        { id: 'container', label: 'Container', description: 'Layout container with nested blocks', allowReusable: true },
+        { id: 'directus_page', label: 'Directus Seite', description: 'Legacy HTML/Markdown content', allowReusable: true },
+        { id: 'video', label: 'Video', description: 'Eingebettetes Video (YouTube, Vimeo, MP4)', allowReusable: true },
+        { id: 'hero', label: 'Hero', description: 'Großflächige Hero-Sektion mit Hintergrundbild', allowReusable: true },
+        { id: 'citation', label: 'Zitat', description: 'Zitat oder Testimonial', allowReusable: true },
+        { id: 'stat', label: 'Kennzahl', description: 'Statistische Kennzahl / Zahl', allowReusable: true },
+        { id: 'vega_chart', label: 'Vega-Lite Chart', description: 'Datenvisualisierung mit Vega-Lite', allowReusable: true },
+        { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page']
-      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'from_library']
+      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'from_library']
       return Promise.resolve([
         {
           name: 'content',
@@ -694,6 +716,119 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           required: false,
           maxLength: 0,
         },
+        // video
+        {
+          name: 'caption',
+          entityType: 'block',
+          entityBundle: 'video',
+          label: 'Bildunterschrift',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // hero
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'hero',
+          label: 'Titel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'subtitle',
+          entityType: 'block',
+          entityBundle: 'hero',
+          label: 'Untertitel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // citation
+        {
+          name: 'quote',
+          entityType: 'block',
+          entityBundle: 'citation',
+          label: 'Zitat',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'attribution',
+          entityType: 'block',
+          entityBundle: 'citation',
+          label: 'Person',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'source',
+          entityType: 'block',
+          entityBundle: 'citation',
+          label: 'Quelle',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // stat
+        {
+          name: 'value',
+          entityType: 'block',
+          entityBundle: 'stat',
+          label: 'Wert',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'unit',
+          entityType: 'block',
+          entityBundle: 'stat',
+          label: 'Einheit',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'stat',
+          label: 'Bezeichnung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'stat',
+          label: 'Beschreibung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // vega_chart
+        {
+          name: 'spec',
+          entityType: 'block',
+          entityBundle: 'vega_chart',
+          label: 'Vega-Lite Spezifikation',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'query',
+          entityType: 'block',
+          entityBundle: 'vega_chart',
+          label: 'Daten-Query',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
       ])
     },
 
@@ -709,6 +844,26 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           cardinality: 1,
           required: false,
         },
+        {
+          name: 'imageId',
+          label: 'Hintergrundbild',
+          entityType: 'block',
+          entityBundle: 'hero',
+          allowedEntityType: 'media',
+          allowedBundles: ['image'],
+          cardinality: 1,
+          required: false,
+        },
+        {
+          name: 'imageId',
+          label: 'Portraitbild',
+          entityType: 'block',
+          entityBundle: 'citation',
+          allowedEntityType: 'media',
+          allowedBundles: ['image'],
+          cardinality: 1,
+          required: false,
+        },
       ])
     },
 
@@ -716,12 +871,143 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       return Promise.resolve([
         'comments',
         'import',
-        'library',
         'conversion',
         'translations',
         'assistant',
         'search',
       ])
+    },
+
+    // --- Library (reusable blocks) ---
+
+    async getLibraryItems(data: BlokkliAdapterGetLibraryItemsData): Promise<BlokkliAdapterGetLibraryItemsResult> {
+      const perPage = 20
+      const filter: Record<string, any> = {}
+      if (data.bundles && data.bundles.length > 0) {
+        filter.bundle = { _in: data.bundles }
+      }
+      if (data.text) {
+        filter.label = { _contains: data.text }
+      }
+
+      const items = await getClient().request(
+        (readItems as Function)('library_items', {
+          filter,
+          sort: ['-date_created'],
+          limit: perPage,
+          page: data.page,
+          fields: ['id', 'uuid', 'label', 'bundle', 'props', 'options'],
+        }),
+      )
+
+      return {
+        items: (Array.isArray(items) ? items : []).map((item: any): LibraryItem => ({
+          uuid: item.uuid,
+          label: item.label,
+          bundle: item.bundle,
+          item: {
+            uuid: item.uuid,
+            bundle: item.bundle,
+            props: item.props || {},
+            options: item.options || {},
+          },
+        })),
+        total: Array.isArray(items) ? items.length : 0,
+        perPage,
+      }
+    },
+
+    async makeBlockReusable(e: MakeReusableEvent) {
+      const block = findBlock(e.uuid, state.blocks)
+      if (!block) {
+        return { success: false as const, state }
+      }
+
+      const libraryUuid = crypto.randomUUID()
+      await doCreateItem('library_items', {
+        uuid: libraryUuid,
+        label: e.label,
+        bundle: block.bundle,
+        props: JSON.parse(JSON.stringify(block.props || {})),
+        options: JSON.parse(JSON.stringify(block.options || {})),
+      })
+
+      trackMutation('Make block reusable', e.uuid)
+      return ok()
+    },
+
+    async addLibraryItem(e: AddReusableItemEvent) {
+      // Fetch library item from Directus
+      const items = await getClient().request(
+        (readItems as Function)('library_items', {
+          filter: { uuid: { _eq: e.libraryItemUuid } },
+          limit: 1,
+          fields: ['uuid', 'bundle', 'props', 'options'],
+        }),
+      )
+
+      if (!Array.isArray(items) || items.length === 0) {
+        return { success: false as const, state }
+      }
+
+      const libItem = items[0]
+
+      // Deep-clone and assign new UUIDs to the block (and any nested blocks)
+      function cloneWithNewUuids(props: Record<string, any>): Record<string, any> {
+        const cloned = JSON.parse(JSON.stringify(props))
+        if (Array.isArray(cloned.blocks)) {
+          cloned.blocks = cloned.blocks.map((nested: any) => ({
+            ...nested,
+            uuid: crypto.randomUUID(),
+            props: cloneWithNewUuids(nested.props || {}),
+          }))
+        }
+        return cloned
+      }
+
+      const newBlock: FieldListItem = {
+        uuid: crypto.randomUUID(),
+        bundle: libItem.bundle,
+        props: cloneWithNewUuids(libItem.props || {}),
+        options: JSON.parse(JSON.stringify(libItem.options || {})),
+      }
+
+      // Insert into the right location
+      let targetList: FieldListItem[]
+      if (e.host.type === 'block' && e.host.fieldName === 'blocks') {
+        const container = findBlock(e.host.uuid, state.blocks)
+        if (container) {
+          if (!Array.isArray((container.props as any).blocks)) {
+            ;(container.props as any).blocks = []
+          }
+          targetList = (container.props as any).blocks
+        } else {
+          targetList = state.blocks
+        }
+      } else {
+        targetList = state.blocks
+      }
+
+      const afterIndex = e.afterUuid
+        ? targetList.findIndex((v) => v.uuid === e.afterUuid)
+        : -1
+
+      if (afterIndex === -1) {
+        targetList.push(newBlock)
+      } else {
+        targetList.splice(afterIndex + 1, 0, newBlock)
+      }
+
+      trackMutation('Add library item', newBlock.uuid)
+      return ok()
+    },
+
+    async detachReusableBlock(e: DetachReusableBlockEvent) {
+      // In our implementation blocks placed from the library are already
+      // independent copies (deep-cloned with new UUIDs), so detaching is a
+      // no-op — we just track the mutation for the UI.
+      trackMutation('Detach reusable block')
+      return ok()
     },
 
     mediaLibraryGetResults: (async (e) => {

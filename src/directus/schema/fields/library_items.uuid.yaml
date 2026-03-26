@@ -1,0 +1,37 @@
+collection: library_items
+field: uuid
+type: uuid
+meta:
+  collection: library_items
+  display: null
+  display_options: null
+  field: uuid
+  group: null
+  hidden: false
+  interface: input
+  note: Unique identifier for the library item
+  options: null
+  readonly: true
+  required: true
+  sort: 2
+  special:
+    - uuid
+  translations:
+    - language: de-DE
+      translation: UUID
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: uuid
+  table: library_items
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_generated: false
+  is_nullable: false
+  is_unique: true
+  is_primary_key: false
+  has_auto_increment: false

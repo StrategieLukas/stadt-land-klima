@@ -1,0 +1,30 @@
+collection: library_items
+field: props
+type: json
+meta:
+  collection: library_items
+  display: null
+  display_options: null
+  field: props
+  group: null
+  hidden: false
+  interface: input-code
+  note: Block properties stored as JSON (includes nested blocks for containers)
+  options:
+    language: json
+  readonly: false
+  required: false
+  sort: 5
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Eigenschaften
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: props
+  table: library_items
+  data_type: json
+  default_value: '{}'

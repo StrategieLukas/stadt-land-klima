@@ -1,0 +1,29 @@
+collection: library_items
+field: date_created
+type: timestamp
+meta:
+  collection: library_items
+  display: datetime
+  display_options:
+    relative: true
+  field: date_created
+  group: null
+  hidden: true
+  interface: datetime
+  note: null
+  options: null
+  readonly: true
+  required: false
+  sort: 7
+  special:
+    - date-created
+    - cast-timestamp
+  translations: null
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: date_created
+  table: library_items
+  data_type: timestamp with time zone
+  default_value: null

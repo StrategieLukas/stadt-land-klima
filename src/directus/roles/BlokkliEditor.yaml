@@ -69,6 +69,34 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: library_items
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: library_items
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: library_items
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: library_items
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: directus_files
     action: read
     permissions: {}

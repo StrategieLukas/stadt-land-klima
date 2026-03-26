@@ -1,0 +1,36 @@
+collection: library_items
+field: bundle
+type: string
+meta:
+  collection: library_items
+  display: null
+  display_options: null
+  field: bundle
+  group: null
+  hidden: false
+  interface: input
+  note: Block bundle type (e.g. text, heading, container)
+  options: null
+  readonly: false
+  required: true
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Block-Typ
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: bundle
+  table: library_items
+  data_type: varchar
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_generated: false
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false
+  has_auto_increment: false

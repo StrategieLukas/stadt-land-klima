@@ -1,0 +1,34 @@
+collection: library_items
+field: id
+type: integer
+meta:
+  collection: library_items
+  display: null
+  display_options: null
+  field: id
+  group: null
+  hidden: true
+  interface: input
+  note: null
+  options: null
+  readonly: true
+  required: false
+  sort: 1
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: id
+  table: library_items
+  data_type: integer
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_generated: false
+  is_nullable: false
+  is_unique: false
+  is_primary_key: true
+  has_auto_increment: true

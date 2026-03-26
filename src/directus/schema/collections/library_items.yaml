@@ -1,0 +1,28 @@
+collection: library_items
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: library_items
+  color: null
+  display_template: '{{label}} ({{bundle}})'
+  group: null
+  hidden: false
+  icon: library_books
+  item_duplication_fields: null
+  note: Reusable block templates for the blökkli library feature
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Bibliothek
+      singular: Bibliothek-Element
+      plural: Bibliothek-Elemente
+  unarchive_value: null
+  versioning: false
+schema:
+  name: library_items

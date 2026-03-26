@@ -1,0 +1,30 @@
+collection: library_items
+field: options
+type: json
+meta:
+  collection: library_items
+  display: null
+  display_options: null
+  field: options
+  group: null
+  hidden: false
+  interface: input-code
+  note: Block display options stored as JSON
+  options:
+    language: json
+  readonly: false
+  required: false
+  sort: 6
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Optionen
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: options
+  table: library_items
+  data_type: json
+  default_value: '{}'

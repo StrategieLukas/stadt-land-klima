@@ -133,13 +133,17 @@ Group options into a dropdown: add `group: 'Group Name'` to any option.
 |--------|-------|
 | `loadState()` | Returns initial block list from Directus |
 | `mapState(blocks)` | Maps Directus blocks → `MutatedField[]` for blökkli |
-| `getAllBundles()` | Must list ALL bundle ids, including new ones |
+| `getAllBundles()` | Must list ALL bundle ids, including new ones. Set `allowReusable: true` on each. |
 | `getFieldConfig(host)` | Field config (allowedBundles, cardinality) per entity/bundle |
 | `getEditableFieldConfig()` | Must include entry for every `v-blokkli-editable` field used |
 | `getDroppableFieldConfig()` | Config for `v-blokkli-droppable` fields |
 | `updateFieldValue(e)` | Called when user edits an inline field |
 | `mediaLibraryGetResults()` | **Must include `mediaBundle: 'image'`** on each item |
 | `publish()` | Use `refreshNuxtData(key)` — NOT `clearNuxtData(key)` |
+| `getLibraryItems()` | Fetches reusable items from `library_items` Directus collection |
+| `makeBlockReusable()` | Saves a block as a library item in Directus |
+| `addLibraryItem()` | Clones a library item into the current page with new UUIDs |
+| `detachReusableBlock()` | No-op (blocks are already independent copies) |
 
 ### mediaLibraryGetResults — critical field
 ```ts
@@ -156,6 +160,25 @@ await refreshNuxtData(`blocks-${entityUuid}`)
 // ❌ Only marks stale, does NOT re-fetch
 clearNuxtData(`blocks-${entityUuid}`)
 ```
+
+---
+
+## Reusable Blocks (Library Feature)
+
+The library feature (`'library'`) is **enabled** — all block bundles have `allowReusable: true`.
+
+- **Storage**: `library_items` Directus collection (uuid, label, bundle, props, options, date_created)
+- **Schema files**: `src/directus/schema/collections/library_items.yaml` + `fields/library_items.*.yaml`
+- **Permissions**: BlokkliEditor role has full CRUD on `library_items`
+
+### How it works
+1. User right-clicks a block → "Make Reusable" → prompted for a label → `makeBlockReusable()` saves a snapshot to `library_items`
+2. Library sidebar shows saved templates → drag one onto the page → `addLibraryItem()` deep-clones with new UUIDs
+3. Placed blocks are **independent copies** — editing one does NOT affect others or the library template
+4. "Detach" is a no-op since blocks are already independent copies
+
+### Container / block-group reusability
+Containers (with nested blocks) are fully supported — `props.blocks` is stored as JSON in the library item and deep-cloned with fresh UUIDs on placement.
 
 ---
 
@@ -192,6 +215,7 @@ clearNuxtData(`blocks-${entityUuid}`)
 | `image` | `Image/` | droppable:imageId, caption editable |
 | `button` | `Button/` | style (colors: green/blue/dark/outline), editable label + link |
 | `container` | `Container/` | layout (grid), background (thick brand colors), padding (icons), width (icons incl. page-width breakout) |
+| `vega_chart` | `VegaChart/` | dataSource (stadtlandzahl/directus), width (small/medium/full). Editable `spec` (Vega-Lite JSON) + `query` (data fetch JSON). Stadtlandzahl query types: `method`+args, `query` (GraphQL+variables+dataPath), `url` (REST, restricted to stadtlandzahl origin). Directus query: `collection`+`query` (SDK readItems params)+optional `dataPath`. Uses vega-embed for rendering. |
 
 ### Brand Colors (from tailwind.config.js)
 | Key | Hex | Tailwind |
