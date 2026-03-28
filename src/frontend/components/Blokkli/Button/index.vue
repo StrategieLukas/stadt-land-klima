@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-button">
+  <div class="blokkli-block-button" :id="'block-' + uuid">
     <!-- External link -->
     <a
       v-if="options.linkType === 'external'"
@@ -98,7 +98,7 @@ const iconMap: Record<string, string> = Object.fromEntries(
   }),
 )
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'button',
   options: {
     linkType: {

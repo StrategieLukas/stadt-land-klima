@@ -12,7 +12,11 @@
         <div v-if="hydrated">
           <!-- Desktop Header -->
           <div v-if="isDesktop">
-            <the-header-desktop :pages="pages.filter((page) => includes(page.menus, 'main'))" :municipalities="publishedMunicipalities" />
+            <the-header-desktop
+              :pages="pages.filter((page) => includes(page.menus, 'main'))"
+              :municipalities="publishedMunicipalities"
+              :nav-items="navigationConfig?.header_items || []"
+            />
           </div>
 
           <!-- Mobile Header -->
@@ -29,6 +33,34 @@
         </div>
       </div>
 
+      <!-- Sticky nav bar (desktop only) — sits between the old header and main content -->
+      <div
+        v-if="hydrated && isDesktop"
+        class="sticky top-0 z-50 h-12 flex items-stretch transition-shadow"
+        :class="scrolled ? 'bg-mid-gray/85 backdrop-blur-md shadow-md' : 'bg-mid-gray'"
+      >
+        <!-- Nav items — flex-1 so the search bar stays on the right -->
+        <TheNavigationMenuDesktop
+          :items="navigationConfig?.header_items || []"
+          :pages="pages.filter((p) => includes(p.menus, 'main'))"
+          class="flex-1 min-w-0"
+        />
+
+        <!-- Inline search bar — opens Cmd+K palette, visually aligned with palette input -->
+        <button
+          class="flex items-center gap-2 mx-3 my-1.5 px-3 rounded bg-white/10 hover:bg-white/15 text-white/70 hover:text-white text-sm transition-colors flex-shrink-0"
+          style="min-width: 220px"
+          @click="openSearch"
+          aria-label="Suche öffnen (Strg+K)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          <span class="flex-1 text-left">Suchen…</span>
+          <kbd class="text-xs opacity-40 font-mono border border-white/20 rounded px-1.5 py-0.5">⌘K</kbd>
+        </button>
+      </div>
+
         <!-- Main Content (always rendered) -->
         <main class="flex grow flex-col px-2 py-4 bg-mild-white min-w-0">
           <div class="mx-auto w-full max-w-screen-xl flex flex-col min-w-0">
@@ -42,6 +74,7 @@
         <div v-if="isDesktop" class="bg-mild-white">
           <the-footer-desktop
             :pages="pages.filter((page) => includes(page.menus, 'footer'))"
+            :nav-items="navigationConfig?.footer_columns || []"
           />
         </div>
 
@@ -71,6 +104,8 @@
       <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
     </div>
 
+    <!-- Global search command palette (Cmd+K) -->
+    <TheSearchCommandPalette />
   </div>
 </template>
 
@@ -81,13 +116,15 @@
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 const { includes } = lodash;
-const { $directus, $readItems } = useNuxtApp();
+const { $directus, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 const route = useRoute();
 const { closeDrawer, syncDrawerState } = useDrawer();
+const { open: openSearch } = useSearchPalette();
 
 const hydrated = ref(false)
 const isDesktop = ref(false)
+const scrolled = ref(false)
 const drawerToggle = ref(null)
 let cleanup = null
 
@@ -140,6 +177,10 @@ onMounted(() => {
   mq.addEventListener('change', update)
   window.addEventListener('resize', update)
   
+  // Track scroll for sticky nav backdrop
+  const onScroll = () => { scrolled.value = window.scrollY > 8 }
+  window.addEventListener('scroll', onScroll, { passive: true })
+
   // Add escape key listener
   document.addEventListener('keydown', handleEscapeKey)
   
@@ -156,6 +197,7 @@ onMounted(() => {
   cleanup = () => {
     mq.removeEventListener('change', update)
     window.removeEventListener('resize', update)
+    window.removeEventListener('scroll', onScroll)
     document.removeEventListener('keydown', handleEscapeKey)
     if (drawerCheckbox) {
       drawerCheckbox.removeEventListener('change', syncDrawerState)
@@ -185,6 +227,10 @@ const { data: publishedMunicipalities } = await useAsyncData("municipalities", (
       limit: -1,
     }),
   );
+});
+
+const { data: navigationConfig } = await useAsyncData("navigation_config", () => {
+  return $directus.request($readSingleton("navigation_config")).catch(() => null);
 });
 
 //MetaTags

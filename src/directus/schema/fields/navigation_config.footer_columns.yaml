@@ -1,0 +1,41 @@
+collection: navigation_config
+field: footer_columns
+type: json
+meta:
+  collection: navigation_config
+  conditions: null
+  display: null
+  display_options: null
+  field: footer_columns
+  group: null
+  hidden: false
+  interface: footer-nav-editor
+  note: "Footer-Spalten mit flachen Linklisten. Jede Spalte hat einen Titel und Links zu internen Seiten oder externen URLs."
+  options: null
+  readonly: false
+  required: false
+  sort: 4
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Footer-Spalten
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: footer_columns
+  table: navigation_config
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

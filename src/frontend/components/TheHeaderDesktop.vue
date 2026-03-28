@@ -14,80 +14,39 @@
       <!-- Right side (Buttons) -->
       <div class="flex flex-col items-end space-y-4 md:space-y-0 md:space-x-4 md:flex-row">
 
+        <!-- Global search icon -->
+        <button
+          class="h-10 flex items-center justify-center px-3 py-2 text-sm font-bold border-2 border-mid-gray text-mid-gray hover:bg-mid-gray hover:text-white transition-colors"
+          :title="$t('generic.search')"
+          @click="openSearch"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+        </button>
+
         <!-- Log in button -->
         <a href="/backend">
-          <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border-2 border-orange text-orange text-sm space-x-1 hover:bg-orange hover:text-white">
+          <button class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border-2 border-orange text-orange hover:bg-orange hover:text-white">
             <span>{{ $t('generic.log_in') }}</span>
             <span>→</span>
           </button>
         </a>
 
-
         <!-- Spenden button -->
-         <DonateButton/>
+        <DonateButton/>
       </div>
     </div>
-
-    <!-- Navigation Bar -->
-    <nav class="flex justify-center bg-mid-gray h-12">
-      <ul class="flex h-full z-50">
-        <!-- Main Pages -->
-        <li
-          v-for="page in mainPages"
-          :key="page.id"
-          class="h-full"
-        >
-          <NuxtLink
-            :to="`/${page.slug}`"
-            class="flex items-center justify-center px-6 text-white font-bold h-full"
-            :class="{
-              'bg-light-green text-white': isActive(page.slug),
-              'hover:bg-mid-gray': !isActive(page.slug),
-            }"
-          >
-            {{ page.name }}
-          </NuxtLink>
-        </li>
-
-        <!-- Other Pages Dropdown -->
-        <li class="relative h-full group">
-          <div
-            class="flex items-center justify-center px-6 text-white font-bold h-full cursor-pointer"
-            :class="{
-              'bg-light-green text-white': otherPages.some(p => isActive(p.slug)),
-              'hover:bg-mid-gray': !otherPages.some(p => isActive(p.slug)),
-            }"
-          >
-            {{ $t('generic.other') }}
-          </div>
-          <div
-            class="absolute left-0 top-full mt-0 w-48 bg-white shadow-md hidden group-hover:block"
-          >
-            <NuxtLink
-              v-for="page in otherPages"
-              :key="page.id"
-              :to="`/${page.slug}`"
-              class="block px-4 py-2 text-white font-bold"
-              :class="{
-                'bg-light-green hover:bg-green': isActive(page.slug),
-                'bg-mid-gray hover:bg-gray' : !isActive(page.slug),
-              }"
-            >
-              {{ page.name }}
-            </NuxtLink>
-          </div>
-        </li>
-      </ul>
-    </nav>
-
 
   </header>
 </template>
 
 <script setup>
-const { $t } = useNuxtApp();
+import { useSearchPalette } from '~/composables/useSearchPalette.js';
 
-const route = useRoute();
+const { $t } = useNuxtApp();
+const { open: openSearch } = useSearchPalette();
+
 const props = defineProps({
   municipalities: {
     type: Array,
@@ -97,22 +56,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  navItems: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-//Separate pages into "main" and "other" based on configured menus
-const mainPages = computed(() =>
-  props?.pages?.filter((page) => page.menus && page.menus.includes('top-bar')) || []
-);
-const otherPages = computed(() =>
-  props?.pages?.filter((page) => page.menus && page.menus.includes('main') && !page.menus.includes('top-bar')) || []
-);
-
-
-
-// Function to check if a page is active (including nested routes)
-const isActive = (slug) => {
-  const fullPath = `/${slug}`;
-  return route.path === fullPath || route.path.startsWith(fullPath + '/');
-};
 </script>
-<style lang=""></style>

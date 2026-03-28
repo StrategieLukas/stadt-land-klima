@@ -1,0 +1,28 @@
+collection: events
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: events
+  color: null
+  display_template: "{{title}}"
+  group: null
+  hidden: false
+  icon: event
+  item_duplication_fields: null
+  note: Veranstaltungskalender für Konferenzen, Workshops und Webinare
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: start_date
+  translations:
+    - language: de-DE
+      translation: Veranstaltungen
+      singular: Veranstaltung
+      plural: Veranstaltungen
+  unarchive_value: draft
+  versioning: false
+schema:
+  name: events

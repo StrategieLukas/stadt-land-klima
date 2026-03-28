@@ -16,11 +16,44 @@
 
   <!-- Main Footer -->
   <footer class="footer footer-center bg-olive-green text-white p-10">
-    <!-- Navigation Links by Category -->
-    <div v-if="activeCategories.length > 0" class="w-full max-w-screen-xl mx-auto mb-8">
+    <!-- Navigation Links: footer_columns (from navigation_config) takes precedence over page categories -->
+    <div v-if="footerColumnsData.length > 0" class="w-full max-w-screen-xl mx-auto mb-8">
       <div
         class="grid gap-8 w-full"
-        :style="{ gridTemplateColumns: activeCategories.length > 0 ? `repeat(${activeCategories.length}, minmax(0, 1fr))` : 'repeat(1, 1fr)' }"
+        :style="{ gridTemplateColumns: `repeat(${footerColumnsData.length}, minmax(0, 1fr))` }"
+      >
+        <nav
+          v-for="(col, index) in footerColumnsData"
+          :key="col.id"
+          :class="[
+            'flex flex-col gap-2 text-left',
+            index !== 0 ? 'border-l border-white/30 pl-6' : ''
+          ]"
+        >
+          <h6 class="footer-title opacity-100 text-white font-bold mb-2">
+            {{ col.title }}
+          </h6>
+          <component
+            v-for="link in col.links"
+            :key="link.id"
+            :is="link.link_type === 'page' ? resolveComponent('NuxtLink') : 'a'"
+            :to="link.link_type === 'page' ? '/' + link.page_slug : undefined"
+            :href="link.link_type === 'external' ? link.external_url : undefined"
+            :target="link.link_type === 'external' && link.open_new_tab ? '_blank' : undefined"
+            :rel="link.link_type === 'external' ? 'noopener noreferrer' : undefined"
+            class="link link-hover text-base"
+          >
+            {{ link.label }}
+          </component>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Fallback: Navigation Links by Page Category (used when footer_columns not configured) -->
+    <div v-else-if="activeCategories.length > 0" class="w-full max-w-screen-xl mx-auto mb-8">
+      <div
+        class="grid gap-8 w-full"
+        :style="{ gridTemplateColumns: `repeat(${activeCategories.length}, minmax(0, 1fr))` }"
       >
         <nav
           v-for="(category, index) in activeCategories"
@@ -93,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, resolveComponent } from "vue";
 import DonateButton from '~/components/DonateButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
@@ -106,7 +139,17 @@ const props = defineProps({
   pages: {
     type: Array,
     required: true
-  }
+  },
+  navItems: {
+    type: Array,
+    default: () => []
+  },
+});
+
+// Validated footer_columns data — each column must have an id, title, and links array
+const footerColumnsData = computed(() => {
+  if (!Array.isArray(props.navItems) || props.navItems.length === 0) return []
+  return props.navItems.filter(col => col && col.id && Array.isArray(col.links))
 });
 
 const userName = computed(() => {

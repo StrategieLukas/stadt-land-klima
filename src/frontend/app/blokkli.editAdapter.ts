@@ -237,17 +237,36 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { value: '100%', unit: '', label: 'Kennzahl', description: '' }
       case 'vega_chart':
         return { spec: '', query: '' }
+      case 'timeline':
+        return { title: '', items: [] }
+      case 'timeline_item':
+        return { date: '', title: 'Meilenstein', description: '' }
+      case 'carousel':
+        return { slides: [] }
+      case 'progress_bar':
+        return { label: 'Fortschritt', value: '0', unit: '%', description: '' }
+      case 'page_nav':
+        return {}
       default:
         return {}
     }
   }
 
-  /** Find a block by uuid anywhere in the tree (root + nested containers). */
+  /** All prop keys that may contain nested FieldListItem arrays. */
+  const NESTED_FIELD_KEYS = ['blocks', 'items', 'slides']
+
+  /** Return all nested FieldListItem arrays for a block. */
+  function getNestedLists(block: FieldListItem): FieldListItem[][] {
+    return NESTED_FIELD_KEYS
+      .map((key) => (block.props as any)?.[key])
+      .filter((v): v is FieldListItem[] => Array.isArray(v))
+  }
+
+  /** Find a block by uuid anywhere in the tree (root + all nested fields). */
   function findBlock(uuid: string, list: FieldListItem[]): FieldListItem | undefined {
     for (const block of list) {
       if (block.uuid === uuid) return block
-      const nested = (block.props as any)?.blocks
-      if (Array.isArray(nested)) {
+      for (const nested of getNestedLists(block)) {
         const found = findBlock(uuid, nested)
         if (found) return found
       }
@@ -255,12 +274,11 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     return undefined
   }
 
-  /** Find the list that contains a given uuid (root or nested). */
+  /** Find the list that contains a given uuid (root or any nested field). */
   function findParentList(uuid: string, list: FieldListItem[]): FieldListItem[] | undefined {
     for (const block of list) {
       if (block.uuid === uuid) return list
-      const nested = (block.props as any)?.blocks
-      if (Array.isArray(nested)) {
+      for (const nested of getNestedLists(block)) {
         const found = findParentList(uuid, nested)
         if (found) return found
       }
@@ -269,16 +287,17 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   }
 
   /** Move a block within any list in the tree. */
-  function moveBlockInTree(uuid: string, afterUuid?: string, hostUuid?: string): boolean {
+  function moveBlockInTree(uuid: string, afterUuid?: string, hostUuid?: string, hostFieldName?: string): boolean {
     // Determine target container list
     let targetList: FieldListItem[]
     if (hostUuid && hostUuid !== ctx.value.entityUuid) {
       const container = findBlock(hostUuid, state.blocks)
       if (!container) return false
-      if (!Array.isArray((container.props as any).blocks)) {
-        ;(container.props as any).blocks = []
+      const fieldKey = hostFieldName && NESTED_FIELD_KEYS.includes(hostFieldName) ? hostFieldName : 'blocks'
+      if (!Array.isArray((container.props as any)[fieldKey])) {
+        ;(container.props as any)[fieldKey] = []
       }
-      targetList = (container.props as any).blocks
+      targetList = (container.props as any)[fieldKey]
     } else {
       targetList = state.blocks
     }
@@ -322,32 +341,42 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
      * Includes mutation tracking for publish/discard/undo UI.
      */
     mapState(s: AdapterState): MappedState {
-      // Collect mutated options for all blocks (including nested)
+      // Collect mutated options for all blocks (including all nested fields)
       function collectOptions(list: FieldListItem[], acc: Record<string, Record<string, any>>) {
         for (const block of list) {
           acc[block.uuid] = {}
           Object.entries(block.options || {}).forEach(([key, value]) => {
             acc[block.uuid][key] = value
           })
-          const nested = (block.props as any)?.blocks
-          if (Array.isArray(nested)) collectOptions(nested, acc)
+          for (const fieldKey of NESTED_FIELD_KEYS) {
+            const nested = (block.props as any)?.[fieldKey]
+            if (Array.isArray(nested)) collectOptions(nested, acc)
+          }
         }
         return acc
       }
 
-      // Build extra nested fields for each container block
+      // Build extra nested fields for each block that contains nested lists
+      const NESTED_FIELD_MAP: Record<string, string[]> = {
+        container: ['blocks'],
+        timeline: ['items'],
+        carousel: ['slides'],
+      }
       function collectContainerFields(list: FieldListItem[]): MutatedField[] {
         const fields: MutatedField[] = []
         for (const block of list) {
-          if (block.bundle === 'container') {
-            const nestedList: FieldListItem[] = (block.props as any)?.blocks || []
-            fields.push({
-              name: 'blocks',
-              entityType: 'block',
-              entityUuid: block.uuid,
-              list: nestedList.map((b) => ({ ...b })),
-            })
-            fields.push(...collectContainerFields(nestedList))
+          const fieldKeys = NESTED_FIELD_MAP[block.bundle]
+          if (fieldKeys) {
+            for (const key of fieldKeys) {
+              const nestedList: FieldListItem[] = (block.props as any)?.[key] || []
+              fields.push({
+                name: key,
+                entityType: 'block',
+                entityUuid: block.uuid,
+                list: nestedList.map((b) => ({ ...b })),
+              })
+              fields.push(...collectContainerFields(nestedList))
+            }
           }
         }
         return fields
@@ -395,13 +424,19 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'citation', label: 'Zitat', description: 'Zitat oder Testimonial', allowReusable: true },
         { id: 'stat', label: 'Kennzahl', description: 'Statistische Kennzahl / Zahl', allowReusable: true },
         { id: 'vega_chart', label: 'Vega-Lite Chart', description: 'Datenvisualisierung mit Vega-Lite', allowReusable: true },
+        { id: 'timeline', label: 'Zeitstrahl', description: 'Zeitstrahl mit Einträgen', allowReusable: true },
+        { id: 'timeline_item', label: 'Zeitstrahl-Eintrag', description: 'Einzelner Eintrag im Zeitstrahl', allowReusable: false },
+        { id: 'carousel', label: 'Karussell', description: 'Bild- oder Inhaltskarussell', allowReusable: true },
+        { id: 'progress_bar', label: 'Fortschrittsbalken', description: 'Fortschrittsbalken mit Prozentanzeige', allowReusable: true },
+        { id: 'page_nav', label: 'Seitennavigation', description: 'Horizontale Ankerlink-Navigation', allowReusable: true },
         { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'from_library']
-      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'from_library']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'from_library']
+      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'from_library']
+      const allowedInCarousel = allowedInRoot
       return Promise.resolve([
         {
           name: 'content',
@@ -421,6 +456,24 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           canEdit: true,
           allowedBundles: allowedInContainer,
         },
+        {
+          name: 'items',
+          entityType: 'block',
+          entityBundle: 'timeline',
+          label: 'Einträge',
+          cardinality: -1,
+          canEdit: true,
+          allowedBundles: ['timeline_item'],
+        },
+        {
+          name: 'slides',
+          entityType: 'block',
+          entityBundle: 'carousel',
+          label: 'Folien',
+          cardinality: -1,
+          canEdit: true,
+          allowedBundles: allowedInCarousel,
+        },
       ])
     },
 
@@ -432,14 +485,15 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         options: {},
       }
 
-      // Nested container: host.type === 'block' and host.fieldName === 'blocks'
-      if (e.host.type === 'block' && e.host.fieldName === 'blocks') {
+      // Nested block field (container.blocks, timeline.items, carousel.slides, …)
+      if (e.host.type === 'block' && e.host.fieldName && NESTED_FIELD_KEYS.includes(e.host.fieldName)) {
         const container = findBlock(e.host.uuid, state.blocks)
         if (container) {
-          if (!Array.isArray((container.props as any).blocks)) {
-            ;(container.props as any).blocks = []
+          const fieldKey = e.host.fieldName
+          if (!Array.isArray((container.props as any)[fieldKey])) {
+            ;(container.props as any)[fieldKey] = []
           }
-          const nestedList = (container.props as any).blocks as FieldListItem[]
+          const nestedList = (container.props as any)[fieldKey] as FieldListItem[]
           const afterIndex = e.afterUuid
             ? nestedList.findIndex((v) => v.uuid === e.afterUuid)
             : -1
@@ -466,7 +520,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     },
 
     moveBlock(e: MoveBlockEvent) {
-      const success = moveBlockInTree(e.item.uuid, e.afterUuid, e.host.uuid)
+      const success = moveBlockInTree(e.item.uuid, e.afterUuid, e.host.uuid, (e.host as any).fieldName)
       if (success) {
         trackMutation("Move '" + e.item.itemBundle + "' block", e.item.uuid)
       }
@@ -484,9 +538,11 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return list
           .filter((v) => !uuids.includes(v.uuid))
           .map((v) => {
-            const nested = (v.props as any)?.blocks
-            if (Array.isArray(nested)) {
-              ;(v.props as any).blocks = removeFromList(nested)
+            for (const key of NESTED_FIELD_KEYS) {
+              const nested = (v.props as any)?.[key]
+              if (Array.isArray(nested)) {
+                ;(v.props as any)[key] = removeFromList(nested)
+              }
             }
             return v
           })
@@ -504,10 +560,12 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           props: JSON.parse(JSON.stringify(block.props || {})),
           options: JSON.parse(JSON.stringify(block.options || {})),
         }
-        // Re-UUID nested container blocks too
-        const nested = (dup.props as any)?.blocks
-        if (Array.isArray(nested)) {
-          ;(dup.props as any).blocks = nested.map(deepDuplicate)
+        // Re-UUID nested blocks in all known nested fields
+        for (const key of NESTED_FIELD_KEYS) {
+          const nested = (dup.props as any)?.[key]
+          if (Array.isArray(nested)) {
+            ;(dup.props as any)[key] = nested.map(deepDuplicate)
+          }
         }
         return dup
       }
@@ -825,6 +883,81 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           entityType: 'block',
           entityBundle: 'vega_chart',
           label: 'Daten-Query',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // timeline
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'timeline',
+          label: 'Titel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // timeline_item
+        {
+          name: 'date',
+          entityType: 'block',
+          entityBundle: 'timeline_item',
+          label: 'Datum / Jahr',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'timeline_item',
+          label: 'Titel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'timeline_item',
+          label: 'Beschreibung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // progress_bar
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'progress_bar',
+          label: 'Bezeichnung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'value',
+          entityType: 'block',
+          entityBundle: 'progress_bar',
+          label: 'Wert (0–100)',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'unit',
+          entityType: 'block',
+          entityBundle: 'progress_bar',
+          label: 'Einheit',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'progress_bar',
+          label: 'Beschreibung',
           type: 'plain',
           required: false,
           maxLength: 0,

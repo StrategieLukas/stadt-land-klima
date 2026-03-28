@@ -50,9 +50,12 @@ mockProps: () => ({ text: 'hello' })
 mockProps: () => { return { text: 'hello' } }
 ```
 
-Generated files (must be regenerated after adding blocks):
-- `.nuxt/blokkli/definitions.ts`
-- `.nuxt/blokkli/imports.ts`
+Generated files (must be kept in sync when adding blocks):
+- `.nuxt/blokkli/imports.ts` — imports + `global` registry (what `getBlokkliItemComponent()` looks up)
+- `.nuxt/blokkli/definitions.ts` — options schema + `definitionsMap` (what the editor UI uses)
+- `.nuxt/blokkli/generated-types.ts` — `BlockBundle` union, `BlockBundleWithNested` union, per-bundle option types
+
+**These files are only auto-regenerated on a clean `nuxt prepare` / full rebuild.** If the dev server was already running when you added component files, they will NOT be updated automatically — new blocks show as "Block not implemented". You must update all three files manually (see "Adding a New Block" checklist below).
 
 ---
 
@@ -182,16 +185,70 @@ Containers (with nested blocks) are fully supported — `props.blocks` is stored
 
 ---
 
+## Adding a New Block — Complete Checklist
+
+When adding a new block, ALL of the following must be done:
+
+### 1. Create the component
+`src/frontend/components/Blokkli/{BundleName}/index.vue`
+Follow the patterns in [Defining a Block Component](#defining-a-block-component) above.
+
+### 2. Update the adapter (`blokkli.editAdapter.ts`)
+- **`getAllBundles()`** — add `{ id: 'my_bundle', label: '...', allowReusable: true }`
+- **`getFieldConfig()`** — add bundle to `allowedInRoot` / `allowedInContainer`; if the block has nested blocks, add a new `FieldConfig` entry for that nested field
+- **`getPropsForNewBlock()`** — add a `case 'my_bundle':` with sensible default props
+- **`getEditableFieldConfig()`** — add an entry for every `v-blokkli-editable:fieldName` used
+- **`getDroppableFieldConfig()`** — add an entry for every `v-blokkli-droppable:fieldName` used
+- **`NESTED_FIELD_KEYS`** — if the block uses a nested `BlokkliField` with a field name other than `blocks` (e.g. `items`, `slides`), add that key to the constant
+- **`NESTED_FIELD_MAP`** in `collectContainerFields` — add `'my_bundle': ['fieldName']` so nested blocks are exposed as `MutatedField`
+
+### 3. Update the generated files (if dev server is running)
+The three files below are auto-generated only on a clean Nuxt build/prepare. If the dev server is already running when you add a component, the parser may not pick it up (especially if `mockProps` used the broken shorthand). Update them manually:
+
+**`.nuxt/blokkli/imports.ts`**
+```ts
+import BlokkliComponent_my_bundle_index from '/frontend/components/Blokkli/MyBundle/index.vue'
+// add to global map:
+block_my_bundle: BlokkliComponent_my_bundle_index,
+```
+
+**`.nuxt/blokkli/definitions.ts`**
+```ts
+const BlokkliComponent_my_bundle_index: DefinitionItem = {
+  bundle: 'my_bundle',
+  options: { /* copy from component */ },
+  editor: { addBehaviour: 'no-form', editTitle: () => '...', mockProps: () => { return {} } },
+}
+// add to definitionsMap:
+my_bundle: BlokkliComponent_my_bundle_index,
+```
+
+**`.nuxt/blokkli/generated-types.ts`**
+```ts
+// Add to BlockBundle union:
+export type BlockBundle = '...' | 'my_bundle'
+// Add to BlockBundleWithNested if it has nested blocks:
+export type BlockBundleWithNested = 'container' | 'my_bundle'
+// Add option types + include in FieldListItemTyped union
+```
+
+---
+
 ## Nested Blocks (Container Pattern)
 
 ```vue
 <BlokkliField name="blocks" :list="props.blocks || []" tag="div" />
 ```
 
-- Container gets `blocks?: FieldListItem[]` prop
-- `getFieldConfig()` must return a `blocks` field config for the `container` bundle
-- `mapState()` must expose container's nested field as a `MutatedField`
-- Adapter needs recursive helpers: `findBlock(uuid, tree)`, `findParentList(uuid, tree)`
+The adapter supports nested block fields generically via `NESTED_FIELD_KEYS = ['blocks', 'items', 'slides']`. Any block whose nested field name is in this list is automatically handled by `findBlock`, `findParentList`, `moveBlockInTree`, `deleteBlocks`, and `duplicateBlocks`.
+
+For each block type that has nested blocks:
+- Component gets a `FieldListItem[]` prop matching the field name
+- `getFieldConfig()` must return a config entry for that field (e.g. `name: 'items'`, `entityBundle: 'timeline'`)
+- `collectContainerFields()` in `mapState` must include it in `NESTED_FIELD_MAP`
+- Add the bundle to `BlockBundleWithNested` in `generated-types.ts`
+
+Current nested-block bundles: `container` (field: `blocks`), `timeline` (field: `items`), `carousel` (field: `slides`)
 
 ---
 
@@ -216,6 +273,11 @@ Containers (with nested blocks) are fully supported — `props.blocks` is stored
 | `button` | `Button/` | style (colors: green/blue/dark/outline), editable label + link |
 | `container` | `Container/` | layout (grid), background (thick brand colors), padding (icons), width (icons incl. page-width breakout) |
 | `vega_chart` | `VegaChart/` | dataSource (stadtlandzahl/directus), width (small/medium/full). Editable `spec` (Vega-Lite JSON) + `query` (data fetch JSON). Stadtlandzahl query types: `method`+args, `query` (GraphQL+variables+dataPath), `url` (REST, restricted to stadtlandzahl origin). Directus query: `collection`+`query` (SDK readItems params)+optional `dataPath`. Uses vega-embed for rendering. |
+| `timeline` | `Timeline/` | Nested-block container with vertical line; accentColor, layout (left/alternating). Editable `title`. Nested field: `items` (accepts `timeline_item` only). |
+| `timeline_item` | `TimelineItem/` | Date, title, description; color (brand colors), optional Iconify icon slug. Child of `timeline`. |
+| `carousel` | `Carousel/` | CSS scroll-snap carousel; itemsVisible (1/2/3), itemWidth (auto/75vw/100vw/120vw), showArrows, showDots (always visible, grayed when inactive), gap, autoplay (off/3s/5s/8s/10s). Accepts all block types. Nested field: `slides`. |
+| `progress_bar` | `ProgressBar/` | Single progress bar; label, value (0–100), unit, description. Color (6 options), size (small/medium/large), showValue toggle, trackStyle (light/muted). |
+| `page_nav` | `PageNav/` | Horizontal anchor navigation; links defined as JSON option `[{"label":"...","href":"#..."}]`. Styles: pills/tabs/underline/plain. Optional sticky. |
 
 ### Brand Colors (from tailwind.config.js)
 | Key | Hex | Tailwind |
