@@ -20,7 +20,7 @@
   <!-- Main Footer -->
   <footer class="footer footer-vertical bg-olive-green text-white p-6">
     <!-- Navigation Links: footer_columns -->
-    <div v-if="footerColumnsData.length > 0" class="w-full mb-6">
+    <div v-if="footerColumnsData.length > 0" class="!block w-full mb-6">
       <div class="grid grid-cols-2 gap-6">
         <nav
           v-for="col in footerColumnsData"
