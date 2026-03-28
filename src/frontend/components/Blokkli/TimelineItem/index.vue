@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-timeline-item relative pl-12 pb-10">
+  <div class="blokkli-block-timeline-item relative pl-12 pb-10" :id="'block-' + uuid">
     <!-- Dot on the line -->
     <div
       class="absolute left-0 top-1.5 w-8 h-8 rounded-full flex items-center justify-center z-10"
@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'timeline_item',
   options: {
     color: {

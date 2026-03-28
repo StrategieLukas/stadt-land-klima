@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-timeline">
+  <div class="blokkli-block-timeline" :id="'block-' + uuid">
     <h2
       v-if="props.title || isEditing"
       v-blokkli-editable:title
@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import type { FieldListItem } from '#blokkli/types'
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'timeline',
   options: {
     accentColor: {

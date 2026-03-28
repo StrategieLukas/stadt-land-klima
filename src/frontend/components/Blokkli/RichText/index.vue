@@ -1,5 +1,6 @@
 <template>
   <div
+    :id="'block-' + uuid"
     class="blokkli-block-richtext"
     :class="[sizeClass, alignClass]"
   >
@@ -32,7 +33,7 @@ const md = new MarkdownIt({
   breaks: true,
 })
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'richtext',
   options: {
     size: {

@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-directus-page prose max-w-none">
+  <div class="blokkli-block-directus-page prose max-w-none" :id="'block-' + uuid">
     <div v-if="pageHtml" v-html="pageHtml" />
     <p v-else class="text-gray italic">Kein Seiteninhalt verfügbar.</p>
   </div>
@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { readItems } from '@directus/sdk'
 
-defineBlokkli({
+const { uuid } = defineBlokkli({
   bundle: 'directus_page',
   editor: {
     addBehaviour: 'no-form',

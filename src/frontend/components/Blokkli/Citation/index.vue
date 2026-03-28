@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-citation">
+  <div class="blokkli-block-citation" :id="'block-' + uuid">
     <!-- Blockquote style -->
     <component
       :is="linkTag"
@@ -128,7 +128,7 @@
 import { Icon } from '@iconify/vue'
 import { resolveComponent } from 'vue'
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'citation',
   options: {
     style: {

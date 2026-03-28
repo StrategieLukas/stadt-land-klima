@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-stat">
+  <div class="blokkli-block-stat" :id="'block-' + uuid">
     <!-- Card layout -->
     <div
       v-if="options.layout === 'card'"
@@ -103,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'stat',
   options: {
     color: {

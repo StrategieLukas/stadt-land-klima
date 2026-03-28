@@ -42,6 +42,7 @@ import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
 const { $directus, $readItems, $t } = useNuxtApp()
 const { isAuthenticated, initialize } = useAuth()
+useBlockHashNavigation()
 const canEdit = ref(false)
 onMounted(() => {
   initialize()

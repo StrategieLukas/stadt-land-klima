@@ -37,3 +37,10 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: navigation_config
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

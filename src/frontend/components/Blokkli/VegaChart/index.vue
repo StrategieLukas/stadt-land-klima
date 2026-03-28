@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-vega-chart">
+  <div class="blokkli-block-vega-chart" :id="'block-' + uuid">
     <!-- Edit mode: show editable JSON fields -->
     <div v-if="isEditing" class="space-y-3">
       <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Vega-Lite Spec</div>
@@ -75,7 +75,7 @@ let renderTimer: ReturnType<typeof setTimeout> | null = null
 let rendering = false
 let lastRenderKey = ''
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'vega_chart',
   options: {
     dataSource: {

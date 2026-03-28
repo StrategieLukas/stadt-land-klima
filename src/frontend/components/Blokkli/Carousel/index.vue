@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-carousel">
+  <div class="blokkli-block-carousel" :id="'block-' + uuid">
     <!--
       Single BlokkliField — always mounted so blokkli tracks the field consistently.
       In preview: scroll container with centering padding (peek effect).
@@ -69,7 +69,7 @@
 import { Icon } from '@iconify/vue'
 import type { FieldListItem } from '#blokkli/types'
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'carousel',
   options: {
     slideWidth: {

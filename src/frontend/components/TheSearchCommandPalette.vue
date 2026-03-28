@@ -126,6 +126,22 @@
                   <div v-if="result.sector" class="text-xs text-gray-400">{{ result.sector }}</div>
                 </div>
               </template>
+
+              <!-- Inhalte result -->
+              <template v-else-if="activeTab === 'content'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                </svg>
+                <div class="flex-1 min-w-0">
+                  <!-- eslint-disable-next-line vue/no-v-html -->
+                  <div class="font-semibold text-gray-900" v-html="result.title" />
+                  <!-- eslint-disable-next-line vue/no-v-html -->
+                  <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
+                </div>
+                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0">
+                  {{ contentTypeLabel(result.type) }}<template v-if="result.meta"> · {{ result.meta }}</template>
+                </span>
+              </template>
             </li>
           </ul>
         </div>
@@ -146,6 +162,7 @@ import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useAdministrativeAreaSearch } from '~/composables/useAdministrativeAreaSearch.js'
+import { useContentSearch } from '~/composables/useContentSearch.js'
 import lodash from 'lodash'
 const { debounce } = lodash
 
@@ -181,10 +198,45 @@ const tabs = {
     placeholder: 'Maßnahmen und Themen suchen...',
     hint: 'Tippen Sie einen Suchbegriff ein.',
   },
+  content: {
+    label: 'Inhalte',
+    placeholder: 'Seiten, Blöcke, Veranstaltungen...',
+    hint: 'Suchbegriff eingeben.',
+  },
 }
 
 // Administrative area search composable
 const adminSearch = useAdministrativeAreaSearch()
+// Full-text content search composable (Meilisearch)
+const contentSearch = useContentSearch()
+
+// Sync municipality results/loading into component state
+watch(adminSearch.results, (r) => {
+  if (activeTab.value !== 'municipalities') return
+  results.value = r.map(area => ({
+    _key: area.ars,
+    ...area,
+    hasRating: !!(area.stadtlandklimaDataAll?.[0]?.slug),
+    scoreDisplay: area.stadtlandklimaDataAll?.[0]?.scoreTotal
+      ? `${Math.round(area.stadtlandklimaDataAll[0].scoreTotal * 10) / 10}%`
+      : null,
+  }))
+})
+
+watch(adminSearch.isLoading, (loading) => {
+  if (activeTab.value !== 'municipalities') return
+  isLoading.value = loading
+})
+
+watch(contentSearch.results, (r) => {
+  if (activeTab.value !== 'content') return
+  results.value = r.map(h => ({ _key: h.id, ...h }))
+})
+
+watch(contentSearch.isLoading, (loading) => {
+  if (activeTab.value !== 'content') return
+  isLoading.value = loading
+})
 
 // Watch open state → focus input
 watch(isOpen, async (val) => {
@@ -196,6 +248,7 @@ watch(isOpen, async (val) => {
     inputRef.value?.focus()
   } else {
     adminSearch.clear()
+    contentSearch.clear()
   }
 })
 
@@ -228,23 +281,11 @@ async function runSearch(q) {
   try {
     if (activeTab.value === 'municipalities') {
       adminSearch.search(q)
-      // Watch adminSearch.results reactively
-      const stop = watch(adminSearch.results, (r) => {
-        results.value = r.map(area => ({
-          _key: area.ars,
-          ...area,
-          hasRating: !!(area.stadtlandklimaDataAll?.[0]?.slug),
-          scoreDisplay: area.stadtlandklimaDataAll?.[0]?.scoreTotal
-            ? `${Math.round(area.stadtlandklimaDataAll[0].scoreTotal * 10) / 10}%`
-            : null,
-        }))
-        isLoading.value = adminSearch.isLoading.value
-        stop()
-      }, { immediate: true })
-      // Also stop loading when adminSearch finishes
-      watch(adminSearch.isLoading, (loading) => {
-        isLoading.value = loading
-      })
+      return
+    }
+
+    if (activeTab.value === 'content') {
+      contentSearch.search(q)
       return
     }
 
@@ -280,7 +321,7 @@ async function runSearch(q) {
   } catch (e) {
     results.value = []
   } finally {
-    if (activeTab.value !== 'municipalities') {
+    if (activeTab.value !== 'municipalities' && activeTab.value !== 'content') {
       isLoading.value = false
     }
   }
@@ -299,6 +340,8 @@ function navigate(result) {
     router.push(`/events/${result.slug}`)
   } else if (activeTab.value === 'concepts') {
     router.push(`/measures/${result.slug}`)
+  } else if (activeTab.value === 'content') {
+    router.push(result.url)
   }
 }
 
@@ -322,6 +365,11 @@ function formatDate(iso) {
 const eventTypeLabels = { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }
 function eventTypeLabel(type) {
   return eventTypeLabels[type] ?? type ?? ''
+}
+
+const contentTypeLabels = { block: 'Block', page: 'Seite', event: 'Veranstaltung', article: 'Projekt', measure: 'Maßnahme' }
+function contentTypeLabel(type) {
+  return contentTypeLabels[type] ?? type ?? ''
 }
 
 // Global Cmd+K / Ctrl+K shortcut

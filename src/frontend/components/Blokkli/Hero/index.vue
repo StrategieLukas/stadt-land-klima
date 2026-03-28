@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-hero">
+  <div class="blokkli-block-hero" :id="'block-' + uuid">
     <section
       class="relative overflow-hidden flex items-center"
       :class="[heightClass, textAlignClass]"
@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'hero',
   options: {
     height: {

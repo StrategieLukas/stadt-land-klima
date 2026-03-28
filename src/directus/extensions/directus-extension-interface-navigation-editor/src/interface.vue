@@ -15,6 +15,9 @@
               <template v-if="item.link_type === 'external'">
                 <span class="badge external">extern</span> {{ item.external_url || '—' }}
               </template>
+              <template v-else-if="item.link_type === 'none'">
+                <span class="badge none">kein Link</span>
+              </template>
               <template v-else>
                 <span class="badge page">seite</span> /{{ item.page_slug || '—' }}
               </template>
@@ -45,6 +48,7 @@
               <select v-model="editBuffer.link_type">
                 <option value="page">Interne Seite</option>
                 <option value="external">Externe URL</option>
+                <option value="none">Kein Link (nur Text)</option>
               </select>
             </div>
             <template v-if="editBuffer.link_type === 'page'">
@@ -71,7 +75,7 @@
                 </div>
               </div>
             </template>
-            <template v-else>
+            <template v-else-if="editBuffer.link_type === 'external'">
               <div class="form-field full">
                 <label>Externe URL *</label>
                 <input v-model="editBuffer.external_url" type="url" placeholder="https://example.com" />
@@ -496,6 +500,11 @@ function selectPage(page) {
 .badge.external {
   background: #fef3c7;
   color: #92400e;
+}
+
+.badge.none {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .children-badge {

@@ -14,6 +14,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     // The private keys which are only available within server-side
+    meilisearchUrl: process.env.MEILISEARCH_URL,
+    meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY,
     // Keys within public, will be also exposed to the client-side
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,

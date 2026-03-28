@@ -8,7 +8,7 @@
       >
         <!-- Simple link (no children) -->
         <component
-          v-if="!hasChildren(item)"
+          v-if="!hasChildren(item) && item.link_type !== 'none'"
           :is="item.link_type === 'page' ? resolveComponent('NuxtLink') : 'a'"
           :to="item.link_type === 'page' ? resolveHref(item) : undefined"
           :href="item.link_type === 'external' ? item.external_url : undefined"
@@ -23,6 +23,15 @@
           <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-5 w-auto object-contain" alt="" />
           {{ item.label }}
         </component>
+
+        <!-- Text-only label (no link, no children) -->
+        <span
+          v-else-if="!hasChildren(item) && item.link_type === 'none'"
+          class="flex items-center justify-center gap-2 px-6 text-white font-bold h-full"
+        >
+          <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-5 w-auto object-contain" alt="" />
+          {{ item.label }}
+        </span>
 
         <!-- Trigger with children -->
         <div

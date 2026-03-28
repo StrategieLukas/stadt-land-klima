@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-video">
+  <div class="blokkli-block-video" :id="'block-' + uuid">
     <figure>
       <div class="relative" :class="aspectClass">
         <!-- YouTube / Vimeo embed -->
@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'video',
   options: {
     videoUrl: {

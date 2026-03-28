@@ -1,5 +1,6 @@
 <template>
   <nav
+    :id="'block-' + uuid"
     class="blokkli-block-page-nav"
     :class="[stickyClass, bgClass, paddingClass]"
     aria-label="Seitennavigation"
@@ -21,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'page_nav',
   options: {
     items: {

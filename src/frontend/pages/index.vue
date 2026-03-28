@@ -35,6 +35,7 @@ import { readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 const { $directus, $readItems, $t } = useNuxtApp();
 const { isAuthenticated, initialize } = useAuth();
+useBlockHashNavigation()
 const canEdit = ref(false)
 onMounted(() => {
   initialize()

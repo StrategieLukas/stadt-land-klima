@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-progress-bar">
+  <div class="blokkli-block-progress-bar" :id="'block-' + uuid">
     <!-- Label row -->
     <div class="flex items-center justify-between gap-2 mb-2">
       <span
@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'progress_bar',
   options: {
     color: {

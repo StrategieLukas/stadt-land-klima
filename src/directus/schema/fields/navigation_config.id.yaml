@@ -1,6 +1,6 @@
 collection: navigation_config
 field: id
-type: integer
+type: uuid
 meta:
   collection: navigation_config
   conditions: null
@@ -15,7 +15,8 @@ meta:
   readonly: true
   required: false
   sort: 1
-  special: null
+  special:
+    - uuid
   translations: null
   validation: null
   validation_message: null
@@ -23,7 +24,7 @@ meta:
 schema:
   name: id
   table: navigation_config
-  data_type: integer
+  data_type: uuid
   default_value: null
   max_length: null
   numeric_precision: null
@@ -33,6 +34,6 @@ schema:
   is_primary_key: true
   is_generated: false
   generation_expression: null
-  has_auto_increment: true
+  has_auto_increment: false
   foreign_key_table: null
   foreign_key_column: null

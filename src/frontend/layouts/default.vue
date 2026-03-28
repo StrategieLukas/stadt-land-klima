@@ -73,16 +73,13 @@
         <!-- Footer (Desktop version) -->
         <div v-if="isDesktop" class="bg-mild-white">
           <the-footer-desktop
-            :pages="pages.filter((page) => includes(page.menus, 'footer'))"
             :nav-items="navigationConfig?.footer_columns || []"
           />
         </div>
 
         <!-- Footer (Mobile version) -->
         <div v-if="!isDesktop" class="bg-mild-white">
-          <the-footer-mobile
-            :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-          />
+          <the-footer-mobile :nav-items="navigationConfig?.footer_columns || []" />
         </div>
       </div>
       <div v-else class="pb-[84px] lg:pb-0">

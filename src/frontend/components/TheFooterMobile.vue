@@ -19,25 +19,31 @@
 
   <!-- Main Footer -->
   <footer class="footer footer-vertical bg-olive-green text-white p-6">
-    <!-- Navigation Links by Category (Grid Layout) -->
-    <div v-if="activeCategories.length > 0" class="w-full mb-6">
+    <!-- Navigation Links: footer_columns -->
+    <div v-if="footerColumnsData.length > 0" class="w-full mb-6">
       <div class="grid grid-cols-2 gap-6">
         <nav
-          v-for="category in activeCategories"
-          :key="category.key"
+          v-for="col in footerColumnsData"
+          :key="col.id"
           class="flex flex-col gap-2"
         >
           <h6 class="footer-title opacity-100 text-white font-bold mb-2 text-sm">
-            {{ $t(`pages.page_category.${category.key}`) }}
+            {{ col.title }}
           </h6>
-          <NuxtLink
-            v-for="page in category.pages"
-            :key="page.id"
-            :to="'/' + page.slug"
-            class="link link-hover text-sm"
-          >
-            {{ page.name }}
-          </NuxtLink>
+          <template v-for="link in col.links" :key="link.id">
+            <NuxtLink
+              v-if="link.link_type === 'page'"
+              :to="'/' + link.page_slug"
+              class="link link-hover text-sm"
+            >{{ link.label }}</NuxtLink>
+            <a
+              v-else
+              :href="link.external_url"
+              :target="link.open_new_tab ? '_blank' : undefined"
+              rel="noopener noreferrer"
+              class="link link-hover text-sm"
+            >{{ link.label }}</a>
+          </template>
         </nav>
       </div>
     </div>
@@ -96,11 +102,17 @@ const showLoginModal = ref(false);
 const route = useRoute();
 
 const props = defineProps({
-  pages: {
+  navItems: {
     type: Array,
-    required: true
-  }
+    default: () => [],
+  },
 });
+
+const footerColumnsData = computed(() =>
+  Array.isArray(props.navItems)
+    ? props.navItems.filter(col => col && col.id && Array.isArray(col.links))
+    : []
+);
 
 const userName = computed(() => {
   if (!user.value) return '';
@@ -121,44 +133,7 @@ onMounted(() => {
 const shouldDisplayOnboardingLink = computed(() =>
   !(route.path === "/" || route.path.includes("mitmachen"))
 );
-
-// Define the category order
-const categoryOrder = [
-  'municipality_rating',
-  'outreach_and_network',
-  'information_and_participate',
-  'structures_and_legal'
-];
-
-// Group pages by category, only including categories that have pages
-const activeCategories = computed(() => {
-  if (!props.pages || !Array.isArray(props.pages)) {
-    return [];
-  }
-
-  const categoriesWithPages = [];
-
-  categoryOrder.forEach((categoryKey) => {
-    const pagesInCategory = props.pages.filter(
-      (page) => page && page.page_category === categoryKey
-    );
-
-    if (pagesInCategory.length > 0) {
-      categoriesWithPages.push({
-        key: categoryKey,
-        pages: pagesInCategory
-      });
-    }
-  });
-
-  return categoriesWithPages;
-});
 </script>
 
 <style scoped>
-/* Ensure collapse content doesn't overflow */
-.collapse-content {
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
 </style>

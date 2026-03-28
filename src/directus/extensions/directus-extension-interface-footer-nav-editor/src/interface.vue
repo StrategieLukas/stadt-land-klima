@@ -321,6 +321,7 @@ function selectPage(page) {
 
 <style scoped>
 .footer-nav-editor {
+  font-family: var(--theme--fonts--sans--font-family, sans-serif);
   font-size: 13px;
   display: flex;
   flex-direction: column;
@@ -328,14 +329,14 @@ function selectPage(page) {
 }
 
 .empty-hint {
-  color: #999;
+  color: var(--theme--foreground-subdued, #999);
   font-style: italic;
   padding: 8px 0;
 }
 
 .column-block {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid var(--theme--border-color, #e0e0e0);
+  border-radius: var(--theme--border-radius, 6px);
   overflow: hidden;
 }
 
@@ -344,27 +345,28 @@ function selectPage(page) {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+  background: var(--theme--background-subdued, #f5f5f5);
+  border-bottom: 1px solid var(--theme--border-color, #e0e0e0);
 }
 
 .column-label {
   font-weight: 500;
-  color: #333;
+  color: var(--theme--foreground, #333);
 }
 
 .column-label strong {
-  color: #1a56db;
+  color: var(--theme--primary, #1a56db);
 }
 
 .link-count {
   font-size: 11px;
-  color: #888;
+  color: var(--theme--foreground-subdued, #888);
   font-style: normal;
 }
 
 .links-list {
   padding: 8px 12px;
+  background: var(--theme--background, #fff);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -375,9 +377,9 @@ function selectPage(page) {
   align-items: center;
   justify-content: space-between;
   padding: 5px 8px;
-  background: #fafafa;
-  border-radius: 4px;
-  border: 1px solid #ebebeb;
+  background: var(--theme--background-subdued, #fafafa);
+  border-radius: var(--theme--border-radius, 4px);
+  border: 1px solid var(--theme--border-color-subdued, #ebebeb);
 }
 
 .link-info {
@@ -389,12 +391,12 @@ function selectPage(page) {
 
 .link-label {
   font-weight: 500;
-  color: #222;
+  color: var(--theme--foreground, #222);
 }
 
 .link-target {
   font-size: 11px;
-  color: #888;
+  color: var(--theme--foreground-subdued, #888);
   font-family: monospace;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -412,8 +414,8 @@ function selectPage(page) {
 }
 
 .badge-page {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--theme--primary-background, #dbeafe);
+  color: var(--theme--primary, #1d4ed8);
 }
 
 .badge-ext {
@@ -429,17 +431,17 @@ function selectPage(page) {
 
 .actions button {
   padding: 2px 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--theme--border-color, #ccc);
   border-radius: 3px;
-  background: #fff;
+  background: var(--theme--background, #fff);
   cursor: pointer;
   font-size: 12px;
-  color: #444;
+  color: var(--theme--foreground, #444);
   line-height: 1.4;
 }
 
 .actions button:hover:not(:disabled) {
-  background: #f0f0f0;
+  background: var(--theme--background-subdued, #f0f0f0);
 }
 
 .actions button:disabled {
@@ -458,18 +460,18 @@ function selectPage(page) {
 
 /* Edit forms */
 .edit-form {
-  background: #f0f7ff;
-  border-top: 1px solid #bfdbfe;
+  background: var(--theme--primary-background, #f0f7ff);
+  border-top: 1px solid var(--theme--border-color, #bfdbfe);
   padding: 12px;
 }
 
 .link-edit-form {
   margin: 4px 0;
-  border-radius: 4px;
+  border-radius: var(--theme--border-radius, 4px);
 }
 
 .column-edit-form {
-  border-top: 1px solid #bfdbfe;
+  border-top: 1px solid var(--theme--border-color, #bfdbfe);
 }
 
 .form-grid {
@@ -483,24 +485,25 @@ function selectPage(page) {
   flex-direction: column;
   gap: 4px;
   font-size: 12px;
-  color: #555;
+  color: var(--theme--foreground-subdued, #555);
   font-weight: 500;
 }
 
 .edit-form input,
 .edit-form select {
   padding: 5px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid var(--theme--border-color, #ccc);
+  border-radius: var(--theme--border-radius, 4px);
   font-size: 13px;
-  background: #fff;
+  background: var(--theme--background, #fff);
+  color: var(--theme--foreground, #333);
 }
 
 .edit-form input:focus,
 .edit-form select:focus {
   outline: none;
-  border-color: #1a56db;
-  box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.1);
+  border-color: var(--theme--primary, #1a56db);
+  box-shadow: 0 0 0 2px var(--theme--primary-background, rgba(26, 86, 219, 0.1));
 }
 
 .checkbox-label {
@@ -518,9 +521,9 @@ function selectPage(page) {
 .autocomplete {
   position: absolute;
   z-index: 100;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  background: var(--theme--background, #fff);
+  border: 1px solid var(--theme--border-color, #ccc);
+  border-radius: var(--theme--border-radius, 4px);
   margin-top: 2px;
   list-style: none;
   padding: 0;
@@ -534,15 +537,16 @@ function selectPage(page) {
   padding: 7px 10px;
   cursor: pointer;
   font-size: 13px;
+  color: var(--theme--foreground, #333);
 }
 
 .autocomplete li:hover {
-  background: #f0f7ff;
+  background: var(--theme--primary-background, #f0f7ff);
 }
 
 .slug-hint {
   font-size: 11px;
-  color: #888;
+  color: var(--theme--foreground-subdued, #888);
   font-family: monospace;
   margin-left: 6px;
 }
@@ -555,36 +559,40 @@ function selectPage(page) {
 
 .btn-save {
   padding: 5px 14px;
-  background: #1a56db;
+  background: var(--theme--primary, #1a56db);
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--theme--border-radius, 4px);
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
 }
 
 .btn-save:hover {
-  background: #1e40af;
+  background: var(--theme--primary-accent, #1e40af);
 }
 
 .btn-cancel {
   padding: 5px 14px;
-  background: #fff;
-  color: #555;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  background: var(--theme--background, #fff);
+  color: var(--theme--foreground-subdued, #555);
+  border: 1px solid var(--theme--border-color, #ccc);
+  border-radius: var(--theme--border-radius, 4px);
   cursor: pointer;
   font-size: 12px;
+}
+
+.btn-cancel:hover {
+  background: var(--theme--background-subdued, #f5f5f5);
 }
 
 .btn-add-link {
   margin-top: 6px;
   padding: 5px 10px;
   background: transparent;
-  border: 1px dashed #aaa;
-  border-radius: 4px;
-  color: #666;
+  border: 1px dashed var(--theme--border-color, #aaa);
+  border-radius: var(--theme--border-radius, 4px);
+  color: var(--theme--foreground-subdued, #666);
   cursor: pointer;
   font-size: 12px;
   width: 100%;
@@ -592,17 +600,17 @@ function selectPage(page) {
 }
 
 .btn-add-link:hover {
-  border-color: #1a56db;
-  color: #1a56db;
-  background: #f0f7ff;
+  border-color: var(--theme--primary, #1a56db);
+  color: var(--theme--primary, #1a56db);
+  background: var(--theme--primary-background, #f0f7ff);
 }
 
 .btn-add-column {
   padding: 8px 16px;
   background: transparent;
-  border: 2px dashed #aaa;
-  border-radius: 6px;
-  color: #666;
+  border: 2px dashed var(--theme--border-color, #aaa);
+  border-radius: var(--theme--border-radius, 6px);
+  color: var(--theme--foreground-subdued, #666);
   cursor: pointer;
   font-size: 13px;
   width: 100%;
@@ -610,8 +618,8 @@ function selectPage(page) {
 }
 
 .btn-add-column:hover {
-  border-color: #1a56db;
-  color: #1a56db;
-  background: #f0f7ff;
+  border-color: var(--theme--primary, #1a56db);
+  color: var(--theme--primary, #1a56db);
+  background: var(--theme--primary-background, #f0f7ff);
 }
 </style>

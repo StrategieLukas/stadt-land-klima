@@ -1,5 +1,6 @@
 <template>
   <section
+    :id="'block-' + uuid"
     class="blokkli-block-container"
     :class="[bgClass, paddingClass, widthBreakout, borderClass, roundedClass, shadowClass]"
   >
@@ -19,7 +20,7 @@
 <script setup lang="ts">
 import type { FieldListItem } from '#blokkli/types'
 
-const { options } = defineBlokkli({
+const { options, uuid } = defineBlokkli({
   bundle: 'container',
   options: {
     layout: {

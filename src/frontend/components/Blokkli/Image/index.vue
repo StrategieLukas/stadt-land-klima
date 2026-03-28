@@ -1,5 +1,6 @@
 <template>
   <figure
+    :id="'block-' + uuid"
     class="blokkli-block-image"
     :class="[sizeClass]"
   >
@@ -39,7 +40,7 @@
 <script setup lang="ts">
 import { resolveComponent } from 'vue'
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'image',
   options: {
     size: {
