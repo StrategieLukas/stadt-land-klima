@@ -36,10 +36,10 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       delete role.permissions;
 
       if (role.name === 'Administrator') {
-        // 🔹 Skip Administrator entirely
+        // Skip Administrator entirely
         return;
       } else if (role.name === 'Public') {
-        // 🔹 Public has no DB entry
+        // Public has no DB entry
         role.id = null;
       } else {
         const existingRole = find(existingRoles, ['name', role.name]);
@@ -69,9 +69,11 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
               })
             : find(existingPermissions, {
                 action: permission.action,
-                role: null, // 🔹 match public
+                role: null, // match public
                 collection: permission.collection,
               });
+
+        console.log(existingPermission);
 
         if (existingPermission && existingPermission.id) {
           permission.id = existingPermission.id;
