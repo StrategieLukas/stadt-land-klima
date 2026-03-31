@@ -16,9 +16,9 @@
         <the-header-mobile :municipalities="publishedMunicipalities" />
       </div>
     </div>
-    <div v-else class="bg-white border-b border-gray-100" style="height: 128px">
-      <!-- Header placeholder to prevent layout shift during hydration -->
-    </div>
+    <!-- Spacer that reserves the height of the fixed header (py-2 + h-16 logo = 80px = h-20)
+         so page content starts below it. Doubles as the placeholder during hydration. -->
+    <div class="h-20 flex-shrink-0"></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
     <div class="drawer flex-1">

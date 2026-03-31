@@ -20,6 +20,7 @@
           :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
           :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
           class="flex items-center gap-1.5 px-5 text-sm font-semibold whitespace-nowrap transition-colors"
+          @click="closeMenu"
           :class="{
             'bg-olive-green text-white': item.link_type === 'page' && isActive(item),
             'text-gray-600 hover:bg-light-green/10 hover:text-gray-900': !(item.link_type === 'page' && isActive(item)),
@@ -44,6 +45,7 @@
           :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'div'"
           :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
           class="flex items-center gap-1.5 px-5 text-sm font-semibold cursor-pointer whitespace-nowrap transition-colors"
+          @click="item.link_type === 'page' && item.page_slug ? closeMenu() : undefined"
           :class="{
             'bg-olive-green text-white': anyChildActive(item),
             'text-gray-600 hover:bg-light-green/10 hover:text-gray-900': !anyChildActive(item),
@@ -74,6 +76,7 @@
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                 class="relative w-40 h-32 rounded-lg overflow-hidden flex-shrink-0 group/card block"
+                @click="closeMenu"
                 :class="{
                   'ring-2 ring-olive-green': child.link_type === 'page' && isActive(child),
                 }"
@@ -104,6 +107,7 @@
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                 class="flex items-start px-4 py-3 text-sm font-semibold border-b border-gray-50 last:border-b-0 transition-colors"
+                @click="closeMenu"
                 :class="{
                   'bg-light-green/20 text-olive-green': child.link_type === 'page' && isActive(child),
                   'text-gray-700 hover:bg-light-green/10 hover:text-gray-900': !(child.link_type === 'page' && isActive(child)),
@@ -160,6 +164,11 @@ function handleMenuLeave() {
   menuCloseTimer = setTimeout(() => {
     openMenuId.value = null
   }, 200)
+}
+
+function closeMenu() {
+  clearTimeout(menuCloseTimer)
+  openMenuId.value = null
 }
 
 function resolveHref(item) {

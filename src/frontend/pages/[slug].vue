@@ -61,6 +61,11 @@ const { data: pagesWithSlug } = await useAsyncData(`page-${route.params.slug}`, 
 })
 const page = computed(() => pagesWithSlug.value?.[0] || null)
 
+// Throw a real 404 so error.vue is rendered instead of the layout fallback
+if (!page.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
+}
+
 // Load blocks from Directus — always fresh (no client-side caching)
 const { data: blocksData } = await useAsyncData(
   `blocks-${route.params.slug}`,
