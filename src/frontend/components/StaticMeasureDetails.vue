@@ -34,21 +34,21 @@
     <div class="flex flex-row width-full justify-around">
       <FeasibilityBarChart
         key="impact"
-        icon="/assets/icons/icon_impact.svg"
+        :icon="iconImpact"
         :label="$t('measure.impact_label')"
         :value="Number(measure.impact)"
       />
 
       <FeasibilityBarChart
         key="politics"
-        icon="/assets/icons/icon_politics.svg"
+        :icon="iconPolitics"
         :label="$t('measure.feasibility_political_label')"
         :value="Number(measure.feasibility_political)"
       />
 
       <FeasibilityBarChart
         key="invest"
-        icon="/assets/icons/icon_invest.svg"
+        :icon="iconInvest"
         :label="$t('measure.feasibility_economical_label')"
         :value="Number(measure.feasibility_economical)"
       />
@@ -58,6 +58,9 @@
 
 <script setup>
 import sanitizeHtml from "sanitize-html";
+import iconImpact from '@/assets/icons/icon_impact.svg'
+import iconPolitics from '@/assets/icons/icon_politics.svg'
+import iconInvest from '@/assets/icons/icon_invest.svg'
 
   const props = defineProps({
     measure: {

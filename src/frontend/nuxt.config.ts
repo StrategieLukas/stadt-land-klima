@@ -48,6 +48,18 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'node-server',
     workers: 1, // Avoid spawning too many workers in limited environments
+    rollupConfig: {
+      plugins: [
+        {
+          name: 'svg-raw-loader',
+          transform(code: string, id: string) {
+            if (id.endsWith('.svg')) {
+              return { code: `export default ${JSON.stringify(code)}`, map: null }
+            }
+          },
+        },
+      ],
+    },
   },
   vite: {
      define: {

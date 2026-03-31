@@ -1,159 +1,173 @@
 <template>
   <Teleport to="body">
-    <div
-      v-if="isOpen"
-      class="fixed inset-0 z-[10001] bg-black/50 flex items-start justify-center pt-12 px-4"
-      @click.self="close"
-    >
+    <Transition name="palette-fade">
       <div
-        class="bg-white w-full max-w-xl rounded-lg shadow-2xl overflow-hidden flex flex-col"
-        style="max-height: 80vh"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Suche"
+        v-if="isOpen"
+        class="fixed inset-0 z-[10002]"
+        @click.self="close"
       >
-        <!-- Input row -->
-        <div class="flex items-center border-b border-gray-200 px-4 gap-3">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-          </svg>
-          <input
-            ref="inputRef"
-            v-model="query"
-            class="flex-1 py-4 text-base outline-none placeholder-gray-400"
-            :placeholder="tabs[activeTab].placeholder"
-            @input="onQueryInput"
-            @keydown.up.prevent="moveFocus(-1)"
-            @keydown.down.prevent="moveFocus(1)"
-            @keydown.enter.prevent="navigateToFocused"
-            @keydown.escape="close"
-          />
-          <kbd class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded hidden sm:block">ESC</kbd>
-        </div>
+        <!-- Dark backdrop -->
+        <div class="absolute inset-0 bg-black/50" @click="close" />
 
-        <!-- Tab bar -->
-        <div class="flex border-b border-gray-100 overflow-x-auto">
-          <button
-            v-for="(tab, key) in tabs"
-            :key="key"
-            class="px-4 py-2.5 text-sm font-medium whitespace-nowrap flex-shrink-0 border-b-2 transition-colors"
-            :class="activeTab === key
-              ? 'border-light-green text-light-green'
-              : 'border-transparent text-gray-500 hover:text-gray-700'"
-            @click="switchTab(key)"
+        <!-- Panel: drops below header when embedded, centred floating otherwise -->
+        <div
+          class="absolute left-1/2 -translate-x-1/2 w-full max-w-xl px-4 z-10"
+          :style="embeddedInput
+            ? 'top: 116px'
+            : 'top: 80px'"
+        >
+          <div
+            class="bg-white overflow-hidden flex flex-col shadow-2xl"
+            :class="embeddedInput ? 'rounded-b-2xl rounded-t-none border-t border-gray-100' : 'rounded-2xl'"
+            style="max-height: 76vh"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Suche"
+            @click.stop
           >
-            {{ tab.label }}
-          </button>
-        </div>
+            <!-- Input row — hidden when the header's embedded input is active -->
+            <div v-if="!embeddedInput" class="flex items-center border-b border-gray-200 px-4 gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+              </svg>
+              <input
+                ref="inputRef"
+                v-model="query"
+                class="flex-1 py-4 text-base outline-none placeholder-gray-400"
+                :placeholder="tabs[activeTab].placeholder"
+                @keydown.up.prevent="moveFocus(-1)"
+                @keydown.down.prevent="moveFocus(1)"
+                @keydown.enter.prevent="navigateToFocused"
+                @keydown.escape="close"
+              />
+              <kbd class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded hidden sm:block">ESC</kbd>
+            </div>
 
-        <!-- Results -->
-        <div class="overflow-y-auto flex-1">
-          <!-- Loading -->
-          <div v-if="isLoading" class="flex items-center justify-center py-10 text-gray-400 text-sm">
-            <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-            </svg>
-            Suche...
+            <!-- Tab bar -->
+            <div class="flex border-b border-gray-100 overflow-x-auto">
+              <button
+                v-for="(tab, key) in tabs"
+                :key="key"
+                class="px-4 py-2.5 text-sm font-medium whitespace-nowrap flex-shrink-0 border-b-2 transition-colors"
+                :class="activeTab === key
+                  ? 'border-light-green text-light-green'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'"
+                @click="switchTab(key)"
+              >
+                {{ tab.label }}
+              </button>
+            </div>
+
+            <!-- Results -->
+            <div class="overflow-y-auto flex-1">
+              <!-- Loading -->
+              <div v-if="isLoading" class="flex items-center justify-center py-10 text-gray-400 text-sm">
+                <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Suche...
+              </div>
+
+              <!-- No query yet -->
+              <div v-else-if="!query.trim()" class="py-10 text-center text-gray-400 text-sm">
+                {{ tabs[activeTab].hint }}
+              </div>
+
+              <!-- No results -->
+              <div v-else-if="!results.length" class="py-10 text-center text-gray-400 text-sm">
+                Keine Ergebnisse für „{{ query }}"
+              </div>
+
+              <!-- Results list -->
+              <ul v-else>
+                <li
+                  v-for="(result, i) in results"
+                  :key="result._key ?? i"
+                  class="flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-gray-50 last:border-b-0 transition-colors"
+                  :class="focusedIndex === i ? 'bg-mild-white' : 'hover:bg-mild-white'"
+                  @click="navigate(result)"
+                  @mouseenter="focusedIndex = i"
+                >
+                  <!-- Gemeinden result -->
+                  <template v-if="activeTab === 'municipalities'">
+                    <div class="flex-1 min-w-0">
+                      <div class="text-xs font-medium uppercase text-gray-400">{{ result.prefix }}</div>
+                      <div class="font-semibold text-gray-900">{{ result.name }}</div>
+                    </div>
+                    <span v-if="result.hasRating" class="text-xs bg-light-blue/20 text-light-blue px-2 py-0.5 rounded-full whitespace-nowrap self-center">
+                      {{ result.scoreDisplay }}
+                    </span>
+                  </template>
+
+                  <!-- Seiten result -->
+                  <template v-else-if="activeTab === 'pages'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-gray-900">{{ result.name }}</div>
+                      <div class="text-xs text-gray-400">/{{ result.slug }}</div>
+                    </div>
+                  </template>
+
+                  <!-- Kalender result -->
+                  <template v-else-if="activeTab === 'events'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-gray-900">{{ result.title }}</div>
+                      <div class="text-xs text-gray-400">
+                        {{ formatDate(result.start_date) }}
+                        <span v-if="result.location"> · {{ result.location }}</span>
+                      </div>
+                    </div>
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap">
+                      {{ eventTypeLabel(result.event_type) }}
+                    </span>
+                  </template>
+
+                  <!-- Themen result -->
+                  <template v-else-if="activeTab === 'concepts'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-gray-900">{{ result.name }}</div>
+                      <div v-if="result.sector" class="text-xs text-gray-400">{{ result.sector }}</div>
+                    </div>
+                  </template>
+
+                  <!-- Inhalte result -->
+                  <template v-else-if="activeTab === 'content'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                    </svg>
+                    <div class="flex-1 min-w-0">
+                      <!-- eslint-disable-next-line vue/no-v-html -->
+                      <div class="font-semibold text-gray-900" v-html="result.title" />
+                      <!-- eslint-disable-next-line vue/no-v-html -->
+                      <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
+                    </div>
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0">
+                      {{ contentTypeLabel(result.type) }}<template v-if="result.meta"> · {{ result.meta }}</template>
+                    </span>
+                  </template>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Footer hint -->
+            <div class="border-t border-gray-100 px-4 py-2 flex items-center gap-4 text-xs text-gray-400">
+              <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> navigieren</span>
+              <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> öffnen</span>
+              <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> schließen</span>
+            </div>
           </div>
-
-          <!-- No query yet -->
-          <div v-else-if="!query.trim()" class="py-10 text-center text-gray-400 text-sm">
-            {{ tabs[activeTab].hint }}
-          </div>
-
-          <!-- No results -->
-          <div v-else-if="!results.length" class="py-10 text-center text-gray-400 text-sm">
-            Keine Ergebnisse für „{{ query }}"
-          </div>
-
-          <!-- Results list -->
-          <ul v-else>
-            <li
-              v-for="(result, i) in results"
-              :key="result._key ?? i"
-              class="flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-gray-50 last:border-b-0 transition-colors"
-              :class="focusedIndex === i ? 'bg-mild-white' : 'hover:bg-mild-white'"
-              @click="navigate(result)"
-              @mouseenter="focusedIndex = i"
-            >
-              <!-- Gemeinden result -->
-              <template v-if="activeTab === 'municipalities'">
-                <div class="flex-1 min-w-0">
-                  <div class="text-xs font-medium uppercase text-gray-400">{{ result.prefix }}</div>
-                  <div class="font-semibold text-gray-900">{{ result.name }}</div>
-                </div>
-                <span v-if="result.hasRating" class="text-xs bg-light-blue/20 text-light-blue px-2 py-0.5 rounded-full whitespace-nowrap self-center">
-                  {{ result.scoreDisplay }}
-                </span>
-              </template>
-
-              <!-- Seiten result -->
-              <template v-else-if="activeTab === 'pages'">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <div class="flex-1 min-w-0">
-                  <div class="font-semibold text-gray-900">{{ result.name }}</div>
-                  <div class="text-xs text-gray-400">/{{ result.slug }}</div>
-                </div>
-              </template>
-
-              <!-- Kalender result -->
-              <template v-else-if="activeTab === 'events'">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <div class="flex-1 min-w-0">
-                  <div class="font-semibold text-gray-900">{{ result.title }}</div>
-                  <div class="text-xs text-gray-400">
-                    {{ formatDate(result.start_date) }}
-                    <span v-if="result.location"> · {{ result.location }}</span>
-                  </div>
-                </div>
-                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap">
-                  {{ eventTypeLabel(result.event_type) }}
-                </span>
-              </template>
-
-              <!-- Themen result -->
-              <template v-else-if="activeTab === 'concepts'">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <div class="flex-1 min-w-0">
-                  <div class="font-semibold text-gray-900">{{ result.name }}</div>
-                  <div v-if="result.sector" class="text-xs text-gray-400">{{ result.sector }}</div>
-                </div>
-              </template>
-
-              <!-- Inhalte result -->
-              <template v-else-if="activeTab === 'content'">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-                </svg>
-                <div class="flex-1 min-w-0">
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <div class="font-semibold text-gray-900" v-html="result.title" />
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
-                </div>
-                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0">
-                  {{ contentTypeLabel(result.type) }}<template v-if="result.meta"> · {{ result.meta }}</template>
-                </span>
-              </template>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Footer hint -->
-        <div class="border-t border-gray-100 px-4 py-2 flex items-center gap-4 text-xs text-gray-400">
-          <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> navigieren</span>
-          <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> öffnen</span>
-          <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> schließen</span>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>
 
@@ -161,17 +175,18 @@
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
+import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
 import { useAdministrativeAreaSearch } from '~/composables/useAdministrativeAreaSearch.js'
 import { useContentSearch } from '~/composables/useContentSearch.js'
 import lodash from 'lodash'
 const { debounce } = lodash
 
-const { isOpen, close } = useSearchPalette()
+const { isOpen, query, embeddedInput, open, close } = useSearchPalette()
+const bridge = useEmbeddedSearchBridge()
 const { $directus, $readItems } = useNuxtApp()
 const router = useRouter()
 
 const inputRef = ref(null)
-const query = ref('')
 const activeTab = ref('municipalities')
 const results = ref([])
 const isLoading = ref(false)
@@ -204,6 +219,9 @@ const tabs = {
     hint: 'Suchbegriff eingeben.',
   },
 }
+
+// Register keyboard nav functions with the bridge so the header can call them
+bridge.register(moveFocus, navigateToFocused, activeTab)
 
 // Administrative area search composable
 const adminSearch = useAdministrativeAreaSearch()
@@ -238,35 +256,37 @@ watch(contentSearch.isLoading, (loading) => {
   isLoading.value = loading
 })
 
-// Watch open state → focus input
+// Watch open state → focus input (only when not embedded — header owns focus then)
 watch(isOpen, async (val) => {
   if (val) {
-    query.value = ''
     results.value = []
     focusedIndex.value = -1
-    await nextTick()
-    inputRef.value?.focus()
+    if (!embeddedInput.value) {
+      await nextTick()
+      inputRef.value?.focus()
+    }
   } else {
     adminSearch.clear()
     contentSearch.clear()
   }
 })
 
+// Drive search from the shared query ref (works for both embedded and palette inputs)
+const debouncedSearch = debounce((q) => runSearch(q), 300)
+watch(query, (q) => {
+  focusedIndex.value = -1
+  debouncedSearch(q)
+})
+
 function switchTab(key) {
   activeTab.value = key
+  bridge.activeTab.value = key
   focusedIndex.value = -1
   results.value = []
   if (query.value.trim()) {
     runSearch(query.value)
   }
 }
-
-function onQueryInput() {
-  focusedIndex.value = -1
-  debouncedSearch(query.value)
-}
-
-const debouncedSearch = debounce((q) => runSearch(q), 300)
 
 async function runSearch(q) {
   if (!q.trim()) {
@@ -329,7 +349,6 @@ async function runSearch(q) {
 
 function navigate(result) {
   close()
-  query.value = ''
   results.value = []
 
   if (activeTab.value === 'municipalities') {
@@ -372,14 +391,27 @@ function contentTypeLabel(type) {
   return contentTypeLabels[type] ?? type ?? ''
 }
 
-// Global Cmd+K / Ctrl+K shortcut
+// Global Cmd+K / Ctrl+K shortcut + ESC to close from anywhere
 function handleKeydown(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault()
-    isOpen.value = !isOpen.value
+    if (isOpen.value) { close() } else { open() }
+  } else if (e.key === 'Escape' && isOpen.value) {
+    close()
   }
 }
 
 onMounted(() => document.addEventListener('keydown', handleKeydown))
 onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 </script>
+
+<style scoped>
+.palette-fade-enter-active,
+.palette-fade-leave-active {
+  transition: opacity 180ms ease;
+}
+.palette-fade-enter-from,
+.palette-fade-leave-to {
+  opacity: 0;
+}
+</style>

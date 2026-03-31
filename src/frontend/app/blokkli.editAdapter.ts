@@ -247,6 +247,10 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { label: 'Fortschritt', value: '0', unit: '%', description: '' }
       case 'page_nav':
         return {}
+      case 'hex_grid':
+        return { items: [] }
+      case 'hex_item':
+        return { label: 'Hexagon', imageId: '' }
       default:
         return {}
     }
@@ -360,6 +364,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       const NESTED_FIELD_MAP: Record<string, string[]> = {
         container: ['blocks'],
         timeline: ['items'],
+        hex_grid: ['items'],
         carousel: ['slides'],
       }
       function collectContainerFields(list: FieldListItem[]): MutatedField[] {
@@ -429,13 +434,16 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'carousel', label: 'Karussell', description: 'Bild- oder Inhaltskarussell', allowReusable: true },
         { id: 'progress_bar', label: 'Fortschrittsbalken', description: 'Fortschrittsbalken mit Prozentanzeige', allowReusable: true },
         { id: 'page_nav', label: 'Seitennavigation', description: 'Horizontale Ankerlink-Navigation', allowReusable: true },
+        { id: 'hex_grid', label: 'Honeyweb', description: 'Sechseck-Waben-Raster mit verlinkten Kacheln', allowReusable: true },
+        { id: 'hex_item', label: 'Honeyweb-Kachel', description: 'Einzelne Kachel im Honeyweb', allowReusable: false },
+        { id: 'projects_carousel', label: 'Projektkarussell', description: 'Automatisches Karussell der Erfolgsprojekte', allowReusable: true },
         { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'from_library']
-      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'from_library']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'from_library']
+      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'from_library']
       const allowedInCarousel = allowedInRoot
       return Promise.resolve([
         {
@@ -473,6 +481,15 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           cardinality: -1,
           canEdit: true,
           allowedBundles: allowedInCarousel,
+        },
+        {
+          name: 'items',
+          entityType: 'block',
+          entityBundle: 'hex_grid',
+          label: 'Hexagone',
+          cardinality: 15,
+          canEdit: true,
+          allowedBundles: ['hex_item'],
         },
       ])
     },
@@ -925,6 +942,34 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           required: false,
           maxLength: 0,
         },
+        // projects_carousel
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'projects_carousel',
+          label: 'Kategorie-Label',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'heading',
+          entityType: 'block',
+          entityBundle: 'projects_carousel',
+          label: 'Überschrift',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'linkText',
+          entityType: 'block',
+          entityBundle: 'projects_carousel',
+          label: 'Link-Text',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
         // progress_bar
         {
           name: 'label',
@@ -992,6 +1037,16 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           label: 'Portraitbild',
           entityType: 'block',
           entityBundle: 'citation',
+          allowedEntityType: 'media',
+          allowedBundles: ['image'],
+          cardinality: 1,
+          required: false,
+        },
+        {
+          name: 'imageId',
+          label: 'Hintergrundbild',
+          entityType: 'block',
+          entityBundle: 'hex_item',
           allowedEntityType: 'media',
           allowedBundles: ['image'],
           cardinality: 1,
