@@ -1,15 +1,16 @@
 <template>
   <header
-    class="fixed top-0 left-0 right-0 backdrop-blur-md border-b border-gray-200 transition-[box-shadow] duration-300"
-    style="background: rgba(255,255,255,0.82)"
+    ref="headerEl"
+    class="fixed top-0 left-0 right-0 backdrop-blur-md border-b border-gray-200 transition-[box-shadow,background] duration-300"
+    :style="(isOpen && embeddedInput) ? 'background: rgba(255,255,255,1)' : 'background: rgba(255,255,255,0.82)'"
     :class="[
-      scrolled ? 'shadow-lg' : '',
+      scrolled && !(isOpen && embeddedInput) ? 'shadow-lg' : '',
       isOpen && embeddedInput ? 'z-[10003]' : 'z-50',
     ]"
   >
     <!-- 1fr | nav (auto, truly centred) | 1fr — equal side columns guarantee perfect centring -->
     <div
-      class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 mx-auto w-full max-w-screen-xl transition-[padding] duration-300 ease-in-out"
+      class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 mx-auto w-full max-w-screen-xl py-2 md:px-8 lg:px-2 xl:px-0 transition-[padding] duration-300 ease-in-out"
       :class="scrolled ? 'py-1' : 'py-2'"
     >
 
@@ -30,7 +31,7 @@
       <div class="flex items-center justify-center gap-2 min-w-0">
 
         <!-- Wrapper sized by the nav — search input absolutely covers the same box -->
-        <div class="relative w-max">
+        <div class="relative w-max" ref="navWrapperRef">
 
           <!-- Nav pill bar: stays in DOM at all times to lock the container size.
                Fades out when search is active but keeps its layout footprint. -->
@@ -44,12 +45,13 @@
             }"
           />
 
-          <!-- Search input: overlays the nav's exact bounding box, same styling -->
+          <!-- Search input: sits inside the nav wrapper so it is vertically
+               aligned with the pill bar. Border is handled by the overlay below. -->
           <Transition name="nav-search" mode="out-in">
             <div
               v-if="isOpen && embeddedInput"
               key="search"
-              class="absolute inset-0 flex items-center gap-3 px-4 bg-gray-50 border border-gray-200 rounded-full overflow-hidden"
+              class="absolute border-b inset-0 flex items-center gap-3 px-4 bg-white rounded-t-2xl"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -58,7 +60,7 @@
                 ref="embeddedInputRef"
                 v-model="query"
                 class="flex-1 min-w-0 text-sm text-gray-700 outline-none bg-transparent placeholder-gray-400"
-                :placeholder="tabs[activeTab]?.placeholder ?? 'Gemeinde, Seite, Thema…'"
+                :placeholder="placeholder"
                 @keydown.up.prevent="moveFocusEmbedded(-1)"
                 @keydown.down.prevent="moveFocusEmbedded(1)"
                 @keydown.enter.prevent="navigateFocusedEmbedded"
@@ -98,6 +100,21 @@
       </div>
 
     </div>
+
+    <!-- Dead-zone fill: gray background only in the gap between pill bottom and header border-b.
+         Inset 1px each side to sit inside the border frame's lines. -->
+    <div
+      v-if="isOpen && embeddedInput && navInputRect.left !== null"
+      class="absolute pointer-events-none bg-gray-100 z-[15]"
+      :style="`left: ${navInputRect.left + 1}px; width: ${navInputRect.width - 2}px; top: ${navInputRect.topInHeader + 36}px; bottom: 0`"
+    />
+
+    <!-- Border frame: side + top lines only, no background, connects pill to panel. -->
+    <div
+      v-if="isOpen && embeddedInput && navInputRect.left !== null"
+      class="absolute pointer-events-none border-x border-t border-gray-200 rounded-t-2xl z-10"
+      :style="`left: ${navInputRect.left}px; width: ${navInputRect.width}px; top: ${navInputRect.topInHeader}px; bottom: -1px`"
+    />
   </header>
 </template>
 
@@ -105,6 +122,8 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
+import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
+import { useNavInputRect } from '~/composables/useHeaderHeight.js'
 
 const { $t } = useNuxtApp()
 const { isOpen, query, embeddedInput, open, openEmbedded, close } = useSearchPalette()
@@ -117,9 +136,13 @@ const props = defineProps({
 
 const scrolled = ref(false)
 const embeddedInputRef = ref(null)
+const headerEl = ref(null)
+const navWrapperRef = ref(null)
+const headerHeight = useHeaderHeight()
+const navInputRect = useNavInputRect()
 
 // Proxy for keyboard navigation in embedded mode — palette exposes these via a shared event bus below
-const { moveFocusEmbedded, navigateFocusedEmbedded, tabs, activeTab } = useEmbeddedSearchBridge()
+const { moveFocusEmbedded, navigateFocusedEmbedded, placeholder } = useEmbeddedSearchBridge()
 
 // Auto-focus embedded input on open
 watch(
@@ -133,12 +156,37 @@ watch(
 )
 
 let removeScrollListener = null
+let removeResizeListener = null
+let resizeObserver = null
 onMounted(() => {
   const onScroll = () => { scrolled.value = window.scrollY > 8 }
   window.addEventListener('scroll', onScroll, { passive: true })
   removeScrollListener = () => window.removeEventListener('scroll', onScroll)
+
+  // Measure real header height so the search palette can position itself flush below
+  if (headerEl.value) {
+    const update = () => {
+      headerHeight.value = headerEl.value.offsetHeight
+      // Re-measure nav wrapper rect (left/topInHeader change when window resizes or header shrinks)
+      if (navWrapperRef.value) {
+        const r = navWrapperRef.value.getBoundingClientRect()
+        const hr = headerEl.value.getBoundingClientRect()
+        navInputRect.value = { left: r.left, width: r.width, topInHeader: r.top - hr.top }
+      }
+    }
+    update()
+    resizeObserver = new ResizeObserver(update)
+    resizeObserver.observe(headerEl.value)
+    // Window resize can shift the left offset even without the header changing size
+    window.addEventListener('resize', update, { passive: true })
+    removeResizeListener = () => window.removeEventListener('resize', update)
+  }
 })
-onUnmounted(() => { if (removeScrollListener) removeScrollListener() })
+onUnmounted(() => {
+  if (removeScrollListener) removeScrollListener()
+  if (removeResizeListener) removeResizeListener()
+  if (resizeObserver) resizeObserver.disconnect()
+})
 </script>
 
 <style scoped>

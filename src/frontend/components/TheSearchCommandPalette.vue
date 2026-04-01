@@ -6,25 +6,31 @@
         class="fixed inset-0 z-[10002]"
         @click.self="close"
       >
-        <!-- Dark backdrop -->
-        <div class="absolute inset-0 bg-black/50" @click="close" />
+        <!-- Dark backdrop — starts below header in embedded mode so the white bar stays unobscured -->
+        <div
+          class="absolute inset-x-0 bottom-0 bg-black/50"
+          :style="embeddedInput ? `top: ${headerHeight}px` : 'top: 0'"
+          @click="close"
+        />
 
         <!-- Panel: drops below header when embedded, centred floating otherwise -->
         <div
-          class="absolute left-1/2 -translate-x-1/2 w-full max-w-xl px-4 z-10"
-          :style="embeddedInput
-            ? 'top: 116px'
-            : 'top: 80px'"
+          class="absolute z-10"
+          :style="embeddedInput && navInputRect.left !== null
+            ? `left: ${navInputRect.left}px; width: ${navInputRect.width}px; top: ${headerHeight}px`
+            : `left: 50%; transform: translateX(-50%); width: 100%; max-width: 36rem; padding: 0 1rem; top: 80px`"
         >
           <div
-            class="bg-white overflow-hidden flex flex-col shadow-2xl"
-            :class="embeddedInput ? 'rounded-b-2xl rounded-t-none border-t border-gray-100' : 'rounded-2xl'"
+            class="bg-white overflow-hidden flex flex-col"
+            :class="embeddedInput ? 'rounded-b-2xl rounded-t-none border-x border-b border-gray-200 shadow-[0_12px_30px_-6px_rgba(0,0,0,0.18)]' : 'rounded-2xl shadow-2xl'"
             style="max-height: 76vh"
             role="dialog"
             aria-modal="true"
             aria-label="Suche"
             @click.stop
           >
+            <!-- Thick separator between the header bottom line and the panel content -->
+            <div v-if="embeddedInput" class="border border-1 border-gray-100 bg-gray-300 flex-shrink-0" />
             <!-- Input row — hidden when the header's embedded input is active -->
             <div v-if="!embeddedInput" class="flex items-center border-b border-gray-200 px-4 gap-3">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -34,28 +40,13 @@
                 ref="inputRef"
                 v-model="query"
                 class="flex-1 py-4 text-base outline-none placeholder-gray-400"
-                :placeholder="tabs[activeTab].placeholder"
+                placeholder="Gemeinde oder Inhalt suchen…"
                 @keydown.up.prevent="moveFocus(-1)"
                 @keydown.down.prevent="moveFocus(1)"
                 @keydown.enter.prevent="navigateToFocused"
                 @keydown.escape="close"
               />
               <kbd class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded hidden sm:block">ESC</kbd>
-            </div>
-
-            <!-- Tab bar -->
-            <div class="flex border-b border-gray-100 overflow-x-auto">
-              <button
-                v-for="(tab, key) in tabs"
-                :key="key"
-                class="px-4 py-2.5 text-sm font-medium whitespace-nowrap flex-shrink-0 border-b-2 transition-colors"
-                :class="activeTab === key
-                  ? 'border-light-green text-light-green'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'"
-                @click="switchTab(key)"
-              >
-                {{ tab.label }}
-              </button>
             </div>
 
             <!-- Results -->
@@ -71,7 +62,7 @@
 
               <!-- No query yet -->
               <div v-else-if="!query.trim()" class="py-10 text-center text-gray-400 text-sm">
-                {{ tabs[activeTab].hint }}
+                Tippen Sie einen Suchbegriff ein.
               </div>
 
               <!-- No results -->
@@ -90,7 +81,7 @@
                   @mouseenter="focusedIndex = i"
                 >
                   <!-- Gemeinden result -->
-                  <template v-if="activeTab === 'municipalities'">
+                  <template v-if="result._type === 'municipality'">
                     <div class="flex-1 min-w-0">
                       <div class="text-xs font-medium uppercase text-gray-400">{{ result.prefix }}</div>
                       <div class="font-semibold text-gray-900">{{ result.name }}</div>
@@ -100,47 +91,8 @@
                     </span>
                   </template>
 
-                  <!-- Seiten result -->
-                  <template v-else-if="activeTab === 'pages'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <div class="flex-1 min-w-0">
-                      <div class="font-semibold text-gray-900">{{ result.name }}</div>
-                      <div class="text-xs text-gray-400">/{{ result.slug }}</div>
-                    </div>
-                  </template>
-
-                  <!-- Kalender result -->
-                  <template v-else-if="activeTab === 'events'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <div class="flex-1 min-w-0">
-                      <div class="font-semibold text-gray-900">{{ result.title }}</div>
-                      <div class="text-xs text-gray-400">
-                        {{ formatDate(result.start_date) }}
-                        <span v-if="result.location"> · {{ result.location }}</span>
-                      </div>
-                    </div>
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap">
-                      {{ eventTypeLabel(result.event_type) }}
-                    </span>
-                  </template>
-
-                  <!-- Themen result -->
-                  <template v-else-if="activeTab === 'concepts'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    <div class="flex-1 min-w-0">
-                      <div class="font-semibold text-gray-900">{{ result.name }}</div>
-                      <div v-if="result.sector" class="text-xs text-gray-400">{{ result.sector }}</div>
-                    </div>
-                  </template>
-
                   <!-- Inhalte result -->
-                  <template v-else-if="activeTab === 'content'">
+                  <template v-else-if="result._type === 'content'">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                     </svg>
@@ -172,66 +124,40 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, watchEffect, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
 import { useAdministrativeAreaSearch } from '~/composables/useAdministrativeAreaSearch.js'
 import { useContentSearch } from '~/composables/useContentSearch.js'
+import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
+import { useNavInputRect } from '~/composables/useHeaderHeight.js'
 import lodash from 'lodash'
 const { debounce } = lodash
 
 const { isOpen, query, embeddedInput, open, close } = useSearchPalette()
 const bridge = useEmbeddedSearchBridge()
-const { $directus, $readItems } = useNuxtApp()
 const router = useRouter()
+const headerHeight = useHeaderHeight()
+const navInputRect = useNavInputRect()
 
 const inputRef = ref(null)
-const activeTab = ref('municipalities')
 const results = ref([])
 const isLoading = ref(false)
 const focusedIndex = ref(-1)
-
-const tabs = {
-  municipalities: {
-    label: 'Gemeinden',
-    placeholder: 'Gemeinde oder Landkreis suchen...',
-    hint: 'Tippen Sie einen Gemeindenamen ein.',
-  },
-  pages: {
-    label: 'Seiten',
-    placeholder: 'Seiteninhalt durchsuchen...',
-    hint: 'Tippen Sie einen Suchbegriff ein.',
-  },
-  events: {
-    label: 'Kalender',
-    placeholder: 'Veranstaltungen suchen...',
-    hint: 'Tippen Sie einen Suchbegriff ein.',
-  },
-  concepts: {
-    label: 'Themen',
-    placeholder: 'Maßnahmen und Themen suchen...',
-    hint: 'Tippen Sie einen Suchbegriff ein.',
-  },
-  content: {
-    label: 'Inhalte',
-    placeholder: 'Seiten, Blöcke, Veranstaltungen...',
-    hint: 'Suchbegriff eingeben.',
-  },
-}
-
-// Register keyboard nav functions with the bridge so the header can call them
-bridge.register(moveFocus, navigateToFocused, activeTab)
 
 // Administrative area search composable
 const adminSearch = useAdministrativeAreaSearch()
 // Full-text content search composable (Meilisearch)
 const contentSearch = useContentSearch()
 
-// Sync municipality results/loading into component state
-watch(adminSearch.results, (r) => {
-  if (activeTab.value !== 'municipalities') return
-  results.value = r.map(area => ({
+// Register keyboard nav functions with the bridge so the header can call them
+bridge.register(moveFocus, navigateToFocused)
+
+// Merge both result sets reactively into a single list
+watchEffect(() => {
+  const muniResults = (adminSearch.results.value || []).map(area => ({
+    _type: 'municipality',
     _key: area.ars,
     ...area,
     hasRating: !!(area.stadtlandklimaDataAll?.[0]?.slug),
@@ -239,27 +165,21 @@ watch(adminSearch.results, (r) => {
       ? `${Math.round(area.stadtlandklimaDataAll[0].scoreTotal * 10) / 10}%`
       : null,
   }))
+  const contentResults = (contentSearch.results.value || []).map(h => ({
+    _type: 'content',
+    _key: h.id,
+    ...h,
+  }))
+  results.value = [...muniResults, ...contentResults]
 })
 
-watch(adminSearch.isLoading, (loading) => {
-  if (activeTab.value !== 'municipalities') return
-  isLoading.value = loading
-})
-
-watch(contentSearch.results, (r) => {
-  if (activeTab.value !== 'content') return
-  results.value = r.map(h => ({ _key: h.id, ...h }))
-})
-
-watch(contentSearch.isLoading, (loading) => {
-  if (activeTab.value !== 'content') return
-  isLoading.value = loading
+watchEffect(() => {
+  isLoading.value = adminSearch.isLoading.value || contentSearch.isLoading.value
 })
 
 // Watch open state → focus input (only when not embedded — header owns focus then)
 watch(isOpen, async (val) => {
   if (val) {
-    results.value = []
     focusedIndex.value = -1
     if (!embeddedInput.value) {
       await nextTick()
@@ -278,88 +198,21 @@ watch(query, (q) => {
   debouncedSearch(q)
 })
 
-function switchTab(key) {
-  activeTab.value = key
-  bridge.activeTab.value = key
-  focusedIndex.value = -1
-  results.value = []
-  if (query.value.trim()) {
-    runSearch(query.value)
-  }
-}
-
-async function runSearch(q) {
+function runSearch(q) {
   if (!q.trim()) {
-    results.value = []
-    isLoading.value = false
+    adminSearch.clear()
+    contentSearch.clear()
     return
   }
-
-  isLoading.value = true
-  results.value = []
-
-  try {
-    if (activeTab.value === 'municipalities') {
-      adminSearch.search(q)
-      return
-    }
-
-    if (activeTab.value === 'content') {
-      contentSearch.search(q)
-      return
-    }
-
-    if (activeTab.value === 'pages') {
-      const data = await $directus.request($readItems('pages', {
-        search: q,
-        filter: { status: { _eq: 'published' } },
-        fields: ['name', 'slug'],
-        limit: 8,
-      }))
-      results.value = (data || []).map(r => ({ _key: r.slug, ...r }))
-    }
-
-    if (activeTab.value === 'events') {
-      const data = await $directus.request($readItems('events', {
-        search: q,
-        filter: { status: { _eq: 'published' } },
-        fields: ['id', 'title', 'slug', 'start_date', 'location', 'event_type'],
-        limit: 8,
-        sort: ['start_date'],
-      }))
-      results.value = (data || []).map(r => ({ _key: r.slug ?? r.id, ...r }))
-    }
-
-    if (activeTab.value === 'concepts') {
-      const data = await $directus.request($readItems('measures', {
-        search: q,
-        fields: ['name', 'slug', 'sector'],
-        limit: 8,
-      }))
-      results.value = (data || []).map(r => ({ _key: r.slug, ...r }))
-    }
-  } catch (e) {
-    results.value = []
-  } finally {
-    if (activeTab.value !== 'municipalities' && activeTab.value !== 'content') {
-      isLoading.value = false
-    }
-  }
+  adminSearch.search(q)
+  contentSearch.search(q)
 }
 
 function navigate(result) {
   close()
-  results.value = []
-
-  if (activeTab.value === 'municipalities') {
+  if (result._type === 'municipality') {
     router.push(`/municipalities/${result.ars}`)
-  } else if (activeTab.value === 'pages') {
-    router.push(`/${result.slug}`)
-  } else if (activeTab.value === 'events') {
-    router.push(`/events/${result.slug}`)
-  } else if (activeTab.value === 'concepts') {
-    router.push(`/measures/${result.slug}`)
-  } else if (activeTab.value === 'content') {
+  } else if (result._type === 'content') {
     router.push(result.url)
   }
 }
@@ -374,16 +227,6 @@ function navigateToFocused() {
   if (focusedIndex.value >= 0 && results.value[focusedIndex.value]) {
     navigate(results.value[focusedIndex.value])
   }
-}
-
-function formatDate(iso) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-const eventTypeLabels = { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }
-function eventTypeLabel(type) {
-  return eventTypeLabels[type] ?? type ?? ''
 }
 
 const contentTypeLabels = { block: 'Block', page: 'Seite', event: 'Veranstaltung', article: 'Projekt', measure: 'Maßnahme' }

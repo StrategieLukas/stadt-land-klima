@@ -13,12 +13,13 @@
         />
       </div>
       <div v-else>
-        <the-header-mobile :municipalities="publishedMunicipalities" />
+        <the-header-mobile />
       </div>
     </div>
-    <!-- Spacer that reserves the height of the fixed header (py-2 + h-16 logo = 80px = h-20)
-         so page content starts below it. Doubles as the placeholder during hydration. -->
-    <div class="sm:h-0 md:h-0 lg:h-20 xl:h-20 flex-shrink-0"></div>
+    <!-- Spacer that reserves the height of the fixed header.
+         Mobile: h-14 (logo) + py-2 (top+bottom) ≈ 72px.
+         Desktop (lg+): h-20 logo + py-2 = 88px ≈ h-20. -->
+    <div class="lg:h-20 flex-shrink-0"></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
     <div class="drawer flex-1">
@@ -54,6 +55,7 @@
       <!-- Drawer Side (Menu) -->
       <the-drawer-side
         :pages="pages.filter((page) => includes(page.menus, 'main'))"
+        :nav-items="navigationConfig?.header_items || []"
         class="z-[9999]"
       />
     </div>

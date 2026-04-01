@@ -50,7 +50,7 @@
 
     <!-- Bottom Section: Logo, Buttons, Copyright -->
     <div class="w-full flex flex-col gap-6">
-      <div class="w-full py-6 border-t border-white/30 flex flex-row items-center justify-between gap-4">
+      <div class="w-full py-6 border-t border-white/30 md:border-t-0 flex flex-row items-center justify-between gap-4">
         <!-- Logo -->
         <NuxtLink to="/" class="flex-shrink-0">
           <img

@@ -10,28 +10,15 @@ import { ref } from 'vue'
 const _moveFocus = ref(null)
 const _navigateFocused = ref(null)
 
-// Tab meta is shared so the embedded input can show the right placeholder.
-const tabs = {
-  municipalities: { placeholder: 'Gemeinde oder Landkreis suchen…' },
-  pages:          { placeholder: 'Seiteninhalt durchsuchen…' },
-  events:         { placeholder: 'Veranstaltungen suchen…' },
-  concepts:       { placeholder: 'Maßnahmen und Themen suchen…' },
-  content:        { placeholder: 'Seiten, Blöcke, Veranstaltungen…' },
-}
-const activeTab = ref('municipalities')
+const placeholder = 'Gemeinde oder Inhalt suchen…'
 
 export function useEmbeddedSearchBridge() {
   return {
-    tabs,
-    activeTab,
+    placeholder,
     /** Called by TheSearchCommandPalette to register its functions */
-    register(moveFn, navigateFn, activeTabRef) {
+    register(moveFn, navigateFn) {
       _moveFocus.value = moveFn
       _navigateFocused.value = navigateFn
-      // keep activeTab in sync with palette's own activeTab
-      if (activeTabRef) {
-        activeTab.value = activeTabRef.value
-      }
     },
     /** Called by TheHeaderDesktop keyboard handler */
     moveFocusEmbedded(dir) {

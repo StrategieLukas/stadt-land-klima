@@ -1,10 +1,10 @@
 <template>
   <div
+    ref="fieldEl"
     class="blokkli-block-hex-honeyweb overflow-x-auto"
     :id="'block-' + uuid"
   >
     <BlokkliField
-      ref="fieldEl"
       name="hexagons"
       :list="props.hexagons || []"
       tag="div"
@@ -58,17 +58,7 @@ const hexW = computed(() => hexR.value * 2)
 const hexH = computed(() => hexR.value * Math.sqrt(3))
 const colStep = computed(() => hexR.value * 1.5)
 
-/** Return pixel {left, top} for the nth item (0-based), column-major. */
-function hexPos(i: number) {
-  const col = Math.floor(i / 3)
-  const row = i % 3
-  return {
-    left: col * colStep.value,
-    top: row * hexH.value + (col % 2 === 1 ? hexH.value / 2 : 0),
-  }
-}
-
-const fieldEl = ref<InstanceType<typeof import('vue').Component> | null>(null)
+const fieldEl = ref<HTMLElement | null>(null)
 
 /**
  * Apply inline styles to every direct child of the honeycomb container.
@@ -76,8 +66,12 @@ const fieldEl = ref<InstanceType<typeof import('vue').Component> | null>(null)
  * scoped-CSS load order or any `width: 100%` the child component may declare.
  */
 function applyLayout() {
-  // BlokkliField renders as a <div> — $el gives us that element.
-  const container = (fieldEl.value as any)?.$el as HTMLElement | undefined
+  // fieldEl is the outer wrapper div. BlokkliField is a multi-root fragment,
+  // so its $el would be a comment node — instead we use firstElementChild
+  // of the wrapper to get the actual rendered container div.
+  const wrapper = fieldEl.value
+  if (!wrapper) return
+  const container = wrapper.firstElementChild as HTMLElement | null
   if (!container) return
   const children = Array.from(container.children) as HTMLElement[]
 
@@ -94,15 +88,65 @@ function applyLayout() {
     return
   }
 
-  const totalCols = Math.ceil(children.length / 3)
-  const containerW = colStep.value * (totalCols - 1) + hexW.value
-  const containerH = hexH.value * 3 + hexH.value / 2  // even cols 0..2H, odd cols 0.5..2.5H
+  // GAP: uniform visual gap between all hex neighbours (px).
+  // For a flat-top honeycomb the diagonal edges are at 30°, so to get the
+  // same perpendicular clearance on every side we need:
+  //   vertical row step increase  : gv = GAP
+  //   horizontal col step increase: gc = GAP × (√3 / 2)
+  const GAP = 16
+  const BORDER_EXT = 4  // ::before extends 4 px outside; offset positions by this
+  const gv = GAP
+  const gc = GAP * Math.sqrt(3) / 2
+  const rowStep = hexH.value + gv
+  const colStepFull = colStep.value + gc
+
+  const n = children.length
+  if (n === 0) return
+
+  // Find the row count that produces the most square-ish bounding box.
+  // Iterate over every possible maxRows (1..n), compute W and H for each, pick
+  // the one whose aspect ratio is closest to 1:1.
+  let bestMaxRows = 1
+  let bestRatio = Infinity
+  for (let rows = 1; rows <= n; rows++) {
+    const cols = Math.ceil(n / rows)
+    const W = (cols - 1) * colStepFull + hexW.value + 2 * BORDER_EXT
+    // Measure the actual bottom-most pixel reached by any item.
+    let maxBottom = 0
+    for (let i = 0; i < n; i++) {
+      const c = Math.floor(i / rows)
+      const r = i % rows
+      const bottom = r * rowStep + (c % 2 === 1 ? rowStep / 2 : 0) + hexH.value
+      if (bottom > maxBottom) maxBottom = bottom
+    }
+    const H = maxBottom + 2 * BORDER_EXT
+    const ratio = Math.max(W / H, H / W)
+    if (ratio < bestRatio) {
+      bestRatio = ratio
+      bestMaxRows = rows
+    }
+  }
+
+  const totalCols = Math.ceil(n / bestMaxRows)
+  // Recompute actual container height for the chosen layout.
+  let maxBottom = 0
+  for (let i = 0; i < n; i++) {
+    const c = Math.floor(i / bestMaxRows)
+    const r = i % bestMaxRows
+    const bottom = r * rowStep + (c % 2 === 1 ? rowStep / 2 : 0) + hexH.value
+    if (bottom > maxBottom) maxBottom = bottom
+  }
+  const containerW = colStepFull * (totalCols - 1) + hexW.value + 2 * BORDER_EXT
+  const containerH = maxBottom + 2 * BORDER_EXT
   container.style.position = 'relative'
   container.style.width = `${containerW}px`
   container.style.height = `${containerH}px`
   container.style.margin = '0 auto'
   children.forEach((child, i) => {
-    const { left, top } = hexPos(i)
+    const col = Math.floor(i / bestMaxRows)
+    const row = i % bestMaxRows
+    const left = col * colStepFull + BORDER_EXT
+    const top = row * rowStep + (col % 2 === 1 ? rowStep / 2 : 0) + BORDER_EXT
     child.style.position = 'absolute'
     child.style.width = `${hexW.value}px`
     child.style.height = `${hexH.value}px`

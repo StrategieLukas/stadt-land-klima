@@ -279,5 +279,8 @@ const tileStyle = computed(() => {
   line-height: 1.2;
   color: white;
   hyphens: auto;
+  /* hex-content sets pointer-events:none to let the link beneath handle
+     clicks; re-enable here so blokkli can attach its inline-edit handler */
+  pointer-events: auto;
 }
 </style>

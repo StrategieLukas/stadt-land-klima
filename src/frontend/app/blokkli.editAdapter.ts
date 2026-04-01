@@ -248,16 +248,18 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       case 'page_nav':
         return {}
       case 'hex_grid':
-        return { items: [] }
+        return { hexagons: [] }
       case 'hex_item':
         return { label: 'Hexagon', imageId: '' }
+      case 'municipality_search_hero':
+        return { title: 'Gemeinde finden', subtitle: 'Suche deine Gemeinde und entdecke deren Klimaschutz-Bewertung.' }
       default:
         return {}
     }
   }
 
   /** All prop keys that may contain nested FieldListItem arrays. */
-  const NESTED_FIELD_KEYS = ['blocks', 'items', 'slides']
+  const NESTED_FIELD_KEYS = ['blocks', 'items', 'slides', 'hexagons']
 
   /** Return all nested FieldListItem arrays for a block. */
   function getNestedLists(block: FieldListItem): FieldListItem[][] {
@@ -437,12 +439,13 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'hex_grid', label: 'Honeyweb', description: 'Sechseck-Waben-Raster mit verlinkten Kacheln', allowReusable: true },
         { id: 'hex_item', label: 'Honeyweb-Kachel', description: 'Einzelne Kachel im Honeyweb', allowReusable: false },
         { id: 'projects_carousel', label: 'Projektkarussell', description: 'Automatisches Karussell der Erfolgsprojekte', allowReusable: true },
+        { id: 'municipality_search_hero', label: 'Gemeinde-Suche', description: 'Vollflächen-Sektion mit Wortwolke und Gemeinde-Suchfeld', allowReusable: true },
         { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'from_library']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'from_library']
       const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'from_library']
       const allowedInCarousel = allowedInRoot
       return Promise.resolve([
