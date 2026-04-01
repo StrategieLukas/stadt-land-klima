@@ -8,7 +8,7 @@
       <!-- Filter row -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-start py-1.5">
         <!-- Filter icon -->
-        <svg class="w-4 h-4 text-gray-400 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="w-4 h-4 flex-shrink-0 mt-1" style="color: #16BAE7;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
         </svg>
         <div class="flex flex-wrap gap-2">
@@ -38,10 +38,12 @@
         </div>
       </div>
 
+      <div class="border-t border-[#16BAE7]/20 my-0.5" />
+
       <!-- Sort row -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-center py-1.5">
         <!-- Sort icon -->
-        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="w-4 h-4 flex-shrink-0" style="color: #16BAE7;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M7 12h10M11 18h2" />
         </svg>
         <div class="flex flex-wrap gap-2">
