@@ -1010,6 +1010,16 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           required: false,
           maxLength: 0,
         },
+        // hex_item
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'hex_item',
+          label: 'Bezeichnung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
       ])
     },
 

@@ -95,3 +95,39 @@ Extensions use **Directus CSS theme variables** (not hardcoded hex) so they rend
 - Both plugins expose `$directus`, `$readItem`, `$readItems`, `$readSingleton`, `$locale`, `$t`
 
 If a `$readSingleton` / `$readItems` call returns empty data or a 403 error, the **first thing to check** is permissions: add the collection to both `public.yaml` and `frontend.yaml`, then run `import-all.sh`.
+
+---
+
+## blökkli block integration
+
+Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The adapter is `src/frontend/app/blokkli.editAdapter.ts`.
+
+### Adding a new block — all 6 steps are required
+
+**1. Component file** — `src/frontend/components/Blokkli/<Name>/index.vue`
+
+**2. `defineBlokkli()` + `defineProps`**
+- `bundle` must match the adapter key exactly.
+- `mockProps` must use explicit `return`: `mockProps: () => { return { ... } }` — arrow shorthand `() => ({...})` breaks the static regex parser.
+- `editTitle` receives the root DOM element: `el.textContent?.trim()`.
+
+**3. `getPropsForNewBlock(bundle)` in adapter** — add a `case` returning the correct initial props. **Field names must exactly match `defineProps`** — a typo causes a silent mismatch.
+
+**4. `NESTED_FIELD_KEYS` in adapter** — if the block has a `FieldListItem[]` prop (nested blocks), add the prop name here. Required for `findBlock`, `findParentList`, `addNewBlock`, `collectOptions`, and `moveBlockInTree` to traverse into it.
+
+**5. `NESTED_FIELD_MAP` + `getFieldConfig()`** — add `bundle: ['fieldName']` to `NESTED_FIELD_MAP` in `mapState()`, and a `FieldConfig` entry in `getFieldConfig()` with `entityType: 'block'`, `entityBundle`, `name`, and `allowedBundles`.
+
+**6. `getEditableFieldConfig()`** — every field marked `v-blokkli-editable:fieldName` needs a matching entry here. Without it the directive renders but inline editing is never activated. Use `type: 'markup'` for HTML, `type: 'plain'` for plain text.
+
+### `v-blokkli-editable` requirements
+
+- The editable element must be a **descendant** of the block root (never the root itself — `querySelector` does not match the element itself).
+- Use `v-text="props.field"` (not `{{ }}`).
+- Must **not** have `pointer-events: none` — the editor attaches click handlers. If a parent sets it, add `pointer-events: auto` on the editable element itself.
+- A matching entry in `getEditableFieldConfig()` is required (step 6).
+
+### `BlokkliField` is a multi-root fragment
+
+Its `$el` is a Vue comment node, not an HTMLElement. To get the rendered DOM:
+- Put `ref` on a **wrapper element** around `<BlokkliField>`.
+- Access the container via `wrapper.firstElementChild`.
