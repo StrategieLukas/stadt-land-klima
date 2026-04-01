@@ -9,7 +9,7 @@
   >
     <!-- 1fr | nav (auto, truly centred) | 1fr — equal side columns guarantee perfect centring -->
     <div
-      class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-6 mx-auto w-full max-w-screen-xl transition-[padding] duration-300 ease-in-out"
+      class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 mx-auto w-full max-w-screen-xl transition-[padding] duration-300 ease-in-out"
       :class="scrolled ? 'py-1' : 'py-2'"
     >
 
@@ -17,7 +17,7 @@
       <NuxtLink
         to="/"
         class="flex-shrink-0 justify-self-start overflow-hidden transition-[height] duration-300 ease-in-out"
-        :class="scrolled ? 'h-12' : 'h-16'"
+        :class="scrolled ? 'h-12' : 'h-20'"
       >
         <img
           src="~/assets/images/Stadt-Land-Klima-Logo.svg"

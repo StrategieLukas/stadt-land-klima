@@ -92,15 +92,22 @@
       </div>
 
       <!-- Active project description + link -->
-      <div class="px-6 pb-10 mt-4 flex items-end justify-between gap-4 flex-wrap">
-        <div v-if="activeProject" class="max-w-2xl">
-          <p class="font-bold">{{ activeProject.title }}</p>
-          <p class="text-sm mt-1 leading-relaxed">{{ truncatedAbstract }}</p>
+      <div class="px-6 pb-10 mt-4">
+        <!-- Fixed-height description area so the block doesn't resize when switching slides -->
+        <div :style="{ minHeight: descriptionHeight + 'px' }" ref="descriptionRef">
+          <div v-if="activeProject">
+            <p class="font-bold">{{ activeProject.title }}</p>
+            <p class="text-sm mt-1 leading-relaxed">{{ truncatedAbstract }}</p>
+            <NuxtLink
+              :to="`/projects/${activeProject.slug}`"
+              class="inline-block mt-2 text-sm font-semibold underline underline-offset-2"
+            >Mehr lesen…</NuxtLink>
+          </div>
         </div>
         <NuxtLink
           v-blokkli-editable:linkText
           to="/projects"
-          class="flex-shrink-0 flex items-center gap-1 font-semibold underline underline-offset-2 text-sm"
+          class="flex-shrink-0 inline-flex items-center gap-1 font-semibold underline underline-offset-2 text-sm mt-3"
           v-text="props.linkText || 'Alle Erfolgsprojekte ansehen'"
         />
       </div>
@@ -174,8 +181,10 @@ function isRasterImage(type?: string): boolean {
 // From the user's perspective it never ends.
 
 const scrollEl = ref<HTMLElement | null>(null)
+const descriptionRef = ref<HTMLElement | null>(null)
 const containerWidth = ref(0)
 const currentIndex = ref(0)  // logical index within the real list
+const descriptionHeight = ref(0)
 
 const GAP_PX = 16
 const SLIDES_VISIBLE = 3.3
@@ -278,12 +287,42 @@ function initScroll() {
   currentIndex.value = 0
 }
 
+// Measure the tallest description across all projects so the block never
+// resizes when the user flips between slides.
+// Uses a temporary off-screen element so Vue's managed DOM is never touched.
+function measureMaxDescriptionHeight() {
+  const items = projects.value || []
+  if (!items.length || !descriptionRef.value) return
+
+  const probe = document.createElement('div')
+  // Match the real container's width and styling but keep it invisible
+  probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;width:' +
+    descriptionRef.value.offsetWidth + 'px'
+  document.body.appendChild(probe)
+
+  let maxH = 0
+  for (const project of items) {
+    const abstract = project.abstract || ''
+    const truncated = abstract.length > 250 ? abstract.substring(0, 250) + '\u2026' : abstract
+    probe.innerHTML =
+      `<p class="font-bold">${project.title}</p>` +
+      `<p class="text-sm mt-1 leading-relaxed">${truncated}</p>` +
+      `<a class="inline-block mt-2 text-sm font-semibold">Mehr lesen\u2026</a>`
+    maxH = Math.max(maxH, probe.scrollHeight)
+  }
+
+  document.body.removeChild(probe)
+  descriptionHeight.value = maxH
+}
+
+
 let resizeObserver: ResizeObserver | null = null
 
 onMounted(() => {
   updateContainerWidth()
   nextTick(() => {
     initScroll()
+    measureMaxDescriptionHeight()
     const el = scrollEl.value
     if (!el) return
     // Native scrollend for clean teleporting (Chrome 114+, Firefox 109+)
@@ -297,6 +336,7 @@ onMounted(() => {
           if (scrollElVal && realCount.value > 0) {
             scrollElVal.scrollLeft = (realCount.value + currentIndex.value) * getStep()
           }
+          measureMaxDescriptionHeight()
         })
       })
       resizeObserver.observe(el)

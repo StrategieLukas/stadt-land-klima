@@ -364,7 +364,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       const NESTED_FIELD_MAP: Record<string, string[]> = {
         container: ['blocks'],
         timeline: ['items'],
-        hex_grid: ['items'],
+        hex_grid: ['hexagons'],
         carousel: ['slides'],
       }
       function collectContainerFields(list: FieldListItem[]): MutatedField[] {
@@ -483,7 +483,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           allowedBundles: allowedInCarousel,
         },
         {
-          name: 'items',
+          name: 'hexagons',
           entityType: 'block',
           entityBundle: 'hex_grid',
           label: 'Hexagone',
