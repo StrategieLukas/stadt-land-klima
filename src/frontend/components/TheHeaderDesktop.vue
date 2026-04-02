@@ -47,7 +47,7 @@
 
           <!-- Search input: sits inside the nav wrapper so it is vertically
                aligned with the pill bar. Border is handled by the overlay below. -->
-          <Transition name="nav-search" mode="out-in">
+          <Transition name="nav-search">
             <div
               v-if="isOpen && embeddedInput"
               key="search"

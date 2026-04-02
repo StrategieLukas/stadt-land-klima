@@ -29,8 +29,14 @@
         <div v-if="imageUrl" class="hex-overlay" :style="{ backgroundColor: hexColor + 'b3' }" />
 
         <div class="hex-content">
+          <img
+            v-if="iconSlug && localIconUrl"
+            :src="localIconUrl"
+            class="hex-icon hex-icon--local"
+            aria-hidden="true"
+          />
           <Icon
-            v-if="iconSlug"
+            v-else-if="iconSlug"
             :icon="iconSlug"
             class="hex-icon"
             aria-hidden="true"
@@ -132,7 +138,23 @@ const imageUrl = computed(() => {
   return `${config.public.clientDirectusUrl}/assets/${props.imageId}?width=400&quality=80`
 })
 
+// Pre-resolve all local icon SVGs at build time so dynamic icon_* slugs work.
+const localIconModules = import.meta.glob<string>('~/assets/icons/icon_*.svg', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+const localIconUrls: Record<string, string> = {}
+for (const [path, url] of Object.entries(localIconModules)) {
+  const name = path.split('/').pop()!.replace('.svg', '')
+  localIconUrls[name] = url
+}
+
 const iconSlug = computed(() => options.value.icon?.trim() || '')
+const localIconUrl = computed(() => {
+  if (!iconSlug.value.startsWith('icon_')) return ''
+  return localIconUrls[iconSlug.value] || ''
+})
 const link = computed(() => options.value.link?.trim() || '')
 
 const linkComponent = computed(() => {
