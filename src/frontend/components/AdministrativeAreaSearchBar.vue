@@ -52,8 +52,8 @@
               v-for="(suggestion, index) in visibleSuggestions"
               :key="suggestion.ars"
               class="px-3 sm:px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-              :class="{ 'bg-stats-light': index === focusedIndex }"
-              @click="goTo(suggestion.url); handleSuggestionClick()"
+              :class="{ 'bg-stats-light': index === focusedIndex, 'opacity-60 cursor-default': !suggestion.url }"
+              @click="suggestion.url ? (goTo(suggestion.url), handleSuggestionClick()) : null"
             >
               <div class="flex items-start sm:items-center justify-between gap-2">
                 <div class="flex-1 min-w-0">
@@ -141,6 +141,12 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  // 'ars'  (default) → navigates to `${basePath}/${area.ars}` (used by /stats pages)
+  // 'slug' → navigates to `/municipalities/${slug}` for rated areas (used by hero search)
+  linkMode: {
+    type: String,
+    default: 'ars',
+  },
 })
 
 const dropdown = ref(null)
@@ -202,7 +208,12 @@ const visibleSuggestions = computed(() => {
     )
     
     const hasRating = filteredData && filteredData.slug
-    let url = `${props.basePath}/${area.ars}`
+    let url
+    if (props.linkMode === 'slug') {
+      url = hasRating ? `/municipalities/${filteredData.slug}` : `/municipalities/${area.ars}`
+    } else {
+      url = `${props.basePath}/${area.ars}`
+    }
 
     return {
       ars: area.ars,
@@ -245,8 +256,10 @@ function calculateDropdownPosition() {
   
   const inputRect = inputRef.value.getBoundingClientRect()
   dropdownPosition.value = {
-    top: inputRect.bottom + window.scrollY + 4,
-    left: inputRect.left + window.scrollX,
+    // The dropdown uses position:fixed, so coordinates are viewport-relative.
+    // getBoundingClientRect() already returns viewport coordinates - do NOT add scrollY/scrollX.
+    top: inputRect.bottom + 4,
+    left: inputRect.left,
     width: inputRect.width,
     show: true
   }
@@ -272,7 +285,7 @@ function moveFocus(direction) {
 
 function goToFocused() {
   const suggestion = visibleSuggestions.value[focusedIndex.value]
-  if (suggestion) goTo(suggestion.url)
+  if (suggestion && suggestion.url) goTo(suggestion.url)
 }
 
 function handleFilterChange() {

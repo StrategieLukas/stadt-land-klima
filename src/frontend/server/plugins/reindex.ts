@@ -1,6 +1,7 @@
 import { createDirectus, rest, readItems, staticToken } from '@directus/sdk'
 import {
   buildBlockDoc, buildPageDoc, buildEventDoc, buildArticleDoc, buildMeasureDoc,
+  buildStaticPageDocs,
   type SiteContentDoc,
 } from '../utils/extractContent'
 
@@ -121,6 +122,11 @@ export default defineNitroPlugin(async () => {
       .filter((d): d is SiteContentDoc => d !== null)
     await upsertBatch(index, measureDocs)
     counts.measures = measureDocs.length
+
+    // --- Static Nuxt pages ---
+    const staticDocs = buildStaticPageDocs()
+    await upsertBatch(index, staticDocs)
+    counts.static_pages = staticDocs.length
 
     const total = Object.values(counts).reduce((a, b) => a + b, 0)
     console.log(`[reindex] Indexed ${total} documents:`, counts)

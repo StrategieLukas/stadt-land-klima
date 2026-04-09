@@ -51,7 +51,7 @@
             type="button"
             @click="sortOrder = 'date'"
             :class="[
-              'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+              'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap',
               sortOrder === 'date'
                 ? 'bg-[#16BAE7] text-white border-[#16BAE7]'
                 : 'bg-white text-[#16BAE7] border-[#16BAE7] hover:bg-[#E8F7FD]'
@@ -63,7 +63,7 @@
             type="button"
             @click="sortOrder = 'savings'"
             :class="[
-              'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+              'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap',
               sortOrder === 'savings'
                 ? 'bg-[#16BAE7] text-white border-[#16BAE7]'
                 : 'bg-white text-[#16BAE7] border-[#16BAE7] hover:bg-[#E8F7FD]'

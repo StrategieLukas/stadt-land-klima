@@ -66,7 +66,7 @@
         >
           <div class="flex">
             <!-- Image children: large cards side-by-side -->
-            <div v-if="hasImageChildren(item)" class="flex gap-2 p-3">
+            <div v-if="hasImageChildren(item)" class="grid grid-cols-[160px_160px] gap-2 p-3">
               <component
                 v-for="child in childrenWithImages(item)"
                 :key="child.id"
@@ -75,7 +75,7 @@
                 :href="child.link_type === 'external' ? child.external_url : undefined"
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
-                class="relative w-40 h-32 rounded-lg overflow-hidden flex-shrink-0 group/card block"
+                class="relative h-32 rounded-lg overflow-hidden group/card block"
                 @click="closeMenu"
                 :class="{
                   'ring-2 ring-olive-green': child.link_type === 'page' && isActive(child),

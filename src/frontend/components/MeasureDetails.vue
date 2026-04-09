@@ -39,14 +39,14 @@
 
   <div class="border-t-4 border-gray-300 p-4 mb-4">
     <NuxtLink
-      :to="`/measures/sectors/${measure_rating.measure.sector}?v=${municipalityScore.catalog_version.name}#${measure_rating.measure.measure_id}`"
+      :to="`/measures/${measure_rating.measure.slug}?v=${municipalityScore.catalog_version.name}`"
       class="text-black underline"
       target="measure"
     >
       {{ $t("municipality_rating.link_to_measure") }} ({{ measure_rating.measure.measure_id }})↗
     </NuxtLink>
     <NuxtLink
-      :to="`/feedback`"
+      :to="`/feedback?title=${encodeURIComponent(measure_rating.measure.measure_id + ': ' + measure_rating.measure.name)}&content=${encodeURIComponent('Maßnahme: ' + measure_rating.measure.measure_id + '\nKommune: ' + municipality.name + '\nLink: /municipalities/' + municipality.slug + '?v=' + municipalityScore.catalog_version.name + '#measure-' + measure_rating.measure.measure_id + '\n\nMein Hinweis:\n')}`"
       class="ml-4 text-black underline"
       target="feedback"
     >

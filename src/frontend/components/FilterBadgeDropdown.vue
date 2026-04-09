@@ -4,7 +4,7 @@
       type="button"
       @click="toggle"
       :class="[
-        'inline-flex items-center justify-between gap-2 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+        'inline-flex items-center justify-between gap-2 px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap',
         width,
         modelValue !== null
           ? 'bg-[#16BAE7] text-white border-[#16BAE7]'
@@ -22,14 +22,14 @@
 
     <div
       v-if="open"
-      class="absolute z-50 mt-1 min-w-full bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
+      class="absolute z-50 mt-1 min-w-full max-w-full bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
     >
       <!-- "All" / reset option -->
       <button
         type="button"
         @click="select(null)"
         :class="[
-          'w-full text-left px-4 py-2 text-sm transition-colors',
+          'w-full text-left px-4 py-2 text-sm transition-colors whitespace-normal break-words',
           modelValue === null
             ? 'bg-[#16BAE7] text-white'
             : 'text-gray-700 hover:bg-[#E8F7FD]'
@@ -43,7 +43,7 @@
         type="button"
         @click="select(opt.value)"
         :class="[
-          'w-full text-left px-4 py-2 text-sm transition-colors',
+          'w-full text-left px-4 py-2 text-sm transition-colors whitespace-normal break-words',
           modelValue === opt.value
             ? 'bg-[#16BAE7] text-white'
             : 'text-gray-700 hover:bg-[#E8F7FD]'

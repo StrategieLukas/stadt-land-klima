@@ -48,17 +48,67 @@ export function extractBlockText(bundle: string, props: Record<string, any>): st
 
 export type SiteContentDoc = {
   id: string
-  type: 'block' | 'page' | 'event' | 'article' | 'measure'
+  type: 'block' | 'page' | 'event' | 'article' | 'measure' | 'static_page'
   title: string
   text: string
   url: string
   meta: string | null
 }
 
+// Static (hardcoded Nuxt) pages that are not managed through Directus
+export const STATIC_PAGES: Array<{ id: string; title: string; text: string; url: string; meta: string | null }> = [
+  {
+    id: 'static_municipalities',
+    title: 'Gemeinde-Ranking',
+    text: 'Gemeinde-Ranking Klimaschutz Bewertung Kommunen Städte Landkreise Übersicht',
+    url: '/municipalities',
+    meta: 'Übersicht',
+  },
+  {
+    id: 'static_map',
+    title: 'Karte',
+    text: 'Klimaschutz-Karte Kommunen Gemeinden Karte Deutschland',
+    url: '/map',
+    meta: 'Übersicht',
+  },
+  {
+    id: 'static_stats',
+    title: 'Statistiken',
+    text: 'Statistiken Klimaschutz Kommunen Auswertungen Daten Vergleich',
+    url: '/stats',
+    meta: 'Übersicht',
+  },
+  {
+    id: 'static_measures',
+    title: 'Maßnahmenkatalog',
+    text: 'Maßnahmenkatalog Klimaschutzmaßnahmen kommunaler Klimaschutz Bewertungskriterien',
+    url: '/measures',
+    meta: 'Übersicht',
+  },
+  {
+    id: 'static_projects',
+    title: 'Projekte',
+    text: 'Projekte Klimaschutzprojekte Gemeinden Kommunen Erfolgsgeschichten',
+    url: '/projects',
+    meta: 'Übersicht',
+  },
+  {
+    id: 'static_feedback',
+    title: 'Feedback',
+    text: 'Feedback Kontakt Fehler melden Verbesserungsvorschlag',
+    url: '/feedback',
+    meta: 'Übersicht',
+  },
+]
+
+export function buildStaticPageDocs(): SiteContentDoc[] {
+  return STATIC_PAGES.map(p => ({ ...p, type: 'static_page' as const }))
+}
+
 export function buildPageDoc(page: Record<string, any>): SiteContentDoc | null {
   if (!page.contents) return null
   return {
-    id: `page:${page.slug}`,
+    id: `page_${page.slug}`,
     type: 'page',
     title: page.name || page.slug,
     text: stripHtml(page.contents),
@@ -70,7 +120,7 @@ export function buildPageDoc(page: Record<string, any>): SiteContentDoc | null {
 export function buildEventDoc(event: Record<string, any>): SiteContentDoc | null {
   if (event.status !== 'published') return null
   return {
-    id: `event:${event.slug}`,
+    id: `event_${event.slug}`,
     type: 'event',
     title: event.title || '',
     text: stripHtml(event.description || ''),
@@ -87,7 +137,7 @@ export function buildArticleDoc(article: Record<string, any>): SiteContentDoc | 
     stripMd(article.article_text || ''),
   ].filter(Boolean).join(' ')
   return {
-    id: `article:${article.slug}`,
+    id: `article_${article.slug}`,
     type: 'article',
     title: article.title || '',
     text,
@@ -108,7 +158,7 @@ export function buildMeasureDoc(measure: Record<string, any>): SiteContentDoc | 
     .filter(Boolean)
     .join(' ')
   return {
-    id: `measure:${measure.slug}`,
+    id: `measure_${measure.slug}`,
     type: 'measure',
     title: measure.name || '',
     text,
@@ -124,7 +174,7 @@ export function buildBlockDoc(
   const text = extractBlockText(block.bundle, block.props || {})
   if (!text) return null
   return {
-    id: `block:${block.uuid}`,
+    id: `block_${block.uuid}`,
     type: 'block',
     title: pageName || block.entity_uuid,
     text,

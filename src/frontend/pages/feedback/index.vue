@@ -1,5 +1,6 @@
 <template>
-  <div class="max-w-md mx-auto p-6 bg-white rounded shadow">
+  <div class="max-w-md mx-auto px-4 py-12 sm:py-16">
+    <div class="bg-white rounded shadow p-6">
     <h2 class="text-xl font-bold mb-4">{{ $t("feedback.nav_label") }}</h2>
 
     <form @submit.prevent="submitFeedback">
@@ -68,7 +69,7 @@
 
     <p class="mt-4 text-xs italic">{{ $t('generic.privacy.disclaimer') }}</p>
 
-
+    </div>
   </div>
 </template>
 
@@ -79,6 +80,7 @@ import { ref } from 'vue'
 import { createItem } from '@directus/sdk'
 
 const { $t, $directus, $readItems } = useNuxtApp();
+const route = useRoute();
 
 //MetaTags
 const title = ref($t("feedback.nav_label"));
@@ -86,11 +88,11 @@ useHead({
   title,
 });
 
-// Form state
+// Form state — pre-fill from query params when arriving from a content page
 const form = ref({
-  title: '',
+  title: route.query.title ? String(route.query.title) : '',
   type: '',
-  content: '',
+  content: route.query.content ? String(route.query.content) : '',
   name: '',
   contact: '',
 })

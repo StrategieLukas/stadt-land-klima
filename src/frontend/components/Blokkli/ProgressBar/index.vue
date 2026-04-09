@@ -9,9 +9,9 @@
       />
       <span
         v-if="options.showValue"
-        class="text-sm font-bold tabular-nums"
+        class="text-sm font-bold tabular-nums flex items-baseline gap-0.5"
         :class="accentTextClass"
-      >{{ displayValue }}</span>
+      ><span v-blokkli-editable:value v-text="props.value || '0'" /><span v-blokkli-editable:unit v-text="props.unit || '%'" /></span>
     </div>
 
     <!-- Track -->

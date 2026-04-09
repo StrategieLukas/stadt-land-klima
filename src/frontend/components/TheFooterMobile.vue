@@ -60,20 +60,19 @@
           />
         </NuxtLink>
 
-        <!-- Blökkli editor login -->
+        <!-- Normal backend login / logout -->
         <div class="flex-shrink-0">
-          <button
-            v-if="!isAuthenticated"
-            @click="showLoginModal = true"
-            class="py-2 px-3 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
-          >
-            Interner Login
-          </button>
+          <a v-if="!isAuthenticated" href="/backend">
+            <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
+              <span>{{ $t('generic.log_in') }}</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </a>
           <div v-else class="flex items-center gap-2">
             <span class="text-sm text-white/80">{{ userName }}</span>
             <button
               @click="handleLogout"
-              class="py-2 px-3 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
+              class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110"
             >
               Logout
             </button>
@@ -81,9 +80,14 @@
         </div>
       </div>
 
-      <!-- Copyright -->
+      <!-- Copyright + internal login -->
       <div class="w-full text-xs text-white/80 text-center pb-4">
-        {{ $t('footer.copyright') }}
+        <div>{{ $t('footer.copyright') }}</div>
+        <button
+          v-if="!isAuthenticated"
+          class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
+          @click="showLoginModal = true"
+        >Interner Login</button>
       </div>
     </div>
 

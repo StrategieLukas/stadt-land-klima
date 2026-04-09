@@ -194,17 +194,22 @@ const tileStyle = computed(() => {
  * always win regardless of style-sheet load order.
  */
 .blokkli-block-hex-item {
-  /* Hover transition on the whole item */
-  transition: transform 0.2s ease, filter 0.2s ease;
-  will-change: transform;
   cursor: default;
 }
 
-.blokkli-block-hex-item:has(a):hover,
-.blokkli-block-hex-item:has([href]):hover {
-  transform: translateY(-7px) scale(1.04);
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.32));
-  z-index: 10;
+.blokkli-block-hex-item:has(a),
+.blokkli-block-hex-item:has([href]) {
+  cursor: pointer;
+}
+
+.blokkli-block-hex-item:has(a) .hex-outer,
+.blokkli-block-hex-item:has([href]) .hex-outer {
+  transition: filter 0.2s ease;
+}
+
+.blokkli-block-hex-item:has(a):hover .hex-outer,
+.blokkli-block-hex-item:has([href]):hover .hex-outer {
+  filter: brightness(1.14) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.28));
 }
 
 /* ── hex-outer ─────────────────────────────────────────────────────────── */
@@ -271,7 +276,7 @@ const tileStyle = computed(() => {
   align-items: center;
   justify-content: center;
   /* Safe-zone padding: keeps text inside the narrowest part of the hex */
-  padding: 0 30%;
+  padding: 0 18%;
   gap: 0.25em;
   pointer-events: none;
 }
@@ -282,6 +287,14 @@ const tileStyle = computed(() => {
   height: calc(var(--hex-h, 130px) * 0.22);
   color: white;
   flex-shrink: 0;
+}
+
+.hex-icon--local {
+  /* Let the image shrink to its natural aspect ratio — height: auto prevents
+     an oversized invisible box from pushing the label down */
+  height: auto;
+  max-height: calc(var(--hex-h, 130px) * 0.22);
+  margin: 0;
 }
 
 .hex-icon-placeholder {

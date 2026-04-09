@@ -95,6 +95,7 @@ function applyLayout() {
   //   horizontal col step increase: gc = GAP × (√3 / 2)
   const GAP = 16
   const BORDER_EXT = 4  // ::before extends 4 px outside; offset positions by this
+  const SHADOW_PAD = 28 // extra space on all sides so drop-shadow isn't clipped
   const gv = GAP
   const gc = GAP * Math.sqrt(3) / 2
   const rowStep = hexH.value + gv
@@ -136,8 +137,8 @@ function applyLayout() {
     const bottom = r * rowStep + (c % 2 === 1 ? rowStep / 2 : 0) + hexH.value
     if (bottom > maxBottom) maxBottom = bottom
   }
-  const containerW = colStepFull * (totalCols - 1) + hexW.value + 2 * BORDER_EXT
-  const containerH = maxBottom + 2 * BORDER_EXT
+  const containerW = colStepFull * (totalCols - 1) + hexW.value + 2 * BORDER_EXT + 2 * SHADOW_PAD
+  const containerH = maxBottom + 2 * BORDER_EXT + 2 * SHADOW_PAD
   container.style.position = 'relative'
   container.style.width = `${containerW}px`
   container.style.height = `${containerH}px`
@@ -145,8 +146,8 @@ function applyLayout() {
   children.forEach((child, i) => {
     const col = Math.floor(i / bestMaxRows)
     const row = i % bestMaxRows
-    const left = col * colStepFull + BORDER_EXT
-    const top = row * rowStep + (col % 2 === 1 ? rowStep / 2 : 0) + BORDER_EXT
+    const left = col * colStepFull + BORDER_EXT + SHADOW_PAD
+    const top = row * rowStep + (col % 2 === 1 ? rowStep / 2 : 0) + BORDER_EXT + SHADOW_PAD
     child.style.position = 'absolute'
     child.style.width = `${hexW.value}px`
     child.style.height = `${hexH.value}px`

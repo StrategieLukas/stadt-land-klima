@@ -10,18 +10,30 @@
         <div role="tablist" class="tabs tabs-boxed w-fit">
           <a 
             role="tab" 
-            class="tab" 
+            class="tab gap-1.5" 
             :class="{ 'tab-active': activeTab === 'polar' }"
             @click="activeTab = 'polar'"
           >
+            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
+              <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
+              <line x1="12" y1="2" x2="12" y2="22" />
+              <line x1="2" y1="8.5" x2="22" y2="8.5" />
+              <line x1="2" y1="15.5" x2="22" y2="15.5" />
+            </svg>
             Polardiagramm
           </a>
           <a 
             role="tab" 
-            class="tab" 
+            class="tab gap-1.5" 
             :class="{ 'tab-active': activeTab === 'treemap' }"
             @click="activeTab = 'treemap'"
           >
+            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="9" height="20" rx="1" />
+              <rect x="13" y="2" width="9" height="9" rx="1" />
+              <rect x="13" y="13" width="9" height="9" rx="1" />
+            </svg>
             Treemap
           </a>
         </div>
@@ -116,18 +128,30 @@
           <div role="tablist" class="tabs tabs-boxed w-fit">
             <a 
               role="tab" 
-              class="tab" 
+              class="tab gap-1.5" 
               :class="{ 'tab-active': activeTab === 'polar' }"
               @click="activeTab = 'polar'"
             >
+              <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
+                <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
+                <line x1="12" y1="2" x2="12" y2="22" />
+                <line x1="2" y1="8.5" x2="22" y2="8.5" />
+                <line x1="2" y1="15.5" x2="22" y2="15.5" />
+              </svg>
               Polardiagramm
             </a>
             <a 
               role="tab" 
-              class="tab" 
+              class="tab gap-1.5" 
               :class="{ 'tab-active': activeTab === 'treemap' }"
               @click="activeTab = 'treemap'"
             >
+              <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="9" height="20" rx="1" />
+                <rect x="13" y="2" width="9" height="9" rx="1" />
+                <rect x="13" y="13" width="9" height="9" rx="1" />
+              </svg>
               Treemap
             </a>
           </div>

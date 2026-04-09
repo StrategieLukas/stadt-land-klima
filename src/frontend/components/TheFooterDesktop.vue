@@ -68,28 +68,32 @@
         <!-- Buttons: Donate + Login -->
         <div class="flex items-center gap-4">
           <DonateButton />
-          <!-- Blökkli editor login -->
-          <button
-            v-if="!isAuthenticated"
-            @click="showLoginModal = true"
-            class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
-          >
-            Interner Login
-          </button>
+          <!-- Normal backend login / logout -->
+          <a v-if="!isAuthenticated" href="/backend">
+            <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
+              <span>{{ $t('generic.log_in') }}</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </a>
           <div v-else class="flex items-center gap-3">
             <span class="text-sm text-white/80">{{ userName }}</span>
             <button
               @click="handleLogout"
-              class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
+              class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110"
             >
               Logout
             </button>
           </div>
         </div>
 
-        <!-- Copyright -->
-        <div class="text-sm text-white/80">
-          {{ $t('footer.copyright') }}
+        <!-- Copyright + internal login -->
+        <div class="text-sm text-white/80 text-center">
+          <div>{{ $t('footer.copyright') }}</div>
+          <button
+            v-if="!isAuthenticated"
+            class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
+            @click="showLoginModal = true"
+          >Interner Login</button>
         </div>
       </div>
     </div>

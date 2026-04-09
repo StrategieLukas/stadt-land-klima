@@ -71,7 +71,7 @@
               <div class="flex items-center justify-between mb-3">
                 <h4 class="text-sm font-medium text-center flex-1">{{ measure.name }}</h4>
                 <NuxtLink 
-                  :to="`/measures/sectors/${sector.sectorKey}?v=${selectedCatalogVersion.name}#measure-${measure.measure_id}`"
+                  :to="`/measures/${measure.slug}?v=${selectedCatalogVersion.name}`"
                   class="ml-2 p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
                   :title="`Details zu ${measure.name} ansehen`"
                 >
@@ -272,6 +272,7 @@ function processStats() {
       id: measure.id,
       measure_id: measure.measure_id,
       name: measure.name,
+      slug: measure.slug,
       ratings: {
         '-1': [], // unapplicable
         '0': [],

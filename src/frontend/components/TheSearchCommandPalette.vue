@@ -47,6 +47,16 @@
                 @keydown.escape="close"
               />
               <kbd class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded hidden sm:block">ESC</kbd>
+              <button
+                type="button"
+                class="sm:hidden flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
+                aria-label="Schließen"
+                @click="close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
             <!-- Results -->
@@ -112,9 +122,19 @@
 
             <!-- Footer hint -->
             <div class="border-t border-gray-100 px-4 py-2 flex items-center gap-4 text-xs text-gray-400">
-              <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> navigieren</span>
-              <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> öffnen</span>
-              <span><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> schließen</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> navigieren</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> öffnen</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> schließen</span>
+              <button
+                type="button"
+                class="sm:hidden ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200"
+                @click="close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Schließen
+              </button>
             </div>
           </div>
         </div>
@@ -156,15 +176,20 @@ bridge.register(moveFocus, navigateToFocused)
 
 // Merge both result sets reactively into a single list
 watchEffect(() => {
-  const muniResults = (adminSearch.results.value || []).map(area => ({
-    _type: 'municipality',
-    _key: area.ars,
-    ...area,
-    hasRating: !!(area.stadtlandklimaDataAll?.[0]?.slug),
-    scoreDisplay: area.stadtlandklimaDataAll?.[0]?.scoreTotal
-      ? `${Math.round(area.stadtlandklimaDataAll[0].scoreTotal * 10) / 10}%`
-      : null,
-  }))
+  const muniResults = (adminSearch.results.value || []).map(area => {
+    // Use the first entry that has a slug (= rated in any catalog version)
+    const ratingData = area.stadtlandklimaDataAll?.find(d => d.slug)
+    return {
+      _type: 'municipality',
+      _key: area.ars,
+      ...area,
+      hasRating: !!(ratingData?.slug),
+      _slug: ratingData?.slug ?? null,
+      scoreDisplay: ratingData?.scoreTotal
+        ? `${Math.round(Number(ratingData.scoreTotal) * 10) / 10}%`
+        : null,
+    }
+  })
   const contentResults = (contentSearch.results.value || []).map(h => ({
     _type: 'content',
     _key: h.id,
@@ -211,7 +236,9 @@ function runSearch(q) {
 function navigate(result) {
   close()
   if (result._type === 'municipality') {
-    router.push(`/municipalities/${result.ars}`)
+    // Navigate to the municipality page using slug, fall back to ARS-based generic page
+    const slug = result._slug
+    router.push(slug ? `/municipalities/${slug}` : `/municipalities/${result.ars}`)
   } else if (result._type === 'content') {
     router.push(result.url)
   }
@@ -229,7 +256,7 @@ function navigateToFocused() {
   }
 }
 
-const contentTypeLabels = { block: 'Block', page: 'Seite', event: 'Veranstaltung', article: 'Projekt', measure: 'Maßnahme' }
+const contentTypeLabels = { block: 'Block', page: 'Seite', event: 'Veranstaltung', article: 'Projekt', measure: 'Maßnahme', static_page: 'Seite' }
 function contentTypeLabel(type) {
   return contentTypeLabels[type] ?? type ?? ''
 }

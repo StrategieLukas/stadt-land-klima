@@ -10,7 +10,7 @@
   >
     <!-- 1fr | nav (auto, truly centred) | 1fr — equal side columns guarantee perfect centring -->
     <div
-      class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 mx-auto w-full max-w-screen-xl py-2 md:px-8 lg:px-2 xl:px-0 transition-[padding] duration-300 ease-in-out"
+      class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 mx-auto w-full max-w-screen-xl py-2 md:px-8 lg:px-4 xl:px-6 2xl:px-0 transition-[padding] duration-300 ease-in-out"
       :class="scrolled ? 'py-1' : 'py-2'"
     >
 

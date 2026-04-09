@@ -3,21 +3,30 @@
     <section
       class="relative overflow-hidden flex items-center justify-center"
       :class="bgClass"
-      style="min-height: 85vh"
+      style="min-height: 60vh"
     >
-      <!-- Word cloud background (client-only, pointer-events-none) -->
+      <!-- Word cloud background (client-only) -->
       <ClientOnly>
         <div
           v-if="wordItems.length"
           class="absolute inset-0 overflow-hidden pointer-events-none select-none"
           aria-hidden="true"
         >
-          <span
-            v-for="(item, i) in wordItems"
-            :key="item.id"
-            class="absolute leading-none font-semibold whitespace-nowrap"
-            :style="item.style"
-          >{{ item.name }}</span>
+          <template v-for="(item) in wordItems" :key="item.id">
+            <!-- Rated municipality: render as a link -->
+            <NuxtLink
+              v-if="item.slug"
+              :to="`/municipalities/${item.slug}`"
+              class="absolute leading-none font-semibold whitespace-nowrap pointer-events-auto hover:opacity-100 transition-opacity duration-150"
+              :style="item.style"
+            >{{ item.name }}</NuxtLink>
+            <!-- Unrated: plain span, inherits pointer-events-none from container -->
+            <span
+              v-else
+              class="absolute leading-none font-semibold whitespace-nowrap"
+              :style="item.style"
+            >{{ item.name }}</span>
+          </template>
         </div>
       </ClientOnly>
 
@@ -38,7 +47,7 @@
             :class="subtitleClass"
             v-text="props.subtitle"
           />
-          <AdministrativeAreaSearchBar base-path="/stats" />
+          <AdministrativeAreaSearchBar base-path="/municipalities" link-mode="slug" />
         </div>
       </div>
     </section>
@@ -130,6 +139,7 @@ const subtitleClass = computed(() => isLight.value ? 'text-gray-600' : 'text-sla
 interface WordItem {
   id: string
   name: string
+  slug: string | null
   style: Record<string, string>
 }
 
@@ -139,7 +149,7 @@ const wordItems = ref<WordItem[]>([])
 // cx/cy in %, maxR in % half-width. We reject items too close to the centre
 // so they don't pile under the search card.
 function buildCloudLayout(
-  municipalities: Array<{ id: string; name: string; population: number; score_total: number | null; percentage_rated: number | null }>,
+  municipalities: Array<{ id: string; name: string; slug: string | null; population: number; score_total: number | null; percentage_rated: number | null }>,
 ): WordItem[] {
   const GOLDEN_ANGLE = 137.50776405003785 // degrees
   const cx = 50   // % from left
@@ -224,13 +234,13 @@ function buildCloudLayout(
     const distFrac = Math.sqrt(((rawX - cx) / maxR) ** 2 + ((rawY - cy) / maxR) ** 2)
     const opacity = Math.max(0.15, Math.min(0.75, 0.18 + 0.57 * distFrac))
 
-    // Only colorize municipalities with a complete assessment (percentage_rated ≥ 99.9%)
-    const isFinished = m.percentage_rated != null && Number(m.percentage_rated) >= 99.9
-    const color = isFinished ? scoreToHex(m.score_total) : '#9D9D9C'
+    // Colorize any municipality that has a score; gray if not yet assessed
+    const color = (m.score_total != null) ? scoreToHex(m.score_total) : '#9D9D9C'
 
     items.push({
       id: m.id,
       name: m.name,
+      slug: m.slug ?? null,
       style: {
         left: `${left}%`,
         top: `${top}%`,
@@ -257,15 +267,16 @@ onMounted(async () => {
       $readItems('municipalities', {
         limit: 2500,
         sort: ['-population'],
-        fields: ['id', 'name', 'population', 'scores.score_total', 'scores.percentage_rated'],
-        // no status filter — include all municipalities; unscored ones render gray
+        fields: ['id', 'name', 'slug', 'population', 'scores.score_total', 'scores.percentage_rated'],
+        filter: { status: { _eq: 'published' } },
       }),
     )
 
-    // Flatten: each municipality → { id, name, population, score_total, percentage_rated }
+    // Flatten: each municipality → { id, name, slug, population, score_total, percentage_rated }
     const flat = data.map((m: any) => ({
       id: m.id as string,
       name: m.name as string,
+      slug: (m.slug as string) || null,
       population: Number(m.population) || 0,
       score_total: m.scores?.[0]?.score_total ?? null,
       percentage_rated: m.scores?.[0]?.percentage_rated ?? null,

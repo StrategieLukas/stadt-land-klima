@@ -28,8 +28,8 @@
 
             <!-- Children -->
             <div v-show="expandedId === item.id" class="bg-gray-50 border-b border-gray-100">
-              <!-- Image children: horizontal scroll strip -->
-              <div v-if="hasImageChildren(item)" class="flex gap-2 px-4 py-3 overflow-x-auto">
+              <!-- Image children: 2-column grid -->
+              <div v-if="hasImageChildren(item)" class="grid grid-cols-2 gap-2 px-4 py-3">
                 <component
                   v-for="child in childrenWithImages(item)"
                   :key="child.id"
@@ -38,7 +38,7 @@
                   :href="child.link_type === 'external' ? child.external_url : undefined"
                   :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                   :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
-                  class="relative w-28 h-20 rounded-lg overflow-hidden flex-shrink-0 block"
+                  class="relative h-20 rounded-lg overflow-hidden block"
                   :class="{ 'ring-2 ring-olive-green': child.link_type === 'page' && isActive(child) }"
                   @click="closeDrawer"
                 >
