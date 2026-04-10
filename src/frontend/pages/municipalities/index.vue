@@ -153,6 +153,26 @@
     </div>
   </div>
 
+  <!-- CTA: Start a new municipality assessment -->
+  <div class="mt-12 mb-4 rounded-sm shadow-list p-8 bg-rating-3-light flex flex-col sm:flex-row items-center gap-6">
+    <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto flex-shrink-0 opacity-80" />
+    <div class="flex-1 text-center sm:text-left">
+      <h2 class="font-heading text-h2 font-bold text-green mb-2">
+        Deine Kommune ist nicht dabei?
+      </h2>
+      <p class="text-gray-600 text-sm mb-4">
+        Starte selbst die Bewertung und bringe aktiven Klimaschutz in deine Gemeinde.
+        Gründe ein Lokalteam — wir begleiten dich durch den Prozess.
+      </p>
+      <NuxtLink
+        to="/register_localteam"
+        class="inline-block px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
+      >
+        Jetzt melden →
+      </NuxtLink>
+    </div>
+  </div>
+
 </div>
 </template>
 

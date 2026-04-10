@@ -191,7 +191,7 @@
 
       <!-- Right Column: Info and Projects (1/3 width) -->
       <div class="lg:col-span-1 pb-4">
-        <div class="sticky top-8 space-y-6">
+        <div class="sticky top-24 space-y-6">
           <!-- Municipality Quick Info -->
           <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore"/>
 

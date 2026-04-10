@@ -35,10 +35,10 @@ export default defineEventHandler(async (event) => {
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
 
   const body = await readBody(event);
-  const { name, email, organisation, ars, altcha } = body ?? {};
+  const { name, email, organisation, ars, municipalityName, altcha } = body ?? {};
 
   // Validate required fields
-  if (!name?.trim() || !email?.trim() || !ars?.trim()) {
+  if (!name?.trim() || !email?.trim() || !ars?.trim() || !municipalityName?.trim()) {
     throw createError({ statusCode: 400, message: 'Bitte alle Pflichtfelder ausfüllen.' });
   }
 
@@ -63,6 +63,7 @@ export default defineEventHandler(async (event) => {
           email: email.trim(),
           organisation: organisation?.trim() ?? '',
           ars: ars.trim(),
+          municipalityName: municipalityName.trim(),
         },
       });
     } catch (err) {
@@ -71,7 +72,7 @@ export default defineEventHandler(async (event) => {
     }
   } else {
     // No flow configured yet — log and succeed in dev
-    console.info('[register-municipality] No DIRECTUS_FLOW_REGISTER_MUNICIPALITY configured. Received:', { name: name.trim(), email: email.trim(), organisation: organisation?.trim(), ars });
+    console.info('[register-municipality] No DIRECTUS_FLOW_REGISTER_MUNICIPALITY configured. Received:', { name: name.trim(), email: email.trim(), organisation: organisation?.trim(), ars, municipalityName: municipalityName.trim() });
   }
 
   return { success: true };

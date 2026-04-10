@@ -1,6 +1,6 @@
 <template>
   <!-- Mobile version -->
-  <div class="block lg:hidden project-page bg-[#E8F9FD] shadow-md rounded-md overflow-hidden">
+  <div class="block lg:hidden project-page mt-4 bg-[#E8F9FD] shadow-md rounded-md overflow-hidden">
 
       <div class="p-6">
 
@@ -99,7 +99,7 @@
 
 
   <!-- Desktop version -->
-  <div class="hidden lg:block project-page bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
+  <div class="hidden lg:block project-page mt-8 bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
     <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← {{ $t("navigation.return_to_overview") }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">

@@ -13,6 +13,12 @@
         :ratings-by-sector="directusData.ratingsBySector"
       ></detail-municipality>
     </article>
+    <NearbyMunicipalitiesCarousel
+      :ars="directusData.municipalityScore.municipality.ars"
+      :catalog-version-id="selectedCatalogVersion.id"
+      :catalog-version-name="selectedCatalogVersion.name"
+      class="my-8"
+    />
     <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>
@@ -100,31 +106,46 @@
           <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
         </NuxtLink>
 
-        <!-- Elections link -->
-        <NuxtLink
-          :to="`/elections/${slzArea.ars}`"
-          class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
-        >
-          <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14" />
-          <h3 class="font-heading text-h2">
-            {{ $t("local_elections.title", { ":year": slzArea.state ? getStateMunicipalElectionYear(slzArea.state) ?? '' : '' }) }} →
-          </h3>
-        </NuxtLink>
-
-        <!-- Registration CTA / form -->
-        <RegisterMunicipalityForm :municipality-name="slzArea.name" :ars="slzArea.ars" />
+        <!-- Registration CTA -->
+        <div class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
+          <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
+          <h2 class="font-heading text-h2 font-bold text-green mb-2">Lokalteam gründen</h2>
+          <p class="text-gray-600 max-w-sm mb-6">
+            <strong>{{ slzArea.name }}</strong> wurde noch nicht bewertet.
+            Gründe ein Lokalteam und bringe aktiven Klimaschutz in deine Kommune.
+          </p>
+          <NuxtLink
+            :to="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
+            class="px-8 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
+          >
+            Jetzt Lokalteam gründen →
+          </NuxtLink>
+        </div>
       </div>
 
       <!-- Desktop layout -->
       <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8 mt-6">
-        <!-- Left column (2/3): registration CTA / form -->
+        <!-- Left column (2/3): registration CTA -->
         <div class="lg:col-span-2">
-          <RegisterMunicipalityForm :municipality-name="slzArea.name" :ars="slzArea.ars" />
+          <div class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
+            <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
+            <h2 class="font-heading text-h2 font-bold text-green mb-2">Lokalteam gründen</h2>
+            <p class="text-gray-600 max-w-sm mb-6">
+              <strong>{{ slzArea.name }}</strong> wurde noch nicht bewertet.
+              Gründe ein Lokalteam und bringe aktiven Klimaschutz in deine Kommune.
+            </p>
+            <NuxtLink
+              :to="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
+              class="px-8 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
+            >
+              Jetzt Lokalteam gründen →
+            </NuxtLink>
+          </div>
         </div>
 
         <!-- Right column (1/3): sticky sidebar -->
         <div class="lg:col-span-1 pb-4">
-          <div class="sticky top-8 space-y-6">
+          <div class="sticky top-24 space-y-6">
             <!-- Info box -->
             <div class="rounded-sm shadow-list">
               <div class="flex items-center gap-2 px-6 py-4">
@@ -167,20 +188,16 @@
               <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
             </NuxtLink>
 
-            <!-- Elections link -->
-            <NuxtLink
-              :to="`/elections/${slzArea.ars}`"
-              class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
-            >
-              <img src="~/assets/icons/icon_politics.svg" class="h-6 w-6 opacity-60" />
-              <h3 class="font-heading text-h3">
-                {{ $t("local_elections.title", { ":year": slzArea.state ? getStateMunicipalElectionYear(slzArea.state) ?? '' : '' }) }} →
-              </h3>
-            </NuxtLink>
           </div>
         </div>
       </div>
     </article>
+    <NearbyMunicipalitiesCarousel
+      :ars="slzArea.ars"
+      :catalog-version-id="selectedCatalogVersion.id"
+      :catalog-version-name="selectedCatalogVersion.name"
+      class="my-8"
+    />
     <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
       ← {{ $t("municipality.back_label") }}
     </NuxtLink>

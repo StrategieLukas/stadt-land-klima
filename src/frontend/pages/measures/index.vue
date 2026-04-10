@@ -197,15 +197,15 @@
     </ClientOnly>
 
     <!-- List view -->
-    <div v-if="viewMode === 'list'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div v-if="viewMode === 'list'" class="grid grid-cols-1 gap-2">
       <NuxtLink
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
         :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
-        class="card card-compact shadow hover:shadow-lg transition-shadow duration-200 block"
+        class="card rounded-md border border-gray/20 shadow hover:shadow-lg transition-shadow duration-200 block"
       >
         <div class="card-body">
-          <div class="flex items-start gap-2">
+          <div class="flex items-start gap-3">
             <img :src="sectorImages[measure.sector]" class="w-7 h-7 opacity-50 flex-shrink-0 mt-0.5" alt="" />
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap mb-1">

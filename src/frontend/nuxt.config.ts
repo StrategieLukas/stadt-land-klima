@@ -50,6 +50,11 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'node-server',
     workers: 1, // Avoid spawning too many workers in limited environments
+    routeRules: {
+      '/**': {
+        headers: { 'Referrer-Policy': 'strict-origin-when-cross-origin' },
+      },
+    },
     rollupConfig: {
       plugins: [
         {
@@ -69,5 +74,11 @@ export default defineNuxtConfig({
           __VUE_PROD_DEVTOOLS__: false,
           __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
         },
+  },
+  vue: {
+    compilerOptions: {
+      // Treat altcha-widget as a native custom element so Vue doesn't try to resolve it as a component
+      isCustomElement: (tag: string) => tag === 'altcha-widget',
+    },
   },
 })
