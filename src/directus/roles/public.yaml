@@ -8,31 +8,16 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: pages
+  - collection: blocks
     action: read
-    permissions:
-      _and:
-        - status:
-            _eq: published
+    permissions: {}
     validation: {}
     presets: null
     fields:
-      - id
-      - name
-      - menus
-      - contents
-      - slug
-      - sort
-      - sort_order
-      - page_category
-      - is_dynamic
-      - icon_svg
-  - collection: blocks
+      - "*"
+  - collection: pages
     action: read
-    permissions:
-      _and:
-        - status:
-            _eq: published
+    permissions: {}
     validation: {}
     presets: null
     fields:

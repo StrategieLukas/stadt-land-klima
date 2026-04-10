@@ -12,8 +12,8 @@ meta:
   interface: input
   note: null
   options:
+    placeholder: https://cal.com/...
     trim: true
-    placeholder: "https://cal.com/..."
   readonly: false
   required: false
   sort: 10

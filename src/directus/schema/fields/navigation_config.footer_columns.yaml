@@ -10,7 +10,8 @@ meta:
   group: null
   hidden: false
   interface: footer-nav-editor
-  note: "Footer-Spalten mit flachen Linklisten. Jede Spalte hat einen Titel und Links zu internen Seiten oder externen URLs."
+  note: Footer-Spalten mit flachen Linklisten. Jede Spalte hat einen Titel und
+    Links zu internen Seiten oder externen URLs.
   options: null
   readonly: false
   required: false

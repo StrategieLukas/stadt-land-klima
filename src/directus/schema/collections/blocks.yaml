@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: blocks
   color: null
-  display_template: '{{bundle}} - {{field_name}}'
+  display_template: "{{bundle}} - {{field_name}}"
   group: null
   hidden: false
   icon: view_module

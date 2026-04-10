@@ -3,6 +3,7 @@ field: date_created
 type: timestamp
 meta:
   collection: library_items
+  conditions: null
   display: datetime
   display_options:
     relative: true
@@ -16,8 +17,8 @@ meta:
   required: false
   sort: 7
   special:
-    - date-created
     - cast-timestamp
+    - date-created
   translations: null
   validation: null
   validation_message: null
@@ -27,3 +28,14 @@ schema:
   table: library_items
   data_type: timestamp with time zone
   default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

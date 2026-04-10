@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: library_items
   color: null
-  display_template: '{{label}} ({{bundle}})'
+  display_template: "{{label}} ({{bundle}})"
   group: null
   hidden: false
   icon: library_books

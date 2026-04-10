@@ -10,7 +10,8 @@ meta:
   group: null
   hidden: false
   interface: navigation-editor
-  note: "Navigationspunkte für den Header. Unterstützt interne Seiten, externe Links, Bilder und Unterpunkte."
+  note: Navigationspunkte für den Header. Unterstützt interne Seiten, externe
+    Links, Bilder und Unterpunkte.
   options: null
   readonly: false
   required: false

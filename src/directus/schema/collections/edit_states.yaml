@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: edit_states
   color: null
-  display_template: '{{entity_type}}/{{entity_uuid}} - {{state}}'
+  display_template: "{{entity_type}}/{{entity_uuid}} - {{state}}"
   group: null
   hidden: false
   icon: edit_note
