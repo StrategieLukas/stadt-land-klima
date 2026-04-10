@@ -1,153 +1,167 @@
 <template>
   <div class="max-w-md mx-auto px-4 py-12 sm:py-16">
     <div class="bg-white rounded shadow p-6">
-    <h2 class="text-xl font-bold mb-4">{{ $t("feedback.nav_label") }}</h2>
+      <h2 class="text-xl font-bold mb-4">{{ $t("feedback.nav_label") }}</h2>
 
-    <form @submit.prevent="submitFeedback">
-      <!-- Title -->
-      <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.title") }}*</label>
-        <input v-model="form.title" type="text" class="w-full border rounded p-2" required />
+      <!-- Success state -->
+      <div v-if="successMessage" class="py-4">
+        <p class="text-green font-semibold">{{ successMessage }}</p>
+        <button class="mt-3 text-sm text-light-blue hover:underline" @click="resetForm">
+          Weiteres Feedback senden
+        </button>
       </div>
 
-      <!-- Type -->
-      <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.type") }}*</label>
-        <select v-model="form.type" class="w-full border rounded p-2" required>
-          <option disabled value="">{{ $t("generic.form.please_select") }}</option>
-          <option value="legal">{{ $t("feedback.type.legal") }}</option>
-          <option value="bug">{{ $t("feedback.type.bug") }}</option>
-          <option value="inaccuracy">{{ $t("feedback.type.inaccuracy") }}</option>
-          <option value="suggestion">{{ $t("feedback.type.suggestion") }}</option>
-          <option value="cooperation">{{ $t("feedback.type.cooperation") }}</option>
-          <option value="other">{{ $t("feedback.type.other") }}</option>
-        </select>
-      </div>
+      <form v-else @submit.prevent="submitFeedback">
+        <!-- Title -->
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">{{ $t("feedback.form.title") }}*</label>
+          <input v-model="form.title" type="text" class="w-full border rounded p-2" required />
+        </div>
 
-      <!-- Content -->
-      <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.content") }}*</label>
-        <textarea v-model="form.content" class="w-full border rounded p-2" rows="4" required></textarea>
-      </div>
+        <!-- Type -->
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">{{ $t("feedback.form.type") }}*</label>
+          <select v-model="form.type" class="w-full border rounded p-2" required>
+            <option disabled value="">{{ $t("generic.form.please_select") }}</option>
+            <option value="legal">{{ $t("feedback.type.legal") }}</option>
+            <option value="bug">{{ $t("feedback.type.bug") }}</option>
+            <option value="inaccuracy">{{ $t("feedback.type.inaccuracy") }}</option>
+            <option value="suggestion">{{ $t("feedback.type.suggestion") }}</option>
+            <option value="cooperation">{{ $t("feedback.type.cooperation") }}</option>
+            <option value="other">{{ $t("feedback.type.other") }}</option>
+          </select>
+        </div>
 
-      <!-- Name -->
-      <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.name") }}*</label>
-        <input v-model="form.name" type="text" class="w-full border rounded p-2" required />
-      </div>
+        <!-- Content -->
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">{{ $t("feedback.form.content") }}*</label>
+          <textarea v-model="form.content" class="w-full border rounded p-2" rows="4" required></textarea>
+        </div>
 
-      <!-- Contact -->
-      <div class="mb-4">
-        <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.contact") }}*</label>
-        <input v-model="form.contact" type="email" class="w-full border rounded p-2" required />
-      </div>
+        <!-- Name -->
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.name") }}*</label>
+          <input v-model="form.name" type="text" autocomplete="name" class="w-full border rounded p-2" required />
+        </div>
 
-      <!-- Simple CAPTCHA -->
-      <div class="mb-4">
-        <label class="block mb-1 font-semibold">
-          {{ $t("captcha.question", { ":first": captcha.num1, ":second": captcha.num2 }) }}*
-        </label>
-        <input v-model="captchaAnswer" type="number" class="w-full border rounded p-2" required />
-      </div>
+        <!-- Contact -->
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.contact") }}*</label>
+          <input v-model="form.contact" type="email" autocomplete="email" class="w-full border rounded p-2" required />
+        </div>
 
-      
+        <!-- Altcha CAPTCHA -->
+        <div class="mb-4">
+          <ClientOnly>
+            <altcha-widget
+              ref="altchaRef"
+              challenge="/api/altcha"
+              hidefooter
+              language="de"
+              style="--altcha-border-radius: 4px; width: 100%;"
+            />
+            <template #fallback>
+              <div class="h-14 bg-gray-50 border border-gray-200 rounded flex items-center justify-center">
+                <span class="text-xs text-gray-400">Sicherheitsabfrage wird geladen …</span>
+              </div>
+            </template>
+          </ClientOnly>
+          <p v-if="captchaError" class="mt-1 text-xs text-red-500">{{ captchaError }}</p>
+        </div>
 
-      <!-- Submit Button -->
-      <button type="submit" class="w-full bg-[#AFCA0B] text-white font-bold py-2 rounded hover:bg-green">
-        {{ $t("feedback.form.submit") }}
-      </button>
-    </form>
+        <!-- Error Message -->
+        <p v-if="errorMessage" class="text-red-600 text-sm mb-3">{{ errorMessage }}</p>
 
-    <!-- Success Message -->
-    <p v-if="successMessage" class="text-green font-semibold mt-4">
-      {{ successMessage }}
-    </p>
-    <!-- Error Message -->
-    <p v-if="errorMessage" class="text-red font-semibold mt-4">
-      {{ errorMessage }}
-    </p>
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          :disabled="loading"
+          class="w-full bg-[#AFCA0B] text-white font-bold py-2 rounded hover:bg-green disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span v-if="loading">Wird gesendet …</span>
+          <span v-else>{{ $t("feedback.form.submit") }}</span>
+        </button>
+      </form>
 
-    <p class="mt-4 text-xs italic">{{ $t('generic.privacy.disclaimer') }}</p>
-
+      <p class="mt-4 text-xs italic">{{ $t('generic.privacy.disclaimer') }}</p>
     </div>
   </div>
 </template>
 
-
-
 <script setup>
-import { ref } from 'vue'
-import { createItem } from '@directus/sdk'
+import { ref, watch } from 'vue'
 
-const { $t, $directus, $readItems } = useNuxtApp();
+const { $t } = useNuxtApp();
 const route = useRoute();
 
-//MetaTags
-const title = ref($t("feedback.nav_label"));
-useHead({
-  title,
-});
+useHead({ title: ref($t("feedback.nav_label")) });
 
 // Form state — pre-fill from query params when arriving from a content page
 const form = ref({
-  title: route.query.title ? String(route.query.title) : '',
-  type: '',
+  title:   route.query.title   ? String(route.query.title)   : '',
+  type:    '',
   content: route.query.content ? String(route.query.content) : '',
-  name: '',
+  name:    '',
   contact: '',
 })
 
-// Captcha state
-const captcha = ref(generateCaptcha())
-const captchaAnswer = ref('')
+// Altcha
+const altchaRef = ref(null)
+const altchaPayload = ref('')
+const captchaError = ref('')
 
-// Loading and feedback messages
+watch(altchaRef, (el) => {
+  if (!el) return
+  el.addEventListener('statechange', (e) => {
+    if (e.detail?.state === 'verified') {
+      altchaPayload.value = el.value ?? ''
+      captchaError.value = ''
+    } else {
+      altchaPayload.value = ''
+    }
+  })
+})
+
+// Status
 const loading = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 
-// Generate a new simple captcha
-function generateCaptcha() {
-  const num1 = Math.floor(Math.random() * 10) + 10 // 10-19
-  const num2 = Math.floor(Math.random() * 10) + 1  // 1-10
-  return { num1, num2, correctAnswer: num1 + num2 }
-}
-
-// Submit function
 async function submitFeedback() {
   errorMessage.value = ''
-  successMessage.value = ''
+  captchaError.value = ''
 
-  if (parseInt(captchaAnswer.value) !== captcha.value.correctAnswer) {
-    errorMessage.value = $t('captcha.incorrect_answer')
-    captcha.value = generateCaptcha()
-    captchaAnswer.value = ''
+  const payload = altchaPayload.value || altchaRef.value?.value
+  if (!payload) {
+    captchaError.value = 'Bitte bestätige zunächst die Sicherheitsabfrage.'
     return
   }
 
   loading.value = true
-
   try {
-    await $directus.request(
-      createItem('feedback', {
-        title: form.value.title,
-        type: form.value.type,
+    await $fetch('/api/submit-feedback', {
+      method: 'POST',
+      body: {
+        title:   form.value.title,
+        type:    form.value.type,
         content: form.value.content,
-        sender_name: form.value.name,
-        sender_contact: form.value.contact,
-      })
-    )
-
+        name:    form.value.name,
+        contact: form.value.contact,
+        altcha:  payload,
+      },
+    })
     successMessage.value = $t('feedback.form.submit.success')
-    form.value = { title: '', type: '', content: '', name: '', contact: '' }
-    captcha.value = generateCaptcha()
-    captchaAnswer.value = ''
-
-  } catch (error) {
-    console.error(error)
-    errorMessage.value = $t('generic.technical_error')
+  } catch (err) {
+    errorMessage.value = err?.data?.message ?? $t('generic.technical_error')
   } finally {
     loading.value = false
   }
+}
+
+function resetForm() {
+  form.value = { title: '', type: '', content: '', name: '', contact: '' }
+  altchaPayload.value = ''
+  successMessage.value = ''
+  errorMessage.value = ''
 }
 </script>

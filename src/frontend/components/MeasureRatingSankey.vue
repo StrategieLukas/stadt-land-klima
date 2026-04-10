@@ -1,114 +1,132 @@
 <template>
   <div class="my-8 border-t-4 border-gray-200 pt-6">
-    <h2 class="font-heading text-h2 font-bold text-gray mb-1">Bewertungsübersicht aller Kommunen</h2>
+    <h2 class="font-heading text-h2 font-bold text-gray mb-1">Bewertungsverlauf aller Kommunen</h2>
     <p class="text-sm text-gray-500 mb-4">
-      Klicken Sie auf einen Bereich, um die zugehörigen Kommunen anzuzeigen.
+      Jede Linie steht für eine Kommune. Fahren Sie mit der Maus darüber für Details — klicken Sie, um zur Kommune zu springen.
     </p>
 
     <div v-if="loading" class="text-gray-400 text-sm py-8 text-center">Daten werden geladen…</div>
     <div v-else-if="!hasData" class="text-gray-500 text-sm py-4">Keine Bewertungsdaten vorhanden.</div>
 
-    <div v-else>
-      <!-- Version legend -->
-      <div v-if="orderedVersions.length > 1" class="flex flex-wrap gap-4 mb-4">
-        <div v-for="v in orderedVersions" :key="v.id" class="flex items-center gap-1.5 text-xs text-gray-600">
-          <span class="inline-block w-4 h-3 rounded-sm flex-shrink-0" :style="{ backgroundColor: v.color }" />
-          <span class="font-bold">{{ v.label }}</span>
-          <span class="text-gray-400">({{ versionCounts[v.id] || 0 }} Kommunen)</span>
-        </div>
+    <template v-else>
+      <!-- Change summary chips (only when 2 versions exist) -->
+      <div v-if="twoVersions" class="flex flex-wrap gap-2 mb-4 text-xs">
+        <span v-if="improvedCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 font-bold">↑ {{ improvedCount }} verbessert</span>
+        <span v-if="sameCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 font-bold">→ {{ sameCount }} gleich</span>
+        <span v-if="degradedCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-bold">↓ {{ degradedCount }} verschlechtert</span>
+        <span v-if="onlySingleCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-50 text-gray-400 border border-gray-200 font-bold">{{ onlySingleCount }} nur in einem Katalog</span>
       </div>
 
-      <!-- SVG Sankey -->
+      <!-- Alluvial SVG -->
       <div class="overflow-x-auto">
         <svg
-          :viewBox="`0 0 ${SVG_W} ${svgHeight}`"
+          :viewBox="`0 0 ${SVG_W} ${svgH}`"
           :style="{ width: '100%', maxWidth: SVG_W + 'px', height: 'auto' }"
-          class="block"
+          class="block select-none"
+          @mouseleave="hoveredKey = null"
         >
-          <!-- Flows (drawn first, behind nodes) -->
+          <!-- Ribbons drawn first (behind node rects) -->
           <path
-            v-for="flow in flows"
-            :key="`flow-${flow.versionKey}-${flow.ratingKey}`"
-            :d="flow.path"
-            :fill="ratingColorMap[flow.ratingKey] || '#999'"
-            :opacity="isActiveFlow(flow) ? 0.75 : isHoveredFlow(flow) ? 0.6 : flow.baseOpacity"
+            v-for="r in ribbons"
+            :key="r.key"
+            :d="r.path"
+            :fill="r.changeColor"
+            :opacity="hoveredKey ? (hoveredKey === r.key ? 0.9 : 0.07) : 0.42"
             class="cursor-pointer"
-            style="transition: opacity 0.15s ease;"
-            @mouseenter="hoveredFlow = { versionKey: flow.versionKey, ratingKey: flow.ratingKey }"
-            @mouseleave="hoveredFlow = null"
-            @click="toggleFlow(flow)"
+            style="transition: opacity 0.08s ease;"
+            @mouseenter="hoveredKey = r.key"
+            @click="navigateToMuni(r)"
           />
 
-          <!-- Left nodes (one per catalog version) -->
-          <g v-for="ln in leftNodes" :key="`ln-${ln.key}`">
-            <rect :x="LEFT_X" :y="ln.y1" :width="NODE_W" :height="ln.h" :fill="ln.color" rx="3" />
+          <!-- Left node rects -->
+          <g v-for="n in leftNodes" :key="`ln-${n.key}`">
+            <rect :x="LEFT_X" :y="n.y1" :width="NODE_W" :height="n.h" :fill="n.color" rx="2" />
             <text
-              :x="LEFT_X - 9"
-              :y="ln.h >= 32 ? ln.y1 + ln.h / 2 - 8 : ln.y1 + ln.h / 2"
-              text-anchor="end" dominant-baseline="middle"
-              style="font-size: 12px; fill: #333; font-weight: 700;"
-            >{{ ln.label }}</text>
-            <text
-              v-if="ln.h >= 32"
-              :x="LEFT_X - 9"
-              :y="ln.y1 + ln.h / 2 + 8"
-              text-anchor="end" dominant-baseline="middle"
-              style="font-size: 11px; fill: #888;"
-            >({{ ln.count }})</text>
+              v-if="n.h >= 13"
+              :x="LEFT_X - 7"
+              :y="n.y1 + n.h / 2"
+              text-anchor="end"
+              dominant-baseline="middle"
+              style="font-size: 10px; font-weight: 600;"
+              :fill="n.color"
+            >{{ n.shortLabel }} ({{ n.count }})</text>
           </g>
 
-          <!-- Right nodes (one per rating bucket) -->
-          <g v-for="rn in rightNodes" :key="`rn-${rn.key}`">
-            <rect :x="RIGHT_X" :y="rn.y1" :width="NODE_W" :height="rn.h" :fill="rn.color" rx="3" />
+          <!-- Right node rects -->
+          <g v-for="n in rightNodes" :key="`rn-${n.key}`">
+            <rect :x="RIGHT_X" :y="n.y1" :width="NODE_W" :height="n.h" :fill="n.color" rx="2" />
             <text
-              :x="RIGHT_X + NODE_W + 9"
-              :y="rn.h >= 32 ? rn.y1 + rn.h / 2 - 8 : rn.y1 + rn.h / 2"
+              v-if="n.h >= 13"
+              :x="RIGHT_X + NODE_W + 7"
+              :y="n.y1 + n.h / 2"
               dominant-baseline="middle"
-              style="font-size: 11px; fill: #333; font-weight: 600;"
-            >{{ rn.label }}</text>
-            <text
-              v-if="rn.h >= 32"
-              :x="RIGHT_X + NODE_W + 9"
-              :y="rn.y1 + rn.h / 2 + 7"
-              dominant-baseline="middle"
-              style="font-size: 11px; fill: #888;"
-            >({{ rn.total }})</text>
+              style="font-size: 10px; font-weight: 600;"
+              :fill="n.color"
+            >{{ n.shortLabel }} ({{ n.count }})</text>
           </g>
+
+          <!-- Version header labels -->
+          <text
+            v-if="leftVersion"
+            :x="LEFT_X + NODE_W / 2"
+            :y="14"
+            text-anchor="middle"
+            style="font-size: 12px; font-weight: 700;"
+            :fill="leftVersion.color"
+          >{{ leftVersion.label }}</text>
+          <text
+            v-if="twoVersions && rightVersion"
+            :x="RIGHT_X + NODE_W / 2"
+            :y="14"
+            text-anchor="middle"
+            style="font-size: 12px; font-weight: 700;"
+            :fill="rightVersion.color"
+          >{{ rightVersion.label }}</text>
         </svg>
       </div>
 
-      <!-- Municipality detail panel -->
-      <Transition name="fade-panel">
-        <div
-          v-if="activeFlow && activeFlowData"
-          class="mt-4 p-4 rounded-lg border"
-          :style="{ borderColor: (ratingColorMap[activeFlow.ratingKey] || '#999') + 'aa', backgroundColor: (ratingColorMap[activeFlow.ratingKey] || '#999') + '14' }"
-        >
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-semibold text-sm text-gray-800 flex items-center gap-2">
-              <span class="inline-block w-3 h-3 rounded-sm flex-shrink-0" :style="{ backgroundColor: ratingColorMap[activeFlow.ratingKey] || '#999' }" />
-              <span class="font-bold" :style="{ color: versionColorMap[activeFlow.versionKey] }">{{ versionLabelMap[activeFlow.versionKey] }}</span>:
-              {{ ratingLabelMap[activeFlow.ratingKey] }} — {{ activeFlowData.length }} Kommunen
-            </h3>
-            <button @click="activeFlow = null" class="text-gray-400 hover:text-gray-600 text-lg leading-none px-1" aria-label="Schließen">✕</button>
-          </div>
-          <div class="flex flex-wrap gap-1.5">
-            <template v-for="m in activeFlowData" :key="m.slug || m.name">
-              <NuxtLink
-                v-if="m.slug"
-                :to="`/municipalities/${m.slug}`"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white border text-xs text-gray-700 hover:shadow-sm transition-shadow whitespace-nowrap"
-                :style="{ borderColor: (ratingColorMap[activeFlow.ratingKey] || '#999') + '66' }"
-              >{{ m.name }}</NuxtLink>
+      <!-- Hover info bar -->
+      <div class="mt-2 min-h-[2.5rem] flex items-center">
+        <Transition name="fade-info">
+          <div v-if="hoveredMuniData" class="flex flex-wrap items-center gap-2 text-sm">
+            <NuxtLink
+              v-if="hoveredMuniData.slug"
+              :to="`/municipalities/${hoveredMuniData.slug}`"
+              class="font-semibold text-gray-800 hover:underline"
+            >{{ hoveredMuniData.name }}</NuxtLink>
+            <span v-else class="font-semibold text-gray-700">{{ hoveredMuniData.name }}</span>
+            <template v-if="twoVersions && hoveredMuniData.leftRating !== null && hoveredMuniData.rightRating !== null">
+              <span class="text-gray-300 select-none">|</span>
               <span
-                v-else
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white border border-gray-200 text-xs text-gray-400 whitespace-nowrap"
-              >{{ m.name }}</span>
+                class="text-xs px-1.5 py-0.5 rounded font-bold text-white"
+                :style="{ backgroundColor: ratingColorMap[hoveredMuniData.leftRating] || '#999' }"
+              >{{ leftVersion?.label }}: {{ ratingLabelMap[hoveredMuniData.leftRating] }}</span>
+              <span class="font-bold" :style="{ color: hoveredMuniData.changeColor }">{{ changeArrow(hoveredMuniData) }}</span>
+              <span
+                class="text-xs px-1.5 py-0.5 rounded font-bold text-white"
+                :style="{ backgroundColor: ratingColorMap[hoveredMuniData.rightRating] || '#999' }"
+              >{{ rightVersion?.label }}: {{ ratingLabelMap[hoveredMuniData.rightRating] }}</span>
+            </template>
+            <template v-else-if="hoveredMuniData.leftRating !== null">
+              <span class="text-gray-300 select-none">|</span>
+              <span
+                class="text-xs px-1.5 py-0.5 rounded font-bold text-white"
+                :style="{ backgroundColor: ratingColorMap[hoveredMuniData.leftRating] || '#999' }"
+              >{{ ratingLabelMap[hoveredMuniData.leftRating] }}</span>
             </template>
           </div>
-        </div>
-      </Transition>
-    </div>
+          <p v-else class="text-xs text-gray-400 italic">Überfahren Sie eine Linie für Details zur Kommune.</p>
+        </Transition>
+      </div>
+
+      <!-- Color legend -->
+      <div v-if="twoVersions" class="mt-3 flex flex-wrap gap-4 text-xs text-gray-500">
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#4caf50;opacity:0.7" /> Verbessert</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#9e9e9e;opacity:0.7" /> Gleich geblieben</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#f44336;opacity:0.7" /> Verschlechtert</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#bdbdbd;opacity:0.7" /> Nicht vergleichbar (n/a)</span>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -121,74 +139,63 @@ const props = defineProps({
 })
 
 const { $directus, $readItems } = useNuxtApp()
+const router = useRouter()
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 const SVG_W = 560
-const LEFT_X = 155
-const RIGHT_X = 336
-const NODE_W = 16
-const PAD = 24
-const VERSION_GAP = 18  // vertical gap between left nodes (catalog versions)
-const BUCKET_GAP = 6    // vertical gap between right rating-bucket nodes
-const MIN_NODE_H = 20
-const MID_X = (LEFT_X + NODE_W + RIGHT_X) / 2  // ≈ 253 — bezier control point x
+const LEFT_X = 148      // left node rect x
+const NODE_W = 12
+const RIGHT_X = 382     // right node rect x
+const MID_X = Math.round((LEFT_X + NODE_W + RIGHT_X) / 2)
+const PAD_TOP = 28      // space at top for version headers
+const BUCKET_GAP = 8    // vertical gap between rating buckets
 
 // ── Rating config ─────────────────────────────────────────────────────────────
-const RATING_CONFIG = [
-  { key: '1',    label: 'Vollständig erfüllt', color: '#1da64a' },
-  { key: '0.75', label: 'Gut erfüllt',          color: '#8bc34a' },
-  { key: '0.5',  label: 'Teilweise erfüllt',    color: '#fdd835' },
-  { key: '0.25', label: 'Kaum erfüllt',         color: '#f39200' },
-  { key: '0',    label: 'Nicht erfüllt',        color: '#d32f2f' },
-  { key: 'na',   label: 'Nicht anwendbar',      color: '#9e9e9e' },
-]
-const ratingColorMap = Object.fromEntries(RATING_CONFIG.map(r => [r.key, r.color]))
-const ratingLabelMap = Object.fromEntries(RATING_CONFIG.map(r => [r.key, r.label]))
+const RATING_KEYS = ['1', '0.75', '0.5', '0.25', '0', 'na']
+const RATING_CFG = {
+  '1':    { label: 'Vollständig erfüllt', shortLabel: '100%', color: '#1da64a' },
+  '0.75': { label: 'Gut erfüllt',          shortLabel: '75%',  color: '#8bc34a' },
+  '0.5':  { label: 'Teilweise erfüllt',    shortLabel: '50%',  color: '#fdd835' },
+  '0.25': { label: 'Kaum erfüllt',         shortLabel: '25%',  color: '#f39200' },
+  '0':    { label: 'Nicht erfüllt',        shortLabel: '0%',   color: '#d32f2f' },
+  'na':   { label: 'Nicht anwendbar',      shortLabel: 'n/a',  color: '#9e9e9e' },
+}
+const ratingColorMap = Object.fromEntries(Object.entries(RATING_CFG).map(([k, v]) => [k, v.color]))
+const ratingLabelMap = Object.fromEntries(Object.entries(RATING_CFG).map(([k, v]) => [k, v.label]))
+const ratingIdxMap  = Object.fromEntries(RATING_KEYS.map((k, i) => [k, i]))
 
-// ── Version colors ────────────────────────────────────────────────────────────
 function getVersionColor(name) {
-  if (name === 'v1.0') return '#AFCA0B'   // olive — matches 2026 catalog UI
-  if (name === 'beta') return '#16BAE7'   // light-blue — matches 2025/beta catalog UI
+  if (name === 'v1.0') return '#AFCA0B'
+  if (name === 'beta') return '#16BAE7'
   return '#9e9e9e'
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const loading = ref(true)
-const rawData = ref({})   // { [versionId]: { ratingBuckets: { ratingKey: [{name, slug}] } } }
-const hoveredFlow = ref(null)
-const activeFlow = ref(null)
+// munis: [{ key: localteamId, name, slug, leftRating, rightRating }]
+const munis = ref([])
+const hoveredKey = ref(null)
 
-// ── Derived version list ──────────────────────────────────────────────────────
+// ── Versions ──────────────────────────────────────────────────────────────────
 const orderedVersions = computed(() => {
   const seen = new Set()
   return (props.measureVersions || [])
     .map(mv => mv.catalog_version)
     .filter(cv => cv && !seen.has(cv.id) && seen.add(cv.id))
     .map(cv => ({ id: cv.id, label: cv.name, color: getVersionColor(cv.name) }))
+    .sort((a, b) => a.label.localeCompare(b.label)) // beta < v1.0 alphabetically
 })
 
-const versionLabelMap = computed(() => Object.fromEntries(orderedVersions.value.map(v => [v.id, v.label])))
-const versionColorMap = computed(() => Object.fromEntries(orderedVersions.value.map(v => [v.id, v.color])))
-
-const versionCounts = computed(() => {
-  const out = {}
-  for (const v of orderedVersions.value) {
-    const vd = rawData.value[v.id]
-    out[v.id] = vd ? Object.values(vd.ratingBuckets).reduce((s, arr) => s + arr.length, 0) : 0
-  }
-  return out
-})
-
-const hasData = computed(() => orderedVersions.value.some(v => (versionCounts.value[v.id] || 0) > 0))
+const twoVersions  = computed(() => orderedVersions.value.length >= 2)
+const leftVersion  = computed(() => orderedVersions.value[0] ?? null)
+const rightVersion = computed(() => orderedVersions.value[1] ?? orderedVersions.value[0] ?? null)
 
 // ── Data fetch ────────────────────────────────────────────────────────────────
 async function fetchAll() {
   if (!orderedVersions.value.length) return
   loading.value = true
-  activeFlow.value = null
-
   try {
-    // 1. Fetch measure UUID for every catalog version
+    // 1. Resolve measure UUID for each catalog version
     const measureRows = await $directus.request(
       $readItems('measures', {
         fields: ['id', 'catalog_version'],
@@ -196,72 +203,77 @@ async function fetchAll() {
         limit: -1,
       }),
     )
-    const versionToMeasureId = {}
+    const vIdToMeasureId = {}
     for (const row of measureRows || []) {
       const vId = typeof row.catalog_version === 'string' ? row.catalog_version : row.catalog_version?.id
-      if (vId) versionToMeasureId[vId] = row.id
+      if (vId) vIdToMeasureId[vId] = row.id
     }
 
-    // 2. Fetch ratings for all versions in parallel
-    const results = await Promise.all(
-      orderedVersions.value.map(async (v) => {
-        const measureId = versionToMeasureId[v.id]
-        if (!measureId) return { versionId: v.id, ratings: [] }
-        const data = await $directus.request(
-          $readItems('ratings_measures', {
-            fields: ['rating', 'applicable', 'localteam_id'],
-            filter: { measure_id: { _eq: measureId } },
-            limit: -1,
-          }),
-        )
-        return { versionId: v.id, ratings: data || [] }
-      }),
-    )
-
-    // 3. Batch-fetch municipality slugs via localteam_id
-    const allLocalteamIds = [
-      ...new Set(
-        results.flatMap(r =>
-          r.ratings
-            .map(row => (typeof row.localteam_id === 'string' ? row.localteam_id : row.localteam_id?.id))
-            .filter(Boolean),
-        ),
-      ),
-    ]
-
-    const localteamToMuni = {}
-    if (allLocalteamIds.length) {
-      const muniRows = await $directus.request(
-        $readItems('municipalities', {
-          fields: ['localteam_id', 'slug', 'name'],
-          filter: { localteam_id: { _in: allLocalteamIds }, status: { _eq: 'published' } },
+    // 2. Fetch ratings for left and right versions in parallel
+    async function fetchRatings(versionId) {
+      const measureId = vIdToMeasureId[versionId]
+      if (!measureId) return []
+      return $directus.request(
+        $readItems('ratings_measures', {
+          fields: ['rating', 'applicable', 'localteam_id'],
+          filter: { measure_id: { _eq: measureId } },
           limit: -1,
         }),
       )
-      for (const m of muniRows || []) {
-        const ltId = typeof m.localteam_id === 'string' ? m.localteam_id : m.localteam_id?.id
-        if (ltId) localteamToMuni[ltId] = { slug: m.slug, name: m.name }
-      }
     }
 
-    // 4. Assemble rawData keyed by version ID
-    const newData = {}
-    for (const { versionId, ratings } of results) {
-      const ratingBuckets = {}
-      for (const r of ratings) {
-        const ratingKey = r.applicable === false ? 'na' : (r.rating ?? null)
-        if (ratingKey === null) continue
+    const leftId  = leftVersion.value?.id
+    const rightId = twoVersions.value ? rightVersion.value?.id : null
+
+    const [leftRaw, rightRaw] = await Promise.all([
+      leftId  ? fetchRatings(leftId)  : Promise.resolve([]),
+      rightId ? fetchRatings(rightId) : Promise.resolve([]),
+    ])
+
+    // 3. Build per-localteam rating maps (dedup: first published entry wins)
+    function toRatingMap(rows) {
+      const map = {}
+      for (const r of rows || []) {
         const ltId = typeof r.localteam_id === 'string' ? r.localteam_id : r.localteam_id?.id
-        const muni = ltId ? localteamToMuni[ltId] : null
-        if (!ratingBuckets[ratingKey]) ratingBuckets[ratingKey] = []
-        ratingBuckets[ratingKey].push({ name: muni?.name || '?', slug: muni?.slug || null })
+        if (!ltId || map[ltId] !== undefined) continue
+        const rk = r.applicable === false ? 'na' : (r.rating ?? null)
+        if (rk !== null) map[ltId] = rk
       }
-      for (const key of Object.keys(ratingBuckets)) {
-        ratingBuckets[key].sort((a, b) => a.name.localeCompare(b.name, 'de'))
-      }
-      newData[versionId] = { ratingBuckets }
+      return map
     }
-    rawData.value = newData
+    const leftMap  = toRatingMap(leftRaw)
+    const rightMap = toRatingMap(rightRaw)
+
+    // 4. Collect all unique localteam IDs
+    const allLtIds = [...new Set([...Object.keys(leftMap), ...Object.keys(rightMap)])]
+
+    // 5. Batch-fetch municipality slugs + names
+    const muniRows = allLtIds.length
+      ? await $directus.request(
+          $readItems('municipalities', {
+            fields: ['localteam_id', 'slug', 'name'],
+            filter: { localteam_id: { _in: allLtIds }, status: { _eq: 'published' } },
+            limit: -1,
+          }),
+        )
+      : []
+    const ltToMuni = {}
+    for (const m of muniRows || []) {
+      const ltId = typeof m.localteam_id === 'string' ? m.localteam_id : m.localteam_id?.id
+      if (ltId) ltToMuni[ltId] = { slug: m.slug, name: m.name }
+    }
+
+    // 6. Assemble municipality list
+    munis.value = allLtIds
+      .map(ltId => ({
+        key:         ltId,
+        name:        ltToMuni[ltId]?.name || ltId,
+        slug:        ltToMuni[ltId]?.slug || null,
+        leftRating:  leftMap[ltId]  ?? null,
+        rightRating: rightMap[ltId] ?? null,
+      }))
+      .filter(m => m.leftRating !== null || m.rightRating !== null)
+      .sort((a, b) => a.name.localeCompare(b.name, 'de'))
   } finally {
     loading.value = false
   }
@@ -273,59 +285,107 @@ watch(
   { immediate: true },
 )
 
-// ── Sankey layout ─────────────────────────────────────────────────────────────
-const sankeyLayout = computed(() => {
-  if (!hasData.value) return { leftNodes: [], rightNodes: [], flows: [] }
+// ── Change helpers ─────────────────────────────────────────────────────────────
+function changeType(m) {
+  if (m.leftRating === null || m.rightRating === null) return 'single'
+  if (m.leftRating === 'na' && m.rightRating === 'na') return 'same'
+  if (m.leftRating === 'na' || m.rightRating === 'na') return 'na-change'
+  const li = ratingIdxMap[m.leftRating] ?? 99
+  const ri = ratingIdxMap[m.rightRating] ?? 99
+  if (ri < li) return 'improved'
+  if (ri > li) return 'degraded'
+  return 'same'
+}
+function changeColorOf(m) {
+  switch (changeType(m)) {
+    case 'improved':   return '#4caf50'
+    case 'degraded':   return '#f44336'
+    case 'na-change':  return '#bdbdbd'
+    default:           return '#9e9e9e'
+  }
+}
+function changeArrow(m) {
+  const t = changeType(m)
+  if (t === 'improved')  return '↑'
+  if (t === 'degraded')  return '↓'
+  return '→'
+}
 
-  const versions = orderedVersions.value
-  const activeRatings = RATING_CONFIG.filter(cfg =>
-    versions.some(v => (rawData.value[v.id]?.ratingBuckets?.[cfg.key] || []).length > 0),
-  )
+// ── Stats ─────────────────────────────────────────────────────────────────────
+const hasData        = computed(() => munis.value.length > 0)
+const improvedCount  = computed(() => munis.value.filter(m => changeType(m) === 'improved').length)
+const sameCount      = computed(() => munis.value.filter(m => changeType(m) === 'same').length)
+const degradedCount  = computed(() => munis.value.filter(m => changeType(m) === 'degraded').length)
+const onlySingleCount = computed(() => munis.value.filter(m => changeType(m) === 'single').length)
 
-  // px per municipality — calibrated to the largest single version so bars are comparable
-  const maxVersionTotal = Math.max(...versions.map(v => versionCounts.value[v.id] || 0), 1)
-  const UNIT_H = Math.max(2, Math.min(10, 360 / maxVersionTotal))
+// ── Layout computation ────────────────────────────────────────────────────────
+const svgLayout = computed(() => {
+  if (!hasData.value) return { leftNodes: [], rightNodes: [], ribbons: [] }
 
-  // ── Right nodes: height = combined count across all versions ─────────────────
-  let rightY = PAD
-  const rightNodeMap = {}
-  const rightNodeList = []
-  for (const cfg of activeRatings) {
-    const total = versions.reduce((s, v) => s + (rawData.value[v.id]?.ratingBuckets?.[cfg.key] || []).length, 0)
-    const nodeH = Math.max(MIN_NODE_H, Math.round(total * UNIT_H))
-    rightNodeMap[cfg.key] = { y1: rightY, h: nodeH, allocated: 0, total }
-    rightNodeList.push({ key: cfg.key, label: cfg.label, color: cfg.color, y1: rightY, h: nodeH, total })
-    rightY += nodeH + BUCKET_GAP
+  const totalLeft  = munis.value.filter(m => m.leftRating  !== null).length
+  const totalRight = munis.value.filter(m => m.rightRating !== null).length
+  const MU_H = Math.max(3, Math.min(8, 380 / Math.max(totalLeft, totalRight, 1)))
+
+  // Group municipalities into left/right buckets
+  const leftBuckets  = {}
+  const rightBuckets = {}
+  for (const m of munis.value) {
+    if (m.leftRating  !== null) { (leftBuckets[m.leftRating]   ||= []).push(m) }
+    if (m.rightRating !== null) { (rightBuckets[m.rightRating] ||= []).push(m) }
   }
 
-  // ── Left nodes + flows ────────────────────────────────────────────────────────
-  // Within each right bucket, versions stack top→bottom — flows never overlap.
-  let leftY = PAD
-  const leftNodeList = []
-  const flowList = []
-  const BASE_OPACITIES = [0.55, 0.40, 0.30]
+  // Sort within buckets to minimize ribbon crossings
+  // Left: sort by destination (right) rating index, then name
+  for (const k of RATING_KEYS) {
+    leftBuckets[k]?.sort((a, b) => {
+      const d = (ratingIdxMap[a.rightRating] ?? 99) - (ratingIdxMap[b.rightRating] ?? 99)
+      return d !== 0 ? d : a.name.localeCompare(b.name, 'de')
+    })
+    // Right: sort by source (left) rating index, then name
+    rightBuckets[k]?.sort((a, b) => {
+      const d = (ratingIdxMap[a.leftRating] ?? 99) - (ratingIdxMap[b.leftRating] ?? 99)
+      return d !== 0 ? d : a.name.localeCompare(b.name, 'de')
+    })
+  }
 
-  for (let vi = 0; vi < versions.length; vi++) {
-    const v = versions[vi]
-    const vd = rawData.value[v.id] || { ratingBuckets: {} }
-    const leftStart = leftY
-    let leftOffset = 0
+  // Compute left bucket y positions + per-municipality y on left side
+  let ly = PAD_TOP
+  const leftNodes = []
+  const leftMuniY = {}
+  for (const k of RATING_KEYS) {
+    const bucket = leftBuckets[k] || []
+    if (!bucket.length) continue
+    const h = bucket.length * MU_H
+    leftNodes.push({ key: k, y1: ly, h, color: RATING_CFG[k].color, shortLabel: RATING_CFG[k].shortLabel, count: bucket.length })
+    bucket.forEach((m, i) => { leftMuniY[m.key] = ly + i * MU_H })
+    ly += h + BUCKET_GAP
+  }
 
-    for (const cfg of activeRatings) {
-      const munis = vd.ratingBuckets[cfg.key] || []
-      if (!munis.length) continue
+  // Compute right bucket y positions + per-municipality y on right side
+  let ry = PAD_TOP
+  const rightNodes = []
+  const rightMuniY = {}
+  for (const k of RATING_KEYS) {
+    const bucket = rightBuckets[k] || []
+    if (!bucket.length) continue
+    const h = bucket.length * MU_H
+    rightNodes.push({ key: k, y1: ry, h, color: RATING_CFG[k].color, shortLabel: RATING_CFG[k].shortLabel, count: bucket.length })
+    bucket.forEach((m, i) => { rightMuniY[m.key] = ry + i * MU_H })
+    ry += h + BUCKET_GAP
+  }
 
-      const flowH = Math.max(1, Math.round(munis.length * UNIT_H))
-      const lY1 = leftStart + leftOffset
-      const lY2 = lY1 + flowH
-      const rNode = rightNodeMap[cfg.key]
-      const rY1 = rNode.y1 + rNode.allocated
-      const rY2 = rY1 + flowH
-      rNode.allocated += flowH
-      leftOffset += flowH
-
-      const lx = LEFT_X + NODE_W
-      const rx = RIGHT_X
+  // Build ribbon paths (only when two versions, and municipality has both ratings)
+  const ribbons = []
+  if (twoVersions.value) {
+    const lx = LEFT_X + NODE_W
+    const rx = RIGHT_X
+    for (const m of munis.value) {
+      if (m.leftRating === null || m.rightRating === null) continue
+      const lY1 = leftMuniY[m.key]
+      const rY1 = rightMuniY[m.key]
+      if (lY1 === undefined || rY1 === undefined) continue
+      const lY2 = lY1 + MU_H
+      const rY2 = rY1 + MU_H
       const path = [
         `M ${lx} ${lY1}`,
         `C ${MID_X} ${lY1} ${MID_X} ${rY1} ${rx} ${rY1}`,
@@ -333,62 +393,37 @@ const sankeyLayout = computed(() => {
         `C ${MID_X} ${rY2} ${MID_X} ${lY2} ${lx} ${lY2}`,
         'Z',
       ].join(' ')
-
-      flowList.push({
-        versionKey: v.id,
-        ratingKey: cfg.key,
-        versionIdx: vi,
-        path,
-        baseOpacity: BASE_OPACITIES[vi] ?? 0.4,
-      })
+      ribbons.push({ ...m, path, changeColor: changeColorOf(m) })
     }
-
-    const nodeH = Math.max(MIN_NODE_H, leftOffset)
-    leftNodeList.push({ key: v.id, label: v.label, color: v.color, y1: leftStart, h: nodeH, count: versionCounts.value[v.id] || 0 })
-    leftY += nodeH + VERSION_GAP
   }
 
-  return { leftNodes: leftNodeList, rightNodes: rightNodeList, flows: flowList }
+  return { leftNodes, rightNodes, ribbons }
 })
 
-const leftNodes = computed(() => sankeyLayout.value.leftNodes)
-const rightNodes = computed(() => sankeyLayout.value.rightNodes)
-const flows = computed(() => sankeyLayout.value.flows)
+const leftNodes  = computed(() => svgLayout.value.leftNodes)
+const rightNodes = computed(() => svgLayout.value.rightNodes)
+const ribbons    = computed(() => svgLayout.value.ribbons)
 
-const svgHeight = computed(() => {
-  const allY2 = [
-    ...leftNodes.value.map(n => n.y1 + n.h),
-    ...rightNodes.value.map(n => n.y1 + n.h),
-  ]
-  return allY2.length ? Math.max(...allY2) + PAD : 200
+const svgH = computed(() => {
+  const all = [...leftNodes.value, ...rightNodes.value].map(n => n.y1 + n.h)
+  return all.length ? Math.max(...all) + 20 : 100
 })
 
 // ── Interaction ───────────────────────────────────────────────────────────────
-const activeFlowData = computed(() => {
-  if (!activeFlow.value) return null
-  const { versionKey, ratingKey } = activeFlow.value
-  return rawData.value[versionKey]?.ratingBuckets?.[ratingKey] || null
+const hoveredMuniData = computed(() => {
+  if (!hoveredKey.value) return null
+  const m = munis.value.find(m => m.key === hoveredKey.value)
+  return m ? { ...m, changeColor: changeColorOf(m) } : null
 })
 
-function isActiveFlow(flow) {
-  return activeFlow.value?.versionKey === flow.versionKey && activeFlow.value?.ratingKey === flow.ratingKey
-}
-function isHoveredFlow(flow) {
-  return hoveredFlow.value?.versionKey === flow.versionKey && hoveredFlow.value?.ratingKey === flow.ratingKey
-}
-function toggleFlow(flow) {
-  activeFlow.value = isActiveFlow(flow) ? null : { versionKey: flow.versionKey, ratingKey: flow.ratingKey }
+function navigateToMuni(ribbon) {
+  if (ribbon.slug) router.push(`/municipalities/${ribbon.slug}`)
 }
 </script>
 
 <style scoped>
-.fade-panel-enter-active,
-.fade-panel-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.fade-panel-enter-from,
-.fade-panel-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
+.fade-info-enter-active,
+.fade-info-leave-active { transition: opacity 0.12s ease; }
+.fade-info-enter-from,
+.fade-info-leave-to { opacity: 0; }
 </style>
