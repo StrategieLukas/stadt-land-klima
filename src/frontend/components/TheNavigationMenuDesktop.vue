@@ -19,24 +19,31 @@
           :href="item.link_type === 'external' ? item.external_url : undefined"
           :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
           :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
-          class="flex items-center gap-1.5 px-5 text-sm font-semibold whitespace-nowrap transition-colors"
+          class="flex items-center gap-1.5 px-3 text-sm font-semibold whitespace-nowrap transition-colors"
           @click="closeMenu"
+          :title="item.label"
           :class="{
             'bg-olive-green text-white': item.link_type === 'page' && isActive(item),
             'text-gray-600 hover:bg-light-green/10 hover:text-gray-900': !(item.link_type === 'page' && isActive(item)),
           }"
         >
-          <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain" alt="" />
-          {{ item.label }}
+          <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-5 w-auto object-contain" :alt="item.label" />
+          <template v-else>
+            <svg v-if="item.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            <span class="text-xs font-semibold">{{ item.label }}</span>
+          </template>
+          <span v-if="item.image_id && imageUrlMap[item.image_id]" class="sr-only">{{ item.label }}</span>
         </component>
 
         <!-- Text-only label (no link, no children) -->
         <span
           v-else-if="!hasChildren(item) && item.link_type === 'none'"
-          class="flex items-center gap-1.5 px-5 text-sm font-semibold text-gray-500 whitespace-nowrap"
+          class="flex items-center gap-1.5 px-3 text-sm font-semibold text-gray-500 whitespace-nowrap"
+          :title="item.label"
         >
-          <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain" alt="" />
-          {{ item.label }}
+          <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-5 w-auto object-contain" :alt="item.label" />
+          <span v-else class="text-xs">{{ item.label }}</span>
+          <span v-if="item.image_id && imageUrlMap[item.image_id]" class="sr-only">{{ item.label }}</span>
         </span>
 
         <!-- Trigger with children — also navigates if item has a page slug -->
@@ -44,15 +51,17 @@
           v-else
           :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'div'"
           :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
-          class="flex items-center gap-1.5 px-5 text-sm font-semibold cursor-pointer whitespace-nowrap transition-colors"
+          class="flex items-center gap-1.5 px-3 text-sm font-semibold cursor-pointer whitespace-nowrap transition-colors"
           @click="item.link_type === 'page' && item.page_slug ? closeMenu() : undefined"
+          :title="item.label"
           :class="{
             'bg-olive-green text-white': anyChildActive(item),
             'text-gray-600 hover:bg-light-green/10 hover:text-gray-900': !anyChildActive(item),
           }"
         >
-          <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain" alt="" />
-          {{ item.label }}
+          <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-5 w-auto object-contain" :alt="item.label" />
+          <span v-else class="text-xs font-semibold">{{ item.label }}</span>
+          <span v-if="item.image_id && imageUrlMap[item.image_id]" class="sr-only">{{ item.label }}</span>
           <svg class="h-3 w-3 opacity-50" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5 5-5"/></svg>
         </component>
 
@@ -114,7 +123,10 @@
                 }"
               >
                 <div class="min-w-0">
-                  <div class="leading-snug">{{ child.label }}</div>
+                  <div class="flex items-center gap-1.5 leading-snug">
+                    <svg v-if="child.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    {{ child.label }}
+                  </div>
                   <div v-if="child.description" class="text-xs font-normal opacity-60 mt-0.5 leading-snug">{{ child.description }}</div>
                 </div>
               </component>

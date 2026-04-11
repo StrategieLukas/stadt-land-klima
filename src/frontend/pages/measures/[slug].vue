@@ -6,7 +6,7 @@
       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
-      {{ $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) }}
+      {{ measure?.sector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) : '← Zurück zu Maßnahmen' }}
     </NuxtLink>
 
     <!-- Version switcher (only if this measure exists in multiple catalog versions) -->
@@ -25,7 +25,7 @@
       </NuxtLink>
     </div>
 
-    <article class="mb-8 mt-6">
+    <article v-if="measure" class="mb-8 mt-6">
       <div class="flex items-center gap-3 mb-4 flex-wrap">
         <span class="font-mono bg-gray text-base-100 px-2 py-1 rounded-lg flex-shrink-0">{{ measure.measure_id }}</span>
         <h1 class="font-heading text-h1 font-bold text-gray">{{ measure.name }}</h1>
@@ -37,6 +37,17 @@
       </div>
     </article>
 
+    <!-- Loading skeleton while measure is being fetched -->
+    <div v-else class="mb-8 mt-6 animate-pulse space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="h-8 w-16 bg-gray-200 rounded-lg"></div>
+        <div class="h-8 w-64 bg-gray-200 rounded"></div>
+      </div>
+      <div class="h-4 w-full bg-gray-100 rounded"></div>
+      <div class="h-4 w-5/6 bg-gray-100 rounded"></div>
+      <div class="h-4 w-4/6 bg-gray-100 rounded"></div>
+    </div>
+
     <!-- Feedback section -->
     <div class="border-t-4 border-gray-200 pt-6 pb-8">
       <div class="flex items-start gap-3">
@@ -45,7 +56,7 @@
           <h3 class="font-heading font-bold text-gray mb-1">Haben Sie einen Hinweis zu dieser Maßnahme?</h3>
           <p class="text-sm text-gray-500 mb-3">Fehler, Ungenauigkeiten oder Verbesserungsvorschläge – teilen Sie uns Ihr Feedback mit.</p>
           <NuxtLink
-            :to="`/feedback?title=${encodeURIComponent(measure?.measure_id + ': ' + measure?.name)}&content=${encodeURIComponent('Maßnahme: ' + measure?.measure_id + '\nLink: /measures/' + route.params.slug + '?v=' + currentCatalogVersion.name + '\n\nMein Hinweis:\n')}`"
+            :to="`/feedback?title=${encodeURIComponent(measure?.measure_id + ': ' + measure?.name)}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure?.measure_id + '\nLink: /measures/' + route.params.slug + '?v=' + currentCatalogVersion.name + '\n\nMein Hinweis:\n')}`"
             class="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-bold bg-light-blue text-white hover:brightness-110 transition"
           >
             Feedback geben ↗
@@ -71,24 +82,28 @@ const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 
-let selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
-const currentCatalogVersion = ref(selectedCatalogVersion);
+// Use a ref so the reactive key below re-fetches automatically when the version changes.
+const currentCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route, false));
 
 onMounted(() => {
-  setCatalogVersionUrl(route, router, selectedCatalogVersion);
+  setCatalogVersionUrl(route, router, currentCatalogVersion.value);
 });
 
-const { data: measuresRaw, execute: refetchMeasure } = await useAsyncData(`measure-${route.params.slug}`, () => {
-  return $directus.request(
+// Function key includes the version ID, so Nuxt never serves stale data from a different
+// version. The watch option triggers an automatic re-fetch when currentCatalogVersion changes.
+const { data: measuresRaw } = await useAsyncData(
+  () => `measure-${route.params.slug}-${currentCatalogVersion.value.id}`,
+  () => $directus.request(
     $readItems("measures", {
       filter: {
         slug: { _eq: route.params.slug },
-        catalog_version: { _eq: selectedCatalogVersion.id }
+        catalog_version: { _eq: currentCatalogVersion.value.id },
       },
       limit: 1,
     }),
-  );
-});
+  ),
+  { watch: [currentCatalogVersion] },
+);
 
 // Fetch all catalog versions this measure appears in (for version switcher)
 const { data: measureVersions } = await useAsyncData(`measure-versions-${route.params.slug}`, () => {
@@ -103,14 +118,14 @@ const { data: measureVersions } = await useAsyncData(`measure-versions-${route.p
 
 const measure = computed(() => measuresRaw.value?.[0] || null);
 
-// Re-fetch when catalog version changes
+// When the URL version param changes (e.g. version switcher or setCatalogVersionUrl redirect),
+// get the new version object. Updating the ref automatically re-triggers useAsyncData above.
 watch(
   () => route.query.v,
   async (newV, oldV) => {
     if (newV === oldV) return;
-    selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
-    currentCatalogVersion.value = selectedCatalogVersion;
-    await refetchMeasure();
+    const newVersion = await getCatalogVersion($directus, $readItems, route, true);
+    currentCatalogVersion.value = newVersion;
   }
 );
 

@@ -1,9 +1,9 @@
 <template>
   <div class="relative">
     <!-- Loading state -->
-    <div v-if="loading" class="flex items-center justify-center py-8">
-      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-      <span class="ml-2 text-sm text-gray-600">{{ $t('generic.loading') }}...</span>
+    <div v-if="loading" class="flex items-center justify-center py-8 gap-2">
+      <SlkFlowerSpinner :size="24" />
+      <span class="text-sm text-gray-600">{{ $t('generic.loading') }}...</span>
     </div>
     
     <!-- Chart -->
@@ -35,9 +35,9 @@
     </div>
     
     <!-- Loading bin data overlay -->
-    <div v-if="loadingBinData" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-      <span class="ml-2 text-sm text-gray-600">{{ $t('generic.loading') }}...</span>
+    <div v-if="loadingBinData" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center gap-2 z-10">
+      <SlkFlowerSpinner :size="24" />
+      <span class="text-sm text-gray-600">{{ $t('generic.loading') }}...</span>
     </div>
   </div>
 </template>

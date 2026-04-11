@@ -1,0 +1,28 @@
+collection: news_items
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: news_items
+  color: null
+  display_template: "{{title}}"
+  group: null
+  hidden: false
+  icon: newspaper
+  item_duplication_fields: null
+  note: null
+  preview_url: null
+  singleton: false
+  sort: null
+  sort_field: date_published
+  translations:
+    - language: de-DE
+      translation: Neuigkeiten
+      singular: Neuigkeit
+      plural: Neuigkeiten
+  unarchive_value: draft
+  versioning: false
+schema:
+  name: news_items

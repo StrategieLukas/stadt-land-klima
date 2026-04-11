@@ -1,6 +1,33 @@
 import { createDirectus, rest, staticToken, createItem } from '@directus/sdk';
+import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 
 const ALLOWED_TYPES = ['legal', 'bug', 'inaccuracy', 'suggestion', 'cooperation', 'other'];
+
+interface AltchaPayload {
+  algorithm: string;
+  challenge: string;
+  number: number;
+  salt: string;
+  signature: string;
+}
+
+function verifyAltcha(payloadB64: string, hmacKey: string): boolean {
+  let payload: AltchaPayload;
+  try {
+    payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
+  } catch {
+    return false;
+  }
+  const expectedChallenge = createHash('SHA-256')
+    .update(`${payload.salt}${payload.number}`)
+    .digest('hex');
+  if (expectedChallenge !== payload.challenge) return false;
+  const expectedSig = createHmac('SHA-256', hmacKey).update(payload.challenge).digest('hex');
+  const a = Buffer.from(expectedSig, 'hex');
+  const b = Buffer.from(payload.signature, 'hex');
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -29,11 +56,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.' });
   }
 
-  // Submit to Directus using server-side token
-  const directusUrl = config.serverDirectusUrl as string;
-  const directusToken = config.public.directusToken as string;
+  // Submit to Directus using server-side admin token
+  const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055';
+  const adminToken = config.directusAdminToken as string | undefined;
 
-  const client = createDirectus(directusUrl).with(rest()).with(staticToken(directusToken));
+  if (!adminToken) {
+    console.error('[submit-feedback] DIRECTUS_ADMIN_TOKEN not configured');
+    throw createError({ statusCode: 503, message: 'Feedback kann momentan nicht gespeichert werden. Bitte versuche es später erneut.' });
+  }
+
+  const client = createDirectus(directusUrl).with(rest()).with(staticToken(adminToken));
 
   try {
     await client.request(

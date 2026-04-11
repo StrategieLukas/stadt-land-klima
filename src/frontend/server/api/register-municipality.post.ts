@@ -1,44 +1,14 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
-
-interface AltchaPayload {
-  algorithm: string;
-  challenge: string;
-  number: number;
-  salt: string;
-  signature: string;
-}
-
-function verifyAltcha(payloadB64: string, hmacKey: string): boolean {
-  let payload: AltchaPayload;
-  try {
-    payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
-  } catch {
-    return false;
-  }
-
-  // 1. Verify proof-of-work: sha256(salt + number) === challenge
-  const expectedChallenge = createHash('SHA-256')
-    .update(`${payload.salt}${payload.number}`)
-    .digest('hex');
-  if (expectedChallenge !== payload.challenge) return false;
-
-  // 2. Verify HMAC signature: hmac(challenge) === signature
-  const expectedSig = createHmac('SHA-256', hmacKey).update(payload.challenge).digest('hex');
-  const a = Buffer.from(expectedSig, 'hex');
-  const b = Buffer.from(payload.signature, 'hex');
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
+import { randomBytes } from 'node:crypto';
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
 
   const body = await readBody(event);
-  const { name, email, organisation, ars, municipalityName, altcha } = body ?? {};
+  const { firstName, lastName, email, organisation, ars, municipalityName, population, state, geolocation, altcha } = body ?? {};
 
   // Validate required fields
-  if (!name?.trim() || !email?.trim() || !ars?.trim() || !municipalityName?.trim()) {
+  if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !ars?.trim() || !municipalityName?.trim()) {
     throw createError({ statusCode: 400, message: 'Bitte alle Pflichtfelder ausfüllen.' });
   }
 
@@ -52,28 +22,207 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.' });
   }
 
-  // Forward to Directus flow (if configured)
-  const flowUrl = config.directusFlowRegisterMunicipality as string | undefined;
-  if (flowUrl) {
-    try {
-      await $fetch(flowUrl, {
-        method: 'POST',
-        body: {
-          name: name.trim(),
-          email: email.trim(),
-          organisation: organisation?.trim() ?? '',
-          ars: ars.trim(),
-          municipalityName: municipalityName.trim(),
-        },
-      });
-    } catch (err) {
-      console.error('[register-municipality] Directus flow error:', err);
-      throw createError({ statusCode: 502, message: 'Registrierung konnte nicht verarbeitet werden. Bitte versuche es später erneut.' });
-    }
-  } else {
-    // No flow configured yet — log and succeed in dev
-    console.info('[register-municipality] No DIRECTUS_FLOW_REGISTER_MUNICIPALITY configured. Received:', { name: name.trim(), email: email.trim(), organisation: organisation?.trim(), ars, municipalityName: municipalityName.trim() });
+  const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055';
+  const adminToken = config.directusAdminToken as string | undefined;
+
+  if (!adminToken) {
+    console.error('[register-municipality] DIRECTUS_ADMIN_TOKEN not configured');
+    throw createError({ statusCode: 503, message: 'Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.' });
   }
 
-  return { success: true };
+  const headers = {
+    'Authorization': `Bearer ${adminToken}`,
+    'Content-Type': 'application/json',
+  };
+
+  const steps = { user: false, team: false, email: false, notify: false, welcome: false };
+
+  // --- Pre-check: reject if ARS already has a localteam ---
+  try {
+    const arsCheck = await $fetch<{ data: Array<{ id: string }> }>(
+      `${directusUrl}/items/municipalities`,
+      { headers, params: { 'filter[ars][_eq]': ars.trim(), 'filter[localteam_id][_nnull]': true, 'fields[]': 'id', limit: 1 } },
+    );
+    if (arsCheck.data?.length > 0) {
+      throw createError({
+        statusCode: 422,
+        message: 'Für diese Gemeinde existiert bereits ein Lokalteam. Bitte wende dich an info@stadt-land-klima.de, wenn du mitarbeiten möchtest.',
+        data: { steps },
+      });
+    }
+  } catch (err: any) {
+    if (err.statusCode === 422) throw err;
+    // Non-fatal: proceed with registration if the check itself fails
+    console.warn('[register-municipality] ARS duplicate check failed (non-fatal):', err);
+  }
+
+  // --- Step 1: Create Directus user ---
+  const LOKALTEAM_ADMIN_ROLE = await getLokalteamAdminRoleId();
+  let userId: string;
+  try {
+    const userResult = await $fetch<{ data: { id: string } }>(`${directusUrl}/users`, {
+      method: 'POST',
+      headers,
+      body: {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim(),
+        title: organisation?.trim() ?? '',
+        description: `ARS: ${ars.trim()}`,
+        role: LOKALTEAM_ADMIN_ROLE,
+        status: 'active',
+        verified: false,
+      },
+    });
+    userId = userResult.data.id;
+    steps.user = true;
+  } catch (err: any) {
+    const isUnique = err?.data?.errors?.[0]?.extensions?.code === 'RECORD_NOT_UNIQUE';
+    throw createError({
+      statusCode: 422,
+      message: isUnique
+        ? 'Ein Account mit dieser E-Mail-Adresse existiert bereits. Bitte logge dich ein oder verwende die Passwort-vergessen-Funktion.'
+        : 'Account konnte nicht erstellt werden. Bitte versuche es später erneut.',
+      data: { steps },
+    });
+  }
+
+  // --- Step 2: Create Lokalteam ---
+  let localteamId: string;
+  try {
+    const teamResult = await $fetch<{ data: { id: string } }>(`${directusUrl}/items/localteams`, {
+      method: 'POST',
+      headers,
+      body: {
+        name: `Stadt.Land.Klima! ${municipalityName.trim()}`,
+        municipality_name: municipalityName.trim(),
+        admin_id: userId,
+        status: 'draft',
+      },
+    });
+    localteamId = teamResult.data.id;
+    steps.team = true;
+  } catch (err: any) {
+    throw createError({
+      statusCode: 422,
+      message: 'Lokalteam konnte nicht angelegt werden. Bitte versuche es später erneut.',
+      data: { steps },
+    });
+  }
+
+  // --- Step 3: Update municipality (best-effort, non-fatal) ---
+  // The Directus 'createMunicipality' flow creates the municipality record asynchronously
+  // when the localteam is created. It sets localteam_id but NOT ars/population/state.
+  // We retry the lookup by localteam_id to give the flow time to run.
+  const previewToken = randomBytes(24).toString('hex');
+  let municipalitySlug: string | undefined;
+  try {
+    const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+    let municipalityId: string | undefined;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      if (attempt > 0) await sleep(2000);
+      const muniSearch = await $fetch<{ data: Array<{ id: string; slug?: string }> }>(
+        `${directusUrl}/items/municipalities`,
+        { headers, params: { 'filter[localteam_id][_eq]': localteamId, 'fields[]': ['id', 'slug'], limit: 1 } },
+      );
+      municipalityId = muniSearch.data?.[0]?.id;
+      municipalitySlug = muniSearch.data?.[0]?.slug ?? undefined;
+      if (municipalityId) break;
+    }
+    if (municipalityId) {
+      await $fetch(`${directusUrl}/items/municipalities/${municipalityId}`, {
+        method: 'PATCH',
+        headers,
+        body: {
+          ars: ars.trim(),
+          creator_verified: false,
+          preview_token: previewToken,
+          ...(population != null ? { population: Number(population) } : {}),
+          ...(state ? { state: state.trim() } : {}),
+          ...(geolocation ? { geolocation } : {}),
+        },
+      });
+    } else {
+      console.warn('[register-municipality] Municipality not found after retries for localteam:', localteamId);
+    }
+  } catch (err) {
+    // Non-fatal: team + user already created; log and continue
+    console.warn('[register-municipality] Municipality update failed (non-fatal):', err);
+  }
+
+  // --- Step 4: Send password-reset email ---
+  try {
+    await $fetch(`${directusUrl}/auth/password/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: { email: email.trim() },
+    });
+    steps.email = true;
+  } catch (err) {
+    // Non-fatal: user + team are created; they can request the email again
+    console.warn('[register-municipality] Password reset email failed (non-fatal):', err);
+  }
+
+  const appPublicUrl = (config.appPublicUrl as string) || 'https://stadt-land-klima.de';
+  const directusPublicUrl = (config.directusPublicUrl as string) || 'https://admin.stadt-land-klima.de';
+  const previewUrl = municipalitySlug
+    ? `${appPublicUrl}/municipalities/${municipalitySlug}?preview=${previewToken}`
+    : null;
+
+  // --- Step 5: Notify admin ---
+  const adminEmail = (config.adminNotificationEmail as string) || 'info@stadt-land-klima.de';
+  try {
+    await $fetch(`${directusUrl}/utils/mail`, {
+      method: 'POST',
+      headers,
+      body: {
+        to: adminEmail,
+        subject: `Neues Lokalteam registriert: ${municipalityName.trim()}`,
+        body: [
+          `<p>Ein neues Lokalteam hat sich registriert:</p>`,
+          `<ul>`,
+          `<li><strong>Name:</strong> ${firstName.trim()} ${lastName.trim()}</li>`,
+          `<li><strong>E-Mail:</strong> ${email.trim()}</li>`,
+          `<li><strong>Organisation:</strong> ${organisation?.trim() ?? '—'}</li>`,
+          `<li><strong>Gemeinde:</strong> ${municipalityName.trim()} (ARS: ${ars.trim()})</li>`,
+          `</ul>`,
+          `<p><a href="${directusPublicUrl}/admin/users/${userId}">Account in Directus öffnen und verifizieren →</a></p>`,
+          previewUrl ? `<p><a href="${previewUrl}">Vorschau der Gemeinde-Seite →</a></p>` : '',
+        ].join('\n'),
+      },
+    });
+    steps.notify = true;
+  } catch (err) {
+    console.warn('[register-municipality] Admin notification email failed (non-fatal):', err);
+  }
+
+  // --- Step 6: Send welcome email to new user ---
+  try {
+    const tutorialUrl = (config.welcomeEmailTutorialUrl as string) || '';
+    const calendarUrl = (config.welcomeEmailCalendarUrl as string) || '';
+    const signalUrl = (config.welcomeEmailSignalUrl as string) || '';
+    await $fetch(`${directusUrl}/utils/mail`, {
+      method: 'POST',
+      headers,
+      body: {
+        to: email.trim(),
+        subject: `Willkommen bei Stadt.Land.Klima! – Dein Lokalteam für ${municipalityName.trim()} ist eingerichtet`,
+        template: {
+          name: 'email-template-welcome-new-localteam',
+          data: {
+            firstName: firstName.trim(),
+            municipalityName: municipalityName.trim(),
+            tutorialUrl,
+            calendarUrl,
+            signalUrl,
+          },
+        },
+      },
+    });
+    steps.welcome = true;
+  } catch (err) {
+    console.warn('[register-municipality] Welcome email failed (non-fatal):', err);
+  }
+
+  return { success: true, steps };
 });

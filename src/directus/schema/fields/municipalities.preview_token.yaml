@@ -1,0 +1,40 @@
+collection: municipalities
+field: preview_token
+type: string
+meta:
+  collection: municipalities
+  conditions: null
+  display: raw
+  display_options: null
+  field: preview_token
+  group: null
+  hidden: true
+  interface: input
+  note: "Zufälliges Token für die Vorschau-URL nicht-verifizierter Gemeinden."
+  options: null
+  readonly: true
+  required: false
+  sort: 1000
+  special: null
+  translations:
+    - language: de-DE
+      translation: Vorschau-Token
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: preview_token
+  table: municipalities
+  data_type: character varying
+  default_value: null
+  max_length: 64
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -4,6 +4,7 @@
     :title="article.title"
     :subtitle="article.subtitle"
     :municipality_name="article.municipality_name"
+    :municipality_slug="municipalitySlug"
     :state="article.state"
     :author="article.author"
     :date="article.date_created ? new Date(article.date_created) : null"
@@ -45,8 +46,29 @@
     )
   });
 
-
   const article = computed(() => articles.value?.[0] || {});
+
+  const { data: municipalityData } = await useAsyncData(
+    `municipality-slug-for-article-${route.params.slug}`,
+    async () => {
+      if (!article.value.municipality_name) return null;
+      const results = await $directus.request(
+        $readItems("municipalities", {
+          fields: ["slug", "ars", "status"],
+          filter: { name: { _eq: article.value.municipality_name } },
+          limit: 1,
+        })
+      );
+      return results?.[0] ?? null;
+    },
+    { watch: [article] }
+  );
+
+  const municipalitySlug = computed(() => {
+    const m = municipalityData.value;
+    if (!m) return null;
+    return m.status === 'published' ? (m.slug ?? null) : (m.ars ?? null);
+  });
 
   const articleLink = computed(() => {
     if (!article.value.link) return null;

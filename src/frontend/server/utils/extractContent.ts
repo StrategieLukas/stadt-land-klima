@@ -48,7 +48,7 @@ export function extractBlockText(bundle: string, props: Record<string, any>): st
 
 export type SiteContentDoc = {
   id: string
-  type: 'block' | 'page' | 'event' | 'article' | 'measure' | 'static_page'
+  type: 'block' | 'page' | 'event' | 'article' | 'measure' | 'static_page' | 'news_item'
   title: string
   text: string
   url: string
@@ -99,10 +99,36 @@ export const STATIC_PAGES: Array<{ id: string; title: string; text: string; url:
     url: '/feedback',
     meta: 'Übersicht',
   },
+  {
+    id: 'static_register_localteam',
+    title: 'Lokalteam gründen',
+    text: 'Lokalteam gründen registrieren Kommune Klimaschutz vor Ort aktiv werden',
+    url: '/register_localteam',
+    meta: 'Übersicht',
+  },
+  {
+    id: 'static_news',
+    title: 'Neuigkeiten',
+    text: 'Neuigkeiten News Meldungen Aktuelles Stadt Land Klima',
+    url: '/news',
+    meta: 'Übersicht',
+  },
 ]
 
 export function buildStaticPageDocs(): SiteContentDoc[] {
   return STATIC_PAGES.map(p => ({ ...p, type: 'static_page' as const }))
+}
+
+export function buildNewsItemDoc(item: Record<string, any>): SiteContentDoc | null {
+  if (item.status !== 'published') return null
+  return {
+    id: `news_item_${item.slug}`,
+    type: 'news_item',
+    title: item.title || '',
+    text: stripHtml(item.teaser || ''),
+    url: `/news/${item.slug}`,
+    meta: null,
+  }
 }
 
 export function buildPageDoc(page: Record<string, any>): SiteContentDoc | null {
@@ -152,17 +178,20 @@ const MEASURE_DESC_FIELDS = [
   'description_legal', 'description_funding', 'description_verification',
 ]
 
-export function buildMeasureDoc(measure: Record<string, any>): SiteContentDoc | null {
+export function buildMeasureDoc(measure: Record<string, any>, catalogVersionName?: string): SiteContentDoc | null {
   const text = MEASURE_DESC_FIELDS
     .map(f => stripHtml(measure[f] || ''))
     .filter(Boolean)
     .join(' ')
+  const url = catalogVersionName
+    ? `/measures/${measure.slug}?v=${encodeURIComponent(catalogVersionName)}`
+    : `/measures/${measure.slug}`
   return {
     id: `measure_${measure.slug}`,
     type: 'measure',
     title: measure.name || '',
     text,
-    url: `/measures/${measure.slug}`,
+    url,
     meta: measure.sector || null,
   }
 }
@@ -170,6 +199,7 @@ export function buildMeasureDoc(measure: Record<string, any>): SiteContentDoc | 
 export function buildBlockDoc(
   block: Record<string, any>,
   pageName: string,
+  baseUrl = '',
 ): SiteContentDoc | null {
   const text = extractBlockText(block.bundle, block.props || {})
   if (!text) return null
@@ -178,7 +208,7 @@ export function buildBlockDoc(
     type: 'block',
     title: pageName || block.entity_uuid,
     text,
-    url: `/${block.entity_uuid}#block-${block.uuid}`,
+    url: `${baseUrl}/${block.entity_uuid}#block-${block.uuid}`,
     meta: bundleLabel(block.bundle),
   }
 }

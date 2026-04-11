@@ -29,3 +29,10 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: news_items
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

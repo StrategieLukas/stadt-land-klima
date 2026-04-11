@@ -18,8 +18,8 @@
     </div>
     <!-- Spacer that reserves the height of the fixed header.
          Mobile: h-14 (logo) + py-2 (top+bottom) ≈ 72px.
-         Desktop (lg+): h-20 logo + py-2 = 88px ≈ h-20. -->
-    <div class="lg:h-20 flex-shrink-0"></div>
+         Desktop (sm+): h-20 logo + py-2 = 88px ≈ h-20. -->
+    <div class="sm:h-20 flex-shrink-0"></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
     <div class="drawer flex-1">
@@ -37,7 +37,7 @@
           </div>
         </main>
 
-        <div v-if="hydrated" class="pb-[84px] lg:pb-0">
+        <div v-if="hydrated">
           <div v-if="isDesktop" class="bg-mild-white">
             <the-footer-desktop :nav-items="navigationConfig?.footer_columns || []" />
           </div>
@@ -45,7 +45,7 @@
             <the-footer-mobile :nav-items="navigationConfig?.footer_columns || []" />
           </div>
         </div>
-        <div v-else class="pb-[84px] lg:pb-0">
+        <div v-else>
           <div class="bg-mild-white opacity-0">
             <div class="h-20"><!-- Footer placeholder --></div>
           </div>
@@ -60,8 +60,8 @@
       />
     </div>
 
-    <!-- Dock (Mobile, always visible) -->
-    <div class="fixed bottom-0 left-0 right-0 z-[10000] block lg:hidden">
+    <!-- Dock (Small mobile only) -->
+    <div class="fixed bottom-0 left-0 right-0 z-[10000] block sm:hidden">
       <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
     </div>
 
@@ -112,11 +112,11 @@ onMounted(() => {
   hydrated.value = true
   
   // Initial desktop state detection
-  const checkDesktop = () => window.innerWidth >= 1024
+  const checkDesktop = () => window.innerWidth >= 640
   isDesktop.value = checkDesktop()
   
   // Media query for more reliable detection
-  const mq = window.matchMedia('(min-width: 1024px)')
+  const mq = window.matchMedia('(min-width: 640px)')
   const update = () => {
     const wasDesktop = isDesktop.value
     isDesktop.value = mq.matches

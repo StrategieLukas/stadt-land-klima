@@ -168,7 +168,7 @@
         to="/register_localteam"
         class="inline-block px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
       >
-        Jetzt melden →
+        Jetzt anfangen →
       </NuxtLink>
     </div>
   </div>

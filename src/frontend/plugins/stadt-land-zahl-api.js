@@ -78,7 +78,14 @@ export default defineNuxtPlugin(() => {
       if (data.contained_by) {
         data.contained_by.sort((a, b) => a.level - b.level)
       }
-      
+
+      // Derive the federal state (Bundesland) from the level-2 entry in contained_by.
+      // The top-level `state` field on the API response is unreliable; level 2 is always Bundesland.
+      const stateArea = data.contained_by?.find(a => a.level === 2)
+      if (stateArea) {
+        data.state = stateArea.name
+      }
+
       return data
     } catch (error) {
       console.error(`fetchStatsByARS failed for ars "${ars}":`, error)

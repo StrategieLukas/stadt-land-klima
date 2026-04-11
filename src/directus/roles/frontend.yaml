@@ -274,6 +274,8 @@ permissions:
       - geolocation
       - percentage_rated
       - id
+      - creator_verified
+      - preview_token
   - collection: municipality_scores
     action: read
     permissions: {}
@@ -302,6 +304,23 @@ permissions:
       - instagram
       - linkedin
       - social_media_segment
+  - collection: news_items
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - slug
+      - title
+      - teaser
+      - image
+      - date_published
+      - date_created
+      - status
   - collection: pages
     action: read
     permissions:

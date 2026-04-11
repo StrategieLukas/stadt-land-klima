@@ -12,6 +12,7 @@
 
       <!-- Step indicator -->
       <div class="flex items-center gap-3 mb-6 select-none">
+        <!-- Step 1 -->
         <div class="flex items-center gap-2">
           <div
             class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
@@ -26,16 +27,36 @@
             Kommune wählen
           </span>
         </div>
-        <div class="flex-1 h-px" :class="selectedArea ? 'bg-green' : 'bg-gray-200'" />
+        <div class="flex-1 border-t-2" :class="selectedArea ? 'border-green' : 'border-gray-200'" />
+        <!-- Step 2 -->
         <div class="flex items-center gap-2">
           <div
             class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
-            :class="selectedArea ? 'bg-green text-white' : 'bg-gray-200 text-gray-400'"
+            :class="registrationSuccess ? 'bg-green text-white' : selectedArea ? 'bg-green text-white' : 'bg-gray-200 text-gray-400'"
           >
-            2
+            <svg v-if="registrationSuccess" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+            <span v-else>2</span>
           </div>
-          <span class="text-sm font-medium" :class="selectedArea ? 'text-gray-800' : 'text-gray-400'">
+          <span class="text-sm font-medium" :class="registrationSuccess ? 'text-gray-400' : selectedArea ? 'text-gray-800' : 'text-gray-400'">
             Kontaktdaten
+          </span>
+        </div>
+        <div class="flex-1 border-t-2" :class="registrationSuccess ? 'border-green' : 'border-gray-200'" />
+        <!-- Step 3 -->
+        <div class="flex items-center gap-2">
+          <div
+            class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+            :class="registrationSuccess ? 'bg-green text-white' : 'bg-gray-200 text-gray-400'"
+          >
+            <svg v-if="registrationSuccess" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+            <span v-else>3</span>
+          </div>
+          <span class="text-sm font-medium" :class="registrationSuccess ? 'text-green font-semibold' : 'text-gray-400'">
+            Durchstarten
           </span>
         </div>
       </div>
@@ -72,11 +93,11 @@
               <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
               </svg>
-              <!-- Loading spinner -->
-              <svg v-if="isLoading" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+              <!-- Loading spinner: wrapper handles positioning so transform-translate
+                   is not clobbered by the animation's transform property -->
+              <div v-if="isLoading" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4">
+                <SlkFlowerSpinner :size="16" />
+              </div>
             </div>
 
             <!-- Results dropdown -->
@@ -141,10 +162,7 @@
               />
             </div>
             <div v-else-if="geoLoading" class="h-56 bg-gray-100 flex items-center justify-center">
-              <svg class="animate-spin h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+              <SlkFlowerSpinner :size="32" />
             </div>
             <div v-else class="h-24 bg-gray-100 flex items-center justify-center">
               <span class="text-sm text-gray-400 italic">Kartenansicht nicht verfügbar</span>
@@ -161,33 +179,69 @@
         </div>
 
         <!-- Already has a local team → contact prompt -->
-        <div v-if="existingSlug" class="rounded-sm shadow-list p-8 bg-white">
+        <!-- Case 1: Localteam exists AND rating is complete (≥98%) -->
+        <div v-if="hasExistingTeam && existingPercentageRated != null && existingPercentageRated >= 98" class="rounded-sm shadow-list p-8 bg-white">
           <div class="flex items-start gap-4 mb-5">
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">Diese Kommune hat bereits ein Lokalteam</h2>
+              <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">Bewertung abgeschlossen</h2>
               <p class="text-sm text-gray-600">
-                In <strong>{{ selectedArea.name }}</strong> gibt es bereits ein aktives Lokalteam.
-                Du kannst die bestehende Bewertung einsehen oder direkt Kontakt aufnehmen, um mitzumachen.
+                Das Lokalteam in <strong>{{ selectedArea.name }}</strong> hat die Bewertung abgeschlossen.
+                Schau dir die Ergebnisse an oder nimm Kontakt auf, um das Team zu unterstützen.
               </p>
             </div>
           </div>
           <div class="flex flex-col sm:flex-row gap-3">
             <NuxtLink
+              v-if="existingSlug"
               :to="`/municipalities/${existingSlug}`"
               class="flex-1 text-center py-2.5 px-4 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
             >
               Zur Bewertung →
             </NuxtLink>
             <NuxtLink
-              :to="`/feedback?title=${encodeURIComponent('Mitarbeit Lokalteam ' + selectedArea.name)}&content=${encodeURIComponent('Ich möchte beim bestehenden Lokalteam in ' + selectedArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+              :to="`/feedback?title=${encodeURIComponent('Mitarbeit Lokalteam ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' unterstützen.\n\nMeine Kontaktdaten:\n')}`"
               class="flex-1 text-center py-2.5 px-4 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
             >
               Kontakt aufnehmen
+            </NuxtLink>
+          </div>
+          <button
+            v-if="!hasQueryParams"
+            type="button"
+            class="mt-4 text-sm text-light-blue hover:underline block"
+            @click="resetSelection"
+          >
+            Andere Kommune wählen
+          </button>
+        </div>
+
+        <!-- Case 2: Localteam exists but rating is still in progress -->
+        <div v-else-if="hasExistingTeam" class="rounded-sm shadow-list p-8 bg-white">
+          <div class="flex items-start gap-4 mb-5">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">Lokalteam aktiv – Bewertung läuft</h2>
+              <p class="text-sm text-gray-600">
+                In <strong>{{ selectedArea.name }}</strong> ist bereits ein Lokalteam aktiv und arbeitet gerade an der Bewertung.
+                Möchtest du das Team unterstützen?
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <NuxtLink
+              :to="`/feedback?title=${encodeURIComponent('Lokalteam unterstützen in ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
+              class="flex-1 text-center py-2.5 px-4 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
+            >
+              Lokalteam unterstützen →
             </NuxtLink>
           </div>
           <button
@@ -205,8 +259,12 @@
           v-else
           :municipality-name="selectedArea.name"
           :ars="selectedArea.ars"
+          :population="selectedArea.population ?? null"
+          :state="selectedArea.state ?? null"
+          :geolocation="areaGeoData?.geo_center ?? null"
           :can-change="!hasQueryParams"
           @change-municipality="resetSelection"
+          @success="registrationSuccess = true"
         />
       </div>
     </div>
@@ -219,6 +277,7 @@ import { useAdministrativeAreaSearch } from '~/composables/useAdministrativeArea
 
 const route = useRoute()
 const { $stadtlandzahlAPI } = useNuxtApp()
+const { public: { clientDirectusUrl, directusToken } } = useRuntimeConfig()
 
 // --- Query-param pre-fill ---
 const hasQueryParams = computed(() => !!route.query.ars)
@@ -229,10 +288,14 @@ interface AreaInfo {
   ars: string
   prefix?: string
   population?: number | null
+  state?: string | null
 }
 
+const registrationSuccess = ref(false)
 const selectedArea = ref<AreaInfo | null>(null)
 const existingSlug = ref<string | null>(null)
+const existingPercentageRated = ref<number | null>(null)
+const hasExistingTeam = ref(false)
 const areaGeoData = ref<{ geo_center: any; geo_area: any } | null>(null)
 const geoLoading = ref(false)
 
@@ -270,19 +333,100 @@ async function selectArea(area: any) {
     ars: area.ars,
     prefix: area.prefix ?? undefined,
     population: area.population ?? null,
+    state: area.state ?? null,
   }
-  // Check if area already has a local team via search result data
-  const existing = area.stadtlandklimaDataAll?.[0]
-  existingSlug.value = existing?.slug ?? null
+  // Collect slugs from the stadtlandzahl search result — these are Directus municipality slugs
+  // associated to this ARS. We must still check whether each one has a localteam_id.
+  const existingSlugs: string[] = (area.stadtlandklimaDataAll ?? []).map((d: any) => d.slug).filter(Boolean)
+  // Use known percentageRated from search result to avoid an extra API call
+  const knownPercentageRated: number | null = area.stadtlandklimaDataAll?.[0]?.percentageRated ?? null
+  const teamInfo = await checkExistingLocalteam(area.ars, existingSlugs, knownPercentageRated)
+  existingSlug.value = teamInfo.slug
+  existingPercentageRated.value = teamInfo.percentageRated
+  hasExistingTeam.value = !!teamInfo.slug
   await fetchGeoData(area.ars)
 }
 
 function resetSelection() {
   selectedArea.value = null
   existingSlug.value = null
+  existingPercentageRated.value = null
+  hasExistingTeam.value = false
   areaGeoData.value = null
   focusedIndex.value = -1
   nextTick(() => searchInputRef.value?.focus())
+}
+
+async function checkExistingLocalteam(
+  ars: string,
+  slugs: string[] = [],
+  knownPercentageRated?: number | null,
+): Promise<{ slug: string | null; percentageRated: number | null }> {
+  try {
+    const authHeaders = directusToken ? { Authorization: `Bearer ${directusToken}` } : undefined
+    let foundSlug: string | null = null
+
+    // Prefer slug-based lookup: the createMunicipality flow creates records without ARS,
+    // but always sets localteam_id. Checking by slug + localteam_id is reliable.
+    if (slugs.length) {
+      const result = await $fetch<{ data: Array<{ slug: string | null; localteam_id: string | null }> }>(
+        `${clientDirectusUrl}/items/municipalities`,
+        {
+          params: {
+            'filter[slug][_in]': slugs.join(','),
+            'filter[localteam_id][_nnull]': true,
+            'fields[]': ['slug', 'localteam_id'],
+            limit: slugs.length,
+          },
+          headers: authHeaders,
+        }
+      )
+      foundSlug = result.data?.find(m => m.localteam_id)?.slug ?? null
+    }
+
+    if (!foundSlug) {
+      // Fallback: ARS-based lookup (works for municipalities updated by step 3 of registration)
+      const result = await $fetch<{ data: Array<{ slug: string | null }> }>(
+        `${clientDirectusUrl}/items/municipalities`,
+        {
+          params: {
+            'filter[ars][_eq]': ars,
+            'filter[localteam_id][_nnull]': true,
+            'fields[]': 'slug',
+            limit: 1,
+          },
+          headers: authHeaders,
+        }
+      )
+      foundSlug = result.data?.[0]?.slug ?? null
+    }
+
+    if (!foundSlug) return { slug: null, percentageRated: null }
+
+    // Resolve percentage_rated: use search-provided value if available, otherwise query scores
+    if (knownPercentageRated != null) {
+      return { slug: foundSlug, percentageRated: knownPercentageRated }
+    }
+    try {
+      const scores = await $fetch<{ data: Array<{ percentage_rated: number | null }> }>(
+        `${clientDirectusUrl}/items/municipality_scores`,
+        {
+          params: {
+            'filter[municipality][slug][_eq]': foundSlug,
+            'fields[]': 'percentage_rated',
+            limit: 1,
+            sort: '-percentage_rated',
+          },
+          headers: authHeaders,
+        }
+      )
+      return { slug: foundSlug, percentageRated: scores.data?.[0]?.percentage_rated ?? null }
+    } catch {
+      return { slug: foundSlug, percentageRated: null }
+    }
+  } catch {
+    return { slug: null, percentageRated: null }
+  }
 }
 
 async function fetchGeoData(ars: string) {
@@ -294,6 +438,16 @@ async function fetchGeoData(ars: string) {
       areaGeoData.value = {
         geo_center: data.geo_center ?? null,
         geo_area: data.geo_area ?? null,
+      }
+    }
+    // Enrich selectedArea with state/population from the full API response.
+    // The search GraphQL query doesn't include these fields, so we fill them here.
+    if (selectedArea.value && data) {
+      if (!selectedArea.value.state && data.state) {
+        selectedArea.value = { ...selectedArea.value, state: data.state }
+      }
+      if (!selectedArea.value.population && data.data_products?.population_data?.population) {
+        selectedArea.value = { ...selectedArea.value, population: data.data_products.population_data.population }
       }
     }
   } catch {
@@ -314,6 +468,13 @@ onMounted(async () => {
   selectedArea.value = { name: name ?? ars, ars }
   // If the detail page already knows there's a slug (has a localteam), set it
   existingSlug.value = slug ?? null
+  // Always verify against Directus — the URL param may be stale or missing
+  const teamInfo = await checkExistingLocalteam(ars)
+  if (teamInfo.slug) {
+    existingSlug.value = teamInfo.slug
+    existingPercentageRated.value = teamInfo.percentageRated
+  }
+  hasExistingTeam.value = !!existingSlug.value
 
   if ($stadtlandzahlAPI) {
     geoLoading.value = true
@@ -325,6 +486,7 @@ onMounted(async () => {
           ars: data.ars ?? ars,
           prefix: data.prefix ?? undefined,
           population: data.data_products?.population_data?.population ?? null,
+          state: data.state ?? null,
         }
       }
       if (data?.geo_center || data?.geo_area) {

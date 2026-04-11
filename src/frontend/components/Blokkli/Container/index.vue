@@ -2,7 +2,7 @@
   <section
     :id="'block-' + uuid"
     class="blokkli-block-container"
-    :class="[bgClass, paddingClass, widthBreakout, borderClass, roundedClass, shadowClass]"
+    :class="[bgClass, paddingClass, marginYClass, widthBreakout, bgNarrowClass, borderClass, roundedClass, shadowClass]"
   >
     <div :class="[innerClass]">
       <!-- Nested blokkli field: blocks dropped here live inside this container -->
@@ -58,7 +58,7 @@ const { options, uuid } = defineBlokkli({
     },
     padding: {
       type: 'radios',
-      label: 'Padding',
+      label: 'Innenabstand',
       default: 'medium',
       displayAs: 'icons',
       group: 'Layout & Abstand',
@@ -69,16 +69,41 @@ const { options, uuid } = defineBlokkli({
         large: { icon: 'icon-blokkli-option-padding-large', label: 'Large' },
       },
     },
-    width: {
+    marginY: {
       type: 'radios',
-      label: 'Max Width',
+      label: 'Außenabstand (vertikal)',
+      default: 'none',
+      displayAs: 'icons',
+      group: 'Layout & Abstand',
+      options: {
+        none: { icon: 'icon-blokkli-option-padding-none', label: 'Kein' },
+        small: { icon: 'icon-blokkli-option-padding-small', label: 'Klein' },
+        medium: { icon: 'icon-blokkli-option-padding-medium', label: 'Mittel' },
+        large: { icon: 'icon-blokkli-option-padding-large', label: 'Groß' },
+      },
+    },
+    bgWidth: {
+      type: 'radios',
+      label: 'Hintergrundbreite',
       default: 'content',
       displayAs: 'icons',
+      group: 'Layout & Abstand',
       options: {
-        page: { icon: 'icon-blokkli-option-width-full', label: 'Page Width' },
-        full: { icon: 'icon-blokkli-option-width-full', label: 'Full' },
-        content: { icon: 'icon-blokkli-option-width-content', label: 'Content' },
-        narrow: { icon: 'icon-blokkli-option-width-narrow', label: 'Narrow' },
+        narrow: { icon: 'icon-blokkli-option-width-narrow', label: 'Schmal' },
+        content: { icon: 'icon-blokkli-option-width-content', label: 'Inhalt' },
+        full: { icon: 'icon-blokkli-option-width-full', label: 'Voll (100vw)' },
+      },
+    },
+    contentWidth: {
+      type: 'radios',
+      label: 'Inhaltsbreite',
+      default: 'full',
+      displayAs: 'icons',
+      group: 'Layout & Abstand',
+      options: {
+        full: { icon: 'icon-blokkli-option-width-full', label: 'Voll' },
+        page: { icon: 'icon-blokkli-option-width-content', label: 'Seite' },
+        narrow: { icon: 'icon-blokkli-option-width-narrow', label: 'Schmal' },
       },
     },
     border: {
@@ -175,18 +200,39 @@ const paddingClass = computed(() => {
   return map[options.value.padding] || 'py-8 px-6'
 })
 
+const marginYClass = computed(() => {
+  const map: Record<string, string> = {
+    none: '',
+    small: 'my-4',
+    medium: 'my-8',
+    large: 'my-16',
+  }
+  return map[options.value.marginY] || ''
+})
+
 const innerClass = computed(() => {
   const map: Record<string, string> = {
-    page: 'max-w-7xl mx-auto',
     full: 'w-full',
-    content: 'max-w-4xl mx-auto',
+    page: 'max-w-4xl mx-auto',
     narrow: 'max-w-2xl mx-auto',
+    // legacy fallbacks
+    content: 'max-w-4xl mx-auto',
   }
-  return map[options.value.width] || 'max-w-4xl mx-auto'
+  return map[options.value.contentWidth] || map[options.value.width] || 'w-full'
 })
 
 const widthBreakout = computed(() => {
-  return options.value.width === 'page' ? 'blokkli-block-container--page-width' : ''
+  // bgWidth 'full' = 100vw breakout; legacy 'full' or 'page' keys also trigger breakout
+  const v = options.value.bgWidth || options.value.width
+  return v === 'full' || v === 'page' ? 'blokkli-block-container--page-width' : ''
+})
+
+// When bgWidth='narrow' the background strip is narrower than the content.
+// We constrain the section itself to max-w-2xl centred, and let the inner
+// content overflow via negative horizontal margins so it sits wider than the bg.
+const bgNarrowClass = computed(() => {
+  if (options.value.bgWidth !== 'narrow') return ''
+  return 'blokkli-block-container--narrow-bg'
 })
 
 const layoutClass = computed(() => {
@@ -253,5 +299,23 @@ const shadowClass = computed(() => {
   right: 50%;
   margin-left: -50vw;
   margin-right: -50vw;
+}
+
+/*
+  Narrow background: the section itself is constrained to max-w-2xl (centred),
+  while the inner content div can overflow it horizontally via negative margins.
+  The overflow on the section is kept visible so content is not clipped.
+*/
+.blokkli-block-container--narrow-bg {
+  max-width: 42rem; /* = max-w-2xl */
+  margin-left: auto;
+  margin-right: auto;
+  overflow: visible;
+}
+
+.blokkli-block-container--narrow-bg > div {
+  /* Push the inner content wider than the narrow background strip */
+  margin-left: calc(-1 * max(0px, (100vw - 42rem) / 2 - (100vw - 56rem) / 2));
+  margin-right: calc(-1 * max(0px, (100vw - 42rem) / 2 - (100vw - 56rem) / 2));
 }
 </style>

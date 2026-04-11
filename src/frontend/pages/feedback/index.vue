@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-md mx-auto px-4 py-12 sm:py-16">
+  <div class="max-w-xl mx-auto px-4 py-12 sm:py-16">
     <div class="bg-white rounded shadow p-6">
       <h2 class="text-xl font-bold mb-4">{{ $t("feedback.nav_label") }}</h2>
 
@@ -96,10 +96,12 @@ const route = useRoute();
 
 useHead({ title: ref($t("feedback.nav_label")) });
 
+const ALLOWED_TYPES = ['legal', 'bug', 'inaccuracy', 'suggestion', 'cooperation', 'other']
+
 // Form state — pre-fill from query params when arriving from a content page
 const form = ref({
   title:   route.query.title   ? String(route.query.title)   : '',
-  type:    '',
+  type:    route.query.type && ALLOWED_TYPES.includes(String(route.query.type)) ? String(route.query.type) : '',
   content: route.query.content ? String(route.query.content) : '',
   name:    '',
   contact: '',
@@ -110,16 +112,26 @@ const altchaRef = ref(null)
 const altchaPayload = ref('')
 const captchaError = ref('')
 
-watch(altchaRef, (el) => {
-  if (!el) return
-  el.addEventListener('statechange', (e) => {
-    if (e.detail?.state === 'verified') {
-      altchaPayload.value = el.value ?? ''
-      captchaError.value = ''
-    } else {
-      altchaPayload.value = ''
-    }
-  })
+function onAltchaStateChange(e) {
+  const { state, payload } = e.detail || {}
+  if (state === 'verified' && payload) {
+    altchaPayload.value = payload
+    captchaError.value = ''
+  } else {
+    altchaPayload.value = ''
+  }
+}
+
+onMounted(async () => {
+  await nextTick()
+  await nextTick()
+  const el = document.querySelector('altcha-widget')
+  if (el) el.addEventListener('statechange', onAltchaStateChange)
+})
+
+onUnmounted(() => {
+  const el = document.querySelector('altcha-widget')
+  if (el) el.removeEventListener('statechange', onAltchaStateChange)
 })
 
 // Status
@@ -131,7 +143,7 @@ async function submitFeedback() {
   errorMessage.value = ''
   captchaError.value = ''
 
-  const payload = altchaPayload.value || altchaRef.value?.value
+  const payload = altchaPayload.value || document.querySelector('altcha-widget')?.value
   if (!payload) {
     captchaError.value = 'Bitte bestätige zunächst die Sicherheitsabfrage.'
     return

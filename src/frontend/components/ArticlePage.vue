@@ -37,7 +37,8 @@
 
         <!-- Location, Author and Date -->
         <p class="text-sm text-gray-600 mb-1">
-          {{ location }}
+          <NuxtLink v-if="municipality_slug" :to="`/municipalities/${municipality_slug}`" class="text-blue-500 hover:underline">{{ location }}</NuxtLink>
+          <span v-else>{{ location }}</span>
         </p>
         <p class="text-sm text-gray-600 mb-1">
           <i>{{ $t("article.author_date", { ":author": author, ":date": date.toLocaleDateString($locale) }) }}</i>
@@ -135,7 +136,8 @@
 
         <p v-if="municipality_name" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>{{ $t("municipality") }}</strong>
-          <span class="text-right">{{ municipality_name }}</span>
+          <NuxtLink v-if="municipality_slug" :to="`/municipalities/${municipality_slug}`" class="text-right text-blue-500 hover:underline">{{ municipality_name }}</NuxtLink>
+          <span v-else class="text-right">{{ municipality_name }}</span>
         </p>
         <p v-if="state" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>{{ $t("state") }}</strong>
@@ -245,6 +247,7 @@
       title: String,
       subtitle: String,
       municipality_name: String,
+      municipality_slug: String,
       state: String,
       author: String,
       date: Date,

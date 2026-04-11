@@ -299,9 +299,16 @@ function onSlugInput() {
     try {
       const res = await api.get('/items/pages', {
         params: {
-          search: q,
-          'filter[status][_eq]': 'published',
           'fields[]': ['name', 'slug'],
+          filter: JSON.stringify({
+            _and: [
+              { status: { _eq: 'published' } },
+              { _or: [
+                { name: { _icontains: q } },
+                { slug: { _icontains: q } },
+              ]},
+            ]
+          }),
           limit: 6,
         },
       })

@@ -18,7 +18,7 @@
   </div>
 
   <!-- Main Footer -->
-  <footer class="footer footer-vertical bg-olive-green text-white p-6">
+  <footer class="footer footer-vertical bg-olive-green text-white p-6 pb-[84px] sm:pb-6">
     <!-- Navigation Links: footer_columns -->
     <div v-if="footerColumnsData.length > 0" class="!block w-full mb-6">
       <div class="grid grid-cols-2 gap-6">
@@ -60,23 +60,15 @@
           />
         </NuxtLink>
 
-        <!-- Normal backend login / logout -->
-        <div class="flex-shrink-0">
-          <a v-if="!isAuthenticated" href="/backend">
+        <!-- Backend login button (always visible) -->
+        <div class="flex-shrink-0 flex items-center gap-3">
+          <DonateButton />
+          <a href="/backend">
             <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
               <span>{{ $t('generic.log_in') }}</span>
               <span aria-hidden="true">→</span>
             </button>
           </a>
-          <div v-else class="flex items-center gap-2">
-            <span class="text-sm text-white/80">{{ userName }}</span>
-            <button
-              @click="handleLogout"
-              class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110"
-            >
-              Logout
-            </button>
-          </div>
         </div>
       </div>
 
@@ -88,6 +80,11 @@
           class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
           @click="showLoginModal = true"
         >Interner Login</button>
+        <div v-else class="mt-1 text-xs text-white/60 flex items-center justify-center gap-2">
+          <span>Eingeloggt als {{ userName }}</span>
+          <span aria-hidden="true">·</span>
+          <button class="hover:text-white transition-colors" @click="handleLogout">Ausloggen</button>
+        </div>
       </div>
     </div>
 
@@ -97,6 +94,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import DonateButton from '~/components/DonateButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
 

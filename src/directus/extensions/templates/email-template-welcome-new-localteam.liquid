@@ -1,0 +1,45 @@
+{% layout "custom-base" %} {% block content %}
+
+<h1>Willkommen bei Stadt.Land.Klima!</h1>
+
+<p>Hallo {{ firstName }},</p>
+
+<p style="padding-bottom: 16px">
+  super, dass du ein Lokalteam für <strong>{{ municipalityName }}</strong> gegründet hast!
+  Du hast bereits eine separate E-Mail erhalten, mit der du dein Passwort festlegen und dich einloggen kannst.
+</p>
+
+<p style="padding-bottom: 8px">
+  Bevor dein Account freigeschaltet wird, richtet unser Team alles für dich ein.
+  In der Zwischenzeit kannst du dich schon mal vorbereiten:
+</p>
+
+<ul style="padding-bottom: 24px; line-height: 1.8">
+  {% if tutorialUrl != "" %}
+  <li>
+    <a href="{{ tutorialUrl }}" rel="noopener" target="_blank">Tutorial: So funktioniert die Bewertung</a>
+  </li>
+  {% endif %}
+  {% if calendarUrl != "" %}
+  <li>
+    <a href="{{ calendarUrl }}" rel="noopener" target="_blank">Onboarding-Gespräch buchen</a>
+    &ndash; wir begleiten dich durch die ersten Schritte
+  </li>
+  {% endif %}
+  {% if signalUrl != "" %}
+  <li>
+    <a href="{{ signalUrl }}" rel="noopener" target="_blank">Unserer Signal-Gruppe beitreten</a>
+    &ndash; tausch dich mit anderen Lokalteams aus
+  </li>
+  {% endif %}
+</ul>
+
+<p style="padding-bottom: 16px">
+  Wir freuen uns, dich im Netzwerk zu haben, und helfen dir gerne bei Fragen weiter &ndash;
+  meld dich einfach unter
+  <a href="mailto:info@stadt-land-klima.de">info@stadt-land-klima.de</a>.
+</p>
+
+<p>Das Stadt.Land.Klima-Team</p>
+
+{% endblock %}

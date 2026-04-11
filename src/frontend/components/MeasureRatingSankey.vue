@@ -2,7 +2,7 @@
   <div class="my-8 border-t-4 border-gray-200 pt-6">
     <h2 class="font-heading text-h2 font-bold text-gray mb-1">Bewertungsverlauf aller Kommunen</h2>
     <p class="text-sm text-gray-500 mb-4">
-      Jede Linie steht für eine Kommune. Fahren Sie mit der Maus darüber für Details — klicken Sie, um zur Kommune zu springen.
+      Jede Linie steht für eine Kommune. Fahren Sie mit der Maus darüber für Details — klicken Sie eine Linie, um zur Kommune zu springen. Klicken Sie einen farbigen Balken, um alle Kommunen dieser Bewertung anzuzeigen.
     </p>
 
     <div v-if="loading" class="text-gray-400 text-sm py-8 text-center">Daten werden geladen…</div>
@@ -39,29 +39,47 @@
           />
 
           <!-- Left node rects -->
-          <g v-for="n in leftNodes" :key="`ln-${n.key}`">
-            <rect :x="LEFT_X" :y="n.y1" :width="NODE_W" :height="n.h" :fill="n.color" rx="2" />
+          <g
+            v-for="n in leftNodes"
+            :key="`ln-${n.key}`"
+            class="cursor-pointer"
+            @click="toggleNode('left', n.key)"
+          >
+            <rect
+              :x="LEFT_X" :y="n.y1" :width="NODE_W" :height="n.h" :fill="n.color" rx="2"
+              :opacity="selectedNode && !(selectedNode.side === 'left' && selectedNode.ratingKey === n.key) ? 0.4 : 1"
+              style="transition: opacity 0.1s ease;"
+            />
             <text
-              v-if="n.h >= 13"
               :x="LEFT_X - 7"
               :y="n.y1 + n.h / 2"
               text-anchor="end"
               dominant-baseline="middle"
               style="font-size: 10px; font-weight: 600;"
               :fill="n.color"
+              :opacity="selectedNode && !(selectedNode.side === 'left' && selectedNode.ratingKey === n.key) ? 0.4 : 1"
             >{{ n.shortLabel }} ({{ n.count }})</text>
           </g>
 
           <!-- Right node rects -->
-          <g v-for="n in rightNodes" :key="`rn-${n.key}`">
-            <rect :x="RIGHT_X" :y="n.y1" :width="NODE_W" :height="n.h" :fill="n.color" rx="2" />
+          <g
+            v-for="n in rightNodes"
+            :key="`rn-${n.key}`"
+            class="cursor-pointer"
+            @click="toggleNode('right', n.key)"
+          >
+            <rect
+              :x="RIGHT_X" :y="n.y1" :width="NODE_W" :height="n.h" :fill="n.color" rx="2"
+              :opacity="selectedNode && !(selectedNode.side === 'right' && selectedNode.ratingKey === n.key) ? 0.4 : 1"
+              style="transition: opacity 0.1s ease;"
+            />
             <text
-              v-if="n.h >= 13"
               :x="RIGHT_X + NODE_W + 7"
               :y="n.y1 + n.h / 2"
               dominant-baseline="middle"
               style="font-size: 10px; font-weight: 600;"
               :fill="n.color"
+              :opacity="selectedNode && !(selectedNode.side === 'right' && selectedNode.ratingKey === n.key) ? 0.4 : 1"
             >{{ n.shortLabel }} ({{ n.count }})</text>
           </g>
 
@@ -72,7 +90,7 @@
             :y="14"
             text-anchor="middle"
             style="font-size: 12px; font-weight: 700;"
-            :fill="leftVersion.color"
+            fill="#6b7280"
           >{{ leftVersion.label }}</text>
           <text
             v-if="twoVersions && rightVersion"
@@ -80,7 +98,7 @@
             :y="14"
             text-anchor="middle"
             style="font-size: 12px; font-weight: 700;"
-            :fill="rightVersion.color"
+            fill="#6b7280"
           >{{ rightVersion.label }}</text>
         </svg>
       </div>
@@ -124,8 +142,34 @@
         <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#4caf50;opacity:0.7" /> Verbessert</span>
         <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#9e9e9e;opacity:0.7" /> Gleich geblieben</span>
         <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#f44336;opacity:0.7" /> Verschlechtert</span>
-        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#bdbdbd;opacity:0.7" /> Nicht vergleichbar (n/a)</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#90a4ae;opacity:0.7" /> Nicht vergleichbar (n/a)</span>
       </div>
+
+      <!-- Selected-node municipality chips -->
+      <Transition name="fade-info">
+        <div v-if="selectedNode" class="mt-4 pt-4 border-t border-gray-200">
+          <div class="flex items-center gap-2 mb-2">
+            <span
+              class="inline-block w-3 h-3 rounded-sm flex-shrink-0"
+              :style="{ backgroundColor: RATING_CFG[selectedNode.ratingKey].color }"
+            />
+            <span class="text-sm font-semibold" :style="{ color: RATING_CFG[selectedNode.ratingKey].color }">
+              {{ RATING_CFG[selectedNode.ratingKey].shortLabel }}
+            </span>
+            <span class="text-xs text-gray-400">(Katalog: {{ selectedNode.side === 'left' ? leftVersion?.label : rightVersion?.label }})</span>
+            <button class="ml-auto text-gray-400 hover:text-gray-600 text-sm leading-none" @click="selectedNode = null">✕</button>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <NuxtLink
+              v-for="m in selectedNodeMunis"
+              :key="m.key"
+              :to="muniLink(m, selectedNode.side)"
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white hover:opacity-80 transition-opacity"
+              :style="{ backgroundColor: RATING_CFG[selectedNode.ratingKey].color }"
+            >{{ m.name }}</NuxtLink>
+          </div>
+        </div>
+      </Transition>
     </template>
   </div>
 </template>
@@ -151,14 +195,15 @@ const PAD_TOP = 28      // space at top for version headers
 const BUCKET_GAP = 8    // vertical gap between rating buckets
 
 // ── Rating config ─────────────────────────────────────────────────────────────
-const RATING_KEYS = ['1', '0.75', '0.5', '0.25', '0', 'na']
+const RATING_KEYS = ['1', '0.75', '0.5', '0.25', '0', 'na', 'unrated']
 const RATING_CFG = {
-  '1':    { label: 'Vollständig erfüllt', shortLabel: '100%', color: '#1da64a' },
-  '0.75': { label: 'Gut erfüllt',          shortLabel: '75%',  color: '#8bc34a' },
-  '0.5':  { label: 'Teilweise erfüllt',    shortLabel: '50%',  color: '#fdd835' },
-  '0.25': { label: 'Kaum erfüllt',         shortLabel: '25%',  color: '#f39200' },
-  '0':    { label: 'Nicht erfüllt',        shortLabel: '0%',   color: '#d32f2f' },
-  'na':   { label: 'Nicht anwendbar',      shortLabel: 'n/a',  color: '#9e9e9e' },
+  '1':       { label: 'Vollständig erfüllt', shortLabel: 'Vollständig erfüllt', color: '#1da64a' },
+  '0.75':    { label: 'Gut erfüllt',          shortLabel: 'Gut erfüllt',          color: '#8bc34a' },
+  '0.5':     { label: 'Teilweise erfüllt',    shortLabel: 'Teilweise erfüllt',    color: '#fdd835' },
+  '0.25':    { label: 'Kaum erfüllt',         shortLabel: 'Kaum erfüllt',         color: '#f39200' },
+  '0':       { label: 'Nicht erfüllt',        shortLabel: 'Nicht erfüllt',        color: '#d32f2f' },
+  'na':      { label: 'Nicht anwendbar',      shortLabel: 'Nicht anwendbar',      color: '#9e9e9e' },
+  'unrated': { label: 'Nicht bewertet',       shortLabel: 'Nicht bewertet',       color: '#b0bec5' },
 }
 const ratingColorMap = Object.fromEntries(Object.entries(RATING_CFG).map(([k, v]) => [k, v.color]))
 const ratingLabelMap = Object.fromEntries(Object.entries(RATING_CFG).map(([k, v]) => [k, v.label]))
@@ -175,6 +220,9 @@ const loading = ref(true)
 // munis: [{ key: localteamId, name, slug, leftRating, rightRating }]
 const munis = ref([])
 const hoveredKey = ref(null)
+const measureShortId = ref(null) // e.g. 'EN-1', used for hash navigation
+// { side: 'left'|'right', ratingKey: string } | null
+const selectedNode = ref(null)
 
 // ── Versions ──────────────────────────────────────────────────────────────────
 const orderedVersions = computed(() => {
@@ -198,18 +246,20 @@ async function fetchAll() {
     // 1. Resolve measure UUID for each catalog version
     const measureRows = await $directus.request(
       $readItems('measures', {
-        fields: ['id', 'catalog_version'],
+        fields: ['id', 'measure_id', 'catalog_version'],
         filter: { slug: { _eq: props.measureSlug } },
         limit: -1,
       }),
     )
+    // Store the short measure_id (e.g. 'EN-1') for hash navigation
+    if (measureRows?.length) measureShortId.value = measureRows[0].measure_id ?? null
     const vIdToMeasureId = {}
     for (const row of measureRows || []) {
       const vId = typeof row.catalog_version === 'string' ? row.catalog_version : row.catalog_version?.id
       if (vId) vIdToMeasureId[vId] = row.id
     }
 
-    // 2. Fetch ratings for left and right versions in parallel
+    // 2. Fetch ratings AND coverage (all municipalities in the catalog version) in parallel
     async function fetchRatings(versionId) {
       const measureId = vIdToMeasureId[versionId]
       if (!measureId) return []
@@ -222,12 +272,31 @@ async function fetchAll() {
       )
     }
 
+    async function fetchCoverageIds(versionId) {
+      // Returns the set of localteam_ids of published municipalities in this catalog version
+      const rows = await $directus.request(
+        $readItems('municipality_scores', {
+          fields: [{ municipality: ['localteam_id'] }],
+          filter: { catalog_version: { _eq: versionId }, municipality: { status: { _eq: 'published' } } },
+          limit: -1,
+        }),
+      )
+      const ids = new Set()
+      for (const r of rows || []) {
+        const ltId = r.municipality?.localteam_id
+        if (ltId) ids.add(ltId)
+      }
+      return ids
+    }
+
     const leftId  = leftVersion.value?.id
     const rightId = twoVersions.value ? rightVersion.value?.id : null
 
-    const [leftRaw, rightRaw] = await Promise.all([
-      leftId  ? fetchRatings(leftId)  : Promise.resolve([]),
-      rightId ? fetchRatings(rightId) : Promise.resolve([]),
+    const [leftRaw, rightRaw, leftCoverage, rightCoverage] = await Promise.all([
+      leftId  ? fetchRatings(leftId)     : Promise.resolve([]),
+      rightId ? fetchRatings(rightId)    : Promise.resolve([]),
+      leftId  ? fetchCoverageIds(leftId) : Promise.resolve(new Set()),
+      rightId ? fetchCoverageIds(rightId): Promise.resolve(new Set()),
     ])
 
     // 3. Build per-localteam rating maps (dedup: first published entry wins)
@@ -243,6 +312,10 @@ async function fetchAll() {
     }
     const leftMap  = toRatingMap(leftRaw)
     const rightMap = toRatingMap(rightRaw)
+
+    // Mark municipalities in the catalog but without a rating entry as 'unrated'
+    for (const ltId of leftCoverage)  { if (leftMap[ltId]  === undefined) leftMap[ltId]  = 'unrated' }
+    for (const ltId of rightCoverage) { if (rightMap[ltId] === undefined) rightMap[ltId] = 'unrated' }
 
     // 4. Collect all unique localteam IDs
     const allLtIds = [...new Set([...Object.keys(leftMap), ...Object.keys(rightMap)])]
@@ -263,12 +336,13 @@ async function fetchAll() {
       if (ltId) ltToMuni[ltId] = { slug: m.slug, name: m.name }
     }
 
-    // 6. Assemble municipality list
+    // 6. Assemble municipality list — only include published municipalities (those present in ltToMuni)
     munis.value = allLtIds
+      .filter(ltId => ltToMuni[ltId]) // skip localteam IDs with no published municipality
       .map(ltId => ({
         key:         ltId,
-        name:        ltToMuni[ltId]?.name || ltId,
-        slug:        ltToMuni[ltId]?.slug || null,
+        name:        ltToMuni[ltId].name,
+        slug:        ltToMuni[ltId].slug,
         leftRating:  leftMap[ltId]  ?? null,
         rightRating: rightMap[ltId] ?? null,
       }))
@@ -288,8 +362,8 @@ watch(
 // ── Change helpers ─────────────────────────────────────────────────────────────
 function changeType(m) {
   if (m.leftRating === null || m.rightRating === null) return 'single'
-  if (m.leftRating === 'na' && m.rightRating === 'na') return 'same'
-  if (m.leftRating === 'na' || m.rightRating === 'na') return 'na-change'
+  if ((m.leftRating === 'na' || m.leftRating === 'unrated') && (m.rightRating === 'na' || m.rightRating === 'unrated')) return 'same'
+  if (m.leftRating === 'na' || m.leftRating === 'unrated' || m.rightRating === 'na' || m.rightRating === 'unrated') return 'na-change'
   const li = ratingIdxMap[m.leftRating] ?? 99
   const ri = ratingIdxMap[m.rightRating] ?? 99
   if (ri < li) return 'improved'
@@ -300,7 +374,7 @@ function changeColorOf(m) {
   switch (changeType(m)) {
     case 'improved':   return '#4caf50'
     case 'degraded':   return '#f44336'
-    case 'na-change':  return '#bdbdbd'
+    case 'na-change':  return '#90a4ae'
     default:           return '#9e9e9e'
   }
 }
@@ -416,8 +490,37 @@ const hoveredMuniData = computed(() => {
   return m ? { ...m, changeColor: changeColorOf(m) } : null
 })
 
+// ── Node interaction ─────────────────────────────────────────────────────────
+function toggleNode(side, ratingKey) {
+  if (selectedNode.value?.side === side && selectedNode.value?.ratingKey === ratingKey) {
+    selectedNode.value = null
+  } else {
+    selectedNode.value = { side, ratingKey }
+  }
+}
+
+const selectedNodeMunis = computed(() => {
+  if (!selectedNode.value) return []
+  const { side, ratingKey } = selectedNode.value
+  return munis.value
+    .filter(m => (side === 'left' ? m.leftRating : m.rightRating) === ratingKey)
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+})
+
+function muniLink(m, side) {
+  const version = side === 'left' ? leftVersion.value : rightVersion.value
+  const vParam = version?.label ? `?v=${encodeURIComponent(version.label)}` : ''
+  const hash = measureShortId.value ? `#measure-${measureShortId.value}` : ''
+  return `/municipalities/${m.slug}${vParam}${hash}`
+}
+
 function navigateToMuni(ribbon) {
-  if (ribbon.slug) router.push(`/municipalities/${ribbon.slug}`)
+  if (!ribbon.slug) return
+  // Use the right (newer) version when available, otherwise the left version
+  const versionLabel = (twoVersions.value ? rightVersion.value?.label : leftVersion.value?.label) ?? ''
+  const vParam = versionLabel ? `?v=${encodeURIComponent(versionLabel)}` : ''
+  const hash = measureShortId.value ? `#measure-${measureShortId.value}` : ''
+  router.push(`/municipalities/${ribbon.slug}${vParam}${hash}`)
 }
 </script>
 

@@ -18,6 +18,18 @@ export default defineNuxtConfig({
     meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY,
     altchaSecret: process.env.ALTCHA_SECRET,
     directusFlowRegisterMunicipality: process.env.DIRECTUS_FLOW_REGISTER_MUNICIPALITY,
+    listmonkEndpoint: process.env.LISTMONK_ENDPOINT,
+    listmonkApiUsername: process.env.LISTMONK_API_USERNAME,
+    listmonkApiToken: process.env.LISTMONK_API_TOKEN,
+    listmonkListId: process.env.LISTMONK_LIST_ID,
+    directusServerUrl: process.env.SERVER_DIRECTUS_URL ?? 'http://directus:8055',
+    directusAdminToken: process.env.DIRECTUS_ADMIN_TOKEN,
+    appPublicUrl: process.env.APP_PUBLIC_URL,
+    directusPublicUrl: process.env.DIRECTUS_PUBLIC_URL,
+    adminNotificationEmail: process.env.ADMIN_NOTIFICATION_EMAIL,
+    welcomeEmailTutorialUrl: process.env.WELCOME_EMAIL_TUTORIAL_URL,
+    welcomeEmailCalendarUrl: process.env.WELCOME_EMAIL_CALENDAR_URL,
+    welcomeEmailSignalUrl: process.env.WELCOME_EMAIL_SIGNAL_URL,
     // Keys within public, will be also exposed to the client-side
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,
@@ -49,7 +61,6 @@ export default defineNuxtConfig({
   },
   nitro: {
     preset: 'node-server',
-    workers: 1, // Avoid spawning too many workers in limited environments
     routeRules: {
       '/**': {
         headers: { 'Referrer-Policy': 'strict-origin-when-cross-origin' },

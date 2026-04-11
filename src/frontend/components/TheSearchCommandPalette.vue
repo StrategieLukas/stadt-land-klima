@@ -62,11 +62,8 @@
             <!-- Results -->
             <div class="overflow-y-auto flex-1">
               <!-- Loading -->
-              <div v-if="isLoading" class="flex items-center justify-center py-10 text-gray-400 text-sm">
-                <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>
+              <div v-if="isLoading" class="flex items-center justify-center gap-2 py-10 text-gray-400 text-sm">
+                <SlkFlowerSpinner :size="20" />
                 Suche...
               </div>
 
@@ -94,10 +91,15 @@
                   <template v-if="result._type === 'municipality'">
                     <div class="flex-1 min-w-0">
                       <div class="text-xs font-medium uppercase text-gray-400">{{ result.prefix }}</div>
-                      <div class="font-semibold text-gray-900">{{ result.name }}</div>
+                      <div class="font-semibold text-gray-900 leading-tight">{{ result.name }}</div>
                     </div>
-                    <span v-if="result.hasRating" class="text-xs bg-light-blue/20 text-light-blue px-2 py-0.5 rounded-full whitespace-nowrap self-center">
+                    <!-- Published: show score -->
+                    <span v-if="result.ctaType === 'complete'" class="text-xs px-2 py-0.5 rounded-full whitespace-nowrap self-center text-white" :class="`bg-${result.scoreTotalColorClass}`">
                       {{ result.scoreDisplay }}
+                    </span>
+                    <!-- Localteam active but not published -->
+                    <span v-else-if="result.ctaType === 'in-progress'" class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full whitespace-nowrap self-center">
+                      Bewertung läuft
                     </span>
                   </template>
 
@@ -108,12 +110,23 @@
                     </svg>
                     <div class="flex-1 min-w-0">
                       <!-- eslint-disable-next-line vue/no-v-html -->
-                      <div class="font-semibold text-gray-900" v-html="result.title" />
+                      <div class="font-semibold text-gray-900 leading-tight" v-html="result.title" />
                       <!-- eslint-disable-next-line vue/no-v-html -->
                       <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
                     </div>
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0">
-                      {{ contentTypeLabel(result.type) }}<template v-if="result.meta"> · {{ result.meta }}</template>
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0 inline-flex items-center gap-1">
+                      {{ contentTypeLabel(result.type) }}
+                      <template v-if="result.meta">
+                        <span class="text-gray-400">·</span>
+                        <img
+                          v-if="sectorImages[result.meta]"
+                          :src="sectorImages[result.meta]"
+                          :title="sectorLabels[result.meta] ?? result.meta"
+                          class="h-8 w-8 flex-shrink-0 invert grayscale mix-blend-multiply"
+                          :alt="sectorLabels[result.meta] ?? result.meta"
+                        />
+                        <span v-else>{{ result.meta }}</span>
+                      </template>
                     </span>
                   </template>
                 </li>
@@ -152,6 +165,8 @@ import { useAdministrativeAreaSearch } from '~/composables/useAdministrativeArea
 import { useContentSearch } from '~/composables/useContentSearch.js'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useNavInputRect } from '~/composables/useHeaderHeight.js'
+import { getScorePercentageColor } from '~/shared/utils.js'
+import sectorImages from '~/shared/sectorImages.js'
 import lodash from 'lodash'
 const { debounce } = lodash
 
@@ -166,6 +181,10 @@ const results = ref([])
 const isLoading = ref(false)
 const focusedIndex = ref(-1)
 
+// Published municipalities from the layout — used to gate slug-based navigation
+const { data: publishedMunicipalities } = useNuxtData('municipalities')
+const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map(m => m.slug)))
+
 // Administrative area search composable
 const adminSearch = useAdministrativeAreaSearch()
 // Full-text content search composable (Meilisearch)
@@ -179,14 +198,23 @@ watchEffect(() => {
   const muniResults = (adminSearch.results.value || []).map(area => {
     // Use the first entry that has a slug (= rated in any catalog version)
     const ratingData = area.stadtlandklimaDataAll?.find(d => d.slug)
+    const isPublished = !!(ratingData?.slug && publishedSlugs.value.has(ratingData.slug))
+    // 'complete'    → published
+    // 'in-progress' → has a slug but not yet published
+    // 'none'        → no slug at all
+    const ctaType = isPublished ? 'complete' : ratingData?.slug ? 'in-progress' : 'none'
     return {
       _type: 'municipality',
       _key: area.ars,
       ...area,
-      hasRating: !!(ratingData?.slug),
-      _slug: ratingData?.slug ?? null,
-      scoreDisplay: ratingData?.scoreTotal
+      ctaType,
+      hasRating: isPublished,
+      _slug: isPublished ? ratingData.slug : null,
+      scoreDisplay: isPublished && ratingData?.scoreTotal
         ? `${Math.round(Number(ratingData.scoreTotal) * 10) / 10}%`
+        : null,
+      scoreTotalColorClass: isPublished && ratingData?.scoreTotal
+        ? getScorePercentageColor(parseFloat(ratingData.scoreTotal))
         : null,
     }
   })
@@ -236,8 +264,9 @@ function runSearch(q) {
 function navigate(result) {
   close()
   if (result._type === 'municipality') {
-    // Navigate to the municipality page using slug, fall back to ARS-based generic page
-    const slug = result._slug
+    // Only route to slug-based page for published municipalities.
+    // Published slugs are loaded by the layout; anything else gets the ARS details page.
+    const slug = result._slug && publishedSlugs.value.has(result._slug) ? result._slug : null
     router.push(slug ? `/municipalities/${slug}` : `/municipalities/${result.ars}`)
   } else if (result._type === 'content') {
     router.push(result.url)
@@ -256,9 +285,18 @@ function navigateToFocused() {
   }
 }
 
-const contentTypeLabels = { block: 'Block', page: 'Seite', event: 'Veranstaltung', article: 'Projekt', measure: 'Maßnahme', static_page: 'Seite' }
+const contentTypeLabels = { block: 'Block', page: 'Seite', event: 'Veranstaltung', article: 'Projekt', measure: 'Maßnahme', static_page: 'Seite', news_item: 'Neuigkeit' }
 function contentTypeLabel(type) {
   return contentTypeLabels[type] ?? type ?? ''
+}
+
+const sectorLabels = {
+  energy: 'Energie',
+  transport: 'Verkehr',
+  buildings: 'Gebäude & Wärme',
+  industry: 'Industrie, Wirtschaft & Konsum',
+  agriculture: 'Landwirtschaft, Natur & Ernährung',
+  management: 'Klimaschutzmanagement & Verwaltung',
 }
 
 // Global Cmd+K / Ctrl+K shortcut + ESC to close from anywhere

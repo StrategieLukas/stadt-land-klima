@@ -15,7 +15,7 @@
   </div>
 
   <!-- Main Footer -->
-  <footer class="footer footer-center bg-olive-green text-white p-10">
+  <footer class="footer footer-center bg-olive-green text-white py-10 px-4 xl:px-10">
     <!-- Navigation Links: footer_columns (from navigation_config) -->
     <div v-if="footerColumnsData.length > 0" class="w-full max-w-screen-xl mx-auto mb-8">
       <div
@@ -53,7 +53,7 @@
 
     <!-- Bottom Section: Logo, Buttons, Copyright -->
     <div class="w-full max-w-screen-xl mx-auto py-8 border-t border-white/30">
-      <div class="flex flex-col md:flex-row items-center justify-between gap-6 w-full">
+      <div class="flex flex-col lg:flex-row items-center justify-between gap-6 w-full">
         <!-- Logo -->
         <div class="flex-shrink-0">
           <NuxtLink to="/">
@@ -68,22 +68,13 @@
         <!-- Buttons: Donate + Login -->
         <div class="flex items-center gap-4">
           <DonateButton />
-          <!-- Normal backend login / logout -->
-          <a v-if="!isAuthenticated" href="/backend">
+          <!-- Backend login button (always visible) -->
+          <a href="/backend">
             <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
               <span>{{ $t('generic.log_in') }}</span>
               <span aria-hidden="true">→</span>
             </button>
           </a>
-          <div v-else class="flex items-center gap-3">
-            <span class="text-sm text-white/80">{{ userName }}</span>
-            <button
-              @click="handleLogout"
-              class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110"
-            >
-              Logout
-            </button>
-          </div>
         </div>
 
         <!-- Copyright + internal login -->
@@ -94,12 +85,18 @@
             class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
             @click="showLoginModal = true"
           >Interner Login</button>
+          <div v-else class="mt-1 text-xs text-white/60 flex items-center justify-center gap-2">
+            <span>Eingeloggt als {{ userName }}</span>
+            <span aria-hidden="true">·</span>
+            <button class="hover:text-white transition-colors" @click="handleLogout">Ausloggen</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
   </footer>
+
+  <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
 </template>
 
 <script setup>

@@ -155,11 +155,32 @@
       </div>
     </div>
 
-    <!-- Municipality not suitable message -->
-    <div v-else-if="stats && !stats.is_reasonable_for_municipal_rating" class="flex border min-h-[100px] flex-col lg:flex-row justify-center p-4 bg-base-100 shadow-md mt-6">
-      <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-        {{ $t('administrative_areas.not_reasonable_for_rating') }}
-      </span>
+    <!-- Municipality not suitable message (level 4-6, not reasonable for rating) -->
+    <div v-else-if="stats && !stats.is_reasonable_for_municipal_rating" class="flex border min-h-[100px] flex-col gap-4 p-6 bg-amber-50 border-amber-200 shadow-md mt-6 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <p class="text-base font-semibold text-amber-900">{{ $t('administrative_areas.not_reasonable_for_rating') }}</p>
+          <p class="text-sm text-amber-700 mt-1">{{ t('stats.not_reasonable_explanation', 'Dieses Gebiet wird im Stadt-Land-Klima-Ranking nicht einzeln bewertet.') }}</p>
+        </div>
+      </div>
+      <div v-if="reasonableParent" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2 border-t border-amber-200">
+        <p class="text-sm text-amber-800">
+          {{ t('stats.reasonable_parent_hint', 'Die nächste bewertbare Verwaltungseinheit:') }}
+        </p>
+        <NuxtLink
+          :to="`/stats/${reasonableParent.ars}`"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-md hover:bg-amber-700 transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {{ reasonableParent.prefix }} {{ reasonableParent.name }}
+        </NuxtLink>
+      </div>
     </div>
 
     <!-- Map Section -->
@@ -252,9 +273,9 @@
         </div>
         
         <!-- Loading State -->
-        <div v-if="loadingNearbyAreas" class="flex items-center justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span class="ml-2 text-blue-600">{{ $t('generic.loading') }}...</span>
+        <div v-if="loadingNearbyAreas" class="flex items-center justify-center py-8 gap-2">
+          <SlkFlowerSpinner :size="32" />
+          <span class="text-blue-600">{{ $t('generic.loading') }}...</span>
         </div>
         
         <!-- Alternatives Carousel -->
@@ -369,6 +390,7 @@ const stats = ref(null);
 const nearbyAreas = ref([]);
 const loadingNearbyAreas = ref(false);
 const nearbyMapRefs = ref({});
+const reasonableParent = ref(null);
 
 // Municipality scores from Directus for all catalog versions
 const municipalityScoresByCatalog = ref({});
@@ -570,6 +592,26 @@ const onNearbyGeoJsonReady = (ars, geoArea) => {
   }, 300);
 };
 
+// Find the nearest parent area that is reasonable for municipal rating (levels 4-6 only)
+const findReasonableParent = async (containedBy) => {
+  if (!containedBy || containedBy.length === 0) return null;
+  // Filter to levels 4-6, sort by level descending (most specific first)
+  const candidates = containedBy
+    .filter(a => a.level >= 4 && a.level <= 6)
+    .sort((a, b) => b.level - a.level);
+  for (const parent of candidates) {
+    try {
+      const data = await $stadtlandzahlAPI.fetchStatsByARS(parent.ars);
+      if (data?.is_reasonable_for_municipal_rating === true) {
+        return { ars: parent.ars, name: data.name, prefix: data.prefix };
+      }
+    } catch (_) {
+      // try next candidate
+    }
+  }
+  return null;
+};
+
 onMounted(async () => {
   try {
     // Start both fetches in parallel for better performance
@@ -586,9 +628,20 @@ onMounted(async () => {
     municipalityScoresByCatalog.value = scores;
     
     if (result) {
+      // Redirect level 1-3 areas (Germany, federal states, Regierungsbezirke) to /region/
+      if (result.level <= 3) {
+        await navigateTo(`/region/${route.params.ars}`, { replace: true });
+        return;
+      }
+
       stats.value = result;
-      
-      await fetchNearbyAlternatives(result);
+
+      // For level 4-6 not-reasonable areas, find the best reasonable parent
+      if (!result.is_reasonable_for_municipal_rating) {
+        reasonableParent.value = await findReasonableParent(result.contained_by);
+      } else {
+        await fetchNearbyAlternatives(result);
+      }
       
       // Update shadows after content is loaded
       await nextTick();

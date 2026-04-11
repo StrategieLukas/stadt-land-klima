@@ -3,6 +3,20 @@
     <label for="page-drawer" class="drawer-overlay" @click="closeDrawer"></label>
     <div class="flex flex-col min-h-full w-80 bg-white font-semibold text-left overflow-y-auto">
 
+      <!-- Search bar -->
+      <div class="px-4 py-3 border-b border-gray-100">
+        <button
+          class="flex items-center gap-2 w-full h-10 px-3 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-400 hover:bg-gray-100 transition-colors"
+          @click="openSearch(); closeDrawer()"
+          :aria-label="$t('generic.search')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          <span>{{ $t('generic.search') }}…</span>
+        </button>
+      </div>
+
       <!-- Nav items from navigation_config -->
       <ul v-if="safeNavItems.length > 0" class="flex-1 py-2">
         <li v-for="item in safeNavItems" :key="item.id">
@@ -65,7 +79,10 @@
                 }"
                 @click="closeDrawer"
               >
-                <span class="font-semibold leading-snug">{{ child.label }}</span>
+                <span class="flex items-center gap-1.5 font-semibold leading-snug">
+                  <svg v-if="child.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  {{ child.label }}
+                </span>
                 <span v-if="child.description" class="text-xs font-normal text-gray-400 mt-0.5 leading-snug">{{ child.description }}</span>
               </component>
             </div>
@@ -87,6 +104,7 @@
             @click="closeDrawer"
           >
             <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
+            <svg v-if="item.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
             {{ item.label }}
           </component>
 
@@ -139,6 +157,7 @@
 <script setup>
 import { ref, computed, onMounted, resolveComponent } from 'vue'
 import { useRuntimeConfig } from '#imports'
+import { useSearchPalette } from '~/composables/useSearchPalette.js'
 
 const NuxtLink = resolveComponent('NuxtLink')
 
@@ -146,6 +165,7 @@ const { $t } = useNuxtApp()
 const route = useRoute()
 const config = useRuntimeConfig()
 const { closeDrawer } = useDrawer()
+const { open: openSearch } = useSearchPalette()
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },

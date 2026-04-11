@@ -65,19 +65,20 @@
                   </div>
                 </div>
                 <div class="flex flex-col items-end space-y-1 flex-shrink-0">
-                  <div v-if="suggestion.hasRating" class="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                    <!-- Score Total chip with rating color -->
-                    <span 
+                  <!-- Published: score -->
+                  <div v-if="suggestion.ctaType === 'complete'" class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                    <span
                       class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap text-white"
                       :class="`bg-${suggestion.scoreTotalColorClass}`"
                     >
                       {{ suggestion.scoreDisplay }}
                     </span>
-                    <!-- Percentage Rated chip with light blue background -->
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
-                      {{ suggestion.percentageDisplay }} bewertet
-                    </span>
                   </div>
+                  <!-- Localteam active, rating in progress -->
+                  <div v-else-if="suggestion.ctaType === 'in-progress'" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap">
+                    Bewertung läuft
+                  </div>
+                  <!-- No localteam yet -->
                   <div v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 whitespace-nowrap">
                     {{ $t('administrative_areas.not_rated_yet') }}
                   </div>
@@ -135,6 +136,10 @@ const { $t, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp()
 // Get the current catalog version
 const route = useRoute()
 const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route))
+
+// Published municipalities from the layout \u2014 used to gate slug-based navigation
+const { data: publishedMunicipalities } = useNuxtData('municipalities')
+const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map(m => m.slug)))
 
 const props = defineProps({
   basePath: {
@@ -207,7 +212,12 @@ const visibleSuggestions = computed(() => {
       data => data.measureCatalogName === selectedCatalogVersion.value.name
     )
     
-    const hasRating = filteredData && filteredData.slug
+    // Only treat as "rated" if slug is present AND the municipality is published in Directus
+    const hasRating = !!(filteredData?.slug && publishedSlugs.value.has(filteredData.slug))
+    // 'complete'     → published
+    // 'in-progress'  → has a slug (localteam exists) but not yet published
+    // 'none'         → no slug at all
+    const ctaType = hasRating ? 'complete' : filteredData?.slug ? 'in-progress' : 'none'
     let url
     if (props.linkMode === 'slug') {
       url = hasRating ? `/municipalities/${filteredData.slug}` : `/municipalities/${area.ars}`
@@ -220,6 +230,7 @@ const visibleSuggestions = computed(() => {
       prefix: area.prefix,
       name: area.name,
       url,
+      ctaType,
       hasRating,
       scoreTotal: hasRating ? parseFloat(filteredData.scoreTotal) : null,
       percentageRated: hasRating ? parseFloat(filteredData.percentageRated) : null,
