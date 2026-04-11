@@ -1,4 +1,4 @@
-<template lang="">
+<template>
   <!-- Social Media & Onboarding Section -->
   <div class="max-w-screen-xl mx-auto text-center mb-8">
     <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">

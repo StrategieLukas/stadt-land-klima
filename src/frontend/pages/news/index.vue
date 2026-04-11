@@ -59,26 +59,25 @@
       </h2>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- Clickable card (NuxtLink) -->
-      <NuxtLink
-        v-for="item in group.items.filter(i => i.href)"
+      <component
+        v-for="item in group.items"
+        :is="item.href ? NuxtLinkComponent : 'div'"
         :key="`${item.type}-${item.id}`"
-        :to="item.href"
-        class="group flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden cursor-pointer
-               hover:shadow-md hover:border-[#16BAE7]/60 focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-none
-               transition-all duration-150"
+        :to="item.href || undefined"
+        :class="item.href
+          ? 'group flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-[#16BAE7]/60 focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-none transition-all duration-150'
+          : 'flex flex-col bg-gray-50 rounded-lg border border-dashed border-gray-200 overflow-hidden opacity-80'
+        "
       >
         <!-- Thumbnail -->
-        <div class="relative h-40 bg-gray-50 flex-shrink-0 overflow-hidden">
+        <div :class="item.href ? 'relative h-40 bg-gray-50 flex-shrink-0 overflow-hidden' : 'relative h-40 bg-gray-100 flex-shrink-0 flex items-center justify-center'">
           <img
-            v-if="item.imageId"
+            v-if="item.imageId && item.href"
             :src="`${directusUrl}/assets/${item.imageId}?width=480&height=160&fit=cover&quality=75`"
             :alt="item.title"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <span class="text-4xl opacity-20">{{ typeEmoji(item.type) }}</span>
-          </div>
+          <span v-else class="text-4xl opacity-20">{{ typeEmoji(item.type) }}</span>
           <span :class="['absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full', typeBadgeClass(item.type)]">
             {{ typeLabel(item.type) }}
           </span>
@@ -87,7 +86,7 @@
             v-if="item.status && item.status !== 'published'"
             :class="[
               'absolute top-2 right-2 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide',
-              item.status === 'draft' ? 'bg-amber-400 text-amber-900' : 'bg-gray-400 text-white',
+              item.status === 'draft' ? 'bg-[#fbbf24] text-[#78350f]' : 'bg-[#9ca3af] text-white',
             ]"
           >{{ item.status === 'draft' ? 'Entwurf' : 'Archiviert' }}</span>
         </div>
@@ -95,17 +94,19 @@
         <div
           :class="[
             'p-4 flex flex-col gap-1 flex-1',
-            item.status && item.status !== 'published' ? 'bg-amber-50/40' : '',
+            item.href ? '' : '',
+            item.status && item.status !== 'published' ? 'bg-[#fffbeb]/40' : '',
           ]"
         >
-          <h3 class="font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#006e94] transition-colors">
+          <h3 :class="item.href ? 'font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#006e94] transition-colors' : 'font-bold text-gray-700 leading-snug line-clamp-2'">
             {{ item.title }}
           </h3>
-          <p v-if="item.teaser" class="text-sm text-gray-500 line-clamp-3">{{ item.teaser }}</p>
+          <p v-if="item.teaser" :class="item.href ? 'text-sm text-gray-500 line-clamp-3' : 'text-sm text-gray-400 line-clamp-3'">{{ item.teaser }}</p>
           <div class="flex items-center justify-between mt-auto pt-2">
             <time class="text-xs text-gray-400" :datetime="item.date">{{ formatDate(item.date) }}</time>
-            <!-- Arrow indicator -->
+            <!-- Arrow indicator (clickable cards only) -->
             <svg
+              v-if="item.href"
               class="w-4 h-4 text-[#16BAE7] opacity-0 group-hover:opacity-100 translate-x-0 group-hover:translate-x-0.5 transition-all duration-150"
               fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
             >
@@ -113,35 +114,18 @@
             </svg>
           </div>
         </div>
-      </NuxtLink>
-
-      <!-- Non-clickable info card (e.g. measure_catalog) -->
-      <div
-        v-for="item in group.items.filter(i => !i.href)"
-        :key="`${item.type}-${item.id}`"
-        class="flex flex-col bg-gray-50 rounded-lg border border-dashed border-gray-200 overflow-hidden opacity-80"
-      >
-        <div class="relative h-40 bg-gray-100 flex-shrink-0 flex items-center justify-center">
-          <span class="text-5xl opacity-15">{{ typeEmoji(item.type) }}</span>
-          <span :class="['absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full', typeBadgeClass(item.type)]">
-            {{ typeLabel(item.type) }}
-          </span>
-        </div>
-        <div class="p-4 flex flex-col gap-1 flex-1">
-          <h3 class="font-bold text-gray-700 leading-snug line-clamp-2">{{ item.title }}</h3>
-          <p v-if="item.teaser" class="text-sm text-gray-400 line-clamp-3">{{ item.teaser }}</p>
-          <time class="text-xs text-gray-400 mt-auto pt-2" :datetime="item.date">{{ formatDate(item.date) }}</time>
-        </div>
-      </div>
+      </component>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, resolveComponent } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
+
+const NuxtLinkComponent = resolveComponent('NuxtLink')
 
 const { $directus, $readItems } = useNuxtApp()
 const config = useRuntimeConfig()
