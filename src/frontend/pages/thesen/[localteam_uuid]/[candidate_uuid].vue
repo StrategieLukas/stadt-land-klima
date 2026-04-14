@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { createItem } from '@directus/sdk/rest'
+import { createItem, updateItem } from '@directus/sdk/rest'
 
 const route = useRoute()
 const { $directus, $readItems, $readItem } = useNuxtApp()
@@ -108,6 +108,7 @@ const localteamUuid = route.params.localteam_uuid
 const candidateUuid = route.params.candidate_uuid
 
 const answers = ref({})
+const existingAnswerIds = ref({}) // Store existing answer IDs by question ID
 const submitting = ref(false)
 const submitted = ref(false)
 
@@ -133,10 +134,32 @@ const { data, pending, error } = await useAsyncData(`thesen-${localteamUuid}-${c
       }))
     ])
 
-    return { localteam, candidate, questions }
+    let existingAnswers = []
+    if (questions && questions.length > 0) {
+      existingAnswers = await $directus.request($readItems('answers', {
+        filter: {
+          candidate: { _eq: candidateUuid },
+          question: { _in: questions.map(q => q.id) }
+        }
+      }))
+    }
+
+    return { localteam, candidate, questions, existingAnswers }
   } catch (e) {
     console.error('AsyncData error:', e)
     throw e
+  }
+})
+
+// Initialize answers and existingAnswerIds from fetched data
+watchEffect(() => {
+  if (data.value?.existingAnswers) {
+    data.value.existingAnswers.forEach(ans => {
+      // Directus returns related items as objects or IDs depending on depth
+      const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
+      answers.value[questionId] = ans.response
+      existingAnswerIds.value[questionId] = ans.id
+    })
   }
 })
 
@@ -154,16 +177,23 @@ async function submitAnswers() {
 
   submitting.value = true
   try {
-    const answerObjects = questions.value.map(q => ({
-      question: q.id,
-      candidate: candidateUuid,
-      response: answers.value[q.id]
-    }))
+    // Separate answers into those to create and those to update
+    const operations = questions.value.map(q => {
+      const payload = {
+        question: q.id,
+        candidate: candidateUuid,
+        response: answers.value[q.id]
+      }
 
-    // Use Promise.all to create all answers
-    await Promise.all(answerObjects.map(ans =>
-      $directus.request(createItem('answers', ans))
-    ))
+      const existingId = existingAnswerIds.value[q.id]
+      if (existingId) {
+        return $directus.request(updateItem('answers', existingId, payload))
+      } else {
+        return $directus.request(createItem('answers', payload))
+      }
+    })
+
+    await Promise.all(operations)
 
     submitted.value = true
     window.scrollTo({ top: 0, behavior: 'smooth' })
