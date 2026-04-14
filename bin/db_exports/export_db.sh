@@ -1,5 +1,7 @@
 #!/bin/bash
-cd ..
+
+
+cd ../..
 if [ -f src/directus/.env ]; then
   source src/directus/.env
 fi
