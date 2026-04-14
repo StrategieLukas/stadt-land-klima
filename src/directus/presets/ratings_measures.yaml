@@ -6,7 +6,7 @@ search: null
 layout: tabular
 layout_query:
   tabular:
-    limit: 40
+    limit: 35
     fields:
       - measure_id.sector
       - measure_id.name
