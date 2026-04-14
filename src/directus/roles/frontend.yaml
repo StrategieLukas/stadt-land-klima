@@ -6,6 +6,34 @@ enforce_tfa: false
 admin_access: false
 app_access: false
 permissions:
+  - collection: answers
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: articles
     action: read
     permissions:
@@ -74,6 +102,41 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: blocks
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: blocks
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: blocks
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: blocks
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: candidate
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: directus_files
     action: read
     permissions: {}
@@ -84,6 +147,34 @@ permissions:
       - type
   - collection: directus_translations
     action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: edit_states
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: edit_states
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: edit_states
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: edit_states
+    action: update
     permissions: {}
     validation: {}
     presets: null
@@ -239,6 +330,13 @@ permissions:
       - page_category
       - is_dynamic
       - icon_svg
+  - collection: questions
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: ratings_measures
     action: read
     permissions:
@@ -271,59 +369,3 @@ permissions:
       - why_not_applicable
       - status
       - measure_published
-  - collection: blocks
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
