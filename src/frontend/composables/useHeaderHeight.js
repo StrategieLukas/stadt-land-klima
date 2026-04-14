@@ -2,7 +2,8 @@ import { ref } from 'vue'
 
 // Shared reactive header height in px.
 // Set by TheHeaderDesktop via a ResizeObserver; read by TheSearchCommandPalette.
-const height = ref(97)
+// Initial value ≈ Row 1 (h-20 logo + py-3 top+bottom) + Row 2 nav strip (40px) = ~128px.
+const height = ref(128)
 
 // Exact bounding rect of the embedded search input / nav container.
 // Set by TheHeaderDesktop; used by TheSearchCommandPalette to align the panel.

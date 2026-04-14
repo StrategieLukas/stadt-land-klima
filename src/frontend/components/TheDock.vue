@@ -36,14 +36,16 @@ const props = defineProps(["pages"]);
 // Use the shared drawer state
 const { isDrawerOpen, toggleDrawer, closeDrawer } = useDrawer();
 
-// Check if current page is active - mimicking TheHeaderDesktop.vue logic
 const isPageActive = (slug) => {
-    return route.path === `/${slug}` || (route.path === '/' && slug === '');
+    const normalized = slug === 'index' ? '' : slug
+    const path = normalized === '' ? '/' : `/${normalized}`
+    return route.path === path || route.path.startsWith(`${path}/`)
 };
 
 const followLink = (pageSlug) => {
     const nuxtApp = useNuxtApp();
-    nuxtApp.$router.push('/' + pageSlug);
+    const path = (!pageSlug || pageSlug === 'index') ? '/' : '/' + pageSlug
+    nuxtApp.$router.push(path);
 };
 </script>
 

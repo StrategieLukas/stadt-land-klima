@@ -17,9 +17,12 @@
       </div>
     </div>
     <!-- Spacer that reserves the height of the fixed header.
-         Mobile: h-14 (logo) + py-2 (top+bottom) ≈ 72px.
-         Desktop (sm+): h-20 logo + py-2 = 88px ≈ h-20. -->
-    <div class="sm:h-20 flex-shrink-0"></div>
+         Mobile: none (mobile header is sticky, not fixed). Desktop: driven by ResizeObserver via useHeaderHeight(). -->
+    <div
+      v-if="isDesktop && hydrated"
+      class="flex-shrink-0"
+      :style="`height: ${headerHeight}px`"
+    ></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
     <div class="drawer flex-1">
@@ -76,6 +79,7 @@
 
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 const { includes } = lodash;
 const { $directus, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
@@ -83,6 +87,7 @@ const route = useRoute();
 const { closeDrawer, syncDrawerState } = useDrawer();
 const hydrated = ref(false)
 const isDesktop = ref(false)
+const headerHeight = useHeaderHeight()
 const drawerToggle = ref(null)
 let cleanup = null
 

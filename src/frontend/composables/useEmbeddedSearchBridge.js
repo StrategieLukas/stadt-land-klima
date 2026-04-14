@@ -10,7 +10,7 @@ import { ref } from 'vue'
 const _moveFocus = ref(null)
 const _navigateFocused = ref(null)
 
-const placeholder = 'Gemeinde oder Inhalt suchen…'
+const placeholder = 'Gemeinde, Projekt oder Thema suchen…'
 
 export function useEmbeddedSearchBridge() {
   return {

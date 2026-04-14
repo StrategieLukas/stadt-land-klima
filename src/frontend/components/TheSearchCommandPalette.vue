@@ -22,15 +22,13 @@
         >
           <div
             class="bg-white overflow-hidden flex flex-col"
-            :class="embeddedInput ? 'rounded-b-2xl rounded-t-none border-x border-b border-gray-200 shadow-[0_12px_30px_-6px_rgba(0,0,0,0.18)]' : 'rounded-2xl shadow-2xl'"
+            :class="embeddedInput ? 'rounded-2xl border border-gray-200 shadow-xl' : 'rounded-2xl shadow-2xl'"
             style="max-height: 76vh"
             role="dialog"
             aria-modal="true"
             aria-label="Suche"
             @click.stop
           >
-            <!-- Thick separator between the header bottom line and the panel content -->
-            <div v-if="embeddedInput" class="border border-1 border-gray-100 bg-gray-300 flex-shrink-0" />
             <!-- Input row — hidden when the header's embedded input is active -->
             <div v-if="!embeddedInput" class="flex items-center border-b border-gray-200 px-4 gap-3">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
