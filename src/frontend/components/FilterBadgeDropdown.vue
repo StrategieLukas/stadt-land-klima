@@ -3,13 +3,11 @@
     <button
       type="button"
       @click="toggle"
-      :class="[
-        'inline-flex items-center justify-between gap-2 px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap',
-        width,
-        modelValue !== null
-          ? 'bg-[#16BAE7] text-white border-[#16BAE7]'
-          : 'bg-white text-[#16BAE7] border-[#16BAE7] hover:bg-[#E8F7FD]'
-      ]"
+      class="inline-flex items-center justify-between gap-2 px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
+      :class="[width, modelValue !== null ? 'text-white' : 'bg-white hover:bg-gray-50']"
+      :style="modelValue !== null
+        ? { background: activeColor, borderColor: activeColor }
+        : { color: activeColor, borderColor: activeColor }"
     >
       <span>{{ selectedLabel }}</span>
       <svg
@@ -24,16 +22,12 @@
       v-if="open"
       class="absolute z-50 mt-1 min-w-full max-w-full bg-white border border-gray-200 rounded shadow-lg overflow-hidden"
     >
-      <!-- "All" / reset option -->
       <button
         type="button"
         @click="select(null)"
-        :class="[
-          'w-full text-left px-4 py-2 text-sm transition-colors whitespace-normal break-words',
-          modelValue === null
-            ? 'bg-[#16BAE7] text-white'
-            : 'text-gray-700 hover:bg-[#E8F7FD]'
-        ]"
+        class="w-full text-left px-4 py-2 text-sm transition-colors whitespace-normal break-words"
+        :class="modelValue === null ? 'text-white' : 'text-gray-700 hover:bg-gray-50'"
+        :style="modelValue === null ? { background: activeColor } : {}"
       >
         {{ label }}
       </button>
@@ -42,12 +36,9 @@
         :key="opt.value"
         type="button"
         @click="select(opt.value)"
-        :class="[
-          'w-full text-left px-4 py-2 text-sm transition-colors whitespace-normal break-words',
-          modelValue === opt.value
-            ? 'bg-[#16BAE7] text-white'
-            : 'text-gray-700 hover:bg-[#E8F7FD]'
-        ]"
+        class="w-full text-left px-4 py-2 text-sm transition-colors whitespace-normal break-words"
+        :class="modelValue === opt.value ? 'text-white' : 'text-gray-700 hover:bg-gray-50'"
+        :style="modelValue === opt.value ? { background: activeColor } : {}"
       >
         {{ opt.label }}
       </button>
@@ -63,6 +54,7 @@ const props = defineProps({
   options: { type: Array, required: true },       // [{ label: String, value: String }]
   modelValue: { type: String, default: null },
   width: { type: String, default: 'min-w-[10rem]' }, // fixed width to prevent layout shift
+  activeColor: { type: String, default: '#16BAE7' }, // active state color
 });
 
 const emit = defineEmits(['update:modelValue']);

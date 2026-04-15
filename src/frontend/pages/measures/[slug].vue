@@ -1,13 +1,37 @@
 <template>
   <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0 overflow-hidden">
 
-    <!-- Back link with chevron -->
-    <NuxtLink :to="`/measures?sector=${measure?.sector}&v=${currentCatalogVersion.name}`" class="inline-flex items-center gap-1 font-heading text-h4 text-light-blue">
-      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-      </svg>
-      {{ measure?.sector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) : '← Zurück zu Maßnahmen' }}
-    </NuxtLink>
+    <!-- Back link with chevron + sibling navigation -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <NuxtLink :to="`/measures?sector=${measure?.sector}&v=${currentCatalogVersion.name}`" class="inline-flex items-center gap-1 font-heading text-h4 text-light-blue">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        {{ measure?.sector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) : '← Zurück zu Maßnahmen' }}
+      </NuxtLink>
+
+      <div v-if="prevMeasure || nextMeasure" class="flex items-center gap-1 ml-2">
+        <NuxtLink
+          v-if="prevMeasure"
+          :to="`/measures/${prevMeasure.slug}?v=${currentCatalogVersion.name}&sector=${prevMeasure.sector}`"
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray/30 text-xs text-gray hover:bg-gray/5 transition-colors"
+          :title="`← ${prevMeasure.measure_id}: ${prevMeasure.name}`"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          {{ prevMeasure.measure_id }}
+        </NuxtLink>
+        <span class="text-xs text-gray/40">{{ siblingIndex + 1 }} / {{ siblingMeasures.length }}</span>
+        <NuxtLink
+          v-if="nextMeasure"
+          :to="`/measures/${nextMeasure.slug}?v=${currentCatalogVersion.name}&sector=${nextMeasure.sector}`"
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray/30 text-xs text-gray hover:bg-gray/5 transition-colors"
+          :title="`${nextMeasure.measure_id}: ${nextMeasure.name} →`"
+        >
+          {{ nextMeasure.measure_id }}
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </NuxtLink>
+      </div>
+    </div>
 
     <!-- Version switcher (only if this measure exists in multiple catalog versions) -->
     <div v-if="measureVersions && measureVersions.length > 1" class="mt-3 flex items-center gap-2 flex-wrap">
@@ -77,7 +101,7 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
@@ -87,6 +111,11 @@ const currentCatalogVersion = ref(await getCatalogVersion($directus, $readItems,
 
 onMounted(() => {
   setCatalogVersionUrl(route, router, currentCatalogVersion.value);
+  window.addEventListener('keydown', handleArrowKey);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleArrowKey);
 });
 
 // Function key includes the version ID, so Nuxt never serves stale data from a different
@@ -117,6 +146,36 @@ const { data: measureVersions } = await useAsyncData(`measure-versions-${route.p
 });
 
 const measure = computed(() => measuresRaw.value?.[0] || null);
+
+// Fetch all measures in the same sector + version for prev/next navigation
+const { data: siblingMeasuresRaw } = await useAsyncData(
+  () => `measure-siblings-${route.params.slug}-${currentCatalogVersion.value.id}`,
+  () => $directus.request(
+    $readItems('measures', {
+      fields: ['id', 'slug', 'name', 'measure_id', 'sector'],
+      filter: {
+        catalog_version: { _eq: currentCatalogVersion.value.id },
+        sector: { _eq: measure.value?.sector ?? '' },
+      },
+      sort: ['measure_id'],
+      limit: -1,
+    }),
+  ),
+  { watch: [currentCatalogVersion, measure] },
+);
+
+const siblingMeasures = computed(() => siblingMeasuresRaw.value ?? []);
+const siblingIndex = computed(() => siblingMeasures.value.findIndex(m => m.slug === route.params.slug));
+const prevMeasure = computed(() => siblingIndex.value > 0 ? siblingMeasures.value[siblingIndex.value - 1] : null);
+function handleArrowKey(e) {
+  if (e.key === 'ArrowLeft' && prevMeasure.value) {
+    e.preventDefault();
+    router.push(`/measures/${prevMeasure.value.slug}?v=${currentCatalogVersion.value.name}&sector=${prevMeasure.value.sector}`);
+  } else if (e.key === 'ArrowRight' && nextMeasure.value) {
+    e.preventDefault();
+    router.push(`/measures/${nextMeasure.value.slug}?v=${currentCatalogVersion.value.name}&sector=${nextMeasure.value.sector}`);
+  }
+}
 
 // When the URL version param changes (e.g. version switcher or setCatalogVersionUrl redirect),
 // get the new version object. Updating the ref automatically re-triggers useAsyncData above.

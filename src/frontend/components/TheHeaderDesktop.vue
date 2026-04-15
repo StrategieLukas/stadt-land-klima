@@ -17,7 +17,7 @@
       <NuxtLink
         to="/"
         class="shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out"
-        :class="scrolled ? 'h-10' : 'h-20'"
+        :class="scrolled ? 'h-14' : 'h-20'"
       >
         <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-full w-auto hidden lg:block" :alt="$t('logo.alt')" />
         <img src="~/assets/images/Stadt-Land-Kima-Logo_quad.png" class="h-full w-auto block lg:hidden" :alt="$t('logo.alt')" />

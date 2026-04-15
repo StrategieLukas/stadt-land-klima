@@ -18,23 +18,12 @@
     </div>
 
     <!-- Carousel -->
-    <div v-else-if="nearbyAreas.length > 0" class="relative">
-      <div class="carousel-container relative" ref="carouselContainer">
-        <!-- Left shadow -->
-        <div
-          class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-gray-300 to-transparent z-10 pointer-events-none transition-opacity duration-300"
-          :class="{ 'opacity-0': !showLeftShadow }"
-        ></div>
-        <!-- Right shadow -->
-        <div
-          class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-300 to-transparent z-10 pointer-events-none transition-opacity duration-300"
-          :class="{ 'opacity-0': !showRightShadow }"
-        ></div>
-
+    <div v-else-if="nearbyAreas.length > 0">
         <div
           class="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
           ref="scrollContainer"
           @scroll="updateShadows"
+          :style="scrollMaskStyle"
         >
           <div
             v-for="area in nearbyAreas"
@@ -144,7 +133,6 @@
             </div>
           </div>
         </div>
-      </div>
     </div>
   </div>
 </template>
@@ -169,9 +157,22 @@ const loaded = ref(false)
 const nearbyMapRefs = ref({})
 
 const scrollContainer = ref(null)
-const carouselContainer = ref(null)
 const showLeftShadow = ref(false)
 const showRightShadow = ref(true)
+
+const scrollMaskStyle = computed(() => {
+  const left = showLeftShadow.value
+    ? 'transparent, black 32px'
+    : 'black'
+  const right = showRightShadow.value
+    ? 'black calc(100% - 32px), transparent'
+    : 'black'
+  const gradient = `linear-gradient(to right, ${left}, ${right})`
+  return {
+    maskImage: gradient,
+    WebkitMaskImage: gradient,
+  }
+})
 
 const updateShadows = () => {
   if (!scrollContainer.value) return
@@ -294,14 +295,14 @@ onMounted(async () => {
         })
       )
       nearbyAreas.value = areas
-      await nextTick()
-      updateShadows()
     }
   } catch (err) {
     console.error('NearbyMunicipalitiesCarousel: failed to fetch nearby municipalities', err)
   } finally {
     loading.value = false
     loaded.value = true
+    await nextTick()
+    requestAnimationFrame(() => requestAnimationFrame(updateShadows))
   }
 })
 </script>
