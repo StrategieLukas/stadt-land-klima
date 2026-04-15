@@ -167,6 +167,7 @@ const { data: siblingMeasuresRaw } = await useAsyncData(
 const siblingMeasures = computed(() => siblingMeasuresRaw.value ?? []);
 const siblingIndex = computed(() => siblingMeasures.value.findIndex(m => m.slug === route.params.slug));
 const prevMeasure = computed(() => siblingIndex.value > 0 ? siblingMeasures.value[siblingIndex.value - 1] : null);
+const nextMeasure = computed(() => siblingIndex.value < siblingMeasures.value.length - 1 ? siblingMeasures.value[siblingIndex.value + 1] : null);
 function handleArrowKey(e) {
   if (e.key === 'ArrowLeft' && prevMeasure.value) {
     e.preventDefault();
