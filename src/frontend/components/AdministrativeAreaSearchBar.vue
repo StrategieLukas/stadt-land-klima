@@ -24,7 +24,7 @@
       <!-- Teleport dropdown to body to escape stacking context -->      
       <Teleport to="body">
         <div
-          v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !searchResults.length)) && searchFocused && dropdownPosition.show"
+          v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !visibleSuggestions.length)) && searchFocused && dropdownPosition.show"
           class="fixed z-[99999] bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto"
           :style="{
             top: dropdownPosition.top + 'px',
@@ -40,7 +40,7 @@
           </div>
 
           <!-- No results message -->
-          <div v-else-if="searchFocused && q.trim() && !isLoading && !searchResults.length" class="px-4 py-3">
+          <div v-else-if="searchFocused && q.trim() && !isLoading && !visibleSuggestions.length" class="px-4 py-3">
             <div class="text-gray-500 italic text-sm">
               {{ $t('administrative_areas.search.no_results') }}
             </div>
@@ -126,12 +126,10 @@
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
-import lodash from 'lodash'
-const { debounce } = lodash
-import { getScorePercentageColor } from '~/shared/utils.js'
+import { useAreaSearch } from '~/composables/useAreaSearch.js'
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
 
-const { $t, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp()
+const { $t, $directus, $readItems } = useNuxtApp()
 
 // Get the current catalog version
 const route = useRoute()
@@ -162,84 +160,35 @@ const searchFocused = ref(false)
 const focusedIndex = ref(-1)
 const filterType = ref('reasonable')
 const router = useRouter()
-const searchResults = ref([])
-const isLoading = ref(false)
 
 // Dynamic dropdown positioning
-const dropdownPosition = ref({
-  top: 0,
-  left: 0,
-  width: 0,
-  show: false
+const dropdownPosition = ref({ top: 0, left: 0, width: 0, show: false })
+
+// Mode derived from filter toggle
+const modeForSearch = computed(() => filterType.value === 'all' ? 'all' : 'reasonable')
+const catalogVersionName = computed(() => selectedCatalogVersion.value?.name ?? null)
+
+const { results: rawResults, isLoading, search, clear } = useAreaSearch({
+  mode: modeForSearch,
+  publishedSlugs,
+  catalogVersionName,
 })
 
-// Computed property to convert filterType to boolean for API call
-const filterReasonable = computed(() => filterType.value === 'reasonable')
-
-// Debounced search function
-const debouncedSearch = debounce(async (searchTerm) => {
-  if (!searchTerm.trim()) {
-    searchResults.value = []
-    isLoading.value = false
-    return
+/** Compute navigation URL for a result based on linkMode and basePath */
+function getResultUrl(result) {
+  if (result.isMunicipality) {
+    if (props.linkMode === 'slug' && result.ctaType === 'complete' && result._slug) {
+      return `/municipalities/${result._slug}`
+    }
+    return `${props.basePath}/${result.ars}`
   }
+  // Level 1-3: use basePath (e.g. /stats/{ars})
+  return `${props.basePath}/${result.ars}`
+}
 
-  isLoading.value = true
-  try {
-    const result = await $stadtlandzahlAPI.searchThroughAdministrativeAreasByName(
-      searchTerm.trim(),
-      filterReasonable.value ? { isReasonableForMunicipalRating: true } : {}
-    )
-    if (result?.allAdministrativeAreas?.edges) {
-      searchResults.value = result.allAdministrativeAreas.edges.map(edge => edge.node)
-    } else {
-      searchResults.value = []
-    }
-  } catch (error) {
-    console.error('Search failed:', error)
-    searchResults.value = []
-  } finally {
-    isLoading.value = false
-  }
-}, 300)
-
-const visibleSuggestions = computed(() => {
-  if (!searchResults.value.length) return []
-  
-  return searchResults.value.slice(0, 5).map((area) => {
-    // Filter stadtlandklimaDataAll by current catalog version
-    const filteredData = area.stadtlandklimaDataAll?.find(
-      data => data.measureCatalogName === selectedCatalogVersion.value.name
-    )
-    
-    // Only treat as "rated" if slug is present AND the municipality is published in Directus
-    const hasRating = !!(filteredData?.slug && publishedSlugs.value.has(filteredData.slug))
-    // 'complete'     → published
-    // 'in-progress'  → has a slug (localteam exists) but not yet published
-    // 'none'         → no slug at all
-    const ctaType = hasRating ? 'complete' : filteredData?.slug ? 'in-progress' : 'none'
-    let url
-    if (props.linkMode === 'slug') {
-      url = hasRating ? `/municipalities/${filteredData.slug}` : `/municipalities/${area.ars}`
-    } else {
-      url = `${props.basePath}/${area.ars}`
-    }
-
-    return {
-      ars: area.ars,
-      prefix: area.prefix,
-      name: area.name,
-      url,
-      ctaType,
-      hasRating,
-      scoreTotal: hasRating ? parseFloat(filteredData.scoreTotal) : null,
-      percentageRated: hasRating ? parseFloat(filteredData.percentageRated) : null,
-      scoreDisplay: hasRating ? `${Math.round(filteredData.scoreTotal * 10) / 10}%` : null,
-      percentageDisplay: hasRating ? `${Math.round(filteredData.percentageRated)}%` : null,
-      scoreTotalColorClass: hasRating ? getScorePercentageColor(filteredData.scoreTotal) : null,
-    }
-  })
-})
+const visibleSuggestions = computed(() =>
+  rawResults.value.slice(0, 5).map(r => ({ ...r, url: getResultUrl(r) }))
+)
 
 // Show different placeholder and label depending on the optoin selected
 const translatedLabel = computed(() =>
@@ -257,9 +206,10 @@ const translatedPlaceholder = computed(() =>
 function onInput() {
   focusedIndex.value = -1
   if (q.value.trim()) {
-    isLoading.value = true
+    search(q.value)
+  } else {
+    clear()
   }
-  debouncedSearch(q.value)
 }
 
 function calculateDropdownPosition() {
@@ -300,11 +250,7 @@ function goToFocused() {
 }
 
 function handleFilterChange() {
-  console.log('Filter changed to:', filterType.value)
-  if (q.value.trim()) {
-    isLoading.value = true
-    debouncedSearch(q.value)
-  }
+  if (q.value.trim()) search(q.value)
 }
 
 // Only watch document.activeElement on client side to avoid SSR issues

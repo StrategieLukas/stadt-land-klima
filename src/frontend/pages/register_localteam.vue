@@ -108,19 +108,15 @@
               <li
                 v-for="(area, index) in searchResults"
                 :key="area.ars"
-                class="px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                class="cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
                 :class="{ 'bg-rating-3-light': index === focusedIndex }"
-                @click="selectArea(area)"
+                @click="area.isMunicipality ? selectArea(area) : router.push('/regions/' + area.ars)"
               >
-                <div class="flex items-center justify-between gap-2">
-                  <div>
-                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ area.prefix }}</div>
-                    <div class="text-sm font-semibold text-gray-900">{{ area.name }}</div>
-                  </div>
-                  <div v-if="area.population" class="text-xs text-gray-400 whitespace-nowrap">
-                    {{ area.population.toLocaleString() }} Einw.
-                  </div>
-                </div>
+                <AreaSearchResult
+                  :result="area"
+                  :show-population="true"
+                  @chip-action="({ result }) => selectArea(result)"
+                />
               </li>
             </ul>
 
@@ -273,9 +269,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useAdministrativeAreaSearch } from '~/composables/useAdministrativeAreaSearch.js'
+import { useAreaSearch } from '~/composables/useAreaSearch.js'
 
 const route = useRoute()
+const router = useRouter()
 const { $stadtlandzahlAPI } = useNuxtApp()
 const { public: { clientDirectusUrl, directusToken } } = useRuntimeConfig()
 
@@ -300,7 +297,11 @@ const areaGeoData = ref<{ geo_center: any; geo_area: any } | null>(null)
 const geoLoading = ref(false)
 
 // --- Search ---
-const { query: searchQuery, results: searchResults, isLoading, search, clear } = useAdministrativeAreaSearch()
+const { data: publishedMunicipalities } = useNuxtData('municipalities')
+const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map((m: any) => m.slug)))
+
+const searchQuery = ref('')
+const { results: searchResults, isLoading, search, clear } = useAreaSearch({ mode: 'normal', publishedSlugs: publishedSlugs as any })
 const searchInputRef = ref<HTMLElement | null>(null)
 const focusedIndex = ref(-1)
 

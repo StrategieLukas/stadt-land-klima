@@ -1,0 +1,23 @@
+name: notifyAdminNewLocalteam
+icon: email
+color: null
+description: Send admin notification email when a new localteam registers (called via webhook from frontend server)
+status: active
+trigger: webhook
+accountability: all
+options:
+  method: POST
+  return: null
+operations:
+  - name: Send Admin Email
+    key: send_admin_email_op
+    type: mail
+    position_x: 19
+    position_y: 1
+    options:
+      to:
+        - "{{$trigger.body.to}}"
+      subject: "{{$trigger.body.subject}}"
+      body: "{{$trigger.body.body}}"
+      type: wysiwyg
+operation_key: send_admin_email_op

@@ -1,10 +1,10 @@
 <template>
   <nav class="bg-gray-50 border-t border-gray-200">
-    <ul class="flex items-stretch h-10 mx-auto max-w-screen-xl px-4 md:px-8 lg:px-4 xl:px-6 2xl:px-0 justify-center">
+    <ul class="flex items-stretch h-10 mx-auto w-full max-w-screen-xl px-2 justify-center min-w-0">
       <li
         v-for="item in safeItems"
         :key="item.id"
-        class="relative flex items-stretch"
+        class="relative flex items-stretch min-w-0"
         @mouseenter="hasChildren(item) && handleMenuEnter(item.id)"
         @mouseleave="hasChildren(item) && handleMenuLeave()"
       >
@@ -16,19 +16,19 @@
           :href="item.link_type === 'external' ? item.external_url : undefined"
           :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
           :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
-          class="nav-item flex items-center px-4 text-sm font-semibold whitespace-nowrap text-gray-600"
+          class="nav-item flex items-center nav-px text-sm font-semibold text-gray-600 min-w-0 overflow-hidden"
           :class="{ 'nav-item--active': item.link_type === 'page' && isActive(item) }"
           @click="closeMenu"
         >
-          {{ item.label }}
+          <span class="truncate">{{ item.label }}</span>
         </component>
 
         <!-- Text-only label (no link, no children) -->
         <span
           v-else-if="!hasChildren(item) && item.link_type === 'none'"
-          class="flex items-center px-4 text-sm font-semibold text-gray-400 whitespace-nowrap"
+          class="flex items-center nav-px text-sm font-semibold text-gray-400 min-w-0 overflow-hidden"
         >
-          {{ item.label }}
+          <span class="truncate">{{ item.label }}</span>
         </span>
 
         <!-- Trigger with children -->
@@ -36,12 +36,12 @@
           v-else
           :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'div'"
           :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
-          class="nav-item flex items-center gap-1.5 px-4 text-sm font-semibold cursor-pointer whitespace-nowrap text-gray-600"
+          class="nav-item flex items-center gap-1 nav-px text-sm font-semibold cursor-pointer text-gray-600 min-w-0 overflow-hidden"
           :class="{ 'nav-item--active': anyChildActive(item) }"
           @click="item.link_type === 'page' && item.page_slug ? closeMenu() : undefined"
         >
-          {{ item.label }}
-          <svg class="h-3 w-3 opacity-60" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2">
+          <span class="truncate">{{ item.label }}</span>
+          <svg class="h-3 w-3 flex-shrink-0 opacity-60" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5 5-5"/>
           </svg>
         </component>
@@ -204,6 +204,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Responsive horizontal padding — tightens as the viewport narrows */
+.nav-px { padding-left: 1rem; padding-right: 1rem; }
+@media (max-width: 1024px) { .nav-px { padding-left: 0.625rem; padding-right: 0.625rem; } }
+@media (max-width: 800px)  { .nav-px { padding-left: 0.375rem; padding-right: 0.375rem; } }
+
+/* Prevent text from wrapping so truncate + ellipsis works */
+.nav-item { white-space: nowrap; }
 .nav-item {
   transition: background 150ms ease, color 150ms ease;
   border-bottom: 2px solid transparent;

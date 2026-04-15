@@ -8,7 +8,7 @@ meta:
   display_options: null
   field: preview_token
   group: null
-  hidden: true
+  hidden: false
   interface: input
   note: "Zufälliges Token für die Vorschau-URL nicht-verifizierter Gemeinden."
   options: null

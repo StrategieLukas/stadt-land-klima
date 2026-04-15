@@ -18,6 +18,8 @@ export default defineNuxtConfig({
     meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY,
     altchaSecret: process.env.ALTCHA_SECRET,
     directusFlowRegisterMunicipality: process.env.DIRECTUS_FLOW_REGISTER_MUNICIPALITY,
+    directusFlowNotifyAdmin: process.env.DIRECTUS_FLOW_NOTIFY_ADMIN,
+    directusFlowWelcomeEmail: process.env.DIRECTUS_FLOW_WELCOME_EMAIL,
     listmonkEndpoint: process.env.LISTMONK_ENDPOINT,
     listmonkApiUsername: process.env.LISTMONK_API_USERNAME,
     listmonkApiToken: process.env.LISTMONK_API_TOKEN,

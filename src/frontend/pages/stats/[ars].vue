@@ -628,9 +628,9 @@ onMounted(async () => {
     municipalityScoresByCatalog.value = scores;
     
     if (result) {
-      // Redirect level 1-3 areas (Germany, federal states, Regierungsbezirke) to /region/
+      // Redirect level 1-3 areas (Germany, federal states, Regierungsbezirke) to /regions/
       if (result.level <= 3) {
-        await navigateTo(`/region/${route.params.ars}`, { replace: true });
+        await navigateTo(`/regions/${route.params.ars}`, { replace: true });
         return;
       }
 

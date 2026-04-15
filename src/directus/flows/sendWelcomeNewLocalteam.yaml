@@ -1,0 +1,24 @@
+name: sendWelcomeNewLocalteam
+icon: email
+color: null
+description: Send welcome email to new localteam admin using a Directus template (called via webhook from frontend server)
+status: active
+trigger: webhook
+accountability: all
+options:
+  method: POST
+  return: null
+operations:
+  - name: Send Welcome Email
+    key: send_welcome_email_op
+    type: mail
+    position_x: 19
+    position_y: 1
+    options:
+      to:
+        - "{{$trigger.body.to}}"
+      subject: "{{$trigger.body.subject}}"
+      template: "{{$trigger.body.template}}"
+      data: "{{$trigger.body.data}}"
+      type: template
+operation_key: send_welcome_email_op

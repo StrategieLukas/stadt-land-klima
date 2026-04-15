@@ -1,6 +1,6 @@
 <template>
-  <!-- Preview locked: unverified creator account, no valid preview token -->
-  <div v-if="directusData && directusData.municipalityScore && isPreviewLocked" class="mt-10">
+  <!-- Preview locked: unverified creator, no valid token (also covers municipalities with no scores yet) -->
+  <div v-if="isPreviewLocked" class="mt-10">
     <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
       &larr; {{ $t("municipality.back_label") }}
     </NuxtLink>
@@ -329,7 +329,8 @@ const ctaType = computed(() => {
 });
 
 const isPreviewLocked = computed(() => {
-  const muni = directusData?.municipalityScore?.municipality;
+  // Use municipality from scores if available, otherwise fall back to the direct slug lookup
+  const muni = directusData?.municipalityScore?.municipality ?? directusMuniBySlug.value;
   if (!muni) return false;
   if (muni.creator_verified) return false;
   return route.query.preview !== muni.preview_token;
@@ -352,6 +353,27 @@ const { data: slzArea, pending: slzPending } = useAsyncData(
         };
       }
       return null;
+    } catch (_) {
+      return null;
+    }
+  }
+);
+
+// When there is no score data, directly fetch the municipality by slug to check
+// preview_token / creator_verified (gates locked preview for newly registered municipalities).
+const { data: directusMuniBySlug } = useAsyncData(
+  `directus-muni-slug-${route.params.slug}`,
+  async () => {
+    if (directusData?.municipalityScore) return null;
+    try {
+      const results = await $directus.request(
+        $readItems('municipalities', {
+          filter: { slug: { _eq: route.params.slug } },
+          fields: ['id', 'name', 'slug', 'status', 'preview_token', 'creator_verified', 'localteam_id', 'ars'],
+          limit: 1,
+        })
+      );
+      return results?.[0] ?? null;
     } catch (_) {
       return null;
     }

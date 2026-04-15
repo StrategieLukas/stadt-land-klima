@@ -5,28 +5,29 @@
     :style="isOpen ? 'background: rgba(255,255,255,1)' : 'background: rgba(255,255,255,0.82)'"
     :class="[
       scrolled && !isOpen ? 'shadow-lg' : '',
-      isOpen ? 'z-[10003]' : 'z-50',
+      isOpen && embeddedInput ? 'z-[10003]' : 'z-50',
     ]"
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
     <div
-      class="flex items-center gap-4 mx-auto w-full max-w-screen-xl px-4 md:px-8 lg:px-4 xl:px-6 2xl:px-0 transition-[padding] duration-300 ease-in-out"
+      class="relative flex items-center mx-auto w-full max-w-screen-xl px-4 md:px-8 lg:px-4 xl:px-6 2xl:px-0 transition-[padding] duration-300 ease-in-out"
       :class="scrolled ? 'py-1.5' : 'py-3'"
     >
       <!-- Logo -->
       <NuxtLink
         to="/"
-        class="flex-shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out"
+        class="shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out"
         :class="scrolled ? 'h-10' : 'h-20'"
       >
         <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-full w-auto hidden lg:block" :alt="$t('logo.alt')" />
         <img src="~/assets/images/Stadt-Land-Kima-Logo_quad.png" class="h-full w-auto block lg:hidden" :alt="$t('logo.alt')" />
       </NuxtLink>
 
-      <!-- Persistent Search Bar -->
+      <!-- Persistent Search Bar — absolutely centered in the header -->
+      <div class="absolute left-1/2 -translate-x-1/2 w-full max-w-[28rem] px-4">
       <div
         ref="searchBarRef"
-        class="flex flex-1 items-center gap-2.5 bg-white border-2 rounded-full px-5 max-w-2xl mx-auto transition-colors duration-150 cursor-text"
+        class="flex w-full items-center gap-2.5 bg-white border-2 rounded-full px-5 transition-colors duration-150 cursor-text"
         :class="[scrolled ? 'h-10' : 'h-11', searchFocused ? 'border-olive-green' : 'border-gray-200 hover:border-gray-300']"
         @click="searchInputRef?.focus()"
       >
@@ -60,10 +61,17 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+        <span
+          v-if="!query && !searchFocused"
+          class="hidden md:inline-flex items-center gap-0.5 pointer-events-none flex-shrink-0"
+        >
+          <kbd class="kbd kbd-xs">Ctrl</kbd><span class="text-[10px] text-gray-400">+</span><kbd class="kbd kbd-xs">K</kbd>
+        </span>
+      </div>
       </div>
 
       <!-- Actions: Login + Donate -->
-      <div class="flex items-center gap-2 flex-shrink-0">
+      <div class="ml-auto flex items-center gap-2">
         <a href="/backend">
           <button
             class="h-9 flex items-center gap-1 px-3 lg:px-4 rounded border-2 border-orange text-orange text-sm font-semibold hover:bg-orange hover:text-white transition-colors whitespace-nowrap"
@@ -136,6 +144,12 @@ const navInputRect     = useNavInputRect()
 const scrollNavVisible = ref(true)
 
 const { moveFocusEmbedded, navigateFocusedEmbedded } = useEmbeddedSearchBridge()
+const bridge = useEmbeddedSearchBridge()
+
+// Register the focus callback so Ctrl+K anywhere can focus this input
+onMounted(() => {
+  bridge.registerFocusInput(() => searchInputRef.value?.focus())
+})
 
 function onSearchFocus() {
   searchFocused.value = true

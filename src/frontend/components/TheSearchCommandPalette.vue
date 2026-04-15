@@ -17,7 +17,7 @@
         <div
           class="absolute z-10"
           :style="embeddedInput && navInputRect.left !== null
-            ? `left: ${navInputRect.left}px; width: ${navInputRect.width}px; top: ${headerHeight}px`
+            ? `left: ${navInputRect.left}px; width: ${navInputRect.width}px; top: ${headerHeight + 8}px`
             : `left: 50%; transform: translateX(-50%); width: 100%; max-width: 36rem; padding: 0 1rem; top: 80px`"
         >
           <div
@@ -80,52 +80,43 @@
                 <li
                   v-for="(result, i) in results"
                   :key="result._key ?? i"
-                  class="flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-gray-50 last:border-b-0 transition-colors"
-                  :class="focusedIndex === i ? 'bg-mild-white' : 'hover:bg-mild-white'"
+                  class="palette-result px-4 py-3 cursor-pointer border-b border-gray-50 last:border-b-0 transition-colors"
+                  :class="focusedIndex === i ? 'palette-result--focused' : ''"
                   @click="navigate(result)"
                   @mouseenter="focusedIndex = i"
                 >
-                  <!-- Gemeinden result -->
-                  <template v-if="result._type === 'municipality'">
-                    <div class="flex-1 min-w-0">
-                      <div class="text-xs font-medium uppercase text-gray-400">{{ result.prefix }}</div>
-                      <div class="font-semibold text-gray-900 leading-tight">{{ result.name }}</div>
-                    </div>
-                    <!-- Published: show score -->
-                    <span v-if="result.ctaType === 'complete'" class="text-xs px-2 py-0.5 rounded-full whitespace-nowrap self-center text-white" :class="`bg-${result.scoreTotalColorClass}`">
-                      {{ result.scoreDisplay }}
-                    </span>
-                    <!-- Localteam active but not published -->
-                    <span v-else-if="result.ctaType === 'in-progress'" class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full whitespace-nowrap self-center">
-                      Bewertung läuft
-                    </span>
+                  <!-- Administrative area result (municipalities + level 1-3 regions) -->
+                  <template v-if="result._type === 'area'">
+                    <AreaSearchResult :result="result" @chip-action="onChipAction" />
                   </template>
 
                   <!-- Inhalte result -->
                   <template v-else-if="result._type === 'content'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-                    </svg>
-                    <div class="flex-1 min-w-0">
-                      <!-- eslint-disable-next-line vue/no-v-html -->
-                      <div class="font-semibold text-gray-900 leading-tight" v-html="result.title" />
-                      <!-- eslint-disable-next-line vue/no-v-html -->
-                      <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
+                    <div class="flex items-start gap-3 w-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                      </svg>
+                      <div class="flex-1 min-w-0">
+                        <!-- eslint-disable-next-line vue/no-v-html -->
+                        <div class="font-semibold text-gray-900 leading-tight" v-html="result.title" />
+                        <!-- eslint-disable-next-line vue/no-v-html -->
+                        <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
+                      </div>
+                      <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0 inline-flex items-center gap-1">
+                        {{ contentTypeLabel(result.type) }}
+                        <template v-if="result.meta">
+                          <span class="text-gray-400">·</span>
+                          <img
+                            v-if="sectorImages[result.meta]"
+                            :src="sectorImages[result.meta]"
+                            :title="sectorLabels[result.meta] ?? result.meta"
+                            class="h-8 w-8 flex-shrink-0 invert grayscale mix-blend-multiply"
+                            :alt="sectorLabels[result.meta] ?? result.meta"
+                          />
+                          <span v-else>{{ result.meta }}</span>
+                        </template>
+                      </span>
                     </div>
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0 inline-flex items-center gap-1">
-                      {{ contentTypeLabel(result.type) }}
-                      <template v-if="result.meta">
-                        <span class="text-gray-400">·</span>
-                        <img
-                          v-if="sectorImages[result.meta]"
-                          :src="sectorImages[result.meta]"
-                          :title="sectorLabels[result.meta] ?? result.meta"
-                          class="h-8 w-8 flex-shrink-0 invert grayscale mix-blend-multiply"
-                          :alt="sectorLabels[result.meta] ?? result.meta"
-                        />
-                        <span v-else>{{ result.meta }}</span>
-                      </template>
-                    </span>
                   </template>
                 </li>
               </ul>
@@ -159,11 +150,10 @@ import { ref, watch, watchEffect, nextTick, onMounted, onBeforeUnmount } from 'v
 import { useRouter } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
-import { useAdministrativeAreaSearch } from '~/composables/useAdministrativeAreaSearch.js'
+import { useAreaSearch } from '~/composables/useAreaSearch.js'
 import { useContentSearch } from '~/composables/useContentSearch.js'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useNavInputRect } from '~/composables/useHeaderHeight.js'
-import { getScorePercentageColor } from '~/shared/utils.js'
 import sectorImages from '~/shared/sectorImages.js'
 import lodash from 'lodash'
 const { debounce } = lodash
@@ -183,45 +173,27 @@ const focusedIndex = ref(-1)
 const { data: publishedMunicipalities } = useNuxtData('municipalities')
 const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map(m => m.slug)))
 
-// Administrative area search composable
-const adminSearch = useAdministrativeAreaSearch()
+// Unified area search (level 1-3 + reasonable municipalities)
+const adminSearch = useAreaSearch({ mode: 'normal', publishedSlugs })
 // Full-text content search composable (Meilisearch)
 const contentSearch = useContentSearch()
 
 // Register keyboard nav functions with the bridge so the header can call them
 bridge.register(moveFocus, navigateToFocused)
 
-// Merge both result sets reactively into a single list
+// Merge area results (already enriched by useAreaSearch) with content results
 watchEffect(() => {
-  const muniResults = (adminSearch.results.value || []).map(area => {
-    // Use the first entry that has a slug (= rated in any catalog version)
-    const ratingData = area.stadtlandklimaDataAll?.find(d => d.slug)
-    const isPublished = !!(ratingData?.slug && publishedSlugs.value.has(ratingData.slug))
-    // 'complete'    → published
-    // 'in-progress' → has a slug but not yet published
-    // 'none'        → no slug at all
-    const ctaType = isPublished ? 'complete' : ratingData?.slug ? 'in-progress' : 'none'
-    return {
-      _type: 'municipality',
-      _key: area.ars,
-      ...area,
-      ctaType,
-      hasRating: isPublished,
-      _slug: isPublished ? ratingData.slug : null,
-      scoreDisplay: isPublished && ratingData?.scoreTotal
-        ? `${Math.round(Number(ratingData.scoreTotal) * 10) / 10}%`
-        : null,
-      scoreTotalColorClass: isPublished && ratingData?.scoreTotal
-        ? getScorePercentageColor(parseFloat(ratingData.scoreTotal))
-        : null,
-    }
-  })
+  const areaResults = (adminSearch.results.value || []).map(area => ({
+    _type: 'area',
+    _key: area.ars,
+    ...area,
+  }))
   const contentResults = (contentSearch.results.value || []).map(h => ({
     _type: 'content',
     _key: h.id,
     ...h,
   }))
-  results.value = [...muniResults, ...contentResults]
+  results.value = [...areaResults, ...contentResults]
 })
 
 watchEffect(() => {
@@ -261,14 +233,25 @@ function runSearch(q) {
 
 function navigate(result) {
   close()
-  if (result._type === 'municipality') {
-    // Only route to slug-based page for published municipalities.
-    // Published slugs are loaded by the layout; anything else gets the ARS details page.
-    const slug = result._slug && publishedSlugs.value.has(result._slug) ? result._slug : null
-    router.push(slug ? `/municipalities/${slug}` : `/municipalities/${result.ars}`)
+  if (result._type === 'area') {
+    if (result.isMunicipality) {
+      // Use slug only for published municipalities (ctaType='complete')
+      router.push(result.ctaType === 'complete' && result._slug
+        ? `/municipalities/${result._slug}`
+        : `/municipalities/${result.ars}`
+      )
+    } else {
+      router.push(`/regions/${result.ars}`)
+    }
   } else if (result._type === 'content') {
     router.push(result.url)
   }
+}
+
+/** Called when a CTA chip inside AreaSearchResult is clicked */
+function onChipAction({ ars }) {
+  close()
+  router.push(`/register_localteam?ars=${ars}`)
 }
 
 function moveFocus(dir) {
@@ -297,11 +280,20 @@ const sectorLabels = {
   management: 'Klimaschutzmanagement & Verwaltung',
 }
 
-// Global Cmd+K / Ctrl+K shortcut + ESC to close from anywhere
+// Global Cmd+K / Ctrl+K shortcut — always route to the embedded header search
+// (falls back to opening standalone palette when no header input is registered, e.g. mobile)
 function handleKeydown(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault()
-    if (isOpen.value) { close() } else { open() }
+    if (isOpen.value && !embeddedInput.value) {
+      close()
+      return
+    }
+    if (bridge.hasHeaderInput) {
+      bridge.focusHeaderInput()
+    } else {
+      if (isOpen.value) { close() } else { open() }
+    }
   } else if (e.key === 'Escape' && isOpen.value) {
     close()
   }
@@ -319,5 +311,9 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 .palette-fade-enter-from,
 .palette-fade-leave-to {
   opacity: 0;
+}
+.palette-result:hover,
+.palette-result--focused {
+  background-color: #e5e7eb; /* gray-200 — clearly visible on white */
 }
 </style>

@@ -10,7 +10,7 @@
       <div v-if="area?.contained_by?.length" class="breadcrumbs bg-gray-50 px-3 sm:px-4 lg:px-6 py-3 text-sm text-gray-600 overflow-x-auto">
         <ul class="flex flex-row flex-nowrap items-center min-w-0">
           <li v-for="containedArea in area.contained_by" :key="containedArea.ars" class="flex-shrink-0">
-            <NuxtLink :to="`/region/${containedArea.ars}`" class="hover:underline whitespace-nowrap text-xs sm:text-sm">
+            <NuxtLink :to="`/regions/${containedArea.ars}`" class="hover:underline whitespace-nowrap text-xs sm:text-sm">
               {{ containedArea.prefix }} {{ containedArea.name }}
             </NuxtLink>
           </li>
@@ -190,31 +190,46 @@ function getArsPrefix(ars) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-// Fetch municipalities within this region using the GraphQL API
+// Fetch all municipalities within this region, paging through all results
 async function fetchMunicipalitiesInRegion(regionArs) {
   const runtimeConfig = useRuntimeConfig();
   const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl;
   if (!stadtlandzahlURL) return [];
 
   const prefix = getArsPrefix(regionArs);
+  const arsFilter = prefix ? `, ars_Icontains: "${prefix}"` : '';
+  const PAGE_SIZE = 500;
+  const nodes = [];
+  let cursor = null;
 
-  const query = prefix
-    ? `{ allAdministrativeAreas(first: 500, isReasonableForMunicipalRating: true, ars_Icontains: "${prefix}", orderBy: "-population") { edges { node { ars name prefix level population stadtlandklimaDataAll { slug scoreTotal percentageRated measureCatalogName } } } } }`
-    : `{ allAdministrativeAreas(first: 500, isReasonableForMunicipalRating: true, orderBy: "-population") { edges { node { ars name prefix level population stadtlandklimaDataAll { slug scoreTotal percentageRated measureCatalogName } } } } }`;
+  while (true) {
+    const afterArg = cursor ? `, after: "${cursor}"` : '';
+    const query = `{ allAdministrativeAreas(first: ${PAGE_SIZE}${afterArg}, isReasonableForMunicipalRating: true${arsFilter}, orderBy: "-population") { pageInfo { hasNextPage endCursor } edges { node { ars name prefix level population stadtlandklimaDataAll { slug scoreTotal percentageRated measureCatalogName } } } } }`;
 
-  try {
-    const response = await fetch(stadtlandzahlURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query }),
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    return data?.data?.allAdministrativeAreas?.edges?.map(e => e.node) ?? [];
-  } catch (e) {
-    console.error('fetchMunicipalitiesInRegion error:', e);
-    return [];
+    try {
+      const response = await fetch(stadtlandzahlURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const connection = data?.data?.allAdministrativeAreas;
+      if (!connection) break;
+
+      for (const edge of connection.edges ?? []) {
+        nodes.push(edge.node);
+      }
+
+      if (!connection.pageInfo?.hasNextPage) break;
+      cursor = connection.pageInfo.endCursor;
+    } catch (e) {
+      console.error('fetchMunicipalitiesInRegion error:', e);
+      break;
+    }
   }
+
+  return nodes;
 }
 
 // Municipalities sorted by score for the current catalog version

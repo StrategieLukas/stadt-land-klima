@@ -13,10 +13,12 @@ export async function getCatalogVersion($directus, $readItems, route, showCurren
   const matched = versions.find(v => v.name === param);
   if (matched) return matched;
 
-  // By default, we show the current frontend version, unless showCurrentBackend is true (then use isCurrentBackend)
-  const defaults = versions.filter(v => showCurrentBackend ? v.isCurrentBackend === true : v.isCurrentFrontend === true);
+  // If a preview token is present, always use the current backend version.
+  // Otherwise respect the showCurrentBackend flag (defaults to isCurrentFrontend).
+  const useBackend = showCurrentBackend || !!route.query.preview;
+  const defaults = versions.filter(v => useBackend ? v.isCurrentBackend === true : v.isCurrentFrontend === true);
   if (defaults.length !== 1) {
-    throw new Error(`Exactly one version with ${showCurrentBackend ? "isCurrentBackend" : "isCurrentFrontend"}===true is required.`);
+    throw new Error(`Exactly one version with ${useBackend ? "isCurrentBackend" : "isCurrentFrontend"}===true is required.`);
   }
 
   return defaults[0];

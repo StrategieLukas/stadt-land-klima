@@ -110,6 +110,23 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // --- Step 2b: Link user to localteam via M2M junction ---
+  // AdminLokalteam permissions use $CURRENT_USER.localteams.localteam_id (M2M traversal),
+  // so without this junction row the user has no access to their localteam or municipality.
+  try {
+    await $fetch(`${directusUrl}/items/junction_directus_users_localteams`, {
+      method: 'POST',
+      headers,
+      body: {
+        directus_users_id: userId,
+        localteam_id: localteamId,
+      },
+    });
+  } catch (err) {
+    // Non-fatal: log clearly but don't block — user + team are created
+    console.error('[register-municipality] Failed to create M2M junction entry (user will lack permissions):', err);
+  }
+
   // --- Step 3: Update municipality (best-effort, non-fatal) ---
   // The Directus 'createMunicipality' flow creates the municipality record asynchronously
   // when the localteam is created. It sets localteam_id but NOT ars/population/state.
@@ -169,46 +186,55 @@ export default defineEventHandler(async (event) => {
     ? `${appPublicUrl}/municipalities/${municipalitySlug}?preview=${previewToken}`
     : null;
 
+  const notifyAdminFlowUrl = config.directusFlowNotifyAdmin as string | undefined;
+  const welcomeEmailFlowUrl = config.directusFlowWelcomeEmail as string | undefined;
+
   // --- Step 5: Notify admin ---
   const adminEmail = (config.adminNotificationEmail as string) || 'info@stadt-land-klima.de';
-  try {
-    await $fetch(`${directusUrl}/utils/mail`, {
-      method: 'POST',
-      headers,
-      body: {
-        to: adminEmail,
-        subject: `Neues Lokalteam registriert: ${municipalityName.trim()}`,
-        body: [
-          `<p>Ein neues Lokalteam hat sich registriert:</p>`,
-          `<ul>`,
-          `<li><strong>Name:</strong> ${firstName.trim()} ${lastName.trim()}</li>`,
-          `<li><strong>E-Mail:</strong> ${email.trim()}</li>`,
-          `<li><strong>Organisation:</strong> ${organisation?.trim() ?? '—'}</li>`,
-          `<li><strong>Gemeinde:</strong> ${municipalityName.trim()} (ARS: ${ars.trim()})</li>`,
-          `</ul>`,
-          `<p><a href="${directusPublicUrl}/admin/users/${userId}">Account in Directus öffnen und verifizieren →</a></p>`,
-          previewUrl ? `<p><a href="${previewUrl}">Vorschau der Gemeinde-Seite →</a></p>` : '',
-        ].join('\n'),
-      },
-    });
-    steps.notify = true;
-  } catch (err) {
-    console.warn('[register-municipality] Admin notification email failed (non-fatal):', err);
+  if (!notifyAdminFlowUrl) {
+    console.warn('[register-municipality] DIRECTUS_FLOW_NOTIFY_ADMIN not configured — skipping admin notification');
+  } else {
+    try {
+      await $fetch(notifyAdminFlowUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: {
+          to: adminEmail,
+          subject: `Neues Lokalteam registriert: ${municipalityName.trim()}`,
+          body: [
+            `<p>Ein neues Lokalteam hat sich registriert:</p>`,
+            `<ul>`,
+            `<li><strong>Name:</strong> ${firstName.trim()} ${lastName.trim()}</li>`,
+            `<li><strong>E-Mail:</strong> ${email.trim()}</li>`,
+            `<li><strong>Organisation:</strong> ${organisation?.trim() ?? '—'}</li>`,
+            `<li><strong>Gemeinde:</strong> ${municipalityName.trim()} (ARS: ${ars.trim()})</li>`,
+            `</ul>`,
+            `<p><a href="${directusPublicUrl}/admin/users/${userId}">Account in Directus öffnen und verifizieren →</a></p>`,
+            previewUrl ? `<p><a href="${previewUrl}">Vorschau der Gemeinde-Seite →</a></p>` : '',
+          ].join('\n'),
+        },
+      });
+      steps.notify = true;
+    } catch (err) {
+      console.warn('[register-municipality] Admin notification email failed (non-fatal):', err);
+    }
   }
 
   // --- Step 6: Send welcome email to new user ---
-  try {
-    const tutorialUrl = (config.welcomeEmailTutorialUrl as string) || '';
-    const calendarUrl = (config.welcomeEmailCalendarUrl as string) || '';
-    const signalUrl = (config.welcomeEmailSignalUrl as string) || '';
-    await $fetch(`${directusUrl}/utils/mail`, {
-      method: 'POST',
-      headers,
-      body: {
-        to: email.trim(),
-        subject: `Willkommen bei Stadt.Land.Klima! – Dein Lokalteam für ${municipalityName.trim()} ist eingerichtet`,
-        template: {
-          name: 'email-template-welcome-new-localteam',
+  if (!welcomeEmailFlowUrl) {
+    console.warn('[register-municipality] DIRECTUS_FLOW_WELCOME_EMAIL not configured — skipping welcome email');
+  } else {
+    try {
+      const tutorialUrl = (config.welcomeEmailTutorialUrl as string) || '';
+      const calendarUrl = (config.welcomeEmailCalendarUrl as string) || '';
+      const signalUrl = (config.welcomeEmailSignalUrl as string) || '';
+      await $fetch(welcomeEmailFlowUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: {
+          to: email.trim(),
+          subject: `Willkommen bei Stadt.Land.Klima! – Dein Lokalteam für ${municipalityName.trim()} ist eingerichtet`,
+          template: 'email-template-welcome-new-localteam',
           data: {
             firstName: firstName.trim(),
             municipalityName: municipalityName.trim(),
@@ -217,11 +243,11 @@ export default defineEventHandler(async (event) => {
             signalUrl,
           },
         },
-      },
-    });
-    steps.welcome = true;
-  } catch (err) {
-    console.warn('[register-municipality] Welcome email failed (non-fatal):', err);
+      });
+      steps.welcome = true;
+    } catch (err) {
+      console.warn('[register-municipality] Welcome email failed (non-fatal):', err);
+    }
   }
 
   return { success: true, steps };

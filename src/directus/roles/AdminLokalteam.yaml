@@ -433,6 +433,8 @@ permissions:
       - ars
       - geolocation
       - localteam_id
+      - preview_token
+      - creator_verified
   - collection: municipalities
     action: update
     permissions:
