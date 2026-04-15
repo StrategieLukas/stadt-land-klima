@@ -72,6 +72,27 @@
               </div>
             </div>
           </div>
+
+          <!-- Reasoning Field -->
+          <div class="mt-8 ml-0 sm:ml-12">
+            <label :for="'explanation-' + question.id" class="block text-sm font-semibold text-stats-dark mb-2">
+              Begründung (optional, max. 500 Zeichen)
+            </label>
+            <textarea
+              :id="'explanation-' + question.id"
+              v-model="explanations[question.id]"
+              rows="3"
+              maxlength="500"
+              class="textarea textarea-bordered w-full bg-mild-white focus:border-stats-dark focus:ring-1 focus:ring-stats-dark text-black transition-all resize-none"
+              placeholder="Erläutern Sie Ihre Position..."
+            ></textarea>
+            <div class="flex justify-end mt-1 text-xs text-mid-gray">
+              <span :class="{ 'text-red font-bold': (explanations[question.id]?.length || 0) >= 500 }">
+                {{ explanations[question.id]?.length || 0 }}
+              </span>
+              / 500
+            </div>
+          </div>
         </div>
 
         <!-- Submit Button -->
@@ -108,6 +129,7 @@ const localteamUuid = route.params.localteam_uuid
 const candidateUuid = route.params.candidate_uuid
 
 const answers = ref({})
+const explanations = ref({}) // Store reasoning for each question
 const existingAnswerIds = ref({}) // Store existing answer IDs by question ID
 const submitting = ref(false)
 const submitted = ref(false)
@@ -158,6 +180,7 @@ watchEffect(() => {
       // Directus returns related items as objects or IDs depending on depth
       const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
       answers.value[questionId] = ans.response
+      explanations.value[questionId] = ans.explanation || ''
       existingAnswerIds.value[questionId] = ans.id
     })
   }
@@ -182,7 +205,8 @@ async function submitAnswers() {
       const payload = {
         question: q.id,
         candidate: candidateUuid,
-        response: answers.value[q.id]
+        response: answers.value[q.id],
+        explanation: explanations.value[q.id]
       }
 
       const existingId = existingAnswerIds.value[q.id]
