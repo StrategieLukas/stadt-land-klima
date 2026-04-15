@@ -46,6 +46,10 @@
     )
   });
 
+  if (!articles.value?.length) {
+    throw createError({ statusCode: 404, statusMessage: 'Projekt nicht gefunden', fatal: true })
+  }
+
   const article = computed(() => articles.value?.[0] || {});
 
   const { data: municipalityData } = await useAsyncData(

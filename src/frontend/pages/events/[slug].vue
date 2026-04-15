@@ -1,11 +1,11 @@
 <template>
   <div v-if="event" class="py-8 max-w-2xl">
     <!-- Back link -->
-    <NuxtLink to="/events" class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 mb-6">
+    <NuxtLink :to="backHref" class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 mb-6">
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
-      Alle Veranstaltungen
+      {{ backLabel }}
     </NuxtLink>
 
     <!-- Type badge -->
@@ -61,7 +61,9 @@
 </template>
 
 <script setup>
+import { useReferrer } from '~/composables/useReferrer'
 const { $directus, $readItems } = useNuxtApp()
+const { backHref, backLabel } = useReferrer('/events', 'Alle Veranstaltungen')
 const route = useRoute()
 
 const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
@@ -74,6 +76,10 @@ const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
     limit: 1,
   })).then(data => data?.[0] ?? null)
 )
+
+if (!event.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Veranstaltung nicht gefunden', fatal: true })
+}
 
 useHead({ title: event.value?.title ?? 'Veranstaltung' })
 

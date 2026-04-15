@@ -16,6 +16,48 @@
 
   <!-- Main Footer -->
   <footer class="footer footer-center bg-olive-green text-white py-10 px-4 xl:px-10">
+
+    <!-- Newsletter Signup -->
+    <div class="w-full max-w-screen-xl mx-auto mb-8 pb-8 border-b border-white/20">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-10">
+        <div class="flex-shrink-0 max-w-xs">
+          <h3 class="text-lg font-bold">Newsletter</h3>
+          <p class="text-sm text-white/70 mt-0.5">Neuigkeiten zu Stadt.Land.Klima! direkt ins Postfach.</p>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div
+            v-if="newsletterState === 'success'"
+            class="flex items-center gap-2 text-sm font-medium"
+          >
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            {{ newsletterAlreadySubscribed ? 'Du bist bereits angemeldet.' : 'Bestätigungsmail gesendet – bitte prüfe dein Postfach.' }}
+          </div>
+          <div v-else class="flex gap-2">
+            <input
+              v-model="footerEmail"
+              type="email"
+              autocomplete="email"
+              placeholder="Deine E-Mail-Adresse"
+              class="flex-1 min-w-0 px-3 py-2 text-sm rounded-md text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white"
+              @keydown.enter.prevent="subscribeNewsletter"
+            />
+            <button
+              type="button"
+              :disabled="newsletterState === 'subscribing'"
+              class="px-4 py-2 bg-white text-olive-green text-sm font-semibold rounded-md hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+              @click="subscribeNewsletter"
+            >
+              <span v-if="newsletterState === 'subscribing'">…</span>
+              <span v-else>Anmelden</span>
+            </button>
+          </div>
+          <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Navigation Links: footer_columns (from navigation_config) -->
     <div v-if="footerColumnsData.length > 0" class="w-full max-w-screen-xl mx-auto mb-8">
       <div
@@ -115,6 +157,32 @@ const props = defineProps({
     default: () => []
   },
 });
+
+// Newsletter signup state
+const footerEmail = ref('');
+const newsletterState = ref('idle');
+const newsletterAlreadySubscribed = ref(false);
+const newsletterError = ref('');
+
+async function subscribeNewsletter() {
+  newsletterError.value = '';
+  if (!footerEmail.value.trim()) {
+    newsletterError.value = 'Bitte gib deine E-Mail-Adresse ein.';
+    return;
+  }
+  newsletterState.value = 'subscribing';
+  try {
+    const result = await $fetch('/api/newsletter-subscribe', {
+      method: 'POST',
+      body: { email: footerEmail.value.trim() },
+    });
+    newsletterAlreadySubscribed.value = result.alreadySubscribed;
+    newsletterState.value = 'success';
+  } catch (err) {
+    newsletterState.value = 'idle';
+    newsletterError.value = err?.data?.message ?? 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+  }
+}
 
 // Validated footer_columns data — each column must have an id, title, and links array
 const footerColumnsData = computed(() => {

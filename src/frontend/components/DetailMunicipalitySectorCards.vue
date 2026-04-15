@@ -136,6 +136,26 @@ const measureIDToSector = computed(() => {
   return mapping
 })
 
+// Returns the height (px) of any fixed/sticky header so we can offset scrolling.
+const getStickyHeaderHeight = () => {
+  if (typeof document === 'undefined') return 0
+  const header = document.querySelector('header')
+  if (!header) return 0
+  const pos = window.getComputedStyle(header).position
+  if (pos === 'fixed' || pos === 'sticky') {
+    return header.getBoundingClientRect().height
+  }
+  return 0
+}
+
+// Scroll an element into view while clearing the sticky header.
+// behavior: 'smooth' | 'instant'
+const scrollToElement = (element, behavior = 'smooth') => {
+  const offset = getStickyHeaderHeight() + 8 // 8 px breathing room
+  const top = window.scrollY + element.getBoundingClientRect().top - offset
+  window.scrollTo({ top, behavior })
+}
+
 // Function to check if element is visible
 const isElementVisible = (element) => {
   const rect = element.getBoundingClientRect()
@@ -158,25 +178,14 @@ const findVisibleElementByName = (name) => {
   return elements[0] // fallback to first element if none are clearly visible
 }
 
-// Alternative approach using transition events
-const waitForTransition = (element) => {
-  return new Promise(resolve => {
-    const handler = () => {
-      element.removeEventListener('transitionend', handler)
-      resolve()
-    }
-    element.addEventListener('transitionend', handler)
-    // Fallback timeout in case transition doesn't fire
-    setTimeout(resolve, 500)
-  })
-}
-
-const handleNavigation = async () => {
+// behavior: 'smooth' for in-page hash changes, 'instant' for initial page load
+const handleNavigation = async (behavior = 'smooth') => {
   const hash = window.location.hash.substring(1)
   
   if (!hash) {
-    // If no hash, scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (behavior === 'smooth') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
     return
   }
 
@@ -186,61 +195,70 @@ const handleNavigation = async () => {
       openSectors[sector] = true
       await nextTick()
       
-      // Wait for DOM updates and then scroll
-      setTimeout(async () => {
+      setTimeout(() => {
         const element = findVisibleElementByName(`sector-${sector}`)
         if (element) {
-          await waitForTransition(element)
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          scrollToElement(element, behavior)
         }
-      }, 100)
+      }, behavior === 'instant' ? 50 : 150)
     }
   } else if (hash.startsWith('measure-')) {
-    // Navigate to measure
     const measureID = hash.replace('measure-', '')
     const sector = measureIDToSector.value[measureID]
 
     if (sector) {
-      // Open both sector and measure
       openSectors[sector] = true
       openItems[measureID] = true
 
       await nextTick()
-      // Wait longer for content to load and animations to complete
       setTimeout(() => {
         const element = findVisibleElementByName(`measure-${measureID}`)
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          scrollToElement(element, behavior)
         }
-      }, 800)
+      }, behavior === 'instant' ? 100 : 400)
     }
   }
 }
 
-// Watch for hash changes
-watch(() => window.location.hash, handleNavigation)
-
 // Reset scroll position on route change (if using Vue Router)
 watch(() => window.location.pathname, () => {
-  // Reset scroll to top when navigating to a new page
   window.scrollTo(0, 0)
-  // Clear any open state when navigating to new page
   Object.keys(openItems).forEach(key => openItems[key] = false)
   Object.keys(openSectors).forEach(key => openSectors[key] = false)
 })
 
 onMounted(() => {
-  // Reset scroll position first
-  if (!window.location.hash) {
+  const hash = window.location.hash.substring(1)
+
+  if (!hash) {
     window.scrollTo(0, 0)
+  } else {
+    // Pre-open the accordion immediately so the DOM starts expanding
+    // before the scroll timeout fires — this avoids waiting for two
+    // separate async steps in sequence.
+    if (hash.startsWith('sector-')) {
+      const sector = hash.replace('sector-', '')
+      if (props.ratingsBySector[sector]) {
+        openSectors[sector] = true
+      }
+    } else if (hash.startsWith('measure-')) {
+      const measureID = hash.replace('measure-', '')
+      const sector = measureIDToSector.value[measureID]
+      if (sector) {
+        openSectors[sector] = true
+        openItems[measureID] = true
+      }
+    }
+
+    // Jump instantly after a short settle — avoids the jarring slow scroll
+    // from the very top on initial page load.
+    setTimeout(() => {
+      handleNavigation('instant')
+    }, 300)
   }
   
-  // Wait for page to be fully rendered before handling navigation
-  setTimeout(() => {
-    handleNavigation()
-  }, 200)
-  
-  // Listen for hash changes
-  window.addEventListener('hashchange', handleNavigation)
+  // Hash changes while already on the page use smooth scroll
+  window.addEventListener('hashchange', () => handleNavigation('smooth'))
 })
 </script>

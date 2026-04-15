@@ -94,9 +94,9 @@ export const STATIC_PAGES: Array<{ id: string; title: string; text: string; url:
   },
   {
     id: 'static_feedback',
-    title: 'Feedback',
-    text: 'Feedback Kontakt Fehler melden Verbesserungsvorschlag',
-    url: '/feedback',
+    title: 'Kontakt',
+    text: 'Kontakt Feedback Fehler melden Verbesserungsvorschlag Nachricht',
+    url: '/contact',
     meta: 'Übersicht',
   },
   {

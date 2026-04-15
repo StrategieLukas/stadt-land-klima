@@ -1,12 +1,12 @@
-collection: organisations
-field: logo
+collection: events
+field: image
 type: uuid
 meta:
-  collection: organisations
+  collection: events
   conditions: null
   display: image
   display_options: null
-  field: logo
+  field: image
   group: null
   hidden: false
   interface: unsplash-image
@@ -15,19 +15,19 @@ meta:
     folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
     letterbox: true
   readonly: false
-  required: true
-  sort: 9
+  required: false
+  sort: 15
   special:
     - file
   translations:
     - language: de-DE
-      translation: Logo
+      translation: Teaserbild
   validation: null
   validation_message: null
   width: full
 schema:
-  name: logo
-  table: organisations
+  name: image
+  table: events
   data_type: uuid
   default_value: null
   max_length: null

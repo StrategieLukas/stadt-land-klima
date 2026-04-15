@@ -1,8 +1,8 @@
 <template>
   <!-- Preview locked: unverified creator, no valid token (also covers municipalities with no scores yet) -->
   <div v-if="isPreviewLocked" class="mt-10">
-    <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
-      &larr; {{ $t("municipality.back_label") }}
+    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+      &larr; {{ backLabel }}
     </NuxtLink>
     <waving-banner class="mt-6">
       Diese Gemeinde wird aktuell durch ein Lokalteam eingerichtet und ist noch nicht öffentlich zugänglich.
@@ -14,8 +14,8 @@
     <waving-banner v-if="directusData.municipalityScore.municipality.status === 'draft'">
       {{ $t("municipalities.preview_text") }}
     </waving-banner>
-    <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
-      ← {{ $t("municipality.back_label") }}
+    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+      ← {{ backLabel }}
     </NuxtLink>
     <article class="mb-8 mt-10">
       <detail-municipality
@@ -36,13 +36,13 @@
         </p>
         <div class="flex flex-col sm:flex-row gap-3">
           <NuxtLink
-            :to="`/feedback?title=${encodeURIComponent('Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mitmachen.\n\nMeine Kontaktdaten:\n')}`"
+            :to="`/contact?title=${encodeURIComponent('Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mitmachen.\n\nMeine Kontaktdaten:\n')}`"
             class="px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
           >
             Kontakt aufnehmen →
           </NuxtLink>
           <NuxtLink
-            :to="`/feedback?title=${encodeURIComponent('Feedback zu ' + directusData.municipalityScore.municipality.name)}&type=suggestion&content=${encodeURIComponent('Kommune: ' + directusData.municipalityScore.municipality.name + '\nLink: /municipalities/' + route.params.slug + '\n\nMein Feedback:\n')}`"
+            :to="`/contact?title=${encodeURIComponent('Feedback zu ' + directusData.municipalityScore.municipality.name)}&type=suggestion&content=${encodeURIComponent('Kommune: ' + directusData.municipalityScore.municipality.name + '\nLink: /municipalities/' + route.params.slug + '\n\nMein Feedback:\n')}`"
             class="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
           >
             Feedback geben
@@ -59,7 +59,7 @@
           Hilf ihnen dabei, die Bewertung zu vervollständigen.
         </p>
         <NuxtLink
-          :to="`/feedback?title=${encodeURIComponent('Mitarbeit Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+          :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
           class="px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
         >
           Lokalteam unterstützen →
@@ -73,8 +73,8 @@
       :catalog-version-name="selectedCatalogVersion.name"
       class="my-8"
     />
-    <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
-      ← {{ $t("municipality.back_label") }}
+    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+      ← {{ backLabel }}
     </NuxtLink>
   </div>
 
@@ -98,8 +98,8 @@
 
   <!-- Case 2: No Directus data, but found in Stadt-Land-Zahl (ARS-based generic page) -->
   <div v-else-if="slzArea">
-    <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
-      ← {{ $t("municipality.back_label") }}
+    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+      ← {{ backLabel }}
     </NuxtLink>
     <article class="mb-8 mt-10">
       <!-- Header band (mirrors ItemRanking, no score) -->
@@ -169,7 +169,7 @@
             Hilf ihnen dabei, die Bewertung zu vervollständigen.
           </p>
           <NuxtLink
-            :to="`/feedback?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+            :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
             class="px-8 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
           >
             Lokalteam unterstützen →
@@ -203,7 +203,7 @@
               Hilf ihnen dabei, die Bewertung zu vervollständigen.
             </p>
             <NuxtLink
-              :to="`/feedback?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+              :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
               class="px-8 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
             >
               Lokalteam unterstützen →
@@ -280,15 +280,15 @@
       :catalog-version-name="selectedCatalogVersion.name"
       class="my-8"
     />
-    <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
-      ← {{ $t("municipality.back_label") }}
+    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+      ← {{ backLabel }}
     </NuxtLink>
   </div>
 
   <!-- Case 3: Not found anywhere -->
   <div v-else>
-    <NuxtLink :to="`/municipalities?v=${selectedCatalogVersion.name}`" class="font-heading text-h4 text-light-blue">
-      ← {{ $t("municipality.back_label") }}
+    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+      ← {{ backLabel }}
     </NuxtLink>
     <waving-banner>
       {{ $t("municipality_missing") }}
@@ -298,14 +298,26 @@
 
 
 <script setup>
-const { $directus, $readItems, $stadtlandzahlAPI } = useNuxtApp();
+const { $directus, $readItems, $stadtlandzahlAPI, $t } = useNuxtApp();
 const router = useRouter();
 
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 import { fetchMunicipalityData } from '~/shared/directus-calls/complex-data-fetches.js';
 import { getStateMunicipalElectionYear } from '~/shared/utils.js';
+import { useReferrer } from '~/composables/useReferrer';
 const route = useRoute();
+
+// Guard against browser devtools / extension source-map requests like "installHook.js.map"
+// Municipality slugs are always lowercase alphanumeric + hyphens and never contain dots.
+if (typeof route.params.slug === 'string' && route.params.slug.includes('.')) {
+  throw createError({ statusCode: 404, statusMessage: 'Not Found' })
+}
+
 const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+const { backHref, backLabel } = useReferrer(
+  computed(() => `/municipalities?v=${selectedCatalogVersion.name}`),
+  computed(() => $t('municipality.back_label')),
+);
 
 // Change the URL to match the catalog version, if it didn't to begin with
 if (process.client && route.query.v != selectedCatalogVersion.name) {
@@ -332,6 +344,8 @@ const isPreviewLocked = computed(() => {
   // Use municipality from scores if available, otherwise fall back to the direct slug lookup
   const muni = directusData?.municipalityScore?.municipality ?? directusMuniBySlug.value;
   if (!muni) return false;
+  // Published municipalities are always publicly accessible
+  if (muni.status === 'published') return false;
   if (muni.creator_verified) return false;
   return route.query.preview !== muni.preview_token;
 });
@@ -379,6 +393,17 @@ const { data: directusMuniBySlug } = useAsyncData(
     }
   }
 );
+
+// Show 404 error page once all async lookups have settled and nothing was found.
+watch(
+  [slzArea, slzPending, directusMuniBySlug],
+  ([area, pending, muniBySlug]) => {
+    if (!pending && !area && !directusData && !muniBySlug) {
+      showError({ statusCode: 404, statusMessage: 'Gemeinde nicht gefunden' })
+    }
+  },
+  { immediate: true },
+)
 
 // When the slug is an ARS (unpublished municipality), check if Directus has
 // a municipality record with that ARS that already has a localteam.

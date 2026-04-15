@@ -46,7 +46,7 @@
       {{ $t("municipality_rating.link_to_measure") }} ({{ measure_rating.measure.measure_id }})↗
     </NuxtLink>
     <NuxtLink
-      :to="`/feedback?title=${encodeURIComponent(measure_rating.measure.measure_id + ': ' + measure_rating.measure.name)}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure_rating.measure.measure_id + '\nKommune: ' + municipality.name + '\nLink: /municipalities/' + municipality.slug + '?v=' + municipalityScore.catalog_version.name + '#measure-' + measure_rating.measure.measure_id + '\n\nMein Hinweis:\n')}`"
+      :to="`/contact?title=${encodeURIComponent(measure_rating.measure.measure_id + ': ' + measure_rating.measure.name)}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure_rating.measure.measure_id + '\nKommune: ' + municipality.name + '\nLink: /municipalities/' + municipality.slug + '?v=' + municipalityScore.catalog_version.name + '#measure-' + measure_rating.measure.measure_id + '\n\nMein Hinweis:\n')}`"
       class="ml-4 text-black underline"
       target="feedback"
     >

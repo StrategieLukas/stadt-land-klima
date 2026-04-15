@@ -5,41 +5,49 @@
 <p>Hallo {{ firstName }},</p>
 
 <p style="padding-bottom: 16px">
-  super, dass du ein Lokalteam für <strong>{{ municipalityName }}</strong> gegründet hast!
-  Du hast bereits eine separate E-Mail erhalten, mit der du dein Passwort festlegen und dich einloggen kannst.
+  herzlich willkommen &ndash; dein Lokalteam für <strong>{{ municipalityName }}</strong> ist eingerichtet!
+  Du hast bereits eine separate E-Mail erhalten, mit der du dein Passwort zurücksetzen bzw. festlegen
+  und dich anschließend <a href="{{ backendUrl }}" rel="noopener" target="_blank">einloggen</a> kannst.
 </p>
 
-<p style="padding-bottom: 8px">
-  Bevor dein Account freigeschaltet wird, richtet unser Team alles für dich ein.
-  In der Zwischenzeit kannst du dich schon mal vorbereiten:
-</p>
+<p style="padding-bottom: 8px">Hier die nächsten Schritte im Überblick:</p>
 
-<ul style="padding-bottom: 24px; line-height: 1.8">
+<ul style="padding-bottom: 24px; line-height: 1.9">
   {% if tutorialUrl != "" %}
-  <li>
-    <a href="{{ tutorialUrl }}" rel="noopener" target="_blank">Tutorial: So funktioniert die Bewertung</a>
+  <li style="padding-bottom: 6px">
+    Du kannst sofort mit der Bewertung loslegen &ndash; lies am besten zuerst unser
+    <a href="{{ tutorialUrl }}" rel="noopener" target="_blank">Tutorial</a>,
+    damit du weißt, wie alles funktioniert.
+  </li>
+  {% else %}
+  <li style="padding-bottom: 6px">
+    Du kannst bereits sofort mit der Bewertung beginnen!
   </li>
   {% endif %}
   {% if calendarUrl != "" %}
-  <li>
-    <a href="{{ calendarUrl }}" rel="noopener" target="_blank">Onboarding-Gespräch buchen</a>
-    &ndash; wir begleiten dich durch die ersten Schritte
+  <li style="padding-bottom: 6px">
+    Wir laden dich herzlich zu einem unserer
+    <a href="{{ calendarUrl }}" rel="noopener" target="_blank">Onboarding-Gespräche</a>
+    ein &ndash; dort begleiten wir dich durch die ersten Schritte.
   </li>
   {% endif %}
   {% if signalUrl != "" %}
-  <li>
-    <a href="{{ signalUrl }}" rel="noopener" target="_blank">Unserer Signal-Gruppe beitreten</a>
-    &ndash; tausch dich mit anderen Lokalteams aus
+  <li style="padding-bottom: 6px">
+    Tritt gerne unserer
+    <a href="{{ signalUrl }}" rel="noopener" target="_blank">Signal-Gruppe</a>
+    bei &ndash; dort teilen wir weitere Infos und du kannst direkt mit uns in Kontakt treten.
   </li>
   {% endif %}
+  <li>
+    Bevor deine Kommune auf der Plattform veröffentlicht wird, möchten wir einmalig mit dir
+    in Kontakt getreten sein und deine Bewertung gemeinsam mit dir angeschaut und verifiziert haben.
+  </li>
 </ul>
 
 <p style="padding-bottom: 16px">
-  Wir freuen uns, dich im Netzwerk zu haben, und helfen dir gerne bei Fragen weiter &ndash;
-  meld dich einfach unter
+  Bei Fragen erreichst du uns jederzeit unter
   <a href="mailto:info@stadt-land-klima.de">info@stadt-land-klima.de</a>.
+  Wir freuen uns auf die Zusammenarbeit!
 </p>
-
-<p>Das Stadt.Land.Klima-Team</p>
 
 {% endblock %}

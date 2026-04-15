@@ -111,7 +111,7 @@
                 <!-- Case: localteam active, rating in progress → support them -->
                 <NuxtLink
                   v-else-if="area.ctaType === 'in-progress'"
-                  :to="`/feedback?title=${encodeURIComponent('Lokalteam unterstützen in ' + area.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + area.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
+                  :to="`/contact?title=${encodeURIComponent('Lokalteam unterstützen in ' + area.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + area.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
                   class="inline-flex items-center text-xs sm:text-sm font-medium text-green hover:opacity-80"
                 >
                   <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

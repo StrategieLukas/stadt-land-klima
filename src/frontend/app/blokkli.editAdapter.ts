@@ -253,6 +253,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { label: 'Hexagon', imageId: '' }
       case 'municipality_search_hero':
         return { title: 'Gemeinde finden', subtitle: 'Suche deine Gemeinde und entdecke deren Klimaschutz-Bewertung.' }
+      case 'newsletter_signup':
+        return { title: 'Newsletter abonnieren', description: 'Bleib auf dem Laufenden mit Neuigkeiten und Tipps zu kommunalem Klimaschutz.' }
       default:
         return {}
     }
@@ -440,13 +442,14 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'hex_item', label: 'Honeyweb-Kachel', description: 'Einzelne Kachel im Honeyweb', allowReusable: false },
         { id: 'projects_carousel', label: 'Projektkarussell', description: 'Automatisches Karussell der Erfolgsprojekte', allowReusable: true },
         { id: 'municipality_search_hero', label: 'Gemeinde-Suche', description: 'Vollflächen-Sektion mit Wortwolke und Gemeinde-Suchfeld', allowReusable: true },
+        { id: 'newsletter_signup', label: 'Newsletter-Anmeldung', description: 'E-Mail-Anmeldeformular für Newsletter-Listen', allowReusable: true },
         { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'from_library']
-      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'from_library']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'newsletter_signup', 'from_library']
+      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'newsletter_signup', 'from_library']
       const allowedInCarousel = allowedInRoot
       return Promise.resolve([
         {
@@ -1016,6 +1019,25 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           entityType: 'block',
           entityBundle: 'hex_item',
           label: 'Bezeichnung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // newsletter_signup
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'newsletter_signup',
+          label: 'Titel',
+          type: 'plain',
+          required: true,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'newsletter_signup',
+          label: 'Beschreibung',
           type: 'plain',
           required: false,
           maxLength: 0,

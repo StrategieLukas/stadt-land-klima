@@ -71,12 +71,54 @@
       >
         <!-- Thumbnail -->
         <div :class="item.href ? 'relative h-40 bg-gray-50 flex-shrink-0 overflow-hidden' : 'relative h-40 bg-gray-100 flex-shrink-0 flex items-center justify-center'">
+          <!-- Catalog: gray gradient with all sector icons -->
+          <div
+            v-if="item.type === 'catalog'"
+            class="absolute inset-0 bg-gradient-to-br from-[#6b7280]/25 via-[#6b7280]/10 to-[#6b7280]/35 flex items-center justify-center"
+          >
+            <div class="grid grid-cols-3 gap-3 px-6">
+              <img v-for="(src, key) in sectorImages" :key="key" :src="src" :alt="key" class="w-10 h-10 opacity-40" />
+            </div>
+          </div>
+          <!-- Event: green gradient with calendar icon -->
+          <div
+            v-else-if="item.type === 'event' && !item.imageId"
+            class="absolute inset-0 bg-gradient-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30 flex items-center justify-center"
+          >
+            <svg class="w-16 h-16 text-[#1da64a] opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
           <img
-            v-if="item.imageId && item.href"
+            v-else-if="item.imageId && item.href"
             :src="`${directusUrl}/assets/${item.imageId}?width=480&height=160&fit=cover&quality=75`"
             :alt="item.title"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          <!-- News: teal gradient + info icon -->
+          <div
+            v-else-if="item.type === 'news'"
+            class="absolute inset-0 bg-gradient-to-br from-teal-100 via-teal-50 to-teal-200 flex items-center justify-center"
+          >
+            <img src="~/assets/icons/icon_info.svg" alt="" class="w-16 h-16 opacity-20" />
+          </div>
+          <!-- Project: blue gradient + klimachecker icon -->
+          <div
+            v-else-if="item.type === 'project'"
+            class="absolute inset-0 bg-gradient-to-br from-[#006e94]/20 via-[#006e94]/10 to-[#006e94]/30 flex items-center justify-center"
+          >
+            <img src="~/assets/icons/icon_klimachecker.svg" alt="" class="w-16 h-16 opacity-20" />
+          </div>
+          <!-- Municipality: yellow-green gradient + location icon -->
+          <div
+            v-else-if="item.type === 'municipality'"
+            class="absolute inset-0 bg-gradient-to-br from-[#afca0b]/20 via-[#afca0b]/10 to-[#afca0b]/30 flex items-center justify-center"
+          >
+            <img src="~/assets/icons/icon_location_green_marker.svg" alt="" class="w-16 h-16 opacity-20" />
+          </div>
           <span v-else class="text-4xl opacity-20">{{ typeEmoji(item.type) }}</span>
           <span :class="['absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full', typeBadgeClass(item.type)]">
             {{ typeLabel(item.type) }}
@@ -124,6 +166,7 @@
 import { computed, ref, resolveComponent } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
+import sectorImages from '~/shared/sectorImages.js'
 
 const NuxtLinkComponent = resolveComponent('NuxtLink')
 
@@ -182,15 +225,16 @@ const [
   useAsyncData('feed-events', () =>
     $directus.request($readItems('events', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'date_created'],
+      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'date_created', 'image'],
       sort: ['-start_date'],
       limit: 20,
     }))
   ),
   useAsyncData('feed-municipalities', () =>
     $directus.request($readItems('municipalities', {
-      fields: ['id', 'slug', 'name', 'description', 'date_created'],
-      sort: ['-date_created'],
+      filter: { status: { _eq: 'published' } },
+      fields: ['id', 'slug', 'name', 'description', 'date_updated', 'image'],
+      sort: ['-date_updated'],
       limit: 20,
     }))
   ),
@@ -239,7 +283,7 @@ const allItems = computed(() => {
       id: e.id,
       title: e.title,
       teaser: e.description || null,
-      imageId: null,
+      imageId: e.image || null,
       date: e.start_date || e.date_created,
       href: `/events/${e.slug}`,
     })
@@ -251,8 +295,8 @@ const allItems = computed(() => {
       id: m.id,
       title: m.name,
       teaser: m.description || null,
-      imageId: null,
-      date: m.date_created,
+      imageId: m.image || null,
+      date: m.date_updated,
       href: `/municipalities/${m.slug}`,
     })
   }
@@ -265,7 +309,7 @@ const allItems = computed(() => {
       teaser: 'Neuer Maßnahmenkatalog veröffentlicht',
       imageId: null,
       date: c.date_created,
-      href: null,
+      href: `/measures?v=${encodeURIComponent(c.name)}`,
     })
   }
 
@@ -315,7 +359,7 @@ function typeLabel(type) {
     news: 'Neuigkeit',
     project: 'Erfolgsprojekt',
     event: 'Veranstaltung',
-    municipality: 'Neue Kommune',
+    municipality: 'Bewertung geupdated',
     catalog: 'Maßnahmenkatalog',
   }[type] ?? type
 }

@@ -9,7 +9,7 @@ meta:
   field: image
   group: null
   hidden: false
-  interface: file-image
+  interface: unsplash-image
   note: null
   options:
     folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90

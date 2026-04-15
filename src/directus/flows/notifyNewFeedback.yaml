@@ -1,0 +1,26 @@
+name: notifyNewFeedback
+icon: email
+color: null
+description: Send email to info@stadt-land-klima.de whenever a new feedback item is created
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.create
+  collections:
+    - feedback
+operations:
+  - name: Send Notification Email
+    key: send_feedback_email
+    type: mail
+    position_x: 19
+    position_y: 1
+    options:
+      to:
+        - "info@stadt-land-klima.de"
+      subject: "Neue Kontaktanfrage: {{$trigger.payload.title}}"
+      body: "<p>Eine neue Kontaktanfrage ist eingegangen.</p><p><strong>Name:</strong> {{$trigger.payload.sender_name}}</p><p><strong>Kontakt:</strong> {{$trigger.payload.sender_contact}}</p><p><strong>Betreff:</strong> {{$trigger.payload.title}}</p><p><strong>Typ:</strong> {{$trigger.payload.type}}</p><p><strong>Nachricht:</strong></p><p>{{$trigger.payload.content}}</p>"
+      type: wysiwyg
+operation_key: send_feedback_email

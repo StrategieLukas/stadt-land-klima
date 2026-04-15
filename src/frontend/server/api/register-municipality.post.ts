@@ -181,7 +181,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const appPublicUrl = (config.appPublicUrl as string) || 'https://stadt-land-klima.de';
-  const directusPublicUrl = (config.directusPublicUrl as string) || 'https://admin.stadt-land-klima.de';
+  const directusPublicUrl = (config.directusPublicUrl as string) || 'https://stadt-land-klima.de/backend';
   const previewUrl = municipalitySlug
     ? `${appPublicUrl}/municipalities/${municipalitySlug}?preview=${previewToken}`
     : null;
@@ -241,6 +241,7 @@ export default defineEventHandler(async (event) => {
             tutorialUrl,
             calendarUrl,
             signalUrl,
+            backendUrl: directusPublicUrl,
           },
         },
       });

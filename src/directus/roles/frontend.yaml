@@ -164,6 +164,8 @@ permissions:
       - end_date
       - location
       - registration_url
+      - date_created
+      - image
   - collection: external_projects
     action: read
     permissions: null
@@ -276,6 +278,8 @@ permissions:
       - id
       - creator_verified
       - preview_token
+      - date_created
+      - image
   - collection: municipality_scores
     action: read
     permissions: {}

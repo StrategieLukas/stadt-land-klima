@@ -36,3 +36,53 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: events
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - slug
+      - title
+      - description
+      - event_type
+      - status
+      - start_date
+      - end_date
+      - location
+      - registration_url
+      - date_created
+      - image
+  - collection: municipalities
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - sort
+      - slug
+      - municipality_type
+      - details
+      - scores
+      - mayor
+      - state
+      - population
+      - party_mayor
+      - name
+      - description
+      - localteam_id
+      - date_updated
+      - status
+      - overall_status_comment
+      - public_contact
+      - ars
+      - geolocation
+      - percentage_rated
+      - id
+      - creator_verified
+      - preview_token
+      - image

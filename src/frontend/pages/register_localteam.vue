@@ -108,7 +108,7 @@
               <li
                 v-for="(area, index) in searchResults"
                 :key="area.ars"
-                class="cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                class="px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
                 :class="{ 'bg-rating-3-light': index === focusedIndex }"
                 @click="area.isMunicipality ? selectArea(area) : router.push('/regions/' + area.ars)"
               >
@@ -200,7 +200,7 @@
               Zur Bewertung →
             </NuxtLink>
             <NuxtLink
-              :to="`/feedback?title=${encodeURIComponent('Mitarbeit Lokalteam ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' unterstützen.\n\nMeine Kontaktdaten:\n')}`"
+              :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' unterstützen.\n\nMeine Kontaktdaten:\n')}`"
               class="flex-1 text-center py-2.5 px-4 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
             >
               Kontakt aufnehmen
@@ -234,7 +234,7 @@
           </div>
           <div class="flex flex-col sm:flex-row gap-3">
             <NuxtLink
-              :to="`/feedback?title=${encodeURIComponent('Lokalteam unterstützen in ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
+              :to="`/contact?title=${encodeURIComponent('Lokalteam unterstützen in ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
               class="flex-1 text-center py-2.5 px-4 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
             >
               Lokalteam unterstützen →

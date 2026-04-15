@@ -4,7 +4,7 @@
 
       <div class="p-6">
 
-        <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← {{ $t("navigation.return_to_overview") }}</NuxtLink>
+        <NuxtLink :to="backHref" class="text-blue-500 text-sm">← {{ backLabel }}</NuxtLink>
   
         <!-- Title and Subtitle -->
         <h1 class="text-2xl font-bold text-blue-500 mb-1">{{ title }}</h1>
@@ -101,7 +101,7 @@
 
   <!-- Desktop version -->
   <div class="hidden lg:block project-page mt-8 bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
-    <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← {{ $t("navigation.return_to_overview") }}</NuxtLink>
+    <NuxtLink :to="backHref" class="text-blue-500 text-sm">← {{ backLabel }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
       <SmartImg
@@ -238,10 +238,12 @@
   import { ref, watchEffect } from 'vue'
   import { buildLocationString, toAssetUrl } from '~/shared/utils';
   import MarkdownIt from 'markdown-it'
+  import { useReferrer } from '~/composables/useReferrer'
   
   
   const md = new MarkdownIt();
   const { $t, $locale } = useNuxtApp()
+  const { backHref, backLabel } = useReferrer('/projects', $t('navigation.return_to_overview'))
   
   const props = defineProps({
       title: String,
