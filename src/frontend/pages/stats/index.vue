@@ -142,10 +142,23 @@
           </h2>
           <p class="text-xs text-gray-500 mb-3">
             <span v-if="!sunburstSelection.type">Gesamtscore vollständig bewerteter Kommunen</span>
-            <span v-else-if="sunburstSelection.type === 'sector'">Score {{ sunburstSelection.sectorKey }} – Klick auf Balken filtert Kommunen</span>
-            <span v-else>Bewertungsverteilung – Klick auf Balken filtert Kommunen</span>
+            <span v-else-if="sunburstSelection.type === 'sector'">Score-Verteilung {{ shortSectorNames[sunburstSelection.sectorKey] ?? sunburstSelection.sectorKey }}</span>
+            <span v-else>Bewertungsverteilung</span>
           </p>
           <div ref="distPanelContainer" class="w-full flex-1" style="min-height: 360px;"></div>
+          <!-- Selection marker, matching sunburst badge style -->
+          <div class="mt-3 flex justify-center items-center gap-2">
+            <template v-if="panelMunFilter.active">
+              <button
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border-2 border-blue-600 text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                @click="clearPanelMunFilter"
+              >
+                <span>{{ panelMunFilter.label }}</span>
+                <span class="font-bold text-sm leading-none">×</span>
+              </button>
+            </template>
+            <span v-else-if="sunburstSelection.type" class="text-xs text-gray-400">Klick auf Balken für Details</span>
+          </div>
         </div>
 
       </div><!-- /top row -->
@@ -154,7 +167,9 @@
       <div class="bg-white rounded-xl shadow-lg p-5 mb-8">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-base font-semibold text-gray-800">
-            <span v-if="!panelMunFilter.active">Top 10 Kommunen</span>
+            <span v-if="!panelMunFilter.active">
+              Top 10<span v-if="sunburstSelection.label">: {{ sunburstSelection.label }}</span><span v-else> Kommunen</span>
+            </span>
             <span v-else>Kommunen mit „{{ panelMunFilter.label }}"</span>
           </h3>
           <button
@@ -332,7 +347,51 @@ const typeOptions = [
 ];
 
 // ── Chart/UI state ────────────────────────────────────────────────────────────
-const sectorStats = ref([]);
+// sectorStats is a computed so it reacts to filterState / filterType changes.
+// It uses filteredMunScores (already honours all active filters) to populate
+// the per-measure rating buckets shown in the distribution panel.
+const sectorStats = computed(() => {
+  if (!statsData.value) return [];
+  const { measures, ratings } = statsData.value;
+
+  // Build localteam → municipality map from FILTERED completed scores only
+  const localteamToMunicipality = {};
+  filteredMunScores.value.forEach(ms => {
+    const mun = ms.municipality;
+    if (mun?.localteam_id) localteamToMunicipality[mun.localteam_id] = { id: mun.id, name: mun.name, slug: mun.slug };
+  });
+
+  const sectorData = {};
+  measures.forEach(measure => {
+    if (!sectorData[measure.sector]) {
+      sectorData[measure.sector] = {
+        sectorKey: measure.sector,
+        sectorName: sectorNames[measure.sector] || measure.sector,
+        measures: {},
+      };
+    }
+    sectorData[measure.sector].measures[measure.id] = {
+      id: measure.id,
+      measure_id: measure.measure_id,
+      name: measure.name,
+      slug: measure.slug,
+      ratings: { '-1': [], '0': [], '0.25': [], '0.5': [], '0.75': [], '1': [] },
+    };
+  });
+
+  ratings.forEach(r => {
+    const measure = measures.find(m => m.id === r.measure_id);
+    if (!measure) return;
+    const sector = sectorData[measure.sector];
+    if (!sector?.measures[measure.id]) return;
+    const rk = !r.applicable ? '-1' : r.rating !== null ? String(r.rating) : null;
+    if (rk === null) return;
+    const mun = localteamToMunicipality[r.localteam_id];
+    if (mun) sector.measures[measure.id].ratings[rk].push(mun);
+  });
+
+  return Object.values(sectorData);
+});
 
 const sunburstContainer = ref(null);
 const distPanelContainer = ref(null);
@@ -357,7 +416,7 @@ const activeTab = ref('measures');
 // Sunburst selection state
 const sunburstSelection = ref({ type: null, sectorKey: null, measureId: null, label: '' });
 // Municipality panel filter (set when user clicks a bar in the distribution)
-const panelMunFilter = ref({ active: false, label: '', municipalities: [] });
+const panelMunFilter = ref({ active: false, label: '', type: null, measureId: null, ratingKey: null, sectorKey: null, binRange: null });
 // Cluster profile panel
 const clusterProfile = ref({ clusterLabel: null, count: 0, avgTotal: '–', sectorMeans: {}, municipalities: [] });
 // Raw cluster data for profile lookup (populated after computeClusteringAndRender)
@@ -502,27 +561,60 @@ const kpi = computed(() => {
   };
 });
 
-const top10 = computed(() =>
-  [...filteredMunScores.value]
+const top10 = computed(() => {
+  const sel = sunburstSelection.value;
+  if (sel.type === 'sector' && sel.sectorKey) {
+    const scoreField = `score_${sel.sectorKey}`;
+    return [...filteredMunScores.value]
+      .map(ms => {
+        const v = parseFloat(ms[scoreField]);
+        return { id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: isNaN(v) ? null : v };
+      })
+      .filter(ms => ms.score_total != null)
+      .sort((a, b) => b.score_total - a.score_total)
+      .slice(0, 10);
+  }
+  if (sel.type === 'measure' && sel.measureId) {
+    const ratingByLtId = new Map();
+    statsData.value?.ratings?.forEach(r => {
+      if (r.measure_id === sel.measureId && r.applicable !== false && r.rating != null)
+        ratingByLtId.set(r.localteam_id, parseFloat(r.rating));
+    });
+    return [...filteredMunScores.value]
+      .filter(ms => ms.municipality?.localteam_id && ratingByLtId.has(ms.municipality.localteam_id))
+      .map(ms => {
+        const v = ratingByLtId.get(ms.municipality.localteam_id);
+        return { id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: v * 100 };
+      })
+      .sort((a, b) => b.score_total - a.score_total)
+      .slice(0, 10);
+  }
+  return [...filteredMunScores.value]
     .filter(ms => ms.score_total != null)
-    .map(ms => ({
-      id: ms.municipality?.id,
-      name: ms.municipality?.name,
-      slug: ms.municipality?.slug,
-      score_total: parseFloat(ms.score_total),
-    }))
+    .map(ms => ({ id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: parseFloat(ms.score_total) }))
     .filter(ms => !isNaN(ms.score_total))
     .sort((a, b) => b.score_total - a.score_total)
-    .slice(0, 10)
-);
+    .slice(0, 10);
+});
 
-// Municipality list shown in the detail panel
+// Municipality list shown in the detail panel — re-derives reactively from filteredMunScores
 const panelMunicipalities = computed(() => {
-  if (panelMunFilter.value.active) {
-    return panelMunFilter.value.municipalities;
+  if (!panelMunFilter.value.active) return top10.value;
+  const { type, measureId, ratingKey, sectorKey, binRange } = panelMunFilter.value;
+  if (type === 'measure-rating' && measureId != null && ratingKey != null) {
+    const filteredMunIds = new Set(filteredMunScores.value.filter(ms => ms.municipality?.id).map(ms => ms.municipality.id));
+    for (const sector of sectorStats.value) {
+      const m = sector.measures?.[measureId];
+      if (m) return (m.ratings[ratingKey] ?? []).filter(mun => filteredMunIds.has(mun.id));
+    }
+    return [];
   }
-  // If a measure is selected, show top 10 of that measure's rated municipalities (any rating)
-  // Otherwise fall back to top10 by score
+  if (type === 'sector-bin' && sectorKey && binRange) {
+    const [bin0, bin1] = binRange;
+    return filteredMunScores.value
+      .filter(ms => { const s = parseFloat(ms[`score_${sectorKey}`]); return !isNaN(s) && s >= bin0 && s < bin1 + 0.0001; })
+      .map(ms => ({ id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: parseFloat(ms[`score_${sectorKey}`]) }));
+  }
   return top10.value;
 });
 
@@ -585,52 +677,6 @@ async function fetchStatsForCatalog(catalogVersionId) {
 }
 
 const statsData = ref(await fetchStatsForCatalog(selectedCatalogVersion.value.id));
-
-// ── Processing ───────────────────────────────────────────────────────────────
-function processStats() {
-  if (!statsData.value) return;
-  const { measures, ratings, municipalityScores } = statsData.value;
-
-  const allCompleted = municipalityScores.filter(s => s.percentage_rated >= 98 && s.municipality?.status === 'published');
-  const localteamToMunicipality = {};
-  allCompleted.forEach(ms => {
-    const mun = ms.municipality;
-    if (mun?.localteam_id) localteamToMunicipality[mun.localteam_id] = { id: mun.id, name: mun.name, slug: mun.slug };
-  });
-
-  const sectorData = {};
-  measures.forEach(measure => {
-    if (!sectorData[measure.sector]) {
-      sectorData[measure.sector] = {
-        sectorKey: measure.sector,
-        sectorName: sectorNames[measure.sector] || measure.sector,
-        measures: {},
-      };
-    }
-    sectorData[measure.sector].measures[measure.id] = {
-      id: measure.id,
-      measure_id: measure.measure_id,
-      name: measure.name,
-      slug: measure.slug,
-      ratings: { '-1': [], '0': [], '0.25': [], '0.5': [], '0.75': [], '1': [] },
-    };
-  });
-
-  ratings.forEach(r => {
-    const measure = measures.find(m => m.id === r.measure_id);
-    if (!measure) return;
-    const sector = sectorData[measure.sector];
-    if (!sector?.measures[measure.id]) return;
-    const rk = !r.applicable ? '-1' : r.rating !== null ? String(r.rating) : null;
-    if (rk === null) return;
-    const mun = localteamToMunicipality[r.localteam_id];
-    if (mun) sector.measures[measure.id].ratings[rk].push(mun);
-  });
-
-  sectorStats.value = Object.values(sectorData);
-}
-
-processStats();
 
 // ── Sunburst (Vega-Lite two-layer arc) ───────────────────────────────────────
 async function renderSunburst() {
@@ -763,7 +809,7 @@ function clearSunburstSelection() {
 }
 
 function clearPanelMunFilter() {
-  panelMunFilter.value = { active: false, label: '', municipalities: [] };
+  panelMunFilter.value = { active: false, label: '', type: null, measureId: null, ratingKey: null, sectorKey: null, binRange: null };
 }
 
 // ── Detail panel: distribution chart ─────────────────────────────────────────
@@ -789,7 +835,7 @@ async function renderDistPanel() {
       mark: { type: 'bar', color: '#F39200', cursor: 'default' },
       encoding: {
         x: { field: 'score', bin: { maxbins: 14 }, type: 'quantitative', title: 'Gesamtscore (× 100)' },
-        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen' },
+        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1 } },
         tooltip: [{ field: 'score', bin: { maxbins: 14 }, title: 'Score' }, { aggregate: 'count', type: 'quantitative', title: 'Kommunen' }],
       },
     };
@@ -803,22 +849,27 @@ async function renderDistPanel() {
     const sKey = sel.sectorKey;
     const scores = filteredMunScores.value
       .map(ms => ({
-        score: parseFloat((parseFloat(ms[`score_${sKey}`]) * 100).toFixed(2)),
+        score: parseFloat(parseFloat(ms[`score_${sKey}`]).toFixed(4)),
         name: ms.municipality?.name,
         slug: ms.municipality?.slug,
         score_total: ms.score_total,
       }))
       .filter(d => !isNaN(d.score));
     if (!scores.length) return;
+    const selectedBin0 = panelMunFilter.value.type === 'sector-bin' && panelMunFilter.value.sectorKey === sKey
+      ? panelMunFilter.value.binRange?.[0] : null;
     const spec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
       width: 'container', height: 360,
       data: { values: scores },
-      mark: { type: 'bar', color: sectorColors[sKey] ?? '#F39200', cursor: 'pointer' },
+      mark: { type: 'bar', color: sectorColors[sKey] ?? '#F39200', cursor: 'pointer', strokeWidth: 2.5 },
       encoding: {
-        x: { field: 'score', bin: { maxbins: 12 }, type: 'quantitative', title: `Score ${shortSectorNames[sKey]} (× 100)` },
-        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen' },
-        tooltip: [{ field: 'score', bin: { maxbins: 12 }, title: 'Score-Bereich' }, { aggregate: 'count', type: 'quantitative', title: 'Kommunen' }],
+        x: { field: 'score', bin: { maxbins: 12 }, type: 'quantitative', title: `Score ${shortSectorNames[sKey]}` },
+        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1 } },
+        tooltip: [{ field: 'score', bin: { maxbins: 12 }, title: 'Score-Bereich', format: '.3f' }, { aggregate: 'count', type: 'quantitative', title: 'Kommunen' }],
+        stroke: selectedBin0 != null
+          ? { condition: { test: `datum['bin_maxbins_12_score'] === ${selectedBin0}`, value: '#1d4ed8' }, value: null }
+          : { value: null },
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: 'svg', actions: false });
@@ -829,12 +880,16 @@ async function renderDistPanel() {
       const bin0 = item.datum['bin_maxbins_12_score'];
       const bin1 = item.datum['bin_maxbins_12_score_end'];
       if (bin0 == null) return;
-      const munInBin = scores.filter(d => d.score >= bin0 && d.score < bin1 + 0.001);
       panelMunFilter.value = {
         active: true,
-        label: `${shortSectorNames[sKey]} ${bin0.toFixed(0)}–${bin1.toFixed(0)}`,
-        municipalities: munInBin.map(d => ({ name: d.name, slug: d.slug, score_total: d.score_total })),
+        label: `${shortSectorNames[sKey]} ${bin0.toFixed(2)}–${bin1.toFixed(2)}`,
+        type: 'sector-bin',
+        measureId: null,
+        ratingKey: null,
+        sectorKey: sKey,
+        binRange: [bin0, bin1],
       };
+      nextTick(() => renderDistPanel());
     });
     return;
   }
@@ -854,32 +909,38 @@ async function renderDistPanel() {
       color: ratingColors[k] ?? '#9CA3AF',
       municipalities: measureEntry.ratings[k] ?? [],
     }));
+    const selectedRk = panelMunFilter.value.type === 'measure-rating' && panelMunFilter.value.measureId === measureId
+      ? panelMunFilter.value.ratingKey : null;
     const spec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
       width: 'container', height: 360,
       data: { values },
-      mark: { type: 'bar', cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, cursor: 'pointer' },
+      mark: { type: 'bar', cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, cursor: 'pointer', strokeWidth: 2.5 },
       encoding: {
         x: { field: 'label', type: 'nominal', sort: null, title: 'Bewertung', axis: { labelAngle: -20 } },
-        y: { field: 'count', type: 'quantitative', title: 'Kommunen' },
+        y: { field: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1 } },
         color: { field: 'color', type: 'nominal', scale: null, legend: null },
         tooltip: [{ field: 'label', title: 'Bewertung' }, { field: 'count', title: 'Kommunen' }],
+        stroke: { condition: { test: `datum.ratingKey === ${JSON.stringify(selectedRk)}`, value: '#1d4ed8' }, value: null },
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: 'svg', actions: false });
     vegaViewDist = res.view;
-    // Click on a bar: show municipalities with that rating
+    // Click on a bar: filter municipality list to that rating
     res.view.addEventListener('click', (_e, item) => {
       if (!item?.datum) return;
       const rk = item.datum.ratingKey;
       if (!rk) return;
-      const muns = values.find(v => v.ratingKey === rk)?.municipalities ?? [];
-      if (!muns.length) return;
       panelMunFilter.value = {
         active: true,
         label: ratingLabelsMap[rk] ?? rk,
-        municipalities: muns.map(m => ({ name: m.name, slug: m.slug, score_total: null })),
+        type: 'measure-rating',
+        measureId,
+        ratingKey: rk,
+        sectorKey: null,
+        binRange: null,
       };
+      nextTick(() => renderDistPanel());
     });
   }
 }
@@ -1465,12 +1526,11 @@ async function onCatalogVersionChange(newId) {
   filterState.value = null;
   filterType.value = null;
   statsData.value = await fetchStatsForCatalog(newVersion.id);
-  processStats();
   if (vegaViewSunburst) { vegaViewSunburst.finalize(); vegaViewSunburst = null; }
   if (vegaViewCluster) { vegaViewCluster.finalize(); vegaViewCluster = null; }
   if (vegaViewDist) { vegaViewDist.finalize(); vegaViewDist = null; }
   sunburstSelection.value = { type: null, sectorKey: null, measureId: null, label: '' };
-  panelMunFilter.value = { active: false, label: '', municipalities: [] };
+  panelMunFilter.value = { active: false, label: '', type: null, measureId: null, ratingKey: null, sectorKey: null, binRange: null };
   nextTick(() => {
     renderSunburst();
     renderDistPanel();

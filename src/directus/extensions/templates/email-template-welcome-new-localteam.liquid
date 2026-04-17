@@ -6,9 +6,40 @@
 
 <p style="padding-bottom: 16px">
   herzlich willkommen &ndash; dein Lokalteam für <strong>{{ municipalityName }}</strong> ist eingerichtet!
-  Du hast bereits eine separate E-Mail erhalten, mit der du dein Passwort zurücksetzen bzw. festlegen
-  und dich anschließend <a href="{{ backendUrl }}" rel="noopener" target="_blank">einloggen</a> kannst.
+  Bitte lege zunächst dein Passwort fest, damit du dich
+  <a href="{{ backendUrl }}" rel="noopener" target="_blank">einloggen</a> kannst:
 </p>
+
+{% if passwordResetUrl %}
+<p style="padding-bottom: 24px">
+  <a
+    class="button"
+    rel="noopener"
+    target="_blank"
+    href="{{ passwordResetUrl }}"
+    style="
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      text-decoration: none;
+      display: inline-block;
+      padding: 11px 24px;
+      border-radius: 8px;
+      background: #171717;
+      border: 1px solid #ffffff;
+    "
+  >
+    <!--[if mso]><i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt">&nbsp;</i><![endif]-->
+    <span style="mso-text-raise: 15pt">Passwort festlegen →</span>
+    <!--[if mso]><i style="letter-spacing: 25px; mso-font-width: -100%">&nbsp;</i><![endif]-->
+  </a>
+</p>
+<p style="padding-bottom: 16px; font-size: 12px; color: #888">
+  Dieser Link ist 24 Stunden gültig. Falls er abläuft, kannst du unter
+  <a href="{{ backendUrl }}/admin/reset-password" rel="noopener" target="_blank">{{ backendUrl }}/admin/reset-password</a>
+  jederzeit ein neues Passwort anfordern.
+</p>
+{% endif %}
 
 <p style="padding-bottom: 8px">Hier die nächsten Schritte im Überblick:</p>
 

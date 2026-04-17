@@ -167,17 +167,31 @@ export default defineEventHandler(async (event) => {
     console.warn('[register-municipality] Municipality update failed (non-fatal):', err);
   }
 
-  // --- Step 4: Send password-reset email ---
+  // --- Step 4: Obtain password-reset URL (will be embedded in the welcome email) ---
+  // We call our custom endpoint which generates the token without sending a separate email,
+  // so the user receives exactly one email (the welcome email) with the reset link inside.
+  let passwordResetUrl: string | null = null;
   try {
-    await $fetch(`${directusUrl}/auth/password/request`, {
+    const resetData = await $fetch<{ url: string }>(`${directusUrl}/generate-reset-link`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...headers },
       body: { email: email.trim() },
     });
+    passwordResetUrl = resetData.url ?? null;
     steps.email = true;
   } catch (err) {
-    // Non-fatal: user + team are created; they can request the email again
-    console.warn('[register-municipality] Password reset email failed (non-fatal):', err);
+    // Non-fatal: fall back to sending a separate Directus password-reset email
+    console.warn('[register-municipality] Password reset link generation failed, falling back to separate email (non-fatal):', err);
+    try {
+      await $fetch(`${directusUrl}/auth/password/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: { email: email.trim() },
+      });
+      steps.email = true;
+    } catch (fallbackErr) {
+      console.warn('[register-municipality] Fallback password reset email also failed (non-fatal):', fallbackErr);
+    }
   }
 
   const appPublicUrl = (config.appPublicUrl as string) || 'https://stadt-land-klima.de';
@@ -238,6 +252,7 @@ export default defineEventHandler(async (event) => {
           data: {
             firstName: firstName.trim(),
             municipalityName: municipalityName.trim(),
+            passwordResetUrl,
             tutorialUrl,
             calendarUrl,
             signalUrl,

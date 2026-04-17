@@ -1,0 +1,19 @@
+{
+  "name": "directus-extension-endpoint-generate-reset-link",
+  "version": "1.0.0",
+  "type": "module",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "dist/index.js",
+    "source": "src/index.js",
+    "host": "^10.10.0"
+  },
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "16.0.2",
+    "jsonwebtoken": "^9.0.0"
+  }
+}

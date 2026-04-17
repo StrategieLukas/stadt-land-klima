@@ -281,6 +281,8 @@ watch(
   () => route.query.v,
   async (newV, oldV) => {
     if (newV === oldV) return;
+    // Ignore the initial URL fixup from onMounted (setCatalogVersionUrl adding ?v= when absent)
+    if (!oldV) return;
 
     // Fetch new catalog version info
     selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
