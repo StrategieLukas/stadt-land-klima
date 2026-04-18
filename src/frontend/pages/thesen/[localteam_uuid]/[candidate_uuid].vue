@@ -135,11 +135,11 @@ const submitting = ref(false)
 const submitted = ref(false)
 
 const ratingOptions = [
-  { value: 0, label: 'stark dagegen', radioClass: 'border-rating-0 checked:bg-rating-0' },
-  { value: 1, label: 'eher dagegen', radioClass: 'border-rating-1 checked:bg-rating-1' },
-  { value: 2, label: 'neutral', radioClass: 'border-rating-na checked:bg-rating-na' },
-  { value: 3, label: 'eher dafür', radioClass: 'border-rating-3 checked:bg-rating-3' },
-  { value: 4, label: 'stark dafür', radioClass: 'border-rating-4 checked:bg-rating-4' },
+  { value: 0, label: 'stark dagegen', radioClass: 'border-rating-0 text-rating-0' },
+  { value: 1, label: 'eher dagegen', radioClass: 'border-rating-1 text-rating-1' },
+  { value: 2, label: 'neutral', radioClass: 'border-rating-na text-rating-na' },
+  { value: 3, label: 'eher dafür', radioClass: 'border-rating-3 text-rating-3' },
+  { value: 4, label: 'stark dafür', radioClass: 'border-rating-4 text-rating-4' },
 ]
 
 const { data, pending, error } = await useAsyncData(`thesen-${localteamUuid}-${candidateUuid}`, async () => {
@@ -251,6 +251,7 @@ useHead({
 <style scoped>
 .radio:checked {
   background-image: none;
-  background-color: currentColor;
+  background-color: currentColor !important;
+  border-color: currentColor !important;
 }
 </style>
