@@ -560,7 +560,13 @@ permissions:
       - "*"
   - collection: candidate
     action: delete
-    permissions: null
+    permissions:
+      _and:
+        - questions:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
     validation:
       has_answered:
         _neq: true
@@ -568,7 +574,13 @@ permissions:
     fields: null
   - collection: candidate
     action: update
-    permissions: null
+    permissions:
+      _and:
+        - questions:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
     validation:
       has_answered:
         _neq: true
@@ -576,6 +588,9 @@ permissions:
     fields:
       - name
       - email
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
   - collection: organisations
     action: read
     permissions: null

@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: select-dropdown-m2o
   note: null
-  options: null
+  options:
+    template: '{{name}} ({{email}})'
   readonly: false
   required: true
   sort: 2

@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: localteams
   color: null
-  display_template: '{{name}}'
+  display_template: '{{municipality_name}} ({{name}})'
   group: null
   hidden: false
   icon: null

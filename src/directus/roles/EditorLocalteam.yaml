@@ -498,6 +498,25 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: candidate
+    action: update
+    permissions:
+      _and:
+        - questions:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
+    validation:
+      has_answered:
+        _neq: true
+    presets: null
+    fields:
+      - name
+      - email
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
   - collection: organisations
     action: read
     permissions: null

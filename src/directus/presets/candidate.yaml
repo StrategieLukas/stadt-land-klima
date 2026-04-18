@@ -17,9 +17,9 @@ layout_options:
   tabular:
     widths:
       has_answered: 120
-      name: 400
-      time_first_submitted: 200
-      time_last_edited: 200
+      name: 700
+      time_first_submitted: 300
+      time_last_edited: 300
 refresh_interval: null
 filter: null
 icon: person

@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: candidate
   color: null
-  display_template: '{{name}}'
+  display_template: '{{name}} ({{email}})'
   group: null
   hidden: false
   icon: null

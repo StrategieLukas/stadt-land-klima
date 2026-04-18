@@ -144,6 +144,8 @@ permissions:
     presets: null
     fields:
       - has_answered
+      - time_first_submitted
+      - time_last_edited
   - collection: directus_files
     action: read
     permissions: {}

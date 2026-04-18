@@ -31,10 +31,6 @@ meta:
         value: -1
         foreground: '#000000'
         background: '#eeeeee'
-      - text: neutral
-        value: 5
-        foreground: '#000000'
-        background: '#cccccc'
     showAsDot: true
   field: response
   group: null
@@ -55,8 +51,6 @@ meta:
         value: 4
       - text: n/a
         value: -1
-      - text: neutral
-        value: 5
   readonly: false
   required: true
   sort: 4

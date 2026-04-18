@@ -13,12 +13,13 @@ layout_query:
       - response
       - explanation
     sort:
-      - -date_created
+      - question.localteam
+      - candidate
 layout_options:
   tabular:
     widths:
-      question.localteam: 200
-      candidate: 200
+      question.localteam: 250
+      candidate: 250
       question: 300
       response: 150
       explanation: 400

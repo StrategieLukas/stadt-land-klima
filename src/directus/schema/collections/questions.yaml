@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: questions
   color: null
-  display_template: '{{title}}'
+  display_template: '{{localteam.municipality_name}}: {{title}}'
   group: null
   hidden: false
   icon: null
