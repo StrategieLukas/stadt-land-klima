@@ -9,7 +9,14 @@ permissions:
   - collection: answers
     action: create
     permissions: {}
-    validation: {}
+    validation:
+      _and:
+        - candidate:
+            localteam:
+              cutoff_date:
+                _or:
+                  - _null: true
+                  - _gt: $NOW
     presets: null
     fields:
       - "*"
@@ -30,7 +37,14 @@ permissions:
   - collection: answers
     action: update
     permissions: {}
-    validation: {}
+    validation:
+      _and:
+        - candidate:
+            localteam:
+              cutoff_date:
+                _or:
+                  - _null: true
+                  - _gt: $NOW
     presets: null
     fields:
       - "*"
@@ -140,7 +154,13 @@ permissions:
   - collection: candidate
     action: update
     permissions: {}
-    validation: {}
+    validation:
+      _and:
+        - localteam:
+            cutoff_date:
+              _or:
+                - _null: true
+                - _gt: $NOW
     presets: null
     fields:
       - has_answered
@@ -226,6 +246,7 @@ permissions:
       - municipality_name
       - slug
       - name
+      - cutoff_date
   - collection: measure_catalog
     action: read
     permissions: {}

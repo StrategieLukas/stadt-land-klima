@@ -6,6 +6,7 @@ status: active
 trigger: manual
 accountability: all
 options:
+  requireSelection: false
   collections:
     - localteams
     - questions
@@ -84,17 +85,33 @@ operations:
       code: >
         module.exports = async function(data) {
           const { collection, keys } = data.$trigger.body;
-          const id = keys[0];
           const { ItemsService } = data.services;
           const schema = data.schema;
           const accountability = data.accountability;
 
-          if (collection === 'localteams') return id;
+          if (keys && keys.length > 0) {
+            const id = keys[0];
+            if (collection === 'localteams') return id;
 
-          const service = new ItemsService(collection, { schema, accountability });
-          const item = await service.readOne(id, { fields: ['localteam'] });
+            const service = new ItemsService(collection, { schema, accountability });
+            const item = await service.readOne(id, { fields: ['localteam'] });
+            if (item && item.localteam) return item.localteam;
+          }
 
-          return item.localteam;
+          // Resolve from current user
+          const userId = accountability.user;
+          if (!userId) return null;
+
+          const junctionService = new ItemsService('junction_directus_users_localteams', { schema, accountability });
+          const junctions = await junctionService.readByQuery({
+            filter: { directus_users_id: { _eq: userId } },
+            limit: 1
+          });
+          if (junctions && junctions.length > 0) {
+            return junctions[0].localteam_id;
+          }
+
+          return null;
         }
     resolve_key: process_emails
 operation_key: send_candidate_emails_resolve_id

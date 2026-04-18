@@ -1,0 +1,111 @@
+- id: 1
+  measure_id: LNE_08
+  question: Die Kommune soll ein umfassendes Klimaanpassungskonzept beschließen und zügig umsetzen.
+- id: 2
+  measure_id: LNE_02
+  question: Die Kommune soll die Umstellung auf ökologische oder regenerative Landwirtschaft mit einem kostenlosen Beratungsangebot unterstützen.
+- id: 3
+  measure_id: LNE_05
+  question: In kommunalen Einrichtungen soll das Verpflegungsangebot überwiegend vegetarisch oder vegan sowie möglichst bio und regional sein.
+- id: 4
+  measure_id: GW_05
+  question: Die Kommune soll ihre Wärmeplanung veröffentlichen, zügig umsetzen und den Fortschritt regelmäßig dokumentieren.
+- id: 5
+  measure_id: GW_03
+  question: Die Kommune soll für alle kommunalen Liegenschaften ein verbindliches Energiemanagement einführen.
+- id: 6
+  measure_id: GW_02
+  question: Für bestehende Fernwärmenetze soll ein Transformationsplan zur vollständigen Dekarbonisierung bis 2035 vorliegen.
+- id: 7
+  measure_id: GW_04
+  question: Die Kommune soll ihre Liegenschaften mit einer jährlichen Sanierungsrate von mindestens 5 Prozent modernisieren.
+- id: 8
+  measure_id: EN_03
+  question: Die Kommune soll ein gut erreichbares Beratungsangebot zur Energiewende aktiv unterstützen.
+- id: 9
+  measure_id: EN_05
+  question: Die Kommune soll Balkonsolaranlagen sozial ausgerichtet fördern.
+- id: 10
+  measure_id: EN_10
+  question: Kommunale Versorger sollen keine neuen Stromtarife auf fossiler Grundlage anbieten.
+- id: 11
+  measure_id: EN_01
+  question: Die Kommune soll den Ausbau von Freiflächen-Photovoltaik mit klaren Ausbauzielen vorantreiben.
+- id: 12
+  measure_id: EN_07
+  question: Alle kommunalen Liegenschaften sollen mit glaubwürdigem Ökostrom versorgt werden.
+- id: 13
+  measure_id: EN_02
+  question: Die Kommune soll den Ausbau der Windenergie mit klaren Flächen- und Ausbauzielen vorantreiben.
+- id: 14
+  measure_id: EN_09
+  question: Kommunale Versorger sollen Mitglied in Verbänden sein, die den Ausbau erneuerbarer Energien unterstützen.
+- id: 15
+  measure_id: EN_06
+  question: Die Kommune oder ihre Versorger sollen Gas nicht als klimafreundlich oder zukunftsfähig bewerben.
+- id: 16
+  measure_id: EN_11
+  question: Kommunale Versorger sollen ihren Strom vollständig aus glaubwürdigem Ökostrom decken.
+- id: 17
+  measure_id: EN_13
+  question: Die Kommune soll Bürgerenergiegenossenschaften aktiv unterstützen.
+- id: 18
+  measure_id: IWK_05
+  question: Die Kommune soll mit Industrie, Handwerk und Wirtschaft einen dauerhaften Nachhaltigkeitsdialog mit konkreten Projekten etablieren.
+- id: 19
+  measure_id: IWK_10
+  question: Die Kommune soll Repaircafés sichtbar unterstützen.
+- id: 20
+  measure_id: IWK_11
+  question: Die Kommune soll eine Verpackungssteuer auf Einwegverpackungen einführen.
+- id: 21
+  measure_id: IWK_03
+  question: Die kommunale Kläranlage soll bis 2035 energieautark werden.
+- id: 22
+  measure_id: IWK_08
+  question: Die Kommune soll eine verbindliche Zero-Waste-Strategie beschließen und umsetzen.
+- id: 23
+  measure_id: KV_08
+  question: Klimaschutz soll in der Verwaltung auf Leitungsebene organisatorisch verankert werden.
+- id: 24
+  measure_id: KV_10
+  question: Die Kommune soll ein sektorübergreifendes Klimaschutzkonzept mit dem Ziel Klimaneutralität bis 2035 beschließen.
+- id: 25
+  measure_id: KV_11
+  question: Beschäftigte der kommunalen Verwaltung sollen ein kostenloses Deutschlandticket oder ein gleichwertiges Dienstrad-Angebot erhalten.
+- id: 26
+  measure_id: KV_02
+  question: Die Kommune soll Bürgerbeteiligung beim Klimaschutz verbindlich und wirksam stärken.
+- id: 27
+  measure_id: KV_03
+  question: Die Kommune soll einen lokalen Klimafonds für konkrete Projekte einrichten.
+- id: 28
+  measure_id: KV_07
+  question: Für politische Beschlüsse der Kommune soll eine Klimarelevanzprüfung eingeführt werden.
+- id: 29
+  measure_id: KV_09
+  question: Die Kommune soll ihre Klimaschutzmaßnahmen regelmäßig, öffentlich und unabhängig überprüfen lassen.
+- id: 30
+  measure_id: VK_03
+  question: An wichtigen Bahnhöfen und ÖPNV-Knotenpunkten sollen sichere Bike-and-Ride-Anlagen entstehen.
+- id: 31
+  measure_id: VK_05
+  question: Die Kommune soll den ÖPNV ausbauen und im Stadtgebiet beschleunigen.
+- id: 32
+  measure_id: VK_08
+  question: Der kommunale ÖPNV soll bis 2030 vollständig elektrifiziert werden.
+- id: 33
+  measure_id: VK_20
+  question: Die Kommune soll einen transparenten Mängelmelder für Radwege einführen.
+- id: 34
+  measure_id: VK_06
+  question: Die Kommune soll Carsharing gezielt fördern.
+- id: 35
+  measure_id: VK_16
+  question: Die Kommune soll das Radverkehrsnetz mit sicherer Infrastruktur ausbauen.
+- id: 36
+  measure_id: VK_01
+  question: Die Kommune soll die öffentliche Ladeinfrastruktur mit klaren Ausbauzielen erweitern.
+- id: 37
+  measure_id: VK_04
+  question: Die Kommune soll bis 2030 einen Teil der Kfz-Parkplätze für klimafreundliche Nutzungen umwidmen.

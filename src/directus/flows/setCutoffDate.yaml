@@ -1,25 +1,26 @@
 name: setCutoffDate
 icon: event
 color: "#e67e22"
-description: Sets the cutoff date for the current localteam.
+description: Sets the cutoff date for the candidate survey.
 status: active
 trigger: manual
 accountability: all
 options:
+  requireSelection: false
   collections:
     - localteams
     - questions
     - candidate
   fields:
     - field: cutoff_date
-      name: Stichtag (Cutoff Date)
+      name: Stichtag
       type: dateTime
       meta:
         interface: datetime
-        required: true
+        width: full
 operations:
   - name: Update Localteam
-    key: set_cutoff_date_update_localteam
+    key: set_cutoff_date_update
     type: item-update
     position_x: 20
     position_y: 1
@@ -27,7 +28,7 @@ operations:
       collection: localteams
       key: "{{set_cutoff_date_resolve_id}}"
       payload:
-        cutoff_date: "{{$trigger.body.payload.cutoff_date}}"
+        cutoff_date: "{{$trigger.body.data.cutoff_date}}"
   - name: Resolve Localteam ID
     key: set_cutoff_date_resolve_id
     type: script
@@ -37,17 +38,33 @@ operations:
       code: >
         module.exports = async function(data) {
           const { collection, keys } = data.$trigger.body;
-          const id = keys[0];
           const { ItemsService } = data.services;
           const schema = data.schema;
           const accountability = data.accountability;
 
-          if (collection === 'localteams') return id;
+          if (keys && keys.length > 0) {
+            const id = keys[0];
+            if (collection === 'localteams') return id;
 
-          const service = new ItemsService(collection, { schema, accountability });
-          const item = await service.readOne(id, { fields: ['localteam'] });
+            const service = new ItemsService(collection, { schema, accountability });
+            const item = await service.readOne(id, { fields: ['localteam'] });
+            if (item && item.localteam) return item.localteam;
+          }
 
-          return item.localteam;
+          // Resolve from current user
+          const userId = accountability.user;
+          if (!userId) return null;
+
+          const junctionService = new ItemsService('junction_directus_users_localteams', { schema, accountability });
+          const junctions = await junctionService.readByQuery({
+            filter: { directus_users_id: { _eq: userId } },
+            limit: 1
+          });
+          if (junctions && junctions.length > 0) {
+            return junctions[0].localteam_id;
+          }
+
+          return null;
         }
-    resolve_key: set_cutoff_date_update_localteam
+    resolve_key: set_cutoff_date_update
 operation_key: set_cutoff_date_resolve_id

@@ -357,37 +357,6 @@ permissions:
       - localteam_id
       - email
       - id
-  - collection: election_config
-    action: create
-    permissions:
-      localteam:
-        _in:
-          - $CURRENT_USER.localteams.localteam_id
-    validation: null
-    presets:
-      localteam: $CURRENT_USER.localteams.localteam_id
-    fields:
-      - "*"
-  - collection: election_config
-    action: read
-    permissions:
-      localteam:
-        _in:
-          - $CURRENT_USER.localteams.localteam_id
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: election_config
-    action: update
-    permissions:
-      localteam:
-        _in:
-          - $CURRENT_USER.localteams.localteam_id
-    validation: null
-    presets: null
-    fields:
-      - "*"
   - collection: external_projects
     action: create
     permissions: null
@@ -468,6 +437,8 @@ permissions:
     fields:
       - public_contact
       - cutoff_date
+      - emails_sent
+      - questions_generated
   - collection: measure_catalog
     action: read
     permissions:

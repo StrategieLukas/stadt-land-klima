@@ -1,31 +1,28 @@
-collection: election_config
+collection: localteams
 field: cutoff_date
-type: dateTime
+type: timestamp
 meta:
-  collection: election_config
-  conditions: null
-  display: null
-  display_options: null
+  collection: localteams
   field: cutoff_date
   group: null
   hidden: false
   interface: datetime
-  note: null
+  note: Deadline for candidate survey submissions.
   options: null
   readonly: false
   required: false
-  sort: 3
+  sort: 100
   special: null
   translations:
     - language: de-DE
-      translation: Stichtag (Cutoff Date)
+      translation: Stichtag (Wahl-Check)
   validation: null
   validation_message: null
   width: half
 schema:
   name: cutoff_date
-  table: election_config
-  data_type: timestamp without time zone
+  table: localteams
+  data_type: timestamp with time zone
   default_value: null
   max_length: null
   numeric_precision: null

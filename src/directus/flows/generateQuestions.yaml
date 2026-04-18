@@ -6,6 +6,7 @@ status: active
 trigger: manual
 accountability: all
 options:
+  requireSelection: false
   collections:
     - localteams
     - questions
@@ -32,6 +33,7 @@ operations:
       fields:
         - id
         - municipality_id
+    resolve_key: calculate_measures
   - name: Create Questions
     key: create_questions
     type: script
@@ -74,15 +76,16 @@ operations:
               applicable: { _eq: true },
               rating: { _nnull: true }
             },
-            fields: ['measure_id', 'rating', 'measure.weight', 'measure.name'],
+            fields: ['measure_id.measure_id', 'rating', 'measure_id.weight'],
             limit: -1
           });
 
           const sorted = ratings
             .map(r => ({
-              measure_id: r.measure_id,
-              potential: (1 - (parseFloat(r.rating) || 0)) * (r.measure?.weight || 0)
+              measure_id: r.measure_id?.measure_id,
+              potential: (1 - (parseFloat(r.rating) || 0)) * (r.measure_id?.weight || 0)
             }))
+            .filter(r => r.measure_id)
             .sort((a, b) => b.potential - a.potential)
             .slice(0, 10);
 
@@ -110,18 +113,33 @@ operations:
       code: >
         module.exports = async function(data) {
           const { collection, keys } = data.$trigger.body;
-          const id = keys[0];
           const { ItemsService } = data.services;
           const schema = data.schema;
           const accountability = data.accountability;
 
-          if (collection === 'localteams') return id;
+          if (keys && keys.length > 0) {
+            const id = keys[0];
+            if (collection === 'localteams') return id;
 
-          const service = new ItemsService(collection, { schema, accountability });
-          const item = await service.readOne(id, { fields: ['localteam'] });
+            const service = new ItemsService(collection, { schema, accountability });
+            const item = await service.readOne(id, { fields: ['localteam'] });
+            if (item && item.localteam) return item.localteam;
+          }
 
-          // In 'questions' and 'candidate' collections, the field is named 'localteam'
-          return item.localteam;
+          // Resolve from current user
+          const userId = accountability.user;
+          if (!userId) return null;
+
+          const junctionService = new ItemsService('junction_directus_users_localteams', { schema, accountability });
+          const junctions = await junctionService.readByQuery({
+            filter: { directus_users_id: { _eq: userId } },
+            limit: 1
+          });
+          if (junctions && junctions.length > 0) {
+            return junctions[0].localteam_id;
+          }
+
+          return null;
         }
     resolve_key: read_localteam
 operation_key: generate_questions_resolve_id

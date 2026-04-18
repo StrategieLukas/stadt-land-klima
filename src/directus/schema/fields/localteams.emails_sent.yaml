@@ -1,30 +1,28 @@
-collection: election_config
-field: questions_generated
+collection: localteams
+field: emails_sent
 type: boolean
 meta:
-  collection: election_config
-  conditions: null
-  display: null
-  display_options: null
-  field: questions_generated
+  collection: localteams
+  field: emails_sent
   group: null
   hidden: false
-  interface: boolean
-  note: null
+  interface: toggle
+  note: Whether candidate survey emails have been sent.
   options: null
   readonly: true
   required: false
-  sort: 5
-  special: null
+  sort: 101
+  special:
+    - boolean
   translations:
     - language: de-DE
-      translation: Thesen generiert
+      translation: E-Mails gesendet
   validation: null
   validation_message: null
   width: half
 schema:
-  name: questions_generated
-  table: election_config
+  name: emails_sent
+  table: localteams
   data_type: boolean
   default_value: false
   max_length: null
