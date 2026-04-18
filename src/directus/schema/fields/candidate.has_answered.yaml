@@ -27,6 +27,7 @@ schema:
   table: candidate
   data_type: boolean
   default_value: false
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

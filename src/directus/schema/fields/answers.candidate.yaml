@@ -4,15 +4,16 @@ type: uuid
 meta:
   collection: answers
   conditions: null
-  display: null
-  display_options: null
+  display: related-values
+  display_options:
+    template: "{{name}}"
   field: candidate
   group: null
   hidden: false
   interface: select-dropdown-m2o
   note: null
   options:
-    template: '{{name}} ({{email}})'
+    template: "{{name}}"
   readonly: false
   required: true
   sort: 2

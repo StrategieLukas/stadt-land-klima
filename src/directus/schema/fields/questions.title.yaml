@@ -14,14 +14,14 @@ meta:
   options: null
   readonly: false
   required: true
-  sort: 2
+  sort: 3
   special: null
   translations:
     - language: de-DE
       translation: Titel
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: title
   table: questions

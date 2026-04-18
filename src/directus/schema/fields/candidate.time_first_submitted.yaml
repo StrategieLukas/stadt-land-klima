@@ -14,7 +14,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 4
+  sort: 5
   special: null
   translations:
     - language: de-DE
@@ -27,6 +27,7 @@ schema:
   table: candidate
   data_type: timestamp with time zone
   default_value: null
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

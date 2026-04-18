@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: candidate
   color: null
-  display_template: '{{name}} ({{email}})'
+  display_template: "{{name}}"
   group: null
   hidden: false
   icon: null
@@ -19,7 +19,7 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Kandidat der Thesen ausfüllt
+      translation: Kandidaten
       singular: Kandidat
       plural: Kandidaten
   unarchive_value: null

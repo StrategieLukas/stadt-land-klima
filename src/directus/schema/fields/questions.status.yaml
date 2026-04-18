@@ -41,14 +41,14 @@ meta:
         color: var(--theme--warning)
   readonly: false
   required: false
-  sort: 3
+  sort: 4
   special: null
   translations:
     - language: de-DE
       translation: Status
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: status
   table: questions

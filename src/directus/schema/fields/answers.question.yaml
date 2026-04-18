@@ -4,15 +4,16 @@ type: uuid
 meta:
   collection: answers
   conditions: null
-  display: null
-  display_options: null
+  display: related-values
+  display_options:
+    template: "{{title}}"
   field: question
   group: null
   hidden: false
   interface: select-dropdown-m2o
   note: null
   options:
-    template: '{{localteam.municipality_name}}: {{title}}'
+    template: "{{title}}"
   readonly: false
   required: true
   sort: 3
@@ -23,7 +24,7 @@ meta:
       translation: These
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: question
   table: answers

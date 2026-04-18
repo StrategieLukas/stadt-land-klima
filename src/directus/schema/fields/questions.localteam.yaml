@@ -4,8 +4,9 @@ type: uuid
 meta:
   collection: questions
   conditions: null
-  display: null
-  display_options: null
+  display: related-values
+  display_options:
+    template: "{{municipality_name}}"
   field: localteam
   group: null
   hidden: false
@@ -16,7 +17,7 @@ meta:
     template: "{{municipality_name}}"
   readonly: false
   required: true
-  sort: 9
+  sort: 2
   special:
     - m2o
   translations:

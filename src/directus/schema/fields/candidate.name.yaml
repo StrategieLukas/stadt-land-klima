@@ -21,7 +21,7 @@ meta:
       translation: Name
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: name
   table: candidate

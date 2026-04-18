@@ -201,6 +201,52 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: candidate
+    action: delete
+    permissions:
+      _and:
+        - questions:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
+    validation:
+      has_answered:
+        _neq: true
+    presets: null
+    fields: null
+  - collection: candidate
+    action: read
+    permissions:
+      _and:
+        - questions:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: candidate
+    action: update
+    permissions:
+      _and:
+        - questions:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
+    validation:
+      has_answered:
+        _neq: true
+    presets: null
+    fields:
+      - name
+      - email
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
   - collection: directus_files
     action: create
     permissions: {}
@@ -485,6 +531,20 @@ permissions:
       - score_agriculture
       - score_energy
       - rank
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - short_description
+      - link
+      - logo
+      - id
+      - social_media_segment
+      - linkedin
+      - instagram
   - collection: questions
     action: create
     permissions: null
@@ -495,6 +555,21 @@ permissions:
       - localteam
       - title
       - thesis
+  - collection: questions
+    action: delete
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation:
+      answers:
+        _func:
+          count:
+            _eq: 0
+    presets: null
+    fields: null
   - collection: questions
     action: read
     permissions:
@@ -530,81 +605,6 @@ permissions:
       - localteam
       - title
       - thesis
-  - collection: questions
-    action: delete
-    permissions:
-      _and:
-        - localteam:
-            id:
-              _in:
-                - $CURRENT_USER.localteams.localteam_id
-    validation:
-      answers:
-        _func:
-          count:
-            _eq: 0
-    presets: null
-    fields: null
-  - collection: candidate
-    action: read
-    permissions:
-      _and:
-        - questions:
-            localteam:
-              id:
-                _in:
-                  - $CURRENT_USER.localteams.localteam_id
-    validation: null
-    presets: null
-    fields:
-      - "*"
-  - collection: candidate
-    action: delete
-    permissions:
-      _and:
-        - questions:
-            localteam:
-              id:
-                _in:
-                  - $CURRENT_USER.localteams.localteam_id
-    validation:
-      has_answered:
-        _neq: true
-    presets: null
-    fields: null
-  - collection: candidate
-    action: update
-    permissions:
-      _and:
-        - questions:
-            localteam:
-              id:
-                _in:
-                  - $CURRENT_USER.localteams.localteam_id
-    validation:
-      has_answered:
-        _neq: true
-    presets: null
-    fields:
-      - name
-      - email
-      - has_answered
-      - time_first_submitted
-      - time_last_edited
-  - collection: organisations
-    action: read
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - name
-      - short_description
-      - link
-      - logo
-      - id
-      - social_media_segment
-      - linkedin
-      - instagram
   - collection: ratings_measures
     action: read
     permissions:
