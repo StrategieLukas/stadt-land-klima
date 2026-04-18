@@ -1,0 +1,51 @@
+{% layout "custom-base" %} {% block content %}
+
+<h1>Ihre Einladung zum Thesen-Check für {{ municipality_name }}</h1>
+
+<p>Sehr geehrte/r {{ candidate_name }},</p>
+
+<p>
+  wir laden Sie herzlich ein, am Thesen-Check für {{ municipality_name }} teilzunehmen.
+  Ihre Antworten helfen den Bürgerinnen und Bürgern, sich ein Bild von Ihren Positionen zu wichtigen Klimaschutz-Themen zu machen.
+</p>
+
+<p>
+  Unter dem folgenden Link gelangen Sie zu Ihrem persönlichen Formular:
+</p>
+
+<p style="padding: 20px 0;">
+  <a
+    class="button"
+    rel="noopener"
+    target="_blank"
+    href="{{ personal_link }}"
+    style="
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      text-decoration: none;
+      display: inline-block;
+      padding: 11px 24px;
+      border-radius: 8px;
+      background: #171717;
+      border: 1px solid #ffffff;
+    "
+  >
+    Zum persönlichen Formular
+  </a>
+</p>
+
+<p>
+  Bitte füllen Sie das Formular bis zum <strong>{{ cutoff_date }}</strong> aus.
+  Nach diesem Datum können keine Antworten mehr entgegengenommen werden.
+</p>
+
+<p>
+  Bei Fragen wenden Sie sich bitte an Ihr lokales Team oder kontaktieren Sie uns unter info@stadt-land-klima.de.
+</p>
+
+<p>
+  Viel Erfolg bei der Kommunalwahl!
+</p>
+
+{% endblock %}
