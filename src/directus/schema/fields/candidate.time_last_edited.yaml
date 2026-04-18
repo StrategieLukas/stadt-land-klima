@@ -12,7 +12,7 @@ meta:
   interface: datetime
   note: null
   options: null
-  readonly: false
+  readonly: true
   required: false
   sort: 6
   special: null

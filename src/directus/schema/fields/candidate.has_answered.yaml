@@ -12,7 +12,7 @@ meta:
   interface: boolean
   note: null
   options: null
-  readonly: false
+  readonly: true
   required: false
   sort: 3
   special: null
