@@ -8,14 +8,14 @@ meta:
   collection: localteams
   color: null
   display_template: "{{municipality_name}} ({{name}})"
-  group: null
+  group: team
   hidden: false
   icon: null
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: null
+  sort: 2
   sort_field: null
   translations:
     - language: de-DE

@@ -8,14 +8,14 @@ meta:
   collection: municipality_scores
   color: null
   display_template: null
-  group: null
+  group: rating
   hidden: true
   icon: null
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: null
+  sort: 1
   sort_field: null
   translations:
     - language: de-DE

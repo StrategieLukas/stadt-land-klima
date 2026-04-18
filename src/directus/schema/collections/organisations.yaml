@@ -8,14 +8,14 @@ meta:
   collection: organisations
   color: null
   display_template: null
-  group: null
+  group: success_projects
   hidden: false
   icon: null
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: null
+  sort: 5
   sort_field: null
   translations:
     - language: de-DE

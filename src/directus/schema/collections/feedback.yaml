@@ -8,14 +8,14 @@ meta:
   collection: feedback
   color: null
   display_template: null
-  group: null
+  group: admin_tools
   hidden: false
   icon: null
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: null
+  sort: 1
   sort_field: null
   translations: null
   unarchive_value: draft

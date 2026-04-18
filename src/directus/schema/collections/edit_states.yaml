@@ -7,15 +7,15 @@ meta:
   collapse: open
   collection: edit_states
   color: null
-  display_template: '{{entity_type}}/{{entity_uuid}} - {{state}}'
-  group: null
+  display_template: "{{entity_type}}/{{entity_uuid}} - {{state}}"
+  group: admin_tools
   hidden: false
   icon: edit_note
   item_duplication_fields: null
   note: Tracks editing state and mutations for blökkli editor sessions
   preview_url: null
   singleton: false
-  sort: null
+  sort: 3
   sort_field: null
   translations:
     - language: de-DE
