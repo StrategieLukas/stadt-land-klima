@@ -43,7 +43,9 @@ meta:
   required: false
   sort: 3
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Status
   validation: null
   validation_message: null
   width: full

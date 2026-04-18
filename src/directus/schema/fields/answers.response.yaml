@@ -4,21 +4,66 @@ type: integer
 meta:
   collection: answers
   conditions: null
-  display: null
-  display_options: null
+  display: labels
+  display_options:
+    choices:
+      - text: stark dagegen
+        value: 0
+        foreground: '#ffffff'
+        background: '#e60000'
+      - text: eher dagegen
+        value: 1
+        foreground: '#ffffff'
+        background: '#ff6666'
+      - text: neutral
+        value: 2
+        foreground: '#000000'
+        background: '#cccccc'
+      - text: eher dafür
+        value: 3
+        foreground: '#ffffff'
+        background: '#99cc99'
+      - text: stark dafür
+        value: 4
+        foreground: '#ffffff'
+        background: '#1da64a'
+      - text: n/a
+        value: -1
+        foreground: '#000000'
+        background: '#eeeeee'
+      - text: neutral
+        value: 5
+        foreground: '#000000'
+        background: '#cccccc'
+    showAsDot: true
   field: response
   group: null
   hidden: false
-  interface: slider
+  interface: select-dropdown
   note: null
   options:
-    maxValue: 4
-    minValue: 0
+    choices:
+      - text: stark dagegen
+        value: 0
+      - text: eher dagegen
+        value: 1
+      - text: neutral
+        value: 2
+      - text: eher dafür
+        value: 3
+      - text: stark dafür
+        value: 4
+      - text: n/a
+        value: -1
+      - text: neutral
+        value: 5
   readonly: false
   required: true
   sort: 4
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Antwort
   validation: null
   validation_message: null
   width: full

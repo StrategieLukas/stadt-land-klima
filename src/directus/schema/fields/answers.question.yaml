@@ -17,7 +17,9 @@ meta:
   sort: 3
   special:
     - m2o
-  translations: null
+  translations:
+    - language: de-DE
+      translation: These
   validation: null
   validation_message: null
   width: full

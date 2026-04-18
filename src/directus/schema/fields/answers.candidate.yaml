@@ -17,7 +17,9 @@ meta:
   sort: 2
   special:
     - m2o
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Kandidat
   validation: null
   validation_message: null
   width: full

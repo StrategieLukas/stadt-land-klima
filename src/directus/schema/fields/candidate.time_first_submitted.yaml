@@ -1,33 +1,32 @@
-collection: questions
-field: thesis
-type: text
+collection: candidate
+field: time_first_submitted
+type: timestamp
 meta:
-  collection: questions
+  collection: candidate
   conditions: null
-  display: null
+  display: datetime
   display_options: null
-  field: thesis
+  field: time_first_submitted
   group: null
   hidden: false
-  interface: input-rich-text-md
+  interface: datetime
   note: null
   options: null
   readonly: false
-  required: true
-  sort: 8
+  required: false
+  sort: 4
   special: null
   translations:
     - language: de-DE
-      translation: These (Text)
+      translation: Zuerst eingereicht
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: thesis
-  table: questions
-  data_type: text
+  name: time_first_submitted
+  table: candidate
+  data_type: timestamp with time zone
   default_value: null
-  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

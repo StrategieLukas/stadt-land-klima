@@ -13,12 +13,15 @@ meta:
   note: null
   options:
     enableCreate: false
+    template: "{{municipality_name}}"
   readonly: false
   required: true
   sort: 9
   special:
     - m2o
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Lokalteam
   validation: null
   validation_message: null
   width: full

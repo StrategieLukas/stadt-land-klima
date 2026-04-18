@@ -137,6 +137,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: candidate
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - has_answered
   - collection: directus_files
     action: read
     permissions: {}

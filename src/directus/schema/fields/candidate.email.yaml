@@ -1,33 +1,33 @@
-collection: questions
-field: thesis
-type: text
+collection: candidate
+field: email
+type: string
 meta:
-  collection: questions
+  collection: candidate
   conditions: null
   display: null
   display_options: null
-  field: thesis
+  field: email
   group: null
   hidden: false
-  interface: input-rich-text-md
+  interface: input
   note: null
   options: null
   readonly: false
-  required: true
-  sort: 8
+  required: false
+  sort: 6
   special: null
   translations:
     - language: de-DE
-      translation: These (Text)
+      translation: E-Mail
   validation: null
   validation_message: null
   width: full
 schema:
-  name: thesis
-  table: questions
-  data_type: text
+  name: email
+  table: candidate
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

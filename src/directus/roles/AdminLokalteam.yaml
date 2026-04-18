@@ -485,6 +485,97 @@ permissions:
       - score_agriculture
       - score_energy
       - rank
+  - collection: questions
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - status
+      - localteam
+      - title
+      - thesis
+  - collection: questions
+    action: read
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - user_created
+      - date_created
+      - user_updated
+      - date_updated
+      - localteam
+      - title
+      - thesis
+  - collection: questions
+    action: update
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - status
+      - localteam
+      - title
+      - thesis
+  - collection: questions
+    action: delete
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation:
+      answers:
+        _func:
+          count:
+            _eq: 0
+    presets: null
+    fields: null
+  - collection: candidate
+    action: read
+    permissions:
+      _and:
+        - questions:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: candidate
+    action: delete
+    permissions: null
+    validation:
+      has_answered:
+        _neq: true
+    presets: null
+    fields: null
+  - collection: candidate
+    action: update
+    permissions: null
+    validation:
+      has_answered:
+        _neq: true
+    presets: null
+    fields:
+      - name
+      - email
   - collection: organisations
     action: read
     permissions: null

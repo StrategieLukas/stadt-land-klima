@@ -219,6 +219,20 @@ async function submitAnswers() {
 
     await Promise.all(operations)
 
+    // Update candidate indicator and timestamps
+    const now = new Date().toISOString()
+    const candidateUpdate = {
+      has_answered: true,
+      time_last_edited: now
+    }
+
+    // Only set time_first_submitted if it's the first time
+    if (!candidate.value?.time_first_submitted) {
+      candidateUpdate.time_first_submitted = now
+    }
+
+    await $directus.request(updateItem('candidate', candidateUuid, candidateUpdate))
+
     submitted.value = true
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (e) {

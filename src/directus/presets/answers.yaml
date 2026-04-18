@@ -1,0 +1,28 @@
+bookmark: null
+user: null
+role: null
+collection: answers
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - question.localteam
+      - candidate
+      - question
+      - response
+      - explanation
+    sort:
+      - -date_created
+layout_options:
+  tabular:
+    widths:
+      question.localteam: 200
+      candidate: 200
+      question: 300
+      response: 150
+      explanation: 400
+refresh_interval: null
+filter: null
+icon: forum
+color: null

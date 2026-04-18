@@ -1,33 +1,32 @@
-collection: questions
-field: thesis
-type: text
+collection: candidate
+field: has_answered
+type: boolean
 meta:
-  collection: questions
+  collection: candidate
   conditions: null
-  display: null
+  display: boolean
   display_options: null
-  field: thesis
+  field: has_answered
   group: null
   hidden: false
-  interface: input-rich-text-md
+  interface: boolean
   note: null
   options: null
   readonly: false
-  required: true
-  sort: 8
+  required: false
+  sort: 3
   special: null
   translations:
     - language: de-DE
-      translation: These (Text)
+      translation: Hat geantwortet
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: thesis
-  table: questions
-  data_type: text
-  default_value: null
-  max_length: null
+  name: has_answered
+  table: candidate
+  data_type: boolean
+  default_value: false
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

@@ -1,0 +1,24 @@
+bookmark: null
+user: null
+role: null
+collection: questions
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - status
+      - title
+      - thesis
+    sort:
+      - date_created
+layout_options:
+  tabular:
+    widths:
+      status: 120
+      title: 300
+      thesis: 500
+refresh_interval: null
+filter: null
+icon: help_outline
+color: null
