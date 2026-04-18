@@ -46,12 +46,16 @@ operations:
           const localteam_id = data.read_localteam.id;
           const questionsService = new data.services.ItemsService('questions', { schema: data.schema, accountability: data.accountability });
 
+          // Sort templates to match the order from calculate_measures
+          const measureOrder = data.calculate_measures;
+          templates.sort((a, b) => measureOrder.indexOf(a.measure_id) - measureOrder.indexOf(b.measure_id));
+
           const results = [];
           for (const template of templates) {
             const created = await questionsService.createOne({
               localteam: localteam_id,
-              title: template.measure_id,
-              thesis: template.question,
+              title: template.title,
+              thesis: template.thesis,
               status: 'published'
             });
             results.push(created);
@@ -76,17 +80,31 @@ operations:
               applicable: { _eq: true },
               rating: { _nnull: true }
             },
-            fields: ['measure_id.measure_id', 'rating', 'measure_id.weight'],
+            fields: ['measure_id.measure_id', 'rating', 'measure_id.weight', 'measure_id.feasibility_political', 'measure_id.feasibility_economical'],
             limit: -1
           });
 
           const sorted = ratings
-            .map(r => ({
-              measure_id: r.measure_id?.measure_id,
-              potential: (1 - (parseFloat(r.rating) || 0)) * (r.measure_id?.weight || 0)
-            }))
+            .map(r => {
+              const rating = parseFloat(r.rating) || 0;
+              const weight = r.measure_id?.weight || 0;
+              const feasibilityPolitical = parseFloat(r.measure_id?.feasibility_political) || 0;
+              const feasibilityEconomical = parseFloat(r.measure_id?.feasibility_economical) || 0;
+              const potential = (1 - rating) * weight;
+              const difficulty = (feasibilityPolitical + feasibilityEconomical) / 2;
+
+              return {
+                measure_id: r.measure_id?.measure_id,
+                potential,
+                difficulty
+              };
+            })
             .filter(r => r.measure_id)
-            .sort((a, b) => b.potential - a.potential)
+            .sort((a, b) => {
+                if (b.potential !== a.potential) return b.potential - a.potential;
+                if (a.difficulty !== b.difficulty) return a.difficulty - b.difficulty;
+                return a.measure_id.localeCompare(b.measure_id);
+            })
             .slice(0, 10);
 
           return sorted.map(s => s.measure_id);
@@ -100,6 +118,10 @@ operations:
     options:
       collection: measure_questions_template
       query:
+        fields:
+          - measure_id
+          - title
+          - thesis
         filter:
           measure_id:
             _in: "{{calculate_measures}}"
@@ -139,7 +161,7 @@ operations:
             return junctions[0].localteam_id;
           }
 
-          return null;
+          throw new Error("Konnte kein Lokalteam für den aktuellen Benutzer finden.");
         }
     resolve_key: read_localteam
 operation_key: generate_questions_resolve_id

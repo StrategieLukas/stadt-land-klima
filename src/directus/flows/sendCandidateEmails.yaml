@@ -21,6 +21,7 @@ operations:
       code: >
         module.exports = async function(data) {
           const localteam_id = data.send_candidate_emails_resolve_id;
+          if (!localteam_id) throw new Error("Lokalteam konnte nicht ermittelt werden.");
           const { ItemsService, MailService, CryptoService } = data.services;
           const schema = data.schema;
           const accountability = { ...data.accountability, admin: true };
@@ -28,7 +29,7 @@ operations:
           const localteamService = new ItemsService('localteams', { schema, accountability });
           const candidateService = new ItemsService('candidate', { schema, accountability });
           const questionService = new ItemsService('questions', { schema, accountability });
-          const mailService = new MailService({ schema, accountability });
+          const mailService = new MailService({ schema, knex: data.database });
           const crypto = new CryptoService();
 
           const localteam = await localteamService.readOne(localteam_id);
@@ -51,7 +52,11 @@ operations:
           for (const candidate of candidates) {
             let token = candidate.access_token;
             if (!token) {
-              token = crypto.randomBytes(16).toString('hex');
+              try {
+                token = crypto.randomBytes(16).toString('hex');
+              } catch (e) {
+                token = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+              }
               await candidateService.updateOne(candidate.id, { access_token: token });
             }
 
@@ -111,7 +116,7 @@ operations:
             return junctions[0].localteam_id;
           }
 
-          return null;
+          throw new Error("Konnte kein Lokalteam für den aktuellen Benutzer finden.");
         }
     resolve_key: process_emails
 operation_key: send_candidate_emails_resolve_id

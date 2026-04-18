@@ -14,7 +14,7 @@ options:
   fields:
     - field: cutoff_date
       name: Stichtag
-      type: dateTime
+      type: timestamp
       meta:
         interface: datetime
         width: full
@@ -64,7 +64,7 @@ operations:
             return junctions[0].localteam_id;
           }
 
-          return null;
+          throw new Error("Konnte kein Lokalteam für den aktuellen Benutzer finden.");
         }
     resolve_key: set_cutoff_date_update
 operation_key: set_cutoff_date_resolve_id

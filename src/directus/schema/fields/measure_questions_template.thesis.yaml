@@ -1,12 +1,12 @@
 collection: measure_questions_template
-field: question
+field: thesis
 type: text
 meta:
   collection: measure_questions_template
   conditions: null
   display: null
   display_options: null
-  field: question
+  field: thesis
   group: null
   hidden: false
   interface: input-rich-text-md
@@ -18,12 +18,12 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Frage (Vorlage)
+      translation: These (Vorlage)
   validation: null
   validation_message: null
   width: full
 schema:
-  name: question
+  name: thesis
   table: measure_questions_template
   data_type: text
   default_value: null
