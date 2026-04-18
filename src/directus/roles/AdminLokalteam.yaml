@@ -283,7 +283,6 @@ permissions:
       name:
         _in:
           - generateQuestions
-          - sendCandidateEmails
           - setCutoffDate
     validation: null
     presets: null
