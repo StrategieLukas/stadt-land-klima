@@ -1,0 +1,134 @@
+collection: candidate
+field: party
+type: string
+meta:
+  collection: candidate
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: parteilos
+        value: parteilos
+        foreground: "#ffffff"
+        background: "#9ca3af"
+      - text: CDU/CSU
+        value: Union
+        foreground: "#ffffff"
+        background: "#000000"
+      - text: AfD
+        value: AfD
+        foreground: "#ffffff"
+        background: "#009ee0"
+      - text: SPD
+        value: SPD
+        foreground: "#ffffff"
+        background: "#e3000f"
+      - text: Grüne
+        value: Gruene
+        foreground: "#ffffff"
+        background: "#46962b"
+      - text: Die Linke
+        value: Linke
+        foreground: "#ffffff"
+        background: "#be3075"
+      - text: BSW
+        value: BSW
+        foreground: "#ffffff"
+        background: "#7b2e5a"
+      - text: FDP
+        value: FDP
+        foreground: "#000000"
+        background: "#ffed00"
+      - text: Volt
+        value: Volt
+        foreground: "#ffffff"
+        background: "#502379"
+      - text: Die PARTEI
+        value: PARTEI
+        foreground: "#ffffff"
+        background: "#b5152b"
+      - text: Freie Wähler
+        value: FW
+        foreground: "#ffffff"
+        background: "#f5a300"
+      - text: ÖDP
+        value: Oedp
+        foreground: "#ffffff"
+        background: "#f29400"
+      - text: Piraten
+        value: Piraten
+        foreground: "#ffffff"
+        background: "#ff8800"
+      - text: Klimaliste
+        value: Klimaliste
+        foreground: "#ffffff"
+        background: "#00a09a"
+      - text: Tierschutzpartei
+        value: Tierschutzpartei
+        foreground: "#ffffff"
+        background: "#00645c"
+  field: party
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    allowNone: false
+    allowOther: true
+    choices:
+      - text: parteilos
+        value: parteilos
+      - text: CDU/CSU
+        value: Union
+      - text: AfD
+        value: AfD
+      - text: SPD
+        value: SPD
+      - text: Grüne
+        value: Gruene
+      - text: Die Linke
+        value: Linke
+      - text: BSW
+        value: BSW
+      - text: FDP
+        value: FDP
+      - text: Volt
+        value: Volt
+      - text: Die PARTEI
+        value: PARTEI
+      - text: Freie Wähler
+        value: FW
+      - text: ÖDP
+        value: Oedp
+      - text: Piraten
+        value: Piraten
+      - text: Klimaliste
+        value: Klimaliste
+      - text: Tierschutzpartei
+        value: Tierschutzpartei
+  readonly: false
+  required: true
+  sort: 3
+  special: null
+  translations:
+    - language: de-DE
+      translation: Partei
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: party
+  table: candidate
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

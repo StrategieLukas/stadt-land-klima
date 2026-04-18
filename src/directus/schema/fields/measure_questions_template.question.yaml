@@ -1,33 +1,33 @@
-collection: candidate
-field: email
-type: string
+collection: measure_questions_template
+field: question
+type: text
 meta:
-  collection: candidate
+  collection: measure_questions_template
   conditions: null
   display: null
   display_options: null
-  field: email
+  field: question
   group: null
   hidden: false
-  interface: input
+  interface: input-rich-text-md
   note: null
   options: null
   readonly: false
   required: true
-  sort: 4
+  sort: 3
   special: null
   translations:
     - language: de-DE
-      translation: E-Mail
+      translation: Frage (Vorlage)
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: email
-  table: candidate
-  data_type: character varying
+  name: question
+  table: measure_questions_template
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

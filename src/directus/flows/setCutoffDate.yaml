@@ -1,0 +1,53 @@
+name: setCutoffDate
+icon: event
+color: "#e67e22"
+description: Sets the cutoff date for the current localteam.
+status: active
+trigger: manual
+accountability: all
+options:
+  collections:
+    - localteams
+    - questions
+    - candidate
+  fields:
+    - field: cutoff_date
+      name: Stichtag (Cutoff Date)
+      type: dateTime
+      meta:
+        interface: datetime
+        required: true
+operations:
+  - name: Update Localteam
+    key: set_cutoff_date_update_localteam
+    type: item-update
+    position_x: 20
+    position_y: 1
+    options:
+      collection: localteams
+      key: "{{set_cutoff_date_resolve_id}}"
+      payload:
+        cutoff_date: "{{$trigger.body.payload.cutoff_date}}"
+  - name: Resolve Localteam ID
+    key: set_cutoff_date_resolve_id
+    type: script
+    position_x: 5
+    position_y: 1
+    options:
+      code: >
+        module.exports = async function(data) {
+          const { collection, keys } = data.$trigger.body;
+          const id = keys[0];
+          const { ItemsService } = data.services;
+          const schema = data.schema;
+          const accountability = data.accountability;
+
+          if (collection === 'localteams') return id;
+
+          const service = new ItemsService(collection, { schema, accountability });
+          const item = await service.readOne(id, { fields: ['localteam'] });
+
+          return item.localteam;
+        }
+    resolve_key: set_cutoff_date_update_localteam
+operation_key: set_cutoff_date_resolve_id

@@ -1,0 +1,127 @@
+name: generateQuestions
+icon: question_answer
+color: "#3498db"
+description: Generates the top 10 questions for a localteam based on municipality ratings.
+status: active
+trigger: manual
+accountability: all
+options:
+  collections:
+    - localteams
+    - questions
+    - candidate
+operations:
+  - name: Update Localteam
+    key: generate_questions_update_localteam
+    type: item-update
+    position_x: 80
+    position_y: 1
+    options:
+      collection: localteams
+      key: "{{read_localteam.id}}"
+      payload:
+        questions_generated: true
+  - name: Get Localteam Data
+    key: read_localteam
+    type: item-read
+    position_x: 20
+    position_y: 1
+    options:
+      collection: localteams
+      key: "{{generate_questions_resolve_id}}"
+      fields:
+        - id
+        - municipality_id
+  - name: Create Questions
+    key: create_questions
+    type: script
+    position_x: 65
+    position_y: 1
+    options:
+      code: >
+        module.exports = async function(data) {
+          const templates = data.read_templates;
+          const localteam_id = data.read_localteam.id;
+          const questionsService = new data.services.ItemsService('questions', { schema: data.schema, accountability: data.accountability });
+
+          const results = [];
+          for (const template of templates) {
+            const created = await questionsService.createOne({
+              localteam: localteam_id,
+              title: template.measure_id,
+              thesis: template.question,
+              status: 'published'
+            });
+            results.push(created);
+          }
+          return results;
+        }
+    resolve_key: generate_questions_update_localteam
+  - name: Calculate Top 10 Measures
+    key: calculate_measures
+    type: script
+    position_x: 35
+    position_y: 1
+    options:
+      code: >
+        module.exports = async function(data) {
+          const { municipality_id } = data.read_localteam;
+          const ratingsService = new data.services.ItemsService('ratings_measures', { schema: data.schema, accountability: data.accountability });
+
+          const ratings = await ratingsService.readByQuery({
+            filter: {
+              municipality_id: { _eq: municipality_id },
+              applicable: { _eq: true },
+              rating: { _nnull: true }
+            },
+            fields: ['measure_id', 'rating', 'measure.weight', 'measure.name'],
+            limit: -1
+          });
+
+          const sorted = ratings
+            .map(r => ({
+              measure_id: r.measure_id,
+              potential: (1 - (parseFloat(r.rating) || 0)) * (r.measure?.weight || 0)
+            }))
+            .sort((a, b) => b.potential - a.potential)
+            .slice(0, 10);
+
+          return sorted.map(s => s.measure_id);
+        }
+    resolve_key: read_templates
+  - name: Read Question Templates
+    key: read_templates
+    type: item-read
+    position_x: 50
+    position_y: 1
+    options:
+      collection: measure_questions_template
+      query:
+        filter:
+          measure_id:
+            _in: "{{calculate_measures}}"
+    resolve_key: create_questions
+  - name: Resolve Localteam ID
+    key: generate_questions_resolve_id
+    type: script
+    position_x: 5
+    position_y: 1
+    options:
+      code: >
+        module.exports = async function(data) {
+          const { collection, keys } = data.$trigger.body;
+          const id = keys[0];
+          const { ItemsService } = data.services;
+          const schema = data.schema;
+          const accountability = data.accountability;
+
+          if (collection === 'localteams') return id;
+
+          const service = new ItemsService(collection, { schema, accountability });
+          const item = await service.readOne(id, { fields: ['localteam'] });
+
+          // In 'questions' and 'candidate' collections, the field is named 'localteam'
+          return item.localteam;
+        }
+    resolve_key: read_localteam
+operation_key: generate_questions_resolve_id

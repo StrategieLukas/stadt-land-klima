@@ -204,12 +204,9 @@ permissions:
   - collection: candidate
     action: read
     permissions:
-      _and:
-        - questions:
-            localteam:
-              id:
-                _in:
-                  - $CURRENT_USER.localteams.localteam_id
+      localteam:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
@@ -217,12 +214,9 @@ permissions:
   - collection: candidate
     action: update
     permissions:
-      _and:
-        - questions:
-            localteam:
-              id:
-                _in:
-                  - $CURRENT_USER.localteams.localteam_id
+      localteam:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id
     validation:
       has_answered:
         _neq: true
@@ -230,9 +224,11 @@ permissions:
     fields:
       - name
       - email
+      - party
       - has_answered
       - time_first_submitted
       - time_last_edited
+      - localteam
   - collection: directus_files
     action: create
     permissions: {}
@@ -254,10 +250,28 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: directus_flows
+    action: read
+    permissions:
+      name:
+        _in:
+          - generateQuestions
+          - setCutoffDate
+    validation: null
+    presets: null
+    fields:
+      - "*"
   - collection: directus_folders
     action: read
     permissions: {}
     validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_operations
+    action: read
+    permissions: {}
+    validation: null
     presets: null
     fields:
       - "*"
@@ -284,6 +298,26 @@ permissions:
     presets: null
     fields:
       - password
+  - collection: election_config
+    action: read
+    permissions:
+      localteam:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: election_config
+    action: update
+    permissions:
+      localteam:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - "*"
   - collection: external_projects
     action: create
     permissions: null
@@ -324,6 +358,46 @@ permissions:
       - title
       - link
       - description
+  - collection: junction_directus_users_localteams
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: localteams
+    action: read
+    permissions:
+      _and:
+        - id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - status
+      - name
+      - municipality_name
+      - admin_id
+      - public_contact
+      - slug
+      - municipality_id
+      - cutoff_date
+      - emails_sent
+      - questions_generated
+  - collection: localteams
+    action: update
+    permissions:
+      _and:
+        - id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - public_contact
+      - cutoff_date
   - collection: measure_catalog
     action: read
     permissions:
@@ -335,6 +409,13 @@ permissions:
     fields:
       - id
       - name
+  - collection: measure_questions_template
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
   - collection: measures
     action: read
     permissions:

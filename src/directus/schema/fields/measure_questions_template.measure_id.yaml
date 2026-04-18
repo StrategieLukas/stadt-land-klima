@@ -1,36 +1,37 @@
-collection: candidate
-field: email
+collection: measure_questions_template
+field: measure_id
 type: string
 meta:
-  collection: candidate
+  collection: measure_questions_template
   conditions: null
   display: null
   display_options: null
-  field: email
+  field: measure_id
   group: null
   hidden: false
   interface: input
   note: null
-  options: null
+  options:
+    placeholder: z.B. EN_01
   readonly: false
   required: true
-  sort: 4
+  sort: 2
   special: null
   translations:
     - language: de-DE
-      translation: E-Mail
+      translation: Maßnahmen-ID
   validation: null
   validation_message: null
   width: half
 schema:
-  name: email
-  table: candidate
+  name: measure_id
+  table: measure_questions_template
   data_type: character varying
   default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: true
+  is_nullable: false
   is_unique: false
   is_primary_key: false
   is_generated: false

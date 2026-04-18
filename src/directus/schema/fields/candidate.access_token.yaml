@@ -1,37 +1,38 @@
 collection: candidate
-field: email
-type: string
+field: access_token
+type: uuid
 meta:
   collection: candidate
   conditions: null
   display: null
   display_options: null
-  field: email
+  field: access_token
   group: null
   hidden: false
   interface: input
-  note: null
+  note: Secure token for personal link
   options: null
-  readonly: false
-  required: true
-  sort: 4
-  special: null
+  readonly: true
+  required: false
+  sort: 8
+  special:
+    - uuid
   translations:
     - language: de-DE
-      translation: E-Mail
+      translation: Access Token
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: email
+  name: access_token
   table: candidate
-  data_type: character varying
+  data_type: uuid
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
-  is_unique: false
+  is_unique: true
   is_primary_key: false
   is_generated: false
   generation_expression: null

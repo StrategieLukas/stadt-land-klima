@@ -9,8 +9,9 @@
         <p v-if="localteam" class="text-lg text-mid-gray mb-2">
           Lokalteam: <span class="font-semibold text-stats-dark">{{ localteam.name }}</span>
         </p>
-        <p v-if="candidate" class="text-lg text-mid-gray">
+        <p v-if="candidate" class="text-lg text-mid-gray flex items-center justify-center gap-2">
           Kandidat: <span class="font-semibold text-stats-dark">{{ candidate.name }}</span>
+          <CandidatePartyLabel :party="candidate.party" :state="candidateState" />
         </p>
       </div>
 
@@ -38,6 +39,10 @@
 
       <!-- Survey Form -->
       <div v-else-if="questions && questions.length > 0" class="space-y-8">
+        <div v-if="isPastCutoff" class="bg-orange/10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
+          Der Stichtag für die Abgabe ({{ new Date(localteam.cutoff_date).toLocaleDateString('de-DE') }}) ist bereits erreicht. Die Umfrage ist nur noch im Lesemodus verfügbar.
+        </div>
+
         <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
           <div class="flex items-start mb-6">
             <span class="flex-shrink-0 w-8 h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold mr-4">
@@ -61,8 +66,9 @@
                   :name="'question-' + question.id"
                   :value="option.value"
                   v-model="answers[question.id]"
+                  :disabled="isPastCutoff"
                   class="radio w-8 h-8 sm:w-10 sm:h-10 border-2"
-                  :class="option.radioClass"
+                  :class="[option.radioClass, { 'opacity-50 cursor-not-allowed': isPastCutoff }]"
                 />
               </div>
             </div>
@@ -83,7 +89,9 @@
               v-model="explanations[question.id]"
               rows="3"
               maxlength="500"
+              :disabled="isPastCutoff"
               class="textarea textarea-bordered w-full bg-mild-white focus:border-stats-dark focus:ring-1 focus:ring-stats-dark text-black transition-all resize-none"
+              :class="{ 'opacity-50 cursor-not-allowed': isPastCutoff }"
               placeholder="Erläutern Sie Ihre Position..."
             ></textarea>
             <div class="flex justify-end mt-1 text-xs text-mid-gray">
@@ -96,7 +104,7 @@
         </div>
 
         <!-- Submit Button -->
-        <div class="pt-8 flex flex-col items-center">
+        <div v-if="!isPastCutoff" class="pt-8 flex flex-col items-center">
           <button
             @click="submitAnswers"
             :disabled="!isFormComplete || submitting"
@@ -126,7 +134,7 @@ const route = useRoute()
 const { $directus, $readItems, $readItem } = useNuxtApp()
 
 const localteamUuid = route.params.localteam_uuid
-const candidateUuid = route.params.candidate_uuid
+const accessToken = route.params.access_token
 
 const answers = ref({})
 const explanations = ref({}) // Store reasoning for each question
@@ -142,11 +150,15 @@ const ratingOptions = [
   { value: 4, label: 'stark dafür', radioClass: 'border-rating-4 text-rating-4' },
 ]
 
-const { data, pending, error } = await useAsyncData(`thesen-${localteamUuid}-${candidateUuid}`, async () => {
+const { data, pending, error } = await useAsyncData(`thesen-${localteamUuid}-${accessToken}`, async () => {
   try {
-    const [localteam, candidate, questions] = await Promise.all([
-      $directus.request($readItem('localteams', localteamUuid)).catch(() => null),
-      $directus.request($readItem('candidate', candidateUuid)).catch(() => null),
+    const [localteamData, candidates, questions] = await Promise.all([
+      $directus.request($readItem('localteams', localteamUuid, {
+        fields: ['*', 'municipality_id.*']
+      })).catch(() => null),
+      $directus.request($readItems('candidate', {
+        filter: { access_token: { _eq: accessToken } }
+      })).catch(() => []),
       $directus.request($readItems('questions', {
         filter: {
           localteam: { _eq: localteamUuid },
@@ -156,11 +168,14 @@ const { data, pending, error } = await useAsyncData(`thesen-${localteamUuid}-${c
       }))
     ])
 
+    const candidate = candidates?.[0] || null
+    const localteam = localteamData
+
     let existingAnswers = []
-    if (questions && questions.length > 0) {
+    if (questions && questions.length > 0 && candidate) {
       existingAnswers = await $directus.request($readItems('answers', {
         filter: {
-          candidate: { _eq: candidateUuid },
+          candidate: { _eq: candidate.id },
           question: { _in: questions.map(q => q.id) }
         }
       }))
@@ -188,7 +203,13 @@ watchEffect(() => {
 
 const localteam = computed(() => data.value?.localteam)
 const candidate = computed(() => data.value?.candidate)
+const candidateState = computed(() => localteam.value?.municipality_id?.state || '')
 const questions = computed(() => data.value?.questions || [])
+
+const isPastCutoff = computed(() => {
+  if (!localteam.value?.cutoff_date) return false
+  return new Date() > new Date(localteam.value.cutoff_date)
+})
 
 const isFormComplete = computed(() => {
   if (!questions.value || !questions.value.length) return false
@@ -196,10 +217,11 @@ const isFormComplete = computed(() => {
 })
 
 async function submitAnswers() {
-  if (!isFormComplete.value || submitting.value) return
+  if (!isFormComplete.value || submitting.value || isPastCutoff.value) return
 
   submitting.value = true
   try {
+    const candidateUuid = candidate.value.id
     // Separate answers into those to create and those to update
     const operations = questions.value.map(q => {
       const payload = {

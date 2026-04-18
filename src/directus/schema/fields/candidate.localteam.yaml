@@ -1,33 +1,34 @@
 collection: candidate
-field: email
-type: string
+field: localteam
+type: uuid
 meta:
   collection: candidate
   conditions: null
   display: null
   display_options: null
-  field: email
+  field: localteam
   group: null
   hidden: false
-  interface: input
+  interface: select-dropdown-m2o
   note: null
-  options: null
+  options:
+    enableCreate: false
+    template: "{{municipality_name}}"
   readonly: false
   required: true
-  sort: 4
-  special: null
-  translations:
-    - language: de-DE
-      translation: E-Mail
+  sort: 9
+  special:
+    - m2o
+  translations: null
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: email
+  name: localteam
   table: candidate
-  data_type: character varying
+  data_type: uuid
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
@@ -36,5 +37,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: null
-  foreign_key_column: null
+  foreign_key_table: localteams
+  foreign_key_column: id

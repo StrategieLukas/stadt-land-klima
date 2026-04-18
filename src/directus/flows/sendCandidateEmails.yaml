@@ -1,0 +1,100 @@
+name: sendCandidateEmails
+icon: email
+color: "#2ecc71"
+description: Sends personal links to all candidates of a localteam.
+status: active
+trigger: manual
+accountability: all
+options:
+  collections:
+    - localteams
+    - questions
+    - candidate
+operations:
+  - name: Process Emails
+    key: process_emails
+    type: script
+    position_x: 20
+    position_y: 1
+    options:
+      code: >
+        module.exports = async function(data) {
+          const localteam_id = data.send_candidate_emails_resolve_id;
+          const { ItemsService, MailService, CryptoService } = data.services;
+          const schema = data.schema;
+          const accountability = { ...data.accountability, admin: true };
+
+          const localteamService = new ItemsService('localteams', { schema, accountability });
+          const candidateService = new ItemsService('candidate', { schema, accountability });
+          const questionService = new ItemsService('questions', { schema, accountability });
+          const mailService = new MailService({ schema, accountability });
+          const crypto = new CryptoService();
+
+          const localteam = await localteamService.readOne(localteam_id);
+
+          // Validation
+          if (!localteam.cutoff_date) throw new Error("Stichtag fehlt!");
+
+          const questionsCount = await questionService.readByQuery({
+            filter: { localteam: { _eq: localteam_id } },
+            aggregate: { count: '*' }
+          });
+          if (parseInt(questionsCount[0].count) < 10) throw new Error("Nicht genug Fragen (mind. 10 benötigt)!");
+
+          const candidates = await candidateService.readByQuery({
+            filter: { localteam: { _eq: localteam_id } },
+            fields: ['id', 'name', 'email', 'access_token']
+          });
+          if (candidates.length < 3) throw new Error("Nicht genug Kandidaten (mind. 3 benötigt)!");
+
+          for (const candidate of candidates) {
+            let token = candidate.access_token;
+            if (!token) {
+              token = crypto.randomBytes(16).toString('hex');
+              await candidateService.updateOne(candidate.id, { access_token: token });
+            }
+
+            const personalLink = `https://stadt-land-klima.de/thesen/${localteam_id}/${token}`;
+
+            await mailService.send({
+              to: candidate.email,
+              subject: `Ihre Einladung zum Thesen-Check für ${localteam.municipality_name}`,
+              template: {
+                name: "email-template-candidate",
+                data: {
+                  candidate_name: candidate.name,
+                  municipality_name: localteam.municipality_name,
+                  personal_link: personalLink,
+                  cutoff_date: new Date(localteam.cutoff_date).toLocaleDateString('de-DE')
+                }
+              }
+            });
+          }
+
+          await localteamService.updateOne(localteam_id, { emails_sent: true });
+
+          return { success: true, count: candidates.length };
+        }
+  - name: Resolve Localteam ID
+    key: send_candidate_emails_resolve_id
+    type: script
+    position_x: 5
+    position_y: 1
+    options:
+      code: >
+        module.exports = async function(data) {
+          const { collection, keys } = data.$trigger.body;
+          const id = keys[0];
+          const { ItemsService } = data.services;
+          const schema = data.schema;
+          const accountability = data.accountability;
+
+          if (collection === 'localteams') return id;
+
+          const service = new ItemsService(collection, { schema, accountability });
+          const item = await service.readOne(id, { fields: ['localteam'] });
+
+          return item.localteam;
+        }
+    resolve_key: process_emails
+operation_key: send_candidate_emails_resolve_id

@@ -1,33 +1,33 @@
-collection: candidate
-field: email
-type: string
+collection: election_config
+field: emails_sent
+type: boolean
 meta:
-  collection: candidate
+  collection: election_config
   conditions: null
   display: null
   display_options: null
-  field: email
+  field: emails_sent
   group: null
   hidden: false
-  interface: input
+  interface: boolean
   note: null
   options: null
   readonly: false
-  required: true
+  required: false
   sort: 4
   special: null
   translations:
     - language: de-DE
-      translation: E-Mail
+      translation: Emails gesendet
   validation: null
   validation_message: null
   width: half
 schema:
-  name: email
-  table: candidate
-  data_type: character varying
-  default_value: null
-  max_length: 255
+  name: emails_sent
+  table: election_config
+  data_type: boolean
+  default_value: false
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

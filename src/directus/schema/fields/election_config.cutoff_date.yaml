@@ -1,33 +1,33 @@
-collection: candidate
-field: email
-type: string
+collection: election_config
+field: cutoff_date
+type: dateTime
 meta:
-  collection: candidate
+  collection: election_config
   conditions: null
   display: null
   display_options: null
-  field: email
+  field: cutoff_date
   group: null
   hidden: false
-  interface: input
+  interface: datetime
   note: null
   options: null
   readonly: false
-  required: true
-  sort: 4
+  required: false
+  sort: 3
   special: null
   translations:
     - language: de-DE
-      translation: E-Mail
+      translation: Stichtag (Cutoff Date)
   validation: null
   validation_message: null
   width: half
 schema:
-  name: email
-  table: candidate
-  data_type: character varying
+  name: cutoff_date
+  table: election_config
+  data_type: timestamp without time zone
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
