@@ -12,7 +12,7 @@ meta:
   interface: input
   note: Secure token for personal link
   options: null
-  readonly: true
+  readonly: false
   required: false
   sort: 8
   special:

@@ -13,7 +13,7 @@ meta:
   interface: select-dropdown-m2o
   note: null
   options:
-    template: "{{descriptor}}(Stichtag: {{response_cutoff_date}})"
+    template: "{{descriptor}} (Stichtag: {{response_cutoff_date}})"
   readonly: false
   required: true
   sort: 9

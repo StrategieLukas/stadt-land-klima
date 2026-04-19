@@ -25,7 +25,7 @@ meta:
 schema:
   name: title
   table: measure_questions_template
-  data_type: varchar
+  data_type: character varying
   default_value: null
   max_length: 255
   numeric_precision: null

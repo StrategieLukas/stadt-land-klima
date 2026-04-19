@@ -150,7 +150,14 @@ permissions:
     validation: {}
     presets: null
     fields:
-      - "*"
+      - id
+      - name
+      - party
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+      - access_token
+      - election
   - collection: candidate
     action: update
     permissions: {}

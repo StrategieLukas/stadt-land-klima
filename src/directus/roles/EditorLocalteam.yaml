@@ -339,8 +339,8 @@ permissions:
       - password
   - collection: elections
     action: create
-    permissions: { }
-    validation: { }
+    permissions: {}
+    validation: {}
     presets:
       localteam: $CURRENT_USER.localteams.localteam_id
     fields:
@@ -354,7 +354,7 @@ permissions:
             id:
               _in:
                 - $CURRENT_USER.localteams.localteam_id
-    validation: { }
+    validation: {}
     presets: null
     fields:
       - "*"
