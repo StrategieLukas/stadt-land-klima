@@ -1,9 +1,9 @@
-collection: questions
+collection: elections
 field: localteam
 related_collection: localteams
 meta:
   junction_field: null
-  many_collection: questions
+  many_collection: elections
   many_field: localteam
   one_allowed_collections: null
   one_collection: localteams
@@ -12,10 +12,10 @@ meta:
   one_field: null
   sort_field: null
 schema:
-  table: questions
+  table: elections
   column: localteam
   foreign_key_table: localteams
   foreign_key_column: id
-  constraint_name: questions_localteam_foreign
+  constraint_name: elections_localteam_foreign
   on_update: NO ACTION
   on_delete: SET NULL

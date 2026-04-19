@@ -1,11 +1,12 @@
-collection: candidate
+collection: elections
 field: localteam
 type: uuid
 meta:
-  collection: candidate
+  collection: elections
   conditions: null
-  display: null
-  display_options: null
+  display: related-values
+  display_options:
+    template: "{{municipality_name}}"
   field: localteam
   group: null
   hidden: false
@@ -16,7 +17,7 @@ meta:
     template: "{{municipality_name}}"
   readonly: false
   required: true
-  sort: 9
+  sort: 6
   special:
     - m2o
   translations: null
@@ -25,7 +26,7 @@ meta:
   width: full
 schema:
   name: localteam
-  table: candidate
+  table: elections
   data_type: uuid
   default_value: null
   max_length: null

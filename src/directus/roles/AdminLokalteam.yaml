@@ -208,21 +208,22 @@ permissions:
         _in:
           - $CURRENT_USER.localteams.localteam_id
     validation: null
-    presets:
-      localteam: $CURRENT_USER.localteams.localteam_id
+    presets: null
     fields:
       - id
       - name
       - email
       - party
-      - localteam
       - access_token
+      - election
   - collection: candidate
     action: delete
     permissions:
-      localteam:
-        _in:
-          - $CURRENT_USER.localteams.localteam_id
+      _and:
+        - election:
+            localteam:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
     validation:
       has_answered:
         _neq: true
@@ -231,19 +232,31 @@ permissions:
   - collection: candidate
     action: read
     permissions:
-      localteam:
-        _in:
-          - $CURRENT_USER.localteams.localteam_id
+      _and:
+        - election:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
-      - "*"
+      - id
+      - name
+      - party
+      - email
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+      - election
   - collection: candidate
     action: update
     permissions:
-      localteam:
-        _in:
-          - $CURRENT_USER.localteams.localteam_id
+      _and:
+        - election:
+            localteam:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
     validation:
       has_answered:
         _neq: true
@@ -255,7 +268,6 @@ permissions:
       - has_answered
       - time_first_submitted
       - time_last_edited
-      - localteam
   - collection: directus_files
     action: create
     permissions: {}
@@ -360,20 +372,31 @@ permissions:
     action: create
     permissions: {}
     validation: {}
-    presets: null
+    presets:
+      localteam: $CURRENT_USER.localteams.localteam_id
     fields:
       - descriptor
       - response_cutoff_date
   - collection: elections
     action: delete
-    permissions: {}
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
     validation: {}
     presets: null
     fields:
       - "*"
   - collection: elections
     action: read
-    permissions: null
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
@@ -382,9 +405,15 @@ permissions:
       - date_created
       - descriptor
       - date_updated
+      - localteam
   - collection: elections
     action: update
-    permissions: null
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
@@ -637,12 +666,13 @@ permissions:
       - localteam
       - title
       - thesis
+      - election
   - collection: questions
     action: delete
     permissions:
       _and:
-        - localteam:
-            id:
+        - election:
+            localteam:
               _in:
                 - $CURRENT_USER.localteams.localteam_id
     validation:
@@ -656,10 +686,11 @@ permissions:
     action: read
     permissions:
       _and:
-        - localteam:
-            id:
-              _in:
-                - $CURRENT_USER.localteams.localteam_id
+        - election:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
@@ -672,12 +703,13 @@ permissions:
       - localteam
       - title
       - thesis
+      - election
   - collection: questions
     action: update
     permissions:
       _and:
-        - localteam:
-            id:
+        - election:
+            localteam:
               _in:
                 - $CURRENT_USER.localteams.localteam_id
     validation: null

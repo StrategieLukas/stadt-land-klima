@@ -1,33 +1,31 @@
 collection: questions
-field: localteam
+field: election
 type: uuid
 meta:
   collection: questions
   conditions: null
   display: related-values
   display_options:
-    template: "{{municipality_name}}"
-  field: localteam
+    template: "{{descriptor}}(Stichtag: {{response_cutoff_date}})"
+  field: election
   group: null
   hidden: false
   interface: select-dropdown-m2o
   note: null
   options:
     enableCreate: false
-    template: "{{municipality_name}}"
+    template: "{{descriptor}} (Stichtag: {{response_cutoff_date}})"
   readonly: false
   required: true
   sort: 2
   special:
     - m2o
-  translations:
-    - language: de-DE
-      translation: Lokalteam
+  translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: localteam
+  name: election
   table: questions
   data_type: uuid
   default_value: null
@@ -40,5 +38,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: localteams
+  foreign_key_table: elections
   foreign_key_column: id
