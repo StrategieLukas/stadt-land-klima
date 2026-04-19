@@ -23,7 +23,7 @@
           <!-- Item with children: accordion trigger -->
           <template v-if="hasChildren(item)">
             <button
-              class="flex items-center justify-between w-full px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
+              class="flex items-center justify-between w-full px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 border-b border-gray-100 transition-colors"
               :class="{ 'text-olive-green': anyChildActive(item) }"
               @click="toggleExpanded(item.id)"
             >
@@ -41,7 +41,7 @@
             </button>
 
             <!-- Children -->
-            <div v-show="expandedId === item.id" class="bg-gray-50 border-b border-gray-100">
+            <div v-show="expandedId === item.id" class="border-b border-gray-100">
               <!-- Image children: 2-column grid -->
               <div v-if="hasImageChildren(item)" class="grid grid-cols-2 gap-2 px-4 py-3">
                 <component
@@ -64,27 +64,28 @@
               </div>
 
               <!-- Text-only children -->
-              <component
-                v-for="child in childrenWithoutImages(item)"
-                :key="child.id"
-                :is="child.link_type === 'page' ? NuxtLink : 'a'"
-                :to="child.link_type === 'page' ? resolveHref(child) : undefined"
-                :href="child.link_type === 'external' ? child.external_url : undefined"
-                :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
-                :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
-                class="flex flex-col px-7 py-2.5 text-sm border-b border-gray-100 last:border-b-0 transition-colors"
-                :class="{
-                  'text-olive-green bg-light-green/10': child.link_type === 'page' && isActive(child),
-                  'text-gray-700 hover:bg-gray-100': !(child.link_type === 'page' && isActive(child)),
-                }"
-                @click="closeDrawer"
-              >
-                <span class="flex items-center gap-1.5 font-semibold leading-snug">
-                  <svg v-if="child.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                  {{ child.label }}
-                </span>
-                <span v-if="child.description" class="text-xs font-normal text-gray-400 mt-0.5 leading-snug">{{ child.description }}</span>
-              </component>
+              <template v-for="(child, index) in childrenWithoutImages(item)" :key="child.id">
+                <div v-if="index > 0" class="border-t border-gray-100 ml-7"></div>
+                <component
+                  :is="child.link_type === 'page' ? NuxtLink : 'a'"
+                  :to="child.link_type === 'page' ? resolveHref(child) : undefined"
+                  :href="child.link_type === 'external' ? child.external_url : undefined"
+                  :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
+                  :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
+                  class="flex flex-col px-7 py-2.5 text-sm transition-colors"
+                  :class="{
+                    'text-olive-green bg-light-green/10': child.link_type === 'page' && isActive(child),
+                    'text-gray-700 hover:bg-gray-50': !(child.link_type === 'page' && isActive(child)),
+                  }"
+                  @click="closeDrawer"
+                >
+                  <span class="flex items-center gap-1.5 font-semibold leading-snug">
+                    <svg v-if="child.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    {{ child.label }}
+                  </span>
+                  <span v-if="child.description" class="text-xs font-normal text-gray-400 mt-0.5 leading-snug">{{ child.description }}</span>
+                </component>
+              </template>
             </div>
           </template>
 
@@ -228,3 +229,6 @@ function childrenWithoutImages(item) {
   return (item.children || []).filter(c => !c.image_id)
 }
 </script>
+
+
+
