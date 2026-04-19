@@ -18,7 +18,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Stichtag (bis zu dem alle Kandidierenden antworten müssen)
+      translation: Deadline (Beantwortung der Thesen)
   validation:
     _and:
       - response_cutoff_date:

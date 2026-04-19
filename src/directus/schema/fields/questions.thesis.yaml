@@ -18,7 +18,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: These (Text)
+      translation: These
   validation: null
   validation_message: null
   width: full

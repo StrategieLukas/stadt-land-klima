@@ -17,7 +17,9 @@ meta:
   required: true
   sort: 4
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Wahl
   validation: null
   validation_message: null
   width: half

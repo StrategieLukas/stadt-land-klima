@@ -17,7 +17,9 @@ meta:
   sort: 7
   special:
     - cast-boolean
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Thesen bereits generiert?
   validation: null
   validation_message: null
   width: half

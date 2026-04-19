@@ -17,7 +17,9 @@ meta:
   sort: 8
   special:
     - cast-boolean
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Emails an Kandidierende verschickt?
   validation: null
   validation_message: null
   width: half
