@@ -15,11 +15,18 @@ export default {
       throw new Error('Nicht autorisiert: Kein Benutzer-Kontext vorhanden.');
     }
     const rolesSvc   = new RolesService({ schema, accountability: sysAcc });
-    const adminRoles = await rolesSvc.readByQuery({ filter: { name: { _eq: 'Administrator' } }, limit: 1 });
+    const adminRoles = await rolesSvc.readByQuery({ filter: { admin_access: { _eq: true } }, limit: 1 });
     if (!adminRoles?.length) {
-      throw new Error('Administrator-Rolle nicht gefunden. Bitte Datenbankeinrichtung prüfen.');
+      // Fallback for older versions or specific setups
+      const fallbackRoles = await rolesSvc.readByQuery({ filter: { name: { _eq: 'Administrator' } }, limit: 1 });
+      if (!fallbackRoles?.length) {
+        throw new Error('Administrator-Rolle nicht gefunden. Bitte Datenbankeinrichtung prüfen.');
+      }
+      adminRoles.push(...fallbackRoles);
     }
-    if (accountability.role !== adminRoles[0].id) {
+
+    const userRole = await rolesSvc.readOne(accountability.role);
+    if (!userRole?.admin_access && userRole?.name !== 'Administrator') {
       throw new Error('Nur Administratoren können Kandidaten-E-Mails versenden.');
     }
     // ─────────────────────────────────────────────────────────────────────────

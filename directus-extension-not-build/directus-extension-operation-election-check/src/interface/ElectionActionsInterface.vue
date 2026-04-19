@@ -9,25 +9,32 @@
           <h3 class="card-title">Thesen generieren</h3>
           <p class="card-subtitle">Top 10 Maßnahmen als Thesen erstellen</p>
         </div>
+
         <v-chip v-if="value?.already_generated_questions" x-small class="status-chip">
           <v-icon name="check_circle" x-small left />
-          Erledigt
+          Bereits generiert
         </v-chip>
       </div>
 
-      <v-notice v-if="value?.already_generated_questions" type="warning" class="card-notice">
-        Bereits generiert — erneutes Ausführen ersetzt alle bestehenden Thesen.
+      <!-- Already generated state -->
+      <v-notice
+        v-if="value?.already_generated_questions"
+        type="success"
+        class="card-notice"
+      >
+        Thesen wurden bereits generiert.
       </v-notice>
 
-      <div class="card-footer">
+      <!-- Action button only if NOT generated -->
+      <div v-else class="card-footer">
         <v-button
           :loading="loadingGenerate"
-          :disabled="loadingGenerate || loadingMails || !generateFlowId"
+          :disabled="loadingGenerate || loadingMails"
           secondary
           @click="triggerGenerate"
         >
           <v-icon name="auto_awesome" left />
-          {{ value?.already_generated_questions ? 'Neu generieren' : 'Thesen generieren' }}
+          Thesen generieren
         </v-button>
       </div>
     </div>
@@ -40,6 +47,7 @@
           <h3 class="card-title">Kandidaten einladen</h3>
           <p class="card-subtitle">Personalisierte E-Mails mit Zugangslink versenden</p>
         </div>
+
         <v-chip v-if="value?.already_sent_mails" x-small class="status-chip">
           <v-icon name="check_circle" x-small left />
           Versendet
@@ -57,11 +65,11 @@
       <div class="card-footer">
         <v-button
           :loading="loadingMails"
-          :disabled="loadingMails || loadingGenerate || !value?.already_generated_questions || !mailFlowId"
+          :disabled="loadingMails || loadingGenerate || !value?.already_generated_questions"
           @click="triggerMails"
         >
           <v-icon name="send" left />
-          {{ value?.already_sent_mails ? 'Erneut versenden' : 'E-Mails versenden' }}
+          E-Mails versenden
         </v-button>
       </div>
     </div>
@@ -73,20 +81,13 @@
         {{ successMessage }}
       </v-notice>
     </transition>
+
     <transition name="fade">
       <v-notice v-if="errorMessage" type="danger" class="result-notice">
         <v-icon name="error" left small />
         {{ errorMessage }}
       </v-notice>
     </transition>
-
-    <!-- Config warning shown to admins when flow IDs are missing -->
-    <v-notice v-if="currentUserIsAdmin && (!generateFlowId || !mailFlowId)" type="warning" class="result-notice">
-      <strong>Setup:</strong> Flow-IDs im Feld-Interface konfigurieren.
-      <span v-if="!generateFlowId"> · Generate-Flow fehlt</span>
-      <span v-if="!mailFlowId"> · Mail-Flow fehlt</span>
-    </v-notice>
-
   </div>
 </template>
 
@@ -95,25 +96,8 @@ import { ref, computed } from 'vue';
 import { useApi, useStores } from '@directus/extensions-sdk';
 
 const props = defineProps({
-  // The field value (not really used for storage — this is a display-only interface)
-  value: {
-    type: Object,
-    default: null,
-  },
-  // Injected by Directus: the primary key of the current item
-  primaryKey: {
-    type: [String, Number],
-    default: null,
-  },
-  // Interface options configured in the data model
-  generateFlowId: {
-    type: String,
-    default: null,
-  },
-  mailFlowId: {
-    type: String,
-    default: null,
-  },
+  value: { type: Object, default: null },
+  primaryKey: { type: [String, Number], default: null },
 });
 
 const emit = defineEmits(['input']);
@@ -122,54 +106,66 @@ const api = useApi();
 const { useUserStore } = useStores();
 const userStore = useUserStore();
 
-const loadingGenerate  = ref(false);
-const loadingMails     = ref(false);
-const successMessage   = ref(null);
-const errorMessage     = ref(null);
+const loadingGenerate = ref(false);
+const loadingMails = ref(false);
+const successMessage = ref(null);
+const errorMessage = ref(null);
 
-// Derive admin status from the current user's role name
 const currentUserIsAdmin = computed(() => {
-  return userStore.currentUser?.role?.name === 'Administrator';
+  return userStore.currentUser?.role?.admin_access === true || userStore.currentUser?.role?.name === 'Administrator';
 });
 
 let feedbackTimer = null;
+
 function showFeedback(type, message) {
   if (type === 'success') {
     successMessage.value = message;
-    errorMessage.value   = null;
+    errorMessage.value = null;
   } else {
-    errorMessage.value   = message;
+    errorMessage.value = message;
     successMessage.value = null;
   }
+
   clearTimeout(feedbackTimer);
   feedbackTimer = setTimeout(() => {
     successMessage.value = null;
-    errorMessage.value   = null;
+    errorMessage.value = null;
   }, 6000);
 }
 
-async function triggerFlow(flowId, loadingRef, successText) {
-  if (!flowId) {
-    showFeedback('error', 'Flow-ID nicht konfiguriert.');
-    return;
-  }
+async function triggerAction(endpoint, loadingRef, successText) {
   if (!props.primaryKey) {
     showFeedback('error', 'Kein Datensatz gespeichert — bitte zuerst speichern.');
     return;
   }
 
   loadingRef.value = true;
+
   try {
-    await api.post(`/flows/trigger/${flowId}`, { election_id: String(props.primaryKey) });
-    showFeedback('success', successText);
-    // Re-fetch the item so the status chips update without a full page reload
-    const res = await api.get(`/items/elections/${props.primaryKey}`, {
-      params: { fields: ['already_generated_questions', 'already_sent_mails'] },
+    const resPost = await api.post(`/election-actions/${endpoint}`, {
+      election_id: String(props.primaryKey),
     });
-    // Emit updated value so Directus knows the field changed
+
+    if (resPost.data.error) {
+      throw new Error(resPost.data.error);
+    }
+
+    showFeedback('success', successText);
+
+    const res = await api.get(`/items/elections/${props.primaryKey}`, {
+      params: {
+        fields: ['already_generated_questions', 'already_sent_mails'],
+      },
+    });
+
     emit('input', { ...props.value, ...res.data.data });
   } catch (err) {
-    const detail = err?.response?.data?.errors?.[0]?.message || err.message || 'Unbekannter Fehler';
+    const detail =
+      err?.response?.data?.errors?.[0]?.message ||
+      err?.response?.data?.error ||
+      err.message ||
+      'Unbekannter Fehler';
+
     showFeedback('error', `Fehler: ${detail}`);
   } finally {
     loadingRef.value = false;
@@ -177,11 +173,25 @@ async function triggerFlow(flowId, loadingRef, successText) {
 }
 
 function triggerGenerate() {
-  triggerFlow(props.generateFlowId, loadingGenerate, 'Thesen wurden erfolgreich generiert.');
+  triggerAction(
+    'generate',
+    loadingGenerate,
+    'Thesen wurden erfolgreich generiert.'
+  );
 }
 
 function triggerMails() {
-  triggerFlow(props.mailFlowId, loadingMails, 'E-Mails wurden erfolgreich versendet.');
+  const confirmed = window.confirm(
+    'E-Mails wirklich an alle Kandidaten versenden?'
+  );
+
+  if (!confirmed) return;
+
+  triggerAction(
+    'send-mails',
+    loadingMails,
+    'E-Mails wurden erfolgreich versendet.'
+  );
 }
 </script>
 
@@ -218,7 +228,6 @@ function triggerMails() {
 .card-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--foreground-normal-alt);
   margin: 0 0 2px;
 }
 
@@ -241,9 +250,4 @@ function triggerMails() {
 .card-footer {
   padding: 12px 16px 16px;
 }
-
-.result-notice {
-  /* sits below the cards */
-}
-
 </style>

@@ -33,6 +33,11 @@
         "type": "interface",
         "name": "interface-election-actions",
         "source": "src/interface/index.js"
+      },
+      {
+        "type": "endpoint",
+        "name": "election-actions",
+        "source": "src/endpoint/index.js"
       }
     ]
   },

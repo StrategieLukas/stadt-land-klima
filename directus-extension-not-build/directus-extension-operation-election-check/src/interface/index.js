@@ -9,26 +9,5 @@ export default defineInterface({
   component: InterfaceComponent,
   types: ['json'],
   recommendedDisplays: [],
-  options: [
-    {
-      field: 'generateFlowId',
-      name: 'Generate Questions — Flow ID',
-      type: 'string',
-      meta: {
-        width: 'full',
-        interface: 'input',
-        note: 'ID of the manual Directus flow that runs the "Generate Questions" operation. Find it in Settings → Flows → your flow → copy the ID from the URL.',
-      },
-    },
-    {
-      field: 'mailFlowId',
-      name: 'Send Emails — Flow ID',
-      type: 'string',
-      meta: {
-        width: 'full',
-        interface: 'input',
-        note: 'ID of the manual Directus flow that runs the "Send Candidate Emails" operation.',
-      },
-    },
-  ],
+  options: [],
 });

@@ -375,6 +375,7 @@ permissions:
       - descriptor
       - date_updated
       - localteam
+      - action_buttons
   - collection: elections
     action: update
     permissions:
