@@ -3,6 +3,7 @@
 
 # env files
 .env
+.junie
 
 # storage directories
 /src/directus/uploads
