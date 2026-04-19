@@ -377,6 +377,7 @@ permissions:
     fields:
       - descriptor
       - response_cutoff_date
+      - localteam
   - collection: elections
     action: delete
     permissions:

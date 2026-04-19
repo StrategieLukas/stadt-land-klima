@@ -15,7 +15,7 @@ meta:
     placeholder: $t:election.descriptor.placeholder
   readonly: false
   required: true
-  sort: 4
+  sort: 5
   special: null
   translations:
     - language: de-DE

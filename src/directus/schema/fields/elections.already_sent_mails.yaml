@@ -8,7 +8,7 @@ meta:
   display_options: null
   field: already_sent_mails
   group: null
-  hidden: false
+  hidden: true
   interface: boolean
   note: null
   options: null

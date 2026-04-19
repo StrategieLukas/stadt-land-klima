@@ -15,7 +15,7 @@ meta:
   options: null
   readonly: true
   required: false
-  sort: 2
+  sort: 3
   special:
     - date-created
   translations: null

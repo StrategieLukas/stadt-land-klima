@@ -3,7 +3,14 @@ field: action_buttons
 type: json
 meta:
   collection: elections
-  conditions: null
+  conditions:
+    - name: Bei erster Erstellung ausblenden
+      rule:
+        _and:
+          - id:
+              _null: true
+      hidden: true
+      options: {}
   display: null
   display_options: null
   field: action_buttons
@@ -17,7 +24,9 @@ meta:
   sort: 9
   special:
     - cast-json
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Thesen auf Basis der Bewertung generieren
   validation: null
   validation_message: null
   width: full

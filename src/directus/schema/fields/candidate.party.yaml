@@ -108,7 +108,7 @@ meta:
         value: Tierschutzpartei
   readonly: false
   required: true
-  sort: 3
+  sort: 4
   special: null
   translations:
     - language: de-DE

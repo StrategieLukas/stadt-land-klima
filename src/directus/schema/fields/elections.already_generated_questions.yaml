@@ -8,7 +8,7 @@ meta:
   display_options: null
   field: already_generated_questions
   group: null
-  hidden: false
+  hidden: true
   interface: boolean
   note: null
   options: null
