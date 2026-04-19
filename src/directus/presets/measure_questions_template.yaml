@@ -1,24 +1,24 @@
 bookmark: null
 user: null
 role: null
-collection: questions
+collection: measure_questions_template
 search: null
 layout: tabular
 layout_query:
   tabular:
     fields:
-      - status
+      - measure_id
       - title
       - thesis
     sort:
-      - date_created
+      - measure_id
 layout_options:
   tabular:
     widths:
-      status: 70
-      title: 350
-      thesis: 600
+      measure_id: 150
+      title: 400
+      thesis: 500
 refresh_interval: null
 filter: null
-icon: help_outline
+icon: restore_page
 color: null

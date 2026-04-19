@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Fragen-Vorlagen
-      singular: Fragen-Vorlage
-      plural: Fragen-Vorlagen
+      translation: Vorlagen
+      singular: Vorlage
+      plural: Vorlagen
   unarchive_value: null
   versioning: false
 schema:

@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Thesen-Antworten
-      singular: Thesen-Antwort
-      plural: Thesen-Antworten
+      translation: Antworten
+      singular: Antwort
+      plural: Antworten
   unarchive_value: null
   versioning: false
 schema:

@@ -7,20 +7,18 @@ layout: tabular
 layout_query:
   tabular:
     fields:
-      - question.localteam
       - candidate
       - question
       - response
       - explanation
     sort:
-      - question.localteam
       - candidate
+      - question
 layout_options:
   tabular:
     widths:
-      question.localteam: 250
       candidate: 250
-      question: 300
+      question: 400
       response: 150
       explanation: 400
 refresh_interval: null
