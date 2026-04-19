@@ -1,0 +1,43 @@
+collection: elections
+field: response_cutoff_date
+type: date
+meta:
+  collection: elections
+  conditions: null
+  display: null
+  display_options: null
+  field: response_cutoff_date
+  group: null
+  hidden: false
+  interface: datetime
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Stichtag (bis zu dem alle Kandidierenden antworten müssen)
+  validation:
+    _and:
+      - response_cutoff_date:
+          _gte: 2026-04-19
+  validation_message: null
+  width: half
+schema:
+  name: response_cutoff_date
+  table: elections
+  data_type: date
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

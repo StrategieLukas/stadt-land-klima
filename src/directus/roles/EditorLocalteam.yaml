@@ -298,6 +298,39 @@ permissions:
     presets: null
     fields:
       - password
+  - collection: elections
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - descriptor
+      - response_cutoff_date
+  - collection: elections
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: elections
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - date_created
+      - date_updated
+      - descriptor
+      - response_cutoff_date
+  - collection: elections
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - descriptor
+      - response_cutoff_date
   - collection: external_projects
     action: create
     permissions: null

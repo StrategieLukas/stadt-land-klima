@@ -1,28 +1,29 @@
-collection: localteams
-field: emails_sent
+collection: elections
+field: already_sent_mails
 type: boolean
 meta:
-  collection: localteams
-  field: emails_sent
+  collection: elections
+  conditions: null
+  display: null
+  display_options: null
+  field: already_sent_mails
   group: null
   hidden: false
-  interface: toggle
-  note: Whether candidate survey emails have been sent.
+  interface: boolean
+  note: null
   options: null
-  readonly: true
+  readonly: false
   required: false
-  sort: 101
+  sort: 7
   special:
-    - boolean
-  translations:
-    - language: de-DE
-      translation: E-Mails gesendet
+    - cast-boolean
+  translations: null
   validation: null
   validation_message: null
   width: half
 schema:
-  name: emails_sent
-  table: localteams
+  name: already_sent_mails
+  table: elections
   data_type: boolean
   default_value: false
   max_length: null

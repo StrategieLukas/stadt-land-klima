@@ -356,6 +356,40 @@ permissions:
       - localteam_id
       - email
       - id
+  - collection: elections
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - descriptor
+      - response_cutoff_date
+  - collection: elections
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: elections
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - response_cutoff_date
+      - date_created
+      - descriptor
+      - date_updated
+  - collection: elections
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - descriptor
+      - response_cutoff_date
   - collection: external_projects
     action: create
     permissions: null

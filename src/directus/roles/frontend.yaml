@@ -209,6 +209,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: elections
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: external_projects
     action: read
     permissions: null

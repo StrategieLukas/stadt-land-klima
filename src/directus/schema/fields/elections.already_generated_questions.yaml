@@ -1,28 +1,29 @@
-collection: localteams
-field: questions_generated
+collection: elections
+field: already_generated_questions
 type: boolean
 meta:
-  collection: localteams
-  field: questions_generated
+  collection: elections
+  conditions: null
+  display: null
+  display_options: null
+  field: already_generated_questions
   group: null
   hidden: false
-  interface: toggle
-  note: Whether questions have been automatically generated.
+  interface: boolean
+  note: null
   options: null
-  readonly: true
+  readonly: false
   required: false
-  sort: 102
+  sort: 6
   special:
-    - boolean
-  translations:
-    - language: de-DE
-      translation: Thesen generiert
+    - cast-boolean
+  translations: null
   validation: null
   validation_message: null
   width: half
 schema:
-  name: questions_generated
-  table: localteams
+  name: already_generated_questions
+  table: elections
   data_type: boolean
   default_value: false
   max_length: null
