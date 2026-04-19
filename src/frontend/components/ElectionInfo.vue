@@ -70,9 +70,6 @@
     },
   });
 
-  console.log(measurePoliticalDemandStrings)
-  console.log(measurePoliticalDemandStrings["EN_01"]["0.75"])
-
 
   const sortedMeasures = props.ratingsMeasures
   .filter(item =>

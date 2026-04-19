@@ -34,12 +34,13 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       const rolePermissions = role.permissions;
       permissions = permissions.concat(rolePermissions);
       delete role.permissions;
+      const roleIsPublic = role.name === 'Public' || role.name === 'public'
 
       if (role.name === 'Administrator') {
-        // 🔹 Skip Administrator entirely
+        // Skip Administrator entirely
         return;
-      } else if (role.name === 'Public') {
-        // 🔹 Public has no DB entry
+      } else if (roleIsPublic) {
+        // Public has no DB entry
         role.id = null;
       } else {
         const existingRole = find(existingRoles, ['name', role.name]);
@@ -56,34 +57,35 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
         permission.role_name = role.name;
 
         let existingRoleEntry = null;
-        if (role.name !== 'Public') {
+        if (!roleIsPublic) {
           existingRoleEntry = find(existingRoles, ['name', permission.role_name]);
         }
 
-        // For Public: match permissions with role=null.
-        // For existing non-Public roles: match by role id.
-        // For NEW non-Public roles (existingRoleEntry is null): no existing permissions possible.
-        const existingPermission =
-          role.name === 'Public'
-            ? find(existingPermissions, {
-                action: permission.action,
-                role: null,
-                collection: permission.collection,
-              })
-            : existingRoleEntry
-              ? find(existingPermissions, {
-                  action: permission.action,
-                  role: existingRoleEntry.id,
-                  collection: permission.collection,
-                })
-              : null;
+        let existingPermission = null;
+        if(roleIsPublic) {
+          existingPermission = find(existingPermissions, {
+            action: permission.action,
+            role: null, // match public
+            collection: permission.collection,
+          })
+        } else if(existingRoleEntry && existingRoleEntry.id) {
+          existingPermission = find(existingPermissions, {
+            action: permission.action,
+            role: existingRoleEntry.id,
+            collection: permission.collection,
+          })
+        } else {
+          // do nothing if no existing role entry is found and role is not public
+        }
 
-        if (existingPermission && existingPermission.id) {
+
+
+        if (existingPermission && existingPermission.id && existingRoleEntry && existingRoleEntry.id) {
           permission.id = existingPermission.id;
-          permission.role = role.name === 'Public' ? null : existingRoleEntry?.id || null;
+          permission.role = roleIsPublic ? null : existingRoleEntry.id;
           permissionsToUpdate.push(permission);
         } else {
-          permission.role = role.name === 'Public' ? null : existingRoleEntry?.id || null;
+          permission.role = roleIsPublic ? null : existingRoleEntry?.id || null;
           permissionsToCreate.push(permission);
         }
       });
