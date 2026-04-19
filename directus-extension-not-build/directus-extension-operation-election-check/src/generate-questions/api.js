@@ -1,34 +1,35 @@
-import { resolveLocalteamId } from './resolve-localteam.js';
+import { resolveElectionId } from '../resolve-election.js';
 
-export const generateQuestionsApi = {
+export default {
   id: 'operation-generate-questions',
-  handler: async ({ localteam_id }, { logger, accountability, services, getSchema, data }) => {
+  handler: async ({ election_id }, { logger, accountability, services, getSchema, data }) => {
     const { ItemsService } = services;
     const schema = await getSchema();
     const sysAcc = { ...accountability, admin: true };
 
-    const resolved_id = await resolveLocalteamId(localteam_id, accountability, data, ItemsService, schema);
+    const resolved_id = await resolveElectionId(election_id, data, ItemsService, schema, accountability);
 
-    const localteamSvc = new ItemsService('localteams',                 { schema, accountability: sysAcc });
+    const electionSvc  = new ItemsService('elections',                  { schema, accountability: sysAcc });
     const measuresSvc  = new ItemsService('measures',                   { schema, accountability: sysAcc });
     const templateSvc  = new ItemsService('measure_questions_template', { schema, accountability: sysAcc });
     const questionsSvc = new ItemsService('questions',                  { schema, accountability: sysAcc });
 
-    const localteam = await localteamSvc.readOne(resolved_id);
-    if (!localteam?.municipality_name) {
-      throw new Error('Lokalteam oder Gemeinde nicht gefunden.');
-    }
+    const election = await electionSvc.readOne(resolved_id, { fields: ['*', 'localteam.*'] });
+    if (!election) throw new Error(`Wahl mit ID "${resolved_id}" nicht gefunden.`);
+
+    const municipalityName = election.localteam?.municipality_name;
+    if (!municipalityName) throw new Error('Lokalteam oder Gemeindename nicht gefunden.');
 
     // 1. Fetch all measures for this municipality
     const measures = await measuresSvc.readByQuery({
-      filter: { municipality_name: { _eq: localteam.municipality_name } },
+      filter: { municipality_name: { _eq: municipalityName } },
       limit: -1,
     });
     if (!measures.length) {
-      throw new Error(`Keine Maßnahmen für die Gemeinde "${localteam.municipality_name}" gefunden.`);
+      throw new Error(`Keine Maßnahmen für die Gemeinde "${municipalityName}" gefunden.`);
     }
 
-    // 2. Fetch templates and build lookup by measure_id
+    // 2. Fetch templates — only measures WITH a matching template are considered
     const allMeasureIds = measures.map((m) => m.measure_id).filter(Boolean);
     const templates = await templateSvc.readByQuery({
       filter: { measure_id: { _in: allMeasureIds } },
@@ -36,17 +37,16 @@ export const generateQuestionsApi = {
     });
     const templateMap = Object.fromEntries(templates.map((t) => [t.measure_id, t]));
 
-    // 3. Filter to only measures that have a matching template
     const measuresWithTemplate = measures.filter((m) => templateMap[m.measure_id]);
     if (!measuresWithTemplate.length) {
       const msg =
-        `Keine Maßnahmen mit passendem Template für Gemeinde "${localteam.municipality_name}" gefunden. ` +
+        `Keine Maßnahmen mit passendem Template für "${municipalityName}" gefunden. ` +
         `${measures.length} Maßnahmen vorhanden, aber keine hat ein Template in measure_questions_template.`;
       logger.error(msg);
       throw new Error(msg);
     }
 
-    // 4. Prioritise: highest potential → easiest → alphabetical measure_id
+    // 3. Prioritise: highest potential → easiest → stable alphabetical
     const prioritized = measuresWithTemplate
       .map((m) => ({
         ...m,
@@ -61,20 +61,20 @@ export const generateQuestionsApi = {
 
     const top10 = prioritized.slice(0, 10);
 
-    // 5. Replace existing questions atomically
+    // 4. Replace existing questions for this election atomically
     const existing = await questionsSvc.readByQuery({
-      filter: { localteam: { _eq: resolved_id } },
+      filter: { election: { _eq: resolved_id } },
       fields: ['id'],
       limit: -1,
     });
     if (existing.length > 0) {
       await questionsSvc.deleteMany(existing.map((q) => q.id));
-      logger.info(`generate-questions: deleted ${existing.length} existing question(s) for localteam ${resolved_id}`);
+      logger.info(`generate-questions: deleted ${existing.length} existing question(s) for election ${resolved_id}`);
     }
 
     const created = await questionsSvc.createMany(
       top10.map((m, i) => ({
-        localteam:  resolved_id,
+        election:   resolved_id,
         measure_id: m.measure_id,
         title:      templateMap[m.measure_id].title,
         thesis:     templateMap[m.measure_id].thesis || '',
@@ -83,35 +83,15 @@ export const generateQuestionsApi = {
       }))
     );
 
-    logger.info(`generate-questions: created ${created.length} question(s) for localteam ${resolved_id}`);
+    await electionSvc.updateOne(resolved_id, { already_generated_questions: true });
+
+    logger.info(`generate-questions: created ${created.length} question(s) for election ${resolved_id}`);
 
     return {
-      success:      true,
-      count:        created.length,
-      measures:     top10.map((m) => m.measure_id),
-      localteam_id: resolved_id,
+      success:     true,
+      count:       created.length,
+      measures:    top10.map((m) => m.measure_id),
+      election_id: resolved_id,
     };
   },
-};
-
-export const generateQuestionsApp = {
-  id: 'operation-generate-questions',
-  name: 'Generate Questions',
-  icon: 'auto_awesome',
-  description: 'Generates the top 10 theses for a municipality based on measure ratings and weightings.',
-  overview: ({ localteam_id }) => [
-    { label: 'Localteam ID', text: localteam_id || '(resolved automatically)' },
-  ],
-  options: [
-    {
-      field: 'localteam_id',
-      name: 'Localteam ID',
-      type: 'string',
-      meta: {
-        width: 'full',
-        interface: 'input',
-        note: 'Leave blank to resolve from the flow trigger or the current user.',
-      },
-    },
-  ],
 };

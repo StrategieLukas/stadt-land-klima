@@ -1,16 +1,16 @@
 import crypto from 'crypto';
-import { resolveLocalteamId } from './resolve-localteam.js';
+import { resolveElectionId } from '../resolve-election.js';
 
-export const sendCandidateEmailsApi = {
-  id: 'operation-send-candidate-emails',
-  handler: async ({ localteam_id }, { logger, accountability, services, getSchema, data }) => {
+export default {
+  id: 'operation-send-candidate-mails',
+  handler: async ({ election_id }, { logger, accountability, services, getSchema, data }) => {
     const { RolesService, ItemsService, MailService } = services;
     const schema = await getSchema();
     const sysAcc = { ...accountability, admin: true };
 
-    const resolved_id = await resolveLocalteamId(localteam_id, accountability, data, ItemsService, schema);
+    const resolved_id = await resolveElectionId(election_id, data, ItemsService, schema, accountability);
 
-    // ── Authorisation: Administrator only ────────────────────────────────────
+    // ── Authorisation: Administrator only (backend enforcement) ──────────────
     if (!accountability?.role) {
       throw new Error('Nicht autorisiert: Kein Benutzer-Kontext vorhanden.');
     }
@@ -24,21 +24,23 @@ export const sendCandidateEmailsApi = {
     }
     // ─────────────────────────────────────────────────────────────────────────
 
-    const localteamSvc = new ItemsService('localteams', { schema, accountability: sysAcc });
-    const candidateSvc = new ItemsService('candidate',  { schema, accountability: sysAcc });
-    const questionsSvc = new ItemsService('questions',  { schema, accountability: sysAcc });
+    const electionSvc  = new ItemsService('elections', { schema, accountability: sysAcc });
+    const candidateSvc = new ItemsService('candidate', { schema, accountability: sysAcc });
+    const questionsSvc = new ItemsService('questions', { schema, accountability: sysAcc });
     const mailSvc      = new MailService({ schema, accountability: sysAcc });
 
-    const localteam = await localteamSvc.readOne(resolved_id);
-    if (!localteam) throw new Error('Lokalteam nicht gefunden.');
+    const election = await electionSvc.readOne(resolved_id, { fields: ['*', 'localteam.*'] });
+    if (!election) throw new Error('Wahl nicht gefunden.');
+
+    const municipalityName = election.localteam?.municipality_name;
 
     // ── Pre-flight checks ────────────────────────────────────────────────────
-    if (!localteam.cutoff_date) {
-      throw new Error('Bitte setzen Sie zuerst einen Stichtag (cutoff_date) für das Lokalteam.');
+    if (!election.response_cutoff_date) {
+      throw new Error('Bitte setzen Sie zuerst einen Stichtag (response_cutoff_date) für die Wahl.');
     }
 
     const questions = await questionsSvc.readByQuery({
-      filter: { localteam: { _eq: resolved_id }, status: { _eq: 'published' } },
+      filter: { election: { _eq: resolved_id }, status: { _eq: 'published' } },
       fields: ['id'],
       limit: -1,
     });
@@ -47,7 +49,7 @@ export const sendCandidateEmailsApi = {
     }
 
     const candidates = await candidateSvc.readByQuery({
-      filter: { localteam: { _eq: resolved_id }, email: { _nnull: true } },
+      filter: { election: { _eq: resolved_id }, email: { _nnull: true } },
       limit: -1,
     });
     if (candidates.length < 2) {
@@ -55,7 +57,10 @@ export const sendCandidateEmailsApi = {
     }
     // ─────────────────────────────────────────────────────────────────────────
 
-    const cutoffFormatted = new Date(localteam.cutoff_date).toLocaleString('de-DE', {
+    // Cutoff is a date field — treat as 23:59 on that date
+    const cutoffDate = new Date(election.response_cutoff_date);
+    cutoffDate.setHours(23, 59, 0, 0);
+    const cutoffFormatted = cutoffDate.toLocaleString('de-DE', {
       day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit',
     });
@@ -64,40 +69,40 @@ export const sendCandidateEmailsApi = {
     const errors  = [];
 
     for (const candidate of candidates) {
-      // Token is generated once and persisted before the send attempt,
-      // so the link remains stable across reminder runs even if sending fails.
+      // Token persisted before send — stable across reminder runs
       let token = candidate.access_token;
       if (!token) {
         token = crypto.randomBytes(32).toString('hex');
         await candidateSvc.updateOne(candidate.id, { access_token: token });
-        logger.info(`send-candidate-emails: generated and persisted token for candidate ${candidate.id}`);
+        logger.info(`send-candidate-mails: generated and persisted token for candidate ${candidate.id}`);
       }
 
-      const personalLink = `https://stadt-land-klima.de/thesen/${localteam.id}/${token}`;
+      const personalLink = `https://stadt-land-klima.de/thesen/${resolved_id}/${token}`;
 
       try {
         await mailSvc.send({
           to: candidate.email,
-          subject: `Einladung zum Klimawahl-Check: ${localteam.municipality_name}`,
+          subject: `Einladung zum Klimawahl-Check: ${municipalityName}`,
           template: {
             name: 'email-template-candidate',
             data: {
               candidate_name:    candidate.name,
-              municipality_name: localteam.municipality_name,
+              municipality_name: municipalityName,
               cutoff_date:       cutoffFormatted,
               personal_link:     personalLink,
             },
           },
         });
         sentCount++;
-        logger.info(`send-candidate-emails: sent to ${candidate.email}`);
+        logger.info(`send-candidate-mails: sent to ${candidate.email}`);
       } catch (err) {
-        // Collect failures — one bad address must not abort the whole batch.
         const msg = `Fehler beim Senden an ${candidate.email}: ${err.message}`;
         logger.error(msg);
         errors.push(msg);
       }
     }
+
+    await electionSvc.updateOne(resolved_id, { already_sent_mails: true });
 
     return {
       success:         true,
@@ -105,29 +110,7 @@ export const sendCandidateEmailsApi = {
       failedCount:     errors.length,
       totalCandidates: candidates.length,
       errors,
-      localteam_id:    resolved_id,
+      election_id:     resolved_id,
     };
   },
-};
-
-export const sendCandidateEmailsApp = {
-  id: 'operation-send-candidate-emails',
-  name: 'Send Candidate Emails',
-  icon: 'mail',
-  description: 'Sends personalised email invitations to candidates with a secure, stable access link.',
-  overview: ({ localteam_id }) => [
-    { label: 'Localteam ID', text: localteam_id || '(resolved automatically)' },
-  ],
-  options: [
-    {
-      field: 'localteam_id',
-      name: 'Localteam ID',
-      type: 'string',
-      meta: {
-        width: 'full',
-        interface: 'input',
-        note: 'Leave blank to resolve from the flow trigger or the current user. Caller must be an Administrator.',
-      },
-    },
-  ],
 };
