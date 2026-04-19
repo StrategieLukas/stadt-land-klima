@@ -91,12 +91,14 @@ export default {
           to: candidate.email,
           subject: `Einladung zum Klimawahl-Check: ${municipalityName}`,
           template: {
-            name: 'email-template-candidate',
+            name: "email-template-candidate",
             data: {
               candidate_name:    candidate.name,
               municipality_name: municipalityName,
               cutoff_date:       cutoffFormatted,
               personal_link:     personalLink,
+              projectName:       'Klimawahlcheck',
+              projectColor:      '#1da64a'
             },
           },
         });
@@ -111,13 +113,18 @@ export default {
 
     await electionSvc.updateOne(resolved_id, { already_sent_mails: true });
 
+    const updatedElection = await electionSvc.readOne(resolved_id, {
+      fields: ['already_generated_questions', 'already_sent_mails'],
+    });
+
     return {
-      success:         true,
+      success: true,
       sentCount,
-      failedCount:     errors.length,
+      failedCount: errors.length,
       totalCandidates: candidates.length,
       errors,
-      election_id:     resolved_id,
+      election_id: resolved_id,
+      updated_data: updatedElection,
     };
   },
 };

@@ -1,80 +1,93 @@
 <template>
   <div class="election-actions">
 
-    <!-- Generate Questions card -->
-    <div class="action-card">
-      <div class="card-header">
-        <v-icon name="auto_awesome" class="card-icon" />
-        <div class="card-title-group">
-          <h3 class="card-title">Thesen generieren</h3>
-          <p class="card-subtitle">Top 10 Maßnahmen als Thesen erstellen</p>
-        </div>
-
-        <v-chip v-if="value?.already_generated_questions" x-small class="status-chip">
-          <v-icon name="check_circle" x-small left />
-          Bereits generiert
-        </v-chip>
+  <!-- Generate Questions card -->
+  <div class="action-card">
+    <div class="card-header">
+      <v-icon name="auto_awesome" class="card-icon" />
+      <div class="card-title-group">
+        <h3 class="card-title">Thesen generieren</h3>
+        <p class="card-subtitle">Top 10 Maßnahmen als Thesen erstellen</p>
       </div>
 
-      <!-- Already generated state -->
-      <v-notice
-        v-if="value?.already_generated_questions"
-        type="success"
-        class="card-notice"
+      <v-chip v-if="localAlreadyGenerated" x-small class="status-chip">
+        <v-icon name="check_circle" x-small left />
+        Bereits generiert
+      </v-chip>
+    </div>
+
+    <!-- Already generated state -->
+    <v-notice
+      v-if="localAlreadyGenerated"
+      type="success"
+      class="card-notice"
+    >
+      Thesen wurden bereits generiert.
+    </v-notice>
+
+    <!-- Action button -->
+    <div class="card-footer">
+      <v-button
+        v-if="!localAlreadyGenerated"
+        :loading="loadingGenerate"
+        :disabled="loadingGenerate || loadingMails"
+        secondary
+        @click="triggerGenerate"
       >
-        Thesen wurden bereits generiert.
-      </v-notice>
+        <v-icon name="auto_awesome" left />
+        Thesen generieren
+      </v-button>
+      <v-button
+        v-else
+        disabled
+        secondary
+      >
+        <v-icon name="check" left />
+        Thesen generiert
+      </v-button>
+    </div>
+  </div>
 
-      <!-- Action button only if NOT generated -->
-      <div v-else class="card-footer">
-        <v-button
-          :loading="loadingGenerate"
-          :disabled="loadingGenerate || loadingMails"
-          secondary
-          @click="triggerGenerate"
-        >
-          <v-icon name="auto_awesome" left />
-          Thesen generieren
-        </v-button>
+  <!-- Send Emails card — only rendered for admins -->
+  <div v-if="currentUserIsAdmin" class="action-card">
+    <div class="card-header">
+      <v-icon name="mail" class="card-icon" />
+      <div class="card-title-group">
+        <h3 class="card-title">Kandidaten einladen</h3>
+        <p class="card-subtitle">Personalisierte E-Mails mit Zugangslink versenden</p>
       </div>
+
+      <v-chip v-if="localAlreadySent" x-small class="status-chip">
+        <v-icon name="check_circle" x-small left />
+        Versendet
+      </v-chip>
     </div>
 
-    <!-- Send Emails card — only rendered for admins -->
-    <div v-if="currentUserIsAdmin" class="action-card">
-      <div class="card-header">
-        <v-icon name="mail" class="card-icon" />
-        <div class="card-title-group">
-          <h3 class="card-title">Kandidaten einladen</h3>
-          <p class="card-subtitle">Personalisierte E-Mails mit Zugangslink versenden</p>
-        </div>
+    <!-- Already sent notice -->
+    <v-notice v-if="localAlreadySent" type="success" class="card-notice">
+      E-Mails wurden bereits versendet.
+    </v-notice>
 
-        <v-chip v-if="value?.already_sent_mails" x-small class="status-chip">
-          <v-icon name="check_circle" x-small left />
-          Versendet
-        </v-chip>
-      </div>
-
-      <v-notice v-if="!value?.already_generated_questions" type="info" class="card-notice">
-        Bitte zuerst Thesen generieren.
-      </v-notice>
-
-      <v-notice v-if="value?.already_sent_mails" type="warning" class="card-notice">
-        Bereits versendet — erneutes Ausführen sendet neue Einladungen an alle Kandidaten.
-      </v-notice>
-
-      <div class="card-footer">
-        <v-button
-          :loading="loadingMails"
-          :disabled="loadingMails || loadingGenerate || !value?.already_generated_questions"
-          @click="triggerMails"
-        >
-          <v-icon name="send" left />
-          E-Mails versenden
-        </v-button>
-      </div>
+    <div class="card-footer">
+      <v-button
+        v-if="!localAlreadySent"
+        :loading="loadingMails"
+        :disabled="loadingMails || loadingGenerate"
+        @click="triggerMails"
+      >
+        <v-icon name="send" left />
+        E-Mails versenden
+      </v-button>
+      <v-button
+        v-else
+        disabled
+      >
+        <v-icon name="check" left />
+        E-Mails versendet
+      </v-button>
     </div>
+  </div>
 
-    <!-- Result feedback -->
     <transition name="fade">
       <v-notice v-if="successMessage" type="success" class="result-notice">
         <v-icon name="check" left small />
@@ -92,12 +105,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useApi, useStores } from '@directus/extensions-sdk';
 
 const props = defineProps({
   value: { type: Object, default: null },
   primaryKey: { type: [String, Number], default: null },
+  values: { type: Object, default: () => ({}) },
 });
 
 const emit = defineEmits(['input']);
@@ -108,8 +122,53 @@ const userStore = useUserStore();
 
 const loadingGenerate = ref(false);
 const loadingMails = ref(false);
+const loadingData = ref(false);
 const successMessage = ref(null);
 const errorMessage = ref(null);
+
+// Local override state to show immediate feedback after successful action
+const dbAlreadyGenerated = ref(false);
+const dbAlreadySent = ref(false);
+const sessionGenerated = ref(false);
+const sessionMailsSent = ref(false);
+
+const localAlreadyGenerated = computed(() => {
+  return sessionGenerated.value || dbAlreadyGenerated.value || !!props.values?.already_generated_questions;
+});
+
+const localAlreadySent = computed(() => {
+  return sessionMailsSent.value || dbAlreadySent.value || !!props.values?.already_sent_mails;
+});
+
+async function fetchStatus() {
+  if (!props.primaryKey || props.primaryKey === '+') return;
+
+  loadingData.value = true;
+  try {
+    const res = await api.get(`/items/elections/${props.primaryKey}`, {
+      params: {
+        fields: ['already_generated_questions', 'already_sent_mails']
+      }
+    });
+
+    if (res.data?.data) {
+      dbAlreadyGenerated.value = !!res.data.data.already_generated_questions;
+      dbAlreadySent.value = !!res.data.data.already_sent_mails;
+    }
+  } catch (err) {
+    console.error('[election-actions] Failed to fetch status:', err);
+  } finally {
+    loadingData.value = false;
+  }
+}
+
+onMounted(() => {
+  fetchStatus();
+});
+
+watch(() => props.primaryKey, () => {
+  fetchStatus();
+});
 
 const currentUserIsAdmin = computed(() => {
   return userStore.currentUser?.role?.admin_access === true || userStore.currentUser?.role?.name === 'Administrator';
@@ -152,13 +211,8 @@ async function triggerAction(endpoint, loadingRef, successText) {
 
     showFeedback('success', successText);
 
-    const res = await api.get(`/items/elections/${props.primaryKey}`, {
-      params: {
-        fields: ['already_generated_questions', 'already_sent_mails'],
-      },
-    });
-
-    emit('input', { ...props.value, ...res.data.data });
+    if (endpoint === 'generate') sessionGenerated.value = true;
+    if (endpoint === 'send-mails') sessionMailsSent.value = true;
   } catch (err) {
     const detail =
       err?.response?.data?.errors?.[0]?.message ||
