@@ -87,6 +87,7 @@ export default {
       const personalLink = `https://stadt-land-klima.de/thesen/${resolved_id}/${token}`;
 
       try {
+        logger.info(`send-candidate-mails: Attempting to send mail to ${candidate.email} using template "email-template-candidate"`);
         await mailSvc.send({
           to: candidate.email,
           subject: `Einladung zum Klimawahl-Check: ${municipalityName}`,
@@ -98,7 +99,8 @@ export default {
               cutoff_date:       cutoffFormatted,
               personal_link:     personalLink,
               projectName:       'Klimawahlcheck',
-              projectColor:      '#1da64a'
+              projectColor:      '#1da64a',
+              projectUrl:        'https://stadt-land-klima.de'
             },
           },
         });

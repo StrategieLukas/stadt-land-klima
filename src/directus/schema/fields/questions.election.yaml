@@ -6,7 +6,7 @@ meta:
   conditions: null
   display: related-values
   display_options:
-    template: "{{descriptor}}(Stichtag: {{response_cutoff_date}})"
+    template: "{{descriptor}}"
   field: election
   group: null
   hidden: false
@@ -14,7 +14,7 @@ meta:
   note: null
   options:
     enableCreate: false
-    template: "{{descriptor}} (Stichtag: {{response_cutoff_date}})"
+    template: "{{descriptor}}"
   readonly: false
   required: true
   sort: 2

@@ -6,14 +6,14 @@ meta:
   conditions: null
   display: related-values
   display_options:
-    template: "{{descriptor}} (Stichtag: {{response_cutoff_date}})"
+    template: "{{descriptor}}"
   field: election
   group: null
   hidden: false
   interface: select-dropdown-m2o
   note: null
   options:
-    template: "{{descriptor}} (Stichtag: {{response_cutoff_date}})"
+    template: "{{descriptor}}"
   readonly: false
   required: true
   sort: 9

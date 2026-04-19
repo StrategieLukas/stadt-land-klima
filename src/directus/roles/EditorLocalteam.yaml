@@ -346,6 +346,7 @@ permissions:
     fields:
       - descriptor
       - response_cutoff_date
+      - localteam
   - collection: elections
     action: delete
     permissions:
@@ -376,6 +377,8 @@ permissions:
       - date_updated
       - localteam
       - action_buttons
+      - already_sent_mails
+      - already_generated_questions
   - collection: elections
     action: update
     permissions:

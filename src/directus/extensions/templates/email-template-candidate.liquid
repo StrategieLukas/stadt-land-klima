@@ -1,19 +1,16 @@
 {% layout "custom-base" %} {% block content %}
 
-<h1>Ihre Einladung zum Thesen-Check für {{ municipality_name }}</h1>
+<h1 style="color: #006e94; font-size: 24px; font-weight: 700; margin-bottom: 24px;">Einladung zum Klimawahl-Check: {{ municipality_name }}</h1>
 
-<p>Sehr geehrte/r {{ candidate_name }},</p>
-
-<p>
-  wir laden Sie herzlich ein, am Thesen-Check für {{ municipality_name }} teilzunehmen.
-  Ihre Antworten helfen den Bürgerinnen und Bürgern, sich ein Bild von Ihren Positionen zu wichtigen Klimaschutz-Themen zu machen.
+<p style="font-size: 16px; line-height: 1.5; color: #525252; margin-bottom: 16px;">
+  Hallo {{ candidate_name }},
 </p>
 
-<p>
-  Unter dem folgenden Link gelangen Sie zu Ihrem persönlichen Formular:
+<p style="font-size: 16px; line-height: 1.5; color: #525252; margin-bottom: 24px;">
+  wir freuen uns, Sie zur Teilnahme am Klimawahl-Check für die Gemeinde {{ municipality_name }} einzuladen. Über den untenstehenden Button gelangen Sie direkt zu Ihrem persönlichen Fragebogen, in dem Sie Ihre Positionen zu wichtigen Klimaschutz-Maßnahmen darlegen können.
 </p>
 
-<p style="padding: 20px 0;">
+<div style="text-align: center; margin-bottom: 30px;">
   <a
     class="button"
     rel="noopener"
@@ -25,27 +22,37 @@
       color: #ffffff;
       text-decoration: none;
       display: inline-block;
-      padding: 11px 24px;
+      padding: 12px 32px;
       border-radius: 8px;
-      background: #171717;
-      border: 1px solid #ffffff;
+      background: #006e94;
+      border: 1px solid #006e94;
     "
   >
-    Zum persönlichen Formular
+    <!--[if mso]>
+      <i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt"
+        >&nbsp;</i
+      >
+    <![endif]-->
+    <span style="mso-text-raise: 15pt">Zum Klimawahl-Check</span>
+    <!--[if mso]>
+      <i style="letter-spacing: 25px; mso-font-width: -100%">&nbsp;</i>
+    <![endif]-->
   </a>
+</div>
+
+<p style="font-size: 16px; line-height: 1.5; color: #525252; margin-bottom: 16px;">
+  Bitte beachten Sie, dass die Frist für die Abgabe Ihrer Antworten am <strong>{{ cutoff_date }}</strong> endet.
 </p>
 
-<p>
-  Bitte füllen Sie das Formular bis zum <strong>{{ cutoff_date }}</strong> aus.
-  Nach diesem Datum können keine Antworten mehr entgegengenommen werden.
+<p style="font-size: 16px; line-height: 1.5; color: #525252; margin-bottom: 24px;">
+  Sollten Sie Fragen haben oder Unterstützung benötigen, können Sie sich jederzeit gerne an uns wenden.
 </p>
 
-<p>
-  Bei Fragen wenden Sie sich bitte an Ihr lokales Team oder kontaktieren Sie uns unter info@stadt-land-klima.de.
-</p>
+<hr style="border-top: 1px solid #d3dae4; margin-bottom: 24px;" />
 
-<p>
-  Viel Erfolg bei der Kommunalwahl!
+<p style="font-size: 14px; line-height: 1.5; color: #737373;">
+  Vielen Dank für Ihren Beitrag zum Klimaschutz!<br />
+  Ihr Team von {{ projectName }}
 </p>
 
 {% endblock %}

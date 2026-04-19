@@ -1,5 +1,5 @@
 <template>
-  <div class="election-actions">
+  <div v-if="primaryKey && primaryKey !== '+'" class="election-actions">
 
   <!-- Generate Questions card -->
   <div class="action-card">
