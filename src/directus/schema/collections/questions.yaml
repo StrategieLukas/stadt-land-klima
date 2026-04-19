@@ -10,7 +10,7 @@ meta:
   display_template: "{{localteam.municipality_name}}: {{title}}"
   group: election
   hidden: false
-  icon: null
+  icon: find_in_page
   item_duplication_fields: null
   note: null
   preview_url: null

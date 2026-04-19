@@ -10,7 +10,7 @@ meta:
   display_template: null
   group: success_projects
   hidden: false
-  icon: null
+  icon: newspaper
   item_duplication_fields: null
   note: null
   preview_url: null

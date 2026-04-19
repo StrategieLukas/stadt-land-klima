@@ -10,7 +10,7 @@ meta:
   display_template: null
   group: team
   hidden: false
-  icon: null
+  icon: location_city
   item_duplication_fields: null
   note: null
   preview_url: null

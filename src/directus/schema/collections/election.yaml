@@ -10,7 +10,7 @@ meta:
   display_template: null
   group: null
   hidden: false
-  icon: folder
+  icon: how_to_vote
   item_duplication_fields: null
   note: Alles rund um lokale Wahlen
   preview_url: null

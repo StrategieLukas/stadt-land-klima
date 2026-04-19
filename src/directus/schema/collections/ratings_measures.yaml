@@ -10,7 +10,7 @@ meta:
   display_template: null
   group: rating
   hidden: false
-  icon: null
+  icon: bar_chart
   item_duplication_fields: null
   note: null
   preview_url: null

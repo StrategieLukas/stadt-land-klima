@@ -10,7 +10,7 @@ meta:
   display_template: "{{measure_id}}"
   group: election
   hidden: false
-  icon: help
+  icon: restore_page
   item_duplication_fields: null
   note: null
   preview_url: null

@@ -10,7 +10,7 @@ meta:
   display_template: null
   group: election
   hidden: false
-  icon: null
+  icon: feed
   item_duplication_fields: null
   note: null
   preview_url: null

@@ -10,7 +10,7 @@ meta:
   display_template: "{{municipality_name}} ({{name}})"
   group: team
   hidden: false
-  icon: null
+  icon: house
   item_duplication_fields: null
   note: null
   preview_url: null

@@ -10,7 +10,7 @@ meta:
   display_template: null
   group: null
   hidden: false
-  icon: folder
+  icon: group
   item_duplication_fields: null
   note: Verwaltung des Teams
   preview_url: null

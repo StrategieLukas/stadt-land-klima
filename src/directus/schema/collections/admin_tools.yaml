@@ -10,7 +10,7 @@ meta:
   display_template: null
   group: null
   hidden: false
-  icon: folder
+  icon: construction
   item_duplication_fields: null
   note: Alles rund um blökkli und Administration des Frontends
   preview_url: null
