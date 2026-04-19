@@ -1,10 +1,10 @@
 <template>
   <!-- Mobile version -->
-  <div class="block lg:hidden project-page bg-[#E8F9FD] shadow-md rounded-md overflow-hidden">
+  <div class="block lg:hidden project-page mt-4 bg-[#E8F9FD] shadow-md rounded-md overflow-hidden">
 
       <div class="p-6">
 
-        <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← {{ $t("navigation.return_to_overview") }}</NuxtLink>
+        <NuxtLink :to="backHref" class="text-blue-500 text-sm">← {{ backLabel }}</NuxtLink>
   
         <!-- Title and Subtitle -->
         <h1 class="text-2xl font-bold text-blue-500 mb-1">{{ title }}</h1>
@@ -37,7 +37,8 @@
 
         <!-- Location, Author and Date -->
         <p class="text-sm text-gray-600 mb-1">
-          {{ location }}
+          <NuxtLink v-if="municipality_slug" :to="`/municipalities/${municipality_slug}`" class="text-blue-500 hover:underline">{{ location }}</NuxtLink>
+          <span v-else>{{ location }}</span>
         </p>
         <p class="text-sm text-gray-600 mb-1">
           <i>{{ $t("article.author_date", { ":author": author, ":date": date.toLocaleDateString($locale) }) }}</i>
@@ -99,8 +100,8 @@
 
 
   <!-- Desktop version -->
-  <div class="hidden lg:block project-page bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
-    <NuxtLink :to="`/projects/`" class="text-blue-500 text-sm">← {{ $t("navigation.return_to_overview") }}</NuxtLink>
+  <div class="hidden lg:block project-page mt-8 bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
+    <NuxtLink :to="backHref" class="text-blue-500 text-sm">← {{ backLabel }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
       <SmartImg
@@ -135,7 +136,8 @@
 
         <p v-if="municipality_name" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>{{ $t("municipality") }}</strong>
-          <span class="text-right">{{ municipality_name }}</span>
+          <NuxtLink v-if="municipality_slug" :to="`/municipalities/${municipality_slug}`" class="text-right text-blue-500 hover:underline">{{ municipality_name }}</NuxtLink>
+          <span v-else class="text-right">{{ municipality_name }}</span>
         </p>
         <p v-if="state" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>{{ $t("state") }}</strong>
@@ -236,15 +238,18 @@
   import { ref, watchEffect } from 'vue'
   import { buildLocationString, toAssetUrl } from '~/shared/utils';
   import MarkdownIt from 'markdown-it'
+  import { useReferrer } from '~/composables/useReferrer'
   
   
   const md = new MarkdownIt();
   const { $t, $locale } = useNuxtApp()
+  const { backHref, backLabel } = useReferrer('/projects', $t('navigation.return_to_overview'))
   
   const props = defineProps({
       title: String,
       subtitle: String,
       municipality_name: String,
+      municipality_slug: String,
       state: String,
       author: String,
       date: Date,

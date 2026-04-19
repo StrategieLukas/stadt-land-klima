@@ -1,10 +1,17 @@
+import rating4 from '@/assets/icons/icon_rating_4.svg'
+import rating3 from '@/assets/icons/icon_rating_3.svg'
+import rating2 from '@/assets/icons/icon_rating_2.svg'
+import rating1 from '@/assets/icons/icon_rating_1.svg'
+import rating0 from '@/assets/icons/icon_rating_0.svg'
+import ratingNa from '@/assets/icons/icon_rating_na.svg'
+
 export default {
-  4: "/assets/icons/icon_rating_4.svg",
-  3: "/assets/icons/icon_rating_3.svg",
-  2: "/assets/icons/icon_rating_2.svg",
-  1: "/assets/icons/icon_rating_1.svg",
-  0: "/assets/icons/icon_rating_0.svg",
-  null: "/assets/icons/icon_rating_na.svg",
+  4: rating4,
+  3: rating3,
+  2: rating2,
+  1: rating1,
+  0: rating0,
+  null: ratingNa,
 };
 
 export function ratingIndex(value) {

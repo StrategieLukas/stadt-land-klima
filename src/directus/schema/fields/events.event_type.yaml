@@ -1,0 +1,58 @@
+collection: events
+field: event_type
+type: string
+meta:
+  collection: events
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Konferenz
+        value: conference
+      - text: Workshop
+        value: workshop
+      - text: Webinar
+        value: webinar
+      - text: Sonstiges
+        value: other
+  field: event_type
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: Konferenz
+        value: conference
+      - text: Workshop
+        value: workshop
+      - text: Webinar
+        value: webinar
+      - text: Sonstiges
+        value: other
+  readonly: false
+  required: true
+  sort: 9
+  special: null
+  translations:
+    - language: de-DE
+      translation: Veranstaltungstyp
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: event_type
+  table: events
+  data_type: character varying
+  default_value: other
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

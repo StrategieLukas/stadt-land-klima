@@ -1,8 +1,8 @@
 <template>
   <div class="w-full bg-gray-100 rounded-lg overflow-hidden relative z-10">
-    <div v-if="loading" class="h-64 flex items-center justify-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      <span class="ml-2 text-gray-600">{{ $t('generic.loading') }}...</span>
+    <div v-if="loading" class="h-64 flex items-center justify-center gap-2">
+      <SlkFlowerSpinner :size="32" />
+      <span class="text-gray-600">{{ $t('generic.loading') }}...</span>
     </div>
     
     <div v-else-if="error" class="h-64 flex items-center justify-center text-red-600 bg-red-50">

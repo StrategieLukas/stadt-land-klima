@@ -1,0 +1,28 @@
+collection: navigation_config
+meta:
+  accountability: all
+  archive_app_filter: false
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: navigation_config
+  color: null
+  display_template: Navigation
+  group: null
+  hidden: false
+  icon: navigation
+  item_duplication_fields: null
+  note: Konfiguration der Header- und Footer-Navigation
+  preview_url: null
+  singleton: true
+  sort: null
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Navigationseinstellungen
+      singular: Navigationseinstellungen
+      plural: Navigationseinstellungen
+  unarchive_value: null
+  versioning: false
+schema:
+  name: navigation_config

@@ -1,0 +1,51 @@
+name: syncCreatorVerified
+icon: verified_user
+color: null
+description: When directus_users.verified changes, sync the value to municipalities.creator_verified for municipalities managed by that user.
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.update
+  collections:
+    - directus_users
+operations:
+  - name: Sync creator_verified to municipality
+    key: exec_sync_verified
+    type: exec
+    position_x: 1
+    position_y: 1
+    options:
+      code: |
+        module.exports = async function({ $trigger, services, getSchema, accountability }) {
+          const verified = $trigger.payload && $trigger.payload.verified;
+          if (verified === undefined || verified === null) return;
+          const keys = $trigger.keys || ($trigger.key ? [$trigger.key] : []);
+          if (!keys.length) return;
+          const userId = keys[0];
+          const schema = await getSchema();
+          accountability.admin = true;
+          const ItemsService = services.ItemsService;
+          const localteamService = new ItemsService('localteams', { schema, accountability });
+          const municipalityService = new ItemsService('municipalities', { schema, accountability });
+          const localteams = await localteamService.readByQuery({
+            filter: { admin_id: { _in: keys } },
+            fields: ['id'],
+            limit: 100,
+          });
+          if (!localteams.length) return;
+          const localteamIds = localteams.map(lt => lt.id);
+          const municipalities = await municipalityService.readByQuery({
+            filter: { localteam_id: { _in: localteamIds } },
+            fields: ['id'],
+            limit: 100,
+          });
+          if (!municipalities.length) return;
+          const municipalityIds = municipalities.map(m => m.id);
+          for (const id of municipalityIds) {
+            await municipalityService.updateOne(id, { creator_verified: verified });
+          }
+        };
+operation_key: exec_sync_verified

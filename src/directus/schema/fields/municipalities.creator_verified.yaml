@@ -1,0 +1,41 @@
+collection: municipalities
+field: creator_verified
+type: boolean
+meta:
+  collection: municipalities
+  conditions: null
+  display: boolean
+  display_options: null
+  field: creator_verified
+  group: null
+  hidden: false
+  interface: boolean
+  note: "Wurde der Account des Lokalteam-Admins durch einen Admin verifiziert? Wird automatisch aus directus_users.verified synchronisiert."
+  options: null
+  readonly: true
+  required: false
+  sort: 999
+  special:
+    - cast-boolean
+  translations:
+    - language: de-DE
+      translation: Admin verifiziert
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: creator_verified
+  table: municipalities
+  data_type: boolean
+  default_value: false
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

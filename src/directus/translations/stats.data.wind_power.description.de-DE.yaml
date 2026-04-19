@@ -1,3 +1,5 @@
 language: de-DE
 key: stats.data.wind_power.description
-value: Das ist nur die Windkraft, die auf dem Gebiet der Kommune ist. Wenn die Kommune Windkraft in weiteren Orten betreibt/beteigt ist, ist dies hier nicht abgebildet.
+value: Das ist nur die Windkraft, die auf dem Gebiet der Kommune ist. Wenn die
+  Kommune Windkraft in weiteren Orten betreibt/beteigt ist, ist dies hier nicht
+  abgebildet.

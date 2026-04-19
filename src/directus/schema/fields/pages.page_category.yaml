@@ -53,7 +53,7 @@ meta:
 schema:
   name: page_category
   table: pages
-  data_type: varchar
+  data_type: character varying
   default_value: null
   max_length: 255
   numeric_precision: null

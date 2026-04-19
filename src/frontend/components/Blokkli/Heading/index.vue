@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-heading-wrapper" :class="[alignClass]">
+  <div class="blokkli-block-heading-wrapper" :id="'block-' + uuid" :class="[alignClass]">
     <component
       :is="headingTag"
       v-blokkli-editable:text
@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-const { options } = defineBlokkli({
+const { options, uuid } = defineBlokkli({
   bundle: 'heading',
   options: {
     level: {

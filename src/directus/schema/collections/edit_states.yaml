@@ -7,7 +7,7 @@ meta:
   collapse: open
   collection: edit_states
   color: null
-  display_template: '{{entity_type}}/{{entity_uuid}} - {{state}}'
+  display_template: "{{entity_type}}/{{entity_uuid}} - {{state}}"
   group: null
   hidden: false
   icon: edit_note
@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Bearbeitungszustände
-      singular: Bearbeitungszustand
-      plural: Bearbeitungszustände
+      translation: Blökkli-Bearbeitungszustände
+      singular: Blökkli-Bearbeitungszustand
+      plural: Blökkli-Bearbeitungszustände
   unarchive_value: null
   versioning: false
 schema:

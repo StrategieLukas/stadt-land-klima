@@ -14,6 +14,8 @@ meta:
                   _null: true
               - percentage_rated:
                   _lt: "95"
+              - creator_verified:
+                  _neq: true
       readonly: true
       options:
         allowOther: false

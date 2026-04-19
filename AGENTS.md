@@ -1,223 +1,133 @@
-# AI Agent Instructions — stadt-land-klima
+# Stadt-Land-Klima — Agent Instructions
 
-This file provides actionable technical context for AI agents (GitHub Copilot, Claude, etc.) working on this codebase.
+## Project overview
 
-This should be a living document. If you find anything new about how this project works and find it non-trivial, please append it here.
-
----
-
-## Project Structure
-
-- **Frontend**: `src/frontend/` — Nuxt 3 app
-- **CMS backend**: Directus (runs in Docker)
-- **Dev startup**: `bin/start_development.sh`
-- **Frontend package manager**: npm (run commands from `src/frontend/`)
+Nuxt 3 frontend + Directus CMS backend, running in Docker Compose.
 
 ---
 
-## blökkli Page Builder
+## Directus schema & permissions workflow
 
-The frontend uses `@blokkli/editor` v1.3.4 for visual page building.
+All Directus configuration is **code-first**: the source of truth lives in YAML files under `src/directus/`. Changes are applied by running `import-all.sh` inside the Directus container. **Never make manual DB edits to replace what a YAML + import can do.**
 
-### Key Files
-| File | Purpose |
-|------|---------|
-| `src/frontend/app/blokkli.editAdapter.ts` | All editor ↔ Directus data operations |
-| `src/frontend/components/Blokkli/**/*.vue` | Block components (one folder per bundle) |
-| `src/frontend/nuxt.config.ts` | `blokkli.itemEntityType: 'block'` |
-| `src/frontend/pages/[slug].vue` | Page that hosts `<BlokkliProvider>` + `<BlokkliField>` |
+### Applying changes
 
-**Docs**: https://docs.blokk.li
-
----
-
-## Block Registration (CRITICAL)
-
-Blocks are discovered by a **static regex parser** at dev-server start / `nuxt prepare`:
-
-```
-regex: defineBlokkli\((\{.+?\})\)   ← lazy match
+```bash
+docker compose -f docker-compose.yaml exec directus /directus/cli/import-all.sh
 ```
 
-**This breaks with arrow function shorthand** — `() => ({...})` has a `})` inside the object literal that terminates the lazy match early.
+> From the repo root (not from `bin/` — that script uses a relative path that breaks outside its directory).
 
-**Always use explicit return in `mockProps`:**
-```ts
-// ❌ BROKEN — parser fails
-mockProps: () => ({ text: 'hello' })
+### Adding a new collection field
 
-// ✅ CORRECT
-mockProps: () => { return { text: 'hello' } }
+Create `src/directus/schema/fields/<collection>.<field>.yaml`. Follow the exact format of existing files — both `meta:` and `schema:` blocks are required.
+
+**Primary key gotcha:** If the table already exists, check `\d <table>` in psql to confirm the `id` type (UUID vs integer). The YAML `type` / `data_type` / `has_auto_increment` / `special` must match the actual DB column or the import will fail with:
+```
+alter table "<table>" alter column "id" drop not null — column "id" is in a primary key
 ```
 
-Generated files (must be regenerated after adding blocks):
-- `.nuxt/blokkli/definitions.ts`
-- `.nuxt/blokkli/imports.ts`
+### Adding / changing permissions
 
----
+The frontend makes client-side requests with a static Bearer token (the **frontend** role). Server-side / unauthenticated requests use the **public** role. **Both roles usually need the same read permission** when exposing a new collection to the frontend.
 
-## Defining a Block Component
+Edit the relevant files in `src/directus/roles/`:
+- `public.yaml` — unauthenticated / SSR access
+- `frontend.yaml` — client-side requests that include the frontend Bearer token
 
-```vue
-<!-- components/Blokkli/MyBlock/index.vue -->
-<template>
-  <div>                          <!-- Root wrapper REQUIRED — see editable rule below -->
-    <p v-blokkli-editable:text v-text="props.text" />
-  </div>
-</template>
+**Template — add to the `permissions:` list in both files:**
 
-<script setup lang="ts">
-const { options, isEditing } = defineBlokkli({
-  bundle: 'my_block',
-  options: { ... },
-  editor: {
-    addBehaviour: 'no-form',   // or 'editable:fieldName'
-    editTitle: (el) => el.textContent,
-    mockProps: () => { return { text: 'placeholder' } },  // explicit return!
-  },
-})
-</script>
+```yaml
+  - collection: <collection_name>
+    action: read
+    permissions: {}   # no row-level filter = all rows
+    validation: {}
+    presets: null
+    fields:
+      - "*"
 ```
 
----
-
-## Critical: Editable Field Must Be a Descendant of Root
-
-`buildEditable()` uses `hostElement.querySelector('[data-blokkli-editable-field="..."]')`.  
-`querySelector` searches **descendants only** — it does NOT match the element itself.
-
-```vue
-<!-- ❌ BROKEN: root IS the editable, querySelector returns null -->
-<template>
-  <h2 v-blokkli-editable:text v-text="props.text" />
-</template>
-
-<!-- ✅ CORRECT: editable is a child of the root -->
-<template>
-  <div>
-    <h2 v-blokkli-editable:text v-text="props.text" />
-  </div>
-</template>
+Then run `import-all.sh`. Verify with:
+```sql
+SELECT r.name, p.action, p.fields
+FROM directus_permissions p
+LEFT JOIN directus_roles r ON p.role = r.id
+WHERE p.collection = '<collection_name>';
 ```
 
-Also: `v-blokkli-editable` requires `v-text="props.field"` (not `>{{ field }}</tag>`) for the update cycle to work.
+> **Gotcha:** If you only add it to `public.yaml` and the browser still gets a 403, check whether the request has an `Authorization: Bearer` header. If it does, it hits the **frontend** role, not public — add the permission to `frontend.yaml` as well.
 
----
+### Custom interface extensions
 
-## Option Types Quick Reference
+Located in `src/directus/extensions/directus-extension-interface-<name>/`.
 
-```ts
-// Plain text radio buttons (default)
-myOption: { type: 'radios', label: '...', default: 'a', options: { a: 'Label A', b: 'Label B' } }
-
-// Color circle pickers
-myOption: { type: 'radios', displayAs: 'colors', options: { key: { label: '...', hex: '#rrggbb' } } }
-
-// SVG icon buttons (icon files must be co-located with component)
-myOption: { type: 'radios', displayAs: 'icons', options: { key: { icon: 'icon-blokkli-<name>', label: '...' } } }
-// Icon file naming: icon-blokkli-<name>.svg  (only a-z, -, _)
-
-// Grid layout columns
-myOption: { type: 'radios', displayAs: 'grid', options: { equal: { columns: [1, 1], label: '...' } } }
-
-// Checkbox, text, color, range, number also available
+After editing `src/interface.vue`, rebuild:
+```bash
+cd src/directus/extensions/directus-extension-interface-<name>
+npm run build
 ```
 
-Group options into a dropdown: add `group: 'Group Name'` to any option.
-
----
-
-## Adapter Methods (blokkli.editAdapter.ts)
-
-| Method | Notes |
-|--------|-------|
-| `loadState()` | Returns initial block list from Directus |
-| `mapState(blocks)` | Maps Directus blocks → `MutatedField[]` for blökkli |
-| `getAllBundles()` | Must list ALL bundle ids, including new ones |
-| `getFieldConfig(host)` | Field config (allowedBundles, cardinality) per entity/bundle |
-| `getEditableFieldConfig()` | Must include entry for every `v-blokkli-editable` field used |
-| `getDroppableFieldConfig()` | Config for `v-blokkli-droppable` fields |
-| `updateFieldValue(e)` | Called when user edits an inline field |
-| `mediaLibraryGetResults()` | **Must include `mediaBundle: 'image'`** on each item |
-| `publish()` | Use `refreshNuxtData(key)` — NOT `clearNuxtData(key)` |
-
-### mediaLibraryGetResults — critical field
-```ts
-// Each item MUST have mediaBundle or drop areas are not created:
-{ mediaId: file.id, label: ..., mediaBundle: 'image', thumbnail: ... }
-// Internally: config.allowedBundles.includes(item.mediaBundle) — undefined always fails
+Then restart Directus to pick up the new `dist/index.js`:
+```bash
+docker restart stadt-land-klima-directus-1
 ```
 
-### publish — cache refresh
-```ts
-// ✅ Triggers re-fetch
-await refreshNuxtData(`blocks-${entityUuid}`)
+Extensions use **Directus CSS theme variables** (not hardcoded hex) so they render correctly in both light and dark mode:
 
-// ❌ Only marks stale, does NOT re-fetch
-clearNuxtData(`blocks-${entityUuid}`)
-```
-
----
-
-## Nested Blocks (Container Pattern)
-
-```vue
-<BlokkliField name="blocks" :list="props.blocks || []" tag="div" />
-```
-
-- Container gets `blocks?: FieldListItem[]` prop
-- `getFieldConfig()` must return a `blocks` field config for the `container` bundle
-- `mapState()` must expose container's nested field as a `MutatedField`
-- Adapter needs recursive helpers: `findBlock(uuid, tree)`, `findParentList(uuid, tree)`
+| Purpose | Variable |
+|---|---|
+| Page background | `var(--theme--background)` |
+| Subdued background | `var(--theme--background-subdued)` |
+| Body text | `var(--theme--foreground)` |
+| Subdued text | `var(--theme--foreground-subdued)` |
+| Border | `var(--theme--border-color)` |
+| Primary accent | `var(--theme--primary)` |
+| Primary background tint | `var(--theme--primary-background)` |
+| Border radius | `var(--theme--border-radius)` |
+| Font family | `var(--theme--fonts--sans--font-family)` |
 
 ---
 
-## Media Library / Droppable Fields
+## Frontend data fetching
 
-1. Mark element: `<div v-blokkli-droppable:imageId>`  
-   → Sets `data-blokkli-droppable-field="imageId"` on element
-2. Adapter `getDroppableFieldConfig()` must return config with matching `name: 'imageId'`
-3. Config lookup key: `entityType + entityBundle + fieldName` (exact 3-key match)
-4. Items from `mediaLibraryGetResults` must have `mediaBundle` set
+- `$directus.request($readItems('collection', { ... }))` — list
+- `$directus.request($readSingleton('collection'))` — singleton (e.g. `navigation_config`)
+- Both plugins expose `$directus`, `$readItem`, `$readItems`, `$readSingleton`, `$locale`, `$t`
 
----
-
-## Existing Blocks
-
-| Bundle | Folder | Options |
-|--------|--------|---------|
-| `heading` | `Heading/` | level (H1–H6 radios), color (brand colors) |
-| `text` | `Text/` | size (colors) |
-| `richtext` | `RichText/` | size (icons: small/normal/large), renders markdown-it |
-| `image` | `Image/` | droppable:imageId, caption editable |
-| `button` | `Button/` | style (colors: green/blue/dark/outline), editable label + link |
-| `container` | `Container/` | layout (grid), background (thick brand colors), padding (icons), width (icons incl. page-width breakout) |
-
-### Brand Colors (from tailwind.config.js)
-| Key | Hex | Tailwind |
-|-----|-----|----------|
-| Light Blue bg | `#E6F1F5` | `bg-very-light-blue` |
-| Light Green bg | `#EBF7EF` | `bg-rating-4-very-light` |
-| Off White bg | `#fbfbfb` | `bg-mild-white` |
-| Dark bg | `#006e94` | `bg-stats-dark text-white` |
-| Green text | `#1da64a` | `text-ff-green` / `bg-ff-green` |
-| Light Blue text | `#16bae7` | `text-light-blue` / `bg-light-blue` |
-| Orange | `#f39200` | `bg-orange` |
+If a `$readSingleton` / `$readItems` call returns empty data or a 403 error, the **first thing to check** is permissions: add the collection to both `public.yaml` and `frontend.yaml`, then run `import-all.sh`.
 
 ---
 
-## blökkli Library Internals (for debugging)
+## blökkli block integration
 
-All in `src/frontend/node_modules/@blokkli/editor/dist/runtime/`:
+Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The adapter is `src/frontend/app/blokkli.editAdapter.ts`.
 
-| File | What it does |
-|------|-------------|
-| `plugins/blokkliEditable.js` | Registers `v-blokkli-editable` / `v-blokkli-droppable` directives; sets `dataset.blokkliEditableField` / `dataset.blokkliDroppableField` |
-| `composables/defineBlokkli.js` | Calls `dom.registerBlock()` on mount; lazy match parser here |
-| `helpers/domProvider.js` | `registerBlock`, `findBlock`, `getDragElement`, `getAllDroppableFields` |
-| `helpers/index.js` | `buildDraggableItem` — reads `data-uuid`, `data-item-bundle`, etc. |
-| `components/Edit/DragInteractions/index.vue` | Handles pointer events; double-click → `editable:focus` event |
-| `components/Edit/Features/EditableField/index.vue` | Listens for `editable:focus`; calls `querySelector` for editable element |
-| `components/Edit/Features/MediaLibrary/index.vue` | Gates drop areas on `config.allowedBundles.includes(item.mediaBundle)` |
-| `helpers/typesProvider.js` | `ConfigMap.forName(entityType, entityBundle, fieldName)` |
-| `components/Edit/DraggableList.vue` | Sets `data-uuid`, `data-item-bundle`, etc. on each block wrapper |
+### Adding a new block — all 6 steps are required
+
+**1. Component file** — `src/frontend/components/Blokkli/<Name>/index.vue`
+
+**2. `defineBlokkli()` + `defineProps`**
+- `bundle` must match the adapter key exactly.
+- `mockProps` must use explicit `return`: `mockProps: () => { return { ... } }` — arrow shorthand `() => ({...})` breaks the static regex parser.
+- `editTitle` receives the root DOM element: `el.textContent?.trim()`.
+
+**3. `getPropsForNewBlock(bundle)` in adapter** — add a `case` returning the correct initial props. **Field names must exactly match `defineProps`** — a typo causes a silent mismatch.
+
+**4. `NESTED_FIELD_KEYS` in adapter** — if the block has a `FieldListItem[]` prop (nested blocks), add the prop name here. Required for `findBlock`, `findParentList`, `addNewBlock`, `collectOptions`, and `moveBlockInTree` to traverse into it.
+
+**5. `NESTED_FIELD_MAP` + `getFieldConfig()`** — add `bundle: ['fieldName']` to `NESTED_FIELD_MAP` in `mapState()`, and a `FieldConfig` entry in `getFieldConfig()` with `entityType: 'block'`, `entityBundle`, `name`, and `allowedBundles`.
+
+**6. `getEditableFieldConfig()`** — every field marked `v-blokkli-editable:fieldName` needs a matching entry here. Without it the directive renders but inline editing is never activated. Use `type: 'markup'` for HTML, `type: 'plain'` for plain text.
+
+### `v-blokkli-editable` requirements
+
+- The editable element must be a **descendant** of the block root (never the root itself — `querySelector` does not match the element itself).
+- Use `v-text="props.field"` (not `{{ }}`).
+- Must **not** have `pointer-events: none` — the editor attaches click handlers. If a parent sets it, add `pointer-events: auto` on the editable element itself.
+- A matching entry in `getEditableFieldConfig()` is required (step 6).
+
+### `BlokkliField` is a multi-root fragment
+
+Its `$el` is a Vue comment node, not an HTMLElement. To get the rendered DOM:
+- Put `ref` on a **wrapper element** around `<BlokkliField>`.
+- Access the container via `wrapper.firstElementChild`.
