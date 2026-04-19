@@ -317,16 +317,13 @@ permissions:
   - collection: directus_users
     action: read
     permissions:
-      _and:
-        - localteams:
-            localteam_id:
-              id:
-                _in:
-                  - $CURRENT_USER.localteams.localteam_id
+      id:
+        _eq: $CURRENT_USER
     validation: {}
     presets: null
     fields:
       - "*"
+      - localteams
   - collection: directus_users
     action: update
     permissions:
@@ -373,7 +370,7 @@ permissions:
     permissions: {}
     validation: {}
     presets:
-      localteam: $CURRENT_USER.localteams.localteam_id
+      localteam: "{{$CURRENT_USER.localteams[0].localteam_id}}"
     fields:
       - descriptor
       - response_cutoff_date
@@ -664,7 +661,8 @@ permissions:
     action: create
     permissions: null
     validation: null
-    presets: null
+    presets:
+      localteam: "{{$CURRENT_USER.localteams[0].localteam_id}}"
     fields:
       - status
       - localteam
