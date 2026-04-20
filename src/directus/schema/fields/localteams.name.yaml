@@ -17,7 +17,9 @@ meta:
   required: true
   sort: 8
   special: null
-  translations: null
+  translations:
+    - language: de-DE
+      translation: Name
   validation: null
   validation_message: null
   width: half

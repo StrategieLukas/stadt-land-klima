@@ -1,0 +1,21 @@
+collection: questions
+field: election
+related_collection: elections
+meta:
+  junction_field: null
+  many_collection: questions
+  many_field: election
+  one_allowed_collections: null
+  one_collection: elections
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: null
+  sort_field: null
+schema:
+  table: questions
+  column: election
+  foreign_key_table: elections
+  foreign_key_column: id
+  constraint_name: questions_election_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL

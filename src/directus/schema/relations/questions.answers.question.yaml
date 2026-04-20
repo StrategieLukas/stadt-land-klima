@@ -1,0 +1,21 @@
+collection: answers
+field: question
+related_collection: questions
+meta:
+  junction_field: null
+  many_collection: answers
+  many_field: question
+  one_allowed_collections: null
+  one_collection: questions
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: null
+  sort_field: null
+schema:
+  table: answers
+  column: question
+  foreign_key_table: questions
+  foreign_key_column: id
+  constraint_name: answers_question_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL

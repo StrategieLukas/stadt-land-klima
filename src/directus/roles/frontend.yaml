@@ -6,6 +6,48 @@ enforce_tfa: false
 admin_access: false
 app_access: false
 permissions:
+  - collection: answers
+    action: create
+    permissions: {}
+    validation:
+      _and:
+        - candidate:
+            localteam:
+              cutoff_date:
+                _or:
+                  - _null: true
+                  - _gt: $NOW
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: update
+    permissions: {}
+    validation:
+      _and:
+        - candidate:
+            localteam:
+              cutoff_date:
+                _or:
+                  - _null: true
+                  - _gt: $NOW
+    presets: null
+    fields:
+      - "*"
   - collection: articles
     action: read
     permissions:
@@ -102,6 +144,35 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: candidate
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - name
+      - party
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+      - access_token
+      - election
+  - collection: candidate
+    action: update
+    permissions: {}
+    validation:
+      _and:
+        - localteam:
+            cutoff_date:
+              _or:
+                - _null: true
+                - _gt: $NOW
+    presets: null
+    fields:
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
   - collection: directus_files
     action: read
     permissions: {}
@@ -144,6 +215,13 @@ permissions:
     validation: {}
     presets: null
     fields:
+      - "*"
+  - collection: elections
+      - action: read
+      - permissions: { }
+      - validation: { }
+      - presets: null
+      - fields:
       - "*"
   - collection: events
     action: read
@@ -203,7 +281,15 @@ permissions:
       - municipality_name
       - slug
       - name
+      - cutoff_date
   - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measure_questions_template
     action: read
     permissions: {}
     validation: {}
@@ -344,6 +430,13 @@ permissions:
       - page_category
       - is_dynamic
       - icon_svg
+  - collection: questions
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: ratings_measures
     action: read
     permissions:

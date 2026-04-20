@@ -1,0 +1,26 @@
+bookmark: null
+user: null
+role: null
+collection: elections
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - descriptor
+      - response_cutoff_date
+      - already_generated_questions
+      - already_sent_mails
+    sort:
+      - -response_cutoff_date
+layout_options:
+  tabular:
+    widths:
+      descriptor: 300
+      response_cutoff_date: 300
+      already_generated_questions: 250
+      already_sent_mails: 300
+refresh_interval: null
+filter: null
+icon: assured_workload
+color: null

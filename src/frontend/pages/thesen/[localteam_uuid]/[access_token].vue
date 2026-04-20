@@ -1,0 +1,279 @@
+<template>
+  <div class="min-h-screen bg-mild-white py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+      <!-- Header -->
+      <div v-if="!submitted" class="text-center mb-12">
+        <h1 class="text-h1 font-bold text-black mb-4">
+          Thesen-Check
+        </h1>
+        <p v-if="localteam" class="text-lg text-mid-gray mb-2">
+          Lokalteam: <span class="font-semibold text-stats-dark">{{ localteam.name }}</span>
+        </p>
+        <p v-if="candidate" class="text-lg text-mid-gray flex items-center justify-center gap-2">
+          Kandidat: <span class="font-semibold text-stats-dark">{{ candidate.name }}</span>
+          <CandidatePartyLabel :party="candidate.party" :state="candidateState" />
+        </p>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="pending" class="flex justify-center items-center py-20">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error || !localteam || !candidate" class="bg-red/10 border border-red text-red p-6 rounded-lg text-center">
+        <p class="font-bold text-xl mb-2">Fehler beim Laden</p>
+        <p>Die angeforderten Daten konnten nicht geladen werden. Bitte überprüfen Sie die URL.</p>
+      </div>
+
+      <!-- Success State -->
+      <div v-else-if="submitted" class="bg-rating-4-very-light border border-rating-4 text-rating-4 p-10 rounded-2xl text-center shadow-lg my-12">
+        <div class="mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-rating-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 class="text-3xl font-bold mb-4 text-black">Vielen Dank!</h2>
+        <p class="text-xl text-mid-gray">Ihre Antworten wurden erfolgreich übermittelt.</p>
+      </div>
+
+      <!-- Survey Form -->
+      <div v-else-if="questions && questions.length > 0" class="space-y-8">
+        <div v-if="isPastCutoff" class="bg-orange/10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
+          Der Stichtag für die Abgabe ({{ new Date(localteam.cutoff_date).toLocaleDateString('de-DE') }}) ist bereits erreicht. Die Umfrage ist nur noch im Lesemodus verfügbar.
+        </div>
+
+        <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
+          <div class="flex items-start mb-6">
+            <span class="flex-shrink-0 w-8 h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold mr-4">
+              {{ index + 1 }}
+            </span>
+            <h3 class="text-h3 font-semibold text-black leading-tight pt-1">
+              {{ question.title || question.thesis }}
+            </h3>
+          </div>
+
+          <div v-if="question.title && question.thesis" class="mb-6 ml-12 text-gray italic">
+            {{ question.thesis }}
+          </div>
+
+          <!-- Rating Scale -->
+          <div class="ml-0 sm:ml-12">
+            <div class="grid grid-cols-5 gap-2 mb-2">
+              <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
+                <input
+                  type="radio"
+                  :name="'question-' + question.id"
+                  :value="option.value"
+                  v-model="answers[question.id]"
+                  :disabled="isPastCutoff"
+                  class="radio w-8 h-8 sm:w-10 sm:h-10 border-2"
+                  :class="[option.radioClass, { 'opacity-50 cursor-not-allowed': isPastCutoff }]"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-5 gap-1 text-[8px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray">
+              <div v-for="option in ratingOptions" :key="option.value">
+                {{ option.label }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Reasoning Field -->
+          <div class="mt-8 ml-0 sm:ml-12">
+            <label :for="'explanation-' + question.id" class="block text-sm font-semibold text-stats-dark mb-2">
+              Begründung (optional, max. 500 Zeichen)
+            </label>
+            <textarea
+              :id="'explanation-' + question.id"
+              v-model="explanations[question.id]"
+              rows="3"
+              maxlength="500"
+              :disabled="isPastCutoff"
+              class="textarea textarea-bordered w-full bg-mild-white focus:border-stats-dark focus:ring-1 focus:ring-stats-dark text-black transition-all resize-none"
+              :class="{ 'opacity-50 cursor-not-allowed': isPastCutoff }"
+              placeholder="Erläutern Sie Ihre Position..."
+            ></textarea>
+            <div class="flex justify-end mt-1 text-xs text-mid-gray">
+              <span :class="{ 'text-red font-bold': (explanations[question.id]?.length || 0) >= 500 }">
+                {{ explanations[question.id]?.length || 0 }}
+              </span>
+              / 500
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div v-if="!isPastCutoff" class="pt-8 flex flex-col items-center">
+          <button
+            @click="submitAnswers"
+            :disabled="!isFormComplete || submitting"
+            class="btn btn-primary btn-lg px-12 text-white font-bold rounded-full shadow-lg transition-all hover:scale-105 disabled:opacity-50"
+          >
+            <span v-if="submitting" class="loading loading-spinner"></span>
+            Bestätigen
+          </button>
+          <p v-if="!isFormComplete" class="mt-4 text-orange font-medium animate-pulse">
+            Bitte beantworten Sie alle {{ questions.length }} Fragen.
+          </p>
+        </div>
+      </div>
+
+      <!-- No Questions State -->
+      <div v-else class="bg-white p-12 rounded-2xl shadow-list text-center">
+        <p class="text-xl text-mid-gray">Für dieses Lokalteam sind aktuell keine veröffentlichten Thesen verfügbar.</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { createItem, updateItem } from '@directus/sdk/rest'
+
+const route = useRoute()
+const { $directus, $readItems, $readItem } = useNuxtApp()
+
+const localteamUuid = route.params.localteam_uuid
+const accessToken = route.params.access_token
+
+const answers = ref({})
+const explanations = ref({}) // Store reasoning for each question
+const existingAnswerIds = ref({}) // Store existing answer IDs by question ID
+const submitting = ref(false)
+const submitted = ref(false)
+
+const ratingOptions = [
+  { value: 0, label: 'stark dagegen', radioClass: 'border-rating-0 text-rating-0' },
+  { value: 1, label: 'eher dagegen', radioClass: 'border-rating-1 text-rating-1' },
+  { value: 2, label: 'neutral', radioClass: 'border-rating-na text-rating-na' },
+  { value: 3, label: 'eher dafür', radioClass: 'border-rating-3 text-rating-3' },
+  { value: 4, label: 'stark dafür', radioClass: 'border-rating-4 text-rating-4' },
+]
+
+const { data, pending, error } = await useAsyncData(`thesen-${localteamUuid}-${accessToken}`, async () => {
+  try {
+    const [localteamData, candidates, questions] = await Promise.all([
+      $directus.request($readItem('localteams', localteamUuid, {
+        fields: ['*', 'municipality_id.*']
+      })).catch(() => null),
+      $directus.request($readItems('candidate', {
+        filter: { access_token: { _eq: accessToken } }
+      })).catch(() => []),
+      $directus.request($readItems('questions', {
+        filter: {
+          localteam: { _eq: localteamUuid },
+          status: { _eq: 'published' }
+        },
+        sort: ['date_created']
+      }))
+    ])
+
+    const candidate = candidates?.[0] || null
+    const localteam = localteamData
+
+    let existingAnswers = []
+    if (questions && questions.length > 0 && candidate) {
+      existingAnswers = await $directus.request($readItems('answers', {
+        filter: {
+          candidate: { _eq: candidate.id },
+          question: { _in: questions.map(q => q.id) }
+        }
+      }))
+    }
+
+    return { localteam, candidate, questions, existingAnswers }
+  } catch (e) {
+    console.error('AsyncData error:', e)
+    throw e
+  }
+})
+
+// Initialize answers and existingAnswerIds from fetched data
+watchEffect(() => {
+  if (data.value?.existingAnswers) {
+    data.value.existingAnswers.forEach(ans => {
+      // Directus returns related items as objects or IDs depending on depth
+      const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
+      answers.value[questionId] = ans.response
+      explanations.value[questionId] = ans.explanation || ''
+      existingAnswerIds.value[questionId] = ans.id
+    })
+  }
+})
+
+const localteam = computed(() => data.value?.localteam)
+const candidate = computed(() => data.value?.candidate)
+const candidateState = computed(() => localteam.value?.municipality_id?.state || '')
+const questions = computed(() => data.value?.questions || [])
+
+const isPastCutoff = computed(() => {
+  if (!localteam.value?.cutoff_date) return false
+  return new Date() > new Date(localteam.value.cutoff_date)
+})
+
+const isFormComplete = computed(() => {
+  if (!questions.value || !questions.value.length) return false
+  return questions.value.every(q => answers.value[q.id] !== undefined)
+})
+
+async function submitAnswers() {
+  if (!isFormComplete.value || submitting.value || isPastCutoff.value) return
+
+  submitting.value = true
+  try {
+    const candidateUuid = candidate.value.id
+    // Separate answers into those to create and those to update
+    const operations = questions.value.map(q => {
+      const payload = {
+        question: q.id,
+        candidate: candidateUuid,
+        response: answers.value[q.id],
+        explanation: explanations.value[q.id]
+      }
+
+      const existingId = existingAnswerIds.value[q.id]
+      if (existingId) {
+        return $directus.request(updateItem('answers', existingId, payload))
+      } else {
+        return $directus.request(createItem('answers', payload))
+      }
+    })
+
+    await Promise.all(operations)
+
+    // Update candidate indicator and timestamps
+    const now = new Date().toISOString()
+    const candidateUpdate = {
+      has_answered: true,
+      time_last_edited: now
+    }
+
+    // Only set time_first_submitted if it's the first time
+    if (!candidate.value?.time_first_submitted) {
+      candidateUpdate.time_first_submitted = now
+    }
+
+    await $directus.request(updateItem('candidate', candidateUuid, candidateUpdate))
+
+    submitted.value = true
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } catch (e) {
+    console.error('Error submitting answers:', e)
+    alert('Fehler beim Übermitteln der Antworten. Bitte versuchen Sie es später erneut.')
+  } finally {
+    submitting.value = false
+  }
+}
+
+useHead({
+  title: 'Thesen-Check - Stadt.Land.Klima',
+})
+</script>
+
+<style scoped>
+.radio:checked {
+  background-image: none;
+  background-color: currentColor !important;
+  border-color: currentColor !important;
+}
+</style>

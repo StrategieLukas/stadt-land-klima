@@ -1,0 +1,27 @@
+bookmark: null
+user: null
+role: null
+collection: answers
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - candidate
+      - question
+      - response
+      - explanation
+    sort:
+      - candidate
+      - question
+layout_options:
+  tabular:
+    widths:
+      candidate: 250
+      question: 400
+      response: 150
+      explanation: 400
+refresh_interval: null
+filter: null
+icon: forum
+color: null
