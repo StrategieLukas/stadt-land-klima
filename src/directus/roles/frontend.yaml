@@ -217,11 +217,11 @@ permissions:
     fields:
       - "*"
   - collection: elections
-      - action: read
-      - permissions: { }
-      - validation: { }
-      - presets: null
-      - fields:
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
       - "*"
   - collection: events
     action: read
