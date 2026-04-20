@@ -19,6 +19,17 @@ services:
       timeout: 5s
       retries: 3
 
+  meilisearch:
+    image: getmeili/meilisearch:v1.8
+    env_file: ./docker/meilisearch/.env
+    volumes:
+      - ./docker/data/meilisearch:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   directus:
     build:
       context: ./docker/directus

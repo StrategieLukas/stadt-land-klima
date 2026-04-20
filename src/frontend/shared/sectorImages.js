@@ -1,8 +1,8 @@
-export default {
-  energy: "/assets/icons/icon_category_energy.svg",
-  buildings: "/assets/icons/icon_category_buildings.svg",
-  industry: "/assets/icons/icon_category_industry.svg",
-  management: "/assets/icons/icon_category_management.svg",
-  agriculture: "/assets/icons/icon_category_agriculture.svg",
-  transport: "/assets/icons/icon_category_transport.svg",
-};
+import energy from '@/assets/icons/icon_category_energy.svg'
+import buildings from '@/assets/icons/icon_category_buildings.svg'
+import industry from '@/assets/icons/icon_category_industry.svg'
+import management from '@/assets/icons/icon_category_management.svg'
+import agriculture from '@/assets/icons/icon_category_agriculture.svg'
+import transport from '@/assets/icons/icon_category_transport.svg'
+
+export default { energy, buildings, industry, management, agriculture, transport };

@@ -1,98 +1,109 @@
 <template>
-  <div class="flex flex-col items-center mb-10">
-    <div class="prose mb-8 mt-10 max-w-full text-center">
-      <h1 v-if="selectedCatalogVersion.name === 'beta'" class="mb-0 whitespace-pre-line">
-        {{ $t("municipalities.heading") }} <br/>2025
-      </h1>
-      <h1 v-else class="mb-0 whitespace-pre-line">
-        {{ $t("municipalities.heading") }} <br/>2026
-      </h1>
-      <p class="my-0 text-xs">
-        <ClientOnly>
-          {{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}
-        </ClientOnly>
-      </p>
-      <p v-if="selectedCatalogVersion.name === 'beta'">
-        <span class="font-bold text-red">
-          {{ $t("ranking.warn_archive_2025") }}
-        </span>
-        <br/>
-        <NuxtLink to="/municipalities?v=v1.0" class="text-blue-500">
-          {{ $t("ranking.view_current") }}
-        </NuxtLink>
-      </p>
-      <p v-else class="mt-0">
-        <NuxtLink to="/municipalities?v=beta" class="text-blue-500 text-xs">
-        {{ $t("ranking.view_archive_last_year") }}
-      </NuxtLink>
-      </p>
+<div class="px-4 py-8">
+  <!-- Title -->
+  <div class="mb-4">
+    <h1 class="text-4xl font-bold" style="color: #AFCA0B;">
+      <span v-if="selectedCatalogVersion.name === 'beta'">{{ $t("municipalities.heading") }} 2025</span>
+      <span v-else>{{ $t("municipalities.heading") }} 2026</span>
+    </h1>
+    <p class="text-xs text-gray-400 mt-1">
+      <ClientOnly>{{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}</ClientOnly>
+    </p>
+  </div>
+
+  <!-- Filter panel -->
+  <div class="flex flex-col gap-0 mb-6 shadow-md p-3" style="background-color: #F5F9E6;">
+
+    <!-- Row 1: View toggle + vertical divider + Catalog version -->
+    <div class="flex items-center gap-3 py-1.5">
+      <!-- View toggle -->
+      <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+      </svg>
+      <div class="flex gap-2">
+        <button
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
+          :class="!isMapView ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+          @click="router.replace({ query: { ...route.query, view: undefined } })"
+        >
+          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          </svg>
+          Ranking
+        </button>
+        <button
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
+          :class="isMapView ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+          @click="router.replace({ query: { ...route.query, view: 'map' } })"
+        >
+          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+          Karte
+        </button>
+      </div>
+
+      <!-- Vertical divider -->
+      <div class="self-stretch w-px bg-[#AFCA0B]/30 mx-1" />
+
+      <!-- Catalog version -->
+      <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <div class="flex gap-2 items-center">
+        <NuxtLink
+          :to="{ path: '/municipalities', query: { ...route.query, v: 'v1.0' } }"
+          class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
+          :class="selectedCatalogVersion.name !== 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+        >2026</NuxtLink>
+        <NuxtLink
+          :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"
+          class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
+          :class="selectedCatalogVersion.name === 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+        >2025 (Archiv)</NuxtLink>
+      </div>
     </div>
 
-    <!-- Button Row -->
-    <div class="flex flex-col w-full items-center gap-2 mb-5 md:flex-row md:justify-center md:max-w-4xl">
-      <!-- First row (1 button centered) -->
-      <div class="flex justify-center w-full md:w-auto">
+    <div class="border-t border-[#AFCA0B]/20 my-0.5" />
+
+    <!-- Row 2: Municipality type filter -->
+    <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-start py-1.5">
+      <svg class="w-4 h-4 mt-1 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
+      </svg>
+      <div class="flex flex-wrap gap-2 items-center">
         <button
-          class="flex items-center p-2 rounded border transition w-1/2 md:w-auto hover:scale-105 text-xs md:text-sm group"
-          :class="selected === 'all' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-medium"
+          :class="selected === 'all' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
           @click="selected = 'all'"
         >
-          <div class="flex gap-0">
-            <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.all')" />
-            <img class="h-6 w-6 flex-shrink-0" :src="selected === 'all' ? majorCitySelected : majorCityNotSelected" />
+          <div class="flex gap-0 flex-shrink-0">
+            <img class="h-4 w-4" :src="selected === 'all' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.all')" />
+            <img class="h-4 w-4" :src="selected === 'all' ? majorCitySelected : majorCityNotSelected" />
           </div>
-          <div class="flex items-center transition">
-            <div class="border-l h-6 mx-1 border-current"></div>
-            <span class="font-bold whitespace-nowrap">
-              {{ $t('municipalities.all') }}
-            </span>
-          </div>
+          <span class="font-bold whitespace-nowrap">{{ $t('municipalities.all') }}</span>
         </button>
-      </div>
-
-      <!-- Second row (2 buttons) -->
-      <div class="flex w-full gap-2 md:w-auto">
-        <!-- Major cities -->
         <button
-          class="flex items-center p-2 rounded border transition w-1/2 md:w-auto hover:scale-105 text-xs md:text-sm group"
-          :class="selected === 'major_city' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-medium"
+          :class="selected === 'major_city' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
           @click="selected = 'major_city'"
         >
-          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" />
-          <div class="flex items-center transition h-full">
-            <div class="border-l h-6 mx-1 border-current"></div>
-            <span class="font-bold whitespace-nowrap">
-              {{ $t('municipalities.major_city.plural') }}
-            </span>
-          </div>
+          <img class="h-4 w-4 flex-shrink-0" :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" />
+          <span class="font-bold whitespace-nowrap">{{ $t('municipalities.major_city.plural') }}</span>
         </button>
-
-        <!-- Minor cities -->
         <button
-          class="flex items-center p-2 rounded border transition w-1/2 md:w-auto hover:scale-105 text-xs md:text-sm group"
-          :class="selected === 'minor_city' ? 'bg-[#AFCA0B] text-white' : 'border-[#AFCA0B] text-[#AFCA0B]'"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-medium"
+          :class="selected === 'minor_city' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
           @click="selected = 'minor_city'"
         >
-          <img class="h-6 w-6 flex-shrink-0" :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')" />
-          <div class="flex items-center transition">
-            <div class="border-l h-6 mx-1 border-current"></div>
-            <span class="font-bold whitespace-nowrap">
-              {{ $t('municipalities.minor_city.plural') }}
-            </span>
-          </div>
+          <img class="h-4 w-4 flex-shrink-0" :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')" />
+          <span class="font-bold whitespace-nowrap">{{ $t('municipalities.minor_city.plural') }}</span>
         </button>
+        <span v-if="selected === 'major_city'" class="text-xs italic text-gray-500">{{ $t("municipalities.major_city.threshold") }}</span>
+        <span v-else-if="selected === 'minor_city'" class="text-xs italic text-gray-500">{{ $t("municipalities.minor_city.threshold") }}</span>
       </div>
     </div>
 
-    <!-- Subtitle below buttons -->
-    <div class="h-5">
-      <p v-if="selected === 'major_city'" class="text-xs text-center italic">
-        {{ $t("municipalities.major_city.threshold") }}
-      </p>
-      <p v-else-if="selected === 'minor_city'" class="text-xs text-center italic">
-        {{ $t("municipalities.minor_city.threshold") }}
-      </p>
-    </div>
   </div>
 
   <!-- Mobile: Single column layout -->
@@ -100,13 +111,8 @@
     <!-- Conditional Content -->
      <div>
       <section>
-        <TheMap v-if="isMapView && selected === 'major_city'" :municipality-scores="majorCityScores" :catalog-version="selectedCatalogVersion"/>
-        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipality-scores="minorCitiesScores" :catalog-version="selectedCatalogVersion"/>
-        <TheMap v-else-if="isMapView" :municipality-scores="municipalityScores" :catalog-version="selectedCatalogVersion"/>
-
-        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipality-scores="majorCityScores" :catalog-version="selectedCatalogVersion"/>
-        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipality-scores="minorCitiesScores" :catalog-version="selectedCatalogVersion"/>
-        <TheRanking v-else-if="!isMapView" :municipality-scores="municipalityScores" :catalog-version="selectedCatalogVersion"/>
+        <TheMap v-if="isMapView" :municipality-scores="filteredMunicipalityScores" :catalog-version="selectedCatalogVersion"/>
+        <TheRanking v-else :municipality-scores="filteredMunicipalityScores" :catalog-version="selectedCatalogVersion"/>
       </section>
      </div>
   </div>
@@ -117,13 +123,8 @@
     <div ref="rankingColumn" class="lg:col-span-2">
       <!-- Conditional Content -->
       <div class="w-full max-w-screen-xl">
-        <TheMap v-if="isMapView && selected === 'major_city'" :municipality-scores="majorCityScores" :catalog-version="selectedCatalogVersion"/>
-        <TheMap v-else-if="isMapView && selected === 'minor_city'" :municipality-scores="minorCitiesScores" :catalog-version="selectedCatalogVersion"/>
-        <TheMap v-else-if="isMapView" :municipality-scores="municipalityScores" :catalog-version="selectedCatalogVersion"/>
-
-        <TheRanking v-if="!isMapView && selected === 'major_city'" :municipality-scores="majorCityScores" :catalog-version="selectedCatalogVersion"/>
-        <TheRanking v-else-if="!isMapView && selected === 'minor_city'" :municipality-scores="minorCitiesScores" :catalog-version="selectedCatalogVersion"/>
-        <TheRanking v-else-if="!isMapView" :municipality-scores="municipalityScores" :catalog-version="selectedCatalogVersion"/>
+        <TheMap v-if="isMapView" :municipality-scores="filteredMunicipalityScores" :catalog-version="selectedCatalogVersion"/>
+        <TheRanking v-else :municipality-scores="filteredMunicipalityScores" :catalog-version="selectedCatalogVersion"/>
       </div>
     </div>
 
@@ -152,7 +153,27 @@
     </div>
   </div>
 
+  <!-- CTA: Start a new municipality assessment -->
+  <div class="mt-12 mb-4 rounded-sm shadow-list p-8 bg-rating-3-light flex flex-col sm:flex-row items-center gap-6">
+    <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto flex-shrink-0 opacity-80" />
+    <div class="flex-1 text-center sm:text-left">
+      <h2 class="font-heading text-h2 font-bold text-green mb-2">
+        Deine Kommune ist nicht dabei?
+      </h2>
+      <p class="text-gray-600 text-sm mb-4">
+        Starte selbst die Bewertung und bringe aktiven Klimaschutz in deine Gemeinde.
+        Gründe ein Lokalteam — wir begleiten dich durch den Prozess.
+      </p>
+      <NuxtLink
+        to="/register_localteam"
+        class="inline-block px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
+      >
+        Jetzt anfangen →
+      </NuxtLink>
+    </div>
+  </div>
 
+</div>
 </template>
 
 <script setup>
@@ -260,6 +281,8 @@ watch(
   () => route.query.v,
   async (newV, oldV) => {
     if (newV === oldV) return;
+    // Ignore the initial URL fixup from onMounted (setCatalogVersionUrl adding ?v= when absent)
+    if (!oldV) return;
 
     // Fetch new catalog version info
     selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
@@ -276,6 +299,11 @@ watch(
 
 const majorCityScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'big_city'));
 const minorCitiesScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'small_city'));
+const filteredMunicipalityScores = computed(() => {
+  if (selected.value === 'major_city') return majorCityScores.value;
+  if (selected.value === 'minor_city') return minorCitiesScores.value;
+  return municipalityScores.value ?? [];
+});
 
 function getSublist(condition) {
   return (municipalityScores.value?.filter(condition) || [])
@@ -308,8 +336,16 @@ onMounted(() => {
     lastUpdatedAt.toLocaleTimeString($locale);
 });
 
-// Toggle between cities, towns, or all
-const selected = ref('all')
+// Toggle between cities, towns, or all — persisted in the URL so catalog changes retain it
+const selected = computed({
+  get() {
+    const v = route.query.filter
+    return v === 'major_city' || v === 'minor_city' ? v : 'all'
+  },
+  set(val) {
+    router.replace({ query: { ...route.query, filter: val === 'all' ? undefined : val } })
+  },
+})
 
 
 </script>

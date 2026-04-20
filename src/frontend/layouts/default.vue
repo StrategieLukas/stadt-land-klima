@@ -1,76 +1,75 @@
 <template>
-  <div class="drawer">
-    <!-- Drawer Toggle Checkbox (Hidden) -->
-    <input id="page-drawer" type="checkbox" class="drawer-toggle" ref="drawerToggle" />
+  <!-- Root is a plain block div — nothing here has overflow/transform/will-change
+       so the header's sticky top-0 resolves against the viewport scroll container. -->
+  <div class="flex flex-col min-h-screen text-neutral font-sans">
 
-    <div 
-      class="drawer-content flex flex-col min-h-screen text-neutral font-sans min-w-0 overflow-x-hidden"
-      @click="closeDrawerOnOutsideClick"
-    >
-      <!-- Only render the appropriate header based on the viewport -->
-      <div>
-        <div v-if="hydrated">
-          <!-- Desktop Header -->
-          <div v-if="isDesktop">
-            <the-header-desktop :pages="pages.filter((page) => includes(page.menus, 'main'))" :municipalities="publishedMunicipalities" />
-          </div>
-
-          <!-- Mobile Header -->
-          <div v-else>
-            <the-header-mobile :municipalities="publishedMunicipalities" />
-          </div>
-        </div>
-        <div v-else class="mb-3 bg-white px-2 py-4 shadow">
-          <!-- Placeholder space to prevent layout shift during hydration -->
-          <div class="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-x-8 lg:flex-row lg:items-end">
-            <div class="h-32 w-auto opacity-0"><!-- Logo placeholder --></div>
-            <div class="flex-1 opacity-0"><!-- Search placeholder --></div>
-          </div>
-        </div>
+    <!-- ── Header: lives ABOVE the DaisyUI drawer so sticky always works ── -->
+    <div v-if="hydrated">
+      <div v-if="isDesktop">
+        <the-header-desktop
+          :pages="pages.filter((page) => includes(page.menus, 'main'))"
+          :municipalities="publishedMunicipalities"
+          :nav-items="navigationConfig?.header_items || []"
+        />
       </div>
+      <div v-else>
+        <the-header-mobile />
+      </div>
+    </div>
+    <!-- Spacer that reserves the height of the fixed header.
+         Mobile: none (mobile header is sticky, not fixed). Desktop: driven by ResizeObserver via useHeaderHeight(). -->
+    <div
+      v-if="isDesktop && hydrated"
+      class="flex-shrink-0"
+      :style="`height: ${headerHeight}px`"
+    ></div>
 
-        <!-- Main Content (always rendered) -->
+    <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
+    <div class="drawer flex-1">
+      <input id="page-drawer" type="checkbox" class="drawer-toggle" ref="drawerToggle" />
+
+      <div
+        class="drawer-content flex flex-col text-neutral font-sans min-w-0"
+        style="overflow-x: clip"
+        @click="closeDrawerOnOutsideClick"
+      >
+        <!-- Main Content -->
         <main class="flex grow flex-col px-2 py-4 bg-mild-white min-w-0">
           <div class="mx-auto w-full max-w-screen-xl flex flex-col min-w-0">
             <slot />
           </div>
         </main>
 
-
-      <div v-if="hydrated" class="pb-[84px] lg:pb-0">
-        <!-- Footer (Desktop version) -->
-        <div v-if="isDesktop" class="bg-mild-white">
-          <the-footer-desktop
-            :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-          />
+        <div v-if="hydrated">
+          <div v-if="isDesktop" class="bg-mild-white">
+            <the-footer-desktop :nav-items="navigationConfig?.footer_columns || []" />
+          </div>
+          <div v-if="!isDesktop" class="bg-mild-white">
+            <the-footer-mobile :nav-items="navigationConfig?.footer_columns || []" />
+          </div>
         </div>
-
-        <!-- Footer (Mobile version) -->
-        <div v-if="!isDesktop" class="bg-mild-white">
-          <the-footer-mobile
-            :pages="pages.filter((page) => includes(page.menus, 'footer'))"
-          />
+        <div v-else>
+          <div class="bg-mild-white opacity-0">
+            <div class="h-20"><!-- Footer placeholder --></div>
+          </div>
         </div>
       </div>
-      <div v-else class="pb-[84px] lg:pb-0">
-        <!-- Footer placeholder to prevent layout shift -->
-        <div class="bg-mild-white opacity-0">
-          <div class="h-20"><!-- Footer placeholder --></div>
-        </div>
-      </div>
+
+      <!-- Drawer Side (Menu) -->
+      <the-drawer-side
+        :pages="pages.filter((page) => includes(page.menus, 'main'))"
+        :nav-items="navigationConfig?.header_items || []"
+        class="z-[9999]"
+      />
     </div>
 
-    <!-- Drawer Side (Menu) - unified for both mobile and desktop -->
-    <the-drawer-side
-      :pages="pages.filter((page) => includes(page.menus, 'main'))"
-      class="z-[9999]"
-    />
-
-    <!-- Dock (Mobile version - always visible, sticky) -->
-    <div class="fixed bottom-0 left-0 right-0 z-50 block lg:hidden z-[10000]">
+    <!-- Dock (Small mobile only) -->
+    <div class="fixed bottom-0 left-0 right-0 z-[10000] block sm:hidden">
       <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
     </div>
 
+    <!-- Global search command palette (Cmd+K) -->
+    <TheSearchCommandPalette />
   </div>
 </template>
 
@@ -80,14 +79,15 @@
 
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 const { includes } = lodash;
-const { $directus, $readItems } = useNuxtApp();
+const { $directus, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 const route = useRoute();
 const { closeDrawer, syncDrawerState } = useDrawer();
-
 const hydrated = ref(false)
 const isDesktop = ref(false)
+const headerHeight = useHeaderHeight()
 const drawerToggle = ref(null)
 let cleanup = null
 
@@ -117,11 +117,11 @@ onMounted(() => {
   hydrated.value = true
   
   // Initial desktop state detection
-  const checkDesktop = () => window.innerWidth >= 1024
+  const checkDesktop = () => window.innerWidth >= 640
   isDesktop.value = checkDesktop()
   
   // Media query for more reliable detection
-  const mq = window.matchMedia('(min-width: 1024px)')
+  const mq = window.matchMedia('(min-width: 640px)')
   const update = () => {
     const wasDesktop = isDesktop.value
     isDesktop.value = mq.matches
@@ -185,6 +185,10 @@ const { data: publishedMunicipalities } = await useAsyncData("municipalities", (
       limit: -1,
     }),
   );
+});
+
+const { data: navigationConfig } = await useAsyncData("navigation_config", () => {
+  return $directus.request($readSingleton("navigation_config")).catch(() => null);
 });
 
 //MetaTags

@@ -1,0 +1,34 @@
+name: setMunicipalityPreviewToken
+icon: key
+color: null
+description: Sets a random preview_token on every newly created municipality (if not already set by the registration API).
+status: active
+trigger: event
+accountability: all
+options:
+  type: action
+  scope:
+    - items.create
+  collections:
+    - municipalities
+operations:
+  - name: Set preview token
+    key: set_preview_token
+    type: exec
+    position_x: 1
+    position_y: 1
+    options:
+      code: |
+        module.exports = async function({ $trigger, services, getSchema, accountability }) {
+          if ($trigger.payload && $trigger.payload.preview_token) return;
+          const schema = await getSchema();
+          accountability.admin = true;
+          const ItemsService = services.ItemsService;
+          const municipalityService = new ItemsService('municipalities', { schema, accountability });
+          // crypto.randomUUID is a global in Node.js 14.17+ — no require() needed
+          const token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, '');
+          await municipalityService.updateOne($trigger.key, {
+            preview_token: token,
+          });
+        };
+operation_key: set_preview_token

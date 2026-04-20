@@ -119,4 +119,17 @@ export function getStateMunicipalElectionYear(state) {
   return MUNICIPAL_ELECTION_YEARS[state] ?? null;
 }
 
+// ARS prefix (first 2 digits) → German Bundesland name
+export const ARS_STATE_MAP = {
+  '01': 'Schleswig-Holstein', '02': 'Hamburg',       '03': 'Niedersachsen',
+  '04': 'Bremen',             '05': 'Nordrhein-Westfalen', '06': 'Hessen',
+  '07': 'Rheinland-Pfalz',   '08': 'Baden-Württemberg',   '09': 'Bayern',
+  '10': 'Saarland',          '11': 'Berlin',         '12': 'Brandenburg',
+  '13': 'Mecklenburg-Vorpommern', '14': 'Sachsen',
+  '15': 'Sachsen-Anhalt',    '16': 'Thüringen',
+}
+
+export function getStateFromArs(ars) {
+  return ARS_STATE_MAP[String(ars).slice(0, 2)] ?? null
+}
 

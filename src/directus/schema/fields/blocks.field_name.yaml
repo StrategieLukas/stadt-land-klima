@@ -3,19 +3,38 @@ field: field_name
 type: string
 meta:
   collection: blocks
+  conditions: null
+  display: null
+  display_options: null
   field: field_name
+  group: null
+  hidden: false
   interface: input
   note: Field name where this block belongs
+  options: null
+  readonly: false
   required: true
   sort: 7
+  special: null
   translations:
     - language: de-DE
       translation: Feldname
+  validation: null
+  validation_message: null
   width: half
 schema:
   name: field_name
   table: blocks
-  data_type: varchar
+  data_type: character varying
+  default_value: null
   max_length: 255
-  is_nullable: false
-  is_indexed: true
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -1,5 +1,6 @@
 <template>
   <div
+    :id="'block-' + uuid"
     class="blokkli-block-text prose prose-sm max-w-none"
     :class="[sizeClass, alignClass]"
   >
@@ -8,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-const { options } = defineBlokkli({
+const { options, uuid } = defineBlokkli({
   bundle: 'text',
   options: {
     size: {

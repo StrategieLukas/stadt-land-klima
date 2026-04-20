@@ -19,11 +19,17 @@ import type {
   MoveMultipleBlocksEvent,
   UpdateFieldValueEvent,
   MutatedField,
+  MakeReusableEvent,
+  DetachReusableBlockEvent,
+  AddReusableItemEvent,
+  LibraryItem,
 } from '#blokkli/types'
 import type {
   GetMediaLibraryFunction,
   MediaLibraryAddBlockEvent,
   MediaLibraryReplaceMediaEvent,
+  BlokkliAdapterGetLibraryItemsData,
+  BlokkliAdapterGetLibraryItemsResult,
 } from '#blokkli/adapter'
 import {
   readItems,
@@ -31,7 +37,6 @@ import {
   createItem,
   updateItem,
   deleteItem,
-  clearCache,
 } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 
@@ -222,17 +227,54 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { blocks: [] }
       case 'directus_page':
         return { pageSlug: ctx.value.entityUuid }
+      case 'video':
+        return { caption: '' }
+      case 'hero':
+        return { title: 'Überschrift', subtitle: '', imageId: '' }
+      case 'citation':
+        return { quote: 'Zitat...', attribution: '', source: '', imageId: '' }
+      case 'stat':
+        return { value: '100%', unit: '', label: 'Kennzahl', description: '' }
+      case 'vega_chart':
+        return { spec: '', query: '' }
+      case 'timeline':
+        return { title: '', items: [] }
+      case 'timeline_item':
+        return { date: '', title: 'Meilenstein', description: '' }
+      case 'carousel':
+        return { slides: [] }
+      case 'progress_bar':
+        return { label: 'Fortschritt', value: '0', unit: '%', description: '' }
+      case 'page_nav':
+        return {}
+      case 'hex_grid':
+        return { hexagons: [] }
+      case 'hex_item':
+        return { label: 'Hexagon', imageId: '' }
+      case 'municipality_search_hero':
+        return { title: 'Gemeinde finden', subtitle: 'Suche deine Gemeinde und entdecke deren Klimaschutz-Bewertung.' }
+      case 'newsletter_signup':
+        return { title: 'Newsletter abonnieren', description: 'Bleib auf dem Laufenden mit Neuigkeiten und Tipps zu kommunalem Klimaschutz.' }
       default:
         return {}
     }
   }
 
-  /** Find a block by uuid anywhere in the tree (root + nested containers). */
+  /** All prop keys that may contain nested FieldListItem arrays. */
+  const NESTED_FIELD_KEYS = ['blocks', 'items', 'slides', 'hexagons']
+
+  /** Return all nested FieldListItem arrays for a block. */
+  function getNestedLists(block: FieldListItem): FieldListItem[][] {
+    return NESTED_FIELD_KEYS
+      .map((key) => (block.props as any)?.[key])
+      .filter((v): v is FieldListItem[] => Array.isArray(v))
+  }
+
+  /** Find a block by uuid anywhere in the tree (root + all nested fields). */
   function findBlock(uuid: string, list: FieldListItem[]): FieldListItem | undefined {
     for (const block of list) {
       if (block.uuid === uuid) return block
-      const nested = (block.props as any)?.blocks
-      if (Array.isArray(nested)) {
+      for (const nested of getNestedLists(block)) {
         const found = findBlock(uuid, nested)
         if (found) return found
       }
@@ -240,12 +282,11 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     return undefined
   }
 
-  /** Find the list that contains a given uuid (root or nested). */
+  /** Find the list that contains a given uuid (root or any nested field). */
   function findParentList(uuid: string, list: FieldListItem[]): FieldListItem[] | undefined {
     for (const block of list) {
       if (block.uuid === uuid) return list
-      const nested = (block.props as any)?.blocks
-      if (Array.isArray(nested)) {
+      for (const nested of getNestedLists(block)) {
         const found = findParentList(uuid, nested)
         if (found) return found
       }
@@ -254,16 +295,17 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   }
 
   /** Move a block within any list in the tree. */
-  function moveBlockInTree(uuid: string, afterUuid?: string, hostUuid?: string): boolean {
+  function moveBlockInTree(uuid: string, afterUuid?: string, hostUuid?: string, hostFieldName?: string): boolean {
     // Determine target container list
     let targetList: FieldListItem[]
     if (hostUuid && hostUuid !== ctx.value.entityUuid) {
       const container = findBlock(hostUuid, state.blocks)
       if (!container) return false
-      if (!Array.isArray((container.props as any).blocks)) {
-        ;(container.props as any).blocks = []
+      const fieldKey = hostFieldName && NESTED_FIELD_KEYS.includes(hostFieldName) ? hostFieldName : 'blocks'
+      if (!Array.isArray((container.props as any)[fieldKey])) {
+        ;(container.props as any)[fieldKey] = []
       }
-      targetList = (container.props as any).blocks
+      targetList = (container.props as any)[fieldKey]
     } else {
       targetList = state.blocks
     }
@@ -298,10 +340,6 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     async loadState(): Promise<AdapterState> {
       mutationIndex = -1
       mutationItems.length = 0
-      // Purge Directus Redis cache so we always load fresh block data
-      try {
-        await getClient().request(clearCache())
-      } catch (_) { /* non-critical */ }
       await loadEditState()
       return loadBlocksFromDirectus()
     },
@@ -311,32 +349,43 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
      * Includes mutation tracking for publish/discard/undo UI.
      */
     mapState(s: AdapterState): MappedState {
-      // Collect mutated options for all blocks (including nested)
+      // Collect mutated options for all blocks (including all nested fields)
       function collectOptions(list: FieldListItem[], acc: Record<string, Record<string, any>>) {
         for (const block of list) {
           acc[block.uuid] = {}
           Object.entries(block.options || {}).forEach(([key, value]) => {
             acc[block.uuid][key] = value
           })
-          const nested = (block.props as any)?.blocks
-          if (Array.isArray(nested)) collectOptions(nested, acc)
+          for (const fieldKey of NESTED_FIELD_KEYS) {
+            const nested = (block.props as any)?.[fieldKey]
+            if (Array.isArray(nested)) collectOptions(nested, acc)
+          }
         }
         return acc
       }
 
-      // Build extra nested fields for each container block
+      // Build extra nested fields for each block that contains nested lists
+      const NESTED_FIELD_MAP: Record<string, string[]> = {
+        container: ['blocks'],
+        timeline: ['items'],
+        hex_grid: ['hexagons'],
+        carousel: ['slides'],
+      }
       function collectContainerFields(list: FieldListItem[]): MutatedField[] {
         const fields: MutatedField[] = []
         for (const block of list) {
-          if (block.bundle === 'container') {
-            const nestedList: FieldListItem[] = (block.props as any)?.blocks || []
-            fields.push({
-              name: 'blocks',
-              entityType: 'block',
-              entityUuid: block.uuid,
-              list: nestedList.map((b) => ({ ...b })),
-            })
-            fields.push(...collectContainerFields(nestedList))
+          const fieldKeys = NESTED_FIELD_MAP[block.bundle]
+          if (fieldKeys) {
+            for (const key of fieldKeys) {
+              const nestedList: FieldListItem[] = (block.props as any)?.[key] || []
+              fields.push({
+                name: key,
+                entityType: 'block',
+                entityUuid: block.uuid,
+                list: nestedList.map((b) => ({ ...b })),
+              })
+              fields.push(...collectContainerFields(nestedList))
+            }
           }
         }
         return fields
@@ -372,19 +421,36 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
 
     getAllBundles(): Promise<BlockBundleDefinition[]> {
       return Promise.resolve([
-        { id: 'text', label: 'Text', description: 'Rich text content block' },
-        { id: 'richtext', label: 'Markdown', description: 'Rich text with Markdown editor' },
-        { id: 'heading', label: 'Ueberschrift', description: 'Heading block' },
-        { id: 'image', label: 'Bild', description: 'Image block with caption' },
-        { id: 'button', label: 'Button', description: 'Button with internal page link' },
-        { id: 'container', label: 'Container', description: 'Layout container with nested blocks' },
-        { id: 'directus_page', label: 'Directus Seite', description: 'Legacy HTML/Markdown content' },
+        { id: 'text', label: 'Text', description: 'Rich text content block', allowReusable: true },
+        { id: 'richtext', label: 'Markdown', description: 'Rich text with Markdown editor', allowReusable: true },
+        { id: 'heading', label: 'Ueberschrift', description: 'Heading block', allowReusable: true },
+        { id: 'image', label: 'Bild', description: 'Image block with caption', allowReusable: true },
+        { id: 'button', label: 'Button', description: 'Button with internal page link', allowReusable: true },
+        { id: 'container', label: 'Container', description: 'Layout container with nested blocks', allowReusable: true },
+        { id: 'directus_page', label: 'Directus Seite', description: 'Legacy HTML/Markdown content', allowReusable: true },
+        { id: 'video', label: 'Video', description: 'Eingebettetes Video (YouTube, Vimeo, MP4)', allowReusable: true },
+        { id: 'hero', label: 'Hero', description: 'Großflächige Hero-Sektion mit Hintergrundbild', allowReusable: true },
+        { id: 'citation', label: 'Zitat', description: 'Zitat oder Testimonial', allowReusable: true },
+        { id: 'stat', label: 'Kennzahl', description: 'Statistische Kennzahl / Zahl', allowReusable: true },
+        { id: 'vega_chart', label: 'Vega-Lite Chart', description: 'Datenvisualisierung mit Vega-Lite', allowReusable: true },
+        { id: 'timeline', label: 'Zeitstrahl', description: 'Zeitstrahl mit Einträgen', allowReusable: true },
+        { id: 'timeline_item', label: 'Zeitstrahl-Eintrag', description: 'Einzelner Eintrag im Zeitstrahl', allowReusable: false },
+        { id: 'carousel', label: 'Karussell', description: 'Bild- oder Inhaltskarussell', allowReusable: true },
+        { id: 'progress_bar', label: 'Fortschrittsbalken', description: 'Fortschrittsbalken mit Prozentanzeige', allowReusable: true },
+        { id: 'page_nav', label: 'Seitennavigation', description: 'Horizontale Ankerlink-Navigation', allowReusable: true },
+        { id: 'hex_grid', label: 'Honeyweb', description: 'Sechseck-Waben-Raster mit verlinkten Kacheln', allowReusable: true },
+        { id: 'hex_item', label: 'Honeyweb-Kachel', description: 'Einzelne Kachel im Honeyweb', allowReusable: false },
+        { id: 'projects_carousel', label: 'Projektkarussell', description: 'Automatisches Karussell der Erfolgsprojekte', allowReusable: true },
+        { id: 'municipality_search_hero', label: 'Gemeinde-Suche', description: 'Vollflächen-Sektion mit Wortwolke und Gemeinde-Suchfeld', allowReusable: true },
+        { id: 'newsletter_signup', label: 'Newsletter-Anmeldung', description: 'E-Mail-Anmeldeformular für Newsletter-Listen', allowReusable: true },
+        { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page']
-      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'newsletter_signup', 'from_library']
+      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'newsletter_signup', 'from_library']
+      const allowedInCarousel = allowedInRoot
       return Promise.resolve([
         {
           name: 'content',
@@ -404,6 +470,33 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           canEdit: true,
           allowedBundles: allowedInContainer,
         },
+        {
+          name: 'items',
+          entityType: 'block',
+          entityBundle: 'timeline',
+          label: 'Einträge',
+          cardinality: -1,
+          canEdit: true,
+          allowedBundles: ['timeline_item'],
+        },
+        {
+          name: 'slides',
+          entityType: 'block',
+          entityBundle: 'carousel',
+          label: 'Folien',
+          cardinality: -1,
+          canEdit: true,
+          allowedBundles: allowedInCarousel,
+        },
+        {
+          name: 'hexagons',
+          entityType: 'block',
+          entityBundle: 'hex_grid',
+          label: 'Hexagone',
+          cardinality: 15,
+          canEdit: true,
+          allowedBundles: ['hex_item'],
+        },
       ])
     },
 
@@ -415,14 +508,15 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         options: {},
       }
 
-      // Nested container: host.type === 'block' and host.fieldName === 'blocks'
-      if (e.host.type === 'block' && e.host.fieldName === 'blocks') {
+      // Nested block field (container.blocks, timeline.items, carousel.slides, …)
+      if (e.host.type === 'block' && e.host.fieldName && NESTED_FIELD_KEYS.includes(e.host.fieldName)) {
         const container = findBlock(e.host.uuid, state.blocks)
         if (container) {
-          if (!Array.isArray((container.props as any).blocks)) {
-            ;(container.props as any).blocks = []
+          const fieldKey = e.host.fieldName
+          if (!Array.isArray((container.props as any)[fieldKey])) {
+            ;(container.props as any)[fieldKey] = []
           }
-          const nestedList = (container.props as any).blocks as FieldListItem[]
+          const nestedList = (container.props as any)[fieldKey] as FieldListItem[]
           const afterIndex = e.afterUuid
             ? nestedList.findIndex((v) => v.uuid === e.afterUuid)
             : -1
@@ -449,7 +543,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     },
 
     moveBlock(e: MoveBlockEvent) {
-      const success = moveBlockInTree(e.item.uuid, e.afterUuid, e.host.uuid)
+      const success = moveBlockInTree(e.item.uuid, e.afterUuid, e.host.uuid, (e.host as any).fieldName)
       if (success) {
         trackMutation("Move '" + e.item.itemBundle + "' block", e.item.uuid)
       }
@@ -467,9 +561,11 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return list
           .filter((v) => !uuids.includes(v.uuid))
           .map((v) => {
-            const nested = (v.props as any)?.blocks
-            if (Array.isArray(nested)) {
-              ;(v.props as any).blocks = removeFromList(nested)
+            for (const key of NESTED_FIELD_KEYS) {
+              const nested = (v.props as any)?.[key]
+              if (Array.isArray(nested)) {
+                ;(v.props as any)[key] = removeFromList(nested)
+              }
             }
             return v
           })
@@ -487,10 +583,12 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           props: JSON.parse(JSON.stringify(block.props || {})),
           options: JSON.parse(JSON.stringify(block.options || {})),
         }
-        // Re-UUID nested container blocks too
-        const nested = (dup.props as any)?.blocks
-        if (Array.isArray(nested)) {
-          ;(dup.props as any).blocks = nested.map(deepDuplicate)
+        // Re-UUID nested blocks in all known nested fields
+        for (const key of NESTED_FIELD_KEYS) {
+          const nested = (dup.props as any)?.[key]
+          if (Array.isArray(nested)) {
+            ;(dup.props as any)[key] = nested.map(deepDuplicate)
+          }
         }
         return dup
       }
@@ -605,14 +703,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       mutationIndex = -1
       mutationItems.length = 0
 
-      // Clear Directus Redis cache so subsequent reads get fresh data
-      try {
-        await getClient().request(clearCache())
-      } catch (e) {
-        console.warn('[blokkli] Directus cache clear failed:', e)
-      }
-
       // Refresh Nuxt data cache so the page re-fetches blocks immediately
+      // (Directus Redis cache is auto-purged on mutation via CACHE_AUTO_PURGE=true)
       await refreshNuxtData(`blocks-${ctx.value.entityUuid}`)
 
       // Clean up edit state on successful publish
@@ -705,6 +797,251 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           required: false,
           maxLength: 0,
         },
+        // video
+        {
+          name: 'caption',
+          entityType: 'block',
+          entityBundle: 'video',
+          label: 'Bildunterschrift',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // hero
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'hero',
+          label: 'Titel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'subtitle',
+          entityType: 'block',
+          entityBundle: 'hero',
+          label: 'Untertitel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // citation
+        {
+          name: 'quote',
+          entityType: 'block',
+          entityBundle: 'citation',
+          label: 'Zitat',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'attribution',
+          entityType: 'block',
+          entityBundle: 'citation',
+          label: 'Person',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'source',
+          entityType: 'block',
+          entityBundle: 'citation',
+          label: 'Quelle',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // stat
+        {
+          name: 'value',
+          entityType: 'block',
+          entityBundle: 'stat',
+          label: 'Wert',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'unit',
+          entityType: 'block',
+          entityBundle: 'stat',
+          label: 'Einheit',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'stat',
+          label: 'Bezeichnung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'stat',
+          label: 'Beschreibung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // vega_chart
+        {
+          name: 'spec',
+          entityType: 'block',
+          entityBundle: 'vega_chart',
+          label: 'Vega-Lite Spezifikation',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'query',
+          entityType: 'block',
+          entityBundle: 'vega_chart',
+          label: 'Daten-Query',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // timeline
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'timeline',
+          label: 'Titel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // timeline_item
+        {
+          name: 'date',
+          entityType: 'block',
+          entityBundle: 'timeline_item',
+          label: 'Datum / Jahr',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'timeline_item',
+          label: 'Titel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'timeline_item',
+          label: 'Beschreibung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // projects_carousel
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'projects_carousel',
+          label: 'Kategorie-Label',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'heading',
+          entityType: 'block',
+          entityBundle: 'projects_carousel',
+          label: 'Überschrift',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'linkText',
+          entityType: 'block',
+          entityBundle: 'projects_carousel',
+          label: 'Link-Text',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // progress_bar
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'progress_bar',
+          label: 'Bezeichnung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'value',
+          entityType: 'block',
+          entityBundle: 'progress_bar',
+          label: 'Wert (0–100)',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'unit',
+          entityType: 'block',
+          entityBundle: 'progress_bar',
+          label: 'Einheit',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'progress_bar',
+          label: 'Beschreibung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // hex_item
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'hex_item',
+          label: 'Bezeichnung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        // newsletter_signup
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'newsletter_signup',
+          label: 'Titel',
+          type: 'plain',
+          required: true,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'newsletter_signup',
+          label: 'Beschreibung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
       ])
     },
 
@@ -720,6 +1057,36 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           cardinality: 1,
           required: false,
         },
+        {
+          name: 'imageId',
+          label: 'Hintergrundbild',
+          entityType: 'block',
+          entityBundle: 'hero',
+          allowedEntityType: 'media',
+          allowedBundles: ['image'],
+          cardinality: 1,
+          required: false,
+        },
+        {
+          name: 'imageId',
+          label: 'Portraitbild',
+          entityType: 'block',
+          entityBundle: 'citation',
+          allowedEntityType: 'media',
+          allowedBundles: ['image'],
+          cardinality: 1,
+          required: false,
+        },
+        {
+          name: 'imageId',
+          label: 'Hintergrundbild',
+          entityType: 'block',
+          entityBundle: 'hex_item',
+          allowedEntityType: 'media',
+          allowedBundles: ['image'],
+          cardinality: 1,
+          required: false,
+        },
       ])
     },
 
@@ -727,12 +1094,143 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       return Promise.resolve([
         'comments',
         'import',
-        'library',
         'conversion',
         'translations',
         'assistant',
         'search',
       ])
+    },
+
+    // --- Library (reusable blocks) ---
+
+    async getLibraryItems(data: BlokkliAdapterGetLibraryItemsData): Promise<BlokkliAdapterGetLibraryItemsResult> {
+      const perPage = 20
+      const filter: Record<string, any> = {}
+      if (data.bundles && data.bundles.length > 0) {
+        filter.bundle = { _in: data.bundles }
+      }
+      if (data.text) {
+        filter.label = { _contains: data.text }
+      }
+
+      const items = await getClient().request(
+        (readItems as Function)('library_items', {
+          filter,
+          sort: ['-date_created'],
+          limit: perPage,
+          page: data.page,
+          fields: ['id', 'uuid', 'label', 'bundle', 'props', 'options'],
+        }),
+      )
+
+      return {
+        items: (Array.isArray(items) ? items : []).map((item: any): LibraryItem => ({
+          uuid: item.uuid,
+          label: item.label,
+          bundle: item.bundle,
+          item: {
+            uuid: item.uuid,
+            bundle: item.bundle,
+            props: item.props || {},
+            options: item.options || {},
+          },
+        })),
+        total: Array.isArray(items) ? items.length : 0,
+        perPage,
+      }
+    },
+
+    async makeBlockReusable(e: MakeReusableEvent) {
+      const block = findBlock(e.uuid, state.blocks)
+      if (!block) {
+        return { success: false as const, state }
+      }
+
+      const libraryUuid = crypto.randomUUID()
+      await doCreateItem('library_items', {
+        uuid: libraryUuid,
+        label: e.label,
+        bundle: block.bundle,
+        props: JSON.parse(JSON.stringify(block.props || {})),
+        options: JSON.parse(JSON.stringify(block.options || {})),
+      })
+
+      trackMutation('Make block reusable', e.uuid)
+      return ok()
+    },
+
+    async addLibraryItem(e: AddReusableItemEvent) {
+      // Fetch library item from Directus
+      const items = await getClient().request(
+        (readItems as Function)('library_items', {
+          filter: { uuid: { _eq: e.libraryItemUuid } },
+          limit: 1,
+          fields: ['uuid', 'bundle', 'props', 'options'],
+        }),
+      )
+
+      if (!Array.isArray(items) || items.length === 0) {
+        return { success: false as const, state }
+      }
+
+      const libItem = items[0]
+
+      // Deep-clone and assign new UUIDs to the block (and any nested blocks)
+      function cloneWithNewUuids(props: Record<string, any>): Record<string, any> {
+        const cloned = JSON.parse(JSON.stringify(props))
+        if (Array.isArray(cloned.blocks)) {
+          cloned.blocks = cloned.blocks.map((nested: any) => ({
+            ...nested,
+            uuid: crypto.randomUUID(),
+            props: cloneWithNewUuids(nested.props || {}),
+          }))
+        }
+        return cloned
+      }
+
+      const newBlock: FieldListItem = {
+        uuid: crypto.randomUUID(),
+        bundle: libItem.bundle,
+        props: cloneWithNewUuids(libItem.props || {}),
+        options: JSON.parse(JSON.stringify(libItem.options || {})),
+      }
+
+      // Insert into the right location
+      let targetList: FieldListItem[]
+      if (e.host.type === 'block' && e.host.fieldName === 'blocks') {
+        const container = findBlock(e.host.uuid, state.blocks)
+        if (container) {
+          if (!Array.isArray((container.props as any).blocks)) {
+            ;(container.props as any).blocks = []
+          }
+          targetList = (container.props as any).blocks
+        } else {
+          targetList = state.blocks
+        }
+      } else {
+        targetList = state.blocks
+      }
+
+      const afterIndex = e.afterUuid
+        ? targetList.findIndex((v) => v.uuid === e.afterUuid)
+        : -1
+
+      if (afterIndex === -1) {
+        targetList.push(newBlock)
+      } else {
+        targetList.splice(afterIndex + 1, 0, newBlock)
+      }
+
+      trackMutation('Add library item', newBlock.uuid)
+      return ok()
+    },
+
+    async detachReusableBlock(e: DetachReusableBlockEvent) {
+      // In our implementation blocks placed from the library are already
+      // independent copies (deep-cloned with new UUIDs), so detaching is a
+      // no-op — we just track the mutation for the UI.
+      trackMutation('Detach reusable block')
+      return ok()
     },
 
     mediaLibraryGetResults: (async (e) => {

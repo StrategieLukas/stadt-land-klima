@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Bearbeitungszustände
-      singular: Bearbeitungszustand
-      plural: Bearbeitungszustände
+      translation: Blökkli-Bearbeitungszustände
+      singular: Blökkli-Bearbeitungszustand
+      plural: Blökkli-Bearbeitungszustände
   unarchive_value: null
   versioning: false
 schema:

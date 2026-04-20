@@ -1,0 +1,41 @@
+collection: events
+field: start_date
+type: timestamp
+meta:
+  collection: events
+  conditions: null
+  display: datetime
+  display_options:
+    relative: false
+  field: start_date
+  group: null
+  hidden: false
+  interface: datetime
+  note: null
+  options: null
+  readonly: false
+  required: true
+  sort: 6
+  special: null
+  translations:
+    - language: de-DE
+      translation: Startdatum
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: start_date
+  table: events
+  data_type: timestamp with time zone
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

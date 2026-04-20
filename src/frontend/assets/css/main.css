@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Block hash navigation highlight */
+@keyframes block-highlight-pulse {
+  0%   { outline: 3px solid transparent; }
+  20%  { outline: 3px solid #1da64a; }
+  80%  { outline: 3px solid #1da64a; }
+  100% { outline: 3px solid transparent; }
+}
+
+[id^="block-"] {
+  scroll-margin-top: 4rem;
+}
+
+.block-anchor-highlight {
+  animation: block-highlight-pulse 2s ease forwards;
+}
+
+/* Meilisearch highlight marks in search results */
+mark {
+  background-color: #bbf7d0;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
 .has-long-links a {
   word-break: break-all;
 }
