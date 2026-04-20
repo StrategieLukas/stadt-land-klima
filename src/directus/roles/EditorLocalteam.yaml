@@ -216,6 +216,7 @@ permissions:
       - party
       - access_token
       - election
+      - prefill_trigger
   - collection: candidate
     action: delete
     permissions:
@@ -338,8 +339,7 @@ permissions:
     action: create
     permissions: {}
     validation: {}
-    presets:
-      localteam: "{{$CURRENT_USER.localteams[0].localteam_id}}"
+    presets: null
     fields:
       - descriptor
       - response_cutoff_date
@@ -376,6 +376,7 @@ permissions:
       - action_buttons
       - already_sent_mails
       - already_generated_questions
+      - prefill_trigger
   - collection: elections
     action: update
     permissions:
@@ -637,6 +638,7 @@ permissions:
       - title
       - thesis
       - election
+      - prefill_trigger
   - collection: questions
     action: delete
     permissions:

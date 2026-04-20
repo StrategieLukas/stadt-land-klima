@@ -369,8 +369,7 @@ permissions:
     action: create
     permissions: {}
     validation: {}
-    presets:
-      localteam: "{{$CURRENT_USER.localteams[0].localteam_id}}"
+    presets: null
     fields:
       - descriptor
       - response_cutoff_date
