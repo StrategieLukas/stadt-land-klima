@@ -52,14 +52,8 @@ meta:
   translations:
     - language: de-DE
       translation: Antwort
-  validation:
-    _and:
-      - candidate:
-          localteam:
-            cutoff_date:
-              _gt: $NOW
-  validation_message: Der Stichtag für dieses Lokalteam ist bereits erreicht.
-    Antworten können nicht mehr geändert werden.
+  validation: null
+  validation_message: null
   width: half
 schema:
   name: response

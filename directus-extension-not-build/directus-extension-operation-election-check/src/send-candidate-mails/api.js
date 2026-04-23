@@ -84,7 +84,7 @@ export default {
         logger.info(`send-candidate-mails: generated and persisted token for candidate ${candidate.id}`);
       }
 
-      const personalLink = `https://stadt-land-klima.de/thesen/${resolved_id}/${token}`;
+      const personalLink = `https://stadt-land-klima.de/thesen/${token}`;
 
       try {
         logger.info(`send-candidate-mails: Attempting to send mail to ${candidate.email} using template "email-template-candidate"`);

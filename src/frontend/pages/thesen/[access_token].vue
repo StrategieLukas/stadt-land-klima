@@ -40,7 +40,7 @@
       <!-- Survey Form -->
       <div v-else-if="questions && questions.length > 0" class="space-y-8">
         <div v-if="isPastCutoff" class="bg-orange/10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
-          Der Stichtag für die Abgabe ({{ new Date(localteam.cutoff_date).toLocaleDateString('de-DE') }}) ist bereits erreicht. Die Umfrage ist nur noch im Lesemodus verfügbar.
+          Der Stichtag für die Abgabe ({{ new Date(candidate.election.response_cutoff_date).toLocaleDateString('de-DE') }}) ist bereits erreicht. Die Umfrage ist nur noch im Lesemodus verfügbar.
         </div>
 
         <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
@@ -133,7 +133,6 @@ import { createItem, updateItem } from '@directus/sdk/rest'
 const route = useRoute()
 const { $directus, $readItems, $readItem } = useNuxtApp()
 
-const localteamUuid = route.params.localteam_uuid
 const accessToken = route.params.access_token
 
 const answers = ref({})
@@ -150,29 +149,30 @@ const ratingOptions = [
   { value: 4, label: 'stark dafür', radioClass: 'border-rating-4 text-rating-4' },
 ]
 
-const { data, pending, error } = await useAsyncData(`thesen-${localteamUuid}-${accessToken}`, async () => {
+const { data, pending, error } = await useAsyncData(`thesen-${accessToken}`, async () => {
   try {
-    const [localteamData, candidates, questions] = await Promise.all([
-      $directus.request($readItem('localteams', localteamUuid, {
-        fields: ['*', 'municipality_id.*']
-      })).catch(() => null),
-      $directus.request($readItems('candidate', {
-        filter: { access_token: { _eq: accessToken } }
-      })).catch(() => []),
-      $directus.request($readItems('questions', {
-        filter: {
-          localteam: { _eq: localteamUuid },
-          status: { _eq: 'published' }
-        },
-        sort: ['date_created']
-      }))
-    ])
+    const candidates = await $directus.request($readItems('candidate', {
+      filter: { access_token: { _eq: accessToken } },
+      fields: ['*', 'election.*', 'election.localteam.*', 'election.localteam.municipality_id.*']
+    })).catch(() => [])
 
     const candidate = candidates?.[0] || null
-    const localteam = localteamData
+    if (!candidate) return { candidate: null, localteam: null, questions: [], existingAnswers: [] }
+
+    const localteam = candidate.election?.localteam
+
+    if (!localteam) return { candidate, localteam: null, questions: [], existingAnswers: [] }
+
+    const questions = await $directus.request($readItems('questions', {
+      filter: {
+        election: { _eq: candidate.election.id },
+        status: { _eq: 'published' }
+      },
+      sort: ['date_created']
+    }))
 
     let existingAnswers = []
-    if (questions && questions.length > 0 && candidate) {
+    if (questions && questions.length > 0) {
       existingAnswers = await $directus.request($readItems('answers', {
         filter: {
           candidate: { _eq: candidate.id },
@@ -207,8 +207,8 @@ const candidateState = computed(() => localteam.value?.municipality_id?.state ||
 const questions = computed(() => data.value?.questions || [])
 
 const isPastCutoff = computed(() => {
-  if (!localteam.value?.cutoff_date) return false
-  return new Date() > new Date(localteam.value.cutoff_date)
+  if (!candidate.value?.election?.response_cutoff_date) return false
+  return new Date() > new Date(candidate.value.election.response_cutoff_date)
 })
 
 const isFormComplete = computed(() => {

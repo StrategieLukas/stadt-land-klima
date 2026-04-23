@@ -15,6 +15,7 @@ cd stadt-land-klima/
 cp docker/db/.env.example docker/db/.env
 cp src/directus/.env.example src/directus/.env
 cp src/frontend/.env.example src/frontend/.env
+cp docker/meilisearch/.env.example docker/meilisearch/.env
 ```
 Setting "CACHE_ENABLED=false" for development is recommended to quickly see changes made to data in the backend.
 

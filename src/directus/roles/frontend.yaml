@@ -8,15 +8,17 @@ app_access: false
 permissions:
   - collection: answers
     action: create
-    permissions: {}
-    validation:
-      _and:
+    permissions:
+      _or:
         - candidate:
-            localteam:
-              cutoff_date:
-                _or:
-                  - _null: true
-                  - _gt: $NOW
+            election:
+              response_cutoff_date:
+                _null: true
+        - candidate:
+            election:
+              response_cutoff_date:
+                _gt: $NOW
+    validation: {}
     presets: null
     fields:
       - "*"
@@ -36,15 +38,17 @@ permissions:
       - "*"
   - collection: answers
     action: update
-    permissions: {}
-    validation:
-      _and:
+    permissions:
+      _or:
         - candidate:
-            localteam:
-              cutoff_date:
-                _or:
-                  - _null: true
-                  - _gt: $NOW
+            election:
+              response_cutoff_date:
+                _null: true
+        - candidate:
+            election:
+              response_cutoff_date:
+                _gt: $NOW
+    validation: {}
     presets: null
     fields:
       - "*"
@@ -160,14 +164,15 @@ permissions:
       - election
   - collection: candidate
     action: update
-    permissions: {}
-    validation:
-      _and:
-        - localteam:
-            cutoff_date:
-              _or:
-                - _null: true
-                - _gt: $NOW
+    permissions:
+      _or:
+        - election:
+            response_cutoff_date:
+              _null: true
+        - election:
+            response_cutoff_date:
+              _gt: $NOW
+    validation: {}
     presets: null
     fields:
       - has_answered
@@ -281,7 +286,6 @@ permissions:
       - municipality_name
       - slug
       - name
-      - cutoff_date
   - collection: measure_catalog
     action: read
     permissions: {}

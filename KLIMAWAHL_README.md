@@ -63,7 +63,7 @@ Die Texte für die Thesen stammen aus der Vorlage `measure_questions_template`. 
 ## 4. Die Perspektive der Kandidierenden
 
 Kandidierende erhalten einen Link im Format:
-`https://stadt-land-klima.de/thesen/[Lokalteam-ID]/[Token]`
+`https://stadt-land-klima.de/thesen/[Token]`
 
 Auf dieser Seite können sie:
 *   Jede der 10 Thesen auf einer 5-stufigen Skala bewerten (*Stark dagegen* bis *Stark dafür*).

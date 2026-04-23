@@ -455,7 +455,6 @@ permissions:
       - public_contact
       - slug
       - municipality_id
-      - cutoff_date
       - emails_sent
       - questions_generated
   - collection: localteams
@@ -469,7 +468,6 @@ permissions:
     presets: null
     fields:
       - public_contact
-      - cutoff_date
       - emails_sent
       - questions_generated
   - collection: measure_catalog
