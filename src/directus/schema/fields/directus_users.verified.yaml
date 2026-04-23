@@ -10,7 +10,7 @@ meta:
   group: null
   hidden: false
   interface: boolean
-  note: "Wurde dieser Account manuell durch ein Admin verifiziert?"
+  note: Wurde dieser Account manuell durch ein Admin verifiziert?
   options: null
   readonly: false
   required: false

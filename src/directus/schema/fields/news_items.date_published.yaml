@@ -10,7 +10,7 @@ meta:
   group: null
   hidden: false
   interface: datetime
-  note: "Veröffentlichungsdatum (für Sortierung im Feed)"
+  note: Veröffentlichungsdatum (für Sortierung im Feed)
   options: null
   readonly: false
   required: false

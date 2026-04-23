@@ -384,20 +384,6 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: organisations
-    action: read
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - name
-      - link
-      - short_description
-      - logo
-      - id
-      - instagram
-      - linkedin
-      - social_media_segment
   - collection: news_items
     action: read
     permissions:
@@ -415,6 +401,20 @@ permissions:
       - date_published
       - date_created
       - status
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - link
+      - short_description
+      - logo
+      - id
+      - instagram
+      - linkedin
+      - social_media_segment
   - collection: pages
     action: read
     permissions:

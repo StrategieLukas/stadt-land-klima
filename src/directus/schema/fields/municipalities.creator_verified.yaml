@@ -10,7 +10,8 @@ meta:
   group: null
   hidden: false
   interface: boolean
-  note: "Wurde der Account des Lokalteam-Admins durch einen Admin verifiziert? Wird automatisch aus directus_users.verified synchronisiert."
+  note: Wurde der Account des Lokalteam-Admins durch einen Admin verifiziert? Wird
+    automatisch aus directus_users.verified synchronisiert.
   options: null
   readonly: true
   required: false
