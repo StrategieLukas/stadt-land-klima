@@ -10,14 +10,22 @@ function clearDir(dir, options = {extensions: null}) {
   fse.readdirSync(dir)
   .forEach((filename) => {
     if (filename !== '.' && filename !== '..') {
-      const extension = path.extname(filename);
-
-      if (options.extensions && options.extensions.length) {
-        if (includes(options.extensions, extension)) {
-          fse.unlinkSync(path.join(dir, filename));
+      const fullPath = path.join(dir, filename);
+      if (fse.statSync(fullPath).isDirectory()) {
+        clearDir(fullPath, options);
+        if (fse.readdirSync(fullPath).length === 0) {
+          fse.rmdirSync(fullPath);
         }
       } else {
-        fse.unlinkSync(path.join(dir, filename));
+        const extension = path.extname(filename);
+
+        if (options.extensions && options.extensions.length) {
+          if (includes(options.extensions, extension)) {
+            fse.unlinkSync(fullPath);
+          }
+        } else {
+          fse.unlinkSync(fullPath);
+        }
       }
     }
   });

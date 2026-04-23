@@ -58,11 +58,9 @@ async function exportSchema(dest, options = { verbose: false, remove: false }) {
     });
 
     fields.forEach((field) => {
-      const destPath = path.join(
-        dest,
-        'fields',
-        field.collection + '.' + field.field + '.yaml'
-      );
+      const fieldDir = path.join(dest, 'fields', field.collection);
+      fse.mkdirSync(fieldDir, { recursive: true });
+      const destPath = path.join(fieldDir, field.field + '.yaml');
       fse.writeFileSync(destPath, stringify(field), { encoding: 'utf8' });
       exportedFields++;
       if (options.verbose) console.info(`Exported field ${destPath}`);
