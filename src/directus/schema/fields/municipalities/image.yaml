@@ -1,8 +1,8 @@
-collection: events
+collection: municipalities
 field: image
 type: uuid
 meta:
-  collection: events
+  collection: municipalities
   conditions: null
   display: image
   display_options: null
@@ -16,7 +16,7 @@ meta:
     letterbox: true
   readonly: false
   required: false
-  sort: 15
+  sort: 18
   special:
     - file
   translations:
@@ -27,7 +27,7 @@ meta:
   width: full
 schema:
   name: image
-  table: events
+  table: municipalities
   data_type: uuid
   default_value: null
   max_length: null
@@ -39,5 +39,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: directus_files
-  foreign_key_column: id
+  foreign_key_table: null
+  foreign_key_column: null
