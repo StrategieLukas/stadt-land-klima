@@ -1,98 +1,174 @@
 <template>
   <main class="px-4 py-6 max-w-7xl mx-auto w-full">
-    <!-- Search at page top -->
-    <div class="mb-5">
-      <AdministrativeAreaSearchBar base-path="/stats" />
-    </div>
 
-    <!-- Tabs -->
-    <div class="flex border-b border-gray-200 mb-4 gap-1">
+    <!-- ═══════════════════════════════════════════════════════════
+         TOP NAV TILES — anchor navigation
+         ═══════════════════════════════════════════════════════════ -->
+    <nav class="-mx-4 -mt-6 mb-6 flex md:hidden" aria-label="Sektionen">
       <button
-        class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
-        :class="activeTab === 'measures' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
-        @click="activeTab = 'measures'"
-      >Maßnahmenstatistik</button>
-      <button
-        class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
-        :class="activeTab === 'clustering' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
-        @click="switchToClusteringTab"
-      >Kommunen-Clustering</button>
-      <button
-        class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
-        :class="activeTab === 'dominance' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
-        @click="switchToDominanceTab"
-      >Paarvergleich</button>
-    </div>
-
-    <!-- Filter Bar -->
-    <section class="shadow-md flex flex-col gap-0 mb-6 p-3" style="background-color: #f2f2f2;">
-      <!-- Row 0: catalog + type -->
-      <div class="grid grid-cols-[1.5rem_1fr] gap-x-3 items-center py-1.5">
-        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        class="flex-1 py-4 px-4 flex flex-col items-center justify-center gap-0.5 text-white text-center transition-opacity hover:opacity-90 active:opacity-80"
+        style="background-color: #006e94;"
+        @click="scrollToSection('kommunale-statistiken')"
+      >
+        <svg class="w-5 h-5 mb-0.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z" />
         </svg>
-        <div class="flex flex-wrap gap-2 items-center">
-          <button
-            v-for="v in catalogVersions" :key="v.id"
-            class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition-colors whitespace-nowrap"
-            :class="selectedCatalogVersionId === v.id ? 'bg-gray-200 text-gray-800 border-gray-700' : 'bg-white text-gray-600 border-gray-400 hover:bg-gray-50'"
-            @click="onCatalogVersionChange(v.id)"
-          >{{ v.name }}</button>
-          <div class="self-stretch w-px bg-gray-300 mx-1 hidden sm:block" />
-          <button
-            v-for="opt in typeOptions" :key="opt.value ?? 'alltype'"
-            class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition-colors whitespace-nowrap"
-            :class="filterType === opt.value ? 'bg-gray-200 text-gray-800 border-gray-700' : 'bg-white text-gray-600 border-gray-400 hover:bg-gray-50'"
-            @click="filterType = opt.value"
-          >{{ opt.label }}</button>
+        <span class="font-heading font-bold text-base leading-tight">Kommunale Statistiken</span>
+        <span class="text-xs text-white/70 hidden xs:block">Kommunensuche &amp; Bewertungen</span>
+      </button>
+      <div class="w-px flex-shrink-0" style="background-color: rgba(255,255,255,0.15);"></div>
+      <button
+        class="flex-1 py-4 px-4 flex flex-col items-center justify-center gap-0.5 text-white text-center transition-opacity hover:opacity-90 active:opacity-80"
+        style="background-color: #1a4a6e;"
+        @click="scrollToSection('massnahmenstatistiken')"
+      >
+        <svg class="w-5 h-5 mb-0.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span class="font-heading font-bold text-base leading-tight">Maßnahmenstatistiken</span>
+        <span class="text-xs text-white/70 hidden xs:block">Sektoren &amp; Maßnahmen-Analyse</span>
+      </button>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ZONE A: Kommunensuche — find a specific city's stats
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="kommunale-statistiken" class="mb-7 pb-7 md:border-2 md:border-[#006e94] md:rounded-xl md:overflow-hidden md:shadow-md">
+      <!-- Section header banner -->
+      <div class="-mx-4 mb-5 py-4 px-4 md:mx-0 flex items-center gap-3" style="background-color: #006e94;">
+        <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+        </svg>
+        <div>
+          <h2 class="text-lg font-bold text-white font-heading leading-tight">Kommunale Statistiken</h2>
+          <p class="text-xs text-white/70 mt-0.5">Weitere Statistiken und Datenanalysen zu einer Kommune oder anderen Verwaltungsgebieten</p>
+        </div>
+      </div>
+      <div class="px-1 pb-3 md:px-4 md:pb-5">
+        <AdministrativeAreaSearchBar base-path="/stats" />
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ZONE B: Gesamtstatistik — aggregate data across all cities
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="massnahmenstatistiken" class="md:border-2 md:border-[#1a4a6e] md:rounded-xl md:mb-8 md:overflow-hidden md:shadow-md">
+
+      <!-- Section heading -->
+      <div class="-mx-4 mb-5 py-4 px-4 md:mx-0 flex items-center gap-3" style="background-color: #1a4a6e;">
+        <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <div>
+          <h2 class="text-lg font-bold text-white font-heading leading-tight">Maßnahmenstatistiken</h2>
+          <p class="text-xs text-white/70 mt-0.5">Alle Kommunen im Überblick — gefiltert nach Maßnahmenkatalog, Typ und Bundesland</p>
         </div>
       </div>
 
-      <div class="border-t border-gray-300/60 my-0.5" />
+      <!-- desktop content padding wrapper -->
+      <div class="md:px-4 md:pb-6">
 
-      <!-- Row 1: state dropdown + count -->
-      <div class="grid grid-cols-[1.5rem_1fr] gap-x-3 items-start py-1.5">
-        <svg class="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
-        </svg>
-        <div class="flex flex-wrap gap-2 items-center">
-          <FilterBadgeDropdown
-            label="Alle Bundesländer"
-            :options="availableStates.map(s => ({ label: s, value: s }))"
-            v-model="filterState"
-            width="min-w-[13rem]"
-            active-color="#4B5563"
-          />
-          <span v-if="filteredMunScores.length" class="ml-auto text-xs text-gray-500 whitespace-nowrap">
-            {{ filteredMunScores.length }} vollständig bewertete Kommunen
+      <!-- Filter Bar -->
+      <div class="flex flex-col gap-0 mb-4 p-3 shadow-md rounded-lg" style="background-color: #006e94;">
+
+        <!-- Collapsible toggle (only shown below xs breakpoint) -->
+        <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium text-white" @click="filterOpen = !filterOpen">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
+            </svg>
+            <span>Filter</span>
+            <span v-if="activeFilterCount > 0" class="bg-white text-[#006e94] text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
           </span>
-        </div>
-      </div>
-    </section>
+          <svg class="w-4 h-4 flex-shrink-0 text-white/80 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
 
-    <!-- KPI Row -->
-    <section class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
-      <div class="bg-white rounded-xl shadow p-4 flex flex-col items-center">
-        <span class="text-3xl font-bold text-gray-600">{{ kpi.totalCompleted }}</span>
-        <span class="text-xs text-gray-500 text-center mt-1">Vollständig bewertet</span>
+        <!-- Filter rows (always visible at xs+, collapsible below xs) -->
+        <div v-show="filterOpen" class="xs:!block">
+
+        <!-- Row 0: catalog + type -->
+        <div class="grid grid-cols-[1.5rem_1fr] gap-x-3 items-center py-1.5">
+          <svg class="w-4 h-4 text-white/70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <div class="flex flex-wrap gap-2 items-center">
+            <button
+              v-for="v in catalogVersions" :key="v.id"
+              class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition-colors whitespace-nowrap"
+              :class="selectedCatalogVersionId === v.id ? 'bg-white text-[#006e94] border-white' : 'bg-white/10 text-white border-white/30 hover:bg-white/20'"
+              @click="onCatalogVersionChange(v.id)"
+            >{{ v.name }}</button>
+            <div class="self-stretch w-px bg-white/20 mx-1 hidden sm:block" />
+            <button
+              v-for="opt in typeOptions" :key="opt.value ?? 'alltype'"
+              class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition-colors whitespace-nowrap"
+              :class="filterType === opt.value ? 'bg-white text-[#006e94] border-white' : 'bg-white/10 text-white border-white/30 hover:bg-white/20'"
+              @click="filterType = opt.value"
+            >{{ opt.label }}</button>
+          </div>
+        </div>
+
+        <div class="border-t border-white/20 my-0.5" />
+
+        <!-- Row 1: state dropdown -->
+        <div class="grid grid-cols-[1.5rem_1fr] gap-x-3 items-start py-1.5">
+          <svg class="w-4 h-4 text-white/70 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
+          </svg>
+          <div class="flex flex-wrap gap-2 items-center">
+            <FilterBadgeDropdown
+              label="Alle Bundesländer"
+              :options="availableStates.map(s => ({ label: s, value: s }))"
+              v-model="filterState"
+              width="min-w-[13rem]"
+              active-color="#ffffff"
+              :dark="true"
+            />
+          </div>
+        </div>
+
+        </div><!-- /collapsible -->
       </div>
-      <div class="bg-white rounded-xl shadow p-4 flex flex-col items-center">
-        <span class="text-3xl font-bold text-gray-600">{{ kpi.totalHalfRatedProgress }}</span>
-        <span class="text-xs text-gray-500 text-center mt-1">Bewertung in Bearbeitung</span>
+
+      <!-- KPI strip — filter-dependent, shown below the filters -->
+      <div class="flex flex-wrap gap-2 mb-5">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
+          <strong class="text-gray-800 font-bold">{{ kpi.totalCompleted }}</strong> vollst. bewertet
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
+          <strong class="text-gray-800 font-bold">{{ kpi.totalHalfRatedProgress }}</strong> in Bearbeitung
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
+          <strong class="text-gray-800 font-bold">{{ kpi.totalMunicipalities }}</strong> Kommunen gesamt
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
+          <strong class="text-gray-800 font-bold">{{ kpi.totalMeasures }}</strong> Maßnahmen im Katalog
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
+          <strong class="text-gray-800 font-bold">{{ kpi.totalFilledRatings.toLocaleString('de-DE') }}</strong> Bewertungen ausgefüllt
+        </span>
       </div>
-      <div class="bg-white rounded-xl shadow p-4 flex flex-col items-center">
-        <span class="text-3xl font-bold text-gray-600">{{ kpi.totalMunicipalities }}</span>
-        <span class="text-xs text-gray-500 text-center mt-1">Kommunen gesamt</span>
+
+      <!-- Tabs -->
+      <div class="flex overflow-x-auto border-b border-gray-200 mb-4 gap-1">
+        <button
+          class="flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
+          :class="activeTab === 'measures' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          @click="activeTab = 'measures'"
+        >Maßnahmenstatistik</button>
+        <button
+          class="flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
+          :class="activeTab === 'clustering' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          @click="switchToClusteringTab"
+        >Kommunen-Clustering</button>
+        <button
+          class="flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
+          :class="activeTab === 'dominance' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          @click="switchToDominanceTab"
+        >Paarvergleich</button>
       </div>
-      <div class="bg-white rounded-xl shadow p-4 flex flex-col items-center">
-        <span class="text-3xl font-bold text-gray-600">{{ kpi.totalMeasures }}</span>
-        <span class="text-xs text-gray-500 text-center mt-1">Maßnahmen im Katalog</span>
-      </div>
-      <div class="bg-white rounded-xl shadow p-4 flex flex-col items-center">
-        <span class="text-3xl font-bold text-gray-600">{{ kpi.totalFilledRatings.toLocaleString('de-DE') }}</span>
-        <span class="text-xs text-gray-500 text-center mt-1">Ausgefüllte Bewertungen</span>
-      </div>
-    </section>
 
     <!-- TAB: Maßnahmenstatistik -->
     <div v-show="activeTab === 'measures'">
@@ -100,13 +176,173 @@
       <!-- Main interactive panel: sunburst (left) + distribution chart (right) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
 
-        <!-- Sunburst -->
+        <!-- Sunburst / List view card -->
         <div class="bg-white rounded-xl shadow-lg p-5 flex flex-col">
-          <h2 class="text-base font-bold mb-0.5">Sektoren &amp; Maßnahmen</h2>
-          <p class="text-xs text-gray-500 mb-3">Klick auf Sektor oder Maßnahme für Details →</p>
-          <!-- Sunburst container -->
-          <div style="height: 420px;">
-            <div ref="sunburstContainer" class="w-full h-full"></div>
+          <!-- Card header with toggle -->
+          <div class="flex items-center justify-between mb-0.5">
+            <h2 class="text-base font-bold">Sektoren &amp; Maßnahmen</h2>
+            <!-- Toggle only on non-small screens -->
+            <div v-if="!isSmall" role="tablist" class="tabs tabs-boxed w-fit">
+              <a
+                role="tab"
+                class="tab gap-1.5"
+                :class="{ 'tab-active': !showListView }"
+                @click="showListView = false"
+              >
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="2" x2="12" y2="7" />
+                  <line x1="12" y1="17" x2="12" y2="22" />
+                  <line x1="2" y1="12" x2="7" y2="12" />
+                  <line x1="17" y1="12" x2="22" y2="12" />
+                </svg>
+                Diagramm
+              </a>
+              <a
+                role="tab"
+                class="tab gap-1.5"
+                :class="{ 'tab-active': showListView }"
+                @click="showListView = true"
+              >
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <circle cx="3.5" cy="6" r="1.5" fill="currentColor" stroke="none" />
+                  <circle cx="3.5" cy="12" r="1.5" fill="currentColor" stroke="none" />
+                  <circle cx="3.5" cy="18" r="1.5" fill="currentColor" stroke="none" />
+                </svg>
+                Liste
+              </a>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 mb-3">
+            <span v-if="!showListView || isSmall">Klick auf Sektor oder Maßnahme für Details →</span>
+            <span v-else>Sektor oder Maßnahme auswählen für Details →</span>
+          </p>
+
+          <!-- Sunburst (non-small + diagram mode, ref kept alive always) -->
+          <div v-show="!isSmall && !showListView" style="height: 420px;" class="relative">
+            <div class="w-full h-full">
+              <div ref="sunburstContainer" class="w-full h-full"></div>
+            </div>
+          </div>
+
+          <!-- Desktop/midi list view -->
+          <div v-show="!isSmall && showListView" style="height: 420px;" class="flex flex-col overflow-hidden border border-gray-100 rounded-lg">
+            <button
+              class="flex items-center gap-2 px-3 py-2 text-sm font-medium border-b border-gray-100 w-full text-left transition-colors flex-shrink-0"
+              :class="!sunburstSelection.type ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
+              @click="clearSunburstSelection"
+            >
+              <span class="w-5 h-5 flex-shrink-0 opacity-40">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2"/></svg>
+              </span>
+              <span class="flex-1 font-semibold">Alle Sektoren</span>
+              <span
+                v-if="overallMeanScore != null"
+                class="text-xs font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0"
+                :style="{ background: ratingToColor(overallMeanScore) }"
+              >{{ (overallMeanScore * 100).toFixed(0) }}%</span>
+            </button>
+            <div class="overflow-y-auto flex-1">
+              <div v-for="sector in allSectorsOrdered" :key="sector.sectorKey">
+                <button
+                  class="flex items-center gap-2 px-3 py-2 text-sm font-semibold w-full text-left border-b border-gray-100 transition-colors"
+                  :class="sunburstSelection.sectorKey === sector.sectorKey && sunburstSelection.type === 'sector' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'"
+                  @click="onChooserSectorClick(sector)"
+                >
+                  <img :src="sectorImages[sector.sectorKey]" class="w-5 h-5 flex-shrink-0 invert grayscale mix-blend-multiply opacity-70" />
+                  <span class="flex-1 text-left">{{ shortSectorNames[sector.sectorKey] }}</span>
+                  <span
+                    v-if="sectorMeanScores.get(sector.sectorKey) != null"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0"
+                    :style="{ background: ratingToColor(sectorMeanScores.get(sector.sectorKey)) }"
+                  >{{ (sectorMeanScores.get(sector.sectorKey) * 100).toFixed(0) }}%</span>
+                  <svg
+                    class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-150"
+                    :class="expandedSectorKey === sector.sectorKey ? 'rotate-180' : ''"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  ><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div v-show="expandedSectorKey === sector.sectorKey">
+                  <button
+                    v-for="measure in Object.values(sector.measures)"
+                    :key="measure.id"
+                    class="flex items-center gap-2 pl-8 pr-3 py-1.5 text-xs w-full text-left border-b border-gray-50 transition-colors"
+                    :class="sunburstSelection.measureId === measure.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'"
+                    @click="onChooserMeasureClick(measure, sector.sectorKey)"
+                  >
+                    <span class="flex-1 text-left">{{ measure.name }}</span>
+                    <span
+                      v-if="meanMeasureRatings.get(measure.id) != null"
+                      class="text-xs font-bold px-1.5 py-0.5 rounded-full text-white flex-shrink-0 ml-1"
+                      :style="{ background: ratingToColor(meanMeasureRatings.get(measure.id)) }"
+                    >{{ (meanMeasureRatings.get(measure.id) * 100).toFixed(0) }}%</span>
+                    <span v-else class="text-xs text-gray-300 flex-shrink-0 ml-1">–</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Small-screen hierarchical chooser -->
+          <div v-show="isSmall" style="height: 420px;" class="flex flex-col overflow-hidden border border-gray-100 rounded-lg">
+            <button
+              class="flex items-center gap-2 px-3 py-2 text-sm font-medium border-b border-gray-100 w-full text-left transition-colors flex-shrink-0"
+              :class="!sunburstSelection.type ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
+              @click="clearSunburstSelection"
+            >
+              <span class="w-5 h-5 flex-shrink-0 opacity-40">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2"/></svg>
+              </span>
+              <span class="flex-1 font-semibold">Alle Sektoren</span>
+              <span
+                v-if="overallMeanScore != null"
+                class="text-xs font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0"
+                :style="{ background: ratingToColor(overallMeanScore) }"
+              >{{ (overallMeanScore * 100).toFixed(0) }}%</span>
+            </button>
+            <div class="overflow-y-auto flex-1">
+              <div v-for="sector in allSectorsOrdered" :key="sector.sectorKey">
+                <button
+                  class="flex items-center gap-2 px-3 py-2 text-sm font-semibold w-full text-left border-b border-gray-100 transition-colors"
+                  :class="sunburstSelection.sectorKey === sector.sectorKey && sunburstSelection.type === 'sector' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'"
+                  @click="onChooserSectorClick(sector)"
+                >
+                  <img :src="sectorImages[sector.sectorKey]" class="w-5 h-5 flex-shrink-0 invert grayscale mix-blend-multiply opacity-70" />
+                  <span class="flex-1 text-left">{{ shortSectorNames[sector.sectorKey] }}</span>
+                  <span
+                    v-if="sectorMeanScores.get(sector.sectorKey) != null"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0"
+                    :style="{ background: ratingToColor(sectorMeanScores.get(sector.sectorKey)) }"
+                  >{{ (sectorMeanScores.get(sector.sectorKey) * 100).toFixed(0) }}%</span>
+                  <svg
+                    class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-150"
+                    :class="expandedSectorKey === sector.sectorKey ? 'rotate-180' : ''"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  ><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div v-show="expandedSectorKey === sector.sectorKey">
+                  <button
+                    v-for="measure in Object.values(sector.measures)"
+                    :key="measure.id"
+                    class="flex items-center gap-2 pl-8 pr-3 py-1.5 text-xs w-full text-left border-b border-gray-50 transition-colors"
+                    :class="sunburstSelection.measureId === measure.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'"
+                    @click="onChooserMeasureClick(measure, sector.sectorKey)"
+                  >
+                    <span class="flex-1 text-left">{{ measure.name }}</span>
+                    <span
+                      v-if="meanMeasureRatings.get(measure.id) != null"
+                      class="text-xs font-bold px-1.5 py-0.5 rounded-full text-white flex-shrink-0 ml-1"
+                      :style="{ background: ratingToColor(meanMeasureRatings.get(measure.id)) }"
+                    >{{ (meanMeasureRatings.get(measure.id) * 100).toFixed(0) }}%</span>
+                    <span v-else class="text-xs text-gray-300 flex-shrink-0 ml-1">–</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- Clear selection button -->
           <div class="mt-3 flex justify-center items-center gap-2">
@@ -310,6 +546,9 @@
       </div>
 
     </div><!-- end tab: dominance -->
+
+    </div><!-- /desktop content padding -->
+    </section><!-- /Gesamtstatistik -->
   </main>
 </template>
 
@@ -331,6 +570,11 @@ import sectorImages from '~/shared/sectorImages.js';
 
 const route = useRoute();
 const router = useRouter();
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route));
 const selectedCatalogVersionId = ref(selectedCatalogVersion.value.id);
 const catalogVersions = ref(await getAllCatalogVersions($directus, $readItems));
@@ -340,6 +584,13 @@ useHead({ title: ref($t('stats.title')) });
 // ── Filter state ─────────────────────────────────────────────────────────────
 const filterState = ref(null);
 const filterType = ref(null);
+const filterOpen = ref(false);
+const activeFilterCount = computed(() => {
+  let count = 0;
+  if (filterState.value) count++;
+  if (filterType.value) count++;
+  return count;
+});
 const typeOptions = [
   { label: 'Alle Kommunen', value: null },
   { label: 'Großstädte', value: 'big_city' },
@@ -1497,8 +1748,64 @@ async function computeClusteringAndRender() {
   }
 }
 
+// ── Small-screen hierarchical chooser ───────────────────────────────────────
+const isSmall = ref(false)
+function updateIsSmall() { isSmall.value = window.innerWidth < 640 }
+const expandedSectorKey = ref(null)
+const showListView = ref(false)
+
+
+
+const allSectorsOrdered = computed(() =>
+  sectorOrder.map(k => sectorStats.value.find(s => s.sectorKey === k)).filter(Boolean)
+)
+
+const sectorMeanScores = computed(() => {
+  const mmr = meanMeasureRatings.value
+  const result = new Map()
+  for (const sector of sectorStats.value) {
+    const vals = Object.keys(sector.measures)
+      .map(id => mmr.get(id))
+      .filter(v => v != null)
+    result.set(sector.sectorKey, vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null)
+  }
+  return result
+})
+
+const overallMeanScore = computed(() => {
+  const scores = [...sectorMeanScores.value.values()].filter(v => v != null)
+  return scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null
+})
+
+// Keep expandedSectorKey in sync when selection changes via keyboard / sunburst click
+watch(sunburstSelection, sel => {
+  expandedSectorKey.value = sel.sectorKey ?? null
+}, { deep: true })
+
+// Re-render when switching away from small mode
+watch(isSmall, small => {
+  if (!small) nextTick(() => { renderSunburst(); renderDistPanel() })
+})
+
+function onChooserSectorClick(sector) {
+  const key = sector.sectorKey
+  // Toggle expand; always update selection
+  expandedSectorKey.value = expandedSectorKey.value === key ? null : key
+  sunburstSelection.value = { type: 'sector', sectorKey: key, measureId: null, label: shortSectorNames[key] ?? key }
+  clearPanelMunFilter()
+  nextTick(() => { renderSunburst(); renderDistPanel() })
+}
+
+function onChooserMeasureClick(measure, sectorKey) {
+  sunburstSelection.value = { type: 'measure', sectorKey, measureId: measure.id, label: measure.name }
+  clearPanelMunFilter()
+  nextTick(() => { renderSunburst(); renderDistPanel() })
+}
+
 // ── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(() => {
+  updateIsSmall()
+  window.addEventListener('resize', updateIsSmall)
   window.addEventListener('keydown', handleArrowKey);
   nextTick(() => {
     renderSunburst();
@@ -1507,6 +1814,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateIsSmall)
   window.removeEventListener('keydown', handleArrowKey);
   if (vegaViewSunburst) vegaViewSunburst.finalize();
   if (vegaViewCluster) vegaViewCluster.finalize();
@@ -1530,6 +1838,7 @@ async function onCatalogVersionChange(newId) {
   if (vegaViewCluster) { vegaViewCluster.finalize(); vegaViewCluster = null; }
   if (vegaViewDist) { vegaViewDist.finalize(); vegaViewDist = null; }
   sunburstSelection.value = { type: null, sectorKey: null, measureId: null, label: '' };
+  expandedSectorKey.value = null;
   panelMunFilter.value = { active: false, label: '', type: null, measureId: null, ratingKey: null, sectorKey: null, binRange: null };
   nextTick(() => {
     renderSunburst();

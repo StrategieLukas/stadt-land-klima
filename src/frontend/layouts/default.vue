@@ -17,11 +17,11 @@
       </div>
     </div>
     <!-- Spacer that reserves the height of the fixed header.
-         Mobile: none (mobile header is sticky, not fixed). Desktop: driven by ResizeObserver via useHeaderHeight(). -->
+         Mobile: 64px (py-2 + h-12 logo). Desktop: driven by ResizeObserver via useHeaderHeight(). -->
     <div
-      v-if="isDesktop && hydrated"
+      v-if="hydrated"
       class="flex-shrink-0"
-      :style="`height: ${headerHeight}px`"
+      :style="isDesktop ? `height: ${headerHeight}px` : 'height: 64px'"
     ></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
@@ -55,8 +55,9 @@
         </div>
       </div>
 
-      <!-- Drawer Side (Menu) -->
+      <!-- Drawer Side (Menu) — desktop only; mobile uses TheMenuSheet below -->
       <the-drawer-side
+        v-if="isDesktop"
         :pages="pages.filter((page) => includes(page.menus, 'main'))"
         :nav-items="navigationConfig?.header_items || []"
         class="z-[9999]"
@@ -67,6 +68,24 @@
     <div class="fixed bottom-0 left-0 right-0 z-[10000] block sm:hidden">
       <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
     </div>
+
+    <!-- Mobile: backdrop blur (below sticky header, above page content) -->
+    <Transition name="slk-fade">
+      <div
+        v-if="!isDesktop && hydrated && isDrawerOpen"
+        class="fixed inset-0 z-[49] backdrop-blur-sm bg-black/20 sm:hidden"
+        @click="closeDrawer"
+      />
+    </Transition>
+
+    <!-- Mobile: bottom sheet navigation -->
+    <Transition name="slk-sheet">
+      <TheMenuSheet
+        v-if="!isDesktop && hydrated && isDrawerOpen"
+        :pages="pages.filter((page) => includes(page.menus, 'main'))"
+        :nav-items="navigationConfig?.header_items || []"
+      />
+    </Transition>
 
     <!-- Global search command palette (Cmd+K) -->
     <TheSearchCommandPalette />
@@ -84,7 +103,7 @@ const { includes } = lodash;
 const { $directus, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 const route = useRoute();
-const { closeDrawer, syncDrawerState } = useDrawer();
+const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();
 const hydrated = ref(false)
 const isDesktop = ref(false)
 const headerHeight = useHeaderHeight()
@@ -247,5 +266,29 @@ main > div {
   .lg\:pb-0 {
     padding-bottom: 0;
   }
+}
+
+/* Mobile menu sheet slide-up transition */
+.slk-sheet-enter-active,
+.slk-sheet-leave-active {
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.slk-sheet-enter-from,
+.slk-sheet-leave-to {
+  transform: translateY(100%);
+}
+.slk-sheet-enter-to,
+.slk-sheet-leave-from {
+  transform: translateY(0);
+}
+
+/* Mobile backdrop fade transition */
+.slk-fade-enter-active,
+.slk-fade-leave-active {
+  transition: opacity 200ms ease;
+}
+.slk-fade-enter-from,
+.slk-fade-leave-to {
+  opacity: 0;
 }
 </style>

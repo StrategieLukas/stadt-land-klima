@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 py-8 max-w-3xl mx-auto">
+  <div class="px-2 xs:px-4 py-8 max-w-3xl mx-auto">
     <NuxtLink to="/municipalities" class="font-heading text-h4 text-light-blue">
       ← Zurück zu den Kommunen
     </NuxtLink>
@@ -11,11 +11,11 @@
       </p>
 
       <!-- Step indicator -->
-      <div class="flex items-center gap-3 mb-6 select-none">
+      <div class="flex items-center gap-2 xs:gap-3 mb-6 select-none">
         <!-- Step 1 -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 xs:gap-2">
           <div
-            class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors flex-shrink-0"
             :class="selectedArea ? 'bg-green text-white' : 'bg-green text-white'"
           >
             <svg v-if="selectedArea" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,15 +23,15 @@
             </svg>
             <span v-else>1</span>
           </div>
-          <span class="text-sm font-medium" :class="selectedArea ? 'text-gray-400' : 'text-gray-800'">
+          <span class="hidden xs:inline text-sm font-medium" :class="selectedArea ? 'text-gray-400' : 'text-gray-800'">
             Kommune wählen
           </span>
         </div>
         <div class="flex-1 border-t-2" :class="selectedArea ? 'border-green' : 'border-gray-200'" />
         <!-- Step 2 -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 xs:gap-2">
           <div
-            class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors flex-shrink-0"
             :class="registrationSuccess ? 'bg-green text-white' : selectedArea ? 'bg-green text-white' : 'bg-gray-200 text-gray-400'"
           >
             <svg v-if="registrationSuccess" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,15 +39,15 @@
             </svg>
             <span v-else>2</span>
           </div>
-          <span class="text-sm font-medium" :class="registrationSuccess ? 'text-gray-400' : selectedArea ? 'text-gray-800' : 'text-gray-400'">
+          <span class="hidden xs:inline text-sm font-medium" :class="registrationSuccess ? 'text-gray-400' : selectedArea ? 'text-gray-800' : 'text-gray-400'">
             Kontaktdaten
           </span>
         </div>
         <div class="flex-1 border-t-2" :class="registrationSuccess ? 'border-green' : 'border-gray-200'" />
         <!-- Step 3 -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 xs:gap-2">
           <div
-            class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors flex-shrink-0"
             :class="registrationSuccess ? 'bg-green text-white' : 'bg-gray-200 text-gray-400'"
           >
             <svg v-if="registrationSuccess" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +55,7 @@
             </svg>
             <span v-else>3</span>
           </div>
-          <span class="text-sm font-medium" :class="registrationSuccess ? 'text-green font-semibold' : 'text-gray-400'">
+          <span class="hidden xs:inline text-sm font-medium" :class="registrationSuccess ? 'text-green font-semibold' : 'text-gray-400'">
             Durchstarten
           </span>
         </div>
@@ -63,7 +63,7 @@
 
       <!-- Step 1: No municipality selected yet → show search -->
       <div v-if="!selectedArea">
-        <div class="rounded-sm shadow-list bg-white p-8">
+          <div class="rounded-sm shadow-list bg-white p-4 sm:p-8">
           <h2 class="font-heading text-h2 font-bold text-green mb-1">Deine Kommune wählen</h2>
           <p class="text-sm text-gray-500 mb-5">
             Suche nach deiner Gemeinde oder Stadt, um mit der Registrierung zu beginnen.
@@ -176,8 +176,8 @@
 
         <!-- Already has a local team → contact prompt -->
         <!-- Case 1: Localteam exists AND rating is complete (≥98%) -->
-        <div v-if="hasExistingTeam && existingPercentageRated != null && existingPercentageRated >= 98" class="rounded-sm shadow-list p-8 bg-white">
-          <div class="flex items-start gap-4 mb-5">
+        <div v-if="hasExistingTeam && existingPercentageRated != null && existingPercentageRated >= 98" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
+          <div class="flex items-start gap-3 sm:gap-4 mb-5">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -192,19 +192,21 @@
             </div>
           </div>
           <div class="flex flex-col sm:flex-row gap-3">
-            <NuxtLink
+            <CanonicalButton
               v-if="existingSlug"
-              :to="`/municipalities/${existingSlug}`"
-              class="flex-1 text-center py-2.5 px-4 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
-            >
-              Zur Bewertung →
-            </NuxtLink>
-            <NuxtLink
-              :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' unterstützen.\n\nMeine Kontaktdaten:\n')}`"
-              class="flex-1 text-center py-2.5 px-4 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
-            >
-              Kontakt aufnehmen
-            </NuxtLink>
+              :href="`/municipalities/${existingSlug}`"
+              label="Zur Bewertung"
+              icon-slug="icon_login_arrow"
+              color="green"
+              class="flex-1"
+            />
+            <CanonicalButton
+              :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' unterstützen.\n\nMeine Kontaktdaten:\n')}`"
+              label="Kontakt aufnehmen"
+              icon-slug="icon_login_arrow"
+              color="blue"
+              class="flex-1"
+            />
           </div>
           <button
             v-if="!hasQueryParams"
@@ -217,8 +219,8 @@
         </div>
 
         <!-- Case 2: Localteam exists but rating is still in progress -->
-        <div v-else-if="hasExistingTeam" class="rounded-sm shadow-list p-8 bg-white">
-          <div class="flex items-start gap-4 mb-5">
+        <div v-else-if="hasExistingTeam" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
+          <div class="flex items-start gap-3 sm:gap-4 mb-5">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -233,12 +235,13 @@
             </div>
           </div>
           <div class="flex flex-col sm:flex-row gap-3">
-            <NuxtLink
-              :to="`/contact?title=${encodeURIComponent('Lokalteam unterstützen in ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
-              class="flex-1 text-center py-2.5 px-4 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
-            >
-              Lokalteam unterstützen →
-            </NuxtLink>
+            <CanonicalButton
+              :href="`/contact?title=${encodeURIComponent('Lokalteam unterstützen in ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
+              label="Lokalteam unterstützen"
+              icon-slug="icon_team"
+              color="green"
+              class="flex-1"
+            />
           </div>
           <button
             v-if="!hasQueryParams"

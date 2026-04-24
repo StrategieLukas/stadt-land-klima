@@ -4,7 +4,7 @@
 
     <!-- Header: green tint once done, neutral while processing -->
     <div
-      class="px-8 pt-7 pb-5 border-b flex items-center gap-4 transition-colors duration-500"
+      class="px-4 sm:px-8 pt-7 pb-5 border-b flex items-center gap-4 transition-colors duration-500"
       :class="processingDone && !processingError ? 'bg-rating-3-light border-green/20' : 'bg-white border-gray-100'"
     >
       <div
@@ -36,7 +36,7 @@
     </div>
 
     <!-- Flow step indicators -->
-    <div class="px-8 pt-6 pb-4 space-y-3 border-b border-gray-100">
+    <div class="px-4 sm:px-8 pt-6 pb-4 space-y-3 border-b border-gray-100">
       <div v-for="step in stepInfos" :key="step.key" class="flex items-center gap-3">
         <div class="w-6 h-6 flex items-center justify-center flex-shrink-0">
           <SlkFlowerSpinner v-if="stepStatuses[step.key] === 'loading'" :size="20" />
@@ -59,14 +59,14 @@
     </div>
 
     <!-- Error: retry -->
-    <div v-if="processingError" class="px-8 py-5">
+    <div v-if="processingError" class="px-4 sm:px-8 py-5">
       <p class="text-sm text-red-600 mb-3">{{ processingError }}</p>
       <button type="button" class="text-sm text-light-blue hover:underline" @click="resetToIdle">← Erneut versuchen</button>
     </div>
 
     <!-- Success: Durchstarten content (fades in once done) -->
     <Transition name="fade-down">
-      <div v-if="formState === 'success'" class="px-8 py-6 space-y-5">
+      <div v-if="formState === 'success'" class="px-4 sm:px-8 py-6 space-y-5">
 
         <!-- Activation email -->
         <div class="flex gap-4">
@@ -131,15 +131,13 @@
                 class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
                 @keydown.enter.prevent="subscribeNewsletter"
               />
-              <button
-                type="button"
+              <CanonicalButton
+                :label="newsletterState === 'subscribing' ? '…' : 'Anmelden'"
+                icon-slug="icon_newsletter_click"
+                color="green"
                 :disabled="newsletterState === 'subscribing'"
-                class="px-4 py-2 bg-green text-white text-sm font-semibold rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                 @click="subscribeNewsletter"
-              >
-                <span v-if="newsletterState === 'subscribing'">…</span>
-                <span v-else>Anmelden</span>
-              </button>
+              />
             </div>
             <p v-if="newsletterError" class="mt-1 text-xs text-red-500">{{ newsletterError }}</p>
             <p class="mt-1.5 text-xs text-gray-400">Abmeldung jederzeit möglich. Kein Spam.</p>
@@ -153,7 +151,7 @@
   <!-- Registration form -->
   <div v-else class="rounded-sm shadow-list bg-white overflow-hidden">
     <!-- Form header -->
-    <div class="px-8 pt-7 pb-5 border-b border-gray-100">
+    <div class="px-4 sm:px-8 pt-7 pb-5 border-b border-gray-100">
       <h2 class="font-heading text-h3 font-bold text-gray-800 mb-1">Deine Kontaktdaten</h2>
       <p class="text-sm text-gray-500">
         Füll das Formular aus – wir richten dann deinen Account für
@@ -161,10 +159,10 @@
       </p>
     </div>
 
-    <form class="px-8 py-6 space-y-5" novalidate @submit.prevent="submit">
+    <form class="px-4 sm:px-8 py-6 space-y-5" novalidate @submit.prevent="submit">
 
       <!-- Name -->
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 xs:grid-cols-2 gap-3">
         <div>
           <label for="reg-firstname" class="block text-sm font-medium text-gray-700 mb-1">
             Vorname <span class="text-red-500">*</span>

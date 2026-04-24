@@ -48,6 +48,12 @@
             :ratings-by-sector="ratingsBySector" 
             :name-municipality="municipality.name" 
           />
+          <p v-if="activeTab === 'polar'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+            Die farbigen Segmente zeigen den Punktestand je Sektor. Je größer ein Segment, desto besser schneidet die Kommune in diesem Bereich ab.
+          </p>
+          <p v-else-if="activeTab === 'treemap'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+            Jede Kachel steht für eine Maßnahme – die Fläche entspricht ihrer Gewichtung. Die Farbe zeigt den Umsetzungsstand: Rot&nbsp;= nicht erfüllt, Grün&nbsp;= vollständig umgesetzt.
+          </p>
         </div>
       </div>
       <p class="mb-4 mt-0 text-center text-xs">
@@ -60,18 +66,9 @@
         <ImplementationTrafficLight v-if="activeTab === 'polar'" />
       </div>
 
-      <!-- Mobile: About Section -->
-      <div v-if="municipality.description" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
-        <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
-        <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
-          <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-          <h2 class="font-heading text-h2 leading-none text-green">
-            {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
-          </h2>
-        </div>
-        <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="md.render(municipality.description)"></div>
-        </div>
+      <!-- Mobile: Infos zur Kommune -->
+      <div class="mb-4">
+        <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore" />
       </div>
 
       <!-- Mobile: Participate Section -->
@@ -102,7 +99,7 @@
       <!-- Mobile: Kommunalwahl Question Generation Link -->
       <NuxtLink
         :to="`/elections/${municipality.slug}`"
-        class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
+        class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3/50"
       >
         <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
         <h3 class="font-heading text-h2 ">
@@ -166,6 +163,12 @@
             :ratings-by-sector="ratingsBySector" 
             :name-municipality="municipality.name" 
           />
+          <p v-if="activeTab === 'polar'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+            Die farbigen Segmente zeigen den Punktestand je Sektor. Je größer ein Segment, desto besser schneidet die Kommune in diesem Bereich ab.
+          </p>
+          <p v-else-if="activeTab === 'treemap'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+            Jede Kachel steht für eine Maßnahme – die Fläche entspricht ihrer Gewichtung. Die Farbe zeigt den Umsetzungsstand: Rot&nbsp;= nicht erfüllt, Grün&nbsp;= vollständig umgesetzt.
+          </p>
         </div>
         </div>
         <div class="mx-auto mb-8 flex justify-center">
@@ -209,7 +212,7 @@
           <!-- Kommunalwahl Question Generation Link -->
           <NuxtLink
             :to="`/elections/${municipality.slug}`"
-            class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
+            class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3/50"
           >
             <img src="~/assets/icons/icon_politics.svg" class="h-6 w-6 opacity-60" />
             <h3 class="font-heading text-h3">

@@ -114,6 +114,13 @@
           <!-- Gray placeholder bar instead of score progress -->
           <div class="mt-2 h-3 w-full rounded bg-gray-300 opacity-60"></div>
         </div>
+        <div v-if="slzArea.geo_center" class="flex items-center flex-shrink-0">
+          <GermanyMapIndicator
+            :lat="slzArea.geo_center.coordinates[1]"
+            :lon="slzArea.geo_center.coordinates[0]"
+            :size="80"
+          />
+        </div>
       </div>
 
       <!-- Mobile layout -->
@@ -168,12 +175,12 @@
             In <strong>{{ slzArea.name }}</strong> arbeitet bereits ein Lokalteam an der Bewertung.
             Hilf ihnen dabei, die Bewertung zu vervollständigen.
           </p>
-          <NuxtLink
-            :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
-            class="px-8 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
-          >
-            Lokalteam unterstützen →
-          </NuxtLink>
+          <CanonicalButton
+            :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+            label="Lokalteam unterstützen"
+            icon-slug="icon_team"
+            color="dark-green"
+          />
         </div>
         <div v-else class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
           <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
@@ -182,12 +189,12 @@
             <strong>{{ slzArea.name }}</strong> wurde noch nicht bewertet.
             Gründe ein Lokalteam und bringe aktiven Klimaschutz in deine Kommune.
           </p>
-          <NuxtLink
-            :to="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
-            class="px-8 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
-          >
-            Jetzt Lokalteam gründen →
-          </NuxtLink>
+          <CanonicalButton
+            :href="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
+            label="Jetzt Lokalteam gründen"
+            icon-slug="icon_location_green_marker"
+            color="green"
+          />
         </div>
       </div>
 
@@ -202,12 +209,12 @@
               In <strong>{{ slzArea.name }}</strong> arbeitet bereits ein Lokalteam an der Bewertung.
               Hilf ihnen dabei, die Bewertung zu vervollständigen.
             </p>
-            <NuxtLink
-              :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
-              class="px-8 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
-            >
-              Lokalteam unterstützen →
-            </NuxtLink>
+            <CanonicalButton
+              :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+              label="Lokalteam unterstützen"
+              icon-slug="icon_team"
+              color="dark-green"
+            />
           </div>
           <div v-else class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
             <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
@@ -216,12 +223,12 @@
               <strong>{{ slzArea.name }}</strong> wurde noch nicht bewertet.
               Gründe ein Lokalteam und bringe aktiven Klimaschutz in deine Kommune.
             </p>
-            <NuxtLink
-              :to="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
-              class="px-8 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
-            >
-              Jetzt Lokalteam gründen →
-            </NuxtLink>
+            <CanonicalButton
+              :href="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
+              label="Jetzt Lokalteam gründen"
+              icon-slug="icon_location_green_marker"
+              color="green"
+            />
           </div>
         </div>
 
@@ -364,6 +371,7 @@ const { data: slzArea, pending: slzPending } = useAsyncData(
           state: data.state ?? null,
           ars: data.ars ?? route.params.slug,
           population: data.data_products?.population_data?.population ?? null,
+          geo_center: data.geo_center ?? null,
         };
       }
       return null;

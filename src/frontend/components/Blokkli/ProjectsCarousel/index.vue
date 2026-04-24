@@ -38,7 +38,7 @@
             <div
               v-for="(project, i) in infiniteItems"
               :key="i"
-              class="flex-shrink-0 snap-start"
+              class="flex-shrink-0 snap-center"
               :style="{ width: slideWidthPx + 'px' }"
             >
               <div class="bg-gray-300 overflow-hidden w-full" style="aspect-ratio: 4/3">
@@ -187,7 +187,13 @@ const currentIndex = ref(0)  // logical index within the real list
 const descriptionHeight = ref(0)
 
 const GAP_PX = 16
-const SLIDES_VISIBLE = 3.3
+
+// Responsive slide count: fewer on small screens so each slide is readable
+const slidesVisible = computed(() => {
+  if (!containerWidth.value || containerWidth.value < 480) return 1.5
+  if (containerWidth.value < 768) return 2.5
+  return 3.3
+})
 
 // Triple list for cloning
 const infiniteItems = computed(() => {
@@ -199,13 +205,21 @@ const realCount = computed(() => projects.value?.length ?? 0)
 
 const slideWidthPx = computed(() => {
   if (!containerWidth.value) return 320
-  const availableWidth = containerWidth.value - 48  // subtract px-6 on each side
-  return Math.round((availableWidth - GAP_PX * Math.floor(SLIDES_VISIBLE)) / SLIDES_VISIBLE)
+  const n = slidesVisible.value
+  // Distribute container width across n visible slides, accounting for gaps
+  return Math.round((containerWidth.value - GAP_PX * (n - 1)) / n)
+})
+
+// Padding so the first/last slides can snap-center:
+// with this value, scrollLeft = i * getStep() exactly centers slide i.
+const centeringPaddingPx = computed(() => {
+  if (!containerWidth.value) return 24
+  return Math.round((containerWidth.value - slideWidthPx.value) / 2)
 })
 
 const trackStyle = computed(() => ({
-  paddingLeft: '1.5rem',
-  paddingRight: '1.5rem',
+  paddingLeft: centeringPaddingPx.value + 'px',
+  paddingRight: centeringPaddingPx.value + 'px',
   boxSizing: 'border-box' as const,
 }))
 

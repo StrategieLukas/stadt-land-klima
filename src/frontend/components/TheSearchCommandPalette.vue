@@ -161,6 +161,7 @@ const { debounce } = lodash
 const { isOpen, query, embeddedInput, open, close } = useSearchPalette()
 const bridge = useEmbeddedSearchBridge()
 const router = useRouter()
+const { closeDrawer } = useDrawer()
 const headerHeight = useHeaderHeight()
 const navInputRect = useNavInputRect()
 
@@ -233,6 +234,7 @@ function runSearch(q) {
 
 function navigate(result) {
   close()
+  closeDrawer()
   if (result._type === 'area') {
     if (result.isMunicipality) {
       // Use slug only for published municipalities (ctaType='complete')
@@ -251,6 +253,7 @@ function navigate(result) {
 /** Called when a CTA chip inside AreaSearchResult is clicked */
 function onChipAction({ ars }) {
   close()
+  closeDrawer()
   router.push(`/register_localteam?ars=${ars}`)
 }
 

@@ -1,32 +1,72 @@
 <template>
-  <nav class="drawer drawer-side z-40">
-    <label for="page-drawer" class="drawer-overlay" @click="closeDrawer"></label>
-    <div class="flex flex-col min-h-full w-80 bg-white font-semibold text-left overflow-y-auto">
+  <!-- Bottom sheet: fixed above the dock, slides up via parent Transition -->
+  <div
+    class="fixed left-0 right-0 z-[9999] flex flex-col bg-white rounded-t-2xl shadow-2xl"
+    style="bottom: 80px; max-height: 65vh; overflow: hidden;"
+    aria-modal="true"
+    role="dialog"
+  >
+    <!-- Easter egg: pull-to-reveal SLK flower -->
+    <div
+      class="flex-shrink-0 flex items-center justify-center overflow-hidden"
+      :style="{
+        height: eggHeight + 'px',
+        transition: isAnimatingBack ? 'height 0.4s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none',
+      }"
+    >
+      <svg
+        viewBox="-1 2 112 120"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        :style="{
+          width: '80px',
+          height: '80px',
+          flexShrink: '0',
+          transformOrigin: 'center',
+          transform: `rotate(${flowerRotation}deg)`,
+          transition: isAnimatingBack ? 'transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none',
+        }"
+      >
+        <path fill-rule="evenodd" fill="#AFCA0B" d="M70.6,20.9c0-9.2-8-16.6-16.6-16.6s-16.6,7.4-16.6,16.6c0,1.7-0.4,3.6,2.1,10c1.4,3.5,14.5,26.6,14.5,26.6s13.1-23,14.5-26.6C71,24.5,70.6,22.7,70.6,20.9zM54,28.5c-3.9,0-7.1-3.2-7.1-7.3c0-4,3.2-7.3,7.1-7.3c3.9,0,7.1,3.2,7.1,7.3C61.1,25.2,57.9,28.5,54,28.5z"/>
+        <path fill-rule="evenodd" fill="#AFCA0B" d="M95.3,55.5c7.9-4.6,10.4-15.2,6.1-22.7s-14.8-10.7-22.7-6.1c-1.5,0.9-3.3,1.4-7.6,6.8c-2.3,2.9-15.7,25.9-15.7,25.9s26.5-0.1,30.3-0.7C92.4,57.7,93.8,56.4,95.3,55.5zM80.5,44.9c-2-3.4-0.8-7.8,2.7-9.8c3.5-2,7.9-0.9,9.9,2.6c2,3.4,0.8,7.8-2.7,9.8C86.9,49.5,82.5,48.3,80.5,44.9z"/>
+        <path fill-rule="evenodd" fill="#AFCA0B" d="M37.3,99.7c0,9.2,8,16.6,16.6,16.6s16.6-7.4,16.6-16.6c0-1.7,0.4-3.6-2.1-10c-1.4-3.5-14.5-26.6-14.5-26.6s-13.1,23-14.5,26.6C36.9,96.1,37.3,98,37.3,99.7zM53.9,92.2c3.9,0,7.1,3.2,7.1,7.3c0,4-3.2,7.3-7.1,7.3c-3.9,0-7.1-3.2-7.1-7.3C46.8,95.4,50,92.2,53.9,92.2z"/>
+        <path fill-rule="evenodd" fill="#AFCA0B" d="M29.2,26.7c-7.9-4.6-18.4-1.4-22.7,6.1s-1.9,18.1,6.1,22.7c1.5,0.9,2.9,2.2,9.7,3.2c3.7,0.5,30.3,0.7,30.3,0.7S39.2,36.5,36.8,33.5C32.5,28.1,30.7,27.6,29.2,26.7zM27.4,44.9c-2,3.4-6.4,4.6-9.9,2.6c-3.5-2-4.7-6.4-2.7-9.8c2-3.4,6.4-4.6,9.9-2.6C28.2,37,29.4,41.4,27.4,44.9z"/>
+        <path fill-rule="evenodd" fill="#AFCA0B" d="M12.6,65.2C4.6,69.7,2.2,80.4,6.5,87.9c4.3,7.5,14.8,10.7,22.7,6.1c1.5-0.9,3.3-1.4,7.6-6.8c2.3-2.9,15.7-25.9,15.7-25.9S26,61.4,22.2,62C15.5,63,14.1,64.3,12.6,65.2zM27.4,75.8c2,3.4,0.8,7.8-2.7,9.8c-3.5,2-7.9,0.9-9.9-2.6c-2-3.4-0.8-7.8,2.7-9.8C21,71.2,25.4,72.4,27.4,75.8z"/>
+      </svg>
+    </div>
 
-      <!-- Search bar -->
-      <div class="px-4 py-3 border-b border-gray-100">
-        <button
-          class="flex items-center gap-2 w-full h-10 px-3 rounded-lg bg-gray-50 text-sm text-gray-400 hover:bg-gray-100 transition-colors"
-          @click="openSearch(); closeDrawer()"
-          :aria-label="$t('generic.search')"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-          </svg>
-          <span>{{ $t('generic.search') }}…</span>
-        </button>
-      </div>
+    <!-- Drag handle pill -->
+    <div
+      class="flex justify-center pt-3 pb-1 flex-shrink-0 touch-none select-none cursor-grab"
+      @touchstart="onEggDragStart"
+      @touchmove.prevent="onEggDragMove"
+      @touchend="onEggDragEnd"
+      @touchcancel="onEggDragEnd"
+    >
+      <div class="w-10 h-1 rounded-full bg-gray-300"></div>
+    </div>
 
+    <!-- Login + Donate — side-by-side, in thumb reach -->
+    <div class="flex gap-3 px-4 pt-2 pb-3 flex-shrink-0">
+      <LoginButton class="flex-1" @click="closeDrawer" />
+      <DonateButton class="flex-1" @click="closeDrawer" />
+    </div>
+
+    <!-- Divider -->
+    <div class="border-t border-gray-100 flex-shrink-0"></div>
+
+    <!-- Scrollable nav items -->
+    <div class="flex-1 overflow-y-auto overscroll-contain pb-4">
       <!-- Nav items from navigation_config -->
-      <ul v-if="safeNavItems.length > 0" class="flex-1 pt-2 pb-6">
+      <ul v-if="safeNavItems.length > 0" class="py-1">
         <li v-for="item in safeNavItems" :key="item.id">
+
           <!-- Item with children: split row — label navigates, chevron expands -->
           <template v-if="hasChildren(item)">
             <div
               class="flex items-center justify-between w-full border-b border-gray-100 transition-colors hover:bg-gray-50"
               :class="{ 'bg-light-green/10': anyChildActive(item) }"
             >
-              <!-- Label: navigates if the item has a link -->
               <component
                 v-if="item.link_type === 'page'"
                 :is="NuxtLink"
@@ -57,7 +97,7 @@
                 <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
                 {{ item.label }}
               </span>
-              <!-- Chevron: toggles accordion only -->
+              <!-- Chevron toggle -->
               <button
                 class="flex-shrink-0 flex items-center justify-center w-12 h-full py-3 text-gray-400 hover:text-gray-600 transition-colors"
                 :aria-label="expandedId === item.id ? 'Zuklappen' : 'Aufklappen'"
@@ -74,15 +114,7 @@
             </div>
 
             <!-- Children -->
-            <Transition
-              @before-enter="accordionBeforeEnter"
-              @enter="accordionEnter"
-              @after-enter="accordionAfterEnter"
-              @before-leave="accordionBeforeLeave"
-              @leave="accordionLeave"
-              @after-leave="accordionAfterLeave"
-            >
-            <div v-if="expandedId === item.id" class="border-b border-gray-100">
+            <div v-show="expandedId === item.id" class="border-b border-gray-100">
               <!-- Image children: 2-column grid -->
               <div v-if="hasImageChildren(item)" class="grid grid-cols-2 gap-2 px-4 py-3">
                 <component
@@ -121,14 +153,15 @@
                   @click="closeDrawer"
                 >
                   <span class="flex items-center gap-1.5 font-semibold leading-snug">
-                    <svg v-if="child.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    <svg v-if="child.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
                     {{ child.label }}
                   </span>
                   <span v-if="child.description" class="text-xs font-normal text-gray-400 mt-0.5 leading-snug">{{ child.description }}</span>
                 </component>
               </template>
             </div>
-            </Transition>
           </template>
 
           <!-- Simple link -->
@@ -147,7 +180,9 @@
             @click="closeDrawer"
           >
             <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
-            <svg v-if="item.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            <svg v-if="item.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
             {{ item.label }}
           </component>
 
@@ -162,8 +197,8 @@
         </li>
       </ul>
 
-      <!-- Fallback: flat pages list (when navItems is empty) -->
-      <ul v-else class="flex-1 py-2">
+      <!-- Fallback: flat pages list -->
+      <ul v-else class="py-1">
         <li v-for="page in pages" :key="page.id">
           <NuxtLink
             :to="'/' + page.slug"
@@ -174,20 +209,13 @@
           </NuxtLink>
         </li>
       </ul>
-
-      <!-- Bottom: Login + Donate -->
-      <div class="border-t border-gray-100 pt-5 pb-40 px-4 flex gap-3">
-        <LoginButton class="flex-1" @click="closeDrawer" />
-        <DonateButton class="flex-1" @click="closeDrawer" />
-      </div>
     </div>
-  </nav>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, resolveComponent } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, resolveComponent } from 'vue'
 import { useRuntimeConfig } from '#imports'
-import { useSearchPalette } from '~/composables/useSearchPalette.js'
 
 const NuxtLink = resolveComponent('NuxtLink')
 
@@ -195,7 +223,51 @@ const { $t } = useNuxtApp()
 const route = useRoute()
 const config = useRuntimeConfig()
 const { closeDrawer } = useDrawer()
-const { open: openSearch } = useSearchPalette()
+
+// Easter egg: pull-to-reveal SLK flower
+const eggHeight = ref(0)
+const eggStartY = ref(0)
+const isAnimatingBack = ref(false)
+let eggHapticFired = false
+let eggResetTimer = null
+
+const flowerRotation = computed(() => eggHeight.value * 3)
+
+function onEggDragStart(e) {
+  if (eggResetTimer) {
+    clearTimeout(eggResetTimer)
+    eggResetTimer = null
+  }
+  isAnimatingBack.value = false
+  eggStartY.value = e.touches[0].clientY
+  eggHapticFired = false
+}
+
+function onEggDragMove(e) {
+  const delta = e.touches[0].clientY - eggStartY.value
+  if (delta <= 0) {
+    eggHeight.value = 0
+    return
+  }
+  eggHeight.value = Math.min(delta, 160)
+  if (!eggHapticFired && eggHeight.value >= 60) {
+    eggHapticFired = true
+    if (navigator.vibrate) navigator.vibrate(10)
+  }
+}
+
+function onEggDragEnd() {
+  isAnimatingBack.value = true
+  eggHeight.value = 0
+  eggResetTimer = setTimeout(() => {
+    isAnimatingBack.value = false
+    eggResetTimer = null
+  }, 420)
+}
+
+onBeforeUnmount(() => {
+  if (eggResetTimer) clearTimeout(eggResetTimer)
+})
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },
@@ -210,45 +282,11 @@ function toggleExpanded(id) {
   expandedId.value = expandedId.value === id ? null : id
 }
 
-// Accordion slide animation
-function accordionBeforeEnter(el) {
-  el.style.overflow = 'hidden'
-  el.style.maxHeight = '0'
-}
-function accordionEnter(el, done) {
-  const height = el.scrollHeight
-  el.getBoundingClientRect() // force reflow
-  el.style.transition = 'max-height 0.25s ease'
-  el.style.maxHeight = height + 'px'
-  el.addEventListener('transitionend', done, { once: true })
-}
-function accordionAfterEnter(el) {
-  el.style.transition = ''
-  el.style.overflow = ''
-  el.style.maxHeight = ''
-}
-function accordionBeforeLeave(el) {
-  el.style.maxHeight = el.scrollHeight + 'px'
-  el.style.overflow = 'hidden'
-}
-function accordionLeave(el, done) {
-  el.getBoundingClientRect() // force reflow
-  el.style.transition = 'max-height 0.25s ease'
-  el.style.maxHeight = '0'
-  el.addEventListener('transitionend', done, { once: true })
-}
-function accordionAfterLeave(el) {
-  el.style.transition = ''
-  el.style.overflow = ''
-  el.style.maxHeight = ''
-}
-
-// Image URL resolution (same pattern as TheNavigationMenuDesktop)
+// Image URL resolution
 const imageUrlMap = ref({})
 onMounted(() => {
   const baseUrl = config.public.clientDirectusUrl
-  const allItems = [...safeNavItems.value]
-  allItems.forEach(item => {
+  safeNavItems.value.forEach(item => {
     if (item.image_id) imageUrlMap.value[item.image_id] = `${baseUrl}/assets/${item.image_id}`
     ;(item.children || []).forEach(child => {
       if (child.image_id) imageUrlMap.value[child.image_id] = `${baseUrl}/assets/${child.image_id}`
@@ -291,6 +329,3 @@ function childrenWithoutImages(item) {
   return (item.children || []).filter(c => !c.image_id)
 }
 </script>
-
-
-

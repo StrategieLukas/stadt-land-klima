@@ -1,5 +1,5 @@
 <template>
-  <nav>
+  <nav ref="navRef">
     <!-- Connected pill bar — real items are always rectangular; rounding lives in the end-caps only -->
     <ul class="flex items-stretch h-9 bg-gray-50 border border-gray-200 rounded-full">
       <!-- Left rounded end-cap: carries the l-full rounding, divider on right -->
@@ -47,23 +47,47 @@
         </span>
 
         <!-- Trigger with children — also navigates if item has a page slug -->
-        <component
-          v-else
-          :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'div'"
-          :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
-          class="flex items-center gap-1.5 px-3 text-sm font-semibold cursor-pointer whitespace-nowrap transition-colors"
-          @click="item.link_type === 'page' && item.page_slug ? closeMenu() : undefined"
-          :title="item.label"
+        <!-- Wrapper owns the hover background so it spans both label and chevron -->
+        <div
+          v-if="hasChildren(item)"
+          class="group/trigger flex items-stretch transition-colors"
           :class="{
-            'bg-olive-green text-white': anyChildActive(item),
-            'text-gray-600 hover:bg-light-green/10 hover:text-gray-900': !anyChildActive(item),
+            'bg-olive-green': anyChildActive(item),
+            'hover:bg-light-green/10': !anyChildActive(item),
           }"
         >
-          <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-5 w-auto object-contain" :alt="item.label" />
-          <span v-else class="text-xs font-semibold">{{ item.label }}</span>
-          <span v-if="item.image_id && imageUrlMap[item.image_id]" class="sr-only">{{ item.label }}</span>
-          <svg class="h-3 w-3 opacity-50" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5 5-5"/></svg>
-        </component>
+          <!-- Label part: navigates (NuxtLink) or toggles dropdown (button) -->
+          <component
+            :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'button'"
+            :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
+            :type="!(item.link_type === 'page' && item.page_slug) ? 'button' : undefined"
+            class="flex items-center gap-1.5 pl-3 pr-1 text-sm font-semibold cursor-pointer whitespace-nowrap transition-colors"
+            @click="item.link_type === 'page' && item.page_slug ? closeMenu() : toggleMenu(item.id)"
+            :title="item.label"
+            :class="{
+              'text-white': anyChildActive(item),
+              'text-gray-600 group-hover/trigger:text-gray-900': !anyChildActive(item),
+            }"
+          >
+            <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-5 w-auto object-contain" :alt="item.label" />
+            <span v-else class="text-xs font-semibold">{{ item.label }}</span>
+            <span v-if="item.image_id && imageUrlMap[item.image_id]" class="sr-only">{{ item.label }}</span>
+          </component>
+          <!-- Chevron button: toggles dropdown on click/touch -->
+          <button
+            type="button"
+            class="flex items-center pl-0.5 pr-3 cursor-pointer transition-colors"
+            :class="{
+              'text-white hover:text-white/80': anyChildActive(item),
+              'text-gray-600 group-hover/trigger:text-gray-900': !anyChildActive(item),
+            }"
+            @click.stop="toggleMenu(item.id)"
+            :aria-expanded="openMenuId === item.id"
+            :aria-label="item.label + ' Untermenü'"
+          >
+            <svg class="h-3 w-3 opacity-50" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5 5-5"/></svg>
+          </button>
+        </div>
 
         <!-- Dropdown panel: directly touching the pill bar, hover managed by JS timer -->
         <div
@@ -141,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, resolveComponent } from 'vue'
+import { ref, computed, onMounted, onUnmounted, resolveComponent } from 'vue'
 import { useRoute, useRuntimeConfig } from '#imports'
 
 // Resolve NuxtLink once during setup — calling resolveComponent() in template ternaries
@@ -164,6 +188,7 @@ const safeItems = computed(() => Array.isArray(props.items) ? props.items : [])
 
 // Hover delay logic: 200ms grace period lets the mouse cross the small gap
 // between the pill bar and the dropdown panel without dismissing it.
+const navRef = ref(null)
 const openMenuId = ref(null)
 let menuCloseTimer = null
 
@@ -181,6 +206,17 @@ function handleMenuLeave() {
 function closeMenu() {
   clearTimeout(menuCloseTimer)
   openMenuId.value = null
+}
+
+function toggleMenu(id) {
+  clearTimeout(menuCloseTimer)
+  openMenuId.value = openMenuId.value === id ? null : id
+}
+
+function handleOutsideClick(event) {
+  if (navRef.value && !navRef.value.contains(event.target)) {
+    closeMenu()
+  }
 }
 
 function resolveHref(item) {
@@ -233,5 +269,10 @@ onMounted(() => {
       imageUrlMap.value[item.image_id] = `${baseUrl}/assets/${item.image_id}`
     }
   })
+  document.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick)
 })
 </script>

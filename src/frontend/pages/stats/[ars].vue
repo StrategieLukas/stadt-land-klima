@@ -21,9 +21,9 @@
       
 
       <!-- Header Section -->
-      <div class="flex flex-col lg:flex-row w-full justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 gap-4 lg:gap-0 overflow-hidden">
+      <div class="flex flex-row w-full justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 gap-3 overflow-hidden">
         <!-- Left Column: Location Info -->
-        <div class="flex-1 min-w-0 max-w-full">
+        <div class="flex-1 min-w-0">
 
           <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
             {{ stats?.prefix || $t('generic.loading') }}
@@ -34,120 +34,140 @@
           </h1>
 
           <p class="text-base lg:text-lg text-gray-600">{{ stats?.state || '' }}</p>
+
+          <!-- ARS code -->
+          <div class="mt-2">
+            <span class="text-xs text-gray-500 font-semibold">ARS </span>
+            <span class="text-xs font-mono text-gray-600">{{ stats?.ars || '-' }}</span>
+          </div>
         </div>
         
-        <!-- Right Column: ARS info only -->
-        <div class="flex flex-col lg:text-right space-y-3 flex-shrink-0">
-          <!-- ARS -->
-          <div class="lg:text-right">
-            <p class="text-xs text-gray-500 font-semibold">ARS</p>
-            <p class="text-sm font-mono text-gray-700">{{ stats?.ars || '-' }}</p>
-          </div>
+        <!-- Right Column: Germany map indicator -->
+        <div class="flex flex-col items-end gap-2 flex-shrink-0">
+          <!-- Germany map with marker -->
+          <GermanyMapIndicator
+            v-if="stats?.geo_center"
+            :lat="stats.geo_center.coordinates[1]"
+            :lon="stats.geo_center.coordinates[0]"
+            :size="100"
+            class="flex-shrink-0"
+          />
         </div>
       </div>
     </div>
 
     <!-- Measure Catalog Comparison Section -->
-    <div v-if="stats?.is_reasonable_for_municipal_rating && allCatalogVersions.length > 0" class="min-h-[100px] flex-col gap-6 lg:flex-row items-center p-4 bg-base-100 shadow-md mt-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4 px-2">{{ t('stats.measure_catalog_comparison', 'Bewertungen in den verschiedenen Maßnahmenkatalogen') }}</h2>
-      
+    <div v-if="stats?.is_reasonable_for_municipal_rating && allCatalogVersions.length > 0" class="mt-6 border border-gray-200 shadow-md overflow-hidden">
+
+      <!-- Collapsible header -->
+      <button
+        class="w-full flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+        @click="catalogOpen = !catalogOpen"
+      >
+        <div class="flex items-center gap-2 min-w-0">
+          <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <h2 class="text-base font-semibold text-gray-900">{{ t('stats.measure_catalog_comparison', 'Bewertungen in den verschiedenen Maßnahmenkatalogen') }}</h2>
+          <span class="text-xs text-gray-400 hidden sm:block">
+            ({{ Object.values(municipalityScoresByCatalog).filter(s => s?.percentage_rated >= 98).length }} / {{ allCatalogVersions.length }} vollständig)
+          </span>
+        </div>
+        <svg
+          class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-200"
+          :class="catalogOpen ? 'rotate-180' : ''"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
       <!-- Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        <div v-for="catalog in allCatalogVersions" :key="catalog.id" 
-             class="card rounded-none bg-white shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-          <div class="card-body p-4">
-            <!-- Catalog Header -->
-            <div class="flex flex-col items-center text-center mb-3">
-              <h3 class="card-title text-sm font-semibold mb-2">{{ catalog.name }}</h3>
-              <div class="flex flex-wrap justify-center gap-1">
-                <!-- Current Frontend Badge -->
-                <div v-if="catalog.isCurrentFrontend" 
-                     class="badge badge-primary">
-                  {{ t('stats.catalog_status.current_frontend', 'Momentan gültig') }}
-                </div>
-                <!-- Current Backend Badge -->
-                <div v-if="catalog.isCurrentBackend" 
-                     class="badge badge-info">
-                  {{ t('stats.catalog_status.current_backend', 'Momentan im Bewerten') }}
+      <div v-show="catalogOpen" class="p-4">
+
+        <!-- Localteam CTA (shown once) -->
+        <div v-if="municipalityDirectusData" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100">
+          <p class="text-xs text-blue-700">
+            <template v-if="hasLocalteam">
+              Ein Lokalteam bewertet diese Kommune aktiv.
+            </template>
+            <template v-else>
+              Noch kein Lokalteam für diese Kommune registriert.
+            </template>
+          </p>
+          <CanonicalButton
+            v-if="!hasLocalteam"
+            href="/register_localteam"
+            :label="t('stats.action.start_rating', 'Lokalteam gründen')"
+            color="green"
+            icon-slug="icon_team"
+          />
+          <CanonicalButton
+            v-else
+            :href="localteamContactUrl"
+            :label="t('stats.action.help_local_team', 'Lokalteam unterstützen')"
+            color="green"
+            icon-slug="icon_hand_holding_heart"
+          />
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+          <div v-for="catalog in allCatalogVersions" :key="catalog.id"
+               class="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col w-full sm:w-72">
+            <div class="p-4 flex flex-col flex-1">
+
+              <!-- Catalog Header -->
+              <div class="flex flex-col items-center text-center mb-3">
+                <h3 class="text-sm font-semibold text-gray-800 mb-2">{{ catalog.name }}</h3>
+                <div class="flex flex-wrap justify-center gap-1">
+                  <span v-if="catalog.isCurrentFrontend"
+                       class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ t('stats.catalog_status.current_frontend', 'Momentan gültig') }}
+                  </span>
+                  <span v-if="catalog.isCurrentBackend"
+                       class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    {{ t('stats.catalog_status.current_backend', 'Momentan im Bewerten') }}
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <!-- Rating Status -->
-            <div class="flex justify-center mb-3">
-              <div v-if="municipalityScoresByCatalog[catalog.id]">
-                <div v-if="municipalityScoresByCatalog[catalog.id].percentage_rated >= 98"
-                     class="badge badge-success">
+              <!-- Rating Status -->
+              <div class="flex justify-center mb-4">
+                <span v-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated >= 98"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                  </svg>
                   {{ t('stats.rating_status.complete', 'Vollständig bewertet') }}
-                </div>
-                <div v-else
-                     class="badge badge-warning">
-                  {{ typeof municipalityScoresByCatalog[catalog.id].percentage_rated === 'number' 
-                      ? municipalityScoresByCatalog[catalog.id].percentage_rated.toFixed(1) 
+                </span>
+                <span v-else-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated > 0"
+                      class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                  {{ typeof municipalityScoresByCatalog[catalog.id].percentage_rated === 'number'
+                      ? municipalityScoresByCatalog[catalog.id].percentage_rated.toFixed(1)
                       : parseFloat(municipalityScoresByCatalog[catalog.id].percentage_rated).toFixed(1) || '0.0' }}% {{ $t('administrative_areas.rated') }}
-                </div>
-              </div>
-              <div v-else>
-                <div class="badge badge-outline">
+                </span>
+                <span v-else class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
                   {{ t('stats.rating_status.no_data', 'Keine Daten') }}
-                </div>
+                </span>
               </div>
-            </div>
 
-            <!-- Action Button -->
-            <div class="card-actions justify-center">
-              <!-- Case 1: Complete rating (≥98%) -->
-              <div v-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated >= 98 && municipalityScoresByCatalog[catalog.id]?.municipality?.slug"
-                   class="w-full">
-                <NuxtLink 
-                  :to="`/municipalities/${municipalityScoresByCatalog[catalog.id].municipality.slug}?v=${catalog.name}`"
-                  class="btn btn-primary btn-sm w-full text-xs">
-                  <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  <span v-if="catalog.isCurrentFrontend">{{ t('stats.action.current_rating', 'zur aktuellen Bewertung') }}</span>
-                  <span v-else-if="catalog.isCurrentBackend">{{ t('stats.action.preview_rating', 'zur Bewertung (Vorschau)') }}</span>
-                  <span v-else>{{ t('stats.action.historical_rating', 'Historische Bewertung') }}</span>
-                </NuxtLink>
-              </div>
-              
-              <!-- Case 2: Incomplete rating (<98%) -->
-              <div v-else-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated > 0 && municipalityScoresByCatalog[catalog.id]?.percentage_rated < 98"
-                   class="w-full">
-                <!-- Only show contact button for current backend catalog -->
-                <NuxtLink v-if="catalog.isCurrentBackend" 
-                  to="/kontakt" 
-                  class="btn btn-secondary btn-sm w-full text-xs">
-                  <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                  </svg>
-                  {{ t('stats.action.help_local_team', 'Helfe diesem Lokalteam') }}
-                </NuxtLink>
-                <!-- No action button for current frontend catalog with incomplete rating -->
-                <span v-else-if="catalog.isCurrentFrontend" class="text-sm text-gray-500 text-center block">
-                  {{ t('stats.action.rating_in_progress', 'Bewertung unvollständig') }}
+              <!-- Action — spacer pushes it to bottom -->
+              <div class="mt-auto flex justify-center">
+                <!-- Complete (≥98%): link to municipality detail page (ranking) -->
+                <CanonicalButton
+                  v-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated >= 98 && municipalityScoresByCatalog[catalog.id]?.municipality?.slug"
+                  :href="`/municipalities/${municipalityScoresByCatalog[catalog.id].municipality.slug}`"
+                  :label="t('stats.action.current_rating', 'Zur Bewertung')"
+                  color="bright-green"
+                  text-color="white"
+                  icon-slug="icon_location"
+                  icon-size="lg"
+                />
+                <!-- Otherwise: informational text -->
+                <span v-else class="text-sm text-gray-400 text-center italic">
+                  {{ t('stats.action.rating_in_progress', 'Bewertung in Bearbeitung') }}
                 </span>
-                <!-- Historical catalogs with incomplete rating -->
-                <span v-else class="text-xs text-gray-400 text-center block">
-                  {{ t('stats.action.historical_incomplete', 'Historisch unvollständig') }}
-                </span>
-              </div>
-              
-              <!-- Case 3: No data -->
-              <div v-else class="w-full">
-                <!-- Show "Start Rating" button only for non-current-frontend catalogs -->
-                <NuxtLink v-if="!catalog.isCurrentFrontend" 
-                  to="/mitmachen" 
-                  class="btn btn-accent btn-sm w-full text-xs">
-                  <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  {{ t('stats.action.start_rating', 'Beginne Bewertung') }}
-                </NuxtLink>
-                <!-- For current frontend with no data, show status text -->
-                <span v-else class="text-xs text-gray-500 text-center block">
-                  {{ t('stats.action.no_data_current', 'Keine Daten verfügbar') }}
-                </span>
+
               </div>
             </div>
           </div>
@@ -391,9 +411,27 @@ const nearbyAreas = ref([]);
 const loadingNearbyAreas = ref(false);
 const nearbyMapRefs = ref({});
 const reasonableParent = ref(null);
+const catalogOpen = ref(false); // starts collapsed; opened on desktop in onMounted
+
+// Directus municipality data (includes localteam_id)
+const municipalityDirectusData = ref(null);
 
 // Municipality scores from Directus for all catalog versions
 const municipalityScoresByCatalog = ref({});
+
+/** Build a prefilled contact URL for the "help local team" CTA */
+function catalogContactUrl(catalogName) {
+  const name = stats.value?.name || ''
+  return `/contact?type=cooperation&title=${encodeURIComponent(`Bewertung von ${name} unterstützen (${catalogName})`)}&content=${encodeURIComponent(`Ich möchte beim Bewertungsprozess für die Kommune ${name} helfen.`)}`
+}
+
+/** True when this municipality already has a registered local team */
+const hasLocalteam = computed(() => !!municipalityDirectusData.value?.localteam_id)
+/** Contact URL for supporting the existing local team */
+const localteamContactUrl = computed(() => {
+  const name = stats.value?.name || ''
+  return `/contact?type=cooperation&title=${encodeURIComponent(`Lokalteam in ${name} unterstützen`)}&content=${encodeURIComponent(`Ich möchte das Lokalteam in ${name} unterstützen.`)}`
+})
 
 // Helper function for translation with fallbacks
 const t = (key, fallback) => {
@@ -419,6 +457,8 @@ const fetchAllMunicipalityScores = async (ars) => {
     }
 
     const municipality = municipalities[0];
+    // Store municipality data (including localteam_id) for use outside this function
+    municipalityDirectusData.value = municipality;
 
     // Fetch municipality scores for all catalog versions in parallel
     const scorePromises = allCatalogVersions.value.map(async (catalog) => {
@@ -613,6 +653,9 @@ const findReasonableParent = async (containedBy) => {
 };
 
 onMounted(async () => {
+  // Default open on lg+ screens (≥1024px), collapsed on mobile/tablet
+  catalogOpen.value = typeof window !== 'undefined' && window.innerWidth >= 1024;
+
   try {
     // Start both fetches in parallel for better performance
     const [result, scores] = await Promise.all([
