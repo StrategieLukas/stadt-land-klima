@@ -1,34 +1,33 @@
-collection: directus_users
-field: verified
-type: boolean
+collection: municipalities
+field: preview_token
+type: string
 meta:
-  collection: directus_users
+  collection: municipalities
   conditions: null
-  display: null
+  display: raw
   display_options: null
-  field: verified
+  field: preview_token
   group: null
   hidden: false
-  interface: boolean
-  note: "Wurde dieser Account manuell durch ein Admin verifiziert?"
+  interface: input
+  note: Zufälliges Token für die Vorschau-URL nicht-verifizierter Gemeinden.
   options: null
-  readonly: false
+  readonly: true
   required: false
-  sort: 999
-  special:
-    - cast-boolean
+  sort: 1000
+  special: null
   translations:
     - language: de-DE
-      translation: Verifiziert
+      translation: Vorschau-Token
   validation: null
   validation_message: null
   width: half
 schema:
-  name: verified
-  table: directus_users
-  data_type: boolean
-  default_value: false
-  max_length: null
+  name: preview_token
+  table: municipalities
+  data_type: character varying
+  default_value: null
+  max_length: 64
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

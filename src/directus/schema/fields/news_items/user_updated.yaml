@@ -1,31 +1,31 @@
 collection: news_items
-field: date_published
-type: dateTime
+field: user_updated
+type: uuid
 meta:
   collection: news_items
   conditions: null
-  display: datetime
+  display: user
   display_options: null
-  field: date_published
+  field: user_updated
   group: null
-  hidden: false
-  interface: datetime
-  note: "Veröffentlichungsdatum (für Sortierung im Feed)"
-  options: null
-  readonly: false
+  hidden: true
+  interface: select-dropdown-m2o
+  note: null
+  options:
+    template: "{{avatar.$thumbnail}} {{first_name}} {{last_name}}"
+  readonly: true
   required: false
-  sort: 5
-  special: null
-  translations:
-    - language: de-DE
-      translation: Veröffentlichungsdatum
+  sort: 11
+  special:
+    - user-updated
+  translations: null
   validation: null
   validation_message: null
   width: half
 schema:
-  name: date_published
+  name: user_updated
   table: news_items
-  data_type: timestamp without time zone
+  data_type: uuid
   default_value: null
   max_length: null
   numeric_precision: null

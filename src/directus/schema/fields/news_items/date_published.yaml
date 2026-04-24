@@ -1,33 +1,33 @@
-collection: municipalities
-field: preview_token
-type: string
+collection: news_items
+field: date_published
+type: dateTime
 meta:
-  collection: municipalities
+  collection: news_items
   conditions: null
-  display: raw
+  display: datetime
   display_options: null
-  field: preview_token
+  field: date_published
   group: null
   hidden: false
-  interface: input
-  note: "Zufälliges Token für die Vorschau-URL nicht-verifizierter Gemeinden."
+  interface: datetime
+  note: Veröffentlichungsdatum (für Sortierung im Feed)
   options: null
-  readonly: true
+  readonly: false
   required: false
-  sort: 1000
+  sort: 5
   special: null
   translations:
     - language: de-DE
-      translation: Vorschau-Token
+      translation: Veröffentlichungsdatum
   validation: null
   validation_message: null
   width: half
 schema:
-  name: preview_token
-  table: municipalities
-  data_type: character varying
+  name: date_published
+  table: news_items
+  data_type: timestamp without time zone
   default_value: null
-  max_length: 64
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

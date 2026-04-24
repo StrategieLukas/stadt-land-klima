@@ -1,30 +1,33 @@
-collection: news_items
-field: user_updated
+collection: municipalities
+field: image
 type: uuid
 meta:
-  collection: news_items
+  collection: municipalities
   conditions: null
-  display: user
+  display: image
   display_options: null
-  field: user_updated
+  field: image
   group: null
-  hidden: true
-  interface: select-dropdown-m2o
+  hidden: false
+  interface: unsplash-image
   note: null
   options:
-    template: "{{avatar.$thumbnail}} {{first_name}} {{last_name}}"
-  readonly: true
+    folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
+    letterbox: true
+  readonly: false
   required: false
-  sort: 11
+  sort: 18
   special:
-    - user-updated
-  translations: null
+    - file
+  translations:
+    - language: de-DE
+      translation: Teaserbild
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: user_updated
-  table: news_items
+  name: image
+  table: municipalities
   data_type: uuid
   default_value: null
   max_length: null
@@ -36,5 +39,5 @@ schema:
   is_generated: false
   generation_expression: null
   has_auto_increment: false
-  foreign_key_table: directus_users
-  foreign_key_column: id
+  foreign_key_table: null
+  foreign_key_column: null

@@ -1,31 +1,31 @@
-collection: municipalities
-field: creator_verified
+collection: directus_users
+field: verified
 type: boolean
 meta:
-  collection: municipalities
+  collection: directus_users
   conditions: null
-  display: boolean
+  display: null
   display_options: null
-  field: creator_verified
+  field: verified
   group: null
   hidden: false
   interface: boolean
-  note: "Wurde der Account des Lokalteam-Admins durch einen Admin verifiziert? Wird automatisch aus directus_users.verified synchronisiert."
+  note: Wurde dieser Account manuell durch ein Admin verifiziert?
   options: null
-  readonly: true
+  readonly: false
   required: false
   sort: 999
   special:
     - cast-boolean
   translations:
     - language: de-DE
-      translation: Admin verifiziert
+      translation: Verifiziert
   validation: null
   validation_message: null
   width: half
 schema:
-  name: creator_verified
-  table: municipalities
+  name: verified
+  table: directus_users
   data_type: boolean
   default_value: false
   max_length: null

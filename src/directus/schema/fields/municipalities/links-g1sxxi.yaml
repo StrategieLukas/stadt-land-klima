@@ -15,7 +15,7 @@ meta:
     links:
       - label: $t:municipalities.preview
         type: info
-        url: ${FRONTEND_BASE_URL}/municipalities/{{slug}}?preview={{preview_token}}
+        url: http://localhost:8080/municipalities/{{slug}}?preview={{preview_token}}
         icon: preview
   readonly: false
   required: false

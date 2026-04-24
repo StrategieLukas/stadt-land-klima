@@ -13,10 +13,17 @@ function substituteEnvVars(content) {
 function readYamlFiles(dir) {
   const yamls = [];
 
+  if (!fse.existsSync(dir) || !fse.statSync(dir).isDirectory()) {
+    return yamls;
+  }
+
   fse.readdirSync(dir)
   .forEach((filename) => {
-    if (path.extname(filename).toLowerCase() === '.yaml') {
-      const raw = fse.readFileSync(path.join(dir, filename), { encoding: 'utf8' });
+    const fullPath = path.join(dir, filename);
+    if (fse.statSync(fullPath).isDirectory()) {
+      yamls.push(...readYamlFiles(fullPath));
+    } else if (path.extname(filename).toLowerCase() === '.yaml') {
+      const raw = fse.readFileSync(fullPath, { encoding: 'utf8' });
       const yaml = parse(substituteEnvVars(raw));
       yamls.push(yaml);
     }
