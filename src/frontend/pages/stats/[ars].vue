@@ -1,10 +1,38 @@
 <template>
   <main class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0">
-    <div class="flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 my-4 p-3 sm:p-4 justify-center">
-      <AdministrativeAreaSearchBar 
-        base-path="/stats" 
-      />
+
+    <!-- Back to measure statistics index -->
+    <div class="mb-4">
+      <NuxtLink
+        to="/stats"
+        class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1a4a6e] hover:underline"
+      >
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Zur Maßnahmenstatistik-Übersicht
+      </NuxtLink>
     </div>
+
+    <!-- Search section — same layout as stats index page -->
+    <section class="mb-6 overflow-hidden shadow-list rounded-sm">
+      <div class="flex flex-col md:flex-row md:items-stretch">
+        <!-- Dark left: icon + title -->
+        <div class="py-4 px-4 flex items-center gap-3 md:w-[35%] md:flex-shrink-0" style="background-color: #006e94;">
+          <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          <div>
+            <h2 class="text-lg font-bold text-white font-heading leading-tight">Kommunale Statistiken</h2>
+            <p class="text-xs text-white/70 mt-0.5">Statistiken und Daten zu einer anderen Kommune oder einem Verwaltungsgebiet suchen</p>
+          </div>
+        </div>
+        <!-- Right: search bar -->
+        <div class="px-1 pt-4 pb-3 md:flex-1 md:px-5 md:flex md:items-center md:py-3">
+          <AdministrativeAreaSearchBar base-path="/stats" class="w-full" />
+        </div>
+      </div>
+    </section>
 
     <!-- Main Info Container -->
     <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6 min-w-0 max-w-full">

@@ -1,6 +1,7 @@
 <template>
-  <!-- Search Bar -->
-  <div class="flex flex-col sm:flex-row sm:items-end gap-2">
+  <!-- Search Bar: input on the left, vertical filter tabs on the right -->
+  <div class="flex items-stretch gap-3 w-full">
+    <!-- Input + label -->
     <form class="relative overflow-visible flex-1 min-w-0" @submit.prevent>
       <div class="form-control w-full">
         <label for="admin-search-input" class="label">{{ translatedLabel }}</label>
@@ -92,20 +93,22 @@
       </Teleport>
     </form>
 
-    <!-- Filter Toggle Group -->
-    <div role="tablist" class="tabs tabs-boxed w-fit flex-shrink-0" style="--tab-color:#006e94; --tab-bg:#006e94;" ref="radioGroup">
+    <!-- Vertical filter tabs — aligned to the input bottom edge via self-end -->
+    <div ref="radioGroup" class="flex flex-col self-end flex-shrink-0 rounded border border-gray-200 overflow-hidden text-xs font-semibold">
       <button
-          role="tab"
-          class="tab text-xs"
-          :class="filterType === 'reasonable' ? 'tab-active !bg-[#006e94] !text-white' : ''"
-          @click="filterType = 'reasonable'; handleFilterChange()"
-        >{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</button>
-        <button
-          role="tab"
-          class="tab text-xs"
-          :class="filterType === 'all' ? 'tab-active !bg-[#006e94] !text-white' : ''"
-          @click="filterType = 'all'; handleFilterChange()"
-        >{{ $t('all_administrative_areas') }}</button>
+        class="px-3 py-2 text-left leading-tight transition-colors whitespace-nowrap border-b border-gray-200"
+        :class="filterType === 'reasonable'
+          ? 'bg-[#006e94] text-white'
+          : 'bg-white text-gray-600 hover:bg-gray-50'"
+        @click="filterType = 'reasonable'; handleFilterChange()"
+      >{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</button>
+      <button
+        class="px-3 py-2 text-left leading-tight transition-colors whitespace-nowrap"
+        :class="filterType === 'all'
+          ? 'bg-[#006e94] text-white'
+          : 'bg-white text-gray-600 hover:bg-gray-50'"
+        @click="filterType = 'all'; handleFilterChange()"
+      >{{ $t('all_administrative_areas') }}</button>
     </div>
   </div>
 </template>
