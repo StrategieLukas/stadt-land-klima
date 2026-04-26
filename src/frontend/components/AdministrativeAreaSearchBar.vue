@@ -1,7 +1,7 @@
 <template>
   <!-- Search Bar -->
-  <div class="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-6">
-    <form class="relative overflow-visible flex-1" @submit.prevent>
+  <div class="flex flex-col sm:flex-row sm:items-end gap-2">
+    <form class="relative overflow-visible flex-1 min-w-0" @submit.prevent>
       <div class="form-control w-full">
         <label for="admin-search-input" class="label">{{ translatedLabel }}</label>
         <input
@@ -93,22 +93,19 @@
     </form>
 
     <!-- Filter Toggle Group -->
-    <div class="form-control flex-shrink-0 lg:min-w-0" ref="radioGroup">
-      <label class="label">
-        <span class="label-text">{{ $t('administrative_areas.search.filter_settings') }}</span>
-      </label>
-      <div class="flex gap-2 flex-wrap">
-        <button
-          class="px-3 py-1.5 rounded-full border text-sm font-medium transition-colors whitespace-nowrap"
-          :class="filterType === 'reasonable' ? 'bg-stats-dark text-white border-stats-dark' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
+    <div role="tablist" class="tabs tabs-boxed w-fit flex-shrink-0" style="--tab-color:#006e94; --tab-bg:#006e94;" ref="radioGroup">
+      <button
+          role="tab"
+          class="tab text-xs"
+          :class="filterType === 'reasonable' ? 'tab-active !bg-[#006e94] !text-white' : ''"
           @click="filterType = 'reasonable'; handleFilterChange()"
         >{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</button>
         <button
-          class="px-3 py-1.5 rounded-full border text-sm font-medium transition-colors whitespace-nowrap"
-          :class="filterType === 'all' ? 'bg-stats-dark text-white border-stats-dark' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
+          role="tab"
+          class="tab text-xs"
+          :class="filterType === 'all' ? 'tab-active !bg-[#006e94] !text-white' : ''"
           @click="filterType = 'all'; handleFilterChange()"
         >{{ $t('all_administrative_areas') }}</button>
-      </div>
     </div>
   </div>
 </template>

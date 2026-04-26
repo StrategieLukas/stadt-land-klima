@@ -33,122 +33,133 @@
     <!-- ═══════════════════════════════════════════════════════════
          ZONE A: Kommunensuche — find a specific city's stats
          ═══════════════════════════════════════════════════════════ -->
-    <section id="kommunale-statistiken" class="mb-7 pb-7 md:border-2 md:border-[#006e94] md:rounded-xl md:overflow-hidden md:shadow-md">
-      <!-- Section header banner -->
-      <div class="-mx-4 mb-5 py-4 px-4 md:mx-0 flex items-center gap-3" style="background-color: #006e94;">
-        <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-        </svg>
-        <div>
-          <h2 class="text-lg font-bold text-white font-heading leading-tight">Kommunale Statistiken</h2>
-          <p class="text-xs text-white/70 mt-0.5">Weitere Statistiken und Datenanalysen zu einer Kommune oder anderen Verwaltungsgebieten</p>
+    <section id="kommunale-statistiken" class="mb-7 md:overflow-hidden md:shadow-list md:rounded-sm">
+      <!-- Hero: mobile = stacked header + search, desktop = side-by-side in dark band -->
+      <div class="flex flex-col md:flex-row md:items-stretch">
+        <!-- Dark left: icon + title -->
+        <div class="-mx-4 mb-0 py-4 px-4 md:mx-0 flex items-center gap-3 md:w-[35%] md:flex-shrink-0" style="background-color: #006e94;">
+          <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          <div>
+            <h2 class="text-lg font-bold text-white font-heading leading-tight">Kommunale Statistiken</h2>
+            <p class="text-xs text-white/70 mt-0.5">Weitere Statistiken und Datenanalysen zu einer Kommune oder anderen Verwaltungsgebieten</p>
+          </div>
         </div>
-      </div>
-      <div class="px-1 pb-3 md:px-4 md:pb-5">
-        <AdministrativeAreaSearchBar base-path="/stats" />
+        <!-- Right: search bar (padded below on mobile, inline on desktop) -->
+        <div class="px-1 pt-4 pb-3 md:flex-1 md:px-5 md:flex md:items-center md:py-3">
+          <AdministrativeAreaSearchBar base-path="/stats" class="w-full" />
+        </div>
       </div>
     </section>
 
     <!-- ═══════════════════════════════════════════════════════════
          ZONE B: Gesamtstatistik — aggregate data across all cities
          ═══════════════════════════════════════════════════════════ -->
-    <section id="massnahmenstatistiken" class="md:border-2 md:border-[#1a4a6e] md:rounded-xl md:mb-8 md:overflow-hidden md:shadow-md">
+    <section id="massnahmenstatistiken" class="md:mb-8 md:overflow-hidden md:shadow-list md:rounded-sm">
 
-      <!-- Section heading -->
-      <div class="-mx-4 mb-5 py-4 px-4 md:mx-0 flex items-center gap-3" style="background-color: #1a4a6e;">
-        <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <div>
-          <h2 class="text-lg font-bold text-white font-heading leading-tight">Maßnahmenstatistiken</h2>
-          <p class="text-xs text-white/70 mt-0.5">Alle Kommunen im Überblick — gefiltert nach Maßnahmenkatalog, Typ und Bundesland</p>
+      <!-- Hero row: mobile = stacked, desktop = side-by-side title + filter -->
+      <div class="flex flex-col md:flex-row md:items-stretch border-b border-gray-200">
+        <!-- Left: dark title column -->
+        <div class="-mx-4 mb-0 py-4 px-4 md:mx-0 flex items-center gap-3 md:w-[35%] md:flex-shrink-0" style="background-color: #1a4a6e;">
+          <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <div>
+            <h2 class="text-lg font-bold text-white font-heading leading-tight">Maßnahmenstatistiken</h2>
+            <p class="text-xs text-white/70 mt-0.5">Alle Kommunen im Überblick — gefiltert nach Maßnahmenkatalog, Typ und Bundesland</p>
+          </div>
         </div>
-      </div>
+        <!-- Right: filter panel -->
+        <div class="md:flex-1 flex flex-col gap-0 px-3 py-3 bg-gray-50 border-t border-gray-200 md:border-t-0 md:border-l md:border-gray-200 md:justify-center">
 
-      <!-- desktop content padding wrapper -->
-      <div class="md:px-4 md:pb-6">
+          <!-- Collapsible toggle (only shown below xs breakpoint) -->
+          <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium text-gray-700" @click="filterOpen = !filterOpen">
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
+              </svg>
+              <span>Filter</span>
+              <span v-if="activeFilterCount > 0" class="bg-[#1a4a6e] text-white text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
+            </span>
+            <svg class="w-4 h-4 flex-shrink-0 text-gray-400 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-      <!-- Filter Bar -->
-      <div class="flex flex-col gap-0 mb-4 p-3 shadow-md rounded-lg" style="background-color: #006e94;">
+          <!-- Filter rows (always visible at xs+, collapsible below xs) -->
+          <div v-show="filterOpen" class="xs:!block">
 
-        <!-- Collapsible toggle (only shown below xs breakpoint) -->
-        <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium text-white" @click="filterOpen = !filterOpen">
-          <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <!-- Row 0: catalog + type -->
+          <div class="grid grid-cols-[1.5rem_1fr] gap-x-3 items-center py-1.5">
+            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <div class="flex flex-wrap gap-2 items-center">
+              <button
+                v-for="v in catalogVersions" :key="v.id"
+                class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition-colors whitespace-nowrap"
+                :class="selectedCatalogVersionId === v.id ? 'bg-[#1a4a6e] text-white border-[#1a4a6e]' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'"
+                @click="onCatalogVersionChange(v.id)"
+              >{{ v.name }}</button>
+              <div class="self-stretch w-px bg-gray-200 mx-1 hidden sm:block" />
+              <button
+                v-for="opt in typeOptions" :key="opt.value ?? 'alltype'"
+                class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition-colors whitespace-nowrap"
+                :class="filterType === opt.value ? 'bg-[#1a4a6e] text-white border-[#1a4a6e]' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'"
+                @click="filterType = opt.value"
+              >{{ opt.label }}</button>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-200 my-0.5" />
+
+          <!-- Row 1: state dropdown -->
+          <div class="grid grid-cols-[1.5rem_1fr] gap-x-3 items-start py-1.5">
+            <svg class="w-4 h-4 text-gray-400 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
             </svg>
-            <span>Filter</span>
-            <span v-if="activeFilterCount > 0" class="bg-white text-[#006e94] text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
-          </span>
-          <svg class="w-4 h-4 flex-shrink-0 text-white/80 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        <!-- Filter rows (always visible at xs+, collapsible below xs) -->
-        <div v-show="filterOpen" class="xs:!block">
-
-        <!-- Row 0: catalog + type -->
-        <div class="grid grid-cols-[1.5rem_1fr] gap-x-3 items-center py-1.5">
-          <svg class="w-4 h-4 text-white/70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <div class="flex flex-wrap gap-2 items-center">
-            <button
-              v-for="v in catalogVersions" :key="v.id"
-              class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition-colors whitespace-nowrap"
-              :class="selectedCatalogVersionId === v.id ? 'bg-white text-[#006e94] border-white' : 'bg-white/10 text-white border-white/30 hover:bg-white/20'"
-              @click="onCatalogVersionChange(v.id)"
-            >{{ v.name }}</button>
-            <div class="self-stretch w-px bg-white/20 mx-1 hidden sm:block" />
-            <button
-              v-for="opt in typeOptions" :key="opt.value ?? 'alltype'"
-              class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition-colors whitespace-nowrap"
-              :class="filterType === opt.value ? 'bg-white text-[#006e94] border-white' : 'bg-white/10 text-white border-white/30 hover:bg-white/20'"
-              @click="filterType = opt.value"
-            >{{ opt.label }}</button>
+            <div class="flex flex-wrap gap-2 items-center">
+              <FilterBadgeDropdown
+                label="Alle Bundesländer"
+                :options="availableStates.map(s => ({ label: s, value: s }))"
+                v-model="filterState"
+                width="min-w-[13rem]"
+                active-color="#1a4a6e"
+                :dark="false"
+              />
+            </div>
           </div>
+
+          </div><!-- /collapsible -->
+        </div><!-- /filter panel right -->
+      </div><!-- /hero row -->
+
+      <!-- desktop content padding wrapper -->
+      <div class="md:px-4 md:pb-6 md:pt-4">
+
+      <!-- KPI grid — filter-dependent, shown below the filters -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+        <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
+          <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalCompleted }}</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">vollständig bewertet</span>
         </div>
-
-        <div class="border-t border-white/20 my-0.5" />
-
-        <!-- Row 1: state dropdown -->
-        <div class="grid grid-cols-[1.5rem_1fr] gap-x-3 items-start py-1.5">
-          <svg class="w-4 h-4 text-white/70 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
-          </svg>
-          <div class="flex flex-wrap gap-2 items-center">
-            <FilterBadgeDropdown
-              label="Alle Bundesländer"
-              :options="availableStates.map(s => ({ label: s, value: s }))"
-              v-model="filterState"
-              width="min-w-[13rem]"
-              active-color="#ffffff"
-              :dark="true"
-            />
-          </div>
+        <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
+          <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalHalfRatedProgress }}</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">in Bearbeitung</span>
         </div>
-
-        </div><!-- /collapsible -->
-      </div>
-
-      <!-- KPI strip — filter-dependent, shown below the filters -->
-      <div class="flex flex-wrap gap-2 mb-5">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
-          <strong class="text-gray-800 font-bold">{{ kpi.totalCompleted }}</strong> vollst. bewertet
-        </span>
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
-          <strong class="text-gray-800 font-bold">{{ kpi.totalHalfRatedProgress }}</strong> in Bearbeitung
-        </span>
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
-          <strong class="text-gray-800 font-bold">{{ kpi.totalMunicipalities }}</strong> Kommunen gesamt
-        </span>
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
-          <strong class="text-gray-800 font-bold">{{ kpi.totalMeasures }}</strong> Maßnahmen im Katalog
-        </span>
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-gray-100 border border-gray-200 text-gray-600">
-          <strong class="text-gray-800 font-bold">{{ kpi.totalFilledRatings.toLocaleString('de-DE') }}</strong> Bewertungen ausgefüllt
-        </span>
+        <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
+          <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalMunicipalities }}</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">Kommunen gesamt</span>
+        </div>
+        <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
+          <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalMeasures }}</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">Maßnahmen im Katalog</span>
+        </div>
+        <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center col-span-2 sm:col-span-1">
+          <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalFilledRatings.toLocaleString('de-DE') }}</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">Bewertungen ausgefüllt</span>
+        </div>
       </div>
 
       <!-- Tabs -->
@@ -173,31 +184,64 @@
     <!-- TAB: Maßnahmenstatistik -->
     <div v-show="activeTab === 'measures'">
 
+      <!-- Mobile sub-tabs (only shown on small screens) -->
+      <div v-if="isSmall" class="flex border-b border-gray-200 mb-4 -mx-0">
+        <button
+          class="flex-1 py-2 px-1 text-xs font-semibold border-b-2 transition-colors flex flex-col items-center gap-0.5"
+          :class="mobileMeasuresTab === 'selection' ? 'border-[#1a4a6e] text-[#1a4a6e]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          @click="mobileMeasuresTab = 'selection'"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9"/><path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2"/>
+          </svg>
+          Auswahl
+        </button>
+        <button
+          class="flex-1 py-2 px-1 text-xs font-semibold border-b-2 transition-colors flex flex-col items-center gap-0.5"
+          :class="mobileMeasuresTab === 'plot' ? 'border-[#1a4a6e] text-[#1a4a6e]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          @click="mobileMeasuresTab = 'plot'"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Balkendiagramm
+        </button>
+        <button
+          class="flex-1 py-2 px-1 text-xs font-semibold border-b-2 transition-colors flex flex-col items-center gap-0.5"
+          :class="mobileMeasuresTab === 'list' ? 'border-[#1a4a6e] text-[#1a4a6e]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          @click="mobileMeasuresTab = 'list'"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          </svg>
+          Kommunen
+        </button>
+      </div>
+
       <!-- Main interactive panel: sunburst (left) + distribution chart (right) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
 
         <!-- Sunburst / List view card -->
-        <div class="bg-white rounded-xl shadow-lg p-5 flex flex-col">
+        <div v-show="!isSmall || mobileMeasuresTab === 'selection'" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
           <!-- Card header with toggle -->
-          <div class="flex items-center justify-between mb-0.5">
-            <h2 class="text-base font-bold">Sektoren &amp; Maßnahmen</h2>
+          <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold">Sektoren &amp; Maßnahmen{{ filterSuffix }}</h2>
+              <p class="text-xs text-gray-500 mt-0.5">
+                <span v-if="!showListView || isSmall">Klick auf Sektor oder Maßnahme für Details →</span>
+                <span v-else>Sektor oder Maßnahme auswählen für Details →</span>
+              </p>
+            </div>
             <!-- Toggle only on non-small screens -->
-            <div v-if="!isSmall" role="tablist" class="tabs tabs-boxed w-fit">
+            <div v-if="!isSmall" role="tablist" class="tabs tabs-boxed w-fit flex-shrink-0 ml-3">
               <a
                 role="tab"
                 class="tab gap-1.5"
                 :class="{ 'tab-active': !showListView }"
                 @click="showListView = false"
               >
-                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <circle cx="12" cy="12" r="5" />
-                  <line x1="12" y1="2" x2="12" y2="7" />
-                  <line x1="12" y1="17" x2="12" y2="22" />
-                  <line x1="2" y1="12" x2="7" y2="12" />
-                  <line x1="17" y1="12" x2="22" y2="12" />
-                </svg>
-                Diagramm
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 32 32" fill="currentColor"><path d="M16 2a1 1 0 0 0-1 1v7.09a6 6 0 0 0-2.46 1.043L7.838 6.431a1.455 1.455 0 0 0-2.087.024a14.05 14.05 0 0 0 4.054 22.142a11 11 0 0 0 1.899.768a14.1 14.1 0 0 0 13.844-3.132a1.434 1.434 0 0 0 .028-2.064l-4.699-4.699A6 6 0 0 0 21.91 17H29a1 1 0 0 0 1-1A14.016 14.016 0 0 0 16 2m0 10a4 4 0 1 1-4 4a4.005 4.005 0 0 1 4-4M6.83 8.251l4.296 4.296a5.91 5.91 0 0 0-.011 6.924l-4.277 4.277A12.02 12.02 0 0 1 6.83 8.251m1.423 16.91l4.276-4.276A5.96 5.96 0 0 0 15 21.91v6.042a11.88 11.88 0 0 1-6.747-2.79ZM17 27.956V21.91a6 6 0 0 0 2.46-1.027l4.283 4.282A11.9 11.9 0 0 1 17 27.956M21.91 15A6.01 6.01 0 0 0 17 10.09V4.041A12.02 12.02 0 0 1 27.959 15Z"/></svg>
+                Sunburst
               </a>
               <a
                 role="tab"
@@ -217,10 +261,6 @@
               </a>
             </div>
           </div>
-          <p class="text-xs text-gray-500 mb-3">
-            <span v-if="!showListView || isSmall">Klick auf Sektor oder Maßnahme für Details →</span>
-            <span v-else>Sektor oder Maßnahme auswählen für Details →</span>
-          </p>
 
           <!-- Sunburst (non-small + diagram mode, ref kept alive always) -->
           <div v-show="!isSmall && !showListView" style="height: 420px;" class="relative">
@@ -239,7 +279,7 @@
               <span class="w-5 h-5 flex-shrink-0 opacity-40">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2"/></svg>
               </span>
-              <span class="flex-1 font-semibold">Alle Sektoren</span>
+              <span class="flex-1 font-semibold">Gesamtbewertung</span>
               <span
                 v-if="overallMeanScore != null"
                 class="text-xs font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0"
@@ -297,7 +337,7 @@
               <span class="w-5 h-5 flex-shrink-0 opacity-40">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3 L12 21 M3 12 L21 12" stroke-width="1.2"/></svg>
               </span>
-              <span class="flex-1 font-semibold">Alle Sektoren</span>
+              <span class="flex-1 font-semibold">Gesamtbewertung</span>
               <span
                 v-if="overallMeanScore != null"
                 class="text-xs font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0"
@@ -364,23 +404,34 @@
                 title="Vorwärts (→)"
                 @click="navigateSunburstSelection(1)"
               >▶</button>
+              <NuxtLink
+                v-if="sunburstSelectionLink"
+                :to="sunburstSelectionLink"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-[#1a4a6e] text-[#1a4a6e] bg-white hover:bg-[#1a4a6e] hover:text-white transition-colors ml-1"
+                title="Zur Maßnahmen-Seite"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                Zur Seite
+              </NuxtLink>
             </template>
             <span v-else class="text-xs text-gray-400">Klick auf Ring für Details</span>
           </div>
         </div>
 
         <!-- Distribution chart card -->
-        <div class="bg-white rounded-xl shadow-lg p-5 flex flex-col">
-          <h2 class="text-base font-bold mb-0.5">
-            <span v-if="!sunburstSelection.type">Score-Verteilung: alle Kommunen</span>
-            <span v-else-if="sunburstSelection.type === 'sector'">Sektor: {{ sunburstSelection.label }}</span>
-            <span v-else>Maßnahme: {{ sunburstSelection.label }}</span>
-          </h2>
-          <p class="text-xs text-gray-500 mb-3">
-            <span v-if="!sunburstSelection.type">Gesamtscore vollständig bewerteter Kommunen</span>
-            <span v-else-if="sunburstSelection.type === 'sector'">Score-Verteilung {{ shortSectorNames[sunburstSelection.sectorKey] ?? sunburstSelection.sectorKey }}</span>
-            <span v-else>Bewertungsverteilung</span>
-          </p>
+        <div v-show="!isSmall || mobileMeasuresTab === 'plot'" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
+          <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm">
+            <h2 class="text-base font-bold">
+              <span v-if="!sunburstSelection.type">Histogramm: alle Kommunen{{ filterSuffix }}</span>
+              <span v-else-if="sunburstSelection.type === 'sector'">Histogramm: Sektor {{ sunburstSelection.label }}{{ filterSuffix }}</span>
+              <span v-else>Bewertungsverteilung: {{ sunburstSelection.label }}</span>
+            </h2>
+            <p class="text-xs text-gray-500 mt-0.5">
+              <span v-if="!sunburstSelection.type">Gesamtscore vollständig bewerteter Kommunen</span>
+              <span v-else-if="sunburstSelection.type === 'sector'">Score-Verteilung im Sektor {{ shortSectorNames[sunburstSelection.sectorKey] ?? sunburstSelection.sectorKey }}</span>
+              <span v-else>Bewertungsverteilung über alle Kommunen</span>
+            </p>
+          </div>
           <div ref="distPanelContainer" class="w-full flex-1" style="min-height: 360px;"></div>
           <!-- Selection marker, matching sunburst badge style -->
           <div class="mt-3 flex justify-center items-center gap-2">
@@ -400,17 +451,17 @@
       </div><!-- /top row -->
 
       <!-- Municipality list card -->
-      <div class="bg-white rounded-xl shadow-lg p-5 mb-8">
-        <div class="flex items-center justify-between mb-3">
+      <div v-show="!isSmall || mobileMeasuresTab === 'list'" class="bg-white rounded-sm shadow-list p-5 mb-8">
+        <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm flex items-center justify-between">
           <h3 class="text-base font-semibold text-gray-800">
             <span v-if="!panelMunFilter.active">
-              Top 10<span v-if="sunburstSelection.label">: {{ sunburstSelection.label }}</span><span v-else> Kommunen</span>
+              Top 10<span v-if="sunburstSelection.label">: {{ sunburstSelection.label }}</span><span v-else> Kommunen{{ filterSuffix }}</span>
             </span>
             <span v-else>Kommunen mit „{{ panelMunFilter.label }}"</span>
           </h3>
           <button
             v-if="panelMunFilter.active"
-            class="text-xs text-blue-600 hover:underline"
+            class="text-xs text-blue-600 hover:underline flex-shrink-0 ml-2"
             @click="clearPanelMunFilter"
           >× Filter aufheben</button>
         </div>
@@ -464,7 +515,7 @@
         </div>
 
         <!-- Cluster profile panel -->
-        <div class="bg-white rounded-xl shadow-lg p-5">
+        <div class="bg-white rounded-sm shadow-list p-5">
           <h3 class="text-base font-bold mb-3">
             <span v-if="!clusterProfile.clusterLabel">Cluster-Profil</span>
             <span v-else>{{ clusterProfile.clusterLabel }}</span>
@@ -504,7 +555,7 @@
     <div v-show="activeTab === 'dominance'">
 
       <!-- Method description -->
-      <div class="bg-white rounded-xl shadow-lg p-5 mb-6">
+      <div class="bg-white rounded-sm shadow-list p-5 mb-6">
         <h2 class="text-base font-bold mb-2">Paarweiser Vergleich (Dominanz-Analyse)</h2>
         <p class="text-sm text-gray-600 leading-relaxed mb-2">
           Für jede Maßnahme wird paarweise verglichen, welche Kommune besser abgeschnitten hat.
@@ -523,7 +574,7 @@
       </div>
 
       <!-- Win rate ranking chart -->
-      <div class="bg-white rounded-xl shadow-lg p-5 mb-6">
+      <div class="bg-white rounded-sm shadow-list p-5 mb-6">
         <h3 class="text-sm font-bold mb-1">Gewinnrate-Ranking</h3>
         <p class="text-xs text-gray-500 mb-3">Anteil der paarweisen Maßnahmen-Vergleiche, die eine Kommune gewonnen hat</p>
         <div ref="dominanceRankContainer" class="w-full" style="min-height: 60px;"></div>
@@ -531,14 +582,14 @@
       </div>
 
       <!-- Dominance heatmap -->
-      <div class="bg-white rounded-xl shadow-lg p-5 mb-8">
+      <div class="bg-white rounded-sm shadow-list p-5 mb-8">
         <h3 class="text-sm font-bold mb-1">Dominanzmatrix (Top 40)</h3>
         <p class="text-xs text-gray-500 mb-3">Wie oft gewinnt Zeilen-Kommune gegen Spalten-Kommune. Blau = gewinnt, Rot = verliert, Grau = gleichauf</p>
         <div ref="dominanceHeatmapContainer" class="w-full overflow-x-auto" style="min-height: 60px;"></div>
       </div>
 
       <!-- Force-directed dominance network -->
-      <div class="bg-white rounded-xl shadow-lg p-5 mb-8">
+      <div class="bg-white rounded-sm shadow-list p-5 mb-8">
         <h3 class="text-sm font-bold mb-1">Dominanz-Netzwerk</h3>
         <p class="text-xs text-gray-500 mb-2">Alle Kommunen als Knoten. Eine Kante zwischen zwei Knoten bedeutet, dass eine Kommune die andere in &gt; 60% der gemeinsam bewerteten Maßnahmen übertrifft. Knotengröße und -farbe nach Gewinnrate.</p>
         <p class="text-xs text-gray-400 mb-3"><strong>Nähe</strong> = Kommunen sind durch eine Dominanzkante direkt verbunden und werden zusammengezogen (Federkraft). <strong>Distanz</strong> = keine direkte Kante → Abstoßung dominiert. Cluster aus eng beieinander liegenden Knoten sind Leistungs-„Tiers", in denen sich Kommunen gegenseitig ähnlich stark übertreffen oder auf Augenhöhe sind.</p>
@@ -596,6 +647,13 @@ const typeOptions = [
   { label: 'Großstädte', value: 'big_city' },
   { label: 'Kleinstädte', value: 'small_city' },
 ];
+
+const filterSuffix = computed(() => {
+  const parts = [];
+  if (filterState.value) parts.push(filterState.value);
+  if (filterType.value) parts.push(typeOptions.find(o => o.value === filterType.value)?.label ?? filterType.value);
+  return parts.length ? ` (${parts.join(', ')})` : '';
+});
 
 // ── Chart/UI state ────────────────────────────────────────────────────────────
 // sectorStats is a computed so it reacts to filterState / filterType changes.
@@ -666,6 +724,8 @@ const activeTab = ref('measures');
 
 // Sunburst selection state
 const sunburstSelection = ref({ type: null, sectorKey: null, measureId: null, label: '' });
+// Mobile sub-tab for the measures panel (only active when isSmall)
+const mobileMeasuresTab = ref('selection'); // 'selection' | 'plot' | 'list'
 // Municipality panel filter (set when user clicks a bar in the distribution)
 const panelMunFilter = ref({ active: false, label: '', type: null, measureId: null, ratingKey: null, sectorKey: null, binRange: null });
 // Cluster profile panel
@@ -866,6 +926,13 @@ const panelMunicipalities = computed(() => {
       .filter(ms => { const s = parseFloat(ms[`score_${sectorKey}`]); return !isNaN(s) && s >= bin0 && s < bin1 + 0.0001; })
       .map(ms => ({ id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: parseFloat(ms[`score_${sectorKey}`]) }));
   }
+  if (type === 'global-bin' && binRange) {
+    const [bin0, bin1] = binRange;
+    return filteredMunScores.value
+      .filter(ms => { const s = parseFloat(ms.score_total); return !isNaN(s) && s >= bin0 && s < bin1 + 0.0001; })
+      .sort((a, b) => parseFloat(b.score_total) - parseFloat(a.score_total))
+      .map(ms => ({ id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: parseFloat(ms.score_total) }));
+  }
   return top10.value;
 });
 
@@ -974,16 +1041,45 @@ async function renderSunburst() {
       });
     });
     const sel = sunburstSelection.value;
+    const omScore = overallMeanScore.value;
+    // Center circle — clickable (clears selection), no text label
+    const centerLayers = omScore != null ? [
+      {
+        data: { values: [{ v: 1, isCenter: true }] },
+        mark: {
+          type: 'arc',
+          innerRadius: 0,
+          outerRadius: 48,
+          color: ratingToColor(omScore),
+          cursor: 'pointer',
+          stroke: sel.type == null ? '#1d4ed8' : 'white',
+          strokeWidth: sel.type == null ? 3 : 1,
+        },
+        encoding: {
+          theta: { field: 'v', type: 'quantitative' },
+          tooltip: { value: `Gesamtbewertung: ${(omScore * 100).toFixed(0)}%${sel.type != null ? ' — klicken zum Zurücksetzen' : ''}` },
+        },
+      },
+    ] : [];
+    // Sort so selected arc is rendered last in SVG (on top), preventing adjacent arcs from
+    // painting their white stroke over the selected arc's blue highlight stroke.
+    const sortedInnerRows = sel.type === 'sector'
+      ? [...innerRows].sort((a, b) => a.sectorKey === sel.sectorKey ? 1 : b.sectorKey === sel.sectorKey ? -1 : 0)
+      : innerRows;
+    const sortedOuterRows = sel.type === 'measure'
+      ? [...outerRows].sort((a, b) => a.measureId === sel.measureId ? 1 : b.measureId === sel.measureId ? -1 : 0)
+      : outerRows;
     const spec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
       width: 'container',
       height: 360,
       view: { stroke: null },
       layer: [
-        // Inner ring (sectors) — white separators
+        ...centerLayers,
+        // Inner ring (sectors) — highlight stroke applied directly (no overlay layer)
         {
-          data: { values: innerRows },
-          mark: { type: 'arc', innerRadius: 55, outerRadius: 118, stroke: 'white', strokeWidth: 1.5 },
+          data: { values: sortedInnerRows },
+          mark: { type: 'arc', innerRadius: 55, outerRadius: 118 },
           encoding: {
             theta: { field: 'theta', type: 'quantitative', stack: true },
             color: { field: 'meanRating', type: 'quantitative', scale: vegaColorScale, legend: null },
@@ -992,12 +1088,18 @@ async function renderSunburst() {
               { field: 'name', title: 'Sektor' },
               { field: 'meanRating', format: '.3f', title: 'Ø Bewertung' },
             ],
+            stroke: sel.type === 'sector'
+              ? { condition: { test: `datum.sectorKey === '${sel.sectorKey}'`, value: '#1d4ed8' }, value: 'white' }
+              : { value: 'white' },
+            strokeWidth: sel.type === 'sector'
+              ? { condition: { test: `datum.sectorKey === '${sel.sectorKey}'`, value: 3 }, value: 0.5 }
+              : { value: 1 },
           },
         },
-        // Outer ring (measures) — white separators
+        // Outer ring (measures) — highlight stroke applied directly (no overlay layer)
         {
-          data: { values: outerRows },
-          mark: { type: 'arc', innerRadius: 123, outerRadius: 195, stroke: 'white', strokeWidth: 0.5 },
+          data: { values: sortedOuterRows },
+          mark: { type: 'arc', innerRadius: 123, outerRadius: 195 },
           encoding: {
             theta: { field: 'theta', type: 'quantitative', stack: true },
             color: { field: 'meanRatingDisplay', type: 'quantitative', scale: vegaColorScale, legend: null },
@@ -1007,29 +1109,14 @@ async function renderSunburst() {
               { field: 'sectorName', title: 'Sektor' },
               { field: 'meanRating', format: '.3f', title: 'Ø Bewertung' },
             ],
+            stroke: sel.type === 'measure'
+              ? { condition: { test: `datum.measureId === ${JSON.stringify(sel.measureId)}`, value: '#1d4ed8' }, value: 'white' }
+              : { value: 'white' },
+            strokeWidth: sel.type === 'measure'
+              ? { condition: { test: `datum.measureId === ${JSON.stringify(sel.measureId)}`, value: 3 }, value: 0.3 }
+              : { value: 0.5 },
           },
         },
-        // Highlight overlay: transparent fill, blue border on selected arc only
-        ...(sel.type === 'sector' ? [{
-          data: { values: innerRows },
-          mark: { type: 'arc', innerRadius: 55, outerRadius: 118, fillOpacity: 0 },
-          encoding: {
-            theta: { field: 'theta', type: 'quantitative', stack: true },
-            order: { field: 'order', type: 'ordinal' },
-            stroke: { condition: { test: `datum.sectorKey === '${sel.sectorKey}'`, value: '#1d4ed8' }, value: null },
-            strokeWidth: { value: 2.5 },
-          },
-        }] : []),
-        ...(sel.type === 'measure' ? [{
-          data: { values: outerRows },
-          mark: { type: 'arc', innerRadius: 123, outerRadius: 195, fillOpacity: 0 },
-          encoding: {
-            theta: { field: 'theta', type: 'quantitative', stack: true },
-            order: { field: 'order', type: 'ordinal' },
-            stroke: { condition: { test: `datum.measureId === ${JSON.stringify(sel.measureId)}`, value: '#1d4ed8' }, value: null },
-            strokeWidth: { value: 2.5 },
-          },
-        }] : []),
       ],
       resolve: { scale: { theta: 'independent', color: 'independent' } },
     };
@@ -1040,6 +1127,10 @@ async function renderSunburst() {
     result.view.addEventListener('click', (_event, item) => {
       if (!item?.datum) return;
       const d = item.datum;
+      if (d.isCenter) {
+        clearSunburstSelection();
+        return;
+      }
       if (d.measureId) {
         sunburstSelection.value = { type: 'measure', sectorKey: d.sectorKey, measureId: d.measureId, label: d.name };
       } else if (d.sectorKey) {
@@ -1074,38 +1165,77 @@ async function renderDistPanel() {
 
   if (!sel.type) {
     // Global: score histogram of all filtered municipalities
+    const BIN_STEP = 5;
     const scores = filteredMunScores.value
       .filter(ms => ms.score_total != null)
-      .map(ms => ({ score: parseFloat((parseFloat(ms.score_total) * 100).toFixed(2)) }))
-      .filter(d => !isNaN(d.score));
+      .map(ms => {
+        const s = parseFloat(ms.score_total);
+        if (isNaN(s)) return null;
+        const bin_start = Math.floor(s / BIN_STEP) * BIN_STEP;
+        return { score: s, bin_start, bin_end: bin_start + BIN_STEP };
+      })
+      .filter(Boolean);
     if (!scores.length) return;
+    const selectedBin0Global = panelMunFilter.value.type === 'global-bin' ? panelMunFilter.value.binRange?.[0] : null;
     const spec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
       width: 'container', height: 360,
       data: { values: scores },
-      mark: { type: 'bar', color: '#F39200', cursor: 'default' },
+      mark: { type: 'bar', cursor: 'pointer', strokeWidth: 2.5 },
       encoding: {
-        x: { field: 'score', bin: { maxbins: 14 }, type: 'quantitative', title: 'Gesamtscore (× 100)' },
-        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1 } },
-        tooltip: [{ field: 'score', bin: { maxbins: 14 }, title: 'Score' }, { aggregate: 'count', type: 'quantitative', title: 'Kommunen' }],
+        x: { field: 'bin_start', bin: 'binned', type: 'quantitative', title: 'Gesamtscore (%)', scale: { domain: [0, 100] } },
+        x2: { field: 'bin_end' },
+        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
+        color: {
+          field: 'bin_start',
+          type: 'quantitative',
+          scale: { type: 'threshold', domain: [25, 50, 75, 100], range: ['#D9000D', '#F27C00', '#FFD400', '#AFCA0B', '#1DA64A'] },
+          legend: null,
+        },
+        tooltip: [
+          { field: 'bin_start', title: 'Score von', format: '.1f' },
+          { field: 'bin_end', title: 'bis', format: '.1f' },
+          { aggregate: 'count', type: 'quantitative', title: 'Kommunen' },
+        ],
+        stroke: selectedBin0Global != null
+          ? { condition: { test: `datum.bin_start === ${selectedBin0Global}`, value: '#1d4ed8' }, value: null }
+          : { value: null },
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: 'svg', actions: false });
     vegaViewDist = res.view;
+    res.view.addEventListener('click', (_e, item) => {
+      if (!item?.datum) return;
+      const bin0 = item.datum.bin_start;
+      const bin1 = item.datum.bin_end;
+      if (bin0 == null) return;
+      panelMunFilter.value = {
+        active: true,
+        label: `Gesamtscore ${bin0}–${bin1}`,
+        type: 'global-bin',
+        measureId: null,
+        ratingKey: null,
+        sectorKey: null,
+        binRange: [bin0, bin1],
+      };
+      if (isSmall.value) mobileMeasuresTab.value = 'list';
+      nextTick(() => renderDistPanel());
+    });
     return;
   }
 
   if (sel.type === 'sector') {
     // Sector score distribution (binned histogram), clickable bins
     const sKey = sel.sectorKey;
+    const BIN_STEP = 5;
     const scores = filteredMunScores.value
-      .map(ms => ({
-        score: parseFloat(parseFloat(ms[`score_${sKey}`]).toFixed(4)),
-        name: ms.municipality?.name,
-        slug: ms.municipality?.slug,
-        score_total: ms.score_total,
-      }))
-      .filter(d => !isNaN(d.score));
+      .map(ms => {
+        const s = parseFloat(ms[`score_${sKey}`]);
+        if (isNaN(s)) return null;
+        const bin_start = Math.floor(s / BIN_STEP) * BIN_STEP;
+        return { score: s, bin_start, bin_end: bin_start + BIN_STEP, name: ms.municipality?.name, slug: ms.municipality?.slug };
+      })
+      .filter(Boolean);
     if (!scores.length) return;
     const selectedBin0 = panelMunFilter.value.type === 'sector-bin' && panelMunFilter.value.sectorKey === sKey
       ? panelMunFilter.value.binRange?.[0] : null;
@@ -1113,13 +1243,24 @@ async function renderDistPanel() {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
       width: 'container', height: 360,
       data: { values: scores },
-      mark: { type: 'bar', color: sectorColors[sKey] ?? '#F39200', cursor: 'pointer', strokeWidth: 2.5 },
+      mark: { type: 'bar', cursor: 'pointer', strokeWidth: 2.5 },
       encoding: {
-        x: { field: 'score', bin: { maxbins: 12 }, type: 'quantitative', title: `Score ${shortSectorNames[sKey]}` },
-        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1 } },
-        tooltip: [{ field: 'score', bin: { maxbins: 12 }, title: 'Score-Bereich', format: '.3f' }, { aggregate: 'count', type: 'quantitative', title: 'Kommunen' }],
+        x: { field: 'bin_start', bin: 'binned', type: 'quantitative', title: `Score ${shortSectorNames[sKey]}`, scale: { domain: [0, 100] } },
+        x2: { field: 'bin_end' },
+        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
+        color: {
+          field: 'bin_start',
+          type: 'quantitative',
+          scale: { type: 'threshold', domain: [25, 50, 75, 100], range: ['#D9000D', '#F27C00', '#FFD400', '#AFCA0B', '#1DA64A'] },
+          legend: null,
+        },
+        tooltip: [
+          { field: 'bin_start', title: 'Score von', format: '.1f' },
+          { field: 'bin_end', title: 'bis', format: '.1f' },
+          { aggregate: 'count', type: 'quantitative', title: 'Kommunen' },
+        ],
         stroke: selectedBin0 != null
-          ? { condition: { test: `datum['bin_maxbins_12_score'] === ${selectedBin0}`, value: '#1d4ed8' }, value: null }
+          ? { condition: { test: `datum.bin_start === ${selectedBin0}`, value: '#1d4ed8' }, value: null }
           : { value: null },
       },
     };
@@ -1128,8 +1269,8 @@ async function renderDistPanel() {
     // Click on a bin: filter municipality list to that bin
     res.view.addEventListener('click', (_e, item) => {
       if (!item?.datum) return;
-      const bin0 = item.datum['bin_maxbins_12_score'];
-      const bin1 = item.datum['bin_maxbins_12_score_end'];
+      const bin0 = item.datum.bin_start;
+      const bin1 = item.datum.bin_end;
       if (bin0 == null) return;
       panelMunFilter.value = {
         active: true,
@@ -1140,6 +1281,7 @@ async function renderDistPanel() {
         sectorKey: sKey,
         binRange: [bin0, bin1],
       };
+      if (isSmall.value) mobileMeasuresTab.value = 'list';
       nextTick(() => renderDistPanel());
     });
     return;
@@ -1169,7 +1311,7 @@ async function renderDistPanel() {
       mark: { type: 'bar', cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, cursor: 'pointer', strokeWidth: 2.5 },
       encoding: {
         x: { field: 'label', type: 'nominal', sort: null, title: 'Bewertung', axis: { labelAngle: -20 } },
-        y: { field: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1 } },
+        y: { field: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
         color: { field: 'color', type: 'nominal', scale: null, legend: null },
         tooltip: [{ field: 'label', title: 'Bewertung' }, { field: 'count', title: 'Kommunen' }],
         stroke: { condition: { test: `datum.ratingKey === ${JSON.stringify(selectedRk)}`, value: '#1d4ed8' }, value: null },
@@ -1191,6 +1333,7 @@ async function renderDistPanel() {
         sectorKey: null,
         binRange: null,
       };
+      if (isSmall.value) mobileMeasuresTab.value = 'list';
       nextTick(() => renderDistPanel());
     });
   }
@@ -1553,7 +1696,7 @@ async function computeDominanceAndRender() {
     circle.appendChild(title);
     nodesGroup.appendChild(circle);
 
-    if (idx < 12 || node.winRate > 0.67) {
+    if (idx < forceNodes.length) {
       const label = document.createElementNS(ns, 'text');
       label.setAttribute('x', String(node.x + 7));
       label.setAttribute('y', String(node.y - 7));
@@ -1760,6 +1903,21 @@ const allSectorsOrdered = computed(() =>
   sectorOrder.map(k => sectorStats.value.find(s => s.sectorKey === k)).filter(Boolean)
 )
 
+const sunburstSelectionLink = computed(() => {
+  const sel = sunburstSelection.value;
+  if (!sel.type) return null;
+  if (sel.type === 'sector') return `/measures?sector=${sel.sectorKey}`;
+  if (sel.type === 'measure' && sel.sectorKey) {
+    // Find measure slug from sectorStats
+    const sector = sectorStats.value.find(s => s.sectorKey === sel.sectorKey);
+    const measure = sector?.measures?.[sel.measureId];
+    if (measure?.slug) return `/measures/${measure.slug}`;
+    // Fallback: link to sector page if no slug
+    return `/measures?sector=${sel.sectorKey}`;
+  }
+  return null;
+});
+
 const sectorMeanScores = computed(() => {
   const mmr = meanMeasureRatings.value
   const result = new Map()
@@ -1787,18 +1945,42 @@ watch(isSmall, small => {
   if (!small) nextTick(() => { renderSunburst(); renderDistPanel() })
 })
 
+// Re-render sunburst when switching to diagram view (container was hidden when last render ran)
+watch(showListView, listView => {
+  if (!listView) nextTick(() => renderSunburst())
+})
+
+// On mobile, re-render the plot when switching to the 'plot' tab because the container was
+// hidden (display:none) when Vega last rendered, causing it to measure 0 width.
+watch(mobileMeasuresTab, tab => {
+  if (tab === 'plot') nextTick(() => renderDistPanel());
+  if (tab === 'selection') nextTick(() => renderSunburst());
+})
+
 function onChooserSectorClick(sector) {
   const key = sector.sectorKey
   // Toggle expand; always update selection
   expandedSectorKey.value = expandedSectorKey.value === key ? null : key
   sunburstSelection.value = { type: 'sector', sectorKey: key, measureId: null, label: shortSectorNames[key] ?? key }
   clearPanelMunFilter()
+  if (isSmall.value) {
+    mobileMeasuresTab.value = 'plot'
+  } else {
+    // Switch to sunburst view so it's visible when we re-render
+    showListView.value = false
+  }
   nextTick(() => { renderSunburst(); renderDistPanel() })
 }
 
 function onChooserMeasureClick(measure, sectorKey) {
   sunburstSelection.value = { type: 'measure', sectorKey, measureId: measure.id, label: measure.name }
   clearPanelMunFilter()
+  if (isSmall.value) {
+    mobileMeasuresTab.value = 'plot'
+  } else {
+    // Switch to sunburst view so it's visible when we re-render
+    showListView.value = false
+  }
   nextTick(() => { renderSunburst(); renderDistPanel() })
 }
 
