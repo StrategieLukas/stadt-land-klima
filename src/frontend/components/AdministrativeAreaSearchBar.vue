@@ -1,6 +1,6 @@
 <template>
-  <!-- Search Bar: input on the left, vertical filter tabs on the right -->
-  <div class="flex items-stretch gap-3 w-full">
+  <!-- Search Bar: stacked on mobile (filter below), side-by-side on sm+ (filter right) -->
+  <div class="flex flex-col sm:flex-row sm:items-stretch gap-2 sm:gap-3 w-full">
     <!-- Input + label -->
     <form class="relative overflow-visible flex-1 min-w-0" @submit.prevent>
       <div class="form-control w-full">
@@ -93,17 +93,17 @@
       </Teleport>
     </form>
 
-    <!-- Vertical filter tabs — aligned to the input bottom edge via self-end -->
-    <div ref="radioGroup" class="flex flex-col self-end flex-shrink-0 rounded border border-gray-200 overflow-hidden text-xs font-semibold">
+    <!-- Filter tabs: horizontal row on mobile, vertical column on sm+ -->
+    <div ref="radioGroup" class="flex flex-row sm:flex-col sm:self-end w-full sm:w-auto flex-shrink-0 rounded border border-gray-200 overflow-hidden text-xs font-semibold">
       <button
-        class="px-3 py-2 text-left leading-tight transition-colors whitespace-nowrap border-b border-gray-200"
+        class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors border-r sm:border-r-0 sm:border-b border-gray-200"
         :class="filterType === 'reasonable'
           ? 'bg-[#006e94] text-white'
           : 'bg-white text-gray-600 hover:bg-gray-50'"
         @click="filterType = 'reasonable'; handleFilterChange()"
       >{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</button>
       <button
-        class="px-3 py-2 text-left leading-tight transition-colors whitespace-nowrap"
+        class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors"
         :class="filterType === 'all'
           ? 'bg-[#006e94] text-white'
           : 'bg-white text-gray-600 hover:bg-gray-50'"

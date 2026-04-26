@@ -33,20 +33,20 @@
         </svg>
         {{ newsletterAlreadySubscribed ? 'Du bist bereits angemeldet.' : 'Bestätigungsmail gesendet – bitte prüfe dein Postfach.' }}
       </div>
-      <div v-else class="flex flex-col xs:flex-row gap-2">
+      <div v-else class="flex flex-col gap-2">
         <input
           v-model="footerEmail"
           type="email"
           autocomplete="email"
           placeholder="Deine E-Mail-Adresse"
-          class="w-full flex-1 min-w-0 px-3 py-2 text-sm rounded-md text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white"
+          class="w-full min-w-0 px-3 py-2 text-sm rounded-md text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white"
           @keydown.enter.prevent="subscribeNewsletter"
         />
         <CanonicalButton
           :label="newsletterState === 'subscribing' ? '\u2026' : 'Anmelden'"
           icon-slug="icon_newsletter_click"
           color="green"
-          class="w-full xs:w-auto flex-shrink-0"
+          class="w-full flex-shrink-0"
           :disabled="newsletterState === 'subscribing'"
           @click="subscribeNewsletter"
         />
