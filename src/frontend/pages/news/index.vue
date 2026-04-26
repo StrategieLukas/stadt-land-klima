@@ -143,9 +143,23 @@
           <h3 :class="item.href ? 'font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#006e94] transition-colors' : 'font-bold text-gray-700 leading-snug line-clamp-2'">
             {{ item.title }}
           </h3>
+          <!-- Event metadata: type badge, date, location -->
+          <div v-if="item.type === 'event'" class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
+            <span v-if="item.eventType" class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#1da64a]/10 text-[#1da64a]">
+              {{ { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }[item.eventType] ?? item.eventType }}
+            </span>
+            <span class="flex items-center gap-1 text-xs text-gray-500">
+              <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {{ formatDate(item.date) }}
+              <span v-if="item.location">· {{ item.location }}</span>
+            </span>
+          </div>
           <p v-if="item.teaser" :class="item.href ? 'text-sm text-gray-500 line-clamp-3' : 'text-sm text-gray-400 line-clamp-3'">{{ item.teaser }}</p>
           <div class="flex items-center justify-between mt-auto pt-2">
-            <time class="text-xs text-gray-400" :datetime="item.date">{{ formatDate(item.date) }}</time>
+            <time v-if="item.type !== 'event'" class="text-xs text-gray-400" :datetime="item.date">{{ formatDate(item.date) }}</time>
+            <span v-else />
             <!-- Arrow indicator (clickable cards only) -->
             <svg
               v-if="item.href"
@@ -167,6 +181,11 @@ import { computed, ref, resolveComponent } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import sectorImages from '~/shared/sectorImages.js'
+
+function stripHtml(html) {
+  if (!html) return null
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || null
+}
 
 const NuxtLinkComponent = resolveComponent('NuxtLink')
 
@@ -225,7 +244,7 @@ const [
   useAsyncData('feed-events', () =>
     $directus.request($readItems('events', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'date_created', 'image'],
+      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'date_created', 'image', 'location'],
       sort: ['-start_date'],
       limit: 20,
     }))
@@ -282,9 +301,11 @@ const allItems = computed(() => {
       type: 'event',
       id: e.id,
       title: e.title,
-      teaser: e.description || null,
+      teaser: stripHtml(e.description),
       imageId: e.image || null,
       date: e.start_date || e.date_created,
+      eventType: e.event_type || null,
+      location: e.location || null,
       href: `/events/${e.slug}`,
     })
   }
