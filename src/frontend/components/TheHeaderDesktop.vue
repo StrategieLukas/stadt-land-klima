@@ -145,7 +145,9 @@ const searchBarRef     = ref(null)
 const headerEl         = ref(null)
 const navStripClipRef  = ref(null)
 const navStripInnerRef = ref(null)
-const navStripHeight   = ref(40)
+// 41 = border-t (1px) + min-h-10 items (40px) — matches actual strip height on SSR
+// so the clip wrapper never clips content before ResizeObserver fires.
+const navStripHeight   = ref(41)
 const headerHeight     = useHeaderHeight()
 const navInputRect     = useNavInputRect()
 const scrollNavVisible = ref(true)

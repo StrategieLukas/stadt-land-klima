@@ -140,6 +140,13 @@
 
       <!-- KPI grid — filter-dependent, shown below the filters -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+        <template v-if="statsLoading">
+          <div v-for="i in 5" :key="i" class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center" :class="i === 5 ? 'col-span-2 sm:col-span-1' : ''">
+            <div class="h-8 w-10 bg-gray-200 rounded animate-pulse mb-1"></div>
+            <div class="h-3 w-16 bg-gray-100 rounded animate-pulse mt-1"></div>
+          </div>
+        </template>
+        <template v-else>
         <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
           <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalCompleted }}</span>
           <span class="text-xs text-gray-500 mt-1 leading-tight">vollständig bewertet</span>
@@ -160,6 +167,7 @@
           <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalFilledRatings.toLocaleString('de-DE') }}</span>
           <span class="text-xs text-gray-500 mt-1 leading-tight">Bewertungen ausgefüllt</span>
         </div>
+        </template>
       </div>
 
       <!-- Tabs -->
@@ -221,8 +229,33 @@
       <!-- Main interactive panel: sunburst (left) + distribution chart (right) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
 
+        <!-- Skeleton: sunburst card -->
+        <div v-if="statsLoading" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
+          <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm">
+            <div class="h-4 w-40 bg-gray-200 rounded animate-pulse mb-1"></div>
+            <div class="h-3 w-56 bg-gray-100 rounded animate-pulse mt-1"></div>
+          </div>
+          <div class="flex-1 flex items-center justify-center" style="min-height: 300px;">
+            <div class="rounded-full bg-gray-200 animate-pulse" style="width: 220px; height: 220px;"></div>
+          </div>
+        </div>
+
+        <!-- Skeleton: distribution card -->
+        <div v-if="statsLoading" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
+          <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm">
+            <div class="h-4 w-48 bg-gray-200 rounded animate-pulse mb-1"></div>
+            <div class="h-3 w-60 bg-gray-100 rounded animate-pulse mt-1"></div>
+          </div>
+          <div class="flex-1 flex flex-col justify-end gap-2 px-2" style="min-height: 300px;">
+            <div v-for="i in 7" :key="i" class="flex items-end gap-2">
+              <div class="h-3 w-8 bg-gray-100 rounded animate-pulse flex-shrink-0"></div>
+              <div class="bg-gray-200 rounded animate-pulse" :style="{ height: '12px', width: `${30 + i * 8}%` }"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Sunburst / List view card -->
-        <div v-show="!isSmall || mobileMeasuresTab === 'selection'" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
+        <div v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'selection')" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
           <!-- Card header with toggle -->
           <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm flex items-center justify-between">
             <div>
@@ -419,7 +452,7 @@
         </div>
 
         <!-- Distribution chart card -->
-        <div v-show="!isSmall || mobileMeasuresTab === 'plot'" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
+        <div v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'plot')" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
           <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm">
             <h2 class="text-base font-bold">
               <span v-if="!sunburstSelection.type">Histogramm: alle Kommunen{{ filterSuffix }}</span>
@@ -450,8 +483,22 @@
 
       </div><!-- /top row -->
 
+      <!-- Skeleton: municipality list card -->
+      <div v-if="statsLoading" class="bg-white rounded-sm shadow-list p-5 mb-8">
+        <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm">
+          <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8">
+          <div v-for="i in 10" :key="i" class="flex items-center gap-3 py-1.5 border-b border-gray-100">
+            <div class="h-3 w-5 bg-gray-100 rounded animate-pulse flex-shrink-0"></div>
+            <div class="flex-1 h-3 bg-gray-200 rounded animate-pulse"></div>
+            <div class="h-5 w-10 bg-gray-200 rounded-full animate-pulse flex-shrink-0"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Municipality list card -->
-      <div v-show="!isSmall || mobileMeasuresTab === 'list'" class="bg-white rounded-sm shadow-list p-5 mb-8">
+      <div v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'list')" class="bg-white rounded-sm shadow-list p-5 mb-8">
         <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm flex items-center justify-between">
           <h3 class="text-base font-semibold text-gray-800">
             <span v-if="!panelMunFilter.active">
@@ -994,7 +1041,8 @@ async function fetchStatsForCatalog(catalogVersionId) {
   return { municipalities, municipalityScores, measures, ratings };
 }
 
-const statsData = ref(await fetchStatsForCatalog(selectedCatalogVersion.value.id));
+const statsData = ref(null);
+const statsLoading = ref(true);
 
 // ── Sunburst (Vega-Lite two-layer arc) ───────────────────────────────────────
 async function renderSunburst() {
@@ -1985,10 +2033,14 @@ function onChooserMeasureClick(measure, sectorKey) {
 }
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────
-onMounted(() => {
+onMounted(async () => {
   updateIsSmall()
   window.addEventListener('resize', updateIsSmall)
   window.addEventListener('keydown', handleArrowKey);
+
+  statsData.value = await fetchStatsForCatalog(selectedCatalogVersion.value.id);
+  statsLoading.value = false;
+
   nextTick(() => {
     renderSunburst();
     renderDistPanel();
@@ -2015,7 +2067,9 @@ async function onCatalogVersionChange(newId) {
   router.replace({ query: { ...route.query, v: newVersion.name } });
   filterState.value = null;
   filterType.value = null;
+  statsLoading.value = true;
   statsData.value = await fetchStatsForCatalog(newVersion.id);
+  statsLoading.value = false;
   if (vegaViewSunburst) { vegaViewSunburst.finalize(); vegaViewSunburst = null; }
   if (vegaViewCluster) { vegaViewCluster.finalize(); vegaViewCluster = null; }
   if (vegaViewDist) { vegaViewDist.finalize(); vegaViewDist = null; }
