@@ -2,9 +2,50 @@
   <div class="py-8">
     <h1 class="text-3xl font-bold mb-8">{{ $t('events.title') || 'Veranstaltungen' }}</h1>
 
+    <!-- Mobile sticky scroll nav -->
+    <nav
+      class="xl:hidden sticky z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
+      style="top: 64px"
+    >
+      <div ref="mobilePillStrip" class="flex gap-2 overflow-x-auto py-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <a
+          v-if="currentEvents.length"
+          href="#section-laufend"
+          :class="[
+            'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
+            activeSection === 'section-laufend'
+              ? 'bg-orange-100 text-orange-700'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+          ]"
+        >🔴 Laufend</a>
+        <a
+          v-for="group in futureGroups"
+          :key="group.monthKey"
+          :href="`#section-${group.monthKey}`"
+          :class="[
+            'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
+            activeSection === `section-${group.monthKey}`
+              ? 'bg-[#006e94]/10 text-[#006e94] font-semibold'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+          ]"
+        >{{ group.label }}</a>
+        <a
+          v-for="group in pastGroups"
+          :key="group.monthKey"
+          :href="`#section-${group.monthKey}`"
+          :class="[
+            'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
+            activeSection === `section-${group.monthKey}`
+              ? 'bg-gray-200 text-gray-700 font-semibold'
+              : 'bg-gray-100 text-gray-400 hover:bg-gray-200',
+          ]"
+        >{{ group.label }}</a>
+      </div>
+    </nav>
+
     <div class="flex gap-8 items-start">
 
-      <!-- Left sticky sidebar -->
+      <!-- Left sticky sidebar (desktop only) -->
       <nav
         class="hidden xl:block w-44 flex-shrink-0 sticky text-sm self-start"
         :style="`top: ${headerHeight + 12}px`"
@@ -214,7 +255,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 const { $directus, $readItems, $t } = useNuxtApp()
 const config = useRuntimeConfig()
@@ -299,7 +340,14 @@ const pastGroups = computed(() => {
 
 // ── Section nav active tracking ────────────────────────────────────────────────
 const activeSection = ref(null)
+const mobilePillStrip = ref(null)
 let sectionObserver = null
+
+watch(activeSection, (id) => {
+  if (!id || !mobilePillStrip.value) return
+  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`)
+  if (pill) pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+})
 
 onMounted(() => {
   const observe = () => {

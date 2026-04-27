@@ -49,9 +49,39 @@
     </div>
 
     <!-- Sidebar + feed layout -->
+    <!-- Mobile sticky scroll nav -->
+    <nav
+      class="xl:hidden sticky z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
+      style="top: 64px"
+    >
+      <div ref="mobilePillStrip" class="flex gap-2 overflow-x-auto py-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <a
+          v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')"
+          href="#section-zukunftig"
+          :class="[
+            'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
+            activeSection === 'section-zukunftig'
+              ? 'bg-[#1da64a]/10 text-[#1da64a] font-semibold'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+          ]"
+        >Zukünftige Veranstaltungen</a>
+        <a
+          v-for="group in groupedByMonth"
+          :key="group.monthKey"
+          :href="`#section-${group.monthKey}`"
+          :class="[
+            'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
+            activeSection === `section-${group.monthKey}`
+              ? 'bg-[#006e94]/10 text-[#006e94] font-semibold'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+          ]"
+        >{{ group.label }}</a>
+      </div>
+    </nav>
+
     <div class="flex gap-8 items-start">
 
-      <!-- Left sticky nav -->
+      <!-- Left sticky nav (desktop only) -->
       <nav
         class="hidden xl:block w-44 flex-shrink-0 sticky text-sm self-start"
         :style="`top: ${headerHeight + 12}px`"
@@ -298,7 +328,7 @@
 </template>
 
 <script setup>
-import { computed, ref, resolveComponent, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
@@ -320,7 +350,14 @@ const headerHeight = useHeaderHeight()
 
 // ── Section nav active tracking ────────────────────────────────────────────────
 const activeSection = ref(null)
+const mobilePillStrip = ref(null)
 let sectionObserver = null
+
+watch(activeSection, (id) => {
+  if (!id || !mobilePillStrip.value) return
+  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`)
+  if (pill) pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+})
 
 onMounted(() => {
   const observe = () => {
