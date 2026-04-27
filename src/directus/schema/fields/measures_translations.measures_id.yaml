@@ -1,0 +1,38 @@
+collection: measures_translations
+field: measures_id
+type: uuid
+meta:
+  collection: measures_translations
+  conditions: null
+  display: null
+  display_options: null
+  field: measures_id
+  group: null
+  hidden: true
+  interface: null
+  note: null
+  options: null
+  readonly: false
+  required: false
+  sort: 2
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: measures_id
+  table: measures_translations
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: measures
+  foreign_key_column: id

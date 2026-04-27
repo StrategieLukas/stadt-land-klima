@@ -3,8 +3,8 @@
 
     <!-- Title -->
     <div class="mb-4 mt-4">
-      <h1 class="text-4xl font-bold text-gray">{{ $t("measures.heading") }}</h1>
-      <p class="mt-2 text-sm text-gray-600 max-w-2xl">{{ $t("measures.description") }}</p>
+      <h1 class="text-4xl font-bold text-gray">{{ t("measures.heading") }}</h1>
+      <p class="mt-2 text-sm text-gray-600 max-w-2xl">{{ t("measures.description") }}</p>
     </div>
 
     <!-- Filter + Sort bar -->
@@ -16,7 +16,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         <div class="flex flex-wrap gap-2 items-center">
-          <NuxtLink
+          <NuxtLinkLocale
             v-for="cv in allVersions"
             :key="cv.id"
             :to="{ path: '/measures', query: { v: cv.name, ...(selectedSector ? { sector: selectedSector } : {}) } }"
@@ -26,10 +26,10 @@
               : 'bg-white border-gray text-gray hover:bg-[#f2f2f2]'"
           >
             {{ cv.name }}{{ cv.isCurrentFrontend ? ' ✓' : '' }}
-          </NuxtLink>
+          </NuxtLinkLocale>
 
           <!-- vertical divider -->
-          <div class="self-stretch w-px bg-gray/20 mx-1" />
+          <div class="self-stretch w-px bg-gray/20 mx-1"></div>
 
           <!-- View toggle -->
           <button
@@ -57,7 +57,7 @@
         </div>
       </div>
 
-      <div class="border-t border-gray/20 my-0.5" />
+      <div class="border-t border-gray/20 my-0.5"></div>
 
       <!-- Row 1: Sector filter -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-start py-1.5">
@@ -80,12 +80,12 @@
             @click="setSector(sector)"
           >
             <img :src="sectorImages[sector]" class="w-6 h-6 flex-shrink-0 invert grayscale mix-blend-multiply" :class="selectedSector === sector ? 'opacity-100' : 'opacity-40'" alt="" />
-            {{ $t(`measure_sectors.${sector}.title`) }}
+            {{ t(`measure_sectors.${sector}.title`) }}
           </button>
         </div>
       </div>
 
-      <div class="border-t border-gray/20 my-0.5" />
+      <div class="border-t border-gray/20 my-0.5"></div>
 
       <!-- Row 2: Quick-filter toggles -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-center py-1.5">
@@ -124,7 +124,7 @@
       </div>
 
       <template v-if="viewMode === 'list'">
-      <div class="border-t border-gray/20 my-0.5" />
+      <div class="border-t border-gray/20 my-0.5"></div>
 
       <!-- Row 3: Sort -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-center py-1.5">
@@ -179,8 +179,8 @@
 
     <!-- Sector description (shown when a sector is selected) -->
     <div v-if="selectedSector" class="mb-4 bg-gray/5 border-l-4 border-gray/30 px-4 py-3 text-sm text-gray-700 max-w-2xl">
-      <p class="font-bold mb-1">{{ $t(`measure_sectors.${selectedSector}.title`) }}</p>
-      <p>{{ $t(`measure_sectors.${selectedSector}.description`) }}</p>
+      <p class="font-bold mb-1">{{ t(`measure_sectors.${selectedSector}.title`) }}</p>
+      <p>{{ t(`measure_sectors.${selectedSector}.description`) }}</p>
     </div>
 
     <!-- Result count (list only) -->
@@ -198,7 +198,7 @@
 
     <!-- List view -->
     <div v-if="viewMode === 'list'" class="grid grid-cols-1 gap-2">
-      <NuxtLink
+      <NuxtLinkLocale
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
         :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
@@ -210,33 +210,30 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap mb-1">
                 <span class="font-mono bg-gray text-white text-xs px-2 py-0.5 rounded flex-shrink-0">{{ measure.measure_id }}</span>
-                <h2 class="font-heading font-bold text-gray text-sm leading-snug">{{ measure.name }}</h2>
+                <h2 class="font-heading font-bold text-gray text-sm leading-snug">{{ measure.translations?.[0]?.name || measure.name }}</h2>
               </div>
-              <p v-if="measure.description_about" class="text-xs text-gray-500 line-clamp-2">
-                {{ truncateHtml(measure.description_about) }}
+              <p v-if="measure.translations?.[0]?.description_about || measure.description_about" class="text-xs text-gray-500 line-clamp-2">
+                {{ truncateHtml(measure.translations?.[0]?.description_about || measure.description_about) }}
               </p>
             </div>
           </div>
         </div>
-      </NuxtLink>
+      </NuxtLinkLocale>
     </div>
-
-    <!-- Link to the measure catalog -->
     <div class="mt-12 flex justify-center">
-      <NuxtLink
+      <NuxtLinkLocale
         v-if="currentCatalogVersion.name === 'v1.0'"
         :to="`/backend/assets/ac1df0cd-8a57-4082-bdd3-432f43e4a374.xslx`"
       >
-        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
-      </NuxtLink>
-      <NuxtLink
+        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
+      </NuxtLinkLocale>
+      <NuxtLinkLocale
         v-if="currentCatalogVersion.name === 'beta'"
         :to="`/backend/assets/9c270dd0-52dc-449b-9c2e-bbd5d5b829.xslx`"
       >
-        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
-      </NuxtLink>
+        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
+      </NuxtLinkLocale>
     </div>
-
   </div>
 </template>
 
@@ -245,8 +242,9 @@ import { ref, computed, watch } from "vue";
 import sectorImages from "~/shared/sectorImages.js";
 
 const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'];
+const { t, locale } = useI18n();
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 let selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
@@ -256,7 +254,7 @@ onMounted(() => {
   setCatalogVersionUrl(route, router, selectedCatalogVersion);
 });
 
-const title = ref($t("measures.nav_label"));
+const title = ref(t("measures.nav_label"));
 useHead({ title });
 
 // Fetch all non-hidden catalog versions for the version filter row
@@ -271,30 +269,34 @@ const { data: allVersions } = await useAsyncData('measure-catalog-versions', () 
   );
 });
 
-async function fetchMeasures(catalogVersionId) {
-  return useAsyncData(`measures-index-${catalogVersionId}`, () => {
-    return $directus.request(
-      $readItems("measures", {
-        fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight"],
-        filter: { catalog_version: { _eq: catalogVersionId } },
-        sort: "measure_id",
-        limit: -1,
-      }),
-    );
-  });
-}
+// Fetch measures with translations and handle version/locale reactivity
+const { data: measureList } = await useAsyncData(
+  () => `measures-index-${currentCatalogVersion.value.id}-${locale.value}`,
+  () => $directus.request(
+    $readItems("measures", {
+      fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight", "translations.*"],
+      filter: { catalog_version: { _eq: currentCatalogVersion.value.id } },
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
+      sort: "measure_id",
+      limit: -1,
+    }),
+  ),
+  { watch: [currentCatalogVersion, locale] }
+);
 
-let { data: measureList } = await fetchMeasures(selectedCatalogVersion.id);
-
-// ── Re-fetch when catalog version changes ────────────────────────────────────
+// ── Update currentCatalogVersion when route query changes ────────────────────────
 watch(
   () => route.query.v,
   async (newV, oldV) => {
     if (newV === oldV) return;
-    selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
-    currentCatalogVersion.value = selectedCatalogVersion;
-    const { data: newData } = await fetchMeasures(selectedCatalogVersion.id);
-    measureList.value = newData.value;
+    const newVersion = await getCatalogVersion($directus, $readItems, route, true);
+    currentCatalogVersion.value = newVersion;
   }
 );
 

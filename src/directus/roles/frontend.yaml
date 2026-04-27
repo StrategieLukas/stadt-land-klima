@@ -1,3 +1,4 @@
+id: e455dcd4-c7e3-4845-a2d8-01bd6de3371b
 name: frontend
 icon: web_asset
 description: null
@@ -9,27 +10,123 @@ permissions:
   - collection: answers
     action: create
     permissions:
-      _or:
-        - candidate:
-            election:
-              response_cutoff_date:
-                _null: true
-        - candidate:
-            election:
-              response_cutoff_date:
-                _gt: $NOW
+      _and:
+        - status:
+            _eq: published
+        - catalog_version:
+            hidden:
+              _eq: false
     validation: {}
     presets: null
     fields:
       - "*"
-  - collection: answers
-    action: delete
-    permissions: {}
-    validation: {}
+  - collection: pages
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
     presets: null
     fields:
-      - "*"
-  - collection: answers
+      - id
+      - menus
+      - slug
+      - sort
+      - sort_order
+      - footer_column_desktop
+      - is_dynamic
+      - translations
+  - collection: pages_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - contents
+  - collection: municipalities
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - sort
+      - slug
+      - municipality_type
+      - details
+      - score_cpma
+      - score_iec
+      - score_transport
+      - scores
+      - mayor
+      - state
+      - population
+      - party_mayor
+      - score_energy
+      - score_total
+      - score_ann
+      - score_bh
+      - place
+      - localteam_id
+      - date_updated
+      - status
+      - overall_status_comment
+      - public_contact
+      - translations
+  - collection: municipalities_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - description
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - sort
+      - sector
+      - slug
+      - impact
+      - weight
+      - feasibility_political
+      - feasibility
+      - feasibility_economical
+      - description
+      - date_updated
+      - measure_id
+      - translations
+  - collection: measures_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - verification_description
+      - notes
+      - description
+      - accordion_p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+  - collection: directus_translations
     action: read
     permissions: {}
     validation: {}
@@ -340,6 +437,34 @@ permissions:
       - catalog_version
       - must_be_rated_again
       - choices_rating
+      - translations
+  - collection: measures_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - verification_description
+      - notes
+      - description
+      - accordeon_p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+  - collection: languages
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: municipalities
     action: read
     permissions: null
@@ -370,6 +495,7 @@ permissions:
       - preview_token
       - date_created
       - image
+      - translations
   - collection: municipality_scores
     action: read
     permissions: {}
@@ -434,6 +560,16 @@ permissions:
       - page_category
       - is_dynamic
       - icon_svg
+      - translations
+  - collection: pages_translations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - languages_code
+      - name
+      - contents
   - collection: questions
     action: read
     permissions: {}

@@ -18,22 +18,25 @@
 
           <!-- Fallback: render legacy HTML when no blocks and not editing -->
           <div
-            v-if="!isEditing && pageBlocks.length === 0 && page.contents"
+            v-if="!isEditing && pageBlocks.length === 0 && (page.translations?.[0]?.contents || page.contents)"
             class="prose"
-            v-html="page.contents"
+            v-html="page.translations?.[0]?.contents || page.contents"
           />
         </article>
       </template>
     </BlokkliProvider>
     <p v-else class="prose px-4 py-8 max-w-4xl mx-auto w-full self-center">
-      {{ $t("page_not_found") }}
+      {{ t("page_not_found") }}
     </p>
   </div>
 </template>
 <script setup>
 import { readItems } from '@directus/sdk'
+import { watch, computed, ref, onMounted } from 'vue';
 import { useAuth } from '~/composables/useAuth'
-const { $directus, $readItems, $t } = useNuxtApp();
+
+const { $directus, $readItems } = useNuxtApp();
+const { locale, t } = useI18n();
 const { isAuthenticated, initialize } = useAuth();
 useBlockHashNavigation()
 const canEdit = ref(false)
@@ -42,15 +45,35 @@ onMounted(() => {
   watchEffect(() => { canEdit.value = isAuthenticated.value })
 })
 
-const { data: indexPages } = await useAsyncData("indexPages", () => {
+const fetchIndexPage = async () => {
   return $directus.request(
     $readItems("pages", {
       filter: { slug: { _eq: "index" } },
+      fields: ["*", "translations.*"],
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
       limit: 1,
     }),
   );
-});
+};
+
+const { data: indexPages } = await useAsyncData("indexPages", fetchIndexPage);
+
+watch(
+  locale,
+  async () => {
+    indexPages.value = await fetchIndexPage();
+  },
+  { immediate: false },
+);
+
 const page = computed(() => indexPages.value?.[0] || null);
+
 
 // Load blocks from Directus — always fresh (no client-side caching)
 const { data: blocksData } = await useAsyncData(
@@ -83,8 +106,14 @@ const { data: blocksData } = await useAsyncData(
 )
 const pageBlocks = computed(() => blocksData.value || [])
 
+
 //MetaTags
-const title = computed(() => page.value ? page.value.name : $t("page_not_found"));
+const title = computed(() => {
+  if (page.value) {
+    return page.value.translations?.[0]?.name || page.value.name;
+  }
+  return t("page_not_found");
+});
 
 //MetaTags
 useHead({

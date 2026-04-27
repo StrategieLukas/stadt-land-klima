@@ -1,11 +1,11 @@
 <template>
   <!-- Social Media & Onboarding Section -->
   <div class="max-w-screen-xl mx-auto text-center mb-8">
-    <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
-      <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
-    </NuxtLink>
+    <NuxtLinkLocale v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
+      <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="t('logo.alt')" />
+    </NuxtLinkLocale>
     <p class="mb-4">
-      {{ $t('generic.social_media.support_by_sharing') }}
+      {{ t('generic.social_media.support_by_sharing') }}
     </p>
     <div class="flex justify-center items-center gap-6">
       <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
@@ -67,11 +67,11 @@
             {{ col.title }}
           </h6>
           <template v-for="link in col.links" :key="link.id">
-            <NuxtLink
+            <NuxtLinkLocale
               v-if="link.link_type === 'page'"
               :to="'/' + link.page_slug"
               class="link link-hover text-sm"
-            >{{ link.label }}</NuxtLink>
+            >{{ link.label }}</NuxtLinkLocale>
             <a
               v-else
               :href="link.external_url"
@@ -88,20 +88,20 @@
     <div class="w-full flex flex-col gap-6">
       <div class="w-full py-6 border-t border-white/30 md:border-t-0 flex flex-row items-center justify-between gap-4">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex-shrink-0">
+        <NuxtLinkLocale to="/" class="flex-shrink-0">
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo.svg"
             class="h-16 w-auto"
-            :alt="$t('logo.alt')"
+            :alt="t('logo.alt')"
           />
-        </NuxtLink>
+        </NuxtLinkLocale>
 
         <!-- Backend login button (always visible) -->
         <div class="flex-shrink-0 flex items-center gap-3">
           <DonateButton />
           <a href="/backend">
             <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
-              <span>{{ $t('generic.log_in') }}</span>
+              <span>{{ t('generic.log_in') }}</span>
               <span aria-hidden="true">→</span>
             </button>
           </a>
@@ -110,7 +110,7 @@
 
       <!-- Copyright + internal login -->
       <div class="w-full text-xs text-white/80 text-center pb-4">
-        <div>{{ $t('footer.copyright') }}</div>
+        <div>{{ t('footer.copyright') }}</div>
         <button
           v-if="!isAuthenticated"
           class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
@@ -134,7 +134,7 @@ import DonateButton from '~/components/DonateButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
 
-const { $t } = useNuxtApp();
+const { t } = useI18n()
 const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
 const route = useRoute();

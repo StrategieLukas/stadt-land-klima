@@ -14,14 +14,15 @@
       :class="scrolled ? 'py-1.5' : 'py-3'"
     >
       <!-- Logo -->
-      <NuxtLink
+      <!-- Logo -->
+      <NuxtLinkLocale
         to="/"
         class="shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out"
         :class="scrolled ? 'h-14' : 'h-20'"
       >
-        <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-full w-auto hidden lg:block" :alt="$t('logo.alt')" />
-        <img src="~/assets/images/Stadt-Land-Kima-Logo_quad.png" class="h-full w-auto block lg:hidden" :alt="$t('logo.alt')" />
-      </NuxtLink>
+        <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-full w-auto hidden lg:block" :alt="t('logo.alt')" />
+        <img src="~/assets/images/Stadt-Land-Kima-Logo_quad.png" class="h-full w-auto block lg:hidden" :alt="t('logo.alt')" />
+      </NuxtLinkLocale>
 
       <!-- Persistent Search Bar — absolutely centered in the header -->
       <div class="absolute left-1/2 -translate-x-1/2 w-full max-w-[28rem] px-4">
@@ -75,27 +76,19 @@
         <a href="/backend">
           <button
             class="h-9 flex items-center gap-1 px-3 lg:px-4 rounded border-2 border-orange text-orange text-sm font-semibold hover:bg-orange hover:text-white transition-colors whitespace-nowrap"
-            :aria-label="$t('generic.log_in')"
+            :aria-label="t('generic.log_in')"
           >
             <svg class="h-4 w-4 lg:hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
             </svg>
-            <span class="hidden lg:inline">{{ $t('generic.log_in') }}</span>
+            <span class="hidden lg:inline">{{ t('generic.log_in') }}</span>
             <span class="hidden lg:inline" aria-hidden="true">→</span>
-          </button>
-        </a>
-        <a
-          href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
-          class="lg:hidden"
-          :aria-label="$t('donate.label')"
-        >
-          <button class="h-9 w-9 flex items-center justify-center rounded bg-orange text-white hover:brightness-110">
-            <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-5 w-5" aria-hidden="true" />
           </button>
         </a>
         <div class="hidden lg:block">
           <DonateButton />
         </div>
+        <LanguageSelectorDesktop v-if="num_languages > 1" />
       </div>
     </div>
 
@@ -119,12 +112,14 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
 import { useHeaderHeight, useNavInputRect } from '~/composables/useHeaderHeight.js'
 
-const { $t } = useNuxtApp()
+const { $directus, $readItems } = useNuxtApp();
+
+const { t } = useI18n()
 const { isOpen, query, embeddedInput, close } = useSearchPalette()
 
 defineProps({
@@ -237,6 +232,16 @@ onUnmounted(() => {
   if (removeResizeListener) removeResizeListener()
   if (resizeObserver)       resizeObserver.disconnect()
 })
+
+const { data: fetchedLanguages } = await useAsyncData("fetchedLanguages", () => {
+  return $directus.request(
+    $readItems("languages", {
+      limit: -1,
+    }),
+  );
+});
+
+const num_languages = computed(() => fetchedLanguages.value?.length || 0);
 </script>
 
 

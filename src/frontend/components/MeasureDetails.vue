@@ -38,15 +38,15 @@
   </div>
 
   <div class="border-t-4 border-gray-300 p-4 mb-4">
-    <NuxtLink
+    <NuxtLinkLocale
       :to="`/measures/${measure_rating.measure.slug}?v=${municipalityScore.catalog_version.name}`"
       class="text-black underline"
       target="measure"
     >
       {{ $t("municipality_rating.link_to_measure") }} ({{ measure_rating.measure.measure_id }})↗
-    </NuxtLink>
-    <NuxtLink
-      :to="`/contact?title=${encodeURIComponent(measure_rating.measure.measure_id + ': ' + measure_rating.measure.name)}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure_rating.measure.measure_id + '\nKommune: ' + municipality.name + '\nLink: /municipalities/' + municipality.slug + '?v=' + municipalityScore.catalog_version.name + '#measure-' + measure_rating.measure.measure_id + '\n\nMein Hinweis:\n')}`"
+    </NuxtLinkLocale>
+    <NuxtLinkLocale
+      :to="`/contact?title=${encodeURIComponent(measure_rating.measure.measure_id + ': ' + (measure_rating.measure.translations?.[0]?.name || measure_rating.measure.name))}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure_rating.measure.measure_id + '\nKommune: ' + municipality.name + '\nLink: /municipalities/' + municipality.slug + '?v=' + municipalityScore.catalog_version.name + '#measure-' + measure_rating.measure.measure_id + '\n\nMein Hinweis:\n')}`"
       class="ml-4 text-black underline"
       target="feedback"
     >
@@ -54,7 +54,7 @@
       <img src="~/assets/icons/icon_hint.svg" alt="" class="h-auto w-5 opacity-50" />
       {{ $t("feedback.link.feedback_on_rating") }} ↗
       </div>
-    </NuxtLink>
+    </NuxtLinkLocale>
   </div>
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
@@ -76,13 +76,13 @@
           alt="rating icon"
           class="w-4 h-4"
         />
-        <NuxtLink
+        <NuxtLinkLocale
           :href="`/municipalities/${example.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure_rating.measure.measure_id}`"
           class="text-black underline"
           target="_blank"
         >
           {{ example.municipality.name }} ↗
-        </NuxtLink>
+        </NuxtLinkLocale>
       </li>
     </ul>
 
@@ -93,11 +93,10 @@
 </template>
 <script setup>
   import sanitizeHtml from "sanitize-html";
-  import { defineProps } from "vue";
+  import { defineProps, nextTick, onMounted, onBeforeUnmount, ref } from "vue";
   import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils.js";
   import { calculateAndAddSimilarityScores } from "~/shared/compareMunicipalities.js";
   import ratingIcons, { ratingIndex } from "~/shared/ratingIcons.js";
-  import { onMounted, onBeforeUnmount, ref } from "vue";
 
   const { $t, $directus, $readItems, $locale } = useNuxtApp();
   const props = defineProps({
@@ -236,6 +235,4 @@
 
     return knownRatings.filter(r => r > current).map(String); // convert back to string
   }
-
-
 </script>

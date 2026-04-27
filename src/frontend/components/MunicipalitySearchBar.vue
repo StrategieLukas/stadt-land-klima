@@ -4,7 +4,7 @@
     <!-- Search Bar -->
     <form class="relative overflow-visible" @submit.prevent>
       <div class="form-control">
-        <label for="search-input" class="label">{{ $t("municipalities_search.label") }}</label>
+        <label for="search-input" class="label">{{ t("municipalities_search.label") }}</label>
         <input
           id="search-input"
           v-model="q"
@@ -26,7 +26,7 @@
         ref="dropdown"
       >
         <ul class="menu dropdown-content rounded-box w-full bg-base-100 p-2 shadow">
-          <NuxtLink
+          <NuxtLinkLocale
             v-for="(suggestion, index) in visibleSuggestions"
             :key="index"
             :to="suggestion.url"
@@ -34,7 +34,7 @@
             @click="handleSuggestionClick"
           >
             {{ suggestion.label }}
-          </NuxtLink>
+          </NuxtLinkLocale>
         </ul>
       </div>
     </form>
@@ -52,12 +52,12 @@
 </template>
 
 <script setup>
-
 // Search bar logic
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
-const { $t } = useNuxtApp();
+// Make sure to add useI18n imports correctly in Nuxt 3 auto-imports or directly
+const { t } = useI18n();
 
 const props = defineProps({
   municipalities: {
@@ -73,7 +73,6 @@ const props = defineProps({
     required: true,
   },
 });
-
 
 const dropdown = ref(null)
 const q = ref('');
@@ -145,12 +144,9 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
-
-
 // Map toggle logic
 import mapViewIcon from '~/assets/icons/icon_map_view.svg?raw';
 import listViewIcon from '~/assets/icons/icon_list_view.svg?raw';
-
 
 const isMapView = computed(() => route.query.view === 'map');
 

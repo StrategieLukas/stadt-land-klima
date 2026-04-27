@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto px-4 py-8">
-    <h1 class="center text-4xl font-bold mb-6" style="color: #006e94;">{{ $t("projects.title") }}</h1>
+    <h1 class="center text-4xl font-bold mb-6" style="color: #006e94;">{{ t("projects.title") }}</h1>
 
     <!-- Filter + Sort bar -->
     <div class="shadow-md flex flex-col gap-0 mb-6 p-3" style="background-color: #E8F7FD;">
@@ -76,7 +76,7 @@
     </div>
 
     <div v-if="filteredProjects.length === 0">
-      {{ $t('projects.empty_placeholder') }}
+      {{ t('projects.empty_placeholder') }}
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -101,7 +101,8 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { isRaster } from "~/shared/utils";
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
+const { t } = useI18n()
 
 const { data: projectList } = await useAsyncData("articles-index", () => {
   return $directus.request(
@@ -201,6 +202,6 @@ const filteredProjects = computed(() => {
 });
 
 // ── Meta ─────────────────────────────────────────────────────────────────────
-const title = ref($t("projects.title"));
+const title = ref(t("projects.title"));
 useHead({ title });
 </script>

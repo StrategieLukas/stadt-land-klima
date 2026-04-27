@@ -2,7 +2,7 @@
   <!-- Social Media Section -->
   <div class="max-w-screen-xl mx-auto text-center mb-8">
     <p class="mb-4">
-      {{ $t('generic.social_media.support_by_sharing') }}
+      {{ t('generic.social_media.support_by_sharing') }}
     </p>
     <div class="flex justify-center items-center gap-6">
       <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
@@ -98,42 +98,62 @@
       <div class="flex flex-col lg:flex-row items-center justify-between gap-6 w-full">
         <!-- Logo -->
         <div class="flex-shrink-0">
-          <NuxtLink to="/">
+          <NuxtLinkLocale to="/">
             <img
               src="~/assets/images/Stadt-Land-Klima-Logo.svg"
               class="h-24 w-auto"
-              :alt="$t('logo.alt')"
+              :alt="t('logo.alt')"
             />
-          </NuxtLink>
+          </NuxtLinkLocale>
         </div>
 
-        <!-- Buttons: Donate + Login -->
-        <div class="flex items-center gap-4">
-          <DonateButton />
-          <!-- Backend login button (always visible) -->
-          <a href="/backend">
-            <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
-              <span>{{ $t('generic.log_in') }}</span>
-              <span aria-hidden="true">→</span>
-            </button>
-          </a>
+
+        <!-- 4 columns in the center -->
+        <div class="grid grid-cols-2 md:grid-cols-4 flex-grow gap-8 text-left text-lg w-full max-w-4xl px-4 lg:px-8">
+          <div
+            v-for="col in 4"
+            :key="'col-'+col"
+            :class="[
+              'space-y-2 pl-4',
+              col !== 1 ? 'border-l border-white/20' : ''
+            ]"
+          >
+            <div v-for="page in pagesByColumn[col]" :key="page.id">
+              <NuxtLinkLocale :to="'/' + page.slug" class="hover:underline block">
+                <span class="text-base">→</span> <span class="text-sm lg:text-base">{{ page.translations?.[0]?.name || page.name }}</span>
+              </NuxtLinkLocale>
+            </div>
+          </div>
         </div>
 
-        <!-- Copyright + internal login -->
-        <div class="text-sm text-white/80 text-center">
-          <div>{{ $t('footer.copyright') }}</div>
-          <button
-            v-if="!isAuthenticated"
-            class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
-            @click="showLoginModal = true"
-          >Interner Login</button>
-          <div v-else class="mt-1 text-xs text-white/60 flex items-center justify-center gap-2">
-            <span>Eingeloggt als {{ userName }}</span>
-            <span aria-hidden="true">·</span>
-            <button class="hover:text-white transition-colors" @click="handleLogout">Ausloggen</button>
+        <!-- Actions: Login + Donate + Copyright -->
+        <div class="flex flex-col items-center lg:items-end gap-4 min-w-[200px]">
+          <div class="flex items-center gap-4">
+            <DonateButton />
+            <a href="/backend">
+              <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
+                <span>{{ t('generic.log_in') }}</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </a>
+          </div>
+
+          <div class="text-sm text-white/80 text-center lg:text-right">
+            <div>{{ t('footer.copyright') }}</div>
+            <button
+              v-if="!isAuthenticated"
+              class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
+              @click="showLoginModal = true"
+            >Interner Login</button>
+            <div v-else class="mt-1 text-xs text-white/60 flex items-center justify-center lg:justify-end gap-2">
+              <span>Eingeloggt als {{ userName }}</span>
+              <span aria-hidden="true">·</span>
+              <button class="hover:text-white transition-colors" @click="handleLogout">Ausloggen</button>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
 
   </footer>
@@ -147,7 +167,7 @@ import DonateButton from '~/components/DonateButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
 
-const { $t } = useNuxtApp();
+const { t } = useI18n();
 const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
 
@@ -156,7 +176,25 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  pages: {
+    type: Array,
+    default: () => []
+  }
 });
+
+const pagesByColumn = computed(() => {
+  const result = { 1: [], 2: [], 3: [], 4: [] }
+  if (!Array.isArray(props.pages)) return result
+
+  // Filter pages that should appear in the footer.
+  // We assume the upstream logic uses some convention or we just divide them.
+  // Here we divide all pages into 4 columns.
+  props.pages.forEach((page, index) => {
+    const col = (index % 4) + 1
+    result[col].push(page)
+  })
+  return result
+})
 
 // Newsletter signup state
 const footerEmail = ref('');

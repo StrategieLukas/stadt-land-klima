@@ -1,4 +1,5 @@
 <template>
+
   <!-- Root is a plain block div — nothing here has overflow/transform/will-change
        so the header's sticky top-0 resolves against the viewport scroll container. -->
   <div class="flex flex-col min-h-screen text-neutral font-sans">
@@ -42,7 +43,10 @@
 
         <div v-if="hydrated">
           <div v-if="isDesktop" class="bg-mild-white">
-            <the-footer-desktop :nav-items="navigationConfig?.footer_columns || []" />
+            <the-footer-desktop
+              :nav-items="navigationConfig?.footer_columns || []"
+              :pages="pages"
+            />
           </div>
           <div v-if="!isDesktop" class="bg-mild-white">
             <the-footer-mobile :nav-items="navigationConfig?.footer_columns || []" />
@@ -73,13 +77,12 @@
   </div>
 </template>
 
-
-
 <script setup>
-
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
+
+const { locale } = useI18n();
 const { includes } = lodash;
 const { $directus, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
@@ -168,9 +171,32 @@ onUnmounted(() => {
 })
 
 
-const { data: pages } = await useAsyncData("pages", () => {
-  return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
-});
+const fetchPages = async () => {
+  return $directus.request(
+    $readItems("pages", {
+      sort: "sort_order",
+      fields: ["*", "translations.*"],
+      deep: {
+        translations: {
+          _filter: {
+            languages_code: { _eq: locale.value },
+          },
+        },
+      },
+      limit: -1,
+    }),
+  );
+};
+
+const { data: pages } = await useAsyncData("pages", fetchPages);
+
+watch(
+  locale,
+  async () => {
+    pages.value = await fetchPages();
+  },
+  { immediate: false },
+);
 
 const { data: publishedMunicipalities } = await useAsyncData("municipalities", () => {
   return $directus.request(
@@ -190,7 +216,6 @@ const { data: publishedMunicipalities } = await useAsyncData("municipalities", (
 const { data: navigationConfig } = await useAsyncData("navigation_config", () => {
   return $directus.request($readSingleton("navigation_config")).catch(() => null);
 });
-
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");
 useHead({

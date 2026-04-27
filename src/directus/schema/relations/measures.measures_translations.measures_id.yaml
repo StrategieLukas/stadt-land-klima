@@ -1,0 +1,21 @@
+collection: measures_translations
+field: measures_id
+related_collection: measures
+meta:
+  junction_field: languages_code
+  many_collection: measures_translations
+  many_field: measures_id
+  one_allowed_collections: null
+  one_collection: measures
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: translations
+  sort_field: null
+schema:
+  table: measures_translations
+  column: measures_id
+  foreign_key_table: measures
+  foreign_key_column: id
+  constraint_name: measures_translations_measures_id_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL

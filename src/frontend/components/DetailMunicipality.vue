@@ -1,4 +1,4 @@
-<template lang="">
+<template>
   <!-- Content when municipality data is available -->
   <div>
     <!-- Mobile: Single column layout -->
@@ -41,12 +41,12 @@
           <MunicipalityPolarChart 
             v-if="activeTab === 'polar'"
             :sub-scores="subScores" 
-            :name-municipality="municipality.name" 
+            :name-municipality="localizedName" 
           />
           <MunicipalityTreeMap 
             v-if="activeTab === 'treemap'"
             :ratings-by-sector="ratingsBySector" 
-            :name-municipality="municipality.name" 
+            :name-municipality="localizedName" 
           />
         </div>
       </div>
@@ -61,16 +61,16 @@
       </div>
 
       <!-- Mobile: About Section -->
-      <div v-if="municipality.description" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
+      <div v-if="localizedDescription" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
         <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
           <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
           <h2 class="font-heading text-h2 leading-none text-green">
-            {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
+            {{ $t("municipality.about_heading", { name: localizedName }) }}
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="md.render(municipality.description)"></div>
+          <div class="has-long-links prose" v-html="md.render(localizedDescription)"></div>
         </div>
       </div>
 
@@ -107,9 +107,7 @@
         <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
         <h3 class="font-heading text-h2 ">
           {{
-            $t("local_elections.title", {
-              ":year": municipalElectionYear ?? ""
-            })
+            $t("local_elections.title", { year: municipalElectionYear ?? "" })
           }} →
         </h3>
       </NuxtLink>
@@ -159,12 +157,12 @@
           <MunicipalityPolarChart 
             v-if="activeTab === 'polar'"
             :sub-scores="subScores" 
-            :name-municipality="municipality.name" 
+            :name-municipality="localizedName" 
           />
           <MunicipalityTreeMap 
             v-if="activeTab === 'treemap'"
             :ratings-by-sector="ratingsBySector" 
-            :name-municipality="municipality.name" 
+            :name-municipality="localizedName" 
           />
         </div>
         </div>
@@ -294,7 +292,7 @@ const municipalElectionYear = computed(() => {
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
-
+const { t } = useI18n();
 const props = defineProps({
   municipalityScore: {
     type: Object,
@@ -308,6 +306,8 @@ const props = defineProps({
 
 const municipalityScore = props.municipalityScore;
 const municipality = municipalityScore.municipality;
+const localizedName = computed(() => municipality.translations?.[0]?.name ?? municipality.name);
+const localizedDescription = computed(() => municipality.translations?.[0]?.description ?? municipality.description);
 const subScores = createSubScoreObject(municipalityScore);
 
 // Tab state
@@ -349,7 +349,7 @@ async function fetchMunicipalityProjects() {
           "organisation"
         ],
         filter: {
-          municipality_name: { _eq: municipality.name }
+          municipality_name: { _eq: localizedName.value }
         },
         sort: "-date_created",
         limit: 5, // Limit to 5 most recent projects
@@ -408,4 +408,4 @@ function createSubScoreObject(municipalityScore) {
 
 </script>
 
-<style lang=""></style>
+<style scoped></style>

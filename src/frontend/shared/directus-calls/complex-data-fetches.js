@@ -2,7 +2,7 @@ import { fetchFullMunicipalityScores } from './municipality-scores.js'
 import { fetchMeasuresForCatalog } from './measures.js'
 import { fetchRatingsMeasures } from './ratings-measures.js'
 
-export async function fetchMunicipalityData($directus, $readItems, slug, catalogVersionId) {
+export async function fetchMunicipalityData($directus, $readItems, slug, catalogVersionId, locale = null) {
   if(!$directus || !$readItems) throw Error("Did not pass $directus and $readItems to fetchMunicipalityData");
   if(!slug) throw Error("Tried to fetch municipalityData for a null slug");
   if(!catalogVersionId) throw Error("Tried to fetch municipalityData for a null catalogVersionId");
@@ -14,8 +14,8 @@ export async function fetchMunicipalityData($directus, $readItems, slug, catalog
     }
     
     const [municipalityScores, measures] = await Promise.all([
-      fetchFullMunicipalityScores($directus, $readItems, slug, catalogVersionId),
-      fetchMeasuresForCatalog($directus, $readItems, catalogVersionId)
+      fetchFullMunicipalityScores($directus, $readItems, slug, catalogVersionId, locale),
+      fetchMeasuresForCatalog($directus, $readItems, catalogVersionId, locale)
     ]);
   
     // Early return if municipalities is empty or null

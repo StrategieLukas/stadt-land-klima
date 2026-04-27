@@ -1,9 +1,9 @@
 <template>
   <!-- Preview locked: unverified creator, no valid token (also covers municipalities with no scores yet) -->
   <div v-if="isPreviewLocked" class="mt-10">
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       &larr; {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <waving-banner class="mt-6">
       Diese Gemeinde wird aktuell durch ein Lokalteam eingerichtet und ist noch nicht öffentlich zugänglich.
     </waving-banner>
@@ -12,17 +12,18 @@
   <!-- Case 1: Directus data with full rating -->
   <div v-else-if="directusData && directusData.municipalityScore">
     <waving-banner v-if="directusData.municipalityScore.municipality.status === 'draft'">
-      {{ $t("municipalities.preview_text") }}
+      {{ t("municipalities.preview_text") }}
     </waving-banner>
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <article class="mb-8 mt-10">
       <detail-municipality
         :municipalityScore="directusData.municipalityScore"
         :ratings-by-sector="directusData.ratingsBySector"
       ></detail-municipality>
     </article>
+
 
     <!-- CTA block based on rating completeness -->
     <div class="mb-8">
@@ -73,9 +74,9 @@
       :catalog-version-name="selectedCatalogVersion.name"
       class="my-8"
     />
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
   </div>
 
   <!-- Loading state: fetching from Stadt-Land-Zahl -->
@@ -98,9 +99,9 @@
 
   <!-- Case 2: No Directus data, but found in Stadt-Land-Zahl (ARS-based generic page) -->
   <div v-else-if="slzArea">
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <article class="mb-8 mt-10">
       <!-- Header band (mirrors ItemRanking, no score) -->
       <div class="relative mb-3 flex items-stretch gap-4 py-5 pl-10 pr-4" style="background-color: #e5e7eb;">
@@ -122,43 +123,43 @@
         <div class="rounded-sm shadow-list">
           <div class="flex items-center gap-2 px-6 py-4">
             <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
-            <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
+            <h3 class="font-heading text-h3 text-green">{{ t("municipality.municipality_info") }}</h3>
           </div>
           <div class="px-6 pb-6 space-y-3">
             <div v-if="slzArea.state" class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("state") }}</span>
+                <span class="text-sm text-gray-700">{{ t("state") }}</span>
               </div>
               <span class="text-sm font-bold text-gray-900">{{ slzArea.state }}</span>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
+                <span class="text-sm text-gray-700">{{ t("municipality.population") }}</span>
               </div>
               <span class="text-sm font-bold text-gray-900">
-                {{ slzArea.population ? slzArea.population.toLocaleString() : $t("generic.not_entered") }}
+                {{ slzArea.population ? slzArea.population.toLocaleString() : t("generic.not_entered") }}
               </span>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
+                <span class="text-sm text-gray-700">{{ t("municipality.mayor") }}</span>
               </div>
-              <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
+              <span class="text-sm font-bold text-gray-400 italic">{{ t("generic.not_entered") }}</span>
             </div>
           </div>
         </div>
 
         <!-- Stats link -->
-        <NuxtLink
+        <NuxtLinkLocale
           :to="`/stats/${slzArea.ars}`"
           class="shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
         >
           <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14" />
-          <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
-        </NuxtLink>
+          <h2 class="font-heading text-h2">{{ t("stats.title") }} →</h2>
+        </NuxtLinkLocale>
 
         <!-- CTA: support team if Directus municipality with localteam found, otherwise found one -->
         <div v-if="directusMuniByArs" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-yellow-50">
@@ -232,31 +233,31 @@
             <div class="rounded-sm shadow-list">
               <div class="flex items-center gap-2 px-6 py-4">
                 <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
-                <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
+                <h3 class="font-heading text-h3 text-green">{{ t("municipality.municipality_info") }}</h3>
               </div>
               <div class="px-6 pb-6 space-y-3">
                 <div v-if="slzArea.state" class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("state") }}</span>
+                    <span class="text-sm text-gray-700">{{ t("state") }}</span>
                   </div>
                   <span class="text-sm font-bold text-gray-900">{{ slzArea.state }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
+                    <span class="text-sm text-gray-700">{{ t("municipality.population") }}</span>
                   </div>
                   <span class="text-sm font-bold text-gray-900">
-                    {{ slzArea.population ? slzArea.population.toLocaleString() : $t("generic.not_entered") }}
+                    {{ slzArea.population ? slzArea.population.toLocaleString() : t("generic.not_entered") }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
+                    <span class="text-sm text-gray-700">{{ t("municipality.mayor") }}</span>
                   </div>
-                  <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
+                  <span class="text-sm font-bold text-gray-400 italic">{{ t("generic.not_entered") }}</span>
                 </div>
               </div>
             </div>
@@ -267,7 +268,7 @@
               class="shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
             >
               <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
-              <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
+              <h3 class="font-heading text-h3">{{ t("stats.title") }} →</h3>
             </NuxtLink>
 
           </div>
@@ -280,31 +281,33 @@
       :catalog-version-name="selectedCatalogVersion.name"
       class="my-8"
     />
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
   </div>
 
   <!-- Case 3: Not found anywhere -->
   <div v-else>
-    <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
+    <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
-    </NuxtLink>
+    </NuxtLinkLocale>
     <waving-banner>
-      {{ $t("municipality_missing") }}
+      {{ t("municipality_missing") }}
     </waving-banner>
   </div>
 </template>
 
 
 <script setup>
-const { $directus, $readItems, $stadtlandzahlAPI, $t } = useNuxtApp();
+const { $directus, $readItems, $stadtlandzahlAPI } = useNuxtApp();
 const router = useRouter();
 
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 import { fetchMunicipalityData } from '~/shared/directus-calls/complex-data-fetches.js';
 import { getStateMunicipalElectionYear } from '~/shared/utils.js';
 import { useReferrer } from '~/composables/useReferrer';
+
+const { t, locale } = useI18n();
 const route = useRoute();
 
 // Guard against browser devtools / extension source-map requests like "installHook.js.map"
@@ -316,7 +319,7 @@ if (typeof route.params.slug === 'string' && route.params.slug.includes('.')) {
 const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 const { backHref, backLabel } = useReferrer(
   computed(() => `/municipalities?v=${selectedCatalogVersion.name}`),
-  computed(() => $t('municipality.back_label')),
+  computed(() => t('municipality.back_label')),
 );
 
 // Change the URL to match the catalog version, if it didn't to begin with
@@ -326,14 +329,15 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
   });
 }
 
-const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id);
+const { data: directusData } = await useAsyncData(
+  `municipality-data-${route.params.slug}-${selectedCatalogVersion.id}`,
+  () => fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id, locale.value),
+  { watch: [locale] }
+);
 
 // CTA type for directusData case:
-// 'complete'    → percentage_rated >= 98 → contact / feedback
-// 'in-progress' → localteam exists but rating incomplete → help the team
-// null          → no localteam (shouldn't normally occur in directusData case)
 const ctaType = computed(() => {
-  const score = directusData?.municipalityScore;
+  const score = directusData.value?.municipalityScore;
   if (!score) return null;
   if (score.percentage_rated >= 98) return 'complete';
   if (score.municipality?.localteam_id) return 'in-progress';
@@ -342,7 +346,7 @@ const ctaType = computed(() => {
 
 const isPreviewLocked = computed(() => {
   // Use municipality from scores if available, otherwise fall back to the direct slug lookup
-  const muni = directusData?.municipalityScore?.municipality ?? directusMuniBySlug.value;
+  const muni = directusData.value?.municipalityScore?.municipality ?? directusMuniBySlug.value;
   if (!muni) return false;
   // Published municipalities are always publicly accessible
   if (muni.status === 'published') return false;

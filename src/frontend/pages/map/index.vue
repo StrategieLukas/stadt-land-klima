@@ -10,7 +10,8 @@ import { ref, onMounted } from 'vue'
 
 const municipality_scores = ref([])
 
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $directus, $readItems } = useNuxtApp()
+const { t } = useI18n()
 
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 const route = useRoute();
@@ -47,6 +48,6 @@ onMounted(() => {
   console.log(municipality_scores)
 })
 
-const title = ref($t('map.title'))
+const title = ref(t('map.title'))
 useHead({ title })
 </script>

@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-xl mx-auto px-4 py-12 sm:py-16">
     <div class="bg-white rounded shadow p-6">
-      <h2 class="text-xl font-bold mb-4">{{ $t("feedback.nav_label") }}</h2>
+      <h2 class="text-xl font-bold mb-4">{{ t("feedback.nav_label") }}</h2>
 
       <!-- Success state -->
       <div v-if="successMessage" class="py-4">
@@ -14,39 +14,39 @@
       <form v-else @submit.prevent="submitFeedback">
         <!-- Title -->
         <div class="mb-4">
-          <label class="block mb-1 font-semibold">{{ $t("feedback.form.title") }}*</label>
+          <label class="block mb-1 font-semibold">{{ t("feedback.form.title") }}*</label>
           <input v-model="form.title" type="text" class="w-full border rounded p-2" required />
         </div>
 
         <!-- Type -->
         <div class="mb-4">
-          <label class="block mb-1 font-semibold">{{ $t("feedback.form.type") }}*</label>
+          <label class="block mb-1 font-semibold">{{ t("feedback.form.type") }}*</label>
           <select v-model="form.type" class="w-full border rounded p-2" required>
-            <option disabled value="">{{ $t("generic.form.please_select") }}</option>
-            <option value="legal">{{ $t("feedback.type.legal") }}</option>
-            <option value="bug">{{ $t("feedback.type.bug") }}</option>
-            <option value="inaccuracy">{{ $t("feedback.type.inaccuracy") }}</option>
-            <option value="suggestion">{{ $t("feedback.type.suggestion") }}</option>
-            <option value="cooperation">{{ $t("feedback.type.cooperation") }}</option>
-            <option value="other">{{ $t("feedback.type.other") }}</option>
+            <option disabled value="">{{ t("generic.form.please_select") }}</option>
+            <option value="legal">{{ t("feedback.type.legal") }}</option>
+            <option value="bug">{{ t("feedback.type.bug") }}</option>
+            <option value="inaccuracy">{{ t("feedback.type.inaccuracy") }}</option>
+            <option value="suggestion">{{ t("feedback.type.suggestion") }}</option>
+            <option value="cooperation">{{ t("feedback.type.cooperation") }}</option>
+            <option value="other">{{ t("feedback.type.other") }}</option>
           </select>
         </div>
 
         <!-- Content -->
         <div class="mb-4">
-          <label class="block mb-1 font-semibold">{{ $t("feedback.form.content") }}*</label>
+          <label class="block mb-1 font-semibold">{{ t("feedback.form.content") }}*</label>
           <textarea v-model="form.content" class="w-full border rounded p-2" rows="4" required></textarea>
         </div>
 
         <!-- Name -->
         <div class="mb-4">
-          <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.name") }}*</label>
+          <label class="block mb-1 font-semibold">{{ t("feedback.form.sender.name") }}*</label>
           <input v-model="form.name" type="text" autocomplete="name" class="w-full border rounded p-2" required />
         </div>
 
         <!-- Contact -->
         <div class="mb-4">
-          <label class="block mb-1 font-semibold">{{ $t("feedback.form.sender.contact") }}*</label>
+          <label class="block mb-1 font-semibold">{{ t("feedback.form.sender.contact") }}*</label>
           <input v-model="form.contact" type="email" autocomplete="email" class="w-full border rounded p-2" required />
         </div>
 
@@ -79,11 +79,11 @@
           class="w-full bg-[#AFCA0B] text-white font-bold py-2 rounded hover:bg-green disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span v-if="loading">Wird gesendet …</span>
-          <span v-else>{{ $t("feedback.form.submit") }}</span>
+          <span v-else>{{ t("feedback.form.submit") }}</span>
         </button>
       </form>
 
-      <p class="mt-4 text-xs italic">{{ $t('generic.privacy.disclaimer') }}</p>
+      <p class="mt-4 text-xs italic">{{ t('generic.privacy.disclaimer') }}</p>
     </div>
   </div>
 </template>
@@ -91,10 +91,10 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-const { $t } = useNuxtApp();
+const { t } = useI18n()
 const route = useRoute();
 
-useHead({ title: ref($t("feedback.nav_label")) });
+useHead({ title: ref(t("feedback.nav_label")) });
 
 const ALLOWED_TYPES = ['legal', 'bug', 'inaccuracy', 'suggestion', 'cooperation', 'other']
 
@@ -162,9 +162,9 @@ async function submitFeedback() {
         altcha:  payload,
       },
     })
-    successMessage.value = $t('feedback.form.submit.success')
+    successMessage.value = t('feedback.form.submit.success')
   } catch (err) {
-    errorMessage.value = err?.data?.message ?? $t('generic.technical_error')
+    errorMessage.value = err?.data?.message ?? t('generic.technical_error')
   } finally {
     loading.value = false
   }

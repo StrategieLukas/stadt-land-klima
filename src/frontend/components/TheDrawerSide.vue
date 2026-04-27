@@ -8,7 +8,7 @@
         <button
           class="flex items-center gap-2 w-full h-10 px-3 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-400 hover:bg-gray-100 transition-colors"
           @click="openSearch(); closeDrawer()"
-          :aria-label="$t('generic.search')"
+          :aria-label="t('generic.search')"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -123,13 +123,13 @@
       <!-- Fallback: flat pages list (when navItems is empty) -->
       <ul v-else class="flex-1 py-2">
         <li v-for="page in pages" :key="page.id">
-          <NuxtLink
+          <NuxtLinkLocale
             :to="'/' + page.slug"
             class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800 border-b border-gray-100 hover:bg-gray-50 transition-colors"
             @click="closeDrawer"
           >
             <span>→</span> {{ page.name }}
-          </NuxtLink>
+          </NuxtLinkLocale>
         </li>
       </ul>
 
@@ -140,16 +140,20 @@
           class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-orange hover:bg-orange/5 transition-colors"
           @click="closeDrawer"
         >
-          <span>→</span> {{ $t('generic.log_in') }}
+          <span>→</span> {{ t('generic.log_in') }}
         </a>
         <a
           href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
           class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-orange hover:bg-orange/5 transition-colors"
           @click="closeDrawer"
         >
-          <span>→</span> {{ $t('donate.label') }}
+          <span>→</span> {{ t('donate.label') }}
           <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-4 w-auto" />
         </a>
+      </div>
+
+      <div v-if="num_languages > 1" class="mt-auto border-t border-gray-100 py-4 px-5">
+        <LanguageSelectorMobile />
       </div>
     </div>
   </nav>
@@ -161,12 +165,12 @@ import { useRuntimeConfig } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 
 const NuxtLink = resolveComponent('NuxtLink')
-
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const route = useRoute()
 const config = useRuntimeConfig()
 const { closeDrawer } = useDrawer()
 const { open: openSearch } = useSearchPalette()
+const { $directus, $readItems } = useNuxtApp();
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },
@@ -228,6 +232,10 @@ function childrenWithImages(item) {
 function childrenWithoutImages(item) {
   return (item.children || []).filter(c => !c.image_id)
 }
+
+const { data: fetchedLanguages } = await fetchLanguages();
+
+const num_languages = computed(() => fetchedLanguages.value?.length || 0);
 </script>
 
 

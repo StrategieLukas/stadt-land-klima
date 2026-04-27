@@ -2,7 +2,7 @@
   <div class="card bg-white shadow-xl rounded-none overflow-hidden border-2 border-green p-4 h-52 max-w-md">
     <!-- Title -->
     <h2 class="text-2xl font-bold text-green text-center mb-4 mt-0">
-      {{ $t("onboarding.title") }}
+      {{ t("onboarding.title") }}
     </h2>
 
     <!-- Avatar + Text row -->
@@ -21,7 +21,7 @@
 
       <!-- Text -->
       <p class="text-base">
-        {{ $t("onboarding.book_appointment.long") }}
+        {{ t("onboarding.book_appointment.long") }}
       </p>
     </div>
 
@@ -38,7 +38,7 @@
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
         <span class="text-lg font-semibold">
-          {{ $t("onboarding.book_appointment.short") }}
+          {{ t("onboarding.book_appointment.short") }}
         </span>
       </button>
     </div>
@@ -69,7 +69,7 @@
 
 <script setup>
 import { ref, nextTick, watch } from 'vue'
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 
 defineProps({
   avatarSrc: { type: String, default: '' },
