@@ -48,11 +48,123 @@
       </button>
     </div>
 
-    <div v-if="visibleItems.length === 0" class="text-gray-400 italic">
+    <!-- Sidebar + feed layout -->
+    <div class="flex gap-8 items-start">
+
+      <!-- Left sticky nav -->
+      <nav
+        class="hidden xl:block w-44 flex-shrink-0 sticky text-sm self-start"
+        :style="`top: ${headerHeight + 12}px`"
+      >
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Abschnitte</p>
+          <ul class="space-y-1">
+            <li
+              v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')"
+            >
+              <a
+                href="#section-zukunftig"
+                :class="[
+                  'block px-2 py-1 rounded transition-colors truncate',
+                  activeSection === 'section-zukunftig'
+                    ? 'text-[#1da64a] font-semibold bg-[#1da64a]/5'
+                    : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
+                ]"
+              >Zukünftige Veranstaltungen</a>
+            </li>
+            <li v-for="group in groupedByMonth" :key="group.monthKey">
+              <a
+                :href="`#section-${group.monthKey}`"
+                :class="[
+                  'block px-2 py-1 rounded transition-colors truncate',
+                  activeSection === `section-${group.monthKey}`
+                    ? 'text-[#006e94] font-semibold bg-[#006e94]/5'
+                    : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
+                ]"
+              >{{ group.label }}</a>
+            </li>
+          </ul>
+      </nav>
+
+      <!-- Main feed -->
+      <div class="flex-1 min-w-0">
+
+    <!-- Zukünftige Veranstaltungen: upcoming events preview -->
+    <div
+      v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')"
+      id="section-zukunftig"
+      class="mb-10"
+      :style="`scroll-margin-top: ${headerHeight + 16}px`"
+    >
+      <div class="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
+        <h2 class="text-base font-semibold text-gray-500 uppercase tracking-wide">
+          Zukünftige Veranstaltungen
+        </h2>
+        <NuxtLink to="/events" class="text-sm text-[#1da64a] hover:underline flex items-center gap-1 font-medium shrink-0">
+          Alle Veranstaltungen
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </NuxtLink>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <NuxtLink
+          v-for="ev in upcomingEvents"
+          :key="ev.id"
+          :to="`/events/${ev.slug}`"
+          class="group flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-[#16BAE7]/60 focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-none transition-all duration-150"
+        >
+          <!-- Thumbnail -->
+          <div class="relative h-40 bg-gray-50 flex-shrink-0 overflow-hidden">
+            <div
+              v-if="!ev.image"
+              class="absolute inset-0 bg-gradient-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30 flex items-center justify-center"
+            >
+              <svg class="w-16 h-16 text-[#1da64a] opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </div>
+            <img
+              v-else
+              :src="`${directusUrl}/assets/${ev.image}?width=480&height=160&fit=cover&quality=75`"
+              :alt="ev.title"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <span class="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full bg-[#1da64a] text-white">Veranstaltung</span>
+          </div>
+          <!-- Card body -->
+          <div class="p-4 flex flex-col gap-1 flex-1">
+            <h3 class="font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#006e94] transition-colors">{{ ev.title }}</h3>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
+              <span v-if="ev.event_type" class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#1da64a]/10 text-[#1da64a]">
+                {{ { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }[ev.event_type] ?? ev.event_type }}
+              </span>
+              <span class="flex items-center gap-1 text-xs text-gray-500">
+                <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {{ formatDateRange(ev.start_date, ev.end_date) }}
+              </span>
+              <span v-if="ev.location" class="flex items-center gap-1 text-xs text-gray-500">
+                <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {{ ev.location }}
+              </span>
+            </div>
+          </div>
+        </NuxtLink>
+      </div>
+    </div>
+
+    <div v-if="visibleItems.length === 0 && !(upcomingEvents.length && (activeFilter === null || activeFilter === 'event'))" class="text-gray-400 italic">
       Keine Einträge gefunden.
     </div>
 
-    <div v-for="group in groupedByMonth" :key="group.monthKey" class="mb-10">
+    <div v-for="group in groupedByMonth" :key="group.monthKey" :id="`section-${group.monthKey}`" class="mb-10" :style="`scroll-margin-top: ${headerHeight + 16}px`">
       <!-- Month heading -->
       <h2 class="text-base font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200 pb-2 mb-4">
         {{ group.label }}
@@ -152,7 +264,7 @@
               <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              {{ formatDate(item.date) }}
+              {{ formatDateRange(item.date, item.endDate) }}
             </span>
             <span v-if="item.location" class="flex items-center gap-1 text-xs text-gray-500">
               <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -179,13 +291,17 @@
       </component>
       </div>
     </div>
+
+      </div><!-- /main feed -->
+    </div><!-- /sidebar + feed layout -->
   </div>
 </template>
 
 <script setup>
-import { computed, ref, resolveComponent } from 'vue'
+import { computed, ref, resolveComponent, onMounted, onUnmounted } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
+import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import sectorImages from '~/shared/sectorImages.js'
 
 function stripHtml(html) {
@@ -200,6 +316,35 @@ const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
 
 const { isAuthenticated, initialize, getAuthenticatedClient } = useAuth()
+const headerHeight = useHeaderHeight()
+
+// ── Section nav active tracking ────────────────────────────────────────────────
+const activeSection = ref(null)
+let sectionObserver = null
+
+onMounted(() => {
+  const observe = () => {
+    const sections = document.querySelectorAll('[id^="section-"]')
+    if (!sections.length) return
+    sectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            activeSection.value = entry.target.id
+          }
+        }
+      },
+      { rootMargin: '-20% 0px -70% 0px', threshold: 0 },
+    )
+    sections.forEach(s => sectionObserver.observe(s))
+  }
+  // Wait one tick for v-for sections to be rendered
+  setTimeout(observe, 100)
+})
+
+onUnmounted(() => {
+  sectionObserver?.disconnect()
+})
 
 // Null until the admin re-fetch completes; when set, overrides the SSR news list
 const adminNewsItems = ref(null)
@@ -250,7 +395,7 @@ const [
   useAsyncData('feed-events', () =>
     $directus.request($readItems('events', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'date_created', 'image', 'location'],
+      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'end_date', 'date_created', 'image', 'location'],
       sort: ['-start_date'],
       limit: 20,
     }))
@@ -302,7 +447,9 @@ const allItems = computed(() => {
     })
   }
 
+  const now = new Date()
   for (const e of eventsData.value || []) {
+    if (e.start_date && new Date(e.start_date) >= now) continue // future events shown in "Zukünftig" section
     items.push({
       type: 'event',
       id: e.id,
@@ -310,6 +457,7 @@ const allItems = computed(() => {
       teaser: stripHtml(e.description),
       imageId: e.image || null,
       date: e.start_date || e.date_created,
+      endDate: e.end_date || null,
       eventType: e.event_type || null,
       location: e.location || null,
       href: `/events/${e.slug}`,
@@ -374,11 +522,35 @@ const groupedByMonth = computed(() => {
   return [...map.values()]
 })
 
+const upcomingEvents = computed(() => {
+  const upcoming = new Date()
+  return (eventsData.value || [])
+    .filter(e => e.start_date && new Date(e.start_date) >= upcoming)
+    .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
+    .slice(0, 2)
+})
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function formatDate(iso) {
   if (!iso) return ''
   return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+}
+
+function formatDateRange(startIso, endIso) {
+  if (!startIso) return ''
+  const start = new Date(startIso)
+  const end = endIso ? new Date(endIso) : null
+  if (!end || end.toDateString() === start.toDateString()) {
+    return start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+  }
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return `${start.getDate()}. – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+  }
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+  }
+  return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
 }
 
 function typeLabel(type) {
