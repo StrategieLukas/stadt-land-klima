@@ -1,4 +1,4 @@
-<template lang="">
+<template>
   <!-- Content when municipality data is available -->
   <div>
     <!-- Mobile: Single column layout -->
@@ -50,8 +50,6 @@
           />
         </div>
       </div>
-        </div>
-      </div>
       <p class="mb-4 mt-0 text-center text-xs">
         <ClientOnly>
           {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}
@@ -68,7 +66,7 @@
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
           <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
           <h2 class="font-heading text-h2 leading-none text-green">
-            {{ $t("municipality.about_heading", { ":name": localizedName }) }}
+            {{ $t("municipality.about_heading", { name: localizedName }) }}
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
@@ -109,9 +107,7 @@
         <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
         <h3 class="font-heading text-h2 ">
           {{
-            $t("local_elections.title", {
-              ":year": municipalElectionYear ?? ""
-            })
+            $t("local_elections.title", { year: municipalElectionYear ?? "" })
           }} →
         </h3>
       </NuxtLink>
@@ -296,9 +292,6 @@ const municipalElectionYear = computed(() => {
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
-import sectorImages from "../shared/sectorImages.js";
-import ratingImages from "../shared/ratingImages.js";
-import { ratingColor, ratingTextOpacity, ratingHeaderOpacity } from "../shared/ratingColors.js";
 const { t } = useI18n();
 const props = defineProps({
   municipalityScore: {
@@ -415,4 +408,4 @@ function createSubScoreObject(municipalityScore) {
 
 </script>
 
-<style lang=""></style>
+<style scoped></style>

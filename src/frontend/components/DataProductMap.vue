@@ -2,7 +2,7 @@
   <div class="w-full bg-gray-100 rounded-lg overflow-hidden relative z-10">
     <div v-if="loading" class="h-64 flex items-center justify-center gap-2">
       <SlkFlowerSpinner :size="32" />
-      <span class="text-gray-600">{{ $t('generic.loading') }}...</span>
+      <span class="text-gray-600">{{ t('generic.loading') }}...</span>
     </div>
     
     <div v-else-if="error" class="h-64 flex items-center justify-center text-red-600 bg-red-50">
@@ -19,7 +19,7 @@
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 01.553-.894L9 2l6 3 5.447-2.724A1 1 0 0121 3.276v10.764a1 1 0 01-.553.894L15 17l-6-3z" />
         </svg>
-        <p class="mt-2 text-sm">{{ $t('stats.map.no_data_available') || 'No map data available' }}</p>
+        <p class="mt-2 text-sm">{{ t('stats.map.no_data_available') || 'No map data available' }}</p>
       </div>
     </div>
     
@@ -70,7 +70,7 @@
     
     <!-- Legend -->
     <div v-if="mapData && showLegend" class="absolute bottom-4 left-4 bg-white bg-opacity-90 rounded-lg p-3 shadow-md max-w-xs z-[1000]">
-      <h4 class="font-semibold text-sm mb-2">{{ $t('stats.map.legend') || 'Legend' }}</h4>
+      <h4 class="font-semibold text-sm mb-2">{{ t('stats.map.legend') || 'Legend' }}</h4>
       <div v-for="layer in mapData.layers" :key="layer.name" class="flex items-center text-xs mb-1">
         <div class="w-4 h-4 rounded-full mr-2" :style="{ backgroundColor: layer.style?.marker_color || '#2196F3' }"></div>
         <span>{{ layer.name }}</span>
@@ -107,7 +107,7 @@ const props = defineProps({
 })
 
 const config = useRuntimeConfig()
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 
 const map = ref(null)
 const mapData = ref(null)
@@ -195,7 +195,7 @@ const fetchMapData = async () => {
     
   } catch (err) {
     console.error('DataProductMap: Error fetching map data:', err)
-    error.value = $t('stats.map.error_loading') || 'Error loading map data'
+    error.value = t('stats.map.error_loading') || 'Error loading map data'
   } finally {
     loading.value = false
   }

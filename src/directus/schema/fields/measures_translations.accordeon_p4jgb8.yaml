@@ -15,11 +15,7 @@ meta:
     accordionMode: false
   readonly: false
   required: false
-<<<<<<<< HEAD:src/directus/schema/fields/measures/accordion-p4jgb8.yaml
   sort: 20
-========
-  sort: 8
->>>>>>>> a061fea (change measures datamodel):src/directus/schema/fields/measures_translations.accordeon_p4jgb8.yaml
   special:
     - alias
     - group

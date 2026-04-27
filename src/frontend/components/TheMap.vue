@@ -2,7 +2,7 @@
   <div class="top-4 left-4 bg-white rounded shadow p-2 z-[1000]">
     <label class="flex items-center gap-2 text-sm font-medium">
       <input type="checkbox" v-model="showMunicipalitiesWithUnfinishedRating" class="toggle toggle-sm" />
-      {{ $t('map.showUnfinishedRatings') }}
+      {{ t('map.showUnfinishedRatings') }}
     </label>
   </div>
 
@@ -50,13 +50,13 @@
               <template v-if="s.municipality.status === 'published' && s.percentage_rated > 98">
                 <div>Score: {{ Number(s.score_total).toFixed(2) }}</div>
                 <NuxtLink :to="`/municipalities/${s.municipality.slug}`" class="text-blue-600 underline hover:text-blue-800">
-                  {{ $t("map.icon.popup.goToRanking") }}
+                  {{ t("map.icon.popup.goToRanking") }}
                 </NuxtLink>
               </template>
               <template v-else>
-                <div>{{ $t("map.icon.popup.ratingNotFinished") }}</div>
+                <div>{{ t("map.icon.popup.ratingNotFinished") }}</div>
                 <div>
-                  {{ $t("map.icon.popup.percentageRated", { ":percentage_rated": s.percentage_rated }) }}
+                  {{ t("map.icon.popup.percentageRated", { ":percentage_rated": s.percentage_rated }) }}
                 </div>
               </template>
             </div>
@@ -74,7 +74,7 @@ import 'leaflet/dist/leaflet.css'
 import germanyGeoJson from '~/assets/germany-polygon.json?raw'
 import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
 
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 
 const props = defineProps({
   municipalityScores: { type: Array, default: () => [] },
@@ -178,7 +178,7 @@ function addLegend(map) {
       ['text-rating-2', 'Score 40-59%'],
       ['text-rating-1', 'Score 20-39%'],
       ['text-rating-0', 'Score 0-19%'],
-      ['text-rating-na', $t('map.icon.popup.ratingNotFinished.short'), !showMunicipalitiesWithUnfinishedRating.value]
+      ['text-rating-na', t('map.icon.popup.ratingNotFinished.short'), !showMunicipalitiesWithUnfinishedRating.value]
     ]
     div.innerHTML = lines.map(([cls, text, hidden]) => {
       const style = hidden ? 'height:0; overflow:hidden; margin:0; padding:0;' : ''

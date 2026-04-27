@@ -1,4 +1,5 @@
-  <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0 overflow-hidden">
+<template>
+  <div v-if="measure" class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0 overflow-hidden">
 
     <!-- Back link with chevron + sibling navigation -->
     <div class="flex items-center gap-2 flex-wrap">
@@ -6,7 +7,7 @@
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        {{ measure?.sector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) : '← Zurück zu Maßnahmen' }}
+        {{ measure?.sector ? t("measure.back_label", { ":sector": t(`measure_sectors.${measure.sector}.title`) }) : '← Zurück zu Maßnahmen' }}
       </NuxtLinkLocale>
 
       <div v-if="prevMeasure || nextMeasure" class="flex items-center gap-1 ml-2">
@@ -48,7 +49,7 @@
       </NuxtLinkLocale>
     </div>
 
-    <article v-if="measure" class="mb-8 mt-6">
+    <article class="mb-8 mt-6">
       <div class="flex items-center gap-3 mb-4 flex-wrap">
         <span class="font-mono bg-gray text-base-100 px-2 py-1 rounded-lg flex-shrink-0">{{ measure.measure_id }}</span>
         <h1 class="font-heading text-h1 font-bold text-gray">{{ measure.translations?.[0]?.name || measure.name }}</h1>
@@ -59,17 +60,6 @@
         <MeasureDescriptions :measure="measure" />
       </div>
     </article>
-
-    <!-- Loading skeleton while measure is being fetched -->
-    <div v-else class="mb-8 mt-6 animate-pulse space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="h-8 w-16 bg-gray-200 rounded-lg"></div>
-        <div class="h-8 w-64 bg-gray-200 rounded"></div>
-      </div>
-      <div class="h-4 w-full bg-gray-100 rounded"></div>
-      <div class="h-4 w-5/6 bg-gray-100 rounded"></div>
-      <div class="h-4 w-4/6 bg-gray-100 rounded"></div>
-    </div>
 
     <!-- Feedback section -->
     <div class="border-t-4 border-gray-200 pt-6 pb-8">
@@ -98,20 +88,32 @@
     </ClientOnly>
 
   </div>
-  <p v-else class="prose py-8">
+
+  <!-- Loading skeleton while measure is being fetched -->
+  <div v-else-if="measuresPending" class="px-4 py-8 max-w-4xl mx-auto w-full animate-pulse space-y-4">
+    <div class="flex items-center gap-3">
+      <div class="h-8 w-16 bg-gray-200 rounded-lg"></div>
+      <div class="h-8 w-64 bg-gray-200 rounded"></div>
+    </div>
+    <div class="h-4 w-full bg-gray-100 rounded"></div>
+    <div class="h-4 w-5/6 bg-gray-100 rounded"></div>
+    <div class="h-4 w-4/6 bg-gray-100 rounded"></div>
+  </div>
+
+  <p v-else class="prose py-8 px-4 max-w-4xl mx-auto">
     {{ t("page_not_found") }}
   </p>
 </template>
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
 const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
 // Function key includes the version ID and locale, so Nuxt never serves stale data from a different
 // version or language. The watch option triggers an automatic re-fetch when dependencies change.
-const { data: measuresRaw } = await useAsyncData(
+const { data: measuresRaw, pending: measuresPending } = await useAsyncData(
   () => `measure-${route.params.slug}-${currentCatalogVersion.value.id}-${locale.value}`,
   () => $directus.request(
     $readItems("measures", {

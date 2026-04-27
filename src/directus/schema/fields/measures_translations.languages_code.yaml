@@ -14,11 +14,7 @@ meta:
   options: null
   readonly: false
   required: false
-<<<<<<<< HEAD:src/directus/schema/fields/measures/verification_description.yaml
-  sort: 22
-========
   sort: 3
->>>>>>>> a061fea (change measures datamodel):src/directus/schema/fields/measures_translations.languages_code.yaml
   special: null
   translations: null
   validation: null

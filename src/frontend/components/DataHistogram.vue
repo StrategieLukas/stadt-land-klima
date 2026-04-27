@@ -3,7 +3,7 @@
     <!-- Loading state -->
     <div v-if="loading" class="flex items-center justify-center py-8 gap-2">
       <SlkFlowerSpinner :size="24" />
-      <span class="text-sm text-gray-600">{{ $t('generic.loading') }}...</span>
+      <span class="text-sm text-gray-600">{{ t('generic.loading') }}...</span>
     </div>
     
     <!-- Chart -->
@@ -22,7 +22,7 @@
       >
         <div class="flex flex-col items-center">
           <div class="bg-blue-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap shadow-lg font-semibold">
-            {{ municipalityName || $t('stats.your_municipality') }}
+            {{ municipalityName || t('stats.your_municipality') }}
           </div>
           <div class="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-blue-600"></div>
         </div>
@@ -31,13 +31,13 @@
     
     <!-- No data message -->
     <div v-else class="text-center py-8 text-gray-500 text-sm">
-      {{ $t('stats.histogram.no_data') }}
+      {{ t('stats.histogram.no_data') }}
     </div>
     
     <!-- Loading bin data overlay -->
     <div v-if="loadingBinData" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center gap-2 z-10">
       <SlkFlowerSpinner :size="24" />
-      <span class="text-sm text-gray-600">{{ $t('generic.loading') }}...</span>
+      <span class="text-sm text-gray-600">{{ t('generic.loading') }}...</span>
     </div>
   </div>
 </template>
@@ -115,7 +115,7 @@ const props = defineProps({
   }
 });
 
-const { $t } = useNuxtApp();
+const { t } = useI18n()
 const loading = ref(false);
 const histogramApiData = ref(null);
 const binDetailsData = ref(null); // Stores threshold breakdown for all bins
@@ -127,7 +127,7 @@ const displayUnit = computed(() => {
   if (props.isPercentage) {
     unit = '%';
   } else if (props.populationNormalized) {
-    unit += " / 1000 " + $t('stats.inhabitants_abbrev');
+    unit += " / 1000 " + t('stats.inhabitants_abbrev');
   }
   return unit;
 });
@@ -398,7 +398,7 @@ const chartData = computed(() => {
   return {
     labels,
     datasets: [{
-      label: $t('stats.histogram.frequency'),
+      label: t('stats.histogram.frequency'),
       data: bins.map(bin => bin.count),
       backgroundColor: bins.map((bin, index) => {
         return getBarColor(bin.midpoint);
@@ -521,7 +521,7 @@ const chartOptions = computed(() => ({
           const label = context.dataset.label || '';
           // For stacked bars, use the raw data value, not the parsed y value
           const value = context.dataset.data[context.dataIndex] || 0;
-          return `${label}: ${value} ${$t('stats.histogram.municipalities')}`;
+          return `${label}: ${value} ${t('stats.histogram.municipalities')}`;
         },
         footer: (tooltipItems) => {
           if (binDetailsData.value?.bin_details) {
@@ -530,7 +530,7 @@ const chartOptions = computed(() => ({
               const value = item.dataset.data[item.dataIndex] || 0;
               return sum + value;
             }, 0);
-            return `Total: ${total} ${$t('stats.histogram.municipalities')}`;
+            return `Total: ${total} ${t('stats.histogram.municipalities')}`;
           }
           return '';
         }

@@ -12,7 +12,7 @@
   <!-- Case 1: Directus data with full rating -->
   <div v-else-if="directusData && directusData.municipalityScore">
     <waving-banner v-if="directusData.municipalityScore.municipality.status === 'draft'">
-      {{ $t("municipalities.preview_text") }}
+      {{ t("municipalities.preview_text") }}
     </waving-banner>
     <NuxtLinkLocale :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
@@ -123,31 +123,31 @@
         <div class="rounded-sm shadow-list">
           <div class="flex items-center gap-2 px-6 py-4">
             <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
-            <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
+            <h3 class="font-heading text-h3 text-green">{{ t("municipality.municipality_info") }}</h3>
           </div>
           <div class="px-6 pb-6 space-y-3">
             <div v-if="slzArea.state" class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("state") }}</span>
+                <span class="text-sm text-gray-700">{{ t("state") }}</span>
               </div>
               <span class="text-sm font-bold text-gray-900">{{ slzArea.state }}</span>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
+                <span class="text-sm text-gray-700">{{ t("municipality.population") }}</span>
               </div>
               <span class="text-sm font-bold text-gray-900">
-                {{ slzArea.population ? slzArea.population.toLocaleString() : $t("generic.not_entered") }}
+                {{ slzArea.population ? slzArea.population.toLocaleString() : t("generic.not_entered") }}
               </span>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
-                <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
+                <span class="text-sm text-gray-700">{{ t("municipality.mayor") }}</span>
               </div>
-              <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
+              <span class="text-sm font-bold text-gray-400 italic">{{ t("generic.not_entered") }}</span>
             </div>
           </div>
         </div>
@@ -158,8 +158,8 @@
           class="shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
         >
           <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14" />
-          <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
-        </NuxtLink>
+          <h2 class="font-heading text-h2">{{ t("stats.title") }} →</h2>
+        </NuxtLinkLocale>
 
         <!-- CTA: support team if Directus municipality with localteam found, otherwise found one -->
         <div v-if="directusMuniByArs" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-yellow-50">
@@ -233,31 +233,31 @@
             <div class="rounded-sm shadow-list">
               <div class="flex items-center gap-2 px-6 py-4">
                 <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
-                <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
+                <h3 class="font-heading text-h3 text-green">{{ t("municipality.municipality_info") }}</h3>
               </div>
               <div class="px-6 pb-6 space-y-3">
                 <div v-if="slzArea.state" class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_location.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("state") }}</span>
+                    <span class="text-sm text-gray-700">{{ t("state") }}</span>
                   </div>
                   <span class="text-sm font-bold text-gray-900">{{ slzArea.state }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("municipality.population") }}</span>
+                    <span class="text-sm text-gray-700">{{ t("municipality.population") }}</span>
                   </div>
                   <span class="text-sm font-bold text-gray-900">
-                    {{ slzArea.population ? slzArea.population.toLocaleString() : $t("generic.not_entered") }}
+                    {{ slzArea.population ? slzArea.population.toLocaleString() : t("generic.not_entered") }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
-                    <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
+                    <span class="text-sm text-gray-700">{{ t("municipality.mayor") }}</span>
                   </div>
-                  <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
+                  <span class="text-sm font-bold text-gray-400 italic">{{ t("generic.not_entered") }}</span>
                 </div>
               </div>
             </div>
@@ -268,7 +268,7 @@
               class="shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
             >
               <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
-              <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
+              <h3 class="font-heading text-h3">{{ t("stats.title") }} →</h3>
             </NuxtLink>
 
           </div>
@@ -299,7 +299,7 @@
 
 
 <script setup>
-const { $directus, $readItems, $stadtlandzahlAPI, $t } = useNuxtApp();
+const { $directus, $readItems, $stadtlandzahlAPI } = useNuxtApp();
 const router = useRouter();
 
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
@@ -319,7 +319,7 @@ if (typeof route.params.slug === 'string' && route.params.slug.includes('.')) {
 const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 const { backHref, backLabel } = useReferrer(
   computed(() => `/municipalities?v=${selectedCatalogVersion.name}`),
-  computed(() => $t('municipality.back_label')),
+  computed(() => t('municipality.back_label')),
 );
 
 // Change the URL to match the catalog version, if it didn't to begin with
@@ -352,7 +352,6 @@ const isPreviewLocked = computed(() => {
   if (muni.status === 'published') return false;
   if (muni.creator_verified) return false;
   return route.query.preview !== muni.preview_token;
-});
 });
 
 // If no Directus data, fetch from Stadt-Land-Zahl with a loading state

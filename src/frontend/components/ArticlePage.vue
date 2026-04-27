@@ -194,10 +194,8 @@
               <img src="~/assets/icons/icon_linkedin.svg" class="w-6 h-6 my-0" alt="LinkedIn" />
             </a>
             
-            <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
-          </div>
         </div>
-        </div>
+      </div>
       </div>
 
       <!-- Main Content -->

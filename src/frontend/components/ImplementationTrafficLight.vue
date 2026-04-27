@@ -19,5 +19,5 @@ const props = defineProps({
   }
 })
 
-const { $t } = useNuxtApp();
+const { t } = useI18n()
 </script>

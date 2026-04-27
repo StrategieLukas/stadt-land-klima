@@ -1,6 +1,6 @@
 <template>
   <div class="py-8">
-    <h1 class="text-3xl font-bold mb-8">{{ $t('events.title') || 'Veranstaltungen' }}</h1>
+    <h1 class="text-3xl font-bold mb-8">{{ t('events.title') || 'Veranstaltungen' }}</h1>
 
     <div v-if="!events || !events.length" class="text-gray-500 italic">
       Aktuell sind keine Veranstaltungen geplant.
@@ -39,7 +39,8 @@
 
 <script setup>
 import { computed } from 'vue'
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $directus, $readItems } = useNuxtApp()
+const { t } = useI18n()
 
 useHead({ title: 'Veranstaltungen' })
 

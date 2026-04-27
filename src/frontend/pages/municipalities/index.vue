@@ -44,7 +44,7 @@
       </div>
 
       <!-- Vertical divider -->
-      <div class="self-stretch w-px bg-[#AFCA0B]/30 mx-1" />
+      <div class="self-stretch w-px bg-[#AFCA0B]/30 mx-1"></div>
 
       <!-- Catalog version -->
       <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -64,7 +64,7 @@
       </div>
     </div>
 
-    <div class="border-t border-[#AFCA0B]/20 my-0.5" />
+    <div class="border-t border-[#AFCA0B]/20 my-0.5"></div>
 
     <!-- Row 2: Municipality type filter -->
     <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-start py-1.5">

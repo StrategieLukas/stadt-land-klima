@@ -105,6 +105,7 @@
               :alt="t('logo.alt')"
             />
           </NuxtLinkLocale>
+        </div>
 
 
         <!-- 4 columns in the center -->
@@ -149,8 +150,6 @@
               <span aria-hidden="true">·</span>
               <button class="hover:text-white transition-colors" @click="handleLogout">Ausloggen</button>
             </div>
-          </div>
-        </div>
           </div>
         </div>
       </div>

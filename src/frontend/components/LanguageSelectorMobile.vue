@@ -37,6 +37,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import { fetchAndApplyTranslations } from "#shared/loadTranslations";
+import { fetchLanguages } from "~/composables/fetchLanguages";
 
 const { $directus, $readItems, $i18n } = useNuxtApp();
 const { locale, setLocale } = useI18n();

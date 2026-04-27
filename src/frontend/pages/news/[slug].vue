@@ -117,7 +117,7 @@
   </BlokkliProvider>
 
   <p v-else class="prose py-8">
-    {{ $t('page_not_found') }}
+    {{ t('page_not_found') }}
   </p>
 </template>
 
@@ -126,7 +126,8 @@ import { readItems, updateItem } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useReferrer } from '~/composables/useReferrer'
 
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $directus, $readItems } = useNuxtApp()
+const { t } = useI18n()
 const { backHref, backLabel } = useReferrer('/news', 'Zurück zur News-Übersicht')
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl

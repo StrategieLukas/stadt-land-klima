@@ -3,8 +3,8 @@
 
     <!-- Title -->
     <div class="mb-4 mt-4">
-      <h1 class="text-4xl font-bold text-gray">{{ $t("measures.heading") }}</h1>
-      <p class="mt-2 text-sm text-gray-600 max-w-2xl">{{ $t("measures.description") }}</p>
+      <h1 class="text-4xl font-bold text-gray">{{ t("measures.heading") }}</h1>
+      <p class="mt-2 text-sm text-gray-600 max-w-2xl">{{ t("measures.description") }}</p>
     </div>
 
     <!-- Filter + Sort bar -->
@@ -29,7 +29,7 @@
           </NuxtLinkLocale>
 
           <!-- vertical divider -->
-          <div class="self-stretch w-px bg-gray/20 mx-1" />
+          <div class="self-stretch w-px bg-gray/20 mx-1"></div>
 
           <!-- View toggle -->
           <button
@@ -57,7 +57,7 @@
         </div>
       </div>
 
-      <div class="border-t border-gray/20 my-0.5" />
+      <div class="border-t border-gray/20 my-0.5"></div>
 
       <!-- Row 1: Sector filter -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-start py-1.5">
@@ -80,12 +80,12 @@
             @click="setSector(sector)"
           >
             <img :src="sectorImages[sector]" class="w-6 h-6 flex-shrink-0 invert grayscale mix-blend-multiply" :class="selectedSector === sector ? 'opacity-100' : 'opacity-40'" alt="" />
-            {{ $t(`measure_sectors.${sector}.title`) }}
+            {{ t(`measure_sectors.${sector}.title`) }}
           </button>
         </div>
       </div>
 
-      <div class="border-t border-gray/20 my-0.5" />
+      <div class="border-t border-gray/20 my-0.5"></div>
 
       <!-- Row 2: Quick-filter toggles -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-center py-1.5">
@@ -124,7 +124,7 @@
       </div>
 
       <template v-if="viewMode === 'list'">
-      <div class="border-t border-gray/20 my-0.5" />
+      <div class="border-t border-gray/20 my-0.5"></div>
 
       <!-- Row 3: Sort -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-center py-1.5">
@@ -179,8 +179,8 @@
 
     <!-- Sector description (shown when a sector is selected) -->
     <div v-if="selectedSector" class="mb-4 bg-gray/5 border-l-4 border-gray/30 px-4 py-3 text-sm text-gray-700 max-w-2xl">
-      <p class="font-bold mb-1">{{ $t(`measure_sectors.${selectedSector}.title`) }}</p>
-      <p>{{ $t(`measure_sectors.${selectedSector}.description`) }}</p>
+      <p class="font-bold mb-1">{{ t(`measure_sectors.${selectedSector}.title`) }}</p>
+      <p>{{ t(`measure_sectors.${selectedSector}.description`) }}</p>
     </div>
 
     <!-- Result count (list only) -->
@@ -225,13 +225,13 @@
         v-if="currentCatalogVersion.name === 'v1.0'"
         :to="`/backend/assets/ac1df0cd-8a57-4082-bdd3-432f43e4a374.xslx`"
       >
-        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
+        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
       </NuxtLinkLocale>
       <NuxtLinkLocale
         v-if="currentCatalogVersion.name === 'beta'"
         :to="`/backend/assets/9c270dd0-52dc-449b-9c2e-bbd5d5b829.xslx`"
       >
-        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
+        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
       </NuxtLinkLocale>
     </div>
   </div>
@@ -244,7 +244,7 @@ import sectorImages from "~/shared/sectorImages.js";
 const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'];
 const { t, locale } = useI18n();
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 let selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
@@ -254,7 +254,7 @@ onMounted(() => {
   setCatalogVersionUrl(route, router, selectedCatalogVersion);
 });
 
-const title = ref($t("measures.nav_label"));
+const title = ref(t("measures.nav_label"));
 useHead({ title });
 
 // Fetch all non-hidden catalog versions for the version filter row

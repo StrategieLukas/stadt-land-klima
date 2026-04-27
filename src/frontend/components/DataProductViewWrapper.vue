@@ -30,17 +30,17 @@
   <!-- Expandable section -->
   <div v-if="expanded" class="p-4 space-y-3 text-sm text-black bg-base-100 shadow-md">
     <div v-if="description">
-      <p class="font-bold">{{ $t('stats.labels.description') }}</p>
+      <p class="font-bold">{{ t('stats.labels.description') }}</p>
       <p>{{ description }}</p>
     </div>
     
     <div v-if="calculation">
-      <p class="font-bold">{{ $t('stats.labels.calculation') }}</p>
+      <p class="font-bold">{{ t('stats.labels.calculation') }}</p>
       <p>{{ calculation }}</p>
     </div>
     
     <div v-if="dataSources.length">
-      <p class="font-bold">{{ dataSources.length === 1 ? $t('stats.labels.data_source.singular') : $t('stats.labels.data_source.plural') }}</p>
+      <p class="font-bold">{{ dataSources.length === 1 ? t('stats.labels.data_source.singular') : t('stats.labels.data_source.plural') }}</p>
       <div class="grid gap-3 mt-2">
         <div v-for="dataSource in dataSources" :key="dataSource.id" class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
           <!-- Date Badge -->
@@ -109,7 +109,7 @@
     
     <!-- Histogram Section -->
     <div v-if="histogramConfig">
-      <p class="font-bold">{{ $t('stats.labels.distribution') }}</p>
+      <p class="font-bold">{{ t('stats.labels.distribution') }}</p>
       <div class="mt-2 bg-gray-50 rounded-lg p-4">
         <!-- Use simple histogram if precomputed data is available -->
         <DataHistogram
@@ -146,32 +146,32 @@
         <div v-if="selectedBinData" class="mt-4 border-t pt-4">
           <div class="flex justify-between items-center mb-2">
             <h4 class="font-semibold text-base">
-              {{ $t('stats.histogram.municipalities_in_range') }} 
+              {{ t('stats.histogram.municipalities_in_range') }} 
               ({{ selectedBinData.bin_range.start.toFixed(0) }} - {{ selectedBinData.bin_range.end.toFixed(0) }} {{ histogramConfig.unit || unit }})
             </h4>
             <button 
               @click.stop="selectedBinData = null" 
               class="text-gray-500 hover:text-gray-700"
-              :title="$t('generic.close')"
+              :title="t('generic.close')"
             >
               ✕
             </button>
           </div>
           <p class="text-sm text-gray-600 mb-2">
-            {{ selectedBinData.count }} {{ $t('stats.histogram.municipalities') }}
+            {{ selectedBinData.count }} {{ t('stats.histogram.municipalities') }}
           </p>
           <div class="max-h-60 overflow-y-auto border">
             <table class="table table-zebra table-xs table-pin-rows">
               <thead>
                 <tr>
-                  <th class="text-right pr-1">{{ $t('administrative_areas.prefix') }}</th>
-                  <th class="text-left pl-1">{{ $t('administrative_areas.name') }}</th>
+                  <th class="text-right pr-1">{{ t('administrative_areas.prefix') }}</th>
+                  <th class="text-left pl-1">{{ t('administrative_areas.name') }}</th>
                   <th class="text-right">
                     <button 
                       @click.stop="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'"
                       class="hover:text-blue-600 flex items-center gap-1 ml-auto"
                     >
-                      {{ $t('stats.value') }}
+                      {{ t('stats.value') }}
                       <span class="text-xs">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
                     </button>
                   </th>
@@ -204,7 +204,7 @@
 
     <!-- Map Section -->
     <div v-if="mapEnabled && ars && dataProductType">
-      <p class="font-bold">{{ $t('stats.labels.map') || 'Map' }}</p>
+      <p class="font-bold">{{ t('stats.labels.map') || 'Map' }}</p>
       <div class="mt-2 bg-gray-50 rounded-lg p-4">
         <DataProductMap
           :ars="ars"
@@ -281,7 +281,7 @@ const props = defineProps({
   }
 })
 
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 
 const expanded = ref(props.defaultExpanded)
 const hasPrecomputedHistogram = ref(false)

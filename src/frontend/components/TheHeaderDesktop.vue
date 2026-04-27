@@ -90,7 +90,6 @@
         </div>
         <LanguageSelectorDesktop v-if="num_languages > 1" />
       </div>
-      </div>
     </div>
 
     <!-- Row 2: Navigation strip — collapses when scrolling down, reappears on scroll up.

@@ -1,3 +1,4 @@
+id: e455dcd4-c7e3-4845-a2d8-01bd6de3371b
 name: frontend
 icon: web_asset
 description: null
@@ -9,29 +10,25 @@ permissions:
   - collection: answers
     action: create
     permissions:
-      _or:
-        - candidate:
-            election:
-              response_cutoff_date:
-                _null: true
-        - candidate:
-            election:
-              response_cutoff_date:
-                _gt: $NOW
+      _and:
+        - status:
+            _eq: published
+        - catalog_version:
+            hidden:
+              _eq: false
     validation: {}
     presets: null
     fields:
       - "*"
-  - collection: answers
-    action: delete
-    permissions: {}
-    validation: {}
+  - collection: pages
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
     presets: null
     fields:
-<<<<<<< HEAD
-      - "*"
-  - collection: answers
-=======
       - id
       - menus
       - slug
@@ -77,6 +74,7 @@ permissions:
       - status
       - overall_status_comment
       - public_contact
+      - translations
   - collection: municipalities_translations
     action: read
     permissions: null
@@ -129,7 +127,6 @@ permissions:
       - description_funding
       - description_tutorial
   - collection: directus_translations
->>>>>>> 168a296 (municipalities translations)
     action: read
     permissions: {}
     validation: {}

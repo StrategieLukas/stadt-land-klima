@@ -15,11 +15,7 @@ meta:
     trim: true
   readonly: false
   required: false
-<<<<<<<< HEAD:src/directus/schema/fields/measures/notes.yaml
-  sort: 23
-========
   sort: 11
->>>>>>>> a061fea (change measures datamodel):src/directus/schema/fields/measures_translations.notes.yaml
   special: null
   translations:
     - language: de-DE

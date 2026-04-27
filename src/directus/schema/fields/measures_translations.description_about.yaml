@@ -31,13 +31,8 @@ meta:
       - removeformat
       - underline
   readonly: false
-<<<<<<<< HEAD:src/directus/schema/fields/measures/description_about.yaml
-  required: true
-  sort: 17
-========
   required: false
   sort: 5
->>>>>>>> a061fea (change measures datamodel):src/directus/schema/fields/measures_translations.description_about.yaml
   special: null
   translations:
     - language: de-DE
