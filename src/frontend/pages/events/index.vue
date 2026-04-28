@@ -5,19 +5,19 @@
     <!-- Mobile sticky scroll nav -->
     <nav
       class="xl:hidden sticky z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
-      style="top: 64px"
+      :style="`top: ${pillTop}px`"
     >
       <div ref="mobilePillStrip" class="flex gap-2 overflow-x-auto py-2" style="scrollbar-width: none; -ms-overflow-style: none;">
         <a
           v-if="currentEvents.length"
-          href="#section-laufend"
+          href="#section-momentan"
           :class="[
             'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
-            activeSection === 'section-laufend'
+            activeSection === 'section-momentan'
               ? 'bg-orange-100 text-orange-700'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
-        >🔴 Laufend</a>
+        >Momentan</a>
         <a
           v-for="group in futureGroups"
           :key="group.monthKey"
@@ -54,14 +54,14 @@
         <ul class="space-y-1">
           <li v-if="currentEvents.length">
             <a
-              href="#section-laufend"
+              href="#section-momentan"
               :class="[
                 'block px-2 py-1 rounded transition-colors truncate',
-                activeSection === 'section-laufend'
+                activeSection === 'section-momentan'
                   ? 'text-orange-600 font-semibold bg-orange-50'
                   : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
               ]"
-            >Laufende Veranstaltungen</a>
+            >Momentan</a>
           </li>
           <li v-for="group in futureGroups" :key="group.monthKey">
             <a
@@ -94,13 +94,13 @@
         <!-- Currently happening -->
         <div
           v-if="currentEvents.length"
-          id="section-laufend"
+          id="section-momentan"
           class="mb-10"
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
           <h2 class="text-base font-semibold text-orange-600 uppercase tracking-wide border-b border-orange-200 pb-2 mb-4 flex items-center">
             <span class="inline-block w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-            Laufende Veranstaltungen
+            Momentan
           </h2>
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <NuxtLink
@@ -257,10 +257,17 @@
 <script setup>
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
+import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 const { $directus, $readItems, $t } = useNuxtApp()
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
 const headerHeight = useHeaderHeight()
+const mobileHeaderHidden = useMobileHeaderHidden()
+// On desktop (xl+) use actual header height; on mobile use 64px unless the header has scrolled off
+const pillTop = computed(() => {
+  const isDesktop = useState('layout-isDesktop')
+  return isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
+})
 
 useHead({ title: 'Veranstaltungen' })
 

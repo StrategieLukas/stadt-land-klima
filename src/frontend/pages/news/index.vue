@@ -52,7 +52,7 @@
     <!-- Mobile sticky scroll nav -->
     <nav
       class="xl:hidden sticky z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
-      style="top: 64px"
+      :style="`top: ${pillTop}px`"
     >
       <div ref="mobilePillStrip" class="flex gap-2 overflow-x-auto py-2" style="scrollbar-width: none; -ms-overflow-style: none;">
         <a
@@ -64,7 +64,7 @@
               ? 'bg-[#1da64a]/10 text-[#1da64a] font-semibold'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
-        >Zukünftige Veranstaltungen</a>
+        >Zukünftig</a>
         <a
           v-for="group in groupedByMonth"
           :key="group.monthKey"
@@ -99,7 +99,7 @@
                     ? 'text-[#1da64a] font-semibold bg-[#1da64a]/5'
                     : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
                 ]"
-              >Zukünftige Veranstaltungen</a>
+              >Zukünftig</a>
             </li>
             <li v-for="group in groupedByMonth" :key="group.monthKey">
               <a
@@ -127,7 +127,7 @@
     >
       <div class="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
         <h2 class="text-base font-semibold text-gray-500 uppercase tracking-wide">
-          Zukünftige Veranstaltungen
+          Zukünftig
         </h2>
         <NuxtLink to="/events" class="text-sm text-[#1da64a] hover:underline flex items-center gap-1 font-medium shrink-0">
           Alle Veranstaltungen
@@ -332,6 +332,7 @@ import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from '
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
+import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 import sectorImages from '~/shared/sectorImages.js'
 
 function stripHtml(html) {
@@ -347,6 +348,12 @@ const directusUrl = config.public.clientDirectusUrl
 
 const { isAuthenticated, initialize, getAuthenticatedClient } = useAuth()
 const headerHeight = useHeaderHeight()
+const mobileHeaderHidden = useMobileHeaderHidden()
+// On desktop (xl+) use actual header height; on mobile use 64px unless the header has scrolled off
+const pillTop = computed(() => {
+  const isDesktop = useState('layout-isDesktop')
+  return isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
+})
 
 // ── Section nav active tracking ────────────────────────────────────────────────
 const activeSection = ref(null)

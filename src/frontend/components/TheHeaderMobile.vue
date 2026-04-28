@@ -35,12 +35,15 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
+import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 
 const { $t } = useNuxtApp()
 const { open } = useSearchPalette()
 const { isDrawerOpen } = useDrawer()
 
+const mobileHeaderHidden = useMobileHeaderHidden()
 const hidden = ref(false)
+watch(hidden, (v) => { mobileHeaderHidden.value = v })
 let lastY = 0
 
 function onScroll() {
