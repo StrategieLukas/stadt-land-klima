@@ -1,34 +1,35 @@
-collection: user_agreements
-field: agb_version
-type: string
+collection: agreement_versions
+field: isCurrentVersion
+type: boolean
 meta:
-  collection: user_agreements
+  collection: agreement_versions
   conditions: null
   display: null
   display_options: null
-  field: agb_version
+  field: isCurrentVersion
   group: null
   hidden: false
-  interface: input
-  note: Version of AGB agreed to
+  interface: boolean
+  note: null
   options: null
-  readonly: true
+  readonly: false
   required: true
-  sort: null
-  special: null
+  sort: 4
+  special:
+    - cast-boolean
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: agb_version
-  table: user_agreements
-  data_type: varchar
-  default_value: null
-  max_length: 50
+  name: isCurrentVersion
+  table: agreement_versions
+  data_type: boolean
+  default_value: false
+  max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_primary_key: false
   is_generated: false

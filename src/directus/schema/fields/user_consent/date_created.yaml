@@ -1,34 +1,36 @@
-collection: user_agreements
-field: agb_accepted_at
+collection: user_consent
+field: date_created
 type: timestamp
 meta:
-  collection: user_agreements
+  collection: user_consent
   conditions: null
-  display: null
-  display_options: null
-  field: agb_accepted_at
+  display: datetime
+  display_options:
+    relative: true
+  field: date_created
   group: null
-  hidden: false
+  hidden: true
   interface: datetime
-  note: When AGB was accepted
+  note: null
   options: null
   readonly: true
-  required: true
-  sort: null
-  special: null
+  required: false
+  sort: 2
+  special:
+    - date-created
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: agb_accepted_at
-  table: user_agreements
-  data_type: timestamp without time zone
+  name: date_created
+  table: user_consent
+  data_type: timestamp with time zone
   default_value: null
   max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_primary_key: false
   is_generated: false

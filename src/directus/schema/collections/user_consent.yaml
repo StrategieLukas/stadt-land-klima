@@ -1,24 +1,24 @@
-collection: agreement_versions
+collection: user_consent
 meta:
   accountability: all
   archive_app_filter: true
   archive_field: null
   archive_value: null
   collapse: open
-  collection: agreement_versions
+  collection: user_consent
   color: null
   display_template: null
-  group: Legal
+  group: null
   hidden: false
   icon: null
   item_duplication_fields: null
-  note: Stores current versions of agreements
+  note: null
   preview_url: null
   singleton: false
-  sort: 1
+  sort: null
   sort_field: null
   translations: null
   unarchive_value: null
   versioning: false
 schema:
-  name: agreement_versions
+  name: user_consent

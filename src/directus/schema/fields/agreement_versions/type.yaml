@@ -1,34 +1,41 @@
 collection: agreement_versions
-field: current_data_protection_version
+field: type
 type: string
 meta:
   collection: agreement_versions
   conditions: null
   display: null
   display_options: null
-  field: current_data_protection_version
+  field: type
   group: null
   hidden: false
-  interface: input
-  note: Current version of data protection agreement
-  options: null
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: AGB
+        value: terms_of_service
+      - text: Datenschutzerklärung
+        value: data_protection
+      - text: Newsletter
+        value: newsletter
   readonly: false
   required: true
-  sort: null
+  sort: 5
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: current_data_protection_version
+  name: type
   table: agreement_versions
-  data_type: varchar
-  default_value: '"1.0"'
-  max_length: 50
+  data_type: character varying
+  default_value: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_primary_key: false
   is_generated: false

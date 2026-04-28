@@ -1,31 +1,30 @@
-collection: user_agreements
-field: newsletter_subscribed
-type: boolean
+collection: agreement_versions
+field: legal_text
+type: text
 meta:
-  collection: user_agreements
+  collection: agreement_versions
   conditions: null
   display: null
   display_options: null
-  field: newsletter_subscribed
+  field: legal_text
   group: null
   hidden: false
-  interface: boolean
-  note: Whether user subscribed to newsletter
+  interface: input-rich-text-md
+  note: null
   options: null
   readonly: false
-  required: false
-  sort: null
-  special:
-    - cast-boolean
+  required: true
+  sort: 7
+  special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: newsletter_subscribed
-  table: user_agreements
-  data_type: boolean
-  default_value: false
+  name: legal_text
+  table: agreement_versions
+  data_type: text
+  default_value: null
   max_length: null
   numeric_precision: null
   numeric_scale: null

@@ -1,8 +1,8 @@
-collection: user_agreements
+collection: user_consent
 field: id
-type: uuid
+type: integer
 meta:
-  collection: user_agreements
+  collection: user_consent
   conditions: null
   display: null
   display_options: null
@@ -14,7 +14,7 @@ meta:
   options: null
   readonly: true
   required: false
-  sort: null
+  sort: 1
   special: null
   translations: null
   validation: null
@@ -22,17 +22,17 @@ meta:
   width: full
 schema:
   name: id
-  table: user_agreements
-  data_type: uuid
-  default_value: null
+  table: user_consent
+  data_type: integer
+  default_value: nextval('user_consent_id_seq'::regclass)
   max_length: null
-  numeric_precision: null
-  numeric_scale: null
+  numeric_precision: 32
+  numeric_scale: 0
   is_nullable: false
   is_unique: true
   is_primary_key: true
   is_generated: false
   generation_expression: null
-  has_auto_increment: false
+  has_auto_increment: true
   foreign_key_table: null
   foreign_key_column: null

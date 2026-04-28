@@ -1,31 +1,31 @@
-collection: user_agreements
-field: created_at
-type: timestamp
+collection: agreement_versions
+field: version
+type: string
 meta:
-  collection: user_agreements
+  collection: agreement_versions
   conditions: null
   display: null
   display_options: null
-  field: created_at
+  field: version
   group: null
-  hidden: true
-  interface: datetime
+  hidden: false
+  interface: input
   note: null
   options: null
-  readonly: true
-  required: false
-  sort: null
+  readonly: false
+  required: true
+  sort: 6
   special: null
   translations: null
   validation: null
   validation_message: null
   width: full
 schema:
-  name: created_at
-  table: user_agreements
-  data_type: timestamp without time zone
+  name: version
+  table: agreement_versions
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

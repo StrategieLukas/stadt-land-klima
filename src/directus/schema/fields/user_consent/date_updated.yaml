@@ -1,29 +1,31 @@
-collection: user_agreements
-field: newsletter_subscribed_at
+collection: user_consent
+field: date_updated
 type: timestamp
 meta:
-  collection: user_agreements
+  collection: user_consent
   conditions: null
-  display: null
-  display_options: null
-  field: newsletter_subscribed_at
+  display: datetime
+  display_options:
+    relative: true
+  field: date_updated
   group: null
-  hidden: false
+  hidden: true
   interface: datetime
-  note: When newsletter subscription was set
+  note: null
   options: null
-  readonly: false
+  readonly: true
   required: false
-  sort: null
-  special: null
+  sort: 3
+  special:
+    - date-updated
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: newsletter_subscribed_at
-  table: user_agreements
-  data_type: timestamp without time zone
+  name: date_updated
+  table: user_consent
+  data_type: timestamp with time zone
   default_value: null
   max_length: null
   numeric_precision: null

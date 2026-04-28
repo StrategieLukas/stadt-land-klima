@@ -14,8 +14,9 @@ meta:
   options: null
   readonly: true
   required: false
-  sort: null
-  special: null
+  sort: 1
+  special:
+    - uuid
   translations: null
   validation: null
   validation_message: null

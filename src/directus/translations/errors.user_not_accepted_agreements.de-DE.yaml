@@ -1,3 +1,5 @@
 language: de-DE
 key: errors.user_not_accepted_agreements
-value: Die AGB und Datenschutzerklärung wurden noch nicht akzeptiert, bitte akzeptiere diese auf der Startseite (auf das Hammer-Symbol im linken Menü klicken)
+value: Die AGB und Datenschutzerklärung wurden noch nicht akzeptiert, bitte
+  akzeptiere diese auf der Startseite (auf das Hammer-Symbol im linken Menü
+  klicken)
