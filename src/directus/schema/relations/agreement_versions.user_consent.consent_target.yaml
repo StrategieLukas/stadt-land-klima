@@ -1,0 +1,21 @@
+collection: user_consent
+field: consent_target
+related_collection: agreement_versions
+meta:
+  junction_field: null
+  many_collection: user_consent
+  many_field: consent_target
+  one_allowed_collections: null
+  one_collection: agreement_versions
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: null
+  sort_field: null
+schema:
+  table: user_consent
+  column: consent_target
+  foreign_key_table: agreement_versions
+  foreign_key_column: id
+  constraint_name: user_consent_consent_target_foreign
+  on_update: NO ACTION
+  on_delete: SET NULL

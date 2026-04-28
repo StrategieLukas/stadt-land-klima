@@ -6,6 +6,20 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
+  - collection: agreement_versions
+    action: read
+    permissions:
+      _and:
+        - isCurrentVersion:
+            _eq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - type
+      - version
+      - legal_text
+      - isCurrentVersion
   - collection: articles
     action: create
     permissions: null
@@ -793,3 +807,63 @@ permissions:
       - internal_note
       - applicable
       - why_not_applicable
+  - collection: user_agreements
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - user_id
+      - agb_version
+      - agb_accepted_at
+      - data_protection_version
+      - data_protection_accepted_at
+      - newsletter_subscribed
+      - newsletter_subscribed_at
+  - collection: user_agreements
+    action: read
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: user_agreements
+    action: update
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - newsletter_subscribed
+      - newsletter_subscribed_at
+  - collection: user_consent
+    action: create
+    permissions: null
+    validation:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    presets: null
+    fields:
+      - id
+      - consent_target
+      - user_id
+  - collection: user_consent
+    action: read
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - id
+      - date_created
+      - date_updated
+      - consent_target
+      - user_id
