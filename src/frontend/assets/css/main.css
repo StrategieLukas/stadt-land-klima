@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reserve scrollbar gutter so appearing/disappearing scrollbars don't change
+   the viewport width and cause layout shifts on pages with dynamic content. */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Block hash navigation highlight */
 @keyframes block-highlight-pulse {
   0%   { outline: 3px solid transparent; }

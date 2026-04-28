@@ -1,6 +1,13 @@
 name: Public
 description: Unauthenticated access
 permissions:
+  - collection: organisation_teams
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: directus_files
     action: read
     permissions: {}
@@ -86,6 +93,22 @@ permissions:
       - creator_verified
       - preview_token
       - image
+  - collection: directus_users
+    action: read
+    permissions:
+      _and:
+        - show_on_team_page:
+            _eq: true
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - first_name
+      - last_name
+      - email
+      - avatar
+      - bio
+      - slk_team
   - collection: articles_measures
     action: read
     permissions: {}
