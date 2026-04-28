@@ -1,20 +1,22 @@
 <template>
-  <!-- Search Bar -->
-  <div class="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-6">
-    <form class="relative overflow-visible flex-1" @submit.prevent>
+  <!-- Search Bar: stacked on mobile (filter below), side-by-side on sm+ (filter right) -->
+  <div class="flex flex-col sm:flex-row sm:items-stretch gap-2 sm:gap-3 w-full">
+    <!-- Input + label -->
+    <form class="relative overflow-visible flex-1 min-w-0" @submit.prevent>
       <div class="form-control w-full">
         <label for="admin-search-input" class="label">{{ translatedLabel }}</label>
         <input
           id="admin-search-input"
           ref="inputRef"
           v-model="q"
-          class="input input-bordered w-full bg-white pr-12 border-stats-dark focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
+          class="input input-bordered w-full bg-white pr-12 text-base border-stats-dark focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
           name="q"
           type="text"
           autocomplete="off"
           :placeholder="translatedPlaceholder"
           @input="onInput"
           @focus="handleFocus"
+          @blur="handleBlur"
           @keydown.down.prevent="moveFocus(1)"
           @keydown.up.prevent="moveFocus(-1)"
           @keydown.enter.prevent="goToFocused()"
@@ -53,7 +55,8 @@
               :key="suggestion.ars"
               class="px-3 sm:px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
               :class="{ 'bg-stats-light': index === focusedIndex, 'opacity-60 cursor-default': !suggestion.url }"
-              @click="suggestion.url ? (goTo(suggestion.url), handleSuggestionClick()) : null"
+              @mousedown.prevent="suggestion.url ? (goTo(suggestion.url), handleSuggestionClick()) : null"
+              @touchend.prevent="suggestion.url ? (goTo(suggestion.url), handleSuggestionClick()) : null"
             >
               <div class="flex items-start sm:items-center justify-between gap-2">
                 <div class="flex-1 min-w-0">
@@ -90,40 +93,28 @@
       </Teleport>
     </form>
 
-    <!-- Filter Radio Group -->
-    <div class="form-control flex-shrink-0 lg:min-w-0" ref="radioGroup">
-      <label class="label">
-        <span class="label-text">{{ $t('administrative_areas.search.filter_settings') }}</span>
-      </label>
-      <div class="flex flex-col gap-1.5 space-y-2 lg:space-y-0">
-        <label class="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
-          <input
-            type="radio"
-            value="reasonable"
-            v-model="filterType"
-            class="radio radio-sm bg-white checked:bg-blue-800 flex-shrink-0"
-            @change="handleFilterChange"
-          />
-          <span class="text-sm">{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</span>
-        </label>
-        
-        <label class="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
-          <input
-            type="radio"
-            value="all"
-            v-model="filterType"
-            class="radio radio-sm bg-white checked:bg-blue-800 flex-shrink-0"
-            @change="handleFilterChange"
-          />
-          <span class="text-sm">{{ $t('all_administrative_areas') }}</span>
-        </label>
-      </div>
+    <!-- Filter tabs: horizontal row on mobile, vertical column on sm+ -->
+    <div ref="radioGroup" class="flex flex-row sm:flex-col sm:self-end w-full sm:w-auto flex-shrink-0 rounded border border-gray-200 overflow-hidden text-xs font-semibold">
+      <button
+        class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors border-r sm:border-r-0 sm:border-b border-gray-200"
+        :class="filterType === 'reasonable'
+          ? 'bg-[#006e94] text-white'
+          : 'bg-white text-gray-600 hover:bg-gray-50'"
+        @click="filterType = 'reasonable'; handleFilterChange()"
+      >{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</button>
+      <button
+        class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors"
+        :class="filterType === 'all'
+          ? 'bg-[#006e94] text-white'
+          : 'bg-white text-gray-600 hover:bg-gray-50'"
+        @click="filterType = 'all'; handleFilterChange()"
+      >{{ $t('all_administrative_areas') }}</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import { useAreaSearch } from '~/composables/useAreaSearch.js'
@@ -253,14 +244,15 @@ function handleFilterChange() {
   if (q.value.trim()) search(q.value)
 }
 
-// Only watch document.activeElement on client side to avoid SSR issues
-if (process.client) {
-  watch(() => document.activeElement, (el) => {
-    if (!el || el.id !== 'admin-search-input') {
+// Close dropdown when the input loses focus (e.g. mobile keyboard dismissed).
+// Delay 150ms so @mousedown / @touchend on dropdown items fires first.
+function handleBlur() {
+  setTimeout(() => {
+    if (document.activeElement?.id !== 'admin-search-input') {
       searchFocused.value = false
       dropdownPosition.value.show = false
     }
-  })
+  }, 150)
 }
 
 function handleSuggestionClick() {
@@ -286,9 +278,11 @@ function handleClickOutside(event) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  window.addEventListener('resize', calculateDropdownPosition)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('resize', calculateDropdownPosition)
 })
 </script>

@@ -7,12 +7,22 @@
                 type="checkbox"
                 name="municipality-description"
                 autocomplete="off"
+                checked="checked"
             />
             <div class="collapse-title flex items-center justify-between px-6 py-4">
                 <div class="flex items-center gap-2">
                 <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
-                <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
+                <h3 class="font-heading text-h3 text-green leading-none">{{ $t("municipality.municipality_info") }}</h3>
                 </div>
+                <GermanyMapIndicator
+                  v-if="municipality.geolocation"
+                  :lat="municipality.geolocation.coordinates[1]"
+                  :lon="municipality.geolocation.coordinates[0]"
+                  :size="90"
+                  fill-color="#dcfce7"
+                  stroke-color="#86efac"
+                  marker-color="#339737"
+                />
             </div>
 
             <!-- Collapsible description only -->

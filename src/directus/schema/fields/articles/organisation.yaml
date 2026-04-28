@@ -16,7 +16,7 @@ meta:
     template: "{{name}}"
   readonly: false
   required: false
-  sort: 12
+  sort: 8
   special:
     - m2o
   translations:
@@ -25,7 +25,7 @@ meta:
         Projekt umgesetzt hat!)
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: organisation
   table: articles

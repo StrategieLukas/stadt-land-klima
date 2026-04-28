@@ -3,7 +3,16 @@ field: date_created
 type: timestamp
 meta:
   collection: articles
-  conditions: null
+  conditions:
+    - name: Hide if null
+      rule:
+        _and:
+          - date_created:
+              _null: true
+      hidden: true
+      options:
+        includeSeconds: false
+        use24: true
   display: datetime
   display_options:
     relative: true
@@ -15,7 +24,7 @@ meta:
   options: null
   readonly: true
   required: false
-  sort: 9
+  sort: 11
   special:
     - date-created
   translations: null

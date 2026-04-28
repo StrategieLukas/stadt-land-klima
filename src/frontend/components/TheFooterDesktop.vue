@@ -43,15 +43,13 @@
               class="flex-1 min-w-0 px-3 py-2 text-sm rounded-md text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white"
               @keydown.enter.prevent="subscribeNewsletter"
             />
-            <button
-              type="button"
+            <CanonicalButton
+              :label="newsletterState === 'subscribing' ? '\u2026' : 'Anmelden'"
+              icon-slug="icon_newsletter_click"
+              color="green"
               :disabled="newsletterState === 'subscribing'"
-              class="px-4 py-2 bg-white text-olive-green text-sm font-semibold rounded-md hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
               @click="subscribeNewsletter"
-            >
-              <span v-if="newsletterState === 'subscribing'">…</span>
-              <span v-else>Anmelden</span>
-            </button>
+            />
           </div>
           <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
         </div>
@@ -72,7 +70,7 @@
             index !== 0 ? 'border-l border-white/30 pl-6' : ''
           ]"
         >
-          <h6 class="footer-title opacity-100 text-white font-bold mb-2">
+          <h6 class="footer-title opacity-100 text-white font-bold mb-2 min-h-[3rem] flex items-start">
             {{ col.title }}
           </h6>
           <template v-for="link in col.links" :key="link.id">
@@ -110,13 +108,7 @@
         <!-- Buttons: Donate + Login -->
         <div class="flex items-center gap-4">
           <DonateButton />
-          <!-- Backend login button (always visible) -->
-          <a href="/backend">
-            <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
-              <span>{{ $t('generic.log_in') }}</span>
-              <span aria-hidden="true">→</span>
-            </button>
-          </a>
+          <LoginButton />
         </div>
 
         <!-- Copyright + internal login -->
@@ -144,6 +136,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import DonateButton from '~/components/DonateButton.vue';
+import LoginButton from '~/components/LoginButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
 

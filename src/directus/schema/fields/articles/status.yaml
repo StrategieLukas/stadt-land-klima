@@ -40,13 +40,13 @@ meta:
         text: $t:archived
         value: archived
   readonly: false
-  required: false
-  sort: 2
+  required: true
+  sort: 3
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: status
   table: articles

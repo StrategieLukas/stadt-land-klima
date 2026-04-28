@@ -1,10 +1,10 @@
 <template>
-  <nav class="bg-gray-50 border-t border-gray-200">
-    <ul class="flex items-stretch h-10 mx-auto w-full max-w-screen-xl px-2 justify-center min-w-0">
+  <nav class="bg-gray-50 border-t border-gray-200" ref="navRef">
+    <ul class="flex flex-wrap items-stretch mx-auto w-full max-w-screen-xl px-2 justify-center">
       <li
         v-for="item in safeItems"
         :key="item.id"
-        class="relative flex items-stretch min-w-0"
+        class="relative flex items-stretch min-h-10 whitespace-nowrap"
         @mouseenter="hasChildren(item) && handleMenuEnter(item.id)"
         @mouseleave="hasChildren(item) && handleMenuLeave()"
       >
@@ -16,41 +16,57 @@
           :href="item.link_type === 'external' ? item.external_url : undefined"
           :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
           :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
-          class="nav-item flex items-center nav-px text-sm font-semibold text-gray-600 min-w-0 overflow-hidden"
+          class="nav-item flex items-center nav-px text-sm font-semibold text-gray-600"
           :class="{ 'nav-item--active': item.link_type === 'page' && isActive(item) }"
           @click="closeMenu"
         >
-          <span class="truncate">{{ item.label }}</span>
+          <span>{{ item.label }}</span>
         </component>
 
         <!-- Text-only label (no link, no children) -->
         <span
           v-else-if="!hasChildren(item) && item.link_type === 'none'"
-          class="flex items-center nav-px text-sm font-semibold text-gray-400 min-w-0 overflow-hidden"
+          class="flex items-center nav-px text-sm font-semibold text-gray-400"
         >
-          <span class="truncate">{{ item.label }}</span>
+          <span>{{ item.label }}</span>
         </span>
 
         <!-- Trigger with children -->
-        <component
-          v-else
-          :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'div'"
-          :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
-          class="nav-item flex items-center gap-1 nav-px text-sm font-semibold cursor-pointer text-gray-600 min-w-0 overflow-hidden"
+        <!-- Wrapper owns the hover background so it spans both label and chevron -->
+        <div
+          v-if="hasChildren(item)"
+          class="group/trigger nav-item flex items-stretch"
           :class="{ 'nav-item--active': anyChildActive(item) }"
-          @click="item.link_type === 'page' && item.page_slug ? closeMenu() : undefined"
         >
-          <span class="truncate">{{ item.label }}</span>
-          <svg class="h-3 w-3 flex-shrink-0 opacity-60" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5 5-5"/>
-          </svg>
-        </component>
+          <!-- Label part: navigates (NuxtLink) or toggles dropdown (button) -->
+          <component
+            :is="item.link_type === 'page' && item.page_slug ? NuxtLink : 'button'"
+            :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
+            :type="!(item.link_type === 'page' && item.page_slug) ? 'button' : undefined"
+            class="flex items-center nav-pl pr-1 text-sm font-semibold cursor-pointer group-hover/trigger:text-gray-900"
+            @click="item.link_type === 'page' && item.page_slug ? closeMenu() : toggleMenu(item.id)"
+          >
+            <span>{{ item.label }}</span>
+          </component>
+          <!-- Chevron button: toggles dropdown on click/touch -->
+          <button
+            type="button"
+            class="flex items-center pl-1 nav-pr cursor-pointer text-gray-600 group-hover/trigger:text-olive-green"
+            @click.stop="toggleMenu(item.id)"
+            :aria-expanded="openMenuId === item.id"
+            :aria-label="item.label + ' Untermenü'"
+          >
+            <svg class="h-3 w-3 flex-shrink-0 opacity-60" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5 5-5"/>
+            </svg>
+          </button>
+        </div>
 
         <!-- Dropdown panel -->
         <div
           v-if="hasChildren(item)"
           v-show="openMenuId === item.id"
-          class="absolute left-0 top-full bg-white rounded-b-xl shadow-lg z-50 border border-gray-200 border-t-0"
+          class="absolute left-0 top-full bg-white rounded-b-xl shadow-lg z-50 border border-gray-200 border-t-2 border-t-light-green"
           @mouseenter="handleMenuEnter(item.id)"
           @mouseleave="handleMenuLeave()"
         >
@@ -118,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, resolveComponent } from 'vue'
+import { ref, computed, onMounted, onUnmounted, resolveComponent } from 'vue'
 import { useRoute, useRuntimeConfig } from '#imports'
 
 const NuxtLink = resolveComponent('NuxtLink')
@@ -135,6 +151,7 @@ const config = useRuntimeConfig()
 
 const safeItems = computed(() => Array.isArray(props.items) ? props.items : [])
 
+const navRef = ref(null)
 const openMenuId = ref(null)
 let menuCloseTimer = null
 
@@ -150,6 +167,17 @@ function handleMenuLeave() {
 function closeMenu() {
   clearTimeout(menuCloseTimer)
   openMenuId.value = null
+}
+
+function toggleMenu(id) {
+  clearTimeout(menuCloseTimer)
+  openMenuId.value = openMenuId.value === id ? null : id
+}
+
+function handleOutsideClick(event) {
+  if (navRef.value && !navRef.value.contains(event.target)) {
+    closeMenu()
+  }
 }
 
 function resolveHref(item) {
@@ -200,6 +228,11 @@ onMounted(() => {
       imageUrlMap.value[item.image_id] = `${baseUrl}/assets/${item.image_id}`
     }
   })
+  document.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick)
 })
 </script>
 
@@ -209,7 +242,12 @@ onMounted(() => {
 @media (max-width: 1024px) { .nav-px { padding-left: 0.625rem; padding-right: 0.625rem; } }
 @media (max-width: 800px)  { .nav-px { padding-left: 0.375rem; padding-right: 0.375rem; } }
 
-/* Prevent text from wrapping so truncate + ellipsis works */
+/* Split padding for label (nav-pl) and chevron button (nav-pr) */
+.nav-pl { padding-left: 1rem; }
+.nav-pr { padding-right: 1rem; }
+@media (max-width: 1024px) { .nav-pl { padding-left: 0.625rem; } .nav-pr { padding-right: 0.625rem; } }
+@media (max-width: 800px)  { .nav-pl { padding-left: 0.375rem; } .nav-pr { padding-right: 0.375rem; } }
+
 .nav-item { white-space: nowrap; }
 .nav-item {
   transition: background 150ms ease, color 150ms ease;

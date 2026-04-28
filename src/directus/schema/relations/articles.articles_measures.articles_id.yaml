@@ -9,7 +9,7 @@ meta:
   one_collection: articles
   one_collection_field: null
   one_deselect_action: nullify
-  one_field: null
+  one_field: measures
   sort_field: null
 schema:
   table: articles_measures

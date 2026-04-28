@@ -1,0 +1,41 @@
+collection: organisation_teams
+field: team_key
+type: string
+meta:
+  collection: organisation_teams
+  conditions: null
+  display: raw
+  display_options: null
+  field: team_key
+  group: null
+  hidden: false
+  interface: input
+  note: Interner Bezeichner (z.B. „technik"). Nicht ändern – wird im Code verwendet.
+  options:
+    placeholder: z.B. technik
+  readonly: true
+  required: true
+  sort: 3
+  special: null
+  translations:
+    - language: de-DE
+      translation: Schlüssel (intern)
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: team_key
+  table: organisation_teams
+  data_type: character varying
+  default_value: null
+  max_length: 50
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: true
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

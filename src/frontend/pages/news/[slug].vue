@@ -140,14 +140,34 @@ onMounted(() => {
 
 const route = useRoute()
 
-const { data: itemList } = await useAsyncData(`news-item-${route.params.slug}`, () =>
-  $directus.request(
+const { data: itemList } = await useAsyncData(`news-item-${route.params.slug}`, async () => {
+  // Primary fetch via frontend (static) token — only returns published items
+  const result = await $directus.request(
     $readItems('news_items', {
       filter: { slug: { _eq: route.params.slug } },
       limit: 1,
     })
   )
-)
+  if (result?.length) return result
+
+  // Client-side fallback: try the authenticated user client to load draft items
+  if (process.client) {
+    try {
+      const authClient = getAuthenticatedClient()
+      const authResult = await authClient.request(
+        readItems('news_items', {
+          filter: { slug: { _eq: route.params.slug } },
+          limit: 1,
+        })
+      )
+      if (authResult?.length) return authResult
+    } catch {
+      // not authenticated or request failed
+    }
+  }
+
+  return result
+})
 const item = computed(() => itemList.value?.[0] || null)
 
 if (!item.value) {

@@ -1,7 +1,7 @@
-import { createDirectus, rest, readItems, staticToken } from '@directus/sdk'
+import { createDirectus, rest, readItems, readUsers, staticToken } from '@directus/sdk'
 import {
   buildBlockDoc, buildPageDoc, buildEventDoc, buildArticleDoc, buildMeasureDoc,
-  buildNewsItemDoc,
+  buildNewsItemDoc, buildMemberDoc,
   buildStaticPageDocs,
   type SiteContentDoc,
 } from '../utils/extractContent'
@@ -206,10 +206,28 @@ export default defineNitroPlugin(async () => {
       await upsertBatch(index, measureDocs)
       counts.measures = measureDocs.length
 
-      // --- Static Nuxt pages ---
+      // --- Static Nuxt pages (incl. organisation page + team entries) ---
       const staticDocs = buildStaticPageDocs()
       await upsertBatch(index, staticDocs)
       counts.static_pages = staticDocs.length
+
+      // --- Team members (directus_users with show_on_team_page = true) ---
+      try {
+        const members = await directus.request(
+          readUsers({
+            filter: { show_on_team_page: { _eq: true } },
+            fields: ['id', 'first_name', 'last_name', 'bio', 'show_on_team_page'],
+            limit: -1,
+          }),
+        ) as any[]
+        const memberDocs = (members || [])
+          .map((u: any) => buildMemberDoc(u))
+          .filter((d): d is SiteContentDoc => d !== null)
+        await upsertBatch(index, memberDocs)
+        counts.members = memberDocs.length
+      } catch (e) {
+        console.warn('[reindex] Failed to index team members:', e)
+      }
 
       const total = Object.values(counts).reduce((a, b) => a + b, 0)
       console.log(`[reindex] Indexed ${total} documents:`, counts)

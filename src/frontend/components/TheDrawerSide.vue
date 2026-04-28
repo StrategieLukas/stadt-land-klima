@@ -6,7 +6,7 @@
       <!-- Search bar -->
       <div class="px-4 py-3 border-b border-gray-100">
         <button
-          class="flex items-center gap-2 w-full h-10 px-3 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-400 hover:bg-gray-100 transition-colors"
+          class="flex items-center gap-2 w-full h-10 px-3 rounded-lg bg-gray-50 text-sm text-gray-400 hover:bg-gray-100 transition-colors"
           @click="openSearch(); closeDrawer()"
           :aria-label="$t('generic.search')"
         >
@@ -18,30 +18,71 @@
       </div>
 
       <!-- Nav items from navigation_config -->
-      <ul v-if="safeNavItems.length > 0" class="flex-1 py-2">
+      <ul v-if="safeNavItems.length > 0" class="flex-1 pt-2 pb-6">
         <li v-for="item in safeNavItems" :key="item.id">
-          <!-- Item with children: accordion trigger -->
+          <!-- Item with children: split row — label navigates, chevron expands -->
           <template v-if="hasChildren(item)">
-            <button
-              class="flex items-center justify-between w-full px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 border-b border-gray-100 transition-colors"
-              :class="{ 'text-olive-green': anyChildActive(item) }"
-              @click="toggleExpanded(item.id)"
+            <div
+              class="flex items-center justify-between w-full border-b border-gray-100 transition-colors hover:bg-gray-50"
+              :class="{ 'bg-light-green/10': anyChildActive(item) }"
             >
-              <div class="flex items-center gap-2 min-w-0">
+              <!-- Label: navigates if the item has a link -->
+              <component
+                v-if="item.link_type === 'page'"
+                :is="NuxtLink"
+                :to="resolveHref(item)"
+                class="flex flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold min-w-0"
+                :class="isActive(item) ? 'text-olive-green' : anyChildActive(item) ? 'text-olive-green' : 'text-gray-800'"
+                @click="closeDrawer"
+              >
                 <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
                 <span>{{ item.label }}</span>
-              </div>
-              <svg
-                class="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-200"
-                :class="expandedId === item.id ? 'rotate-180' : ''"
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+              </component>
+              <component
+                v-else-if="item.link_type === 'external'"
+                :is="'a'"
+                :href="item.external_url"
+                :target="item.open_new_tab ? '_blank' : '_self'"
+                rel="noopener noreferrer"
+                class="flex flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800 min-w-0"
+                @click="closeDrawer"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+                <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
+                <span>{{ item.label }}</span>
+              </component>
+              <span
+                v-else
+                class="flex flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800 min-w-0"
+              >
+                <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
+                {{ item.label }}
+              </span>
+              <!-- Chevron: toggles accordion only -->
+              <button
+                class="flex-shrink-0 flex items-center justify-center w-12 h-full py-3 text-gray-400 hover:text-gray-600 transition-colors"
+                :aria-label="expandedId === item.id ? 'Zuklappen' : 'Aufklappen'"
+                @click="toggleExpanded(item.id)"
+              >
+                <svg
+                  class="h-4 w-4 transition-transform duration-200"
+                  :class="expandedId === item.id ? 'rotate-180' : ''"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
 
             <!-- Children -->
-            <div v-show="expandedId === item.id" class="border-b border-gray-100">
+            <Transition
+              @before-enter="accordionBeforeEnter"
+              @enter="accordionEnter"
+              @after-enter="accordionAfterEnter"
+              @before-leave="accordionBeforeLeave"
+              @leave="accordionLeave"
+              @after-leave="accordionAfterLeave"
+            >
+            <div v-if="expandedId === item.id" class="border-b border-gray-100">
               <!-- Image children: 2-column grid -->
               <div v-if="hasImageChildren(item)" class="grid grid-cols-2 gap-2 px-4 py-3">
                 <component
@@ -87,6 +128,7 @@
                 </component>
               </template>
             </div>
+            </Transition>
           </template>
 
           <!-- Simple link -->
@@ -134,22 +176,9 @@
       </ul>
 
       <!-- Bottom: Login + Donate -->
-      <div class="border-t border-gray-100 pt-3 pb-[96px] space-y-1">
-        <a
-          href="/backend"
-          class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-orange hover:bg-orange/5 transition-colors"
-          @click="closeDrawer"
-        >
-          <span>→</span> {{ $t('generic.log_in') }}
-        </a>
-        <a
-          href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
-          class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-orange hover:bg-orange/5 transition-colors"
-          @click="closeDrawer"
-        >
-          <span>→</span> {{ $t('donate.label') }}
-          <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-4 w-auto" />
-        </a>
+      <div class="border-t border-gray-100 pt-5 pb-40 px-4 flex gap-3">
+        <LoginButton class="flex-1" @click="closeDrawer" />
+        <DonateButton class="flex-1" @click="closeDrawer" />
       </div>
     </div>
   </nav>
@@ -179,6 +208,39 @@ const safeNavItems = computed(() => Array.isArray(props.navItems) ? props.navIte
 const expandedId = ref(null)
 function toggleExpanded(id) {
   expandedId.value = expandedId.value === id ? null : id
+}
+
+// Accordion slide animation
+function accordionBeforeEnter(el) {
+  el.style.overflow = 'hidden'
+  el.style.maxHeight = '0'
+}
+function accordionEnter(el, done) {
+  const height = el.scrollHeight
+  el.getBoundingClientRect() // force reflow
+  el.style.transition = 'max-height 0.25s ease'
+  el.style.maxHeight = height + 'px'
+  el.addEventListener('transitionend', done, { once: true })
+}
+function accordionAfterEnter(el) {
+  el.style.transition = ''
+  el.style.overflow = ''
+  el.style.maxHeight = ''
+}
+function accordionBeforeLeave(el) {
+  el.style.maxHeight = el.scrollHeight + 'px'
+  el.style.overflow = 'hidden'
+}
+function accordionLeave(el, done) {
+  el.getBoundingClientRect() // force reflow
+  el.style.transition = 'max-height 0.25s ease'
+  el.style.maxHeight = '0'
+  el.addEventListener('transitionend', done, { once: true })
+}
+function accordionAfterLeave(el) {
+  el.style.transition = ''
+  el.style.overflow = ''
+  el.style.maxHeight = ''
 }
 
 // Image URL resolution (same pattern as TheNavigationMenuDesktop)

@@ -52,6 +52,7 @@ permissions:
       - linkedin
       - additional_infos_segment
       - similar_projects_segment
+      - measures
   - collection: articles
     action: delete
     permissions: {}
@@ -112,6 +113,7 @@ permissions:
       - linkedin
       - additional_infos_segment
       - similar_projects_segment
+      - measures
   - collection: articles_articles
     action: create
     permissions: {}
@@ -136,6 +138,21 @@ permissions:
       - articles_id
       - external_projects_id
   - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_measures
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - articles_id
+      - measures_id
+  - collection: articles_measures
     action: read
     permissions: {}
     validation: {}

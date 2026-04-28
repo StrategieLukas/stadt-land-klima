@@ -1,0 +1,36 @@
+collection: articles
+field: measures
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{measures_id.measure_id}}"
+  field: measures
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: null
+  options:
+    enableCreate: false
+    filter:
+      _and:
+        - catalog_version:
+            isCurrentFrontend:
+              _eq: true
+        - catalog_version:
+            hidden:
+              _neq: true
+    template: "{{measures_id.measure_id}} {{measures_id.name}}"
+  readonly: false
+  required: false
+  sort: 14
+  special:
+    - m2m
+  translations:
+    - language: de-DE
+      translation: Zugehörige Maßnahmen
+  validation: null
+  validation_message: null
+  width: full

@@ -5,7 +5,7 @@
       <div class="p-6">
 
         <NuxtLink :to="backHref" class="text-blue-500 text-sm">← {{ backLabel }}</NuxtLink>
-  
+
         <!-- Title and Subtitle -->
         <h1 class="text-2xl font-bold text-blue-500 mb-1">{{ title }}</h1>
         <h2 class="text-lg text-gray-500 mb-4">{{ subtitle }}</h2>
@@ -13,25 +13,25 @@
         <!-- Social Media Icons -->
         <div class="flex my-2">
           <!-- <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" /> -->
-                    
+
           <a v-if="article_instagram"
-            :href="article_instagram" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+            :href="article_instagram"
+            target="_blank"
+            rel="noopener noreferrer"
             class="text-blue-500 hover:underline"
           >
             <img src="~/assets/icons/icon_instagram.svg" class="w-6 h-6 my-0 mr-2" alt="Instagram" />
           </a>
 
           <a v-if="article_linkedin"
-            :href="article_linkedin" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+            :href="article_linkedin"
+            target="_blank"
+            rel="noopener noreferrer"
             class="text-blue-500 hover:underline"
           >
             <img src="~/assets/icons/icon_linkedin.svg" class="w-6 h-6 my-0" alt="LinkedIn" />
           </a>
-          
+
           <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
         </div>
 
@@ -44,7 +44,7 @@
           <i>{{ $t("article.author_date", { ":author": author, ":date": date.toLocaleDateString($locale) }) }}</i>
         </p>
 
-  
+
         <!-- Image and Image Credits (Passing the expected maxwidth of 960 for mobile to avoid fetching excessively large images)-->
         <div class="relative mb-4">
           <SmartImg v-if="image_id"
@@ -53,7 +53,7 @@
             :alt="title"
             :width="960"
             fit="cover"
-            format="webp" 
+            format="webp"
             img-class="object-cover w-full h-full"
             />
           <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
@@ -61,27 +61,40 @@
               :assetId="organisation.logo"
               :alt="organisation.name"
               :height="56"
-              :width="56" 
+              :width="56"
               fit="cover"
               img-class="absolute top-2 right-2 w-14 h-14"
               />
           </div>
           <p v-if="image_credits" class="text-xs text-gray-500 mt-1 text-center italic">{{ image_credits }}</p>
         </div>
-  
+
         <!-- Abstract -->
         <p v-if="abstract" v-html="md.render(abstract)" class="text-gray-700 font-semibold mb-4"/>
-  
+
         <!-- Main Text -->
         <div class="text-gray-700 mb-4">
           <div v-html="md.render(article_text)"></div>
         </div>
 
-        <!-- Organisation note -->
+        <!-- Measures -->
+        <div v-if="measures && measures.length" class="mt-4">
+          <p class="text-sm font-semibold text-gray-700 mb-1">{{ $t("article.related_measures") }}</p>
+          <div class="flex flex-wrap gap-2">
+            <NuxtLink
+              v-for="m in measures"
+              :key="m.id"
+              :to="`/measures/${m.slug || m.id}`"
+              class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-200 transition"
+            >{{ m.measure_id }}</NuxtLink>
+          </div>
+        </div>
+
+      <!-- Organisation note -->
         <p v-if="organisation" class="text-sm text-gray-600 mb-1">
            {{ $t("article.project_by", { ":organisation": organisation.name }) }}
         </p>
-  
+
         <!-- Contact Information -->
         <!-- <div class="border-t pt-4 mt-4">
           <h3 class="text-lg font-semibold mb-2">Kontakt zu den Verantwortlichen:</h3>
@@ -89,7 +102,7 @@
             <a :href="contact.link" target="_blank">{{ contact.text }}</a>
           </p>
         </div> -->
-  
+
         <!-- Navigation Links -->
         <!-- <div class="flex justify-between mt-6">
           <NuxtLink to="#" class="text-blue-500 text-sm">← vorherige Story</NuxtLink>
@@ -108,12 +121,12 @@
               :assetId="organisation.logo"
               :alt="organisation.name"
               :height="56"
-              :width="56" 
+              :width="56"
               fit="cover"
               img-class="absolute top-2 right-2 w-14 h-14"
               />
     </div>
-    
+
     <div class="grid grid-cols-3 gap-6 prose max-w-none">
       <!-- Sidebar -->
       <div class="flex flex-col text-sm text-gray-700 space-y-4 bg-white p-6 rounded-lg shadow-md">
@@ -127,7 +140,7 @@
               :isRaster="image_is_raster"
               :alt="title"
               fit="cover"
-              format="webp" 
+              format="webp"
               img-class="w-full h-full object-cover rounded-lg"
               />
           </div>
@@ -152,8 +165,8 @@
           <span class="text-right">
             <a
             :href="organisation.link"
-            target="_blank" 
-            rel="noopener noreferrer" 
+            target="_blank"
+            rel="noopener noreferrer"
             class="text-blue-500 hover:underline"
             >{{ organisation.name }}</a>
           </span>
@@ -162,16 +175,29 @@
           <strong>{{ $t("author") }}</strong>
           <span class="text-right">{{ author }}</span>
         </p>
+        <!-- Measures -->
+        <div v-if="measures && measures.length" class="pb-2 border-b border-gray-300">
+          <strong class="block mb-1">{{ $t("article.related_measures") }}</strong>
+          <div class="flex flex-wrap gap-1 justify-end">
+            <NuxtLink
+              v-for="m in measures"
+              :key="m.id"
+              :to="`/measures/${m.slug || m.id}`"
+              class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-200 transition"
+            >{{ m.name }} ({{ m.measure_id }})</NuxtLink>
+          </div>
+        </div>
+
         <p v-if="link" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>{{ $t("link") }}</strong>
-          <a 
-            :href="link.href" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <a
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
             class="text-blue-500 hover:underline"
           >{{ link.hostname }}</a>
         </p>
-        
+
         <!-- Missing categories: Tag, Municipality size, Contact for this project (i.e. from the local group that did the project, not necessarily the author) -->
 
         <!-- Social Media Icons -->
@@ -179,43 +205,43 @@
           <strong>{{  $t("generic.social_media") }}</strong>
           <div class="flex">
             <!-- <img src="/icons/facebook.svg" class="w-6 h-6" alt="Facebook" /> -->
-                      
+
             <a v-if="article_instagram"
-              :href="article_instagram" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+              :href="article_instagram"
+              target="_blank"
+              rel="noopener noreferrer"
               class="text-blue-500 hover:underline"
             >
               <img src="~/assets/icons/icon_instagram.svg" class="w-6 h-6 my-0 mr-2" alt="Instagram" />
             </a>
 
             <a v-if="article_linkedin"
-              :href="article_linkedin" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+              :href="article_linkedin"
+              target="_blank"
+              rel="noopener noreferrer"
               class="text-blue-500 hover:underline"
             >
               <img src="~/assets/icons/icon_linkedin.svg" class="w-6 h-6 my-0" alt="LinkedIn" />
             </a>
-            
+
             <!-- <img src="/icons/mastodon.svg" class="w-6 h-6" alt="Mastodon" /> -->
           </div>
-          
+
         </div>
       </div>
-      
+
       <!-- Main Content -->
       <div class="col-span-2 flex flex-col">
         <h1 class="text-3xl font-bold text-blue-600 mb-2 pr-10">{{ title }}</h1>
         <p v-if="subtitle" class="text-lg text-gray-500 mb-6">{{ subtitle }}</p>
-        
+
         <div class="text-gray-700 leading-relaxed flex-grow">
           <div v-if="abstract" v-html="md.render(abstract)" class="prose max-w-none mb-8" />
           <div v-html="md.render(article_text)"></div>
         </div>
       </div>
     </div>
-    
+
     <!-- Footer Buttons -->
     <!-- <div class="flex justify-center space-x-4 mt-8">
       <button class="bg-[#009FE3] text-white px-6 py-3 rounded-full shadow-md hover:bg-[#0082C3] transition">
@@ -233,18 +259,18 @@
   clip-path: polygon(100% 0, 0 0, 100% 100%);
 }
 </style>
-  
+
 <script setup>
   import { ref, watchEffect } from 'vue'
   import { buildLocationString, toAssetUrl } from '~/shared/utils';
   import MarkdownIt from 'markdown-it'
   import { useReferrer } from '~/composables/useReferrer'
-  
-  
+
+
   const md = new MarkdownIt();
   const { $t, $locale } = useNuxtApp()
   const { backHref, backLabel } = useReferrer('/projects', $t('navigation.return_to_overview'))
-  
+
   const props = defineProps({
       title: String,
       subtitle: String,
@@ -262,6 +288,7 @@
       article_instagram: String,
       article_linkedin: String,
       organisation: Object, // can be null
+      measures: Array, // can be null/empty
   });
 
   const articleHasSocialMedia = props.article_instagram || props.article_linkedin;

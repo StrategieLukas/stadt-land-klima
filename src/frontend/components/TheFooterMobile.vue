@@ -33,31 +33,30 @@
         </svg>
         {{ newsletterAlreadySubscribed ? 'Du bist bereits angemeldet.' : 'Bestätigungsmail gesendet – bitte prüfe dein Postfach.' }}
       </div>
-      <div v-else class="flex gap-2">
+      <div v-else class="flex flex-col gap-2">
         <input
           v-model="footerEmail"
           type="email"
           autocomplete="email"
           placeholder="Deine E-Mail-Adresse"
-          class="flex-1 min-w-0 px-3 py-2 text-sm rounded-md text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white"
+          class="w-full min-w-0 px-3 py-2 text-sm rounded-md text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white"
           @keydown.enter.prevent="subscribeNewsletter"
         />
-        <button
-          type="button"
+        <CanonicalButton
+          :label="newsletterState === 'subscribing' ? '\u2026' : 'Anmelden'"
+          icon-slug="icon_newsletter_click"
+          color="green"
+          class="w-full flex-shrink-0"
           :disabled="newsletterState === 'subscribing'"
-          class="px-3 py-2 bg-white text-olive-green text-sm font-semibold rounded-md hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
           @click="subscribeNewsletter"
-        >
-          <span v-if="newsletterState === 'subscribing'">…</span>
-          <span v-else>Anmelden</span>
-        </button>
+        />
       </div>
       <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
     </div>
 
     <!-- Navigation Links: footer_columns -->
     <div v-if="footerColumnsData.length > 0" class="!block w-full mb-6">
-      <div class="grid grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 xs:grid-cols-2 gap-4 xs:gap-6">
         <nav
           v-for="col in footerColumnsData"
           :key="col.id"
@@ -86,25 +85,20 @@
 
     <!-- Bottom Section: Logo, Buttons, Copyright -->
     <div class="w-full flex flex-col gap-6">
-      <div class="w-full py-6 border-t border-white/30 md:border-t-0 flex flex-row items-center justify-between gap-4">
+      <div class="w-full py-6 border-t border-white/30 md:border-t-0 flex flex-col items-center gap-4 xs:flex-row xs:justify-between">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex-shrink-0">
+        <NuxtLink to="/" class="w-full xs:w-auto flex justify-center xs:justify-start">
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-            class="h-16 w-auto"
+            class="h-12 w-auto"
             :alt="$t('logo.alt')"
           />
         </NuxtLink>
 
         <!-- Backend login button (always visible) -->
-        <div class="flex-shrink-0 flex items-center gap-3">
+        <div class="flex items-center gap-3">
           <DonateButton />
-          <a href="/backend">
-            <button class="h-9 flex items-center justify-center px-4 py-2 text-sm font-bold bg-orange text-white space-x-1 rounded hover:brightness-110">
-              <span>{{ $t('generic.log_in') }}</span>
-              <span aria-hidden="true">→</span>
-            </button>
-          </a>
+          <LoginButton />
         </div>
       </div>
 
@@ -131,6 +125,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import DonateButton from '~/components/DonateButton.vue';
+import LoginButton from '~/components/LoginButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
 

@@ -1,0 +1,66 @@
+collection: events
+field: event_category
+type: string
+meta:
+  collection: events
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Eigene (öffentlich)
+        value: own_public
+        foreground: "#FFFFFF"
+        background: "#1da64a"
+      - text: Interne
+        value: internal
+        foreground: "#FFFFFF"
+        background: "#6b7280"
+      - text: Externe
+        value: external
+        foreground: "#18222F"
+        background: "#afca0b"
+      - text: Aktive Teilnahme
+        value: active_participation
+        foreground: "#FFFFFF"
+        background: "#006e94"
+  field: event_category
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: Eigene = wir sind Veranstalter; Interne = nicht öffentlich; Externe = von anderen Veranstaltern; Aktive Teilnahme = von anderen, wir nehmen aktiv teil
+  options:
+    choices:
+      - text: Eigene (öffentlich)
+        value: own_public
+      - text: Interne
+        value: internal
+      - text: Externe
+        value: external
+      - text: Aktive Teilnahme
+        value: active_participation
+  readonly: false
+  required: false
+  sort: 16
+  special: null
+  translations:
+    - language: de-DE
+      translation: Veranstaltungskategorie
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: event_category
+  table: events
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -10,6 +10,23 @@
     <!-- Filter + Sort bar -->
     <div class="shadow-md flex flex-col gap-0 mb-6 p-3" style="background-color: #f2f2f2;">
 
+      <!-- Collapsible toggle (only shown below xs breakpoint) -->
+      <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium text-gray" @click="filterOpen = !filterOpen">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
+          </svg>
+          <span>Filter &amp; Ansicht</span>
+          <span v-if="activeFilterCount > 0" class="bg-gray text-white text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
+        </span>
+        <svg class="w-4 h-4 flex-shrink-0 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <!-- Filter rows (always visible at xs+, collapsible below xs) -->
+      <div v-show="filterOpen" class="xs:!block">
+
       <!-- Row 0: Catalog version + view toggle -->
       <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-center py-1.5">
         <svg class="w-4 h-4 flex-shrink-0 text-gray" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -175,6 +192,8 @@
         </div>
       </div>
       </template>
+
+      </div><!-- /collapsible -->
     </div>
 
     <!-- Sector description (shown when a sector is selected) -->
@@ -305,6 +324,16 @@ const filterHighImpact = ref(false);
 const filterLowCost = ref(false);
 const filterLowControversy = ref(false);
 const sortOrder = ref('id'); // 'id' | 'name' | 'impact' | 'economical' | 'political'
+
+const filterOpen = ref(false);
+const activeFilterCount = computed(() => {
+  let count = 0;
+  if (selectedSector.value) count++;
+  if (filterHighImpact.value) count++;
+  if (filterLowCost.value) count++;
+  if (filterLowControversy.value) count++;
+  return count;
+});
 
 function setSector(sector) {
   selectedSector.value = sector;

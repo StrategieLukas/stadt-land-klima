@@ -4,24 +4,22 @@
   <div class="flex flex-col min-h-screen text-neutral font-sans">
 
     <!-- ── Header: lives ABOVE the DaisyUI drawer so sticky always works ── -->
-    <div v-if="hydrated">
-      <div v-if="isDesktop">
-        <the-header-desktop
-          :pages="pages.filter((page) => includes(page.menus, 'main'))"
-          :municipalities="publishedMunicipalities"
-          :nav-items="navigationConfig?.header_items || []"
-        />
-      </div>
-      <div v-else>
-        <the-header-mobile />
-      </div>
-    </div>
+    <!-- Desktop header: rendered immediately in SSR (isDesktop defaults to true via useState).
+         This eliminates the post-hydration lag where main content appeared before the nav bar.
+         Mobile header: client-only, appears after hydration (mobile users see a brief swap,
+         but desktop users — the majority — get instant, SSR-rendered navigation). -->
+    <the-header-desktop
+      v-if="!hydrated || isDesktop"
+      :pages="pages ? pages.filter((page) => includes(page.menus, 'main')) : []"
+      :municipalities="publishedMunicipalities || []"
+      :nav-items="navigationConfig?.header_items || []"
+    />
+    <the-header-mobile v-if="hydrated && !isDesktop" />
     <!-- Spacer that reserves the height of the fixed header.
-         Mobile: none (mobile header is sticky, not fixed). Desktop: driven by ResizeObserver via useHeaderHeight(). -->
+         Mobile: 64px (py-2 + h-12 logo). Desktop: driven by ResizeObserver via useHeaderHeight(). -->
     <div
-      v-if="isDesktop && hydrated"
       class="flex-shrink-0"
-      :style="`height: ${headerHeight}px`"
+      :style="isDesktop ? `height: ${headerHeight}px` : 'height: 64px'"
     ></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
@@ -55,8 +53,9 @@
         </div>
       </div>
 
-      <!-- Drawer Side (Menu) -->
+      <!-- Drawer Side (Menu) — desktop only; mobile uses TheMenuSheet below -->
       <the-drawer-side
+        v-if="isDesktop"
         :pages="pages.filter((page) => includes(page.menus, 'main'))"
         :nav-items="navigationConfig?.header_items || []"
         class="z-[9999]"
@@ -67,6 +66,24 @@
     <div class="fixed bottom-0 left-0 right-0 z-[10000] block sm:hidden">
       <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
     </div>
+
+    <!-- Mobile: backdrop blur (below sticky header, above page content) -->
+    <Transition name="slk-fade">
+      <div
+        v-if="!isDesktop && hydrated && isDrawerOpen"
+        class="fixed inset-0 z-[49] backdrop-blur-sm bg-black/20 sm:hidden"
+        @click="closeDrawer"
+      />
+    </Transition>
+
+    <!-- Mobile: bottom sheet navigation -->
+    <Transition name="slk-sheet">
+      <TheMenuSheet
+        v-if="!isDesktop && hydrated && isDrawerOpen"
+        :pages="pages.filter((page) => includes(page.menus, 'main'))"
+        :nav-items="navigationConfig?.header_items || []"
+      />
+    </Transition>
 
     <!-- Global search command palette (Cmd+K) -->
     <TheSearchCommandPalette />
@@ -84,9 +101,12 @@ const { includes } = lodash;
 const { $directus, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 const route = useRoute();
-const { closeDrawer, syncDrawerState } = useDrawer();
+const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();
 const hydrated = ref(false)
-const isDesktop = ref(false)
+// useState (not ref) so server and client share the same initial value → no hydration
+// mismatch. Default true = render the desktop header in SSR so it's in the HTML
+// immediately, eliminating the post-hydration nav-bar lag for desktop users.
+const isDesktop = useState('layout-isDesktop', () => true)
 const headerHeight = useHeaderHeight()
 const drawerToggle = ref(null)
 let cleanup = null
@@ -168,28 +188,35 @@ onUnmounted(() => {
 })
 
 
-const { data: pages } = await useAsyncData("pages", () => {
-  return $directus.request($readItems("pages", { sort: "sort_order", limit: -1 }));
-});
+// getCachedData: serve from SSR payload on client-side navigations instead of
+// re-fetching Directus on every page change. These datasets change rarely.
+const cachedPayload = (key, nuxtApp) =>
+  nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
 
-const { data: publishedMunicipalities } = await useAsyncData("municipalities", () => {
-  return $directus.request(
+const { data: pages } = await useAsyncData(
+  "pages",
+  () => $directus.request($readItems("pages", { sort: "sort_order", limit: -1 })),
+  { getCachedData: cachedPayload },
+);
+
+const { data: publishedMunicipalities } = await useAsyncData(
+  "municipalities",
+  () => $directus.request(
     $readItems("municipalities", {
       fields: ["slug", "name"],
       sort: "name",
-      filter: {
-        status: {
-          _eq: "published",
-        },
-      },
+      filter: { status: { _eq: "published" } },
       limit: -1,
     }),
-  );
-});
+  ),
+  { getCachedData: cachedPayload },
+);
 
-const { data: navigationConfig } = await useAsyncData("navigation_config", () => {
-  return $directus.request($readSingleton("navigation_config")).catch(() => null);
-});
+const { data: navigationConfig } = await useAsyncData(
+  "navigation_config",
+  () => $directus.request($readSingleton("navigation_config")).catch(() => null),
+  { getCachedData: cachedPayload },
+);
 
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");
@@ -247,5 +274,29 @@ main > div {
   .lg\:pb-0 {
     padding-bottom: 0;
   }
+}
+
+/* Mobile menu sheet slide-up transition */
+.slk-sheet-enter-active,
+.slk-sheet-leave-active {
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.slk-sheet-enter-from,
+.slk-sheet-leave-to {
+  transform: translateY(100%);
+}
+.slk-sheet-enter-to,
+.slk-sheet-leave-from {
+  transform: translateY(0);
+}
+
+/* Mobile backdrop fade transition */
+.slk-fade-enter-active,
+.slk-fade-leave-active {
+  transition: opacity 200ms ease;
+}
+.slk-fade-enter-from,
+.slk-fade-leave-to {
+  opacity: 0;
 }
 </style>

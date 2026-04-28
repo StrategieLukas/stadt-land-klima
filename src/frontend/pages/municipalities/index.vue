@@ -14,53 +14,74 @@
   <!-- Filter panel -->
   <div class="flex flex-col gap-0 mb-6 shadow-md p-3" style="background-color: #F5F9E6;">
 
-    <!-- Row 1: View toggle + vertical divider + Catalog version -->
-    <div class="flex items-center gap-3 py-1.5">
-      <!-- View toggle -->
-      <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+    <!-- Collapsible toggle (only shown below xs breakpoint) -->
+    <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium" style="color: #AFCA0B;" @click="filterOpen = !filterOpen">
+      <span class="flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
+        </svg>
+        <span>Filter &amp; Ansicht</span>
+        <span v-if="activeFilterCount > 0" class="text-white text-xs rounded-full px-1.5 py-0.5 font-bold leading-none" style="background-color: #AFCA0B;">{{ activeFilterCount }}</span>
+      </span>
+      <svg class="w-4 h-4 flex-shrink-0 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
       </svg>
-      <div class="flex gap-2">
-        <button
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
-          :class="!isMapView ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
-          @click="router.replace({ query: { ...route.query, view: undefined } })"
-        >
-          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-          </svg>
-          Ranking
-        </button>
-        <button
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
-          :class="isMapView ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
-          @click="router.replace({ query: { ...route.query, view: 'map' } })"
-        >
-          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
-          Karte
-        </button>
+    </button>
+
+    <!-- Filter rows (always visible at xs+, collapsible below xs) -->
+    <div v-show="filterOpen" class="xs:!block">
+
+    <!-- Row 1: View toggle + vertical divider + Catalog version -->
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-1.5">
+      <!-- View toggle group: icon + buttons stay together -->
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        </svg>
+        <div class="flex gap-2">
+          <button
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
+            :class="!isMapView ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+            @click="router.replace({ query: { ...route.query, view: undefined } })"
+          >
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            Ranking
+          </button>
+          <button
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
+            :class="isMapView ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+            @click="router.replace({ query: { ...route.query, view: 'map' } })"
+          >
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Karte
+          </button>
+        </div>
       </div>
 
-      <!-- Vertical divider -->
-      <div class="self-stretch w-px bg-[#AFCA0B]/30 mx-1" />
+      <!-- Vertical divider (hidden when row wraps) -->
+      <div class="self-stretch w-px bg-[#AFCA0B]/30" />
 
-      <!-- Catalog version -->
-      <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-      <div class="flex gap-2 items-center">
-        <NuxtLink
-          :to="{ path: '/municipalities', query: { ...route.query, v: 'v1.0' } }"
-          class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
-          :class="selectedCatalogVersion.name !== 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
-        >2026</NuxtLink>
-        <NuxtLink
-          :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"
-          class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
-          :class="selectedCatalogVersion.name === 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
-        >2025 (Archiv)</NuxtLink>
+      <!-- Catalog version group: icon + buttons stay together -->
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <div class="flex gap-2 items-center">
+          <NuxtLink
+            :to="{ path: '/municipalities', query: { ...route.query, v: 'v1.0' } }"
+            class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
+            :class="selectedCatalogVersion.name !== 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+          >2026</NuxtLink>
+          <NuxtLink
+            :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"
+            class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
+            :class="selectedCatalogVersion.name === 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+          >2025 (Archiv)</NuxtLink>
+        </div>
       </div>
     </div>
 
@@ -104,6 +125,7 @@
       </div>
     </div>
 
+    </div><!-- /collapsible -->
   </div>
 
   <!-- Mobile: Single column layout -->
@@ -347,6 +369,14 @@ const selected = computed({
   },
 })
 
+const filterOpen = ref(false)
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (isMapView.value) count++
+  if (selected.value !== 'all') count++
+  if (route.query.v === 'beta') count++
+  return count
+})
 
 </script>
 

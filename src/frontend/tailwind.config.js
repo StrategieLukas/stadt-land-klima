@@ -15,6 +15,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+        heading: ['RobotoCondensed', 'sans-serif'],
       },
       colors: {
         "rating-4": "#1EA64A",
