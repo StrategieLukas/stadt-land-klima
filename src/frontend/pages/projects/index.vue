@@ -93,6 +93,7 @@
         :image_id="project.image?.id"
         :image_is_raster="project.image ? isRaster(project.image.type) : false"
         :organisation="project.organisation"
+        :measures="(project.measures || []).map(m => m.measures_id).filter(Boolean)"
       />
     </div>
   </div>
@@ -121,6 +122,7 @@ const { data: projectList } = await useAsyncData("articles-index", () => {
         "ghg_savings_level",
         { image: ["id", "type"] },
         { organisation: ["id", "name", "logo"] },
+        { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] },
       ],
       sort: "-date_created",
       limit: -1,
