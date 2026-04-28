@@ -1,0 +1,38 @@
+collection: agreement_versions
+field: current_data_protection_version
+type: string
+meta:
+  collection: agreement_versions
+  conditions: null
+  display: null
+  display_options: null
+  field: current_data_protection_version
+  group: null
+  hidden: false
+  interface: input
+  note: Current version of data protection agreement
+  options: null
+  readonly: false
+  required: true
+  sort: null
+  special: null
+  translations: null
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: current_data_protection_version
+  table: agreement_versions
+  data_type: varchar
+  default_value: '"1.0"'
+  max_length: 50
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

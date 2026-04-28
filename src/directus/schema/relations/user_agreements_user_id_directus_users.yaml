@@ -1,0 +1,9 @@
+collection: user_agreements
+field: user_id
+related_collection: directus_users
+schema:
+  table: user_agreements
+  column: user_id
+  foreign_key_table: directus_users
+  foreign_key_column: id
+  on_delete: cascade

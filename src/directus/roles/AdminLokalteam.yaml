@@ -334,6 +334,47 @@ permissions:
     presets: null
     fields:
       - password
+  - collection: user_agreements
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - user_id
+      - agb_version
+      - agb_accepted_at
+      - data_protection_version
+      - data_protection_accepted_at
+      - newsletter_subscribed
+      - newsletter_subscribed_at
+  - collection: user_agreements
+    action: read
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: user_agreements
+    action: update
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - newsletter_subscribed
+      - newsletter_subscribed_at
+  - collection: agreement_versions
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
   - collection: editors
     action: create
     permissions: null
