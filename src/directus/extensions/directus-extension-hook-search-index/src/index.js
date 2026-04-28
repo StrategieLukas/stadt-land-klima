@@ -123,6 +123,20 @@ function buildMeasureDoc(measure) {
   }
 }
 
+function buildMemberDoc(user) {
+  if (!user.show_on_team_page) return null
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ')
+  if (!name) return null
+  return {
+    id: `member_${user.id}`,
+    type: 'member',
+    title: name,
+    text: [name, stripHtml(user.bio || '')].filter(Boolean).join(' '),
+    url: `/organisation#member-${user.id}`,
+    meta: 'Teammitglied',
+  }
+}
+
 // ── Hook registration ──
 
 export default ({ action }, { logger, env }) => {
@@ -348,6 +362,42 @@ export default ({ action }, { logger, env }) => {
       } catch {
         await remove(`measure:${key}`)
       }
+    }
+  })
+
+  // ── directus_users (team members) ──
+
+  action('users.create', async ({ payload, key }) => {
+    const user = { ...payload, id: payload.id || key }
+    const doc = buildMemberDoc(user)
+    if (doc) await upsert(doc)
+  })
+
+  action('users.update', async ({ keys, payload }, { database }) => {
+    for (const key of keys) {
+      try {
+        const rows = await database('directus_users')
+          .where('id', key)
+          .select('id', 'first_name', 'last_name', 'bio', 'show_on_team_page')
+          .limit(1)
+        if (!rows[0]) continue
+        const user = rows[0]
+        if (!user.show_on_team_page) {
+          await remove(`member_${user.id}`)
+        } else {
+          const doc = buildMemberDoc(user)
+          if (doc) await upsert(doc)
+        }
+      } catch (e) {
+        logger.error('[search-index] users update fetch failed:', e?.message ?? e)
+      }
+    }
+  })
+
+  action('users.delete', async ({ payload }) => {
+    const ids = Array.isArray(payload) ? payload : [payload]
+    for (const id of ids) {
+      await remove(`member_${id}`)
     }
   })
 }

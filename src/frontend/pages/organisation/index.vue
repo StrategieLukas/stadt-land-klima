@@ -1,411 +1,454 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-8 pb-16">
-    <h1 class="text-h1 font-bold text-center mb-8">Unsere Organisation</h1>
+  <div class="max-w-7xl mx-auto px-4 py-8 pb-16">
+    <h1 class="text-h1 font-bold text-center mb-4">Unsere Organisation</h1>
 
-    <!-- Bubble diagram -->
-    <div class="flex justify-center items-center">
-      <div class="diagram">
-        <!-- Steuerkreis (yellow, center) -->
-        <button
-          class="bubble steuerkreis"
-          :class="{ active: activeGroup === 'steuerkreis' }"
-          @click="open('steuerkreis')"
-          aria-label="Steuerkreis"
+    <!-- Intro text -->
+    <div class="max-w-2xl mx-auto text-center mb-10">
+      <h2 class="text-h2 font-bold mb-2">Ressorts/Aufgabenbereiche</h2>
+      <p class="text-base text-gray">
+        Wir sind selbstorganisiert und arbeiten in Arbeits- und Projektgruppen. Die Ressorts/Aufgabenbereiche fassen die AGs und PGs thematisch zusammen.
+      </p>
+      <p class="mt-2 text-sm italic text-gray-400">Klicke auf eine Blase, um mehr über das Ressort zu erfahren.</p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8 items-start">
+      <!-- ── Bubble chart ─────────────────────────────────────────────────────── -->
+      <!-- aspect-ratio + flex-shrink-0 keep SVG size stable while right panel changes -->
+      <div ref="svgWrapperRef" class="w-full sm:w-[80%] md:w-[65%] lg:w-[55%] mx-auto lg:mx-0 flex-shrink-0" style="aspect-ratio: 620 / 555">
+        <svg
+          viewBox="140 5 620 555"
+          class="w-full h-full select-none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-label="Organisationsdiagramm"
+          role="img"
+          @click.self="activeTeamId = null"
         >
-          <span class="bubble-label">Steuerkreis</span>
+          <!-- Base rect so mix-blend-mode: multiply renders correctly -->
+          <rect x="140" y="5" width="620" height="555" fill="#fbfbfb" />
 
-          <!-- Vorstand inside Steuerkreis -->
-          <button
-            class="bubble vorstand"
-            :class="{ active: activeGroup === 'vorstand' }"
-            @click.stop="open('vorstand')"
-            aria-label="Vereinsvorstand"
+          <!-- Separator line -->
+          <line x1="166.8" y1="365.9" x2="733.2" y2="365.9" stroke="#c8c8c8" stroke-width="0.9" />
+
+          <!-- Blended circles (isolation group so multiply blends only within group) -->
+          <g style="isolation: isolate">
+            <circle
+              v-for="team in TEAMS"
+              :key="'fill-' + team.id"
+              :cx="team.cx"
+              :cy="team.cy"
+              :r="team.r"
+              :fill="team.color"
+              style="mix-blend-mode: multiply; cursor: pointer"
+              @click.stop="selectTeam(team.id)"
+            />
+          </g>
+
+          <!-- Active ring (outside blend group to stay crisp) -->
+          <circle
+            v-for="team in TEAMS"
+            :key="'ring-' + team.id"
+            :cx="team.cx"
+            :cy="team.cy"
+            :r="team.r + 3"
+            fill="none"
+            :stroke="activeTeamId === team.id ? '#333' : 'transparent'"
+            stroke-width="2.5"
+            stroke-dasharray="6 4"
+            style="pointer-events: none; transition: stroke 0.15s"
+          />
+
+          <!-- Labels -->
+          <text
+            v-for="team in TEAMS"
+            :key="'label-' + team.id"
+            :x="team.cx"
+            :y="team.cy - (team.lines.length - 1) * team.lineHeight / 2"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            :font-size="team.fontSize"
+            font-weight="700"
+            font-family="'Roboto Condensed', 'Inter', sans-serif"
+            fill="#1a1a1a"
+            style="pointer-events: none"
           >
-            <span class="bubble-label">Vereins-<br>vorstand</span>
-          </button>
-        </button>
+            <tspan
+              v-for="(line, i) in team.lines"
+              :key="i"
+              :x="team.cx"
+              :dy="i === 0 ? 0 : team.lineHeight"
+            >{{ line }}</tspan>
+          </text>
 
-        <!-- Technik & IT (lime green, top-left) -->
-        <button
-          class="bubble technik"
-          :class="{ active: activeGroup === 'technik' }"
-          @click="open('technik')"
-          aria-label="Technik & IT"
-        >
-          <span class="bubble-label">Technik &amp; IT</span>
-        </button>
+          <!-- Transparent hit area so labels don't block clicks -->
+          <circle
+            v-for="team in TEAMS"
+            :key="'click-' + team.id"
+            :cx="team.cx"
+            :cy="team.cy"
+            :r="team.r"
+            fill="transparent"
+            stroke="none"
+            style="cursor: pointer"
+            @click.stop="selectTeam(team.id)"
+          />
+        </svg>
+      </div>
 
-        <!-- Lokalteams (dark green, top-right) -->
-        <button
-          class="bubble lokalteams"
-          :class="{ active: activeGroup === 'lokalteams' }"
-          @click="open('lokalteams')"
-          aria-label="Lokalteams / Netzwerk"
-        >
-          <span class="bubble-label">Lokalteams/<br>Netzwerk</span>
-        </button>
+      <!-- ── Detail panel ─────────────────────────────────────────────────────── -->
+      <!-- panelStyle pins max-height to the SVG height (tracked by ResizeObserver)  -->
+      <!-- so the flex-row height never changes → no scrollbar jitter on the page.   -->
+      <div class="w-full lg:w-[45%]" :class="svgHeight > 0 ? 'lg:overflow-y-auto' : ''" :style="panelStyle">
+        <template v-if="activeTeam">
+          <!-- Popover card -->
+          <div id="team-detail-panel" class="rounded-lg overflow-hidden border border-[#e0e0e0] shadow-md mb-6">
+            <!-- Header -->
+            <div
+              class="px-4 py-3"
+              :style="{ background: activeTeam.color + '22', borderBottom: '2px solid ' + activeTeam.color }"
+            >
+              <h2 class="font-bold text-[15px] text-[#1a1a1a]">{{ activeTeam.label }}</h2>
+              <a
+                v-if="activeTeam.email"
+                :href="'mailto:' + activeTeam.email"
+                class="mt-0.5 text-xs text-[#006e94] hover:underline block"
+              >{{ activeTeam.email }}</a>
+            </div>
 
-        <!-- Maßnahmen (blue, bottom-left) -->
-        <button
-          class="bubble massnahmen"
-          :class="{ active: activeGroup === 'massnahmen' }"
-          @click="open('massnahmen')"
-          aria-label="Maßnahmen"
-        >
-          <span class="bubble-label">Maßnahmen</span>
-        </button>
+            <!-- Task list -->
+            <div class="bg-white px-4 py-3">
+              <ul class="text-sm leading-relaxed space-y-1 text-[#333] list-disc list-inside">
+                <li v-for="task in activeTeam.tasks" :key="task">{{ task }}</li>
+              </ul>
+            </div>
 
-        <!-- Kommunikation (orange, bottom-right) -->
-        <button
-          class="bubble kommunikation"
-          :class="{ active: activeGroup === 'kommunikation' }"
-          @click="open('kommunikation')"
-          aria-label="Kommunikation"
+            <!-- Members footer: small clickable avatars (replaces name strip) -->
+            <div class="px-4 py-3 border-t border-[#e0e0e0]">
+              <div v-if="filteredMembers.length" class="flex flex-wrap gap-3">
+                <button
+                  v-for="member in filteredMembers"
+                  :key="'strip-' + member.id"
+                  type="button"
+                  class="flex flex-col items-center gap-1 cursor-pointer group focus:outline-none"
+                  @click="scrollToMember(member.id, activeTeam.color)"
+                  :title="member.first_name + ' ' + member.last_name"
+                >
+                  <div
+                    class="w-10 h-10 rounded-full overflow-hidden border-2 group-hover:scale-110 transition-transform"
+                    :style="{ borderColor: activeTeam.color }"
+                  >
+                    <SmartImg
+                      v-if="member.avatar"
+                      :assetId="member.avatar"
+                      :isRaster="true"
+                      :width="40"
+                      :height="40"
+                      imgClass="w-full h-full object-cover"
+                    />
+                    <div
+                      v-else
+                      class="w-full h-full flex items-center justify-center"
+                      :style="{ background: `linear-gradient(135deg, ${activeTeam.color}55 0%, ${activeTeam.color}22 50%, ${activeTeam.color}44 100%)` }"
+                    >
+                      <span class="font-bold text-xs" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
+                    </div>
+                  </div>
+                  <span class="text-[10px] leading-tight text-center text-gray-600 max-w-[48px] truncate">{{ member.first_name }}</span>
+                </button>
+              </div>
+              <p v-else class="text-sm italic text-gray-400">Noch keine Mitglieder eingetragen.</p>
+            </div>
+          </div>
+        </template>
+
+        <!-- No-selection placeholder — min-height matches SVG height to keep page height stable -->
+        <div
+          v-else
+          class="flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-[#e5e7eb] text-gray gap-3"
+          :style="placeholderStyle"
         >
-          <span class="bubble-label">Kommunikation<br>Öffentlichkeits-<br>Pressearbeit</span>
-        </button>
+          <svg class="w-10 h-10 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <p class="text-sm font-medium">Wähle eine Gruppe aus dem Diagramm</p>
+        </div>
       </div>
     </div>
 
-    <!-- DaisyUI modal -->
-    <dialog ref="modalRef" class="modal">
-      <div class="modal-box max-w-lg">
-        <form method="dialog">
-          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-        </form>
+    <!-- ── All members list (below chart) ─────────────────────────────────── -->
+    <div v-if="members && members.length" class="mt-12">
+      <h2 class="text-h2 font-bold mb-6">Alle Teammitglieder</h2>
 
-        <h2 class="text-h2 font-bold mb-4 pr-8">{{ currentGroup?.title }}</h2>
-
-        <!-- Portrait icons -->
-        <div class="flex flex-wrap gap-4 mb-6">
+      <!-- Active-team members first (coloured border highlight) -->
+      <template v-if="activeTeam && filteredMembers.length">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
           <div
-            v-for="person in currentGroup?.people"
-            :key="person.name"
-            class="flex flex-col items-center gap-1"
+            v-for="member in filteredMembers"
+            :key="'all-active-' + member.id"
+            :id="'member-' + member.id"
+            class="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border-2"
+            :style="{ borderColor: activeTeam.color }"
+            style="transition: box-shadow 0.1s;"
           >
-            <div
-              class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm text-white shadow"
-              :style="{ background: currentGroup?.color }"
-            >
-              {{ initials(person.name) }}
+            <div class="relative aspect-square bg-gray-100 overflow-hidden flex-shrink-0">
+              <template v-if="member.avatar">
+                <!-- Blurred fill layer keeps the container looking full at any aspect ratio -->
+                <SmartImg
+                  :assetId="member.avatar"
+                  :isRaster="true"
+                  :width="320"
+                  :height="320"
+                  imgClass="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
+                />
+                <!-- Main image: contain so the face is never cropped -->
+                <SmartImg
+                  :assetId="member.avatar"
+                  :isRaster="true"
+                  :width="320"
+                  :height="320"
+                  imgClass="absolute inset-0 w-full h-full object-contain"
+                />
+              </template>
+              <div
+                v-else
+                class="absolute inset-0 flex items-center justify-center"
+                :style="{ background: `linear-gradient(135deg, ${activeTeam.color}55 0%, ${activeTeam.color}22 50%, ${activeTeam.color}44 100%)` }"
+              >
+                <span class="font-bold text-3xl" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
+              </div>
             </div>
-            <span class="text-xs text-center text-gray max-w-[60px]">{{ person.name }}</span>
+            <div class="p-4 flex flex-col gap-2 flex-1">
+              <p class="font-bold text-gray-900 leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
+              <div v-if="member.bio" class="text-sm text-gray-500 prose prose-sm max-w-none" v-html="member.bio" />
+            </div>
           </div>
         </div>
+        <hr class="border-[#e5e7eb] mb-6" />
+      </template>
 
-        <!-- Content sections -->
-        <div class="space-y-3">
-          <template v-for="section in currentGroup?.sections" :key="section.heading">
-            <h3 v-if="section.heading" class="font-bold text-base mt-4">{{ section.heading }}</h3>
-            <p class="text-sm leading-relaxed text-gray">{{ section.text }}</p>
-          </template>
+      <!-- All other members (alphabetically by last name) -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div
+          v-for="member in otherMembers"
+          :key="'all-other-' + member.id"            :id="'member-' + member.id"          class="flex flex-col bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
+        >
+          <div class="relative aspect-square bg-gray-100 overflow-hidden flex-shrink-0">
+            <template v-if="member.avatar">
+              <!-- Blurred fill layer -->
+              <SmartImg
+                :assetId="member.avatar"
+                :isRaster="true"
+                :width="320"
+                :height="320"
+                imgClass="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60"
+              />
+              <!-- Main image: contain so the face is never cropped -->
+              <SmartImg
+                :assetId="member.avatar"
+                :isRaster="true"
+                :width="320"
+                :height="320"
+                imgClass="absolute inset-0 w-full h-full object-contain"
+              />
+            </template>
+            <div
+              v-else
+              class="absolute inset-0 flex items-center justify-center"
+              :style="{ background: `linear-gradient(135deg, ${memberColor(member)}55 0%, ${memberColor(member)}22 50%, ${memberColor(member)}44 100%)` }"
+            >
+              <span class="font-bold text-3xl" :style="{ color: memberColor(member) }">{{ initials(member.first_name, member.last_name) }}</span>
+            </div>
+          </div>
+          <div class="p-4 flex flex-col gap-2 flex-1">
+            <p class="font-bold text-gray-900 leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
+            <div v-if="member.bio" class="text-sm text-gray-500 prose prose-sm max-w-none" v-html="member.bio" />
+          </div>
         </div>
       </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-      </form>
-    </dialog>
+    </div>
   </div>
 </template>
 
 <script setup>
 useHead({ title: 'Organisation' })
 
-const activeGroup = ref(null)
-const modalRef = ref(null)
+const { $directus, $readItems } = useNuxtApp()
+// ── SVG layout — coordinates from the original Illustrator SVG ──────────────
+// These are purely geometric/layout values that never need to change via CMS.
+// Label, email, color and tasks come from the organisation_teams Directus collection.
+const TEAM_LAYOUT = [
+  { id: 'lokalteams',   lines: ['Lokalteams/', 'Netzwerk'],                        cx: 527.2, cy: 81.7,  r: 72,   fontSize: 20, lineHeight: 24 },
+  { id: 'technik',      lines: ['Technik & IT'],                                   cx: 351,   cy: 143.5, r: 72,   fontSize: 20, lineHeight: 24 },
+  { id: 'steuerkreis',  lines: ['Steuerkreis'],                                    cx: 458.8, cy: 198.4, r: 89.7, fontSize: 20, lineHeight: 24 },
+  { id: 'massnahmen',   lines: ['Maßnahmen'],                                      cx: 365,   cy: 270.4, r: 72,   fontSize: 20, lineHeight: 24 },
+  { id: 'kommunikation',lines: ['Kommunikation', 'Öffentlichkeits-', 'Pressearbeit'], cx: 531.6, cy: 276.2, r: 72, fontSize: 16, lineHeight: 19 },
+  { id: 'vorstand',     lines: ['Vorstand/', 'Verwaltung'],                        cx: 458.8, cy: 447.3, r: 72,   fontSize: 20, lineHeight: 24 },
+  { id: 'kassenwart',   lines: ['Kassenwart'],                                     cx: 548,   cy: 468,   r: 52,   fontSize: 17, lineHeight: 22 },
+]
 
-const groups = {
-  steuerkreis: {
-    title: 'Steuerkreis',
-    color: '#ffc80c',
-    people: [
-      { name: 'Anna Müller' },
-      { name: 'Ben Schmidt' },
-      { name: 'Clara Weber' },
-    ],
-    sections: [
-      {
-        heading: 'Was wir tun',
-        text: 'Der Steuerkreis koordiniert die strategische Ausrichtung von Stadt-Land-Klima. Er bringt alle Arbeitsgruppen zusammen, setzt Prioritäten und sorgt für eine kohärente Gesamtstrategie.',
-      },
-      {
-        heading: 'Wie du mitmachen kannst',
-        text: 'Interessierte können an offenen Steuerkreis-Treffen teilnehmen. Schreib uns eine Nachricht über das Kontaktformular, um mehr zu erfahren.',
-      },
-    ],
-  },
-  vorstand: {
-    title: 'Vereinsvorstand',
-    color: '#9D9D9C',
-    people: [
-      { name: 'Dieter Braun' },
-      { name: 'Eva Hoffmann' },
-    ],
-    sections: [
-      {
-        heading: 'Was wir tun',
-        text: 'Der Vereinsvorstand trägt die rechtliche und finanzielle Verantwortung für den Verein. Er vertritt Stadt-Land-Klima nach außen und stellt sicher, dass alle Aktivitäten im Einklang mit der Satzung stehen.',
-      },
-      {
-        heading: 'Wie du mitmachen kannst',
-        text: 'Vorstandsmitglieder werden auf der jährlichen Mitgliederversammlung gewählt. Wenn du Interesse hast, melde dich gerne bei uns.',
-      },
-    ],
-  },
-  technik: {
-    title: 'Technik & IT',
-    color: '#AFCA0B',
-    people: [
-      { name: 'Felix Kern' },
-      { name: 'Greta Lenz' },
-    ],
-    sections: [
-      {
-        heading: 'Was wir tun',
-        text: 'Die Technik & IT-Gruppe entwickelt und betreibt die digitale Infrastruktur von Stadt-Land-Klima – von der Website über Datenbanken bis hin zu internen Tools.',
-      },
-      {
-        heading: 'Wie du mitmachen kannst',
-        text: 'Wenn du Erfahrung in Webentwicklung, DevOps oder Datenbankadministration hast, freuen wir uns über deine Unterstützung. Melde dich über unser Kontaktformular.',
-      },
-    ],
-  },
-  lokalteams: {
-    title: 'Lokalteams / Netzwerk',
-    color: '#339737',
-    people: [
-      { name: 'Hanna Vogel' },
-      { name: 'Ingo Bauer' },
-      { name: 'Jana Koch' },
-    ],
-    sections: [
-      {
-        heading: 'Was wir tun',
-        text: 'Die Lokalteams sind das Herzstück von Stadt-Land-Klima. Sie arbeiten vor Ort in Kommunen, vernetzen lokale Akteure und setzen Klimaschutzmaßnahmen direkt um.',
-      },
-      {
-        heading: 'Wie du mitmachen kannst',
-        text: 'Schau auf der Karte nach, ob es ein Lokalteam in deiner Nähe gibt, oder gründe selbst eines. Wir unterstützen dich mit Materialien und Vernetzung.',
-      },
-    ],
-  },
-  massnahmen: {
-    title: 'Maßnahmen',
-    color: '#16bae7',
-    people: [
-      { name: 'Karl Fischer' },
-      { name: 'Lisa Neumann' },
-    ],
-    sections: [
-      {
-        heading: 'Was wir tun',
-        text: 'Die Maßnahmen-Gruppe entwickelt und pflegt den Katalog konkreter Klimaschutzmaßnahmen für Kommunen. Sie bewertet Wirksamkeit, Umsetzbarkeit und Kosten.',
-      },
-      {
-        heading: 'Wie du mitmachen kannst',
-        text: 'Hast du Expertise in Klimaschutz, Stadtplanung oder Energiewende? Dann bring dein Wissen ein und hilf uns, den Maßnahmenkatalog weiterzuentwickeln.',
-      },
-    ],
-  },
-  kommunikation: {
-    title: 'Kommunikation & Öffentlichkeitsarbeit',
-    color: '#f39200',
-    people: [
-      { name: 'Max Richter' },
-      { name: 'Nina Schulz' },
-    ],
-    sections: [
-      {
-        heading: 'Was wir tun',
-        text: 'Die Kommunikationsgruppe verantwortet die Außendarstellung von Stadt-Land-Klima: Social Media, Pressemitteilungen, Newsletter und Öffentlichkeitskampagnen.',
-      },
-      {
-        heading: 'Wie du mitmachen kannst',
-        text: 'Wenn du Erfahrung in Kommunikation, Journalismus oder Social Media hast, freuen wir uns über deine Mitarbeit. Melde dich über unser Kontaktformular.',
-      },
-    ],
-  },
-}
+// ── Data fetching ─────────────────────────────────────────────────────────────
+const { data: members } = await useAsyncData('org-members', () =>
+  $fetch('/api/org-members')
+)
 
-const currentGroup = computed(() => activeGroup.value ? groups[activeGroup.value] : null)
+const { data: cmsTeams } = await useAsyncData('org-teams', () =>
+  $directus.request($readItems('organisation_teams', { sort: ['sort'], limit: -1 }))
+)
 
-function open(key) {
-  activeGroup.value = key
-  nextTick(() => {
-    modalRef.value?.showModal()
+// Merge SVG layout with CMS data; fall back to sensible defaults when CMS is unavailable
+const TEAMS = computed(() =>
+  TEAM_LAYOUT.map(layout => {
+    const cms = cmsTeams.value?.find(t => t.team_key === layout.id)
+    return {
+      ...layout,
+      label: cms?.label ?? layout.id,
+      email: cms?.email ?? '',
+      color: cms?.color ?? '#9d9d9c',
+      tasks: Array.isArray(cms?.tasks) ? cms.tasks : [],
+    }
   })
+)
+
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const activeTeamId = ref(null)
+
+function selectTeam(id) {
+  activeTeamId.value = activeTeamId.value === id ? null : id
 }
 
-function initials(name) {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase()
+// ── Hash-based navigation (from search results) ────────────────────────────
+const route = useRoute()
+
+function handleHash(hash) {
+  if (!hash) return
+  if (hash.startsWith('#team-')) {
+    const teamId = hash.slice('#team-'.length)
+    activeTeamId.value = teamId
+    nextTick(() => {
+      document.getElementById('team-detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  } else if (hash.startsWith('#member-')) {
+    const memberId = hash.slice('#member-'.length)
+    const member = members.value?.find(m => m.id === memberId)
+    const color = member ? memberColor(member) : '#16bae7'
+    scrollToMember(memberId, color)
+  }
+}
+
+watch(() => route.hash, handleHash)
+
+const activeTeam = computed(() =>
+  activeTeamId.value ? TEAMS.value.find(t => t.id === activeTeamId.value) ?? null : null
+)
+
+const byLastName = (a, b) => (a.last_name ?? '').localeCompare(b.last_name ?? '', 'de')
+
+// Members in the active team
+const filteredMembers = computed(() => {
+  if (!members.value || !activeTeamId.value) return []
+  const seen = new Set()
+  return members.value
+    .filter(m => {
+      if (!Array.isArray(m.slk_team) || !m.slk_team.includes(activeTeamId.value)) return false
+      if (seen.has(m.id)) return false
+      seen.add(m.id)
+      return true
+    })
+    .sort(byLastName)
+})
+
+// All other members (not in active team), sorted by last name
+const otherMembers = computed(() => {
+  if (!members.value) return []
+  const activeIds = new Set(filteredMembers.value.map(m => m.id))
+  return members.value.filter(m => !activeIds.has(m.id)).sort(byLastName)
+})
+
+// ── Layout stability: lock panel height to SVG height ───────────────────────
+// When panel content changes height the flex-row height must not change,
+// otherwise a page scrollbar can appear/disappear → viewport narrows/widens
+// → SVG resizes → visible jitter. We track the SVG wrapper height with a
+// ResizeObserver and use it as the panel's max-height (and placeholder's
+// min-height) so the row height is always exactly equal to the SVG height.
+const svgWrapperRef = ref(null)
+const svgHeight = ref(0)
+const isLg = ref(false)
+
+let _resizeObs = null
+let _mq = null
+const _onMqChange = (e) => { isLg.value = e.matches }
+
+onMounted(() => {
+  _mq = window.matchMedia('(min-width: 1024px)')
+  isLg.value = _mq.matches
+  _mq.addEventListener('change', _onMqChange)
+
+  if (svgWrapperRef.value) {
+    _resizeObs = new ResizeObserver(([entry]) => {
+      svgHeight.value = entry.contentRect.height
+    })
+    _resizeObs.observe(svgWrapperRef.value)
+  }
+
+  // Handle deep-link from search results
+  if (route.hash) handleHash(route.hash)
+})
+
+onUnmounted(() => {
+  _resizeObs?.disconnect()
+  _mq?.removeEventListener('change', _onMqChange)
+})
+
+// Only apply height constraints on the lg+ breakpoint (column layout on mobile
+// should scroll freely).
+const panelStyle = computed(() =>
+  isLg.value && svgHeight.value > 0
+    ? { maxHeight: svgHeight.value + 'px' }
+    : {}
+)
+
+const placeholderStyle = computed(() =>
+  isLg.value && svgHeight.value > 0
+    ? { minHeight: svgHeight.value + 'px' }
+    : { minHeight: '220px' }
+)
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function initials(first, last) {
+  return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
+}
+
+// Picks the colour of the member's first team, falls back to a neutral teal
+function memberColor(member) {
+  const firstTeamId = Array.isArray(member.slk_team) ? member.slk_team[0] : null
+  return TEAMS.value.find(t => t.id === firstTeamId)?.color ?? '#16bae7'
+}
+
+function scrollToMember(id, color) {
+  const el = document.getElementById('member-' + id)
+  if (!el) return
+  // Set the ring color as a CSS custom property so the keyframe picks it up
+  el.style.setProperty('--highlight-color', color ?? '#16bae7')
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  el.classList.remove('member-highlight')
+  void el.offsetWidth
+  el.classList.add('member-highlight')
+  el.addEventListener('animationend', () => el.classList.remove('member-highlight'), { once: true })
 }
 </script>
 
-<style scoped>
-/* ── Diagram ── */
-.diagram {
-  position: relative;
-  width: 480px;
-  height: 420px;
+<style>
+@keyframes memberHighlight {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 70%, transparent); }
+  30%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--highlight-color, #16bae7) 35%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 0%, transparent); }
 }
-
-/* Base bubble styles */
-.bubble {
-  position: absolute;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.95rem;
-  line-height: 1.25;
-  padding: 0;
-  transition: filter 0.15s ease, transform 0.15s ease;
-  color: #1a1a1a;
-}
-
-.bubble:hover {
-  filter: brightness(1.08);
-  transform: scale(1.04);
-}
-
-.bubble.active {
-  filter: brightness(0.92);
-}
-
-.bubble-label {
-  pointer-events: none;
-  padding: 0.5rem;
-}
-
-/* Steuerkreis — yellow, center */
-.steuerkreis {
-  width: 200px;
-  height: 200px;
-  background: #ffc80c;
-  top: 110px;
-  left: 140px;
-  z-index: 2;
-  align-items: flex-start;
-  padding-top: 1rem;
-}
-
-/* Vorstand — grey, small, inside Steuerkreis */
-.vorstand {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  background: #D0D0D0;
-  top: 110px;
-  left: 110px;
-  z-index: 10;
-  font-size: 0.65rem;
-  transform: none;
-}
-
-.vorstand:hover {
-  filter: brightness(1.08);
-  transform: scale(1.06);
-}
-
-/* Technik & IT — lime green, top-left */
-.technik {
-  width: 175px;
-  height: 175px;
-  background: #AFCA0B;
-  top: 40px;
-  left: 40px;
-  z-index: 1;
-}
-
-/* Lokalteams — dark green, top-right */
-.lokalteams {
-  width: 155px;
-  height: 155px;
-  background: #339737;
-  top: 10px;
-  left: 270px;
-  z-index: 1;
-  color: #fff;
-}
-
-/* Maßnahmen — light blue, bottom-left */
-.massnahmen {
-  width: 175px;
-  height: 175px;
-  background: #16bae7;
-  top: 230px;
-  left: 20px;
-  z-index: 1;
-}
-
-/* Kommunikation — orange, bottom-right */
-.kommunikation {
-  width: 165px;
-  height: 165px;
-  background: #f39200;
-  top: 240px;
-  left: 270px;
-  z-index: 1;
-  font-size: 0.8rem;
-}
-
-/* ── Responsive ── */
-@media (max-width: 540px) {
-  .diagram {
-    width: 320px;
-    height: 290px;
-  }
-
-  .steuerkreis {
-    width: 135px;
-    height: 135px;
-    top: 75px;
-    left: 93px;
-  }
-
-  .vorstand {
-    width: 55px;
-    height: 55px;
-    top: 74px;
-    left: 74px;
-    font-size: 0.55rem;
-  }
-
-  .technik {
-    width: 118px;
-    height: 118px;
-    top: 27px;
-    left: 27px;
-  }
-
-  .lokalteams {
-    width: 104px;
-    height: 104px;
-    top: 7px;
-    left: 181px;
-  }
-
-  .massnahmen {
-    width: 118px;
-    height: 118px;
-    top: 155px;
-    left: 13px;
-  }
-
-  .kommunikation {
-    width: 110px;
-    height: 110px;
-    top: 161px;
-    left: 181px;
-    font-size: 0.6rem;
-  }
-
-  .bubble {
-    font-size: 0.72rem;
-  }
+.member-highlight {
+  animation: memberHighlight 1.2s ease-out;
 }
 </style>

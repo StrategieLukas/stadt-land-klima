@@ -48,7 +48,7 @@ export function extractBlockText(bundle: string, props: Record<string, any>): st
 
 export type SiteContentDoc = {
   id: string
-  type: 'block' | 'page' | 'event' | 'article' | 'measure' | 'static_page' | 'news_item'
+  type: 'block' | 'page' | 'event' | 'article' | 'measure' | 'static_page' | 'news_item' | 'member' | 'team'
   title: string
   text: string
   url: string
@@ -113,7 +113,77 @@ export const STATIC_PAGES: Array<{ id: string; title: string; text: string; url:
     url: '/news',
     meta: 'Übersicht',
   },
+  {
+    id: 'static_organisation',
+    title: 'Organisation',
+    text: 'Organisation Team Mitglieder Ressorts Aufgabenbereiche Arbeitsgruppen Projektgruppen Ehrenamt Verein',
+    url: '/organisation',
+    meta: 'Übersicht',
+  },
+  // ── Organisation teams ──────────────────────────────────────────────────────
+  {
+    id: 'team_lokalteams',
+    title: 'Lokalteams / Netzwerk',
+    text: 'Lokalteams Netzwerk Onboarding Betreuung von Lokalteams Kooperationen Unterstützung Veranstaltungen community@stadt-land-klima.de',
+    url: '/organisation#team-lokalteams',
+    meta: 'Ressort',
+  },
+  {
+    id: 'team_technik',
+    title: 'Technik & IT',
+    text: 'Technik IT Web-App Frontend Backend Logik GitHub Chatbot API UI/UX-Design IT-Infrastruktur Mail-Server Cloud dev@stadt-land-klima.de',
+    url: '/organisation#team-technik',
+    meta: 'Ressort',
+  },
+  {
+    id: 'team_steuerkreis',
+    title: 'Steuerkreis',
+    text: 'Steuerkreis Planung Strategieentwicklung Fundraising Förderung Spenden Projektkoordination Koordinierung Arbeitsgruppen info@stadt-land-klima.de',
+    url: '/organisation#team-steuerkreis',
+    meta: 'Ressort',
+  },
+  {
+    id: 'team_massnahmen',
+    title: 'Maßnahmen',
+    text: 'Maßnahmen Maßnahmenentwicklung Evaluation Qualitätssicherung Peer Review Kommunen massnahmen@stadt-land-klima.de',
+    url: '/organisation#team-massnahmen',
+    meta: 'Ressort',
+  },
+  {
+    id: 'team_kommunikation',
+    title: 'Kommunikation / Öffentlichkeitsarbeit',
+    text: 'Kommunikation Öffentlichkeitsarbeit Pressearbeit Social Media Newsletter Webredaktion Redaktion presse@stadt-land-klima.de',
+    url: '/organisation#team-kommunikation',
+    meta: 'Ressort',
+  },
+  {
+    id: 'team_vorstand',
+    title: 'Vorstand / Verwaltung',
+    text: 'Vorstand Verwaltung Mitgliederbetreuung Mitgliederversammlung Rechtliches Finanzen verein@stadt-land-klima.de',
+    url: '/organisation#team-vorstand',
+    meta: 'Ressort',
+  },
+  {
+    id: 'team_kassenwart',
+    title: 'Kassenwart',
+    text: 'Kassenwart Buchführung Jahresabschluss Mitgliedsbeiträge Spendenverwaltung Finanzberichte Kassenprüfung kassenwart@stadt-land-klima.de',
+    url: '/organisation#team-kassenwart',
+    meta: 'Ressort',
+  },
 ]
+
+export function buildMemberDoc(user: Record<string, any>): SiteContentDoc | null {
+  if (!user.show_on_team_page) return null
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ')
+  if (!name) return null
+  return {
+    id: `member_${user.id}`,
+    type: 'member',
+    title: name,
+    text: [name, stripHtml(user.bio || '')].filter(Boolean).join(' '),
+    url: `/organisation#member-${user.id}`,
+  }
+}
 
 export function buildStaticPageDocs(): SiteContentDoc[] {
   return STATIC_PAGES.map(p => ({ ...p, type: 'static_page' as const }))
