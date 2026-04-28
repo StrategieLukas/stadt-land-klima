@@ -16,7 +16,9 @@
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "markdown-it": "^14.1.1"
+  },
   "devDependencies": {
     "@directus/extensions-sdk": "^10.0.0",
     "vue": "^3.3.8"

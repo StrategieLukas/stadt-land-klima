@@ -15,7 +15,7 @@ meta:
   note: Stores current versions of agreements
   preview_url: null
   singleton: false
-  sort: 1
+  sort: 2
   sort_field: null
   translations: null
   unarchive_value: null
