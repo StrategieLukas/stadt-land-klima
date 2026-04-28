@@ -8,6 +8,15 @@
       {{ backLabel }}
     </NuxtLink>
 
+    <!-- Teaser image -->
+    <div v-if="event.image" class="rounded-xl overflow-hidden mb-6 bg-gray-100">
+      <img
+        :src="`${directusUrl}/assets/${event.image}?width=800&height=400&fit=cover&quality=80`"
+        :alt="event.title"
+        class="w-full h-64 object-cover"
+      />
+    </div>
+
     <!-- Type badge -->
     <span class="text-xs font-semibold uppercase tracking-wide px-3 py-1 rounded-full bg-light-green/10 text-olive-green mb-4 inline-block">
       {{ eventTypeLabel(event.event_type) }}
@@ -63,6 +72,8 @@
 <script setup>
 import { useReferrer } from '~/composables/useReferrer'
 const { $directus, $readItems } = useNuxtApp()
+const config = useRuntimeConfig()
+const directusUrl = config.public.clientDirectusUrl
 const { backHref, backLabel } = useReferrer('/events', 'Alle Veranstaltungen')
 const route = useRoute()
 
@@ -72,7 +83,7 @@ const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
       slug: { _eq: route.params.slug },
       status: { _eq: 'published' },
     },
-    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url'],
+    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url', 'image'],
     limit: 1,
   })).then(data => data?.[0] ?? null)
 )

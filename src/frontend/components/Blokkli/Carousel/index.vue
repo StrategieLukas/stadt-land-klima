@@ -305,9 +305,14 @@ watch(() => options.value.peek, () => nextTick(updateContainerWidth))
 onMounted(() => {
   updateContainerWidth()
   startAutoplay()
-  if (rootEl.value && typeof ResizeObserver !== 'undefined') {
+  if (typeof ResizeObserver !== 'undefined') {
     resizeObserver = new ResizeObserver(updateContainerWidth)
-    resizeObserver.observe(rootEl.value)
+    // rootEl tracks the article-column width (for slide sizing).
+    // scrollEl tracks the full-bleed 100vw width (for centering padding).
+    // Both must be observed: once the viewport exceeds the article max-width,
+    // rootEl stops resizing so the observer would never fire for wider viewports.
+    if (rootEl.value) resizeObserver.observe(rootEl.value)
+    if (scrollEl.value) resizeObserver.observe(scrollEl.value)
   }
 })
 

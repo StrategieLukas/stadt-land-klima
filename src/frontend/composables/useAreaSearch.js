@@ -21,7 +21,7 @@ const { debounce } = lodash
 import { getScorePercentageColor, getStateFromArs } from '~/shared/utils.js'
 
 export function useAreaSearch({ mode = 'reasonable', publishedSlugs = null, catalogVersionName = null } = {}) {
-  const { $stadtlandzahlAPI } = useNuxtApp()
+  const { $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp()
 
   // Allow mode and catalogVersionName to be passed as plain strings or reactive refs
   const modeRef = isRef(mode) ? mode : ref(mode)
@@ -71,7 +71,7 @@ export function useAreaSearch({ mode = 'reasonable', publishedSlugs = null, cata
         scoreTotalColorClass = ratingData.scoreTotal != null
           ? getScorePercentageColor(parseFloat(ratingData.scoreTotal))
           : null
-      } else if (ratingData?.slug) {
+      } else if (ratingData?.slug || area.hasLocalteam) {
         ctaType = 'in-progress'
       } else if (area.isReasonableForMunicipalRating) {
         ctaType = 'none'
@@ -101,7 +101,36 @@ export function useAreaSearch({ mode = 'reasonable', publishedSlugs = null, cata
     }
     isLoading.value = true
     try {
-      rawResults.value = await $stadtlandzahlAPI.searchAdministrativeAreas(term.trim(), modeRef.value)
+      const nodes = await $stadtlandzahlAPI.searchAdministrativeAreas(term.trim(), modeRef.value)
+
+      // Enrich municipality nodes with localteam_id from Directus so that
+      // municipalities with a registered localteam but no rating slug yet
+      // are shown as 'in-progress' rather than 'none'.
+      const muniArsCodes = nodes
+        .filter(n => (n.level ?? 4) >= 4)
+        .map(n => n.ars)
+        .filter(Boolean)
+
+      let localteamByArs = {}
+      if (muniArsCodes.length > 0) {
+        try {
+          const rows = await $directus.request(
+            $readItems('municipalities', {
+              filter: { ars: { _in: muniArsCodes } },
+              fields: ['ars', 'localteam_id'],
+              limit: muniArsCodes.length,
+            })
+          )
+          rows.forEach(r => { if (r.ars) localteamByArs[r.ars] = r.localteam_id })
+        } catch {
+          // Silently ignore — falls back to slug-only detection
+        }
+      }
+
+      rawResults.value = nodes.map(n => ({
+        ...n,
+        hasLocalteam: !!(n.ars && localteamByArs[n.ars]),
+      }))
     } catch {
       rawResults.value = []
     } finally {

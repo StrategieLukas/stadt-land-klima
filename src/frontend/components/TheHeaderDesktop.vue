@@ -72,24 +72,26 @@
 
       <!-- Actions: Login + Donate -->
       <div class="ml-auto flex items-center gap-2">
-        <a href="/backend">
+        <!-- Login: compact icon on mobile, canonical button on desktop -->
+        <a href="/backend" class="lg:hidden">
           <button
-            class="h-9 flex items-center gap-1 px-3 lg:px-4 rounded border-2 border-orange text-orange text-sm font-semibold hover:bg-orange hover:text-white transition-colors whitespace-nowrap"
+            class="h-9 w-9 flex items-center justify-center rounded-md bg-light-green text-white hover:brightness-110 transition-all shadow-sm"
             :aria-label="$t('generic.log_in')"
           >
-            <svg class="h-4 w-4 lg:hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.7 141.7" class="h-5 w-5" aria-hidden="true">
+              <polygon fill="currentColor" points="72.8,103.7 78.3,109.2 116.5,71 78.3,32.8 72.8,38.3 90.3,55.8 37.1,55.8 37.1,63.5 98.1,63.5 105.5,71 98.1,78.4 37.1,78.4 37.1,86.2 90.3,86.2"/>
             </svg>
-            <span class="hidden lg:inline">{{ $t('generic.log_in') }}</span>
-            <span class="hidden lg:inline" aria-hidden="true">→</span>
           </button>
         </a>
+        <div class="hidden lg:block">
+          <LoginButton />
+        </div>
         <a
           href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
           class="lg:hidden"
           :aria-label="$t('donate.label')"
         >
-          <button class="h-9 w-9 flex items-center justify-center rounded bg-orange text-white hover:brightness-110">
+          <button class="h-9 w-9 flex items-center justify-center rounded-md bg-orange text-white hover:brightness-110 transition-all shadow-sm">
             <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-5 w-5" aria-hidden="true" />
           </button>
         </a>
@@ -102,13 +104,16 @@
     <!-- Row 2: Navigation strip — collapses when scrolling down, reappears on scroll up.
          The clip wrapper handles max-height; the inner div handles opacity so both animate together.
          overflow switches to visible only after the expand transition ends (transitionend) so
-         dropdowns are not clipped once the strip is fully open. -->
+         dropdowns are not clipped once the strip is fully open.
+         navStripHeight is measured via ResizeObserver on the inner div so the animation
+         handles any number of wrapped rows automatically. -->
     <div
       ref="navStripClipRef"
       class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
-      :style="scrollNavVisible ? 'max-height: 40px' : 'max-height: 0'"
+      :style="scrollNavVisible ? `max-height: ${navStripHeight}px` : 'max-height: 0'"
     >
       <div
+        ref="navStripInnerRef"
         class="transition-[opacity] duration-300 ease-in-out"
         :style="scrollNavVisible ? 'opacity: 1' : 'opacity: 0'"
       >
@@ -139,6 +144,10 @@ const searchInputRef   = ref(null)
 const searchBarRef     = ref(null)
 const headerEl         = ref(null)
 const navStripClipRef  = ref(null)
+const navStripInnerRef = ref(null)
+// 41 = border-t (1px) + min-h-10 items (40px) — matches actual strip height on SSR
+// so the clip wrapper never clips content before ResizeObserver fires.
+const navStripHeight   = ref(41)
 const headerHeight     = useHeaderHeight()
 const navInputRect     = useNavInputRect()
 const scrollNavVisible = ref(true)
@@ -174,13 +183,30 @@ watch(isOpen, (val) => {
   if (!val) searchFocused.value = false
 })
 
-let removeScrollListener = null
-let removeResizeListener = null
-let resizeObserver       = null
-let lastScrollY          = 0
+let removeScrollListener  = null
+let removeResizeListener  = null
+let resizeObserver        = null
+let navStripObserver      = null
+let lastScrollY           = 0
 
 onMounted(() => {
   lastScrollY = window.scrollY
+
+  // Measure inner nav strip height so the clip animation works for any number of wrapped rows.
+  // The inner div is not constrained by overflow/max-height, so ResizeObserver always sees
+  // the true content height even while the clip wrapper is collapsed.
+  if (navStripInnerRef.value) {
+    const updateNavHeight = (entries) => {
+      for (const entry of entries) {
+        const h = Math.round(entry.contentRect.height)
+        if (h > 0) navStripHeight.value = h
+      }
+    }
+    navStripObserver = new ResizeObserver(updateNavHeight)
+    navStripObserver.observe(navStripInnerRef.value)
+    // Seed immediately in case ResizeObserver hasn't fired yet
+    navStripHeight.value = navStripInnerRef.value.offsetHeight || 40
+  }
 
   // After the expand transition ends, switch overflow to visible so dropdowns aren't clipped.
   // On collapse start, switch back to hidden immediately so the closing animation clips correctly.
@@ -236,6 +262,7 @@ onUnmounted(() => {
   if (removeScrollListener) removeScrollListener()
   if (removeResizeListener) removeResizeListener()
   if (resizeObserver)       resizeObserver.disconnect()
+  if (navStripObserver)     navStripObserver.disconnect()
 })
 </script>
 

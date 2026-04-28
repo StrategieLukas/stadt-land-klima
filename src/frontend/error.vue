@@ -4,9 +4,9 @@
 
       <!-- Monstrous 404 number -->
       <div
-        class="font-black leading-none select-none w-full"
+        class="font-black leading-none select-none w-full text-center overflow-hidden"
         style="
-          font-size: clamp(12rem, 40vw, 24rem);
+          font-size: clamp(6rem, 40vw, 24rem);
           color: transparent;
           -webkit-text-stroke: 4px #AFCA0B;
           line-height: 1;

@@ -4,10 +4,12 @@
       type="button"
       @click="toggle"
       class="inline-flex items-center justify-between gap-2 px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
-      :class="[width, modelValue !== null ? 'text-white' : 'bg-white hover:bg-gray-50']"
-      :style="modelValue !== null
+      :class="[width, modelValue !== null
+        ? (dark ? 'bg-white text-gray-800 border-white' : 'text-white')
+        : (dark ? 'bg-white/10 text-white border-white/30 hover:bg-white/20' : 'bg-white hover:bg-gray-50')]"
+      :style="!dark && modelValue !== null
         ? { background: activeColor, borderColor: activeColor }
-        : { color: activeColor, borderColor: activeColor }"
+        : (!dark && modelValue === null ? { color: activeColor, borderColor: activeColor } : {})"
     >
       <span>{{ selectedLabel }}</span>
       <svg
@@ -27,7 +29,7 @@
         @click="select(null)"
         class="w-full text-left px-4 py-2 text-sm transition-colors whitespace-normal break-words"
         :class="modelValue === null ? 'text-white' : 'text-gray-700 hover:bg-gray-50'"
-        :style="modelValue === null ? { background: activeColor } : {}"
+        :style="modelValue === null ? { background: dropdownActiveColor } : {}"
       >
         {{ label }}
       </button>
@@ -38,7 +40,7 @@
         @click="select(opt.value)"
         class="w-full text-left px-4 py-2 text-sm transition-colors whitespace-normal break-words"
         :class="modelValue === opt.value ? 'text-white' : 'text-gray-700 hover:bg-gray-50'"
-        :style="modelValue === opt.value ? { background: activeColor } : {}"
+        :style="modelValue === opt.value ? { background: dropdownActiveColor } : {}"
       >
         {{ opt.label }}
       </button>
@@ -55,12 +57,19 @@ const props = defineProps({
   modelValue: { type: String, default: null },
   width: { type: String, default: 'min-w-[10rem]' }, // fixed width to prevent layout shift
   activeColor: { type: String, default: '#16BAE7' }, // active state color
+  dark: { type: Boolean, default: false },        // dark background mode
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const open = ref(false);
 const containerRef = ref(null);
+
+// When the button sits on a dark background (dark=true), activeColor is often white
+// which would be invisible on the dropdown's white background — use a proper visible color.
+const dropdownActiveColor = computed(() =>
+  props.dark ? '#006e94' : props.activeColor
+);
 
 const selectedLabel = computed(() => {
   if (props.modelValue === null) return props.label;

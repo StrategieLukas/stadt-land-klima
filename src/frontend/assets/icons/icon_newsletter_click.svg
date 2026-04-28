@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Ebene_2" data-name="Ebene 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #1fa649;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="Beschriftung">
+    <g>
+      <g id="Ebene_1-2" data-name="Ebene 1">
+        <circle class="cls-1" cx="45" cy="45" r="45"/>
+      </g>
+      <g>
+        <g id="Layer_1" data-name="Layer 1">
+          <path class="cls-2" d="M44.85,39.75l24.75-21.52H20.1l24.75,21.52ZM38.13,37.46l6.73,5.39,6.54-5.46,18.09,15.55H20.1l18.03-15.49ZM18.51,51.3v-31.29l18.09,15.55-18.09,15.74ZM71.19,51.3v-31.29l-18.09,15.55,18.09,15.74Z"/>
+        </g>
+        <polygon class="cls-1" points="62.36 60.61 59.57 73.49 45.6 43.85 75.24 57.82 62.36 60.61"/>
+        <polygon class="cls-2" points="67.36 65.61 64.57 78.49 50.6 48.85 80.24 62.82 67.36 65.61"/>
+      </g>
+    </g>
+  </g>
+</svg>
