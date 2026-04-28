@@ -88,28 +88,7 @@ export default ({ filter }, { services }) => {
              currentAgreement.data_protection_version === currentVersions.current_data_protection_version;
   };
 
-  // Filters for settings read
-  filter('settings.read', async (items, meta, context) => {
-      const settings = items[0];
-      const { accountability, schema } = context;
-      const { user, idsToIgnore } = await getUserAndRolesToIgnore(context);
-      
-      // Only modify settings for non-exempt users who haven't accepted
-      if (user && !idsToIgnore.includes(user.role) && !(await hasAcceptedRequiredAgreements(user.id, context))) {
-          // Only show consent module when not accepted
-          settings.module_bar = [
-              {
-                  type: "module",
-                  id: "consent",
-                  enabled: true,
-              },
-          ];
-      }
-
-      return settings;
-  });
-
-  // Filters for item actions
+  // MINIMAL HOOK - Only block access, don't modify settings
   const filters = ['items.create', 'items.update', 'items.read'];
   filters.forEach(actionName => {
       filter(actionName, async (items, meta, context) => {
@@ -131,13 +110,8 @@ export default ({ filter }, { services }) => {
               const hasAccepted = await hasAcceptedRequiredAgreements(user.id, context);
               
               if (!hasAccepted) {
-                  // Create error with translation key
-                  const error = new ConsentNotAcceptedError('consent_not_accepted');
-                  error.data = {
-                      redirectTo: '/consent',
-                      showConsentModule: true
-                  };
-                  throw error;
+                  // Simple error - let Directus handle the rest
+                  throw new ConsentNotAcceptedError('You must accept the terms and conditions to access this content.');
               }
           }
 
