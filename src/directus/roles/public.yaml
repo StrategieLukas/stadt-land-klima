@@ -86,3 +86,10 @@ permissions:
       - creator_verified
       - preview_token
       - image
+  - collection: articles_measures
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

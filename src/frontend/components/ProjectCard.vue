@@ -10,8 +10,8 @@
                     :height="160"
                     :width="400"
                     fit="cover"
-                    sizes="(max-width: 768px) 312px, 400px" 
-                    format="webp" 
+                    sizes="(max-width: 768px) 312px, 400px"
+                    format="webp"
                     img-class="object-cover w-full h-full"
                     />
                 <div v-if="tag" class="absolute top-2 left-2 bg-yellow-400 text-xs px-2 py-1 rounded">
@@ -24,7 +24,7 @@
                         class="absolute top-0 right-0 w-0 h-0 border-t-[7rem] border-t-white border-l-[7rem] border-l-transparent">
                     </div>
                     <!-- Using raw image url (no width parameter) for easier request caching as organisation logos should be small -->
-                    <img fit="cover" class="absolute top-2 right-2" height="48" width="48" :alt="organisation.name" loading="lazy" 
+                    <img fit="cover" class="absolute top-2 right-2" height="48" width="48" :alt="organisation.name" loading="lazy"
                     :src="getRawUrl(organisation.logo)"/>
                 </div>
             </NuxtLink>
@@ -52,6 +52,16 @@
                     {{ author }}, {{ date.toLocaleDateString($locale) }}
                 </p>
 
+                <!-- Measures -->
+                <div v-if="measures && measures.length" class="flex flex-wrap gap-1 mb-2">
+                  <NuxtLink
+                    v-for="m in measures"
+                    :key="m.id"
+                    :to="`/measures/${m.slug || m.id}`"
+                    class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded hover:bg-blue-200 transition"
+                  >{{ m.measure_id }}</NuxtLink>
+                </div>
+
                 <!-- Read more link -->
                 <NuxtLink :to="`/projects/${slug}`" class="text-blue-500 text-sm">{{ $t("article.read_more") }} →
                 </NuxtLink>
@@ -77,6 +87,7 @@ const props = defineProps({
     image_id: String,
     image_is_raster: Boolean,
     organisation: Object, // can be null
+    measures: Array, // can be null/empty
 })
 
 const config = useRuntimeConfig();
