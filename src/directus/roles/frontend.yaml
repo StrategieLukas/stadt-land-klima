@@ -127,6 +127,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: articles_measures
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: blocks
     action: create
     permissions: {}

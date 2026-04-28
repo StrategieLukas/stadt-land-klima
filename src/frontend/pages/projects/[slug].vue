@@ -17,6 +17,7 @@
     :article_instagram="article.instagram"
     :article_linkedin="article.linkedin"
     :organisation="article.organisation"
+    :measures="articleMeasures"
   />
   <div v-else class="container mx-auto px-4 py-8">
     <div class="text-center">
@@ -38,7 +39,8 @@
         fields: [
           "title", "subtitle", "municipality_name", "state", "author", "date_created", "image_credits", "abstract", "article_text", "link", "instagram", "linkedin",
           { image: ["id", "type"] },
-          { organisation: ["name", "logo", "link"] }
+          { organisation: ["name", "logo", "link"] },
+          { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] }
         ],
         filter: { slug: { _eq: route.params.slug } },
         limit: 1,
@@ -74,6 +76,12 @@
     return m.status === 'published' ? (m.slug ?? null) : (m.ars ?? null);
   });
 
+  const articleMeasures = computed(() => {
+    return (article.value.measures || [])
+      .map(m => m.measures_id)
+      .filter(Boolean);
+  });
+
   const articleLink = computed(() => {
     if (!article.value.link) return null;
     try {
@@ -90,7 +98,7 @@
     title,
   });
 </script>
-  
+
 <style scoped>
   .project-page img {
     border-radius: 0.25rem;

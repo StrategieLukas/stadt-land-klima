@@ -109,3 +109,10 @@ permissions:
       - avatar
       - bio
       - slk_team
+  - collection: articles_measures
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"

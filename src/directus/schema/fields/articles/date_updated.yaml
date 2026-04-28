@@ -3,19 +3,28 @@ field: date_updated
 type: timestamp
 meta:
   collection: articles
-  conditions: null
+  conditions:
+    - name: Hide if null
+      rule:
+        _and:
+          - date_updated:
+              _null: true
+      hidden: true
+      options:
+        includeSeconds: false
+        use24: true
   display: datetime
   display_options:
     relative: true
   field: date_updated
   group: null
-  hidden: true
+  hidden: false
   interface: datetime
   note: null
   options: null
   readonly: true
   required: false
-  sort: 7
+  sort: 12
   special:
     - date-updated
   translations: null

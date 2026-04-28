@@ -16,7 +16,7 @@ meta:
     trim: true
   readonly: false
   required: true
-  sort: 3
+  sort: 2
   special: null
   translations:
     - language: de-DE
