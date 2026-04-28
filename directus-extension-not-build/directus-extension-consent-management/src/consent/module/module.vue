@@ -192,7 +192,7 @@ export default {
         await Promise.all(consentPromises);
         
         hasAccepted.value = true;
-        window.location.reload();
+        // Just show success message, no redirect
       } catch (error) {
         console.error("Error accepting agreements:", error);
         // Show error to user
