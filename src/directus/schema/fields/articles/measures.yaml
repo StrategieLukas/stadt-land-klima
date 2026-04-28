@@ -14,7 +14,6 @@ meta:
   note: null
   options:
     enableCreate: false
-    template: "{{measures_id.measure_id}} {{measures_id.name}}"
     filter:
       _and:
         - catalog_version:
@@ -23,9 +22,10 @@ meta:
         - catalog_version:
             hidden:
               _neq: true
+    template: "{{measures_id.measure_id}} {{measures_id.name}}"
   readonly: false
   required: false
-  sort: null
+  sort: 14
   special:
     - m2m
   translations:
@@ -34,4 +34,3 @@ meta:
   validation: null
   validation_message: null
   width: full
-schema: null
