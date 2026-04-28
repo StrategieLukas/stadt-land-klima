@@ -131,3 +131,19 @@ Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The
 Its `$el` is a Vue comment node, not an HTMLElement. To get the rendered DOM:
 - Put `ref` on a **wrapper element** around `<BlokkliField>`.
 - Access the container via `wrapper.firstElementChild`.
+
+----------
+Ensure you obey common coding standards and do not reinvent the wheel for every new task.
+
+## Key rules before implementing
+1. See src/frontend/tailwind.config.js for common colors and "Styleguide mobil"
+2. See src/frontend/plugins/directus.client.js for the client config
+3. Check any existing page for how directus requests are done properly in this version
+4. Use DaisyUI components for new designs where possible
+
+
+## Project structure:
+1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
+2. src/backend - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
+3. directus-extension-not-build - the original code for directus extension, that are compiled from here with `npm install` and then `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
+
