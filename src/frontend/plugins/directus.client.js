@@ -13,12 +13,17 @@ export default defineNuxtPlugin(async () => {
   const token = runtimeConfig.public.directusToken;
   const appEnv = runtimeConfig.public.appEnv || "development";
   const directus = createDirectus(directusUrl).with(rest()).with(staticToken(token));
-  const translations = await directus.request(
-    readTranslations({
-      limit: -1,
-      filter: { language: { _eq: locale } },
-    }),
-  );
+  let translations = []
+  try {
+    translations = await directus.request(
+      readTranslations({
+        limit: -1,
+        filter: { language: { _eq: locale } },
+      }),
+    )
+  } catch (e) {
+    console.warn('[directus.client] Failed to load translations:', e?.message)
+  }
 
   const translator = createTranslator(translations);
 

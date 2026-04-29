@@ -3,7 +3,7 @@
     <Transition name="palette-fade">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-[10002]"
+        class="fixed inset-0 z-[10002] font-sans"
         @click.self="close"
       >
         <!-- Dark backdrop — starts below header in embedded mode so the white bar stays unobscured -->

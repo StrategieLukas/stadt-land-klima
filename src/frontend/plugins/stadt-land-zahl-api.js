@@ -1,17 +1,14 @@
 import { useRuntimeConfig } from "#app";
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client/core'
-import { data } from 'autoprefixer';
 import gql from 'graphql-tag'
 
 export default defineNuxtPlugin(() => {
   const runtimeConfig = useRuntimeConfig();
   const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl || 'http://localhost:8000/graphql/';
 
-  // Route browser-side requests through the local Nuxt proxy to avoid CORS.
-  // Server-side requests go directly to the external API (no CORS restriction).
-  const resolvedGraphqlURL = process.client
-    ? '/api/stadtlandzahl-proxy/graphql/'
-    : stadtlandzahlURL;
+  // The stadtlandzahl API returns `access-control-allow-origin: *`, so browser
+  // requests can go directly to the API without any proxy.
+  const resolvedGraphqlURL = stadtlandzahlURL;
 
   // Create HTTP link
   const httpLink = new HttpLink({
@@ -66,11 +63,8 @@ export default defineNuxtPlugin(() => {
 
   const fetchStatsByARS = async (ars) => {
     try {
-      // Remove /graphql/ from the URL and construct the API endpoint.
-      // On the client, route through the Nuxt proxy to avoid CORS.
-      const baseUrl = process.client
-        ? '/api/stadtlandzahl-proxy'
-        : stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
+      // The stadtlandzahl API allows CORS from all origins, so use the direct URL.
+      const baseUrl = stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
       const url = `${baseUrl}/api/areas/${ars}/?format=json`
       console.log('Fetching from URL:', url)
       

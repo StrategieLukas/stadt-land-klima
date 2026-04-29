@@ -14,10 +14,10 @@
     <div class="flex flex-col lg:flex-row gap-8 items-start">
       <!-- ── Bubble chart ─────────────────────────────────────────────────────── -->
       <!-- aspect-ratio + flex-shrink-0 keep SVG size stable while right panel changes -->
-      <div ref="svgWrapperRef" class="w-full sm:w-[80%] md:w-[65%] lg:w-[55%] mx-auto lg:mx-0 flex-shrink-0" style="aspect-ratio: 620 / 555">
+      <div ref="svgWrapperRef" class="w-full sm:w-[80%] md:w-[65%] lg:w-[55%] mx-auto lg:mx-0 flex-shrink-0">
         <svg
           viewBox="140 5 620 555"
-          class="w-full h-full select-none"
+          class="w-full select-none"
           xmlns="http://www.w3.org/2000/svg"
           aria-label="Organisationsdiagramm"
           role="img"

@@ -11,3 +11,8 @@ services:
     restart: unless-stopped
     ports:
       - "9000:3000"
+    environment:
+      # Browser-accessible Directus URL. For local prod testing this is localhost:9001.
+      # On the deployed server export CLIENT_DIRECTUS_URL=https://www.stadt-land-klima.de/backend
+      # (or staging equivalent) in the host environment before running docker compose.
+      CLIENT_DIRECTUS_URL: "${CLIENT_DIRECTUS_URL:-http://localhost:9001}"
