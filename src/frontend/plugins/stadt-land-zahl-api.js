@@ -208,8 +208,10 @@ export default defineNuxtPlugin(() => {
 
   // Expose the API methods via the plugin
 
-  // Shared query used by searchAdministrativeAreas — includes `level` field
-  const AREA_SEARCH_QUERY = gql`
+  // GraphQL query string for area search — used by searchAdministrativeAreas via plain fetch.
+  // Using plain fetch instead of the Apollo client avoids a silent failure in Apollo Client 4's
+  // no-cache path on iOS WebKit (which caused empty results on mobile).
+  const AREA_SEARCH_GQL = `
     query searchAreas($name_Icontains: String!, $isReasonableForMunicipalRating: Boolean, $level_In: [Int]) {
       allAdministrativeAreas(
         first: 8
@@ -239,6 +241,25 @@ export default defineNuxtPlugin(() => {
   `
 
   /**
+   * Execute a single GraphQL query against the stadtlandzahl API via plain fetch.
+   * Returns the array of area nodes, or [] on any error.
+   */
+  const _fetchAreaNodes = async (variables) => {
+    try {
+      const res = await fetch(resolvedGraphqlURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: AREA_SEARCH_GQL, variables }),
+      })
+      const json = await res.json()
+      return json.data?.allAdministrativeAreas?.edges?.map(e => e.node) ?? []
+    } catch (err) {
+      console.error('_fetchAreaNodes failed:', variables, err)
+      return []
+    }
+  }
+
+  /**
    * Unified area search used by useAreaSearch composable.
    * mode: 'normal'     → level 1-3 areas + reasonable municipalities (two parallel queries merged)
    *       'reasonable' → isReasonableForMunicipalRating only
@@ -246,42 +267,26 @@ export default defineNuxtPlugin(() => {
    * Returns a flat array of nodes.
    */
   const searchAdministrativeAreas = async (term, mode = 'reasonable') => {
-    const extract = (res) => res.data?.allAdministrativeAreas?.edges?.map(e => e.node) ?? []
     try {
       if (mode === 'normal') {
-        const [areaRes, muniRes] = await Promise.all([
-          apolloClient.query({
-            query: AREA_SEARCH_QUERY,
-            variables: { name_Icontains: term, level_In: [1, 2, 3] },
-            fetchPolicy: 'no-cache',
-          }),
-          apolloClient.query({
-            query: AREA_SEARCH_QUERY,
-            variables: { name_Icontains: term, isReasonableForMunicipalRating: true },
-            fetchPolicy: 'no-cache',
-          }),
+        // Run both queries in parallel; use allSettled so one failure doesn't blank the other.
+        const [areaSettled, muniSettled] = await Promise.allSettled([
+          _fetchAreaNodes({ name_Icontains: term, level_In: [1, 2, 3] }),
+          _fetchAreaNodes({ name_Icontains: term, isReasonableForMunicipalRating: true }),
         ])
+        const areaNodes = areaSettled.status === 'fulfilled' ? areaSettled.value : []
+        const muniNodes = muniSettled.status === 'fulfilled' ? muniSettled.value : []
         const seen = new Set()
         const merged = []
-        for (const node of [...extract(areaRes), ...extract(muniRes)]) {
+        for (const node of [...areaNodes, ...muniNodes]) {
           if (!seen.has(node.ars)) { seen.add(node.ars); merged.push(node) }
         }
         return merged
       } else if (mode === 'reasonable') {
-        const res = await apolloClient.query({
-          query: AREA_SEARCH_QUERY,
-          variables: { name_Icontains: term, isReasonableForMunicipalRating: true },
-          fetchPolicy: 'no-cache',
-        })
-        return extract(res)
+        return await _fetchAreaNodes({ name_Icontains: term, isReasonableForMunicipalRating: true })
       } else {
         // 'all' — no reasonableness or level filter
-        const res = await apolloClient.query({
-          query: AREA_SEARCH_QUERY,
-          variables: { name_Icontains: term },
-          fetchPolicy: 'no-cache',
-        })
-        return extract(res)
+        return await _fetchAreaNodes({ name_Icontains: term })
       }
     } catch (error) {
       console.error(`searchAdministrativeAreas failed for "${term}" (mode: ${mode}):`, error)

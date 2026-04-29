@@ -16,7 +16,6 @@
           :placeholder="translatedPlaceholder"
           @input="onInput"
           @focus="handleFocus"
-          @blur="handleBlur"
           @keydown.down.prevent="moveFocus(1)"
           @keydown.up.prevent="moveFocus(-1)"
           @keydown.enter.prevent="goToFocused()"
@@ -27,7 +26,7 @@
       <Teleport to="body">
         <div
           v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !visibleSuggestions.length)) && searchFocused && dropdownPosition.show"
-          class="fixed z-[99999] bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto"
+          class="fixed z-[99999] bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto font-sans"
           :style="{
             top: dropdownPosition.top + 'px',
             left: dropdownPosition.left + 'px',
@@ -244,22 +243,29 @@ function handleFilterChange() {
   if (q.value.trim()) search(q.value)
 }
 
-// Close dropdown when the input loses focus (e.g. mobile keyboard dismissed).
-// Delay 150ms so @mousedown / @touchend on dropdown items fires first.
-function handleBlur() {
-  setTimeout(() => {
-    if (document.activeElement?.id !== 'admin-search-input') {
-      searchFocused.value = false
-      dropdownPosition.value.show = false
-    }
-  }, 150)
-}
-
 function handleSuggestionClick() {
   q.value = ''
   searchFocused.value = false
   focusedIndex.value = -1
   dropdownPosition.value.show = false
+}
+
+// Close dropdown when iOS virtual keyboard is dismissed (visual viewport grows back).
+// We track the last known keyboard height; if the viewport grows, the keyboard closed.
+let _lastVVHeight = 0
+function onVisualViewportResize() {
+  const vv = window.visualViewport
+  if (!vv) return
+  if (vv.height > _lastVVHeight + 100) {
+    // Keyboard closed — close the dropdown if the input is no longer focused
+    if (document.activeElement?.id !== 'admin-search-input') {
+      searchFocused.value = false
+      dropdownPosition.value.show = false
+    }
+  }
+  _lastVVHeight = vv.height
+  // Also keep the dropdown position in sync with the visual viewport
+  calculateDropdownPosition()
 }
 
 function handleClickOutside(event) {
@@ -279,10 +285,15 @@ function handleClickOutside(event) {
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   window.addEventListener('resize', calculateDropdownPosition)
+  window.visualViewport?.addEventListener('resize', onVisualViewportResize)
+  window.visualViewport?.addEventListener('scroll', calculateDropdownPosition)
+  _lastVVHeight = window.visualViewport?.height ?? window.innerHeight
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
   window.removeEventListener('resize', calculateDropdownPosition)
+  window.visualViewport?.removeEventListener('resize', onVisualViewportResize)
+  window.visualViewport?.removeEventListener('scroll', calculateDropdownPosition)
 })
 </script>
