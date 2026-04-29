@@ -271,14 +271,19 @@ const pillTop = computed(() => {
 
 useHead({ title: 'Veranstaltungen' })
 
-const { data: events } = await useAsyncData('events-list', () =>
-  $directus.request($readItems('events', {
-    filter: { status: { _eq: 'published' } },
-    fields: ['id', 'title', 'slug', 'start_date', 'end_date', 'location', 'event_type', 'image'],
-    sort: ['start_date'],
-    limit: -1,
-  }))
-)
+const { data: events } = await useAsyncData('events-list', async () => {
+  try {
+    return await $directus.request($readItems('events', {
+      filter: { status: { _eq: 'published' } },
+      fields: ['id', 'title', 'slug', 'start_date', 'end_date', 'location', 'event_type', 'image'],
+      sort: ['start_date'],
+      limit: -1,
+    }))
+  } catch (e) {
+    console.warn('[events] Failed to load events:', e?.message)
+    return []
+  }
+})
 
 const eventTypeLabels = { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }
 function eventTypeLabel(type) { return eventTypeLabels[type] ?? type ?? '' }

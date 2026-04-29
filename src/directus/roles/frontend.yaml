@@ -499,7 +499,7 @@ permissions:
       - id
       - first_name
       - last_name
-      - email
       - avatar
       - bio
       - slk_team
+      - show_on_team_page

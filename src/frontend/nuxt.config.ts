@@ -67,10 +67,6 @@ export default defineNuxtConfig({
       '/**': {
         headers: { 'Referrer-Policy': 'strict-origin-when-cross-origin' },
       },
-      // Proxy all stadtlandzahl API requests through Nuxt server to avoid CORS
-      '/api/stadtlandzahl-proxy/**': {
-        proxy: `${(process.env.STADTLANDZAHL_URL || 'http://localhost:8000/graphql/').replace(/\/graphql\/?$/, '')}/**`,
-      },
     },
     rollupConfig: {
       plugins: [
