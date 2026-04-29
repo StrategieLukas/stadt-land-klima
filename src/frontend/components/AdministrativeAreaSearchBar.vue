@@ -121,9 +121,15 @@ import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
 
 const { $t, $directus, $readItems } = useNuxtApp()
 
-// Get the current catalog version
+// Get the current catalog version — wrapped in try/catch so a Directus failure
+// (e.g. CLIENT_DIRECTUS_URL unreachable from mobile) does not crash component setup.
 const route = useRoute()
-const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route))
+let selectedCatalogVersion
+try {
+  selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route))
+} catch {
+  selectedCatalogVersion = ref(null)
+}
 
 // Published municipalities from the layout \u2014 used to gate slug-based navigation
 const { data: publishedMunicipalities } = useNuxtData('municipalities')

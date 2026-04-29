@@ -241,53 +241,22 @@ export default defineNuxtPlugin(() => {
   `
 
   /**
-   * Execute a single GraphQL query against the stadtlandzahl API via plain fetch.
-   * Returns the array of area nodes, or [] on any error.
-   */
-  const _fetchAreaNodes = async (variables) => {
-    try {
-      const res = await fetch(resolvedGraphqlURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: AREA_SEARCH_GQL, variables }),
-      })
-      const json = await res.json()
-      return json.data?.allAdministrativeAreas?.edges?.map(e => e.node) ?? []
-    } catch (err) {
-      console.error('_fetchAreaNodes failed:', variables, err)
-      return []
-    }
-  }
-
-  /**
    * Unified area search used by useAreaSearch composable.
-   * mode: 'normal'     → level 1-3 areas + reasonable municipalities (two parallel queries merged)
+   * Delegates to the /api/area-search server route so the GraphQL request
+   * is made server-side — this avoids mobile network/CORS issues that arise
+   * when the browser fetches data.stadt-land-klima.de directly.
+   *
+   * mode: 'normal'     → level 1-3 areas + reasonable municipalities
    *       'reasonable' → isReasonableForMunicipalRating only
-   *       'all'        → no filter (all administrative areas)
+   *       'all'        → no filter
    * Returns a flat array of nodes.
    */
   const searchAdministrativeAreas = async (term, mode = 'reasonable') => {
     try {
-      if (mode === 'normal') {
-        // Run both queries in parallel; use allSettled so one failure doesn't blank the other.
-        const [areaSettled, muniSettled] = await Promise.allSettled([
-          _fetchAreaNodes({ name_Icontains: term, level_In: [1, 2, 3] }),
-          _fetchAreaNodes({ name_Icontains: term, isReasonableForMunicipalRating: true }),
-        ])
-        const areaNodes = areaSettled.status === 'fulfilled' ? areaSettled.value : []
-        const muniNodes = muniSettled.status === 'fulfilled' ? muniSettled.value : []
-        const seen = new Set()
-        const merged = []
-        for (const node of [...areaNodes, ...muniNodes]) {
-          if (!seen.has(node.ars)) { seen.add(node.ars); merged.push(node) }
-        }
-        return merged
-      } else if (mode === 'reasonable') {
-        return await _fetchAreaNodes({ name_Icontains: term, isReasonableForMunicipalRating: true })
-      } else {
-        // 'all' — no reasonableness or level filter
-        return await _fetchAreaNodes({ name_Icontains: term })
-      }
+      const nodes = await $fetch('/api/area-search', {
+        query: { term: term.trim(), mode },
+      })
+      return Array.isArray(nodes) ? nodes : []
     } catch (error) {
       console.error(`searchAdministrativeAreas failed for "${term}" (mode: ${mode}):`, error)
       return []
