@@ -13,8 +13,8 @@
 
     <div class="flex flex-col lg:flex-row gap-8 items-start">
       <!-- ── Bubble chart ─────────────────────────────────────────────────────── -->
-      <!-- aspect-ratio + flex-shrink-0 keep SVG size stable while right panel changes -->
-      <div ref="svgWrapperRef" class="w-full sm:w-[80%] md:w-[65%] lg:w-[55%] mx-auto lg:mx-0 flex-shrink-0">
+      <!-- Widths use scoped CSS (not Tailwind arbitrary values) so they survive prod builds -->
+      <div ref="svgWrapperRef" class="org-svg-wrapper flex-shrink-0">
         <svg
           viewBox="140 5 620 555"
           class="w-full select-none"
@@ -97,7 +97,7 @@
       <!-- ── Detail panel ─────────────────────────────────────────────────────── -->
       <!-- panelStyle pins max-height to the SVG height (tracked by ResizeObserver)  -->
       <!-- so the flex-row height never changes → no scrollbar jitter on the page.   -->
-      <div class="w-full lg:w-[45%]" :class="svgHeight > 0 ? 'lg:overflow-y-auto' : ''" :style="panelStyle">
+      <div class="org-detail-panel" :class="svgHeight > 0 ? 'lg:overflow-y-auto' : ''" :style="panelStyle">
         <template v-if="activeTeam">
           <!-- Popover card -->
           <div id="team-detail-panel" class="rounded-lg overflow-hidden border border-[#e0e0e0] shadow-md mb-6">
@@ -443,6 +443,31 @@ function scrollToMember(id, color) {
 </script>
 
 <style>
+/* Responsive widths for the org chart flex layout.
+   Written as plain CSS (not Tailwind arbitrary values) so they are always
+   included in the production build regardless of Tailwind JIT scanning. */
+.org-svg-wrapper {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (min-width: 640px) {
+  .org-svg-wrapper { width: 80%; }
+}
+@media (min-width: 768px) {
+  .org-svg-wrapper { width: 65%; }
+}
+@media (min-width: 1024px) {
+  .org-svg-wrapper { width: 55%; margin-left: 0; margin-right: 0; }
+}
+
+.org-detail-panel {
+  width: 100%;
+}
+@media (min-width: 1024px) {
+  .org-detail-panel { width: 45%; }
+}
+
 @keyframes memberHighlight {
   0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 70%, transparent); }
   30%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--highlight-color, #16bae7) 35%, transparent); }
