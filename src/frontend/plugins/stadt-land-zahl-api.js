@@ -208,8 +208,10 @@ export default defineNuxtPlugin(() => {
 
   // Expose the API methods via the plugin
 
-  // Shared query used by searchAdministrativeAreas — includes `level` field
-  const AREA_SEARCH_QUERY = gql`
+  // GraphQL query string for area search — used by searchAdministrativeAreas via plain fetch.
+  // Using plain fetch instead of the Apollo client avoids a silent failure in Apollo Client 4's
+  // no-cache path on iOS WebKit (which caused empty results on mobile).
+  const AREA_SEARCH_GQL = `
     query searchAreas($name_Icontains: String!, $isReasonableForMunicipalRating: Boolean, $level_In: [Int]) {
       allAdministrativeAreas(
         first: 8
@@ -240,49 +242,21 @@ export default defineNuxtPlugin(() => {
 
   /**
    * Unified area search used by useAreaSearch composable.
-   * mode: 'normal'     → level 1-3 areas + reasonable municipalities (two parallel queries merged)
+   * Delegates to the /api/area-search server route so the GraphQL request
+   * is made server-side — this avoids mobile network/CORS issues that arise
+   * when the browser fetches data.stadt-land-klima.de directly.
+   *
+   * mode: 'normal'     → level 1-3 areas + reasonable municipalities
    *       'reasonable' → isReasonableForMunicipalRating only
-   *       'all'        → no filter (all administrative areas)
+   *       'all'        → no filter
    * Returns a flat array of nodes.
    */
   const searchAdministrativeAreas = async (term, mode = 'reasonable') => {
-    const extract = (res) => res.data?.allAdministrativeAreas?.edges?.map(e => e.node) ?? []
     try {
-      if (mode === 'normal') {
-        const [areaRes, muniRes] = await Promise.all([
-          apolloClient.query({
-            query: AREA_SEARCH_QUERY,
-            variables: { name_Icontains: term, level_In: [1, 2, 3] },
-            fetchPolicy: 'no-cache',
-          }),
-          apolloClient.query({
-            query: AREA_SEARCH_QUERY,
-            variables: { name_Icontains: term, isReasonableForMunicipalRating: true },
-            fetchPolicy: 'no-cache',
-          }),
-        ])
-        const seen = new Set()
-        const merged = []
-        for (const node of [...extract(areaRes), ...extract(muniRes)]) {
-          if (!seen.has(node.ars)) { seen.add(node.ars); merged.push(node) }
-        }
-        return merged
-      } else if (mode === 'reasonable') {
-        const res = await apolloClient.query({
-          query: AREA_SEARCH_QUERY,
-          variables: { name_Icontains: term, isReasonableForMunicipalRating: true },
-          fetchPolicy: 'no-cache',
-        })
-        return extract(res)
-      } else {
-        // 'all' — no reasonableness or level filter
-        const res = await apolloClient.query({
-          query: AREA_SEARCH_QUERY,
-          variables: { name_Icontains: term },
-          fetchPolicy: 'no-cache',
-        })
-        return extract(res)
-      }
+      const nodes = await $fetch('/api/area-search', {
+        query: { term: term.trim(), mode },
+      })
+      return Array.isArray(nodes) ? nodes : []
     } catch (error) {
       console.error(`searchAdministrativeAreas failed for "${term}" (mode: ${mode}):`, error)
       return []

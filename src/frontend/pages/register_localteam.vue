@@ -236,10 +236,10 @@
           </div>
           <div class="flex flex-col sm:flex-row gap-3">
             <CanonicalButton
-              :href="`/contact?title=${encodeURIComponent('Lokalteam unterstützen in ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' bei der Bewertung unterstützen.\n\nMeine Kontaktdaten:\n')}`"
-              label="Lokalteam unterstützen"
-              icon-slug="icon_team"
-              color="green"
+              :href="`/contact?title=${encodeURIComponent('Kontakt Lokalteam ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte Kontakt zum Lokalteam in ' + selectedArea.name + ' aufnehmen.\n\nMeine Kontaktdaten:\n')}`"
+              label="Kontakt aufnehmen"
+              icon-slug="icon_login_arrow"
+              color="blue"
               class="flex-1"
             />
           </div>
@@ -271,7 +271,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAreaSearch } from '~/composables/useAreaSearch.js'
 
 const route = useRoute()
@@ -461,17 +461,15 @@ async function fetchGeoData(ars: string) {
   }
 }
 
-// --- On mount: if ARS given in URL, resolve area info ---
-onMounted(async () => {
-  const ars = route.query.ars as string | undefined
-  const name = route.query.name as string | undefined
-  const slug = route.query.slug as string | undefined
-  if (!ars) return
-
-  // Show immediately with name from query param, then enrich with API data
+// --- Initialise from ARS query param ---
+async function initFromQueryParams(ars: string, name?: string, slug?: string) {
+  // Reset state before loading new area
   selectedArea.value = { name: name ?? ars, ars }
-  // If the detail page already knows there's a slug (has a localteam), set it
   existingSlug.value = slug ?? null
+  existingPercentageRated.value = null
+  hasExistingTeam.value = false
+  areaGeoData.value = null
+
   // Always verify against Directus — the URL param may be stale or missing
   const teamInfo = await checkExistingLocalteam(ars)
   if (teamInfo.slug) {
@@ -505,7 +503,23 @@ onMounted(async () => {
       geoLoading.value = false
     }
   }
+}
+
+onMounted(() => {
+  const ars = route.query.ars as string | undefined
+  if (ars) initFromQueryParams(ars, route.query.name as string | undefined, route.query.slug as string | undefined)
 })
+
+watch(
+  () => route.query.ars,
+  (ars) => {
+    if (ars) {
+      initFromQueryParams(ars as string, route.query.name as string | undefined, route.query.slug as string | undefined)
+    } else {
+      resetSelection()
+    }
+  },
+)
 
 // Meta
 useHead({ title: 'Lokalteam gründen' })

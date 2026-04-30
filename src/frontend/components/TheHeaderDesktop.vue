@@ -10,21 +10,27 @@
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
     <div
-      class="relative flex items-center mx-auto w-full max-w-screen-xl px-4 md:px-8 lg:px-4 xl:px-6 2xl:px-0 transition-[padding] duration-300 ease-in-out"
-      :class="scrolled ? 'py-1.5' : 'py-3'"
+      class="relative flex items-center mx-auto w-full max-w-screen-xl px-4 md:px-8 lg:px-4 xl:px-6 2xl:px-0 transition-[padding] duration-300 ease-in-out py-2"
+      :class="scrolled ? 'sm:py-1.5' : 'sm:py-3'"
     >
       <!-- Logo -->
+      <!-- On sm: breakpoint mirrors isDesktop so the pre-hydration desktop header
+           looks identical to TheHeaderMobile (h-12 / py-2), preventing layout shift. -->
       <NuxtLink
         to="/"
-        class="shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out"
-        :class="scrolled ? 'h-14' : 'h-20'"
+        class="shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out h-12"
+        :class="scrolled ? 'sm:h-14' : 'sm:h-20'"
       >
-        <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-full w-auto hidden lg:block" :alt="$t('logo.alt')" />
-        <img src="~/assets/images/Stadt-Land-Kima-Logo_quad.png" class="h-full w-auto block lg:hidden" :alt="$t('logo.alt')" />
+        <!-- SVG logotype: shown on mobile (<sm, matches TheHeaderMobile) and large desktop (≥lg) -->
+        <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-full w-auto block sm:hidden lg:block" :alt="$t('logo.alt')" />
+        <!-- Quad logo: only shown on sm–lg range where the header is narrow but ≥640px -->
+        <img src="~/assets/images/Stadt-Land-Kima-Logo_quad.png" class="h-full w-auto hidden sm:block lg:hidden" :alt="$t('logo.alt')" />
       </NuxtLink>
 
       <!-- Persistent Search Bar — absolutely centered in the header -->
-      <div class="absolute left-1/2 -translate-x-1/2 w-full max-w-[28rem] px-4">
+      <!-- hidden on sm: mirrors the isDesktop breakpoint (≥640px) so mobile users don't
+           see the full search bar before hydration swaps to TheHeaderMobile. -->
+      <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-full max-w-[28rem] px-4">
       <div
         ref="searchBarRef"
         class="flex w-full items-center gap-2.5 bg-white border-2 rounded-full px-5 transition-colors duration-150 cursor-text"
@@ -72,8 +78,18 @@
 
       <!-- Actions: Login + Donate -->
       <div class="ml-auto flex items-center gap-2">
-        <!-- Login: compact icon on mobile, canonical button on desktop -->
-        <a href="/backend" class="lg:hidden">
+        <!-- Search button: only visible on mobile (<sm) to mirror TheHeaderMobile pre-hydration -->
+        <button
+          class="sm:hidden flex items-center justify-center h-10 w-12 bg-white border-2 border-gray-200 rounded-full text-gray-400 hover:border-gray-300 transition-colors flex-none"
+          @click="open()"
+          :aria-label="$t('generic.search')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+        </button>
+        <!-- Login: compact icon on sm-lg, canonical button on desktop -->
+        <a href="/backend" class="hidden sm:flex lg:hidden">
           <button
             class="h-9 w-9 flex items-center justify-center rounded-md bg-light-green text-white hover:brightness-110 transition-all shadow-sm"
             :aria-label="$t('generic.log_in')"
@@ -88,7 +104,7 @@
         </div>
         <a
           href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
-          class="lg:hidden"
+          class="hidden sm:flex lg:hidden"
           :aria-label="$t('donate.label')"
         >
           <button class="h-9 w-9 flex items-center justify-center rounded-md bg-orange text-white hover:brightness-110 transition-all shadow-sm">
@@ -107,9 +123,10 @@
          dropdowns are not clipped once the strip is fully open.
          navStripHeight is measured via ResizeObserver on the inner div so the animation
          handles any number of wrapped rows automatically. -->
+    <!-- Nav strip: hidden below sm so pre-hydration mobile view matches TheHeaderMobile -->
     <div
       ref="navStripClipRef"
-      class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+      class="hidden sm:block overflow-hidden transition-[max-height] duration-300 ease-in-out"
       :style="scrollNavVisible ? `max-height: ${navStripHeight}px` : 'max-height: 0'"
     >
       <div
@@ -127,10 +144,10 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
-import { useHeaderHeight, useNavInputRect } from '~/composables/useHeaderHeight.js'
+import { useHeaderHeight, useHeaderSpacerHeight, useNavInputRect } from '~/composables/useHeaderHeight.js'
 
 const { $t } = useNuxtApp()
-const { isOpen, query, embeddedInput, close } = useSearchPalette()
+const { isOpen, query, embeddedInput, close, open } = useSearchPalette()
 
 defineProps({
   municipalities: { type: Array, default: () => [] },
@@ -149,6 +166,7 @@ const navStripInnerRef = ref(null)
 // so the clip wrapper never clips content before ResizeObserver fires.
 const navStripHeight   = ref(41)
 const headerHeight     = useHeaderHeight()
+const headerSpacerHeight = useHeaderSpacerHeight()
 const navInputRect     = useNavInputRect()
 const scrollNavVisible = ref(true)
 
@@ -235,15 +253,31 @@ onMounted(() => {
     const delta = window.scrollY - lastScrollY
     if (delta > 4)  scrollNavVisible.value = false
     if (delta < -4) scrollNavVisible.value = true
+    const wasScrolled = lastScrollY >= 10
     lastScrollY    = window.scrollY
     scrolled.value = window.scrollY > 8
+    // When the user scrolls back to the very top, sync the spacer to the current
+    // (expanded) header height. This can't loop because scrollY is now < 10.
+    if (wasScrolled && window.scrollY < 10 && headerEl.value) {
+      headerSpacerHeight.value = headerEl.value.offsetHeight
+    }
   }
   window.addEventListener('scroll', onScroll, { passive: true })
   removeScrollListener = () => window.removeEventListener('scroll', onScroll)
 
   if (headerEl.value) {
     const update = () => {
-      headerHeight.value = headerEl.value.offsetHeight
+      const h = headerEl.value.offsetHeight
+      // headerHeight tracks the live header height so that sticky children
+      // (pill nav, sidebar tops) follow it precisely as the nav strip animates.
+      headerHeight.value = h
+      // headerSpacerHeight is only updated at the top of the page.
+      // The layout spacer uses this value; keeping it frozen while scrolled
+      // prevents the scroll-anchoring loop (spacer shrinks → browser adjusts
+      // scrollY → delta triggers nav strip toggle → loop).
+      if (window.scrollY < 10) {
+        headerSpacerHeight.value = h
+      }
       if (searchBarRef.value) {
         const r  = searchBarRef.value.getBoundingClientRect()
         const hr = headerEl.value.getBoundingClientRect()
