@@ -16,11 +16,12 @@
     />
     <the-header-mobile v-if="hydrated && !isDesktop" />
     <!-- Spacer that reserves the height of the fixed header.
-         Mobile: 64px (py-2 + h-12 logo). Desktop: driven by ResizeObserver via useHeaderHeight(). -->
-    <div
-      class="flex-shrink-0"
-      :style="isDesktop ? `height: ${headerHeight}px` : 'height: 64px'"
-    ></div>
+         Split into two CSS-driven divs so the correct height is applied even
+         pre-hydration, when isDesktop JS defaults to true on every device. -->
+    <!-- Mobile (<sm): always 64px via CSS only -->
+    <div class="flex-shrink-0 h-16 sm:hidden"></div>
+    <!-- Desktop (≥sm): JS-driven height, hidden on mobile via CSS -->
+    <div class="hidden sm:block flex-shrink-0" :style="`height: ${headerSpacerHeight}px`"></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
     <div class="drawer flex-1">
@@ -96,7 +97,7 @@
 
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
+import { useHeaderHeight, useHeaderSpacerHeight } from '~/composables/useHeaderHeight.js'
 const { includes } = lodash;
 const { $directus, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
@@ -108,6 +109,7 @@ const hydrated = ref(false)
 // immediately, eliminating the post-hydration nav-bar lag for desktop users.
 const isDesktop = useState('layout-isDesktop', () => true)
 const headerHeight = useHeaderHeight()
+const headerSpacerHeight = useHeaderSpacerHeight()
 const drawerToggle = ref(null)
 let cleanup = null
 

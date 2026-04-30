@@ -5,6 +5,7 @@
     <!-- Mobile sticky scroll nav -->
     <nav
       class="xl:hidden sticky z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
+      :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
       <div ref="mobilePillStrip" class="flex gap-2 overflow-x-auto py-2" style="scrollbar-width: none; -ms-overflow-style: none;">
@@ -263,9 +264,11 @@ const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
 const headerHeight = useHeaderHeight()
 const mobileHeaderHidden = useMobileHeaderHidden()
-// On desktop (xl+) use actual header height; on mobile use 64px unless the header has scrolled off
+const isDesktop = useState('layout-isDesktop')
+// On desktop use actual header height (no CSS transition needed — headerHeight updates
+// every frame via ResizeObserver so the pill follows the nav strip animation precisely).
+// On mobile use a fixed 64px / 0 with a CSS transition to match the header slide.
 const pillTop = computed(() => {
-  const isDesktop = useState('layout-isDesktop')
   return isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
 })
 
