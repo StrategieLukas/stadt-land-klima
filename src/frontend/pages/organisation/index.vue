@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 py-8 pb-16">
+  <div class="w-full px-4 sm:px-8 py-8 pb-16">
     <h1 class="text-h1 font-bold text-center mb-4">Unsere Organisation</h1>
 
     <!-- Intro text -->
