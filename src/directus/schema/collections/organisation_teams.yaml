@@ -8,14 +8,14 @@ meta:
   collection: organisation_teams
   color: null
   display_template: "{{label}}"
-  group: null
+  group: admin_tools
   hidden: false
   icon: groups
   item_duplication_fields: null
   note: Ressorts/Aufgabenbereiche der Organisation (Farbe, E-Mail, Aufgaben)
   preview_url: null
   singleton: false
-  sort: null
+  sort: 5
   sort_field: sort
   translations:
     - language: de-DE

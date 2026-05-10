@@ -8,14 +8,14 @@ meta:
   collection: library_items
   color: null
   display_template: "{{label}} ({{bundle}})"
-  group: null
+  group: blokkli
   hidden: false
   icon: library_books
   item_duplication_fields: null
   note: Reusable block templates for the blökkli library feature
   preview_url: null
   singleton: false
-  sort: null
+  sort: 2
   sort_field: null
   translations:
     - language: de-DE

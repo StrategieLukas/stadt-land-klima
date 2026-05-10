@@ -1,24 +1,24 @@
-collection: election
+collection: blokkli
 meta:
   accountability: all
   archive_app_filter: true
   archive_field: null
   archive_value: null
-  collapse: closed
-  collection: election
+  collapse: open
+  collection: blokkli
   color: null
   display_template: null
   group: null
-  hidden: false
-  icon: how_to_vote
+  hidden: true
+  icon: folder
   item_duplication_fields: null
-  note: Alles rund um lokale Wahlen
+  note: null
   preview_url: null
   singleton: false
-  sort: 6
+  sort: 1
   sort_field: null
   translations:
     - language: de-DE
-      translation: Wahlen
+      translation: Blökkli
   unarchive_value: null
   versioning: false

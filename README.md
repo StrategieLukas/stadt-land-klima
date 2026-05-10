@@ -6,7 +6,7 @@ Designs (Figma): https://www.figma.com/design/xOUA8jmhBBreYvmZRdlFSn/Stadt.Land.
 
 
 ## Preparations
-0. On Windows install Ubunut on Virtual Machine:
+0. On Windows install Linux (i.e. Ubuntu) on Virtual Machine:
 1. Install Docker for your machine (https://docs.docker.com/engine/install/, https://docs.docker.com/desktop/)
 2. Clone this repo into your desired folder
 3. Copy example env-files and adjust to your needs:
@@ -40,7 +40,6 @@ $ cli/import-all.sh
 $ cli/import-all.sh
 $ ./directus-cli auth:set-frontend-token
 ```
-Import all needs to run tiwce otherwise permission for the roles don't get apllied.
 Now open http://localhost:8081 in your browser and login with the credentials provided in the .env file.
 To see the frontend open http://localhost:8080.
 ## Start in development

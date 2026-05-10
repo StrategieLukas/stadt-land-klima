@@ -15,6 +15,17 @@
         <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
       </a>
     </div>
+    <div class="flex justify-center items-center gap-6 mt-4">
+      <a href="https://chat.whatsapp.com/DV1cQ72OuJv0X1sONk5f1O" target="_blank" aria-label="WhatsApp">
+        <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
+      </a>
+      <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
+        <img src="~/assets/icons/icon_telegram.svg" alt="Telegram" class="h-12 w-12" />
+      </a>
+      <a href="https://signal.group/#CjQKIPtaXcn_-6q29ufg9BBFvz0figXXqFc1H-1CddW5rkjUEhCWGjAx0p2QVVrDx4zlURBA" target="_blank" aria-label="Signal">
+        <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
+      </a>
+    </div>
   </div>
 
   <!-- Main Footer -->
