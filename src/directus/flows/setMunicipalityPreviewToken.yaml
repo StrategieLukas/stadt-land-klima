@@ -1,7 +1,8 @@
 name: setMunicipalityPreviewToken
 icon: key
 color: null
-description: Sets a random preview_token on every newly created municipality (if not already set by the registration API).
+description: Sets a random preview_token on every newly created municipality (if
+  not already set by the registration API).
 status: active
 trigger: event
 accountability: all
@@ -18,8 +19,9 @@ operations:
     position_x: 1
     position_y: 1
     options:
-      code: |
-        module.exports = async function({ $trigger, services, getSchema, accountability }) {
+      code: >
+        module.exports = async function({ $trigger, services, getSchema,
+        accountability }) {
           if ($trigger.payload && $trigger.payload.preview_token) return;
           const schema = await getSchema();
           accountability.admin = true;

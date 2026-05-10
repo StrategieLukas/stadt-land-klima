@@ -27,7 +27,8 @@ meta:
   group: null
   hidden: false
   interface: select-dropdown
-  note: Eigene = wir sind Veranstalter; Interne = nicht öffentlich; Externe = von anderen Veranstaltern; Aktive Teilnahme = von anderen, wir nehmen aktiv teil
+  note: Eigene = wir sind Veranstalter; Interne = nicht öffentlich; Externe = von
+    anderen Veranstaltern; Aktive Teilnahme = von anderen, wir nehmen aktiv teil
   options:
     choices:
       - text: Eigene (öffentlich)

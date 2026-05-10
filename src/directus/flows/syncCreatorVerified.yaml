@@ -1,7 +1,8 @@
 name: syncCreatorVerified
 icon: verified_user
 color: null
-description: When directus_users.verified changes, sync the value to municipalities.creator_verified for municipalities managed by that user.
+description: When directus_users.verified changes, sync the value to
+  municipalities.creator_verified for municipalities managed by that user.
 status: active
 trigger: event
 accountability: all
@@ -18,8 +19,9 @@ operations:
     position_x: 1
     position_y: 1
     options:
-      code: |
-        module.exports = async function({ $trigger, services, getSchema, accountability }) {
+      code: >
+        module.exports = async function({ $trigger, services, getSchema,
+        accountability }) {
           const verified = $trigger.payload && $trigger.payload.verified;
           if (verified === undefined || verified === null) return;
           const keys = $trigger.keys || ($trigger.key ? [$trigger.key] : []);
