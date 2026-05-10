@@ -199,10 +199,10 @@
 </template>
 
 <script setup>
-import majorCitySelected from '~/assets/images/major-city-light.svg'
-import majorCityNotSelected from '~/assets/images/major-city-dark.svg'
-import minorCitySelected from '~/assets/images/minor-city-light.svg'
-import minorCityNotSelected from '~/assets/images/minor-city-dark.svg'
+const majorCitySelected = '/icons/major-city-light.svg'
+const majorCityNotSelected = '/icons/major-city-dark.svg'
+const minorCitySelected = '/icons/minor-city-light.svg'
+const minorCityNotSelected = '/icons/minor-city-dark.svg'
 
 import { ref, onMounted, computed } from 'vue'
 import lodash from "lodash";

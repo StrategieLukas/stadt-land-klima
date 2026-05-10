@@ -71,9 +71,11 @@ export default defineNuxtConfig({
     rollupConfig: {
       plugins: [
         {
+          // Handles `import foo from '~/...svg?raw'` in the Nitro/SSR bundle.
+          // Regular .svg imports (used as <img src>) now use /public/icons/ paths instead.
           name: 'svg-raw-loader',
           transform(code: string, id: string) {
-            if (id.endsWith('.svg')) {
+            if (id.includes('.svg')) {
               return { code: `export default ${JSON.stringify(code)}`, map: null }
             }
           },
