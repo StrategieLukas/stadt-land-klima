@@ -140,7 +140,8 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 2. See src/frontend/plugins/directus.client.js for the client config
 3. Check any existing page for how directus requests are done properly in this version
 4. Use DaisyUI components for new designs where possible
-5. Extensions must be created in the top-level folder `directus-extension-not-build`. They are then compiled with `npm install` and `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
+5. For notes on deployment and config, you can see README.md
+6. Extensions must be created in the top-level folder `directus-extension-not-build`. They are then compiled with `npm install` and `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
 
 
 ## Project structure:
