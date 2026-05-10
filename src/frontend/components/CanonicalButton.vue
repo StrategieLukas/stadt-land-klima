@@ -48,7 +48,7 @@ const props = defineProps<{
 
 const attrs = useAttrs()
 
-const svgFiles = import.meta.glob('@/assets/icons/*.svg', { as: 'raw', eager: true })
+const svgFiles = import.meta.glob('@/assets/icons/*.svg', { query: '?raw', import: 'default', eager: true })
 
 /**
  * Like Blokkli Button's prepareIcon, but also strips <circle class="cls-1">
