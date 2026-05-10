@@ -8,14 +8,14 @@ meta:
   collection: blocks
   color: null
   display_template: "{{bundle}} - {{field_name}}"
-  group: admin_tools
+  group: blokkli
   hidden: false
   icon: view_module
   item_duplication_fields: null
   note: Stores individual block content for blökkli page builder
   preview_url: null
   singleton: false
-  sort: 4
+  sort: 1
   sort_field: sort_order
   translations:
     - language: de-DE

@@ -4,7 +4,7 @@ meta:
   archive_app_filter: true
   archive_field: null
   archive_value: null
-  collapse: open
+  collapse: closed
   collection: success_projects
   color: null
   display_template: null
@@ -15,7 +15,7 @@ meta:
   note: Alles rund um Erfolgsprojekte
   preview_url: null
   singleton: false
-  sort: 4
+  sort: 5
   sort_field: null
   translations:
     - language: de-DE
