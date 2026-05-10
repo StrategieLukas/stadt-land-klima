@@ -11,6 +11,9 @@
 # combined schema snapshot
 /src/directus/schema/snapshot.yaml
 
+# directus extension hook measure rating reports csv outputs
+/src/directus/extensions/directus-extension-hook-measure-rating-reports/*.csv
+
 # backup directory
 /backups/*
 
