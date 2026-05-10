@@ -300,6 +300,17 @@ permissions:
       - has_answered
       - time_first_submitted
       - time_last_edited
+  - collection: directus_activity
+    action: update
+    permissions:
+      _and:
+        - user:
+            id:
+              _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - comment
   - collection: directus_files
     action: create
     permissions: {}
