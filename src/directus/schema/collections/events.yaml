@@ -12,17 +12,17 @@ meta:
   hidden: false
   icon: event
   item_duplication_fields:
-    - title
-    - status
+    - description
+    - end_date
+    - event_category
+    - event_type
+    - image
+    - location
+    - registration_url
     - slug
     - start_date
-    - end_date
-    - location
-    - event_type
-    - event_category
-    - description
-    - image
-    - registration_url
+    - status
+    - title
   note: Veranstaltungskalender für Konferenzen, Workshops und Webinare
   preview_url: null
   singleton: false

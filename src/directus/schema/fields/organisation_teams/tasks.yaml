@@ -12,9 +12,9 @@ meta:
   interface: tags
   note: Aufgaben/Tätigkeitsbereiche des Ressorts (Enter zum Hinzufügen)
   options:
-    placeholder: Aufgabe hinzufügen …
-    iconRight: add
     allowCustom: true
+    iconRight: add
+    placeholder: Aufgabe hinzufügen …
   readonly: false
   required: false
   sort: 7
