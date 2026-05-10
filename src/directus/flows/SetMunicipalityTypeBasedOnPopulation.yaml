@@ -12,6 +12,16 @@ options:
   collections:
     - municipalities
 operations:
+  - name: Konsolenausgabe
+    key: log_m6yar_ffhhu
+    type: item-update
+    position_x: 57
+    position_y: 18
+    options:
+      collection: municipalities
+      key: "{{$trigger.keys}}"
+      payload:
+        municipality_type: small_city
   - name: Skript ausführen
     key: exec_agdg0
     type: condition
@@ -37,16 +47,6 @@ operations:
               _gte: 100000
     resolve_key: log_m6yar
     reject_key: log_m6yar_ffhhu
-  - name: Konsolenausgabe
-    key: log_m6yar_ffhhu
-    type: item-update
-    position_x: 57
-    position_y: 18
-    options:
-      collection: municipalities
-      key: "{{$trigger.keys}}"
-      payload:
-        municipality_type: small_city
   - name: Konsolenausgabe
     key: log_m6yar
     type: item-update

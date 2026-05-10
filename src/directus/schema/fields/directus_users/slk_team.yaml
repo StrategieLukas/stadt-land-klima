@@ -21,7 +21,7 @@ meta:
         value: steuerkreis
       - text: Maßnahmen
         value: massnahmen
-      - text: "Kommunikation / Öffentlichkeits-Pressearbeit"
+      - text: Kommunikation / Öffentlichkeits-Pressearbeit
         value: kommunikation
       - text: Vorstand / Verwaltung
         value: vorstand
@@ -41,7 +41,7 @@ meta:
 schema:
   name: slk_team
   table: directus_users
-  data_type: jsonb
+  data_type: json
   default_value: null
   max_length: null
   numeric_precision: null

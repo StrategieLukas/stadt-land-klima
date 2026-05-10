@@ -1,7 +1,8 @@
 name: sendWelcomeNewLocalteam
 icon: email
 color: null
-description: Send welcome email to new localteam admin using a Directus template (called via webhook from frontend server)
+description: Send welcome email to new localteam admin using a Directus template
+  (called via webhook from frontend server)
 status: active
 trigger: webhook
 accountability: all

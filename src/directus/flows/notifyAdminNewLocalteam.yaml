@@ -1,7 +1,8 @@
 name: notifyAdminNewLocalteam
 icon: email
 color: null
-description: Send admin notification email when a new localteam registers (called via webhook from frontend server)
+description: Send admin notification email when a new localteam registers
+  (called via webhook from frontend server)
 status: active
 trigger: webhook
 accountability: all

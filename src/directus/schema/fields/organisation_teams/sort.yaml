@@ -26,8 +26,8 @@ schema:
   data_type: integer
   default_value: null
   max_length: null
-  numeric_precision: null
-  numeric_scale: null
+  numeric_precision: 32
+  numeric_scale: 0
   is_nullable: true
   is_unique: false
   is_primary_key: false
