@@ -141,11 +141,11 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 3. Check any existing page for how directus requests are done properly in this version
 4. Use DaisyUI components for new designs where possible
 5. For notes on deployment and config, you can see README.md
-6. Extensions must be created in the top-level folder `directus-extension-not-build`. They are then compiled with `npm install` and `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
+6. Extensions can be compiled with `npm install` and `npm run build`. See the existing extensions under src/directus/extensions for reference.
 
 
 ## Project structure:
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
 2. src/backend - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
-3. directus-extension-not-build - the original code for directus extension, that are compiled from here with `npm install` and then `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
+3. src/directus/extensions - contains source and compiled extensions for Directus. Ensure that all operations/interfaces belonging to one use case are combined into ONE extension and not multiple.
 
