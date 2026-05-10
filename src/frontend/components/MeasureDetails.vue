@@ -93,7 +93,6 @@
 </template>
 <script setup>
   import sanitizeHtml from "sanitize-html";
-  import { defineProps } from "vue";
   import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils.js";
   import { calculateAndAddSimilarityScores } from "~/shared/compareMunicipalities.js";
   import ratingIcons, { ratingIndex } from "~/shared/ratingIcons.js";

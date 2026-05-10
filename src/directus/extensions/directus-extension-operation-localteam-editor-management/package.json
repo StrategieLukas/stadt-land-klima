@@ -1,0 +1,53 @@
+{
+	"name": "localteam-editor-management",
+	"description": "Combined operations for adding and deleting localteam editors",
+	"icon": "extension",
+	"version": "1.0.0",
+	"keywords": [
+		"directus",
+		"directus-extension",
+		"directus-extension-operation",
+		"localteam",
+		"editor"
+	],
+	"type": "module",
+	"files": [
+		"dist"
+	],
+	"directus:extension": {
+		"type": "bundle",
+		"host": "^10.10.0",
+		"path": {
+			"app": "dist/app.js",
+			"api": "dist/api.js"
+		},
+		"entries": [
+			{
+				"type": "operation",
+				"name": "operation-add-editor",
+				"source": {
+					"app": "src/add-editor/app.js",
+					"api": "src/add-editor/api.js"
+				}
+			},
+			{
+				"type": "operation",
+				"name": "operation-delete-editor",
+				"source": {
+					"app": "src/delete-editor/app.js",
+					"api": "src/delete-editor/api.js"
+				}
+			}
+		]
+	},
+	"scripts": {
+		"build": "directus-extension build",
+		"dev": "directus-extension build -w --no-minify",
+		"link": "directus-extension link"
+	},
+	"devDependencies": {
+		"@directus/extensions-sdk": "11.0.1",
+		"vue": "^3.4.21",
+		"lodash-es": "^4.17.21"
+	}
+}

@@ -1,7 +1,7 @@
 <template>
     <div class="dock dock-xl bg-white/80 backdrop-blur-lg border-t border-gray-200 text-color-black flex justify-around items-center">
-        <button 
-            v-for="page in pages" 
+        <button
+            v-for="page in pages"
             :key="page.id"
             :class="{ 'dock-active': isPageActive(page.slug) }"
             @click="followLink(page.slug); closeDrawer()"
@@ -13,7 +13,7 @@
             <span class="dock-label text-center text-sm truncate max-w-full font-heading">{{ page.name }}</span>
         </button>
 
-        <button 
+        <button
             id="page-drawer-toggle"
             @click="toggleDrawer"
             :class="{ 'dock-active': isDrawerOpen }"
@@ -28,7 +28,6 @@
 </template>
 
 <script setup>
-import { defineProps } from "vue";
 const { $t } = useNuxtApp();
 const route = useRoute();
 const props = defineProps(["pages"]);

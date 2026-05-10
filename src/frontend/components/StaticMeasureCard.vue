@@ -1,7 +1,7 @@
 <template>
   <article :id="`measure-${measure.measure_id}`" class="card card-compact shadow max-w-4xl mx-auto">
     <div class="card-body">
-      <div 
+      <div
         class="cursor-pointer flex items-center justify-between"
         @click="toggleExpanded"
       >
@@ -14,13 +14,13 @@
           </div>
         </div>
         <div class="ml-4 flex-shrink-0">
-          <svg 
+          <svg
             :class="[
               'w-6 h-6 text-gray-500 transition-transform duration-200',
               isExpanded ? 'rotate-180' : ''
             ]"
-            fill="none" 
-            stroke="currentColor" 
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -28,7 +28,7 @@
         </div>
       </div>
 
-      <div 
+      <div
         v-show="isExpanded"
         class="divide-y-2 divide-light-blue md:px-1 lg:px-2 prose prose-sm max-w-none"
       >
@@ -46,7 +46,7 @@
   </article>
 </template>
 <script setup>
-import { defineProps, ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 const { $t, $locale } = useNuxtApp();
 
 const props = defineProps({
@@ -78,10 +78,10 @@ const handleHashNavigation = () => {
 onMounted(() => {
   // Handle initial hash navigation
   handleHashNavigation();
-  
+
   // Listen for hash changes
   window.addEventListener('hashchange', handleHashNavigation);
-  
+
   // Handle date formatting
   if (props.measure.date_updated) {
     const lastUpdatedAt = new Date(props.measure.date_updated);
