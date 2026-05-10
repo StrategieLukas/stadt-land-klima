@@ -36,6 +36,3 @@ schema:
   has_auto_increment: false
   foreign_key_table: measures
   foreign_key_column: id
-  constraint_name: articles_measures_measures_id_foreign
-  on_update: NO ACTION
-  on_delete: CASCADE
