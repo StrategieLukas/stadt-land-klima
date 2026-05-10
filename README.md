@@ -40,7 +40,6 @@ $ cli/import-all.sh
 $ cli/import-all.sh
 $ ./directus-cli auth:set-frontend-token
 ```
-Import all needs to run tiwce otherwise permission for the roles don't get apllied.
 Now open http://localhost:8081 in your browser and login with the credentials provided in the .env file.
 To see the frontend open http://localhost:8080.
 ## Start in development
