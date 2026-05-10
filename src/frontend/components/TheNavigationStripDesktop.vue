@@ -36,7 +36,7 @@
         <div
           v-if="hasChildren(item)"
           class="group/trigger nav-item flex items-stretch"
-          :class="{ 'nav-item--active': anyChildActive(item) }"
+          :class="{ 'nav-item--active': isActive(item) || anyChildActive(item) || openMenuId === item.id }"
         >
           <!-- Label part: navigates (NuxtLink) or toggles dropdown (button) -->
           <component
