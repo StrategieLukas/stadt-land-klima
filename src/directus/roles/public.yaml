@@ -116,3 +116,76 @@ permissions:
       - bio
       - slk_team
       - show_on_team_page
+  - collection: elections
+    action: read
+    permissions:
+      _and:
+        - is_public:
+            _eq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - descriptor
+      - localteam
+      - response_cutoff_date
+      - is_public
+      - date_created
+      - date_updated
+  - collection: questions
+    action: read
+    permissions:
+      _and:
+        - election:
+            is_public:
+              _eq: true
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - title
+      - thesis
+      - election
+      - status
+      - date_created
+      - date_updated
+  - collection: candidate
+    action: read
+    permissions:
+      _and:
+        - election:
+            is_public:
+              _eq: true
+        - has_answered:
+            _eq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - party
+      - election
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+  - collection: answers
+    action: read
+    permissions:
+      _and:
+        - candidate:
+            election:
+              is_public:
+                _eq: true
+        - candidate:
+            has_answered:
+              _eq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - response
+      - explanation
+      - candidate
+      - question
