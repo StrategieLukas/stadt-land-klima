@@ -149,3 +149,8 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 2. src/backend - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
 3. directus-extension-not-build - the original code for directus extension, that are compiled from here with `npm install` and then `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
 
+## Applying changes for directus yamls
+1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.
+2. The yamls are sorted to be in alphabetical order, ensure that you stick to this formatting.
+
+

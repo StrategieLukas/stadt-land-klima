@@ -39,9 +39,25 @@ permissions:
   - collection: events
     action: read
     permissions:
-      _and:
-        - status:
-            _eq: published
+      _or:
+        - _and:
+            - status:
+                _eq: published
+        - _and:
+            - status:
+                _eq: published
+        - _and:
+            - status:
+                _eq: published
+        - _and:
+            - status:
+                _eq: published
+        - _and:
+            - status:
+                _eq: published
+        - _and:
+            - status:
+                _eq: published
     validation: null
     presets: null
     fields:
@@ -103,9 +119,25 @@ permissions:
   - collection: directus_users
     action: read
     permissions:
-      _and:
-        - show_on_team_page:
-            _eq: true
+      _or:
+        - _and:
+            - show_on_team_page:
+                _eq: true
+        - _and:
+            - show_on_team_page:
+                _eq: true
+        - _and:
+            - show_on_team_page:
+                _eq: true
+        - _and:
+            - show_on_team_page:
+                _eq: true
+        - _and:
+            - show_on_team_page:
+                _eq: true
+        - _and:
+            - show_on_team_page:
+                _eq: true
     validation: {}
     presets: null
     fields:
@@ -119,9 +151,22 @@ permissions:
   - collection: elections
     action: read
     permissions:
-      _and:
-        - is_public:
-            _eq: true
+      _or:
+        - _and:
+            - is_public:
+                _eq: true
+        - _and:
+            - is_public:
+                _eq: true
+        - _and:
+            - is_public:
+                _eq: true
+        - _and:
+            - is_public:
+                _eq: true
+        - _and:
+            - is_public:
+                _eq: true
     validation: null
     presets: null
     fields:
@@ -135,12 +180,37 @@ permissions:
   - collection: questions
     action: read
     permissions:
-      _and:
-        - election:
-            is_public:
-              _eq: true
-        - status:
-            _eq: published
+      _or:
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - status:
+                _eq: published
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - status:
+                _eq: published
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - status:
+                _eq: published
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - status:
+                _eq: published
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - status:
+                _eq: published
     validation: null
     presets: null
     fields:
@@ -154,12 +224,37 @@ permissions:
   - collection: candidate
     action: read
     permissions:
-      _and:
-        - election:
-            is_public:
-              _eq: true
-        - has_answered:
-            _eq: true
+      _or:
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - has_answered:
+                _eq: true
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - has_answered:
+                _eq: true
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - has_answered:
+                _eq: true
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - has_answered:
+                _eq: true
+        - _and:
+            - election:
+                is_public:
+                  _eq: true
+            - has_answered:
+                _eq: true
     validation: null
     presets: null
     fields:
@@ -173,14 +268,47 @@ permissions:
   - collection: answers
     action: read
     permissions:
-      _and:
-        - candidate:
-            election:
-              is_public:
-                _eq: true
-        - candidate:
-            has_answered:
-              _eq: true
+      _or:
+        - _and:
+            - candidate:
+                election:
+                  is_public:
+                    _eq: true
+            - candidate:
+                has_answered:
+                  _eq: true
+        - _and:
+            - candidate:
+                election:
+                  is_public:
+                    _eq: true
+            - candidate:
+                has_answered:
+                  _eq: true
+        - _and:
+            - candidate:
+                election:
+                  is_public:
+                    _eq: true
+            - candidate:
+                has_answered:
+                  _eq: true
+        - _and:
+            - candidate:
+                election:
+                  is_public:
+                    _eq: true
+            - candidate:
+                has_answered:
+                  _eq: true
+        - _and:
+            - candidate:
+                election:
+                  is_public:
+                    _eq: true
+            - candidate:
+                has_answered:
+                  _eq: true
     validation: null
     presets: null
     fields:

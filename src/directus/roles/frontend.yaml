@@ -31,11 +31,15 @@ permissions:
       - "*"
   - collection: answers
     action: read
-    permissions: {}
-    validation: {}
+    permissions: null
+    validation: null
     presets: null
     fields:
-      - "*"
+      - id
+      - response
+      - explanation
+      - candidate
+      - question
   - collection: answers
     action: update
     permissions:
@@ -157,18 +161,22 @@ permissions:
       - "*"
   - collection: candidate
     action: read
-    permissions: {}
-    validation: {}
+    permissions:
+      _and:
+        - election:
+            is_public:
+              _eq: true
+    validation: null
     presets: null
     fields:
       - id
       - name
       - party
+      - election
       - has_answered
       - time_first_submitted
       - time_last_edited
       - access_token
-      - election
   - collection: candidate
     action: update
     permissions:
@@ -246,11 +254,20 @@ permissions:
       - "*"
   - collection: elections
     action: read
-    permissions: {}
-    validation: {}
+    permissions:
+      _and:
+        - is_public:
+            _eq: true
+    validation: null
     presets: null
     fields:
-      - "*"
+      - id
+      - descriptor
+      - localteam
+      - response_cutoff_date
+      - is_public
+      - date_created
+      - date_updated
   - collection: events
     action: read
     permissions:
@@ -466,11 +483,23 @@ permissions:
       - icon_svg
   - collection: questions
     action: read
-    permissions: {}
-    validation: {}
+    permissions:
+      _and:
+        - election:
+            is_public:
+              _eq: true
+        - status:
+            _eq: published
+    validation: null
     presets: null
     fields:
-      - "*"
+      - id
+      - title
+      - thesis
+      - election
+      - status
+      - date_created
+      - date_updated
   - collection: ratings_measures
     action: read
     permissions:

@@ -1,5 +1,6 @@
 collection: elections
 field: is_public
+type: boolean
 meta:
   collection: elections
   conditions: null
@@ -13,7 +14,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 7
+  sort: 3
   special: null
   translations:
     - language: de-DE

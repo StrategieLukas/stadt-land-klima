@@ -127,7 +127,9 @@
     </div>
 
     <!-- Footer -->
-    <TheFooterDesktop class="mt-20" />
+    <div class="mt-20">
+      <TheFooterDesktop />
+    </div>
   </div>
 </template>
 

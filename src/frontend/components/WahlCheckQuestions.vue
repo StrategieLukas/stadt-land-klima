@@ -253,7 +253,7 @@ defineExpose({
 }
 
 .radio:checked + label {
-  ring-2 ring-current ring-offset-2;
+  box-shadow: 0 0 0 2px currentColor, 0 0 0 4px rgba(currentColor, 0.5);
 }
 
 input[type="radio"]:focus,

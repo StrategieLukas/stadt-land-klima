@@ -265,7 +265,7 @@ const hoveredCandidate = ref(null)
 const ratingColors = {
   0: 'bg-rating-0',
   1: 'bg-rating-1', 
-  2: 'bg-rating-2',
+  2: 'bg-rating-na',
   3: 'bg-rating-3',
   4: 'bg-rating-4'
 }
