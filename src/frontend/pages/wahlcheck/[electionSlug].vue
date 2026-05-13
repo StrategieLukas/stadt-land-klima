@@ -115,16 +115,7 @@
       />
     </div>
 
-    <!-- Navigation Buttons (for mobile) -->
-    <div v-if="currentStep > 0 && currentStep < 4" class="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-4 z-50">
-      <button 
-        v-if="currentStep > 1" 
-        @click="handlePrev" 
-        class="btn btn-outline btn-secondary px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all"
-      >
-        Zurück
-      </button>
-    </div>
+
 
     <!-- Footer -->
     <div class="mt-20">
@@ -154,6 +145,45 @@ const steps = [
 // User data
 const userAnswers = ref({}) // { questionId: responseValue (0-4) }
 const doubleWeightedQuestions = ref(new Set()) // Set of questionIds
+
+// Session storage key
+const sessionStorageKey = `wahlcheck_${electionSlug}`
+
+// Load from session storage
+function loadFromSessionStorage() {
+  try {
+    const savedData = sessionStorage.getItem(sessionStorageKey)
+    if (savedData) {
+      const parsed = JSON.parse(savedData)
+      userAnswers.value = parsed.userAnswers || {}
+      doubleWeightedQuestions.value = new Set(parsed.doubleWeightedQuestions || [])
+    }
+  } catch (err) {
+    console.error('Error loading from session storage:', err)
+  }
+}
+
+// Save to session storage
+function saveToSessionStorage() {
+  try {
+    const dataToSave = {
+      userAnswers: userAnswers.value,
+      doubleWeightedQuestions: Array.from(doubleWeightedQuestions.value)
+    }
+    sessionStorage.setItem(sessionStorageKey, JSON.stringify(dataToSave))
+  } catch (err) {
+    console.error('Error saving to session storage:', err)
+  }
+}
+
+// Clear session storage
+function clearSessionStorage() {
+  try {
+    sessionStorage.removeItem(sessionStorageKey)
+  } catch (err) {
+    console.error('Error clearing session storage:', err)
+  }
+}
 
 // Election data
 const electionData = ref(null)
@@ -288,6 +318,7 @@ function handleRestart() {
   userAnswers.value = {}
   doubleWeightedQuestions.value = new Set()
   currentStep.value = 1
+  clearSessionStorage()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -370,12 +401,18 @@ const sharedFunctions = {
 // Load data on mount
 onMounted(() => {
   loadElectionData()
+  loadFromSessionStorage()
 })
 
 // Update data when route changes
 watch(() => route.params.electionSlug, () => {
   loadElectionData()
 })
+
+// Save to session storage when user data changes
+watch([userAnswers, doubleWeightedQuestions], () => {
+  saveToSessionStorage()
+}, { deep: true })
 
 useHead({
   title: computed(() => electionData.value?.election?.descriptor 

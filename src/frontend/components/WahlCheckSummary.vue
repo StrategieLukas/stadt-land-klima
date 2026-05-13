@@ -32,8 +32,8 @@
           'opacity-60': userAnswers[question.id] === undefined
         }"
       >
-        <div class="flex items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3 w-4/5"> <!-- 80% width for thesis -->
             <span class="flex-shrink-0 w-8 h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-sm">
               {{ index + 1 }}
             </span>
@@ -44,29 +44,28 @@
             </div>
           </div>
 
-          <!-- User's Answer - Compact indicator -->
-          <div v-if="userAnswers[question.id] !== undefined" class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow-md" 
-                 :class="getRatingColor(userAnswers[question.id])" 
-                 :title="getRatingLabel(userAnswers[question.id])">
-              {{ ratingLabelsShort[userAnswers[question.id]] || '?' }}
+          <!-- Aligned indicators column -->
+          <div class="flex-shrink-0 flex items-center gap-3 w-1/5 justify-end">
+            <!-- User's Answer - Color circle indicator (no text) -->
+            <div v-if="userAnswers[question.id] !== undefined" class="flex-shrink-0">
+              <div class="w-8 h-8 rounded-full shadow-md" 
+                   :class="getRatingColor(userAnswers[question.id])" 
+                   :title="getRatingLabel(userAnswers[question.id])"></div>
             </div>
-          </div>
-          <div v-else class="text-xs text-gray/400 italic">
-            übersprungen
-          </div>
+            <div v-else class="w-8 h-8 rounded-full bg-gray/20 shadow-md" title="Übersprungen"></div>
 
-          <!-- Double Weight Toggle -->
-          <div v-if="userAnswers[question.id] !== undefined" class="flex-shrink-0">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                :checked="doubleWeightedQuestions.has(question.id)"
-                @change="$emit('toggle-double-weight', question.id)"
-                class="checkbox checkbox-sm checkbox-primary border-2"
-              />
-              <span class="text-xs text-stats-dark">2×</span>
-            </label>
+            <!-- Double Weight Toggle -->
+            <div v-if="userAnswers[question.id] !== undefined" class="flex-shrink-0">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  :checked="doubleWeightedQuestions.has(question.id)"
+                  @change="$emit('toggle-double-weight', question.id)"
+                  class="checkbox checkbox-sm checkbox-primary border-2"
+                />
+                <span class="text-xs text-stats-dark">2×</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>

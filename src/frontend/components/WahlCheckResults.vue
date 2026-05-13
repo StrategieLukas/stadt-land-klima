@@ -1,5 +1,16 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8 relative">
+    <!-- Confetti Animation -->
+    <div v-if="showConfetti" class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      <div v-for="i in 50" :key="i" class="confetti" :style="{
+        '--left': `${Math.random() * 100}%`,
+        '--animation-duration': `${2 + Math.random() * 2}s`,
+        '--animation-delay': `${Math.random() * 2}s`,
+        '--color': `hsl(${Math.random() * 60 + 100}, 70%, 50%)`,
+        '--size': `${5 + Math.random() * 10}px`
+      }"></div>
+    </div>
+    
     <!-- Header -->
     <div class="bg-white p-8 rounded-xl shadow-list border border-gray/10 text-center">
       <div class="mb-6">
@@ -19,6 +30,34 @@
       <p v-if="election" class="text-sm text-mid-gray mt-4">
         <strong>Wahl:</strong> {{ election.descriptor }}
       </p>
+    </div>
+
+    <!-- Bar Chart Overview -->
+    <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
+      <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
+        Vergleich aller Kandidaten
+      </h3>
+      <div class="space-y-4">
+        <div v-for="result in sortedResults" :key="result.candidateId" class="flex items-center gap-4">
+          <div class="w-32 flex-shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-stats-dark">{{ sortedResults.indexOf(result) + 1 }}.</span>
+              <span class="text-sm text-black truncate">{{ getCandidateName(result.candidateId) }}</span>
+            </div>
+          </div>
+          <div class="flex-1">
+            <div class="w-full bg-gray/10 rounded-full h-6">
+              <div
+                class="bg-ff-green h-6 rounded-full transition-all duration-1000 ease-out"
+                :style="{ width: `${result.percentage}%` }"
+              ></div>
+            </div>
+          </div>
+          <div class="w-16 flex-shrink-0">
+            <span class="font-bold text-stats-dark">{{ result.percentage }}%</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Results Summary -->
@@ -104,6 +143,19 @@
             </button>
           </div>
           
+          <!-- Bar Chart Comparison -->
+          <div class="mt-4">
+            <div class="w-full bg-gray/10 rounded-full h-4">
+              <div
+                class="bg-ff-green h-4 rounded-full transition-all duration-1000 ease-out"
+                :style="{ width: `${result.percentage}%` }"
+              ></div>
+            </div>
+            <div class="text-center mt-2">
+              <span class="text-sm font-medium text-stats-dark">{{ result.percentage }}% Übereinstimmung</span>
+            </div>
+          </div>
+
           <!-- Expanded Details -->
           <div 
             v-if="expandedCandidate === result.candidateId" 
@@ -260,6 +312,15 @@ const emit = defineEmits(['restart', 'prev'])
 // State
 const expandedCandidate = ref(null)
 const hoveredCandidate = ref(null)
+const showConfetti = ref(false)
+
+// Trigger confetti animation when component mounts
+onMounted(() => {
+  showConfetti.value = true
+  setTimeout(() => {
+    showConfetti.value = false
+  }, 3000)
+})
 
 // Rating config
 const ratingColors = {
@@ -393,6 +454,29 @@ function toggleExpand(candidateId) {
 </script>
 
 <style scoped>
+/* Confetti Animation */
+.confetti {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  background-color: var(--color);
+  border-radius: 50%;
+  left: var(--left);
+  top: -10px;
+  animation: confetti-fall var(--animation-duration) var(--animation-delay) ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
 /* Animations */
 @keyframes fadeInUp {
   from {
