@@ -24,27 +24,25 @@
       </p>
     </div>
 
-    <!-- Questions Form -->
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+    <!-- Single Question Display -->
+    <div v-if="props.questions.length > 0" class="space-y-6">
       <div 
-        v-for="(question, index) in questions" 
-        :key="question.id" 
-        class="bg-white p-6 rounded-xl shadow-list border border-gray/10 transition-all hover:shadow-lg"
+        class="bg-white p-6 rounded-xl shadow-list border border-gray/10 transition-all"
         :class="{
-          'ring-2 ring-ff-green': currentQuestionIndex === index,
-          'opacity-60': completedQuestions.has(question.id)
+          'ring-2 ring-ff-green': true,
+          'opacity-60': completedQuestions.has(currentQuestion.id)
         }"
       >
         <div class="flex items-start gap-4 mb-4">
           <span class="flex-shrink-0 w-10 h-10 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-lg">
-            {{ index + 1 }}
+            {{ currentQuestionIndex + 1 }}
           </span>
           <div class="flex-1">
             <h3 class="text-xl font-semibold text-black leading-tight">
-              {{ question.title }}
+              {{ currentQuestion.title }}
             </h3>
-            <p v-if="question.thesis" class="mt-2 text-gray italic text-lg">
-              {{ question.thesis }}
+            <p v-if="currentQuestion.thesis" class="mt-2 text-gray italic text-lg">
+              {{ currentQuestion.thesis }}
             </p>
           </div>
         </div>
@@ -56,12 +54,12 @@
               <label class="cursor-pointer">
                 <input
                   type="radio"
-                  :name="'question-' + question.id"
+                  :name="'question-' + currentQuestion.id"
                   :value="option.value"
-                  v-model="userAnswers[question.id]"
+                  v-model="userAnswers[currentQuestion.id]"
                   class="radio w-8 h-8 sm:w-10 sm:h-10 border-2 cursor-pointer"
                   :class="getRadioClass(option.value)"
-                  @change="markQuestionCompleted(question.id)"
+                  @change="markQuestionCompleted(currentQuestion.id)"
                 />
               </label>
             </div>
@@ -78,9 +76,9 @@
           <label class="flex items-center gap-2 cursor-pointer text-sm text-mid-gray">
             <input
               type="checkbox"
-              v-model="skippedQuestions[question.id]"
+              v-model="skippedQuestions[currentQuestion.id]"
               class="checkbox checkbox-sm border-gray/30"
-              @change="handleSkipChange(question.id)"
+              @change="handleSkipChange(currentQuestion.id)"
             />
             <span>Keine Angabe / Frage überspringen</span>
           </label>
@@ -90,36 +88,36 @@
       <!-- Navigation Buttons -->
       <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
         <div class="text-sm text-mid-gray">
-          {{ completedCount }} / {{ questions.length }} Fragen beantwortet
+          {{ completedCount }} / {{ props.questions.length }} Fragen beantwortet
         </div>
         <div class="flex gap-4">
           <button
             type="button"
-            @click="$emit('prev')"
+            @click="handlePrevQuestion"
+            :disabled="currentQuestionIndex === 0"
             class="btn btn-outline btn-secondary px-6 py-2 rounded-full font-semibold"
+            :class="{ 'opacity-50 cursor-not-allowed': currentQuestionIndex === 0 }"
           >
             Zurück
           </button>
           <button
             type="button"
-            @click="handleNext"
-            :disabled="!canProceed"
+            @click="handleNextQuestion"
+            :disabled="!canProceedToNext"
             class="btn btn-primary px-8 py-2 rounded-full font-semibold text-white"
-            :class="{ 'opacity-50 cursor-not-allowed': !canProceed }"
+            :class="{ 'opacity-50 cursor-not-allowed': !canProceedToNext }"
           >
-            <span v-if="!canProceed" class="tooltip tooltip-left" data-tip="Bitte beantworten Sie mindestens eine Frage">
-              Weiter
-            </span>
-            <span v-else>Weiter</span>
+            <span v-if="currentQuestionIndex === props.questions.length - 1">Weiter</span>
+            <span v-else>Nächste Frage</span>
             <span v-if="false" class="loading loading-spinner loading-sm"></span>
           </button>
         </div>
       </div>
 
-      <!-- Question Navigation -->
+      <!-- Question Progress -->
       <div class="flex justify-center gap-2 mt-6 flex-wrap">
         <button
-          v-for="(q, idx) in questions"
+          v-for="(q, idx) in props.questions"
           :key="q.id"
           @click="currentQuestionIndex = idx"
           class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all"
@@ -133,7 +131,7 @@
           {{ completedQuestions.has(q.id) ? '✓' : idx + 1 }}
         </button>
       </div>
-    </form>
+    </div>
   </div>
 </template>
 
@@ -207,11 +205,46 @@ const canProceed = computed(() => {
   return Object.keys(userAnswers.value).some(key => userAnswers.value[key] !== undefined)
 })
 
+// Check if we can proceed to next question
+const canProceedToNext = computed(() => {
+  if (currentQuestionIndex.value === props.questions.length - 1) {
+    // On last question, need at least one answer to proceed to summary
+    return canProceed.value
+  }
+  // For other questions, can always proceed (can skip)
+  return true
+})
+
 const completedCount = computed(() => {
   return completedQuestions.value.size
 })
 
-// Handle next button
+// Get current question
+const currentQuestion = computed(() => {
+  return props.questions[currentQuestionIndex.value]
+})
+
+// Handle next button for single question navigation
+function handleNextQuestion() {
+  if (!canProceedToNext.value) return
+  
+  if (currentQuestionIndex.value === props.questions.length - 1) {
+    // On last question, proceed to summary
+    handleNext()
+  } else {
+    // Move to next question
+    currentQuestionIndex.value++
+  }
+}
+
+// Handle previous question
+function handlePrevQuestion() {
+  if (currentQuestionIndex.value > 0) {
+    currentQuestionIndex.value--
+  }
+}
+
+// Handle next button (final submission)
 function handleNext() {
   if (!canProceed.value) return
   
@@ -233,7 +266,7 @@ function handleSubmit() {
 
 // Auto-scroll to question when index changes
 watch(currentQuestionIndex, (newIndex) => {
-  const element = document.querySelectorAll('.bg-white.p-6.rounded-xl')?.[newIndex]
+  const element = document.querySelector('.bg-white.p-6.rounded-xl')
   if (element) {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }

@@ -21,63 +21,53 @@
       </p>
     </div>
 
-    <!-- Answers Summary -->
-    <div class="space-y-4 max-w-4xl mx-auto">
+    <!-- Answers Summary - Compact List View -->
+    <div class="space-y-2 max-w-4xl mx-auto">
       <div 
         v-for="(question, index) in questions" 
         :key="question.id" 
-        class="bg-white p-6 rounded-xl shadow-list border border-gray/10 transition-all hover:shadow-lg"
+        class="bg-white p-4 rounded-lg shadow-sm border border-gray/10 transition-all"
         :class="{
           'ring-2 ring-ff-green': doubleWeightedQuestions.has(question.id),
           'opacity-60': userAnswers[question.id] === undefined
         }"
       >
-        <div class="flex items-start gap-4 mb-4">
-          <span class="flex-shrink-0 w-10 h-10 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-lg">
-            {{ index + 1 }}
-          </span>
-          <div class="flex-1">
-            <h3 class="text-xl font-semibold text-black leading-tight">
-              {{ question.title }}
-            </h3>
-            <p v-if="question.thesis" class="mt-2 text-gray italic text-lg">
-              {{ question.thesis }}
-            </p>
-          </div>
-        </div>
-
-        <!-- User's Answer -->
-        <div class="ml-0 md:ml-14 mb-4">
-          <div v-if="userAnswers[question.id] !== undefined" class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white text-sm shadow-md" 
-                 :class="getRatingColor(userAnswers[question.id])">
-              {{ getRatingLabel(userAnswers[question.id]) }}
-            </div>
-            <span class="text-mid-gray">
-              Ihre Antwort: <strong>{{ getRatingLabel(userAnswers[question.id]) }}</strong>
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="flex-shrink-0 w-8 h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-sm">
+              {{ index + 1 }}
             </span>
+            <div class="min-w-0 flex-1">
+              <h3 class="font-semibold text-black truncate">
+                {{ question.title }}
+              </h3>
+            </div>
           </div>
-          <div v-else class="text-mid-gray italic">
-            <span>Übersprungen</span>
-          </div>
-        </div>
 
-        <!-- Double Weight Toggle (only for answered questions) -->
-        <div v-if="userAnswers[question.id] !== undefined" class="ml-0 md:ml-14">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              :checked="doubleWeightedQuestions.has(question.id)"
-              @change="$emit('toggle-double-weight', question.id)"
-              class="checkbox checkbox-primary checkbox-lg border-2"
-              :class="{
-                'checkbox-primary': doubleWeightedQuestions.has(question.id),
-                'border-gray/30': !doubleWeightedQuestions.has(question.id)
-              }"
-            />
-            <span class="font-semibold text-stats-dark">Doppelt gewichten</span>
-            <span class="text-sm text-mid-gray">(2x Punkte für diese Frage)</span>
-          </label>
+          <!-- User's Answer - Compact indicator -->
+          <div v-if="userAnswers[question.id] !== undefined" class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow-md" 
+                 :class="getRatingColor(userAnswers[question.id])" 
+                 :title="getRatingLabel(userAnswers[question.id])">
+              {{ ratingLabelsShort[userAnswers[question.id]] || '?' }}
+            </div>
+          </div>
+          <div v-else class="text-xs text-gray/400 italic">
+            übersprungen
+          </div>
+
+          <!-- Double Weight Toggle -->
+          <div v-if="userAnswers[question.id] !== undefined" class="flex-shrink-0">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                :checked="doubleWeightedQuestions.has(question.id)"
+                @change="$emit('toggle-double-weight', question.id)"
+                class="checkbox checkbox-sm checkbox-primary border-2"
+              />
+              <span class="text-xs text-stats-dark">2×</span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -188,6 +178,14 @@ const ratingLabels = {
   2: 'neutral',
   3: 'eher dafür',
   4: 'stark dafür'
+}
+
+const ratingLabelsShort = {
+  0: 'SD',
+  1: 'ED',
+  2: 'N',
+  3: 'EF',
+  4: 'SF'
 }
 
 function getRatingColor(value) {
