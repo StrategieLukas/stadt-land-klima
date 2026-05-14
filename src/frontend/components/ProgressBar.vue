@@ -1,7 +1,7 @@
 <template lang="">
   <div class="flex flex-col">
     <div
-      :class="['relative w-full border', colorClass.border, layout === 'compact' ? 'h-4 rounded-sm' : 'h-8 rounded-md']"
+      :class="['relative w-full border bg-gray/5 p-1 rounded-md', colorClass.border, layout === 'compact' ? 'h-6' : 'h-10']"
     >
       <div
         :class="[
@@ -21,7 +21,6 @@
         </div>
       </div>
     </div>
-    <div class="ml-auto text-sm">100</div>
   </div>
 </template>
 <script setup>

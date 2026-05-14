@@ -85,6 +85,7 @@
         :questions="electionData.questions" 
         :election="electionData.election" 
         :localteam="electionData.localteam" 
+        :userAnswers="userAnswers" 
         @next="handleQuestionsNext" 
         @prev="handlePrev" 
       />
@@ -160,6 +161,117 @@ function loadFromSessionStorage() {
     }
   } catch (err) {
     console.error('Error loading from session storage:', err)
+  }
+}
+
+// Update URL with shareable parameters when answers change
+function updateShareableUrl() {
+  console.log('updateShareableUrl called, currentStep:', currentStep.value)
+  if (currentStep.value !== 3) {
+    console.log('Not at step 3, returning')
+    return
+  }
+  if (typeof window === 'undefined') {
+    console.log('Window not available, returning')
+    return
+  }
+  
+  try {
+    console.log('Preparing to update shareable URL')
+    console.log('userAnswers:', userAnswers.value)
+    console.log('doubleWeightedQuestions:', doubleWeightedQuestions.value)
+    console.log('electionData.value?.election?.id:', electionData.value?.election?.id)
+    
+    // Check if we have election data
+    if (!electionData.value?.election?.id) {
+      console.log('No election data available, cannot update shareable URL')
+      return
+    }
+    
+    // Check if we have user answers
+    if (Object.keys(userAnswers.value).length === 0) {
+      console.log('No user answers available, cannot update shareable URL')
+      return
+    }
+    
+    // Encode user answers and double-weighted questions
+    const doubleWeightedArray = Array.from(doubleWeightedQuestions.value)
+    
+    const shareData = {
+      answers: userAnswers.value,
+      doubleWeighted: doubleWeightedArray,
+      electionId: electionData.value?.election?.id
+    }
+    
+    console.log('shareData:', shareData)
+    
+    // Convert to JSON and encode
+    const jsonString = JSON.stringify(shareData)
+    const encoded = btoa(encodeURIComponent(jsonString))
+    
+    console.log('Encoded data:', encoded)
+    
+    // Update URL without reloading
+    const newUrl = `${window.location.pathname}?share=${encoded}`
+    console.log('Updating URL to:', newUrl)
+    window.history.replaceState({}, '', newUrl)
+    console.log('URL updated successfully')
+    
+  } catch (error) {
+    console.error('Error updating shareable URL:', error)
+  }
+}
+
+// Check for shared results in URL and load them
+function checkForSharedResults() {
+  console.log('checkForSharedResults called')
+  if (typeof window === 'undefined') {
+    console.log('Window not available, returning')
+    return
+  }
+  
+  try {
+    const urlParams = new URLSearchParams(window.location.search)
+    const shareParam = urlParams.get('share')
+    
+    console.log('URL search params:', Object.fromEntries(urlParams))
+    console.log('shareParam:', shareParam)
+    
+    if (shareParam) {
+      try {
+        console.log('Found share parameter, decoding...')
+        const decoded = decodeURIComponent(atob(shareParam))
+        const shareData = JSON.parse(decoded)
+        
+        console.log('Decoded shareData:', shareData)
+        
+        if (shareData.answers) {
+          console.log('Loading answers:', shareData.answers)
+          userAnswers.value = shareData.answers
+        }
+        if (shareData.doubleWeighted) {
+          console.log('Loading double weighted questions:', shareData.doubleWeighted)
+          doubleWeightedQuestions.value = new Set(shareData.doubleWeighted)
+        }
+        
+        // Save to session storage as well
+        saveToSessionStorage()
+        console.log('Shared results loaded and saved to session storage')
+        
+        // If we have answers, automatically go to results page
+        if (Object.keys(shareData.answers).length > 0) {
+          console.log('Auto-advancing to results page (step 3)')
+          currentStep.value = 3
+        }
+        
+      } catch (error) {
+        console.error('Error decoding shared results:', error)
+      }
+    } else {
+      console.log('No share parameter found in URL')
+    }
+  } catch (error) {
+    console.error('Error checking for shared results:', error)
   }
 }
 
@@ -341,6 +453,11 @@ function handleQuestionsNext(answers) {
 function handleSummaryNext() {
   currentStep.value = 3
   window.scrollTo({ top: 0, behavior: 'smooth' })
+  // Update shareable URL when reaching results page
+  // Use setTimeout to ensure this runs after the step change is processed
+  setTimeout(() => {
+    updateShareableUrl()
+  }, 50)
 }
 
 function handlePrev() {
@@ -438,6 +555,9 @@ const sharedFunctions = {
 onMounted(() => {
   loadElectionData()
   loadFromSessionStorage()
+  checkForSharedResults()
+  // Update shareable URL if we're already at step 3 (e.g., page refresh)
+  updateShareableUrl()
 })
 
 // Update data when route changes
@@ -445,9 +565,10 @@ watch(() => route.params.electionSlug, () => {
   loadElectionData()
 })
 
-// Save to session storage when user data changes
+// Save to session storage and update URL when user data changes
 watch([userAnswers, doubleWeightedQuestions], () => {
   saveToSessionStorage()
+  updateShareableUrl()
 }, { deep: true })
 
 useHead({

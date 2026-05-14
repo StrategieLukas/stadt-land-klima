@@ -39,7 +39,7 @@
       </h3>
       <div class="space-y-4">
         <div v-for="result in sortedResults" :key="result.candidateId" class="flex items-center gap-4">
-          <div class="w-32 flex-shrink-0">
+          <div class="w-48 flex-shrink-0">
             <div class="flex items-center gap-2">
               <span class="font-bold text-stats-dark">{{ sortedResults.indexOf(result) + 1 }}.</span>
               <span class="text-sm text-black truncate">{{ getCandidateName(result.candidateId) }}</span>
@@ -47,9 +47,6 @@
           </div>
           <div class="flex-1">
             <ProgressBar :scoreTotal="result.percentage" layout="compact" />
-          </div>
-          <div class="w-16 flex-shrink-0">
-            <span class="font-bold text-stats-dark">{{ result.percentage }}%</span>
           </div>
         </div>
       </div>
@@ -438,6 +435,68 @@ const sortedResults = computed(() => {
 // Toggle expand
 function toggleExpand(candidateId) {
   expandedCandidate.value = expandedCandidate.value === candidateId ? null : candidateId
+}
+
+// Encode answers and double-weighted questions for sharing
+function encodeShareableData() {
+  try {
+    // Convert Set to Array for JSON serialization
+    const doubleWeightedArray = Array.from(props.doubleWeightedQuestions)
+    
+    const shareData = {
+      answers: props.userAnswers,
+      doubleWeighted: doubleWeightedArray,
+      electionId: props.election.id,
+      timestamp: new Date().toISOString()
+    }
+    
+    // Convert to JSON and encode as base64
+    const jsonString = JSON.stringify(shareData)
+    const encoded = btoa(encodeURIComponent(jsonString))
+    
+    return encoded
+  } catch (error) {
+    console.error('Error encoding shareable data:', error)
+    return null
+  }
+}
+
+// Generate shareable URL
+function generateShareableUrl() {
+  const encodedData = encodeShareableData()
+  if (!encodedData) return null
+  
+  // Get current URL and add share parameter
+  const currentUrl = window.location.href.split('?')[0]
+  return `${currentUrl}?share=${encodedData}`
+}
+
+// Copy shareable link to clipboard
+function copyShareableLink() {
+  const url = generateShareableUrl()
+  if (!url) {
+    alert('Fehler beim Erstellen des Shareable Links')
+    return
+  }
+  
+  // Copy to clipboard
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Link wurde in die Zwischenablage kopiert! Sie können ihn jetzt teilen.')
+  }).catch(err => {
+    console.error('Fehler beim Kopieren:', err)
+    alert('Konnte Link nicht kopieren. Bitte versuchen Sie es manuell.')
+  })
+}
+
+// Decode shareable data from URL (for future use)
+function decodeShareableData(encodedString) {
+  try {
+    const decoded = decodeURIComponent(atob(encodedString))
+    return JSON.parse(decoded)
+  } catch (error) {
+    console.error('Error decoding shareable data:', error)
+    return null
+  }
 }
 </script>
 

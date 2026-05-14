@@ -150,6 +150,10 @@ const props = defineProps({
   localteam: {
     type: Object,
     default: null
+  },
+  userAnswers: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -163,10 +167,17 @@ const ratingOptions = [
   { value: 4, label: 'stark dafür' }
 ]
 
-const userAnswers = ref({})
+const userAnswers = ref({...props.userAnswers})
 const skippedQuestions = ref({})
 const currentQuestionIndex = ref(0)
 const completedQuestions = ref(new Set())
+
+// Initialize completed questions based on user answers
+props.questions.forEach(question => {
+  if (props.userAnswers[question.id] !== undefined) {
+    completedQuestions.value.add(question.id)
+  }
+})
 
 // Color classes for rating radios
 const ratingRadioClasses = {
@@ -263,6 +274,23 @@ function handleNext() {
 function handleSubmit() {
   handleNext()
 }
+
+// Watch for changes to userAnswers prop and update internal state
+watch(() => props.userAnswers, (newUserAnswers) => {
+  // Only update if we're not in the middle of answering questions
+  // (to avoid overwriting user's current work)
+  if (Object.keys(newUserAnswers).length > 0 && completedQuestions.value.size === 0) {
+    userAnswers.value = {...newUserAnswers}
+    
+    // Update completed questions
+    completedQuestions.value.clear()
+    props.questions.forEach(question => {
+      if (newUserAnswers[question.id] !== undefined) {
+        completedQuestions.value.add(question.id)
+      }
+    })
+  }
+}, { deep: true })
 
 // Auto-scroll to question when index changes
 watch(currentQuestionIndex, (newIndex) => {
