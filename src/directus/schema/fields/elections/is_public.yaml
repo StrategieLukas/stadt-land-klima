@@ -15,7 +15,8 @@ meta:
   readonly: false
   required: false
   sort: 3
-  special: null
+  special:
+    - cast-boolean
   translations:
     - language: de-DE
       translation: Öffentlich sichtbar
