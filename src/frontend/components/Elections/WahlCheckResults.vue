@@ -10,13 +10,13 @@
         '--size': `${5 + Math.random() * 10}px`
       }"></div>
     </div>
-    
+
     <!-- Header -->
     <div class="bg-white p-8 rounded-xl shadow-list border border-gray/10 text-center">
       <div class="mb-6">
-        <img 
-          src="~/assets/images/Stadt-Land-Klima-Blume.svg" 
-          alt="Klimablume" 
+        <img
+          src="~/assets/images/Stadt-Land-Klima-Blume.svg"
+          alt="Klimablume"
           class="h-24 w-auto mx-auto opacity-80"
         >
       </div>
@@ -44,10 +44,10 @@
               <span class="font-bold text-stats-dark pt-1">{{ sortedResults.indexOf(result) + 1 }}.</span>
               <div class="min-w-0">
                 <div class="text-sm font-bold text-black truncate">{{ getCandidateName(result.candidateId) }}</div>
-                <CandidatePartyLabel 
-                  v-if="getCandidateParty(result.candidateId)" 
-                  :party="getCandidateParty(result.candidateId)" 
-                  :state="null" 
+                <CandidatePartyLabel
+                  v-if="getCandidateParty(result.candidateId)"
+                  :party="getCandidateParty(result.candidateId)"
+                  :state="null"
                   class="text-xs mt-0.5"
                 />
               </div>
@@ -65,12 +65,12 @@
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
         Ihre Top-Matches
       </h3>
-      
+
       <!-- Animated Results List -->
       <div class="space-y-4">
-        <div 
-          v-for="(result, index) in sortedResults" 
-          :key="result.candidateId" 
+        <div
+          v-for="(result, index) in sortedResults"
+          :key="result.candidateId"
           class="bg-white rounded-xl p-6 shadow-list border border-gray/10 transition-all duration-500"
           :style="{ animationDelay: `${index * 100}ms` }"
           :class="`fade-in-up animation-delay-${index}`"
@@ -82,43 +82,40 @@
             <div class="flex-shrink-0 w-12 h-12 rounded-full bg-stats-dark text-white flex items-center justify-center font-bold text-xl shadow-lg">
               {{ index + 1 }}
             </div>
-            
+
             <!-- Candidate Info -->
             <div class="flex-1">
               <div class="flex items-center gap-3">
                 <h4 class="text-lg font-bold text-black">
                   {{ getCandidateName(result.candidateId) }}
                 </h4>
-                <CandidatePartyLabel 
-                  v-if="getCandidateParty(result.candidateId)" 
-                  :party="getCandidateParty(result.candidateId)" 
-                  :state="null" 
+                <CandidatePartyLabel
+                  v-if="getCandidateParty(result.candidateId)"
+                  :party="getCandidateParty(result.candidateId)"
+                  :state="null"
                   class="text-xs"
                 />
               </div>
-              <p v-if="getCandidateParty(result.candidateId)" class="text-sm text-mid-gray">
-                {{ getCandidateParty(result.candidateId) }}
-              </p>
             </div>
-            
+
             <!-- Match Percentage with Animation -->
             <div class="flex-shrink-0 w-32">
               <div class="relative w-32 h-32">
                 <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
                   <!-- Background Circle -->
-                  <path 
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
-                    fill="none" 
-                    stroke="#e0e0e0" 
+                  <path
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="#e0e0e0"
                     stroke-width="3"
                   />
                   <!-- Progress Circle (Animated) -->
-                  <path 
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
-                    fill="none" 
-                    :stroke="getProgressColor(result.percentage)" 
-                    stroke-width="3" 
-                    stroke-dasharray="100, 100" 
+                  <path
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    :stroke="getProgressColor(result.percentage)"
+                    stroke-width="3"
+                    stroke-dasharray="100, 100"
                     :stroke-dashoffset="100 - result.percentage"
                     stroke-linecap="round"
                     class="transition-all duration-1000 ease-out"
@@ -130,9 +127,9 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Expand Button -->
-            <button 
+            <button
               @click="toggleExpand(result.candidateId)"
               class="btn btn-circle btn-ghost btn-sm hover:bg-ff-green/10 transition-all"
               :class="{ 'rotate-180': expandedCandidate === result.candidateId }"
@@ -142,19 +139,19 @@
               </svg>
             </button>
           </div>
-          
+
           <!-- Bar Chart Comparison -->
           <div class="mt-4">
             <ProgressBar :scoreTotal="result.percentage" layout="default" />
           </div>
 
           <!-- Expanded Details -->
-          <div 
-            v-if="expandedCandidate === result.candidateId" 
+          <div
+            v-if="expandedCandidate === result.candidateId"
             class="mt-6 pt-6 border-t border-gray/10 overflow-hidden transition-all duration-300"
           >
             <h5 class="font-bold text-stats-dark mb-4">Detailübersicht:</h5>
-            
+
             <!-- Score Breakdown -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div class="bg-rating-4/10 p-3 rounded-lg text-center">
@@ -170,52 +167,69 @@
                 <div class="text-xs text-ff-green font-medium uppercase">Match-Score</div>
               </div>
             </div>
-            
-            <!-- Question-by-Question Comparison -->
-            <div class="max-h-64 overflow-y-auto">
-              <div 
-                v-for="(question, qIndex) in questions" 
-                :key="question.id"
-                class="flex items-center gap-4 p-3 mb-2 bg-gray/5 rounded-lg transition-all hover:bg-gray/10"
+
+            <!-- Sort Toggle Button -->
+            <div class="mb-4">
+              <button
+                @click="toggleSort"
+                class="btn btn-sm px-4 py-1.5 rounded-full text-sm font-medium border border-gray/20 hover:border-ff-green/30 hover:bg-ff-green/5 bg-white transition-all flex items-center gap-2"
               >
-                <span class="text-sm text-gray/50 w-8 text-center">{{ qIndex + 1 }}.</span>
-                <div class="flex-1">
-                  <p class="font-medium text-sm text-black truncate">{{ question.title }}</p>
+                <span>Sortieren nach: {{ sortLabel }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stats-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Question-by-Question Comparison Table -->
+            <div>
+              <div class="min-w-[600px]">
+                <!-- Table Header -->
+                <div class="grid grid-cols-[40px_1fr_120px_120px] gap-2 px-3 py-2 bg-gray/10 rounded-t-lg font-semibold text-sm text-gray/60 border-b border-gray/20">
+                  <div class="text-center">#</div>
+                  <div>These</div>
+                  <div class="text-center">Meine Bewertung</div>
+                  <div class="text-center">Bewertung Kandidat:in</div>
                 </div>
-                <div class="flex items-center gap-2">
+
+                <!-- Table Rows -->
+                <div
+                  v-for="(question, qIndex) in sortedExpandedQuestions"
+                  :key="question.id"
+                  class="grid grid-cols-[40px_1fr_120px_120px] gap-2 px-3 py-2 bg-white/50 rounded-lg border-b border-gray/10 last:border-0 hover:bg-white transition-all"
+                >
+                  <div class="text-sm text-gray/50 text-center pt-1">{{ question.originalIndex + 1 }}.</div>
+                  <div class="text-sm text-black flex items-center gap-2">
+                    <span>{{ question.title }}</span>
+                    <span
+                      v-if="doubleWeightedQuestions.has(question.id)"
+                      class="text-xs bg-ff-green/80 text-white px-1.5 py-0.5 rounded-full font-bold"
+                      title="Doppelt gewichtet"
+                    >2×</span>
+                  </div>
+
                   <!-- User Answer -->
-                  <div 
-                    v-if="userAnswers[question.id] !== undefined"
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                    :class="getRatingColor(userAnswers[question.id])"
-                    :title="`Ihre Antwort: ${getRatingLabel(userAnswers[question.id])}`"
-                  >
-                    U
+                  <div class="flex justify-center">
+                    <div
+                      v-if="userAnswers[question.id] !== undefined"
+                      class="w-8 h-8 rounded-full shadow-sm"
+                      :class="getRatingColor(userAnswers[question.id])"
+                      :title="`Meine Antwort: ${getRatingLabel(userAnswers[question.id])}`"
+                    ></div>
+                    <div v-else class="w-8 h-8 rounded-full bg-gray/20">
+                    </div>
                   </div>
-                  <div v-else class="w-8 h-8 rounded-full bg-gray/20 flex items-center justify-center text-[10px] font-bold text-gray/50">
-                    -
-                  </div>
-                  
+
                   <!-- Candidate Answer -->
-                  <div 
-                    v-if="getCandidateAnswer(result.candidateId, question.id)"
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                    :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
-                    :title="`Antwort: ${getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response)}`"
-                  >
-                    K
-                  </div>
-                  <div v-else class="w-8 h-8 rounded-full bg-gray/20 flex items-center justify-center text-[10px] font-bold text-gray/50">
-                    -
-                  </div>
-                  
-                  <!-- Weight Indicator -->
-                  <div 
-                    v-if="doubleWeightedQuestions.has(question.id) && userAnswers[question.id] !== undefined && getCandidateAnswer(result.candidateId, question.id)"
-                    class="w-6 h-6 rounded-full bg-ff-green flex items-center justify-center text-xs font-bold text-white"
-                    title="Doppelt gewichtet"
-                  >
-                    2x
+                  <div class="flex justify-center">
+                    <div
+                      v-if="getCandidateAnswer(result.candidateId, question.id)"
+                      class="w-8 h-8 rounded-full shadow-sm"
+                      :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
+                      :title="`Antwort Kandidat:in: ${getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response)}`"
+                    ></div>
+                    <div v-else class="w-8 h-8 rounded-full bg-gray/20">
+                    </div>
                   </div>
                 </div>
               </div>
@@ -236,7 +250,7 @@
       <p class="text-mid-gray">
         Sie haben keine Fragen beantwortet, daher kann keine Übereinstimmung mit den Kandidaten berechnet werden.
       </p>
-      <button 
+      <button
         @click="$emit('restart')"
         class="btn btn-primary px-8 py-3 rounded-full font-semibold text-white mt-6"
       >
@@ -307,6 +321,66 @@ const emit = defineEmits(['restart', 'prev'])
 const expandedCandidate = ref(null)
 const hoveredCandidate = ref(null)
 const showConfetti = ref(false)
+const sortBy = ref('default') // 'default', 'agreement', 'disagreement'
+
+// Toggle through sort modes
+function toggleSort() {
+  const modes = ['default', 'agreement', 'disagreement']
+  const currentIndex = modes.indexOf(sortBy.value)
+  sortBy.value = modes[(currentIndex + 1) % modes.length]
+}
+
+// Sort label text
+const sortLabel = computed(() => {
+  switch (sortBy.value) {
+    case 'default': return 'Reihenfolge'
+    case 'agreement': return 'Höchste Übereinstimmung'
+    case 'disagreement': return 'Größte Differenz'
+    default: return 'Reihenfolge'
+  }
+})
+
+// Sorting functions
+const sortedExpandedQuestions = computed(() => {
+  if (!expandedCandidate.value) return []
+
+  const candidateId = expandedCandidate.value
+  const candidateAnswersByQuestion = {}
+  props.candidateAnswers.forEach(ans => {
+    const cId = typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate
+    const qId = typeof ans.question === 'object' ? ans.question.id : ans.question
+    if (cId === candidateId) {
+      candidateAnswersByQuestion[qId] = ans.response
+    }
+  })
+
+  const originalIndices = new Map(props.questions.map((q, i) => [q.id, i]))
+
+  return [...props.questions].map(q => {
+    const userAnswer = props.userAnswers[q.id]
+    const candidateAnswer = candidateAnswersByQuestion[q.id]
+    const difference = userAnswer !== undefined && candidateAnswer !== null
+      ? Math.abs(userAnswer - candidateAnswer)
+      : null
+    return {
+      ...q,
+      difference,
+      originalIndex: originalIndices.get(q.id) ?? 0
+    }
+  }).filter(q => {
+    // Only show questions that have both user and candidate answers
+    return props.userAnswers[q.id] !== undefined && candidateAnswersByQuestion[q.id] !== null
+  }).sort((a, b) => {
+    if (sortBy.value === 'default') {
+      return a.originalIndex - b.originalIndex
+    } else if (sortBy.value === 'agreement') {
+      return (a.difference ?? Infinity) - (b.difference ?? Infinity)
+    } else if (sortBy.value === 'disagreement') {
+      return (b.difference ?? -Infinity) - (a.difference ?? -Infinity)
+    }
+    return 0
+  })
+})
 
 // Trigger confetti animation when component mounts
 onMounted(() => {
@@ -319,7 +393,7 @@ onMounted(() => {
 // Rating config
 const ratingColors = {
   0: 'bg-rating-0',
-  1: 'bg-rating-1', 
+  1: 'bg-rating-1',
   2: 'bg-rating-na',
   3: 'bg-rating-3',
   4: 'bg-rating-4'
@@ -369,7 +443,7 @@ function getCandidateParty(candidateId) {
 }
 
 function getCandidateAnswer(candidateId, questionId) {
-  return props.candidateAnswers.find(ans => 
+  return props.candidateAnswers.find(ans =>
     (typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate) === candidateId &&
     (typeof ans.question === 'object' ? ans.question.id : ans.question) === questionId
   )
@@ -379,7 +453,7 @@ function getCandidateAnswer(candidateId, questionId) {
 const results = computed(() => {
   const scores = {}
   const maxScores = {}
-  
+
   // Group candidate answers by candidate
   const candidateAnswersByCandidate = {}
   props.candidateAnswers.forEach(ans => {
@@ -393,37 +467,37 @@ const results = computed(() => {
       explanation: ans.explanation
     }
   })
-  
+
   // Calculate scores for each candidate
   props.questions.forEach(question => {
     const questionId = question.id
     const userResponse = props.userAnswers[questionId]
-    
+
     // Skip if user didn't answer
     if (userResponse === undefined || userResponse === null) return
-    
+
     const isDoubleWeighted = props.doubleWeightedQuestions.has(questionId)
     const weight = isDoubleWeighted ? 2 : 1
-    
+
     Object.keys(candidateAnswersByCandidate).forEach(candidateId => {
       const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
-      
+
       if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
         const distance = Math.abs(userResponse - candidateAnswer.response)
         const points = 4 - distance
         const weightedPoints = points * weight
-        
+
         scores[candidateId] = (scores[candidateId] || 0) + weightedPoints
         maxScores[candidateId] = (maxScores[candidateId] || 0) + (4 * weight)
       }
     })
   })
-  
+
   // Convert to percentages
   const results = []
   Object.keys(scores).forEach(candidateId => {
-    const percentage = maxScores[candidateId] > 0 
-      ? Math.round((scores[candidateId] / maxScores[candidateId]) * 100) 
+    const percentage = maxScores[candidateId] > 0
+      ? Math.round((scores[candidateId] / maxScores[candidateId]) * 100)
       : 0
     results.push({
       candidateId,
@@ -432,7 +506,7 @@ const results = computed(() => {
       percentage
     })
   })
-  
+
   return results
 })
 
@@ -451,18 +525,18 @@ function encodeShareableData() {
   try {
     // Convert Set to Array for JSON serialization
     const doubleWeightedArray = Array.from(props.doubleWeightedQuestions)
-    
+
     const shareData = {
       answers: props.userAnswers,
       doubleWeighted: doubleWeightedArray,
       electionId: props.election.id,
       timestamp: new Date().toISOString()
     }
-    
+
     // Convert to JSON and encode as base64
     const jsonString = JSON.stringify(shareData)
     const encoded = btoa(encodeURIComponent(jsonString))
-    
+
     return encoded
   } catch (error) {
     console.error('Error encoding shareable data:', error)
@@ -474,7 +548,7 @@ function encodeShareableData() {
 function generateShareableUrl() {
   const encodedData = encodeShareableData()
   if (!encodedData) return null
-  
+
   // Get current URL and add share parameter
   const currentUrl = window.location.href.split('?')[0]
   return `${currentUrl}?share=${encodedData}`
@@ -487,7 +561,7 @@ function copyShareableLink() {
     alert('Fehler beim Erstellen des Shareable Links')
     return
   }
-  
+
   // Copy to clipboard
   navigator.clipboard.writeText(url).then(() => {
     alert('Link wurde in die Zwischenablage kopiert! Sie können ihn jetzt teilen.')
