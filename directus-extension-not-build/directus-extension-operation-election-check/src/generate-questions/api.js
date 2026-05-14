@@ -20,8 +20,6 @@ export default {
     if (!localteamId) throw new Error('Lokalteam der Wahl konnte nicht ermittelt werden.');
     logger.info(`DEBUG [generate-questions]: Localteam ID: ${localteamId}`);
 
-    // Get the municipality from the localteam using the m2o relation
-    // municipalities.localteam_id points to localteams.id
     const municipalities = await new ItemsService('municipalities', { schema, accountability: sysAcc }).readByQuery({
       filter: { localteam_id: { _eq: localteamId } },
       limit: 1,
@@ -33,24 +31,41 @@ export default {
     let catalogVersionId = null;
 
     if (municipalityId) {
-      // Get the most recent municipality_score for this municipality with percentage_rated > 80
-      // This matches the frontend behavior
+      // Get the current frontend catalog version (matching frontend logic)
+      const catalogVersions = await new ItemsService('measure_catalog', { schema, accountability: sysAcc }).readByQuery({
+        filter: { hidden: { _eq: false }, isCurrentFrontend: { _eq: true } },
+        fields: ['id', 'name'],
+        limit: 1,
+      });
+      const currentFrontendVersion = catalogVersions?.[0];
+      logger.info(`DEBUG [generate-questions]: Current frontend catalog version: ${currentFrontendVersion?.id || 'none'}`);
+
       const allMunicipalityScores = await new ItemsService('municipality_scores', { schema, accountability: sysAcc }).readByQuery({
         filter: { municipality: { _eq: municipalityId } },
         sort: ['-date_created'],
-        fields: ['catalog_version', 'percentage_rated']
+        fields: ['*', 'catalog_version.*']
       });
 
       logger.info(`DEBUG [generate-questions]: Found ${allMunicipalityScores.length} municipality scores`);
 
-      // Filter by percentage_rated > 80, matching frontend
       const sufficientlyRatedScores = allMunicipalityScores.filter(score => (score.percentage_rated || 0) > 80);
       logger.info(`DEBUG [generate-questions]: ${sufficientlyRatedScores.length} scores with percentage_rated > 80`);
 
       if (sufficientlyRatedScores.length > 0) {
-        // Prefer the current catalog version, fallback to most recent
-        catalogVersionId = sufficientlyRatedScores[0].catalog_version?.id || null;
-        logger.info(`DEBUG [generate-questions]: Using catalog version from sufficiently rated score: ${catalogVersionId}`);
+        // Try to find a score matching the current frontend catalog version
+        let selectedScore = sufficientlyRatedScores.find(s => s.catalog_version?.id === currentFrontendVersion?.id);
+
+        if (!selectedScore) {
+          logger.info(`DEBUG [generate-questions]: No sufficiently rated score for current frontend catalog, using most recent with catalog`);
+          // Sort by date_created descending and take the first with a valid catalog_version
+          const scoresWithCatalog = sufficientlyRatedScores.filter(s => s.catalog_version?.id);
+          selectedScore = scoresWithCatalog.length > 0
+            ? scoresWithCatalog.slice().sort((a, b) => new Date(b.date_created) - new Date(a.date_created))[0]
+            : sufficientlyRatedScores[0];
+        }
+
+        catalogVersionId = selectedScore?.catalog_version?.id || null;
+        logger.info(`DEBUG [generate-questions]: Using catalog version: ${catalogVersionId}`);
       } else {
         logger.warn(`DEBUG [generate-questions]: No municipality scores with percentage_rated > 80 found`);
         catalogVersionId = allMunicipalityScores?.[0]?.catalog_version?.id || null;
@@ -60,14 +75,11 @@ export default {
       logger.info(`DEBUG [generate-questions]: No municipality found for localteam`);
     }
 
-    // 1. Fetch ratings for this localteam, filtered by the same catalog_version as frontend
     console.log('DEBUG [generate-questions]: Fetching ratings with catalogVersionId:', catalogVersionId);
     const ratings = await ratingsSvc.readByQuery({
       filter: {
         localteam_id: { _eq: localteamId },
         applicable: { _eq: true },
-        // Note: We removed approved and measure_id.status filters to match frontend behavior
-        // Frontend filters in JavaScript, not in the query
         measure_id: {
           ...(catalogVersionId ? { catalog_version: { _eq: catalogVersionId } } : {}),
         },
@@ -81,7 +93,6 @@ export default {
       throw new Error(`Keine passenden Bewertungen (ratings_measures) für das Lokalteam gefunden.`);
     }
 
-    // 2. Fetch templates — match using the measure's string identifier (e.g. EN_01)
     const allMeasureIdentifiers = ratings
       .map((r) => (typeof r.measure_id === 'object' ? r.measure_id.measure_id : null))
       .filter(Boolean);
@@ -92,11 +103,8 @@ export default {
     });
     const templateMap = Object.fromEntries(templates.map((t) => [t.measure_id, t]));
 
-    // 3. Prioritise: highest improvement potential ((1 - rating) * weight) → easiest → stable measure_id
-    // This matches the frontend ElectionInfo component logic exactly
-    // Use template if available, otherwise use measure directly
     console.log('DEBUG [generate-questions]: Total ratings to process:', ratings.length);
-    console.log('DEBUG [generate-questions]: First 3 ratings:', JSON.stringify(ratings.slice(0, 3), null, 2));
+    console.log('DEBUG [generate-questions]: First 10 ratings:', ratings.slice(0, 10).map(r => ({ measure_id: r.measure_id?.measure_id || r.measure_id, catalog_version: r.measure_id?.catalog_version?.name || 'null' })));
 
     const prioritized = ratings
       .map((r) => {
@@ -105,7 +113,6 @@ export default {
         const mid_string = m.measure_id;
         const template = mid_string && templateMap[mid_string];
 
-        // Use the correct field names that match the frontend
         const weight = parseFloat(m.weight) || 0;
         const politicalFeasibility = parseFloat(m.feasibility_political) || 0;
         const economicFeasibility = parseFloat(m.feasibility_economical) || 0;
@@ -127,50 +134,55 @@ export default {
         };
       })
       .filter(r => {
-        // Match frontend filtering: only include items with applicable=true, rating not null
-        // and that have both currentProgress and politicalDemand template strings
-        const hasTemplate = r._template && r._template.currentProgress && r._template.politicalDemand;
-        console.log('DEBUG [generate-questions]: Filtering item:', {
-          measure_identifier: r.measure_identifier,
-          applicable: r.applicable,
-          rating: r.rating,
-          hasTemplate: hasTemplate,
-          templateKeys: r._template ? Object.keys(r._template) : 'null'
-        });
-        return r.applicable === true && r.rating !== null && hasTemplate;
+        const hasTemplateWithThesis = r._template && r._template.thesis;
+        return r.applicable === true && r.rating !== null && hasTemplateWithThesis;
       })
       .sort((a, b) => {
-        console.log('DEBUG [generate-questions]: Sorting items:', {
-          a_id: a.measure_identifier, a_potential: a._potential, a_difficulty: a._difficulty,
-          b_id: b.measure_identifier, b_potential: b._potential, b_difficulty: b._difficulty
-        });
         if (b._potential !== a._potential) return b._potential - a._potential;
         if (a._difficulty !== b._difficulty) return a._difficulty - b._difficulty;
         return (a.measure_identifier ?? '').localeCompare(b.measure_identifier ?? '');
       });
 
     console.log('DEBUG [generate-questions]: Prioritized measures:', prioritized.length);
-    console.log('DEBUG [generate-questions]: Top 3 prioritized:', JSON.stringify(prioritized.slice(0, 3), null, 2));
+    console.log('DEBUG [generate-questions]: Top 10 prioritized:', prioritized.slice(0, 10).map(p => ({ measure_id: p.measure_identifier, catalog_version: (typeof p.measure_id === 'object' ? p.measure_id?.catalog_version?.name : 'null') || 'null' })));
 
-    const top10 = prioritized.slice(0, 10);
+    // Deduplicate by measure_identifier, keeping the highest-priority entry for each measure
+    const measureMap = new Map();
+    for (const item of prioritized) {
+      if (!measureMap.has(item.measure_identifier)) {
+        measureMap.set(item.measure_identifier, item);
+      }
+    }
+    const deduplicated = Array.from(measureMap.values());
 
-    // 4. Create questions for this election (append only)
+    const sortedDeduped = deduplicated.sort((a, b) => {
+      if (b._potential !== a._potential) return b._potential - a._potential;
+      if (a._difficulty !== b._difficulty) return a._difficulty - b._difficulty;
+      return (a.measure_identifier ?? '').localeCompare(b.measure_identifier ?? '');
+    });
+
+    const top10 = sortedDeduped.slice(0, 10);
+    console.log('DEBUG [generate-questions]: Deduplicated measures:', sortedDeduped.length);
+
     const existing = await questionsSvc.readByQuery({
       filter: { election: { _eq: election_id } },
-      fields: ['measure_id'],
+      fields: ['id', 'measure_id'],
       limit: -1,
     });
-    const existingMeasureUuids = new Set(existing.map(q => q.measure_id));
 
-    // Only create questions for measures that don't have a question for this election yet
-    const toCreate = top10.filter(r => !existingMeasureUuids.has(r.measure_uuid));
+    if (existing.length > 0) {
+      logger.info(`generate-questions: Deleting ${existing.length} existing questions for election ${election_id}`);
+      await questionsSvc.deleteMany(existing.map(q => q.id));
+    }
+
+    const toCreate = top10;
 
     if (toCreate.length === 0) {
-      logger.info(`generate-questions: All top 10 questions already exist for election ${election_id}`);
+      logger.warn(`generate-questions: No valid measures found for election ${election_id}`);
       return {
-        success: true,
+        success: false,
         count: 0,
-        message: 'Alle Thesen sind bereits vorhanden.',
+        message: 'Keine gültigen Maßnahmen gefunden.',
         election_id: election_id,
       };
     }
@@ -179,16 +191,15 @@ export default {
       toCreate.map((r, i) => {
         const m = typeof r.measure_id === 'object' ? r.measure_id : {};
         const template = r._template;
-        const measure = m;
 
         return {
           election: election_id,
           measure_id: r.measure_uuid,
-          title: template?.title || measure?.name || r.measure_identifier || '',
-          thesis: template?.thesis || measure?.description || '',
-          sector: template?.sector || measure?.sector || null,
+          title: template?.title || m?.name || r.measure_identifier || '',
+          thesis: template?.thesis || m?.description || '',
+          sector: template?.sector || m?.sector || null,
           status: 'published',
-          sort: existing.length + i + 1,
+          sort: i + 1,
         };
       })
     );
