@@ -161,11 +161,7 @@ permissions:
       - "*"
   - collection: candidate
     action: read
-    permissions:
-      _and:
-        - election:
-            is_public:
-              _eq: true
+    permissions: null
     validation: null
     presets: null
     fields:
@@ -254,10 +250,7 @@ permissions:
       - "*"
   - collection: elections
     action: read
-    permissions:
-      _and:
-        - is_public:
-            _eq: true
+    permissions: null
     validation: null
     presets: null
     fields:
@@ -485,9 +478,6 @@ permissions:
     action: read
     permissions:
       _and:
-        - election:
-            is_public:
-              _eq: true
         - status:
             _eq: published
     validation: null
