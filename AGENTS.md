@@ -145,6 +145,7 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 7. Reuse existing Vue-components where possible (/frontend/components)
 8. IMPORTANT: Always verify if changes to the frontend actually work by doing curl requests to localhost:8080
 9. The frontend automatically hot-reloads when changes are made, no need to restart containers.
+10. Do not edit the permissions of public.yaml. The frontend permissions belong to frontend.yaml.
 
 
 ## Project structure:

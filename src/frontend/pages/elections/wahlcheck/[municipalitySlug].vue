@@ -71,12 +71,12 @@
 
       <!-- Not Found / Not Public -->
       <div v-else-if="!electionData?.election" class="bg-orange/10 border border-orange text-orange-800 p-8 rounded-xl text-center my-12">
-        <h2 class="text-2xl font-bold mb-4">Wahl nicht verfügbar</h2>
+        <h2 class="text-2xl font-bold mb-4">Keine öffentliche Wahl verfügbar</h2>
         <p class="mb-4">
-          Diese Wahl ist entweder nicht öffentlich oder existiert nicht. 
-          Nur Wahlen mit öffentlichem Zugriff können im Wahlcheck verglichen werden.
+          Für dieses Lokalteam gibt es aktuell keine öffentliche Wahl. 
+          Nur öffentliche Wahlen können im Wahlcheck verglichen werden.
         </p>
-        <NuxtLink to="/" class="btn btn-secondary">Zurück zur Startseite</NuxtLink>
+        <NuxtLink to="/elections/wahlcheck" class="btn btn-secondary">Zur Wahlcheck-Übersicht</NuxtLink>
       </div>
 
       <!-- Step 1: Answer Questions -->

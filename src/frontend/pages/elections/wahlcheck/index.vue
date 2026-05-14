@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-mild-white">
     <!-- Header -->
-    <div class="bg-white shadow-sm border-b border-gray/10 sticky top-0 z-50">
+    <div class="bg-white shadow-sm border-b border-gray/10">
       <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <NuxtLink to="/" class="flex items-center gap-3">
           <img 
