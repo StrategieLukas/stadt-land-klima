@@ -247,7 +247,6 @@ async function loadElections() {
           questionCount: questions?.length || 0
         })
       } catch (err) {
-        console.error(`Error loading data for election ${election.id}:`, err)
         // Still add the election with 0 counts
         electionsWithCounts.push({
           ...election,
@@ -260,7 +259,6 @@ async function loadElections() {
     publicElections.value = electionsWithCounts.filter(e => e.candidateCount > 0)
 
   } catch (err) {
-    console.error('Error loading elections:', err)
     error.value = true
     errorMessage.value = 'Es ist ein Fehler beim Laden der Wahldaten aufgetreten. Bitte versuchen Sie es später erneut.'
   } finally {

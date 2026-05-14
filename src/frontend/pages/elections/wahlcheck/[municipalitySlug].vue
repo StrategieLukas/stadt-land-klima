@@ -166,31 +166,21 @@ function loadFromSessionStorage() {
 
 // Update URL with shareable parameters when answers change
 function updateShareableUrl() {
-  console.log('updateShareableUrl called, currentStep:', currentStep.value)
   if (currentStep.value !== 3) {
-    console.log('Not at step 3, returning')
     return
   }
   if (typeof window === 'undefined') {
-    console.log('Window not available, returning')
     return
   }
   
   try {
-    console.log('Preparing to update shareable URL')
-    console.log('userAnswers:', userAnswers.value)
-    console.log('doubleWeightedQuestions:', doubleWeightedQuestions.value)
-    console.log('electionData.value?.election?.id:', electionData.value?.election?.id)
-    
     // Check if we have election data
     if (!electionData.value?.election?.id) {
-      console.log('No election data available, cannot update shareable URL')
       return
     }
     
     // Check if we have user answers
     if (Object.keys(userAnswers.value).length === 0) {
-      console.log('No user answers available, cannot update shareable URL')
       return
     }
     
@@ -203,19 +193,13 @@ function updateShareableUrl() {
       electionId: electionData.value?.election?.id
     }
     
-    console.log('shareData:', shareData)
-    
     // Convert to JSON and encode
     const jsonString = JSON.stringify(shareData)
     const encoded = btoa(encodeURIComponent(jsonString))
     
-    console.log('Encoded data:', encoded)
-    
     // Update URL without reloading
     const newUrl = `${window.location.pathname}?share=${encoded}`
-    console.log('Updating URL to:', newUrl)
     window.history.replaceState({}, '', newUrl)
-    console.log('URL updated successfully')
     
   } catch (error) {
     console.error('Error updating shareable URL:', error)
@@ -224,9 +208,7 @@ function updateShareableUrl() {
 
 // Check for shared results in URL and load them
 function checkForSharedResults() {
-  console.log('checkForSharedResults called')
   if (typeof window === 'undefined') {
-    console.log('Window not available, returning')
     return
   }
   
@@ -234,41 +216,29 @@ function checkForSharedResults() {
     const urlParams = new URLSearchParams(window.location.search)
     const shareParam = urlParams.get('share')
     
-    console.log('URL search params:', Object.fromEntries(urlParams))
-    console.log('shareParam:', shareParam)
-    
     if (shareParam) {
       try {
-        console.log('Found share parameter, decoding...')
         const decoded = decodeURIComponent(atob(shareParam))
         const shareData = JSON.parse(decoded)
         
-        console.log('Decoded shareData:', shareData)
-        
         if (shareData.answers) {
-          console.log('Loading answers:', shareData.answers)
           userAnswers.value = shareData.answers
         }
         if (shareData.doubleWeighted) {
-          console.log('Loading double weighted questions:', shareData.doubleWeighted)
           doubleWeightedQuestions.value = new Set(shareData.doubleWeighted)
         }
         
         // Save to session storage as well
         saveToSessionStorage()
-        console.log('Shared results loaded and saved to session storage')
         
         // If we have answers, automatically go to results page
         if (Object.keys(shareData.answers).length > 0) {
-          console.log('Auto-advancing to results page (step 3)')
           currentStep.value = 3
         }
         
       } catch (error) {
         console.error('Error decoding shared results:', error)
       }
-    } else {
-      console.log('No share parameter found in URL')
     }
   } catch (error) {
     console.error('Error checking for shared results:', error)
