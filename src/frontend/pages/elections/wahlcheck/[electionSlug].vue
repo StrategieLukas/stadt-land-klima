@@ -80,7 +80,7 @@
       </div>
 
       <!-- Step 1: Answer Questions -->
-      <WahlCheckQuestions 
+      <ElectionsWahlCheckQuestions 
         v-if="currentStep === 1 && electionData" 
         :questions="electionData.questions" 
         :election="electionData.election" 
@@ -90,7 +90,7 @@
       />
 
       <!-- Step 2: Review Answers & Select Double Weight -->
-      <WahlCheckSummary 
+      <ElectionsWahlCheckSummary 
         v-if="currentStep === 2 && electionData" 
         :questions="electionData.questions" 
         :userAnswers="userAnswers" 
@@ -102,7 +102,7 @@
       />
 
       <!-- Step 3: View Results -->
-      <WahlCheckResults 
+      <ElectionsWahlCheckResults 
         v-if="currentStep === 3 && electionData" 
         :election="electionData.election" 
         :candidates="electionData.candidates" 
@@ -132,7 +132,7 @@ const route = useRoute()
 const router = useRouter()
 const { $directus, $readItems, $readItem } = useNuxtApp()
 
-const electionSlug = route.params.electionSlug
+const localteamSlug = route.params.electionSlug
 
 // Step management
 const currentStep = ref(1)
@@ -147,7 +147,7 @@ const userAnswers = ref({}) // { questionId: responseValue (0-4) }
 const doubleWeightedQuestions = ref(new Set()) // Set of questionIds
 
 // Session storage key
-const sessionStorageKey = `wahlcheck_${electionSlug}`
+const sessionStorageKey = `wahlcheck_${localteamSlug}`
 
 // Load from session storage
 function loadFromSessionStorage() {
@@ -216,28 +216,64 @@ async function loadElectionData() {
   errorMessage.value = ''
 
   try {
-    // Find the election by slug or ID
-    const elections = await $directus.request($readItems('elections', {
-      filter: { 
-        _or: [
-          { id: { _eq: electionSlug } },
-          { descriptor: { _icontains: electionSlug } }
-        ],
-        is_public: { _eq: true }
+    // Try to find the municipality by slug first
+    let municipalities = await $directus.request($readItems('municipalities', {
+      filter: {
+        slug: { _eq: localteamSlug }
       },
-      fields: ['*', 'localteam.*', 'localteam.municipality_id.*']
+      fields: ['localteam_id']
     }))
 
-    if (!elections || elections.length === 0) {
-      // Try to find by ID directly
-      const electionById = await $directus.request($readItem('elections', electionSlug, {
-        fields: ['*', 'localteam.*', 'localteam.municipality_id.*']
+    let localteams = []
+    
+    // If municipality found by slug, get the localteam_id and find the localteam
+    if (municipalities && municipalities.length > 0 && municipalities[0].localteam_id) {
+      localteams = await $directus.request($readItems('localteams', {
+        filter: {
+          id: { _eq: municipalities[0].localteam_id }
+        },
+        fields: ['*', 'municipality_id.*']
       }))
-      
-      if (electionById && electionById.is_public) {
-        elections.push(electionById)
-      }
     }
+
+    // If no localteam found by municipality slug, try to find by localteam slug
+    if (!localteams || localteams.length === 0) {
+      localteams = await $directus.request($readItems('localteams', {
+        filter: {
+          slug: { _eq: localteamSlug }
+        },
+        fields: ['*', 'municipality_id.*']
+      }))
+    }
+
+    // If still no localteam found, try to find by ID (in case the parameter is an ID)
+    if (!localteams || localteams.length === 0) {
+      localteams = await $directus.request($readItems('localteams', {
+        filter: {
+          id: { _eq: localteamSlug }
+        },
+        fields: ['*', 'municipality_id.*']
+      }))
+    }
+
+    if (!localteams || localteams.length === 0) {
+      electionData.value = null
+      pending.value = false
+      return
+    }
+
+    const localteam = localteams[0]
+    
+    // Find the most recent public election for this localteam
+    const elections = await $directus.request($readItems('elections', {
+      filter: {
+        localteam: { _eq: localteam.id },
+        is_public: { _eq: true }
+      },
+      sort: ['-date_created'],
+      limit: 1,
+      fields: ['*']
+    }))
 
     if (!elections || elections.length === 0) {
       electionData.value = null
@@ -280,7 +316,7 @@ async function loadElectionData() {
 
     electionData.value = {
       election,
-      localteam: election.localteam,
+      localteam,
       questions: questions || [],
       candidates: candidates || [],
       answers: allAnswers || []

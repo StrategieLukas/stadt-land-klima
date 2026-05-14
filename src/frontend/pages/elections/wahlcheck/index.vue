@@ -80,7 +80,7 @@
           <NuxtLink
             v-for="election in publicElections" 
             :key="election.id" 
-            :to="`/wahlcheck/${election.id}`"
+            :to="`/elections/wahlcheck/${election.localteam?.municipality_id?.[0]?.slug || election.localteam?.municipality_id?.[0]?.name || election.id}`"
             class="bg-white p-6 rounded-xl shadow-list border border-gray/10 hover:shadow-xl hover:border-ff-green/30 transition-all duration-300 group"
           >
             <div class="flex items-start justify-between mb-4">
@@ -210,7 +210,7 @@ async function loadElections() {
         is_public: { _eq: true }
       },
       sort: ['-date_created'],
-      fields: ['*', 'localteam.*']
+      fields: ['*', 'localteam.municipality_id.slug', 'localteam.municipality_id.name', 'localteam.id']
     }))
 
     if (!elections || elections.length === 0) {

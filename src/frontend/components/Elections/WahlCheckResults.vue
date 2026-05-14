@@ -46,12 +46,7 @@
             </div>
           </div>
           <div class="flex-1">
-            <div class="w-full bg-gray/10 rounded-full h-6">
-              <div
-                class="bg-ff-green h-6 rounded-full transition-all duration-1000 ease-out"
-                :style="{ width: `${result.percentage}%` }"
-              ></div>
-            </div>
+            <ProgressBar :scoreTotal="result.percentage" layout="compact" />
           </div>
           <div class="w-16 flex-shrink-0">
             <span class="font-bold text-stats-dark">{{ result.percentage }}%</span>
@@ -145,15 +140,7 @@
           
           <!-- Bar Chart Comparison -->
           <div class="mt-4">
-            <div class="w-full bg-gray/10 rounded-full h-4">
-              <div
-                class="bg-ff-green h-4 rounded-full transition-all duration-1000 ease-out"
-                :style="{ width: `${result.percentage}%` }"
-              ></div>
-            </div>
-            <div class="text-center mt-2">
-              <span class="text-sm font-medium text-stats-dark">{{ result.percentage }}% Übereinstimmung</span>
-            </div>
+            <ProgressBar :scoreTotal="result.percentage" layout="compact" />
           </div>
 
           <!-- Expanded Details -->
@@ -279,6 +266,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import ProgressBar from '~/components/ProgressBar.vue'
 
 const props = defineProps({
   election: {
