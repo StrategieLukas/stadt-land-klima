@@ -98,34 +98,20 @@
               </div>
             </div>
 
-            <!-- Match Percentage with Animation -->
-            <div class="flex-shrink-0 w-32">
-              <div class="relative w-32 h-32">
-                <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                  <!-- Background Circle -->
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="#e0e0e0"
-                    stroke-width="3"
-                  />
-                  <!-- Progress Circle (Animated) -->
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    :stroke="getProgressColor(result.percentage)"
-                    stroke-width="3"
-                    stroke-dasharray="100, 100"
-                    :stroke-dashoffset="100 - result.percentage"
-                    stroke-linecap="round"
-                    class="transition-all duration-1000 ease-out"
-                  />
-                </svg>
-                <div class="absolute inset-0 flex flex-col items-center justify-center">
-                  <span class="text-2xl font-bold text-stats-dark">{{ result.percentage }}%</span>
-                  <span class="text-[10px] text-mid-gray uppercase tracking-wider">Übereinstimmung</span>
-                </div>
+            <!-- Ranking Indicator -->
+            <div class="flex-shrink-0 w-20 flex flex-col items-center justify-center">
+              <div class="relative w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
+                <!-- Medal background -->
+                <div
+                  class="absolute inset-0 rounded-full opacity-20"
+                  :class="getRankingBgColor(sortedResults.indexOf(result) + 1)"
+                ></div>
+                <!-- Rank number -->
+                <span class="relative text-3xl font-bold" :class="getRankingColor(sortedResults.indexOf(result) + 1)">
+                  {{ sortedResults.indexOf(result) + 1 }}
+                </span>
               </div>
+              <span class="text-[10px] text-mid-gray uppercase tracking-wider mt-1">Match</span>
             </div>
 
             <!-- Expand Button -->
@@ -140,11 +126,6 @@
             </button>
           </div>
 
-          <!-- Bar Chart Comparison -->
-          <div class="mt-4">
-            <ProgressBar :scoreTotal="result.percentage" layout="default" />
-          </div>
-
           <!-- Expanded Details -->
           <div
             v-if="expandedCandidate === result.candidateId"
@@ -153,18 +134,32 @@
             <h5 class="font-bold text-stats-dark mb-4">Detailübersicht:</h5>
 
             <!-- Score Breakdown -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div class="bg-rating-4/10 p-3 rounded-lg text-center">
-                <div class="text-2xl font-bold text-rating-4">{{ result.score }}</div>
-                <div class="text-xs text-rating-4 font-medium uppercase">Punkte</div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div class="bg-rating-4/10 p-4 rounded-xl text-center">
+                <div class="flex items-center justify-center gap-2 mb-3">
+                  <img
+                    v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
+                    :src="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
+                    class="h-7 w-7 opacity-80"
+                    alt=""
+                  >
+                </div>
+                <div class="text-3xl font-bold text-rating-4">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
+                <div class="text-sm font-medium text-rating-4/90 mt-1">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
+                <div class="text-xs text-rating-4/60 mt-0.5 uppercase tracking-wider">Beste Übereinstimmung</div>
               </div>
-              <div class="bg-stats-light/50 p-3 rounded-lg text-center">
-                <div class="text-2xl font-bold text-stats-dark">{{ result.maxScore }}</div>
-                <div class="text-xs text-stats-dark font-medium uppercase">Maximal möglich</div>
-              </div>
-              <div class="bg-ff-green/10 p-3 rounded-lg text-center">
-                <div class="text-2xl font-bold text-ff-green">{{ Math.round(result.score / result.maxScore * 100) }}%</div>
-                <div class="text-xs text-ff-green font-medium uppercase">Match-Score</div>
+              <div class="bg-stats-light/50 p-4 rounded-xl text-center">
+                <div class="flex items-center justify-center gap-2 mb-3">
+                  <img
+                    v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
+                    :src="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
+                    class="h-7 w-7 opacity-80"
+                    alt=""
+                  >
+                </div>
+                <div class="text-3xl font-bold text-stats-dark">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
+                <div class="text-sm font-medium text-stats-dark/80 mt-1">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
+                <div class="text-xs text-stats-dark/60 mt-0.5 uppercase tracking-wider">Geringste Übereinstimmung</div>
               </div>
             </div>
 
@@ -174,7 +169,7 @@
                 @click="toggleSort"
                 class="btn btn-sm px-4 py-1.5 rounded-full text-sm font-medium border border-gray/20 hover:border-ff-green/30 hover:bg-ff-green/5 bg-white transition-all flex items-center gap-2"
               >
-                <span>Sortieren nach: {{ sortLabel }}</span>
+                <span>{{ sortLabel }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stats-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -333,9 +328,9 @@ function toggleSort() {
 // Sort label text
 const sortLabel = computed(() => {
   switch (sortBy.value) {
-    case 'default': return 'Reihenfolge'
-    case 'agreement': return 'Höchste Übereinstimmung'
-    case 'disagreement': return 'Größte Differenz'
+    case 'default': return 'Thesen sortieren...'
+    case 'agreement': return 'Nach Übereinstimmung sortiert'
+    case 'disagreement': return 'Nach Differenz sortiert'
     default: return 'Reihenfolge'
   }
 })
@@ -431,6 +426,28 @@ function getProgressColor(percentage) {
   return progressColors[0]
 }
 
+// Ranking colors - gold, silver, bronze
+const rankingColors = {
+  1: 'text-yellow-500',  // Gold
+  2: 'text-gray-500',   // Silver
+  3: 'text-amber-700'   // Bronze
+}
+
+function getRankingColor(rank) {
+  return rankingColors[rank] || 'text-stats-dark'
+}
+
+// Ranking background colors (subtle medal colors)
+const rankingBgColors = {
+  1: 'bg-yellow-400',
+  2: 'bg-gray-400',
+  3: 'bg-amber-800'
+}
+
+function getRankingBgColor(rank) {
+  return rankingBgColors[rank] || 'bg-ff-green/20'
+}
+
 // Helper functions for candidate data
 function getCandidateName(candidateId) {
   const candidate = props.candidates.find(c => c.id === candidateId)
@@ -509,6 +526,143 @@ const results = computed(() => {
 
   return results
 })
+
+// Sector label translations
+const sectorLabels = {
+  'energy': 'Energie',
+  'transport': 'Verkehr',
+  'buildings': 'Gebäude & Wärme',
+  'industry': 'Industrie, Wirtschaft & Konsum',
+  'agriculture': 'Landwirtschaft, Natur & Ernährung',
+  'management': 'Klimaschutzmanagement & Verwaltung',
+  'unknown': 'Unbekannt'
+}
+
+// Sector SVG icons mapping
+const sectorIcons = {
+  'energy': '/assets/icons/icon_category_energy.svg',
+  'transport': '/assets/icons/icon_category_transport.svg',
+  'buildings': '/assets/icons/icon_category_buildings.svg',
+  'industry': '/assets/icons/icon_category_industry.svg',
+  'agriculture': '/assets/icons/icon_category_agriculture.svg',
+  'management': '/assets/icons/icon_category_management.svg',
+  'unknown': null
+}
+
+// Get sector icon path
+function getSectorIcon(sectorKey) {
+  const key = sectorKey?.toLowerCase()?.trim() || 'unknown'
+  return sectorIcons[key] || null
+}
+
+// Calculate sector agreement scores for each candidate
+const sectorAgreements = computed(() => {
+  const sectorScores = {}
+
+  // Group candidate answers by candidate
+  const candidateAnswersByCandidate = {}
+  props.candidateAnswers.forEach(ans => {
+    const candidateId = typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate
+    if (!candidateAnswersByCandidate[candidateId]) {
+      candidateAnswersByCandidate[candidateId] = {}
+    }
+    const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
+    candidateAnswersByCandidate[candidateId][questionId] = {
+      response: ans.response,
+      explanation: ans.explanation
+    }
+  })
+
+  // Group questions by sector
+  const questionsBySector = {}
+  props.questions.forEach(q => {
+    // Handle null, undefined, or missing sector field
+    const sector = (q.sector && String(q.sector).toLowerCase().trim()) || 'unknown'
+    if (!questionsBySector[sector]) {
+      questionsBySector[sector] = []
+    }
+    questionsBySector[sector].push(q)
+  })
+
+  // Calculate sector scores for each candidate
+  Object.keys(candidateAnswersByCandidate).forEach(candidateId => {
+    sectorScores[candidateId] = {}
+
+    Object.keys(questionsBySector).forEach(sector => {
+      let sectorScore = 0
+      let sectorMaxScore = 0
+
+      questionsBySector[sector].forEach(q => {
+        const questionId = q.id
+        const userResponse = props.userAnswers[questionId]
+
+        // Skip if user didn't answer
+        if (userResponse === undefined || userResponse === null) return
+
+        const isDoubleWeighted = props.doubleWeightedQuestions.has(questionId)
+        const weight = isDoubleWeighted ? 2 : 1
+
+        const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
+
+        if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
+          const distance = Math.abs(userResponse - candidateAnswer.response)
+          const points = 4 - distance
+          const weightedPoints = points * weight
+
+          sectorScore += weightedPoints
+          sectorMaxScore += 4 * weight
+        }
+      })
+
+      const percentage = sectorMaxScore > 0 ? Math.round((sectorScore / sectorMaxScore) * 100) : 0
+      sectorScores[candidateId][sector] = {
+        score: sectorScore,
+        maxScore: sectorMaxScore,
+        percentage,
+        sector: sector  // Store the normalized sector key
+      }
+    })
+  })
+
+  return sectorScores
+})
+
+// Get sector with highest or lowest agreement for a candidate
+function getSectorAgreement(candidateId, type = 'highest') {
+  const candidateSectors = sectorAgreements.value[candidateId]
+
+  if (!candidateSectors || Object.keys(candidateSectors).length === 0) {
+    return { percentage: 0, sector: 'N/A', score: 0, maxScore: 0 }
+  }
+
+  // Filter out sectors with 0 maxScore (no questions answered)
+  const validSectors = Object.values(candidateSectors).filter(s => s.maxScore > 0)
+
+  if (validSectors.length === 0) {
+    return { percentage: 0, sector: 'N/A', score: 0, maxScore: 0 }
+  }
+
+  // Sort by percentage
+  validSectors.sort((a, b) => {
+    // If percentages are equal, use maxScore as tiebreaker (higher relevance)
+    if (a.percentage === b.percentage) {
+      return type === 'highest' ? b.maxScore - a.maxScore : a.maxScore - b.maxScore
+    }
+    return type === 'highest' ? b.percentage - a.percentage : a.percentage - b.percentage
+  })
+
+  const selected = validSectors[0]
+  // Normalize sector key: handle null, undefined, or empty string
+  const sectorKey = selected.sector?.toLowerCase()?.trim() || 'unknown'
+  const label = sectorLabels[sectorKey] || sectorKey
+  return {
+    percentage: selected.percentage,
+    sector: label,
+    sectorRaw: sectorKey,  // Raw sector key for icon lookup
+    score: selected.score,
+    maxScore: selected.maxScore
+  }
+}
 
 // Sorted results by percentage (descending)
 const sortedResults = computed(() => {

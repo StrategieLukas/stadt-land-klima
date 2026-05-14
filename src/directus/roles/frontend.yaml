@@ -498,6 +498,7 @@ permissions:
       - thesis
       - election
       - status
+      - sector
       - date_created
       - date_updated
   - collection: ratings_measures
