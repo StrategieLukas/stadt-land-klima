@@ -21,7 +21,7 @@
     </div>
 
     <!-- Progress Bar -->
-    <div class="bg-ff-green/10 py-3">
+    <div class="bg-ff-green/10 py-3 border-b border-ff-green/20 shadow-sm sticky top-14 z-40">
       <div class="max-w-6xl mx-auto px-4">
         <div class="flex items-center justify-between">
           <div v-for="(step, index) in steps" :key="step.id" class="flex items-center">
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto px-4 py-8">
       <!-- Loading State -->
       <div v-if="pending && !error" class="flex justify-center items-center py-20">
         <div class="flex flex-col items-center gap-4">

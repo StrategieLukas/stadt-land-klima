@@ -39,14 +39,22 @@
       </h3>
       <div class="space-y-4">
         <div v-for="result in sortedResults" :key="result.candidateId" class="flex items-center gap-4">
-          <div class="w-48 flex-shrink-0">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-stats-dark">{{ sortedResults.indexOf(result) + 1 }}.</span>
-              <span class="text-sm text-black truncate">{{ getCandidateName(result.candidateId) }}</span>
+          <div class="w-64 flex-shrink-0">
+            <div class="flex items-baseline gap-2 min-h-[44px]">
+              <span class="font-bold text-stats-dark pt-1">{{ sortedResults.indexOf(result) + 1 }}.</span>
+              <div class="min-w-0">
+                <div class="text-sm font-bold text-black truncate">{{ getCandidateName(result.candidateId) }}</div>
+                <CandidatePartyLabel 
+                  v-if="getCandidateParty(result.candidateId)" 
+                  :party="getCandidateParty(result.candidateId)" 
+                  :state="null" 
+                  class="text-xs mt-0.5"
+                />
+              </div>
             </div>
           </div>
           <div class="flex-1">
-            <ProgressBar :scoreTotal="result.percentage" layout="compact" />
+            <ProgressBar :scoreTotal="result.percentage" layout="default" />
           </div>
         </div>
       </div>
@@ -137,7 +145,7 @@
           
           <!-- Bar Chart Comparison -->
           <div class="mt-4">
-            <ProgressBar :scoreTotal="result.percentage" layout="compact" />
+            <ProgressBar :scoreTotal="result.percentage" layout="default" />
           </div>
 
           <!-- Expanded Details -->
@@ -264,6 +272,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
+import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
 
 const props = defineProps({
   election: {
