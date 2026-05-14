@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-mild-white">
     <!-- Header with SLK Branding -->
-    <div class="bg-white shadow-sm border-b border-gray/10 sticky top-0 z-50">
+    <div class="bg-white shadow-sm border-b border-gray/10">
       <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <NuxtLink to="/" class="flex items-center gap-3">
           <img 
@@ -21,7 +21,7 @@
     </div>
 
     <!-- Progress Bar -->
-    <div class="bg-ff-green/10 py-3 border-b border-ff-green/20 shadow-sm sticky top-14 z-40">
+    <div class="bg-ff-green/10 py-3">
       <div class="max-w-6xl mx-auto px-4">
         <div class="flex items-center justify-between">
           <div v-for="(step, index) in steps" :key="step.id" class="flex items-center">
@@ -133,7 +133,7 @@ const route = useRoute()
 const router = useRouter()
 const { $directus, $readItems, $readItem } = useNuxtApp()
 
-const localteamSlug = route.params.electionSlug
+const municipalitySlug = route.params.municipalitySlug
 
 // Step management
 const currentStep = ref(1)
@@ -148,7 +148,7 @@ const userAnswers = ref({}) // { questionId: responseValue (0-4) }
 const doubleWeightedQuestions = ref(new Set()) // Set of questionIds
 
 // Session storage key
-const sessionStorageKey = `wahlcheck_${localteamSlug}`
+const sessionStorageKey = `wahlcheck_${municipalitySlug}`
 
 // Load from session storage
 function loadFromSessionStorage() {
@@ -331,7 +331,7 @@ async function loadElectionData() {
     // Try to find the municipality by slug first
     let municipalities = await $directus.request($readItems('municipalities', {
       filter: {
-        slug: { _eq: localteamSlug }
+        slug: { _eq: municipalitySlug }
       },
       fields: ['localteam_id']
     }))
@@ -352,7 +352,7 @@ async function loadElectionData() {
     if (!localteams || localteams.length === 0) {
       localteams = await $directus.request($readItems('localteams', {
         filter: {
-          slug: { _eq: localteamSlug }
+          slug: { _eq: municipalitySlug }
         },
         fields: ['*', 'municipality_id.*']
       }))
@@ -362,7 +362,7 @@ async function loadElectionData() {
     if (!localteams || localteams.length === 0) {
       localteams = await $directus.request($readItems('localteams', {
         filter: {
-          id: { _eq: localteamSlug }
+          id: { _eq: municipalitySlug }
         },
         fields: ['*', 'municipality_id.*']
       }))
@@ -561,7 +561,7 @@ onMounted(() => {
 })
 
 // Update data when route changes
-watch(() => route.params.electionSlug, () => {
+watch(() => route.params.municipalitySlug, () => {
   loadElectionData()
 })
 
