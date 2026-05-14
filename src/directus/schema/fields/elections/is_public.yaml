@@ -1,33 +1,33 @@
-collection: measure_questions_template
-field: title
-type: string
+collection: elections
+field: is_public
+type: boolean
 meta:
-  collection: measure_questions_template
+  collection: elections
   conditions: null
-  display: null
+  display: boolean
   display_options: null
-  field: title
+  field: is_public
   group: null
   hidden: false
-  interface: input
+  interface: boolean
   note: null
   options: null
   readonly: false
-  required: true
-  sort: 4
+  required: false
+  sort: 3
   special: null
   translations:
     - language: de-DE
-      translation: Titel
+      translation: Öffentlich sichtbar
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
-  name: title
-  table: measure_questions_template
-  data_type: character varying
-  default_value: null
-  max_length: 255
+  name: is_public
+  table: elections
+  data_type: boolean
+  default_value: false
+  max_length: null
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

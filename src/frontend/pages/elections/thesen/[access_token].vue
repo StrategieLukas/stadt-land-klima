@@ -155,6 +155,7 @@ const { data, pending, error } = await useAsyncData(`thesen-${accessToken}`, asy
       filter: { access_token: { _eq: accessToken } },
       fields: ['*', 'election.*', 'election.localteam.*', 'election.localteam.municipality_id.*']
     })).catch(() => [])
+    console.log(candidates);
 
     const candidate = candidates?.[0] || null
     if (!candidate) return { candidate: null, localteam: null, questions: [], existingAnswers: [] }
