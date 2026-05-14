@@ -2,11 +2,11 @@
   <div class="space-y-8 relative">
     <!-- Confetti Animation -->
     <div v-if="showConfetti" class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      <div v-for="i in 50" :key="i" class="confetti" :style="{
+      <div v-for="i in 100" :key="i" class="confetti" :style="{
         '--left': `${Math.random() * 100}%`,
         '--animation-duration': `${2 + Math.random() * 2}s`,
         '--animation-delay': `${Math.random() * 2}s`,
-        '--color': `hsl(${Math.random() * 60 + 100}, 70%, 50%)`,
+        '--color': getConfettiColor(i),
         '--size': `${5 + Math.random() * 10}px`
       }"></div>
     </div>
@@ -134,32 +134,32 @@
             <h5 class="font-bold text-stats-dark mb-4">Detailübersicht:</h5>
 
             <!-- Score Breakdown -->
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div class="bg-rating-4/10 p-4 rounded-xl text-center">
-                <div class="flex items-center justify-center gap-2 mb-3">
+            <div class="grid grid-cols-2 gap-6 mb-6">
+              <div class="bg-rating-4/10 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-center mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
                     :src="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
-                    class="h-7 w-7 opacity-80"
-                    alt=""
-                  >
+                    class="h-12 w-12 opacity-90"
+                    :alt="getSectorAgreement(result.candidateId, 'highest').sector"
+                  />
                 </div>
-                <div class="text-3xl font-bold text-rating-4">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
-                <div class="text-sm font-medium text-rating-4/90 mt-1">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
-                <div class="text-xs text-rating-4/60 mt-0.5 uppercase tracking-wider">Beste Übereinstimmung</div>
+                <div class="text-4xl font-bold text-rating-4">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
+                <div class="text-lg font-bold text-rating-4/90 mt-2">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
+                <div class="text-sm text-rating-4/60 mt-1 uppercase tracking-wider">Beste Übereinstimmung</div>
               </div>
-              <div class="bg-stats-light/50 p-4 rounded-xl text-center">
-                <div class="flex items-center justify-center gap-2 mb-3">
+              <div class="bg-stats-light/50 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-center mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
                     :src="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
-                    class="h-7 w-7 opacity-80"
-                    alt=""
-                  >
+                    class="h-12 w-12 opacity-90"
+                    :alt="getSectorAgreement(result.candidateId, 'lowest').sector"
+                  />
                 </div>
-                <div class="text-3xl font-bold text-stats-dark">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
-                <div class="text-sm font-medium text-stats-dark/80 mt-1">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
-                <div class="text-xs text-stats-dark/60 mt-0.5 uppercase tracking-wider">Geringste Übereinstimmung</div>
+                <div class="text-4xl font-bold text-stats-dark">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
+                <div class="text-lg font-bold text-stats-dark/80 mt-2">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
+                <div class="text-sm text-stats-dark/60 mt-1 uppercase tracking-wider">Geringste Übereinstimmung</div>
               </div>
             </div>
 
@@ -282,6 +282,7 @@
 import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
+import sectorImages from '~/shared/sectorImages.js'
 
 const props = defineProps({
   election: {
@@ -384,6 +385,19 @@ onMounted(() => {
     showConfetti.value = false
   }, 3000)
 })
+
+// Confetti colors using logo colors
+const confettiColors = [
+  '#AFCA0B', // light-green
+  '#1da64a', // ff-green
+  '#ffc80c', // localzero-yellow
+  '#16bae7', // light-blue
+  '#f27c00', // slk-orange
+]
+
+function getConfettiColor(index) {
+  return confettiColors[index % confettiColors.length]
+}
 
 // Rating config
 const ratingColors = {
@@ -538,21 +552,10 @@ const sectorLabels = {
   'unknown': 'Unbekannt'
 }
 
-// Sector SVG icons mapping
-const sectorIcons = {
-  'energy': '/assets/icons/icon_category_energy.svg',
-  'transport': '/assets/icons/icon_category_transport.svg',
-  'buildings': '/assets/icons/icon_category_buildings.svg',
-  'industry': '/assets/icons/icon_category_industry.svg',
-  'agriculture': '/assets/icons/icon_category_agriculture.svg',
-  'management': '/assets/icons/icon_category_management.svg',
-  'unknown': null
-}
-
-// Get sector icon path
+// Get sector icon from imported images
 function getSectorIcon(sectorKey) {
   const key = sectorKey?.toLowerCase()?.trim() || 'unknown'
-  return sectorIcons[key] || null
+  return sectorImages[key] || null
 }
 
 // Calculate sector agreement scores for each candidate

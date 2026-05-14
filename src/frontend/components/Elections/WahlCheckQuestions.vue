@@ -107,7 +107,7 @@
             class="btn btn-primary px-8 py-2 rounded-full font-semibold text-white"
             :class="{ 'opacity-50 cursor-not-allowed': !canProceedToNext }"
           >
-            <span v-if="currentQuestionIndex === props.questions.length - 1">Weiter</span>
+            <span v-if="currentQuestionIndex === props.questions.length - 1">zu den Gewichtungen</span>
             <span v-else>Nächste Frage</span>
             <span v-if="false" class="loading loading-spinner loading-sm"></span>
           </button>
