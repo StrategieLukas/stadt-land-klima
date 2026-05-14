@@ -68,7 +68,8 @@ export default {
       throw new Error(msg);
     }
 
-    // 3. Prioritise: highest potential → easiest → stable alphabetical
+    // 3. Prioritise: highest improvement potential ((1 - rating) * weighting) → easiest → stable measure_id
+    // This matches the frontend ElectionInfo component logic exactly
     const prioritized = ratingsWithTemplate
       .map((r) => {
         const m = typeof r.measure_id === 'object' ? r.measure_id : {};
@@ -117,6 +118,7 @@ export default {
         measure_id: r.measure_uuid,
         title: templateMap[r.measure_identifier].title,
         thesis: templateMap[r.measure_identifier].thesis || '',
+        sector: templateMap[r.measure_identifier].sector || null,
         status: 'published',
         sort: existing.length + i + 1,
       }))

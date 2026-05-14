@@ -443,7 +443,7 @@ function getProgressColor(percentage) {
 // Ranking colors - gold, silver, bronze
 const rankingColors = {
   1: 'text-yellow-500',  // Gold
-  2: 'text-gray-500',   // Silver
+  2: 'text-gray-700',   // Silver
   3: 'text-amber-700'   // Bronze
 }
 
@@ -454,7 +454,7 @@ function getRankingColor(rank) {
 // Ranking background colors (subtle medal colors)
 const rankingBgColors = {
   1: 'bg-yellow-400',
-  2: 'bg-gray-400',
+  2: 'bg-black',
   3: 'bg-amber-800'
 }
 
