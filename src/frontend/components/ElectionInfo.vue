@@ -6,7 +6,7 @@
         Fragenkatalog für {{ municipalityScore.municipality.name }}
       </h1>
       <p class="text-lg text-mid-gray mb-4">
-        Auf Basis der Bewertung dieser Kommune haben wir die 10 Maßnahmen mit dem größten 
+        Auf Basis der Bewertung dieser Kommune haben wir die 10 Maßnahmen mit dem größten
         <span class="font-semibold text-stats-dark">Verbesserungspotenzial</span> für Sie zusammengefasst.
       </p>
       <p class="text-mid-gray mb-2">
@@ -14,21 +14,21 @@
         Maßnahmen mit niedriger Bewertung und hoher Gewichtung haben das größte Potenzial.
       </p>
       <p class="text-mid-gray">
-        Nutzen Sie diesen Katalog als Vorlage für Fragen an Kandidaten oder zur Konfrontation 
+        Nutzen Sie diesen Katalog als Vorlage für Fragen an Kandidaten oder zur Konfrontation
         Ihrer Verwaltung / Ihres Stadtrats.
       </p>
-      
+
       <div v-if="usingFallbackCatalog" class="alert alert-warning mt-6">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.167 1.732-3l-5.48-6.76c-.54-.676-1.598-.676-2.138 0l-5.48 6.76c-.77 1.833.262 3 1.732 3z" />
         </svg>
-        <span>Diese Fragen basieren auf einer älteren Bewertung ({{ municipalityScore.catalog_version.name }}), 
+        <span>Diese Fragen basieren auf einer älteren Bewertung ({{ municipalityScore.catalog_version.name }}),
           da die Kommune noch nicht für die aktuelle Version ({{ currentCatalogVersion.name }}) bewertet wurde.</span>
       </div>
-      
+
       <div class="flex justify-center mt-6">
-        <button 
-          @click="fetchPDF()" 
+        <button
+          @click="fetchPDF()"
           class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg hover:scale-105 transition-transform"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,8 +41,8 @@
 
     <!-- Measures List -->
     <div class="space-y-6">
-      <div 
-        v-for="(measure, index) in sortedMeasures.slice(0, 10)" 
+      <div
+        v-for="(measure, index) in sortedMeasures.slice(0, 10)"
         :key="measure.measure_id"
         class="bg-white rounded-xl shadow-list border border-gray/10 p-6 transition-shadow hover:shadow-xl"
       >
@@ -56,16 +56,7 @@
               {{ measure.name }}
               <span class="text-sm font-normal text-mid-gray ml-2">({{ measure.measure_id }})</span>
             </h3>
-            
-            <!-- Sector Badge -->
-            <div v-if="measure.sector" class="mt-2">
-              <span 
-                class="px-3 py-1 rounded-full text-xs font-semibold"
-                :class="sectorColorClass(measure.sector)"
-              >
-                {{ sectorLabel(measure.sector) }}
-              </span>
-            </div>
+
           </div>
         </div>
 
@@ -73,7 +64,7 @@
         <div class="space-y-4">
           <!-- Benefit Description -->
           <div v-if="measure.description_benefit" class="prose max-w-none text-mid-gray" v-html="md.render(measure.description_benefit)"></div>
-           
+
           <!-- Current Progress -->
           <div v-if="measure.currentProgress" class="p-4 bg-mild-white rounded-lg border border-gray/10">
             <p class="font-semibold text-stats-dark mb-1">Aktueller Stand:</p>
@@ -95,7 +86,7 @@
 
         <!-- Link to Municipality -->
         <div class="flex justify-end mt-4 pt-4 border-t border-gray/10">
-          <NuxtLink 
+          <NuxtLink
             :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`"
             class="btn btn-outline btn-secondary btn-sm gap-2 text-stats-dark hover:bg-light-green/10"
           >
@@ -110,8 +101,8 @@
 
     <!-- Bottom PDF Button -->
     <div class="flex justify-center mt-8 py-4">
-      <button 
-        @click="fetchPDF()" 
+      <button
+        @click="fetchPDF()"
         class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg hover:scale-105 transition-transform"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,33 +139,6 @@
       required: true,
     },
   });
-
-  // Sector label and color mappings
-  const sectorLabels = {
-    energy: 'Energie',
-    agriculture: 'Landwirtschaft',
-    transport: 'Verkehr',
-    industry: 'Industrie',
-    buildings: 'Gebäude',
-    management: 'Management',
-  };
-
-  const sectorColors = {
-    energy: 'bg-rating-4/10 text-rating-4 border-rating-4/20',
-    agriculture: 'bg-rating-3/10 text-rating-3 border-rating-3/20',
-    transport: 'bg-rating-1/10 text-rating-1 border-rating-1/20',
-    industry: 'bg-rating-2/10 text-rating-2 border-rating-2/20',
-    buildings: 'bg-rating-0/10 text-rating-0 border-rating-0/20',
-    management: 'bg-stats-dark/10 text-stats-dark border-stats-dark/20',
-  };
-
-  function sectorLabel(sectorKey) {
-    return sectorLabels[sectorKey] || sectorKey;
-  }
-
-  function sectorColorClass(sectorKey) {
-    return sectorColors[sectorKey] || 'bg-gray/10 text-gray border-gray/20';
-  }
 
 
   const sortedMeasures = props.ratingsMeasures

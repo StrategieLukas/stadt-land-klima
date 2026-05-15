@@ -222,8 +222,10 @@ async function submitAnswers() {
   submitting.value = true
   try {
     const candidateUuid = candidate.value.id
-    // Separate answers into those to create and those to update
-    const operations = questions.value.map(q => {
+    const now = new Date().toISOString()
+
+    // Process answers sequentially to avoid connection pool exhaustion
+    for (const q of questions.value) {
       const payload = {
         question: q.id,
         candidate: candidateUuid,
@@ -233,16 +235,13 @@ async function submitAnswers() {
 
       const existingId = existingAnswerIds.value[q.id]
       if (existingId) {
-        return $directus.request(updateItem('answers', existingId, payload))
+        await $directus.request(updateItem('answers', existingId, payload))
       } else {
-        return $directus.request(createItem('answers', payload))
+        await $directus.request(createItem('answers', payload))
       }
-    })
-
-    await Promise.all(operations)
+    }
 
     // Update candidate indicator and timestamps
-    const now = new Date().toISOString()
     const candidateUpdate = {
       has_answered: true,
       time_last_edited: now

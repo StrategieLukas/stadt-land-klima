@@ -180,9 +180,10 @@
             <div>
               <div class="min-w-[600px]">
                 <!-- Table Header -->
-                <div class="grid grid-cols-[40px_1fr_120px_120px] gap-2 px-3 py-2 bg-gray/10 rounded-t-lg font-semibold text-sm text-gray/60 border-b border-gray/20">
+                <div class="grid grid-cols-[40px_1fr_80px_120px_120px] gap-2 px-3 py-2 bg-gray/10 rounded-t-lg font-semibold text-sm text-gray/60 border-b border-gray/20">
                   <div class="text-center">#</div>
                   <div>These</div>
+                  <div class="text-center">Sektor</div>
                   <div class="text-center">Meine Bewertung</div>
                   <div class="text-center">Bewertung Kandidat:in</div>
                 </div>
@@ -191,7 +192,7 @@
                 <div
                   v-for="(question, qIndex) in sortedExpandedQuestions"
                   :key="question.id"
-                  class="grid grid-cols-[40px_1fr_120px_120px] gap-2 px-3 py-2 bg-white/50 rounded-lg border-b border-gray/10 last:border-0 hover:bg-white transition-all"
+                  class="grid grid-cols-[40px_1fr_80px_120px_120px] gap-2 px-3 py-2 bg-white/50 rounded-lg border-b border-gray/10 last:border-0 hover:bg-white transition-all"
                 >
                   <div class="text-sm text-gray/50 text-center pt-1">{{ question.originalIndex + 1 }}.</div>
                   <div class="text-sm text-black flex items-center gap-2">
@@ -201,6 +202,18 @@
                       class="text-xs bg-ff-green/80 text-white px-1.5 py-0.5 rounded-full font-bold"
                       title="Doppelt gewichtet"
                     >2×</span>
+                  </div>
+
+                  <!-- Sector -->
+                  <div class="flex justify-center">
+                    <div v-if="question.sector" class="flex items-center gap-1">
+                      <img
+                        :src="getSectorIcon(question.sector)"
+                        class="h-8 w-8 opacity-60"
+                        :alt="sectorLabels[question.sector?.toLowerCase()?.trim() || 'unknown'] || question.sector"
+                      >
+                    </div>
+                    <div v-else class="w-8"></div>
                   </div>
 
                   <!-- User Answer -->
