@@ -4,7 +4,6 @@ import exportSchema from './exportSchema.mjs';
 import clearSchema from './clearSchema.mjs';
 import exportRoles from './exportRoles.mjs';
 import exportPresets from './exportPresets.mjs';
-import exportWebhooks from './exportWebhooks.mjs';
 import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
 import exportSettings from './exportSettings.mjs';
@@ -111,33 +110,6 @@ function exportTasks(yargs) {
     }
   )
 
-  .command(
-    'export:webhooks [dest]',
-    'export all webhooks to the folder specified by "dest". By default it will export into "webhooks"',
-    (yargs) => {
-      return yargs
-      .positional('dest', {
-        describe: 'destination folder',
-        default: 'webhooks',
-      });
-    },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Exporting webhooks to ${argv.dest}`);
-      }
-      if (argv.clear) {
-        clear(argv.dest, {
-          verbose: argv.verbose,
-        });
-      }
-
-      await clearDirectusCache();
-      await exportWebhooks(argv.dest, {
-        verbose: argv.verbose,
-        overwrite: argv.force,
-      });
-    }
-  )
 
   .command(
     'export:flows [dest]',
