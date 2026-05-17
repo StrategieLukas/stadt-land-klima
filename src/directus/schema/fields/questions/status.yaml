@@ -41,7 +41,7 @@ meta:
         color: var(--theme--warning)
   readonly: false
   required: false
-  sort: 5
+  sort: 3
   special: null
   translations:
     - language: de-DE

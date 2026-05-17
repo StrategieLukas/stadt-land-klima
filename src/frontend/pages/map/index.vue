@@ -44,7 +44,6 @@ async function fetchMunicipalities(catalogVersionId) {
 
 onMounted(() => {
   fetchMunicipalities(selectedCatalogVersion.id)
-  console.log(municipality_scores)
 })
 
 const title = ref($t('map.title'))

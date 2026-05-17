@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Console Test</title>
+    <script>
+        console.log('Console test - this should appear in browser console');
+        
+        // Test the functions
+        function testFunctions() {
+            console.log('Testing shareable URL functions...');
+            
+            // Mock data
+            const userAnswers = { 'q1': 3, 'q2': 4 };
+            const doubleWeighted = new Set(['q1']);
+            const electionId = 'test-election-123';
+            
+            // Test encoding
+            const doubleWeightedArray = Array.from(doubleWeighted);
+            const shareData = {
+                answers: userAnswers,
+                doubleWeighted: doubleWeightedArray,
+                electionId: electionId
+            };
+            
+            console.log('Share data:', shareData);
+            
+            const jsonString = JSON.stringify(shareData);
+            const encoded = btoa(encodeURIComponent(jsonString));
+            
+            console.log('Encoded:', encoded);
+            
+            // Test decoding
+            const decoded = decodeURIComponent(atob(encoded));
+            const parsed = JSON.parse(decoded);
+            
+            console.log('Decoded:', parsed);
+            console.log('Match:', JSON.stringify(shareData) === JSON.stringify(parsed));
+        }
+        
+        // Run test when page loads
+        window.onload = testFunctions;
+    </script>
+</head>
+<body>
+    <h1>Console Test Page</h1>
+    <p>Open browser console to see test output.</p>
+</body>
+</html>

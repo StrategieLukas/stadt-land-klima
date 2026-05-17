@@ -25,7 +25,7 @@ meta:
       translation: Lokalteam
   validation: null
   validation_message: null
-  width: full
+  width: half
 schema:
   name: localteam
   table: elections

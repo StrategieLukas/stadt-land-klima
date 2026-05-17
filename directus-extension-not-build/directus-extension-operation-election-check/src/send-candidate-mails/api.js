@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import { resolveElectionId } from '../resolve-election.js';
 
 export default {
   id: 'operation-send-candidate-mails',
@@ -7,8 +6,6 @@ export default {
     const { RolesService, ItemsService, MailService } = services;
     const schema = await getSchema();
     const sysAcc = { ...accountability, admin: true };
-
-    const resolved_id = await resolveElectionId(election_id, data, ItemsService, schema, accountability);
 
     // ── Authorisation: Administrator only (backend enforcement) ──────────────
     if (!accountability?.role) {
@@ -36,7 +33,7 @@ export default {
     const questionsSvc = new ItemsService('questions', { schema, accountability: sysAcc });
     const mailSvc      = new MailService({ schema, accountability: sysAcc });
 
-    const election = await electionSvc.readOne(resolved_id, { fields: ['*', 'localteam.*'] });
+    const election = await electionSvc.readOne(election_id, { fields: ['*', 'localteam.*'] });
     if (!election) throw new Error('Wahl nicht gefunden.');
 
     const municipalityName = election.localteam?.municipality_name;
@@ -47,7 +44,7 @@ export default {
     }
 
     const questions = await questionsSvc.readByQuery({
-      filter: { election: { _eq: resolved_id }, status: { _eq: 'published' } },
+      filter: { election: { _eq: election_id }, status: { _eq: 'published' } },
       fields: ['id'],
       limit: -1,
     });
@@ -56,7 +53,7 @@ export default {
     }
 
     const candidates = await candidateSvc.readByQuery({
-      filter: { election: { _eq: resolved_id }, email: { _nnull: true } },
+      filter: { election: { _eq: election_id }, email: { _nnull: true } },
       limit: -1,
     });
     if (candidates.length < 2) {
@@ -84,7 +81,7 @@ export default {
         logger.info(`send-candidate-mails: generated and persisted token for candidate ${candidate.id}`);
       }
 
-      const personalLink = `https://stadt-land-klima.de/thesen/${token}`;
+      const personalLink = `https://stadt-land-klima.de/elections/thesen/${token}`;
 
       try {
         logger.info(`send-candidate-mails: Attempting to send mail to ${candidate.email} using template "email-template-candidate"`);
@@ -113,9 +110,9 @@ export default {
       }
     }
 
-    await electionSvc.updateOne(resolved_id, { already_sent_mails: true });
+    await electionSvc.updateOne(election_id, { already_sent_mails: true });
 
-    const updatedElection = await electionSvc.readOne(resolved_id, {
+    const updatedElection = await electionSvc.readOne(election_id, {
       fields: ['already_generated_questions', 'already_sent_mails'],
     });
 
@@ -125,7 +122,7 @@ export default {
       failedCount: errors.length,
       totalCandidates: candidates.length,
       errors,
-      election_id: resolved_id,
+      election_id: election_id,
       updated_data: updatedElection,
     };
   },

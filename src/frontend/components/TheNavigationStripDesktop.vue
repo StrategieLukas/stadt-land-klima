@@ -66,7 +66,7 @@
         <div
           v-if="hasChildren(item)"
           v-show="openMenuId === item.id"
-          class="absolute left-0 top-full bg-white rounded-b-xl shadow-lg z-50 border border-gray-200 border-t-2 border-t-light-green"
+          class="absolute left-0 top-full bg-white rounded-b-xl shadow-lg z-[10001] border border-gray-200 border-t-2 border-t-light-green"
           @mouseenter="handleMenuEnter(item.id)"
           @mouseleave="handleMenuLeave()"
         >

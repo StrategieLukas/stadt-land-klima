@@ -1,16 +1,6 @@
 #!/bin/bash
 
-import() {
-    echo "Importing $1 ..."
-    ./directus-cli -f -r import:$1
-    echo "Done"
-    echo ""
-}
+# Use the new import:all command which clears cache once and imports sequentially
+./directus-cli -f -r import:all
 
-import "schema"
-import "roles"
-import "flows"
-import "presets"
-import "translations"
-import "webhooks"
-import "settings"
+echo "All imports completed"

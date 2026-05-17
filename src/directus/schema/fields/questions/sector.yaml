@@ -1,0 +1,67 @@
+collection: questions
+field: sector
+type: string
+meta:
+  collection: questions
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: $t:measure_sectors.energy.title
+        value: energy
+      - text: $t:measure_sectors.agriculture.title
+        value: agriculture
+      - text: $t:measure_sectors.transport.title
+        value: transport
+      - text: $t:measure_sectors.industry.title
+        value: industry
+      - text: $t:measure_sectors.buildings.title
+        value: buildings
+      - text: $t:measure_sectors.management.title
+        value: management
+    format: true
+  field: sector
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+      - text: $t:measure_categories.energie.title
+        value: energy
+      - text: $t:measure_sectors.buildings.title
+        value: buildings
+      - text: $t:measure_sectors.industry.title
+        value: industry
+      - text: $t:measure_sectors.management.title
+        value: management
+      - text: $t:measure_sectors.agriculture.title
+        value: agriculture
+      - text: $t:measure_sectors.transport.title
+        value: transport
+  readonly: false
+  required: true
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Sektor
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: sector
+  table: questions
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

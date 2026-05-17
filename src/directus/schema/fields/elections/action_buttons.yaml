@@ -21,7 +21,7 @@ meta:
   options: null
   readonly: false
   required: false
-  sort: 9
+  sort: 10
   special:
     - cast-json
   translations:

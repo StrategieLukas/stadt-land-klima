@@ -1,16 +1,6 @@
 #!/bin/bash
 
-export() {
-    echo "Exporting $1 ..."
-    ./directus-cli -f -c export:$1
-    echo "Done"
-    echo ""
-}
+# Use the new export:all command which clears cache once and exports sequentially
+./directus-cli -f -c export:all
 
-export "schema"
-export "roles"
-export "flows"
-export "presets"
-export "translations"
-export "webhooks"
-export "settings"
+echo "All exports completed"

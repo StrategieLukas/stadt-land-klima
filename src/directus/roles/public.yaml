@@ -58,6 +58,7 @@ permissions:
       - date_created
       - image
       - cta_label
+      - event_category
   - collection: municipalities
     action: read
     permissions: null

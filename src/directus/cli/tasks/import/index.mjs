@@ -3,7 +3,6 @@ import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
 import importPresets from './importPresets.mjs';
-import importWebhooks from './importWebhooks.mjs';
 import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
 import importSettings from './importSettings.mjs';
@@ -82,30 +81,6 @@ function importTasks(yargs) {
   )
 
   .command(
-    'import:webhooks [src]',
-    'imports the webhooks from the folder specified by "src". By default it will import from "webhooks"',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder',
-        default: 'webhooks',
-      });
-    },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Importing webhooks from ${argv.src}`);
-      }
-
-      await clearDirectusCache();
-      await importWebhooks(argv.src, {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-    }
-  )
-
-  .command(
     'import:flows [src]',
     'imports the flows from the folder specified by "src". By default it will import from "flows"',
     (yargs) => {
@@ -174,6 +149,77 @@ function importTasks(yargs) {
         remove: argv['remove-orphans'],
         overwrite: argv.force,
       });
+    }
+  )
+
+  .command(
+    'import:all [src]',
+    'imports schema, roles, flows, presets, translations, and settings consecutively',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'base folder for all imports (default: current directory)',
+        default: '.',
+      });
+    },
+    async (argv) => {
+      const startTime = Date.now();
+      const src = argv.src;
+
+      console.info('Starting full import...');
+
+      // Clear cache once at the beginning
+      console.info('Clearing cache...');
+      await clearDirectusCache();
+
+      // Import schema
+      console.info('Importing schema...');
+      await importSchema(path.join(src, 'schema'), {
+        verbose: argv.verbose,
+      });
+
+      // Import roles
+      console.info('Importing roles...');
+      await importRoles(path.join(src, 'roles'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import flows
+      console.info('Importing flows...');
+      await importFlows(path.join(src, 'flows'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import presets
+      console.info('Importing presets...');
+      await importPresets(path.join(src, 'presets'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import translations
+      console.info('Importing translations...');
+      await importTranslations(path.join(src, 'translations'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import settings
+      console.info('Importing settings...');
+      await importSettings(path.join(src, 'settings'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.info(`Full import completed in ${elapsed}s`);
     }
   )
 

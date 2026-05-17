@@ -1,10 +1,10 @@
+import path from 'path';
 import clearDir from '../shared/clearDir.mjs';
 import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import exportSchema from './exportSchema.mjs';
 import clearSchema from './clearSchema.mjs';
 import exportRoles from './exportRoles.mjs';
 import exportPresets from './exportPresets.mjs';
-import exportWebhooks from './exportWebhooks.mjs';
 import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
 import exportSettings from './exportSettings.mjs';
@@ -111,33 +111,6 @@ function exportTasks(yargs) {
     }
   )
 
-  .command(
-    'export:webhooks [dest]',
-    'export all webhooks to the folder specified by "dest". By default it will export into "webhooks"',
-    (yargs) => {
-      return yargs
-      .positional('dest', {
-        describe: 'destination folder',
-        default: 'webhooks',
-      });
-    },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Exporting webhooks to ${argv.dest}`);
-      }
-      if (argv.clear) {
-        clear(argv.dest, {
-          verbose: argv.verbose,
-        });
-      }
-
-      await clearDirectusCache();
-      await exportWebhooks(argv.dest, {
-        verbose: argv.verbose,
-        overwrite: argv.force,
-      });
-    }
-  )
 
   .command(
     'export:flows [dest]',
@@ -220,6 +193,91 @@ function exportTasks(yargs) {
         verbose: argv.verbose,
         overwrite: argv.force,
       });
+    }
+  )
+
+  .command(
+    'export:all [dest]',
+    'export schema, roles, flows, presets, translations, and settings consecutively',
+    (yargs) => {
+      return yargs
+      .positional('dest', {
+        describe: 'base destination folder (default: current directory)',
+        default: '.',
+      });
+    },
+    async (argv) => {
+      const startTime = Date.now();
+      const dest = argv.dest;
+
+      console.info('Starting full export...');
+
+      // Clear cache once at the beginning
+      console.info('Clearing cache...');
+      await clearDirectusCache();
+
+      // Export schema
+      console.info('Exporting schema...');
+      if (argv.clear) {
+        clearSchema(path.join(dest, 'schema'), { verbose: argv.verbose });
+      }
+      await exportSchema(path.join(dest, 'schema'), {
+        verbose: argv.verbose,
+        remove: argv.clear,
+      });
+
+      // Export roles
+      console.info('Exporting roles...');
+      if (argv.clear) {
+        clear(path.join(dest, 'roles'), { verbose: argv.verbose });
+      }
+      await exportRoles(path.join(dest, 'roles'), {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+
+      // Export flows
+      console.info('Exporting flows...');
+      if (argv.clear) {
+        clear(path.join(dest, 'flows'), { verbose: argv.verbose });
+      }
+      await exportFlows(path.join(dest, 'flows'), {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+
+      // Export presets
+      console.info('Exporting presets...');
+      if (argv.clear) {
+        clear(path.join(dest, 'presets'), { verbose: argv.verbose });
+      }
+      await exportPresets(path.join(dest, 'presets'), {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+
+      // Export translations
+      console.info('Exporting translations...');
+      if (argv.clear) {
+        clear(path.join(dest, 'translations'), { verbose: argv.verbose });
+      }
+      await exportTranslations(path.join(dest, 'translations'), {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+
+      // Export settings
+      console.info('Exporting settings...');
+      if (argv.clear) {
+        clear(path.join(dest, 'settings'), { verbose: argv.verbose });
+      }
+      await exportSettings(path.join(dest, 'settings'), {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.info(`Full export completed in ${elapsed}s`);
     }
   )
 
