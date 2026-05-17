@@ -109,6 +109,19 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       );
     }
 
+    // --- Refresh roles with IDs from database ---
+    // Re-fetch roles to get the actual IDs (especially for newly created roles)
+    const updatedRoles = await client.request(readRoles({ limit: -1 }));
+    
+    // Update the roles array with the fresh data including IDs
+    roles.forEach((role) => {
+      if (role.name !== 'Administrator' && role.name !== 'Public' && !role.id) {
+        const updatedRole = find(updatedRoles, ['name', role.name]);
+        if (updatedRole) {
+          role.id = updatedRole.id;
+        }
+      }
+    });
 
     // --- Map role IDs onto permissions ---
     permissions.forEach((permission) => {
