@@ -142,10 +142,19 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 4. Use DaisyUI components for new designs where possible
 5. For notes on deployment and config, you can see README.md
 6. Extensions can be compiled with `npm install` and `npm run build`. See the existing extensions under src/directus/extensions for reference.
+7. Reuse existing Vue-components where possible (/frontend/components)
+8. IMPORTANT: Always verify if changes to the frontend actually work by doing curl requests to localhost:8080
+9. The frontend automatically hot-reloads when changes are made, no need to restart containers.
+10. Do not edit the permissions of public.yaml. The frontend permissions belong to frontend.yaml.
 
 
 ## Project structure:
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
 2. src/backend - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
 3. src/directus/extensions - contains source and compiled extensions for Directus. Ensure that all operations/interfaces belonging to one use case are combined into ONE extension and not multiple.
+
+## Applying changes for directus yamls
+1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.
+2. The yamls are sorted to be in alphabetical order, ensure that you stick to this formatting.
+
 

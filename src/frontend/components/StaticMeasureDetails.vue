@@ -58,9 +58,9 @@
 
 <script setup>
 import sanitizeHtml from "sanitize-html";
-import iconImpact from '@/assets/icons/icon_impact.svg'
-import iconPolitics from '@/assets/icons/icon_politics.svg'
-import iconInvest from '@/assets/icons/icon_invest.svg'
+const iconImpact = '/icons/icon_impact.svg'
+const iconPolitics = '/icons/icon_politics.svg'
+const iconInvest = '/icons/icon_invest.svg'
 
   const props = defineProps({
     measure: {
