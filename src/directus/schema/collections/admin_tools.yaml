@@ -15,7 +15,7 @@ meta:
   note: Alles rund um blökkli und Administration des Frontends
   preview_url: null
   singleton: false
-  sort: 2
+  sort: 1
   sort_field: null
   translations:
     - language: de-DE

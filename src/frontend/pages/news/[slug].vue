@@ -8,7 +8,8 @@
     :entity="item"
   >
     <template #default>
-      <div class="px-4 py-8 max-w-4xl mx-auto w-full">
+      <div class="flex flex-col items-center px-4 py-8 w-full">
+        <div class="max-w-3xl w-full">
         <div class="mb-4">
           <NuxtLink :to="backHref" class="inline-flex items-center gap-1 text-sm text-[#006e94] hover:underline">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -19,18 +20,22 @@
         </div>
         <article class="prose max-w-none">
           <!-- Header: image, title, teaser -->
-          <div v-if="item.image" class="not-prose mb-6 rounded-lg overflow-hidden">
+          <div v-if="item.image" class="not-prose mb-6 rounded-xl overflow-hidden">
             <img
               :src="`${directusUrl}/assets/${item.image}?width=900&quality=80`"
               :alt="item.title"
-              class="w-full max-h-80 object-cover"
+              class="w-full h-auto block"
             />
           </div>
           <time
             v-if="displayDate"
-            class="not-prose block text-sm text-gray-500 mb-2"
+            class="not-prose block text-sm text-gray-500 mb-1"
             :datetime="displayDate"
           >{{ formatDate(displayDate) }}</time>
+          <p v-if="item.author" class="not-prose text-sm text-gray-600 italic mb-3">
+            {{ $t('article.author_date', { ':author': item.author, ':date': formatDate(displayDate) }) }}
+          </p>
+          <p v-else-if="displayDate && !item.author" class="not-prose mb-3" />
           <h1>{{ item.title }}</h1>
           <p v-if="item.teaser" class="lead text-gray-600">{{ item.teaser }}</p>
 
@@ -64,6 +69,15 @@
               <textarea
                 v-model="editForm.teaser"
                 rows="3"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#16BAE7]"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Autor/in</label>
+              <input
+                v-model="editForm.author"
+                type="text"
+                placeholder="z.B. Max Mustermann"
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#16BAE7]"
               />
             </div>
@@ -111,14 +125,17 @@
               <span v-if="saveError" class="text-sm text-red-600">{{ saveError }}</span>
             </div>
           </form>
-        </div>
-      </div>
+        </div><!-- /.canEdit -->
+        </div><!-- /.max-w-3xl -->
+      </div><!-- /.flex -->
     </template>
   </BlokkliProvider>
 
-  <p v-else class="prose py-8">
+  <p v-else-if="authChecked" class="prose py-8">
     {{ $t('page_not_found') }}
   </p>
+  <!-- placeholder while waiting for client-side auth check -->
+  <div v-else class="py-8" />
 </template>
 
 <script setup>
@@ -133,14 +150,10 @@ const directusUrl = config.public.clientDirectusUrl
 
 const { isAuthenticated, initialize, getAuthenticatedClient } = useAuth()
 const canEdit = ref(false)
-onMounted(() => {
-  initialize()
-  watchEffect(() => { canEdit.value = isAuthenticated.value })
-})
 
 const route = useRoute()
 
-const { data: itemList } = await useAsyncData(`news-item-${route.params.slug}`, async () => {
+const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-item-${route.params.slug}`, async () => {
   // Primary fetch via frontend (static) token — only returns published items
   const result = await $directus.request(
     $readItems('news_items', {
@@ -170,9 +183,20 @@ const { data: itemList } = await useAsyncData(`news-item-${route.params.slug}`, 
 })
 const item = computed(() => itemList.value?.[0] || null)
 
-if (!item.value) {
-  throw createError({ statusCode: 404, statusMessage: 'News item not found', fatal: true })
-}
+// Do not throw a fatal 404 on SSR — drafts are only visible to authenticated users
+// and auth state is only known client-side. onMounted will re-fetch if needed.
+const authChecked = ref(false)
+onMounted(async () => {
+  await initialize()
+  canEdit.value = isAuthenticated.value
+  watchEffect(() => { canEdit.value = isAuthenticated.value })
+
+  // If item was not returned by the public token, try again with the auth client
+  if (!item.value && isAuthenticated.value) {
+    await refreshItemList()
+  }
+  authChecked.value = true
+})
 
 const { data: blocksData } = await useAsyncData(
   `blocks-news-${route.params.slug}`,
@@ -229,6 +253,7 @@ function toDatetimeLocal(iso) {
 const editForm = reactive({
   title: '',
   teaser: '',
+  author: '',
   date_published: '',
   status: 'draft',
   image: '',
@@ -239,6 +264,7 @@ watch([() => item.value, editOpen], () => {
   if (!item.value || !editOpen.value) return
   editForm.title = item.value.title || ''
   editForm.teaser = item.value.teaser || ''
+  editForm.author = item.value.author || ''
   editForm.date_published = toDatetimeLocal(item.value.date_published)
   editForm.status = item.value.status || 'draft'
   editForm.image = item.value.image || ''
@@ -254,6 +280,7 @@ async function saveMetadata() {
     await client.request(updateItem('news_items', item.value.id, {
       title: editForm.title,
       teaser: editForm.teaser || null,
+      author: editForm.author || null,
       date_published: editForm.date_published ? new Date(editForm.date_published).toISOString() : null,
       status: editForm.status,
       image: editForm.image || null,

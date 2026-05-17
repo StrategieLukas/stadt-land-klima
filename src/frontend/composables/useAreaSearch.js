@@ -41,7 +41,8 @@ export function useAreaSearch({ mode = 'reasonable', publishedSlugs = null, cata
     const slugs = getSlugSet()
     // level is returned by the new AREA_SEARCH_QUERY; fall back to 4 (municipality) for old data
     const level = area.level ?? 4
-    const isMunicipality = level >= 4
+    // City-states (Hamburg, Berlin, Bremen) are level 2 but still rateable municipalities
+    const isMunicipality = level >= 4 || area.isReasonableForMunicipalRating === true
 
     // Label shown in the subtitle line of each result row
     const stateLabel = isMunicipality ? (getStateFromArs(area.ars) ?? area.prefix) : null

@@ -103,7 +103,7 @@
               class="w-full py-2.5 px-4 bg-orange text-white font-semibold rounded-md hover:bg-orange-dark focus:outline-none focus:ring-2 focus:ring-orange focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               <span v-if="isLoading" class="flex items-center justify-center gap-1.5">
-                <SlkFlowerSpinner :size="16" />
+                <SlkFlowerSpinner :size="16" color="#fbfbfb" />
                 Anmeldung läuft...
               </span>
               <span v-else>Anmelden</span>

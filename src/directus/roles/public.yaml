@@ -57,6 +57,7 @@ permissions:
       - registration_url
       - date_created
       - image
+      - cta_label
   - collection: municipalities
     action: read
     permissions: null

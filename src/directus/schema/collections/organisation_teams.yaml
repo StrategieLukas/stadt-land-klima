@@ -8,7 +8,7 @@ meta:
   collection: organisation_teams
   color: null
   display_template: "{{label}}"
-  group: admin_tools
+  group: content
   hidden: false
   icon: groups
   item_duplication_fields: null

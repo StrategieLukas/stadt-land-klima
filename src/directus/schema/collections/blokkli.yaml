@@ -8,14 +8,14 @@ meta:
   collection: blokkli
   color: null
   display_template: null
-  group: null
+  group: admin_tools
   hidden: true
   icon: folder
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: 1
+  sort: 2
   sort_field: null
   translations:
     - language: de-DE

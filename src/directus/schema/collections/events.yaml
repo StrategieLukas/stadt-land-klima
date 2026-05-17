@@ -8,7 +8,7 @@ meta:
   collection: events
   color: null
   display_template: "{{title}}"
-  group: admin_tools
+  group: content
   hidden: false
   icon: event
   item_duplication_fields:
@@ -26,7 +26,7 @@ meta:
   note: Veranstaltungskalender für Konferenzen, Workshops und Webinare
   preview_url: null
   singleton: false
-  sort: 4
+  sort: 3
   sort_field: start_date
   translations:
     - language: de-DE

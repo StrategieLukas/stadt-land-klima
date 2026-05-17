@@ -263,12 +263,94 @@ export default defineNuxtPlugin(() => {
     }
   }
 
+  /**
+   * Fetch all municipalities (isReasonableForMunicipalRating) that belong to a
+   * given region, identified by its ARS and administrative level.
+   *
+   * The API only exposes ars_Icontains, so we use that for a server-side
+   * pre-filter and then apply a client-side startsWith check to eliminate any
+   * false positives (e.g. a Kreis whose code appears in the middle of another
+   * area's ARS).
+   *
+   * Prefix lengths by level:
+   *   2 (Bundesland)         → 2 chars  (SS)
+   *   3 (Regierungsbezirk)   → 3 chars  (SS R)
+   *   4 (Kreis)              → 5 chars  (SS R KK)
+   */
+  const fetchMunicipalitiesInRegion = async (regionArs, level) => {
+    const prefixLengths = { 2: 2, 3: 3, 4: 5 };
+    const len = prefixLengths[level];
+    const prefix = len ? regionArs.slice(0, len) : regionArs.replace(/0+$/, '');
+    if (!prefix) return [];
+
+    const PAGE_SIZE = 500;
+    const nodes = [];
+    let cursor = null;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      try {
+        const result = await apolloClient.query({
+          query: gql`
+            query municipalitiesInRegion($ars_Icontains: String!, $after: String) {
+              allAdministrativeAreas(
+                first: 500
+                after: $after
+                isReasonableForMunicipalRating: true
+                ars_Icontains: $ars_Icontains
+                orderBy: "-population"
+              ) {
+                pageInfo { hasNextPage endCursor }
+                edges {
+                  node {
+                    ars
+                    name
+                    prefix
+                    population
+                    stadtlandklimaDataAll {
+                      slug
+                      scoreTotal
+                      percentageRated
+                      measureCatalogName
+                    }
+                  }
+                }
+              }
+            }
+          `,
+          variables: { ars_Icontains: prefix, after: cursor },
+          fetchPolicy: 'no-cache',
+        });
+
+        const connection = result.data?.allAdministrativeAreas;
+        if (!connection) break;
+
+        for (const edge of connection.edges ?? []) {
+          // Client-side guard: discard false positives where the prefix
+          // appears somewhere other than the start of the ARS.
+          if (edge.node.ars.startsWith(prefix)) {
+            nodes.push(edge.node);
+          }
+        }
+
+        hasNextPage = connection.pageInfo?.hasNextPage ?? false;
+        cursor = connection.pageInfo?.endCursor ?? null;
+      } catch (e) {
+        console.error('fetchMunicipalitiesInRegion error:', e);
+        break;
+      }
+    }
+
+    return nodes;
+  };
+
   const stadtlandzahlAPI = {
     searchThroughAdministrativeAreasByName,
     searchAdministrativeAreas,
     fetchStatsByARS,
     getNearbyAdministrativeAreas,
-    fetchHistogramData
+    fetchHistogramData,
+    fetchMunicipalitiesInRegion,
   };
 
   return {

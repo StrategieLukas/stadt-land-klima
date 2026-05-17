@@ -39,6 +39,7 @@ import {
   deleteItem,
 } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
+import { useAuthStore } from '~/stores/auth'
 
 type AdapterState = {
   blocks: FieldListItem[]
@@ -230,7 +231,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       case 'video':
         return { caption: '' }
       case 'hero':
-        return { title: 'Überschrift', subtitle: '', imageId: '' }
+        return { title: 'Überschrift', subtitle: '', imageId: '', blocks: [] }
       case 'citation':
         return { quote: 'Zitat...', attribution: '', source: '', imageId: '' }
       case 'stat':
@@ -240,7 +241,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       case 'timeline':
         return { title: '', items: [] }
       case 'timeline_item':
-        return { date: '', title: 'Meilenstein', description: '' }
+        return { date: '', title: 'Meilenstein', blocks: [] }
       case 'carousel':
         return { slides: [] }
       case 'progress_bar':
@@ -255,6 +256,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { title: 'Gemeinde finden', subtitle: 'Suche deine Gemeinde und entdecke deren Klimaschutz-Bewertung.' }
       case 'newsletter_signup':
         return { title: 'Newsletter abonnieren', description: 'Bleib auf dem Laufenden mit Neuigkeiten und Tipps zu kommunalem Klimaschutz.' }
+      case 'icon':
+        return { iconifySlug: 'mdi:star', slkIcon: '' }
       default:
         return {}
     }
@@ -367,7 +370,9 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       // Build extra nested fields for each block that contains nested lists
       const NESTED_FIELD_MAP: Record<string, string[]> = {
         container: ['blocks'],
+        hero: ['blocks'],
         timeline: ['items'],
+        timeline_item: ['blocks'],
         hex_grid: ['hexagons'],
         carousel: ['slides'],
       }
@@ -443,13 +448,14 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'projects_carousel', label: 'Projektkarussell', description: 'Automatisches Karussell der Erfolgsprojekte', allowReusable: true },
         { id: 'municipality_search_hero', label: 'Gemeinde-Suche', description: 'Vollflächen-Sektion mit Wortwolke und Gemeinde-Suchfeld', allowReusable: true },
         { id: 'newsletter_signup', label: 'Newsletter-Anmeldung', description: 'E-Mail-Anmeldeformular für Newsletter-Listen', allowReusable: true },
+        { id: 'icon', label: 'Icon', description: 'Icon aus SLK-Bibliothek oder Iconify', allowReusable: true },
         { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'newsletter_signup', 'from_library']
-      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'newsletter_signup', 'from_library']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'newsletter_signup', 'icon', 'from_library']
+      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'newsletter_signup', 'icon', 'from_library']
       const allowedInCarousel = allowedInRoot
       return Promise.resolve([
         {
@@ -471,6 +477,15 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           allowedBundles: allowedInContainer,
         },
         {
+          name: 'blocks',
+          entityType: 'block',
+          entityBundle: 'hero',
+          label: 'Blöcke',
+          cardinality: -1,
+          canEdit: true,
+          allowedBundles: allowedInContainer,
+        },
+        {
           name: 'items',
           entityType: 'block',
           entityBundle: 'timeline',
@@ -478,6 +493,15 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           cardinality: -1,
           canEdit: true,
           allowedBundles: ['timeline_item'],
+        },
+        {
+          name: 'blocks',
+          entityType: 'block',
+          entityBundle: 'timeline_item',
+          label: 'Blöcke',
+          cardinality: -1,
+          canEdit: true,
+          allowedBundles: allowedInContainer,
         },
         {
           name: 'slides',
@@ -939,15 +963,6 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           required: false,
           maxLength: 0,
         },
-        {
-          name: 'description',
-          entityType: 'block',
-          entityBundle: 'timeline_item',
-          label: 'Beschreibung',
-          type: 'plain',
-          required: false,
-          maxLength: 0,
-        },
         // projects_carousel
         {
           name: 'label',
@@ -1234,27 +1249,44 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     },
 
     mediaLibraryGetResults: (async (e) => {
+      const PER_PAGE = 24
+      // e.page is 0-based (blökkli internal); Directus uses offset instead
+      const offset = e.page * PER_PAGE
+      // Fetch one extra item to detect if a next page exists (sentinel approach)
       const files = await getClient().request(
         readFiles({
           filter: { type: { _starts_with: 'image/' } } as any,
           sort: ['-uploaded_on'] as any,
-          limit: 24,
-          page: e.page,
+          limit: PER_PAGE + 1,
+          offset,
           fields: ['id', 'title', 'filename_download'] as any,
         }),
       )
+      const fileList = files || []
+      const hasMore = fileList.length > PER_PAGE
+      const pageItems = hasMore ? fileList.slice(0, PER_PAGE) : fileList
+      // total must be large enough so blökkli shows a next-page button when hasMore
+      const total = hasMore
+        ? offset + PER_PAGE + 1
+        : offset + fileList.length
+
+      // Append access_token so Directus serves protected assets without 403
+      const authStore = useAuthStore()
+      const token = authStore._accessToken.value
+      const tokenParam = token ? `&access_token=${encodeURIComponent(token)}` : ''
+
       return {
         filters: {},
-        items: (files || []).map((file: any) => ({
+        items: pageItems.map((file: any) => ({
           mediaId: file.id,
           label: file.title || file.filename_download,
           context: 'directus',
           targetBundles: ['image'],
           mediaBundle: 'image',
-          thumbnail: `${config.public.clientDirectusUrl}/assets/${file.id}?width=200&quality=70`,
+          thumbnail: `${config.public.clientDirectusUrl}/assets/${file.id}?width=200&quality=70${tokenParam}`,
         })),
-        total: (files || []).length,
-        perPage: 24,
+        total,
+        perPage: PER_PAGE,
       }
     }) as GetMediaLibraryFunction,
 
