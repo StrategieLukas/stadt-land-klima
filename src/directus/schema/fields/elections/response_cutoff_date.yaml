@@ -3,7 +3,16 @@ field: response_cutoff_date
 type: date
 meta:
   collection: elections
-  conditions: null
+  conditions:
+    - name: Deadline read-only after being set
+      rule:
+        _and:
+          - response_cutoff_date:
+              _nnull: true
+      readonly: true
+      options:
+        includeSeconds: false
+        use24: true
   display: null
   display_options: null
   field: response_cutoff_date
@@ -22,7 +31,7 @@ meta:
   validation:
     _and:
       - response_cutoff_date:
-          _gte: 2026-04-19
+          _gte: 2026-05-15
   validation_message: null
   width: half
 schema:
