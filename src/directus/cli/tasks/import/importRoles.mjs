@@ -6,7 +6,6 @@ import {
   createRoles,
   updateRole,
   deleteRoles,
-  readPermissions,
   createPermissions,
   updatePermission,
   deletePermissions,
@@ -19,7 +18,15 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
   try {
     const existingRoles = await client.request(readRoles({ limit: -1 }));
-    const existingPermissions = await client.request(readPermissions({ limit: -1, fields: ['*'] }));
+    // Read permissions with IDs using raw REST API
+    const permissionsUrl = new URL('/permissions', client.url).toString();
+    const permissionsResponse = await fetch(permissionsUrl + '?limit=-1&fields=*', {
+      headers: {
+        'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+      },
+    });
+    const permissionsData = await permissionsResponse.json();
+    const existingPermissions = permissionsData.data || [];
 
     const roles = readYamlFiles(path.join(src));
     let permissions = [];
@@ -63,11 +70,12 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
         let existingPermission = null;
         if(roleIsPublic) {
-          existingPermission = find(existingPermissions, {
-            action: permission.action,
-            role: null, // match public
-            collection: permission.collection,
-          })
+          // Match public permissions: role is null or undefined (use callback for flexibility)
+          existingPermission = find(existingPermissions, (p) =>
+            p.action === permission.action &&
+            !p.role &&
+            p.collection === permission.collection
+          );
         } else if(existingRoleEntry && existingRoleEntry.id) {
           existingPermission = find(existingPermissions, {
             action: permission.action,
@@ -78,9 +86,12 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
           // do nothing if no existing role entry is found and role is not public
         }
 
+        // Only update if we have a matching permission with a valid id
+        const shouldUpdate = roleIsPublic
+          ? existingPermission && existingPermission.id
+          : existingPermission && existingPermission.id && existingRoleEntry && existingRoleEntry.id;
 
-
-        if (existingPermission && existingPermission.id && existingRoleEntry && existingRoleEntry.id) {
+        if (shouldUpdate) {
           permission.id = existingPermission.id;
           permission.role = roleIsPublic ? null : existingRoleEntry.id;
           permissionsToUpdate.push(permission);
@@ -112,7 +123,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
     // --- Refresh roles with IDs from database ---
     // Re-fetch roles to get the actual IDs (especially for newly created roles)
     const updatedRoles = await client.request(readRoles({ limit: -1 }));
-    
+
     // Update the roles array with the fresh data including IDs
     roles.forEach((role) => {
       if (role.name !== 'Administrator' && role.name !== 'Public' && !role.id) {
@@ -126,7 +137,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
     // --- Map role IDs onto permissions ---
     permissions.forEach((permission) => {
       if (permission.role_name === 'Administrator') {
-        // 🔹 Never touch Administrator permissions
+        // Never touch Administrator permissions
         return;
       } else if (permission.role_name === 'Public') {
         permission.role = null;
@@ -139,24 +150,28 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
     // --- Permissions ---
     if (permissionsToCreate.length) {
       if (options.verbose) console.info(`Creating ${permissionsToCreate.length} permissions`);
-      await client.request(createPermissions(permissionsToCreate));
+      // Remove role_name field as it's not part of Directus permission schema
+      const permissionsToCreateClean = permissionsToCreate.map(({ role_name, ...rest }) => rest);
+      await client.request(createPermissions(permissionsToCreateClean));
     }
 
     if (permissionsToUpdate.length) {
       if (options.verbose) console.info(`Updating ${permissionsToUpdate.length} permissions`);
       await Promise.all(
-        permissionsToUpdate.map((permission) =>
-          client.request(updatePermission(permission.id, permission)).catch((err) => {
+        permissionsToUpdate.map((permission) => {
+          // Remove role_name field as it's not part of Directus permission schema
+          const { role_name, ...permissionClean } = permission;
+          return client.request(updatePermission(permission.id, permissionClean)).catch((err) => {
             console.error(err, permission);
-          })
-        )
+          });
+        })
       );
     }
 
     // --- Remove ---
     if (options.remove) {
       const rolesToDelete = existingRoles.filter((role) => {
-        // 🔹 Never delete Administrator
+        // Never delete Administrator
         if (role.name === 'Administrator') return false;
         return !find(roles, ['name', role.name]);
       });
@@ -164,8 +179,9 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       const permissionsToDelete = existingPermissions.filter((permission) => {
         if (!(permission.id && (permission.role || permission.role === null))) return false;
 
+        // Check for Public role: role is null, undefined, or other falsy value
         const roleEntry =
-          permission.role === null
+          !permission.role
             ? { name: 'Public' }
             : find(existingRoles, ['id', permission.role]);
 
