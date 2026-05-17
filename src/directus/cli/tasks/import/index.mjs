@@ -153,6 +153,77 @@ function importTasks(yargs) {
   )
 
   .command(
+    'import:all [src]',
+    'imports schema, roles, flows, presets, translations, and settings consecutively',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'base folder for all imports (default: current directory)',
+        default: '.',
+      });
+    },
+    async (argv) => {
+      const startTime = Date.now();
+      const src = argv.src;
+
+      console.info('Starting full import...');
+
+      // Clear cache once at the beginning
+      console.info('Clearing cache...');
+      await clearDirectusCache();
+
+      // Import schema
+      console.info('Importing schema...');
+      await importSchema(path.join(src, 'schema'), {
+        verbose: argv.verbose,
+      });
+
+      // Import roles
+      console.info('Importing roles...');
+      await importRoles(path.join(src, 'roles'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import flows
+      console.info('Importing flows...');
+      await importFlows(path.join(src, 'flows'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import presets
+      console.info('Importing presets...');
+      await importPresets(path.join(src, 'presets'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import translations
+      console.info('Importing translations...');
+      await importTranslations(path.join(src, 'translations'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import settings
+      console.info('Importing settings...');
+      await importSettings(path.join(src, 'settings'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.info(`Full import completed in ${elapsed}s`);
+    }
+  )
+
+  .command(
     'import:items [collection] [src]',
     'imports the items of a collection from a file specified by "src". By default it will import from "contents/{collection}.yaml"',
     (yargs) => {
