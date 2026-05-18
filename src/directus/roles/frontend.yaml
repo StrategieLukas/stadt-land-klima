@@ -282,6 +282,7 @@ permissions:
       - registration_url
       - date_created
       - image
+      - cta_label
   - collection: external_projects
     action: read
     permissions: null
@@ -373,6 +374,7 @@ permissions:
       - catalog_version
       - must_be_rated_again
       - choices_rating
+      - image
   - collection: municipalities
     action: read
     permissions: null

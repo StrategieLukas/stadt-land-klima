@@ -62,6 +62,17 @@
           </button>
           <button
             type="button"
+            @click="viewMode = 'cards'"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
+            :class="viewMode === 'cards' ? 'bg-gray text-white border-gray' : 'bg-white border-gray text-gray hover:bg-[#f2f2f2]'"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            Karten
+          </button>
+          <button
+            type="button"
             @click="viewMode = 'treemap'"
             class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
             :class="viewMode === 'treemap' ? 'bg-gray text-white border-gray' : 'bg-white border-gray text-gray hover:bg-[#f2f2f2]'"
@@ -140,7 +151,7 @@
         </div>
       </div>
 
-      <template v-if="viewMode === 'list'">
+      <template v-if="viewMode === 'list' || viewMode === 'cards'">
       <div class="border-t border-gray/20 my-0.5" />
 
       <!-- Row 3: Sort -->
@@ -202,8 +213,8 @@
       <p>{{ $t(`measure_sectors.${selectedSector}.description`) }}</p>
     </div>
 
-    <!-- Result count (list only) -->
-    <p v-if="viewMode === 'list'" class="text-sm text-gray-500 mb-4">{{ filteredMeasures.length }} Maßnahmen</p>
+    <!-- Result count (list / cards only) -->
+    <p v-if="viewMode === 'list' || viewMode === 'cards'" class="text-sm text-gray-500 mb-4">{{ filteredMeasures.length }} Maßnahmen</p>
 
     <!-- Treemap view -->
     <ClientOnly>
@@ -214,6 +225,20 @@
         class="mb-8"
       />
     </ClientOnly>
+
+    <!-- Cards view -->
+    <div v-if="viewMode === 'cards'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <MeasureCard
+        v-for="measure in filteredMeasures"
+        :key="measure.measure_id"
+        :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
+        :measure_id="measure.measure_id"
+        :name="measure.name"
+        :sector="measure.sector"
+        :description="truncateHtml(measure.description_about)"
+        :image_id="measure.image || null"
+      />
+    </div>
 
     <!-- List view -->
     <div v-if="viewMode === 'list'" class="grid grid-cols-1 gap-2">
@@ -294,7 +319,7 @@ async function fetchMeasures(catalogVersionId) {
   return useAsyncData(`measures-index-${catalogVersionId}`, () => {
     return $directus.request(
       $readItems("measures", {
-        fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight"],
+        fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight", "image"],
         filter: { catalog_version: { _eq: catalogVersionId } },
         sort: "measure_id",
         limit: -1,
@@ -319,7 +344,7 @@ watch(
 
 // ── Filter state ────────────────────────────────────────────────────────────
 const selectedSector = ref(route.query.sector || null);
-const viewMode = ref(route.query.view === 'treemap' ? 'treemap' : 'list');
+const viewMode = ref(route.query.view === 'treemap' ? 'treemap' : route.query.view === 'cards' ? 'cards' : 'list');
 const filterHighImpact = ref(false);
 const filterLowCost = ref(false);
 const filterLowControversy = ref(false);

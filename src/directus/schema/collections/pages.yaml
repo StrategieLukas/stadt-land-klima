@@ -8,14 +8,14 @@ meta:
   collection: pages
   color: null
   display_template: null
-  group: admin_tools
+  group: content
   hidden: false
   icon: feed
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: 2
+  sort: 1
   sort_field: null
   translations:
     - language: de-DE

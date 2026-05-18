@@ -1,0 +1,42 @@
+collection: events
+field: cta_label
+type: string
+meta:
+  collection: events
+  conditions: null
+  display: null
+  display_options: null
+  field: cta_label
+  group: null
+  hidden: false
+  interface: input
+  note: 'Beschriftung des Anmelde-Buttons. Standard: "Zur Anmeldung"'
+  options:
+    placeholder: Zur Anmeldung
+    trim: true
+  readonly: false
+  required: false
+  sort: 11
+  special: null
+  translations:
+    - language: de-DE
+      translation: Button-Beschriftung
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: cta_label
+  table: events
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -9,7 +9,7 @@
       :entity="page"
     >
       <template #default="{ isEditing }">
-        <article class="px-4 py-8 max-w-4xl mx-auto w-full self-center">
+        <article class="px-4 pb-8 max-w-4xl mx-auto w-full self-center">
           <!-- blökkli field: renders blocks when available -->
           <BlokkliField
             name="content"

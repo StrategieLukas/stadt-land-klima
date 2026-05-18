@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-button" :id="'block-' + uuid">
+  <div class="blokkli-block-button flex self-start" :id="'block-' + uuid" :class="[alignClass]">
     <!-- External link -->
     <a
       v-if="options.linkType === 'external'"
@@ -80,6 +80,12 @@ function prepareIcon(raw: string): string {
   // Remove background <rect> with cls-2 class (solid bg)
   svg = svg.replace(/<rect[^>]*class="cls-2"[^/>]*\/>/g, '')
   svg = svg.replace(/<rect[^>]*class="cls-2"[^>]*>[^<]*<\/rect>/g, '')
+  // Remove cls-3 background rects (agriculture, hint icons)
+  svg = svg.replace(/<rect[^>]*class="cls-3"[^/>]*\/>/g, '')
+  svg = svg.replace(/<rect[^>]*class="cls-3"[^>]*>[^<]*<\/rect>/g, '')
+  // Remove st0 background circles (impact, invest, evaluation_criteria, politics icons)
+  svg = svg.replace(/<circle[^>]*class="st0"[^/>]*\/>/g, '')
+  svg = svg.replace(/<circle[^>]*class="st0"[^>]*>[^<]*<\/circle>/g, '')
   // Replace CSS fill/stroke declarations with currentColor
   svg = svg.replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, 'fill: currentColor')
   svg = svg.replace(/stroke:\s*#[0-9a-fA-F]{3,6}/g, 'stroke: currentColor')
@@ -187,6 +193,17 @@ const { options, isEditing, uuid } = defineBlokkli({
         none: 'Kein',
       },
     },
+    align: {
+      type: 'radios',
+      label: 'Ausrichtung',
+      default: 'left',
+      group: 'Stil',
+      options: {
+        left: 'Links',
+        center: 'Zentriert',
+        right: 'Rechts',
+      },
+    },
   },
   editor: {
     addBehaviour: 'no-form',
@@ -279,6 +296,16 @@ const colorConfig: Record<string, { filled: string; outline: string; autoTextFil
 const styleClass = computed(() => {
   const c = colorConfig[options.value.color] || colorConfig.green
   return options.value.variant === 'outline' ? c.outline : c.filled
+})
+
+const alignClass = computed(() => {
+  const map: Record<string, string> = {
+    left: 'justify-start',
+    center: 'justify-center',
+    end: 'justify-end',
+    right: 'justify-end',
+  }
+  return map[options.value.align] || 'justify-start'
 })
 
 const textColorClass = computed(() => {

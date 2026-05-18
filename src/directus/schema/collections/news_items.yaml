@@ -8,14 +8,14 @@ meta:
   collection: news_items
   color: null
   display_template: "{{title}}"
-  group: admin_tools
+  group: content
   hidden: false
   icon: newspaper
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: 3
+  sort: 2
   sort_field: date_published
   translations:
     - language: de-DE

@@ -36,12 +36,21 @@
           :class="textColorClass"
           v-text="props.subtitle"
         />
+        <BlokkliField
+          v-if="(props.blocks && props.blocks.length) || isEditing"
+          name="blocks"
+          :list="props.blocks || []"
+          tag="div"
+          class="mt-6 flex flex-col gap-4"
+        />
       </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { FieldListItem } from '#blokkli/types'
+
 const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'hero',
   options: {
@@ -90,7 +99,7 @@ const { options, isEditing, uuid } = defineBlokkli({
   editor: {
     addBehaviour: 'editable:title',
     editTitle: (el) => el.querySelector('h1')?.textContent || 'Hero',
-    mockProps: () => { return { title: 'Überschrift', subtitle: 'Untertitel hier eingeben', imageId: '' } },
+    mockProps: () => { return { title: 'Überschrift', subtitle: 'Untertitel hier eingeben', imageId: '', blocks: [] } },
   },
 })
 
@@ -98,6 +107,7 @@ const props = defineProps<{
   title?: string
   subtitle?: string
   imageId?: string
+  blocks?: FieldListItem[]
 }>()
 
 const config = useRuntimeConfig()

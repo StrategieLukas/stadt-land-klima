@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Blokkli: allow radio options inside a group dropdown to wrap to multiple
+   lines so long option lists (e.g. slkIcon with 24 entries) don't overflow. */
+.bk-blokkli-item-options-group-content .bk-blokkli-item-options-radios:not(.bk-is-color) {
+  flex-wrap: wrap;
+  max-width: 380px;
+  height: auto !important;
+  padding: 4px 8px;
+  gap: 2px;
+}
+
 /* Reserve scrollbar gutter so appearing/disappearing scrollbars don't change
    the viewport width and cause layout shifts on pages with dynamic content. */
 html {

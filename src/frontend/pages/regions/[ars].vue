@@ -184,54 +184,6 @@ const t = (key, fallback) => {
   return translation === key ? fallback : translation;
 };
 
-// Derive a significant ARS prefix by stripping trailing zeros
-function getArsPrefix(ars) {
-  const trimmed = ars.replace(/0+$/, '');
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-// Fetch all municipalities within this region, paging through all results
-async function fetchMunicipalitiesInRegion(regionArs) {
-  const runtimeConfig = useRuntimeConfig();
-  const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl;
-  if (!stadtlandzahlURL) return [];
-
-  const prefix = getArsPrefix(regionArs);
-  const arsFilter = prefix ? `, ars_Icontains: "${prefix}"` : '';
-  const PAGE_SIZE = 500;
-  const nodes = [];
-  let cursor = null;
-
-  while (true) {
-    const afterArg = cursor ? `, after: "${cursor}"` : '';
-    const query = `{ allAdministrativeAreas(first: ${PAGE_SIZE}${afterArg}, isReasonableForMunicipalRating: true${arsFilter}, orderBy: "-population") { pageInfo { hasNextPage endCursor } edges { node { ars name prefix level population stadtlandklimaDataAll { slug scoreTotal percentageRated measureCatalogName } } } } }`;
-
-    try {
-      const response = await fetch(stadtlandzahlURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      const connection = data?.data?.allAdministrativeAreas;
-      if (!connection) break;
-
-      for (const edge of connection.edges ?? []) {
-        nodes.push(edge.node);
-      }
-
-      if (!connection.pageInfo?.hasNextPage) break;
-      cursor = connection.pageInfo.endCursor;
-    } catch (e) {
-      console.error('fetchMunicipalitiesInRegion error:', e);
-      break;
-    }
-  }
-
-  return nodes;
-}
-
 // Municipalities sorted by score for the current catalog version
 const rankedMunicipalities = computed(() => {
   const catalogName = selectedCatalogVersion.value?.name;
@@ -272,10 +224,8 @@ useHead({ title: pageTitle });
 onMounted(async () => {
   loadingMunicipalities.value = true;
   try {
-    const [areaData, munis] = await Promise.all([
-      $stadtlandzahlAPI.fetchStatsByARS(route.params.ars),
-      fetchMunicipalitiesInRegion(route.params.ars),
-    ]);
+    // Fetch area data first so we know the level before building the ARS prefix.
+    const areaData = await $stadtlandzahlAPI.fetchStatsByARS(route.params.ars);
 
     if (areaData) {
       // If someone navigates here directly with a level 4+ ARS, redirect to /stats/
@@ -286,7 +236,10 @@ onMounted(async () => {
       area.value = areaData;
     }
 
-    municipalities.value = munis;
+    municipalities.value = await $stadtlandzahlAPI.fetchMunicipalitiesInRegion(
+      route.params.ars,
+      areaData?.level,
+    );
   } catch (e) {
     console.error('Error loading region:', e);
   } finally {
