@@ -160,9 +160,24 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       await Promise.all(
         permissionsToUpdate.map((permission) => {
           // Remove role_name field as it's not part of Directus permission schema
-          const { role_name, ...permissionClean } = permission;
-          return client.request(updatePermission(permission.id, permissionClean)).catch((err) => {
-            console.error(err, permission);
+          const { role_name, id: permissionId, ...permissionClean } = permission;
+          return client.request(updatePermission(permissionId, permissionClean)).catch(async (err) => {
+            // If the update fails with an FK error on the role field, the permission is orphaned
+            // (its role UUID no longer exists in directus_roles). Fall back to deleting the
+            // stale permission and creating a fresh one so the import is idempotent.
+            const isFkError = JSON.stringify(err).includes('Invalid foreign key') ||
+              (err?.errors?.[0]?.message ?? '').includes('Invalid foreign key');
+            if (isFkError) {
+              console.warn(`Permission ${permissionId} has invalid role FK — deleting stale entry and recreating.`);
+              try {
+                await client.request(deletePermissions([permissionId]));
+                await client.request(createPermissions([permissionClean]));
+              } catch (retryErr) {
+                console.error('Failed to recreate permission after FK error:', retryErr, permission);
+              }
+            } else {
+              console.error(err, permission);
+            }
           });
         })
       );
