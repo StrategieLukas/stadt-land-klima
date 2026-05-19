@@ -155,7 +155,7 @@ async function handleSubmit() {
   errorMessage.value = '';
 
   try {
-    const result = await login(email.value, password.value);
+    const result = await login({ email: email.value, password: password.value });
 
     if (result.success) {
       emit('success', result.user);

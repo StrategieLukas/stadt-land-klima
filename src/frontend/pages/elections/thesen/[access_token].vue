@@ -128,7 +128,7 @@
 </template>
 
 <script setup>
-import { createItem, updateItem } from '@directus/sdk/rest'
+import { createItem, updateItem } from '@directus/sdk'
 
 const route = useRoute()
 const { $directus, $readItems, $readItem } = useNuxtApp()

@@ -12,7 +12,7 @@ export async function setStaticToken() {
     const directus = createDirectus(directusUrl).with(authentication()).with(rest());
 
     console.log("Logging in with admin credentials to get temporary access token...");
-    await directus.login(process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD, {});
+    await directus.login({ email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD });
 
     console.log("Generating static token...");
     const newToken = crypto.randomBytes(24).toString('hex').slice(0, 32);

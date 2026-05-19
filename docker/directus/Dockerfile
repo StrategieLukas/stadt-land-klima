@@ -1,4 +1,4 @@
-FROM directus/directus:10
+FROM directus/directus:11.17.4
 ARG UID=1000
 ARG GID=1000
 

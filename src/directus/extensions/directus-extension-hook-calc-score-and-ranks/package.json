@@ -21,7 +21,7 @@
   },
   "directus:extension": {
     "type": "hook",
-    "host": "^10.0.0",
+    "host": "^11.0.0",
     "path": "./dist/index.js",
     "source": "src/index.js"
   }

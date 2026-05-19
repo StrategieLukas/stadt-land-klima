@@ -13,7 +13,7 @@
     "type": "interface",
     "path": "dist/index.js",
     "source": "src/index.js",
-    "host": "^10.1.14"
+    "host": "^11.0.0"
   },
   "scripts": {
     "build": "directus-extension build",
@@ -21,7 +21,7 @@
     "link": "directus-extension link"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "10.1.14",
+    "@directus/extensions-sdk": "11.17.4",
     "vue": "^3.3.8"
   }
 }

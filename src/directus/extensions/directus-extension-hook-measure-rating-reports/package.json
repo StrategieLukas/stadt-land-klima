@@ -16,7 +16,7 @@
 		"type": "hook",
 		"path": "dist/index.js",
 		"source": "src/index.js",
-		"host": "^10.10.0"
+		"host": "^11.0.0"
 	},
 	"scripts": {
 		"build": "directus-extension build",
@@ -25,7 +25,7 @@
 		"validate": "directus-extension validate"
 	},
 	"devDependencies": {
-		"@directus/extensions-sdk": "17.0.4",
+		"@directus/extensions-sdk": "11.17.4",
 		"csvjson": "5.1.0"
 	}
 }
