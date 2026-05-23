@@ -1,6 +1,7 @@
 <template>
   <!-- Social Media & Onboarding Section -->
-  <div class="max-w-screen-xl mx-auto text-center mb-8">
+  <div class="w-full bg-gray-100">
+  <div class="max-w-screen-xl mx-auto text-center py-8">
     <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
       <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
     </NuxtLink>
@@ -26,6 +27,7 @@
         <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
       </a>
     </div>
+  </div>
   </div>
 
   <!-- Main Footer -->

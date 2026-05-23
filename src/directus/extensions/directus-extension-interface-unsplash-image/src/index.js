@@ -31,5 +31,18 @@ export default {
         default_value: false,
       },
     },
+    {
+      field: 'creditsField',
+      name: 'Credits Field',
+      type: 'string',
+      meta: {
+        interface: 'input',
+        width: 'half',
+        note: 'Sibling field to write Unsplash photo credits to (e.g. image_credits)',
+      },
+      schema: {
+        default_value: 'image_credits',
+      },
+    },
   ],
 };

@@ -66,5 +66,12 @@ services:
     volumes:
       - ./src/frontend:/frontend
     env_file: ./src/frontend/.env
+    networks:
+      - default
+      - stadt-land-zahl_default
     depends_on:
     - directus
+
+networks:
+  stadt-land-zahl_default:
+    external: true

@@ -237,6 +237,7 @@
         :sector="measure.sector"
         :description="truncateHtml(measure.description_about)"
         :image_id="measure.image || null"
+        :image_credits="measure.image_credits || null"
       />
     </div>
 
@@ -319,7 +320,7 @@ async function fetchMeasures(catalogVersionId) {
   return useAsyncData(`measures-index-${catalogVersionId}`, () => {
     return $directus.request(
       $readItems("measures", {
-        fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight", "image"],
+        fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight", "image", "image_credits"],
         filter: { catalog_version: { _eq: catalogVersionId } },
         sort: "measure_id",
         limit: -1,

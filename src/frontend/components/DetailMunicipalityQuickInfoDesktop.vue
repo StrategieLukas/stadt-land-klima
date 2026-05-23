@@ -82,6 +82,16 @@
                 </span>
             </div>
 
+            <div v-if="municipality?.localteam_id?.date_created" class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
+                <span class="text-sm text-gray-700">{{ $t("municipality.localteam_founded") }}</span>
+                </div>
+                <span class="text-sm font-bold text-right text-gray-900">
+                {{ new Date(municipality.localteam_id.date_created).toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' }) }}
+                </span>
+            </div>
+
             <div v-if="municipalityScore?.score_total">
                 <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">

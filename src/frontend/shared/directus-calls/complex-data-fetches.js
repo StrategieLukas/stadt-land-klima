@@ -30,7 +30,7 @@ export async function fetchMunicipalityData($directus, $readItems, slug, catalog
     }
     const municipalityScore = municipalityScores[0]
   
-    const ratingsMeasures = await fetchRatingsMeasures($directus, $readItems, municipalityScore.municipality.localteam_id, catalogVersionId);
+    const ratingsMeasures = await fetchRatingsMeasures($directus, $readItems, municipalityScore.municipality.localteam_id?.id ?? municipalityScore.municipality.localteam_id, catalogVersionId);
     return {
       municipalityScore,
       measures,

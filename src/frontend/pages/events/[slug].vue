@@ -10,13 +10,14 @@
     </NuxtLink>
 
     <!-- Teaser image -->
-    <div v-if="event.image" class="rounded-xl overflow-hidden mb-6">
+    <div v-if="event.image" class="rounded-xl overflow-hidden mb-2">
       <img
         :src="`${directusUrl}/assets/${event.image}?width=800&quality=80`"
         :alt="event.title"
         class="w-full h-auto block"
       />
     </div>
+    <p v-if="event.image_credits" class="text-xs text-gray-500 italic mb-6 text-center">{{ event.image_credits }}</p>
 
     <!-- Type badge -->
     <span class="text-xs font-semibold uppercase tracking-wide px-3 py-1 rounded-full bg-light-green/10 text-olive-green mb-4 inline-block">
@@ -85,7 +86,7 @@ const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
       slug: { _eq: route.params.slug },
       status: { _eq: 'published' },
     },
-    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url', 'cta_label', 'image'],
+    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url', 'cta_label', 'image', 'image_credits'],
     limit: 1,
   })).then(data => data?.[0] ?? null)
 )

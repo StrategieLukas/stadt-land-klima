@@ -1,81 +1,95 @@
 /**
  * Server-side area search endpoint.
  *
- * The browser calls this with ?term=...&mode=... instead of fetching
- * data.stadt-land-klima.de directly. This ensures the GraphQL request
- * always goes through the server (server → data.stadt-land-klima.de),
- * which avoids mobile network restrictions and mixed-content issues on
- * HTTP-only test/staging environments.
+ * The browser calls this with ?term=...&mode=... and this route proxies the
+ * request to the stadtlandzahl REST API (/api/search/areas/). Running the
+ * request server-side avoids mobile network restrictions and mixed-content
+ * issues on HTTP-only test/staging environments.
+ *
+ * Response fields are normalised from snake_case to the camelCase shape that
+ * the useAreaSearch / useUnifiedSearch composables expect.
  */
 
-const AREA_SEARCH_GQL = `
-  query searchAreas($name_Icontains: String!, $isReasonableForMunicipalRating: Boolean, $level_In: [Int]) {
-    allAdministrativeAreas(
-      first: 8
-      orderBy: "-population"
-      name_Icontains: $name_Icontains
-      isReasonableForMunicipalRating: $isReasonableForMunicipalRating
-      level_In: $level_In
-    ) {
-      edges {
-        node {
-          prefix
-          name
-          ars
-          level
-          population
-          stadtlandklimaDataAll {
-            slug
-            scoreTotal
-            percentageRated
-            measureCatalogName
-          }
-          isReasonableForMunicipalRating
-        }
-      }
-    }
-  }
-`
+type RestAreaData = {
+  slug: string
+  score_total: number | null
+  percentage_rated: number | null
+  measure_catalog_name: string
+}
 
-async function fetchNodes(apiUrl: string, variables: Record<string, unknown>) {
-  const res = await fetch(apiUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: AREA_SEARCH_GQL, variables }),
-  })
-  const json = await res.json() as { data?: { allAdministrativeAreas?: { edges?: { node: unknown }[] } } }
-  return json.data?.allAdministrativeAreas?.edges?.map(e => e.node) ?? []
+type RestArea = {
+  prefix: string
+  name: string
+  ars: string
+  level: number
+  population: number
+  is_reasonable_for_municipal_rating: boolean
+  stadtlandklima_data_all: RestAreaData[]
+}
+
+type RestSearchResponse = { results?: RestArea[] }
+
+/** Normalise a REST area record to the camelCase shape expected by the composables. */
+function normalise(area: RestArea) {
+  return {
+    prefix: area.prefix,
+    name: area.name,
+    ars: area.ars,
+    level: area.level,
+    population: area.population,
+    isReasonableForMunicipalRating: area.is_reasonable_for_municipal_rating,
+    stadtlandklimaDataAll: (area.stadtlandklima_data_all ?? []).map(d => ({
+      slug: d.slug,
+      scoreTotal: d.score_total,
+      percentageRated: d.percentage_rated,
+      measureCatalogName: d.measure_catalog_name,
+    })),
+  }
+}
+
+async function fetchFromRest(baseUrl: string, params: Record<string, string>) {
+  const url = new URL(`${baseUrl}/api/search/areas/`)
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
+  const res = await fetch(url.toString())
+  if (!res.ok) throw new Error(`[area-search] REST ${res.status}: ${url}`)
+  const json = await res.json() as RestSearchResponse
+  return (json.results ?? []).map(normalise)
 }
 
 export default defineEventHandler(async (event) => {
   const { term, mode = 'reasonable' } = getQuery(event) as { term?: string; mode?: string }
 
-  if (!term || !term.trim()) {
-    return []
-  }
+  if (!term || !term.trim()) return []
 
   const config = useRuntimeConfig()
-  const apiUrl = config.public.stadtlandzahlUrl || 'http://localhost:8000/graphql/'
+  // Prefer the explicit REST URL; fall back to deriving the base from the GraphQL URL
+  // (strips the trailing /graphql/ path, e.g. https://data.stadt-land-klima.de/graphql/ → https://data.stadt-land-klima.de)
+  const restUrl    = (config.public.stadtlandzahlRestUrl as string) || ''
+  const graphqlUrl = (config.public.stadtlandzahlUrl as string) || ''
+  const baseUrl    = restUrl || graphqlUrl.replace(/\/graphql\/?$/, '') || 'http://localhost:8070'
+  const q = term.trim()
 
   try {
     if (mode === 'normal') {
-      const [areaSettled, muniSettled] = await Promise.allSettled([
-        fetchNodes(apiUrl, { name_Icontains: term.trim(), level_In: [1, 2, 3] }),
-        fetchNodes(apiUrl, { name_Icontains: term.trim(), isReasonableForMunicipalRating: true }),
+      // Two parallel requests: one for all areas (filtered to level ≤ 3 client-side)
+      // and one for reasonable municipalities.
+      const [allSettled, muniSettled] = await Promise.allSettled([
+        fetchFromRest(baseUrl, { q }),
+        fetchFromRest(baseUrl, { q, is_reasonable_for_municipal_rating: 'true' }),
       ])
-      const areaNodes = areaSettled.status === 'fulfilled' ? areaSettled.value : []
+      const allNodes = allSettled.status === 'fulfilled' ? allSettled.value : []
       const muniNodes = muniSettled.status === 'fulfilled' ? muniSettled.value : []
-      const seen = new Set<unknown>()
-      const merged: unknown[] = []
-      for (const node of [...areaNodes, ...muniNodes]) {
-        const n = node as { ars?: string }
-        if (!seen.has(n.ars)) { seen.add(n.ars); merged.push(node) }
+      const regionNodes = allNodes.filter(n => n.level <= 3)
+      const seen = new Set<string>()
+      const merged = []
+      for (const node of [...regionNodes, ...muniNodes]) {
+        if (!seen.has(node.ars)) { seen.add(node.ars); merged.push(node) }
       }
       return merged
     } else if (mode === 'reasonable') {
-      return await fetchNodes(apiUrl, { name_Icontains: term.trim(), isReasonableForMunicipalRating: true })
+      return await fetchFromRest(baseUrl, { q, is_reasonable_for_municipal_rating: 'true' })
     } else {
-      return await fetchNodes(apiUrl, { name_Icontains: term.trim() })
+      return await fetchFromRest(baseUrl, { q })
     }
   } catch (err) {
     console.error('[area-search] failed:', err)

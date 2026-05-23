@@ -71,54 +71,64 @@
               </div>
 
               <!-- No results -->
-              <div v-else-if="!results.length" class="py-10 text-center text-gray-400 text-sm">
+              <div v-else-if="!flatResults.length" class="py-10 text-center text-gray-400 text-sm">
                 Keine Ergebnisse für „{{ query }}"
               </div>
 
-              <!-- Results list -->
+              <!-- Results list with group headers -->
               <ul v-else>
-                <li
-                  v-for="(result, i) in results"
-                  :key="result._key ?? i"
-                  class="palette-result px-4 py-3 cursor-pointer border-b border-gray-50 last:border-b-0 transition-colors"
-                  :class="focusedIndex === i ? 'palette-result--focused' : ''"
-                  @click="navigate(result)"
-                  @mouseenter="focusedIndex = i"
-                >
-                  <!-- Administrative area result (municipalities + level 1-3 regions) -->
-                  <template v-if="result._type === 'area'">
-                    <AreaSearchResult :result="result" @chip-action="onChipAction" />
-                  </template>
+                <template v-for="group in groupsWithIndex" :key="group.id">
+                  <!-- Group header — only shown when the group has results -->
+                  <li
+                    v-if="group.results.length"
+                    class="px-4 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50 border-b border-gray-100 pointer-events-none select-none sticky top-0"
+                  >
+                    {{ group.label }}
+                  </li>
 
-                  <!-- Inhalte result -->
-                  <template v-else-if="result._type === 'content'">
-                    <div class="flex items-start gap-3 w-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-                      </svg>
-                      <div class="flex-1 min-w-0">
-                        <!-- eslint-disable-next-line vue/no-v-html -->
-                        <div class="font-semibold text-gray-900 leading-tight" v-html="result.title" />
-                        <!-- eslint-disable-next-line vue/no-v-html -->
-                        <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
+                  <li
+                    v-for="result in group.results"
+                    :key="result._key ?? result._flatIndex"
+                    class="palette-result px-4 py-3 cursor-pointer border-b border-gray-50 last:border-b-0 transition-colors"
+                    :class="focusedIndex === result._flatIndex ? 'palette-result--focused' : ''"
+                    @click="navigate(result)"
+                    @mouseenter="focusedIndex = result._flatIndex"
+                  >
+                    <!-- Administrative area result (municipalities + level 1-3 regions) -->
+                    <template v-if="result._type === 'area'">
+                      <AreaSearchResult :result="result" @chip-action="onChipAction" />
+                    </template>
+
+                    <!-- Inhalte result -->
+                    <template v-else-if="result._type === 'content'">
+                      <div class="flex items-start gap-3 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                          <!-- eslint-disable-next-line vue/no-v-html -->
+                          <div class="font-semibold text-gray-900 leading-tight" v-html="result.title" />
+                          <!-- eslint-disable-next-line vue/no-v-html -->
+                          <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
+                        </div>
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0 inline-flex items-center gap-1">
+                          {{ contentTypeLabel(result.type) }}
+                          <template v-if="result.meta">
+                            <span class="text-gray-400">·</span>
+                            <img
+                              v-if="sectorImages[result.meta]"
+                              :src="sectorImages[result.meta]"
+                              :title="sectorLabels[result.meta] ?? result.meta"
+                              class="h-8 w-8 flex-shrink-0 invert grayscale mix-blend-multiply"
+                              :alt="sectorLabels[result.meta] ?? result.meta"
+                            />
+                            <span v-else>{{ result.meta }}</span>
+                          </template>
+                        </span>
                       </div>
-                      <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0 inline-flex items-center gap-1">
-                        {{ contentTypeLabel(result.type) }}
-                        <template v-if="result.meta">
-                          <span class="text-gray-400">·</span>
-                          <img
-                            v-if="sectorImages[result.meta]"
-                            :src="sectorImages[result.meta]"
-                            :title="sectorLabels[result.meta] ?? result.meta"
-                            class="h-8 w-8 flex-shrink-0 invert grayscale mix-blend-multiply"
-                            :alt="sectorLabels[result.meta] ?? result.meta"
-                          />
-                          <span v-else>{{ result.meta }}</span>
-                        </template>
-                      </span>
-                    </div>
-                  </template>
-                </li>
+                    </template>
+                  </li>
+                </template>
               </ul>
             </div>
 
@@ -150,14 +160,14 @@ import { ref, watch, watchEffect, nextTick, onMounted, onBeforeUnmount } from 'v
 import { useRouter } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
-import { useAreaSearch } from '~/composables/useAreaSearch.js'
-import { useContentSearch } from '~/composables/useContentSearch.js'
+import { useUnifiedSearch } from '~/composables/useUnifiedSearch.js'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useNavInputRect } from '~/composables/useHeaderHeight.js'
 import sectorImages from '~/shared/sectorImages.js'
 import lodash from 'lodash'
 const { debounce } = lodash
 
+const { $t } = useNuxtApp()
 const { isOpen, query, embeddedInput, open, close } = useSearchPalette()
 const bridge = useEmbeddedSearchBridge()
 const router = useRouter()
@@ -166,7 +176,6 @@ const headerHeight = useHeaderHeight()
 const navInputRect = useNavInputRect()
 
 const inputRef = ref(null)
-const results = ref([])
 const isLoading = ref(false)
 const focusedIndex = ref(-1)
 
@@ -174,31 +183,15 @@ const focusedIndex = ref(-1)
 const { data: publishedMunicipalities } = useNuxtData('municipalities')
 const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map(m => m.slug)))
 
-// Unified area search (level 1-3 + reasonable municipalities)
-const adminSearch = useAreaSearch({ mode: 'normal', publishedSlugs })
-// Full-text content search composable (Meilisearch)
-const contentSearch = useContentSearch()
+// Unified search: Directus municipalities + StadtLandZahl areas + Meilisearch content
+const unifiedSearch = useUnifiedSearch({ publishedSlugs })
+const { groupsWithIndex, flatResults } = unifiedSearch
 
 // Register keyboard nav functions with the bridge so the header can call them
 bridge.register(moveFocus, navigateToFocused)
 
-// Merge area results (already enriched by useAreaSearch) with content results
 watchEffect(() => {
-  const areaResults = (adminSearch.results.value || []).map(area => ({
-    _type: 'area',
-    _key: area.ars,
-    ...area,
-  }))
-  const contentResults = (contentSearch.results.value || []).map(h => ({
-    _type: 'content',
-    _key: h.id,
-    ...h,
-  }))
-  results.value = [...areaResults, ...contentResults]
-})
-
-watchEffect(() => {
-  isLoading.value = adminSearch.isLoading.value || contentSearch.isLoading.value
+  isLoading.value = unifiedSearch.isLoading.value
 })
 
 // Watch open state → focus input (only when not embedded — header owns focus then)
@@ -210,8 +203,7 @@ watch(isOpen, async (val) => {
       inputRef.value?.focus()
     }
   } else {
-    adminSearch.clear()
-    contentSearch.clear()
+    unifiedSearch.clear()
   }
 })
 
@@ -224,12 +216,10 @@ watch(query, (q) => {
 
 function runSearch(q) {
   if (!q.trim()) {
-    adminSearch.clear()
-    contentSearch.clear()
+    unifiedSearch.clear()
     return
   }
-  adminSearch.search(q)
-  contentSearch.search(q)
+  unifiedSearch.search(q)
 }
 
 function navigate(result) {
@@ -258,20 +248,21 @@ function onChipAction({ ars }) {
 }
 
 function moveFocus(dir) {
-  const max = results.value.length - 1
+  const max = flatResults.value.length - 1
   if (max < 0) return
   focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + dir))
 }
 
 function navigateToFocused() {
-  if (focusedIndex.value >= 0 && results.value[focusedIndex.value]) {
-    navigate(results.value[focusedIndex.value])
+  if (focusedIndex.value >= 0 && flatResults.value[focusedIndex.value]) {
+    navigate(flatResults.value[focusedIndex.value])
   }
 }
 
-const contentTypeLabels = { block: 'Block', page: 'Seite', event: 'Veranstaltung', article: 'Projekt', measure: 'Maßnahme', static_page: 'Seite', news_item: 'Neuigkeit' }
+const contentTypeKeys = ['block', 'page', 'event', 'article', 'measure', 'static_page', 'news_item', 'member', 'team']
 function contentTypeLabel(type) {
-  return contentTypeLabels[type] ?? type ?? ''
+  if (!type) return ''
+  return contentTypeKeys.includes(type) ? $t(`search.content_type.${type}`) : type
 }
 
 const sectorLabels = {

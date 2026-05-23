@@ -96,6 +96,11 @@
 
     <div v-if="uploadError" class="error-msg">{{ uploadError }}</div>
 
+    <!-- Pending credits note: shown when a new item hasn't been saved yet -->
+    <div v-if="pendingCredits" class="credits-pending-note">
+      <strong>Credits (wird gespeichert nach dem ersten Speichern):</strong> {{ pendingCredits }}
+    </div>
+
     <!-- Unsplash modal overlay -->
     <div v-if="modalOpen" class="modal-overlay" @click.self="closeUnsplash">
       <div class="modal">
@@ -174,18 +179,45 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import { ref, computed, inject, watch } from 'vue';
 
 const props = defineProps({
   value: { type: String, default: null },
   disabled: { type: Boolean, default: false },
   folder: { type: String, default: null },
   letterbox: { type: Boolean, default: false },
+  creditsField: { type: String, default: 'image_credits' },
+  collection: { type: String, default: null },
+  primaryKey: { type: [String, Number], default: null },
 });
 
 const emit = defineEmits(['input']);
 
 const api = inject('api');
+
+// ─── Image credits ────────────────────────────────────────────────────────────
+
+const pendingCredits = ref(null);
+
+async function writeCreditsToItem(pk, creditsText) {
+  if (!props.collection || !pk || pk === '+') return;
+  try {
+    await api.patch(`/items/${props.collection}/${pk}`, {
+      [props.creditsField]: creditsText,
+    });
+  } catch {
+    // Non-critical: credits may be filled manually by the editor
+  }
+}
+
+// When a new item is saved (primaryKey changes from '+' to a real ID),
+// apply any credits that couldn't be written during creation.
+watch(() => props.primaryKey, async (newKey) => {
+  if (newKey && newKey !== '+' && pendingCredits.value !== null) {
+    await writeCreditsToItem(newKey, pendingCredits.value);
+    pendingCredits.value = null;
+  }
+});
 
 // ─── Current image ───────────────────────────────────────────────────────────
 
@@ -345,11 +377,14 @@ async function selectPhoto(photo) {
   uploadError.value = null;
 
   try {
+    const creditsText = `Photo by ${photo.user.name} on Unsplash`;
+
     // Import the photo into Directus files
     const importPayload = {
       url: photo.urls.regular,
       data: {
         title: photo.description || `Unsplash photo by ${photo.user.name}`,
+        description: creditsText,
         ...(props.folder ? { folder: props.folder } : {}),
       },
     };
@@ -358,6 +393,14 @@ async function selectPhoto(photo) {
     if (fileId) {
       emit('input', fileId);
       closeUnsplash();
+    }
+
+    // Write credits to the sibling field
+    if (props.primaryKey && props.primaryKey !== '+') {
+      await writeCreditsToItem(props.primaryKey, creditsText);
+    } else {
+      // New item not yet saved — store credits and apply once item is created
+      pendingCredits.value = creditsText;
     }
 
     // Trigger attribution download (Unsplash API requirement — fire-and-forget)
@@ -606,5 +649,16 @@ async function selectPhoto(photo) {
 .page-info {
   font-size: 13px;
   color: var(--theme--foreground-subdued);
+}
+
+/* ── Credits pending note ──────────────────────────────────── */
+.credits-pending-note {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--theme--border-radius);
+  background: var(--theme--primary-background);
+  color: var(--theme--foreground-subdued);
+  font-size: 12px;
+  border: 1px solid var(--theme--border-color);
 }
 </style>

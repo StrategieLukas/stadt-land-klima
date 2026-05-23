@@ -1,6 +1,6 @@
 <template>
-  <div class="my-8 border-t-4 border-gray-200 pt-6">
-    <h2 class="font-heading text-h2 font-bold text-gray mb-1">Bewertungsverlauf aller Kommunen</h2>
+  <div class="border-t-2 border-light-blue py-6">
+    <h2 class="font-heading text-h3 font-bold text-gray mb-4">Bewertungsverlauf aller Kommunen</h2>
     <p class="text-sm text-gray-500 mb-4">
       Jede Linie steht für eine Kommune. Fahren Sie mit der Maus darüber für Details — klicken Sie eine Linie, um zur Kommune zu springen. Klicken Sie einen farbigen Balken, um alle Kommunen dieser Bewertung anzuzeigen.
     </p>

@@ -282,6 +282,7 @@ permissions:
       - registration_url
       - date_created
       - image
+      - image_credits
       - cta_label
   - collection: external_projects
     action: read
@@ -319,6 +320,7 @@ permissions:
       - status
       - municipality_name
       - slug
+      - date_created
       - name
   - collection: measure_catalog
     action: read
@@ -375,6 +377,7 @@ permissions:
       - must_be_rated_again
       - choices_rating
       - image
+      - image_credits
   - collection: municipalities
     action: read
     permissions: null
@@ -405,6 +408,7 @@ permissions:
       - preview_token
       - date_created
       - image
+      - image_credits
   - collection: municipality_scores
     action: read
     permissions: {}
@@ -433,6 +437,7 @@ permissions:
       - title
       - teaser
       - image
+      - image_credits
       - date_published
       - date_created
       - status

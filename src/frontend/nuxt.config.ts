@@ -41,6 +41,7 @@ export default defineNuxtConfig({
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
       stadtlandzahlUrl: process.env.STADTLANDZAHL_URL,
+      stadtlandzahlRestUrl: process.env.STADTLANDZAHL_REST_URL || 'http://localhost:8070',
     },
   },
   devtools: { enabled: true },

@@ -1,6 +1,7 @@
 <template>
   <!-- Social Media Section -->
-  <div class="max-w-screen-xl mx-auto text-center mb-8">
+  <div class="w-full bg-gray-100">
+  <div class="max-w-screen-xl mx-auto text-center py-8">
     <p class="mb-4">
       {{ $t('generic.social_media.support_by_sharing') }}
     </p>
@@ -23,6 +24,7 @@
         <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
       </a>
     </div>
+  </div>
   </div>
 
   <!-- Main Footer -->

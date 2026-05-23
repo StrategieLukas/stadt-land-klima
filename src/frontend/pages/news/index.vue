@@ -164,6 +164,10 @@
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <span class="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full bg-[#1da64a] text-white">Veranstaltung</span>
+            <!-- Image credits overlay on hover -->
+            <div v-if="ev.image_credits && ev.image" class="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate">
+              {{ ev.image_credits }}
+            </div>
           </div>
           <!-- Card body -->
           <div class="p-4 flex flex-col gap-1 flex-1">
@@ -266,6 +270,10 @@
           <span :class="['absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full', typeBadgeClass(item.type)]">
             {{ typeLabel(item.type) }}
           </span>
+          <!-- Image credits overlay on hover -->
+          <div v-if="item.imageCredits && item.imageId" class="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate">
+            {{ item.imageCredits }}
+          </div>
           <!-- Status badge for non-published news items (editors only) -->
           <span
             v-if="item.status && item.status !== 'published'"
@@ -402,7 +410,7 @@ onMounted(async () => {
     try {
       const client = getAuthenticatedClient()
       adminNewsItems.value = await client.request(readItems('news_items', {
-        fields: ['id', 'slug', 'title', 'teaser', 'image', 'date_published', 'date_created', 'status'],
+        fields: ['id', 'slug', 'title', 'teaser', 'image', 'image_credits', 'date_published', 'date_created', 'status'],
         sort: ['-date_published', '-date_created'],
         limit: 200,
       }))
@@ -426,7 +434,7 @@ const [
   useAsyncData('feed-news', () =>
     $directus.request($readItems('news_items', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'teaser', 'image', 'date_published', 'date_created'],
+      fields: ['id', 'slug', 'title', 'teaser', 'image', 'image_credits', 'date_published', 'date_created'],
       sort: ['-date_published', '-date_created'],
       limit: 50,
     }))
@@ -434,7 +442,7 @@ const [
   useAsyncData('feed-articles', () =>
     $directus.request($readItems('articles', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'abstract', 'image', 'date_created'],
+      fields: ['id', 'slug', 'title', 'abstract', 'image', 'image_credits', 'date_created'],
       sort: ['-date_created'],
       limit: 20,
     }))
@@ -442,7 +450,7 @@ const [
   useAsyncData('feed-events', () =>
     $directus.request($readItems('events', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'end_date', 'date_created', 'image', 'location'],
+      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'end_date', 'date_created', 'image', 'image_credits', 'location'],
       sort: ['-start_date'],
       limit: 20,
     }))
@@ -450,7 +458,7 @@ const [
   useAsyncData('feed-municipalities', () =>
     $directus.request($readItems('municipalities', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'name', 'description', 'date_updated', 'image'],
+      fields: ['id', 'slug', 'name', 'description', 'date_updated', 'image', 'image_credits'],
       sort: ['-date_updated'],
       limit: 20,
     }))
@@ -476,6 +484,7 @@ const allItems = computed(() => {
       title: n.title,
       teaser: n.teaser || null,
       imageId: n.image || null,
+      imageCredits: n.image_credits || null,
       date: n.date_published || n.date_created,
       status: n.status || 'published',
       href: `/news/${n.slug}`,
@@ -489,6 +498,7 @@ const allItems = computed(() => {
       title: a.title,
       teaser: a.abstract || null,
       imageId: a.image || null,
+      imageCredits: a.image_credits || null,
       date: a.date_created,
       href: `/projects/${a.slug}`,
     })
@@ -503,6 +513,7 @@ const allItems = computed(() => {
       title: e.title,
       teaser: stripHtml(e.description),
       imageId: e.image || null,
+      imageCredits: e.image_credits || null,
       date: e.start_date || e.date_created,
       endDate: e.end_date || null,
       eventType: e.event_type || null,
@@ -518,6 +529,7 @@ const allItems = computed(() => {
       title: m.name,
       teaser: m.description || null,
       imageId: m.image || null,
+      imageCredits: m.image_credits || null,
       date: m.date_updated,
       href: `/municipalities/${m.slug}`,
     })

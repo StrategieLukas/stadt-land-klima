@@ -20,13 +20,14 @@
         </div>
         <article class="prose max-w-none">
           <!-- Header: image, title, teaser -->
-          <div v-if="item.image" class="not-prose mb-6 rounded-xl overflow-hidden">
+          <div v-if="item.image" class="not-prose mb-2 rounded-xl overflow-hidden">
             <img
               :src="`${directusUrl}/assets/${item.image}?width=900&quality=80`"
               :alt="item.title"
               class="w-full h-auto block"
             />
           </div>
+          <p v-if="item.image_credits" class="not-prose text-xs text-gray-500 italic mb-4 text-center">{{ item.image_credits }}</p>
           <time
             v-if="displayDate"
             class="not-prose block text-sm text-gray-500 mb-1"

@@ -1,8 +1,8 @@
 <template>
-  <div class="mt-4 py-4 p-4 mb-4">
-    <h3 class="mb-3 text-h3 font-bold text-black">
+  <div id="section-about" class="py-6" style="scroll-margin-top: var(--section-scroll-mt, 9rem)">
+    <h2 class="font-heading text-h3 font-bold text-gray mb-4">
       {{ $t("measure.description_about_heading") }}
-    </h3>
+    </h2>
 
     <div v-if="measure.description_about" class="mb-2 flex flex-row measure_ratings-start gap-4">
       <figure class="mt-0 flex shrink-0 flex-col">
@@ -12,10 +12,10 @@
     </div>
   </div>
 
-  <div v-if="measure.description_evaluation_criteria" class="p-4 border-t-4 border-gray-300p-4 mb-4">
-    <h3 class="mb-3 text-h3 font-bold text-black">
+  <div v-if="measure.description_evaluation_criteria" id="section-criteria" class="border-t-2 border-light-blue py-6" style="scroll-margin-top: var(--section-scroll-mt, 9rem)">
+    <h2 class="font-heading text-h3 font-bold text-gray mb-4">
       {{ $t("measure.evaluation_criteria_heading") }}
-    </h3>
+    </h2>
 
     <div class="mb-2 flex flex-row measure_ratings-start gap-4">
       <figure class="mt-0 flex shrink-0 flex-col">
@@ -26,10 +26,10 @@
     </div>
   </div>
 
-  <div class="border-t-4 border-gray-300 p-4 mb-4">
-    <h3 class="mb-3 text-h3 font-bold text-black">
+  <div id="section-feasibility" class="border-t-2 border-light-blue py-6" style="scroll-margin-top: var(--section-scroll-mt, 9rem)">
+    <h2 class="font-heading text-h3 font-bold text-gray mb-4">
       {{ $t("measure.feasibility_heading") }}
-    </h3>
+    </h2>
 
     <div class="flex flex-row width-full justify-around">
       <FeasibilityBarChart

@@ -2,7 +2,7 @@
     <div class="card bg-white shadow-xl rounded-none overflow-hidden max-w-[400px]">
         <div class="relative">
 
-            <NuxtLink :to="`/projects/${slug}`" class="h-40 bg-gray-200 flex items-center justify-center relative">
+            <NuxtLink :to="`/projects/${slug}`" class="group h-40 bg-gray-200 flex items-center justify-center relative">
                 <SmartImg
                     :assetId="image_id"
                     :isRaster="image_is_raster"
@@ -26,6 +26,11 @@
                     <!-- Using raw image url (no width parameter) for easier request caching as organisation logos should be small -->
                     <img fit="cover" class="absolute top-2 right-2" height="48" width="48" :alt="organisation.name" loading="lazy"
                     :src="getRawUrl(organisation.logo)"/>
+                </div>
+
+                <!-- Image credits overlay on hover -->
+                <div v-if="image_credits" class="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate">
+                  {{ image_credits }}
                 </div>
             </NuxtLink>
 
@@ -86,6 +91,7 @@ const props = defineProps({
     tag: String,
     image_id: String,
     image_is_raster: Boolean,
+    image_credits: { type: String, default: null },
     organisation: Object, // can be null
     measures: Array, // can be null/empty
 })

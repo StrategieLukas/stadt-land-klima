@@ -251,6 +251,12 @@ onMounted(() => {
       }
     }
 
+    // Reset to the very top first so getBoundingClientRect() is calculated
+    // from a known baseline (scrollY = 0), then scroll to the element.
+    // Without this, a stale scrollY from the previous page can produce
+    // an incorrect target offset in scrollToElement.
+    window.scrollTo(0, 0)
+
     // Jump instantly after a short settle — avoids the jarring slow scroll
     // from the very top on initial page load.
     setTimeout(() => {
