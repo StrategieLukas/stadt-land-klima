@@ -32,10 +32,9 @@ export async function resolveSlugToArea(slug) {
 
 /**
  * Build the breadcrumb chain (contained_by ancestors) for an area using GraphQL.
- * Returns an array ordered from highest level (Deutschland) to lowest.
- *
- * For each administrative level that is a parent of the given ARS, we derive the
- * parent ARS code and do a targeted GraphQL query to find the parent area.
+ * Returns an array ordered from Bundesland to nearest parent (excluding Germany
+ * itself — that is rendered as a hardcoded first crumb in the template).
+ * Level 3 (Regierungsbezirke) is intentionally skipped.
  */
 export async function fetchContainedBy(ars, level, apolloClient) {
   if (!apolloClient || !ars) return []
@@ -50,19 +49,15 @@ export async function fetchContainedBy(ars, level, apolloClient) {
   `
 
   // Prefix lengths per administrative level (chars into the 12-char ARS):
-  // Level 1 Germany:           all zeros → skip (always "Deutschland")
-  // Level 2 Bundesland:        first 2 chars
-  // Level 3 Regierungsbezirk:  first 3 chars
-  // Level 4 Kreis:             first 5 chars
-  const prefixByLevel = { 2: 2, 3: 3, 4: 5 }
+  // Level 2 Bundesland:  first 2 chars
+  // Level 4 Kreis:       first 5 chars
+  // Level 3 (Regierungsbezirk) is deliberately omitted.
+  const prefixByLevel = { 2: 2, 4: 5 }
   const parentLevels = Object.keys(prefixByLevel)
     .map(Number)
     .filter(l => l < level)
 
   const parents = []
-
-  // Always prepend Deutschland as level 1
-  parents.push({ ars: null, name: 'Deutschland', prefix: '', level: 1 })
 
   for (const parentLevel of parentLevels) {
     const prefixLen = prefixByLevel[parentLevel]

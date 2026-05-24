@@ -155,6 +155,15 @@
               </div>
               <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
             </div>
+            <div v-if="directusMuniByArs?.localteam_id?.date_created" class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
+                <span class="text-sm text-gray-700">{{ $t("municipality.localteam_founded") }}</span>
+              </div>
+              <span class="text-sm font-bold text-gray-900">
+                {{ new Date(directusMuniByArs.localteam_id.date_created).toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' }) }}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -264,6 +273,15 @@
                     <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
                   </div>
                   <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
+                </div>
+                <div v-if="directusMuniByArs?.localteam_id?.date_created" class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
+                    <span class="text-sm text-gray-700">{{ $t("municipality.localteam_founded") }}</span>
+                  </div>
+                  <span class="text-sm font-bold text-gray-900">
+                    {{ new Date(directusMuniByArs.localteam_id.date_created).toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' }) }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -423,7 +441,7 @@ const { data: directusMuniByArs } = useAsyncData(
       const results = await $directus.request(
         $readItems('municipalities', {
           filter: { ars: { _eq: route.params.slug }, localteam_id: { _nnull: true } },
-          fields: ['id', 'name', 'localteam_id'],
+          fields: ['id', 'name', { localteam_id: ['id', 'date_created'] }],
           limit: 1,
         })
       );

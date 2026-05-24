@@ -14,17 +14,52 @@
       </div>
       <!-- Crumb chain -->
       <ol class="flex items-center gap-1 flex-wrap min-w-0 text-xs">
-        <li>
-          <NuxtLink to="/" class="text-gray-400 hover:text-[#006e94] transition-colors">Deutschland</NuxtLink>
-        </li>
-        <template v-for="crumb in containedBy" :key="crumb.ars || crumb.name">
+        <!-- Germany root — only shown when we're not already on the Germany page -->
+        <template v-if="area?.level > 1">
+          <li>
+            <BreadcrumbItem
+              label="Deutschland"
+              href="/data/bundesrepublik-deutschland"
+              :sibling-level="null"
+            />
+          </li>
           <li class="text-gray-300 select-none">›</li>
-          <li class="text-gray-400 truncate max-w-[120px]">{{ crumb.name }}</li>
         </template>
-        <li class="text-gray-300 select-none">›</li>
-        <li class="font-semibold text-gray-800 truncate">{{ area?.prefix }} {{ area?.name }}</li>
+
+        <!-- Ancestor chain (Bundesland, optional Kreis) -->
+        <template v-for="(crumb, i) in containedBy" :key="crumb.ars || crumb.name">
+          <li>
+            <BreadcrumbItem
+              :label="`${crumb.prefix} ${crumb.name}`.trim()"
+              :href="`/data/${areaToSlug(crumb.prefix, crumb.name)}`"
+              :sibling-level="crumb.level"
+              :ars-prefix="crumb.level === 4 ? crumb.ars.slice(0, 2) : ''"
+              :current-ars="area?.ars"
+            />
+          </li>
+          <li class="text-gray-300 select-none">›</li>
+        </template>
+
+        <!-- Current area (with dropdown of siblings) -->
+        <li>
+          <BreadcrumbItem
+            :label="`${area?.prefix} ${area?.name}`.trim()"
+            is-current
+            :sibling-level="area?.level === 1 ? null : area?.level"
+            :ars-prefix="area?.level === 4 ? area?.ars?.slice(0, 2) : ''"
+            :current-ars="area?.ars"
+          />
+        </li>
       </ol>
     </nav>
+
+    <!-- ── Overview layout (Germany / Bundesland) ────────────────────────── -->
+    <template v-if="area?.level <= 2">
+      <AreaOverview :area="area" :contained-by="containedBy" />
+    </template>
+
+    <!-- ── Scrollytelling layout (Kreis / Gemeinde) ───────────────────────── -->
+    <template v-else>
 
     <!-- ── Mobile pill nav ─────────────────────────────────────────────────── -->
     <nav
@@ -279,9 +314,9 @@
       </div><!-- /.left-column -->
 
       <!-- ── Right: sticky map panel (desktop only, 55%) ─────────────────── -->
-      <div class="hidden xl:block xl:w-[55%]">
+      <div class="hidden xl:block xl:w-[55%] -mr-6">
         <div
-          class="sticky overflow-hidden rounded-l-2xl shadow-xl"
+          class="sticky overflow-hidden rounded-l-2xl"
           :style="`top: ${headerHeight}px; height: calc(100vh - ${headerHeight}px)`"
         >
           <ClientOnly>
@@ -300,6 +335,8 @@
       </div>
 
     </div>
+
+    </template><!-- end scrollytelling -->
   </div>
 </template>
 
