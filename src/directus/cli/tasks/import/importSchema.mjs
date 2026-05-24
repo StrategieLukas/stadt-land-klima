@@ -23,7 +23,46 @@ async function importSchema(src, options = {verbose: false}) {
       console.info(schema);
     }
 
-    const diff = await client.request(schemaDiff(schema));
+    // Use REST API directly for schema operations to handle version mismatch
+    // First try without force flag - if it fails with version mismatch, retry with force
+    let diffUrl = new URL('/schema/diff', client.url).toString();
+    let applyUrl = new URL('/schema/apply', client.url).toString();
+    
+    let diffResponse;
+    let diffData;
+    let diff;
+    
+    try {
+      diffResponse = await fetch(diffUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+        },
+        body: JSON.stringify(schema),
+      });
+
+      diffData = await diffResponse.json();
+      diff = diffData.data;
+    } catch (e) {
+      if (options.verbose) {
+        console.info('Schema diff failed, retrying with force flag...');
+      }
+      diffUrl = new URL('/schema/diff?force=true', client.url).toString();
+      applyUrl = new URL('/schema/apply?force=true', client.url).toString();
+      
+      diffResponse = await fetch(diffUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+        },
+        body: JSON.stringify(schema),
+      });
+
+      diffData = await diffResponse.json();
+      diff = diffData.data;
+    }
 
     if (!diff) {
       if (options.verbose) {
@@ -37,7 +76,20 @@ async function importSchema(src, options = {verbose: false}) {
       console.info(diff);
     }
 
-    const result = await client.request(schemaApply(diff));
+    const applyResponse = await fetch(applyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+      },
+      body: JSON.stringify(diff),
+    });
+
+    if (!applyResponse.ok) {
+      const error = await applyResponse.json();
+      console.error('Failed to apply schema:', error);
+      return process.exit(1);
+    }
 
     if (options.verbose) {
       console.info('Schema imported.');

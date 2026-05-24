@@ -3,13 +3,9 @@ import find from 'lodash/find.js';
 import property from 'lodash/property.js';
 import {
   readRoles,
-  readPolicies,
   createRoles,
   updateRole,
   deleteRoles,
-  createPolicies,
-  updatePolicy,
-  deletePolicies,
   createPermissions,
   updatePermission,
   deletePermissions,
@@ -34,7 +30,16 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
   try {
     const existingRoles = await client.request(readRoles({ limit: -1 }));
-    const existingPolicies = await client.request(readPolicies({ limit: -1 }));
+    
+    // Read policies using raw REST API (not available in SDK yet)
+    const policiesUrl = new URL('/policies', client.url).toString();
+    const policiesResponse = await fetch(policiesUrl + '?limit=-1&fields=*', {
+      headers: {
+        'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+      },
+    });
+    const policiesData = await policiesResponse.json();
+    const existingPolicies = policiesData.data || [];
     
     // Read permissions with IDs using raw REST API
     const permissionsUrl = new URL('/permissions', client.url).toString();
@@ -145,14 +150,29 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
     // But the SDK doesn't have direct policy-permission attachment methods
     // So we'll use the REST API directly
     
-    // First, create all policies
+    // First, create all policies using REST API
     if (policiesToCreate.length) {
       if (options.verbose) console.info(`Creating ${policiesToCreate.length} policies`);
-      await client.request(createPolicies(policiesToCreate));
+      for (const policyData of policiesToCreate) {
+        await fetch(policiesUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+          },
+          body: JSON.stringify(policyData),
+        });
+      }
     }
     
     // Get updated policy list
-    const updatedPolicies = await client.request(readPolicies({ limit: -1 }));
+    const updatedPoliciesResponse = await fetch(policiesUrl + '?limit=-1&fields=*', {
+      headers: {
+        'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+      },
+    });
+    const updatedPoliciesData = await updatedPoliciesResponse.json();
+    const updatedPolicies = updatedPoliciesData.data || [];
     
     // --- Map permissions to policies ---
     // For each permission, we need to find the corresponding policy
@@ -300,7 +320,14 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
       if (policiesToDelete.length) {
         if (options.verbose) console.info(`Removing ${policiesToDelete.length} policies`);
-        await client.request(deletePolicies(policiesToDelete.map(property('id'))));
+        for (const policy of policiesToDelete) {
+          await fetch(new URL(`/policies/${policy.id}`, client.url).toString(), {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+            },
+          });
+        }
       }
 
       if (rolesToDelete.length) {

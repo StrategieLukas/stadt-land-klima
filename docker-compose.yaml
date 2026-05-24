@@ -44,6 +44,8 @@ services:
       - ./src/directus/roles/:/directus/roles
       - ./src/directus/presets/:/directus/presets
       - ./src/directus/webhooks/:/directus/webhooks
+      - ./src/directus/migrations/:/directus/migrations
+      - ./src/directus/templates/:/directus/templates
       - ./src/directus/translations/:/directus/translations
       - ./src/directus/flows/:/directus/flows
       - ./src/directus/settings/:/directus/settings

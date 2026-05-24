@@ -22,6 +22,9 @@ module_bar:
     id: content
     enabled: true
   - type: module
+    id: visual
+    enabled: false
+  - type: module
     id: users
     enabled: true
   - type: module
@@ -50,3 +53,37 @@ public_registration: false
 public_registration_verify_email: true
 public_registration_role: null
 public_registration_email_filter: null
+visual_editor_urls: null
+project_id: 018adb55-81bc-7b6c-ae41-9d9c3a557f4f
+mcp_enabled: false
+mcp_allow_deletes: false
+mcp_prompts_collection: null
+mcp_system_prompt_enabled: true
+mcp_system_prompt: null
+project_owner: null
+project_usage: null
+org_name: null
+product_updates: null
+project_status: null
+ai_openai_api_key: null
+ai_anthropic_api_key: null
+ai_system_prompt: null
+ai_google_api_key: null
+ai_openai_compatible_api_key: null
+ai_openai_compatible_base_url: null
+ai_openai_compatible_name: null
+ai_openai_compatible_models: null
+ai_openai_compatible_headers: null
+ai_openai_allowed_models:
+  - gpt-5-nano
+  - gpt-5-mini
+  - gpt-5
+ai_anthropic_allowed_models:
+  - claude-haiku-4-5
+  - claude-sonnet-4-5
+ai_google_allowed_models:
+  - gemini-3-pro-preview
+  - gemini-3-flash-preview
+  - gemini-2.5-pro
+  - gemini-2.5-flash
+collaborative_editing_enabled: false
