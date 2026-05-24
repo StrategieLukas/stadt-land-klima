@@ -18,7 +18,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify CAPTCHA
-  if (!altcha || !verifyAltcha(altcha, hmacKey)) {
+  const devMode = (config.public.appEnv as string) === 'development';
+  if (!altcha || !verifyAltcha(altcha, hmacKey, devMode)) {
     throw createError({ statusCode: 400, message: 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.' });
   }
 

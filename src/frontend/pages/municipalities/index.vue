@@ -11,6 +11,58 @@
     </p>
   </div>
 
+  <!-- Mobile CTA strip (lg:hidden) — above filter -->
+  <div class="lg:hidden flex flex-col gap-2 mb-4">
+    <!-- Werde Klimachecker -->
+    <button @click="openCalMobile"
+       class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3 text-left w-full"
+       style="border-color: #339737;">
+      <img src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"
+           alt="Otto" class="w-10 h-10 rounded-full flex-shrink-0 object-cover" />
+      <div class="flex-1 min-w-0">
+        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #339737;">Werde Klimachecker!</h2>
+        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">Vereinbare einen Termin zu deinem individuellen online Onboarding</p>
+      </div>
+      <span class="flex-shrink-0 px-3 py-1.5 text-white text-xs font-semibold rounded-md" style="background-color: #339737;">
+        Buchen →
+      </span>
+    </button>
+    <!-- Lokalteam gründen -->
+    <NuxtLink to="/register_localteam"
+       class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3"
+       style="border-color: #AFCA0B;">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #AFCA0B;">
+        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #AFCA0B;">Jetzt Lokalteam gründen</h2>
+        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">und mit Bewerten anfangen</p>
+      </div>
+      <span class="flex-shrink-0 px-3 py-1.5 text-white text-xs font-semibold rounded-md" style="background-color: #AFCA0B;">
+        Jetzt anfangen →
+      </span>
+    </NuxtLink>
+    <!-- Dashboard Stats -->
+    <NuxtLink to="/stats#massnahmenstatistiken"
+       class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3"
+       style="border-color: #006e94;">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #006e94;">
+        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #006e94;">Dashboard Maßnahmen-Statistiken</h2>
+        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">Sektoren &amp; Maßnahmen-Analyse aller Kommunen</p>
+      </div>
+      <span class="flex-shrink-0 px-3 py-1.5 text-white text-xs font-semibold rounded-md" style="background-color: #006e94;">
+        Zum Dashboard →
+      </span>
+    </NuxtLink>
+  </div>
+
   <!-- Filter panel -->
   <div class="flex flex-col gap-0 mb-6 shadow-md p-3" style="background-color: #F5F9E6;">
 
@@ -156,6 +208,51 @@
         <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
           <OnboardingBox name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"/>
+
+          <!-- Lokalteam gründen box -->
+          <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #AFCA0B;">
+            <div class="flex items-center gap-3 flex-1 min-h-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #AFCA0B;">
+                <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h2 class="text-base font-bold font-heading leading-tight" style="color: #AFCA0B;">Jetzt Lokalteam gründen</h2>
+                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">und mit Bewerten anfangen</p>
+              </div>
+            </div>
+            <NuxtLink
+              to="/register_localteam"
+              class="mt-2 inline-block w-full text-center px-3 py-2 text-white text-sm font-semibold rounded-md hover:opacity-90 transition-opacity"
+              style="background-color: #AFCA0B;"
+            >
+              Jetzt anfangen →
+            </NuxtLink>
+          </div>
+
+          <!-- Dashboard Maßnahmen-Statistiken box -->
+          <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #006e94;">
+            <div class="flex items-center gap-3 flex-1 min-h-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #006e94;">
+                <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h2 class="text-base font-bold font-heading leading-tight" style="color: #006e94;">Dashboard<br>Maßnahmen-Statistiken</h2>
+                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">Sektoren &amp; Maßnahmen-Analyse aller Kommunen</p>
+              </div>
+            </div>
+            <NuxtLink
+              to="/stats#massnahmenstatistiken"
+              class="mt-2 inline-block w-full text-center px-3 py-2 text-white text-sm font-semibold rounded-md hover:opacity-90 transition-opacity"
+              style="background-color: #006e94;"
+            >
+              Zum Dashboard →
+            </NuxtLink>
+          </div>
+
           <ProjectCard
             v-for="project in projects"
             :key="project.id"
@@ -195,6 +292,25 @@
     </div>
   </div>
 
+  <!-- Mobile cal.com overlay -->
+  <teleport to="body">
+    <transition name="mun-cal-fade">
+      <div v-if="showCalMobile"
+           class="fixed inset-0 z-[10001] bg-black/60 flex items-center justify-center p-4"
+           @click.self="closeCalMobile">
+        <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div class="flex justify-end p-2 flex-shrink-0">
+            <button @click="closeCalMobile"
+                    class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    aria-label="Close">✕</button>
+          </div>
+          <div id="my-cal-inline-onboarding-mobile"
+               class="flex-1 overflow-y-auto min-h-[400px]"></div>
+        </div>
+      </div>
+    </transition>
+  </teleport>
+
 </div>
 </template>
 
@@ -204,7 +320,7 @@ const majorCityNotSelected = '/icons/major-city-dark.svg'
 const minorCitySelected = '/icons/minor-city-light.svg'
 const minorCityNotSelected = '/icons/minor-city-dark.svg'
 
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import lodash from "lodash";
 import { isRaster } from "~/shared/utils";
 
@@ -370,6 +486,24 @@ const selected = computed({
 })
 
 const filterOpen = ref(false)
+
+// Mobile cal.com overlay
+const showCalMobile = ref(false)
+async function openCalMobile() {
+  showCalMobile.value = true
+  await nextTick()
+  const container = document.getElementById('my-cal-inline-onboarding-mobile')
+  if (container) container.innerHTML = ''
+  if (window?.Cal?.ns?.onboarding) {
+    window.Cal.ns.onboarding('inline', {
+      elementOrSelector: '#my-cal-inline-onboarding-mobile',
+      config: { layout: 'month_view' },
+      calLink: 'stadt-land-klima/onboarding',
+    })
+  }
+}
+function closeCalMobile() { showCalMobile.value = false }
+watch(showCalMobile, (open) => { if (import.meta.client) document.body.style.overflow = open ? 'hidden' : '' })
 const activeFilterCount = computed(() => {
   let count = 0
   if (isMapView.value) count++
@@ -379,4 +513,9 @@ const activeFilterCount = computed(() => {
 })
 
 </script>
+
+<style scoped>
+.mun-cal-fade-enter-active, .mun-cal-fade-leave-active { transition: opacity .2s; }
+.mun-cal-fade-enter-from, .mun-cal-fade-leave-to { opacity: 0; }
+</style>
 

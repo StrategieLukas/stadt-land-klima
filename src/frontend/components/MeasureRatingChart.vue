@@ -119,8 +119,8 @@ const ratingGroups = computed(() => RATING_CFG.map(cfg => {
     .filter(m => m.href)
     .sort((a, b) => a.name.localeCompare(b.name, 'de'))
 
-  return { ...cfg, count: rows.length, municipalities }
+  return { ...cfg, count: municipalities.length, municipalities }
 }))
 
-const total = computed(() => props.ratings.length)
+const total = computed(() => ratingGroups.value.reduce((s, g) => s + g.count, 0))
 </script>

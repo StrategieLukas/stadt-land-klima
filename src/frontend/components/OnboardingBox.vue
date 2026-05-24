@@ -1,47 +1,25 @@
 <template>
-  <div class="card bg-white shadow-xl rounded-none overflow-hidden border-2 border-green p-4 h-52 max-w-md">
-    <!-- Title -->
-    <h2 class="text-2xl font-bold text-green text-center mb-4 mt-0">
-      {{ $t("onboarding.title") }}
-    </h2>
-
-    <!-- Avatar + Text row -->
-    <div class="flex items-center gap-6 ">
-      <!-- Avatar -->
-      <div class="avatar">
-        <div class="w-24 h-24 rounded-full flex-shrink-0">
-          <img
-            v-if="avatarSrc"
-            :src="avatarSrc"
-            :alt="name"
-            class="w-full h-full object-cover rounded-full mt-0"
-          />
-        </div>
-      </div>
-
-      <!-- Text -->
-      <p class="text-base">
-        {{ $t("onboarding.book_appointment.long") }}
-      </p>
-    </div>
-
-    <!-- Book Button -->
-    <div class="flex justify-center">
-      <button
-        @click="openCal"
-        class="flex items-center gap-2 text-green hover:underline"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-          <line x1="16" y1="2" x2="16" y2="6" />
-          <line x1="8" y1="2" x2="8" y2="6" />
-          <line x1="3" y1="10" x2="21" y2="10" />
+  <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #339737;">
+    <div class="flex items-center gap-3 flex-1 min-h-0">
+      <img v-if="avatarSrc" :src="avatarSrc" :alt="name"
+           class="w-12 h-12 rounded-full flex-shrink-0 object-cover" />
+      <div v-else class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #339737;">
+        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
-        <span class="text-lg font-semibold">
-          {{ $t("onboarding.book_appointment.short") }}
-        </span>
-      </button>
+      </div>
+      <div class="min-w-0">
+        <h2 class="text-base font-bold font-heading leading-tight" style="color: #339737;">{{ $t("onboarding.title") }}</h2>
+        <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ $t("onboarding.book_appointment.long") }}</p>
+      </div>
     </div>
+    <button
+      @click="openCal"
+      class="mt-2 inline-block w-full text-center px-3 py-2 text-white text-sm font-semibold rounded-md hover:opacity-90 transition-opacity"
+      style="background-color: #339737;"
+    >
+      {{ $t("onboarding.book_appointment.short") }} →
+    </button>
   </div>
   <!-- Teleport overlay -->
   <teleport to="body">

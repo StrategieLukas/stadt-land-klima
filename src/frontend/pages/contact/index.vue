@@ -53,7 +53,11 @@
         <!-- Altcha CAPTCHA -->
         <div class="mb-4">
           <ClientOnly>
+            <div v-if="runtimeConfig.public.appEnv === 'development'" class="h-14 bg-yellow-50 border border-yellow-200 rounded flex items-center justify-center">
+              <span class="text-xs text-yellow-600">Dev-Modus: Sicherheitsabfrage übersprungen</span>
+            </div>
             <altcha-widget
+              v-else
               ref="altchaRef"
               challenge="/api/altcha"
               hidefooter
@@ -93,6 +97,7 @@ import { ref, watch } from 'vue'
 
 const { $t } = useNuxtApp();
 const route = useRoute();
+const runtimeConfig = useRuntimeConfig();
 
 useHead({ title: ref($t("feedback.nav_label")) });
 
@@ -117,12 +122,20 @@ function onAltchaStateChange(e) {
   if (state === 'verified' && payload) {
     altchaPayload.value = payload
     captchaError.value = ''
-  } else {
+  } else if (state === 'unverified' || state === 'error' || state === 'expired') {
+    // Only clear on explicit reset states — not on 'verifying' (re-solving after
+    // background-tab resume), which would wipe a still-valid captured payload.
     altchaPayload.value = ''
   }
 }
 
 onMounted(async () => {
+  // In dev, the altcha widget refuses to work over plain HTTP (no isSecureContext).
+  // Pre-seed a static bypass payload; the server accepts it when appEnv=development.
+  if (runtimeConfig.public.appEnv === 'development') {
+    altchaPayload.value = btoa(JSON.stringify({ dev: true }))
+    return
+  }
   await nextTick()
   await nextTick()
   const el = document.querySelector('altcha-widget')

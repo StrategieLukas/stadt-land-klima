@@ -1,10 +1,11 @@
 import { useRuntimeConfig } from "#app";
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client/core'
 import gql from 'graphql-tag'
+import resolveForBrowser from '~/shared/resolveForBrowser.js'
 
 export default defineNuxtPlugin(() => {
   const runtimeConfig = useRuntimeConfig();
-  const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl || 'http://localhost:8000/graphql/';
+  const stadtlandzahlURL = resolveForBrowser(runtimeConfig.public.stadtlandzahlUrl || 'http://localhost:8000/graphql/');
 
   // The stadtlandzahl API returns `access-control-allow-origin: *`, so browser
   // requests can go directly to the API without any proxy.

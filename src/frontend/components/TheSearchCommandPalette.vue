@@ -81,7 +81,7 @@
                   <!-- Group header — only shown when the group has results -->
                   <li
                     v-if="group.results.length"
-                    class="px-4 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50 border-b border-gray-100 pointer-events-none select-none sticky top-0"
+                    class="palette-group-header px-4 py-1.5 text-xs font-semibold uppercase tracking-wide pointer-events-none select-none sticky top-0 z-10"
                   >
                     {{ group.label }}
                   </li>
@@ -305,6 +305,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 .palette-fade-enter-from,
 .palette-fade-leave-to {
   opacity: 0;
+}
+.palette-group-header {
+  background-color: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  color: #6b7280;
 }
 .palette-result:hover,
 .palette-result--focused {

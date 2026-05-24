@@ -1,77 +1,12 @@
 <template>
   <main class="px-4 py-6 max-w-7xl mx-auto w-full">
 
-    <!-- ═══════════════════════════════════════════════════════════
-         TOP NAV TILES — anchor navigation
-         ═══════════════════════════════════════════════════════════ -->
-    <nav class="-mx-4 -mt-6 mb-6 flex md:hidden" aria-label="Sektionen">
-      <button
-        class="flex-1 py-4 px-4 flex flex-col items-center justify-center gap-0.5 text-white text-center transition-opacity hover:opacity-90 active:opacity-80"
-        style="background-color: #006e94;"
-        @click="scrollToSection('kommunale-statistiken')"
-      >
-        <svg class="w-5 h-5 mb-0.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z" />
-        </svg>
-        <span class="font-heading font-bold text-base leading-tight">Kommunale Statistiken</span>
-        <span class="text-xs text-white/70 hidden xs:block">Kommunensuche &amp; Bewertungen</span>
-      </button>
-      <div class="w-px flex-shrink-0" style="background-color: rgba(255,255,255,0.15);"></div>
-      <button
-        class="flex-1 py-4 px-4 flex flex-col items-center justify-center gap-0.5 text-white text-center transition-opacity hover:opacity-90 active:opacity-80"
-        style="background-color: #1a4a6e;"
-        @click="scrollToSection('massnahmenstatistiken')"
-      >
-        <svg class="w-5 h-5 mb-0.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <span class="font-heading font-bold text-base leading-tight">Maßnahmenstatistiken</span>
-        <span class="text-xs text-white/70 hidden xs:block">Sektoren &amp; Maßnahmen-Analyse</span>
-      </button>
-    </nav>
+    <h1 class="text-3xl font-bold font-heading mb-6" style="color: #1a4a6e;">Dashboard Maßnahmen-Statistiken</h1>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         ZONE A: Kommunensuche — find a specific city's stats
-         ═══════════════════════════════════════════════════════════ -->
-    <section id="kommunale-statistiken" class="mb-7 md:overflow-hidden md:shadow-list md:rounded-sm">
-      <!-- Hero: mobile = stacked header + search, desktop = side-by-side in dark band -->
-      <div class="flex flex-col md:flex-row md:items-stretch">
-        <!-- Dark left: icon + title -->
-        <div class="-mx-4 mb-0 py-4 px-4 md:mx-0 flex items-center gap-3 md:w-[35%] md:flex-shrink-0" style="background-color: #006e94;">
-          <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-          </svg>
-          <div>
-            <h2 class="text-lg font-bold text-white font-heading leading-tight">Kommunale Statistiken</h2>
-            <p class="text-xs text-white/70 mt-0.5">Weitere Statistiken und Datenanalysen zu einer Kommune oder anderen Verwaltungsgebieten</p>
-          </div>
-        </div>
-        <!-- Right: search bar (padded below on mobile, inline on desktop) -->
-        <div class="px-1 pt-4 pb-3 md:flex-1 md:px-5 md:flex md:items-center md:py-3">
-          <AdministrativeAreaSearchBar base-path="/stats" class="w-full" />
-        </div>
-      </div>
-    </section>
+    <section id="massnahmenstatistiken" class="mb-8">
 
-    <!-- ═══════════════════════════════════════════════════════════
-         ZONE B: Gesamtstatistik — aggregate data across all cities
-         ═══════════════════════════════════════════════════════════ -->
-    <section id="massnahmenstatistiken" class="md:mb-8 md:overflow-hidden md:shadow-list md:rounded-sm">
-
-      <!-- Hero row: mobile = stacked, desktop = side-by-side title + filter -->
-      <div class="flex flex-col md:flex-row md:items-stretch border-b border-gray-200">
-        <!-- Left: dark title column -->
-        <div class="-mx-4 mb-0 py-4 px-4 md:mx-0 flex items-center gap-3 md:w-[35%] md:flex-shrink-0" style="background-color: #1a4a6e;">
-          <svg class="w-5 h-5 flex-shrink-0 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <div>
-            <h2 class="text-lg font-bold text-white font-heading leading-tight">Maßnahmenstatistiken</h2>
-            <p class="text-xs text-white/70 mt-0.5">Alle Kommunen im Überblick — gefiltert nach Maßnahmenkatalog, Typ und Bundesland</p>
-          </div>
-        </div>
-        <!-- Right: filter panel -->
-        <div class="md:flex-1 flex flex-col gap-0 px-3 py-3 bg-gray-50 border-t border-gray-200 md:border-t-0 md:border-l md:border-gray-200 md:justify-center">
+      <!-- Filter panel — full width -->
+      <div class="flex flex-col gap-0 px-3 py-3 mb-4 bg-gray-50 rounded-sm border border-gray-200">
 
           <!-- Collapsible toggle (only shown below xs breakpoint) -->
           <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium text-gray-700" @click="filterOpen = !filterOpen">
@@ -132,8 +67,7 @@
           </div>
 
           </div><!-- /collapsible -->
-        </div><!-- /filter panel right -->
-      </div><!-- /hero row -->
+      </div><!-- /filter panel -->
 
       <!-- desktop content padding wrapper -->
       <div class="md:px-4 md:pb-6 md:pt-4">
@@ -669,10 +603,6 @@ import sectorImages from '~/shared/sectorImages.js';
 const route = useRoute();
 const router = useRouter();
 
-function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route));
 const selectedCatalogVersionId = ref(selectedCatalogVersion.value.id);
 const catalogVersions = ref(await getAllCatalogVersions($directus, $readItems));

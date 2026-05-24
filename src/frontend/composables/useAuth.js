@@ -15,7 +15,7 @@ export function useAuth() {
   function createAuthClient() {
     const baseUrl = process.client
       ? config.public.clientDirectusUrl
-      : config.public.serverDirectusUrl;
+      : config.directusServerUrl;
 
     return createDirectus(baseUrl || 'http://localhost:8055')
       .with(rest())
@@ -36,7 +36,7 @@ export function useAuth() {
 
       // Fetch user details with role
       const userClient = createDirectus(
-        process.client ? config.public.clientDirectusUrl : config.public.serverDirectusUrl
+        process.client ? config.public.clientDirectusUrl : config.directusServerUrl
       )
         .with(rest())
         .with(authentication('json'));
@@ -126,7 +126,7 @@ export function useAuth() {
     if (hydrated && authStore._accessToken.value) {
       try {
         const client = createDirectus(
-          process.client ? config.public.clientDirectusUrl : config.public.serverDirectusUrl
+          process.client ? config.public.clientDirectusUrl : config.directusServerUrl
         )
           .with(rest())
           .with(authentication('json'));
@@ -165,7 +165,7 @@ export function useAuth() {
   function getAuthenticatedClient() {
     const baseUrl = process.client
       ? config.public.clientDirectusUrl
-      : config.public.serverDirectusUrl;
+      : config.directusServerUrl;
 
     const client = createDirectus(baseUrl)
       .with(rest())

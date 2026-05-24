@@ -57,7 +57,7 @@
       <!-- Drawer Side (Menu) — desktop only; mobile uses TheMenuSheet below -->
       <the-drawer-side
         v-if="isDesktop"
-        :pages="pages.filter((page) => includes(page.menus, 'main'))"
+        :pages="(pages || []).filter((page) => includes(page.menus, 'main'))"
         :nav-items="navigationConfig?.header_items || []"
         class="z-[9999]"
       />
@@ -65,7 +65,7 @@
 
     <!-- Dock (Small mobile only) -->
     <div class="fixed bottom-0 left-0 right-0 z-[10000] block sm:hidden">
-      <the-dock :pages="pages.filter((page) => includes(page.menus, 'dock'))" />
+      <the-dock :pages="(pages || []).filter((page) => includes(page.menus, 'dock'))" />
     </div>
 
     <!-- Mobile: backdrop blur (below sticky header, above page content) -->
@@ -81,7 +81,7 @@
     <Transition name="slk-sheet">
       <TheMenuSheet
         v-if="!isDesktop && hydrated && isDrawerOpen"
-        :pages="pages.filter((page) => includes(page.menus, 'main'))"
+        :pages="(pages || []).filter((page) => includes(page.menus, 'main'))"
         :nav-items="navigationConfig?.header_items || []"
       />
     </Transition>
@@ -198,7 +198,7 @@ const cachedPayload = (key, nuxtApp) =>
 const { data: pages } = await useAsyncData(
   "pages",
   () => $directus.request($readItems("pages", { sort: "sort_order", limit: -1 })),
-  { getCachedData: cachedPayload },
+  { getCachedData: cachedPayload, default: () => [] },
 );
 
 const { data: publishedMunicipalities } = await useAsyncData(

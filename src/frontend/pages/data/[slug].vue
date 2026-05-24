@@ -1,6 +1,32 @@
 <template>
   <div>
-    <!-- ── Mobile sticky pill nav ──────────────────────────────────────────── -->
+
+    <!-- ── Breadcrumbs (always full-width at top) ──────────────────────────── -->
+    <nav class="flex items-center gap-3 py-3 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-gray-100">
+      <!-- Germany mini-map -->
+      <div class="flex-none">
+        <GermanyMapIndicator
+          v-if="area?.geo_center"
+          :lat="area.geo_center.coordinates?.[1] ?? area.geo_center[1]"
+          :lon="area.geo_center.coordinates?.[0] ?? area.geo_center[0]"
+          :size="34"
+        />
+      </div>
+      <!-- Crumb chain -->
+      <ol class="flex items-center gap-1 flex-wrap min-w-0 text-xs">
+        <li>
+          <NuxtLink to="/" class="text-gray-400 hover:text-[#006e94] transition-colors">Deutschland</NuxtLink>
+        </li>
+        <template v-for="crumb in containedBy" :key="crumb.ars || crumb.name">
+          <li class="text-gray-300 select-none">›</li>
+          <li class="text-gray-400 truncate max-w-[120px]">{{ crumb.name }}</li>
+        </template>
+        <li class="text-gray-300 select-none">›</li>
+        <li class="font-semibold text-gray-800 truncate">{{ area?.prefix }} {{ area?.name }}</li>
+      </ol>
+    </nav>
+
+    <!-- ── Mobile pill nav ─────────────────────────────────────────────────── -->
     <nav
       ref="mobilePillStrip"
       class="xl:hidden sticky z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
@@ -8,7 +34,7 @@
     >
       <div class="flex gap-2 overflow-x-auto py-2 no-scrollbar">
         <a
-          v-for="section in sections"
+          v-for="section in allSections"
           :key="section.id"
           :href="`#${section.id}`"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
@@ -21,118 +47,99 @@
       </div>
     </nav>
 
-    <!-- ── Page body: sidebar + content ───────────────────────────────────── -->
-    <div class="flex gap-8 items-start">
+    <!-- ── Scrollytelling wrapper ──────────────────────────────────────────── -->
+    <!-- items-start removed → default stretch makes right col full-height for sticky -->
+    <div class="xl:flex xl:gap-0 -mx-4 sm:-mx-6 xl:mx-0">
 
-      <!-- Desktop sidebar -->
-      <aside
-        class="hidden xl:flex flex-col w-52 flex-shrink-0 sticky self-start text-sm gap-6"
-        :style="`top: ${headerHeight + 12}px`"
-      >
-        <!-- Section nav -->
-        <nav class="flex flex-col gap-1">
-          <a
-            v-for="section in sections"
-            :key="section.id"
-            :href="`#${section.id}`"
-            class="px-3 py-1.5 rounded-lg transition-colors font-medium"
-            :class="
-              activeSection === section.id
-                ? 'bg-[#006e94]/10 text-[#006e94]'
-                : 'text-gray-600 hover:bg-gray-100'
-            "
-          >{{ section.label }}</a>
-        </nav>
+      <!-- ── Left column (45%): sidebar + content ────────────────────────── -->
+      <div class="xl:w-[45%] xl:max-w-[45%] min-w-0 xl:flex">
 
-        <!-- Collection list (desktop sidebar) -->
-        <div v-if="collections.length" class="border-t border-gray-200 pt-4">
-          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3">Datensätze</p>
-          <button
-            v-for="col in collections"
-            :key="col.id"
-            class="w-full text-left px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
-            :class="
-              selectedCollectionSlug === col.id
-                ? 'bg-[#006e94]/10 text-[#006e94]'
-                : 'text-gray-600 hover:bg-gray-100'
-            "
-            @click="selectedCollectionSlug = col.id; scrollToSection('daten')"
-          >{{ col.title?.['de-DE'] || col.title?.['en-US'] || col.id }}</button>
-        </div>
-      </aside>
+        <!-- ── Desktop sidebar nav ──────────────────────────────────────── -->
+        <aside class="hidden xl:flex xl:flex-col flex-none w-[172px] border-r border-gray-100 bg-white">
+          <nav
+            class="sticky flex flex-col p-3 gap-0.5 text-xs overflow-y-auto"
+            :style="`top: ${headerHeight}px; max-height: calc(100vh - ${headerHeight}px)`"
+          >
+            <a
+              v-for="section in staticSections"
+              :key="section.id"
+              :href="`#${section.id}`"
+              class="px-2.5 py-1.5 rounded-md transition-colors font-medium truncate"
+              :class="activeSection === section.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
+            >{{ section.label }}</a>
+            <template v-for="sg in collectionsBySector" :key="sg.sector">
+              <div class="flex items-center gap-1.5 mt-4 mb-0.5 px-1">
+                <img
+                  v-if="sectorImages[sg.sector]"
+                  :src="sectorImages[sg.sector]"
+                  class="w-3.5 h-3.5 opacity-50"
+                  :alt="sg.label"
+                />
+                <span class="text-[10px] font-bold uppercase tracking-wide text-gray-400">{{ sg.label }}</span>
+              </div>
+              <a
+                v-for="cs in sg.sections"
+                :key="cs.id"
+                :href="`#${cs.id}`"
+                class="pl-4 pr-2 py-1 rounded-md transition-colors text-[11px] font-medium leading-snug truncate"
+                :class="activeSection === cs.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
+              >{{ cs.label }}</a>
+            </template>
+          </nav>
+        </aside>
 
-      <!-- Main content -->
-      <div class="flex-1 min-w-0 space-y-12">
+        <!-- ── Scrollable content ────────────────────────────────────────── -->
+        <div class="flex-1 min-w-0 px-4 sm:px-6 xl:px-8">
 
-        <!-- ── Übersicht ───────────────────────────────────────────────── -->
+        <!-- ── Hero (Übersicht) ───────────────────────────────────── -->
         <section
           id="uebersicht"
+          class="xl:min-h-[calc(100vh-var(--header-h,80px))] xl:flex xl:flex-col xl:justify-center py-10"
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
-          <!-- Breadcrumbs -->
-          <div class="breadcrumbs bg-gray-50 px-3 sm:px-4 py-3 text-sm -mx-4 sm:mx-0 sm:rounded mb-4">
-            <ul class="flex flex-row flex-wrap items-center gap-1 min-w-0">
-              <li class="flex items-center gap-1 text-gray-400 text-xs">
-                <NuxtLink to="/" class="hover:text-[#006e94] transition-colors">Start</NuxtLink>
-              </li>
-              <template v-for="crumb in containedBy" :key="crumb.ars || crumb.name">
-                <li class="text-gray-300 text-xs">›</li>
-                <li class="text-xs text-gray-400">{{ crumb.name }}</li>
-              </template>
-              <li class="text-gray-300 text-xs">›</li>
-              <li class="text-xs font-semibold text-gray-700 truncate">{{ area.prefix }} {{ area.name }}</li>
-            </ul>
+          <p class="text-xs font-bold text-[#006e94] uppercase tracking-widest mb-2">{{ area?.prefix }}</p>
+          <h1 class="text-5xl xl:text-7xl font-black text-gray-900 leading-none mb-4 xl:mb-6">{{ area?.name }}</h1>
+
+          <dl class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm mb-8">
+            <div v-if="area?.population">
+              <dt class="text-xs text-gray-500 mb-0.5">Einwohner</dt>
+              <dd class="text-2xl font-black text-gray-900 tabular-nums">{{ area.population?.toLocaleString('de-DE') }}</dd>
+            </div>
+            <div v-if="area?.level">
+              <dt class="text-xs text-gray-500 mb-0.5">Verwaltungsebene</dt>
+              <dd class="text-2xl font-black text-gray-900">{{ levelLabel(area.level) }}</dd>
+            </div>
+          </dl>
+
+          <div v-if="slkDataSlug" class="flex gap-3 flex-wrap">
+            <NuxtLink
+              :to="`/municipalities/${slkDataSlug}`"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#006e94] text-white text-sm font-semibold hover:bg-[#005a7a] transition-colors"
+            >
+              SLK-Klimabewertung ansehen →
+            </NuxtLink>
           </div>
 
-          <!-- Hero card -->
-          <div class="bg-gradient-to-r from-[#006e94]/10 to-blue-50 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row gap-6 items-start">
-            <!-- Text info -->
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-semibold text-[#006e94] uppercase tracking-wide mb-1">{{ area.prefix }}</p>
-              <h1 class="text-h2 font-bold text-gray-900 leading-tight mb-3">{{ area.name }}</h1>
-              <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-sm">
-                <div v-if="area.population">
-                  <dt class="text-xs text-gray-500">Einwohner</dt>
-                  <dd class="font-semibold text-gray-900">{{ area.population?.toLocaleString('de-DE') }}</dd>
-                </div>
-                <div v-if="area.level">
-                  <dt class="text-xs text-gray-500">Verwaltungsebene</dt>
-                  <dd class="font-semibold text-gray-900">{{ levelLabel(area.level) }}</dd>
-                </div>
-                <div v-if="slkDataSlug">
-                  <dt class="text-xs text-gray-500">SLK-Profil</dt>
-                  <dd>
-                    <NuxtLink
-                      :to="`/municipalities/${slkDataSlug}`"
-                      class="text-[#006e94] font-semibold hover:underline text-xs"
-                    >Zur Bewertung →</NuxtLink>
-                  </dd>
-                </div>
-              </dl>
-            </div>
-            <!-- Germany map indicator -->
-            <div class="flex-shrink-0">
-              <GermanyMapIndicator
-                v-if="area.geo_center"
-                :lat="area.geo_center.coordinates?.[1] ?? area.geo_center[1]"
-                :lon="area.geo_center.coordinates?.[0] ?? area.geo_center[0]"
-                :size="100"
-              />
-            </div>
+          <!-- Scroll cue (desktop only) -->
+          <div v-if="collectionSections.length" class="hidden xl:flex items-center gap-2 mt-10 text-gray-400 text-xs animate-bounce">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+            Klimadaten scrollen
           </div>
         </section>
 
-        <!-- ── Bewertungen (SLK) ──────────────────────────────────────── -->
+        <!-- ── Bewertungen (SLK) ──────────────────────────────────── -->
         <section
-          v-if="area.is_reasonable_for_municipal_rating && allCatalogVersions.length"
+          v-if="area?.is_reasonable_for_municipal_rating && allCatalogVersions.length"
           id="bewertung"
+          class="xl:min-h-[calc(100vh-var(--header-h,80px))] xl:flex xl:flex-col xl:justify-center py-10 border-t border-gray-100"
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
-          <h2 class="text-h3 font-bold text-gray-900 mb-4">Stadt-Land-Klima Bewertungen</h2>
+          <h2 class="text-3xl xl:text-5xl font-black text-gray-900 mb-2">Stadt-Land-Klima</h2>
+          <p class="text-gray-500 text-sm mb-8">Bewertungen der kommunalen Klimamaßnahmen</p>
 
-          <div
-            class="border border-gray-200 rounded-xl overflow-hidden"
-          >
+          <div class="border border-gray-200 rounded-xl overflow-hidden">
             <!-- Header -->
             <button
               class="w-full flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
@@ -214,70 +221,96 @@
           </div>
         </section>
 
-        <!-- ── Daten (collections) ───────────────────────────────────── -->
-        <section
-          id="daten"
-          :style="`scroll-margin-top: ${headerHeight + 16}px`"
-        >
-          <h2 class="text-h3 font-bold text-gray-900 mb-4">Klimadaten</h2>
-
-          <!-- Collection switcher pills (mobile + tablet) -->
-          <div v-if="collections.length" class="xl:hidden flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
-            <button
-              v-for="col in collections"
-              :key="col.id"
-              class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
-              :class="
-                selectedCollectionSlug === col.id
-                  ? 'bg-[#006e94] text-white border-[#006e94]'
-                  : 'bg-white text-gray-600 border-gray-300 hover:border-[#006e94]/50'
-              "
-              @click="selectedCollectionSlug = col.id"
-            >{{ col.title?.['de-DE'] || col.title?.['en-US'] || col.id }}</button>
-          </div>
-
-          <!-- Selected collection title + description -->
-          <template v-if="selectedCollection">
-            <div class="mb-4">
-              <h3 class="text-lg font-bold text-gray-900">{{ selectedCollection.title?.['de-DE'] || selectedCollection.title?.['en-US'] || selectedCollection.id }}</h3>
-              <p v-if="selectedCollection.description?.['de-DE'] || selectedCollection.description?.['en-US']" class="text-sm text-gray-500 mt-1">{{ selectedCollection.description?.['de-DE'] || selectedCollection.description?.['en-US'] }}</p>
-            </div>
-
-            <!-- Panel -->
-            <ClientOnly>
-              <DataProductPanel
-                :collection="selectedCollection"
-                :ars="area.ars"
-                :municipality-name="`${area.prefix} ${area.name}`"
-                :area-boundary="areaBoundaryGeoJson"
-                :nearby-areas="nearbyAreas"
-                :base-url="baseUrl"
+        <!-- ── Klimadaten scroll steps (grouped by sector) ────────────── -->
+        <template v-if="collectionsBySector.length">
+          <template v-for="sg in collectionsBySector" :key="sg.sector">
+            <!-- Sector divider -->
+            <div
+              class="flex items-center gap-3 py-5 xl:pt-14 xl:pb-3 border-t-4 border-gray-100"
+              :id="`sektor-${sg.sector}`"
+              :style="`scroll-margin-top: ${headerHeight + 16}px`"
+            >
+              <img
+                v-if="sectorImages[sg.sector]"
+                :src="sectorImages[sg.sector]"
+                class="w-7 h-7 opacity-60 flex-none"
+                :alt="sg.label"
               />
-              <template #fallback>
-                <div class="h-40 flex items-center justify-center text-gray-400 text-sm">
-                  Wird geladen…
-                </div>
-              </template>
-            </ClientOnly>
+              <h2 class="text-xl xl:text-2xl font-black text-gray-500 uppercase tracking-widest">{{ sg.label }}</h2>
+            </div>
+            <!-- Collection steps within this sector -->
+            <section
+              v-for="cs in sg.sections"
+              :key="cs.id"
+              :id="cs.id"
+              :data-collection-step="cs.collection.id"
+              class="xl:min-h-[calc(100vh-var(--header-h,80px))] xl:flex xl:flex-col xl:justify-center py-8 border-t border-gray-100"
+              :style="`scroll-margin-top: ${headerHeight + 16}px`"
+            >
+              <h3 class="text-3xl xl:text-5xl font-black text-gray-900 mb-2 leading-tight">{{ cs.label }}</h3>
+              <p
+                v-if="cs.collection.description?.['de-DE'] || cs.collection.description?.['en-US']"
+                class="text-sm text-gray-500 mb-6 leading-relaxed"
+              >{{ cs.collection.description?.['de-DE'] || cs.collection.description?.['en-US'] }}</p>
+              <ClientOnly>
+                <DataProductPanel
+                  :collection="cs.collection"
+                  :ars="area.ars"
+                  :municipality-name="`${area.prefix} ${area.name}`"
+                  :area-boundary="areaBoundaryGeoJson"
+                  :nearby-areas="nearbyAreas"
+                  :base-url="baseUrl"
+                  :hide-map="isDesktop"
+                />
+                <template #fallback>
+                  <div class="h-32 flex items-center justify-center text-gray-400 text-sm">
+                    Wird geladen…
+                  </div>
+                </template>
+              </ClientOnly>
+            </section>
           </template>
+        </template>
+        <div v-else-if="!collectionsLoading" class="py-10 text-sm text-gray-400 text-center">
+          Keine Klimadatensätze verfügbar.
+        </div>
 
-          <div v-else-if="!collections.length" class="text-sm text-gray-400 py-8 text-center">
-            Keine Datensätze verfügbar.
-          </div>
-        </section>
+        </div><!-- /.scrollable-content -->
+      </div><!-- /.left-column -->
 
+      <!-- ── Right: sticky map panel (desktop only, 55%) ─────────────────── -->
+      <div class="hidden xl:block xl:w-[55%]">
+        <div
+          class="sticky overflow-hidden rounded-l-2xl shadow-xl"
+          :style="`top: ${headerHeight}px; height: calc(100vh - ${headerHeight}px)`"
+        >
+          <ClientOnly>
+            <DataMapPanel
+              :area-boundary="areaBoundaryGeoJson"
+              :nearby-areas="nearbyAreas"
+              :ars="area.ars"
+              :active-collection="activeCollection"
+              :base-url="baseUrl"
+            />
+            <template #fallback>
+              <div class="h-full w-full bg-gray-100 animate-pulse" />
+            </template>
+          </ClientOnly>
+        </div>
       </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 import { resolveSlugToArea, fetchContainedBy, areaToSlug } from '~/composables/useAreaBySlug.js'
 import { getAllCatalogVersions } from '~/composables/getAllCatalogVersions.js'
 import { readItems } from '@directus/sdk'
+import sectorImages from '~/shared/sectorImages.js'
 
 // ── Route + config ───────────────────────────────────────────────────────────
 
@@ -305,10 +338,9 @@ const pillTop = computed(() =>
 
 // ── Section nav ──────────────────────────────────────────────────────────────
 
-const sections = [
+const staticSections = [
   { id: 'uebersicht', label: 'Übersicht' },
   { id: 'bewertung', label: 'Bewertungen' },
-  { id: 'daten', label: 'Klimadaten' },
 ]
 
 const activeSection = ref('uebersicht')
@@ -326,23 +358,38 @@ function scrollToSection(id) {
   if (el) el.scrollIntoView({ behavior: 'smooth' })
 }
 
+function initObserver() {
+  if (sectionObserver) {
+    sectionObserver.disconnect()
+    sectionObserver = null
+  }
+  const sectionEls = allSections.value.map(s => document.getElementById(s.id)).filter(Boolean)
+  if (!sectionEls.length) return
+  sectionObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) activeSection.value = entry.target.id
+      }
+    },
+    { rootMargin: '-20% 0px -70% 0px', threshold: 0 }
+  )
+  sectionEls.forEach(el => sectionObserver.observe(el))
+}
+
+// Re-init observer when collection sections mount (client-side)
+// (watch registered after allSections is defined, below)
+
 onMounted(() => {
   setTimeout(() => {
-    const sectionEls = document.querySelectorAll('[id^="uebersicht"],[id^="bewertung"],[id^="daten"]')
-    if (!sectionEls.length) return
-    sectionObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) activeSection.value = entry.target.id
-        }
-      },
-      { rootMargin: '-20% 0px -70% 0px', threshold: 0 }
-    )
-    sectionEls.forEach(s => sectionObserver.observe(s))
-  }, 100)
+    initObserver()
+    initCollectionStepObserver()
+  }, 200)
 })
 
-onUnmounted(() => sectionObserver?.disconnect())
+onUnmounted(() => {
+  sectionObserver?.disconnect()
+  collectionStepObserver?.disconnect()
+})
 
 // ── Main data (SSR) ──────────────────────────────────────────────────────────
 
@@ -382,7 +429,7 @@ const containedBy = computed(() => pageData.value?.containedBy ?? [])
 const nearbyAreas = computed(() => pageData.value?.nearbyAreas ?? [])
 
 // Collections — fetched client-side only (REST API at localhost:8070 not reachable from SSR Docker container)
-const { data: collectionsData } = await useAsyncData(
+const { data: collectionsData, pending: collectionsLoading } = await useAsyncData(
   'stadtlandzahl-collections',
   () => $fetch(`${baseUrl}/api/collections/`)
     .then(d => (d?.collections ?? []).filter(c => c.id !== 'administrative-areas'))
@@ -390,6 +437,93 @@ const { data: collectionsData } = await useAsyncData(
   { server: false }
 )
 const collections = computed(() => collectionsData.value ?? [])
+
+const collectionSections = computed(() =>
+  collections.value.map(col => ({
+    id: `daten-${col.id}`,
+    label: col.title?.['de-DE'] || col.title?.['en-US'] || col.id,
+    collection: col,
+  }))
+)
+
+const allSections = computed(() => [...staticSections, ...collectionSections.value])
+
+// ── Sector grouping ───────────────────────────────────────────────────────────────────────
+
+const COLLECTION_SECTORS = {
+  'wind-turbines':           'energy',
+  'solar-plants':            'energy',
+  'rooftop-solar-plants':    'energy',
+  'balkonkraftwerk':         'energy',
+  'batteriespeicher':        'energy',
+  'ev-charging-stations':    'transport',
+  'public-transport-scores': 'transport',
+  'cycleway-infrastructure':  'transport',
+  'traffic-calmed-downtown':  'transport',
+  'population-density':       'management',
+  'climate-region-type':      'management',
+  'stadtlandklima':           'management',
+  'town-greenness':           'agriculture',
+}
+
+const SECTOR_ORDER = ['energy', 'transport', 'agriculture', 'management']
+
+const SECTOR_LABELS = {
+  energy:      'Energie',
+  transport:   'Mobilität',
+  agriculture: 'Grün & Natur',
+  management:  'Klima & Daten',
+}
+
+const collectionsBySector = computed(() => {
+  const grouped = {}
+  for (const cs of collectionSections.value) {
+    const sector = COLLECTION_SECTORS[cs.collection.id] ?? 'other'
+    if (!grouped[sector]) grouped[sector] = []
+    grouped[sector].push(cs)
+  }
+  const result = SECTOR_ORDER
+    .filter(s => grouped[s])
+    .map(s => ({ sector: s, label: SECTOR_LABELS[s] ?? s, sections: grouped[s] }))
+  if (grouped['other']?.length) {
+    result.push({ sector: 'other', label: 'Sonstige', sections: grouped['other'] })
+  }
+  return result
+})
+
+// ── Active collection tracking (for sticky map panel) ────────────────────────
+
+const activeCollectionId = ref(null)
+const activeCollection = computed(() =>
+  collections.value.find(c => c.id === activeCollectionId.value) ?? null
+)
+let collectionStepObserver = null
+
+function initCollectionStepObserver() {
+  if (collectionStepObserver) {
+    collectionStepObserver.disconnect()
+    collectionStepObserver = null
+  }
+  const steps = document.querySelectorAll('[data-collection-step]')
+  if (!steps.length) return
+  collectionStepObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          activeCollectionId.value = entry.target.dataset.collectionStep
+        }
+      }
+    },
+    { rootMargin: '-10% 0px -50% 0px', threshold: 0 }
+  )
+  steps.forEach(el => collectionStepObserver.observe(el))
+}
+
+// Re-init both observers when collection sections arrive (client-side, after collections load)
+watch(collectionSections, () => nextTick(() => {
+  initObserver()
+  initCollectionStepObserver()
+}))
 
 // ── Catalog scores (Directus, client-side) ───────────────────────────────────
 
@@ -466,24 +600,6 @@ const slkDataSlug = computed(() => {
   if (!dataAll?.length) return null
   return dataAll[0]?.slug ?? null
 })
-
-// ── Selected collection ───────────────────────────────────────────────────────
-
-const selectedCollectionSlug = ref(null)
-
-watch(
-  collections,
-  (cols) => {
-    if (cols.length && !selectedCollectionSlug.value) {
-      selectedCollectionSlug.value = cols[0]?.id ?? null
-    }
-  },
-  { immediate: true }
-)
-
-const selectedCollection = computed(() =>
-  collections.value.find(c => c.id === selectedCollectionSlug.value) ?? null
-)
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

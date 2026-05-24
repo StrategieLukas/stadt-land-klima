@@ -122,13 +122,13 @@
               </svg>
               {{ newsletterAlreadySubscribed ? 'Du bist bereits angemeldet.' : 'Bestätigungsmail wurde gesendet. Bitte prüfe dein Postfach.' }}
             </div>
-            <div v-else class="flex gap-2">
+            <div class="flex flex-col xs:flex-row gap-2">
               <input
                 v-model="newsletterEmail"
                 type="email"
                 autocomplete="email"
                 placeholder="Deine E-Mail-Adresse"
-                class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
+                class="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
                 @keydown.enter.prevent="subscribeNewsletter"
               />
               <CanonicalButton
@@ -136,6 +136,7 @@
                 icon-slug="icon_newsletter_click"
                 color="green"
                 :disabled="newsletterState === 'subscribing'"
+                class="w-full xs:w-auto"
                 @click="subscribeNewsletter"
               />
             </div>
@@ -232,7 +233,11 @@
           Sicherheitsabfrage <span class="text-red-500">*</span>
         </label>
         <ClientOnly>
+          <div v-if="isDev" class="h-16 bg-yellow-50 border border-yellow-200 rounded-md flex items-center justify-center">
+            <span class="text-xs text-yellow-600">Dev-Modus: Sicherheitsabfrage übersprungen</span>
+          </div>
           <altcha-widget
+            v-else
             ref="altchaRef"
             challenge="/api/altcha"
             hidefooter
@@ -296,6 +301,8 @@ const altchaRef = ref<HTMLElement | null>(null);
 const altchaPayload = ref('');
 const submittedEmail = ref('');
 
+const isDev = useRuntimeConfig().public.appEnv === 'development';
+
 const form = reactive({ firstName: '', lastName: '', email: '', organisation: '' });
 
 // Newsletter state
@@ -323,8 +330,9 @@ async function resetToIdle() {
   stepStatuses.email = 'pending';
   processingError.value = '';
   processingDone.value = false;
-  altchaPayload.value = '';
+  altchaPayload.value = isDev ? btoa(JSON.stringify({ dev: true })) : '';
   captchaError.value = '';
+  if (isDev) return;
   // The altcha-widget was unmounted while formState was 'processing' (v-else hides the form).
   // After setting idle, wait two ticks for ClientOnly to re-render the new widget, then
   // re-attach the statechange listener so the auto-solved payload is captured again.
@@ -342,12 +350,21 @@ function onAltchaStateChange(e: Event) {
   if (state === 'verified' && payload) {
     altchaPayload.value = payload;
     captchaError.value = '';
-  } else {
+  } else if (state === 'unverified' || state === 'error' || state === 'expired') {
+    // Only clear when the widget explicitly resets — not on 'verifying', which fires
+    // when the widget re-solves (e.g. after a background-tab resume on mobile) and
+    // would wipe an already-captured valid payload.
     altchaPayload.value = '';
   }
 }
 
 onMounted(async () => {
+  // In dev, the altcha widget refuses to work over plain HTTP (no isSecureContext).
+  // Pre-seed a static bypass payload; the server accepts it when appEnv=development.
+  if (isDev) {
+    altchaPayload.value = btoa(JSON.stringify({ dev: true }));
+    return;
+  }
   // Wait for <ClientOnly> to render its slot content (two ticks: one for ClientOnly to flip, one for Vue to render)
   await nextTick();
   await nextTick();

@@ -12,8 +12,8 @@
     </div>
 
     <template v-else>
-      <!-- ── Map ─────────────────────────────────────────────────────────── -->
-      <ClientOnly>
+      <!-- ── Map (only shown when hideMap is false, e.g. mobile) ──────── -->
+      <ClientOnly v-if="!hideMap">
         <div class="h-72 sm:h-96 w-full rounded overflow-hidden">
           <LMap
             ref="map"
@@ -23,8 +23,10 @@
             class="h-full w-full"
           >
             <LTileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="© OpenStreetMap contributors"
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              :subdomains="'abcd'"
+              :max-zoom="20"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
             />
 
             <!-- Area boundary -->
@@ -185,6 +187,10 @@ const props = defineProps({
   baseUrl: {
     type: String,
     required: true,
+  },
+  hideMap: {
+    type: Boolean,
+    default: false,
   },
 })
 
