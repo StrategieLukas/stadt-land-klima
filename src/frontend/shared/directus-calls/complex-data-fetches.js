@@ -2,7 +2,7 @@ import { fetchFullMunicipalityScores } from './municipality-scores.js'
 import { fetchMeasuresForCatalog } from './measures.js'
 import { fetchRatingsMeasures } from './ratings-measures.js'
 
-export async function fetchMunicipalityData($directus, $readItems, slug, catalogVersionId) {
+export async function fetchMunicipalityData($directus, $readItems, slug, catalogVersionId, includeUnrated = false) {
   if(!$directus || !$readItems) throw Error("Did not pass $directus and $readItems to fetchMunicipalityData");
   if(!slug) throw Error("Tried to fetch municipalityData for a null slug");
   if(!catalogVersionId) throw Error("Tried to fetch municipalityData for a null catalogVersionId");
@@ -35,12 +35,12 @@ export async function fetchMunicipalityData($directus, $readItems, slug, catalog
       municipalityScore,
       measures,
       ratingsMeasures,
-      ratingsBySector: sortRatingsBySector(ratingsMeasures, measures),
+      ratingsBySector: sortRatingsBySector(ratingsMeasures, measures, includeUnrated),
     };
 }
 
 // Sort ratings by sector and measure_id (used inside fetchMunicipalityData)
-function sortRatingsBySector(ratingsMeasures, measures) {
+function sortRatingsBySector(ratingsMeasures, measures, includeUnrated = false) {
     if(ratingsMeasures === null || measures === null || !Array.isArray(ratingsMeasures) || !Array.isArray(measures)) {
       console.error(`sortRatingsBySector called with null params; ratingsMeasures=${ratingsMeasures} | measures=${measures}`)
         return {};
@@ -51,21 +51,36 @@ function sortRatingsBySector(ratingsMeasures, measures) {
     for (const item of ratingsMeasures) {
         const measure = measureMap.get(item.measure_id);
         if (measure) {
-        if(item.applicable && item.rating === null) {
-            console.error(`Item ${item.rating} hat kein rating, obwohl applicable=true. Unbewertete Massnahmen sollten nicht ans Frontend geschickt werden.`)
-            // Do not add the broken rating to the dict in this case
-        } else {
-            const { sector } = measure;
+        const { sector } = measure;
             item.measure = measure;
-            if(!item.applicable) {
+            // Only force rating to null for explicitly not-applicable measures (N/A).
+            // Measures with applicable===null or applicable===true but no rating yet are "unrated" and shown with inactive styling.
+            if(item.applicable === false) {
             item.rating = null
             }
             dictMeasuresRatingSorted[sector] = dictMeasuresRatingSorted[sector] || [];
             dictMeasuresRatingSorted[sector].push(item);
         }
-        }
     }
 
+
+    // For preview mode: add placeholder items for measures with no rating row at all
+    if (includeUnrated) {
+        const ratedMeasureIds = new Set(ratingsMeasures.map(r => r.measure_id));
+        for (const measure of measures) {
+            if (!ratedMeasureIds.has(measure.id)) {
+                const { sector } = measure;
+                dictMeasuresRatingSorted[sector] = dictMeasuresRatingSorted[sector] || [];
+                dictMeasuresRatingSorted[sector].push({
+                    id: `unrated-${measure.id}`,
+                    measure_id: measure.id,
+                    measure,
+                    rating: null,
+                    applicable: null,
+                });
+            }
+        }
+    }
 
     // Sort each sector's array: by rating (desc), then measure_id (asc)
     for (const sector in dictMeasuresRatingSorted) {

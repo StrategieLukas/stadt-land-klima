@@ -39,9 +39,13 @@
           </div>
         </li>
       </ul>
-      <ul class="mb-8 divide-y-2 divide-slate-300">
+      <ul class="mb-8">
         <li v-for="item in sectorRatings" :key="item.id">
-          <div class="collapse-plus collapse rounded-none" :name="`measure-${item.measure.measure_id}`">
+          <div
+            class="collapse-plus collapse rounded-none"
+            :class="isUnrated(item) ? 'border-b border-dashed border-gray-300' : 'border-b-2 border-slate-300'"
+            :name="`measure-${item.measure.measure_id}`"
+          >
             <input
               type="checkbox"
               :id="`rating-${item.id}-accordion`"
@@ -55,15 +59,21 @@
             <div
               :class="[
                 isUnrated(item)
-                  ? 'bg-base-100 border-b border-dashed border-gray-200'
+                  ? 'bg-base-100'
                   : `bg-${getRatingDecimalColor(item.rating)}-light`,
                 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4'
               ]"
             >
               <div class="shrink-0">
                 <img
+                  v-if="isUnrated(item)"
+                  src="~/assets/icons/icon_location.svg"
+                  class="my-auto h-auto w-5 opacity-40"
+                />
+                <img
+                  v-else
                   :src="ratingIcons[ratingIndex(item.rating)]"
-                  :class="['my-auto h-auto w-5', isUnrated(item) ? 'opacity-25' : '']"
+                  class="my-auto h-auto w-5"
                 />
               </div>
 

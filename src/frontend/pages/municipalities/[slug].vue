@@ -467,7 +467,7 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
   });
 }
 
-const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id);
+const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id, route.query.preview === 'true');
 
 // If no Directus data, fetch from Stadt-Land-Zahl with a loading state
 const { data: slzArea, pending: slzPending } = useAsyncData(
