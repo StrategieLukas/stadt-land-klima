@@ -127,6 +127,17 @@ permissions:
     fields:
       - descriptor
       - response_cutoff_date
+  - collection: measure_catalog
+    action: read
+    permissions:
+      _and:
+        - hidden:
+            _neq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
   - collection: measure_questions_template
     action: read
     permissions: {}
