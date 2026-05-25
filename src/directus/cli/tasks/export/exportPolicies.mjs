@@ -48,7 +48,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
         // For other translation keys, strip the $t: prefix and slugify
         filename = filename.substring(3);
       }
-      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: true }) + '.yaml');
+      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: false }) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);

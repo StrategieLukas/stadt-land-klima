@@ -30,7 +30,25 @@ custom_css: >-
     width: 100% !important;
     height: 100% !important;
 
-    background: url("/directus/logos/slk-square-notext.png") no-repeat center / contain !important;
+    background: url("/logos/slk-square-notext.png") no-repeat center / contain !important;
+  }
+
+
+  :root {
+    --theme--primary: #1EA64A;
+
+    --nav-default: #16bae7;   /* dark blue */
+    --nav-hover: #E6F1F5;     /* light blue */
+  }
+
+
+  .module-bar a {
+    color: var(--nav-default) !important;
+  }
+
+
+  .module-bar a:hover {
+    color: var(--nav-hover) !important;
   }
 storage_default_folder: null
 basemaps: null

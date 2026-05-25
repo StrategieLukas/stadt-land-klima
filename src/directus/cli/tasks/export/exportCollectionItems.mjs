@@ -13,7 +13,7 @@ async function exportCollectionItems(collection, dest, options = {verbose: false
 
     fse.mkdirSync(dest);
 
-    const destPath = path.join(dest, slugify(collection, { replacement: '_', lower: true }) + '.yaml');
+    const destPath = path.join(dest, slugify(collection, { replacement: '_', lower: false }) + '.yaml');
 
     if (!options.overwrite && fse.existsSync(destPath)) {
       if (options.verbose) {
