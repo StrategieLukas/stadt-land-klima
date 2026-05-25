@@ -54,7 +54,6 @@ services:
       - ./src/directus/cli/:/directus/cli
       - ./src/directus/cli/bash-completion.sh:/home/node/.bashrc
       - ./src/directus/.env/:/directus/.env
-      - ./src/logos:/directus/public/logos
     depends_on:
       cache:
         condition: service_healthy
