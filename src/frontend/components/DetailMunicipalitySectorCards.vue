@@ -50,20 +50,24 @@
             />
 
             <!-- Header -->
+            <!-- isUnrated: rating not yet given but measure is not explicitly N/A (applicable!==false) -->
+            <!-- Not-applicable (applicable===false) keeps the rating-na-light gray for clear visual distinction -->
             <div
               :class="[
-                `bg-${getRatingDecimalColor(item.rating)}-light`,
+                isUnrated(item)
+                  ? 'bg-base-100 border-b border-dashed border-gray-200'
+                  : `bg-${getRatingDecimalColor(item.rating)}-light`,
                 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4'
               ]"
             >
               <div class="shrink-0">
                 <img
                   :src="ratingIcons[ratingIndex(item.rating)]"
-                  class="my-auto h-auto w-5"
+                  :class="['my-auto h-auto w-5', isUnrated(item) ? 'opacity-25' : '']"
                 />
               </div>
 
-              <h3 class="font-heading text-h3 text-black font-medium">
+              <h3 :class="['font-heading text-h3 font-medium', isUnrated(item) ? 'text-mid-gray italic' : 'text-black']">
                 {{ item.measure.name }}
               </h3>
             </div>
@@ -71,7 +75,7 @@
             <!-- Content (lazy loaded) -->
             <div
               :class="[
-                  `bg-${getRatingDecimalColor(item.rating)}-very-light`,
+                  isUnrated(item) ? 'bg-base-100' : `bg-${getRatingDecimalColor(item.rating)}-very-light`,
                   'collapse-content md:px-12 lg:px-12'
                 ]"
             >
@@ -98,6 +102,15 @@ import { getRatingDecimalColor } from "~/shared/utils.js";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
 import { reactive, computed, onMounted, nextTick, watch } from 'vue'
+
+/**
+ * True when a measure has not yet been rated AND is not explicitly marked as not-applicable.
+ * Contrast: applicable===false = "nicht anwendbar" (N/A, gray) — a deliberate decision.
+ * Unrated items get an inactive/faded look while remaining openable.
+ */
+function isUnrated(item) {
+  return item.rating === null && item.applicable !== false
+}
 
 // Track which collapses are open
 const openItems = reactive({})

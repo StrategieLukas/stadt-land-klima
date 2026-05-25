@@ -161,6 +161,7 @@ import { useRouter } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette.js'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
 import { useUnifiedSearch } from '~/composables/useUnifiedSearch.js'
+import { getCurrentFrontendCatalogVersion } from '~/composables/getCatalogVersion.js'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useNavInputRect } from '~/composables/useHeaderHeight.js'
 import sectorImages from '~/shared/sectorImages.js'
@@ -183,8 +184,16 @@ const focusedIndex = ref(-1)
 const { data: publishedMunicipalities } = useNuxtData('municipalities')
 const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map(m => m.slug)))
 
+// Current frontend catalog version — used to distinguish outdated vs current ratings
+const { $directus, $readItems } = useNuxtApp()
+const { data: currentCatalog } = useAsyncData(
+  'current-frontend-catalog',
+  () => getCurrentFrontendCatalogVersion($directus, $readItems).catch(() => null),
+)
+const catalogVersionName = computed(() => currentCatalog.value?.name ?? null)
+
 // Unified search: Directus municipalities + StadtLandZahl areas + Meilisearch content
-const unifiedSearch = useUnifiedSearch({ publishedSlugs })
+const unifiedSearch = useUnifiedSearch({ publishedSlugs, catalogVersionName })
 const { groupsWithIndex, flatResults } = unifiedSearch
 
 // Register keyboard nav functions with the bridge so the header can call them
@@ -227,11 +236,13 @@ function navigate(result) {
   closeDrawer()
   if (result._type === 'area') {
     if (result.isMunicipality) {
-      // Use slug only for published municipalities (ctaType='complete')
-      router.push(result.ctaType === 'complete' && result._slug
-        ? `/municipalities/${result._slug}`
-        : `/municipalities/${result.ars}`
-      )
+      if ((result.ctaType === 'complete' || result.ctaType === 'outdated') && result._slug) {
+        const query = result.ctaType === 'outdated' && result._oldCatalogName
+          ? `?v=${encodeURIComponent(result._oldCatalogName)}` : ''
+        router.push(`/municipalities/${result._slug}${query}`)
+      } else {
+        router.push(`/municipalities/${result.ars}`)
+      }
     } else {
       router.push(`/regions/${result.ars}`)
     }

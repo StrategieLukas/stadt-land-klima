@@ -2,7 +2,10 @@
   <div>
 
     <!-- ── Breadcrumbs (always full-width at top) ──────────────────────────── -->
-    <nav class="flex items-center gap-3 py-3 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-gray-100">
+    <nav
+      class="flex items-center gap-3 py-3 mb-4 -mx-4 px-4 border-b border-gray-100 sticky z-20 bg-white/90 backdrop-blur-sm"
+      :style="`top: ${pillTop}px`"
+    >
       <!-- Germany mini-map -->
       <div class="flex-none">
         <GermanyMapIndicator
@@ -143,6 +146,10 @@
             <div v-if="area?.level">
               <dt class="text-xs text-gray-500 mb-0.5">Verwaltungsebene</dt>
               <dd class="text-2xl font-black text-gray-900">{{ levelLabel(area.level) }}</dd>
+            </div>
+            <div v-if="area?.ars">
+              <dt class="text-xs text-gray-500 mb-0.5">ARS</dt>
+              <dd class="text-2xl font-black text-gray-900 tabular-nums">{{ area.ars }}</dd>
             </div>
           </dl>
 

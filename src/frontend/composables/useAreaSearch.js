@@ -52,30 +52,66 @@ export function useAreaSearch({ mode = 'reasonable', publishedSlugs = null, cata
     let scoreDisplay      = null
     let scoreTotalColorClass = null
     let _slug             = null
+    let _oldCatalogName   = null
 
     if (isMunicipality) {
       const allData    = area.stadtlandklimaDataAll ?? []
-      // Prefer the entry that matches the requested catalog version; fall back to first with slug
-      const ratingData = catalogRef.value
-        ? (allData.find(d => d.measureCatalogName === catalogRef.value && d.slug) ?? allData.find(d => d.slug))
-        : allData.find(d => d.slug)
 
-      _slug = ratingData?.slug ?? null
+      if (catalogRef.value) {
+        // With catalog context: check current catalog first, then fall back to older published rating
+        const currentRating = allData.find(d => d.measureCatalogName === catalogRef.value && d.slug)
+        const isCurrentPublished = !!(currentRating?.slug && slugs.has(currentRating.slug))
 
-      const isPublished = !!(ratingData?.slug && slugs.has(ratingData.slug))
+        if (isCurrentPublished) {
+          ctaType              = 'complete'
+          _slug                = currentRating.slug
+          scoreDisplay         = currentRating.scoreTotal != null
+            ? `${Math.round(Number(currentRating.scoreTotal))}%`
+            : null
+          scoreTotalColorClass = currentRating.scoreTotal != null
+            ? getScorePercentageColor(parseFloat(currentRating.scoreTotal))
+            : null
+        } else {
+          // Check for a published rating from any older catalog
+          const oldRating = allData.find(
+            d => d.slug && d.measureCatalogName !== catalogRef.value && slugs.has(d.slug)
+          )
+          if (oldRating) {
+            ctaType              = 'outdated'
+            _slug                = oldRating.slug
+            _oldCatalogName      = oldRating.measureCatalogName
+            scoreDisplay         = oldRating.scoreTotal != null
+              ? `${Math.round(Number(oldRating.scoreTotal))}%`
+              : null
+            scoreTotalColorClass = oldRating.scoreTotal != null
+              ? getScorePercentageColor(parseFloat(oldRating.scoreTotal))
+              : null
+          } else if (currentRating?.slug || area.hasLocalteam) {
+            ctaType = 'in-progress'
+            _slug   = currentRating?.slug ?? null
+          } else if (area.isReasonableForMunicipalRating) {
+            ctaType = 'none'
+          }
+        }
+      } else {
+        // No catalog context: original behaviour
+        const ratingData = allData.find(d => d.slug)
+        _slug = ratingData?.slug ?? null
+        const isPublished = !!(ratingData?.slug && slugs.has(ratingData.slug))
 
-      if (isPublished) {
-        ctaType              = 'complete'
-        scoreDisplay         = ratingData.scoreTotal != null
-          ? `${Math.round(Number(ratingData.scoreTotal))}%`
-          : null
-        scoreTotalColorClass = ratingData.scoreTotal != null
-          ? getScorePercentageColor(parseFloat(ratingData.scoreTotal))
-          : null
-      } else if (ratingData?.slug || area.hasLocalteam) {
-        ctaType = 'in-progress'
-      } else if (area.isReasonableForMunicipalRating) {
-        ctaType = 'none'
+        if (isPublished) {
+          ctaType              = 'complete'
+          scoreDisplay         = ratingData.scoreTotal != null
+            ? `${Math.round(Number(ratingData.scoreTotal))}%`
+            : null
+          scoreTotalColorClass = ratingData.scoreTotal != null
+            ? getScorePercentageColor(parseFloat(ratingData.scoreTotal))
+            : null
+        } else if (ratingData?.slug || area.hasLocalteam) {
+          ctaType = 'in-progress'
+        } else if (area.isReasonableForMunicipalRating) {
+          ctaType = 'none'
+        }
       }
     }
 
@@ -88,6 +124,7 @@ export function useAreaSearch({ mode = 'reasonable', publishedSlugs = null, cata
       scoreDisplay,
       scoreTotalColorClass,
       _slug,
+      _oldCatalogName,
     }
   }
 

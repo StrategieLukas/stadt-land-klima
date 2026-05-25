@@ -41,7 +41,7 @@
     <!-- Dropdown -->
     <div
       v-if="open"
-      class="absolute top-full left-0 mt-1.5 z-[500] bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden min-w-[180px] max-h-[60vh] overflow-y-auto"
+      class="absolute top-full left-0 mt-1.5 z-[500] bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden w-max min-w-[180px] max-w-xs max-h-[60vh] overflow-y-auto"
     >
       <div v-if="loading" class="px-4 py-3 text-xs text-gray-400 animate-pulse">Wird geladen…</div>
       <template v-else>
@@ -54,7 +54,7 @@
           @click="open = false"
         >
           <span class="text-gray-400 text-[10px] shrink-0">{{ sibling.prefix }}</span>
-          <span>{{ sibling.name }}</span>
+          <span class="whitespace-nowrap">{{ sibling.name }}</span>
         </NuxtLink>
       </template>
     </div>
