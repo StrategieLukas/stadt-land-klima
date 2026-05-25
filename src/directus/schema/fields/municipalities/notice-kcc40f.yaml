@@ -15,7 +15,8 @@ meta:
     text: $t:municipalities.preview_explanation
   readonly: false
   required: false
-  sort: 15
+  searchable: true
+  sort: 14
   special:
     - alias
     - no-data

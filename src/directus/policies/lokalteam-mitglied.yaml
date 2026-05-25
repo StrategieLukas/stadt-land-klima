@@ -60,10 +60,11 @@ permissions:
       - party_mayor
       - id
       - description
-      - links-g1sxxi
       - slug
       - public_contact
       - details
+      - status
+      - localteam_id
   - collection: municipalities
     action: update
     permissions:

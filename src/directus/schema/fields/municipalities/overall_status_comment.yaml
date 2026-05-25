@@ -15,19 +15,20 @@ meta:
     placeholder: $t:municipalities.overall_status_comment
     softLength: 1000
     toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - empty
       - heading
+      - bold
       - italic
-      - numlist
       - strikethrough
+      - blockquote
+      - bullist
+      - numlist
       - table
+      - empty
     trim: true
   readonly: false
   required: false
-  sort: 9
+  searchable: true
+  sort: 10
   special: null
   translations:
     - language: de-DE
@@ -45,6 +46,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

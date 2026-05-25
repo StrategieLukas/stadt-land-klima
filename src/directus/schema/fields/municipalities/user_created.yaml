@@ -15,7 +15,8 @@ meta:
     template: "{{avatar.$thumbnail}} {{first_name}} {{last_name}}"
   readonly: true
   required: false
-  sort: 4
+  searchable: true
+  sort: 2
   special:
     - user-created
   translations: null
@@ -32,6 +33,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

@@ -16,7 +16,8 @@ meta:
     letterbox: true
   readonly: false
   required: false
-  sort: 18
+  searchable: true
+  sort: 17
   special:
     - file
   translations:
@@ -35,6 +36,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

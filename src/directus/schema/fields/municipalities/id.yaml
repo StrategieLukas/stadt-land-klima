@@ -15,7 +15,8 @@ meta:
     trim: true
   readonly: true
   required: false
-  sort: 3
+  searchable: true
+  sort: 1
   special:
     - uuid
   translations: null
@@ -32,6 +33,7 @@ schema:
   numeric_scale: null
   is_nullable: false
   is_unique: true
+  is_indexed: false
   is_primary_key: true
   is_generated: false
   generation_expression: null
