@@ -8,20 +8,20 @@ meta:
   collection: pages
   color: null
   display_template: null
-  group: content
+  group: admin_tools
   hidden: false
   icon: feed
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: 1
+  sort: 2
   sort_field: null
   translations:
     - language: de-DE
-      translation: Seiten
-      singular: Seite
       plural: Seiten
+      singular: Seite
+      translation: Seiten
   unarchive_value: draft
   versioning: false
 schema:

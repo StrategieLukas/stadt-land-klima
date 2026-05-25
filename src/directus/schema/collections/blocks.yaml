@@ -19,9 +19,9 @@ meta:
   sort_field: sort_order
   translations:
     - language: de-DE
-      translation: Blökkli-Blöcke
-      singular: Blökkli-Block
       plural: Blökkli-Blöcke
+      singular: Blökkli-Block
+      translation: Blökkli-Blöcke
   unarchive_value: draft
   versioning: false
 schema:

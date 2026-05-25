@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Maßnahmen
-      singular: Maßnahme
       plural: Maßnahmen
+      singular: Maßnahme
+      translation: Maßnahmen
   unarchive_value: draft
   versioning: false
 schema:

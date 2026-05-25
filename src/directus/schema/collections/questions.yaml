@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Thesen
-      singular: These
       plural: Thesen
+      singular: These
+      translation: Thesen
   unarchive_value: draft
   versioning: false
 schema:

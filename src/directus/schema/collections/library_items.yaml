@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Blökkli-Bibliothek
-      singular: Blökkli-Bibliothek-Element
       plural: Blökkli-Bibliothek-Elemente
+      singular: Blökkli-Bibliothek-Element
+      translation: Blökkli-Bibliothek
   unarchive_value: null
   versioning: false
 schema:

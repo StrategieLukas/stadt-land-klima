@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Maßnahmenkataloge
-      singular: Maßnahmenkatalog
       plural: Maßnahmenkataloge
+      singular: Maßnahmenkatalog
+      translation: Maßnahmenkataloge
   unarchive_value: draft
   versioning: false
 schema:

@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Vorlagen
-      singular: Vorlage
       plural: Vorlagen
+      singular: Vorlage
+      translation: Vorlagen
   unarchive_value: null
   versioning: false
 schema:

@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Navigationseinstellungen
-      singular: Navigationseinstellungen
       plural: Navigationseinstellungen
+      singular: Navigationseinstellungen
+      translation: Navigationseinstellungen
   unarchive_value: null
   versioning: false
 schema:

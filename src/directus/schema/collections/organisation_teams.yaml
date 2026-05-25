@@ -8,7 +8,7 @@ meta:
   collection: organisation_teams
   color: null
   display_template: "{{label}}"
-  group: content
+  group: admin_tools
   hidden: false
   icon: groups
   item_duplication_fields: null
@@ -19,9 +19,9 @@ meta:
   sort_field: sort
   translations:
     - language: de-DE
-      translation: Ressorts
-      singular: Ressort
       plural: Ressorts
+      singular: Ressort
+      translation: Ressorts
   unarchive_value: null
   versioning: false
 schema:

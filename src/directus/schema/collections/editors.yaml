@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Team
-      singular: Teammitglied
       plural: Teammitglieder
+      singular: Teammitglied
+      translation: Team
   unarchive_value: null
   versioning: false
 schema:
