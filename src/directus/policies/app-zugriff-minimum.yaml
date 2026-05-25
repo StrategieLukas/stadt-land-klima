@@ -1,0 +1,273 @@
+name: App-Zugriff-Minimum
+icon: accessibility
+description: Minimaler Zugriff aller App-User
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+  - collection: agreement_versions
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_activity
+    action: read
+    permissions:
+      user:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_collections
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_comments
+    action: create
+    permissions: {}
+    validation:
+      comment:
+        _nnull: true
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_comments
+    action: delete
+    permissions:
+      user_created:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_comments
+    action: read
+    permissions:
+      user_created:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_comments
+    action: update
+    permissions:
+      user_created:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - comment
+  - collection: directus_fields
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_notifications
+    action: read
+    permissions:
+      recipient:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_notifications
+    action: update
+    permissions:
+      recipient:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - status
+  - collection: directus_presets
+    action: create
+    permissions: {}
+    validation:
+      user:
+        _eq: $CURRENT_USER
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_presets
+    action: delete
+    permissions:
+      user:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_presets
+    action: read
+    permissions:
+      _or:
+        - user:
+            _eq: $CURRENT_USER
+        - _and:
+            - user:
+                _null: true
+            - role:
+                _eq: $CURRENT_ROLE
+        - _and:
+            - user:
+                _null: true
+            - role:
+                _null: true
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_presets
+    action: update
+    permissions:
+      user:
+        _eq: $CURRENT_USER
+    validation:
+      user:
+        _eq: $CURRENT_USER
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_relations
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_roles
+    action: read
+    permissions:
+      id:
+        _in: $CURRENT_ROLES
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_settings
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_shares
+    action: read
+    permissions:
+      user_created:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_translations
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_translations
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_users
+    action: read
+    permissions:
+      id:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - id
+      - first_name
+      - last_name
+      - email
+      - password
+      - tfa_secret
+      - status
+      - role
+  - collection: directus_users
+    action: update
+    permissions:
+      _and:
+        - id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - password
+      - tfa_secret
+  - collection: user_agreements
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - user_id
+      - agb_version
+      - agb_accepted_at
+      - data_protection_version
+      - data_protection_accepted_at
+      - newsletter_subscribed
+      - newsletter_subscribed_at
+  - collection: user_agreements
+    action: read
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: user_agreements
+    action: update
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - newsletter_subscribed
+      - newsletter_subscribed_at
+  - collection: user_consent
+    action: create
+    permissions: null
+    validation:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    presets: null
+    fields:
+      - id
+      - consent_target
+      - user_id
+  - collection: user_consent
+    action: read
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - id
+      - consent_target
+      - user_id
+      - date_updated
+      - date_created
