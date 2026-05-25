@@ -56,20 +56,14 @@ permissions:
       - user_updated
       - date_updated
       - name
-      - municipality_type
-      - details
-      - state
-      - population
       - mayor
       - party_mayor
       - id
       - description
-      - status
       - links-g1sxxi
       - slug
       - public_contact
-      - ars
-      - geolocation
+      - details
   - collection: municipalities
     action: update
     permissions:
@@ -85,6 +79,5 @@ permissions:
       - mayor
       - party_mayor
       - description
-      - status
       - public_contact
       - details
