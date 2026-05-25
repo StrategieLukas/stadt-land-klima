@@ -16,7 +16,7 @@
       </a>
     </div>
     <div class="flex justify-center items-center gap-6 mt-4">
-      <a href="https://chat.whatsapp.com/DV1cQ72OuJv0X1sONk5f1O" target="_blank" aria-label="WhatsApp">
+      <a href="https://whatsapp.com/channel/0029Vb8RAti2v1Ix7Yz7OM0a" target="_blank" aria-label="WhatsApp">
         <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
       </a>
       <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
