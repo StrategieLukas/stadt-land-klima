@@ -1,10 +1,9 @@
-name: frontend
-icon: web_asset
-description: null
-ip_access: null
+name: Frontend
+icon: computer
+description: All permissions given to our frontend account
 enforce_tfa: false
 admin_access: false
-app_access: false
+app_access: true
 permissions:
   - collection: answers
     action: create
@@ -282,7 +281,6 @@ permissions:
       - registration_url
       - date_created
       - image
-      - cta_label
   - collection: external_projects
     action: read
     permissions: null
@@ -374,7 +372,6 @@ permissions:
       - catalog_version
       - must_be_rated_again
       - choices_rating
-      - image
   - collection: municipalities
     action: read
     permissions: null

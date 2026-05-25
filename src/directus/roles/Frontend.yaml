@@ -1,0 +1,6 @@
+name: Frontend
+icon: web_asset
+description: Berechtigungen für unser Frontend
+children: []
+policies:
+  - bada4cf0-e009-4754-b4a0-2ff07b74414b
