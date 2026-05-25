@@ -13,6 +13,10 @@
     "dev": "directus-extension build -w --no-minify"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "11.0.10"
+    "@directus/extensions-sdk": "17.1.4",
+    "esbuild": "^0.28.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
   }
 }

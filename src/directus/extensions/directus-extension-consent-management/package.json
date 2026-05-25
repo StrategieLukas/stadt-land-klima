@@ -20,8 +20,12 @@
     "markdown-it": "^14.1.1"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "11.0.10",
+    "@directus/extensions-sdk": "17.1.4",
+    "esbuild": "^0.28.0",
     "vue": "^3.3.8"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
   },
   "directus:extension": {
     "type": "bundle",

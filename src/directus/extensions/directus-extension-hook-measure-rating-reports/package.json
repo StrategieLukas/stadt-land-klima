@@ -25,7 +25,11 @@
 		"validate": "directus-extension validate"
 	},
 	"devDependencies": {
-		"@directus/extensions-sdk": "11.0.10",
-		"csvjson": "5.1.0"
+		"@directus/extensions-sdk": "17.1.4",
+		"csvjson": "5.1.0",
+		"esbuild": "^0.28.0"
+	},
+	"overrides": {
+		"esbuild": "^0.28.0"
 	}
 }
