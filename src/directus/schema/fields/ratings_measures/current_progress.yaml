@@ -4,29 +4,29 @@ type: text
 meta:
   collection: ratings_measures
   conditions:
-    - name: Hide if measure is not applicable
+    - hidden: true
+      name: Hide if measure is not applicable
+      options:
+        clear: false
+        font: sans-serif
+        trim: false
+      readonly: true
+      required: false
       rule:
         _and:
           - applicable:
               _eq: false
-      readonly: true
-      hidden: true
-      options:
-        trim: false
-        font: sans-serif
-        clear: false
-      required: false
     - name: Field not required if selected rating is "not rated yet" to allow
         intermittent saving
+      options:
+        clear: false
+        font: sans-serif
+        trim: false
+      required: false
       rule:
         _and:
           - rating:
               _null: true
-      required: false
-      options:
-        trim: false
-        font: sans-serif
-        clear: false
   display: null
   display_options: null
   field: current_progress
@@ -41,6 +41,7 @@ meta:
     trim: true
   readonly: false
   required: true
+  searchable: true
   sort: 15
   special: null
   translations:
@@ -59,6 +60,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

@@ -4,16 +4,16 @@ type: string
 meta:
   collection: pages
   conditions:
-    - name: Only show if footer menu is enabled
+    - hidden: false
+      name: Only show if footer menu is enabled
+      options:
+        allowNone: false
+        allowOther: false
+      required: true
       rule:
         _and:
           - menus:
               _contains: footer
-      hidden: false
-      options:
-        allowOther: false
-        allowNone: false
-      required: true
   display: labels
   display_options:
     choices:
@@ -42,6 +42,7 @@ meta:
         value: structures_and_legal
   readonly: false
   required: false
+  searchable: true
   sort: 12
   special: null
   translations:
@@ -60,6 +61,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

@@ -25,6 +25,7 @@ meta:
     template: "{{measures_id.measure_id}} {{measures_id.name}}"
   readonly: false
   required: false
+  searchable: true
   sort: 14
   special:
     - m2m

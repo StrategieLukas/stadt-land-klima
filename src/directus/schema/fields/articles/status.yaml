@@ -41,6 +41,7 @@ meta:
         value: archived
   readonly: false
   required: true
+  searchable: true
   sort: 3
   special: null
   translations: null
@@ -57,6 +58,7 @@ schema:
   numeric_scale: null
   is_nullable: false
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

@@ -4,13 +4,10 @@ type: text
 meta:
   collection: pages
   conditions:
-    - name: Hide content-field if page is dynamic (as it will be ignored anyways)
-      rule:
-        _and:
-          - is_dynamic:
-              _eq: true
-      hidden: true
+    - hidden: true
+      name: Hide content-field if page is dynamic (as it will be ignored anyways)
       options:
+        font: sans-serif
         toolbar:
           - bold
           - italic
@@ -28,7 +25,10 @@ meta:
           - hr
           - code
           - fullscreen
-        font: sans-serif
+      rule:
+        _and:
+          - is_dynamic:
+              _eq: true
   display: null
   display_options: null
   field: contents
@@ -39,6 +39,7 @@ meta:
   options: null
   readonly: false
   required: false
+  searchable: true
   sort: 14
   special: null
   translations:
@@ -57,6 +58,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

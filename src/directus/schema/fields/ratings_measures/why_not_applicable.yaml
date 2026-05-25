@@ -4,17 +4,17 @@ type: text
 meta:
   collection: ratings_measures
   conditions:
-    - name: Field is only visible if measure is marked as NOT applicable
+    - hidden: false
+      name: Field is only visible if measure is marked as NOT applicable
+      options:
+        clear: false
+        font: sans-serif
+        trim: true
+      required: true
       rule:
         _and:
           - applicable:
               _eq: false
-      hidden: false
-      options:
-        trim: true
-        font: sans-serif
-        clear: false
-      required: true
   display: null
   display_options: null
   field: why_not_applicable
@@ -27,6 +27,7 @@ meta:
     trim: true
   readonly: false
   required: false
+  searchable: true
   sort: 4
   special: null
   translations:
@@ -45,6 +46,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

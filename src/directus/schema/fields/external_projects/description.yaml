@@ -13,19 +13,20 @@ meta:
   note: null
   options:
     toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - code
-      - empty
       - heading
+      - bold
       - italic
-      - link
-      - numlist
       - strikethrough
+      - blockquote
+      - bullist
+      - numlist
       - table
+      - code
+      - link
+      - empty
   readonly: false
   required: true
+  searchable: true
   sort: 7
   special: null
   translations:
@@ -44,6 +45,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

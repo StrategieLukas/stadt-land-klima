@@ -5,22 +5,22 @@ meta:
   collection: directus_users
   conditions:
     - name: OnlyWhenLocalteam
+      options:
+        allowDuplicates: false
+        enableCreate: true
+        enableLink: false
+        enableSearchFilter: false
+        enableSelect: true
+        junctionFieldLocation: bottom
+        layout: list
+        limit: 15
+      required: true
       rule:
         _and:
           - role:
               _in:
                 - b8c043a2-a245-42d1-b28f-20c657270926
                 - 18781584-6436-49b7-a69d-69f4f5e5db8b
-      required: true
-      options:
-        layout: list
-        enableCreate: true
-        enableSelect: true
-        limit: 15
-        junctionFieldLocation: bottom
-        allowDuplicates: false
-        enableSearchFilter: false
-        enableLink: false
   display: related-values
   display_options:
     template: "{{localteam_id.name}}"
@@ -34,6 +34,7 @@ meta:
     template: "{{localteam_id.name}}"
   readonly: false
   required: false
+  searchable: true
   sort: 1
   special:
     - m2m

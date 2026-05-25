@@ -15,6 +15,7 @@ meta:
     placeholder: z.B. technik
   readonly: true
   required: true
+  searchable: true
   sort: 3
   special: null
   translations:
@@ -33,6 +34,7 @@ schema:
   numeric_scale: null
   is_nullable: false
   is_unique: true
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null
