@@ -17,7 +17,7 @@
     <path
       class="slk-petal"
       style="animation-delay: 0ms"
-      fill="#9ca3af"
+      :fill="color"
       fill-rule="evenodd"
       d="M70.6,20.9c0-9.2-8-16.6-16.6-16.6s-16.6,7.4-16.6,16.6c0,1.7-0.4,3.6,2.1,10
          c1.4,3.5,14.5,26.6,14.5,26.6s13.1-23,14.5-26.6C71,24.5,70.6,22.7,70.6,20.9z
@@ -28,7 +28,7 @@
     <path
       class="slk-petal"
       style="animation-delay: 200ms"
-      fill="#9ca3af"
+      :fill="color"
       fill-rule="evenodd"
       d="M95.3,55.5c7.9-4.6,10.4-15.2,6.1-22.7s-14.8-10.7-22.7-6.1
          c-1.5,0.9-3.3,1.4-7.6,6.8c-2.3,2.9-15.7,25.9-15.7,25.9s26.5-0.1,30.3-0.7
@@ -40,7 +40,7 @@
     <path
       class="slk-petal"
       style="animation-delay: 400ms"
-      fill="#9ca3af"
+      :fill="color"
       fill-rule="evenodd"
       d="M37.3,99.7c0,9.2,8,16.6,16.6,16.6s16.6-7.4,16.6-16.6c0-1.7,0.4-3.6-2.1-10
          c-1.4-3.5-14.5-26.6-14.5-26.6s-13.1,23-14.5,26.6C36.9,96.1,37.3,98,37.3,99.7z
@@ -51,7 +51,7 @@
     <path
       class="slk-petal"
       style="animation-delay: 600ms"
-      fill="#9ca3af"
+      :fill="color"
       fill-rule="evenodd"
       d="M29.2,26.7c-7.9-4.6-18.4-1.4-22.7,6.1s-1.9,18.1,6.1,22.7
          c1.5,0.9,2.9,2.2,9.7,3.2c3.7,0.5,30.3,0.7,30.3,0.7S39.2,36.5,36.8,33.5
@@ -63,7 +63,7 @@
     <path
       class="slk-petal"
       style="animation-delay: 800ms"
-      fill="#9ca3af"
+      :fill="color"
       fill-rule="evenodd"
       d="M12.6,65.2C4.6,69.7,2.2,80.4,6.5,87.9c4.3,7.5,14.8,10.7,22.7,6.1
          c1.5-0.9,3.3-1.4,7.6-6.8c2.3-2.9,15.7-25.9,15.7-25.9S26,61.4,22.2,62
@@ -77,6 +77,7 @@
 <script setup>
 defineProps({
   size: { type: Number, default: 24 },
+  color: { type: String, default: '#9ca3af' },
 })
 </script>
 

@@ -18,6 +18,9 @@
       <button class="action-btn primary" @click="triggerFileUpload">
         Upload file
       </button>
+      <button class="action-btn secondary" @click="openLibrary">
+        Select from library
+      </button>
       <button class="action-btn secondary" @click="openUnsplash">
         Search Unsplash
       </button>
@@ -28,6 +31,67 @@
         style="display: none"
         @change="onFileChosen"
       />
+    </div>
+
+    <!-- Directus library browser modal -->
+    <div v-if="libraryOpen" class="modal-overlay" @click.self="closeLibrary">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">Select from library</span>
+          <button class="close-btn" @click="closeLibrary">&#x2715;</button>
+        </div>
+
+        <div class="search-bar">
+          <input
+            v-model="librarySearch"
+            type="text"
+            placeholder="Search files…"
+            class="search-input"
+            @input="onLibrarySearchInput"
+          />
+        </div>
+
+        <div v-if="libraryLoading" class="loading">Loading…</div>
+
+        <div v-else-if="!libraryLoading && libraryFiles.length === 0" class="empty">
+          No files found.
+        </div>
+
+        <div v-if="libraryFiles.length" class="photo-grid">
+          <div
+            v-for="file in libraryFiles"
+            :key="file.id"
+            class="photo-card"
+            @click="selectLibraryFile(file)"
+          >
+            <img
+              :src="`/assets/${file.id}?fit=cover&width=150&height=150`"
+              :alt="file.title || file.filename_download"
+              class="photo-thumb"
+              loading="lazy"
+            />
+            <div class="photo-attr">{{ file.title || file.filename_download }}</div>
+          </div>
+        </div>
+
+        <div v-if="libraryTotalPages > 1" class="pagination">
+          <button
+            class="action-btn secondary"
+            :disabled="libraryPage <= 1 || libraryLoading"
+            @click="loadLibraryPage(libraryPage - 1)"
+          >
+            Previous
+          </button>
+          <span class="page-info">{{ libraryPage }} / {{ libraryTotalPages }}</span>
+          <button
+            class="action-btn secondary"
+            :disabled="libraryPage >= libraryTotalPages || libraryLoading"
+            @click="loadLibraryPage(libraryPage + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
 
     <div v-if="uploadError" class="error-msg">{{ uploadError }}</div>
@@ -162,6 +226,64 @@ async function onFileChosen(event) {
   } catch (err) {
     uploadError.value = 'Upload failed: ' + (err.response?.data?.errors?.[0]?.message || err.message);
   }
+}
+
+// ─── Directus library browser ────────────────────────────────────────────────
+
+const libraryOpen = ref(false);
+const librarySearch = ref('');
+const libraryFiles = ref([]);
+const libraryLoading = ref(false);
+const libraryPage = ref(1);
+const libraryTotalPages = ref(1);
+const libraryPageSize = 24;
+let libraryDebounce = null;
+
+function openLibrary() {
+  libraryOpen.value = true;
+  loadLibraryPage(1);
+}
+
+function closeLibrary() {
+  libraryOpen.value = false;
+}
+
+function onLibrarySearchInput() {
+  clearTimeout(libraryDebounce);
+  libraryDebounce = setTimeout(() => {
+    loadLibraryPage(1);
+  }, 400);
+}
+
+async function loadLibraryPage(page) {
+  libraryLoading.value = true;
+  libraryPage.value = page;
+  try {
+    const params = {
+      limit: libraryPageSize,
+      offset: (page - 1) * libraryPageSize,
+      fields: ['id', 'title', 'filename_download', 'type'],
+      sort: ['-uploaded_on'],
+      'filter[type][_starts_with]': 'image/',
+      'meta': 'filter_count',
+    };
+    if (librarySearch.value.trim()) {
+      params['filter[title][_icontains]'] = librarySearch.value.trim();
+    }
+    const response = await api.get('/files', { params });
+    libraryFiles.value = response.data?.data || [];
+    const total = response.data?.meta?.filter_count ?? libraryFiles.value.length;
+    libraryTotalPages.value = Math.max(1, Math.ceil(total / libraryPageSize));
+  } catch (err) {
+    libraryFiles.value = [];
+  } finally {
+    libraryLoading.value = false;
+  }
+}
+
+function selectLibraryFile(file) {
+  emit('input', file.id);
+  closeLibrary();
 }
 
 // ─── Unsplash modal ───────────────────────────────────────────────────────────

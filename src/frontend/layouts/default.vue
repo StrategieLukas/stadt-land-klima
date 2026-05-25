@@ -33,7 +33,7 @@
         @click="closeDrawerOnOutsideClick"
       >
         <!-- Main Content -->
-        <main class="flex grow flex-col px-2 py-4 bg-mild-white min-w-0">
+        <main class="flex grow flex-col px-2 bg-mild-white min-w-0">
           <div class="mx-auto w-full max-w-screen-xl flex flex-col min-w-0">
             <slot />
           </div>

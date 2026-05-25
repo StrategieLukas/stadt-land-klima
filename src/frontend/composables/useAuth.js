@@ -209,6 +209,7 @@ export function useAuth() {
     isLoading: authStore.isLoading,
     error: authStore.error,
     user: authStore.user,
+    accessToken: authStore._accessToken,
   };
 }
 

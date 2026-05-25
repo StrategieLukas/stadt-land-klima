@@ -1,5 +1,6 @@
 <template>
-  <div v-if="event" class="py-8 max-w-2xl">
+  <div v-if="event" class="flex flex-col items-center py-8 w-full">
+    <div class="max-w-2xl w-full">
     <!-- Back link -->
     <NuxtLink :to="backHref" class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 mb-6">
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -9,11 +10,11 @@
     </NuxtLink>
 
     <!-- Teaser image -->
-    <div v-if="event.image" class="rounded-xl overflow-hidden mb-6 bg-gray-100">
+    <div v-if="event.image" class="rounded-xl overflow-hidden mb-6">
       <img
-        :src="`${directusUrl}/assets/${event.image}?width=800&height=400&fit=cover&quality=80`"
+        :src="`${directusUrl}/assets/${event.image}?width=800&quality=80`"
         :alt="event.title"
-        class="w-full h-64 object-cover"
+        class="w-full h-auto block"
       />
     </div>
 
@@ -57,11 +58,12 @@
       rel="noopener noreferrer"
       class="inline-flex items-center gap-2 px-6 py-3 bg-light-green text-white font-bold rounded hover:bg-olive-green transition-colors"
     >
-      Zur Anmeldung
+      {{ event.cta_label || 'Zur Anmeldung' }}
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
       </svg>
     </a>
+    </div><!-- /.max-w-2xl -->
   </div>
 
   <div v-else class="py-8 text-gray-500">
@@ -83,7 +85,7 @@ const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
       slug: { _eq: route.params.slug },
       status: { _eq: 'published' },
     },
-    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url', 'image'],
+    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url', 'cta_label', 'image'],
     limit: 1,
   })).then(data => data?.[0] ?? null)
 )

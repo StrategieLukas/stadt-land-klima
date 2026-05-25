@@ -700,7 +700,8 @@ onMounted(async () => {
     
     if (result) {
       // Redirect level 1-3 areas (Germany, federal states, Regierungsbezirke) to /regions/
-      if (result.level <= 3) {
+      // unless the area itself is rateable (e.g. city-states like Hamburg, Berlin, Bremen).
+      if (result.level <= 3 && !result.is_reasonable_for_municipal_rating) {
         await navigateTo(`/regions/${route.params.ars}`, { replace: true });
         return;
       }

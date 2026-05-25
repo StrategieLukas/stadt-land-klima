@@ -2,7 +2,7 @@
   <div class="blokkli-block-timeline-item relative pl-12 pb-10" :id="'block-' + uuid">
     <!-- Dot on the line -->
     <div
-      class="absolute left-0 top-1.5 w-8 h-8 rounded-full flex items-center justify-center z-10"
+      class="timeline-item-dot absolute left-0 top-1.5 w-8 h-8 rounded-full flex items-center justify-center z-10"
       :class="dotBgClass"
     >
       <Icon v-if="options.icon" :icon="options.icon" class="w-4 h-4 text-white" />
@@ -25,17 +25,18 @@
       v-text="props.title"
     />
 
-    <!-- Description -->
-    <p
-      v-if="props.description || isEditing"
-      v-blokkli-editable:description
-      class="text-sm text-gray leading-relaxed"
-      v-text="props.description"
+    <!-- Description / nested blocks -->
+    <BlokkliField
+      name="blocks"
+      :list="props.blocks || []"
+      tag="div"
+      class="flex flex-col gap-3 mt-1"
     />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { FieldListItem } from '#blokkli/types'
 import { Icon } from '@iconify/vue'
 
 const { options, isEditing, uuid } = defineBlokkli({
@@ -64,14 +65,14 @@ const { options, isEditing, uuid } = defineBlokkli({
   editor: {
     addBehaviour: 'editable:title',
     editTitle: (el) => el.textContent?.trim().slice(0, 40) || 'Zeitstrahl-Eintrag',
-    mockProps: () => { return { date: '2024', title: 'Meilenstein', description: 'Beschreibung des Ereignisses...' } },
+    mockProps: () => { return { date: '2024', title: 'Meilenstein', blocks: [] } },
   },
 })
 
 const props = defineProps<{
   date?: string
   title?: string
-  description?: string
+  blocks?: FieldListItem[]
 }>()
 
 const colorMap: Record<string, { bg: string; text: string }> = {

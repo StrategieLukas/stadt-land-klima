@@ -9,7 +9,7 @@
     class="self-center"
   >
     <template #default="{ isEditing }">
-      <article class="prose py-8 self-center">
+      <article class="prose pb-8 self-center">
         <!-- blökkli field: renders blocks when available -->
         <BlokkliField
           name="content"
