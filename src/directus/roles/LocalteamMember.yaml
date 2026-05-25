@@ -1,0 +1,7 @@
+name: LocalteamMember
+icon: supervised_user_circle
+parent: 54efe1fa-562d-48e0-b3a5-75e0c783a47c
+children:
+  - 0193de01-545b-40b1-bb60-27edb5e5cae0
+policies:
+  - 133d443a-7700-41a8-8bf2-640b78c51312
