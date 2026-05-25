@@ -1,7 +1,6 @@
-name: StatisticsAPI
-icon: supervised_user_circle
-description: null
-ip_access: null
+name: API-StadtLandZahl
+icon: badge
+description: Zugriff für StadtLandZahl
 enforce_tfa: false
 admin_access: false
 app_access: false
