@@ -83,20 +83,6 @@ permissions:
       - score_management
       - score_transport
       - rank
-  - collection: organisations
-    action: read
-    permissions: null
-    validation: null
-    presets: null
-    fields:
-      - name
-      - short_description
-      - link
-      - logo
-      - id
-      - social_media_segment
-      - linkedin
-      - instagram
   - collection: ratings_measures
     action: read
     permissions:
