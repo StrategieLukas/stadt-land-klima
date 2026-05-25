@@ -1,7 +1,6 @@
-name: PartnerAPI
+name: API-Erfolgsprojekte
 icon: volunteer_activism
-description: Access to parts of our API for partners
-ip_access: null
+description: API Access to Erfolgsprojekte
 enforce_tfa: false
 admin_access: false
 app_access: false
