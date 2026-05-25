@@ -2,6 +2,7 @@ import path from 'path';
 import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
+import importPolicies from './importPolicies.mjs';
 import importPresets from './importPresets.mjs';
 import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
@@ -33,8 +34,32 @@ function importTasks(yargs) {
   )
 
   .command(
+    'import:policies [src]',
+    'imports the policies from the folder specified by "src". By default it will import from "policies"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: 'policies',
+      });
+    },
+    async (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing policies from ${argv.src}`);
+      }
+
+      await clearDirectusCache();
+      await importPolicies(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
     'import:roles [src]',
-    'imports the roles from the folder specified by "src". By default it will import from "roles"',
+    'imports the roles from the folder specified by "src". By default it will import from "roles". NOTE: Import policies first, as roles reference policies by ID.',
     (yargs) => {
       return yargs
       .positional('src', {
@@ -154,7 +179,7 @@ function importTasks(yargs) {
 
   .command(
     'import:all [src]',
-    'imports schema, roles, flows, presets, translations, and settings consecutively',
+    'imports schema, policies, roles, flows, presets, translations, and settings consecutively. In v11+, policies are imported before roles.',
     (yargs) => {
       return yargs
       .positional('src', {
@@ -178,7 +203,15 @@ function importTasks(yargs) {
         verbose: argv.verbose,
       });
 
-      // Import roles
+      // Import policies (must be before roles in v11+)
+      console.info('Importing policies...');
+      await importPolicies(path.join(src, 'policies'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import roles (references policies)
       console.info('Importing roles...');
       await importRoles(path.join(src, 'roles'), {
         verbose: argv.verbose,

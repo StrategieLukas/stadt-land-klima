@@ -14,7 +14,7 @@ async function exportTranslations(dest, options = {verbose: false, overwrite: fa
     fse.mkdirSync(dest);
 
     translations.forEach((translation) => {
-      const destPath = path.join(dest, slugify(translation.key, '_') + '.' + translation.language + '.yaml');
+      const destPath = path.join(dest, slugify(translation.key, { replacement: '_', lower: true }) + '.' + translation.language + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) {

@@ -27,7 +27,7 @@ async function exportFlows(dest, options = {verbose: false, overwrite: false}) {
     fse.mkdirSync(dest);
 
     flows.forEach((flow) => {
-      const destPath = path.join(dest, slugify(flow.name, '_') + '.yaml');
+      const destPath = path.join(dest, slugify(flow.name, { replacement: '_', lower: true }) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) {

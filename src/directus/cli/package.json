@@ -10,7 +10,7 @@
   "dependencies": {
     "@directus/sdk": "^21.3.0",
     "dotenv": "^16.4.5",
-    "fs-extra": "^11.2.0",
+    "fse": "^4.0.1",
     "lodash": "^4.17.21",
     "slugify": "^1.6.6",
     "yaml": "^2.4.5",

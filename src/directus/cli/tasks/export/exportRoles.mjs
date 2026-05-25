@@ -1,10 +1,19 @@
 import fse from 'fse';
 import path from 'path';
 import { stringify } from 'yaml';
-import { readRoles, readPermissions } from '@directus/sdk';
+import { readRoles } from '@directus/sdk';
 import slugify from 'slugify';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 
+/**
+ * Export roles for Directus v11+
+ * 
+ * In Directus v11, roles no longer hold permissions directly.
+ * Instead, roles have policies attached to them via many-to-many relationship.
+ * This exports roles with their attached policies (by ID reference).
+ * 
+ * The actual policy definitions (with permissions) are exported separately.
+ */
 async function exportRoles(dest, options = { verbose: false, overwrite: false }) {
   const client = createDirectusClient();
 
@@ -15,66 +24,55 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         filter: {
           name: { _neq: "Administrator" },
         },
+        fields: ['*', 'policies.*', 'users.*', 'children.*'],
       })
     );
-    const permissions = await client.request(readPermissions({ limit: -1 }));
 
     fse.mkdirSync(dest, { recursive: true });
 
+    let exportedCount = 0;
+
     // Export all roles except Administrator
     roles.forEach((role) => {
-      const destPath = path.join(dest, slugify(role.name, '_') + '.yaml');
+      const destPath = path.join(dest, slugify(role.name, { replacement: '_', lower: true }) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);
         return;
       }
 
-      delete role.users;
+      // Clean up role data for export
+      const cleanRole = {
+        name: role.name,
+        icon: role.icon || null,
+        description: role.description || null,
+        parent: role.parent || null,
+        children: role.children ? role.children.map(c => c.id || c) : [],
+        // Store policy IDs that are attached to this role
+        // These reference policies that are exported separately
+        policies: role.policies ? role.policies.map(p => p.id || p) : [],
+      };
 
-      role.permissions = permissions
-        .filter((permission) => permission.role === role.id)
-        .map((permission) => {
-          delete permission.id;
-          delete permission.role;
-          return permission;
-        })
-        // 🔹 Ensure deterministic order
-        .sort((a, b) => {
-          if (a.collection === b.collection) {
-            if (a.action === b.action) return 0;
-            return a.action < b.action ? -1 : 1;
-          }
-          return a.collection < b.collection ? -1 : 1;
-        });
+      // Remove null/undefined values for cleaner YAML
+      Object.keys(cleanRole).forEach((key) => {
+        if (cleanRole[key] === null || cleanRole[key] === undefined) {
+          delete cleanRole[key];
+        }
+      });
 
-      delete role.id;
+      // Remove id field for export
+      delete cleanRole.id;
+      if (cleanRole.users) delete cleanRole.users;
 
-      fse.writeFileSync(destPath, stringify(role), { encoding: 'utf8' });
+      fse.writeFileSync(destPath, stringify(cleanRole), { encoding: 'utf8' });
+      exportedCount++;
 
       if (options.verbose) console.info(`Exported role ${destPath}`);
     });
 
-    // 🔹 Export public permissions (role = null)
-    const publicPerms = permissions.filter((permission) => permission.role === null);
-    if (publicPerms.length) {
-      const destPath = path.join(dest, 'public.yaml');
-      const publicRole = {
-        name: 'Public',
-        description: 'Unauthenticated access',
-        permissions: publicPerms.map((permission) => {
-          delete permission.id;
-          delete permission.role;
-          return permission;
-        }),
-      };
-
-      fse.writeFileSync(destPath, stringify(publicRole), { encoding: 'utf8' });
-
-      if (options.verbose) console.info(`Exported Public role to ${destPath}`);
+    if (options.verbose) {
+      console.info(`Exported ${exportedCount} roles.`);
     }
-
-    if (options.verbose) console.info('All roles exported.');
   } catch (err) {
     console.error(err);
     return process.exit(1);
