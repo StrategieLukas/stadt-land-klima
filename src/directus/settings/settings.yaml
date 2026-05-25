@@ -10,7 +10,28 @@ auth_login_attempts: 25
 auth_password_policy: /^.{8,}$/
 storage_asset_transform: all
 storage_asset_presets: null
-custom_css: null
+custom_css: >-
+  html {
+    font-size: 17px !important;
+  }
+
+
+  .module-bar-logo {
+    background: none !important;
+    width: 140px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+
+  .module-bar-logo .logo {
+    width: 100% !important;
+    height: 100% !important;
+
+    background: url("/directus/logos/slk-square-notext.png") no-repeat center / contain !important;
+  }
 storage_default_folder: null
 basemaps: null
 mapbox_key: null
