@@ -3,6 +3,7 @@ import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import importSchema from './importSchema.mjs';
 import importRoles from './importRoles.mjs';
 import importPolicies from './importPolicies.mjs';
+import importRolesAndPolicies from './importRolesAndPolicies.mjs';
 import importPresets from './importPresets.mjs';
 import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
@@ -74,6 +75,32 @@ function importTasks(yargs) {
 
       await clearDirectusCache();
       await importRoles(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
+    'import:roles-and-policies [src]',
+    'imports roles and policies from the folder specified by "src". Expects policies/ and roles/ subdirectories. By default imports from current directory.',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder containing policies/ and roles/ subdirectories',
+        default: '.',
+      });
+    },
+    async (argv) => {
+      const src = argv.src;
+
+      if (argv.verbose) {
+        console.info(`Importing roles and policies from ${src}`);
+      }
+
+      await clearDirectusCache();
+      await importRolesAndPolicies(src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
         overwrite: argv.force,
@@ -203,17 +230,9 @@ function importTasks(yargs) {
         verbose: argv.verbose,
       });
 
-      // Import policies (must be before roles in v11+)
-      console.info('Importing policies...');
-      await importPolicies(path.join(src, 'policies'), {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-
-      // Import roles (references policies)
-      console.info('Importing roles...');
-      await importRoles(path.join(src, 'roles'), {
+      // Import policies and roles together (policies must be before roles in v11+)
+      console.info('Importing policies and roles...');
+      await importRolesAndPolicies(src, {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
         overwrite: argv.force,

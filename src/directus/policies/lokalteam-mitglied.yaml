@@ -1,5 +1,6 @@
 name: Lokalteam-Mitglied
 icon: badge
+description: Basis-Rolle für Mitglieder eines Lokalteams
 enforce_tfa: false
 admin_access: false
 app_access: false
@@ -13,13 +14,6 @@ permissions:
     presets: null
     fields:
       - localteams
-  - collection: junction_directus_users_localteams
-    action: read
-    permissions: {}
-    validation: null
-    presets: null
-    fields:
-      - "*"
   - collection: localteams
     action: read
     permissions:
@@ -68,18 +62,14 @@ permissions:
       - population
       - mayor
       - party_mayor
-      - scores
       - id
       - description
       - status
       - links-g1sxxi
       - slug
-      - overall_status_comment
       - public_contact
-      - percentage_rated
       - ars
       - geolocation
-      - notice-kcc40f
   - collection: municipalities
     action: update
     permissions:
@@ -92,15 +82,9 @@ permissions:
     fields:
       - user_updated
       - date_updated
-      - municipality_type
-      - details
-      - state
-      - population
       - mayor
       - party_mayor
       - description
-      - overall_status_comment
       - status
-      - ars
-      - geolocation
       - public_contact
+      - details
