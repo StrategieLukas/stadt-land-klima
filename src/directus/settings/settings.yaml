@@ -18,19 +18,11 @@ custom_css: >-
 
   .module-bar-logo {
     background: none !important;
-    width: 140px !important;
-    height: 40px !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
   }
 
 
   .module-bar-logo .logo {
-    width: 100% !important;
-    height: 100% !important;
-
-    background: url("/logos/slk-square-notext.png") no-repeat center / contain !important;
+    background: url("/assets/65ef4892-7c5d-4166-9750-48e2b6880a81.png") no-repeat center / contain !important;
   }
 
 
