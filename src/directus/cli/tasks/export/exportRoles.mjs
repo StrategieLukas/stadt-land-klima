@@ -34,7 +34,15 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
 
     // Export all roles except Administrator
     roles.forEach((role) => {
-      const destPath = path.join(dest, slugify(role.name, { replacement: '_', lower: true }) + '.yaml');
+      // Handle i18n translation keys - map $t:public_label to 'public'
+      let filename = role.name;
+      if (filename === '$t:public_label') {
+        filename = 'public';
+      } else if (filename.startsWith('$t:')) {
+        // For other translation keys, strip the $t: prefix and slugify
+        filename = filename.substring(3);
+      }
+      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: true }) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);

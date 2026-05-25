@@ -160,7 +160,12 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
       if (rolesToDelete.length) {
         if (options.verbose) console.info(`Removing ${rolesToDelete.length} roles`);
-        await client.request(deleteRoles(rolesToDelete.map(property('id'))));
+        const rolesToDeleteIds = rolesToDelete
+          .map(property('id'))
+          .filter(id => id && id !== '');
+        if (rolesToDeleteIds.length) {
+          await client.request(deleteRoles(rolesToDeleteIds));
+        }
       }
     }
 

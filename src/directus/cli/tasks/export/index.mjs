@@ -76,16 +76,20 @@ function exportTasks(yargs) {
       
       await clearDirectusCache();
       
-      // Ensure directory exists and is empty
+      // Clear the directory before export (deletes all yaml files)
       if (fs.existsSync(dest)) {
         clearDir(dest, { extensions: ['.yaml'] });
       } else {
         fs.mkdirSync(dest, { recursive: true });
       }
       
+      if (argv.verbose) {
+        console.info(`${dest} cleared`);
+      }
+      
       await exportPolicies(dest, {
         verbose: argv.verbose,
-        overwrite: true, // Always overwrite for policies
+        overwrite: true,
       });
     }
   )

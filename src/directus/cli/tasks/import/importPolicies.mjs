@@ -170,12 +170,22 @@ async function importPolicies(src, options = { verbose: false, remove: false, ov
 
       if (permissionsToDelete.length) {
         if (options.verbose) console.info(`Removing ${permissionsToDelete.length} permissions`);
-        await client.request(deletePermissions(permissionsToDelete.map(property('id'))));
+        const permissionsToDeleteIds = permissionsToDelete
+          .map(property('id'))
+          .filter(id => id && id !== '');
+        if (permissionsToDeleteIds.length) {
+          await client.request(deletePermissions(permissionsToDeleteIds));
+        }
       }
 
       if (policiesToDelete.length) {
         if (options.verbose) console.info(`Removing ${policiesToDelete.length} policies`);
-        await client.request(deletePolicies(policiesToDelete.map(property('id'))));
+        const policiesToDeleteIds = policiesToDelete
+          .map(property('id'))
+          .filter(id => id && id !== '');
+        if (policiesToDeleteIds.length) {
+          await client.request(deletePolicies(policiesToDeleteIds));
+        }
       }
     }
 

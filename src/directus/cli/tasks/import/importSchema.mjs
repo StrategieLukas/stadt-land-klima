@@ -19,61 +19,61 @@ async function importSchema(src, options = {verbose: false}) {
     });
 
     if (options.verbose) {
-      console.info('Applying schema:');
-      console.info(schema);
+      console.info('Applying schema...');
     }
 
-    // Use REST API directly for schema operations to handle version mismatch
-    // First try without force flag - if it fails with version mismatch, retry with force
-    let diffUrl = new URL('/schema/diff', client.url).toString();
-    let applyUrl = new URL('/schema/apply', client.url).toString();
+    // Use REST API directly for schema operations
+    let diffUrl = new URL('/schema/diff?force=true', client.url).toString();
+    let applyUrl = new URL('/schema/apply?force=true', client.url).toString();
     
-    let diffResponse;
+    // First, try schema/diff
+    const diffResponse = await fetch(diffUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+      },
+      body: JSON.stringify(schema),
+    });
+
+    if (!diffResponse.ok) {
+      const errorText = await diffResponse.text();
+      console.error('Schema diff error:', diffResponse.status, errorText);
+      return process.exit(1);
+    }
+
     let diffData;
-    let diff;
+    const responseText = await diffResponse.text();
     
-    try {
-      diffResponse = await fetch(diffUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
-        },
-        body: JSON.stringify(schema),
-      });
-
-      diffData = await diffResponse.json();
-      diff = diffData.data;
-    } catch (e) {
+    // Handle 204 No Content (schema already matches)
+    if (diffResponse.status === 204 || !responseText.trim()) {
       if (options.verbose) {
-        console.info('Schema diff failed, retrying with force flag...');
+        console.info('No schema differences. Done.');
       }
-      diffUrl = new URL('/schema/diff?force=true', client.url).toString();
-      applyUrl = new URL('/schema/apply?force=true', client.url).toString();
-      
-      diffResponse = await fetch(diffUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
-        },
-        body: JSON.stringify(schema),
-      });
-
-      diffData = await diffResponse.json();
-      diff = diffData.data;
+      return;
     }
 
+    try {
+      diffData = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse schema diff response:', e.message);
+      console.error('Response status:', diffResponse.status);
+      console.error('Response body:', responseText.substring(0, 500));
+      return process.exit(1);
+    }
+
+    const diff = diffData.data;
+
+    // If no differences, exit early
     if (!diff) {
       if (options.verbose) {
-        console.info('No difference. Done');
+        console.info('No schema differences. Done.');
       }
       return;
     }
 
     if (options.verbose) {
-      console.info('Applying diff:');
-      console.info(diff);
+      console.info('Schema differences found. Applying...');
     }
 
     const applyResponse = await fetch(applyUrl, {
@@ -86,9 +86,22 @@ async function importSchema(src, options = {verbose: false}) {
     });
 
     if (!applyResponse.ok) {
-      const error = await applyResponse.json();
-      console.error('Failed to apply schema:', error);
+      const errorText = await applyResponse.text();
+      console.error('Schema apply error:', applyResponse.status, errorText);
       return process.exit(1);
+    }
+
+    // Handle 204 No Content for apply as well
+    const applyText = await applyResponse.text();
+    if (applyResponse.status !== 204 && applyText.trim()) {
+      try {
+        const applyData = JSON.parse(applyText);
+        if (options.verbose) {
+          console.info('Schema apply response:', applyData);
+        }
+      } catch (e) {
+        // Non-JSON response is OK
+      }
     }
 
     if (options.verbose) {

@@ -40,7 +40,15 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
         return;
       }
 
-      const destPath = path.join(dest, slugify(policy.name, { replacement: '_', lower: true }) + '.yaml');
+      // Handle i18n translation keys - map $t:public_label to 'public'
+      let filename = policy.name;
+      if (filename === '$t:public_label') {
+        filename = 'public';
+      } else if (filename.startsWith('$t:')) {
+        // For other translation keys, strip the $t: prefix and slugify
+        filename = filename.substring(3);
+      }
+      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: true }) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);
@@ -60,7 +68,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
         ip_access: policy.ip_access || null,
         enforce_tfa: policy.enforce_tfa || false,
         admin_access: policy.admin_access || false,
-        app_access: policy.app_access || true,
+        app_access: policy.app_access !== undefined ? policy.app_access : true,
         permissions: policyPermissions.map((permission) => {
           // Remove internal fields for export
           const cleanPermission = { ...permission };

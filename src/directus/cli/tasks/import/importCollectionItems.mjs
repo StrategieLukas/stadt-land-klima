@@ -63,7 +63,12 @@ async function importCollectionItems(collection, src, options = {verbose: false,
           console.info(`Removing ${itemsToDelete.length} items`);
         }
 
-        await client.request(deleteItems(collection, itemsToDelete.map(property('id'))));
+        const itemsToDeleteIds = itemsToDelete
+          .map(property('id'))
+          .filter(id => id && id !== '');
+        if (itemsToDeleteIds.length) {
+          await client.request(deleteItems(collection, itemsToDeleteIds));
+        }
       }
     }
 
