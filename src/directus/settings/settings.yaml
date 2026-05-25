@@ -7,7 +7,7 @@ public_foreground: null
 public_background: null
 public_note: null
 auth_login_attempts: 25
-auth_password_policy: null
+auth_password_policy: /^.{8,}$/
 storage_asset_transform: all
 storage_asset_presets: null
 custom_css: null
@@ -37,6 +37,9 @@ module_bar:
     id: settings
     enabled: true
     locked: true
+  - type: module
+    id: deployments
+    enabled: false
 project_descriptor: Lokales Klimaschutz-Ranking
 default_language: de-DE
 custom_aspect_ratios: null
@@ -60,10 +63,10 @@ mcp_allow_deletes: false
 mcp_prompts_collection: null
 mcp_system_prompt_enabled: true
 mcp_system_prompt: null
-project_owner: null
-project_usage: null
+project_owner: info@stadt-land-klima.de
+project_usage: community
 org_name: null
-product_updates: null
+product_updates: false
 project_status: null
 ai_openai_api_key: null
 ai_anthropic_api_key: null
