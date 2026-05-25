@@ -1,0 +1,106 @@
+name: Lokalteam-Mitglied
+icon: badge
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: directus_users
+    action: read
+    permissions:
+      id:
+        _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - localteams
+  - collection: junction_directus_users_localteams
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: localteams
+    action: read
+    permissions:
+      _and:
+        - id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - status
+      - name
+      - municipality_name
+      - admin_id
+      - public_contact
+      - slug
+      - municipality_id
+  - collection: localteams
+    action: update
+    permissions:
+      _and:
+        - id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - public_contact
+  - collection: municipalities
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - user_updated
+      - date_updated
+      - name
+      - municipality_type
+      - details
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - scores
+      - id
+      - description
+      - status
+      - links-g1sxxi
+      - slug
+      - overall_status_comment
+      - public_contact
+      - percentage_rated
+      - ars
+      - geolocation
+      - notice-kcc40f
+  - collection: municipalities
+    action: update
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - user_updated
+      - date_updated
+      - municipality_type
+      - details
+      - state
+      - population
+      - mayor
+      - party_mayor
+      - description
+      - overall_status_comment
+      - status
+      - ars
+      - geolocation
+      - public_contact
