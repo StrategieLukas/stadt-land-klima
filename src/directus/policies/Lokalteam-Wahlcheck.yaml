@@ -134,6 +134,48 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+        - catalog_version:
+            isCurrentBackend:
+              _eq: true
+        - catalog_version:
+            hidden:
+              _eq: false
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - measure_id
+      - catalog_version
+      - must_be_rated_again
+      - name
+      - slug
+      - sector
+      - impact
+      - weight
+      - feasibility_political
+      - feasibility_economical
+      - feasibility
+      - choices_rating
+      - description_about
+      - description_evaluation_criteria
+      - description_verification
+      - description_benefit
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+      - accordion-p4jgb8
+      - description
+      - verification_description
+      - notes
   - collection: questions
     action: create
     permissions: null
@@ -147,6 +189,7 @@ permissions:
       - thesis
       - election
       - prefill_trigger
+      - sector
   - collection: questions
     action: delete
     permissions:
@@ -184,6 +227,7 @@ permissions:
       - title
       - thesis
       - election
+      - sector
   - collection: questions
     action: update
     permissions:
@@ -199,3 +243,37 @@ permissions:
       - localteam
       - title
       - thesis
+      - sector
+  - collection: ratings_measures
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+        - measure_published:
+            _eq: true
+        - measure_id:
+            catalog_version:
+              isCurrentBackend:
+                _eq: true
+        - measure_id:
+            catalog_version:
+              hidden:
+                _eq: false
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - applicable
+      - why_not_applicable
+      - measure_published
+      - localteam_id
+      - measure_id
+      - measure_info_preview
+      - choices
+      - rating
+      - current_progress
+      - source
+      - approved

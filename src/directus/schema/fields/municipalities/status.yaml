@@ -50,12 +50,12 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 7
+  sort: 6
   special: null
   translations: null
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
   name: status
   table: municipalities

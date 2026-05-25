@@ -53,8 +53,6 @@ permissions:
     validation: {}
     presets: null
     fields:
-      - user_updated
-      - date_updated
       - name
       - mayor
       - party_mayor
