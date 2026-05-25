@@ -17,7 +17,7 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "@directus/extensions-sdk": "^10.0.0"
+    "@directus/extensions-sdk": "11.0.10"
   },
   "directus:extension": {
     "type": "hook",

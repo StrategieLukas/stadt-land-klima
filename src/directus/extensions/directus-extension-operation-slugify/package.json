@@ -27,7 +27,7 @@
     "link": "directus-extension link"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "11.17.4",
+    "@directus/extensions-sdk": "11.0.10",
     "vue": "^3.3.4"
   },
   "dependencies": {

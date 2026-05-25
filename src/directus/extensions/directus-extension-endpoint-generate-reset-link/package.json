@@ -13,7 +13,7 @@
     "dev": "directus-extension build -w --no-minify"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "11.17.4",
+    "@directus/extensions-sdk": "11.0.10",
     "jsonwebtoken": "^9.0.0"
   }
 }

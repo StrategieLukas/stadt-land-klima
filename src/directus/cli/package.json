@@ -8,7 +8,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "@directus/sdk": "^11.17.4",
+    "@directus/sdk": "^21.3.0",
     "dotenv": "^16.3.1",
     "fse": "^4.0.1",
     "lodash": "^4.17.21",

@@ -28,6 +28,6 @@
 		"meilisearch": "^0.38.0"
 	},
 	"devDependencies": {
-		"@directus/extensions-sdk": "11.17.4"
+		"@directus/extensions-sdk": "11.0.10"
 	}
 }
