@@ -44,7 +44,6 @@ custom_css: >-
   }
 storage_default_folder: null
 basemaps: null
-mapbox_key: null
 module_bar:
   - type: module
     id: consent
@@ -99,15 +98,7 @@ project_usage: community
 org_name: null
 product_updates: false
 project_status: null
-ai_openai_api_key: null
-ai_anthropic_api_key: null
 ai_system_prompt: null
-ai_google_api_key: null
-ai_openai_compatible_api_key: null
-ai_openai_compatible_base_url: null
-ai_openai_compatible_name: null
-ai_openai_compatible_models: null
-ai_openai_compatible_headers: null
 ai_openai_allowed_models:
   - gpt-5-nano
   - gpt-5-mini

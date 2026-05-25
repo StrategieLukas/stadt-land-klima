@@ -3,7 +3,7 @@ icon: badge
 description: Ermöglicht die Bewertung der eigenen Kommune
 enforce_tfa: false
 admin_access: false
-app_access: true
+app_access: false
 permissions:
   - collection: measure_catalog
     action: read
