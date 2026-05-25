@@ -13,10 +13,7 @@ const SENSITIVE_SETTINGS_FIELDS = [
   'ai_anthropic_api_key',
   'ai_google_api_key',
   'ai_openai_compatible_api_key',
-  'ai_openai_compatible_base_url',
   'ai_openai_compatible_headers',
-  'ai_openai_compatible_name',
-  'ai_openai_compatible_models',
 ];
 
 // Wildcard pattern to catch any field containing "key" (case-insensitive)
@@ -42,21 +39,21 @@ function matchesWildcardPattern(fieldName) {
  */
 function filterSensitiveSettings(settings) {
   const filtered = { ...settings };
-  
+
   // Remove explicitly known sensitive fields
   for (const field of SENSITIVE_SETTINGS_FIELDS) {
     if (field in filtered) {
       delete filtered[field];
     }
   }
-  
+
   // Remove any field matching wildcard patterns (e.g., containing "key")
   for (const fieldName of Object.keys(filtered)) {
     if (matchesWildcardPattern(fieldName)) {
       delete filtered[fieldName];
     }
   }
-  
+
   return filtered;
 }
 
@@ -65,7 +62,7 @@ async function exportSettings(dest, options = {verbose: false, overwrite: false}
 
   try {
     const settings = await client.request(readSettings());
-    
+
     // Filter out sensitive fields before exporting
     const safeSettings = filterSensitiveSettings(settings);
 
@@ -88,17 +85,17 @@ async function exportSettings(dest, options = {verbose: false, overwrite: false}
 
     if (options.verbose) {
       console.info(`Exported setting ${destPath}`);
-      
+
       // Count explicitly filtered fields
       const explicitFilteredCount = SENSITIVE_SETTINGS_FIELDS.filter(f => f in settings).length;
-      
+
       // Count wildcard-matched fields that were filtered
       const wildcardFilteredFields = Object.keys(settings).filter(
         fieldName => !SENSITIVE_SETTINGS_FIELDS.includes(fieldName) &&
                      matchesWildcardPattern(fieldName)
       );
       const wildcardFilteredCount = wildcardFilteredFields.length;
-      
+
       const totalFiltered = explicitFilteredCount + wildcardFilteredCount;
       if (totalFiltered > 0) {
         console.info(`Filtered out ${totalFiltered} sensitive field(s) from export`);

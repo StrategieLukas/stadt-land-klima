@@ -5,35 +5,69 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import readYamlFile from '../shared/readYamlFile.mjs';
 
-// Map of environment variable names to Directus setting field names
-// These will be merged into the settings before import
-const ENV_TO_SETTING_MAP = {
-  DIRECTUS_MAPBOX_KEY: 'mapbox_key',
-  DIRECTUS_AI_OPENAI_API_KEY: 'ai_openai_api_key',
-  DIRECTUS_AI_ANTHROPIC_API_KEY: 'ai_anthropic_api_key',
-  DIRECTUS_AI_GOOGLE_API_KEY: 'ai_google_api_key',
-  DIRECTUS_AI_OPENAI_COMPATIBLE_API_KEY: 'ai_openai_compatible_api_key',
-  DIRECTUS_AI_OPENAI_COMPATIBLE_BASE_URL: 'ai_openai_compatible_base_url',
-  DIRECTUS_AI_OPENAI_COMPATIBLE_NAME: 'ai_openai_compatible_name',
-  DIRECTUS_AI_OPENAI_COMPATIBLE_HEADERS: 'ai_openai_compatible_headers',
-  DIRECTUS_AI_OPENAI_COMPATIBLE_MODELS: 'ai_openai_compatible_models',
+// Sensitive settings fields that should be populated from environment variables
+// These are filtered out during export and merged during import
+const SENSITIVE_SETTINGS_FIELDS = {
+  mapbox_key: 'string',
+  ai_openai_api_key: 'string',
+  ai_anthropic_api_key: 'string',
+  ai_google_api_key: 'string',
+  ai_openai_compatible_api_key: 'string',
+  ai_openai_compatible_headers: 'json',
 };
+
+// Wildcard pattern to catch any field containing "key" (case-insensitive)
+const WILDCARD_PATTERN = /key/i;
+
+/**
+ * Parses a string value based on the expected field type
+ * - 'string': returns value as-is
+ * - 'json': attempts to parse as JSON, falls back to string
+ */
+function parseValue(value, type) {
+  if (type === 'json') {
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      // If parsing fails, return as string
+      return value;
+    }
+  }
+  return value;
+}
 
 /**
  * Merges environment variables into settings for sensitive fields
+ * Automatically detects all DIRECTUS_* environment variables and maps them
+ * to setting fields by removing the DIRECTUS_ prefix and converting to lowercase.
+ * Only merges fields that are in SENSITIVE_SETTINGS_FIELDS or match wildcard patterns.
  */
-function mergeEnvSettings(settings) {
+function mergeEnvSettings(settings, verbose = false) {
   const merged = { ...settings };
-  for (const [envVar, settingField] of Object.entries(ENV_TO_SETTING_MAP)) {
-    const envValue = process.env[envVar];
-    if (envValue !== undefined && envValue !== null && envValue !== '') {
-      merged[settingField] = envValue;
-      if (process.env.VERBOSE || process.env.NODE_ENV === 'development') {
-        console.info(`Merged ${settingField} from ${envVar} environment variable`);
+  let mergedCount = 0;
+  
+  for (const [envVar, envValue] of Object.entries(process.env)) {
+    if (envVar.startsWith('DIRECTUS_') && envValue !== undefined && envValue !== null && envValue !== '') {
+      // Remove DIRECTUS_ prefix and convert to lowercase
+      const settingField = envVar.slice('DIRECTUS_'.length).toLowerCase();
+      
+      // Check if this field should be merged
+      // Either it's in our known list, or it matches a wildcard pattern
+      const isKnownField = settingField in SENSITIVE_SETTINGS_FIELDS;
+      const matchesWildcard = WILDCARD_PATTERN.test(settingField);
+      
+      if (isKnownField || matchesWildcard) {
+        const fieldType = isKnownField ? SENSITIVE_SETTINGS_FIELDS[settingField] : 'string';
+        merged[settingField] = parseValue(envValue, fieldType);
+        mergedCount++;
+        if (verbose) {
+          console.info(`Merged ${settingField} (type: ${fieldType}) from ${envVar} environment variable`);
+        }
       }
     }
   }
-  return merged;
+  
+  return { merged, mergedCount };
 }
 
 async function importSettings(src, options = {verbose: false}) {
@@ -43,15 +77,29 @@ async function importSettings(src, options = {verbose: false}) {
     const settings = readYamlFile(path.join(src, 'settings.yaml'));
     
     // Merge environment variables for sensitive fields
-    const settingsWithEnv = mergeEnvSettings(settings);
+    const { merged: settingsWithEnv, mergedCount } = mergeEnvSettings(settings, options.verbose);
 
-    await client.request(updateSettings(settingsWithEnv));
+    // Use PATCH request to avoid the SDK's full update behavior
+    // Directus 11.17.4 has a bug with updateSettings and parameter counting
+    const directusUrl = process.env.FRONTEND_DIRECTUS_URL || 'http://directus:8055';
+    const token = process.env.CLI_DIRECTUS_STATIC_TOKEN;
+    
+    const response = await fetch(`${directusUrl}/settings`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(settingsWithEnv),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Failed to update settings: ${errorData.errors?.[0]?.message || errorData.message || response.statusText}`);
+    }
 
     if (options.verbose) {
       console.info('Settings imported');
-      const mergedCount = Object.values(ENV_TO_SETTING_MAP).filter(
-        field => settingsWithEnv[field] !== settings[field]
-      ).length;
       if (mergedCount > 0) {
         console.info(`Merged ${mergedCount} sensitive field(s) from environment variables`);
       }

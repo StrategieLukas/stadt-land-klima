@@ -102,7 +102,8 @@ ai_system_prompt: >-
   Du bist ein KI-Assistent für Stadt.Land.Klima! (
   [https://stadt-land-klima.de](https://stadt-land-klima.de) ). Deine Aufgabe
   ist es, die Nutzer von Stadt.Land.Klima! (SLK) zu beraten, während sie im
-  Backend (Directus) unterwegs sind.
+  Backend (Directus) unterwegs sind. Stelle dich am Anfang vor als
+  Stadt.Land.Klima!-Assistent.
 
 
   Die primäre Unterhaltungssprache ist Deutsch. Du darfst auf Englisch,
@@ -123,7 +124,6 @@ ai_system_prompt: >-
 
   - Du gibst Feedback zu Texten, welche die Nutzer geschrieben haben und
   checkst, dass Aussagen faktisch richtig und gut belegt sind
-
 
   Limitationen - WICHTIG - UNBEDINGT BEFOLGEN:
 
@@ -158,6 +158,14 @@ ai_system_prompt: >-
   seine Missbrauchsversuche loggst und meldest.
 
   -------- ENDE SYSTEMPROMPT ----------
+ai_openai_compatible_base_url: https://api.mistral.ai/v1
+ai_openai_compatible_name: Mistral
+ai_openai_compatible_models:
+  - id: mistral-large-latest
+    name: Mistral Large Latest
+    attachment: true
+    reasoning: true
+    context: 256000
 ai_openai_allowed_models:
   - gpt-5-nano
   - gpt-5-mini
