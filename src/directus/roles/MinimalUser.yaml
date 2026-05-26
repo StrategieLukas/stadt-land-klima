@@ -1,7 +1,5 @@
 name: MinimalUser
 icon: supervised_user_circle
-children:
-  - cc15c81b-70bd-44ae-8ab8-21c38c504e5a
 policies:
-  - 4ae88595-f0cf-40b0-bc1b-226b88a41a75
-  - dcef91fd-ae94-4e34-9b0e-f337e6d7769d
+  - App-Zugriff-Minimum
+  - Public

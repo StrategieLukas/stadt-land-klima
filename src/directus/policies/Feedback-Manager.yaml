@@ -1,0 +1,22 @@
+name: Feedback-Manager
+icon: badge
+description: Kann das eingegangene Feedback sehen und bearbeiten
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: feedback
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: feedback
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - internal_response_summary
+      - status

@@ -4,7 +4,7 @@ meta:
   archive_app_filter: true
   archive_field: null
   archive_value: null
-  collapse: open
+  collapse: closed
   collection: blokkli
   color: null
   display_template: null

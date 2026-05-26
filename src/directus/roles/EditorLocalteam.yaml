@@ -5,6 +5,7 @@ children:
   - AdminLokalteam
 policies:
   - App-Zugriff-Minimum
+  - Erfolgsprojekte-Contributor
   - Lokalteam-Mitglied
   - Lokalteam-Wahlcheck
   - Public
