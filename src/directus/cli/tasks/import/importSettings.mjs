@@ -14,6 +14,11 @@ const SENSITIVE_SETTINGS_FIELDS = {
   ai_google_api_key: 'string',
   ai_openai_compatible_api_key: 'string',
   ai_openai_compatible_headers: 'json',
+  // Public branding assets that are managed separately
+  project_logo: 'json',
+  public_foreground: 'string',
+  public_background: 'string',
+  public_favicon: 'json',
 };
 
 // Wildcard pattern to catch any field containing "key" (case-insensitive)
