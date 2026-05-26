@@ -1,5 +1,8 @@
 name: MinimalUser
-icon: supervised_user_circle
+icon: not_started
+description: App-Zugriff & Public Zugriff
+children:
+  - ErfolgsprojekteRedaktion
 policies:
   - App-Zugriff-Minimum
   - Public
