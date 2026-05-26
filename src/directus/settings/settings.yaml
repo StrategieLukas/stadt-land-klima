@@ -7,21 +7,14 @@ auth_login_attempts: 25
 auth_password_policy: /^.{8,}$/
 storage_asset_transform: all
 storage_asset_presets: null
-custom_css: >-
+custom_css: |-
   html {
     font-size: 17px !important;
   }
 
-
   .module-bar-logo {
     background: none !important;
   }
-
-
-  .module-bar-logo .logo {
-    background: url("/assets/65ef4892-7c5d-4166-9750-48e2b6880a81.png") no-repeat center / contain !important;
-  }
-
 
   :root {
     --theme--primary: #1EA64A;
@@ -30,11 +23,9 @@ custom_css: >-
     --nav-hover: #E6F1F5;     /* light blue */
   }
 
-
   .module-bar a {
     color: var(--nav-default) !important;
   }
-
 
   .module-bar a:hover {
     color: var(--nav-hover) !important;
