@@ -11,9 +11,10 @@ permissions:
       _and:
         - user_created:
             localteams:
-              id:
-                _in:
-                  - $CURRENT_USER.localteams.localteam_id
+              localteam_id:
+                id:
+                  _in:
+                    - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
@@ -95,6 +96,7 @@ permissions:
       - image
       - creator_verified
       - preview_token
+      - municipality_type
   - collection: municipalities
     action: update
     permissions:

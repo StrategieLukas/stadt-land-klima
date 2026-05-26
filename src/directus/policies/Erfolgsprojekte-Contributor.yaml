@@ -56,10 +56,17 @@ permissions:
     permissions:
       _and:
         - _and:
-            - user_created:
-                _eq: $CURRENT_USER
             - status:
                 _neq: published
+            - _or:
+                - user_created:
+                    _eq: $CURRENT_USER
+                - user_created:
+                    localteams:
+                      localteam_id:
+                        id:
+                          _in:
+                            - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields: null
@@ -72,6 +79,12 @@ permissions:
                 _eq: published
             - user_created:
                 _eq: $CURRENT_USER
+            - user_created:
+                localteams:
+                  localteam_id:
+                    id:
+                      _in:
+                        - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
@@ -126,10 +139,17 @@ permissions:
     permissions:
       _and:
         - _and:
-            - user_created:
-                _eq: $CURRENT_USER
             - status:
                 _eq: draft
+            - _or:
+                - user_created:
+                    _eq: $CURRENT_USER
+                - user_created:
+                    localteams:
+                      localteam_id:
+                        id:
+                          _in:
+                            - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
