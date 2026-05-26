@@ -8,8 +8,6 @@ export default {
   ) => {
     let roleName = "EditorLocalteam";
     accountability.admin = true;
-    logger.info(email, "email");
-    logger.info(localteam_id, "localteam_id");
 
     const { UsersService, RolesService, MailService, ItemsService } = services;
     const schema = await getSchema();
@@ -35,7 +33,6 @@ export default {
       },
     });
 
-    logger.info(roles[0].id);
     const sender = await usersService.readOne(accountability.user, {
       fields: ["id", "first_name", "last_name", "email"],
     });
@@ -43,8 +40,7 @@ export default {
       fields: ["id", "municipality_name"],
     });
     const fullName = sender.first_name + " " + sender.last_name;
-    logger.info(sender);
-    logger.info(localteam);
+    logger.info(`${fullName} hat eine neue Person (${email}) in das Lokalteam ${localteam.municipality_name} eingeladen!`);
     // Create user first to verify uniqueness if unknown
     if (isEmpty(user)) {
       //Create user
@@ -56,9 +52,8 @@ export default {
       });
 
       //send Email
-
       const subjectLine =
-        "Sie wurden zu Stadt.Land.Klima eingeladen als Redakteur*in!";
+        "Willkommen bei Stadt.Land.Klima!";
 
       try {
         await mailService.send({
@@ -75,10 +70,11 @@ export default {
           },
         });
       } catch (error) {
-        logger.error(`Failed to send invitation email to ${email} (=expected behaviour on dev, an error elsewhere)`);
-        logger.error(error);
         if (process.env.SLK_ENV !== 'development') {
+          logger.error(`Failed to send invitation email to ${email}`);
           throw error;
+        } else {
+          logger.warn(`Failed to send invitation email to ${email} (=this is expected behaviour in dev, where no e-mail server is set up.)`);
         }
       }
     } else {
