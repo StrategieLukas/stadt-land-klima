@@ -185,7 +185,6 @@ export async function calculateScores(
 
       if (scoreRecord?.id) {
         await municipalityScoresService.updateOne(scoreRecord.id, scoresToPush);
-        logger.info(`[calculateScores] Completed scoring and updated municipality_scores for "${municipality.name}" (${scoreRecord.id}).`);
       } else {
         logger.warn(`[calculateScores] Completed scoring, but no municipality_scores record found for "${municipality.name}" and thus could not update scores!`);
       }
