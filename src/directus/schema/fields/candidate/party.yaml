@@ -7,66 +7,66 @@ meta:
   display: labels
   display_options:
     choices:
-      - text: parteilos
+      - background: "#9ca3af"
+        foreground: "#ffffff"
+        text: parteilos
         value: parteilos
+      - background: "#000000"
         foreground: "#ffffff"
-        background: "#9ca3af"
-      - text: CDU/CSU
+        text: CDU/CSU
         value: Union
+      - background: "#009ee0"
         foreground: "#ffffff"
-        background: "#000000"
-      - text: AfD
+        text: AfD
         value: AfD
+      - background: "#e3000f"
         foreground: "#ffffff"
-        background: "#009ee0"
-      - text: SPD
+        text: SPD
         value: SPD
+      - background: "#46962b"
         foreground: "#ffffff"
-        background: "#e3000f"
-      - text: Grüne
+        text: Grüne
         value: Gruene
+      - background: "#be3075"
         foreground: "#ffffff"
-        background: "#46962b"
-      - text: Die Linke
+        text: Die Linke
         value: Linke
+      - background: "#7b2e5a"
         foreground: "#ffffff"
-        background: "#be3075"
-      - text: BSW
+        text: BSW
         value: BSW
-        foreground: "#ffffff"
-        background: "#7b2e5a"
-      - text: FDP
-        value: FDP
+      - background: "#ffed00"
         foreground: "#000000"
-        background: "#ffed00"
-      - text: Volt
+        text: FDP
+        value: FDP
+      - background: "#502379"
+        foreground: "#ffffff"
+        text: Volt
         value: Volt
+      - background: "#b5152b"
         foreground: "#ffffff"
-        background: "#502379"
-      - text: Die PARTEI
+        text: Die PARTEI
         value: PARTEI
+      - background: "#f5a300"
         foreground: "#ffffff"
-        background: "#b5152b"
-      - text: Freie Wähler
+        text: Freie Wähler
         value: FW
+      - background: "#f29400"
         foreground: "#ffffff"
-        background: "#f5a300"
-      - text: ÖDP
+        text: ÖDP
         value: Oedp
+      - background: "#ff8800"
         foreground: "#ffffff"
-        background: "#f29400"
-      - text: Piraten
+        text: Piraten
         value: Piraten
+      - background: "#00a09a"
         foreground: "#ffffff"
-        background: "#ff8800"
-      - text: Klimaliste
+        text: Klimaliste
         value: Klimaliste
+      - background: "#00645c"
         foreground: "#ffffff"
-        background: "#00a09a"
-      - text: Tierschutzpartei
+        text: Tierschutzpartei
         value: Tierschutzpartei
-        foreground: "#ffffff"
-        background: "#00645c"
   field: party
   group: null
   hidden: false
@@ -108,6 +108,7 @@ meta:
         value: Tierschutzpartei
   readonly: false
   required: true
+  searchable: true
   sort: 4
   special: null
   translations:
@@ -126,6 +127,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

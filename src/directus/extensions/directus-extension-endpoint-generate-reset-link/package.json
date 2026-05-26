@@ -6,14 +6,18 @@
     "type": "endpoint",
     "path": "dist/index.js",
     "source": "src/index.js",
-    "host": "^10.10.0"
+    "host": "^11.0.0"
   },
   "scripts": {
     "build": "directus-extension build",
     "dev": "directus-extension build -w --no-minify"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "16.0.2",
+    "@directus/extensions-sdk": "17.1.4",
+    "esbuild": "^0.28.0",
     "jsonwebtoken": "^9.0.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
   }
 }

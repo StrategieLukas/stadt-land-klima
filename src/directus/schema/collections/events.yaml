@@ -8,31 +8,31 @@ meta:
   collection: events
   color: null
   display_template: "{{title}}"
-  group: content
+  group: admin_tools
   hidden: false
   icon: event
   item_duplication_fields:
-    - description
-    - end_date
-    - event_category
-    - event_type
-    - image
-    - location
-    - registration_url
+    - title
+    - status
     - slug
     - start_date
-    - status
-    - title
+    - end_date
+    - location
+    - event_type
+    - event_category
+    - description
+    - image
+    - registration_url
   note: Veranstaltungskalender für Konferenzen, Workshops und Webinare
   preview_url: null
   singleton: false
-  sort: 3
+  sort: 4
   sort_field: start_date
   translations:
     - language: de-DE
-      translation: Veranstaltungen
-      singular: Veranstaltung
       plural: Veranstaltungen
+      singular: Veranstaltung
+      translation: Veranstaltungen
   unarchive_value: draft
   versioning: false
 schema:

@@ -1,0 +1,35 @@
+name: Dashboard-Editor
+icon: badge
+description: Vollzugriff auf unsere Dashboards
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: directus_dashboards
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_dashboards
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_dashboards
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_dashboards
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"

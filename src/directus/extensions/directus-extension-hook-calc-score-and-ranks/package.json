@@ -17,11 +17,15 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "@directus/extensions-sdk": "^10.0.0"
+    "@directus/extensions-sdk": "17.1.4",
+    "esbuild": "^0.28.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
   },
   "directus:extension": {
     "type": "hook",
-    "host": "^10.0.0",
+    "host": "^11.0.0",
     "path": "./dist/index.js",
     "source": "src/index.js"
   }

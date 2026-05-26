@@ -147,7 +147,7 @@
           <!-- Thumbnail -->
           <div class="relative h-40 bg-gray-50 flex-shrink-0 overflow-hidden">
             <div
-              v-if="!ev.image"
+              v-if="!ev.imageId"
               class="absolute inset-0 bg-gradient-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30 flex items-center justify-center"
             >
               <svg class="w-16 h-16 text-[#1da64a] opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
@@ -157,11 +157,15 @@
                 <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
             </div>
-            <img
+            <SmartImg
               v-else
-              :src="`${directusUrl}/assets/${ev.image}?width=480&height=160&fit=cover&quality=75`"
+              :assetId="ev.imageId"
+              :isRaster="isRaster(ev.imageType)"
               :alt="ev.title"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              :width="480"
+              :height="160"
+              fit="cover"
+              imgClass="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <span class="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full bg-[#1da64a] text-white">Veranstaltung</span>
           </div>
@@ -235,11 +239,15 @@
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
           </div>
-          <img
+          <SmartImg
             v-else-if="item.imageId && item.href"
-            :src="`${directusUrl}/assets/${item.imageId}?width=480&height=160&fit=cover&quality=75`"
+            :assetId="item.imageId"
+            :isRaster="isRaster(item.imageType)"
             :alt="item.title"
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            :width="480"
+            :height="160"
+            fit="cover"
+            imgClass="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <!-- News: teal gradient + info icon -->
           <div
@@ -336,6 +344,7 @@ import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 import sectorImages from '~/shared/sectorImages.js'
 
+import { isRaster } from '~/shared/utils'
 function stripHtml(html) {
   if (!html) return null
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || null
@@ -402,7 +411,7 @@ onMounted(async () => {
     try {
       const client = getAuthenticatedClient()
       adminNewsItems.value = await client.request(readItems('news_items', {
-        fields: ['id', 'slug', 'title', 'teaser', 'image', 'date_published', 'date_created', 'status'],
+        fields: ['id', 'slug', 'title', 'teaser', { image: ['id', 'type'] }, 'date_published', 'date_created', 'status'],
         sort: ['-date_published', '-date_created'],
         limit: 200,
       }))
@@ -426,7 +435,7 @@ const [
   useAsyncData('feed-news', () =>
     $directus.request($readItems('news_items', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'teaser', 'image', 'date_published', 'date_created'],
+      fields: ['id', 'slug', 'title', 'teaser', { image: ['id', 'type'] }, 'date_published', 'date_created'],
       sort: ['-date_published', '-date_created'],
       limit: 50,
     }))
@@ -434,7 +443,7 @@ const [
   useAsyncData('feed-articles', () =>
     $directus.request($readItems('articles', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'abstract', 'image', 'date_created'],
+      fields: ['id', 'slug', 'title', 'abstract', { image: ['id', 'type'] }, 'date_created'],
       sort: ['-date_created'],
       limit: 20,
     }))
@@ -442,7 +451,7 @@ const [
   useAsyncData('feed-events', () =>
     $directus.request($readItems('events', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'end_date', 'date_created', 'image', 'location'],
+      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'end_date', 'date_created', { image: ['id', 'type'] }, 'location'],
       sort: ['-start_date'],
       limit: 20,
     }))
@@ -450,7 +459,7 @@ const [
   useAsyncData('feed-municipalities', () =>
     $directus.request($readItems('municipalities', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'name', 'description', 'date_updated', 'image'],
+      fields: ['id', 'slug', 'name', 'description', 'date_updated', { image: ['id', 'type'] }],
       sort: ['-date_updated'],
       limit: 20,
     }))
@@ -475,7 +484,8 @@ const allItems = computed(() => {
       id: n.id,
       title: n.title,
       teaser: n.teaser || null,
-      imageId: n.image || null,
+      imageId: n.image?.id || null,
+      imageType: n.image?.type || null,
       date: n.date_published || n.date_created,
       status: n.status || 'published',
       href: `/news/${n.slug}`,
@@ -488,7 +498,8 @@ const allItems = computed(() => {
       id: a.id,
       title: a.title,
       teaser: a.abstract || null,
-      imageId: a.image || null,
+      imageId: a.image?.id || null,
+      imageType: a.image?.type || null,
       date: a.date_created,
       href: `/projects/${a.slug}`,
     })
@@ -502,7 +513,8 @@ const allItems = computed(() => {
       id: e.id,
       title: e.title,
       teaser: stripHtml(e.description),
-      imageId: e.image || null,
+      imageId: e.image?.id || null,
+      imageType: e.image?.type || null,
       date: e.start_date || e.date_created,
       endDate: e.end_date || null,
       eventType: e.event_type || null,
@@ -517,7 +529,8 @@ const allItems = computed(() => {
       id: m.id,
       title: m.name,
       teaser: m.description || null,
-      imageId: m.image || null,
+      imageId: m.image?.id || null,
+      imageType: m.image?.type || null,
       date: m.date_updated,
       href: `/municipalities/${m.slug}`,
     })
@@ -530,6 +543,7 @@ const allItems = computed(() => {
       title: c.name,
       teaser: 'Neuer Maßnahmenkatalog veröffentlicht',
       imageId: null,
+      imageType: null,
       date: c.date_created,
       href: `/measures?v=${encodeURIComponent(c.name)}`,
     })

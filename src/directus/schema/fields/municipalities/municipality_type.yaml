@@ -24,7 +24,8 @@ meta:
         value: small_city
   readonly: true
   required: false
-  sort: 12
+  searchable: true
+  sort: 9
   special: null
   translations:
     - language: de-DE
@@ -42,6 +43,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

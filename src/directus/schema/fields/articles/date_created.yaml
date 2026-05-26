@@ -4,15 +4,15 @@ type: timestamp
 meta:
   collection: articles
   conditions:
-    - name: Hide if null
+    - hidden: true
+      name: Hide if null
+      options:
+        includeSeconds: false
+        use24: true
       rule:
         _and:
           - date_created:
               _null: true
-      hidden: true
-      options:
-        includeSeconds: false
-        use24: true
   display: datetime
   display_options:
     relative: true
@@ -24,6 +24,7 @@ meta:
   options: null
   readonly: true
   required: false
+  searchable: true
   sort: 11
   special:
     - date-created
@@ -41,6 +42,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

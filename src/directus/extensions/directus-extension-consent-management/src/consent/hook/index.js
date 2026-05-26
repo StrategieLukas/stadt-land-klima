@@ -10,7 +10,7 @@ class ConsentNotAcceptedError extends Error {
 
 export default ({ filter }, { services }) => {
   const { ItemsService } = services;
-  const ROLE_NAMES_TO_IGNORE = ["Administrator", "frontend"];
+  const ROLE_NAMES_TO_IGNORE = ["Administrator", "Frontend", "frontend"];
 
   const getIdsToIgnore = async (context) => {
     const { schema } = context;
@@ -27,7 +27,7 @@ export default ({ filter }, { services }) => {
 
   const hasAcceptedRequiredAgreements = async (userId, context) => {
     const { schema } = context;
-    
+
     const consentsService = new ItemsService('user_consent', {
       accountability: null,
       schema: schema,
@@ -42,16 +42,16 @@ export default ({ filter }, { services }) => {
       filter: { isCurrentVersion: { _eq: true } },
       limit: -1
     });
-    
+
     const agbVersion = currentVersions.find(v => v.type === 'terms_of_service');
     const dataProtectionVersion = currentVersions.find(v => v.type === 'data_protection');
-    
+
     if (!agbVersion || !dataProtectionVersion) {
       return false;
     }
 
     const userConsents = await consentsService.readByQuery({
-      filter: { 
+      filter: {
         user_id: { _eq: userId },
         consent_target: { _in: [agbVersion.id, dataProtectionVersion.id] }
       },
@@ -60,7 +60,7 @@ export default ({ filter }, { services }) => {
 
     const hasAgbConsent = userConsents.some(c => c.consent_target === agbVersion.id);
     const hasDataProtectionConsent = userConsents.some(c => c.consent_target === dataProtectionVersion.id);
-    
+
     return hasAgbConsent && hasDataProtectionConsent;
   };
 
@@ -69,7 +69,7 @@ export default ({ filter }, { services }) => {
     filter(actionName, async (items, meta, context) => {
       const { collection } = meta;
       const { accountability, schema } = context;
-      
+
       if (collection === "user_consent" || collection === "agreement_versions") {
         return items;
       }
@@ -85,7 +85,7 @@ export default ({ filter }, { services }) => {
         schema: schema,
       });
       const user = await usersService.readOne(userId);
-      
+
       if (!user || !idsToIgnore.includes(user.role)) {
         const hasAccepted = await hasAcceptedRequiredAgreements(userId, context);
         if (!hasAccepted) {

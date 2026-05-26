@@ -7,30 +7,30 @@ meta:
   display: labels
   display_options:
     choices:
-      - text: $t:feedback.type.legal
-        value: legal
+      - color: "#9141AC"
         icon: gavel
-        color: "#9141AC"
-      - text: $t:feedback.type.bug
-        value: bug
+        text: $t:feedback.type.legal
+        value: legal
+      - color: "#E65100"
         icon: bug_report
-        color: "#E65100"
-      - text: $t:feedback.type.inaccuracy
-        value: inaccuracy
-        color: "#D32F2F"
+        text: $t:feedback.type.bug
+        value: bug
+      - color: "#D32F2F"
         icon: warning
-      - text: $t:feedback.type.suggestion
-        value: suggestion
+        text: $t:feedback.type.inaccuracy
+        value: inaccuracy
+      - color: "#AFCA0B"
         icon: lightbulb
-        color: "#AFCA0B"
-      - text: $t:feedback.type.cooperation
-        value: cooperation
+        text: $t:feedback.type.suggestion
+        value: suggestion
+      - color: "#2196F3"
         icon: handshake
-        color: "#2196F3"
-      - text: $t:feedback.type.other
-        value: other
+        text: $t:feedback.type.cooperation
+        value: cooperation
+      - color: "#505050"
         icon: home_max_dots
-        color: "#505050"
+        text: $t:feedback.type.other
+        value: other
   field: type
   group: null
   hidden: false
@@ -52,6 +52,7 @@ meta:
         value: other
   readonly: false
   required: true
+  searchable: true
   sort: 7
   special: null
   translations:
@@ -70,6 +71,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

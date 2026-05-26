@@ -4,16 +4,16 @@ type: text
 meta:
   collection: ratings_measures
   conditions:
-    - name: Hide if rating is marked as not applicable
+    - hidden: true
+      name: Hide if rating is marked as not applicable
+      options:
+        clear: false
+        font: sans-serif
+        trim: false
       rule:
         _and:
           - applicable:
               _eq: false
-      hidden: true
-      options:
-        trim: false
-        font: sans-serif
-        clear: false
   display: null
   display_options: null
   field: internal_note
@@ -27,6 +27,7 @@ meta:
     trim: true
   readonly: false
   required: false
+  searchable: true
   sort: 18
   special: null
   translations:
@@ -45,6 +46,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

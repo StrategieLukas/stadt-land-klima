@@ -6,9 +6,13 @@ services:
     restart: unless-stopped
     ports:
       - "9001:8055"
+    environment:
+      SLK_ENV: production
 
   frontend:
     restart: unless-stopped
     ports:
       - "9000:3000"
+    environment:
+      SLK_ENV: production
 

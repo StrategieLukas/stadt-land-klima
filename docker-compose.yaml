@@ -42,8 +42,11 @@ services:
       - ./src/directus/extensions:/directus/extensions
       - ./src/directus/schema/:/directus/schema
       - ./src/directus/roles/:/directus/roles
+      - ./src/directus/policies/:/directus/policies
       - ./src/directus/presets/:/directus/presets
       - ./src/directus/webhooks/:/directus/webhooks
+      - ./src/directus/migrations/:/directus/migrations
+      - ./src/directus/templates/:/directus/templates
       - ./src/directus/translations/:/directus/translations
       - ./src/directus/flows/:/directus/flows
       - ./src/directus/settings/:/directus/settings

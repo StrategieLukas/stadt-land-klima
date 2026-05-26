@@ -14,11 +14,12 @@ meta:
   options: null
   readonly: false
   required: false
+  searchable: true
   sort: 1
   special:
     - alias
-    - group
     - no-data
+    - group
   translations:
     - language: de-DE
       translation: Wie schwierig ist die Umsetzung?

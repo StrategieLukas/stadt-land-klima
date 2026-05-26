@@ -15,6 +15,7 @@ meta:
     start: closed
   readonly: false
   required: false
+  searchable: true
   sort: 16
   special:
     - alias

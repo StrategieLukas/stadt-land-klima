@@ -16,7 +16,8 @@ meta:
     template: "{{name}}"
   readonly: false
   required: true
-  sort: 13
+  searchable: true
+  sort: 12
   special: null
   translations:
     - language: de-DE
@@ -34,6 +35,7 @@ schema:
   numeric_scale: null
   is_nullable: false
   is_unique: true
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

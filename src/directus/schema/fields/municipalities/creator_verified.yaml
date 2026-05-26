@@ -3,7 +3,13 @@ field: creator_verified
 type: boolean
 meta:
   collection: municipalities
-  conditions: null
+  conditions:
+    - hidden: true
+      name: Hide if true
+      rule:
+        _and:
+          - creator_verified:
+              _eq: true
   display: boolean
   display_options: null
   field: creator_verified
@@ -15,7 +21,8 @@ meta:
   options: null
   readonly: true
   required: false
-  sort: 999
+  searchable: true
+  sort: 18
   special:
     - cast-boolean
   translations:
@@ -34,6 +41,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

@@ -10,17 +10,18 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: 'Beschriftung des Anmelde-Buttons. Standard: "Zur Anmeldung"'
+  note: null
   options:
     placeholder: Zur Anmeldung
     trim: true
   readonly: false
   required: false
-  sort: 11
+  searchable: true
+  sort: 15
   special: null
   translations:
     - language: de-DE
-      translation: Button-Beschriftung
+      translation: Button Beschriftung
   validation: null
   validation_message: null
   width: half
@@ -34,6 +35,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

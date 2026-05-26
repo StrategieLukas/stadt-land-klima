@@ -1,0 +1,45 @@
+name: Public
+icon: globe
+description: Öffentlicher Zugriff
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: directus_files
+    action: read
+    permissions:
+      _and:
+        - folder:
+            name:
+              _eq: public
+    validation: null
+    presets: null
+    fields:
+      - id
+      - title
+      - type
+      - metadata
+      - filename_download
+      - width
+      - height
+      - charset
+      - duration
+      - filesize
+      - folder
+      - $thumbnail
+      - description
+      - tags
+      - created_on
+      - modified_on
+      - uploaded_on
+      - storage_divider
+  - collection: directus_folders
+    action: read
+    permissions:
+      _and:
+        - name:
+            _eq: public
+    validation: null
+    presets: null
+    fields:
+      - "*"

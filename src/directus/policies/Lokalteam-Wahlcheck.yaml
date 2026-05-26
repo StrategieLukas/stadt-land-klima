@@ -1,0 +1,293 @@
+name: Lokalteam-Wahlcheck
+icon: badge
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: candidate
+    action: create
+    permissions:
+      localteam:
+        _in:
+          - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - email
+      - party
+      - access_token
+      - election
+      - prefill_trigger
+  - collection: candidate
+    action: delete
+    permissions:
+      _and:
+        - election:
+            localteam:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation:
+      has_answered:
+        _neq: true
+    presets: null
+    fields: null
+  - collection: candidate
+    action: read
+    permissions:
+      _and:
+        - election:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - party
+      - email
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+      - election
+  - collection: candidate
+    action: update
+    permissions:
+      _and:
+        - election:
+            localteam:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation:
+      has_answered:
+        _neq: true
+    presets: null
+    fields:
+      - name
+      - email
+      - party
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+  - collection: elections
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - descriptor
+      - response_cutoff_date
+      - localteam
+  - collection: elections
+    action: delete
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: elections
+    action: read
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - response_cutoff_date
+      - date_created
+      - descriptor
+      - date_updated
+      - localteam
+      - action_buttons
+      - already_sent_mails
+      - already_generated_questions
+      - prefill_trigger
+      - is_approved
+      - is_public
+  - collection: elections
+    action: update
+    permissions:
+      _and:
+        - localteam:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - descriptor
+      - response_cutoff_date
+      - is_public
+  - collection: measure_catalog
+    action: read
+    permissions:
+      _and:
+        - hidden:
+            _neq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+  - collection: measure_questions_template
+    action: read
+    permissions: {}
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+        - catalog_version:
+            isCurrentBackend:
+              _eq: true
+        - catalog_version:
+            hidden:
+              _eq: false
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - measure_id
+      - catalog_version
+      - must_be_rated_again
+      - name
+      - slug
+      - sector
+      - impact
+      - weight
+      - feasibility_political
+      - feasibility_economical
+      - feasibility
+      - choices_rating
+      - description_about
+      - description_evaluation_criteria
+      - description_verification
+      - description_benefit
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+      - accordion-p4jgb8
+      - description
+      - verification_description
+      - notes
+  - collection: questions
+    action: create
+    permissions: null
+    validation: null
+    presets:
+      localteam: "{{$CURRENT_USER.localteams[0].localteam_id}}"
+    fields:
+      - status
+      - localteam
+      - title
+      - thesis
+      - election
+      - prefill_trigger
+      - sector
+  - collection: questions
+    action: delete
+    permissions:
+      _and:
+        - election:
+            localteam:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation:
+      answers:
+        _func:
+          count:
+            _eq: 0
+    presets: null
+    fields: null
+  - collection: questions
+    action: read
+    permissions:
+      _and:
+        - election:
+            localteam:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - user_created
+      - date_created
+      - user_updated
+      - date_updated
+      - localteam
+      - title
+      - thesis
+      - election
+      - sector
+  - collection: questions
+    action: update
+    permissions:
+      _and:
+        - election:
+            localteam:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - status
+      - localteam
+      - title
+      - thesis
+      - sector
+  - collection: ratings_measures
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+        - measure_published:
+            _eq: true
+        - measure_id:
+            catalog_version:
+              isCurrentBackend:
+                _eq: true
+        - measure_id:
+            catalog_version:
+              hidden:
+                _eq: false
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - applicable
+      - why_not_applicable
+      - measure_published
+      - localteam_id
+      - measure_id
+      - measure_info_preview
+      - choices
+      - rating
+      - current_progress
+      - source
+      - approved

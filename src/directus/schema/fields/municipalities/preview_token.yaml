@@ -3,7 +3,13 @@ field: preview_token
 type: string
 meta:
   collection: municipalities
-  conditions: null
+  conditions:
+    - hidden: true
+      name: Hide if Admin verified
+      rule:
+        _and:
+          - creator_verified:
+              _eq: true
   display: raw
   display_options: null
   field: preview_token
@@ -14,7 +20,8 @@ meta:
   options: null
   readonly: true
   required: false
-  sort: 1000
+  searchable: true
+  sort: 19
   special: null
   translations:
     - language: de-DE
@@ -32,6 +39,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

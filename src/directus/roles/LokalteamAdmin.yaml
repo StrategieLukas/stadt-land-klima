@@ -1,0 +1,6 @@
+name: LokalteamAdmin
+icon: supervised_user_circle
+description: Verantwortliche Person eines Lokalteams
+parent: LokalteamMitglied
+policies:
+  - Lokalteam-Einladung-Mitglieder

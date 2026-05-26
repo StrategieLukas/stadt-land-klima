@@ -1,9 +1,11 @@
 import path from 'path';
+import fs from 'fs';
 import clearDir from '../shared/clearDir.mjs';
 import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import exportSchema from './exportSchema.mjs';
 import clearSchema from './clearSchema.mjs';
 import exportRoles from './exportRoles.mjs';
+import exportPolicies from './exportPolicies.mjs';
 import exportPresets from './exportPresets.mjs';
 import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
@@ -51,6 +53,43 @@ function exportTasks(yargs) {
       await exportSchema(argv.dest, {
         verbose: argv.verbose,
         remove: argv.clear,
+      });
+    }
+  )
+
+  .command(
+    'export:policies [dest]',
+    'export all policies to the folder specified by "dest". By default it will export into "policies". Always clears the directory first.',
+    (yargs) => {
+      return yargs
+      .positional('dest', {
+        describe: 'destination folder',
+        default: 'policies',
+      });
+    },
+    async (argv) => {
+      const dest = argv.dest;
+      
+      if (argv.verbose) {
+        console.info(`Exporting policies to ${dest}`);
+      }
+      
+      await clearDirectusCache();
+      
+      // Clear the directory before export (deletes all yaml files)
+      if (fs.existsSync(dest)) {
+        clearDir(dest, { extensions: ['.yaml'] });
+      } else {
+        fs.mkdirSync(dest, { recursive: true });
+      }
+      
+      if (argv.verbose) {
+        console.info(`${dest} cleared`);
+      }
+      
+      await exportPolicies(dest, {
+        verbose: argv.verbose,
+        overwrite: true,
       });
     }
   )
@@ -110,7 +149,6 @@ function exportTasks(yargs) {
       });
     }
   )
-
 
   .command(
     'export:flows [dest]',
@@ -198,7 +236,7 @@ function exportTasks(yargs) {
 
   .command(
     'export:all [dest]',
-    'export schema, roles, flows, presets, translations, and settings consecutively',
+    'export schema, policies, roles, flows, presets, translations, and settings consecutively. In v11+, policies are exported separately from roles.',
     (yargs) => {
       return yargs
       .positional('dest', {
@@ -224,6 +262,16 @@ function exportTasks(yargs) {
       await exportSchema(path.join(dest, 'schema'), {
         verbose: argv.verbose,
         remove: argv.clear,
+      });
+
+      // Export policies (separate from roles in v11+)
+      console.info('Exporting policies...');
+      if (argv.clear) {
+        clear(path.join(dest, 'policies'), { verbose: argv.verbose });
+      }
+      await exportPolicies(path.join(dest, 'policies'), {
+        verbose: argv.verbose,
+        overwrite: argv.force,
       });
 
       // Export roles

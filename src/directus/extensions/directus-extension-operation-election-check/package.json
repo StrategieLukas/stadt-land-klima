@@ -7,7 +7,7 @@
   "files": ["dist"],
   "directus:extension": {
     "type": "bundle",
-    "host": "^10.13.0",
+    "host": "^11.0.0",
     "path": {
       "app": "dist/app.js",
       "api": "dist/api.js"
@@ -47,7 +47,11 @@
     "link":  "directus-extension link"
   },
   "devDependencies": {
-    "@directus/extensions-sdk": "11.0.9",
+    "@directus/extensions-sdk": "17.1.4",
+    "esbuild": "^0.28.0",
     "vue": "^3.4.21"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
   }
 }

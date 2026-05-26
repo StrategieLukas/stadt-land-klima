@@ -14,18 +14,19 @@ meta:
   options:
     softLength: 1000
     toolbar:
-      - blockquote
-      - bold
-      - bullist
-      - empty
       - heading
+      - bold
       - italic
-      - numlist
       - strikethrough
+      - blockquote
+      - bullist
+      - numlist
       - table
+      - empty
     trim: true
   readonly: false
   required: false
+  searchable: true
   sort: 6
   special: null
   translations:
@@ -44,6 +45,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

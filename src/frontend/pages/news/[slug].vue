@@ -21,10 +21,12 @@
         <article class="prose max-w-none">
           <!-- Header: image, title, teaser -->
           <div v-if="item.image" class="not-prose mb-6 rounded-xl overflow-hidden">
-            <img
-              :src="`${directusUrl}/assets/${item.image}?width=900&quality=80`"
+            <SmartImg
+              :assetId="item.image.id"
+              :isRaster="isRaster(item.image.type)"
               :alt="item.title"
-              class="w-full h-auto block"
+              :width="900"
+              img-class="w-full h-auto block"
             />
           </div>
           <time
@@ -143,6 +145,7 @@ import { readItems, updateItem } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useReferrer } from '~/composables/useReferrer'
 
+import { isRaster } from '~/shared/utils'
 const { $directus, $readItems, $t } = useNuxtApp()
 const { backHref, backLabel } = useReferrer('/news', 'Zurück zur News-Übersicht')
 const config = useRuntimeConfig()
@@ -158,6 +161,7 @@ const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-it
   const result = await $directus.request(
     $readItems('news_items', {
       filter: { slug: { _eq: route.params.slug } },
+      fields: ['id', 'slug', 'title', 'teaser', 'author', 'date_published', 'date_created', 'status', { image: ['id', 'type'] }],
       limit: 1,
     })
   )
@@ -267,7 +271,7 @@ watch([() => item.value, editOpen], () => {
   editForm.author = item.value.author || ''
   editForm.date_published = toDatetimeLocal(item.value.date_published)
   editForm.status = item.value.status || 'draft'
-  editForm.image = item.value.image || ''
+  editForm.image = item.value.image?.id || item.value.image || ''
 }, { immediate: true })
 
 async function saveMetadata() {

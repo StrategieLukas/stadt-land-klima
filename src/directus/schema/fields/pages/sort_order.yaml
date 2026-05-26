@@ -15,6 +15,7 @@ meta:
     min: 0
   readonly: false
   required: false
+  searchable: true
   sort: 9
   special: null
   translations:
@@ -33,6 +34,7 @@ schema:
   numeric_scale: 0
   is_nullable: true
   is_unique: true
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

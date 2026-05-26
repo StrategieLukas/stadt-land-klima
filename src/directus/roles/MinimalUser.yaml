@@ -1,0 +1,9 @@
+name: MinimalUser
+icon: not_started
+description: App-Zugriff & Public Zugriff
+children:
+  - ErfolgsprojekteRedaktion
+  - Planungsteam
+policies:
+  - App-Zugriff-Minimum
+  - Public

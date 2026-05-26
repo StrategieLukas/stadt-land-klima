@@ -5,14 +5,14 @@ meta:
   collection: elections
   conditions:
     - name: Deadline read-only after being set
+      options:
+        includeSeconds: false
+        use24: true
+      readonly: true
       rule:
         _and:
           - response_cutoff_date:
               _nnull: true
-      readonly: true
-      options:
-        includeSeconds: false
-        use24: true
   display: null
   display_options: null
   field: response_cutoff_date
@@ -23,6 +23,7 @@ meta:
   options: null
   readonly: false
   required: false
+  searchable: true
   sort: 7
   special: null
   translations:
@@ -44,6 +45,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

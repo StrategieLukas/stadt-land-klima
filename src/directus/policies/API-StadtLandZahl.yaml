@@ -1,0 +1,42 @@
+name: API-StadtLandZahl
+icon: computer
+description: Zugriff für StadtLandZahl
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: measure_catalog
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: municipalities
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: municipality_scores
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: ratings_measures
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"

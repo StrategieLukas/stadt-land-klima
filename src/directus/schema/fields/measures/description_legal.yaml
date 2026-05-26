@@ -13,10 +13,13 @@ meta:
   note: null
   options:
     toolbar:
-      - blockquote
       - bold
+      - italic
+      - blockquote
       - bullist
+      - numlist
       - code
+      - link
       - customImage
       - customLink
       - customMedia
@@ -25,14 +28,12 @@ meta:
       - h2
       - h3
       - hr
-      - italic
-      - link
-      - numlist
       - paste
       - removeformat
       - underline
   readonly: false
   required: false
+  searchable: true
   sort: 4
   special: null
   translations:
@@ -51,6 +52,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

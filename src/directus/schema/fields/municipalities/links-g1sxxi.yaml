@@ -13,13 +13,14 @@ meta:
   note: null
   options:
     links:
-      - label: $t:municipalities.preview
+      - icon: preview
+        label: $t:municipalities.preview
         type: info
         url: http://localhost:8080/municipalities/{{slug}}?preview={{preview_token}}
-        icon: preview
   readonly: false
   required: false
-  sort: 16
+  searchable: true
+  sort: 15
   special:
     - alias
     - no-data

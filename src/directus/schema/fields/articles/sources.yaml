@@ -13,9 +13,14 @@ meta:
   note: null
   options:
     toolbar:
-      - blockquote
       - bold
+      - italic
+      - strikethrough
+      - blockquote
       - bullist
+      - numlist
+      - table
+      - link
       - customImage
       - customLink
       - customMedia
@@ -24,15 +29,11 @@ meta:
       - h2
       - h3
       - hr
-      - italic
-      - link
-      - numlist
       - removeformat
-      - strikethrough
-      - table
       - underline
   readonly: false
   required: false
+  searchable: true
   sort: 7
   special: null
   translations: null
@@ -49,6 +50,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

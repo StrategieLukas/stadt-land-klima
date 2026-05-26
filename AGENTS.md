@@ -141,7 +141,7 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 3. Check any existing page for how directus requests are done properly in this version
 4. Use DaisyUI components for new designs where possible
 5. For notes on deployment and config, you can see README.md
-6. Extensions must be created in the top-level folder `directus-extension-not-build`. They are then compiled with `npm install` and `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
+6. Extensions must be created in `src/directus/extensions` They are then compiled with `npm install` and `npm run build`.
 7. Reuse existing Vue-components where possible (/frontend/components)
 8. IMPORTANT: Always verify if changes to the frontend actually work by doing curl requests to localhost:8080
 9. The frontend automatically hot-reloads when changes are made, no need to restart containers.

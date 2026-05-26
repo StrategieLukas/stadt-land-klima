@@ -106,7 +106,12 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
         }
 
         try {
-          await client.request(deleteOperations(flowOperationsToDelete.map(property('id'))));
+          const operationsToDeleteIds = flowOperationsToDelete
+            .map(property('id'))
+            .filter(id => id && id !== '');
+          if (operationsToDeleteIds.length) {
+            await client.request(deleteOperations(operationsToDeleteIds));
+          }
         } catch (err) {
           console.error(err, flow);
         }
@@ -144,7 +149,12 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
           console.info(`Removing ${operationsToDelete.length} operations`);
         }
 
-        await client.request(deleteOperations(operationsToDelete.map(property('id'))));
+        const operationsToDeleteIds = operationsToDelete
+          .map(property('id'))
+          .filter(id => id && id !== '');
+        if (operationsToDeleteIds.length) {
+          await client.request(deleteOperations(operationsToDeleteIds));
+        }
       }
 
       if (flowsToDelete.length) {
@@ -152,7 +162,12 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
           console.info(`Removing ${flowsToDelete.length} flows`);
         }
 
-        await client.request(deleteFlows(flowsToDelete.map(property('id'))));
+        const flowsToDeleteIds = flowsToDelete
+          .map(property('id'))
+          .filter(id => id && id !== '');
+        if (flowsToDeleteIds.length) {
+          await client.request(deleteFlows(flowsToDeleteIds));
+        }
       }
     }
 
