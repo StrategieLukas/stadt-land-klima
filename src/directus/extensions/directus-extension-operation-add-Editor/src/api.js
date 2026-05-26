@@ -1,5 +1,5 @@
 import { isEmpty } from "lodash-es";
-import { toArray } from "@directus/utils";
+
 export default {
   id: "operation-add-editor",
   handler: async (
@@ -60,19 +60,27 @@ export default {
       const subjectLine =
         "Sie wurden zu Stadt.Land.Klima eingeladen als Redakteur*in!";
 
-      await mailService.send({
-        to: email,
-        subject: subjectLine,
-        template: {
-          name: "email-template-invite",
-          data: {
-            url: url,
-            email: email,
-            fullName: fullName,
-            municipality_name: localteam.municipality_name,
+      try {
+        await mailService.send({
+          to: email,
+          subject: subjectLine,
+          template: {
+            name: "email-template-invite",
+            data: {
+              url: url,
+              email: email,
+              fullName: fullName,
+              municipality_name: localteam.municipality_name,
+            },
           },
-        },
-      });
+        });
+      } catch (error) {
+        logger.error(`Failed to send invitation email to ${email} (=expected behaviour on dev, an error elsewhere)`);
+        logger.error(error);
+        if (process.env.SLK_ENV !== 'development') {
+          throw error;
+        }
+      }
     } else {
       if (user.role !== roles[0].id) {
         throw new Error("User has different role");
