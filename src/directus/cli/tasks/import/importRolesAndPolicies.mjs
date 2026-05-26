@@ -171,11 +171,12 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
     if (policiesToUpdate.length) {
       if (options.verbose) console.info(`Updating ${policiesToUpdate.length} policies`);
       await Promise.all(
-        policiesToUpdate.map((policy) =>
-          client.request(updatePolicy(policy.id, policy)).catch((err) => {
-            console.error(err, policy);
-          })
-        )
+        policiesToUpdate.map((policy) => {
+          const { id, ...data } = policy;
+          return client.request(updatePolicy(id, data)).catch((err) => {
+            console.error(`Error updating policy ${policy.name || id}:`, err);
+          });
+        })
       );
     }
 
@@ -333,37 +334,48 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
 
       if (existingRole) {
         // Preserve existing role data that we don't want to overwrite
-        // Only update fields that are present in the YAML
-        const roleToUpdate = { id: existingRole.id };
+        // Only update fields that are present in the YAML AND have changed
+        const roleToUpdate = { id: existingRole.id, name: existingRole.name };
+        let hasChanges = false;
 
-        // Copy only the fields that exist in the YAML
-        if (role.name !== undefined) roleToUpdate.name = role.name;
-        if (role.icon !== undefined) roleToUpdate.icon = role.icon;
-        if (role.description !== undefined) roleToUpdate.description = role.description;
+        if (role.icon !== undefined && role.icon !== existingRole.icon) {
+          roleToUpdate.icon = role.icon || null;
+          hasChanges = true;
+        }
+
+        const existingDescription = existingRole.description === undefined ? null : existingRole.description;
+        if (role.description !== undefined && role.description !== existingDescription) {
+          roleToUpdate.description = role.description || null;
+          hasChanges = true;
+        }
 
         // Resolve parent reference (can be UUID or name) to ID
         if (role.parent !== undefined) {
           const resolvedParent = resolveRoleRef(role.parent, existingRoles, options.verbose);
-          if (resolvedParent) {
-            roleToUpdate.parent = resolvedParent;
+          const currentParentId = existingRole.parent?.id || existingRole.parent || null;
+          if (resolvedParent !== currentParentId) {
+            roleToUpdate.parent = resolvedParent || null;
+            hasChanges = true;
           }
-        }
-
-        // Resolve children references (can be UUIDs or names) to IDs
-        if (role.children !== undefined && role.children.length > 0) {
-          const resolvedChildren = role.children
-            .map(c => resolveRoleRef(c, existingRoles, options.verbose))
-            .filter(id => id !== null);
-          roleToUpdate.children = resolvedChildren;
         }
 
         // Store policies for later attachment (resolve names to IDs)
         const resolvedPolicies = (role.policies || [])
           .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
           .filter(id => id !== null);
-        roleToUpdate.policiesToAttach = resolvedPolicies;
 
-        rolesToUpdate.push(roleToUpdate);
+        if (hasChanges) {
+          roleToUpdate.policiesToAttach = resolvedPolicies;
+          rolesToUpdate.push(roleToUpdate);
+        } else {
+          // If no metadata changes, still need to check policies
+          rolesToUpdate.push({
+            id: existingRole.id,
+            name: role.name,
+            policiesToAttach: resolvedPolicies,
+            _skipMetadataUpdate: true
+          });
+        }
       } else {
         // New role - include all fields from YAML
         const roleToCreate = {
@@ -380,14 +392,6 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
           }
         }
 
-        // Resolve children references (can be UUIDs or names) to IDs
-        if (role.children !== undefined && role.children.length > 0) {
-          const resolvedChildren = role.children
-            .map(c => resolveRoleRef(c, existingRoles, options.verbose))
-            .filter(id => id !== null);
-          roleToCreate.children = resolvedChildren;
-        }
-
         // Store policies for later attachment (resolve names to IDs)
         const resolvedPolicies = (role.policies || [])
           .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
@@ -402,7 +406,12 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
     // --- Create Roles ---
     if (rolesToCreate.length) {
       if (options.verbose) console.info(`Creating ${rolesToCreate.length} roles`);
-      const createdRoles = await client.request(createRoles(rolesToCreate));
+      // Clean up internal fields before sending to API
+      const rolesToCreatePayload = rolesToCreate.map((r) => {
+        const { policiesToAttach, ...data } = r;
+        return data;
+      });
+      const createdRoles = await client.request(createRoles(rolesToCreatePayload));
 
       // Update the roles array with the newly created role IDs
       createdRoles.forEach((createdRole) => {
@@ -412,15 +421,17 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
     }
 
     // --- Update Roles ---
-    const safeRolesToUpdate = rolesToUpdate.filter((r) => r.name !== 'Administrator' && r.id !== null);
-    if (safeRolesToUpdate.length) {
-      if (options.verbose) console.info(`Updating ${safeRolesToUpdate.length} roles`);
+    const rolesToActuallyUpdate = rolesToUpdate.filter((r) => r.name !== 'Administrator' && r.id !== null && !r._skipMetadataUpdate);
+    if (rolesToActuallyUpdate.length) {
+      if (options.verbose) console.info(`Updating ${rolesToActuallyUpdate.length} roles`);
       await Promise.all(
-        safeRolesToUpdate.map((role) =>
-          client.request(updateRole(role.id, role)).catch((err) => {
-            console.error(err, role);
-          })
-        )
+        rolesToActuallyUpdate.map((role) => {
+          // Clean up internal fields before sending to API
+          const { id, policiesToAttach, _skipMetadataUpdate, ...data } = role;
+          return client.request(updateRole(id, data)).catch((err) => {
+            console.error(`Error updating role ${role.name || id}:`, err);
+          });
+        })
       );
     }
 
@@ -434,61 +445,33 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
 
     // --- Attach policies to roles ---
     // In v11, roles can have multiple policies attached via many-to-many relationship
-    // Note: Policy references have already been resolved to IDs during the processing phase above
+    // We use the directus_access table directly for all roles to be consistent and bypass potential 403s on /roles
     for (const role of [...rolesToCreate, ...rolesToUpdate]) {
       const policiesToAttach = role.policiesToAttach || [];
 
-      if (policiesToAttach.length === 0) continue;
+      // Find the role ID if it's not already set
+      if (!role.id && role.name !== 'Public') {
+        const updatedRole = find(updatedRoles, ['name', role.name]);
+        if (updatedRole) role.id = updatedRole.id;
+      }
 
-      // Special handling for Public role - it's built-in and uses directus_access table
-      if (role.name === 'Public' && role.id === null) {
-        // Policies are already resolved to IDs
-        await handlePublicRolePolicies(policiesToAttach, existingPolicies, options.verbose);
+      if (!role.id && role.name !== 'Public') {
+        console.warn(`Could not find role ID for ${role.name}`);
         continue;
       }
 
-      if (!role.id) {
-        // Find the role ID from the updated list
-        const updatedRole = find(updatedRoles, ['name', role.name]);
-        if (updatedRole) role.id = updatedRole.id;
-        if (!role.id) {
-          console.warn(`Could not find role ID for ${role.name}`);
-          continue;
-        }
-      }
-
-      // Get current policies attached to this role
-      const currentRole = find(updatedRoles, ['id', role.id]);
-      const currentPolicyIds = (currentRole?.policies || []).map(p => p.id || p);
-
-      // Policies are already resolved to IDs, just filter out any that couldn't be resolved
-      const resolvedPolicyIds = policiesToAttach.filter(id => id !== null);
-
-      // Find policies that need to be added
-      const policiesToAdd = resolvedPolicyIds.filter(pid => !currentPolicyIds.includes(pid));
-
-      if (policiesToAdd.length > 0) {
-        // Attach policies via updateRole with policies array (expects IDs)
-        const allPolicyIds = [...currentPolicyIds, ...policiesToAdd];
-        await client.request(updateRole(role.id, { policies: allPolicyIds }));
-        if (options.verbose) {
-          console.info(`Attached ${policiesToAdd.length} policies to role ${role.name}`);
-        }
-      }
+      // Special handling for Public role - it's built-in and uses directus_access table with role: null
+      const roleIdForAccess = role.name === 'Public' ? null : role.id;
+      await handleRolePolicies(roleIdForAccess, role.name, policiesToAttach, options.verbose);
     }
 
-    // Helper function to handle Public role policy attachments via directus_access table
-    async function handlePublicRolePolicies(policyIdsToAttach, allPolicies, verbose) {
-      if (policyIdsToAttach.length === 0) {
-        if (verbose) console.info('No policies to attach to Public role');
-        return;
-      }
-
+    // Helper function to handle role policy attachments via directus_access table
+    async function handleRolePolicies(roleId, roleName, policyIdsToAttach, verbose) {
       // Build URL helper for directus_access table
       const buildAccessUrl = (filters) => {
         const params = new URLSearchParams({
           limit: -1,
-          fields: '*,policy.*',
+          fields: 'id,policy',
         });
 
         for (const [key, value] of Object.entries(filters)) {
@@ -503,8 +486,10 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
       };
 
       try {
-        // Get existing access entries for Public role (where role is null)
-        const url = buildAccessUrl({ 'filter[role][_null]': 'true' });
+        // Get existing access entries for this role
+        const filterKey = roleId === null ? 'filter[role][_null]' : 'filter[role][_eq]';
+        const url = buildAccessUrl({ [filterKey]: roleId === null ? 'true' : roleId });
+
         const response = await fetch(`${directusUrl}${url}`, {
           headers: {
             'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
@@ -526,13 +511,13 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
         );
 
         if (policiesToAdd.length === 0 && policiesToRemove.length === 0) {
-          if (verbose) console.info('Public role already has all specified policies attached');
+          if (verbose) console.info(`Role ${roleName} already has all specified policies attached`);
           return;
         }
 
-        // Remove access entries for policies that should no longer be attached to Public role
+        // Remove access entries for policies that should no longer be attached
         if (policiesToRemove.length > 0) {
-          if (verbose) console.info(`Removing ${policiesToRemove.length} access entries from Public role`);
+          if (verbose) console.info(`Removing ${policiesToRemove.length} access entries from role ${roleName}`);
 
           for (const entry of policiesToRemove) {
             const deleteUrl = `/access/${entry.id}`;
@@ -544,19 +529,18 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
             });
 
             if (!deleteResponse.ok) {
-              console.warn(`Could not remove access entry ${entry.id} for Public role: ${deleteResponse.statusText}`);
+              console.warn(`Could not remove access entry ${entry.id} for role ${roleName}: ${deleteResponse.statusText}`);
             } else if (verbose) {
-              console.info(`Removed access entry ${entry.id} from Public role`);
+              console.info(`Removed access entry ${entry.id} from role ${roleName}`);
             }
           }
         }
 
-        // Add access entries for policies that should be attached to Public role
+        // Add access entries for policies that should be attached
         if (policiesToAdd.length > 0) {
-          if (verbose) console.info(`Adding ${policiesToAdd.length} access entries to Public role`);
+          if (verbose) console.info(`Adding ${policiesToAdd.length} access entries to role ${roleName}`);
 
           for (const policyId of policiesToAdd) {
-            // Create new access entry with role: null (Public role)
             const createUrl = `/access`;
             const createResponse = await fetch(`${directusUrl}${createUrl}`, {
               method: 'POST',
@@ -565,28 +549,22 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                role: null,  // Public role is represented by null
+                role: roleId,
                 policy: policyId,
               }),
             });
 
             if (!createResponse.ok) {
               const errorText = await createResponse.text();
-              console.warn(`Could not add access entry for policy ${policyId} to Public role: ${createResponse.statusText} - ${errorText}`);
+              console.warn(`Could not add access entry for policy ${policyId} to role ${roleName}: ${createResponse.statusText} - ${errorText}`);
             } else if (verbose) {
               const created = await createResponse.json();
-              console.info(`Added access entry for policy ${policyId} to Public role (id: ${created.data?.id})`);
+              console.info(`Added access entry for policy ${policyId} to role ${roleName} (id: ${created.data?.id})`);
             }
           }
         }
-
-        if (verbose) {
-          console.info(`Public role policy attachments updated successfully`);
-        }
-
       } catch (e) {
-        console.error('Could not update Public role policies:', e.message);
-        console.warn('Public role policy attachments may need to be configured manually in the Directus admin UI');
+        console.error(`Could not update policies for role ${roleName}:`, e.message);
       }
     }
 

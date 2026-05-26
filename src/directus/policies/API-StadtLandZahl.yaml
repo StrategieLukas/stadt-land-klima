@@ -1,5 +1,5 @@
 name: API-StadtLandZahl
-icon: badge
+icon: computer
 description: Zugriff für StadtLandZahl
 enforce_tfa: false
 admin_access: false
@@ -26,35 +26,6 @@ permissions:
     presets: null
     fields:
       - "*"
-  - collection: municipalities
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - id
-      - user_created
-      - date_created
-      - user_updated
-      - date_updated
-      - status
-      - name
-      - slug
-      - scores
-      - overall_status_comment
-      - municipality_type
-      - details
-      - state
-      - population
-      - mayor
-      - party_mayor
-      - ars
-      - description
-      - geolocation
-      - public_contact
-      - image
-      - creator_verified
-      - preview_token
   - collection: municipality_scores
     action: read
     permissions: {}
