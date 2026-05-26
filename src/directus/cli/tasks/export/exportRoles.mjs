@@ -1,18 +1,27 @@
 import fse from 'fse';
 import path from 'path';
 import { stringify } from 'yaml';
-import { readRoles } from '@directus/sdk';
+import { readRoles, readPolicies } from '@directus/sdk';
 import slugify from 'slugify';
-import createDirectusClient from '../shared/createDirectusClient.mjs';
+import createDirectusClient, { directusUrl } from '../shared/createDirectusClient.mjs';
 
 /**
  * Export roles for Directus v11+
  * 
  * In Directus v11, roles no longer hold permissions directly.
  * Instead, roles have policies attached to them via many-to-many relationship.
- * This exports roles with their attached policies (by ID reference).
+ * This exports roles with their attached policies (by name reference for portability).
  * 
  * The actual policy definitions (with permissions) are exported separately.
+ * 
+ * Note: The Public role is a built-in role that doesn't appear in the roles list
+ * by default in Directus v11.17.4+. We need to check the access table for
+ * policies attached to the Public role (where role is null).
+ * 
+ * All references (policies, parent, children) are exported by NAME (not ID) to ensure
+ * portability across different Directus instances where IDs may differ.
+ * 
+ * The import process resolves these names back to IDs for the target environment.
  */
 async function exportRoles(dest, options = { verbose: false, overwrite: false }) {
   const client = createDirectusClient();
@@ -27,6 +36,71 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         fields: ['*', 'policies.*', 'users.*', 'children.*'],
       })
     );
+
+    // Get all policies to map IDs to names
+    const allPolicies = await client.request(readPolicies({ limit: -1 }));
+    
+    // Create a map from policy ID to policy name for reference
+    const policyIdToName = new Map();
+    allPolicies.forEach(policy => {
+      if (policy.id && policy.name) {
+        policyIdToName.set(policy.id, policy.name);
+      }
+    });
+
+    // Create a map from role ID to role name for children references
+    const roleIdToName = new Map();
+    roles.forEach(r => {
+      if (r.id && r.name) {
+        roleIdToName.set(r.id, r.name);
+      }
+    });
+
+    // Get access entries for the Public role (role is null)
+    // In Directus v11.17.4+, the Public role is represented by null in the directus_access table
+    // We use the REST API directly since directus_access is a system collection
+    // Build the URL with query parameters for the REST API
+    const buildAccessUrl = (filters) => {
+      const params = new URLSearchParams({
+        limit: -1,
+        fields: 'policy',
+      });
+      
+      for (const [key, value] of Object.entries(filters)) {
+        if (value === null) {
+          params.append(key, 'null');
+        } else {
+          params.append(key, value);
+        }
+      }
+      
+      return `/access?${params.toString()}`;
+    };
+
+    let accessEntries = [];
+    try {
+      // Try to get access entries where role is null (Public role)
+      const url = buildAccessUrl({ 'filter[role][_null]': 'true' });
+      const response = await fetch(`${directusUrl}${url}`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+        },
+      });
+      const data = await response.json();
+      accessEntries = data.data || [];
+    } catch (e) {
+      if (options.verbose) console.info('Could not fetch access entries for Public role (role=null):', e.message);
+    }
+
+    // Extract policy IDs for the Public role
+    const publicRolePolicyIds = accessEntries
+      .map(entry => entry.policy)
+      .filter((id, index, self) => id && self.indexOf(id) === index); // Deduplicate and filter out null/undefined
+
+    // Convert policy IDs to policy names for portability
+    const publicRolePolicyNames = publicRolePolicyIds
+      .map(id => policyIdToName.get(id))
+      .filter(name => name !== undefined); // Only include policies that were found
 
     fse.mkdirSync(dest, { recursive: true });
 
@@ -50,15 +124,88 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
       }
 
       // Clean up role data for export
+      // Convert policy IDs to policy names for portability across environments
+      const policyNames = [];
+      const missingPolicies = [];
+      
+      for (const p of role.policies || []) {
+        const policyId = p.id || p;
+        let policyName = policyIdToName.get(policyId);
+        
+        // If not found in map, check if policy exists in allPolicies directly
+        // This handles edge cases where the map might not have been built correctly
+        if (!policyName) {
+          const policyObj = allPolicies.find(pol => pol.id === policyId);
+          if (policyObj && policyObj.name) {
+            policyName = policyObj.name;
+          }
+        }
+        
+        if (policyName) {
+          policyNames.push(policyName);
+        } else {
+          // Policy truly not found - try heuristic matching by name pattern
+          // For example, LocalteamMember -> Lokalteam-Mitglied
+          const roleNameLower = (role.name || '').toLowerCase().replace(/[\s-]/g, '');
+          const matchingPolicy = allPolicies.find(pol => {
+            const polNameLower = (pol.name || '').toLowerCase().replace(/[\s-]/g, '');
+            return polNameLower.includes(roleNameLower) || roleNameLower.includes(polNameLower);
+          });
+          
+          if (matchingPolicy && matchingPolicy.name) {
+            policyName = matchingPolicy.name;
+            policyNames.push(policyName);
+            if (options.verbose) {
+              console.warn(`Role '${role.name}': Policy ID '${policyId}' not found. Using heuristic match: '${policyName}'`);
+            }
+          } else {
+            missingPolicies.push(policyId);
+            if (options.verbose) {
+              console.warn(`Role '${role.name}': Policy with ID '${policyId}' not found in policy list. Skipping.`);
+            }
+          }
+        }
+      }
+      
+      // Convert child role IDs to child role names for portability across environments
+      const childRoleNames = [];
+      const missingChildRoles = [];
+      
+      for (const c of role.children || []) {
+        const childId = c.id || c;
+        const childName = roleIdToName.get(childId);
+        
+        if (childName) {
+          childRoleNames.push(childName);
+        } else {
+          missingChildRoles.push(childId);
+          if (options.verbose) {
+            console.warn(`Role '${role.name}': Child role with ID '${childId}' not found in role list. Skipping.`);
+          }
+        }
+      }
+      
+      // Convert parent role ID to parent role name for portability across environments
+      let parentRoleName = null;
+      if (role.parent) {
+        parentRoleName = roleIdToName.get(role.parent);
+        if (!parentRoleName) {
+          if (options.verbose) {
+            console.warn(`Role '${role.name}': Parent role with ID '${role.parent}' not found in role list.`);
+          }
+          parentRoleName = null;
+        }
+      }
+      
       const cleanRole = {
         name: role.name,
         icon: role.icon || null,
         description: role.description || null,
-        parent: role.parent || null,
-        children: role.children ? role.children.map(c => c.id || c) : [],
-        // Store policy IDs that are attached to this role
-        // These reference policies that are exported separately
-        policies: role.policies ? role.policies.map(p => p.id || p) : [],
+        parent: parentRoleName,
+        children: childRoleNames.length > 0 ? childRoleNames : undefined,
+        // Store policy NAMES (not IDs) that are attached to this role
+        // These reference policies by name for portability across environments
+        policies: policyNames.length > 0 ? policyNames : undefined,
       };
 
       // Remove null/undefined values for cleaner YAML
@@ -77,6 +224,37 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
 
       if (options.verbose) console.info(`Exported role ${destPath}`);
     });
+
+    // Export Public role if it has policies attached
+    // The Public role is a built-in role that doesn't appear in the roles list
+    // In Directus v11.17.4+, it's represented by null in the directus_access table
+    if (publicRolePolicyNames.length > 0) {
+      const destPath = path.join(dest, 'public.yaml');
+
+      if (!options.overwrite && fse.existsSync(destPath)) {
+        if (options.verbose) console.info(`File ${destPath} already exists.`);
+      } else {
+        // Create a Public role with the attached policy names (not IDs)
+        const publicRole = {
+          name: 'Public',
+          icon: 'globe',
+          description: 'Öffentlicher Zugriff',
+          policies: publicRolePolicyNames,
+        };
+
+        // Remove null/undefined values for cleaner YAML
+        Object.keys(publicRole).forEach((key) => {
+          if (publicRole[key] === null || publicRole[key] === undefined) {
+            delete publicRole[key];
+          }
+        });
+
+        fse.writeFileSync(destPath, stringify(publicRole), { encoding: 'utf8' });
+        exportedCount++;
+
+        if (options.verbose) console.info(`Exported Public role ${destPath}`);
+      }
+    }
 
     if (options.verbose) {
       console.info(`Exported ${exportedCount} roles.`);
