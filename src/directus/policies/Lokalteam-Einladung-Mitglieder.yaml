@@ -15,3 +15,10 @@ permissions:
       - email
       - localteam_id
       - organisation
+  - collection: editors
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - organisation
