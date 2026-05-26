@@ -1,0 +1,217 @@
+name: WahlcheckAdmin
+icon: badge
+description: Policy for WahlcheckAdmin role
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+  - collection: agreement_versions
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: candidate
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - email
+      - party
+      - election
+      - prefill_trigger
+      - access_token
+  - collection: candidate
+    action: delete
+    permissions:
+      has_answered:
+        _eq: false
+    validation: null
+    presets: null
+    fields: null
+  - collection: candidate
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - election
+      - name
+      - party
+      - email
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+  - collection: candidate
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - email
+      - party
+      - election
+  - collection: elections
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - descriptor
+      - is_public
+      - localteam
+      - response_cutoff_date
+      - action_buttons
+      - already_sent_mails
+      - already_generated_questions
+      - prefill_trigger
+  - collection: elections
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: elections
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - descriptor
+      - is_public
+      - response_cutoff_date
+      - action_buttons
+      - already_sent_mails
+      - already_generated_questions
+  - collection: localteams
+    action: read
+    permissions:
+      _and:
+        - status:
+            _neq: archived
+        - admin_id:
+            _nnull: true
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - municipality_name
+      - status
+  - collection: measure_questions_template
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: questions
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - thesis
+      - sector
+      - status
+      - election
+      - prefill_trigger
+  - collection: questions
+    action: delete
+    permissions:
+      election:
+        response_cutoff_date:
+          _eq: null
+    validation: null
+    presets: null
+    fields: null
+  - collection: questions
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: questions
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - thesis
+      - sector
+      - status
+  - collection: user_agreements
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - user_id
+      - agb_version
+      - agb_accepted_at
+      - data_protection_version
+      - data_protection_accepted_at
+      - newsletter_subscribed
+      - newsletter_subscribed_at
+  - collection: user_agreements
+    action: read
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: user_agreements
+    action: update
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - newsletter_subscribed
+      - newsletter_subscribed_at
+  - collection: user_consent
+    action: create
+    permissions: null
+    validation:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    presets: null
+    fields:
+      - id
+      - consent_target
+      - user_id
+  - collection: user_consent
+    action: read
+    permissions:
+      _and:
+        - user_id:
+            _eq: $CURRENT_USER
+    validation: null
+    presets: null
+    fields:
+      - id
+      - consent_target
+      - user_id
+      - date_updated
+      - date_created
