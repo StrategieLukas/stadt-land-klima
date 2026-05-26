@@ -286,6 +286,7 @@ permissions:
       - end_date
       - location
       - registration_url
+      - cta_label
       - date_created
       - image
       - event_category

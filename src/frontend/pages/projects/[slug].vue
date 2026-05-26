@@ -8,8 +8,8 @@
     :state="article.state"
     :author="article.author"
     :date="article.date_created ? new Date(article.date_created) : null"
-    :image_id="article.image.id"
-    :image_is_raster="isRaster(article.image.type)"
+    :image_id="article.image?.id"
+    :image_is_raster="article.image ? isRaster(article.image.type) : false"
     :image_credits="article.image_credits"
     :abstract="article.abstract"
     :article_text="article.article_text"
@@ -39,7 +39,7 @@
         fields: [
           "title", "subtitle", "municipality_name", "state", "author", "date_created", "image_credits", "abstract", "article_text", "link", "instagram", "linkedin",
           { image: ["id", "type"] },
-          { organisation: ["name", "logo", "link"] },
+          { organisation: [{ logo: ["id", "type"] }, "name", "link"] },
           { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] }
         ],
         filter: { slug: { _eq: route.params.slug } },
@@ -57,7 +57,7 @@
   const { data: municipalityData } = await useAsyncData(
     `municipality-slug-for-article-${route.params.slug}`,
     async () => {
-      if (!article.value.municipality_name) return null;
+      if (!article.value.municipality_name) return false;
       const results = await $directus.request(
         $readItems("municipalities", {
           fields: ["slug", "ars", "status"],
@@ -65,7 +65,7 @@
           limit: 1,
         })
       );
-      return results?.[0] ?? null;
+      return results?.[0] ?? false;
     },
     { watch: [article] }
   );

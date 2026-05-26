@@ -111,7 +111,15 @@
               class="block bg-white rounded-lg shadow-sm border border-orange-200 overflow-hidden hover:shadow-md hover:border-orange-400 transition-all"
             >
               <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
-                <img :src="`${directusUrl}/assets/${event.image}?width=600&quality=80`" :alt="event.title" class="w-full h-full object-cover" />
+                <SmartImg
+                  :assetId="event.image.id"
+                  :isRaster="isRaster(event.image.type)"
+                  :alt="event.title"
+                  :width="600"
+                  :height="160"
+                  fit="cover"
+                  img-class="w-full h-full object-cover"
+                />
               </div>
               <div v-else class="relative h-40 bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
                 <svg class="w-14 h-14 text-orange-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
@@ -163,7 +171,15 @@
                 class="block bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-light-green transition-all"
               >
                 <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
-                  <img :src="`${directusUrl}/assets/${event.image}?width=600&quality=80`" :alt="event.title" class="w-full h-full object-cover" />
+                  <SmartImg
+                    :assetId="event.image.id"
+                    :isRaster="isRaster(event.image.type)"
+                    :alt="event.title"
+                    :width="600"
+                    :height="160"
+                    fit="cover"
+                    img-class="w-full h-full object-cover"
+                  />
                 </div>
                 <div class="p-5">
                   <span class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-light-green/10 text-olive-green mb-2 inline-block">
@@ -222,7 +238,15 @@
                 class="block bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all opacity-70"
               >
                 <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
-                  <img :src="`${directusUrl}/assets/${event.image}?width=600&quality=80`" :alt="event.title" class="w-full h-full object-cover grayscale" />
+                  <SmartImg
+                    :assetId="event.image.id"
+                    :isRaster="isRaster(event.image.type)"
+                    :alt="event.title"
+                    :width="600"
+                    :height="160"
+                    fit="cover"
+                    img-class="w-full h-full object-cover grayscale"
+                  />
                 </div>
                 <div class="p-5">
                   <span class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 mb-2 inline-block">
@@ -257,6 +281,7 @@
 
 <script setup>
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { isRaster } from '~/shared/utils'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 const { $directus, $readItems, $t } = useNuxtApp()
@@ -278,7 +303,7 @@ const { data: events } = await useAsyncData('events-list', async () => {
   try {
     return await $directus.request($readItems('events', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'title', 'slug', 'start_date', 'end_date', 'location', 'event_type', 'image'],
+      fields: ['id', 'title', 'slug', 'start_date', 'end_date', 'location', 'event_type', { image: ['id', 'type'] }],
       sort: ['start_date'],
       limit: -1,
     }))
