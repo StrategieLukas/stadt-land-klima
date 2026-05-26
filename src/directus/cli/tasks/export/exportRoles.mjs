@@ -100,7 +100,8 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
     // Convert policy IDs to policy names for portability
     const publicRolePolicyNames = publicRolePolicyIds
       .map(id => policyIdToName.get(id))
-      .filter(name => name !== undefined); // Only include policies that were found
+      .filter(name => name !== undefined) // Only include policies that were found
+      .filter((name, index, self) => self.indexOf(name) === index); // Additional deduplication by name
 
     fse.mkdirSync(dest, { recursive: true });
 
@@ -126,6 +127,7 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
       // Clean up role data for export
       // Convert policy IDs to policy names for portability across environments
       const policyNames = [];
+      const seenPolicyNames = new Set(); // Track seen policy names for deduplication
       const missingPolicies = [];
 
       for (const p of role.policies || []) {
@@ -142,7 +144,11 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         }
 
         if (policyName) {
-          policyNames.push(policyName);
+          // Deduplicate: only add if we haven't seen this policy name before
+          if (!seenPolicyNames.has(policyName)) {
+            policyNames.push(policyName);
+            seenPolicyNames.add(policyName);
+          }
         } else {
           // Policy truly not found - try heuristic matching by name pattern
           // For example, LocalteamMember -> Lokalteam-Mitglied
@@ -154,7 +160,11 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
 
           if (matchingPolicy && matchingPolicy.name) {
             policyName = matchingPolicy.name;
-            policyNames.push(policyName);
+            // Deduplicate heuristic matches too
+            if (!seenPolicyNames.has(policyName)) {
+              policyNames.push(policyName);
+              seenPolicyNames.add(policyName);
+            }
             if (options.verbose) {
               console.warn(`Role '${role.name}': Policy ID '${policyId}' not found. Using heuristic match: '${policyName}'`);
             }
@@ -169,6 +179,7 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
 
       // Convert child role IDs to child role names for portability across environments
       const childRoleNames = [];
+      const seenChildNames = new Set(); // Track seen child names for deduplication
       const missingChildRoles = [];
 
       for (const c of role.children || []) {
@@ -176,7 +187,11 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         const childName = roleIdToName.get(childId);
 
         if (childName) {
-          childRoleNames.push(childName);
+          // Deduplicate: only add if we haven't seen this child name before
+          if (!seenChildNames.has(childName)) {
+            childRoleNames.push(childName);
+            seenChildNames.add(childName);
+          }
         } else {
           missingChildRoles.push(childId);
           if (options.verbose) {

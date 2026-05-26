@@ -61,6 +61,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
       );
 
       // Clean up policy data for export
+      // Note: We explicitly use NAME (not ID) as the unique identifier for portability
       const cleanPolicy = {
         name: policy.name,
         icon: policy.icon || null,
@@ -90,6 +91,9 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
           delete cleanPolicy[key];
         }
       });
+
+      // Explicitly remove id field to ensure no UUIDs are exported (use name as identifier)
+      delete cleanPolicy.id;
 
       fs.writeFileSync(destPath, stringify(cleanPolicy), { encoding: 'utf8' });
       exportedCount++;
