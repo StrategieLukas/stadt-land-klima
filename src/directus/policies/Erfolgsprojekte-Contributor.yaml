@@ -217,6 +217,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: directus_files
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
   - collection: external_projects
     action: create
     permissions: null
@@ -257,6 +264,61 @@ permissions:
       - title
       - link
       - description
+  - collection: measure_catalog
+    action: read
+    permissions:
+      _and:
+        - hidden:
+            _neq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - isCurrentBackend
+      - isCurrentFrontend
+      - hidden
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - catalog_version:
+            hidden:
+              _neq: true
+        - status:
+            _eq: published
+        - catalog_version:
+            isCurrentBackend:
+              _eq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - status
+      - measure_id
+      - name
+      - slug
+      - sector
+      - impact
+      - feasibility_political
+      - feasibility_economical
+      - feasibility
+      - weight
+      - choices_rating
+      - description_about
+      - description_evaluation_criteria
+      - description_verification
+      - description_benefit
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+      - accordion-p4jgb8
+      - description
+      - verification_description
+      - notes
+      - catalog_version
   - collection: organisations
     action: read
     permissions: null
