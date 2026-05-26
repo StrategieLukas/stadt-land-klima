@@ -1,8 +1,8 @@
-name: EditorLocalteam
+name: LokalteamMitglied
 icon: supervised_user_circle
 description: Reguläres Mitglied eines Lokalteams
 children:
-  - AdminLokalteam
+  - LokalteamAdmin
 policies:
   - App-Zugriff-Minimum
   - Erfolgsprojekte-Contributor

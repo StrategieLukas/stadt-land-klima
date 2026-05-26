@@ -1,6 +1,6 @@
-name: AdminLokalteam
+name: LokalteamAdmin
 icon: supervised_user_circle
 description: Verantwortliche Person eines Lokalteams
-parent: EditorLocalteam
+parent: LokalteamMitglied
 policies:
   - Lokalteam-Einladung-Mitglieder
