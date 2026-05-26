@@ -3,7 +3,13 @@ field: creator_verified
 type: boolean
 meta:
   collection: municipalities
-  conditions: null
+  conditions:
+    - hidden: true
+      name: Hide if true
+      rule:
+        _and:
+          - creator_verified:
+              _eq: true
   display: boolean
   display_options: null
   field: creator_verified

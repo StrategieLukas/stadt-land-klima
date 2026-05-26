@@ -1,6 +1,6 @@
 name: API-Erfolgsprojekte
 icon: volunteer_activism
-description: API Access to Erfolgsprojekte
+description: API Access für Erfolgsprojekte
 enforce_tfa: false
 admin_access: false
 app_access: false

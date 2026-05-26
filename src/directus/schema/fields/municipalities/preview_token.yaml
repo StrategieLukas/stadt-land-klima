@@ -3,7 +3,13 @@ field: preview_token
 type: string
 meta:
   collection: municipalities
-  conditions: null
+  conditions:
+    - hidden: true
+      name: Hide if Admin verified
+      rule:
+        _and:
+          - creator_verified:
+              _eq: true
   display: raw
   display_options: null
   field: preview_token

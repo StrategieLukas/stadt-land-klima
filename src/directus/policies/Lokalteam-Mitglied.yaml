@@ -90,7 +90,11 @@ permissions:
       - public_contact
       - details
       - status
-      - localteam_id
+      - notice-kcc40f
+      - links-g1sxxi
+      - image
+      - creator_verified
+      - preview_token
   - collection: municipalities
     action: update
     permissions:
@@ -108,3 +112,4 @@ permissions:
       - description
       - public_contact
       - details
+      - image

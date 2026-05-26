@@ -1,6 +1,6 @@
 name: Frontend
 icon: computer
-description: All permissions given to our frontend account
+description: Alle Berechtigungen für uns Frontend
 enforce_tfa: false
 admin_access: false
 app_access: true

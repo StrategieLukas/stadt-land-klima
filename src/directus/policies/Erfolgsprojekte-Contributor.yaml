@@ -1,5 +1,6 @@
 name: Erfolgsprojekte-Contributor
 icon: badge
+description: Kann Erfolgsprojekte beisteuern, aber nicht selbst veröffentlichen
 enforce_tfa: false
 admin_access: false
 app_access: false

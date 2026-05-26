@@ -55,6 +55,32 @@ permissions:
       - description_tutorial
       - slug
       - measure_id
+  - collection: municipalities
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - overall_status_comment
+      - links-g1sxxi
+  - collection: municipalities
+    action: update
+    permissions:
+      _and:
+        - localteam_id:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - overall_status_comment
+      - status
   - collection: municipality_scores
     action: read
     permissions:
