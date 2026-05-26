@@ -27,16 +27,6 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
   const client = createDirectusClient();
 
   try {
-    const roles = await client.request(
-      readRoles({
-        limit: -1,
-        filter: {
-          name: { _neq: "Administrator" },
-        },
-        fields: ['*', 'policies.*', 'users.*', 'children.*'],
-      })
-    );
-
     // Get all policies to map IDs to names
     const allPolicies = await client.request(readPolicies({ limit: -1 }));
 
@@ -48,60 +38,66 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
       }
     });
 
-    // Create a map from role ID to role name for children references
+    // Get ALL roles to build a complete mapping of ID to Name for parent/child resolution
+    // We include Administrator here to ensure it can be resolved as a parent
+    const allRolesForMapping = await client.request(readRoles({ limit: -1, fields: ['id', 'name'] }));
     const roleIdToName = new Map();
-    roles.forEach(r => {
+    allRolesForMapping.forEach(r => {
       if (r.id && r.name) {
         roleIdToName.set(r.id, r.name);
       }
     });
 
-    // Get access entries for the Public role (role is null)
-    // In Directus v11.17.4+, the Public role is represented by null in the directus_access table
-    // We use the REST API directly since directus_access is a system collection
-    // Build the URL with query parameters for the REST API
-    const buildAccessUrl = (filters) => {
+    // Get roles to export (excluding Administrator)
+    const roles = await client.request(
+      readRoles({
+        limit: -1,
+        filter: {
+          name: { _neq: "Administrator" },
+        },
+        fields: ['*', 'policies.*', 'children.*'],
+      })
+    );
+
+    // Get all access entries to map roles to policies
+    // In Directus v11+, roles are connected to policies via the directus_access table.
+    // We use the REST API directly since directus_access is a system collection.
+    let allAccessEntries = [];
+    try {
       const params = new URLSearchParams({
         limit: -1,
-        fields: 'policy',
+        fields: 'role,policy',
       });
-
-      for (const [key, value] of Object.entries(filters)) {
-        if (value === null) {
-          params.append(key, 'null');
-        } else {
-          params.append(key, value);
-        }
-      }
-
-      return `/access?${params.toString()}`;
-    };
-
-    let accessEntries = [];
-    try {
-      // Try to get access entries where role is null (Public role)
-      const url = buildAccessUrl({ 'filter[role][_null]': 'true' });
-      const response = await fetch(`${directusUrl}${url}`, {
+      const response = await fetch(`${directusUrl}/access?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
         },
       });
       const data = await response.json();
-      accessEntries = data.data || [];
+      allAccessEntries = data.data || [];
     } catch (e) {
-      if (options.verbose) console.info('Could not fetch access entries for Public role (role=null):', e.message);
+      if (options.verbose) console.warn('Could not fetch access entries from /access:', e.message);
     }
 
-    // Extract policy IDs for the Public role
-    const publicRolePolicyIds = accessEntries
-      .map(entry => entry.policy)
-      .filter((id, index, self) => id && self.indexOf(id) === index); // Deduplicate and filter out null/undefined
+    // Map role IDs to policy names
+    const roleIdToPolicyNames = new Map();
+    const publicRolePolicyNames = [];
 
-    // Convert policy IDs to policy names for portability
-    const publicRolePolicyNames = publicRolePolicyIds
-      .map(id => policyIdToName.get(id))
-      .filter(name => name !== undefined) // Only include policies that were found
-      .filter((name, index, self) => self.indexOf(name) === index); // Additional deduplication by name
+    allAccessEntries.forEach(entry => {
+      const policyName = policyIdToName.get(entry.policy);
+      if (!policyName) return;
+
+      if (entry.role === null) {
+        if (!publicRolePolicyNames.includes(policyName)) {
+          publicRolePolicyNames.push(policyName);
+        }
+      } else {
+        if (!roleIdToPolicyNames.has(entry.role)) {
+          roleIdToPolicyNames.set(entry.role, new Set());
+        }
+        roleIdToPolicyNames.get(entry.role).add(policyName);
+      }
+    });
 
     fse.mkdirSync(dest, { recursive: true });
 
@@ -126,16 +122,15 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
 
       // Clean up role data for export
       // Convert policy IDs to policy names for portability across environments
-      const policyNames = [];
-      const seenPolicyNames = new Set(); // Track seen policy names for deduplication
-      const missingPolicies = [];
+      // We primarily use the mapping from directus_access, but fall back to role.policies if available
+      const policyNames = Array.from(roleIdToPolicyNames.get(role.id) || []);
+      const seenPolicyNames = new Set(policyNames);
 
       for (const p of role.policies || []) {
         const policyId = p.id || p;
         let policyName = policyIdToName.get(policyId);
 
         // If not found in map, check if policy exists in allPolicies directly
-        // This handles edge cases where the map might not have been built correctly
         if (!policyName) {
           const policyObj = allPolicies.find(pol => pol.id === policyId);
           if (policyObj && policyObj.name) {
@@ -143,35 +138,27 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
           }
         }
 
-        if (policyName) {
-          // Deduplicate: only add if we haven't seen this policy name before
+        if (policyName && !seenPolicyNames.has(policyName)) {
+          policyNames.push(policyName);
+          seenPolicyNames.add(policyName);
+        }
+      }
+
+      // If still no policies found, try heuristic matching by name pattern
+      if (policyNames.length === 0) {
+        const roleNameLower = (role.name || '').toLowerCase().replace(/[\s-]/g, '');
+        const matchingPolicy = allPolicies.find(pol => {
+          const polNameLower = (pol.name || '').toLowerCase().replace(/[\s-]/g, '');
+          return polNameLower.includes(roleNameLower) || roleNameLower.includes(polNameLower);
+        });
+
+        if (matchingPolicy && matchingPolicy.name) {
+          const policyName = matchingPolicy.name;
           if (!seenPolicyNames.has(policyName)) {
             policyNames.push(policyName);
             seenPolicyNames.add(policyName);
-          }
-        } else {
-          // Policy truly not found - try heuristic matching by name pattern
-          // For example, LocalteamMember -> Lokalteam-Mitglied
-          const roleNameLower = (role.name || '').toLowerCase().replace(/[\s-]/g, '');
-          const matchingPolicy = allPolicies.find(pol => {
-            const polNameLower = (pol.name || '').toLowerCase().replace(/[\s-]/g, '');
-            return polNameLower.includes(roleNameLower) || roleNameLower.includes(polNameLower);
-          });
-
-          if (matchingPolicy && matchingPolicy.name) {
-            policyName = matchingPolicy.name;
-            // Deduplicate heuristic matches too
-            if (!seenPolicyNames.has(policyName)) {
-              policyNames.push(policyName);
-              seenPolicyNames.add(policyName);
-            }
             if (options.verbose) {
-              console.warn(`Role '${role.name}': Policy ID '${policyId}' not found. Using heuristic match: '${policyName}'`);
-            }
-          } else {
-            missingPolicies.push(policyId);
-            if (options.verbose) {
-              console.warn(`Role '${role.name}': Policy with ID '${policyId}' not found in policy list. Skipping.`);
+              console.warn(`Role '${role.name}': No policies found in access table. Using heuristic match: '${policyName}'`);
             }
           }
         }
@@ -211,6 +198,9 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
           parentRoleName = null;
         }
       }
+
+      // Sort policy names for deterministic output
+      policyNames.sort();
 
       const cleanRole = {
         name: role.name,
@@ -254,7 +244,7 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
           name: 'Public',
           icon: 'globe',
           description: 'Öffentlicher Zugriff',
-          policies: publicRolePolicyNames,
+          policies: publicRolePolicyNames.sort(),
         };
 
         // Remove null/undefined values for cleaner YAML

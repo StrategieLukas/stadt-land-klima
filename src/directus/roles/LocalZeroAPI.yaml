@@ -1,6 +1,5 @@
 name: LocalZeroAPI
 icon: volunteer_activism
 description: API Access for LocalZero
-children: []
 policies:
-  - 89ec9b80-b7c0-425c-a91c-f2b19e153c5c
+  - API-Erfolgsprojekte
