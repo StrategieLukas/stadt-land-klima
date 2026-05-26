@@ -166,7 +166,7 @@ export default {
 
     const existing = await questionsSvc.readByQuery({
       filter: { election: { _eq: election_id } },
-      fields: ['id', 'measure_id'],
+      fields: ['id'],
       limit: -1,
     });
 
@@ -194,7 +194,6 @@ export default {
 
         return {
           election: election_id,
-          measure_id: r.measure_uuid,
           title: template?.title || m?.name || r.measure_identifier || '',
           thesis: template?.thesis || m?.description || '',
           sector: template?.sector || m?.sector || null,
