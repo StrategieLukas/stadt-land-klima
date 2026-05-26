@@ -125,7 +125,19 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
 
       // Clean up role data for export
       // Convert policy IDs to policy names for portability across environments
-      const policyNames = [];
+      // Known mappings for orphaned policy references (old UUID -> new policy name)
+      // These handle cases where policies were re-created with new UUIDs
+      const knownPolicyMappings = {
+        '133d443a-7700-41a8-8bf2-640b78c51312': 'Lokalteam-Mitglied',
+        '4ae88595-f0cf-40b0-bc1b-226b88a41a75': 'App-Zugriff-Minimum',
+        'dcef91fd-ae94-4e34-9b0e-f337e6d7769d': 'App-Zugriff-Minimum',
+        '89ec9b80-b7c0-425c-a91c-f2b19e153c5c': 'API-StadtLandZahl',
+        '15b25042-6c99-4e06-97eb-b51b07ee185c': 'policy-adminlokalteam',
+        'f7f6b333-90f0-4f03-9859-0b598d5e5331': 'policy-editorlocalteam',
+        'bada4cf0-e009-4754-b4a0-2ff07b74414b': 'Frontend',
+      };
+      
+      const policyNames = new Set(); // Use Set to avoid duplicates
       const missingPolicies = [];
       
       for (const p of role.policies || []) {
@@ -133,7 +145,6 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         let policyName = policyIdToName.get(policyId);
         
         // If not found in map, check if policy exists in allPolicies directly
-        // This handles edge cases where the map might not have been built correctly
         if (!policyName) {
           const policyObj = allPolicies.find(pol => pol.id === policyId);
           if (policyObj && policyObj.name) {
@@ -141,20 +152,72 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
           }
         }
         
+        // If still not found, check known mappings
+        if (!policyName) {
+          policyName = knownPolicyMappings[policyId];
+          if (policyName && options.verbose) {
+            console.info(`Role '${role.name}': Policy ID '${policyId}' mapped using known mapping: '${policyName}'`);
+          }
+        }
+        
         if (policyName) {
-          policyNames.push(policyName);
+          policyNames.add(policyName);
         } else {
           // Policy truly not found - try heuristic matching by name pattern
           // For example, LocalteamMember -> Lokalteam-Mitglied
-          const roleNameLower = (role.name || '').toLowerCase().replace(/[\s-]/g, '');
-          const matchingPolicy = allPolicies.find(pol => {
-            const polNameLower = (pol.name || '').toLowerCase().replace(/[\s-]/g, '');
-            return polNameLower.includes(roleNameLower) || roleNameLower.includes(polNameLower);
-          });
+          // Try multiple matching strategies:
+          
+          // Strategy 1: Exact name match (case-insensitive)
+          let matchingPolicy = allPolicies.find(pol => 
+            pol.name && role.name && pol.name.toLowerCase() === role.name.toLowerCase()
+          );
+          
+          // Strategy 2: Name contains role name or vice versa (case-insensitive, no special chars)
+          if (!matchingPolicy) {
+            const roleNameClean = (role.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            matchingPolicy = allPolicies.find(pol => {
+              const polNameClean = (pol.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              return polNameClean.includes(roleNameClean) || roleNameClean.includes(polNameClean);
+            });
+          }
+          
+          // Strategy 3: Fuzzy keyword matching
+          // Handle cases like "LocalteamMember" -> "Lokalteam-Mitglied"
+          // where spelling differs (local vs lokal)
+          if (!matchingPolicy) {
+            const roleNameLower = (role.name || '').toLowerCase();
+            const roleParts = roleNameLower.split(/[\s-]/).filter(k => k.length > 2);
+            
+            matchingPolicy = allPolicies.find(pol => {
+              const polNameLower = (pol.name || '').toLowerCase();
+              const polParts = polNameLower.split(/[\s-]/).filter(k => k.length > 2);
+              
+              // Check if any role part matches any policy part (with some flexibility)
+              return roleParts.some(rp => 
+                polParts.some(pp => 
+                  rp === pp || 
+                  rp.includes(pp) || 
+                  pp.includes(rp) ||
+                  // Handle local vs lokal
+                  (rp.includes('local') && pp.includes('lokal')) ||
+                  (rp.includes('lokal') && pp.includes('local')) ||
+                  // Handle member vs mitglied
+                  (rp.includes('member') && pp.includes('mitglied')) ||
+                  (rp.includes('mitglied') && pp.includes('member'))
+                )
+              );
+            });
+          }
+          
+          // Strategy 4: Desperate - use any policy with similar purpose based on icon or description
+          if (!matchingPolicy) {
+            // This is a last resort - we don't want to guess wrong
+            // Just skip it
+          }
           
           if (matchingPolicy && matchingPolicy.name) {
             policyName = matchingPolicy.name;
-            policyNames.push(policyName);
+            policyNames.add(policyName);
             if (options.verbose) {
               console.warn(`Role '${role.name}': Policy ID '${policyId}' not found. Using heuristic match: '${policyName}'`);
             }
@@ -205,7 +268,7 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         children: childRoleNames.length > 0 ? childRoleNames : undefined,
         // Store policy NAMES (not IDs) that are attached to this role
         // These reference policies by name for portability across environments
-        policies: policyNames.length > 0 ? policyNames : undefined,
+        policies: policyNames.size > 0 ? Array.from(policyNames) : undefined,
       };
 
       // Remove null/undefined values for cleaner YAML
