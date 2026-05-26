@@ -17,7 +17,6 @@ permissions:
     fields:
       - id
       - title
-      - description
       - type
       - metadata
       - filename_download
@@ -26,6 +25,14 @@ permissions:
       - charset
       - duration
       - filesize
+      - folder
+      - $thumbnail
+      - description
+      - tags
+      - created_on
+      - modified_on
+      - uploaded_on
+      - storage_divider
   - collection: directus_folders
     action: read
     permissions:
