@@ -21,7 +21,7 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 9
+  sort: 10
   special:
     - o2m
   translations: null

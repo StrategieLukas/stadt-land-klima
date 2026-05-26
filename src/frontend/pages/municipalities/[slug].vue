@@ -68,6 +68,7 @@
     </div>
 
     <NearbyMunicipalitiesCarousel
+      v-if="directusData.municipalityScore.municipality.ars"
       :ars="directusData.municipalityScore.municipality.ars"
       :catalog-version-id="selectedCatalogVersion.id"
       :catalog-version-name="selectedCatalogVersion.name"
@@ -282,6 +283,7 @@
       </div>
     </article>
     <NearbyMunicipalitiesCarousel
+      v-if="slzArea.ars"
       :ars="slzArea.ars"
       :catalog-version-id="selectedCatalogVersion.id"
       :catalog-version-name="selectedCatalogVersion.name"
@@ -361,7 +363,7 @@ const isPreviewLocked = computed(() => {
 const { data: slzArea, pending: slzPending } = useAsyncData(
   `slz-area-${route.params.slug}`,
   async () => {
-    if (directusData?.municipalityScore || !$stadtlandzahlAPI) return null;
+    if (directusData?.municipalityScore || !$stadtlandzahlAPI) return false;
     try {
       const data = await $stadtlandzahlAPI.fetchStatsByARS(route.params.slug);
       if (data?.name) {
@@ -374,9 +376,9 @@ const { data: slzArea, pending: slzPending } = useAsyncData(
           geo_center: data.geo_center ?? null,
         };
       }
-      return null;
+      return false;
     } catch (_) {
-      return null;
+      return false;
     }
   }
 );
@@ -386,7 +388,7 @@ const { data: slzArea, pending: slzPending } = useAsyncData(
 const { data: directusMuniBySlug } = useAsyncData(
   `directus-muni-slug-${route.params.slug}`,
   async () => {
-    if (directusData?.municipalityScore) return null;
+    if (directusData?.municipalityScore) return false;
     try {
       const results = await $directus.request(
         $readItems('municipalities', {
@@ -395,9 +397,9 @@ const { data: directusMuniBySlug } = useAsyncData(
           limit: 1,
         })
       );
-      return results?.[0] ?? null;
+      return results?.[0] ?? false;
     } catch (_) {
-      return null;
+      return false;
     }
   }
 );
@@ -418,7 +420,7 @@ watch(
 const { data: directusMuniByArs } = useAsyncData(
   `directus-muni-ars-${route.params.slug}`,
   async () => {
-    if (directusData?.municipalityScore) return null;
+    if (directusData?.municipalityScore) return false;
     try {
       const results = await $directus.request(
         $readItems('municipalities', {
@@ -427,9 +429,9 @@ const { data: directusMuniByArs } = useAsyncData(
           limit: 1,
         })
       );
-      return results?.[0] ?? null;
+      return results?.[0] ?? false;
     } catch (_) {
-      return null;
+      return false;
     }
   }
 );
