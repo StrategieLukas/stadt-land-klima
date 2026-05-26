@@ -16,6 +16,10 @@ custom_css: |-
     background: none !important;
   }
 
+  .v-progress-linear {
+    display: none !important;
+  }
+
   :root {
     --theme--primary: #1EA64A;
 

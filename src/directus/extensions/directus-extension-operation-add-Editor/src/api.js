@@ -6,7 +6,7 @@ export default {
     { email, localteam_id },
     { logger, accountability, services, getSchema },
   ) => {
-    let roleName = "EditorLocalteam";
+    let roleName = "LokalteamMitglied";
     accountability.admin = true;
 
     const { UsersService, RolesService, MailService, ItemsService } = services;

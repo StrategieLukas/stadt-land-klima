@@ -14,14 +14,14 @@ export default {
     const { UsersService, ItemsService } = services;
     const schema = await getSchema();
     const usersService = new UsersService({ schema, accountability });
-    const EditorLocalteam = new ItemsService("editors", {
+    const localteamMember = new ItemsService("editors", {
       schema,
       accountability,
     });
     let query = {
       limit: -1,
     };
-    let editors = await EditorLocalteam.readMany(keys, query);
+    let editors = await localteamMember.readMany(keys, query);
     logger.info("editors:");
     let userIdsForDeletion = [];
     for (const editor of editors) {

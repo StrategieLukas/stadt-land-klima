@@ -12,7 +12,7 @@ export default {
   options: [
     {
       field: "keys",
-      name: "EditorLocalteam Keys",
+      name: "LokalteamMitglied Keys",
       type: "json",
       meta: {
         width: "full",
