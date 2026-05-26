@@ -5,15 +5,61 @@ enforce_tfa: false
 admin_access: false
 app_access: false
 permissions:
+  - collection: directus_comments
+    action: read
+    permissions:
+      _and:
+        - user_created:
+            localteams:
+              id:
+                _in:
+                  - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - collection
+      - item
+      - comment
+      - date_created
+      - date_updated
+      - user_created
+      - user_updated
   - collection: directus_users
     action: read
     permissions:
-      id:
-        _eq: $CURRENT_USER
+      _and:
+        - _or:
+            - id:
+                _eq: $CURRENT_USER
+            - localteams:
+                id:
+                  _in:
+                    - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:
       - localteams
+      - first_name
+      - last_name
+      - email
+  - collection: editors
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - user_created
+      - date_created
+      - email
+      - localteam_id
+      - organisation
   - collection: localteams
     action: read
     permissions:
