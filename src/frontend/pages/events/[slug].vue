@@ -12,8 +12,8 @@
     <!-- Teaser image -->
     <div v-if="event.image" class="rounded-xl overflow-hidden mb-6">
       <SmartImg
-        :assetId="event.image.id"
-        :isRaster="isRaster(event.image.type)"
+        :assetId="event.image?.id || event.image"
+        :isRaster="event.image?.type ? isRaster(event.image.type) : true"
         :alt="event.title"
         :width="800"
         img-class="w-full h-auto block"
@@ -90,7 +90,9 @@ const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
     },
     fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url', 'cta_label', { image: ['id', 'type'] }],
     limit: 1,
-  })).then(data => data?.[0] ?? false)
+  })).then(data => {
+    return data?.[0] ?? false
+  })
 )
 
 if (!event.value) {

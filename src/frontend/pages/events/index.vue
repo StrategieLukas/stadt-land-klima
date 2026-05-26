@@ -112,8 +112,8 @@
             >
               <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
                 <SmartImg
-                  :assetId="event.image.id"
-                  :isRaster="isRaster(event.image.type)"
+                  :assetId="event.image?.id || event.image"
+                  :isRaster="event.image?.type ? isRaster(event.image.type) : true"
                   :alt="event.title"
                   :width="600"
                   :height="160"
@@ -172,8 +172,8 @@
               >
                 <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
                   <SmartImg
-                    :assetId="event.image.id"
-                    :isRaster="isRaster(event.image.type)"
+                    :assetId="event.image?.id || event.image"
+                    :isRaster="event.image?.type ? isRaster(event.image.type) : true"
                     :alt="event.title"
                     :width="600"
                     :height="160"
@@ -196,7 +196,7 @@
                     <span v-if="event.location" class="flex items-center gap-1">
                       <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 16 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       {{ event.location }}
                     </span>
@@ -239,8 +239,8 @@
               >
                 <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
                   <SmartImg
-                    :assetId="event.image.id"
-                    :isRaster="isRaster(event.image.type)"
+                    :assetId="event.image?.id || event.image"
+                    :isRaster="event.image?.type ? isRaster(event.image.type) : true"
                     :alt="event.title"
                     :width="600"
                     :height="160"
@@ -301,12 +301,13 @@ useHead({ title: 'Veranstaltungen' })
 
 const { data: events } = await useAsyncData('events-list', async () => {
   try {
-    return await $directus.request($readItems('events', {
+    const results = await $directus.request($readItems('events', {
       filter: { status: { _eq: 'published' } },
       fields: ['id', 'title', 'slug', 'start_date', 'end_date', 'location', 'event_type', { image: ['id', 'type'] }],
       sort: ['start_date'],
       limit: -1,
     }))
+    return results
   } catch (e) {
     console.warn('[events] Failed to load events:', e?.message)
     return []
