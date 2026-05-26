@@ -1,5 +1,6 @@
 name: Planungsteam
 icon: supervised_user_circle
+parent: MinimalUser
 policies:
   - Dashboard-Editor
   - Feedback-Manager

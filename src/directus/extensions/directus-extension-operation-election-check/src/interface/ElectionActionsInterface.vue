@@ -48,8 +48,8 @@
     </div>
   </div>
 
-  <!-- Send Emails card — only rendered for admins -->
-  <div v-if="currentUserIsAdmin" class="action-card">
+  <!-- Send Emails card — only rendered when election is approved -->
+  <div v-if="isApproved" class="action-card">
     <div class="card-header">
       <v-icon name="mail" class="card-icon" />
       <div class="card-title-group">
@@ -106,7 +106,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useApi, useStores } from '@directus/extensions-sdk';
+import { useApi } from '@directus/extensions-sdk';
 
 const props = defineProps({
   value: { type: Object, default: null },
@@ -117,8 +117,10 @@ const props = defineProps({
 const emit = defineEmits(['input']);
 
 const api = useApi();
-const { useUserStore } = useStores();
-const userStore = useUserStore();
+
+// Debug logging
+console.log('[election-actions] Component loaded');
+console.log('[election-actions] props.values:', props.values);
 
 const loadingGenerate = ref(false);
 const loadingMails = ref(false);
@@ -129,6 +131,7 @@ const errorMessage = ref(null);
 // Local override state to show immediate feedback after successful action
 const dbAlreadyGenerated = ref(false);
 const dbAlreadySent = ref(false);
+const dbIsApproved = ref(false);
 const sessionGenerated = ref(false);
 const sessionMailsSent = ref(false);
 
@@ -140,20 +143,35 @@ const localAlreadySent = computed(() => {
   return sessionMailsSent.value || dbAlreadySent.value || !!props.values?.already_sent_mails;
 });
 
+// Show send emails button when election is approved
+// Use dbIsApproved (from API) first, then fall back to props.values
+const isApproved = computed(() => {
+  const result = dbIsApproved.value || !!props.values?.is_approved;
+  console.log('[election-actions] isApproved computed:', result, 'dbIsApproved:', dbIsApproved.value, 'props.values.is_approved:', props.values?.is_approved);
+  return result;
+});
+
 async function fetchStatus() {
   if (!props.primaryKey || props.primaryKey === '+') return;
 
   loadingData.value = true;
   try {
+    console.log('[election-actions] Fetching status for election:', props.primaryKey);
     const res = await api.get(`/items/elections/${props.primaryKey}`, {
       params: {
-        fields: ['already_generated_questions', 'already_sent_mails']
+        fields: ['already_generated_questions', 'already_sent_mails', 'is_approved']
       }
     });
 
     if (res.data?.data) {
       dbAlreadyGenerated.value = !!res.data.data.already_generated_questions;
       dbAlreadySent.value = !!res.data.data.already_sent_mails;
+      dbIsApproved.value = !!res.data.data.is_approved;
+      console.log('[election-actions] Fetched data:', {
+        already_generated_questions: res.data.data.already_generated_questions,
+        already_sent_mails: res.data.data.already_sent_mails,
+        is_approved: res.data.data.is_approved
+      });
     }
   } catch (err) {
     console.error('[election-actions] Failed to fetch status:', err);
@@ -168,10 +186,6 @@ onMounted(() => {
 
 watch(() => props.primaryKey, () => {
   fetchStatus();
-});
-
-const currentUserIsAdmin = computed(() => {
-  return userStore.currentUser?.role?.admin_access === true || userStore.currentUser?.role?.name === 'Administrator';
 });
 
 let feedbackTimer = null;

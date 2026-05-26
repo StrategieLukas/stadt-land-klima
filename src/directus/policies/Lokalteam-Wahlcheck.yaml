@@ -114,6 +114,8 @@ permissions:
       - already_sent_mails
       - already_generated_questions
       - prefill_trigger
+      - is_approved
+      - is_public
   - collection: elections
     action: update
     permissions:
@@ -127,6 +129,7 @@ permissions:
     fields:
       - descriptor
       - response_cutoff_date
+      - is_public
   - collection: measure_catalog
     action: read
     permissions:

@@ -3,30 +3,9 @@ import crypto from 'crypto';
 export default {
   id: 'operation-send-candidate-mails',
   handler: async ({ election_id }, { logger, accountability, services, getSchema, data }) => {
-    const { RolesService, ItemsService, MailService } = services;
+    const { ItemsService, MailService } = services;
     const schema = await getSchema();
     const sysAcc = { ...accountability, admin: true };
-
-    // ── Authorisation: Administrator only (backend enforcement) ──────────────
-    if (!accountability?.role) {
-      throw new Error('Nicht autorisiert: Kein Benutzer-Kontext vorhanden.');
-    }
-    const rolesSvc   = new RolesService({ schema, accountability: sysAcc });
-    const adminRoles = await rolesSvc.readByQuery({ filter: { admin_access: { _eq: true } }, limit: 1 });
-    if (!adminRoles?.length) {
-      // Fallback for older versions or specific setups
-      const fallbackRoles = await rolesSvc.readByQuery({ filter: { name: { _eq: 'Administrator' } }, limit: 1 });
-      if (!fallbackRoles?.length) {
-        throw new Error('Administrator-Rolle nicht gefunden. Bitte Datenbankeinrichtung prüfen.');
-      }
-      adminRoles.push(...fallbackRoles);
-    }
-
-    const userRole = await rolesSvc.readOne(accountability.role);
-    if (!userRole?.admin_access && userRole?.name !== 'Administrator') {
-      throw new Error('Nur Administratoren können Kandidaten-E-Mails versenden.');
-    }
-    // ─────────────────────────────────────────────────────────────────────────
 
     const electionSvc  = new ItemsService('elections', { schema, accountability: sysAcc });
     const candidateSvc = new ItemsService('candidate', { schema, accountability: sysAcc });

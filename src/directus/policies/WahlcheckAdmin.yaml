@@ -96,6 +96,7 @@ permissions:
       - action_buttons
       - already_sent_mails
       - already_generated_questions
+      - is_approved
   - collection: localteams
     action: read
     permissions:

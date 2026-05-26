@@ -1,18 +1,12 @@
 collection: elections
-field: is_public
+field: is_approved
 type: boolean
 meta:
   collection: elections
-  conditions:
-    - name: Cannot make public until approved by admin
-      readonly: true
-      rule:
-        _and:
-          - is_approved:
-              _neq: true
-  display: boolean
+  conditions: null
+  display: null
   display_options: null
-  field: is_public
+  field: is_approved
   group: null
   hidden: false
   interface: boolean
@@ -21,16 +15,17 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 3
-  special: null
+  sort: 10
+  special:
+    - cast-boolean
   translations:
     - language: de-DE
-      translation: Öffentlich sichtbar
+      translation: Wurde die Wahl freigegeben?
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: is_public
+  name: is_approved
   table: elections
   data_type: boolean
   default_value: false
