@@ -37,93 +37,84 @@
   </div>
 </template>
 
-<script>
-import useDirectusToken from "./use-directus-token";
-import { nextTick, computed } from "vue";
+<script setup lang="ts">
+import useDirectusToken from './use-directus-token';
+import { nextTick, computed } from 'vue';
 
-export default {
-  inject: ["api"],
-  props: {
-    field: String,
-    collection: String,
-    value: String,
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    choices: {
-      type: Array,
-      default: null,
-    },
-    width: {
-      type: String,
-      default: null,
-    },
-  },
-  emits: ["input", "setFieldValue"],
-  setup(props) {
-    const containerStyle = computed(() => ({
-      "--v-radio-color": "var(--theme--primary)",
-      "--columns": props.choices?.length || 1,
-    }));
-    return { containerStyle };
-  },
-  mounted() {
-    console.log(`BatchMode: ${this.batchMode ?? "N/A"}`);
-    console.log("Choices:");
-    console.log(this.choices);
-    if (this.choices && this.choices.length) {
-      console.log("Number of choices: ", this.choices.length);
-    }
-  },
-  methods: {
-    selectOption(value, field) {
-      if (field == this.field) {
-        this.$emit("input", value);
-        nextTick().then(() => {
-          this.$emit("setFieldValue", {
-            field: "status",
-            value: value == null ? "draft" : "published",
-          });
-        });
-      }
-    },
-    isChecked(input, value) {
-      return input == value;
-    },
-    renderImage(file_id, modified_on = new Date().toISOString()) {
-      if (file_id === null) return;
-      const { addTokenToURL } = useDirectusToken(this.api);
-      return addTokenToURL(
-        `/assets/${file_id}?width=42&height=42&fit=cover&cache-buster=${modified_on}`
-      );
-    },
-    handleChange(value, field) {
-      if (field == this.field) {
-        console.log("handleChange:");
-        this.$emit("input", value);
-      }
-    },
-    valueToClass(val) {
-      const num =
-        val === "" || val === undefined ? null : val === null ? null : Number(val);
-      switch (num) {
-        case 0:
-          return "rating-0";
-        case 0.25:
-          return "rating-1";
-        case 0.5:
-          return "rating-2";
-        case 0.75:
-          return "rating-3";
-        case 1:
-          return "rating-4";
-        default:
-          return "rating-na";
-      }
-    },
-  },
-};
+interface Choice {
+  value: string;
+  text: string;
+  svg_icon?: string;
+}
+
+const props = defineProps<{
+  field?: string;
+  collection?: string;
+  value?: string;
+  disabled?: boolean;
+  choices?: Choice[] | null;
+  width?: string | null;
+}>();
+
+const emit = defineEmits<{
+  (e: 'input', value: string): void;
+  (e: 'setFieldValue', payload: { field: string; value: string }): void;
+}>();
+
+const api = inject<unknown>('api');
+
+const containerStyle = computed(() => ({
+  '--v-radio-color': 'var(--theme--primary)',
+  '--columns': props.choices?.length || 1,
+}));
+
+function selectOption(value: string, field?: string): void {
+  if (field === props.field) {
+    emit('input', value);
+    nextTick().then(() => {
+      emit('setFieldValue', {
+        field: 'status',
+        value: value == null ? 'draft' : 'published',
+      });
+    });
+  }
+}
+
+function isChecked(input: string | undefined, value: string): boolean {
+  return input === value;
+}
+
+function renderImage(file_id: string | null, modified_on: string = new Date().toISOString()): string | void {
+  if (file_id === null) return;
+  const { addTokenToURL } = useDirectusToken(api as never);
+  return addTokenToURL(
+    `/assets/${file_id}?width=42&height=42&fit=cover&cache-buster=${modified_on}`
+  );
+}
+
+function handleChange(value: string, field?: string): void {
+  if (field === props.field) {
+    emit('input', value);
+  }
+}
+
+function valueToClass(val: string): string {
+  const num = val === '' || val === undefined ? null : val === null ? null : Number(val);
+  switch (num) {
+    case 0:
+      return 'rating-0';
+    case 0.25:
+      return 'rating-1';
+    case 0.5:
+      return 'rating-2';
+    case 0.75:
+      return 'rating-3';
+    case 1:
+      return 'rating-4';
+    default:
+      return 'rating-na';
+  }
+}
 </script>
 
 <style lang="scss" scoped>

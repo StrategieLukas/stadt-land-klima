@@ -52,35 +52,38 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+export default defineComponent({
   name: 'MeasurePreview',
   inject: ['api', '$trans'],
   props: {
-    value: { default: null },
+    value: { type: [String, Number] as () => string | number | null, default: null },
     field: { type: String, required: true },
     collection: { type: String, required: true },
-    primaryKey: { type: [String, Number], default: null },
+    primaryKey: { type: [String, Number] as () => string | number | null, default: null },
     measure_field: { type: String, default: 'measure_id' },
     fields_to_display: {
-      type: Array,
+      type: Array as () => string[],
       default: () => ['description_about', 'description_evaluation_criteria', 'description_verification'],
+    },
+    options: {
+      type: Object as () => { measure_field?: string; fields_to_display?: string[] } | null,
+      default: null,
     },
   },
   data() {
     return {
-      measureId: null,
-      measureData: {},
+      measureId: null as string | number | null,
+      measureData: {} as Record<string, unknown>,
       loading: false,
-      error: null,
-      fieldsToDisplay: [],
+      error: null as string | null,
+      fieldsToDisplay: [] as string[],
     };
   },
   computed: {
-    measureField() {
-      return this.measure_field || 'measure_id';
-    },
-    hasMeasureData() {
+    hasMeasureData(): boolean {
       return this.measureData && Object.keys(this.measureData).length > 0;
     },
   },
@@ -94,7 +97,7 @@ export default {
     this.ensureMeasureLoaded();
   },
   methods: {
-    async ensureMeasureLoaded() {
+    async ensureMeasureLoaded(): Promise<void> {
       const measureField = (this.options && this.options.measure_field) || this.measure_field || 'measure_id';
       const pk = this.primaryKey ?? null;
       const boundValue = this.value ?? null;
@@ -102,14 +105,14 @@ export default {
       if (pk && pk !== '+') {
         if (this.field === measureField) {
           const measureId = boundValue || this.value || null;
-          if (measureId) await this.fetchMeasure(measureId);
+          if (measureId) await this.fetchMeasure(measureId as string | number);
           else { this.measureData = {}; this.measureId = null; }
         } else {
           try {
-            const resp = await this.api.get(`/items/${this.collection}/${pk}`);
-            const item = resp?.data?.data || {};
+            const resp = await (this.api as { get: (path: string) => Promise<{ data?: { data?: unknown } }> }).get(`/items/${this.collection}/${pk}`);
+            const item = resp?.data?.data as Record<string, unknown> || {};
             const measureId = item[measureField] ?? null;
-            if (measureId) { this.measureId = measureId; await this.fetchMeasure(measureId); }
+            if (measureId) { this.measureId = measureId as string | number; await this.fetchMeasure(measureId as string | number); }
             else { this.measureData = {}; this.measureId = null; }
           } catch (err) {
             console.error('[MeasurePreview] Error fetching parent item:', err);
@@ -121,7 +124,7 @@ export default {
 
       if (this.field === measureField) {
         const measureId = boundValue || null;
-        if (measureId) { this.measureId = measureId; await this.fetchMeasure(measureId); }
+        if (measureId) { this.measureId = measureId as string | number; await this.fetchMeasure(measureId as string | number); }
         else { this.measureData = {}; this.measureId = null; }
         return;
       }
@@ -129,33 +132,34 @@ export default {
       this.measureData = {}; this.measureId = null;
     },
 
-    async fetchMeasure(id) {
+    async fetchMeasure(id: string | number): Promise<void> {
       if (!id || !this.api) return;
       this.loading = true; this.error = null;
       try {
-        const response = await this.api.get(`/items/measures/${id}`, {
-          params: { fields: [...this.fieldsToDisplay, 'sector', 'slug', 'measure_id'].join(',') },
+        const fields = [...this.fieldsToDisplay, 'sector', 'slug', 'measure_id'].join(',');
+        const response = await (this.api as { get: (path: string, config?: { params?: Record<string, string> }) => Promise<{ data?: { data?: unknown } }> }).get(`/items/measures/${id}`, {
+          params: { fields },
         });
-        this.measureData = response?.data?.data || {};
+        this.measureData = response?.data?.data as Record<string, unknown> || {};
       } catch (err) {
         console.error('[MeasurePreview] Error fetching measure:', err);
-        this.error = err?.message || 'Failed to fetch measure';
+        this.error = (err as Error)?.message || 'Failed to fetch measure';
         this.measureData = {};
       } finally { this.loading = false; }
     },
 
-    getFieldLabel(fieldKey) {
-    // Fetch special translations that I entered to mirror the field name translations
-    const translation = this.$t(`ratings_measures.fields.${fieldKey}`);
-    if (translation && translation !== `ratings_measures.fields.${fieldKey}`) {
-      return translation;
-    }
+    getFieldLabel(fieldKey: string): string {
+      // Fetch special translations that I entered to mirror the field name translations
+      const translation = (this.$trans as (key: string) => string)(`ratings_measures.fields.${fieldKey}`);
+      if (translation && translation !== `ratings_measures.fields.${fieldKey}`) {
+        return translation;
+      }
 
-    // Fallback: just print the prettified field key
-    return fieldKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      // Fallback: just print the prettified field key
+      return fieldKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    },
   },
-  },
-};
+});
 </script>
 
 <style scoped>

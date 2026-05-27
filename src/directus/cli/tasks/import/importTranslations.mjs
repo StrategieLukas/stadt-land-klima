@@ -5,14 +5,14 @@ import {
   readTranslations, createTranslations, updateTranslation, deleteTranslations,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
-import readYamlFiles from '../shared/readYamlFiles.mjs';
+import readHoconFiles from '../shared/readHoconFiles.mjs';
 
 async function importTranslations(src, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
     const existingTranslations = await client.request(readTranslations({limit: -1}));
-    const translations = readYamlFiles(path.join(src));
+    const translations = await readHoconFiles(path.join(src));
     const translationsToCreate = [];
     const translationsToUpdate = [];
 

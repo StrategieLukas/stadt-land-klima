@@ -173,47 +173,54 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, inject } from 'vue';
+<script setup lang="ts">
+import { ref, computed, inject, type Ref } from 'vue';
+import type { DirectusFile, UnsplashPhoto, UnsplashSearchResponse } from '../types';
 
-const props = defineProps({
-  value: { type: String, default: null },
-  disabled: { type: Boolean, default: false },
-  folder: { type: String, default: null },
-  letterbox: { type: Boolean, default: false },
-});
+const props = defineProps<{
+  value?: string | null;
+  disabled?: boolean;
+  folder?: string | null;
+  letterbox?: boolean;
+}>();
 
-const emit = defineEmits(['input']);
+const emit = defineEmits<{
+  (e: 'input', value: string | null): void;
+}>();
 
-const api = inject('api');
+const api = inject<{
+  get: (path: string, config?: { params?: Record<string, unknown> }) => Promise<{ data?: unknown }>;
+  post: (path: string, data?: unknown) => Promise<{ data?: { data?: { id?: string } } }>;
+}>('api');
 
 // ─── Current image ───────────────────────────────────────────────────────────
 
-const previewUrl = computed(() => {
+const previewUrl = computed((): string | null => {
   if (!props.value) return null;
   return `/assets/${props.value}?fit=cover&width=400&height=300`;
 });
 
-function removeImage() {
+function removeImage(): void {
   emit('input', null);
 }
 
 // ─── Local file upload ────────────────────────────────────────────────────────
 
-const fileInputRef = ref(null);
-const uploadError = ref(null);
+const fileInputRef: Ref<HTMLInputElement | null> = ref(null);
+const uploadError: Ref<string | null> = ref(null);
 
-function triggerFileUpload() {
+function triggerFileUpload(): void {
   uploadError.value = null;
   fileInputRef.value?.click();
 }
 
-async function onFileChosen(event) {
-  const file = event.target.files?.[0];
+async function onFileChosen(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
   if (!file) return;
 
   // Reset input so re-selecting same file still fires change
-  event.target.value = '';
+  input.value = '';
 
   uploadError.value = null;
   try {
@@ -221,101 +228,102 @@ async function onFileChosen(event) {
     if (props.folder) formData.append('folder', props.folder);
     formData.append('file', file);
 
-    const response = await api.post('/files', formData);
-    emit('input', response.data?.data?.id ?? null);
+    const response = await api?.post('/files', formData);
+    const fileId = response?.data?.data?.id ?? null;
+    emit('input', fileId);
   } catch (err) {
-    uploadError.value = 'Upload failed: ' + (err.response?.data?.errors?.[0]?.message || err.message);
+    uploadError.value = 'Upload failed: ' + (err as { response?: { data?: { errors?: { message?: string }[] } }; message?: string }).response?.data?.errors?.[0]?.message || (err as Error).message;
   }
 }
 
 // ─── Directus library browser ────────────────────────────────────────────────
 
-const libraryOpen = ref(false);
-const librarySearch = ref('');
-const libraryFiles = ref([]);
-const libraryLoading = ref(false);
-const libraryPage = ref(1);
-const libraryTotalPages = ref(1);
+const libraryOpen: Ref<boolean> = ref(false);
+const librarySearch: Ref<string> = ref('');
+const libraryFiles: Ref<DirectusFile[]> = ref([]);
+const libraryLoading: Ref<boolean> = ref(false);
+const libraryPage: Ref<number> = ref(1);
+const libraryTotalPages: Ref<number> = ref(1);
 const libraryPageSize = 24;
-let libraryDebounce = null;
+let libraryDebounce: ReturnType<typeof setTimeout> | null = null;
 
-function openLibrary() {
+function openLibrary(): void {
   libraryOpen.value = true;
   loadLibraryPage(1);
 }
 
-function closeLibrary() {
+function closeLibrary(): void {
   libraryOpen.value = false;
 }
 
-function onLibrarySearchInput() {
-  clearTimeout(libraryDebounce);
+function onLibrarySearchInput(): void {
+  if (libraryDebounce) clearTimeout(libraryDebounce);
   libraryDebounce = setTimeout(() => {
     loadLibraryPage(1);
   }, 400);
 }
 
-async function loadLibraryPage(page) {
+async function loadLibraryPage(page: number): Promise<void> {
   libraryLoading.value = true;
   libraryPage.value = page;
   try {
-    const params = {
+    const params: Record<string, unknown> = {
       limit: libraryPageSize,
       offset: (page - 1) * libraryPageSize,
       fields: ['id', 'title', 'filename_download', 'type'],
       sort: ['-uploaded_on'],
       'filter[type][_starts_with]': 'image/',
-      'meta': 'filter_count',
+      meta: 'filter_count',
     };
     if (librarySearch.value.trim()) {
       params['filter[title][_icontains]'] = librarySearch.value.trim();
     }
-    const response = await api.get('/files', { params });
-    libraryFiles.value = response.data?.data || [];
-    const total = response.data?.meta?.filter_count ?? libraryFiles.value.length;
+    const response = await api?.get('/files', { params });
+    libraryFiles.value = (response?.data as { data?: DirectusFile[]; meta?: { filter_count?: number } })?.data || [];
+    const total = (response?.data as { meta?: { filter_count?: number } })?.meta?.filter_count ?? libraryFiles.value.length;
     libraryTotalPages.value = Math.max(1, Math.ceil(total / libraryPageSize));
-  } catch (err) {
+  } catch {
     libraryFiles.value = [];
   } finally {
     libraryLoading.value = false;
   }
 }
 
-function selectLibraryFile(file) {
+function selectLibraryFile(file: DirectusFile): void {
   emit('input', file.id);
   closeLibrary();
 }
 
 // ─── Unsplash modal ───────────────────────────────────────────────────────────
 
-const modalOpen = ref(false);
-const searchQuery = ref('');
-const photos = ref([]);
-const searching = ref(false);
-const searchError = ref(null);
-const hasSearched = ref(false);
-const currentPage = ref(1);
-const totalPages = ref(1);
-const importingId = ref(null);
+const modalOpen: Ref<boolean> = ref(false);
+const searchQuery: Ref<string> = ref('');
+const photos: Ref<UnsplashPhoto[]> = ref([]);
+const searching: Ref<boolean> = ref(false);
+const searchError: Ref<string | null> = ref(null);
+const hasSearched: Ref<boolean> = ref(false);
+const currentPage: Ref<number> = ref(1);
+const totalPages: Ref<number> = ref(1);
+const importingId: Ref<string | null> = ref(null);
 
-let debounceTimer = null;
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-function openUnsplash() {
+function openUnsplash(): void {
   modalOpen.value = true;
 }
 
-function closeUnsplash() {
+function closeUnsplash(): void {
   modalOpen.value = false;
 }
 
-function onSearchInput() {
-  clearTimeout(debounceTimer);
+function onSearchInput(): void {
+  if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     if (searchQuery.value.trim()) runSearch(1);
   }, 400);
 }
 
-async function runSearch(page) {
+async function runSearch(page: number): Promise<void> {
   const q = searchQuery.value.trim();
   if (!q) return;
 
@@ -324,22 +332,22 @@ async function runSearch(page) {
   hasSearched.value = true;
 
   try {
-    const response = await api.get('/unsplash/search', {
+    const response = await api?.get('/unsplash/search', {
       params: { q, page, per_page: 24 },
     });
-    const data = response.data;
+    const data = response?.data as UnsplashSearchResponse;
     photos.value = data.results || [];
     currentPage.value = data.page;
     totalPages.value = data.total_pages || 1;
   } catch (err) {
-    searchError.value = 'Search failed: ' + (err.response?.data?.error || err.message);
+    searchError.value = 'Search failed: ' + (err as { response?: { data?: { error?: string } } }).response?.data?.error || (err as Error).message;
     photos.value = [];
   } finally {
     searching.value = false;
   }
 }
 
-async function selectPhoto(photo) {
+async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   if (importingId.value) return;
   importingId.value = photo.id;
   uploadError.value = null;
@@ -353,17 +361,17 @@ async function selectPhoto(photo) {
         ...(props.folder ? { folder: props.folder } : {}),
       },
     };
-    const response = await api.post('/files/import', importPayload);
-    const fileId = response.data?.data?.id;
+    const response = await api?.post('/files/import', importPayload);
+    const fileId = response?.data?.data?.id;
     if (fileId) {
       emit('input', fileId);
       closeUnsplash();
     }
 
     // Trigger attribution download (Unsplash API requirement — fire-and-forget)
-    api.post('/unsplash/trigger-download', { download_location: photo.download_location }).catch(() => {});
+    api?.post('/unsplash/trigger-download', { download_location: photo.download_location }).catch(() => {});
   } catch (err) {
-    uploadError.value = 'Import failed: ' + (err.response?.data?.errors?.[0]?.message || err.message);
+    uploadError.value = 'Import failed: ' + (err as { response?: { data?: { errors?: { message?: string }[] } } }).response?.data?.errors?.[0]?.message || (err as Error).message;
   } finally {
     importingId.value = null;
   }
@@ -511,7 +519,7 @@ async function selectPhoto(photo) {
   color: var(--theme--foreground);
 }
 
-/* ── Search bar ──────────────────────────────────────────────── */
+/* ── Search bar ──────────────────────────────── */
 .search-bar {
   padding: 16px 20px 8px;
 }
@@ -533,7 +541,7 @@ async function selectPhoto(photo) {
   outline-offset: 1px;
 }
 
-/* ── Photo grid ──────────────────────────────────────────────── */
+/* ── Photo grid ──────────────────────────── */
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -593,7 +601,7 @@ async function selectPhoto(photo) {
   font-size: 13px;
 }
 
-/* ── Pagination ──────────────────────────────────────────────── */
+/* ── Pagination ──────────────────────────── */
 .pagination {
   display: flex;
   align-items: center;

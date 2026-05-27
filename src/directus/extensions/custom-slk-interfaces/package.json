@@ -42,12 +42,17 @@
   },
   "scripts": {
     "build": "echo 'Bundle uses pre-built interface files. To rebuild, run build from individual extension directories or copy dist/index.js files to bundle dist/ with interface names.'",
-    "link": "directus-extension link"
+    "link": "directus-extension link",
+    "dev": "vite build --watch",
+    "build:ts": "tsc --noEmit && vite build"
   },
   "devDependencies": {
     "@directus/extensions-sdk": "17.1.4",
+    "@vue/compiler-sfc": "^3.3.8",
     "esbuild": "^0.28.0",
     "sass": "^1.69.5",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
     "vue": "^3.3.8"
   },
   "overrides": {

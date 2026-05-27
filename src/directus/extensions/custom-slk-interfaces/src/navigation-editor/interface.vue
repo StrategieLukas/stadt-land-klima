@@ -201,26 +201,46 @@
   </div>
 </template>
 
-<script setup>
-import { ref, watch, inject } from 'vue';
+<script setup lang="ts">
+import { ref, watch, inject, type Ref } from 'vue';
+import type { Page } from '../types';
 
-const props = defineProps({
-  value: {
-    default: null,
-  },
-  disabled: {
-    type: Boolean,
-    default: false,
-  },
-  field: String,
-  collection: String,
-});
+interface NavItem {
+  id: string;
+  label: string;
+  link_type: 'page' | 'external' | 'none';
+  page_slug: string;
+  external_url: string;
+  open_new_tab: boolean;
+  image_id: string | null;
+  description: string;
+  children: NavItem[];
+}
 
-const emit = defineEmits(['input']);
+interface EditBuffer {
+  label: string;
+  link_type: 'page' | 'external' | 'none';
+  page_slug: string;
+  external_url: string;
+  open_new_tab: boolean;
+  image_id: string | null;
+  description: string;
+}
 
-const api = inject('api');
+const props = defineProps<{
+  value?: string | NavItem[] | null;
+  disabled?: boolean;
+  field?: string;
+  collection?: string;
+}>();
 
-function parseValue(val) {
+const emit = defineEmits<{
+  (e: 'input', value: NavItem[]): void;
+}>();
+
+const api = inject<{ get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }> }>('api');
+
+function parseValue(val: string | NavItem[] | null): NavItem[] {
   if (!val) return [];
   if (typeof val === 'string') {
     try { return JSON.parse(val); } catch { return []; }
@@ -228,10 +248,10 @@ function parseValue(val) {
   return Array.isArray(val) ? JSON.parse(JSON.stringify(val)) : [];
 }
 
-const items = ref(parseValue(props.value));
-const editingPath = ref(null);
-const editBuffer = ref(null);
-const pageResults = ref([]);
+const items: Ref<NavItem[]> = ref(parseValue(props.value));
+const editingPath: Ref<string | null> = ref(null);
+const editBuffer: Ref<EditBuffer | null> = ref(null);
+const pageResults: Ref<Page[]> = ref([]);
 
 watch(() => props.value, (newVal) => {
   if (!editingPath.value) {
@@ -239,11 +259,11 @@ watch(() => props.value, (newVal) => {
   }
 });
 
-function genId() {
+function genId(): string {
   return 'nav-' + Math.random().toString(36).substr(2, 9);
 }
 
-function newItem() {
+function newItem(): NavItem {
   return {
     id: genId(),
     label: '',
@@ -257,25 +277,25 @@ function newItem() {
   };
 }
 
-function emitValue() {
+function emitValue(): void {
   emit('input', JSON.parse(JSON.stringify(items.value)));
 }
 
-function addItem() {
+function addItem(): void {
   const item = newItem();
   items.value.push(item);
   editingPath.value = String(items.value.length - 1);
   editBuffer.value = { ...item };
 }
 
-function removeItem(idx) {
+function removeItem(idx: number): void {
   items.value.splice(idx, 1);
   editingPath.value = null;
   editBuffer.value = null;
   emitValue();
 }
 
-function moveUp(idx) {
+function moveUp(idx: number): void {
   if (idx > 0) {
     const arr = items.value;
     [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
@@ -284,7 +304,7 @@ function moveUp(idx) {
   }
 }
 
-function moveDown(idx) {
+function moveDown(idx: number): void {
   if (idx < items.value.length - 1) {
     const arr = items.value;
     [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
@@ -293,7 +313,7 @@ function moveDown(idx) {
   }
 }
 
-function addChild(parentIdx) {
+function addChild(parentIdx: number): void {
   if (!items.value[parentIdx].children) {
     items.value[parentIdx].children = [];
   }
@@ -304,14 +324,14 @@ function addChild(parentIdx) {
   editBuffer.value = { ...child };
 }
 
-function removeChild(parentIdx, childIdx) {
+function removeChild(parentIdx: number, childIdx: number): void {
   items.value[parentIdx].children.splice(childIdx, 1);
   editingPath.value = null;
   editBuffer.value = null;
   emitValue();
 }
 
-function moveChildUp(parentIdx, childIdx) {
+function moveChildUp(parentIdx: number, childIdx: number): void {
   const children = items.value[parentIdx].children;
   if (childIdx > 0) {
     [children[childIdx - 1], children[childIdx]] = [children[childIdx], children[childIdx - 1]];
@@ -320,7 +340,7 @@ function moveChildUp(parentIdx, childIdx) {
   }
 }
 
-function moveChildDown(parentIdx, childIdx) {
+function moveChildDown(parentIdx: number, childIdx: number): void {
   const children = items.value[parentIdx].children;
   if (childIdx < children.length - 1) {
     [children[childIdx], children[childIdx + 1]] = [children[childIdx + 1], children[childIdx]];
@@ -329,7 +349,7 @@ function moveChildDown(parentIdx, childIdx) {
   }
 }
 
-function toggleEdit(path, item) {
+function toggleEdit(path: string, item: NavItem): void {
   if (editingPath.value === path) {
     cancelEdit();
   } else {
@@ -339,13 +359,13 @@ function toggleEdit(path, item) {
   }
 }
 
-function cancelEdit() {
+function cancelEdit(): void {
   editingPath.value = null;
   editBuffer.value = null;
   pageResults.value = [];
 }
 
-function saveEdit(path) {
+function saveEdit(path: string): void {
   const parts = path.split('.');
   if (parts.length === 1) {
     const idx = parseInt(parts[0]);
@@ -360,9 +380,9 @@ function saveEdit(path) {
   emitValue();
 }
 
-let slugSearchTimer = null;
-function onSlugInput() {
-  clearTimeout(slugSearchTimer);
+let slugSearchTimer: ReturnType<typeof setTimeout> | null = null;
+function onSlugInput(): void {
+  if (slugSearchTimer) clearTimeout(slugSearchTimer);
   const query = editBuffer.value?.page_slug;
   if (!query || query.length < 2) {
     pageResults.value = [];
@@ -370,7 +390,7 @@ function onSlugInput() {
   }
   slugSearchTimer = setTimeout(async () => {
     try {
-      const resp = await api.get('/items/pages', {
+      const resp = await api?.get('/items/pages', {
         params: {
           fields: 'name,slug',
           filter: JSON.stringify({
@@ -385,16 +405,18 @@ function onSlugInput() {
           limit: 6,
         },
       });
-      pageResults.value = resp.data?.data || [];
+      pageResults.value = (resp?.data?.data as Page[]) || [];
     } catch {
       pageResults.value = [];
     }
   }, 300);
 }
 
-function selectPage(page) {
-  editBuffer.value.page_slug = page.slug;
-  editBuffer.value.label = editBuffer.value.label || page.name;
+function selectPage(page: Page): void {
+  if (editBuffer.value) {
+    editBuffer.value.page_slug = page.slug;
+    editBuffer.value.label = editBuffer.value.label || page.name;
+  }
   pageResults.value = [];
 }
 </script>

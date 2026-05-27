@@ -124,31 +124,52 @@
   </div>
 </template>
 
-<script setup>
-import { ref, watch, inject } from 'vue'
+<script setup lang="ts">
+import { ref, watch, inject, type Ref } from 'vue';
+import type { Page } from '../types';
 
-const props = defineProps({
-  value: {
-    type: [Array, String],
-    default: () => [],
-  },
-  disabled: {
-    type: Boolean,
-    default: false,
-  },
-})
+interface ColumnLink {
+  id: string;
+  label: string;
+  link_type: 'page' | 'external';
+  page_slug: string;
+  external_url: string;
+  open_new_tab: boolean;
+}
 
-const emit = defineEmits(['input'])
-const api = inject('api')
+interface Column {
+  id: string;
+  title: string;
+  links: ColumnLink[];
+}
+
+interface LinkBuffer {
+  label: string;
+  link_type: 'page' | 'external';
+  page_slug: string;
+  external_url: string;
+  open_new_tab: boolean;
+}
+
+const props = defineProps<{
+  value?: string | Column[];
+  disabled?: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'input', value: Column[]): void;
+}>();
+
+const api = inject<{ get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }> }>('api');
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
-const columns = ref([])
-const editingColumn = ref(null)   // index of column being edited
-const columnBuffer = ref({ title: '' })
-const editingLink = ref(null)     // [colIndex, linkIndex] or null
-const linkBuffer = ref(newLinkDefaults())
-const pageResults = ref([])
+const columns: Ref<Column[]> = ref([]);
+const editingColumn: Ref<number | null> = ref(null);
+const columnBuffer: Ref<{ title: string }> = ref({ title: '' });
+const editingLink: Ref<[number, number] | null> = ref(null);
+const linkBuffer: Ref<LinkBuffer> = ref(newLinkDefaults());
+const pageResults: Ref<Page[]> = ref([]);
 
 // ─── Parse incoming value ─────────────────────────────────────────────────────
 
@@ -167,21 +188,21 @@ watch(
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function uid() {
+function uid(): string {
   return 'col-' + Math.random().toString(36).slice(2, 9)
 }
 
-function newLinkDefaults() {
+function newLinkDefaults(): LinkBuffer {
   return { label: '', link_type: 'page', page_slug: '', external_url: '', open_new_tab: false }
 }
 
-function emit_update() {
+function emit_update(): void {
   emit('input', JSON.parse(JSON.stringify(columns.value)))
 }
 
 // ─── Column CRUD ──────────────────────────────────────────────────────────────
 
-function addColumn() {
+function addColumn(): void {
   columns.value.push({ id: uid(), title: '', links: [] })
   const ci = columns.value.length - 1
   columnBuffer.value = { title: '' }
@@ -190,14 +211,14 @@ function addColumn() {
   emit_update()
 }
 
-function removeColumn(ci) {
+function removeColumn(ci: number): void {
   columns.value.splice(ci, 1)
   editingColumn.value = null
   editingLink.value = null
   emit_update()
 }
 
-function moveColumn(ci, dir) {
+function moveColumn(ci: number, dir: number): void {
   const arr = columns.value
   const j = ci + dir
   if (j < 0 || j >= arr.length) return;
@@ -205,7 +226,7 @@ function moveColumn(ci, dir) {
   emit_update()
 }
 
-function toggleEditColumn(ci) {
+function toggleEditColumn(ci: number): void {
   if (editingColumn.value === ci) {
     editingColumn.value = null
     return
@@ -215,19 +236,19 @@ function toggleEditColumn(ci) {
   editingColumn.value = ci
 }
 
-function saveColumn(ci) {
+function saveColumn(ci: number): void {
   columns.value[ci].title = columnBuffer.value.title
   editingColumn.value = null
   emit_update()
 }
 
-function cancelEditColumn() {
+function cancelEditColumn(): void {
   editingColumn.value = null
 }
 
 // ─── Link CRUD ────────────────────────────────────────────────────────────────
 
-function addLink(ci) {
+function addLink(ci: number): void {
   const newLink = { id: uid(), ...newLinkDefaults() }
   columns.value[ci].links.push(newLink)
   const li = columns.value[ci].links.length - 1
@@ -238,13 +259,13 @@ function addLink(ci) {
   emit_update()
 }
 
-function removeLink(ci, li) {
+function removeLink(ci: number, li: number): void {
   columns.value[ci].links.splice(li, 1)
   editingLink.value = null
   emit_update()
 }
 
-function moveLink(ci, li, dir) {
+function moveLink(ci: number, li: number, dir: number): void {
   const arr = columns.value[ci].links
   const j = li + dir
   if (j < 0 || j >= arr.length) return;
@@ -252,7 +273,7 @@ function moveLink(ci, li, dir) {
   emit_update()
 }
 
-function toggleEditLink(ci, li) {
+function toggleEditLink(ci: number, li: number): void {
   if (editingLink.value && editingLink.value[0] === ci && editingLink.value[1] === li) {
     editingLink.value = null
     return
@@ -270,34 +291,34 @@ function toggleEditLink(ci, li) {
   pageResults.value = []
 }
 
-function saveLink(ci, li) {
+function saveLink(ci: number, li: number): void {
   const link = columns.value[ci].links[li]
   link.label = linkBuffer.value.label
   link.link_type = linkBuffer.value.link_type
-  link.page_slug = linkBuffer.value.link_type === 'page' ? linkBuffer.value.page_slug : null
-  link.external_url = linkBuffer.value.link_type === 'external' ? linkBuffer.value.external_url : null
+  link.page_slug = linkBuffer.value.link_type === 'page' ? linkBuffer.value.page_slug : ''
+  link.external_url = linkBuffer.value.link_type === 'external' ? linkBuffer.value.external_url : ''
   link.open_new_tab = linkBuffer.value.open_new_tab
   editingLink.value = null
   pageResults.value = []
   emit_update()
 }
 
-function cancelEditLink() {
+function cancelEditLink(): void {
   editingLink.value = null
   pageResults.value = []
 }
 
 // ─── Page slug autocomplete ───────────────────────────────────────────────────
 
-let searchTimeout = null
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
-function onSlugInput() {
-  clearTimeout(searchTimeout)
+function onSlugInput(): void {
+  if (searchTimeout) clearTimeout(searchTimeout)
   const q = linkBuffer.value.page_slug?.trim()
   if (!q || q.length < 2) { pageResults.value = []; return }
   searchTimeout = setTimeout(async () => {
     try {
-      const res = await api.get('/items/pages', {
+      const res = await api?.get('/items/pages', {
         params: {
           'fields[]': ['name', 'slug'],
           filter: JSON.stringify({
@@ -312,14 +333,14 @@ function onSlugInput() {
           limit: 6,
         },
       })
-      pageResults.value = res.data?.data || []
+      pageResults.value = (res?.data?.data as Page[]) || []
     } catch {
       pageResults.value = []
     }
   }, 300)
 }
 
-function selectPage(page) {
+function selectPage(page: Page): void {
   linkBuffer.value.page_slug = page.slug
   if (!linkBuffer.value.label) linkBuffer.value.label = page.name
   pageResults.value = []
@@ -453,7 +474,7 @@ function selectPage(page) {
 
 .actions button:disabled {
   opacity: 0.3;
-  cursor: default;
+  cursor: not-allowed;
 }
 
 .actions button.danger {

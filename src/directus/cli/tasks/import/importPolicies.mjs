@@ -12,7 +12,7 @@ import {
   readPermissions,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
-import readYamlFiles from '../shared/readYamlFiles.mjs';
+import readHoconFiles from '../shared/readHoconFiles.mjs';
 
 /**
  * Import policies and permissions for Directus v11+
@@ -20,7 +20,7 @@ import readYamlFiles from '../shared/readYamlFiles.mjs';
  * In Directus v11, permissions are attached to POLICIES, not directly to roles.
  * This imports policies with their associated permissions.
  * 
- * YAML file format:
+ * HOCON file format:
  * - name: Policy name
  * - icon: Optional icon
  * - description: Optional description
@@ -38,8 +38,8 @@ async function importPolicies(src, options = { verbose: false, remove: false, ov
     const existingPolicies = await client.request(readPolicies({ limit: -1 }));
     const existingPermissions = await client.request(readPermissions({ limit: -1 }));
 
-    // Read policy YAML files
-    const policies = readYamlFiles(path.join(src));
+    // Read policy HOCON files
+    const policies = await readHoconFiles(path.join(src));
 
     const policiesToCreate = [];
     const policiesToUpdate = [];
@@ -157,7 +157,7 @@ async function importPolicies(src, options = { verbose: false, remove: false, ov
         const policyStillExists = find(updatedPolicies, ['id', existingPermission.policy]);
         if (!policyStillExists) return true;
 
-        // Check if this permission is still in the YAML
+        // Check if this permission is still in the HOCON
         const policy = find(policies, ['name', policyStillExists.name]);
         if (!policy) return true;
 
