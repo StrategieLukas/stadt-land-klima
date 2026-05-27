@@ -57,186 +57,204 @@ interface Totals {
 export async function calculateScores(
   { municipalityIds = null, catalogVersionId }: CalculateScoresParams,
   { services, getSchema, logger }: Context
-) {
-  logger.info("Recalculating scores for " + (municipalityIds?.length ? municipalityIds?.length : "all") + " municipalities and catalogVersion: " + catalogVersionId);
+): Promise<void> {
+  logger.info(
+    `Recalculating scores for ${municipalityIds?.length ? municipalityIds.length : 'all'} municipalities and catalogVersion: ${catalogVersionId}`
+  );
+
   const schema = await getSchema();
 
-  const ratingsService = new services.ItemsService("ratings_measures", {
+  const ratingsService = new services.ItemsService('ratings_measures', {
     schema,
     accountability: { admin: true },
   });
 
-  const measuresService = new services.ItemsService("measures", {
+  const measuresService = new services.ItemsService('measures', {
     schema,
     accountability: { admin: true },
   });
 
-  const municipalitiesService = new services.ItemsService("municipalities", {
+  const municipalitiesService = new services.ItemsService('municipalities', {
     schema,
     accountability: { admin: true },
   });
 
-  const municipalityScoresService = new services.ItemsService("municipality_scores", {
+  const municipalityScoresService = new services.ItemsService('municipality_scores', {
     schema,
     accountability: { admin: true },
   });
 
   try {
-    // --- Load measures that are published and belong to this catalog version
-    const measures = await measuresService.readByQuery({
+    // Load published measures for this catalog version
+    const measures = (await measuresService.readByQuery({
       limit: -1,
       filter: {
         catalog_version: { _eq: catalogVersionId },
-        status: { _eq: "published" },
+        status: { _eq: 'published' },
       },
-      fields: ["id", "sector", "weight"],
-    }) as Measure[];
+      fields: ['id', 'sector', 'weight'],
+    })) as Measure[];
 
     if (!measures?.length) {
       logger.info(`[calculateScores] No published measures for catalog ${catalogVersionId}.`);
       return;
     }
 
-    // Map measures for quick lookup
-    const measureById = new Map(measures.map((m) => [m.id, m]));
+    // Map measures for O(1) lookup
+    const measureById = new Map<number, Measure>(measures.map((m) => [m.id, m]));
 
-    // --- Load municipalities
-    const municipalities = await municipalitiesService.readByQuery({
+    // Load municipalities (optionally filtered)
+    const municipalities = (await municipalitiesService.readByQuery({
       limit: -1,
       ...(municipalityIds?.length ? { filter: { id: { _in: municipalityIds } } } : {}),
-      fields: ["id", "localteam_id", "name"],
-    }) as Municipality[];
+      fields: ['id', 'localteam_id', 'name'],
+    })) as Municipality[];
 
     if (!municipalities?.length) {
       logger.info(`[calculateScores] No municipalities to process.`);
       return;
     }
 
-    logger.info(`[calculateScores] Processing ${municipalities.length} municipalities for catalog ${catalogVersionId}.`);
+    logger.info(
+      `[calculateScores] Processing ${municipalities.length} municipalities for catalog ${catalogVersionId}.`
+    );
 
-    // --- Iterate per municipality
     for (const municipality of municipalities) {
       const localteamId = municipality.localteam_id;
-      if (!localteamId) continue;
+      if (!localteamId) {
+        logger.warn(`[calculateScores] Municipality "${municipality.name}" has no localteam_id, skipping.`);
+        continue;
+      }
 
-      // fetch candidate ratings for this municipality & catalog version (do NOT filter rating != null)
-      // preserve your nested measure_id filter shape (do not convert to measure_id._in)
-      const allRatings = await ratingsService.readByQuery({
+      // Fetch all approved, applicable, published ratings for this municipality + catalog version.
+      // We do NOT filter by rating != null so we can count all candidate measures for percentage_rated.
+      const allRatings = (await ratingsService.readByQuery({
         limit: -1,
         filter: {
           localteam_id: { _eq: localteamId },
           applicable: { _eq: true },
           approved: { _eq: true },
           measure_published: { _eq: true },
-          // keep your nested filter as you required
           measure_id: {
             catalog_version: { _eq: catalogVersionId },
-            status: { _eq: "published" },
+            status: { _eq: 'published' },
           },
         },
-        fields: ["rating", "measure_id"],
-      }) as RatingMeasure[];
+        fields: ['rating', 'measure_id'],
+      })) as RatingMeasure[];
 
       if (!allRatings?.length) {
         logger.info(`[calculateScores] No candidate ratings for municipality "${municipality.name}".`);
         continue;
       }
 
-      // --- Initialize score containers
-      // For totals use two denominators:
-      //   - denominator_all: total weight of all candidate measures (for percentage_rated denominator)
-      //   - denominator_rated: total weight of rated measures (for score calculations denominator)
-      const totals: Totals = {
-        numerator_rated_sum: 0,     // sum(rating * weight) for rated entries
-        denominator_rated: 0,       // sum(weight) for rated entries
-        denominator_all: 0,         // sum(weight) for all candidate entries
-      };
-
-      // Per-sector containers: only track numerators & denominator_rated (we don't keep denominator_all per sector)
-      const sectors: Record<string, SectorScores> = {};
-      for (const m of measures) {
-        if (!sectors[m.sector]) sectors[m.sector] = { numerator_rated: 0, denominator_rated: 0 };
+      // Deduplicate by measure: if multiple approved ratings exist for the same measure,
+      // keep only the last one (most recent). This prevents double-counting.
+      const ratingByMeasureId = new Map<number, RatingMeasure>();
+      for (const r of allRatings) {
+        const measureId = typeof r.measure_id === 'object' ? r.measure_id.id : r.measure_id;
+        ratingByMeasureId.set(measureId, r);
       }
 
-      // Also track total weight of rated items (for percentage numerator)
-      let totalRatedWeight = 0;
+      // Score accumulators
+      const totals: Totals = {
+        numerator_rated_sum: 0, // sum(rating * weight) for rated entries
+        denominator_rated: 0,   // sum(weight) for entries that have a numeric rating
+        denominator_all: 0,     // sum(weight) for all candidate entries (for percentage_rated)
+      };
 
-      // --- Process all candidate ratings
-      for (const r of allRatings) {
-        // Normalize measure id (relation object or id)
-        const measureId = typeof r.measure_id === "object" ? (r.measure_id as { id: number }).id : r.measure_id;
+      // Per-sector accumulators
+      const sectors: Record<string, SectorScores> = {};
+      for (const m of measures) {
+        if (!sectors[m.sector]) {
+          sectors[m.sector] = { numerator_rated: 0, denominator_rated: 0 };
+        }
+      }
+
+      let totalRatedWeight = 0; // weight of measures that have a valid rating (numerator of percentage_rated)
+
+      for (const [measureId, r] of ratingByMeasureId) {
         const measure = measureById.get(measureId);
         if (!measure) {
-          // measure not part of current published measures for this catalog version
+          // Rating references a measure not in the current published set — skip
           continue;
         }
 
         const weight = measure.weight ?? 0;
         if (weight <= 0) {
-          // ignore zero-weight measures entirely for both denominators
+          // Zero-weight measures contribute nothing; exclude from both denominators
           continue;
         }
 
-        const sector = measure.sector ?? "total";
+        const sector = measure.sector ?? 'total';
 
-        // Count this weight into denominator_all (for percentage calculation)
+        // All candidate measures (with positive weight) count toward the total denominator
         totals.denominator_all += weight;
 
-        // Convert rating string to numeric if present (ratings are 0..1)
+        // Ratings are stored as 0..1 numerics; guard against string coercion from DB
         const raw = r.rating;
-        const numeric = raw !== null && raw !== undefined ? parseFloat(raw as string) : NaN;
+        const numeric =
+          raw !== null && raw !== undefined
+            ? typeof raw === 'number'
+              ? raw
+              : parseFloat(raw as unknown as string)
+            : NaN;
 
-        // If rating is valid (non-null numeric), include in rated sums and sector sums
         if (!Number.isNaN(numeric)) {
           totals.numerator_rated_sum += numeric * weight;
           totals.denominator_rated += weight;
           totalRatedWeight += weight;
 
-          if (!sectors[sector]) sectors[sector] = { numerator_rated: 0, denominator_rated: 0 };
+          if (!sectors[sector]) {
+            sectors[sector] = { numerator_rated: 0, denominator_rated: 0 };
+          }
           sectors[sector].numerator_rated += numeric * weight;
           sectors[sector].denominator_rated += weight;
         }
       }
 
-      // --- Build output scores
+      // Build the scores payload
       const scoresToPush: Record<string, number> = {};
 
-      // percentage_rated = (weight of rated items) / (weight of all items) * 100
-      scoresToPush.percentage_rated = totals.denominator_all > 0 ? (totalRatedWeight / totals.denominator_all) * 100 : 0;
+      // percentage_rated: share of (by weight) measures that have been rated
+      scoresToPush.percentage_rated =
+        totals.denominator_all > 0 ? (totalRatedWeight / totals.denominator_all) * 100 : 0;
 
-      // score_total: (sum(rating*weight) / sum(weight of rated)) * 100  (rating scale 0..1 -> percent)
-      if (totals.denominator_rated > 0) {
-        scoresToPush.score_total = (totals.numerator_rated_sum / totals.denominator_rated) * 100;
-      } else {
-        scoresToPush.score_total = 0;
-      }
+      // score_total: weighted-average rating expressed as a percentage (0–100)
+      scoresToPush.score_total =
+        totals.denominator_rated > 0
+          ? (totals.numerator_rated_sum / totals.denominator_rated) * 100
+          : 0;
 
-      // per-sector scores as percentages
+      // Per-sector scores
       for (const [sector, entry] of Object.entries(sectors)) {
-        const val = entry.denominator_rated > 0 ? (entry.numerator_rated / entry.denominator_rated) * 100 : 0;
-        scoresToPush[`score_${sector}` as keyof MunicipalityScore] = val;
+        scoresToPush[`score_${sector}`] =
+          entry.denominator_rated > 0
+            ? (entry.numerator_rated / entry.denominator_rated) * 100
+            : 0;
       }
 
-      // --- Update municipality_scores record for this municipality & catalog version
-      // --- Find the existing municipality_scores record
-      const [scoreRecord] = await municipalityScoresService.readByQuery({
+      // Persist: find the existing municipality_scores record and update it
+      const [scoreRecord] = (await municipalityScoresService.readByQuery({
         limit: 1,
         filter: {
           municipality: { _eq: municipality.id },
           catalog_version: { _eq: catalogVersionId },
         },
-        fields: ["id"],
-      }) as MunicipalityScore[];
+        fields: ['id'],
+      })) as MunicipalityScore[];
 
       if (scoreRecord?.id) {
         await municipalityScoresService.updateOne(scoreRecord.id, scoresToPush);
       } else {
-        logger.warn(`[calculateScores] Completed scoring, but no municipality_scores record found for "${municipality.name}" and thus could not update scores!`);
+        logger.warn(
+          `[calculateScores] No municipality_scores record found for "${municipality.name}" (catalogVersion=${catalogVersionId}). Scores not saved.`
+        );
       }
     }
 
     logger.info(`[calculateScores] Completed calculations for catalog ${catalogVersionId}.`);
-  } catch (e: any) {
+  } catch (e: unknown) {
     logger.error(e);
     throw e;
   }
