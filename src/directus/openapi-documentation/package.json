@@ -1,0 +1,12 @@
+{
+  "name": "openapi-documentation",
+  "version": "1.0.0",
+  "description": "OpenAPI and schema documentation generation for Directus",
+  "type": "module",
+  "scripts": {
+    "generate": "node createApiSpec.js"
+  },
+  "dependencies": {
+    "@directus/sdk": "^21.3.0"
+  }
+}

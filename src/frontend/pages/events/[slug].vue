@@ -10,11 +10,13 @@
     </NuxtLink>
 
     <!-- Teaser image -->
-    <div v-if="event.image" class="rounded-xl overflow-hidden mb-2">
-      <img
-        :src="`${directusUrl}/assets/${event.image}?width=800&quality=80`"
+    <div v-if="event.image" class="rounded-xl overflow-hidden mb-6">
+      <SmartImg
+        :assetId="event.image?.id || event.image"
+        :isRaster="event.image?.type ? isRaster(event.image.type) : true"
         :alt="event.title"
-        class="w-full h-auto block"
+        :width="800"
+        img-class="w-full h-auto block"
       />
     </div>
     <p v-if="event.image_credits" class="text-xs text-gray-500 italic mb-6 text-center">{{ event.image_credits }}</p>
@@ -74,6 +76,7 @@
 
 <script setup>
 import { useReferrer } from '~/composables/useReferrer'
+import { isRaster } from '~/shared/utils'
 const { $directus, $readItems } = useNuxtApp()
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
@@ -86,9 +89,11 @@ const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
       slug: { _eq: route.params.slug },
       status: { _eq: 'published' },
     },
-    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url', 'cta_label', 'image', 'image_credits'],
+    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'event_type', 'registration_url', 'cta_label', { image: ['id', 'type'] }],
     limit: 1,
-  })).then(data => data?.[0] ?? null)
+  })).then(data => {
+    return data?.[0] ?? false
+  })
 )
 
 if (!event.value) {

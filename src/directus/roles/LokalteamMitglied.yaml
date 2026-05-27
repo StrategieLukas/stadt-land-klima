@@ -1,0 +1,12 @@
+name: LokalteamMitglied
+icon: supervised_user_circle
+description: Reguläres Mitglied eines Lokalteams
+children:
+  - LokalteamAdmin
+policies:
+  - App-Zugriff-Minimum
+  - Erfolgsprojekte-Contributor
+  - Lokalteam-Bewertung
+  - Lokalteam-Mitglied
+  - Lokalteam-Wahlcheck
+  - Public

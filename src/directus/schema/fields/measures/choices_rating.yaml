@@ -31,6 +31,7 @@ meta:
         value: "7"
   readonly: false
   required: true
+  searchable: true
   sort: 16
   special: null
   translations:
@@ -60,6 +61,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

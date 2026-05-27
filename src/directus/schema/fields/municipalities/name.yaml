@@ -15,7 +15,8 @@ meta:
     trim: true
   readonly: false
   required: true
-  sort: 10
+  searchable: true
+  sort: 7
   special: null
   translations:
     - language: de-DE
@@ -33,6 +34,7 @@ schema:
   numeric_scale: null
   is_nullable: false
   is_unique: true
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

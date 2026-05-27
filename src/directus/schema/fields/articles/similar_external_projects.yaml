@@ -16,6 +16,7 @@ meta:
     template: "{{external_projects_id.title}}"
   readonly: false
   required: false
+  searchable: true
   sort: 2
   special:
     - m2m

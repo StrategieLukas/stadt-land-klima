@@ -9,7 +9,8 @@ import { createDirectus, staticToken, rest, schemaSnapshot } from "@directus/sdk
  * Read CLI_DIRECTUS_STATIC_TOKEN from a .env file at a fixed path
  */
 function readTokenFromEnv() {
-  const envPath = path.resolve("../.env");
+  // Resolve .env path relative to the openapi-documentation directory
+  const envPath = path.resolve(__dirname, "../.env");
   const content = fs.readFileSync(envPath, "utf8");
   const match = content.match(/^CLI_DIRECTUS_STATIC_TOKEN\s*=\s*(.+)$/m);
   if (!match) {

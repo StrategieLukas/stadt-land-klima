@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Punktzahlen
-      singular: Punktzahl
       plural: Punktzahlen
+      singular: Punktzahl
+      translation: Punktzahlen
   unarchive_value: null
   versioning: false
 schema:

@@ -56,9 +56,10 @@
             format="webp"
             img-class="object-cover w-full h-full"
             />
-          <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
+          <div v-if="organisation && organisation.logo" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
             <SmartImg
-              :assetId="organisation.logo"
+              :assetId="organisation.logo?.id || organisation.logo"
+              :isRaster="organisation.logo?.type ? isRaster(organisation.logo.type) : true"
               :alt="organisation.name"
               :height="56"
               :width="56"
@@ -116,9 +117,10 @@
   <div class="hidden lg:block project-page mt-8 bg-[#E8F9FD] shadow-lg rounded-lg p-8 relative">
     <NuxtLink :to="backHref" class="text-blue-500 text-sm">← {{ backLabel }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
-    <div v-if="organisation" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
+    <div v-if="organisation && organisation.logo" class="absolute top-0 right-0 w-32 h-32 bg-white clip-triangle flex items-center justify-center">
       <SmartImg
-              :assetId="organisation.logo"
+              :assetId="organisation.logo.id"
+              :isRaster="isRaster(organisation.logo.type)"
               :alt="organisation.name"
               :height="56"
               :width="56"
@@ -262,7 +264,7 @@
 
 <script setup>
   import { ref, watchEffect } from 'vue'
-  import { buildLocationString, toAssetUrl } from '~/shared/utils';
+  import { buildLocationString, toAssetUrl, isRaster } from '~/shared/utils';
   import MarkdownIt from 'markdown-it'
   import { useReferrer } from '~/composables/useReferrer'
 

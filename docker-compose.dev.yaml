@@ -7,12 +7,17 @@ services:
     ports:
       - "8081:8055"
     command: ["sh", "/start_dev.sh"]
+    environment:
+      SLK_ENV: development
 
   frontend:
     ports:
       - "8080:3000"
       - "24678:24678"
     command: ["sh", "/start_dev.sh"]
+    environment:
+      SLK_ENV: development
+
   #pgadmin:
     #image: dpage/pgadmin4
     #container_name: pgadmin4

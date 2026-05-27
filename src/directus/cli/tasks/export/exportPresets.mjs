@@ -30,12 +30,12 @@ async function exportPresets(dest, options = { verbose: false, overwrite: false 
       let filename = '';
       if (!preset.role) {
         // Global default
-        filename = slugify(preset.collection, { replacement: '_', lower: true }) + '.yaml';
+        filename = slugify(preset.collection, { replacement: '_', lower: false }) + '.yaml';
       } else {
         // Role-specific default
         const roleName = roleMap[preset.role] || preset.role;
         filename =
-          slugify(`${preset.collection}-${roleName}`, { replacement: '_', lower: true }) +
+          slugify(`${preset.collection}-${roleName}`, { replacement: '_', lower: false }) +
           '.yaml';
       }
 

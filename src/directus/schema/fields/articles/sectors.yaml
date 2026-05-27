@@ -24,12 +24,13 @@ meta:
       - Kraftstoffe
       - LULUCF
       - Landwirtschaft
-      - Sonstiges
       - Strom
       - Verkehr
       - Wärme
+      - Sonstiges
   readonly: false
   required: true
+  searchable: true
   sort: 13
   special:
     - cast-json
@@ -49,6 +50,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

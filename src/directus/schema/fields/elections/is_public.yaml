@@ -3,7 +3,13 @@ field: is_public
 type: boolean
 meta:
   collection: elections
-  conditions: null
+  conditions:
+    - name: Cannot make public until approved by admin
+      readonly: true
+      rule:
+        _and:
+          - is_approved:
+              _neq: true
   display: boolean
   display_options: null
   field: is_public
@@ -14,6 +20,7 @@ meta:
   options: null
   readonly: false
   required: false
+  searchable: true
   sort: 3
   special: null
   translations:
@@ -32,6 +39,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

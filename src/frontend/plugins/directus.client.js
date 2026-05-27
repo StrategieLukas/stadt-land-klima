@@ -1,7 +1,5 @@
 import { defineNuxtPlugin, useRuntimeConfig } from "#app";
-import { createDirectus } from "@directus/sdk";
-import { staticToken } from "@directus/sdk/auth";
-import { rest, readItem, readItems, readSingleton, readTranslations } from "@directus/sdk/rest";
+import { createDirectus, staticToken, rest, readItem, readItems, readSingleton, readTranslations } from "@directus/sdk";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode.js";
 import createTranslator from "~/shared/createTranslator.js";
 import resolveForBrowser from "~/shared/resolveForBrowser.js";

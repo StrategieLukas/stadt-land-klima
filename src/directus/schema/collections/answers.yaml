@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Antworten
-      singular: Antwort
       plural: Antworten
+      singular: Antwort
+      translation: Antworten
   unarchive_value: null
   versioning: false
 schema:

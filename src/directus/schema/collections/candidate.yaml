@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Kandidaten
-      singular: Kandidat
       plural: Kandidaten
+      singular: Kandidat
+      translation: Kandidaten
   unarchive_value: null
   versioning: false
 schema:

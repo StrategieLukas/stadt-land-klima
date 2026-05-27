@@ -7,22 +7,22 @@ meta:
   display: labels
   display_options:
     choices:
-      - text: Eigene (öffentlich)
+      - background: "#1da64a"
+        foreground: "#FFFFFF"
+        text: Eigene (öffentlich)
         value: own_public
+      - background: "#6b7280"
         foreground: "#FFFFFF"
-        background: "#1da64a"
-      - text: Interne
+        text: Interne
         value: internal
-        foreground: "#FFFFFF"
-        background: "#6b7280"
-      - text: Externe
-        value: external
+      - background: "#afca0b"
         foreground: "#18222F"
-        background: "#afca0b"
-      - text: Aktive Teilnahme
-        value: active_participation
+        text: Externe
+        value: external
+      - background: "#006e94"
         foreground: "#FFFFFF"
-        background: "#006e94"
+        text: Aktive Teilnahme
+        value: active_participation
   field: event_category
   group: null
   hidden: false
@@ -41,6 +41,7 @@ meta:
         value: active_participation
   readonly: false
   required: false
+  searchable: true
   sort: 16
   special: null
   translations:
@@ -59,6 +60,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

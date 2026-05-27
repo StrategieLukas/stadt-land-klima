@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Klimawahlcheck
-      singular: Klimawahlcheck
       plural: Klimawahlchecks
+      singular: Klimawahlcheck
+      translation: Klimawahlcheck
   unarchive_value: null
   versioning: false
 schema:

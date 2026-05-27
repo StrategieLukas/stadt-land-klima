@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Lokalteams
-      singular: Lokalteam
       plural: Lokalteams
+      singular: Lokalteam
+      translation: Lokalteams
   unarchive_value: draft
   versioning: false
 schema:

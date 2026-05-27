@@ -5,6 +5,11 @@ meta:
   collection: feedback
   conditions:
     - name: Interner Kommentar muss gesetzt sein, wenn Maßnahme abgeschlossen wird
+      options:
+        clear: false
+        font: sans-serif
+        trim: false
+      required: true
       rule:
         _and:
           - _or:
@@ -12,21 +17,16 @@ meta:
                   _eq: finished
               - status:
                   _eq: ignored
-      required: true
+    - hidden: true
+      name: Feld ausgeblendet wenn Status noch nicht in progress
       options:
-        trim: false
-        font: sans-serif
         clear: false
-    - name: Feld ausgeblendet wenn Status noch nicht in progress
+        font: sans-serif
+        trim: false
       rule:
         _and:
           - status:
               _eq: received
-      hidden: true
-      options:
-        trim: false
-        font: sans-serif
-        clear: false
   display: null
   display_options: null
   field: internal_response_summary
@@ -39,6 +39,7 @@ meta:
     trim: true
   readonly: false
   required: false
+  searchable: true
   sort: 11
   special: null
   translations:
@@ -57,6 +58,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

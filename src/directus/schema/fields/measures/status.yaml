@@ -7,18 +7,18 @@ meta:
   display: labels
   display_options:
     choices:
-      - text: $t:published
+      - background: "#26A269"
+        foreground: "#FFFFFF"
+        text: $t:published
         value: published
-        foreground: "#FFFFFF"
-        background: "#26A269"
-      - text: $t:draft
-        value: draft
+      - background: "#E01B24"
         foreground: "#18222F"
-        background: "#E01B24"
-      - text: $t:archived
-        value: archived
+        text: $t:draft
+        value: draft
+      - background: var(--warning)
         foreground: "#FFFFFF"
-        background: var(--warning)
+        text: $t:archived
+        value: archived
     showAsDot: true
   field: status
   group: null
@@ -33,6 +33,7 @@ meta:
         value: draft
   readonly: false
   required: true
+  searchable: true
   sort: 2
   special: null
   translations: null
@@ -49,6 +50,7 @@ schema:
   numeric_scale: null
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

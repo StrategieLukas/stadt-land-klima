@@ -1,0 +1,535 @@
+name: Frontend
+icon: computer
+description: Alle Berechtigungen für uns Frontend
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+  - collection: answers
+    action: create
+    permissions:
+      _or:
+        - candidate:
+            election:
+              response_cutoff_date:
+                _null: true
+        - candidate:
+            election:
+              response_cutoff_date:
+                _gt: $NOW
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: answers
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - response
+      - explanation
+      - candidate
+      - question
+  - collection: answers
+    action: update
+    permissions:
+      _or:
+        - candidate:
+            election:
+              response_cutoff_date:
+                _null: true
+        - candidate:
+            election:
+              response_cutoff_date:
+                _gt: $NOW
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - status
+      - title
+      - slug
+      - date_updated
+      - author
+      - date_created
+      - municipality_name
+      - state
+      - content
+      - subtitle
+      - image
+      - image_credits
+      - abstract
+      - article_text
+      - organisation
+      - link
+      - sectors
+      - sources
+      - qualities
+      - ease_of_implementation
+      - similar_external_projects
+      - similar_articles
+      - impact
+      - id
+      - additional_examples
+      - economic_efficiency
+      - public_impact
+      - ghg_savings_potential
+      - other_benefits
+      - additional_infos
+      - can_do_autonomously
+      - is_profitable
+      - public_impact_effects
+      - ghg_savings_level
+      - content_segment
+      - social_media
+      - instagram
+      - linkedin
+      - additional_infos_segment
+      - ease_of_implementation_block
+      - economic_efficiency_block
+      - public_impact_block
+      - ghg_savings_potential_block
+      - other_benefits_block
+      - similar_projects_segment
+      - measures
+  - collection: articles_articles
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_measures
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: blocks
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: blocks
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: blocks
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: blocks
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: candidate
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - party
+      - election
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+      - access_token
+  - collection: candidate
+    action: update
+    permissions:
+      _or:
+        - election:
+            response_cutoff_date:
+              _null: true
+        - election:
+            response_cutoff_date:
+              _gt: $NOW
+    validation: {}
+    presets: null
+    fields:
+      - has_answered
+      - time_first_submitted
+      - time_last_edited
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_folders
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_translations
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_users
+    action: read
+    permissions:
+      _and:
+        - show_on_team_page:
+            _eq: true
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - first_name
+      - last_name
+      - avatar
+      - bio
+      - slk_team
+      - show_on_team_page
+  - collection: edit_states
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: edit_states
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: edit_states
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: edit_states
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: elections
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - descriptor
+      - localteam
+      - response_cutoff_date
+      - is_public
+      - date_created
+      - date_updated
+  - collection: events
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - slug
+      - title
+      - description
+      - event_type
+      - status
+      - start_date
+      - end_date
+      - location
+      - registration_url
+      - cta_label
+      - date_created
+      - image
+      - image_credits
+      - event_category
+  - collection: external_projects
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - description
+      - title
+      - link
+      - date_updated
+      - date_created
+  - collection: feedback
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - title
+      - content
+      - type
+      - sender_name
+      - sender_contact
+      - date_created
+      - status
+  - collection: localteams
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - municipality_id
+      - status
+      - municipality_name
+      - slug
+      - date_created
+      - name
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measure_questions_template
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+        - catalog_version:
+            hidden:
+              _eq: false
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - sector
+      - slug
+      - impact
+      - weight
+      - feasibility_political
+      - feasibility
+      - feasibility_economical
+      - verification_description
+      - notes
+      - description
+      - date_updated
+      - accordion-p4jgb8
+      - description_evaluation_criteria
+      - description_about
+      - description_benefit
+      - description_verification
+      - description_contribution
+      - description_implementation
+      - description_legal
+      - description_funding
+      - description_tutorial
+      - measure_id
+      - catalog_version
+      - must_be_rated_again
+      - choices_rating
+      - image
+      - image_credits
+  - collection: municipalities
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - slug
+      - municipality_type
+      - details
+      - scores
+      - mayor
+      - state
+      - population
+      - party_mayor
+      - name
+      - description
+      - localteam_id
+      - date_updated
+      - status
+      - overall_status_comment
+      - public_contact
+      - ars
+      - geolocation
+      - percentage_rated
+      - id
+      - creator_verified
+      - preview_token
+      - date_created
+      - image
+      - image_credits
+  - collection: municipality_scores
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: navigation_config
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: news_items
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - slug
+      - title
+      - teaser
+      - image
+      - image_credits
+      - date_published
+      - date_created
+      - status
+  - collection: organisation_teams
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - link
+      - short_description
+      - logo
+      - id
+      - instagram
+      - linkedin
+      - social_media_segment
+  - collection: pages
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - menus
+      - contents
+      - slug
+      - sort_order
+      - page_category
+      - is_dynamic
+      - icon_svg
+  - collection: questions
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - title
+      - thesis
+      - election
+      - status
+      - sector
+      - date_created
+      - date_updated
+  - collection: ratings_measures
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+        - approved:
+            _eq: true
+        - measure_id:
+            status:
+              _eq: published
+        - measure_id:
+            catalog_version:
+              hidden:
+                _eq: false
+    validation: null
+    presets: null
+    fields:
+      - applicable
+      - rating
+      - localteam_id
+      - measure_id
+      - id
+      - Source
+      - source
+      - achievement
+      - current_progress
+      - date_updated
+      - why_not_applicable
+      - status
+      - measure_published

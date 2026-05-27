@@ -19,9 +19,9 @@ meta:
   sort_field: null
   translations:
     - language: de-DE
-      translation: Kommunen
-      singular: Kommune
       plural: Kommunen
+      singular: Kommune
+      translation: Kommunen
   unarchive_value: draft
   versioning: false
 schema:

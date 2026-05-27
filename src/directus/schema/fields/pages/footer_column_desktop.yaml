@@ -4,18 +4,18 @@ type: integer
 meta:
   collection: pages
   conditions:
-    - name: Only show if footer menu is enabled and make mandatory if it is
+    - hidden: false
+      name: Only show if footer menu is enabled and make mandatory if it is
+      options:
+        allowNone: false
+        allowOther: false
+        iconOff: radio_button_unchecked
+        iconOn: radio_button_checked
+      required: true
       rule:
         _and:
           - menus:
               _contains: footer
-      hidden: false
-      options:
-        allowOther: false
-        allowNone: false
-        iconOn: radio_button_checked
-        iconOff: radio_button_unchecked
-      required: true
   display: null
   display_options: null
   field: footer_column_desktop
@@ -35,6 +35,7 @@ meta:
         value: 4
   readonly: false
   required: false
+  searchable: true
   sort: 12
   special: null
   translations:
@@ -53,6 +54,7 @@ schema:
   numeric_scale: 0
   is_nullable: true
   is_unique: false
+  is_indexed: false
   is_primary_key: false
   is_generated: false
   generation_expression: null

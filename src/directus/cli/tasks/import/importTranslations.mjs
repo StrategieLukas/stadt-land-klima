@@ -60,7 +60,12 @@ async function importTranslations(src, options = {verbose: false, overwrite: fal
           console.info(`Removing ${translationsToDelete.length} translations`);
         }
 
-        await client.request(deleteTranslations(translationsToDelete.map(property('id'))));
+        const translationsToDeleteIds = translationsToDelete
+          .map(property('id'))
+          .filter(id => id && id !== '');
+        if (translationsToDeleteIds.length) {
+          await client.request(deleteTranslations(translationsToDeleteIds));
+        }
       }
     }
 

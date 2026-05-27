@@ -4,18 +4,18 @@ meta:
   archive_app_filter: true
   archive_field: null
   archive_value: null
-  collapse: open
+  collapse: closed
   collection: blokkli
   color: null
   display_template: null
-  group: admin_tools
+  group: null
   hidden: true
   icon: folder
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: 2
+  sort: 1
   sort_field: null
   translations:
     - language: de-DE

@@ -53,8 +53,6 @@ module.exports = {
         "mild-white": "#fbfbfb",
         "stats-dark": "#006e94",
         "stats-light": "#d6f5ff",
-        "projects-dark": "#16bae7",
-        "projects-light": "#e8f7fd",
         "ranking-dark": "#afca0b",
         "ranking-light": "#f9fde1"
       },

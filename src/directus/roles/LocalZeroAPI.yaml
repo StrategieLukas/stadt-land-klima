@@ -1,0 +1,6 @@
+name: LocalZeroAPI
+icon: volunteer_activism
+description: API Access for LocalZero
+policies:
+  - API-Erfolgsprojekte
+  - Public

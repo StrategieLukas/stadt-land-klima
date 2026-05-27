@@ -15,11 +15,12 @@ meta:
     start: closed
   readonly: false
   required: false
+  searchable: true
   sort: 9
   special:
     - alias
-    - group
     - no-data
+    - group
   translations:
     - language: de-DE
       translation: Social Media des Projekts

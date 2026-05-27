@@ -18,7 +18,12 @@ async function importDefaultPresets(src, options = { verbose: false }) {
 
     if (presetsToDelete.length) {
       if (options.verbose) console.info(`Deleting ${presetsToDelete.length} old default presets...`);
-      await client.request(deletePresets(presetsToDelete.map(p => p.id)));
+      const presetsToDeleteIds = presetsToDelete
+        .map(p => p.id)
+        .filter(id => id && id !== '');
+      if (presetsToDeleteIds.length) {
+        await client.request(deletePresets(presetsToDeleteIds));
+      }
     }
 
     if (options.verbose) console.info(`Creating ${presets.length} new default presets...`);
