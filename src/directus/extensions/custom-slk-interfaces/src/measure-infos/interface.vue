@@ -8,26 +8,26 @@
         target="_blank"
         rel="noopener noreferrer"
       >
-        {{ $trans('directus.fields.view_measure_on_frontend') }}
+        {{ $t('directus.fields.view_measure_on_frontend') }}
       </a>
     </div>
 
     <div v-if="!measureId" class="v-notice info">
       <v-icon name="info" />
       <div class="content">
-        <div class="title">{{ $trans('directus.interfaces.no_measure_found_error') }}</div>
+        <div class="title">{{ $t('directus.interfaces.no_measure_found_error') }}</div>
       </div>
     </div>
 
     <div v-else-if="loading" class="loading-container">
       <v-progress-circular indeterminate />
-      <span class="loading-text">{{ $trans('generic.loading') }}</span>
+      <span class="loading-text">{{ $t('generic.loading') }}</span>
     </div>
 
     <div v-else-if="error" class="v-notice danger">
       <v-icon name="error" />
       <div class="content">
-        <div class="title">{{ $trans('error') }}</div>
+        <div class="title">{{ $t('error') }}</div>
         <div class="text">{{ error }}</div>
       </div>
     </div>
@@ -39,14 +39,14 @@
           <span class="field-label">{{ getFieldLabel(fieldKey) }}</span>
         </div>
         <div v-if="measureData[fieldKey]" class="field-content" v-html="measureData[fieldKey]"></div>
-        <div v-else class="field-content empty">{{ $trans('no_content_available') }}</div>
+        <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
       </div>
     </div>
 
     <div v-else class="v-notice warning">
       <v-icon name="warning" />
       <div class="content">
-        <div class="title">{{ $trans('no_measure_data_available') }}</div>
+        <div class="title">{{ $t('no_measure_data_available') }}</div>
       </div>
     </div>
   </div>
@@ -57,7 +57,7 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'MeasurePreview',
-  inject: ['api', '$trans'],
+  inject: ['api'],
   props: {
     value: { type: [String, Number] as () => string | number | null, default: null },
     field: { type: String, required: true },
@@ -150,8 +150,11 @@ export default defineComponent({
 
     getFieldLabel(fieldKey: string): string {
       // Fetch special translations that I entered to mirror the field name translations
-      const translation = (this.$trans as (key: string) => string)(`ratings_measures.fields.${fieldKey}`);
-      if (translation && translation !== `ratings_measures.fields.${fieldKey}`) {
+      const translationKey = `ratings_measures.fields.${fieldKey}`;
+      const translation = this.$t && typeof this.$t === 'function' 
+        ? this.$t(translationKey)
+        : null;
+      if (translation && translation !== translationKey) {
         return translation;
       }
 
