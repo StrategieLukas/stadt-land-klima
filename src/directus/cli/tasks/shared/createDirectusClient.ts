@@ -6,7 +6,7 @@ dotenv.config();
 export const directusUrl = process.env.FRONTEND_DIRECTUS_URL || 'http://directus:8055';
 const token = process.env.CLI_DIRECTUS_STATIC_TOKEN;
 
-function createDirectusClient(): DirectusClient<any> {
+function createDirectusClient(): DirectusClient<any, any> {
   if (!token) {
     console.error('You must provide a CLI_DIRECTUS_STATIC_TOKEN');
     process.exit(1);

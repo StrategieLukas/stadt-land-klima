@@ -5,9 +5,11 @@ import readYamlFiles from '../shared/readYamlFiles.js';
 
 interface ImportPresetsOptions {
   verbose?: boolean;
+  remove?: boolean;
+  overwrite?: boolean;
 }
 
-async function importDefaultPresets(src: string, options: ImportPresetsOptions = { verbose: false }): Promise<void> {
+async function importDefaultPresets(src: string, options: ImportPresetsOptions = { verbose: false, remove: false, overwrite: false }): Promise<void> {
   const client = createDirectusClient();
 
   try {
@@ -15,7 +17,7 @@ async function importDefaultPresets(src: string, options: ImportPresetsOptions =
     const presets = readYamlFiles(path.join(src));
 
     if (options.verbose) console.info('Fetching existing presets...');
-    const existingPresets = await client.request(readPresets({ limit: -1 }));
+    const existingPresets = (await client.request(readPresets({ limit: -1 }))) as any[];
 
     // Filter presets that can be safely replaced (user=null)
     const presetsToDelete = existingPresets.filter((p: any) => !p.user);

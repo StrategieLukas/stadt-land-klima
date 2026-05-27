@@ -53,7 +53,7 @@ function resolvePolicyRef(ref: string, existingPolicies: any[], verbose = false)
   if (!ref) return null;
   validateNotUuid(ref, 'policy');
   const policy = find(existingPolicies, ['name', ref]);
-  if (policy) return policy.id;
+  if (policy && policy.id) return policy.id as string;
   if (verbose) console.warn(`Could not resolve policy reference by name: ${ref}`);
   return null;
 }
@@ -62,7 +62,7 @@ function resolveRoleRef(ref: string, existingRoles: any[], verbose = false): str
   if (!ref) return ref;
   validateNotUuid(ref, 'role');
   const role = find(existingRoles, ['name', ref]);
-  if (role) return role.id;
+  if (role && role.id) return role.id as string;
   if (verbose) console.warn(`Could not resolve role reference by name: ${ref}`);
   return null;
 }
@@ -70,7 +70,7 @@ function resolveRoleRef(ref: string, existingRoles: any[], verbose = false): str
 async function handleRolePolicies(roleId: string | null, roleName: string, policyIdsToAttach: string[], verbose: boolean): Promise<void> {
   const buildAccessUrl = (filters: Record<string, any>) => {
     const params = new URLSearchParams({
-      limit: -1,
+      limit: '-1',
       fields: 'id,policy',
     });
     for (const [key, value] of Object.entries(filters)) {
@@ -97,7 +97,7 @@ async function handleRolePolicies(roleId: string | null, roleName: string, polic
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
     const existingAccessEntries: any[] = data.data || [];
     const existingPolicyIds = existingAccessEntries.map((entry: any) => entry.policy);
 
@@ -148,7 +148,7 @@ async function handleRolePolicies(roleId: string | null, roleName: string, polic
           const errorText = await createResponse.text();
           console.warn(`Could not add access entry for policy ${policyId} to role ${roleName}: ${createResponse.statusText} - ${errorText}`);
         } else if (verbose) {
-          const created = await createResponse.json();
+          const created = (await createResponse.json()) as any;
           console.info(`Added access entry for policy ${policyId} to role ${roleName} (id: ${created.data?.id})`);
         }
       }
@@ -169,9 +169,9 @@ interface Policy {
 
 interface Role {
   name?: string;
-  icon?: string;
-  description?: string;
-  parent?: string | null;
+  icon?: string | null;
+  description?: string | null;
+  parent?: string | null | { id: string };
   policies?: string[];
   id?: string | null;
   policiesToAttach?: string[];
@@ -239,7 +239,7 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
       await Promise.all(
         policiesToUpdate.map((policy) => {
           const { id, ...data } = policy;
-          return client.request(updatePolicy(id!, data)).catch((err) => {
+          return client.request(updatePolicy(id!, data)).catch((err: any) => {
             console.error(`Error updating policy ${policy.name || id}:`, err);
           });
         })
@@ -285,7 +285,7 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
       if (options.verbose) console.info(`Updating ${permissionsToUpdate.length} permissions`);
       await Promise.all(
         permissionsToUpdate.map((permission) =>
-          client.request(updatePermission(permission.id, permission)).catch((err) => {
+          client.request(updatePermission(permission.id, permission)).catch((err: any) => {
             console.error(err, permission);
           })
         )
@@ -318,7 +318,7 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
         if (options.verbose) console.info(`Removing ${permissionsToDelete.length} permissions`);
         const permissionsToDeleteIds = permissionsToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (permissionsToDeleteIds.length) {
           await client.request(deletePermissions(permissionsToDeleteIds));
         }
@@ -328,7 +328,7 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
         if (options.verbose) console.info(`Removing ${policiesToDelete.length} policies`);
         const policiesToDeleteIds = policiesToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (policiesToDeleteIds.length) {
           await client.request(deletePolicies(policiesToDeleteIds));
         }
@@ -368,7 +368,7 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
         if (options.verbose) console.info(`Skipping Public role (built-in), will handle policy attachments separately`);
         const resolvedPolicies = (role.policies || [])
           .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
-          .filter((id: any) => id !== null);
+          .filter((id: any) => id !== null) as string[];
         role.id = null;
         (role as any).policiesToAttach = resolvedPolicies;
         rolesToUpdate.push(role);
@@ -393,17 +393,22 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
         }
 
         if (role.parent !== undefined) {
-          const resolvedParent = resolveRoleRef(role.parent, existingRoles, options.verbose);
-          const currentParentId = existingRole.parent?.id || existingRole.parent || null;
-          if (resolvedParent !== currentParentId) {
-            roleToUpdate.parent = resolvedParent || null;
+          const resolvedParentStr = resolveRoleRef(role.parent as string, existingRoles, options.verbose) as string | null;
+          let currentParentId: string | null = null;
+          if (typeof existingRole.parent === 'string') {
+            currentParentId = existingRole.parent;
+          } else if (existingRole.parent && typeof existingRole.parent === 'object') {
+            currentParentId = (existingRole.parent as any).id as string | null;
+          }
+          if (resolvedParentStr !== currentParentId) {
+            (roleToUpdate as any).parent = resolvedParentStr || null;
             hasChanges = true;
           }
         }
 
         const resolvedPolicies = (role.policies || [])
           .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
-          .filter((id: any) => id !== null);
+          .filter((id: any) => id !== null) as string[];
 
         if (hasChanges) {
           (roleToUpdate as any).policiesToAttach = resolvedPolicies;
@@ -424,15 +429,15 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
         };
 
         if (role.parent !== undefined) {
-          const resolvedParent = resolveRoleRef(role.parent, existingRoles, options.verbose);
-          if (resolvedParent) {
-            roleToCreate.parent = resolvedParent;
+          const resolvedParentStr = resolveRoleRef(role.parent as string, existingRoles, options.verbose) as string | null;
+          if (resolvedParentStr) {
+            (roleToCreate as any).parent = resolvedParentStr;
           }
         }
 
         const resolvedPolicies = (role.policies || [])
           .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
-          .filter((id: any) => id !== null);
+          .filter((id: any) => id !== null) as string[];
         (roleToCreate as any).policiesToAttach = resolvedPolicies;
 
         delete roleToCreate.policies;
@@ -459,7 +464,7 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
       await Promise.all(
         rolesToActuallyUpdate.map((role) => {
           const { id, policiesToAttach, _skipMetadataUpdate, ...data } = role;
-          return client.request(updateRole(id!, data)).catch((err) => {
+          return client.request(updateRole(id!, data)).catch((err: any) => {
             console.error(`Error updating role ${role.name || id}:`, err);
           });
         })
@@ -486,7 +491,7 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
         continue;
       }
 
-      const roleIdForAccess = role.name === 'Public' ? null : role.id;
+      const roleIdForAccess = role.name === 'Public' ? null : (role.id || null);
       await handleRolePolicies(roleIdForAccess, role.name || '', policiesToAttach, options.verbose || false);
     }
 
@@ -507,7 +512,7 @@ async function importRolesAndPolicies(src: string, options: ImportRolesAndPolici
         if (options.verbose) console.info(`Removing ${rolesToDelete.length} roles`);
         const rolesToDeleteIds = rolesToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (rolesToDeleteIds.length) {
           await client.request(deleteRoles(rolesToDeleteIds));
         }

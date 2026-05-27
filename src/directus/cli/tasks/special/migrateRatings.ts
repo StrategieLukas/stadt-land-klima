@@ -21,12 +21,12 @@ async function migrateRatings(oldVersion: string, newVersion: string): Promise<v
   console.log("📥 Fetching measure catalog versions...");
 
   // ✅ Validate both catalog versions exist in measure_catalog
-  const catalogs = await client.request(
+  const catalogs = (await client.request(
     readItems("measure_catalog", {
       filter: { name: { _in: [oldVersion, newVersion] } },
       fields: ["id", "name"],
     })
-  );
+  )) as any[];
 
   const oldCatalog = catalogs.find((c: any) => c.name === oldVersion);
   const newCatalog = catalogs.find((c: any) => c.name === newVersion);
@@ -72,14 +72,14 @@ async function migrateRatings(oldVersion: string, newVersion: string): Promise<v
           fields: ["id", "measure_id"],
           limit: -1,
         })
-      ),
+      ) as Promise<any>,
       client.request(
         readItems("measures", {
           filter: { catalog_version: { _eq: newCatalog.id }, status: { _eq: "published" } },
           fields: ["id", "measure_id", "must_be_rated_again"],
           limit: -1,
         })
-      ),
+      ) as Promise<any>,
     ]);
 
     console.log(
@@ -87,8 +87,8 @@ async function migrateRatings(oldVersion: string, newVersion: string): Promise<v
     );
 
     // Build lookup maps and find common measure_ids
-    const oldMap = new Map(oldMeasures.map((m: any) => [m.measure_id, m]));
-    const newMap = new Map(newMeasures.map((m: any) => [m.measure_id, m]));
+    const oldMap = new Map((oldMeasures as any[]).map((m: any) => [m.measure_id, m]));
+    const newMap = new Map((newMeasures as any[]).map((m: any) => [m.measure_id, m]));
     const commonMeasureIds = [...oldMap.keys()].filter((id) => newMap.has(id));
 
     console.log(
@@ -107,7 +107,7 @@ async function migrateRatings(oldVersion: string, newVersion: string): Promise<v
       console.log(`\n➡️ Processing measure "${measureId}".`);
 
       // Load ratings for both versions
-      const oldRatings = await client.request(
+      const oldRatings = (await client.request(
         readItems("ratings_measures", {
           filter: { measure_id: { _eq: oldMeasure.id } },
           fields: [
@@ -123,15 +123,15 @@ async function migrateRatings(oldVersion: string, newVersion: string): Promise<v
           ],
           limit: -1,
         })
-      );
+      )) as any[];
 
-      const newRatings = await client.request(
+      const newRatings = (await client.request(
         readItems("ratings_measures", {
           filter: { measure_id: { _eq: newMeasure.id } },
           fields: ["id", "localteam_id"],
           limit: -1,
         })
-      );
+      )) as any[];
 
       console.log(`   🧮 ${oldRatings.length} old → ${newRatings.length} new ratings`);
       if (oldRatings.length !== newRatings.length) {
@@ -140,7 +140,7 @@ async function migrateRatings(oldVersion: string, newVersion: string): Promise<v
 
       if (oldRatings.length === 0 || newRatings.length === 0) continue;
 
-      const newByLocalteam = new Map(newRatings.map((r: any) => [r.localteam_id, r]));
+      const newByLocalteam = new Map((newRatings as any[]).map((r: any) => [r.localteam_id, r]));
       const mustBeRatedAgain = !!newMeasure.must_be_rated_again;
 
       if (mustBeRatedAgain) {
@@ -169,7 +169,7 @@ async function migrateRatings(oldVersion: string, newVersion: string): Promise<v
             };
 
         try {
-          await client.request(updateItem("ratings_measures", target.id, updateData));
+          await client.request(updateItem("ratings_measures", (target as any).id, updateData));
           updatedCount++;
           updatedForThisMeasure++;
         } catch (err: any) {

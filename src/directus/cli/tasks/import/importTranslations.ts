@@ -74,7 +74,7 @@ async function importTranslations(src: string, options: ImportTranslationsOption
 
         const translationsToDeleteIds = translationsToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (translationsToDeleteIds.length) {
           await client.request(deleteTranslations(translationsToDeleteIds));
         }

@@ -6,6 +6,8 @@ import readYamlFile from '../shared/readYamlFile.js';
 
 interface ImportSchemaOptions {
   verbose?: boolean;
+  remove?: boolean;
+  overwrite?: boolean;
 }
 
 async function importSchema(src: string, options: ImportSchemaOptions = { verbose: false }): Promise<void> {

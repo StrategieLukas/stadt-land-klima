@@ -32,6 +32,7 @@ interface Operation {
 interface ImportFlowsOptions {
   verbose?: boolean;
   overwrite?: boolean;
+  remove?: boolean;
 }
 
 async function importFlows(src: string, options: ImportFlowsOptions = { verbose: false, overwrite: false }): Promise<void> {
@@ -134,7 +135,7 @@ async function importFlows(src: string, options: ImportFlowsOptions = { verbose:
         try {
           const operationsToDeleteIds = flowOperationsToDelete
             .map(property('id'))
-            .filter((id: any) => id && id !== '');
+            .filter((id: any) => id && id !== '') as (string | number)[];
           if (operationsToDeleteIds.length) {
             await client.request(deleteOperations(operationsToDeleteIds));
           }
@@ -179,7 +180,7 @@ async function importFlows(src: string, options: ImportFlowsOptions = { verbose:
 
         const operationsToDeleteIds = operationsToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (operationsToDeleteIds.length) {
           await client.request(deleteOperations(operationsToDeleteIds));
         }
@@ -192,7 +193,7 @@ async function importFlows(src: string, options: ImportFlowsOptions = { verbose:
 
         const flowsToDeleteIds = flowsToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (flowsToDeleteIds.length) {
           await client.request(deleteFlows(flowsToDeleteIds));
         }

@@ -1,0 +1,1 @@
+{"version":3,"file":"createDirectusClient.d.ts","sourceRoot":"","sources":["../../../tasks/shared/createDirectusClient.ts"],"names":[],"mappings":"AACA,OAAO,EAAqC,cAAc,EAAE,MAAM,eAAe,CAAC;AAIlF,eAAO,MAAM,WAAW,QAA8D,CAAC;AAGvF,iBAAS,oBAAoB,IAAI,cAAc,CAAC,GAAG,EAAE,GAAG,CAAC,CAOxD;AAED,eAAe,oBAAoB,CAAC"}

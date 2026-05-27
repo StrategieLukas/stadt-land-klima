@@ -71,7 +71,7 @@ async function exportSettings(dest: string, options: ExportSettingsOptions = { v
   const client = createDirectusClient();
 
   try {
-    const settings = await client.request(readSettings());
+    const settings = (await client.request(readSettings())) as Record<string, any>;
 
     // Filter out sensitive fields before exporting
     const safeSettings = filterSensitiveSettings(settings);

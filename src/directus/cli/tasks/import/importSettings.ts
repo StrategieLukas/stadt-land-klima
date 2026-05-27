@@ -75,6 +75,8 @@ function mergeEnvSettings(settings: Record<string, any>, verbose = false): { mer
 
 interface ImportSettingsOptions {
   verbose?: boolean;
+  remove?: boolean;
+  overwrite?: boolean;
 }
 
 async function importSettings(src: string, options: ImportSettingsOptions = { verbose: false }): Promise<void> {
@@ -100,7 +102,7 @@ async function importSettings(src: string, options: ImportSettingsOptions = { ve
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json()) as any;
       throw new Error(`Failed to update settings: ${errorData.errors?.[0]?.message || errorData.message || response.statusText}`);
     }
 

@@ -15,7 +15,7 @@ async function importCollectionItems(collection: string, src: string, options: I
   const client = createDirectusClient();
 
   try {
-    const existingItems: any[] = await client.request(readItems(collection, { limite: -1 }));
+    const existingItems: any[] = await client.request(readItems(collection, { limit: -1 }));
     const items: any[] = readYamlFile(src);
 
     const itemsToCreate: any[] = [];
@@ -66,7 +66,7 @@ async function importCollectionItems(collection: string, src: string, options: I
 
         const itemsToDeleteIds = itemsToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (itemsToDeleteIds.length) {
           await client.request(deleteItems(collection, itemsToDeleteIds));
         }

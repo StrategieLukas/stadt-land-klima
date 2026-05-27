@@ -1,0 +1,1 @@
+{"version":3,"file":"importSchema.d.ts","sourceRoot":"","sources":["../../../tasks/import/importSchema.ts"],"names":[],"mappings":"AAMA,UAAU,mBAAmB;IAC3B,OAAO,CAAC,EAAE,OAAO,CAAC;IAClB,MAAM,CAAC,EAAE,OAAO,CAAC;IACjB,SAAS,CAAC,EAAE,OAAO,CAAC;CACrB;AAED,iBAAe,YAAY,CAAC,GAAG,EAAE,MAAM,EAAE,OAAO,GAAE,mBAAwC,GAAG,OAAO,CAAC,IAAI,CAAC,CA2GzG;AAED,eAAe,YAAY,CAAC"}

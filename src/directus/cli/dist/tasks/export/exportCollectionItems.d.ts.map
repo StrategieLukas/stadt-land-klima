@@ -1,0 +1,1 @@
+{"version":3,"file":"exportCollectionItems.d.ts","sourceRoot":"","sources":["../../../tasks/export/exportCollectionItems.ts"],"names":[],"mappings":"AAOA,UAAU,4BAA4B;IACpC,OAAO,CAAC,EAAE,OAAO,CAAC;IAClB,SAAS,CAAC,EAAE,OAAO,CAAC;CACrB;AAED,iBAAe,qBAAqB,CAAC,UAAU,EAAE,MAAM,EAAE,IAAI,EAAE,MAAM,EAAE,OAAO,GAAE,4BAAmE,GAAG,OAAO,CAAC,IAAI,CAAC,CA8BlK;AAED,eAAe,qBAAqB,CAAC"}

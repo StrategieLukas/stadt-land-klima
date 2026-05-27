@@ -94,7 +94,7 @@ async function exportRoles(dest: string, options: ExportRolesOptions = { verbose
     let allAccessEntries: AccessEntry[] = [];
     try {
       const params = new URLSearchParams({
-        limit: -1,
+        limit: '-1',
         fields: 'role,policy',
       });
       const response = await fetch(`${directusUrl}/access?${params.toString()}`, {
@@ -102,7 +102,7 @@ async function exportRoles(dest: string, options: ExportRolesOptions = { verbose
           'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
         },
       });
-      const data = await response.json();
+      const data = (await response.json()) as any;
       allAccessEntries = data.data || [];
     } catch (e: any) {
       if (options.verbose) console.warn('Could not fetch access entries from /access:', e.message);
@@ -219,7 +219,7 @@ async function exportRoles(dest: string, options: ExportRolesOptions = { verbose
       // Convert parent role ID to parent role name for portability across environments
       let parentRoleName: string | null = null;
       if (role.parent) {
-        parentRoleName = roleIdToName.get(role.parent);
+        parentRoleName = roleIdToName.get(role.parent as string) ?? null;
         if (!parentRoleName) {
           if (options.verbose) {
             console.warn(`Role '${role.name}': Parent role with ID '${role.parent}' not found in role list.`);

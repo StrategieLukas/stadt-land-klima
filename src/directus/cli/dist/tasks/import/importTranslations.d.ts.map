@@ -1,0 +1,1 @@
+{"version":3,"file":"importTranslations.d.ts","sourceRoot":"","sources":["../../../tasks/import/importTranslations.ts"],"names":[],"mappings":"AAeA,UAAU,yBAAyB;IACjC,OAAO,CAAC,EAAE,OAAO,CAAC;IAClB,SAAS,CAAC,EAAE,OAAO,CAAC;IACpB,MAAM,CAAC,EAAE,OAAO,CAAC;CAClB;AAED,iBAAe,kBAAkB,CAAC,GAAG,EAAE,MAAM,EAAE,OAAO,GAAE,yBAA+E,GAAG,OAAO,CAAC,IAAI,CAAC,CAqEtJ;AAED,eAAe,kBAAkB,CAAC"}

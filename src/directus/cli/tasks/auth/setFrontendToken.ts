@@ -6,7 +6,7 @@ export async function setFrontendToken(): Promise<void> {
     const directus = createDirectusClient();
 
     console.log("Fetching the frontend role...");
-    const roles = await directus.request(
+    const roles = (await directus.request(
       readRoles({
         filter: {
           name: {
@@ -14,7 +14,7 @@ export async function setFrontendToken(): Promise<void> {
           },
         },
       })
-    );
+    )) as any[];
 
     if (roles.length !== 1) {
       console.error("Could not uniquely identify the frontend role. You probably have to run import:roles first.");
@@ -27,7 +27,7 @@ export async function setFrontendToken(): Promise<void> {
         first_name: 'Frontend',
         email: 'frontend@example.com',
         token: 'frontend-dev-token',
-        role: roles[0].id
+        role: roles[0].id as string
       })
     );
 

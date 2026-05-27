@@ -205,7 +205,7 @@ async function importPolicies(src: string, options: ImportPoliciesOptions = { ve
         if (options.verbose) console.info(`Removing ${permissionsToDelete.length} permissions`);
         const permissionsToDeleteIds = permissionsToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (permissionsToDeleteIds.length) {
           await client.request(deletePermissions(permissionsToDeleteIds));
         }
@@ -215,7 +215,7 @@ async function importPolicies(src: string, options: ImportPoliciesOptions = { ve
         if (options.verbose) console.info(`Removing ${policiesToDelete.length} policies`);
         const policiesToDeleteIds = policiesToDelete
           .map(property('id'))
-          .filter((id: any) => id && id !== '');
+          .filter((id: any) => id && id !== '') as (string | number)[];
         if (policiesToDeleteIds.length) {
           await client.request(deletePolicies(policiesToDeleteIds));
         }
