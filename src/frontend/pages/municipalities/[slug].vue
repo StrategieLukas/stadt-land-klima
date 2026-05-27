@@ -40,14 +40,11 @@
           Bewertung noch in Bearbeitung: „{{ directusData.municipalityScore.municipality.name }}"
         </p>
         <p class="text-sm leading-snug mb-3 text-mid-gray">
-          Diese Bewertung ist noch nicht abgeschlossen und daher nicht öffentlich einsehbar.
-          Lokalteam-Mitglieder können eine Vorschau aufrufen.
+          Diese Gemeinde bewertet gerade ihren kommunalen Klimaschutz – die Bewertung ist noch nicht abgeschlossen
+          und daher noch nicht öffentlich sichtbar. Du kannst das Lokalteam unterstützen oder eine
+          benachbarte Gemeinde erkunden.
         </p>
         <div class="flex flex-wrap gap-2">
-          <NuxtLink
-            :to="`/municipalities/${route.params.slug}?preview=true`"
-            class="px-4 py-1.5 text-sm font-medium border border-rating-1 text-rating-1 rounded-md hover:bg-rating-1-light transition-colors"
-          >Vorschau anzeigen →</NuxtLink>
           <NuxtLink
             :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
             class="px-4 py-1.5 text-sm font-semibold bg-olive-green text-white rounded-md hover:opacity-90 transition-colors"

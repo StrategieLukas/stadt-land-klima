@@ -73,10 +73,12 @@ export function useMunicipalityPageState({
       const muni = score.municipality
 
       // A1: Preview-locked (unverified creator, no matching preview token)
+      // Requires both ?preview=true AND ?preview_token=<token> to bypass — only the
+      // Directus preview button should ever generate a URL with these parameters.
       if (
         muni.status !== 'published' &&
         !muni.creator_verified &&
-        route.query.preview !== muni.preview_token
+        !(route.query.preview === 'true' && route.query.preview_token === muni.preview_token)
       ) return PAGE_VIEWS.PREVIEW_LOCKED
 
       // A2: Draft but unlocked (creator_verified or matching preview_token)
@@ -100,7 +102,7 @@ export function useMunicipalityPageState({
       muniBySlug &&
       muniBySlug.status !== 'published' &&
       !muniBySlug.creator_verified &&
-      route.query.preview !== muniBySlug.preview_token
+      !(route.query.preview === 'true' && route.query.preview_token === muniBySlug.preview_token)
     ) return PAGE_VIEWS.PREVIEW_LOCKED
 
     // ── C / D / E: SLZ look-up ────────────────────────────────────────────────

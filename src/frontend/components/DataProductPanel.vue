@@ -12,122 +12,82 @@
     </div>
 
     <template v-else>
-      <!-- ── Map (only shown when hideMap is false, e.g. mobile) ──────── -->
-      <ClientOnly v-if="!hideMap">
-        <div class="h-72 sm:h-96 w-full rounded overflow-hidden">
-          <LMap
-            ref="map"
-            :zoom="10"
-            :center="mapCenter"
-            :use-global-leaflet="false"
-            class="h-full w-full"
+      <!-- Row 1: KPI + Histogram -->
+      <div
+        v-if="kpiElement || histogramElements.length"
+        class="grid grid-cols-2 gap-4 mb-6"
+      >
+        <!-- KPI card -->
+        <div
+          v-if="kpiElement"
+          class="bg-gray-50 rounded-xl p-4 flex flex-col justify-center"
+        >
+          <div
+            class="text-4xl font-black tabular-nums leading-none"
+            :style="{ color: kpiColor }"
           >
-            <LTileLayer
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-              :subdomains="'abcd'"
-              :max-zoom="20"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
-            />
-
-            <!-- Area boundary -->
-            <LGeoJson
-              v-if="areaBoundary"
-              :geojson="areaBoundary"
-              :options="areaBoundaryStyle"
-              @ready="fitToArea"
-            />
-
-            <!-- Data features: points -->
-            <template v-if="renderLayerType === 'points' && features.length">
-              <LCircleMarker
-                v-for="(feat, idx) in features"
-                :key="idx"
-                :lat-lng="pointLatLng(feat)"
-                :radius="6"
-                :color="markerColor(feat)"
-                :fill-color="markerColor(feat)"
-                :fill-opacity="0.8"
-                :weight="1"
-              >
-                <LTooltip>
-                  <div class="text-xs">
-                    <span v-if="feat.properties[collection.render_config?.color_field]">
-                      {{ collection.render_config.color_field }}:
-                      {{ feat.properties[collection.render_config.color_field] }}
-                    </span>
-                    <span v-else>Punkt</span>
-                  </div>
-                </LTooltip>
-              </LCircleMarker>
-            </template>
-
-            <!-- Data features: polygon / choropleth -->
-            <LGeoJson
-              v-else-if="renderLayerType !== 'points' && featureCollection"
-              :geojson="featureCollection"
-              :options="featureStyle"
-            />
-
-            <!-- Nearby areas (clickable) -->
-            <LGeoJson
-              v-for="area in nearbyAreas"
-              :key="area.ars"
-              :geojson="parseGeoJson(area.geoArea)"
-              :options="nearbyAreaStyle"
-              @click="navigateToArea(area)"
-            />
-          </LMap>
-        </div>
-      </ClientOnly>
-
-      <!-- ── Summary + Histogram grid ──────────────────────────────────── -->
-      <div class="grid md:grid-cols-2 gap-4 mt-4">
-        <!-- Aggregate summary -->
-        <div class="bg-gray-50 rounded p-4">
-          <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Zusammenfassung</h4>
-          <template v-if="summary?.aggregate">
-            <dl class="space-y-1">
-              <div v-for="(val, key) in summary.aggregate" :key="key" class="flex items-baseline gap-2">
-                <dt class="text-xs text-gray-500 shrink-0 capitalize">{{ formatKey(key) }}</dt>
-                <dd class="text-sm font-semibold text-gray-900 tabular-nums">
-                  {{ formatValue(val) }}
-                </dd>
-              </div>
-            </dl>
-          </template>
-          <p v-else class="text-sm text-gray-400">Keine Aggregatdaten verfügbar.</p>
-
-          <!-- Feature count -->
-          <p class="text-xs text-gray-400 mt-3">
-            {{ features.length }} Einträge in dieser Kommune
-          </p>
+            {{ kpiDisplayValue }}
+          </div>
+          <div v-if="kpiUnit" class="text-xs text-gray-500 mt-1">
+            {{ kpiUnit }}
+            <template v-if="kpiElement.population_normalized"> / 1 000 Einw.</template>
+          </div>
+          <div v-if="kpiLabel" class="text-xs text-gray-400 mt-1 leading-snug">
+            {{ kpiLabel }}
+          </div>
         </div>
 
         <!-- Histogram -->
-        <div>
-          <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">Verteilung (alle Kommunen)</h4>
-          <DataHistogram
-            v-if="histogramUrl"
-            :histogram-url="histogramUrl"
-            :current-value="summaryAggregateValue"
-            :municipality-name="municipalityName"
-            :unit="''"
-            :orange-threshold="thresholds.orange"
-            :yellow-threshold="thresholds.yellow"
-            :light-green-threshold="thresholds.lightGreen"
-            :dark-green-threshold="thresholds.darkGreen"
-          />
-          <p v-else class="text-sm text-gray-400 px-1">Kein Histogramm verfügbar.</p>
+        <div v-if="histogramElements.length" class="min-h-[180px]">
+          <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            Verteilung (alle Kommunen)
+          </h4>
+          <ClientOnly>
+            <VegaChart :spec="histogramElements[0].vegalite_spec" :height="180" />
+          </ClientOnly>
         </div>
       </div>
 
-      <!-- ── Pipeline ──────────────────────────────────────────────────── -->
+      <!-- Row 2: Maps -->
+      <div v-if="combinedMapSpec" class="w-full mb-6" style="height: 420px">
+        <ClientOnly>
+          <VegaChart :spec="combinedMapSpec" />
+        </ClientOnly>
+      </div>
+
+      <!-- Row 3: Time series -->
+      <template v-if="timeSeriesElements.length">
+        <div
+          v-for="ts in timeSeriesElements"
+          :key="ts.field"
+          class="w-full mb-4"
+          style="height: 250px"
+        >
+          <ClientOnly>
+            <VegaChart :spec="ts.vegalite_spec" />
+          </ClientOnly>
+        </div>
+      </template>
+
+      <!-- Pipeline -->
       <div v-if="pipeline?.pipeline_steps?.length" class="mt-6">
         <details class="group border border-gray-200 rounded">
-          <summary class="flex items-center justify-between px-4 py-3 cursor-pointer select-none bg-gray-50 hover:bg-gray-100 transition-colors rounded">
+          <summary
+            class="flex items-center justify-between px-4 py-3 cursor-pointer select-none bg-gray-50 hover:bg-gray-100 transition-colors rounded"
+          >
             <span class="text-sm font-semibold text-gray-700">Datenpipeline</span>
-            <svg class="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg
+              class="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </summary>
           <div class="px-4 pb-4 pt-2 space-y-3">
@@ -136,7 +96,9 @@
               :key="step.asset_key || idx"
               class="flex items-start gap-3"
             >
-              <div class="flex-shrink-0 w-6 h-6 rounded-full bg-[#006e94]/10 text-[#006e94] flex items-center justify-center text-xs font-bold">
+              <div
+                class="flex-shrink-0 w-6 h-6 rounded-full bg-[#006e94]/10 text-[#006e94] flex items-center justify-center text-xs font-bold"
+              >
                 {{ idx + 1 }}
               </div>
               <div class="min-w-0">
@@ -144,24 +106,28 @@
                 <p v-if="step.last_materialized" class="text-xs text-gray-400 mt-0.5">
                   Zuletzt aktualisiert: {{ formatDate(step.last_materialized) }}
                 </p>
-                <p v-if="step.description" class="text-xs text-gray-500 mt-0.5">{{ step.description }}</p>
+                <p v-if="step.description" class="text-xs text-gray-500 mt-0.5">
+                  {{ step.description }}
+                </p>
               </div>
             </div>
           </div>
         </details>
       </div>
 
-      <!-- ── Metadata ──────────────────────────────────────────────────── -->
-      <div v-if="collection.description?.['de-DE'] || collection.description?.['en-US']" class="mt-4 text-sm text-gray-600 leading-relaxed">
-        {{ collection.description?.['de-DE'] || collection.description?.['en-US'] }}
+      <!-- Description -->
+      <div
+        v-if="collectionDescription"
+        class="mt-4 text-sm text-gray-600 leading-relaxed"
+      >
+        {{ collectionDescription }}
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { areaToSlug } from '~/composables/useAreaBySlug.js'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
   collection: {
@@ -176,108 +142,162 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  areaBoundary: {
-    type: Object,
-    default: null,
-  },
-  nearbyAreas: {
-    type: Array,
-    default: () => [],
-  },
   baseUrl: {
     type: String,
     required: true,
   },
-  hideMap: {
-    type: Boolean,
-    default: false,
+  population: {
+    type: Number,
+    default: null,
   },
+  // Legacy props kept for compatibility with existing call sites
+  areaBoundary: { type: Object,  default: null },
+  nearbyAreas:  { type: Array,   default: () => [] },
+  hideMap:      { type: Boolean, default: false },
 })
 
-const router = useRouter()
-
-// ── State ────────────────────────────────────────────────────────────────────
-
-const loading = ref(false)
-const error = ref(false)
-const features = ref([])
-const featureCollection = ref(null)
-const summary = ref(null)
+// State
+const loading  = ref(false)
+const error    = ref(false)
+const summary  = ref(null)
 const pipeline = ref(null)
-const map = ref(null)
 
-// ── Derived ──────────────────────────────────────────────────────────────────
+// Render element grouping
+const renderElements = computed(() => props.collection?.render_elements ?? [])
 
-const renderLayerType = computed(
-  () => props.collection?.render_config?.layer_type ?? 'points'
+const kpiElement = computed(() =>
+  renderElements.value.find(e => e.type === 'kpi') ?? null
 )
 
-const histogramUrl = computed(
-  () => props.collection?.id
-    ? `${props.baseUrl}/api/collections/${props.collection.id}/histogram/`
-    : null
+function localizedStr(obj) {
+  if (!obj) return ''
+  return obj['de-DE'] || obj['en-US'] || ''
+}
+
+const kpiUnit  = computed(() => localizedStr(kpiElement.value?.unit))
+const kpiLabel = computed(() => localizedStr(kpiElement.value?.label))
+const collectionDescription = computed(() => localizedStr(props.collection?.description))
+
+const histogramElements = computed(() =>
+  renderElements.value.filter(e => e.type === 'histogram' && e.vegalite_spec)
 )
 
-const thresholds = computed(() => {
-  const tb = props.collection?.render_config?.threshold_bar
-  return {
-    orange: tb?.thresholds?.orange ?? null,
-    yellow: tb?.thresholds?.yellow ?? null,
-    lightGreen: tb?.thresholds?.lightgreen ?? null,
-    darkGreen: tb?.thresholds?.darkgreen ?? null,
-  }
-})
+const mapElements = computed(() =>
+  renderElements.value.filter(e => e.type === 'map' && e.vegalite_spec)
+)
 
-const summaryAggregateValue = computed(() => {
-  const agg = summary.value?.aggregate
-  if (!agg) return null
-  // Prefer a "total" or "sum" key, else fall back to first numeric value
-  const pref = ['total', 'sum', 'count', 'mean', 'avg']
-  for (const k of pref) {
-    if (k in agg && typeof agg[k] === 'number') return agg[k]
-  }
-  const firstNumeric = Object.values(agg).find(v => typeof v === 'number')
-  return firstNumeric ?? null
-})
+const timeSeriesElements = computed(() =>
+  renderElements.value.filter(e => e.type === 'time_series' && e.vegalite_spec)
+)
 
-const mapCenter = computed(() => {
-  if (features.value.length) {
-    const f = features.value[0]
-    if (f.geometry?.type === 'Point') {
-      return [f.geometry.coordinates[1], f.geometry.coordinates[0]]
+// Map spec composition
+function injectAreaParam(url, ars) {
+  try {
+    const u = new URL(url)
+    u.searchParams.set('area', ars)
+    u.searchParams.set('limit', '2000')
+    return u.toString()
+  } catch {
+    const sep = url.includes('?') ? '&' : '?'
+    return `${url}${sep}area=${encodeURIComponent(ars)}&limit=2000`
+  }
+}
+
+function cloneWithArea(spec, ars) {
+  const s = JSON.parse(JSON.stringify(spec))
+  if (s.data?.url) s.data.url = injectAreaParam(s.data.url, ars)
+  return s
+}
+
+const combinedMapSpec = computed(() => {
+  const els = mapElements.value
+  if (!els.length || !props.ars) return null
+
+  if (els.length === 1) {
+    return cloneWithArea(els[0].vegalite_spec, props.ars)
+  }
+
+  const layers = els.map(el => {
+    const s = cloneWithArea(el.vegalite_spec, props.ars)
+    return {
+      data:     s.data,
+      mark:     s.mark,
+      ...(s.transform ? { transform: s.transform } : {}),
+      ...(s.encoding  ? { encoding:  s.encoding  } : {}),
     }
+  })
+
+  const base = els[0].vegalite_spec
+  return {
+    $schema:    base.$schema ?? 'https://vega.github.io/schema/vega-lite/v5.json',
+    width:      'container',
+    height:     'container',
+    projection: base.projection ?? { type: 'mercator' },
+    layer:      layers,
   }
-  return [51.163, 10.447] // Germany center fallback
 })
 
-// ── Fetch ─────────────────────────────────────────────────────────────────────
+// KPI
+const kpiRawValue = computed(() => {
+  if (!kpiElement.value || !summary.value?.aggregate) return null
+  const field = kpiElement.value.field
+  const agg   = summary.value.aggregate
+  return typeof agg[field] === 'number' ? agg[field] : null
+})
 
-async function loadCollectionData() {
+const kpiValue = computed(() => {
+  const raw = kpiRawValue.value
+  if (raw === null) return null
+  if (kpiElement.value.population_normalized && props.population) {
+    return (raw / props.population) * 1000
+  }
+  return raw
+})
+
+const kpiDisplayValue = computed(() => {
+  const v = kpiValue.value
+  if (v === null || v === undefined) return '\u2014'
+  if (kpiElement.value?.is_percentage) {
+    const t = kpiElement.value.thresholds ?? {}
+    const vals = Object.values(t).filter(x => typeof x === 'number' && x > 0)
+    const isRatioScale = vals.length > 0 && Math.max(...vals) <= 1
+    const pct = isRatioScale ? v * 100 : v
+    return `${pct.toLocaleString('de-DE', { maximumFractionDigits: 1 })} %`
+  }
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)} M`
+  if (v >= 10_000)    return v.toLocaleString('de-DE')
+  if (!Number.isInteger(v)) return v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+  return v.toLocaleString('de-DE')
+})
+
+const kpiColor = computed(() => {
+  const v = kpiValue.value
+  const t = kpiElement.value?.thresholds ?? {}
+  if (v === null || !Object.keys(t).length) return '#006e94'
+  if (t.darkgreen  != null && v >= t.darkgreen)  return '#1EA64A'
+  if (t.lightgreen != null && v >= t.lightgreen) return '#8DC63F'
+  if (t.yellow     != null && v >= t.yellow)     return '#F7A600'
+  if (t.orange     != null && v >= t.orange)     return '#F36633'
+  return '#E30613'
+})
+
+// Fetch
+async function loadData() {
   if (!props.collection?.id || !props.ars) return
-  loading.value = true
-  error.value = false
-  features.value = []
-  featureCollection.value = null
-  summary.value = null
+  loading.value  = true
+  error.value    = false
+  summary.value  = null
   pipeline.value = null
 
   try {
     const collectionId = props.collection.id
     const base = `${props.baseUrl}/api/collections/${collectionId}`
 
-    const [itemsResult, summaryResult, pipelineResult] = await Promise.allSettled([
-      $fetch(`${base}/items/`, { params: { area: props.ars } }),
-      $fetch(`${base}/summary/`, { params: { area: props.ars } }),
+    const [summaryResult, pipelineResult] = await Promise.allSettled([
+      $fetch(`${base}/summary/`,  { params: { area: props.ars } }),
       $fetch(`${base}/pipeline/`),
     ])
 
-    if (itemsResult.status === 'fulfilled') {
-      const geojson = itemsResult.value
-      if (geojson?.features) {
-        features.value = geojson.features
-        featureCollection.value = geojson
-      }
-    }
     if (summaryResult.status === 'fulfilled') {
       summary.value = summaryResult.value
     }
@@ -285,7 +305,7 @@ async function loadCollectionData() {
       pipeline.value = pipelineResult.value
     }
 
-    if (!features.value.length && !summary.value) {
+    if (renderElements.value.length > 0 && !summary.value) {
       error.value = true
     }
   } catch (_) {
@@ -295,96 +315,18 @@ async function loadCollectionData() {
   }
 }
 
-watch(
-  () => props.collection?.id,
-  () => loadCollectionData(),
-  { immediate: true }
-)
+watch(() => props.collection?.id, () => loadData(), { immediate: true })
+watch(() => props.ars, () => loadData())
 
-watch(
-  () => props.ars,
-  () => loadCollectionData()
-)
-
-// ── Map helpers ───────────────────────────────────────────────────────────────
-
-const areaBoundaryStyle = {
-  color: '#339737',
-  weight: 2,
-  fillColor: '#339737',
-  fillOpacity: 0.15,
-}
-
-const nearbyAreaStyle = {
-  color: '#9D9D9C',
-  weight: 1,
-  fillColor: '#9D9D9C',
-  fillOpacity: 0.1,
-  className: 'cursor-pointer hover:fill-opacity-30',
-}
-
-const featureStyle = {
-  color: '#006e94',
-  weight: 1.5,
-  fillColor: '#006e94',
-  fillOpacity: 0.4,
-}
-
-function pointLatLng(feature) {
-  if (feature.geometry?.type === 'Point') {
-    return [feature.geometry.coordinates[1], feature.geometry.coordinates[0]]
-  }
-  return [0, 0]
-}
-
-function markerColor(feature) {
-  const colorField = props.collection?.render_config?.color_field
-  if (!colorField) return '#006e94'
-  const val = feature.properties?.[colorField]
-  if (val == null) return '#9D9D9C'
-  const tb = thresholds.value
-  if (tb.darkGreen !== null && val >= tb.darkGreen) return '#1EA64A'
-  if (tb.lightGreen !== null && val >= tb.lightGreen) return '#8DC63F'
-  if (tb.yellow !== null && val >= tb.yellow) return '#F7A600'
-  if (tb.orange !== null && val >= tb.orange) return '#F36633'
-  return '#E30613'
-}
-
-function parseGeoJson(str) {
-  if (!str) return null
-  if (typeof str === 'object') return str
-  try { return JSON.parse(str) } catch (_) { return null }
-}
-
-function fitToArea(layer) {
-  if (!map.value || !layer) return
-  try {
-    map.value.leafletObject?.fitBounds(layer.getBounds(), { padding: [20, 20] })
-  } catch (_) {}
-}
-
-function navigateToArea(area) {
-  if (!area?.prefix || !area?.name) return
-  router.push(`/data/${areaToSlug(area.prefix, area.name)}`)
-}
-
-// ── Formatting helpers ────────────────────────────────────────────────────────
-
-function formatKey(key) {
-  return key.replace(/_/g, ' ')
-}
-
-function formatValue(val) {
-  if (typeof val === 'number') {
-    return Number.isInteger(val) ? val.toLocaleString('de-DE') : val.toLocaleString('de-DE', { maximumFractionDigits: 2 })
-  }
-  return val
-}
-
+// Formatting
 function formatDate(iso) {
   if (!iso) return ''
   try {
-    return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    return new Date(iso).toLocaleDateString('de-DE', {
+      day:   '2-digit',
+      month: '2-digit',
+      year:  'numeric',
+    })
   } catch (_) {
     return iso
   }

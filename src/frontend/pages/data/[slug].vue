@@ -85,6 +85,71 @@
       </div>
     </nav>
 
+    <!-- ── Sector dropdown nav ─────────────────────────────────────────────── -->
+    <nav
+      ref="sectorBarRef"
+      class="sticky z-[9] bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
+      :style="`top: ${pillTop}px`"
+    >
+      <div class="flex gap-1 overflow-x-auto py-2 no-scrollbar items-center">
+        <!-- Static section links -->
+        <a
+          v-for="s in staticSections"
+          :key="s.id"
+          :href="`#${s.id}`"
+          class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap"
+          :class="activeSection === s.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
+        >{{ s.label }}</a>
+
+        <!-- Divider -->
+        <div v-if="collectionsBySector.length" class="w-px h-4 bg-gray-200 mx-1 flex-none" />
+
+        <!-- Sector dropdown buttons -->
+        <div
+          v-for="sg in collectionsBySector"
+          :key="sg.sector"
+          class="relative flex-none"
+        >
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap"
+            :class="activeSector === sg.sector || openSector === sg.sector ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
+            @click="toggleSector(sg.sector)"
+          >
+            <img
+              v-if="sectorImages[sg.sector]"
+              :src="sectorImages[sg.sector]"
+              class="w-3.5 h-3.5 opacity-60 flex-none"
+              :alt="sg.label"
+            />
+            {{ sg.label }}
+            <svg
+              class="w-3 h-3 flex-none transition-transform duration-150"
+              :class="openSector === sg.sector ? 'rotate-180' : ''"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Dropdown panel -->
+          <div
+            v-if="openSector === sg.sector"
+            class="absolute left-0 top-full mt-1 z-30 min-w-[180px] bg-white rounded-lg shadow-lg border border-gray-100 py-1"
+          >
+            <a
+              v-for="cs in sg.sections"
+              :key="cs.id"
+              :href="`#${cs.id}`"
+              class="flex items-center px-3 py-2 text-xs font-medium transition-colors"
+              :class="activeSection === cs.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-700 hover:bg-gray-50'"
+              @click="openSector = null"
+            >{{ cs.label }}</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
     <!-- ── Scrollytelling wrapper ──────────────────────────────────────────── -->
     <!-- items-start removed → default stretch makes right col full-height for sticky -->
     <div class="xl:flex xl:gap-0 -mx-4 sm:-mx-6 xl:mx-0">
@@ -303,6 +368,7 @@
                   :nearby-areas="nearbyAreas"
                   :base-url="baseUrl"
                   :hide-map="isDesktop"
+                  :population="area.population ?? null"
                 />
                 <template #fallback>
                   <div class="h-32 flex items-center justify-center text-gray-400 text-sm">
@@ -391,6 +457,28 @@ const activeSection = ref('uebersicht')
 const mobilePillStrip = ref(null)
 let sectionObserver = null
 
+// ── Sector dropdown nav ──────────────────────────────────────────────────────
+
+const sectorBarRef = ref(null)
+const openSector = ref(null)
+
+const activeSector = computed(() => {
+  for (const sg of collectionsBySector.value) {
+    if (sg.sections.some(cs => cs.id === activeSection.value)) return sg.sector
+  }
+  return null
+})
+
+function toggleSector(key) {
+  openSector.value = openSector.value === key ? null : key
+}
+
+function onSectorOutsideClick(e) {
+  if (sectorBarRef.value && !sectorBarRef.value.contains(e.target)) {
+    openSector.value = null
+  }
+}
+
 watch(activeSection, (id) => {
   if (!id || !mobilePillStrip.value) return
   const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`)
@@ -428,11 +516,13 @@ onMounted(() => {
     initObserver()
     initCollectionStepObserver()
   }, 200)
+  document.addEventListener('click', onSectorOutsideClick)
 })
 
 onUnmounted(() => {
   sectionObserver?.disconnect()
   collectionStepObserver?.disconnect()
+  document.removeEventListener('click', onSectorOutsideClick)
 })
 
 // ── Main data (SSR) ──────────────────────────────────────────────────────────

@@ -13,7 +13,7 @@ meta:
   icon: location_city
   item_duplication_fields: null
   note: null
-  preview_url: null
+  preview_url: "https://stadt-land-klima.de/municipalities/{{slug}}?preview=true&preview_token={{preview_token}}"
   singleton: false
   sort: 3
   sort_field: null
