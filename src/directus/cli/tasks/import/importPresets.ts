@@ -1,0 +1,43 @@
+import path from 'path';
+import { readPresets, createPresets, deletePresets } from '@directus/sdk';
+import createDirectusClient from '../shared/createDirectusClient.js';
+import readYamlFiles from '../shared/readYamlFiles.js';
+
+interface ImportPresetsOptions {
+  verbose?: boolean;
+}
+
+async function importDefaultPresets(src: string, options: ImportPresetsOptions = { verbose: false }): Promise<void> {
+  const client = createDirectusClient();
+
+  try {
+    if (options.verbose) console.info('Reading presets from YAML files...');
+    const presets = readYamlFiles(path.join(src));
+
+    if (options.verbose) console.info('Fetching existing presets...');
+    const existingPresets = await client.request(readPresets({ limit: -1 }));
+
+    // Filter presets that can be safely replaced (user=null)
+    const presetsToDelete = existingPresets.filter((p: any) => !p.user);
+
+    if (presetsToDelete.length) {
+      if (options.verbose) console.info(`Deleting ${presetsToDelete.length} old default presets...`);
+      const presetsToDeleteIds = presetsToDelete
+        .map((p: any) => p.id)
+        .filter((id: any) => id && id !== '');
+      if (presetsToDeleteIds.length) {
+        await client.request(deletePresets(presetsToDeleteIds));
+      }
+    }
+
+    if (options.verbose) console.info(`Creating ${presets.length} new default presets...`);
+    await client.request(createPresets(presets));
+
+    if (options.verbose) console.info('Default and role-specific presets imported successfully.');
+  } catch (err: any) {
+    console.error('Error importing presets:', err);
+    process.exit(1);
+  }
+}
+
+export default importDefaultPresets;

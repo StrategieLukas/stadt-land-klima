@@ -15,5 +15,15 @@
     "slugify": "^1.6.6",
     "yaml": "^2.4.5",
     "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.0",
+    "@types/node": "^22.0.0",
+    "@types/yargs": "^17.0.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   }
 }
