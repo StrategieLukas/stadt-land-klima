@@ -1,5 +1,5 @@
 {
-	"name": "directus-extension-operation-editor-manager",
+	"name": "editor-manager",
 	"description": "Bundle: add-editor + delete-editor operations for managing LokalteamMitglied editors",
 	"version": "1.0.0",
 	"keywords": [

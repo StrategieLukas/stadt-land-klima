@@ -2,9 +2,9 @@
 
 ## Summary
 
-**Total Extensions:** 15  
-**Fully Converted to TypeScript:** 7  
-**Partially Converted:** 0  
+**Total Extensions:** 15
+**Fully Converted to TypeScript:** 7
+**Partially Converted:** 0
 **Not Yet Converted:** 8
 
 ## ✅ Fully Converted Extensions
@@ -19,14 +19,14 @@ These extensions have been completely converted to TypeScript:
    - ✅ TypeScript dependencies added
    - ✅ Build verified
 
-2. **directus-extension-endpoint-unsplash**
+2. **endpoint-unsplash**
    - ✅ `src/index.ts` (with Express types, Unsplash API types)
    - ✅ `tsconfig.json` added
    - ✅ `package.json` updated
    - ✅ `@types/express` dependency added
    - ✅ Build verified
 
-3. **directus-extension-endpoint-generate-reset-link**
+3. **endpoint-generate-reset-link**
    - ✅ `src/index.ts` (with JWT types, Express types, Directus types)
    - ✅ `tsconfig.json` added
    - ✅ `package.json` updated
@@ -40,7 +40,7 @@ These extensions have been completely converted to TypeScript:
    - ✅ `@types/node`, `@types/express` dependencies added
    - ✅ Build verified
 
-5. **directus-extension-hook-search-index**
+5. **hook-search-index**
    - ✅ `src/index.ts` (with Meilisearch types, Database types)
    - ✅ `tsconfig.json` added
    - ✅ `package.json` updated
@@ -55,7 +55,7 @@ These extensions have been completely converted to TypeScript:
    - ✅ `@types/node` dependency added
    - ✅ Build verified
 
-7. **directus-extension-hook-calc-score-and-ranks**
+7. **hook-calc-score-and-ranks**
    - ✅ `src/index.ts` (with Directus types)
    - ✅ `src/calculateScores.ts` (with type annotations for scoring logic)
    - ✅ `tsconfig.json` added
@@ -68,11 +68,11 @@ These extensions have been completely converted to TypeScript:
 
 These extensions still need conversion:
 
-1. **directus-extension-consent-management**
+1. **consent-management**
    - Has nested structure: `src/consent/endpoint/`, `src/consent/hook/`, `src/consent/module/`
    - Multiple .js files to convert
 
-2. **directus-extension-operation-editor-manager**
+2. **editor-manager**
    - Bundle extension with `src/add-editor/` and `src/delete-editor/` subdirectories
    - Contains operation-add-editor and operation-delete-editor
    - Files: `api.js`, `app.js` in each subdirectory

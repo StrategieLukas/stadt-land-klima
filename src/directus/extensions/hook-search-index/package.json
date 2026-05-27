@@ -1,5 +1,5 @@
 {
-	"name": "directus-extension-hook-search-index",
+	"name": "hook-search-index",
 	"description": "Syncs content to Meilisearch site_content index on create/update/delete",
 	"icon": "search",
 	"version": "1.0.0",
