@@ -1,0 +1,56 @@
+{
+  "name": "custom-slk-interfaces",
+  "description": "Bundle of custom SLK interface extensions",
+  "version": "1.0.0",
+  "type": "module",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "bundle",
+    "interfaces"
+  ],
+  "directus:extension": {
+    "type": "bundle",
+    "partial": true,
+    "entries": [
+      {
+        "type": "interface",
+        "name": "footer-nav-editor",
+        "path": "./dist/footer-nav-editor.js"
+      },
+      {
+        "type": "interface",
+        "name": "icon-radio",
+        "path": "./dist/images-as-radio-buttons.js"
+      },
+      {
+        "type": "interface",
+        "name": "measure-preview",
+        "path": "./dist/measure-infos.js"
+      },
+      {
+        "type": "interface",
+        "name": "navigation-editor",
+        "path": "./dist/navigation-editor.js"
+      },
+      {
+        "type": "interface",
+        "name": "unsplash-image",
+        "path": "./dist/unsplash-image.js"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "echo 'Bundle uses pre-built interface files. To rebuild, run build from individual extension directories or copy dist/index.js files to bundle dist/ with interface names.'",
+    "link": "directus-extension link"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "17.1.4",
+    "esbuild": "^0.28.0",
+    "sass": "^1.69.5",
+    "vue": "^3.3.8"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
+  }
+}
