@@ -3,7 +3,7 @@ import {
   updateSettings,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
-import readHoconFile from '../shared/readHoconFile.mjs';
+import readYamlFile from '../shared/readYamlFile.mjs';
 
 // Sensitive settings fields that should be populated from environment variables
 // These are filtered out during export and merged during import
@@ -50,17 +50,17 @@ function parseValue(value, type) {
 function mergeEnvSettings(settings, verbose = false) {
   const merged = { ...settings };
   let mergedCount = 0;
-  
+
   for (const [envVar, envValue] of Object.entries(process.env)) {
     if (envVar.startsWith('DIRECTUS_') && envValue !== undefined && envValue !== null && envValue !== '') {
       // Remove DIRECTUS_ prefix and convert to lowercase
       const settingField = envVar.slice('DIRECTUS_'.length).toLowerCase();
-      
+
       // Check if this field should be merged
       // Either it's in our known list, or it matches a wildcard pattern
       const isKnownField = settingField in SENSITIVE_SETTINGS_FIELDS;
       const matchesWildcard = WILDCARD_PATTERN.test(settingField);
-      
+
       if (isKnownField || matchesWildcard) {
         const fieldType = isKnownField ? SENSITIVE_SETTINGS_FIELDS[settingField] : 'string';
         merged[settingField] = parseValue(envValue, fieldType);
@@ -71,7 +71,7 @@ function mergeEnvSettings(settings, verbose = false) {
       }
     }
   }
-  
+
   return { merged, mergedCount };
 }
 
@@ -79,8 +79,8 @@ async function importSettings(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
-    const settings = await readHoconFile(path.join(src, 'settings.hocon'));
-    
+    const settings = readYamlFile(path.join(src, 'settings.yaml'));
+
     // Merge environment variables for sensitive fields
     const { merged: settingsWithEnv, mergedCount } = mergeEnvSettings(settings, options.verbose);
 
@@ -88,7 +88,7 @@ async function importSettings(src, options = {verbose: false}) {
     // Directus 11.17.4 has a bug with updateSettings and parameter counting
     const directusUrl = process.env.FRONTEND_DIRECTUS_URL || 'http://directus:8055';
     const token = process.env.CLI_DIRECTUS_STATIC_TOKEN;
-    
+
     const response = await fetch(`${directusUrl}/settings`, {
       method: 'PATCH',
       headers: {

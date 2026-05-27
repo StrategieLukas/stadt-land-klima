@@ -12,7 +12,7 @@ import exportTranslations from './exportTranslations.mjs';
 import exportSettings from './exportSettings.mjs';
 import exportCollectionItems from './exportCollectionItems.mjs';
 
-const clerDirOpts = {extensions: ['.hocon']};
+const clerDirOpts = {extensions: ['.yaml']};
 
 async function clear(dest, options = {verbose: false}) {
   try {
@@ -69,24 +69,24 @@ function exportTasks(yargs) {
     },
     async (argv) => {
       const dest = argv.dest;
-      
+
       if (argv.verbose) {
         console.info(`Exporting policies to ${dest}`);
       }
-      
+
       await clearDirectusCache();
-      
-      // Clear the directory before export (deletes all hocon files)
+
+      // Clear the directory before export (deletes all yaml files)
       if (fs.existsSync(dest)) {
-        clearDir(dest, { extensions: ['.hocon'] });
+        clearDir(dest, { extensions: ['.yaml'] });
       } else {
         fs.mkdirSync(dest, { recursive: true });
       }
-      
+
       if (argv.verbose) {
         console.info(`${dest} cleared`);
       }
-      
+
       await exportPolicies(dest, {
         verbose: argv.verbose,
         overwrite: true,

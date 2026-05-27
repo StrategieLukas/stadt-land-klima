@@ -1,6 +1,6 @@
 import fse from 'fse';
 import path from 'path';
-import stringifyHocon from '../shared/stringifyHocon.mjs';
+import { stringify } from 'yaml';
 import { readRoles, readPolicies } from '@directus/sdk';
 import slugify from 'slugify';
 import createDirectusClient, { directusUrl } from '../shared/createDirectusClient.mjs';
@@ -113,7 +113,7 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         // For other translation keys, strip the $t: prefix and slugify
         filename = filename.substring(3);
       }
-      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: false }) + '.hocon');
+      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: false }) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);
@@ -213,7 +213,7 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
         policies: policyNames.length > 0 ? policyNames : undefined,
       };
 
-      // Remove null/undefined values for cleaner HOCON
+      // Remove null/undefined values for cleaner YAML
       Object.keys(cleanRole).forEach((key) => {
         if (cleanRole[key] === null || cleanRole[key] === undefined) {
           delete cleanRole[key];
@@ -224,7 +224,7 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
       delete cleanRole.id;
       if (cleanRole.users) delete cleanRole.users;
 
-      fse.writeFileSync(destPath, stringifyHocon(cleanRole), { encoding: 'utf8' });
+      fse.writeFileSync(destPath, stringify(cleanRole), { encoding: 'utf8' });
       exportedCount++;
 
       if (options.verbose) console.info(`Exported role ${destPath}`);
@@ -234,7 +234,7 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
     // The Public role is a built-in role that doesn't appear in the roles list
     // In Directus v11.17.4+, it's represented by null in the directus_access table
     if (publicRolePolicyNames.length > 0) {
-      const destPath = path.join(dest, 'public.hocon');
+      const destPath = path.join(dest, 'public.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);
@@ -247,14 +247,14 @@ async function exportRoles(dest, options = { verbose: false, overwrite: false })
           policies: publicRolePolicyNames.sort(),
         };
 
-        // Remove null/undefined values for cleaner HOCON
+        // Remove null/undefined values for cleaner YAML
         Object.keys(publicRole).forEach((key) => {
           if (publicRole[key] === null || publicRole[key] === undefined) {
             delete publicRole[key];
           }
         });
 
-        fse.writeFileSync(destPath, stringifyHocon(publicRole), { encoding: 'utf8' });
+        fse.writeFileSync(destPath, stringify(publicRole), { encoding: 'utf8' });
         exportedCount++;
 
         if (options.verbose) console.info(`Exported Public role ${destPath}`);

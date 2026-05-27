@@ -17,11 +17,11 @@ custom_css: |-
   }
 
   .v-progress-linear {
-    display: none !important;
+    display: none !important; 
   }
-
+   
   :root {
-    --theme--primary: #1EA64A;
+    --theme--primary: #1EA64A; 
 
     --nav-default: #16bae7;   /* dark blue */
     --nav-hover: #E6F1F5;     /* light blue */

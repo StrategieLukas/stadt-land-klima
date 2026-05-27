@@ -1,14 +1,14 @@
 import fs from 'fs';
 import fse from 'fse';
 import path from 'path';
-import stringifyHocon from '../shared/stringifyHocon.mjs';
+import { stringify } from 'yaml';
 import { readPolicies, readPermissions } from '@directus/sdk';
 import slugify from 'slugify';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 
 /**
  * Export policies and their permissions for Directus v11+
- * 
+ *
  * In Directus v11, permissions are attached to POLICIES, not directly to roles.
  * This exports policies with their associated permissions.
  */
@@ -48,7 +48,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
         // For other translation keys, strip the $t: prefix and slugify
         filename = filename.substring(3);
       }
-      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: false }) + '.hocon');
+      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: false }) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);
@@ -85,7 +85,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
         }),
       };
 
-      // Remove null/undefined values for cleaner HOCON
+      // Remove null/undefined values for cleaner YAML
       Object.keys(cleanPolicy).forEach((key) => {
         if (cleanPolicy[key] === null || cleanPolicy[key] === undefined) {
           delete cleanPolicy[key];
@@ -95,7 +95,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
       // Explicitly remove id field to ensure no UUIDs are exported (use name as identifier)
       delete cleanPolicy.id;
 
-      fs.writeFileSync(destPath, stringifyHocon(cleanPolicy), { encoding: 'utf8' });
+      fs.writeFileSync(destPath, stringify(cleanPolicy), { encoding: 'utf8' });
       exportedCount++;
 
       if (options.verbose) console.info(`Exported policy ${destPath}`);
