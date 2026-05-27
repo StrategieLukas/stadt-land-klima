@@ -146,12 +146,15 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 8. IMPORTANT: Always verify if changes to the frontend actually work by doing curl requests to localhost:8080
 9. The frontend automatically hot-reloads when changes are made, no need to restart containers.
 10. Do not edit the permissions of public.yaml. The frontend permissions belong to frontend.yaml.
+11. Extensions and the CLI script are to be written in Typescript only. Avoid nonsense interfaces for only a single primitive field.
+12. Elsewhere prefer typescript for all new implementations, unless it would be significant effort or would cause interop problems.
+13. NEVER commit automatically. The user must use the diff to be able to review your changes.
 
 
 ## Project structure:
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
-2. src/backend - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
-3. directus-extension-not-build - the original code for directus extension, that are compiled from here with `npm install` and then `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
+2. src/directus - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
+3. src/directus/extensions - our custom extensions. Compile with `npm install` and then `npm run build`.
 
 ## Applying changes for directus yamls
 1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.

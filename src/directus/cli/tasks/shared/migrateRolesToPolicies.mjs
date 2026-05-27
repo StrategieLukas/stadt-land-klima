@@ -1,26 +1,25 @@
 import fse from 'fse';
 import path from 'path';
-import parser from '@pushcorn/hocon-parser';
-import stringifyHocon from './stringifyHocon.mjs';
+import { parse, stringify } from 'yaml';
 import slugify from 'slugify';
 
 /**
- * Migration script to convert old Directus v10 role HOCON files to v11+ format
- * 
+ * Migration script to convert old Directus v10 role YAML files to v11+ format
+ *
  * In v10: Roles had permissions directly attached
  * In v11+: Permissions are in policies, roles reference policies by ID
- * 
+ *
  * This script:
- * 1. Reads old role HOCON files with permissions
- * 2. Creates policy HOCON files with the permissions
- * 3. Updates role HOCON files to reference the policies
- * 
+ * 1. Reads old role YAML files with permissions
+ * 2. Creates policy YAML files with the permissions
+ * 3. Updates role YAML files to reference the policies
+ *
  * Usage: node migrateRolesToPolicies.mjs /path/to/roles/folder /path/to/policies/folder
  */
 
-async function parseHoconFile(filePath) {
+function parseYamlFile(filePath) {
   const content = fse.readFileSync(filePath, 'utf8');
-  return await parser.parse({ text: content });
+  return parse(content);
 }
 
 async function migrateRolesToPolicies(rolesSrc, policiesDest) {
@@ -31,8 +30,8 @@ async function migrateRolesToPolicies(rolesSrc, policiesDest) {
   fse.mkdirSync(policiesDest, { recursive: true });
 
   // Read all role files
-  const roleFiles = fse.readdirSync(rolesSrc).filter(f => 
-    (f.endsWith('.hocon') || f.endsWith('.conf')) && !f.startsWith('.')
+  const roleFiles = fse.readdirSync(rolesSrc).filter(f =>
+    (f.endsWith('.yaml') || f.endsWith('.yml')) && !f.startsWith('.')
   );
 
   let migratedCount = 0;
@@ -41,9 +40,9 @@ async function migrateRolesToPolicies(rolesSrc, policiesDest) {
   for (const roleFile of roleFiles) {
     const rolePath = path.join(rolesSrc, roleFile);
     let role;
-    
+
     try {
-      role = await parseHoconFile(rolePath);
+      role = parseYamlFile(rolePath);
     } catch (err) {
       console.warn(`Could not parse ${roleFile}: ${err.message}`);
       continue;
@@ -68,7 +67,7 @@ async function migrateRolesToPolicies(rolesSrc, policiesDest) {
     // Create a policy for this role's permissions
     const policyName = `${role.name} Policy`;
     const policySlug = slugify(policyName, { replacement: '_', lower: true });
-    const policyFile = path.join(policiesDest, `${policySlug}.hocon`);
+    const policyFile = path.join(policiesDest, `${policySlug}.yaml`);
 
     // Create policy with permissions
     const policy = {
@@ -86,18 +85,18 @@ async function migrateRolesToPolicies(rolesSrc, policiesDest) {
     };
 
     // Write policy file
-    fse.writeFileSync(policyFile, stringifyHocon(policy), { encoding: 'utf8' });
+    fse.writeFileSync(policyFile, stringify(policy), { encoding: 'utf8' });
     policyCount++;
 
     // Update role to reference the policy
     const updatedRole = { ...role };
     delete updatedRole.permissions;
-    
+
     // Store policy name as reference (will be resolved during import)
     updatedRole.policies = [policyName];
 
     // Write updated role file
-    fse.writeFileSync(rolePath, stringifyHocon(updatedRole), { encoding: 'utf8' });
+    fse.writeFileSync(rolePath, stringify(updatedRole), { encoding: 'utf8' });
     migratedCount++;
 
     console.log(`Migrated ${role.name}: created policy "${policyName}"`);

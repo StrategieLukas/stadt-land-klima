@@ -9,7 +9,7 @@ import {
   readPolicies,
 } from '@directus/sdk';
 import createDirectusClient, { directusUrl } from '../shared/createDirectusClient.mjs';
-import readHoconFiles from '../shared/readHoconFiles.mjs';
+import readYamlFiles from '../shared/readYamlFiles.mjs';
 
 /**
  * Import roles for Directus v11+
@@ -22,7 +22,7 @@ import readHoconFiles from '../shared/readHoconFiles.mjs';
  * 2. Attaches policies to roles (policies must be imported first)
  * 3. NEVER modifies user assignments - only role metadata and policy attachments
  *
- * HOCON file format (STRICT - names only, NO UUIDs):
+ * YAML file format (STRICT - names only, NO UUIDs):
  * - name: Role name
  * - icon: Optional icon
  * - description: Optional description
@@ -31,9 +31,9 @@ import readHoconFiles from '../shared/readHoconFiles.mjs';
  * - policies: Array of policy NAMES (resolved to IDs during import)
  *
  * IMPORTANT: This import ONLY accepts name-based references. UUIDs are NOT supported.
- * Use the export command to generate proper name-based HOCON files.
+ * Use the export command to generate proper name-based YAML files.
  *
- * @param {string} src - Source directory containing role HOCON files
+ * @param {string} src - Source directory containing role YAML files
  * @param {object} options - Import options
  */
 
@@ -54,7 +54,7 @@ function validateNotUuid(ref, type) {
     throw new Error(
       `Invalid ${type} reference: '${ref}' appears to be a UUID. ` +
       `This import only accepts name-based references. ` +
-      `Please re-export your configuration using the export command to generate name-based HOCON files.`
+      `Please re-export your configuration using the export command to generate name-based YAML files.`
     );
   }
 
@@ -105,7 +105,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
     }));
     const existingPolicies = await client.request(readPolicies({ limit: -1 }));
 
-    const roles = await readHoconFiles(path.join(src));
+    const roles = readYamlFiles(path.join(src));
 
     const rolesToCreate = [];
     const rolesToUpdate = [];
@@ -137,7 +137,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
       if (existingRole) {
         // Preserve existing role data that we don't want to overwrite
-        // Only update fields that exist in the HOCON AND have changed
+        // Only update fields that exist in the YAML AND have changed
         const roleToUpdate = { id: existingRole.id, name: existingRole.name };
         let hasChanges = false;
 
@@ -180,7 +180,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
           });
         }
       } else {
-        // New role - include all fields from HOCON
+        // New role - include all fields from YAML
         const roleToCreate = {
           name: role.name,
           icon: role.icon,

@@ -277,7 +277,7 @@ function importTasks(yargs) {
 
   .command(
     'import:items [collection] [src]',
-    'imports the items of a collection from a file specified by "src". By default it will import from "contents/{collection}.hocon"',
+    'imports the items of a collection from a file specified by "src". By default it will import from "contents/{collection}.yaml"',
     (yargs) => {
       return yargs
       .positional('collection', {
@@ -290,7 +290,7 @@ function importTasks(yargs) {
       });
     },
     async (argv) => {
-      const src = argv.src || path.join('contents', argv.collection + '.hocon');
+      const src = argv.src || path.join('contents', argv.collection + '.yaml');
 
       if (argv.verbose) {
         console.info(`Importing ${argv.collection} items from ${src}`);

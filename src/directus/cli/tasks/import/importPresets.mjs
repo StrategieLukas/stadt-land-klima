@@ -1,14 +1,14 @@
 import path from 'path';
 import { readPresets, createPresets, deletePresets } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
-import readHoconFiles from '../shared/readHoconFiles.mjs';
+import readYamlFiles from '../shared/readYamlFiles.mjs';
 
 async function importDefaultPresets(src, options = { verbose: false }) {
   const client = createDirectusClient();
 
   try {
-    if (options.verbose) console.info('Reading presets from HOCON files...');
-    let presets = await readHoconFiles(path.join(src));
+    if (options.verbose) console.info('Reading presets from YAML files...');
+    let presets = readYamlFiles(path.join(src));
 
     if (options.verbose) console.info('Fetching existing presets...');
     const existingPresets = await client.request(readPresets({ limit: -1 }));

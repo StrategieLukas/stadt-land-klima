@@ -1,17 +1,17 @@
 import path from 'path';
 import { schemaDiff, schemaApply } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
-import readHoconFiles from '../shared/readHoconFiles.mjs';
-import readHoconFile from '../shared/readHoconFile.mjs';
+import readYamlFiles from '../shared/readYamlFiles.mjs';
+import readYamlFile from '../shared/readYamlFile.mjs';
 
 async function importSchema(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
-    const header = await readHoconFile(path.join(src, 'header.hocon'));
-    const collections = await readHoconFiles(path.join(src, 'collections'));
-    const fields = await readHoconFiles(path.join(src, 'fields'));
-    const relations = await readHoconFiles(path.join(src, 'relations'));
+    const header = readYamlFile(path.join(src, 'header.yaml'));
+    const collections = readYamlFiles(path.join(src, 'collections'));
+    const fields = readYamlFiles(path.join(src, 'fields'));
+    const relations = readYamlFiles(path.join(src, 'relations'));
     const schema = Object.assign({}, header, {
       collections: collections,
       fields: fields,
@@ -25,7 +25,7 @@ async function importSchema(src, options = {verbose: false}) {
     // Use REST API directly for schema operations
     let diffUrl = new URL('/schema/diff?force=true', client.url).toString();
     let applyUrl = new URL('/schema/apply?force=true', client.url).toString();
-    
+
     // First, try schema/diff
     const diffResponse = await fetch(diffUrl, {
       method: 'POST',
@@ -44,7 +44,7 @@ async function importSchema(src, options = {verbose: false}) {
 
     let diffData;
     const responseText = await diffResponse.text();
-    
+
     // Handle 204 No Content (schema already matches)
     if (diffResponse.status === 204 || !responseText.trim()) {
       if (options.verbose) {

@@ -1,6 +1,6 @@
 import fse from 'fse';
 import path from 'path';
-import stringifyHocon from '../shared/stringifyHocon.mjs';
+import { stringify } from 'yaml';
 import { schemaSnapshot } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 
@@ -37,8 +37,8 @@ async function exportSchema(dest, options = { verbose: false, remove: false }) {
     fse.mkdirSync(path.join(dest, 'relations'), { recursive: true });
 
     fse.writeFileSync(
-      path.join(dest, 'header.hocon'),
-      stringifyHocon(header),
+      path.join(dest, 'header.yaml'),
+      stringify(header),
       { encoding: 'utf8' }
     );
 
@@ -50,9 +50,9 @@ async function exportSchema(dest, options = { verbose: false, remove: false }) {
       const destPath = path.join(
         dest,
         'collections',
-        collection.collection + '.hocon'
+        collection.collection + '.yaml'
       );
-      fse.writeFileSync(destPath, stringifyHocon(collection), { encoding: 'utf8' });
+      fse.writeFileSync(destPath, stringify(collection), { encoding: 'utf8' });
       exportedCollections++;
       if (options.verbose) console.info(`Exported collection ${destPath}`);
     });
@@ -60,8 +60,8 @@ async function exportSchema(dest, options = { verbose: false, remove: false }) {
     fields.forEach((field) => {
       const fieldDir = path.join(dest, 'fields', field.collection);
       fse.mkdirSync(fieldDir, { recursive: true });
-      const destPath = path.join(fieldDir, field.field + '.hocon');
-      fse.writeFileSync(destPath, stringifyHocon(field), { encoding: 'utf8' });
+      const destPath = path.join(fieldDir, field.field + '.yaml');
+      fse.writeFileSync(destPath, stringify(field), { encoding: 'utf8' });
       exportedFields++;
       if (options.verbose) console.info(`Exported field ${destPath}`);
     });
@@ -75,9 +75,9 @@ async function exportSchema(dest, options = { verbose: false, remove: false }) {
           relation.collection +
           '.' +
           relation.field +
-          '.hocon'
+          '.yaml'
       );
-      fse.writeFileSync(destPath, stringifyHocon(relation), { encoding: 'utf8' });
+      fse.writeFileSync(destPath, stringify(relation), { encoding: 'utf8' });
       exportedRelations++;
       if (options.verbose) console.info(`Exported relation ${destPath}`);
     });

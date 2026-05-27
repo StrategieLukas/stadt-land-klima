@@ -1,6 +1,6 @@
 import fse from 'fse';
 import path from 'path';
-import stringifyHocon from '../shared/stringifyHocon.mjs';
+import { stringify } from 'yaml';
 import { readFlows, readOperations } from '@directus/sdk';
 import slugify from 'slugify';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
@@ -27,7 +27,7 @@ async function exportFlows(dest, options = {verbose: false, overwrite: false}) {
     fse.mkdirSync(dest);
 
     flows.forEach((flow) => {
-      const destPath = path.join(dest, slugify(flow.name, { replacement: '_', lower: false }) + '.hocon');
+      const destPath = path.join(dest, slugify(flow.name, { replacement: '_', lower: false }) + '.yaml');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) {
@@ -76,7 +76,7 @@ async function exportFlows(dest, options = {verbose: false, overwrite: false}) {
 
       fse.writeFileSync(
         destPath,
-        stringifyHocon(flow),
+        stringify(flow),
         { encoding: 'utf8' }
       );
 
