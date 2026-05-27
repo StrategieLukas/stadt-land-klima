@@ -1,5 +1,5 @@
 <template>
-  <v-notice v-if="!choices" type="warning">No choices configured</v-notice>
+  <div v-if="!choices" class="v-notice warning">No choices configured</div>
   <div
     v-else
     class="radio-icon-buttons"
@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import useDirectusToken from './use-directus-token';
-import { nextTick, computed } from 'vue';
+import { inject, nextTick, computed } from 'vue';
 
 interface Choice {
   value: string;

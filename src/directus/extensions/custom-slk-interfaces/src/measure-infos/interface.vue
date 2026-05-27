@@ -8,26 +8,26 @@
         target="_blank"
         rel="noopener noreferrer"
       >
-        {{ $t('directus.fields.view_measure_on_frontend') }}
+        {{ $trans('directus.fields.view_measure_on_frontend') }}
       </a>
     </div>
 
     <div v-if="!measureId" class="v-notice info">
       <v-icon name="info" />
       <div class="content">
-        <div class="title">{{ $t('directus.interfaces.no_measure_found_error') }}</div>
+        <div class="title">{{ $trans('directus.interfaces.no_measure_found_error') }}</div>
       </div>
     </div>
 
     <div v-else-if="loading" class="loading-container">
       <v-progress-circular indeterminate />
-      <span class="loading-text">{{ $t('generic.loading') }}</span>
+      <span class="loading-text">{{ $trans('generic.loading') }}</span>
     </div>
 
     <div v-else-if="error" class="v-notice danger">
       <v-icon name="error" />
       <div class="content">
-        <div class="title">{{ $t('error') }}</div>
+        <div class="title">{{ $trans('error') }}</div>
         <div class="text">{{ error }}</div>
       </div>
     </div>
@@ -39,14 +39,14 @@
           <span class="field-label">{{ getFieldLabel(fieldKey) }}</span>
         </div>
         <div v-if="measureData[fieldKey]" class="field-content" v-html="measureData[fieldKey]"></div>
-        <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
+        <div v-else class="field-content empty">{{ $trans('no_content_available') }}</div>
       </div>
     </div>
 
     <div v-else class="v-notice warning">
       <v-icon name="warning" />
       <div class="content">
-        <div class="title">{{ $t('no_measure_data_available') }}</div>
+        <div class="title">{{ $trans('no_measure_data_available') }}</div>
       </div>
     </div>
   </div>
