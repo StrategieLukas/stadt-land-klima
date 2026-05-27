@@ -1,5 +1,5 @@
 {
-  "name": "directus-extension-klimawahl-operations",
+  "name": "election-check",
   "description": "Bundle: generate-questions + send-candidate-mails operations, plus an Elections action interface.",
   "version": "2.0.0",
   "keywords": ["directus", "directus-extension", "directus-custom-bundle"],

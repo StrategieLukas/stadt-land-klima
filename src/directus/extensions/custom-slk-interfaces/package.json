@@ -1,8 +1,8 @@
 {
   "name": "custom-slk-interfaces",
-  "description": "Bundle of custom SLK interface extensions",
   "version": "1.0.0",
   "type": "module",
+  "private": true,
   "keywords": [
     "directus",
     "directus-extension",
@@ -11,48 +11,49 @@
   ],
   "directus:extension": {
     "type": "bundle",
-    "partial": true,
+    "host": "^11.0.0",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.js"
+    },
     "entries": [
       {
         "type": "interface",
         "name": "footer-nav-editor",
-        "path": "./dist/footer-nav-editor.js"
+        "source": "./src/footer-nav-editor/index.ts"
       },
       {
         "type": "interface",
         "name": "icon-radio",
-        "path": "./dist/images-as-radio-buttons.js"
+        "source": "./src/images-as-radio-buttons/index.ts"
       },
       {
         "type": "interface",
         "name": "measure-preview",
-        "path": "./dist/measure-infos.js"
+        "source": "./src/measure-infos/index.ts"
       },
       {
         "type": "interface",
         "name": "navigation-editor",
-        "path": "./dist/navigation-editor.js"
+        "source": "./src/navigation-editor/index.ts"
       },
       {
         "type": "interface",
         "name": "unsplash-image",
-        "path": "./dist/unsplash-image.js"
+        "source": "./src/unsplash-image/index.ts"
       }
     ]
   },
   "scripts": {
-    "build": "echo 'Bundle uses pre-built interface files. To rebuild, run build from individual extension directories or copy dist/index.js files to bundle dist/ with interface names.'",
-    "link": "directus-extension link",
-    "dev": "vite build --watch",
-    "build:ts": "tsc --noEmit && vite build"
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link"
   },
   "devDependencies": {
     "@directus/extensions-sdk": "17.1.4",
-    "@vue/compiler-sfc": "^3.3.8",
     "esbuild": "^0.28.0",
     "sass": "^1.69.5",
     "typescript": "^5.3.0",
-    "vite": "^5.0.0",
     "vue": "^3.3.8"
   },
   "overrides": {

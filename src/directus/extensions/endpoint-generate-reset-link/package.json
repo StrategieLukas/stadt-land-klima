@@ -1,5 +1,5 @@
 {
-  "name": "directus-extension-endpoint-generate-reset-link",
+  "name": "endpoint-generate-reset-link",
   "version": "1.0.0",
   "type": "module",
   "directus:extension": {
