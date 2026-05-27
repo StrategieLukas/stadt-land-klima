@@ -3,7 +3,7 @@ import {
   updateSettings,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
-import readYamlFile from '../shared/readYamlFile.mjs';
+import readHoconFile from '../shared/readHoconFile.mjs';
 
 // Sensitive settings fields that should be populated from environment variables
 // These are filtered out during export and merged during import
@@ -79,7 +79,7 @@ async function importSettings(src, options = {verbose: false}) {
   const client = createDirectusClient();
 
   try {
-    const settings = readYamlFile(path.join(src, 'settings.yaml'));
+    const settings = await readHoconFile(path.join(src, 'settings.hocon'));
     
     // Merge environment variables for sensitive fields
     const { merged: settingsWithEnv, mergedCount } = mergeEnvSettings(settings, options.verbose);

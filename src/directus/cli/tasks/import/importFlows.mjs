@@ -7,7 +7,7 @@ import {
   readOperations, createOperations, updateOperation, deleteOperations, updateFlows,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
-import readYamlFiles from '../shared/readYamlFiles.mjs';
+import readHoconFiles from '../shared/readHoconFiles.mjs';
 
 async function importFlows(src, options = {verbose: false, overwrite: false}) {
   const client = createDirectusClient();
@@ -15,7 +15,7 @@ async function importFlows(src, options = {verbose: false, overwrite: false}) {
   try {
     const existingFlows = await client.request(readFlows({limit: -1}));
     const existingOperations = await client.request(readOperations({limit: -1}));
-    const flows = readYamlFiles(path.join(src));
+    const flows = await readHoconFiles(path.join(src));
     let operations = [];
 
     const flowsToCreate = [];

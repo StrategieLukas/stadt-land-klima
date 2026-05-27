@@ -1,0 +1,36 @@
+{
+  "name": "directus-extension-hook-calc-score-and-ranks",
+  "version": "0.1.0",
+  "description": "Hook: recalc scores on ratings change, update ranks, safe measure deletion",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link"
+  },
+  "keywords": [
+    "directus-extension",
+    "directus",
+    "hook"
+  ],
+  "author": "your-name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@directus/extensions-sdk": "17.1.4",
+    "@directus/types": "^11.0.0",
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.0.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
+  },
+  "directus:extension": {
+    "type": "hook",
+    "host": "^11.0.0",
+    "path": "./dist/index.js",
+    "source": "src/index.ts"
+  }
+}

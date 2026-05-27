@@ -8,14 +8,14 @@ import {
   deleteItems,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
-import readYamlFile from '../shared/readYamlFile.mjs';
+import readHoconFile from '../shared/readHoconFile.mjs';
 
 async function importCollectionItems(collection, src, options = {verbose: false, remove: false, overwrite: false}) {
   const client = createDirectusClient();
 
   try {
     const existingItems = await client.request(readItems(collection, {limite: -1}));
-    const items = readYamlFile(src);
+    const items = await readHoconFile(src);
 
     const itemsToCreate = [];
     const itemsToUpdate = [];

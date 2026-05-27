@@ -1,6 +1,6 @@
 import fse from 'fse';
 import path from 'path';
-import { stringify } from 'yaml';
+import stringifyHocon from '../shared/stringifyHocon.mjs';
 import { readPresets } from '@directus/sdk';
 import { readRoles } from '@directus/sdk';
 import slugify from 'slugify';
@@ -30,13 +30,13 @@ async function exportPresets(dest, options = { verbose: false, overwrite: false 
       let filename = '';
       if (!preset.role) {
         // Global default
-        filename = slugify(preset.collection, { replacement: '_', lower: false }) + '.yaml';
+        filename = slugify(preset.collection, { replacement: '_', lower: false }) + '.hocon';
       } else {
         // Role-specific default
         const roleName = roleMap[preset.role] || preset.role;
         filename =
           slugify(`${preset.collection}-${roleName}`, { replacement: '_', lower: false }) +
-          '.yaml';
+          '.hocon';
       }
 
       const destPath = path.join(dest, filename);
@@ -46,7 +46,7 @@ async function exportPresets(dest, options = { verbose: false, overwrite: false 
         continue;
       }
 
-      fse.writeFileSync(destPath, stringify(presetData), { encoding: 'utf8' });
+      fse.writeFileSync(destPath, stringifyHocon(presetData), { encoding: 'utf8' });
 
       if (options.verbose) {
         console.info(`Exported preset to ${destPath}`);

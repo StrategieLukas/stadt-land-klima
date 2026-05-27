@@ -1,7 +1,7 @@
 import fs from 'fs';
 import fse from 'fse';
 import path from 'path';
-import { stringify } from 'yaml';
+import stringifyHocon from '../shared/stringifyHocon.mjs';
 import { readPolicies, readPermissions } from '@directus/sdk';
 import slugify from 'slugify';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
@@ -48,7 +48,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
         // For other translation keys, strip the $t: prefix and slugify
         filename = filename.substring(3);
       }
-      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: false }) + '.yaml');
+      const destPath = path.join(dest, slugify(filename, { replacement: '_', lower: false }) + '.hocon');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);
@@ -85,7 +85,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
         }),
       };
 
-      // Remove null/undefined values for cleaner YAML
+      // Remove null/undefined values for cleaner HOCON
       Object.keys(cleanPolicy).forEach((key) => {
         if (cleanPolicy[key] === null || cleanPolicy[key] === undefined) {
           delete cleanPolicy[key];
@@ -95,7 +95,7 @@ async function exportPolicies(dest, options = { verbose: false, overwrite: false
       // Explicitly remove id field to ensure no UUIDs are exported (use name as identifier)
       delete cleanPolicy.id;
 
-      fs.writeFileSync(destPath, stringify(cleanPolicy), { encoding: 'utf8' });
+      fs.writeFileSync(destPath, stringifyHocon(cleanPolicy), { encoding: 'utf8' });
       exportedCount++;
 
       if (options.verbose) console.info(`Exported policy ${destPath}`);

@@ -16,7 +16,7 @@ import {
   deleteRoles,
 } from '@directus/sdk';
 import createDirectusClient, { directusUrl } from '../shared/createDirectusClient.mjs';
-import readYamlFiles from '../shared/readYamlFiles.mjs';
+import readHoconFiles from '../shared/readHoconFiles.mjs';
 
 /**
  * Import roles and policies for Directus v11+
@@ -30,10 +30,10 @@ import readYamlFiles from '../shared/readYamlFiles.mjs';
  * 3. Policies are imported first since roles reference them
  *
  * Source directory structure:
- * - {src}/policies/  - policy YAML files
- * - {src}/roles/    - role YAML files
+ * - {src}/policies/  - policy HOCON files
+ * - {src}/roles/    - role HOCON files
  *
- * Policy YAML format:
+ * Policy HOCON format:
  * - name: Policy name
  * - icon: Optional icon
  * - description: Optional description
@@ -43,7 +43,7 @@ import readYamlFiles from '../shared/readYamlFiles.mjs';
  * - app_access: Optional boolean
  * - permissions: Array of permission objects
  *
- * Role YAML format (STRICT - names only, NO UUIDs):
+ * Role HOCON format (STRICT - names only, NO UUIDs):
  * - name: Role name
  * - icon: Optional icon
  * - description: Optional description
@@ -52,7 +52,7 @@ import readYamlFiles from '../shared/readYamlFiles.mjs';
  * - policies: Array of policy NAMES (resolved to IDs during import)
  *
  * IMPORTANT: This import ONLY accepts name-based references. UUIDs are NOT supported.
- * Use the export command to generate proper name-based YAML files.
+ * Use the export command to generate proper name-based HOCON files.
  */
 
 // UUID regex pattern (version 4 UUIDs are most common in Directus)
@@ -72,7 +72,7 @@ function validateNotUuid(ref, type) {
     throw new Error(
       `Invalid ${type} reference: '${ref}' appears to be a UUID. ` +
       `This import only accepts name-based references. ` +
-      `Please re-export your configuration using the export command to generate name-based YAML files.`
+      `Please re-export your configuration using the export command to generate name-based HOCON files.`
     );
   }
 
@@ -128,8 +128,8 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
     let existingPolicies = await client.request(readPolicies({ limit: -1 }));
     let existingPermissions = await client.request(readPermissions({ limit: -1 }));
 
-    // Read policy YAML files
-    const policies = readYamlFiles(policiesSrc);
+    // Read policy HOCON files
+    const policies = await readHoconFiles(policiesSrc);
 
     const policiesToCreate = [];
     const policiesToUpdate = [];
@@ -251,7 +251,7 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
         const policyStillExists = find(updatedPolicies, ['id', existingPermission.policy]);
         if (!policyStillExists) return true;
 
-        // Check if this permission is still in the YAML
+        // Check if this permission is still in the HOCON
         const policy = find(policies, ['name', policyStillExists.name]);
         if (!policy) return true;
 
@@ -302,7 +302,7 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
     );
     existingPolicies = await client.request(readPolicies({ limit: -1 }));
 
-    const roles = readYamlFiles(rolesSrc);
+    const roles = await readHoconFiles(rolesSrc);
 
     const rolesToCreate = [];
     const rolesToUpdate = [];
@@ -334,7 +334,7 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
 
       if (existingRole) {
         // Preserve existing role data that we don't want to overwrite
-        // Only update fields that are present in the YAML AND have changed
+        // Only update fields that are present in the HOCON AND have changed
         const roleToUpdate = { id: existingRole.id, name: existingRole.name };
         let hasChanges = false;
 
@@ -377,7 +377,7 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
           });
         }
       } else {
-        // New role - include all fields from YAML
+        // New role - include all fields from HOCON
         const roleToCreate = {
           name: role.name,
           icon: role.icon,

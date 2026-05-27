@@ -1,0 +1,57 @@
+{
+  "name": "directus-extension-consent-management",
+  "version": "1.0.0",
+  "description": "Consent management system with hook, module, and endpoint functionality",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link"
+  },
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "consent",
+    "agreements"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "markdown-it": "^14.1.1"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "17.1.4",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.0.0",
+    "vue": "^3.3.8"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
+  },
+  "directus:extension": {
+    "type": "bundle",
+    "host": "^11.0.0",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.js"
+    },
+    "entries": [
+      {
+        "type": "hook",
+        "name": "hook-consent-check",
+        "source": "src/consent/hook/index.ts"
+      },
+      {
+        "type": "module",
+        "name": "module-consent",
+        "source": "src/consent/module/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "endpoint-consent",
+        "source": "src/consent/endpoint/index.ts"
+      }
+    ]
+  }
+}

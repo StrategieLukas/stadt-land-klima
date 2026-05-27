@@ -1,6 +1,6 @@
 import fse from 'fse';
 import path from 'path';
-import { stringify } from 'yaml';
+import stringifyHocon from '../shared/stringifyHocon.mjs';
 import { readTranslations } from '@directus/sdk';
 import slugify from 'slugify';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
@@ -14,7 +14,7 @@ async function exportTranslations(dest, options = {verbose: false, overwrite: fa
     fse.mkdirSync(dest);
 
     translations.forEach((translation) => {
-      const destPath = path.join(dest, slugify(translation.key, { replacement: '_', lower: false }) + '.' + translation.language + '.yaml');
+      const destPath = path.join(dest, slugify(translation.key, { replacement: '_', lower: false }) + '.' + translation.language + '.hocon');
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) {
@@ -27,7 +27,7 @@ async function exportTranslations(dest, options = {verbose: false, overwrite: fa
 
       fse.writeFileSync(
         destPath,
-        stringify(translation),
+        stringifyHocon(translation),
         { encoding: 'utf8' }
       );
 

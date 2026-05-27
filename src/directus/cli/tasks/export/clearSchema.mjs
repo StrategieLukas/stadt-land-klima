@@ -2,12 +2,12 @@ import fse from 'fse';
 import path from 'path';
 import clearDir from '../shared/clearDir.mjs';
 
-const clerDirOpts = {extensions: ['.yaml']};
+const clerDirOpts = {extensions: ['.hocon']};
 
 async function clearSchema(dest, options = {verbose: false}) {
   try {
-    if (fse.existsSync(path.join(dest, 'header.yaml'))) {
-      fse.unlinkSync(path.join(dest, 'header.yaml'));
+    if (fse.existsSync(path.join(dest, 'header.hocon'))) {
+      fse.unlinkSync(path.join(dest, 'header.hocon'));
     }
     clearDir(path.join(dest, 'collections'), clerDirOpts);
     clearDir(path.join(dest, 'fields'), clerDirOpts);
