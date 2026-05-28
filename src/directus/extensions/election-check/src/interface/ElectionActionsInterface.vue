@@ -1,265 +1,286 @@
 <template>
-  <div v-if="primaryKey && primaryKey !== '+'" class="election-actions">
+  <div v-if="isExistingRecord" class="election-actions">
 
-  <!-- Generate Questions card -->
-  <div class="action-card">
-    <div class="card-header">
-      <v-icon name="auto_awesome" class="card-icon" />
-      <div class="card-title-group">
-        <h3 class="card-title">Thesen generieren</h3>
-        <p class="card-subtitle">Top 10 Maßnahmen als Thesen erstellen</p>
+    <!-- Generate Theses card -->
+    <div class="action-card">
+      <div class="card-header">
+        <v-icon name="auto_awesome" class="card-icon" />
+        <div class="card-title-group">
+          <h3 class="card-title">Thesen generieren</h3>
+          <p class="card-subtitle">Top 10 Maßnahmen als Thesen erstellen</p>
+        </div>
+        <v-chip v-if="alreadyGenerated" x-small class="status-chip status-chip--success">
+          <v-icon name="check_circle" x-small left />
+          Generiert
+        </v-chip>
       </div>
 
-      <v-chip v-if="localAlreadyGenerated" x-small class="status-chip">
-        <v-icon name="check_circle" x-small left />
-        Bereits generiert
-      </v-chip>
+      <v-notice v-if="alreadyGenerated" type="success" class="card-notice">
+        Thesen wurden bereits generiert.
+      </v-notice>
+
+      <div class="card-footer">
+        <v-button
+          v-if="!alreadyGenerated"
+          :loading="loadingGenerate"
+          :disabled="isAnyLoading"
+          secondary
+          @click="handleGenerate"
+        >
+          <v-icon name="auto_awesome" left />
+          Thesen generieren
+        </v-button>
+        <v-button v-else secondary disabled>
+          <v-icon name="check" left />
+          Thesen generiert
+        </v-button>
+
+        <v-button
+          v-if="alreadyGenerated"
+          :loading="loadingGenerate"
+          :disabled="isAnyLoading"
+          secondary
+          class="rerun-button"
+          @click="handleRegenerate"
+        >
+          <v-icon name="refresh" left />
+          Neu generieren
+        </v-button>
+      </div>
     </div>
 
-    <!-- Already generated state -->
-    <v-notice
-      v-if="localAlreadyGenerated"
-      type="success"
-      class="card-notice"
-    >
-      Thesen wurden bereits generiert.
-    </v-notice>
-
-    <!-- Action button -->
-    <div class="card-footer">
-      <v-button
-        v-if="!localAlreadyGenerated"
-        :loading="loadingGenerate"
-        :disabled="loadingGenerate || loadingMails"
-        secondary
-        @click="triggerGenerate"
-      >
-        <v-icon name="auto_awesome" left />
-        Thesen generieren
-      </v-button>
-      <v-button
-        v-else
-        disabled
-        secondary
-      >
-        <v-icon name="check" left />
-        Thesen generiert
-      </v-button>
-    </div>
-  </div>
-
-  <!-- Send Emails card — only rendered when election is approved -->
-  <div v-if="isApproved" class="action-card">
-    <div class="card-header">
-      <v-icon name="mail" class="card-icon" />
-      <div class="card-title-group">
-        <h3 class="card-title">Kandidaten einladen</h3>
-        <p class="card-subtitle">Personalisierte E-Mails mit Zugangslink versenden</p>
+    <!-- Send Emails card — only shown when election is approved -->
+    <div v-if="isApproved" class="action-card">
+      <div class="card-header">
+        <v-icon name="mail" class="card-icon" />
+        <div class="card-title-group">
+          <h3 class="card-title">Kandidaten einladen</h3>
+          <p class="card-subtitle">Personalisierte E-Mails mit Zugangslink versenden</p>
+        </div>
+        <v-chip v-if="alreadySent" x-small class="status-chip status-chip--success">
+          <v-icon name="check_circle" x-small left />
+          Versendet
+        </v-chip>
       </div>
 
-      <v-chip v-if="localAlreadySent" x-small class="status-chip">
-        <v-icon name="check_circle" x-small left />
-        Versendet
-      </v-chip>
+      <v-notice v-if="alreadySent" type="success" class="card-notice">
+        E-Mails wurden bereits versendet.
+      </v-notice>
+
+      <div class="card-footer">
+        <v-button
+          v-if="!alreadySent"
+          :loading="loadingMails"
+          :disabled="isAnyLoading || !alreadyGenerated"
+          @click="handleSendMails"
+        >
+          <v-icon name="send" left />
+          E-Mails versenden
+        </v-button>
+        <v-button v-else disabled>
+          <v-icon name="check" left />
+          E-Mails versendet
+        </v-button>
+      </div>
+
+      <p v-if="!alreadyGenerated && !alreadySent" class="card-hint">
+        <v-icon name="info" x-small />
+        Thesen müssen zuerst generiert werden.
+      </p>
     </div>
 
-    <!-- Already sent notice -->
-    <v-notice v-if="localAlreadySent" type="success" class="card-notice">
-      E-Mails wurden bereits versendet.
-    </v-notice>
-
-    <div class="card-footer">
-      <v-button
-        v-if="!localAlreadySent"
-        :loading="loadingMails"
-        :disabled="loadingMails || loadingGenerate"
-        @click="triggerMails"
-      >
-        <v-icon name="send" left />
-        E-Mails versenden
-      </v-button>
-      <v-button
-        v-else
-        disabled
-      >
-        <v-icon name="check" left />
-        E-Mails versendet
-      </v-button>
-    </div>
-  </div>
-
+    <!-- Feedback notices -->
     <transition name="fade">
-      <v-notice v-if="successMessage" type="success" class="result-notice">
-        <v-icon name="check" left small />
-        {{ successMessage }}
+      <v-notice v-if="feedback.message" :type="feedback.type" class="result-notice">
+        <v-icon :name="feedback.type === 'success' ? 'check' : 'error'" left small />
+        {{ feedback.message }}
       </v-notice>
     </transition>
 
-    <transition name="fade">
-      <v-notice v-if="errorMessage" type="danger" class="result-notice">
-        <v-icon name="error" left small />
-        {{ errorMessage }}
-      </v-notice>
-    </transition>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useApi } from '@directus/extensions-sdk';
 
-const props = defineProps({
-  value: { type: Object, default: null },
-  primaryKey: { type: [String, Number], default: null },
-  values: { type: Object, default: () => ({}) },
-});
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
 
-const emit = defineEmits(['input']);
+const props = defineProps<{
+  primaryKey?: string | number | null;
+  values?: Record<string, unknown>;
+}>();
+
+// ---------------------------------------------------------------------------
+// Setup
+// ---------------------------------------------------------------------------
 
 const api = useApi();
 
-// Debug logging
-console.log('[election-actions] Component loaded');
-console.log('[election-actions] props.values:', props.values);
+const isExistingRecord = computed(
+  () => props.primaryKey != null && props.primaryKey !== '+',
+);
+
+// ---------------------------------------------------------------------------
+// Remote state (fetched from API)
+// ---------------------------------------------------------------------------
+
+const remote = ref({
+  alreadyGenerated: false,
+  alreadySent: false,
+  isApproved: false,
+});
+
+// Session-level optimistic flags — set immediately on success so the UI
+// reflects the change without waiting for the next fetchStatus call.
+const sessionGenerated = ref(false);
+const sessionSent = ref(false);
+
+// ---------------------------------------------------------------------------
+// Derived state
+// ---------------------------------------------------------------------------
+
+const alreadyGenerated = computed(
+  () =>
+    sessionGenerated.value ||
+    remote.value.alreadyGenerated ||
+    !!props.values?.already_generated_questions,
+);
+
+const alreadySent = computed(
+  () =>
+    sessionSent.value ||
+    remote.value.alreadySent ||
+    !!props.values?.already_sent_mails,
+);
+
+const isApproved = computed(
+  () => remote.value.isApproved || !!props.values?.is_approved,
+);
+
+// ---------------------------------------------------------------------------
+// Loading state
+// ---------------------------------------------------------------------------
 
 const loadingGenerate = ref(false);
 const loadingMails = ref(false);
-const loadingData = ref(false);
-const successMessage = ref(null);
-const errorMessage = ref(null);
+const isAnyLoading = computed(() => loadingGenerate.value || loadingMails.value);
 
-// Local override state to show immediate feedback after successful action
-const dbAlreadyGenerated = ref(false);
-const dbAlreadySent = ref(false);
-const dbIsApproved = ref(false);
-const sessionGenerated = ref(false);
-const sessionMailsSent = ref(false);
+// ---------------------------------------------------------------------------
+// Feedback
+// ---------------------------------------------------------------------------
 
-const localAlreadyGenerated = computed(() => {
-  return sessionGenerated.value || dbAlreadyGenerated.value || !!props.values?.already_generated_questions;
+interface Feedback {
+  type: 'success' | 'danger';
+  message: string | null;
+}
+
+const feedback = ref<Feedback>({ type: 'success', message: null });
+let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
+
+function showFeedback(type: Feedback['type'], message: string, durationMs = 6000) {
+  if (feedbackTimer) clearTimeout(feedbackTimer);
+  feedback.value = { type, message };
+  feedbackTimer = setTimeout(() => {
+    feedback.value = { type: 'success', message: null };
+  }, durationMs);
+}
+
+onBeforeUnmount(() => {
+  if (feedbackTimer) clearTimeout(feedbackTimer);
 });
 
-const localAlreadySent = computed(() => {
-  return sessionMailsSent.value || dbAlreadySent.value || !!props.values?.already_sent_mails;
-});
-
-// Show send emails button when election is approved
-// Use dbIsApproved (from API) first, then fall back to props.values
-const isApproved = computed(() => {
-  const result = dbIsApproved.value || !!props.values?.is_approved;
-  console.log('[election-actions] isApproved computed:', result, 'dbIsApproved:', dbIsApproved.value, 'props.values.is_approved:', props.values?.is_approved);
-  return result;
-});
+// ---------------------------------------------------------------------------
+// Data fetching
+// ---------------------------------------------------------------------------
 
 async function fetchStatus() {
-  if (!props.primaryKey || props.primaryKey === '+') return;
-
-  loadingData.value = true;
-  try {
-    console.log('[election-actions] Fetching status for election:', props.primaryKey);
-    const res = await api.get(`/items/elections/${props.primaryKey}`, {
-      params: {
-        fields: ['already_generated_questions', 'already_sent_mails', 'is_approved']
-      }
-    });
-
-    if (res.data?.data) {
-      dbAlreadyGenerated.value = !!res.data.data.already_generated_questions;
-      dbAlreadySent.value = !!res.data.data.already_sent_mails;
-      dbIsApproved.value = !!res.data.data.is_approved;
-      console.log('[election-actions] Fetched data:', {
-        already_generated_questions: res.data.data.already_generated_questions,
-        already_sent_mails: res.data.data.already_sent_mails,
-        is_approved: res.data.data.is_approved
-      });
-    }
-  } catch (err) {
-    console.error('[election-actions] Failed to fetch status:', err);
-  } finally {
-    loadingData.value = false;
-  }
-}
-
-onMounted(() => {
-  fetchStatus();
-});
-
-watch(() => props.primaryKey, () => {
-  fetchStatus();
-});
-
-let feedbackTimer = null;
-
-function showFeedback(type, message) {
-  if (type === 'success') {
-    successMessage.value = message;
-    errorMessage.value = null;
-  } else {
-    errorMessage.value = message;
-    successMessage.value = null;
-  }
-
-  clearTimeout(feedbackTimer);
-  feedbackTimer = setTimeout(() => {
-    successMessage.value = null;
-    errorMessage.value = null;
-  }, 6000);
-}
-
-async function triggerAction(endpoint, loadingRef, successText) {
-  if (!props.primaryKey) {
-    showFeedback('error', 'Kein Datensatz gespeichert — bitte zuerst speichern.');
-    return;
-  }
-
-  loadingRef.value = true;
+  if (!isExistingRecord.value) return;
 
   try {
-    const resPost = await api.post(`/election-actions/${endpoint}`, {
-      election_id: String(props.primaryKey),
+    const { data } = await api.get(`/items/elections/${props.primaryKey}`, {
+      params: { fields: ['already_generated_questions', 'already_sent_mails', 'is_approved'] },
     });
 
-    if (resPost.data.error) {
-      throw new Error(resPost.data.error);
+    if (data?.data) {
+      remote.value = {
+        alreadyGenerated: !!data.data.already_generated_questions,
+        alreadySent: !!data.data.already_sent_mails,
+        isApproved: !!data.data.is_approved,
+      };
     }
-
-    showFeedback('success', successText);
-
-    if (endpoint === 'generate') sessionGenerated.value = true;
-    if (endpoint === 'send-mails') sessionMailsSent.value = true;
-  } catch (err) {
-    const detail =
-      err?.response?.data?.errors?.[0]?.message ||
-      err?.response?.data?.error ||
-      err.message ||
-      'Unbekannter Fehler';
-
-    showFeedback('error', `Fehler: ${detail}`);
-  } finally {
-    loadingRef.value = false;
+  } catch {
+    // Non-critical; fall back to props.values
   }
 }
 
-function triggerGenerate() {
-  triggerAction(
-    'generate',
-    loadingGenerate,
-    'Thesen wurden erfolgreich generiert.'
-  );
+onMounted(fetchStatus);
+watch(() => props.primaryKey, fetchStatus);
+
+// ---------------------------------------------------------------------------
+// Actions
+// ---------------------------------------------------------------------------
+
+async function callEndpoint(endpoint: string): Promise<Record<string, unknown>> {
+  const { data } = await api.post(`/election-actions/${endpoint}`, {
+    election_id: String(props.primaryKey),
+  });
+
+  if (data?.error) throw new Error(data.error);
+  return data;
 }
 
-function triggerMails() {
+function extractErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    // Try to surface a Directus API error message if present
+    const apiMessage = (err as any)?.response?.data?.errors?.[0]?.message
+      ?? (err as any)?.response?.data?.error;
+    return apiMessage ?? err.message;
+  }
+  return String(err);
+}
+
+async function handleGenerate() {
+  loadingGenerate.value = true;
+  try {
+    await callEndpoint('generate');
+    sessionGenerated.value = true;
+    showFeedback('success', 'Thesen wurden erfolgreich generiert.');
+    fetchStatus(); // refresh in background to sync full server state
+  } catch (err) {
+    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+  } finally {
+    loadingGenerate.value = false;
+  }
+}
+
+async function handleRegenerate() {
   const confirmed = window.confirm(
-    'E-Mails wirklich an alle Kandidaten versenden?'
+    'Bestehende Thesen löschen und neu generieren?',
   );
+  if (!confirmed) return;
+  await handleGenerate();
+}
 
+async function handleSendMails() {
+  const confirmed = window.confirm(
+    'E-Mails wirklich an alle Kandidaten versenden? Diese Aktion kann nicht rückgängig gemacht werden.',
+  );
   if (!confirmed) return;
 
-  triggerAction(
-    'send-mails',
-    loadingMails,
-    'E-Mails wurden erfolgreich versendet.'
-  );
+  loadingMails.value = true;
+  try {
+    await callEndpoint('send-mails');
+    sessionSent.value = true;
+    showFeedback('success', 'E-Mails wurden erfolgreich versendet.');
+    fetchStatus();
+  } catch (err) {
+    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+  } finally {
+    loadingMails.value = false;
+  }
 }
 </script>
 
@@ -307,15 +328,48 @@ function triggerMails() {
 
 .status-chip {
   flex-shrink: 0;
+}
+
+.status-chip--success {
   --v-chip-color: var(--success);
   --v-chip-background-color: var(--success-alt);
 }
 
 .card-notice {
-  margin: 0 16px 0;
+  margin: 0 16px;
 }
 
 .card-footer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   padding: 12px 16px 16px;
+}
+
+.rerun-button {
+  --v-button-color: var(--foreground-subdued);
+}
+
+.card-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--foreground-subdued);
+  margin: 0 16px 12px;
+}
+
+.result-notice {
+  margin-top: 4px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

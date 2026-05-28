@@ -1,236 +1,372 @@
-import type { Logger, Accountability, Services, GetSchema, Database } from '@directus/extensions-sdk';
+import type {
+  Logger,
+  Accountability,
+  Services,
+  GetSchema,
+} from '@directus/extensions-sdk';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface HandlerContext {
+  logger: Logger;
+  accountability: Accountability;
+  services: Services;
+  getSchema: GetSchema;
+  data: Record<string, unknown>;
+}
+
+interface Election {
+  id: string | number;
+  descriptor?: string;
+  already_generated_questions?: boolean;
+  already_sent_mails?: boolean;
+  localteam?: { id: string | number } | string | number;
+}
+
+interface Measure {
+  id: string | number;
+  measure_id: string;
+  name?: string;
+  description?: string;
+  sector?: string;
+  weight?: string | number;
+  feasibility_political?: string | number;
+  feasibility_economical?: string | number;
+  catalog_version?: { id: string; name?: string } | null;
+}
+
+interface Rating {
+  id: string | number;
+  measure_id: Measure | string | number;
+  rating: string | number | null;
+  applicable: boolean;
+}
+
+interface MeasureTemplate {
+  measure_id: string;
+  title?: string;
+  thesis?: string;
+  sector?: string;
+}
+
+interface MunicipalityScore {
+  id: string | number;
+  date_created: string;
+  percentage_rated?: number;
+  catalog_version?: { id: string; name?: string } | null;
+}
+
+interface ScoredRating {
+  rating: Rating;
+  measure: Measure;
+  template: MeasureTemplate;
+  potential: number;
+  difficulty: number;
+}
+
+interface GenerateQuestionsResult {
+  success: boolean;
+  count: number;
+  message?: string;
+  election_id: string | number;
+  measures?: (string | number)[];
+  updated_data?: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function toFloat(value: unknown): number {
+  const n = parseFloat(String(value));
+  return isNaN(n) ? 0 : n;
+}
+
+function extractMeasure(rating: Rating): Measure | null {
+  if (typeof rating.measure_id === 'object' && rating.measure_id !== null) {
+    return rating.measure_id as Measure;
+  }
+  return null;
+}
+
+/**
+ * Selects the best catalog version ID for a given municipality.
+ *
+ * Priority order:
+ *   1. A score with percentage_rated > 80 that matches the current frontend catalog version.
+ *   2. The most recent score with percentage_rated > 80 that has any catalog version.
+ *   3. The most recent score overall (regardless of percentage_rated).
+ *   4. null — no municipality scores exist.
+ */
+async function resolveCatalogVersionId(
+  municipalityId: string | number,
+  services: Services,
+  schema: Awaited<ReturnType<GetSchema>>,
+  accountability: Accountability,
+  logger: Logger,
+): Promise<string | null> {
+  const sysAcc = { ...accountability, admin: true };
+  const catalogSvc = new services.ItemsService('measure_catalog', { schema, accountability: sysAcc });
+  const scoreSvc = new services.ItemsService('municipality_scores', { schema, accountability: sysAcc });
+
+  const [frontendCatalogs, allScores] = await Promise.all([
+    catalogSvc.readByQuery({
+      filter: { hidden: { _eq: false }, isCurrentFrontend: { _eq: true } },
+      fields: ['id', 'name'],
+      limit: 1,
+    }) as Promise<Array<{ id: string; name?: string }>>,
+    scoreSvc.readByQuery({
+      filter: { municipality: { _eq: municipalityId } },
+      sort: ['-date_created'],
+      fields: ['id', 'date_created', 'percentage_rated', 'catalog_version.*'],
+      limit: -1,
+    }) as Promise<MunicipalityScore[]>,
+  ]);
+
+  const currentFrontendCatalogId = frontendCatalogs[0]?.id ?? null;
+  logger.info(`[generate-questions] Current frontend catalog: ${currentFrontendCatalogId ?? 'none'}`);
+  logger.info(`[generate-questions] Municipality scores found: ${allScores.length}`);
+
+  const sufficientlyRated = allScores.filter((s) => (s.percentage_rated ?? 0) > 80);
+  logger.info(`[generate-questions] Scores with percentage_rated > 80: ${sufficientlyRated.length}`);
+
+  if (sufficientlyRated.length === 0) {
+    const fallback = allScores[0]?.catalog_version?.id ?? null;
+    logger.warn(`[generate-questions] No well-rated scores; falling back to most recent catalog: ${fallback}`);
+    return fallback;
+  }
+
+  // Prefer the score that matches the current frontend catalog version.
+  const frontendMatch = currentFrontendCatalogId
+    ? sufficientlyRated.find((s) => s.catalog_version?.id === currentFrontendCatalogId)
+    : null;
+
+  if (frontendMatch) {
+    logger.info(`[generate-questions] Matched frontend catalog version: ${frontendMatch.catalog_version?.id}`);
+    return frontendMatch.catalog_version?.id ?? null;
+  }
+
+  // Fall back to the most recent well-rated score that has a catalog version.
+  const withCatalog = sufficientlyRated.filter((s) => s.catalog_version?.id);
+  const selected = withCatalog[0] ?? sufficientlyRated[0];
+  const resolved = selected?.catalog_version?.id ?? null;
+  logger.info(`[generate-questions] Using most recent well-rated catalog version: ${resolved}`);
+  return resolved;
+}
+
+/**
+ * Scores and ranks a rating by improvement potential and implementation difficulty.
+ * Returns null if the rating is not eligible (no template with thesis, not applicable, no rating value).
+ */
+function scoreRating(
+  rating: Rating,
+  templateMap: Map<string, MeasureTemplate>,
+): ScoredRating | null {
+  if (!rating.applicable || rating.rating === null) return null;
+
+  const measure = extractMeasure(rating);
+  if (!measure?.measure_id) return null;
+
+  const template = templateMap.get(measure.measure_id);
+  if (!template?.thesis) return null;
+
+  const weight = toFloat(measure.weight);
+  const ratingValue = toFloat(rating.rating);
+  const political = toFloat(measure.feasibility_political);
+  const economical = toFloat(measure.feasibility_economical);
+
+  const potential = (1 - ratingValue) * weight;
+  const difficulty = (political + economical) / 2;
+
+  return { rating, measure, template, potential, difficulty };
+}
+
+function compareByPriorityThenDifficulty(a: ScoredRating, b: ScoredRating): number {
+  if (b.potential !== a.potential) return b.potential - a.potential;
+  if (a.difficulty !== b.difficulty) return a.difficulty - b.difficulty;
+  return a.measure.measure_id.localeCompare(b.measure.measure_id);
+}
+
+// ---------------------------------------------------------------------------
+// Main handler
+// ---------------------------------------------------------------------------
 
 export default {
   id: 'operation-generate-questions',
-  handler: async ({ election_id }: { election_id: string | number }, { logger, accountability, services, getSchema, data }: { logger: Logger; accountability: Accountability; services: Services; getSchema: GetSchema; data: Record<string, unknown> }) => {
-    const { ItemsService } = services;
+  handler: async (
+    { election_id }: { election_id: string | number },
+    { logger, accountability, services, getSchema }: HandlerContext,
+  ): Promise<GenerateQuestionsResult> => {
     const schema = await getSchema();
     const sysAcc = { ...accountability, admin: true };
+    const { ItemsService } = services;
 
-    logger.info(`DEBUG [generate-questions]: Starting thesis generation for election_id: ${election_id}`);
+    logger.info(`[generate-questions] Starting for election_id: ${election_id}`);
+
+    // -----------------------------------------------------------------------
+    // 1. Load election
+    // -----------------------------------------------------------------------
 
     const electionSvc = new ItemsService('elections', { schema, accountability: sysAcc });
-    const ratingsSvc = new ItemsService('ratings_measures', { schema, accountability: sysAcc });
-    const templateSvc = new ItemsService('measure_questions_template', { schema, accountability: sysAcc });
-    const questionsSvc = new ItemsService('questions', { schema, accountability: sysAcc });
+    const election = await electionSvc.readOne(election_id, {
+      fields: ['*', 'localteam.*'],
+    }) as Election | null;
 
-    const election = await electionSvc.readOne(election_id, { fields: ['*', 'localteam.*'] });
-    if (!election) throw new Error(`Wahl mit ID "${election_id}" nicht gefunden.`);
-    logger.info(`DEBUG [generate-questions]: Election loaded: ${(election as Record<string, unknown>).descriptor || election_id}`);
-
-    const localteamId = (election as Record<string, unknown>).localteam?.id || (election as Record<string, unknown>).localteam;
-    if (!localteamId) throw new Error('Lokalteam der Wahl konnte nicht ermittelt werden.');
-    logger.info(`DEBUG [generate-questions]: Localteam ID: ${localteamId}`);
-
-    const municipalities = await new ItemsService('municipalities', { schema, accountability: sysAcc }).readByQuery({
-      filter: { localteam_id: { _eq: localteamId } },
-      limit: 1,
-      fields: ['id']
-    });
-
-    const municipalityId = municipalities?.[0]?.id || null;
-    logger.info(`DEBUG [generate-questions]: Municipality ID: ${municipalityId}`);
-    let catalogVersionId: string | null = null;
-
-    if (municipalityId) {
-      // Get the current frontend catalog version (matching frontend logic)
-      const catalogVersions = await new ItemsService('measure_catalog', { schema, accountability: sysAcc }).readByQuery({
-        filter: { hidden: { _eq: false }, isCurrentFrontend: { _eq: true } },
-        fields: ['id', 'name'],
-        limit: 1,
-      });
-      const currentFrontendVersion = catalogVersions?.[0];
-      logger.info(`DEBUG [generate-questions]: Current frontend catalog version: ${(currentFrontendVersion as Record<string, unknown>)?.id || 'none'}`);
-
-      const allMunicipalityScores = await new ItemsService('municipality_scores', { schema, accountability: sysAcc }).readByQuery({
-        filter: { municipality: { _eq: municipalityId } },
-        sort: ['-date_created'],
-        fields: ['*', 'catalog_version.*']
-      });
-
-      logger.info(`DEBUG [generate-questions]: Found ${allMunicipalityScores.length} municipality scores`);
-
-      const sufficientlyRatedScores = allMunicipalityScores.filter((score: Record<string, unknown>) => (score.percentage_rated || 0) > 80);
-      logger.info(`DEBUG [generate-questions]: ${sufficientlyRatedScores.length} scores with percentage_rated > 80`);
-
-      if (sufficientlyRatedScores.length > 0) {
-        // Try to find a score matching the current frontend catalog version
-        let selectedScore = sufficientlyRatedScores.find((s: Record<string, unknown>) => (s.catalog_version as Record<string, unknown>)?.id === (currentFrontendVersion as Record<string, unknown>)?.id);
-
-        if (!selectedScore) {
-          logger.info(`DEBUG [generate-questions]: No sufficiently rated score for current frontend catalog, using most recent with catalog`);
-          // Sort by date_created descending and take the first with a valid catalog_version
-          const scoresWithCatalog = sufficientlyRatedScores.filter((s: Record<string, unknown>) => (s.catalog_version as Record<string, unknown>)?.id);
-          selectedScore = scoresWithCatalog.length > 0
-            ? scoresWithCatalog.slice().sort((a: Record<string, unknown>, b: Record<string, unknown>) => new Date(b.date_created as string).valueOf() - new Date(a.date_created as string).valueOf())[0]
-            : sufficientlyRatedScores[0];
-        }
-
-        catalogVersionId = (selectedScore as Record<string, unknown>)?.catalog_version?.id as string || null;
-        logger.info(`DEBUG [generate-questions]: Using catalog version: ${catalogVersionId}`);
-      } else {
-        logger.warn(`DEBUG [generate-questions]: No municipality scores with percentage_rated > 80 found`);
-        catalogVersionId = (allMunicipalityScores?.[0] as Record<string, unknown>)?.catalog_version?.id as string || null;
-        logger.info(`DEBUG [generate-questions]: Falling back to most recent catalog version: ${catalogVersionId}`);
-      }
-    } else {
-      logger.info(`DEBUG [generate-questions]: No municipality found for localteam`);
+    if (!election) {
+      throw new Error(`Election with ID "${election_id}" not found.`);
     }
 
-    console.log('DEBUG [generate-questions]: Fetching ratings with catalogVersionId:', catalogVersionId);
+    const localteamId =
+      typeof election.localteam === 'object' && election.localteam !== null
+        ? (election.localteam as { id: string | number }).id
+        : election.localteam;
+
+    if (!localteamId) {
+      throw new Error(`Election "${election_id}" has no associated local team.`);
+    }
+
+    logger.info(`[generate-questions] Election: "${election.descriptor ?? election_id}", localteam: ${localteamId}`);
+
+    // -----------------------------------------------------------------------
+    // 2. Resolve catalog version (via municipality → scores)
+    // -----------------------------------------------------------------------
+
+    const municipalitySvc = new ItemsService('municipalities', { schema, accountability: sysAcc });
+    const municipalities = await municipalitySvc.readByQuery({
+      filter: { localteam_id: { _eq: localteamId } },
+      limit: 1,
+      fields: ['id'],
+    }) as Array<{ id: string | number }>;
+
+    const municipalityId = municipalities[0]?.id ?? null;
+    logger.info(`[generate-questions] Municipality: ${municipalityId ?? 'none'}`);
+
+    const catalogVersionId = municipalityId
+      ? await resolveCatalogVersionId(municipalityId, services, schema, sysAcc, logger)
+      : null;
+
+    if (!catalogVersionId) {
+      logger.warn('[generate-questions] No catalog version resolved; fetching without catalog filter.');
+    }
+
+    // -----------------------------------------------------------------------
+    // 3. Fetch ratings and templates
+    // -----------------------------------------------------------------------
+
+    const ratingsSvc = new ItemsService('ratings_measures', { schema, accountability: sysAcc });
+    const templateSvc = new ItemsService('measure_questions_template', { schema, accountability: sysAcc });
+
     const ratings = await ratingsSvc.readByQuery({
       filter: {
         localteam_id: { _eq: localteamId },
         applicable: { _eq: true },
-        measure_id: {
-          ...(catalogVersionId ? { catalog_version: { _eq: catalogVersionId } } : {}),
-        },
+        ...(catalogVersionId
+          ? { measure_id: { catalog_version: { _eq: catalogVersionId } } }
+          : {}),
       },
       fields: ['*', 'measure_id.*', 'measure_id.catalog_version.*'],
       limit: -1,
-    });
+    }) as Rating[];
 
-    console.log('DEBUG [generate-questions]: Fetched ratings count:', ratings.length);
-    if (!ratings.length) {
-      throw new Error(`Keine passenden Bewertungen (ratings_measures) für das Lokalteam gefunden.`);
+    logger.info(`[generate-questions] Ratings fetched: ${ratings.length}`);
+
+    if (ratings.length === 0) {
+      throw new Error(`No applicable ratings found for local team ${localteamId}.`);
     }
 
-    const allMeasureIdentifiers = ratings
-      .map((r: Record<string, unknown>) => (typeof r.measure_id === 'object' ? (r.measure_id as Record<string, unknown>).measure_id : null))
-      .filter(Boolean) as string[];
+    const measureIdentifiers = [
+      ...new Set(
+        ratings
+          .map((r) => extractMeasure(r)?.measure_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
 
     const templates = await templateSvc.readByQuery({
-      filter: { measure_id: { _in: allMeasureIdentifiers } },
+      filter: { measure_id: { _in: measureIdentifiers } },
       limit: -1,
-    });
-    const templateMap: Record<string, Record<string, unknown>> = Object.fromEntries(templates.map((t: Record<string, unknown>) => [t.measure_id as string, t]));
+    }) as MeasureTemplate[];
 
-    console.log('DEBUG [generate-questions]: Total ratings to process:', ratings.length);
-    console.log('DEBUG [generate-questions]: First 10 ratings:', ratings.slice(0, 10).map((r: Record<string, unknown>) => ({ measure_id: (typeof r.measure_id === 'object' ? (r.measure_id as Record<string, unknown>).measure_id : r.measure_id) || r.measure_id, catalog_version: (typeof r.measure_id === 'object' ? (r.measure_id as Record<string, unknown>).catalog_version?.name : 'null') || 'null' })));
+    const templateMap = new Map(templates.map((t) => [t.measure_id, t]));
+    logger.info(`[generate-questions] Templates fetched: ${templates.length}`);
 
-    type PrioritizedRating = Record<string, unknown> & {
-      measure_uuid?: string;
-      measure_identifier?: string;
-      _potential: number;
-      _difficulty: number;
-      _weight: number;
-      _feasibility_political: number;
-      _feasibility_economical: number;
-      _template?: Record<string, unknown>;
-    };
+    // -----------------------------------------------------------------------
+    // 4. Score, deduplicate, pick top 10
+    // -----------------------------------------------------------------------
 
-    const prioritized: PrioritizedRating[] = ratings
-      .map((r: Record<string, unknown>) => {
-        const m = typeof r.measure_id === 'object' ? (r.measure_id as Record<string, unknown>) : {};
-        const mid_uuid = m.id || r.measure_id;
-        const mid_string = m.measure_id as string | undefined;
-        const template = mid_string && templateMap[mid_string];
+    const scored = ratings
+      .map((r) => scoreRating(r, templateMap))
+      .filter((s): s is ScoredRating => s !== null)
+      .sort(compareByPriorityThenDifficulty);
 
-        const weight = parseFloat(m.weight as string) || 0;
-        const politicalFeasibility = parseFloat(m.feasibility_political as string) || 0;
-        const economicFeasibility = parseFloat(m.feasibility_economical as string) || 0;
-        const ratingValue = parseFloat(r.rating as string) || 0;
-
-        const potential = (1 - ratingValue) * weight;
-        const difficulty = (politicalFeasibility + economicFeasibility) / 2;
-
-        return {
-          ...r,
-          measure_uuid: mid_uuid as string,
-          measure_identifier: mid_string,
-          _potential: potential,
-          _difficulty: difficulty,
-          _weight: weight,
-          _feasibility_political: politicalFeasibility,
-          _feasibility_economical: economicFeasibility,
-          _template: template,
-        };
-      })
-      .filter((r: PrioritizedRating) => {
-        const hasTemplateWithThesis = r._template && (r._template as Record<string, unknown>).thesis;
-        return r.applicable === true && r.rating !== null && hasTemplateWithThesis;
-      })
-      .sort((a: PrioritizedRating, b: PrioritizedRating) => {
-        if (b._potential !== a._potential) return b._potential - a._potential;
-        if (a._difficulty !== b._difficulty) return a._difficulty - b._difficulty;
-        return (a.measure_identifier ?? '').localeCompare(b.measure_identifier ?? '');
-      });
-
-    console.log('DEBUG [generate-questions]: Prioritized measures:', prioritized.length);
-    console.log('DEBUG [generate-questions]: Top 10 prioritized:', prioritized.slice(0, 10).map((p: PrioritizedRating) => ({ measure_id: p.measure_identifier, catalog_version: (typeof p.measure_id === 'object' ? (p.measure_id as Record<string, unknown>).catalog_version?.name : 'null') || 'null' })));
-
-    // Deduplicate by measure_identifier, keeping the highest-priority entry for each measure
-    const measureMap = new Map<string, PrioritizedRating>();
-    for (const item of prioritized) {
-      if (!measureMap.has(item.measure_identifier as string)) {
-        measureMap.set(item.measure_identifier as string, item);
+    // Keep only the highest-priority entry per measure identifier.
+    const deduped = new Map<string, ScoredRating>();
+    for (const item of scored) {
+      if (!deduped.has(item.measure.measure_id)) {
+        deduped.set(item.measure.measure_id, item);
       }
     }
-    const deduplicated = Array.from(measureMap.values());
 
-    const sortedDeduped = deduplicated.sort((a: PrioritizedRating, b: PrioritizedRating) => {
-      if (b._potential !== a._potential) return b._potential - a._potential;
-      if (a._difficulty !== b._difficulty) return a._difficulty - b._difficulty;
-      return (a.measure_identifier ?? '').localeCompare(b.measure_identifier ?? '');
-    });
+    const top10 = [...deduped.values()]
+      .sort(compareByPriorityThenDifficulty)
+      .slice(0, 10);
 
-    const top10 = sortedDeduped.slice(0, 10);
-    console.log('DEBUG [generate-questions]: Deduplicated measures:', sortedDeduped.length);
+    logger.info(`[generate-questions] Eligible after dedup: ${deduped.size}, taking top ${top10.length}`);
+    logger.info(`[generate-questions] Top measure IDs: ${top10.map((s) => s.measure.measure_id).join(', ')}`);
+
+    if (top10.length === 0) {
+      logger.warn(`[generate-questions] No valid measures found for election ${election_id}`);
+      return {
+        success: false,
+        count: 0,
+        message: 'No valid measures found.',
+        election_id,
+      };
+    }
+
+    // -----------------------------------------------------------------------
+    // 5. Replace existing questions
+    // -----------------------------------------------------------------------
+
+    const questionsSvc = new ItemsService('questions', { schema, accountability: sysAcc });
 
     const existing = await questionsSvc.readByQuery({
       filter: { election: { _eq: election_id } },
       fields: ['id'],
       limit: -1,
-    });
+    }) as Array<{ id: string | number }>;
 
     if (existing.length > 0) {
-      logger.info(`generate-questions: Deleting ${existing.length} existing questions for election ${election_id}`);
-      await questionsSvc.deleteMany(existing.map((q: Record<string, unknown>) => q.id as string | number));
-    }
-
-    const toCreate = top10;
-
-    if (toCreate.length === 0) {
-      logger.warn(`generate-questions: No valid measures found for election ${election_id}`);
-      return {
-        success: false,
-        count: 0,
-        message: 'Keine gültigen Maßnahmen gefunden.',
-        election_id: election_id,
-      };
+      logger.info(`[generate-questions] Deleting ${existing.length} existing questions`);
+      await questionsSvc.deleteMany(existing.map((q) => q.id));
     }
 
     const created = await questionsSvc.createMany(
-      toCreate.map((r: PrioritizedRating, i: number) => {
-        const m = typeof r.measure_id === 'object' ? (r.measure_id as Record<string, unknown>) : {};
-        const template = r._template;
-
-        return {
-          election: election_id,
-          title: ((template as Record<string, unknown>)?.title as string) || (m?.name as string) || (r.measure_identifier as string) || '',
-          thesis: ((template as Record<string, unknown>)?.thesis as string) || (m?.description as string) || '',
-          sector: ((template as Record<string, unknown>)?.sector as string) || (m?.sector as string) || null,
-          status: 'published',
-          sort: i + 1,
-        };
-      })
-    );
+      top10.map(({ measure, template }, i) => ({
+        election: election_id,
+        title: template.title ?? measure.name ?? measure.measure_id,
+        thesis: template.thesis,
+        sector: template.sector ?? measure.sector ?? null,
+        status: 'published',
+        sort: i + 1,
+      })),
+    ) as Array<string | number>;
 
     await electionSvc.updateOne(election_id, { already_generated_questions: true });
 
     const updatedElection = await electionSvc.readOne(election_id, {
       fields: ['already_generated_questions', 'already_sent_mails'],
-    });
+    }) as Record<string, unknown>;
 
-    logger.info(`generate-questions: created ${created.length} question(s) for election ${election_id}`);
-    logger.info(`DEBUG [generate-questions]: Final result - created ${created.length} questions from ${top10.length} prioritized measures`);
-    logger.info(`DEBUG [generate-questions]: Top measure IDs:`, top10.map((m: PrioritizedRating) => m.measure_identifier));
+    logger.info(`[generate-questions] Created ${created.length} question(s) for election ${election_id}`);
 
     return {
       success: true,
       count: created.length,
-      measures: top10.map((m: PrioritizedRating) => m.measure_id),
-      election_id: election_id,
+      measures: top10.map((s) => s.measure.id),
+      election_id,
       updated_data: updatedElection,
     };
   },

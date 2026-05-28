@@ -4,7 +4,7 @@ export default {
   icon: 'mail',
   description: 'Sends personalised email invitations to candidates with a secure, stable access link.',
   overview: ({ election_id }: { election_id?: string | number }) => [
-    { label: 'Election ID', text: election_id || '(resolved from trigger)' },
+    { label: 'Election ID', text: String(election_id ?? '(resolved from trigger)') },
   ],
   options: [
     {
@@ -14,7 +14,7 @@ export default {
       meta: {
         width: 'full',
         interface: 'input',
-        note: 'Leave blank to resolve from the flow trigger. Caller must be an Administrator.',
+        note: 'Leave blank to resolve from the flow trigger. Caller must be an administrator.',
       },
     },
   ],

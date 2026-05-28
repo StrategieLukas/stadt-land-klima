@@ -80,6 +80,7 @@ export default {
       } catch (error) {
         if (process.env.SLK_ENV !== 'development') {
           context.logger.error(`Failed to send invitation email to ${email}`);
+          context.logger.error(error);
           throw error;
         } else {
           context.logger.warn(`Failed to send invitation email to ${email} (=this is expected behaviour in dev, where no e-mail server is set up.)`);

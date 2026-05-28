@@ -1,110 +1,242 @@
-import crypto from 'crypto';
-import type { Logger, Accountability, Services, GetSchema, Database } from '@directus/extensions-sdk';
+import crypto from 'node:crypto';
+import type { Logger, Accountability, Services, GetSchema } from '@directus/extensions-sdk';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface HandlerContext {
+  logger: Logger;
+  accountability: Accountability;
+  services: Services;
+  getSchema: GetSchema;
+  data: Record<string, unknown>;
+}
+
+interface Election {
+  id: string | number;
+  descriptor?: string;
+  response_cutoff_date?: string | null;
+  already_generated_questions?: boolean;
+  already_sent_mails?: boolean;
+  localteam?: { municipality_name?: string } | null;
+}
+
+interface Candidate {
+  id: string | number;
+  name?: string;
+  email: string;
+  access_token?: string | null;
+}
+
+interface SendResult {
+  success: boolean;
+  sentCount: number;
+  failedCount: number;
+  totalCandidates: number;
+  errors: string[];
+  election_id: string | number;
+  updated_data?: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const BASE_URL = 'https://stadt-land-klima.de';
+const MIN_QUESTIONS = 10;
+const MIN_CANDIDATES = 2;
+
+function formatCutoffDate(isoDate: string): string {
+  const d = new Date(isoDate);
+  d.setHours(23, 59, 0, 0);
+  return d.toLocaleString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/**
+ * Ensures every candidate has a stable access token, persisting any newly
+ * generated ones in bulk before any mail is sent. This way, if the send loop
+ * is interrupted, candidates already have tokens and a re-run won't generate
+ * new ones.
+ */
+async function ensureAccessTokens(
+  candidates: Candidate[],
+  candidateSvc: InstanceType<Services['ItemsService']>,
+  logger: Logger,
+): Promise<Candidate[]> {
+  const needsToken = candidates.filter((c) => !c.access_token);
+
+  if (needsToken.length > 0) {
+    logger.info(
+      `[send-candidate-mails] Generating tokens for ${needsToken.length} candidate(s)`,
+    );
+
+    await Promise.all(
+      needsToken.map(async (c) => {
+        const token = crypto.randomBytes(32).toString('hex');
+        await candidateSvc.updateOne(c.id, { access_token: token });
+        c.access_token = token; // mutate in-place so the send loop sees it
+      }),
+    );
+  }
+
+  return candidates;
+}
+
+// ---------------------------------------------------------------------------
+// Main handler
+// ---------------------------------------------------------------------------
 
 export default {
   id: 'operation-send-candidate-mails',
-  handler: async ({ election_id }: { election_id: string | number }, { logger, accountability, services, getSchema, data }: { logger: Logger; accountability: Accountability; services: Services; getSchema: GetSchema; data: Record<string, unknown> }) => {
-    const { ItemsService, MailService } = services;
+  handler: async (
+    { election_id }: { election_id: string | number },
+    { logger, accountability, services, getSchema }: HandlerContext,
+  ): Promise<SendResult> => {
     const schema = await getSchema();
     const sysAcc = { ...accountability, admin: true };
+    const { ItemsService, MailService } = services;
 
     const electionSvc = new ItemsService('elections', { schema, accountability: sysAcc });
     const candidateSvc = new ItemsService('candidate', { schema, accountability: sysAcc });
     const questionsSvc = new ItemsService('questions', { schema, accountability: sysAcc });
     const mailSvc = new MailService({ schema, accountability: sysAcc });
 
-    const election = await electionSvc.readOne(election_id, { fields: ['*', 'localteam.*'] });
-    if (!election) throw new Error('Wahl nicht gefunden.');
+    // -----------------------------------------------------------------------
+    // 1. Load election
+    // -----------------------------------------------------------------------
 
-    const municipalityName = (election as Record<string, unknown>).localteam?.municipality_name as string | undefined;
+    const election = await electionSvc.readOne(election_id, {
+      fields: ['*', 'localteam.*'],
+    }) as Election | null;
 
-    // ── Pre-flight checks ────────────────────────────────────────────────────
+    if (!election) {
+      throw new Error(`Election with ID "${election_id}" not found.`);
+    }
+
+    const municipalityName = election.localteam?.municipality_name;
+    logger.info(
+      `[send-candidate-mails] Starting for election "${election.descriptor ?? election_id}", municipality: "${municipalityName ?? 'unknown'}"`,
+    );
+
+    // -----------------------------------------------------------------------
+    // 2. Pre-flight checks
+    // -----------------------------------------------------------------------
+
     if (!election.response_cutoff_date) {
-      throw new Error('Bitte setzen Sie zuerst einen Stichtag (response_cutoff_date) für die Wahl.');
+      throw new Error(
+        'Please set a response cutoff date (response_cutoff_date) on the election before sending invitations.',
+      );
     }
 
-    const questions = await questionsSvc.readByQuery({
-      filter: { election: { _eq: election_id }, status: { _eq: 'published' } },
-      fields: ['id'],
-      limit: -1,
-    });
-    if (questions.length < 10) {
-      throw new Error(`Nur ${questions.length} veröffentlichte Thesen gefunden. Es werden mindestens 10 benötigt.`);
+    const [questions, candidates] = await Promise.all([
+      questionsSvc.readByQuery({
+        filter: { election: { _eq: election_id }, status: { _eq: 'published' } },
+        fields: ['id'],
+        limit: -1,
+      }) as Promise<Array<{ id: string | number }>>,
+      candidateSvc.readByQuery({
+        filter: { election: { _eq: election_id }, email: { _nnull: true } },
+        fields: ['id', 'name', 'email', 'access_token'],
+        limit: -1,
+      }) as Promise<Candidate[]>,
+    ]);
+
+    if (questions.length < MIN_QUESTIONS) {
+      throw new Error(
+        `Only ${questions.length} published question(s) found; at least ${MIN_QUESTIONS} are required.`,
+      );
     }
 
-    const candidates = await candidateSvc.readByQuery({
-      filter: { election: { _eq: election_id }, email: { _nnull: true } },
-      limit: -1,
-    });
-    if (candidates.length < 2) {
-      throw new Error(`Nur ${candidates.length} Kandidaten mit E-Mail gefunden. Es werden mindestens 2 benötigt.`);
+    if (candidates.length < MIN_CANDIDATES) {
+      throw new Error(
+        `Only ${candidates.length} candidate(s) with an email address found; at least ${MIN_CANDIDATES} are required.`,
+      );
     }
-    // ─────────────────────────────────────────────────────────────────────────
 
-    // Cutoff is a date field — treat as 23:59 on that date
-    const cutoffDate = new Date(election.response_cutoff_date as string);
-    cutoffDate.setHours(23, 59, 0, 0);
-    const cutoffFormatted = cutoffDate.toLocaleString('de-DE', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
+    logger.info(
+      `[send-candidate-mails] Pre-flight passed: ${questions.length} questions, ${candidates.length} candidates`,
+    );
+
+    // -----------------------------------------------------------------------
+    // 3. Ensure all candidates have stable access tokens
+    // -----------------------------------------------------------------------
+
+    const cutoffFormatted = formatCutoffDate(election.response_cutoff_date);
+    const withTokens = await ensureAccessTokens(candidates, candidateSvc, logger);
+
+    // -----------------------------------------------------------------------
+    // 4. Send mails
+    // -----------------------------------------------------------------------
 
     let sentCount = 0;
     const errors: string[] = [];
 
-    for (const candidate of candidates) {
-      const c = candidate as Record<string, unknown>;
-      // Token persisted before send — stable across reminder runs
-      let token = c.access_token as string | undefined;
-      if (!token) {
-        token = crypto.randomBytes(32).toString('hex');
-        await candidateSvc.updateOne(candidate.id, { access_token: token });
-        logger.info(`send-candidate-mails: generated and persisted token for candidate ${candidate.id}`);
-      }
-
-      const personalLink = `https://stadt-land-klima.de/elections/thesen/${token}`;
+    for (const candidate of withTokens) {
+      const personalLink = `${BASE_URL}/elections/thesen/${candidate.access_token}`;
 
       try {
-        logger.info(`send-candidate-mails: Attempting to send mail to ${c.email} using template "email-template-candidate"`);
         await mailSvc.send({
-          to: c.email as string,
-          subject: `Einladung zum Klimawahl-Check: ${municipalityName}`,
+          to: candidate.email,
+          subject: `Einladung zum Klimawahl-Check: ${municipalityName ?? ''}`.trimEnd(),
           template: {
-            name: "email-template-candidate",
+            name: 'email-template-candidate',
             data: {
-              candidate_name: c.name as string,
-              municipality_name: municipalityName,
+              candidate_name: candidate.name ?? '',
+              municipality_name: municipalityName ?? '',
               cutoff_date: cutoffFormatted,
               personal_link: personalLink,
               projectName: 'Klimawahlcheck',
               projectColor: '#1da64a',
-              projectUrl: 'https://stadt-land-klima.de'
+              projectUrl: BASE_URL,
             },
           },
         });
+
         sentCount++;
-        logger.info(`send-candidate-mails: sent to ${c.email}`);
+        logger.info(`[send-candidate-mails] Sent to ${candidate.email}`);
       } catch (err: unknown) {
-        const error = err as Error;
-        const msg = `Fehler beim Senden an ${c.email}: ${error.message}`;
-        logger.error(msg);
-        errors.push(msg);
+        const message = err instanceof Error ? err.message : String(err);
+        const detail = `Failed to send to ${candidate.email}: ${message}`;
+        logger.error(`[send-candidate-mails] ${detail}`);
+        errors.push(detail);
       }
     }
 
-    await electionSvc.updateOne(election_id, { already_sent_mails: true });
+    // -----------------------------------------------------------------------
+    // 5. Persist result
+    // -----------------------------------------------------------------------
+
+    // Only mark as sent if at least one mail was delivered successfully.
+    if (sentCount > 0) {
+      await electionSvc.updateOne(election_id, { already_sent_mails: true });
+    } else {
+      logger.warn(
+        `[send-candidate-mails] All ${candidates.length} sends failed; not marking already_sent_mails.`,
+      );
+    }
 
     const updatedElection = await electionSvc.readOne(election_id, {
       fields: ['already_generated_questions', 'already_sent_mails'],
-    });
+    }) as Record<string, unknown>;
+
+    logger.info(
+      `[send-candidate-mails] Finished: ${sentCount} sent, ${errors.length} failed`,
+    );
 
     return {
-      success: true,
+      success: errors.length === 0,
       sentCount,
       failedCount: errors.length,
       totalCandidates: candidates.length,
       errors,
-      election_id: election_id,
+      election_id,
       updated_data: updatedElection,
     };
   },

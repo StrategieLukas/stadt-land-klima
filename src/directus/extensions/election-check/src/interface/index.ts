@@ -5,9 +5,12 @@ export default defineInterface({
   id: 'interface-election-actions',
   name: 'Election Actions',
   icon: 'rocket_launch',
-  description: 'Action buttons to generate questions and send candidate emails for this election.',
+  description: 'Generate thesis questions and send candidate invitation emails for this election.',
   component: InterfaceComponent,
-  types: ['json'],
+  // This interface is display-only; it never writes a value to the field.
+  types: ['alias'],
+  localTypes: ['presentation'],
+  group: 'presentation',
   recommendedDisplays: [],
   options: [],
 });
