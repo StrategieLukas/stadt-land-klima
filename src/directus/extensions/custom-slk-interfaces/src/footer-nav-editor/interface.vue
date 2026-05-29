@@ -18,10 +18,10 @@
           <em class="link-count"> — {{ col.links.length }} Link(s)</em>
         </span>
         <div class="actions">
-          <button :disabled="ci === 0" @click="moveColumn(ci, -1)" title="Nach oben">↑</button>
-          <button :disabled="ci === columns.length - 1" @click="moveColumn(ci, 1)" title="Nach unten">↓</button>
-          <button @click="toggleEditColumn(ci)" title="Bearbeiten">✏</button>
-          <button class="danger" @click="removeColumn(ci)" title="Entfernen">×</button>
+          <button :disabled="ci === 0 || disabled" @click="moveColumn(ci, -1)" title="Nach oben">↑</button>
+          <button :disabled="ci === columns.length - 1 || disabled" @click="moveColumn(ci, 1)" title="Nach unten">↓</button>
+          <button :disabled="disabled" @click="toggleEditColumn(ci)" title="Bearbeiten">✏</button>
+          <button class="danger" :disabled="disabled" @click="removeColumn(ci)" title="Entfernen">×</button>
         </div>
       </div>
 
@@ -51,21 +51,27 @@
             >
               {{ link.link_type === 'page' ? 'Seite' : 'Extern' }}
             </span>
-            <span class="link-label">{{ link.label || '(kein Label)' }}</span>
-            <span class="link-target">
+            <span class="link-label" :title="link.label || ''">{{ link.label || '(kein Label)' }}</span>
+            <span
+              class="link-target"
+              :title="link.link_type === 'page' ? '/' + link.page_slug : link.external_url"
+            >
               {{ link.link_type === 'page' ? '/' + link.page_slug : link.external_url }}
             </span>
           </div>
           <div class="actions">
-            <button :disabled="li === 0" @click="moveLink(ci, li, -1)" title="Nach oben">↑</button>
-            <button :disabled="li === col.links.length - 1" @click="moveLink(ci, li, 1)" title="Nach unten">↓</button>
-            <button @click="toggleEditLink(ci, li)" title="Bearbeiten">✏</button>
-            <button class="danger" @click="removeLink(ci, li)" title="Entfernen">×</button>
+            <button :disabled="li === 0 || disabled" @click="moveLink(ci, li, -1)" title="Nach oben">↑</button>
+            <button :disabled="li === col.links.length - 1 || disabled" @click="moveLink(ci, li, 1)" title="Nach unten">↓</button>
+            <button :disabled="disabled" @click="toggleEditLink(ci, li)" title="Bearbeiten">✏</button>
+            <button class="danger" :disabled="disabled" @click="removeLink(ci, li)" title="Entfernen">×</button>
           </div>
         </div>
 
-        <!-- Link edit form -->
-        <div v-if="editingLink && editingLink[0] === ci && editingLink[1] !== null" class="edit-form link-edit-form">
+        <!-- Link edit form — guard uses optional chaining to avoid null[0] crash -->
+        <div
+          v-if="editingLink?.[0] === ci"
+          class="edit-form link-edit-form"
+        >
           <div class="form-grid">
             <label>
               Label
@@ -80,7 +86,7 @@
               </select>
             </label>
 
-            <label v-if="linkBuffer.link_type === 'page'">
+            <label v-if="linkBuffer.link_type === 'page'" class="slug-wrapper">
               Seiten-Slug
               <input
                 v-model="linkBuffer.page_slug"
@@ -91,7 +97,7 @@
                 <li
                   v-for="p in pageResults"
                   :key="p.slug"
-                  @mousedown.prevent="selectPage(p)"
+                  @mousedown.prevent="handleSelectPage(p)"
                 >
                   {{ p.name }} <span class="slug-hint">/{{ p.slug }}</span>
                 </li>
@@ -110,23 +116,24 @@
           </div>
 
           <div class="form-actions">
-            <button class="btn-save" @click="saveLink(ci, editingLink[1])">Speichern</button>
+            <button class="btn-save" @click="saveLink(ci, editingLink![1])">Speichern</button>
             <button class="btn-cancel" @click="cancelEditLink">Abbrechen</button>
           </div>
         </div>
 
-        <button class="btn-add-link" @click="addLink(ci)">+ Link hinzufügen</button>
+        <button v-if="!disabled" class="btn-add-link" @click="addLink(ci)">+ Link hinzufügen</button>
       </div>
     </div>
 
     <!-- Add column button -->
-    <button class="btn-add-column" @click="addColumn">+ Spalte hinzufügen</button>
+    <button v-if="!disabled" class="btn-add-column" @click="addColumn">+ Spalte hinzufügen</button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, inject, type Ref } from 'vue';
 import type { Page } from '../types';
+import { usePageSearch } from '../usePageSearch';
 
 interface ColumnLink {
   id: string;
@@ -160,7 +167,9 @@ const emit = defineEmits<{
   (e: 'input', value: Column[]): void;
 }>();
 
-const api = inject<{ get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }> }>('api');
+const api = inject<{
+  get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }>;
+}>('api');
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -169,181 +178,166 @@ const editingColumn: Ref<number | null> = ref(null);
 const columnBuffer: Ref<{ title: string }> = ref({ title: '' });
 const editingLink: Ref<[number, number] | null> = ref(null);
 const linkBuffer: Ref<LinkBuffer> = ref(newLinkDefaults());
-const pageResults: Ref<Page[]> = ref([]);
+
+const { pageResults, search, selectPage, clear: clearPageResults } = usePageSearch(api);
 
 // ─── Parse incoming value ─────────────────────────────────────────────────────
 
 watch(
   () => props.value,
   (val) => {
-    if (!val) { columns.value = []; return }
+    if (!val) { columns.value = []; return; }
     try {
-      columns.value = JSON.parse(typeof val === 'string' ? val : JSON.stringify(val))
+      columns.value = JSON.parse(typeof val === 'string' ? val : JSON.stringify(val));
     } catch {
-      columns.value = []
+      columns.value = [];
     }
   },
   { immediate: true },
-)
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function uid(): string {
-  return 'col-' + Math.random().toString(36).slice(2, 9)
+  return 'col-' + Math.random().toString(36).slice(2, 9);
 }
 
 function newLinkDefaults(): LinkBuffer {
-  return { label: '', link_type: 'page', page_slug: '', external_url: '', open_new_tab: false }
+  return { label: '', link_type: 'page', page_slug: '', external_url: '', open_new_tab: false };
 }
 
-function emit_update(): void {
-  emit('input', JSON.parse(JSON.stringify(columns.value)))
+function emitUpdate(): void {
+  emit('input', JSON.parse(JSON.stringify(columns.value)));
+}
+
+// ─── Slug autocomplete ────────────────────────────────────────────────────────
+
+function onSlugInput(): void {
+  search(linkBuffer.value.page_slug?.trim() ?? '');
+}
+
+function handleSelectPage(page: Page): void {
+  selectPage(page, linkBuffer.value);
 }
 
 // ─── Column CRUD ──────────────────────────────────────────────────────────────
 
 function addColumn(): void {
-  columns.value.push({ id: uid(), title: '', links: [] })
-  const ci = columns.value.length - 1
-  columnBuffer.value = { title: '' }
-  editingColumn.value = ci
-  editingLink.value = null
-  emit_update()
+  columns.value.push({ id: uid(), title: '', links: [] });
+  const ci = columns.value.length - 1;
+  columnBuffer.value = { title: '' };
+  editingColumn.value = ci;
+  editingLink.value = null;
+  // Intentionally not emitting until the user saves the column title
 }
 
 function removeColumn(ci: number): void {
-  columns.value.splice(ci, 1)
-  editingColumn.value = null
-  editingLink.value = null
-  emit_update()
+  columns.value.splice(ci, 1);
+  editingColumn.value = null;
+  editingLink.value = null;
+  emitUpdate();
 }
 
 function moveColumn(ci: number, dir: number): void {
-  const arr = columns.value
-  const j = ci + dir
+  const arr = columns.value;
+  const j = ci + dir;
   if (j < 0 || j >= arr.length) return;
-  [arr[ci], arr[j]] = [arr[j], arr[ci]]
-  emit_update()
+  [arr[ci], arr[j]] = [arr[j], arr[ci]];
+  emitUpdate();
 }
 
 function toggleEditColumn(ci: number): void {
   if (editingColumn.value === ci) {
-    editingColumn.value = null
-    return
+    editingColumn.value = null;
+    return;
   }
-  editingLink.value = null
-  columnBuffer.value = { title: columns.value[ci].title }
-  editingColumn.value = ci
+  editingLink.value = null;
+  columnBuffer.value = { title: columns.value[ci].title };
+  editingColumn.value = ci;
 }
 
 function saveColumn(ci: number): void {
-  columns.value[ci].title = columnBuffer.value.title
-  editingColumn.value = null
-  emit_update()
+  columns.value[ci].title = columnBuffer.value.title;
+  editingColumn.value = null;
+  emitUpdate();
 }
 
 function cancelEditColumn(): void {
-  editingColumn.value = null
+  // If the column was just added and has no title, remove it
+  if (editingColumn.value !== null && columns.value[editingColumn.value]?.links.length === 0 && !columns.value[editingColumn.value]?.title) {
+    columns.value.splice(editingColumn.value, 1);
+  }
+  editingColumn.value = null;
 }
 
 // ─── Link CRUD ────────────────────────────────────────────────────────────────
 
 function addLink(ci: number): void {
-  const newLink = { id: uid(), ...newLinkDefaults() }
-  columns.value[ci].links.push(newLink)
-  const li = columns.value[ci].links.length - 1
-  editingColumn.value = null
-  linkBuffer.value = { ...newLinkDefaults() }
-  editingLink.value = [ci, li]
-  pageResults.value = []
-  emit_update()
+  const newLink: ColumnLink = { id: uid(), ...newLinkDefaults() };
+  columns.value[ci].links.push(newLink);
+  const li = columns.value[ci].links.length - 1;
+  editingColumn.value = null;
+  linkBuffer.value = { ...newLinkDefaults() };
+  editingLink.value = [ci, li];
+  clearPageResults();
+  // Intentionally not emitting until the user saves the link
 }
 
 function removeLink(ci: number, li: number): void {
-  columns.value[ci].links.splice(li, 1)
-  editingLink.value = null
-  emit_update()
+  columns.value[ci].links.splice(li, 1);
+  editingLink.value = null;
+  emitUpdate();
 }
 
 function moveLink(ci: number, li: number, dir: number): void {
-  const arr = columns.value[ci].links
-  const j = li + dir
+  const arr = columns.value[ci].links;
+  const j = li + dir;
   if (j < 0 || j >= arr.length) return;
-  [arr[li], arr[j]] = [arr[j], arr[li]]
-  emit_update()
+  [arr[li], arr[j]] = [arr[j], arr[li]];
+  emitUpdate();
 }
 
 function toggleEditLink(ci: number, li: number): void {
-  if (editingLink.value && editingLink.value[0] === ci && editingLink.value[1] === li) {
-    editingLink.value = null
-    return
+  if (editingLink.value?.[0] === ci && editingLink.value?.[1] === li) {
+    editingLink.value = null;
+    return;
   }
-  editingColumn.value = null
-  const link = columns.value[ci].links[li]
+  editingColumn.value = null;
+  const link = columns.value[ci].links[li];
   linkBuffer.value = {
     label: link.label || '',
     link_type: link.link_type || 'page',
     page_slug: link.page_slug || '',
     external_url: link.external_url || '',
     open_new_tab: link.open_new_tab || false,
-  }
-  editingLink.value = [ci, li]
-  pageResults.value = []
+  };
+  editingLink.value = [ci, li];
+  clearPageResults();
 }
 
 function saveLink(ci: number, li: number): void {
-  const link = columns.value[ci].links[li]
-  link.label = linkBuffer.value.label
-  link.link_type = linkBuffer.value.link_type
-  link.page_slug = linkBuffer.value.link_type === 'page' ? linkBuffer.value.page_slug : ''
-  link.external_url = linkBuffer.value.link_type === 'external' ? linkBuffer.value.external_url : ''
-  link.open_new_tab = linkBuffer.value.open_new_tab
-  editingLink.value = null
-  pageResults.value = []
-  emit_update()
+  const link = columns.value[ci].links[li];
+  link.label = linkBuffer.value.label;
+  link.link_type = linkBuffer.value.link_type;
+  link.page_slug = linkBuffer.value.link_type === 'page' ? linkBuffer.value.page_slug : '';
+  link.external_url = linkBuffer.value.link_type === 'external' ? linkBuffer.value.external_url : '';
+  link.open_new_tab = linkBuffer.value.open_new_tab;
+  editingLink.value = null;
+  clearPageResults();
+  emitUpdate();
 }
 
 function cancelEditLink(): void {
-  editingLink.value = null
-  pageResults.value = []
-}
-
-// ─── Page slug autocomplete ───────────────────────────────────────────────────
-
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
-
-function onSlugInput(): void {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  const q = linkBuffer.value.page_slug?.trim()
-  if (!q || q.length < 2) { pageResults.value = []; return }
-  searchTimeout = setTimeout(async () => {
-    try {
-      const res = await api?.get('/items/pages', {
-        params: {
-          'fields[]': ['name', 'slug'],
-          filter: JSON.stringify({
-            _and: [
-              { status: { _eq: 'published' } },
-              { _or: [
-                { name: { _icontains: q } },
-                { slug: { _icontains: q } },
-              ]},
-            ]
-          }),
-          limit: 6,
-        },
-      })
-      pageResults.value = (res?.data?.data as Page[]) || []
-    } catch {
-      pageResults.value = []
+  // If the link was just added and is empty, remove it
+  if (editingLink.value) {
+    const [ci, li] = editingLink.value;
+    const link = columns.value[ci]?.links[li];
+    if (link && !link.label && !link.page_slug && !link.external_url) {
+      columns.value[ci].links.splice(li, 1);
     }
-  }, 300)
-}
-
-function selectPage(page: Page): void {
-  linkBuffer.value.page_slug = page.slug
-  if (!linkBuffer.value.label) linkBuffer.value.label = page.name
-  pageResults.value = []
+  }
+  editingLink.value = null;
+  clearPageResults();
 }
 </script>
 
@@ -447,8 +441,8 @@ function selectPage(page: Page): void {
 }
 
 .badge-ext {
-  background: #fef3c7;
-  color: #b45309;
+  background: var(--theme--warning-background, #fef3c7);
+  color: var(--theme--warning, #b45309);
 }
 
 .actions {
@@ -478,18 +472,18 @@ function selectPage(page: Page): void {
 }
 
 .actions button.danger {
-  color: #dc2626;
-  border-color: #fca5a5;
+  color: var(--theme--danger, #dc2626);
+  border-color: var(--theme--danger-light, #fca5a5);
 }
 
-.actions button.danger:hover {
-  background: #fee2e2;
+.actions button.danger:hover:not(:disabled) {
+  background: var(--theme--danger-background, #fee2e2);
 }
 
 /* Edit forms */
 .edit-form {
   background: var(--theme--primary-background, #f0f7ff);
-  border-top: 1px solid var(--theme--border-color, #bfdbfe);
+  border-top: 1px solid var(--theme--primary-subdued, #bfdbfe);
   padding: 12px;
 }
 
@@ -499,7 +493,7 @@ function selectPage(page: Page): void {
 }
 
 .column-edit-form {
-  border-top: 1px solid var(--theme--border-color, #bfdbfe);
+  border-top: 1px solid var(--theme--primary-subdued, #bfdbfe);
 }
 
 .form-grid {
@@ -515,6 +509,12 @@ function selectPage(page: Page): void {
   font-size: 12px;
   color: var(--theme--foreground-subdued, #555);
   font-weight: 500;
+  position: relative;
+}
+
+/* slug-wrapper gives the autocomplete dropdown a positioned ancestor */
+.slug-wrapper {
+  position: relative;
 }
 
 .edit-form input,
@@ -548,6 +548,8 @@ function selectPage(page: Page): void {
 
 .autocomplete {
   position: absolute;
+  top: 100%;
+  left: 0;
   z-index: 100;
   background: var(--theme--background, #fff);
   border: 1px solid var(--theme--border-color, #ccc);
@@ -557,7 +559,7 @@ function selectPage(page: Page): void {
   padding: 0;
   max-height: 180px;
   overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 280px;
 }
 

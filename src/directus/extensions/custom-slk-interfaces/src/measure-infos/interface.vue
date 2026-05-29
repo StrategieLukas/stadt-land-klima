@@ -1,6 +1,7 @@
 <template>
   <div class="measure-preview">
-  <p class="id-info">ID: {{ measureData.measure_id }}</p>
+    <p class="id-info">ID: {{ measureData.measure_id }}</p>
+
     <!-- Link to Frontend -->
     <div v-if="measureData.slug && measureData.sector" class="measure-link">
       <a
@@ -12,7 +13,7 @@
       </a>
     </div>
 
-    <div v-if="!measureId" class="v-notice info">
+    <div v-if="!resolvedMeasureId" class="v-notice info">
       <v-icon name="info" />
       <div class="content">
         <div class="title">{{ $t('directus.interfaces.no_measure_found_error') }}</div>
@@ -38,7 +39,12 @@
           <v-icon name="info" small />
           <span class="field-label">{{ getFieldLabel(fieldKey) }}</span>
         </div>
-        <div v-if="measureData[fieldKey]" class="field-content" v-html="measureData[fieldKey]"></div>
+        <!--
+          v-html is intentional here to render rich-text (HTML) from Directus.
+          Ensure measure content is authored in a trusted CMS context only.
+          If untrusted users can author measures, pipe through DOMPurify first.
+        -->
+        <div v-if="measureData[fieldKey]" class="field-content" v-html="measureData[fieldKey]" />
         <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
       </div>
     </div>
@@ -52,137 +58,254 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref, computed, watch, inject, getCurrentInstance, type Ref } from 'vue';
 
-export default defineComponent({
-  name: 'MeasurePreview',
-  inject: ['api'],
-  props: {
-    value: { type: [String, Number] as () => string | number | null, default: null },
-    field: { type: String, required: true },
-    collection: { type: String, required: true },
-    primaryKey: { type: [String, Number] as () => string | number | null, default: null },
-    measure_field: { type: String, default: 'measure_id' },
-    fields_to_display: {
-      type: Array as () => string[],
-      default: () => ['description_about', 'description_evaluation_criteria', 'description_verification'],
-    },
-    options: {
-      type: Object as () => { measure_field?: string; fields_to_display?: string[] } | null,
-      default: null,
-    },
-  },
-  data() {
-    return {
-      measureId: null as string | number | null,
-      measureData: {} as Record<string, unknown>,
-      loading: false,
-      error: null as string | null,
-      fieldsToDisplay: [] as string[],
-    };
-  },
-  computed: {
-    hasMeasureData(): boolean {
-      return this.measureData && Object.keys(this.measureData).length > 0;
-    },
-  },
-  watch: {
-    primaryKey: { immediate: true, handler() { this.ensureMeasureLoaded(); } },
-    value() { this.ensureMeasureLoaded(); },
-    options: { deep: true, handler() { this.ensureMeasureLoaded(); } },
-  },
-  mounted() {
-    this.fieldsToDisplay = this.fields_to_display;
-    this.ensureMeasureLoaded();
-  },
-  methods: {
-    async ensureMeasureLoaded(): Promise<void> {
-      const measureField = (this.options && this.options.measure_field) || this.measure_field || 'measure_id';
-      const pk = this.primaryKey ?? null;
-      const boundValue = this.value ?? null;
+type Api = {
+  get: (
+    path: string,
+    config?: { params?: Record<string, string> },
+  ) => Promise<{ data?: { data?: unknown } }>;
+};
 
-      if (pk && pk !== '+') {
-        if (this.field === measureField) {
-          const measureId = boundValue || this.value || null;
-          if (measureId) await this.fetchMeasure(measureId as string | number);
-          else { this.measureData = {}; this.measureId = null; }
-        } else {
-          try {
-            const resp = await (this.api as { get: (path: string) => Promise<{ data?: { data?: unknown } }> }).get(`/items/${this.collection}/${pk}`);
-            const item = resp?.data?.data as Record<string, unknown> || {};
-            const measureId = item[measureField] ?? null;
-            if (measureId) { this.measureId = measureId as string | number; await this.fetchMeasure(measureId as string | number); }
-            else { this.measureData = {}; this.measureId = null; }
-          } catch (err) {
-            console.error('[MeasurePreview] Error fetching parent item:', err);
-            this.measureData = {}; this.measureId = null;
-          }
-        }
-        return;
+const props = defineProps<{
+  value?: string | number | null;
+  field: string;
+  collection: string;
+  primaryKey?: string | number | null;
+  measure_field?: string;
+  fields_to_display?: string[];
+  options?: {
+    measure_field?: string;
+    fields_to_display?: string[];
+  } | null;
+}>();
+
+const api = inject<Api>('api');
+
+// ─── Derived config ───────────────────────────────────────────────────────────
+
+/** The field on the parent item that holds the measure ID */
+const measureField = computed(() =>
+  props.options?.measure_field ?? props.measure_field ?? 'measure_id'
+);
+
+/** Fields from the measure record to render in the preview */
+const fieldsToDisplay = computed(() =>
+    props.options?.fields_to_display ??
+    props.fields_to_display ?? [
+      'description_about',
+      'description_evaluation_criteria',
+      'description_verification',
+    ]
+);
+
+// ─── State ────────────────────────────────────────────────────────────────────
+
+const resolvedMeasureId: Ref<string | number | null> = ref(null);
+const measureData: Ref<Record<string, unknown>> = ref({});
+const loading: Ref<boolean> = ref(false);
+const error: Ref<string | null> = ref(null);
+
+const hasMeasureData = computed(() => Object.keys(measureData.value).length > 0);
+
+// ─── Watchers ─────────────────────────────────────────────────────────────────
+
+// Debounce to avoid firing an API call on every keystroke when value is
+// bound to a text field that the user is actively editing.
+let fetchDebounce: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleFetch() {
+  if (fetchDebounce) clearTimeout(fetchDebounce);
+  fetchDebounce = setTimeout(() => ensureMeasureLoaded(), 300);
+}
+
+watch(() => props.primaryKey, scheduleFetch, { immediate: true });
+watch(() => props.value, scheduleFetch);
+watch(() => props.options, scheduleFetch, { deep: true });
+
+// ─── Data loading ─────────────────────────────────────────────────────────────
+
+async function ensureMeasureLoaded(): Promise<void> {
+  const pk = props.primaryKey ?? null;
+  const boundValue = props.value ?? null;
+
+  if (pk && pk !== '+') {
+    if (props.field === measureField.value) {
+      // This field IS the measure_id field — use its current (possibly unsaved) value
+      const id = boundValue;
+      if (id) {
+        resolvedMeasureId.value = id as string | number;
+        await fetchMeasure(id as string | number);
+      } else {
+        measureData.value = {};
+        resolvedMeasureId.value = null;
       }
-
-      if (this.field === measureField) {
-        const measureId = boundValue || null;
-        if (measureId) { this.measureId = measureId as string | number; await this.fetchMeasure(measureId as string | number); }
-        else { this.measureData = {}; this.measureId = null; }
-        return;
-      }
-
-      this.measureData = {}; this.measureId = null;
-    },
-
-    async fetchMeasure(id: string | number): Promise<void> {
-      if (!id || !this.api) return;
-      this.loading = true; this.error = null;
+    } else {
+      // Fetch the parent record to resolve the measure_id from a sibling field
       try {
-        const fields = [...this.fieldsToDisplay, 'sector', 'slug', 'measure_id'].join(',');
-        const response = await (this.api as { get: (path: string, config?: { params?: Record<string, string> }) => Promise<{ data?: { data?: unknown } }> }).get(`/items/measures/${id}`, {
-          params: { fields },
-        });
-        this.measureData = response?.data?.data as Record<string, unknown> || {};
+        const resp = await api?.get(`/items/${props.collection}/${pk}`);
+        const item = (resp?.data?.data as Record<string, unknown>) ?? {};
+        const id = item[measureField.value] ?? null;
+        if (id) {
+          resolvedMeasureId.value = id as string | number;
+          await fetchMeasure(id as string | number);
+        } else {
+          measureData.value = {};
+          resolvedMeasureId.value = null;
+        }
       } catch (err) {
-        console.error('[MeasurePreview] Error fetching measure:', err);
-        this.error = (err as Error)?.message || 'Failed to fetch measure';
-        this.measureData = {};
-      } finally { this.loading = false; }
-    },
-
-    getFieldLabel(fieldKey: string): string {
-      // Fetch special translations that I entered to mirror the field name translations
-      const translationKey = `ratings_measures.fields.${fieldKey}`;
-      const translation = this.$t && typeof this.$t === 'function' 
-        ? this.$t(translationKey)
-        : null;
-      if (translation && translation !== translationKey) {
-        return translation;
+        console.error('[MeasurePreview] Error fetching parent item:', err);
+        measureData.value = {};
+        resolvedMeasureId.value = null;
       }
+    }
+    return;
+  }
 
-      // Fallback: just print the prettified field key
-      return fieldKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    },
-  },
-});
+  // New record (pk is '+' or null) — only usable if this field is the measure_id field
+  if (props.field === measureField.value && boundValue) {
+    resolvedMeasureId.value = boundValue as string | number;
+    await fetchMeasure(boundValue as string | number);
+    return;
+  }
+
+  measureData.value = {};
+  resolvedMeasureId.value = null;
+}
+
+async function fetchMeasure(id: string | number): Promise<void> {
+  if (!id || !api) return;
+  loading.value = true;
+  error.value = null;
+  try {
+    const fields = [...fieldsToDisplay.value, 'sector', 'slug', 'measure_id'].join(',');
+    const response = await api.get(`/items/measures/${id}`, { params: { fields } });
+    measureData.value = (response?.data?.data as Record<string, unknown>) ?? {};
+  } catch (err) {
+    console.error('[MeasurePreview] Error fetching measure:', err);
+    error.value = (err as Error)?.message || 'Failed to fetch measure';
+    measureData.value = {};
+  } finally {
+    loading.value = false;
+  }
+}
+
+// ─── Label resolution ─────────────────────────────────────────────────────────
+
+function getFieldLabel(fieldKey: string): string {
+  const translationKey = `ratings_measures.fields.${fieldKey}`;
+  // $t is injected globally by Directus — not available in script setup directly,
+  // so we use getCurrentInstance as a fallback-safe approach.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const $t = (getCurrentInstance() as any)?.appContext?.config?.globalProperties?.$t;
+  if (typeof $t === 'function') {
+    const translation = $t(translationKey);
+    if (translation && translation !== translationKey) return translation;
+  }
+  return fieldKey.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 </script>
 
 <style scoped>
-.measure-preview { --v-notice-padding: 12px 16px; }
-.measure-content { display:flex; flex-direction:column; gap:16px; }
-.field-preview { background-color:var(--theme--background-subdued); border:1px solid var(--theme--border-color-subdued); border-radius:var(--theme--border-radius); padding:12px 16px; transition:border-color var(--fast) var(--transition); }
-.field-preview:hover { border-color:var(--theme--border-color); }
-.field-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; color:var(--theme--foreground-subdued); }
-.field-header .v-icon { --v-icon-color:var(--theme--primary); }
-.field-label { font-weight:600; font-size:16px; color:var(--theme--foreground); }
-.field-content { color:var(--theme--foreground); font-size:15px; line-height:1.6; }
-.field-content.empty { color:var(--theme--foreground-subdued); font-style:italic; }
-.field-content :deep(p) { margin:0 0 8px 0; }
-.field-content :deep(p:last-child) { margin-bottom:0; }
-.field-content :deep(ul), .field-content :deep(ol) { margin:8px 0; padding-left:20px; }
-.field-content :deep(li) { margin-bottom:4px; }
-.loading-container { display:flex; align-items:center; gap:12px; padding:16px; color:var(--theme--foreground-subdued); }
-.loading-text { font-size:14px; }
-.v-notice { --v-notice-margin:0; }
-.measure-link { margin-top:4px; margin-bottom:8px; }
-.measure-link a { color:var(--theme--primary); text-decoration:underline; font-weight:500; }
-.id-info { font-size: 14px; }
+.measure-preview {
+  --v-notice-padding: 12px 16px;
+}
+
+.measure-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field-preview {
+  background-color: var(--theme--background-subdued);
+  border: 1px solid var(--theme--border-color-subdued);
+  border-radius: var(--theme--border-radius);
+  padding: 12px 16px;
+  transition: border-color var(--fast) var(--transition);
+}
+
+.field-preview:hover {
+  border-color: var(--theme--border-color);
+}
+
+.field-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--theme--foreground-subdued);
+}
+
+.field-header .v-icon {
+  --v-icon-color: var(--theme--primary);
+}
+
+.field-label {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--theme--foreground);
+}
+
+.field-content {
+  color: var(--theme--foreground);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.field-content.empty {
+  color: var(--theme--foreground-subdued);
+  font-style: italic;
+}
+
+.field-content :deep(p) {
+  margin: 0 0 8px;
+}
+
+.field-content :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.field-content :deep(ul),
+.field-content :deep(ol) {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.field-content :deep(li) {
+  margin-bottom: 4px;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: var(--theme--foreground-subdued);
+}
+
+.loading-text {
+  font-size: 14px;
+}
+
+.v-notice {
+  --v-notice-margin: 0;
+}
+
+.measure-link {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.measure-link a {
+  color: var(--theme--primary);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.id-info {
+  font-size: 14px;
+}
 </style>

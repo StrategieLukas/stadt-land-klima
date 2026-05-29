@@ -1,6 +1,6 @@
 <template>
   <div class="navigation-editor">
-    <div v-if="!items.length" class="empty-state">
+    <div v-if="!items.length && !isAddingNew" class="empty-state">
       Noch keine Navigationspunkte vorhanden.
     </div>
 
@@ -36,71 +36,17 @@
           </div>
         </div>
 
-        <!-- Inline edit form -->
-        <div v-if="editingPath === String(idx)" class="edit-form">
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Label *</label>
-              <input v-model="editBuffer.label" type="text" placeholder="Kommunen" />
-            </div>
-            <div class="form-field">
-              <label>Link-Typ *</label>
-              <select v-model="editBuffer.link_type">
-                <option value="page">Interne Seite</option>
-                <option value="external">Externe URL</option>
-                <option value="none">Kein Link (nur Text)</option>
-              </select>
-            </div>
-            <template v-if="editBuffer.link_type === 'page'">
-              <div class="form-field full">
-                <label>Seiten-Slug *</label>
-                <div class="slug-input-wrapper">
-                  <input
-                    v-model="editBuffer.page_slug"
-                    type="text"
-                    placeholder="municipalities"
-                    @input="onSlugInput"
-                  />
-                  <div v-if="pageResults.length" class="slug-suggestions">
-                    <div
-                      v-for="page in pageResults"
-                      :key="page.slug"
-                      class="slug-suggestion"
-                      @click="selectPage(page)"
-                    >
-                      <strong>{{ page.name }}</strong>
-                      <span>/{{ page.slug }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template v-else-if="editBuffer.link_type === 'external'">
-              <div class="form-field full">
-                <label>Externe URL *</label>
-                <input v-model="editBuffer.external_url" type="url" placeholder="https://example.com" />
-              </div>
-              <div class="form-field checkbox-field">
-                <label>
-                  <input v-model="editBuffer.open_new_tab" type="checkbox" />
-                  In neuem Tab öffnen
-                </label>
-              </div>
-            </template>
-            <div class="form-field">
-              <label>Bild-ID <span class="hint">(Directus Datei-UUID, optional)</span></label>
-              <input v-model="editBuffer.image_id" type="text" placeholder="uuid der Bilddatei" />
-            </div>
-            <div class="form-field">
-              <label>Beschreibung <span class="hint">(optional, für Mega-Menü)</span></label>
-              <input v-model="editBuffer.description" type="text" placeholder="Kurze Beschreibung..." />
-            </div>
-          </div>
-          <div class="form-actions">
-            <button class="btn-save" @click="saveEdit(String(idx))">Speichern</button>
-            <button class="btn-cancel" @click="cancelEdit">Abbrechen</button>
-          </div>
-        </div>
+        <!-- Inline edit form (top-level) -->
+        <NavItemForm
+          v-if="editingPath === String(idx)"
+          :buffer="editBuffer!"
+          :page-results="pageResults"
+          :allow-none-link="true"
+          @slug-input="onSlugInput"
+          @select-page="(p) => handleSelectPage(p)"
+          @save="saveEdit(String(idx))"
+          @cancel="cancelEdit"
+        />
 
         <!-- Children list -->
         <div v-if="item.children?.length" class="children-list">
@@ -127,64 +73,17 @@
                 <button class="action-btn delete" @click="removeChild(idx, childIdx)" :disabled="disabled">×</button>
               </div>
             </div>
-            <div v-if="editingPath === `${idx}.${childIdx}`" class="edit-form child-edit-form">
-              <div class="form-grid">
-                <div class="form-field">
-                  <label>Label *</label>
-                  <input v-model="editBuffer.label" type="text" placeholder="Karte" />
-                </div>
-                <div class="form-field">
-                  <label>Link-Typ *</label>
-                  <select v-model="editBuffer.link_type">
-                    <option value="page">Interne Seite</option>
-                    <option value="external">Externe URL</option>
-                  </select>
-                </div>
-                <template v-if="editBuffer.link_type === 'page'">
-                  <div class="form-field full">
-                    <label>Seiten-Slug *</label>
-                    <div class="slug-input-wrapper">
-                      <input
-                        v-model="editBuffer.page_slug"
-                        type="text"
-                        placeholder="map"
-                        @input="onSlugInput"
-                      />
-                      <div v-if="pageResults.length" class="slug-suggestions">
-                        <div v-for="page in pageResults" :key="page.slug" class="slug-suggestion" @click="selectPage(page)">
-                          <strong>{{ page.name }}</strong>
-                          <span>/{{ page.slug }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-                <template v-else>
-                  <div class="form-field full">
-                    <label>Externe URL *</label>
-                    <input v-model="editBuffer.external_url" type="url" placeholder="https://example.com" />
-                  </div>
-                  <div class="form-field checkbox-field">
-                    <label>
-                      <input v-model="editBuffer.open_new_tab" type="checkbox" />
-                      In neuem Tab öffnen
-                    </label>
-                  </div>
-                </template>
-                <div class="form-field">
-                  <label>Bild-ID <span class="hint">(optional)</span></label>
-                  <input v-model="editBuffer.image_id" type="text" placeholder="uuid der Bilddatei" />
-                </div>
-                <div class="form-field">
-                  <label>Beschreibung <span class="hint">(optional)</span></label>
-                  <input v-model="editBuffer.description" type="text" placeholder="Kurze Beschreibung..." />
-                </div>
-              </div>
-              <div class="form-actions">
-                <button class="btn-save" @click="saveEdit(`${idx}.${childIdx}`)">Speichern</button>
-                <button class="btn-cancel" @click="cancelEdit">Abbrechen</button>
-              </div>
-            </div>
+
+            <NavItemForm
+              v-if="editingPath === `${idx}.${childIdx}`"
+              :buffer="editBuffer!"
+              :page-results="pageResults"
+              :allow-none-link="false"
+              @slug-input="onSlugInput"
+              @select-page="(p) => handleSelectPage(p)"
+              @save="saveEdit(`${idx}.${childIdx}`)"
+              @cancel="cancelEdit"
+            />
           </div>
         </div>
 
@@ -193,10 +92,32 @@
           <button class="add-child-btn" @click="addChild(idx)">+ Unterpunkt hinzufügen</button>
         </div>
       </div>
+
+      <!-- New-item form (shown below existing items, before the add button) -->
+      <div v-if="isAddingNew" class="item-block new-item-block">
+        <div class="item-row is-editing">
+          <div class="item-info">
+            <span class="item-index">{{ items.length + 1 }}.</span>
+            <em class="item-label" style="opacity:.5">Neuer Eintrag…</em>
+          </div>
+          <div class="item-actions">
+            <button class="action-btn delete" @click="cancelEdit" title="Abbrechen">×</button>
+          </div>
+        </div>
+        <NavItemForm
+          :buffer="editBuffer!"
+          :page-results="pageResults"
+          :allow-none-link="true"
+          @slug-input="onSlugInput"
+          @select-page="(p) => handleSelectPage(p)"
+          @save="commitNewItem"
+          @cancel="cancelEdit"
+        />
+      </div>
     </div>
 
     <div v-if="!disabled" class="add-item-row">
-      <button class="add-btn" @click="addItem">+ Navigationspunkt hinzufügen</button>
+      <button class="add-btn" @click="startAddItem">+ Navigationspunkt hinzufügen</button>
     </div>
   </div>
 </template>
@@ -204,6 +125,8 @@
 <script setup lang="ts">
 import { ref, watch, inject, type Ref } from 'vue';
 import type { Page } from '../types';
+import { usePageSearch } from '../usePageSearch';
+import NavItemForm from './NavItemForm.vue';
 
 interface NavItem {
   id: string;
@@ -217,15 +140,7 @@ interface NavItem {
   children: NavItem[];
 }
 
-interface EditBuffer {
-  label: string;
-  link_type: 'page' | 'external' | 'none';
-  page_slug: string;
-  external_url: string;
-  open_new_tab: boolean;
-  image_id: string | null;
-  description: string;
-}
+type EditBuffer = Omit<NavItem, 'id' | 'children'>;
 
 const props = defineProps<{
   value?: string | NavItem[] | null;
@@ -238,9 +153,13 @@ const emit = defineEmits<{
   (e: 'input', value: NavItem[]): void;
 }>();
 
-const api = inject<{ get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }> }>('api');
+const api = inject<{
+  get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }>;
+}>('api');
 
-function parseValue(val: string | NavItem[] | null): NavItem[] {
+// ─── Parse value ──────────────────────────────────────────────────────────────
+
+function parseValue(val: string | NavItem[] | null | undefined): NavItem[] {
   if (!val) return [];
   if (typeof val === 'string') {
     try { return JSON.parse(val); } catch { return []; }
@@ -251,19 +170,25 @@ function parseValue(val: string | NavItem[] | null): NavItem[] {
 const items: Ref<NavItem[]> = ref(parseValue(props.value));
 const editingPath: Ref<string | null> = ref(null);
 const editBuffer: Ref<EditBuffer | null> = ref(null);
-const pageResults: Ref<Page[]> = ref([]);
+const isAddingNew: Ref<boolean> = ref(false);
+
+const { pageResults, search, selectPage, clear: clearPageResults } = usePageSearch(api);
 
 watch(() => props.value, (newVal) => {
-  if (!editingPath.value) {
+  // Only sync from outside when we're not mid-edit, to avoid clobbering the user's work.
+  // A more robust implementation would do a deep diff/merge here.
+  if (!editingPath.value && !isAddingNew.value) {
     items.value = parseValue(newVal);
   }
 });
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function genId(): string {
-  return 'nav-' + Math.random().toString(36).substr(2, 9);
+  return 'nav-' + Math.random().toString(36).slice(2, 9);
 }
 
-function newItem(): NavItem {
+function newItemDefaults(): NavItem {
   return {
     id: genId(),
     label: '',
@@ -281,11 +206,41 @@ function emitValue(): void {
   emit('input', JSON.parse(JSON.stringify(items.value)));
 }
 
-function addItem(): void {
-  const item = newItem();
-  items.value.push(item);
-  editingPath.value = String(items.value.length - 1);
-  editBuffer.value = { ...item };
+// ─── Slug search ──────────────────────────────────────────────────────────────
+
+function onSlugInput(): void {
+  search(editBuffer.value?.page_slug?.trim() ?? '');
+}
+
+function handleSelectPage(page: Page): void {
+  if (editBuffer.value) selectPage(page, editBuffer.value);
+}
+
+// ─── Add / remove top-level items (defer push until save) ─────────────────────
+
+function startAddItem(): void {
+  if (isAddingNew.value) return;
+  editingPath.value = null;
+  editBuffer.value = { ...newItemDefaults(), children: undefined as unknown as NavItem[] };
+  // Cast away children since EditBuffer omits it — children are added on commit
+  const { children: _children, id: _id, ...bufferFields } = newItemDefaults();
+  editBuffer.value = bufferFields as EditBuffer;
+  isAddingNew.value = true;
+  clearPageResults();
+}
+
+function commitNewItem(): void {
+  if (!editBuffer.value) return;
+  const newItem: NavItem = {
+    id: genId(),
+    ...(editBuffer.value as EditBuffer),
+    children: [],
+  };
+  items.value.push(newItem);
+  isAddingNew.value = false;
+  editBuffer.value = null;
+  clearPageResults();
+  emitValue();
 }
 
 function removeItem(idx: number): void {
@@ -313,15 +268,19 @@ function moveDown(idx: number): void {
   }
 }
 
+// ─── Children ─────────────────────────────────────────────────────────────────
+
 function addChild(parentIdx: number): void {
   if (!items.value[parentIdx].children) {
     items.value[parentIdx].children = [];
   }
-  const child = newItem();
-  items.value[parentIdx].children.push(child);
-  const childIdx = items.value[parentIdx].children.length - 1;
-  editingPath.value = `${parentIdx}.${childIdx}`;
-  editBuffer.value = { ...child };
+  // For children we also defer: open form buffer but push only on save
+  const { children: _c, id: _id, ...bufferFields } = newItemDefaults();
+  editBuffer.value = bufferFields as EditBuffer;
+  // Use a sentinel path so the form opens below the last child
+  const li = items.value[parentIdx].children.length;
+  editingPath.value = `${parentIdx}.${li}__new`;
+  clearPageResults();
 }
 
 function removeChild(parentIdx: number, childIdx: number): void {
@@ -349,75 +308,60 @@ function moveChildDown(parentIdx: number, childIdx: number): void {
   }
 }
 
+// ─── Edit existing items ──────────────────────────────────────────────────────
+
 function toggleEdit(path: string, item: NavItem): void {
   if (editingPath.value === path) {
     cancelEdit();
   } else {
+    isAddingNew.value = false;
     editingPath.value = path;
-    editBuffer.value = JSON.parse(JSON.stringify(item));
-    pageResults.value = [];
+    editBuffer.value = JSON.parse(JSON.stringify({
+      label: item.label,
+      link_type: item.link_type,
+      page_slug: item.page_slug,
+      external_url: item.external_url,
+      open_new_tab: item.open_new_tab,
+      image_id: item.image_id,
+      description: item.description,
+    }));
+    clearPageResults();
   }
 }
 
 function cancelEdit(): void {
   editingPath.value = null;
   editBuffer.value = null;
-  pageResults.value = [];
+  isAddingNew.value = false;
+  clearPageResults();
 }
 
 function saveEdit(path: string): void {
+  if (!editBuffer.value) return;
+
+  // Handle new-child sentinel paths like "2.3__new"
+  if (path.endsWith('__new')) {
+    const parentIdx = parseInt(path.split('.')[0]);
+    const newChild: NavItem = { id: genId(), ...(editBuffer.value as EditBuffer), children: [] };
+    items.value[parentIdx].children.push(newChild);
+    editingPath.value = null;
+    editBuffer.value = null;
+    clearPageResults();
+    emitValue();
+    return;
+  }
+
   const parts = path.split('.');
   if (parts.length === 1) {
-    const idx = parseInt(parts[0]);
-    Object.assign(items.value[idx], editBuffer.value);
+    Object.assign(items.value[parseInt(parts[0])], editBuffer.value);
   } else {
     const [parentIdx, childIdx] = parts.map(Number);
     Object.assign(items.value[parentIdx].children[childIdx], editBuffer.value);
   }
   editingPath.value = null;
   editBuffer.value = null;
-  pageResults.value = [];
+  clearPageResults();
   emitValue();
-}
-
-let slugSearchTimer: ReturnType<typeof setTimeout> | null = null;
-function onSlugInput(): void {
-  if (slugSearchTimer) clearTimeout(slugSearchTimer);
-  const query = editBuffer.value?.page_slug;
-  if (!query || query.length < 2) {
-    pageResults.value = [];
-    return;
-  }
-  slugSearchTimer = setTimeout(async () => {
-    try {
-      const resp = await api?.get('/items/pages', {
-        params: {
-          fields: 'name,slug',
-          filter: JSON.stringify({
-            _and: [
-              { status: { _eq: 'published' } },
-              { _or: [
-                { name: { _icontains: query } },
-                { slug: { _icontains: query } },
-              ]},
-            ]
-          }),
-          limit: 6,
-        },
-      });
-      pageResults.value = (resp?.data?.data as Page[]) || [];
-    } catch {
-      pageResults.value = [];
-    }
-  }, 300);
-}
-
-function selectPage(page: Page): void {
-  if (editBuffer.value) {
-    editBuffer.value.page_slug = page.slug;
-    editBuffer.value.label = editBuffer.value.label || page.name;
-  }
-  pageResults.value = [];
 }
 </script>
 
@@ -449,6 +393,11 @@ function selectPage(page: Page): void {
   border-radius: var(--theme--border-radius, 4px);
   overflow: hidden;
   background: var(--theme--background, #fff);
+}
+
+.new-item-block {
+  border-color: var(--theme--primary, #2563eb);
+  border-style: dashed;
 }
 
 .child-block {
@@ -527,13 +476,13 @@ function selectPage(page: Page): void {
 }
 
 .badge.external {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--theme--warning-background, #fef3c7);
+  color: var(--theme--warning, #92400e);
 }
 
 .badge.none {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--theme--background-subdued, #f3f4f6);
+  color: var(--theme--foreground-subdued, #6b7280);
 }
 
 .children-badge {
@@ -575,9 +524,9 @@ function selectPage(page: Page): void {
 }
 
 .action-btn.delete:hover:not(:disabled) {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
+  background: var(--theme--danger-background, #fee2e2);
+  border-color: var(--theme--danger-light, #fca5a5);
+  color: var(--theme--danger, #dc2626);
 }
 
 .action-btn.edit:hover:not(:disabled) {
@@ -586,155 +535,11 @@ function selectPage(page: Page): void {
   color: var(--theme--primary, #2563eb);
 }
 
-.edit-form {
-  padding: 12px;
-  background: var(--theme--background-subdued, #fafafa);
-  border-top: 1px solid var(--theme--border-color, #e0e0e0);
-}
-
-.child-edit-form {
-  background: var(--theme--background, #fff);
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.form-field.full {
-  grid-column: 1 / -1;
-}
-
-.form-field.checkbox-field {
-  grid-column: 1 / -1;
-  flex-direction: row;
-  align-items: center;
-}
-
-.form-field label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--theme--foreground-subdued, #666);
-}
-
-.form-field .hint {
-  font-weight: 400;
-  font-style: italic;
-}
-
-.form-field input[type="text"],
-.form-field input[type="url"],
-.form-field select {
-  padding: 6px 8px;
-  border: 1px solid var(--theme--border-color, #ddd);
-  border-radius: var(--theme--border-radius, 4px);
-  background: var(--theme--background, #fff);
-  font-size: 13px;
-  color: var(--theme--foreground, #333);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-field input:focus,
-.form-field select:focus {
-  outline: none;
-  border-color: var(--theme--primary, #2563eb);
-  box-shadow: 0 0 0 2px var(--theme--primary-background, #dbeafe);
-}
-
-.form-field input[type="checkbox"] {
-  margin-right: 6px;
-}
-
-.slug-input-wrapper {
-  position: relative;
-}
-
-.slug-suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--theme--background, #fff);
-  border: 1px solid var(--theme--border-color, #ddd);
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  z-index: 100;
-  max-height: 160px;
-  overflow-y: auto;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.slug-suggestion {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 12px;
-  gap: 8px;
-}
-
-.slug-suggestion:hover {
-  background: var(--theme--primary-background, #dbeafe);
-}
-
-.slug-suggestion strong {
-  color: var(--theme--foreground, #333);
-}
-
-.slug-suggestion span {
-  color: var(--theme--foreground-subdued, #777);
-  font-family: monospace;
-}
-
-.form-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-save {
-  padding: 6px 16px;
-  background: var(--theme--primary, #2563eb);
-  color: #fff;
-  border: none;
-  border-radius: var(--theme--border-radius, 4px);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-save:hover {
-  background: var(--theme--primary-accent, #1d4ed8);
-}
-
-.btn-cancel {
-  padding: 6px 16px;
-  background: transparent;
-  color: var(--theme--foreground-subdued, #666);
-  border: 1px solid var(--theme--border-color, #ddd);
-  border-radius: var(--theme--border-radius, 4px);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-cancel:hover {
-  background: var(--theme--background-subdued, #f5f5f5);
-}
-
 .children-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 4px 8px 4px 8px;
+  padding: 4px 8px;
   background: var(--theme--background-subdued, #fafafa);
 }
 

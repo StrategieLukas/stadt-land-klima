@@ -2,12 +2,12 @@
   <div class="unsplash-image-interface">
     <!-- Current image preview -->
     <div v-if="props.value" class="preview-wrapper" :class="{ letterbox: props.letterbox }">
-      <img :src="previewUrl" alt="" class="preview-img" />
+      <img :src="previewUrl ?? undefined" alt="" class="preview-img" />
       <div class="preview-actions">
         <button class="action-btn danger" :disabled="props.disabled" @click="removeImage">
           Remove
         </button>
-        <a :href="previewUrl" target="_blank" rel="noopener" class="action-btn secondary">
+        <a :href="previewUrl ?? undefined" target="_blank" rel="noopener" class="action-btn secondary">
           View
         </a>
       </div>
@@ -33,6 +33,8 @@
       />
     </div>
 
+    <div v-if="uploadError" class="error-msg">{{ uploadError }}</div>
+
     <!-- Directus library browser modal -->
     <div v-if="libraryOpen" class="modal-overlay" @click.self="closeLibrary">
       <div class="modal">
@@ -53,7 +55,7 @@
 
         <div v-if="libraryLoading" class="loading">Loading…</div>
 
-        <div v-else-if="!libraryLoading && libraryFiles.length === 0" class="empty">
+        <div v-else-if="libraryFiles.length === 0" class="empty">
           No files found.
         </div>
 
@@ -94,9 +96,7 @@
       </div>
     </div>
 
-    <div v-if="uploadError" class="error-msg">{{ uploadError }}</div>
-
-    <!-- Unsplash modal overlay -->
+    <!-- Unsplash modal -->
     <div v-if="modalOpen" class="modal-overlay" @click.self="closeUnsplash">
       <div class="modal">
         <div class="modal-header">
@@ -131,7 +131,7 @@
             :class="{ loading: importingId === photo.id }"
             @click="selectPhoto(photo)"
           >
-            <img :src="photo.urls.small" :alt="photo.description" class="photo-thumb" loading="lazy" />
+            <img :src="photo.urls.small" :alt="photo.description ?? undefined" class="photo-thumb" loading="lazy" />
             <div class="photo-attr">
               <a
                 :href="photo.user.link + '?utm_source=stadtlandklima&utm_medium=referral'"
@@ -177,6 +177,8 @@
 import { ref, computed, inject, type Ref } from 'vue';
 import type { DirectusFile, UnsplashPhoto, UnsplashSearchResponse } from '../types';
 
+const MAX_FILE_SIZE_MB = 10;
+
 const props = defineProps<{
   value?: string | null;
   disabled?: boolean;
@@ -193,7 +195,7 @@ const api = inject<{
   post: (path: string, data?: unknown) => Promise<{ data?: { data?: { id?: string } } }>;
 }>('api');
 
-// ─── Current image ───────────────────────────────────────────────────────────
+// ─── Current image ────────────────────────────────────────────────────────────
 
 const previewUrl = computed((): string | null => {
   if (!props.value) return null;
@@ -219,10 +221,20 @@ async function onFileChosen(event: Event): Promise<void> {
   const file = input.files?.[0];
   if (!file) return;
 
-  // Reset input so re-selecting same file still fires change
+  // Reset so re-selecting the same file still fires
   input.value = '';
-
   uploadError.value = null;
+
+  // Client-side validation
+  if (!file.type.startsWith('image/')) {
+    uploadError.value = 'Only image files are supported.';
+    return;
+  }
+  if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+    uploadError.value = `File must be under ${MAX_FILE_SIZE_MB} MB.`;
+    return;
+  }
+
   try {
     const formData = new FormData();
     if (props.folder) formData.append('folder', props.folder);
@@ -232,11 +244,13 @@ async function onFileChosen(event: Event): Promise<void> {
     const fileId = response?.data?.data?.id ?? null;
     emit('input', fileId);
   } catch (err) {
-    uploadError.value = 'Upload failed: ' + (err as { response?: { data?: { errors?: { message?: string }[] } }; message?: string }).response?.data?.errors?.[0]?.message || (err as Error).message;
+    const apiMessage = (err as { response?: { data?: { errors?: { message?: string }[] } } })
+      ?.response?.data?.errors?.[0]?.message;
+    uploadError.value = 'Upload failed: ' + (apiMessage ?? (err as Error).message ?? 'Unknown error');
   }
 }
 
-// ─── Directus library browser ────────────────────────────────────────────────
+// ─── Directus library browser ─────────────────────────────────────────────────
 
 const libraryOpen: Ref<boolean> = ref(false);
 const librarySearch: Ref<string> = ref('');
@@ -258,9 +272,7 @@ function closeLibrary(): void {
 
 function onLibrarySearchInput(): void {
   if (libraryDebounce) clearTimeout(libraryDebounce);
-  libraryDebounce = setTimeout(() => {
-    loadLibraryPage(1);
-  }, 400);
+  libraryDebounce = setTimeout(() => loadLibraryPage(1), 400);
 }
 
 async function loadLibraryPage(page: number): Promise<void> {
@@ -279,11 +291,17 @@ async function loadLibraryPage(page: number): Promise<void> {
       params['filter[title][_icontains]'] = librarySearch.value.trim();
     }
     const response = await api?.get('/files', { params });
-    libraryFiles.value = (response?.data as { data?: DirectusFile[]; meta?: { filter_count?: number } })?.data || [];
-    const total = (response?.data as { meta?: { filter_count?: number } })?.meta?.filter_count ?? libraryFiles.value.length;
-    libraryTotalPages.value = Math.max(1, Math.ceil(total / libraryPageSize));
+    const body = response?.data as { data?: DirectusFile[]; meta?: { filter_count?: number } } | undefined;
+    libraryFiles.value = body?.data ?? [];
+    // Use meta.filter_count for the true total across all pages.
+    // Fall back to page size only if the meta field is completely absent (shouldn't happen).
+    const total = body?.meta?.filter_count ?? null;
+    libraryTotalPages.value = total !== null
+      ? Math.max(1, Math.ceil(total / libraryPageSize))
+      : 1;
   } catch {
     libraryFiles.value = [];
+    libraryTotalPages.value = 1;
   } finally {
     libraryLoading.value = false;
   }
@@ -294,7 +312,7 @@ function selectLibraryFile(file: DirectusFile): void {
   closeLibrary();
 }
 
-// ─── Unsplash modal ───────────────────────────────────────────────────────────
+// ─── Unsplash search ──────────────────────────────────────────────────────────
 
 const modalOpen: Ref<boolean> = ref(false);
 const searchQuery: Ref<string> = ref('');
@@ -336,11 +354,12 @@ async function runSearch(page: number): Promise<void> {
       params: { q, page, per_page: 24 },
     });
     const data = response?.data as UnsplashSearchResponse;
-    photos.value = data.results || [];
+    photos.value = data.results ?? [];
     currentPage.value = data.page;
     totalPages.value = data.total_pages || 1;
   } catch (err) {
-    searchError.value = 'Search failed: ' + (err as { response?: { data?: { error?: string } } }).response?.data?.error || (err as Error).message;
+    const apiError = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+    searchError.value = 'Search failed: ' + (apiError ?? (err as Error).message ?? 'Unknown error');
     photos.value = [];
   } finally {
     searching.value = false;
@@ -348,12 +367,13 @@ async function runSearch(page: number): Promise<void> {
 }
 
 async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
+  // Ignore clicks while another import is in-flight
   if (importingId.value) return;
+
   importingId.value = photo.id;
   uploadError.value = null;
 
   try {
-    // Import the photo into Directus files
     const importPayload = {
       url: photo.urls.regular,
       data: {
@@ -366,13 +386,18 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
     if (fileId) {
       emit('input', fileId);
       closeUnsplash();
+    } else {
+      uploadError.value = 'Import succeeded but no file ID was returned.';
     }
 
-    // Trigger attribution download (Unsplash API requirement — fire-and-forget)
+    // Unsplash API requirement: trigger download attribution (fire-and-forget)
     api?.post('/unsplash/trigger-download', { download_location: photo.download_location }).catch(() => {});
   } catch (err) {
-    uploadError.value = 'Import failed: ' + (err as { response?: { data?: { errors?: { message?: string }[] } } }).response?.data?.errors?.[0]?.message || (err as Error).message;
+    const apiMessage = (err as { response?: { data?: { errors?: { message?: string }[] } } })
+      ?.response?.data?.errors?.[0]?.message;
+    uploadError.value = 'Import failed: ' + (apiMessage ?? (err as Error).message ?? 'Unknown error');
   } finally {
+    // Always clear the importing state, even on error, so the UI doesn't get stuck
     importingId.value = null;
   }
 }
@@ -384,7 +409,6 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   color: var(--theme--foreground);
 }
 
-/* ── Preview ─────────────────────────────────────────────────── */
 .preview-wrapper {
   position: relative;
   display: inline-block;
@@ -412,7 +436,6 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   background: var(--theme--background-subdued);
 }
 
-/* ── Buttons ─────────────────────────────────────────────────── */
 .button-row {
   display: flex;
   gap: 8px;
@@ -451,7 +474,6 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   border-color: transparent;
 }
 
-/* ── Error / loading ─────────────────────────────────────────── */
 .error-msg {
   margin-top: 8px;
   color: var(--theme--danger, #e35169);
@@ -470,7 +492,6 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   color: var(--theme--foreground-subdued);
 }
 
-/* ── Modal overlay ───────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -519,7 +540,6 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   color: var(--theme--foreground);
 }
 
-/* ── Search bar ──────────────────────────────── */
 .search-bar {
   padding: 16px 20px 8px;
 }
@@ -541,7 +561,6 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   outline-offset: 1px;
 }
 
-/* ── Photo grid ──────────────────────────── */
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -601,7 +620,6 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   font-size: 13px;
 }
 
-/* ── Pagination ──────────────────────────── */
 .pagination {
   display: flex;
   align-items: center;
