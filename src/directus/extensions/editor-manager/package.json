@@ -53,5 +53,8 @@
 	},
 	"overrides": {
 		"esbuild": "^0.28.0"
+	},
+	"dependencies": {
+		"@directus/errors": "^2.3.1"
 	}
 }

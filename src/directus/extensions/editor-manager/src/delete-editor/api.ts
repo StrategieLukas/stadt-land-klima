@@ -1,58 +1,75 @@
 import { isEmpty } from "lodash-es";
-import type { Editor } from '../types';
+import { createError } from "@directus/errors";
+import type { Editor, OperationContext } from "../types";
+
+// ---------------------------------------------------------------------------
+// Custom typed error for missing keys input.
+// ---------------------------------------------------------------------------
+const NoKeysError = createError(
+  "NO_KEYS_PROVIDED",
+  "At least one editor key must be provided for deletion.",
+  400
+);
 
 export default {
   id: "delete-editor",
   handler: async (
-    { keys, measureIds }: { keys: string | string[]; measureIds?: string | string[] },
-    context: {
-      env: Record<string, string>;
-      logger: { info: (msg: string) => void; warn: (msg: string) => void; error: (msg: string) => void };
-      accountability: { user: string | null; admin: boolean };
-      services: any;
-      getSchema: () => Promise<any>;
-    }
+    { keys }: { keys: string | string[] },
+    context: OperationContext
   ) => {
     const keysToDelete = Array.isArray(keys) ? keys : [keys];
-    
+
     if (isEmpty(keysToDelete)) {
-      throw new Error("No Keys for deletion");
+      throw new NoKeysError();
     }
 
-    // set accountability to admin
+    // Elevate to admin so the operation can delete users regardless of the
+    // triggering user's own permissions.
     context.accountability.admin = true;
+
     const { UsersService, ItemsService } = context.services;
     const schema = await context.getSchema();
+
     const usersService = new UsersService({ schema, accountability: context.accountability });
-    const localteamMember = new ItemsService("editors", {
+    const editorsService = new ItemsService("editors", {
       schema,
       accountability: context.accountability,
     });
 
-    const query = {
-      limit: -1,
-    };
+    // ------------------------------------------------------------------
+    // Fetch editor records to resolve their linked Directus user emails.
+    // ------------------------------------------------------------------
+    const editors = await editorsService.readMany(keysToDelete, { limit: -1 }) as Editor[];
 
-    const editors = await localteamMember.readMany(keysToDelete, query) as Editor[];
-    context.logger.info("editors:");
-    
-    const userIdsForDeletion: string[] = [];
-    
-    for (const editor of editors) {
-      context.logger.info(editor);
-      const user = await usersService.getUserByEmail(editor.email);
-      
-      // IF multiple localteams per Editor Return here
-      if (isEmpty(user)) {
-        context.logger.info("User not found");
-      } else {
-        // only push userIdsForDeletion when a user was found
-        userIdsForDeletion.push(user.id);
-      }
+    if (isEmpty(editors)) {
+      context.logger.warn(`No editor records found for keys: ${keysToDelete.join(", ")}`);
+      return;
     }
 
-    if (!isEmpty(userIdsForDeletion)) {
-      await usersService.deleteMany(userIdsForDeletion);
+    context.logger.info(`Resolving Directus users for ${editors.length} editor(s)...`);
+
+    // Resolve all user lookups in parallel for performance.
+    const userLookups = await Promise.all(
+      editors.map(async (editor) => {
+        const user = await usersService.getUserByEmail(editor.email);
+        if (!user) {
+          context.logger.warn(
+            `No Directus user found for editor "${editor.id}" (${editor.email}). Skipping.`
+          );
+        }
+        return user?.id ?? null;
+      })
+    );
+
+    const userIdsForDeletion = userLookups.filter((id): id is string => id !== null);
+
+    if (isEmpty(userIdsForDeletion)) {
+      context.logger.warn("No matching Directus users found. Nothing to delete.");
+      return;
     }
+
+    context.logger.info(`Deleting ${userIdsForDeletion.length} user(s): ${userIdsForDeletion.join(", ")}`);
+    await usersService.deleteMany(userIdsForDeletion);
+    context.logger.info("User deletion complete.");
   },
 };

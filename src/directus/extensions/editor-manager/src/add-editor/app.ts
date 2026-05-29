@@ -1,16 +1,17 @@
 export default {
   id: "operation-add-editor",
   name: "Add Editor",
-  icon: "box",
-  description: "This adds an Editor",
+  // Use a more descriptive icon — "person_add" better represents inviting a user.
+  icon: "person_add",
+  description: "Invites a new editor to a localteam, or validates an existing user's role.",
   overview: ({ email, localteam_id }: { email: string; localteam_id: string }) => [
     {
       label: "Email",
-      text: email,
+      text: email ?? "—",
     },
     {
       label: "Localteam ID",
-      text: localteam_id,
+      text: localteam_id ?? "—",
     },
   ],
   options: [
@@ -21,6 +22,10 @@ export default {
       meta: {
         width: "half",
         interface: "input",
+        options: {
+          placeholder: "editor@example.com",
+        },
+        required: true,
       },
     },
     {
@@ -29,6 +34,11 @@ export default {
       type: "string",
       meta: {
         width: "half",
+        interface: "input",
+        options: {
+          placeholder: "UUID of the localteam",
+        },
+        required: true,
       },
     },
   ],
