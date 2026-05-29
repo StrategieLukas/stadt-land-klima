@@ -22,7 +22,7 @@ export function useAuth() {
       .with(authentication('json'));
   }
 
-  async function login(email, password) {
+  async function login({ email, password }) {
     authStore.setLoading(true);
     authStore.setError(null);
 
