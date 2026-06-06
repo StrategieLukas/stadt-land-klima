@@ -8,20 +8,20 @@ meta:
   collection: measure_catalog
   color: null
   display_template: "{{name}}"
-  group: null
+  group: rating
   hidden: true
   icon: null
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: null
+  sort: 2
   sort_field: null
   translations:
     - language: de-DE
-      translation: Maßnahmenkataloge
-      singular: Maßnahmenkatalog
       plural: Maßnahmenkataloge
+      singular: Maßnahmenkatalog
+      translation: Maßnahmenkataloge
   unarchive_value: draft
   versioning: false
 schema:

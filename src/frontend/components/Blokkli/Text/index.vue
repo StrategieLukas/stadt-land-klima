@@ -1,25 +1,50 @@
 <template>
   <div
-    class="blokkli-block-text prose prose-sm max-w-none"
-    :class="[sizeClass, alignClass]"
+    :id="'block-' + uuid"
+    class="blokkli-block-text prose max-w-none"
+    :class="[sizeClass, alignClass, colorClass]"
   >
     <div v-blokkli-editable:content v-html="props.content || ''" />
   </div>
 </template>
 
 <script setup lang="ts">
-const { options } = defineBlokkli({
+import { BRAND_COLORS, BRAND_COLOR_CLASSES } from '~/utils/blokkliColors'
+
+const { options, uuid } = defineBlokkli({
   bundle: 'text',
   options: {
     size: {
       type: 'radios',
       label: 'Text Size',
       default: 'normal',
+      displayAs: 'icons',
+      options: {
+        xs: { icon: 'icon-blokkli-option-size-small', label: 'XS' },
+        small: { icon: 'icon-blokkli-option-size-small', label: 'Klein' },
+        normal: { icon: 'icon-blokkli-option-size-normal', label: 'Normal' },
+        large: { icon: 'icon-blokkli-option-size-large', label: 'Groß' },
+        xl: { icon: 'icon-blokkli-option-size-large', label: 'XL' },
+      },
+    },
+    color: {
+      type: 'radios',
+      label: 'Textfarbe',
+      default: 'default',
       displayAs: 'colors',
       options: {
-        small: { label: 'Small', hex: '#e0e0e0' },
-        normal: { label: 'Normal', hex: '#90caf9' },
-        large: { label: 'Large', hex: '#1565c0' },
+        default:      { label: 'Standard',    hex: '#111111' },
+        black:        { label: 'Schwarz',     hex: '#000000' },
+        gray:         { label: 'Grau',        hex: '#505050' },
+        white:        { label: 'Weiß',        hex: '#fbfbfb' },
+        green:        { label: 'Grün',        hex: '#1da64a' },
+        'dark-green': { label: 'Dunkelgrün',  hex: '#339737' },
+        blue:         { label: 'Blau',        hex: '#16bae7' },
+        dark:         { label: 'Dunkelblau',  hex: '#006e94' },
+        orange:       { label: 'Orange',      hex: '#f39200' },
+        yellow:       { label: 'Gelb',        hex: '#ffc80c' },
+        lime:         { label: 'Lime',        hex: '#afca0b' },
+        red:          { label: 'Rot',         hex: '#e30613' },
       },
     },
     align: {
@@ -51,12 +76,16 @@ const props = defineProps<{
 
 const sizeClass = computed(() => {
   const map: Record<string, string> = {
+    xs: 'prose-xs text-xs',
     small: 'prose-sm',
     normal: 'prose-base',
     large: 'prose-lg',
+    xl: 'prose-xl',
   }
   return map[options.value.size] || 'prose-base'
 })
+
+const colorClass = computed(() => BRAND_COLOR_CLASSES[options.value.color as keyof typeof BRAND_COLOR_CLASSES] ?? '')
 
 const alignClass = computed(() => {
   const map: Record<string, string> = {

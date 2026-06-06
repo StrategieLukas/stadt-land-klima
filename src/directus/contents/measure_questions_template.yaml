@@ -1,0 +1,148 @@
+- id: 1
+  measure_id: LNE_08
+  title: Klimaanpassungskonzept
+  thesis: Die Kommune soll ein umfassendes Klimaanpassungskonzept beschließen und zügig umsetzen.
+- id: 2
+  measure_id: LNE_02
+  title: Beratungsangebote zur Umstellung auf ökologische Landwirtschaft
+  thesis: Die Kommune soll die Umstellung auf ökologische oder regenerative Landwirtschaft mit einem kostenlosen Beratungsangebot unterstützen.
+- id: 3
+  measure_id: LNE_05
+  title: Umstellung auf nachhaltige Ernährung in öffentlicher Verpflegung
+  thesis: In kommunalen Einrichtungen soll das Verpflegungsangebot überwiegend vegetarisch oder vegan sowie möglichst bio und regional sein.
+- id: 4
+  measure_id: GW_05
+  title: Kommunale Wärmeplanung und Monitoring
+  thesis: Die Kommune soll ihre Wärmeplanung veröffentlichen, zügig umsetzen und den Fortschritt regelmäßig dokumentieren.
+- id: 5
+  measure_id: GW_03
+  title: Energiemanagement kommunaler Liegenschaften
+  thesis: Die Kommune soll für alle kommunalen Liegenschaften ein verbindliches Energiemanagement einführen.
+- id: 6
+  measure_id: GW_02
+  title: Transformationsplan zur Dekarbonisierung vorhandener Fernwärmenetze
+  thesis: Für bestehende Fernwärmenetze soll ein Transformationsplan zur vollständigen Dekarbonisierung bis 2035 vorliegen.
+- id: 7
+  measure_id: GW_04
+  title: Sanierung und Modernisierung kommunaler Liegenschaften
+  thesis: Die Kommune soll ihre Liegenschaften mit einer jährlichen Sanierungsrate von mindestens 5 Prozent modernisieren.
+- id: 8
+  measure_id: EN_03
+  title: Beratungsangebote zur Energiewende
+  thesis: Die Kommune soll ein gut erreichbares Beratungsangebot zur Energiewende aktiv unterstützen.
+- id: 9
+  measure_id: EN_05
+  title: Förderung von Balkonsolaranlagen
+  thesis: Die Kommune soll Balkonsolaranlagen sozial ausgerichtet fördern.
+- id: 10
+  measure_id: EN_10
+  title: Keine neuen Verträge für fossilen Strom
+  thesis: Kommunale Versorger sollen keine neuen Stromtarife auf fossiler Grundlage anbieten.
+- id: 11
+  measure_id: EN_01
+  title: Freiflächen-PV
+  thesis: Die Kommune soll den Ausbau von Freiflächen-Photovoltaik mit klaren Ausbauzielen vorantreiben.
+- id: 12
+  measure_id: EN_07
+  title: Ökostrom für kommunale Liegenschaften
+  thesis: Alle kommunalen Liegenschaften sollen mit glaubwürdigem Ökostrom versorgt werden.
+- id: 13
+  measure_id: EN_02
+  title: Windkraftanlagen und Windparks der Kommune
+  thesis: Die Kommune soll den Ausbau der Windenergie mit klaren Flächen- und Ausbauzielen vorantreiben.
+- id: 14
+  measure_id: EN_09
+  title: Mitgliedschaft der Kommunewerke in Energieverbänden
+  thesis: Kommunale Versorger sollen Mitglied in Verbänden sein, die den Ausbau erneuerbarer Energien unterstützen.
+- id: 15
+  measure_id: EN_06
+  title: Kein Greenwashing für Gas
+  thesis: Die Kommune oder ihre Versorger sollen Gas nicht als klimafreundlich oder zukunftsfähig bewerben.
+- id: 16
+  measure_id: EN_11
+  title: Ökostromanteil der Kommunewerke
+  thesis: Kommunale Versorger sollen ihren Strom vollständig aus glaubwürdigem Ökostrom decken.
+- id: 17
+  measure_id: EN_13
+  title: Bürgerenergiegenossenschaften
+  thesis: Die Kommune soll Bürgerenergiegenossenschaften aktiv unterstützen.
+- id: 18
+  measure_id: IWK_05
+  title: Runder Tisch mit lokaler Industrie, Handwerk und Wirtschaft zu Nachhaltigkeit
+  thesis: Die Kommune soll mit Industrie, Handwerk und Wirtschaft einen dauerhaften Nachhaltigkeitsdialog mit konkreten Projekten etablieren.
+- id: 19
+  measure_id: IWK_10
+  title: Repaircafé
+  thesis: Die Kommune soll Repaircafés sichtbar unterstützen.
+- id: 20
+  measure_id: IWK_11
+  title: Verpackungssteuer
+  thesis: Die Kommune soll eine Verpackungssteuer auf Einwegverpackungen einführen.
+- id: 21
+  measure_id: IWK_03
+  title: Energieautarker Betrieb von Kläranlagen
+  thesis: Die kommunale Kläranlage soll bis 2035 energieautark werden.
+- id: 22
+  measure_id: IWK_08
+  title: Zero Waste–Strategie
+  thesis: Die Kommune soll eine verbindliche Zero-Waste-Strategie beschließen und umsetzen.
+- id: 23
+  measure_id: KV_08
+  title: Klimaschutzmanagement der Kommune
+  thesis: Klimaschutz soll in der Verwaltung auf Leitungsebene organisatorisch verankert werden.
+- id: 24
+  measure_id: KV_10
+  title: Sektorübergreifendes Klimaschutzkonzept
+  thesis: Die Kommune soll ein sektorübergreifendes Klimaschutzkonzept mit dem Ziel Klimaneutralität bis 2035 beschließen.
+- id: 25
+  measure_id: KV_11
+  title: Mobilitätsangebote für die Verwaltung
+  thesis: Beschäftigte der kommunalen Verwaltung sollen ein kostenloses Deutschlandticket oder ein gleichwertiges Dienstrad-Angebot erhalten.
+- id: 26
+  measure_id: KV_02
+  title: Bürgerbeteiligung beim Klimaschutz
+  thesis: Die Kommune soll Bürgerbeteiligung beim Klimaschutz verbindlich und wirksam stärken.
+- id: 27
+  measure_id: KV_03
+  title: Lokaler kommunaler Klimaschutzfonds/Klimafonds
+  thesis: Die Kommune soll einen lokalen Klimafonds für konkrete Projekte einrichten.
+- id: 28
+  measure_id: KV_07
+  title: Klimarelevanzprüfung von Beschlüssen
+  thesis: Für politische Beschlüsse der Kommune soll eine Klimarelevanzprüfung eingeführt werden.
+- id: 29
+  measure_id: KV_09
+  title: Monitoring der Klimaschutzmaßnahmen
+  thesis: Die Kommune soll ihre Klimaschutzmaßnahmen regelmäßig, öffentlich und unabhängig überprüfen lassen.
+- id: 30
+  measure_id: VK_03
+  title: Bike and Ride
+  thesis: An wichtigen Bahnhöfen und ÖPNV-Knotenpunkten sollen sichere Bike-and-Ride-Anlagen entstehen.
+- id: 31
+  measure_id: VK_05
+  title: ÖPNV-Ausbau
+  thesis: Die Kommune soll den ÖPNV ausbauen und im Stadtgebiet beschleunigen.
+- id: 32
+  measure_id: VK_08
+  title: Elektrifizierung ÖPNV
+  thesis: Der kommunale ÖPNV soll bis 2030 vollständig elektrifiziert werden.
+- id: 33
+  measure_id: VK_20
+  title: Systemische Mängelerfassung und Sanierung der Radwege
+  thesis: Die Kommune soll einen transparenten Mängelmelder für Radwege einführen.
+- id: 34
+  measure_id: VK_06
+  title: Carsharing-Angebote
+  thesis: Die Kommune soll Carsharing gezielt fördern.
+- id: 35
+  measure_id: VK_16
+  title: Radwege
+  thesis: Die Kommune soll das Radverkehrsnetz mit sicherer Infrastruktur ausbauen.
+- id: 36
+  measure_id: VK_01
+  title: E-Ladesäulen
+  thesis: Die Kommune soll die öffentliche Ladeinfrastruktur mit klaren Ausbauzielen erweitern.
+- id: 37
+  measure_id: VK_04
+  title: Das 30/30 Ziel. Die Umwidmung von KFZ-Parkplätzen
+  thesis: Die Kommune soll bis 2030 einen Teil der Kfz-Parkplätze für klimafreundliche Nutzungen umwidmen.

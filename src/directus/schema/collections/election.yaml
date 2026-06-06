@@ -1,0 +1,24 @@
+collection: election
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: election
+  color: null
+  display_template: null
+  group: null
+  hidden: false
+  icon: how_to_vote
+  item_duplication_fields: null
+  note: Alles rund um lokale Wahlen
+  preview_url: null
+  singleton: false
+  sort: 6
+  sort_field: null
+  translations:
+    - language: de-DE
+      translation: Wahlen
+  unarchive_value: null
+  versioning: false

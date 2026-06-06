@@ -1,0 +1,84 @@
+{% layout "custom-base" %} {% block content %}
+
+<h1>Willkommen bei Stadt.Land.Klima!</h1>
+
+<p>Hallo {{ firstName }},</p>
+
+<p style="padding-bottom: 16px">
+  herzlich willkommen &ndash; dein Lokalteam für <strong>{{ municipalityName }}</strong> ist eingerichtet!
+  Bitte lege zunächst dein Passwort fest, damit du dich
+  <a href="{{ backendUrl }}" rel="noopener" target="_blank">einloggen</a> kannst:
+</p>
+
+{% if passwordResetUrl %}
+<p style="padding-bottom: 24px">
+  <a
+    class="button"
+    rel="noopener"
+    target="_blank"
+    href="{{ passwordResetUrl }}"
+    style="
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      text-decoration: none;
+      display: inline-block;
+      padding: 11px 24px;
+      border-radius: 8px;
+      background: #171717;
+      border: 1px solid #ffffff;
+    "
+  >
+    <!--[if mso]><i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt">&nbsp;</i><![endif]-->
+    <span style="mso-text-raise: 15pt">Passwort festlegen →</span>
+    <!--[if mso]><i style="letter-spacing: 25px; mso-font-width: -100%">&nbsp;</i><![endif]-->
+  </a>
+</p>
+<p style="padding-bottom: 16px; font-size: 12px; color: #888">
+  Dieser Link ist 24 Stunden gültig. Falls er abläuft, kannst du unter
+  <a href="{{ backendUrl }}/admin/reset-password" rel="noopener" target="_blank">{{ backendUrl }}/admin/reset-password</a>
+  jederzeit ein neues Passwort anfordern.
+</p>
+{% endif %}
+
+<p style="padding-bottom: 8px">Hier die nächsten Schritte im Überblick:</p>
+
+<ul style="padding-bottom: 24px; line-height: 1.9">
+  {% if tutorialUrl != "" %}
+  <li style="padding-bottom: 6px">
+    Du kannst sofort mit der Bewertung loslegen &ndash; lies am besten zuerst unser
+    <a href="{{ tutorialUrl }}" rel="noopener" target="_blank">Tutorial</a>,
+    damit du weißt, wie alles funktioniert.
+  </li>
+  {% else %}
+  <li style="padding-bottom: 6px">
+    Du kannst bereits sofort mit der Bewertung beginnen!
+  </li>
+  {% endif %}
+  {% if calendarUrl != "" %}
+  <li style="padding-bottom: 6px">
+    Wir laden dich herzlich zu einem unserer
+    <a href="{{ calendarUrl }}" rel="noopener" target="_blank">Onboarding-Gespräche</a>
+    ein &ndash; dort begleiten wir dich durch die ersten Schritte.
+  </li>
+  {% endif %}
+  {% if signalUrl != "" %}
+  <li style="padding-bottom: 6px">
+    Tritt gerne unserer
+    <a href="{{ signalUrl }}" rel="noopener" target="_blank">Signal-Gruppe</a>
+    bei &ndash; dort teilen wir weitere Infos und du kannst direkt mit uns in Kontakt treten.
+  </li>
+  {% endif %}
+  <li>
+    Bevor deine Kommune auf der Plattform veröffentlicht wird, möchten wir einmalig mit dir
+    in Kontakt getreten sein und deine Bewertung gemeinsam mit dir angeschaut und verifiziert haben.
+  </li>
+</ul>
+
+<p style="padding-bottom: 16px">
+  Bei Fragen erreichst du uns jederzeit unter
+  <a href="mailto:info@stadt-land-klima.de">info@stadt-land-klima.de</a>.
+  Wir freuen uns auf die Zusammenarbeit!
+</p>
+
+{% endblock %}

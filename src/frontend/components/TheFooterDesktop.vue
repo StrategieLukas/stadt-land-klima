@@ -12,42 +12,99 @@
         <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
       </a>
     </div>
+    <div class="flex justify-center items-center gap-6 mt-4">
+      <a href="https://whatsapp.com/channel/0029Vb8RAti2v1Ix7Yz7OM0a" target="_blank" aria-label="WhatsApp">
+        <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
+      </a>
+      <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
+        <img src="~/assets/icons/icon_telegram.svg" alt="Telegram" class="h-12 w-12" />
+      </a>
+      <a href="https://signal.group/#CjQKIPtaXcn_-6q29ufg9BBFvz0figXXqFc1H-1CddW5rkjUEhCWGjAx0p2QVVrDx4zlURBA" target="_blank" aria-label="Signal">
+        <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
+      </a>
+    </div>
   </div>
 
   <!-- Main Footer -->
-  <footer class="footer footer-center bg-olive-green text-white p-10">
-    <!-- Navigation Links by Category -->
-    <div v-if="activeCategories.length > 0" class="w-full max-w-screen-xl mx-auto mb-8">
+  <footer class="footer footer-center bg-olive-green text-white py-10 px-4 xl:px-10">
+
+    <!-- Newsletter Signup -->
+    <div class="w-full max-w-screen-xl mx-auto mb-8 pb-8 border-b border-white/20">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-10">
+        <div class="flex-shrink-0 max-w-xs">
+          <h3 class="text-lg font-bold">Newsletter</h3>
+          <p class="text-sm text-white/70 mt-0.5">Neuigkeiten zu Stadt.Land.Klima! direkt ins Postfach.</p>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div
+            v-if="newsletterState === 'success'"
+            class="flex items-center gap-2 text-sm font-medium"
+          >
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            {{ newsletterAlreadySubscribed ? 'Du bist bereits angemeldet.' : 'Bestätigungsmail gesendet – bitte prüfe dein Postfach.' }}
+          </div>
+          <div v-else class="flex gap-2">
+            <input
+              v-model="footerEmail"
+              type="email"
+              autocomplete="email"
+              placeholder="Deine E-Mail-Adresse"
+              class="flex-1 min-w-0 px-3 py-2 text-sm rounded-md text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white"
+              @keydown.enter.prevent="subscribeNewsletter"
+            />
+            <CanonicalButton
+              :label="newsletterState === 'subscribing' ? '\u2026' : 'Anmelden'"
+              icon-slug="icon_newsletter_click"
+              color="green"
+              :disabled="newsletterState === 'subscribing'"
+              @click="subscribeNewsletter"
+            />
+          </div>
+          <p v-if="newsletterError" class="mt-1 text-xs text-red-300">{{ newsletterError }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Links: footer_columns (from navigation_config) -->
+    <div v-if="footerColumnsData.length > 0" class="w-full max-w-screen-xl mx-auto mb-8">
       <div
         class="grid gap-8 w-full"
-        :style="{ gridTemplateColumns: activeCategories.length > 0 ? `repeat(${activeCategories.length}, minmax(0, 1fr))` : 'repeat(1, 1fr)' }"
+        :style="{ gridTemplateColumns: `repeat(${footerColumnsData.length}, minmax(0, 1fr))` }"
       >
         <nav
-          v-for="(category, index) in activeCategories"
-          :key="category.key"
+          v-for="(col, index) in footerColumnsData"
+          :key="col.id"
           :class="[
             'flex flex-col gap-2 text-left',
             index !== 0 ? 'border-l border-white/30 pl-6' : ''
           ]"
         >
-          <h6 class="footer-title opacity-100 text-white font-bold mb-2">
-            {{ $t(`pages.page_category.${category.key}`) }}
+          <h6 class="footer-title opacity-100 text-white font-bold mb-2 min-h-[3rem] flex items-start">
+            {{ col.title }}
           </h6>
-          <NuxtLink
-            v-for="page in category.pages"
-            :key="page.id"
-            :to="'/' + page.slug"
-            class="link link-hover text-base"
-          >
-            {{ page.name }}
-          </NuxtLink>
+          <template v-for="link in col.links" :key="link.id">
+            <NuxtLink
+              v-if="link.link_type === 'page'"
+              :to="'/' + link.page_slug"
+              class="link link-hover text-base"
+            >{{ link.label }}</NuxtLink>
+            <a
+              v-else
+              :href="link.external_url"
+              :target="link.open_new_tab ? '_blank' : undefined"
+              rel="noopener noreferrer"
+              class="link link-hover text-base"
+            >{{ link.label }}</a>
+          </template>
         </nav>
       </div>
     </div>
 
     <!-- Bottom Section: Logo, Buttons, Copyright -->
     <div class="w-full max-w-screen-xl mx-auto py-8 border-t border-white/30">
-      <div class="flex flex-col md:flex-row items-center justify-between gap-6 w-full">
+      <div class="flex flex-col lg:flex-row items-center justify-between gap-6 w-full">
         <!-- Logo -->
         <div class="flex-shrink-0">
           <NuxtLink to="/">
@@ -62,39 +119,35 @@
         <!-- Buttons: Donate + Login -->
         <div class="flex items-center gap-4">
           <DonateButton />
-          <!-- Blökkli editor login -->
-          <button
-            v-if="!isAuthenticated"
-            @click="showLoginModal = true"
-            class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
-          >
-            Interner Login
-          </button>
-          <div v-else class="flex items-center gap-3">
-            <span class="text-sm text-white/80">{{ userName }}</span>
-            <button
-              @click="handleLogout"
-              class="h-10 flex items-center justify-center px-4 py-2 text-sm font-bold border border-white text-white hover:bg-white/10 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
+          <LoginButton />
         </div>
 
-        <!-- Copyright -->
-        <div class="text-sm text-white/80">
-          {{ $t('footer.copyright') }}
+        <!-- Copyright + internal login -->
+        <div class="text-sm text-white/80 text-center">
+          <div>{{ $t('footer.copyright') }}</div>
+          <button
+            v-if="!isAuthenticated"
+            class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
+            @click="showLoginModal = true"
+          >Interner Login</button>
+          <div v-else class="mt-1 text-xs text-white/60 flex items-center justify-center gap-2">
+            <span>Eingeloggt als {{ userName }}</span>
+            <span aria-hidden="true">·</span>
+            <button class="hover:text-white transition-colors" @click="handleLogout">Ausloggen</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
   </footer>
+
+  <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import DonateButton from '~/components/DonateButton.vue';
+import LoginButton from '~/components/LoginButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
 
@@ -103,10 +156,42 @@ const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
 
 const props = defineProps({
-  pages: {
+  navItems: {
     type: Array,
-    required: true
+    default: () => []
+  },
+});
+
+// Newsletter signup state
+const footerEmail = ref('');
+const newsletterState = ref('idle');
+const newsletterAlreadySubscribed = ref(false);
+const newsletterError = ref('');
+
+async function subscribeNewsletter() {
+  newsletterError.value = '';
+  if (!footerEmail.value.trim()) {
+    newsletterError.value = 'Bitte gib deine E-Mail-Adresse ein.';
+    return;
   }
+  newsletterState.value = 'subscribing';
+  try {
+    const result = await $fetch('/api/newsletter-subscribe', {
+      method: 'POST',
+      body: { email: footerEmail.value.trim() },
+    });
+    newsletterAlreadySubscribed.value = result.alreadySubscribed;
+    newsletterState.value = 'success';
+  } catch (err) {
+    newsletterState.value = 'idle';
+    newsletterError.value = err?.data?.message ?? 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+  }
+}
+
+// Validated footer_columns data — each column must have an id, title, and links array
+const footerColumnsData = computed(() => {
+  if (!Array.isArray(props.navItems) || props.navItems.length === 0) return []
+  return props.navItems.filter(col => col && col.id && Array.isArray(col.links))
 });
 
 const userName = computed(() => {
@@ -124,35 +209,7 @@ onMounted(() => {
   initialize();
 });
 
-// Define the category order
-const categoryOrder = [
-  'municipality_rating',
-  'outreach_and_network',
-  'information_and_participate',
-  'structures_and_legal'
-];
-
-// Group pages by category, only including categories that have pages
-const activeCategories = computed(() => {
-  if (!props.pages || !Array.isArray(props.pages)) {
-    return [];
-  }
-
-  const categoriesWithPages = [];
-
-  categoryOrder.forEach((categoryKey) => {
-    const pagesInCategory = props.pages.filter(
-      (page) => page && page.page_category === categoryKey
-    );
-
-    if (pagesInCategory.length > 0) {
-      categoriesWithPages.push({
-        key: categoryKey,
-        pages: pagesInCategory
-      });
-    }
-  });
-
-  return categoriesWithPages;
-});
 </script>
+
+<style scoped>
+</style>

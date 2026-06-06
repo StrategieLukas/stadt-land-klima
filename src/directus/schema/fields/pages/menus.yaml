@@ -1,0 +1,62 @@
+collection: pages
+field: menus
+type: csv
+meta:
+  collection: pages
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Hauptnavigation
+        value: main
+      - text: Footernavigation
+        value: footer
+      - text: Mobile Dock
+        value: dock
+      - text: $t:pages.navigation.top-bar-navigation
+        value: top-bar
+  field: menus
+  group: null
+  hidden: false
+  interface: select-multiple-checkbox
+  note: null
+  options:
+    choices:
+      - text: Hauptnavigation
+        value: main
+      - text: Footernavigation
+        value: footer
+      - text: Mobile Dock
+        value: dock
+      - text: $t:pages.navigation.top-bar-navigation
+        value: top-bar
+    itemsShown: 4
+  readonly: false
+  required: false
+  searchable: true
+  sort: 11
+  special:
+    - cast-csv
+  translations:
+    - language: de-DE
+      translation: Menüs
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: menus
+  table: pages
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

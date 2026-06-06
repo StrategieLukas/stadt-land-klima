@@ -1,0 +1,21 @@
+collection: articles_measures
+field: articles_id
+related_collection: articles
+meta:
+  junction_field: measures_id
+  many_collection: articles_measures
+  many_field: articles_id
+  one_allowed_collections: null
+  one_collection: articles
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: measures
+  sort_field: null
+schema:
+  table: articles_measures
+  column: articles_id
+  foreign_key_table: articles
+  foreign_key_column: id
+  constraint_name: articles_measures_articles_id_foreign
+  on_update: NO ACTION
+  on_delete: CASCADE

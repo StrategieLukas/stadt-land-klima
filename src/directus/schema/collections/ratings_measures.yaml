@@ -8,20 +8,20 @@ meta:
   collection: ratings_measures
   color: null
   display_template: null
-  group: null
+  group: rating
   hidden: false
-  icon: null
+  icon: bar_chart
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: null
+  sort: 4
   sort_field: null
   translations:
     - language: de-DE
-      translation: Bewertungen
-      singular: Bewertung
       plural: Bewertungen
+      singular: Bewertung
+      translation: Bewertungen
   unarchive_value: draft
   versioning: false
 schema:

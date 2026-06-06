@@ -1,0 +1,67 @@
+collection: ratings_measures
+field: source
+type: text
+meta:
+  collection: ratings_measures
+  conditions:
+    - hidden: true
+      name: Hide if measure is not applicable
+      options:
+        clear: false
+        font: sans-serif
+        trim: false
+      readonly: true
+      required: false
+      rule:
+        _and:
+          - applicable:
+              _eq: false
+    - name: Field not required if selected rating is "not rated yet" to allow
+        intermittent saving
+      options:
+        clear: false
+        font: sans-serif
+        trim: false
+      required: false
+      rule:
+        _and:
+          - rating:
+              _null: true
+  display: null
+  display_options: null
+  field: source
+  group: null
+  hidden: false
+  interface: input-multiline
+  note: null
+  options:
+    softLength: 500
+    trim: true
+  readonly: false
+  required: true
+  searchable: true
+  sort: 16
+  special: null
+  translations:
+    - language: de-DE
+      translation: Quelle
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: source
+  table: ratings_measures
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

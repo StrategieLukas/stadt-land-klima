@@ -1,17 +1,16 @@
 <template>
-  <div class="blokkli-block-heading-wrapper" :class="[alignClass]">
+  <div class="blokkli-block-heading-wrapper" :id="'block-' + uuid" :class="[alignClass]">
     <component
       :is="headingTag"
       v-blokkli-editable:text
       class="blokkli-block-heading font-bold"
       :class="[colorClass, sizeClass]"
-      v-text="props.text || ''"
-    />
+    >{{ props.text || '' }}</component>
   </div>
 </template>
 
 <script setup lang="ts">
-const { options } = defineBlokkli({
+const { options, uuid } = defineBlokkli({
   bundle: 'heading',
   options: {
     level: {
@@ -30,16 +29,22 @@ const { options } = defineBlokkli({
     },
     color: {
       type: 'radios',
-      label: 'Color',
+      label: 'Farbe',
       default: 'black',
       displayAs: 'colors',
       options: {
-        black: { label: 'Black', hex: '#000000' },
-        white: { label: 'White', hex: '#fbdbdb'},
-        gray: { label: 'Gray', hex: '#505050' },
-        green: { label: 'Green', hex: '#1da64a' },
-        'light-blue': { label: 'Light Blue', hex: '#16bae7' },
-        orange: { label: 'Orange', hex: '#f39200' },
+        default:      { label: 'Standard',    hex: '#111111' },
+        black:        { label: 'Schwarz',     hex: '#000000' },
+        gray:         { label: 'Grau',        hex: '#505050' },
+        white:        { label: 'Weiß',        hex: '#fbfbfb' },
+        green:        { label: 'Grün',        hex: '#1da64a' },
+        'dark-green': { label: 'Dunkelgrün',  hex: '#339737' },
+        blue:         { label: 'Blau',        hex: '#16bae7' },
+        dark:         { label: 'Dunkelblau',  hex: '#006e94' },
+        orange:       { label: 'Orange',      hex: '#f39200' },
+        yellow:       { label: 'Gelb',        hex: '#ffc80c' },
+        lime:         { label: 'Lime',        hex: '#afca0b' },
+        red:          { label: 'Rot',         hex: '#e30613' },
       },
     },
     align: {
@@ -84,14 +89,21 @@ const sizeClass = computed(() => {
 
 const colorClass = computed(() => {
   const map: Record<string, string> = {
-    black: 'text-black',
-    white: 'text-[#fbfbfb]',
-    gray: 'text-gray',
-    green: 'text-ff-green',
-    'light-blue': 'text-light-blue',
-    orange: 'text-orange',
+    default:      '',
+    black:        'text-black',
+    gray:         'text-gray-700',
+    white:        'text-mild-white',
+    green:        'text-ff-green',
+    'dark-green': 'text-green',
+    blue:         'text-light-blue',
+    'light-blue': 'text-light-blue', // legacy alias
+    dark:         'text-stats-dark',
+    orange:       'text-orange',
+    yellow:       'text-localzero-yellow',
+    lime:         'text-light-green',
+    red:          'text-red',
   }
-  return map[options.value.color] || 'text-black'
+  return map[options.value.color] ?? 'text-black'
 })
 
 const alignClass = computed(() => {
@@ -105,6 +117,11 @@ const alignClass = computed(() => {
 </script>
 
 <style scoped>
+.blokkli-block-heading-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
 .blokkli-block-heading {
   margin-top: 1rem;
   margin-bottom: 0.75rem;

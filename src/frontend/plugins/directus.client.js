@@ -1,7 +1,5 @@
 import { defineNuxtPlugin, useRuntimeConfig } from "#app";
-import { createDirectus } from "@directus/sdk";
-import { staticToken } from "@directus/sdk/auth";
-import { rest, readItem, readItems, readTranslations } from "@directus/sdk/rest";
+import { createDirectus, staticToken, rest, readItem, readItems, readSingleton, readTranslations } from "@directus/sdk";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode.js";
 import createTranslator from "~/shared/createTranslator.js";
 
@@ -13,12 +11,17 @@ export default defineNuxtPlugin(async () => {
   const token = runtimeConfig.public.directusToken;
   const appEnv = runtimeConfig.public.appEnv || "development";
   const directus = createDirectus(directusUrl).with(rest()).with(staticToken(token));
-  const translations = await directus.request(
-    readTranslations({
-      limit: -1,
-      filter: { language: { _eq: locale } },
-    }),
-  );
+  let translations = []
+  try {
+    translations = await directus.request(
+      readTranslations({
+        limit: -1,
+        filter: { language: { _eq: locale } },
+      }),
+    )
+  } catch (e) {
+    console.warn('[directus.client] Failed to load translations:', e?.message)
+  }
 
   const translator = createTranslator(translations);
 
@@ -28,6 +31,7 @@ export default defineNuxtPlugin(async () => {
       directus,
       readItem,
       readItems,
+      readSingleton,
       locale,
       t: translator.t,
     },

@@ -4,11 +4,12 @@
     :title="article.title"
     :subtitle="article.subtitle"
     :municipality_name="article.municipality_name"
+    :municipality_slug="municipalitySlug"
     :state="article.state"
     :author="article.author"
     :date="article.date_created ? new Date(article.date_created) : null"
-    :image_id="article.image.id"
-    :image_is_raster="isRaster(article.image.type)"
+    :image_id="article.image?.id"
+    :image_is_raster="article.image ? isRaster(article.image.type) : false"
     :image_credits="article.image_credits"
     :abstract="article.abstract"
     :article_text="article.article_text"
@@ -16,6 +17,7 @@
     :article_instagram="article.instagram"
     :article_linkedin="article.linkedin"
     :organisation="article.organisation"
+    :measures="articleMeasures"
   />
   <div v-else class="container mx-auto px-4 py-8">
     <div class="text-center">
@@ -37,7 +39,8 @@
         fields: [
           "title", "subtitle", "municipality_name", "state", "author", "date_created", "image_credits", "abstract", "article_text", "link", "instagram", "linkedin",
           { image: ["id", "type"] },
-          { organisation: ["name", "logo", "link"] }
+          { organisation: [{ logo: ["id", "type"] }, "name", "link"] },
+          { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] }
         ],
         filter: { slug: { _eq: route.params.slug } },
         limit: 1,
@@ -45,8 +48,39 @@
     )
   });
 
+  if (!articles.value?.length) {
+    throw createError({ statusCode: 404, statusMessage: 'Projekt nicht gefunden', fatal: true })
+  }
 
   const article = computed(() => articles.value?.[0] || {});
+
+  const { data: municipalityData } = await useAsyncData(
+    `municipality-slug-for-article-${route.params.slug}`,
+    async () => {
+      if (!article.value.municipality_name) return false;
+      const results = await $directus.request(
+        $readItems("municipalities", {
+          fields: ["slug", "ars", "status"],
+          filter: { name: { _eq: article.value.municipality_name } },
+          limit: 1,
+        })
+      );
+      return results?.[0] ?? false;
+    },
+    { watch: [article] }
+  );
+
+  const municipalitySlug = computed(() => {
+    const m = municipalityData.value;
+    if (!m) return null;
+    return m.status === 'published' ? (m.slug ?? null) : (m.ars ?? null);
+  });
+
+  const articleMeasures = computed(() => {
+    return (article.value.measures || [])
+      .map(m => m.measures_id)
+      .filter(Boolean);
+  });
 
   const articleLink = computed(() => {
     if (!article.value.link) return null;
@@ -64,7 +98,7 @@
     title,
   });
 </script>
-  
+
 <style scoped>
   .project-page img {
     border-radius: 0.25rem;

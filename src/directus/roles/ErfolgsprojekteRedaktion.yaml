@@ -1,0 +1,6 @@
+name: ErfolgsprojekteRedaktion
+icon: supervised_user_circle
+parent: MinimalUser
+policies:
+  - Erfolgsprojekte-Contributor
+  - Erfolgsprojekte-Redaktion

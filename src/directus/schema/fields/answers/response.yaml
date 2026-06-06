@@ -1,0 +1,75 @@
+collection: answers
+field: response
+type: integer
+meta:
+  collection: answers
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - background: "#e60000"
+        foreground: "#ffffff"
+        text: stark dagegen
+        value: 0
+      - background: "#ff6666"
+        foreground: "#ffffff"
+        text: eher dagegen
+        value: 1
+      - background: "#cccccc"
+        foreground: "#000000"
+        text: neutral
+        value: 2
+      - background: "#99cc99"
+        foreground: "#ffffff"
+        text: eher dafür
+        value: 3
+      - background: "#1da64a"
+        foreground: "#ffffff"
+        text: stark dafür
+        value: 4
+  field: response
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    allowNone: true
+    choices:
+      - text: stark dagegen
+        value: 0
+      - text: eher dagegen
+        value: 1
+      - text: neutral
+        value: 2
+      - text: eher dafür
+        value: 3
+      - text: stark dafür
+        value: 4
+  readonly: false
+  required: true
+  searchable: true
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Antwort
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: response
+  table: answers
+  data_type: integer
+  default_value: null
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

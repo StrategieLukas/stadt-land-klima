@@ -5,6 +5,7 @@ module.exports = {
     "./layouts/**/*.vue",
     "./pages/**/*.vue",
     "./plugins/**/*.{js,ts}",
+    "./utils/**/*.{js,ts}",
     "./nuxt.config.{js,ts}",
     "./app.vue",
   ],
@@ -15,6 +16,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+        heading: ['RobotoCondensed', 'sans-serif'],
       },
       colors: {
         "rating-4": "#1EA64A",
@@ -40,7 +42,8 @@ module.exports = {
         "ff-green": "#1da64a",
         "olive-green" : "#3F8342",
         red: "#e30613",
-        orange: "#f39200 ",
+        orange: "#f39200",
+        "slk-orange": "#f27c00",
         "localzero-yellow": "#ffc80c",
         "light-blue": "#16bae7",
         "very-light-blue" : "#E6F1F5",
@@ -50,8 +53,6 @@ module.exports = {
         "mild-white": "#fbfbfb",
         "stats-dark": "#006e94",
         "stats-light": "#d6f5ff",
-        "projects-dark": "#16bae7",
-        "projects-light": "#e8f7fd",
         "ranking-dark": "#afca0b",
         "ranking-light": "#f9fde1"
       },

@@ -1,0 +1,28 @@
+collection: organisation_teams
+meta:
+  accountability: all
+  archive_app_filter: false
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: organisation_teams
+  color: null
+  display_template: "{{label}}"
+  group: admin_tools
+  hidden: false
+  icon: groups
+  item_duplication_fields: null
+  note: Ressorts/Aufgabenbereiche der Organisation (Farbe, E-Mail, Aufgaben)
+  preview_url: null
+  singleton: false
+  sort: 5
+  sort_field: sort
+  translations:
+    - language: de-DE
+      plural: Ressorts
+      singular: Ressort
+      translation: Ressorts
+  unarchive_value: null
+  versioning: false
+schema:
+  name: organisation_teams

@@ -10,18 +10,30 @@
         <div role="tablist" class="tabs tabs-boxed w-fit">
           <a 
             role="tab" 
-            class="tab" 
+            class="tab gap-1.5" 
             :class="{ 'tab-active': activeTab === 'polar' }"
             @click="activeTab = 'polar'"
           >
+            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
+              <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
+              <line x1="12" y1="2" x2="12" y2="22" />
+              <line x1="2" y1="8.5" x2="22" y2="8.5" />
+              <line x1="2" y1="15.5" x2="22" y2="15.5" />
+            </svg>
             Polardiagramm
           </a>
           <a 
             role="tab" 
-            class="tab" 
+            class="tab gap-1.5" 
             :class="{ 'tab-active': activeTab === 'treemap' }"
             @click="activeTab = 'treemap'"
           >
+            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="9" height="20" rx="1" />
+              <rect x="13" y="2" width="9" height="9" rx="1" />
+              <rect x="13" y="13" width="9" height="9" rx="1" />
+            </svg>
             Treemap
           </a>
         </div>
@@ -36,6 +48,12 @@
             :ratings-by-sector="ratingsBySector" 
             :name-municipality="municipality.name" 
           />
+          <p v-if="activeTab === 'polar'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+            Die farbigen Segmente zeigen den Punktestand je Sektor. Je größer ein Segment, desto besser schneidet die Kommune in diesem Bereich ab.
+          </p>
+          <p v-else-if="activeTab === 'treemap'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+            Jede Kachel steht für eine Maßnahme – die Fläche entspricht ihrer Gewichtung. Die Farbe zeigt den Umsetzungsstand: Rot&nbsp;= nicht erfüllt, Grün&nbsp;= vollständig umgesetzt.
+          </p>
         </div>
       </div>
       <p class="mb-4 mt-0 text-center text-xs">
@@ -48,18 +66,9 @@
         <ImplementationTrafficLight v-if="activeTab === 'polar'" />
       </div>
 
-      <!-- Mobile: About Section -->
-      <div v-if="municipality.description" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
-        <input type="checkbox" name="sectors-accordion" checked="checked" autocomplete="off" />
-        <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
-          <img src="~/assets/icons/icon_location.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-          <h2 class="font-heading text-h2 leading-none text-green">
-            {{ $t("municipality.about_heading", { ":name": municipality.name }) }}
-          </h2>
-        </div>
-        <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="md.render(municipality.description)"></div>
-        </div>
+      <!-- Mobile: Infos zur Kommune -->
+      <div class="mb-4">
+        <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore" />
       </div>
 
       <!-- Mobile: Participate Section -->
@@ -90,7 +99,7 @@
       <!-- Mobile: Kommunalwahl Question Generation Link -->
       <NuxtLink
         :to="`/elections/${municipality.slug}`"
-        class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
+        class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3/50"
       >
         <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
         <h3 class="font-heading text-h2 ">
@@ -116,18 +125,30 @@
           <div role="tablist" class="tabs tabs-boxed w-fit">
             <a 
               role="tab" 
-              class="tab" 
+              class="tab gap-1.5" 
               :class="{ 'tab-active': activeTab === 'polar' }"
               @click="activeTab = 'polar'"
             >
+              <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
+                <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
+                <line x1="12" y1="2" x2="12" y2="22" />
+                <line x1="2" y1="8.5" x2="22" y2="8.5" />
+                <line x1="2" y1="15.5" x2="22" y2="15.5" />
+              </svg>
               Polardiagramm
             </a>
             <a 
               role="tab" 
-              class="tab" 
+              class="tab gap-1.5" 
               :class="{ 'tab-active': activeTab === 'treemap' }"
               @click="activeTab = 'treemap'"
             >
+              <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="9" height="20" rx="1" />
+                <rect x="13" y="2" width="9" height="9" rx="1" />
+                <rect x="13" y="13" width="9" height="9" rx="1" />
+              </svg>
               Treemap
             </a>
           </div>
@@ -142,6 +163,12 @@
             :ratings-by-sector="ratingsBySector" 
             :name-municipality="municipality.name" 
           />
+          <p v-if="activeTab === 'polar'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+            Die farbigen Segmente zeigen den Punktestand je Sektor. Je größer ein Segment, desto besser schneidet die Kommune in diesem Bereich ab.
+          </p>
+          <p v-else-if="activeTab === 'treemap'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+            Jede Kachel steht für eine Maßnahme – die Fläche entspricht ihrer Gewichtung. Die Farbe zeigt den Umsetzungsstand: Rot&nbsp;= nicht erfüllt, Grün&nbsp;= vollständig umgesetzt.
+          </p>
         </div>
         </div>
         <div class="mx-auto mb-8 flex justify-center">
@@ -167,7 +194,7 @@
 
       <!-- Right Column: Info and Projects (1/3 width) -->
       <div class="lg:col-span-1 pb-4">
-        <div class="sticky top-8 space-y-6">
+        <div class="sticky top-24 space-y-6">
           <!-- Municipality Quick Info -->
           <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore"/>
 
@@ -185,7 +212,7 @@
           <!-- Kommunalwahl Question Generation Link -->
           <NuxtLink
             :to="`/elections/${municipality.slug}`"
-            class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3"
+            class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3/50"
           >
             <img src="~/assets/icons/icon_politics.svg" class="h-6 w-6 opacity-60" />
             <h3 class="font-heading text-h3">

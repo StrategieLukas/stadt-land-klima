@@ -8,20 +8,20 @@ meta:
   collection: articles
   color: null
   display_template: null
-  group: null
+  group: success_projects
   hidden: false
-  icon: null
+  icon: newspaper
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: null
+  sort: 4
   sort_field: null
   translations:
     - language: de-DE
-      translation: Erfolgsprojekte
-      singular: Erfolgsprojekt
       plural: Erfolgsprojekte
+      singular: Erfolgsprojekt
+      translation: Erfolgsprojekte
   unarchive_value: draft
   versioning: false
 schema:

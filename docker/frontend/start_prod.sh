@@ -4,4 +4,4 @@ cd /frontend
 
 npm install
 npm run build
-npm run preview
+node .output/server/index.mjs

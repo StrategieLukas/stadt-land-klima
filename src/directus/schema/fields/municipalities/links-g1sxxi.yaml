@@ -1,0 +1,30 @@
+collection: municipalities
+field: links-g1sxxi
+type: alias
+meta:
+  collection: municipalities
+  conditions: null
+  display: null
+  display_options: null
+  field: links-g1sxxi
+  group: null
+  hidden: false
+  interface: presentation-links
+  note: null
+  options:
+    links:
+      - icon: preview
+        label: $t:municipalities.preview
+        type: info
+        url: http://localhost:8080/municipalities/{{slug}}?preview={{preview_token}}
+  readonly: false
+  required: false
+  searchable: true
+  sort: 15
+  special:
+    - alias
+    - no-data
+  translations: null
+  validation: null
+  validation_message: null
+  width: full

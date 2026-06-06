@@ -1,0 +1,46 @@
+collection: organisation_teams
+field: tasks
+type: json
+meta:
+  collection: organisation_teams
+  conditions: null
+  display: null
+  display_options: null
+  field: tasks
+  group: null
+  hidden: false
+  interface: tags
+  note: Aufgaben/Tätigkeitsbereiche des Ressorts (Enter zum Hinzufügen)
+  options:
+    allowCustom: true
+    iconRight: add
+    placeholder: Aufgabe hinzufügen …
+  readonly: false
+  required: false
+  searchable: true
+  sort: 7
+  special:
+    - cast-json
+  translations:
+    - language: de-DE
+      translation: Aufgaben
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: tasks
+  table: organisation_teams
+  data_type: json
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

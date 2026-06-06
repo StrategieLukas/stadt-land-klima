@@ -5,7 +5,7 @@
  * using the Directus authentication API.
  */
 
-import { createDirectus, rest, authentication, readMe } from '@directus/sdk';
+import { createDirectus, rest, authentication, readMe, refresh, logout } from '@directus/sdk';
 import { useAuthStore } from '~/stores/auth';
 
 export function useAuth() {
@@ -28,7 +28,7 @@ export function useAuth() {
 
     try {
       const client = createAuthClient();
-      const authResult = await client.login(email, password);
+      const authResult = await client.login({ email, password });
 
       if (!authResult?.access_token) {
         throw new Error('No access token received');
@@ -51,7 +51,7 @@ export function useAuth() {
             'last_name',
             'email',
             'avatar',
-            { role: ['id', 'name', 'admin_access', 'app_access'] },
+            { role: ['id', 'name'] },
           ],
         })
       );
@@ -79,7 +79,7 @@ export function useAuth() {
       if (authStore._refreshToken.value) {
         try {
           const client = createAuthClient();
-          await client.logout();
+          await client.request(logout({ mode: 'json', refresh_token: authStore._refreshToken.value }));
         } catch (e) {
           console.warn('Logout request failed:', e);
         }
@@ -99,7 +99,7 @@ export function useAuth() {
 
     try {
       const client = createAuthClient();
-      const result = await client.refresh('json', refreshToken);
+      const result = await client.request(refresh({ mode: 'json', refresh_token: refreshToken }));
 
       if (!result?.access_token) {
         throw new Error('Token refresh failed');
@@ -144,6 +144,9 @@ export function useAuth() {
             ],
           })
         );
+
+        // In v11, admin_access and app_access are on the user object directly from policies
+        // No longer need to request them from role
 
         authStore.setAuth(
           authStore._accessToken.value,
@@ -206,6 +209,7 @@ export function useAuth() {
     isLoading: authStore.isLoading,
     error: authStore.error,
     user: authStore.user,
+    accessToken: authStore._accessToken,
   };
 }
 

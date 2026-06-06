@@ -1,0 +1,147 @@
+name: Erfolgsprojekte-Redaktion
+icon: badge
+description: Vollzugriff auf alle Artikel und Organisationen
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: articles
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_articles
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_articles
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_articles
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_articles
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_external_projects
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_measures
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_measures
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_measures
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: articles_measures
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"

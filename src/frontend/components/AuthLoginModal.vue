@@ -3,7 +3,7 @@
     <Transition name="modal">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans"
         @click.self="close"
       >
         <!-- Backdrop -->
@@ -48,7 +48,7 @@
                 required
                 autocomplete="email"
                 :disabled="isLoading"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange disabled:bg-gray-100 disabled:cursor-not-allowed"
+                class="w-full px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="name@example.com"
               />
             </div>
@@ -66,7 +66,7 @@
                   required
                   autocomplete="current-password"
                   :disabled="isLoading"
-                  class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  class="w-full px-3 py-2 pr-10 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Passwort eingeben"
                 />
                 <button
@@ -102,11 +102,8 @@
               :disabled="isLoading || !isFormValid"
               class="w-full py-2.5 px-4 bg-orange text-white font-semibold rounded-md hover:bg-orange-dark focus:outline-none focus:ring-2 focus:ring-orange focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              <span v-if="isLoading" class="flex items-center justify-center">
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
+              <span v-if="isLoading" class="flex items-center justify-center gap-1.5">
+                <SlkFlowerSpinner :size="16" color="#fbfbfb" />
                 Anmeldung läuft...
               </span>
               <span v-else>Anmelden</span>
@@ -158,7 +155,7 @@ async function handleSubmit() {
   errorMessage.value = '';
 
   try {
-    const result = await login(email.value, password.value);
+    const result = await login({ email: email.value, password: password.value });
 
     if (result.success) {
       emit('success', result.user);

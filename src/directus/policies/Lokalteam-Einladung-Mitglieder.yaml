@@ -1,0 +1,23 @@
+name: Lokalteam-Einladung-Mitglieder
+icon: badge
+description: Die Fähigkeit, neue Mitglieder in ein Lokalteam einzuladen
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: editors
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - email
+      - localteam_id
+      - organisation
+  - collection: editors
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - organisation

@@ -1,0 +1,46 @@
+collection: elections
+field: localteam
+type: uuid
+meta:
+  collection: elections
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{municipality_name}}"
+  field: localteam
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: null
+  options:
+    enableCreate: false
+    template: "{{municipality_name}}"
+  readonly: false
+  required: true
+  searchable: true
+  sort: 2
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Lokalteam
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: localteam
+  table: elections
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: localteams
+  foreign_key_column: id

@@ -1,14 +1,15 @@
 <template>
-  <!-- Search Bar -->
-  <div class="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-6">
-    <form class="relative overflow-visible flex-1" @submit.prevent>
+  <!-- Search Bar: stacked on mobile (filter below), side-by-side on sm+ (filter right) -->
+  <div class="flex flex-col sm:flex-row sm:items-stretch gap-2 sm:gap-3 w-full">
+    <!-- Input + label -->
+    <form class="relative overflow-visible flex-1 min-w-0" @submit.prevent>
       <div class="form-control w-full">
         <label for="admin-search-input" class="label">{{ translatedLabel }}</label>
         <input
           id="admin-search-input"
           ref="inputRef"
           v-model="q"
-          class="input input-bordered w-full bg-white pr-12 border-stats-dark focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
+          class="input input-bordered w-full bg-white pr-12 text-base border-stats-dark focus:border-stats-dark focus:ring-1 focus:ring-stats-dark"
           name="q"
           type="text"
           autocomplete="off"
@@ -24,8 +25,8 @@
       <!-- Teleport dropdown to body to escape stacking context -->      
       <Teleport to="body">
         <div
-          v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !searchResults.length)) && searchFocused && dropdownPosition.show"
-          class="fixed z-[99999] bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto"
+          v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !visibleSuggestions.length)) && searchFocused && dropdownPosition.show"
+          class="fixed z-[99999] bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto font-sans"
           :style="{
             top: dropdownPosition.top + 'px',
             left: dropdownPosition.left + 'px',
@@ -40,7 +41,7 @@
           </div>
 
           <!-- No results message -->
-          <div v-else-if="searchFocused && q.trim() && !isLoading && !searchResults.length" class="px-4 py-3">
+          <div v-else-if="searchFocused && q.trim() && !isLoading && !visibleSuggestions.length" class="px-4 py-3">
             <div class="text-gray-500 italic text-sm">
               {{ $t('administrative_areas.search.no_results') }}
             </div>
@@ -52,8 +53,9 @@
               v-for="(suggestion, index) in visibleSuggestions"
               :key="suggestion.ars"
               class="px-3 sm:px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-              :class="{ 'bg-stats-light': index === focusedIndex }"
-              @click="goTo(suggestion.url); handleSuggestionClick()"
+              :class="{ 'bg-stats-light': index === focusedIndex, 'opacity-60 cursor-default': !suggestion.url }"
+              @mousedown.prevent="suggestion.url ? (goTo(suggestion.url), handleSuggestionClick()) : null"
+              @touchend.prevent="suggestion.url ? (goTo(suggestion.url), handleSuggestionClick()) : null"
             >
               <div class="flex items-start sm:items-center justify-between gap-2">
                 <div class="flex-1 min-w-0">
@@ -65,19 +67,20 @@
                   </div>
                 </div>
                 <div class="flex flex-col items-end space-y-1 flex-shrink-0">
-                  <div v-if="suggestion.hasRating" class="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                    <!-- Score Total chip with rating color -->
-                    <span 
+                  <!-- Published: score -->
+                  <div v-if="suggestion.ctaType === 'complete'" class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                    <span
                       class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap text-white"
                       :class="`bg-${suggestion.scoreTotalColorClass}`"
                     >
                       {{ suggestion.scoreDisplay }}
                     </span>
-                    <!-- Percentage Rated chip with light blue background -->
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
-                      {{ suggestion.percentageDisplay }} bewertet
-                    </span>
                   </div>
+                  <!-- Localteam active, rating in progress -->
+                  <div v-else-if="suggestion.ctaType === 'in-progress'" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap">
+                    Bewertung läuft
+                  </div>
+                  <!-- No localteam yet -->
                   <div v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 whitespace-nowrap">
                     {{ $t('administrative_areas.not_rated_yet') }}
                   </div>
@@ -89,57 +92,59 @@
       </Teleport>
     </form>
 
-    <!-- Filter Radio Group -->
-    <div class="form-control flex-shrink-0 lg:min-w-0" ref="radioGroup">
-      <label class="label">
-        <span class="label-text">{{ $t('administrative_areas.search.filter_settings') }}</span>
-      </label>
-      <div class="flex flex-col gap-1.5 space-y-2 lg:space-y-0">
-        <label class="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
-          <input
-            type="radio"
-            value="reasonable"
-            v-model="filterType"
-            class="radio radio-sm bg-white checked:bg-blue-800 flex-shrink-0"
-            @change="handleFilterChange"
-          />
-          <span class="text-sm">{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</span>
-        </label>
-        
-        <label class="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
-          <input
-            type="radio"
-            value="all"
-            v-model="filterType"
-            class="radio radio-sm bg-white checked:bg-blue-800 flex-shrink-0"
-            @change="handleFilterChange"
-          />
-          <span class="text-sm">{{ $t('all_administrative_areas') }}</span>
-        </label>
-      </div>
+    <!-- Filter tabs: horizontal row on mobile, vertical column on sm+ -->
+    <div ref="radioGroup" class="flex flex-row sm:flex-col sm:self-end w-full sm:w-auto flex-shrink-0 rounded border border-gray-200 overflow-hidden text-xs font-semibold">
+      <button
+        class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors border-r sm:border-r-0 sm:border-b border-gray-200"
+        :class="filterType === 'reasonable'
+          ? 'bg-[#006e94] text-white'
+          : 'bg-white text-gray-600 hover:bg-gray-50'"
+        @click="filterType = 'reasonable'; handleFilterChange()"
+      >{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</button>
+      <button
+        class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors"
+        :class="filterType === 'all'
+          ? 'bg-[#006e94] text-white'
+          : 'bg-white text-gray-600 hover:bg-gray-50'"
+        @click="filterType = 'all'; handleFilterChange()"
+      >{{ $t('all_administrative_areas') }}</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
-import lodash from 'lodash'
-const { debounce } = lodash
-import { getScorePercentageColor } from '~/shared/utils.js'
+import { useAreaSearch } from '~/composables/useAreaSearch.js'
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
 
-const { $t, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp()
+const { $t, $directus, $readItems } = useNuxtApp()
 
-// Get the current catalog version
+// Get the current catalog version — wrapped in try/catch so a Directus failure
+// (e.g. CLIENT_DIRECTUS_URL unreachable from mobile) does not crash component setup.
 const route = useRoute()
-const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route))
+let selectedCatalogVersion
+try {
+  selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route))
+} catch {
+  selectedCatalogVersion = ref(null)
+}
+
+// Published municipalities from the layout \u2014 used to gate slug-based navigation
+const { data: publishedMunicipalities } = useNuxtData('municipalities')
+const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map(m => m.slug)))
 
 const props = defineProps({
   basePath: {
     type: String,
     required: true,
+  },
+  // 'ars'  (default) → navigates to `${basePath}/${area.ars}` (used by /stats pages)
+  // 'slug' → navigates to `/municipalities/${slug}` for rated areas (used by hero search)
+  linkMode: {
+    type: String,
+    default: 'ars',
   },
 })
 
@@ -151,73 +156,35 @@ const searchFocused = ref(false)
 const focusedIndex = ref(-1)
 const filterType = ref('reasonable')
 const router = useRouter()
-const searchResults = ref([])
-const isLoading = ref(false)
 
 // Dynamic dropdown positioning
-const dropdownPosition = ref({
-  top: 0,
-  left: 0,
-  width: 0,
-  show: false
+const dropdownPosition = ref({ top: 0, left: 0, width: 0, show: false })
+
+// Mode derived from filter toggle
+const modeForSearch = computed(() => filterType.value === 'all' ? 'all' : 'reasonable')
+const catalogVersionName = computed(() => selectedCatalogVersion.value?.name ?? null)
+
+const { results: rawResults, isLoading, search, clear } = useAreaSearch({
+  mode: modeForSearch,
+  publishedSlugs,
+  catalogVersionName,
 })
 
-// Computed property to convert filterType to boolean for API call
-const filterReasonable = computed(() => filterType.value === 'reasonable')
-
-// Debounced search function
-const debouncedSearch = debounce(async (searchTerm) => {
-  if (!searchTerm.trim()) {
-    searchResults.value = []
-    isLoading.value = false
-    return
-  }
-
-  isLoading.value = true
-  try {
-    const result = await $stadtlandzahlAPI.searchThroughAdministrativeAreasByName(
-      searchTerm.trim(),
-      filterReasonable.value ? { isReasonableForMunicipalRating: true } : {}
-    )
-    if (result?.allAdministrativeAreas?.edges) {
-      searchResults.value = result.allAdministrativeAreas.edges.map(edge => edge.node)
-    } else {
-      searchResults.value = []
+/** Compute navigation URL for a result based on linkMode and basePath */
+function getResultUrl(result) {
+  if (result.isMunicipality) {
+    if (props.linkMode === 'slug' && result.ctaType === 'complete' && result._slug) {
+      return `/municipalities/${result._slug}`
     }
-  } catch (error) {
-    console.error('Search failed:', error)
-    searchResults.value = []
-  } finally {
-    isLoading.value = false
+    return `${props.basePath}/${result.ars}`
   }
-}, 300)
+  // Level 1-3: use basePath (e.g. /stats/{ars})
+  return `${props.basePath}/${result.ars}`
+}
 
-const visibleSuggestions = computed(() => {
-  if (!searchResults.value.length) return []
-  
-  return searchResults.value.slice(0, 5).map((area) => {
-    // Filter stadtlandklimaDataAll by current catalog version
-    const filteredData = area.stadtlandklimaDataAll?.find(
-      data => data.measureCatalogName === selectedCatalogVersion.value.name
-    )
-    
-    const hasRating = filteredData && filteredData.slug
-    let url = `${props.basePath}/${area.ars}`
-
-    return {
-      ars: area.ars,
-      prefix: area.prefix,
-      name: area.name,
-      url,
-      hasRating,
-      scoreTotal: hasRating ? parseFloat(filteredData.scoreTotal) : null,
-      percentageRated: hasRating ? parseFloat(filteredData.percentageRated) : null,
-      scoreDisplay: hasRating ? `${Math.round(filteredData.scoreTotal * 10) / 10}%` : null,
-      percentageDisplay: hasRating ? `${Math.round(filteredData.percentageRated)}%` : null,
-      scoreTotalColorClass: hasRating ? getScorePercentageColor(filteredData.scoreTotal) : null,
-    }
-  })
-})
+const visibleSuggestions = computed(() =>
+  rawResults.value.slice(0, 5).map(r => ({ ...r, url: getResultUrl(r) }))
+)
 
 // Show different placeholder and label depending on the optoin selected
 const translatedLabel = computed(() =>
@@ -235,9 +202,10 @@ const translatedPlaceholder = computed(() =>
 function onInput() {
   focusedIndex.value = -1
   if (q.value.trim()) {
-    isLoading.value = true
+    search(q.value)
+  } else {
+    clear()
   }
-  debouncedSearch(q.value)
 }
 
 function calculateDropdownPosition() {
@@ -245,8 +213,10 @@ function calculateDropdownPosition() {
   
   const inputRect = inputRef.value.getBoundingClientRect()
   dropdownPosition.value = {
-    top: inputRect.bottom + window.scrollY + 4,
-    left: inputRect.left + window.scrollX,
+    // The dropdown uses position:fixed, so coordinates are viewport-relative.
+    // getBoundingClientRect() already returns viewport coordinates - do NOT add scrollY/scrollX.
+    top: inputRect.bottom + 4,
+    left: inputRect.left,
     width: inputRect.width,
     show: true
   }
@@ -272,25 +242,11 @@ function moveFocus(direction) {
 
 function goToFocused() {
   const suggestion = visibleSuggestions.value[focusedIndex.value]
-  if (suggestion) goTo(suggestion.url)
+  if (suggestion && suggestion.url) goTo(suggestion.url)
 }
 
 function handleFilterChange() {
-  console.log('Filter changed to:', filterType.value)
-  if (q.value.trim()) {
-    isLoading.value = true
-    debouncedSearch(q.value)
-  }
-}
-
-// Only watch document.activeElement on client side to avoid SSR issues
-if (process.client) {
-  watch(() => document.activeElement, (el) => {
-    if (!el || el.id !== 'admin-search-input') {
-      searchFocused.value = false
-      dropdownPosition.value.show = false
-    }
-  })
+  if (q.value.trim()) search(q.value)
 }
 
 function handleSuggestionClick() {
@@ -298,6 +254,24 @@ function handleSuggestionClick() {
   searchFocused.value = false
   focusedIndex.value = -1
   dropdownPosition.value.show = false
+}
+
+// Close dropdown when iOS virtual keyboard is dismissed (visual viewport grows back).
+// We track the last known keyboard height; if the viewport grows, the keyboard closed.
+let _lastVVHeight = 0
+function onVisualViewportResize() {
+  const vv = window.visualViewport
+  if (!vv) return
+  if (vv.height > _lastVVHeight + 100) {
+    // Keyboard closed — close the dropdown if the input is no longer focused
+    if (document.activeElement?.id !== 'admin-search-input') {
+      searchFocused.value = false
+      dropdownPosition.value.show = false
+    }
+  }
+  _lastVVHeight = vv.height
+  // Also keep the dropdown position in sync with the visual viewport
+  calculateDropdownPosition()
 }
 
 function handleClickOutside(event) {
@@ -316,9 +290,16 @@ function handleClickOutside(event) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  window.addEventListener('resize', calculateDropdownPosition)
+  window.visualViewport?.addEventListener('resize', onVisualViewportResize)
+  window.visualViewport?.addEventListener('scroll', calculateDropdownPosition)
+  _lastVVHeight = window.visualViewport?.height ?? window.innerHeight
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('resize', calculateDropdownPosition)
+  window.visualViewport?.removeEventListener('resize', onVisualViewportResize)
+  window.visualViewport?.removeEventListener('scroll', calculateDropdownPosition)
 })
 </script>

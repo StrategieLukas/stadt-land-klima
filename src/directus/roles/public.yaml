@@ -1,10 +1,5 @@
 name: Public
-description: Unauthenticated access
-permissions:
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
+icon: globe
+description: Öffentlicher Zugriff
+policies:
+  - Public

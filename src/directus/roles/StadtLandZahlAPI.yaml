@@ -1,0 +1,6 @@
+name: StadtLandZahlAPI
+icon: supervised_user_circle
+description: API-Zugriff für Stadt.Land.Zahl!
+policies:
+  - API-StadtLandZahl
+  - Public

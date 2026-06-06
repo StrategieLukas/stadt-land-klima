@@ -1,0 +1,5 @@
+name: Frontend
+icon: web_asset
+description: Berechtigungen für unser Frontend
+policies:
+  - Frontend

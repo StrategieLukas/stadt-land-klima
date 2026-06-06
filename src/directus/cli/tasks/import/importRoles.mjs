@@ -6,174 +6,384 @@ import {
   createRoles,
   updateRole,
   deleteRoles,
-  readPermissions,
-  createPermissions,
-  updatePermission,
-  deletePermissions,
+  readPolicies,
 } from '@directus/sdk';
-import createDirectusClient from '../shared/createDirectusClient.mjs';
+import createDirectusClient, { directusUrl } from '../shared/createDirectusClient.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
+
+/**
+ * Import roles for Directus v11+
+ *
+ * In Directus v11, permissions are attached to POLICIES, not directly to roles.
+ * Roles can have multiple policies attached to them.
+ *
+ * This import:
+ * 1. Creates/updates roles with their metadata (preserving existing users, children, etc.)
+ * 2. Attaches policies to roles (policies must be imported first)
+ * 3. NEVER modifies user assignments - only role metadata and policy attachments
+ *
+ * YAML file format (STRICT - names only, NO UUIDs):
+ * - name: Role name
+ * - icon: Optional icon
+ * - description: Optional description
+ * - parent: Optional parent role NAME (resolved to ID during import)
+ * - children: Array of child role NAMES (resolved to IDs during import)
+ * - policies: Array of policy NAMES (resolved to IDs during import)
+ *
+ * IMPORTANT: This import ONLY accepts name-based references. UUIDs are NOT supported.
+ * Use the export command to generate proper name-based YAML files.
+ *
+ * @param {string} src - Source directory containing role YAML files
+ * @param {object} options - Import options
+ */
+
+// UUID regex pattern (version 4 UUIDs are most common in Directus)
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Validates that a reference is NOT a UUID (strict name-only format)
+ * @param {string} ref - The reference to validate
+ * @param {string} type - Type of reference for error messages ('policy' or 'role')
+ * @returns {string} The validated reference
+ * @throws {Error} If the reference is a UUID
+ */
+function validateNotUuid(ref, type) {
+  if (!ref) return ref;
+
+  if (UUID_PATTERN.test(ref)) {
+    throw new Error(
+      `Invalid ${type} reference: '${ref}' appears to be a UUID. ` +
+      `This import only accepts name-based references. ` +
+      `Please re-export your configuration using the export command to generate name-based YAML files.`
+    );
+  }
+
+  return ref;
+}
+
+// Helper function to resolve a policy reference (NAME ONLY - no UUIDs)
+function resolvePolicyRef(ref, existingPolicies, verbose = false) {
+  if (!ref) return null;
+
+  // Validate that this is not a UUID
+  validateNotUuid(ref, 'policy');
+
+  // Only try by name (strict name-only resolution)
+  const policy = find(existingPolicies, ['name', ref]);
+  if (policy) return policy.id;
+
+  if (verbose) {
+    console.warn(`Could not resolve policy reference by name: ${ref}`);
+  }
+  return null;
+}
+
+// Helper function to resolve a role reference (NAME ONLY - no UUIDs)
+function resolveRoleRef(ref, existingRoles, verbose = false) {
+  if (!ref) return ref; // Return null/undefined as-is for optional fields
+
+  // Validate that this is not a UUID
+  validateNotUuid(ref, 'role');
+
+  // Only try by name (strict name-only resolution)
+  const role = find(existingRoles, ['name', ref]);
+  if (role) return role.id;
+
+  if (verbose) {
+    console.warn(`Could not resolve role reference by name: ${ref}`);
+  }
+  return null;
+}
 
 async function importRoles(src, options = { verbose: false, remove: false, overwrite: false }) {
   const client = createDirectusClient();
 
   try {
-    const existingRoles = await client.request(readRoles({ limit: -1 }));
-    const existingPermissions = await client.request(readPermissions({ limit: -1, fields: ['*'] }));
+    const existingRoles = await client.request(readRoles({
+      limit: -1,
+      fields: ['*', 'users.*', 'children.*', 'policies.*']
+    }));
+    const existingPolicies = await client.request(readPolicies({ limit: -1 }));
 
     const roles = readYamlFiles(path.join(src));
-    let permissions = [];
 
     const rolesToCreate = [];
     const rolesToUpdate = [];
-    const permissionsToCreate = [];
-    const permissionsToUpdate = [];
 
-    // --- Process roles and collect permissions ---
+    // --- Process roles ---
     roles.forEach((role) => {
-      const rolePermissions = role.permissions;
-      permissions = permissions.concat(rolePermissions);
-      delete role.permissions;
-      const roleIsPublic = role.name === 'Public' || role.name === 'public'
-
+      // Always skip Administrator - it's built-in
       if (role.name === 'Administrator') {
-        // Skip Administrator entirely
+        if (options.verbose) console.info(`Skipping Administrator role`);
         return;
-      } else if (roleIsPublic) {
-        // Public has no DB entry
-        role.id = null;
-      } else {
-        const existingRole = find(existingRoles, ['name', role.name]);
-        if (existingRole) {
-          role.id = existingRole.id;
-          rolesToUpdate.push(role);
-        } else {
-          rolesToCreate.push(role);
-        }
       }
 
-      // --- Match permissions ---
-      rolePermissions.forEach((permission) => {
-        permission.role_name = role.name;
+      // Special handling for Public role - it's built-in and doesn't appear in roles list
+      // We'll handle its policy attachments separately via directus_access table
+      if (role.name === 'Public') {
+        if (options.verbose) console.info(`Skipping Public role (built-in), will handle policy attachments separately`);
+        // Resolve policy references to IDs
+        const resolvedPolicies = (role.policies || [])
+          .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
+          .filter(id => id !== null);
+        // Store for later - we'll process Public role policy attachments via directus_access
+        role.id = null; // Mark as Public role for later processing
+        role.policiesToAttach = resolvedPolicies;
+        rolesToUpdate.push(role);
+        return;
+      }
 
-        let existingRoleEntry = null;
-        if (!roleIsPublic) {
-          existingRoleEntry = find(existingRoles, ['name', permission.role_name]);
+      const existingRole = find(existingRoles, ['name', role.name]);
+
+      if (existingRole) {
+        // Preserve existing role data that we don't want to overwrite
+        // Only update fields that exist in the YAML AND have changed
+        const roleToUpdate = { id: existingRole.id, name: existingRole.name };
+        let hasChanges = false;
+
+        if (role.icon !== undefined && role.icon !== existingRole.icon) {
+          roleToUpdate.icon = role.icon || null;
+          hasChanges = true;
         }
 
-        let existingPermission = null;
-        if(roleIsPublic) {
-          existingPermission = find(existingPermissions, {
-            action: permission.action,
-            role: null, // match public
-            collection: permission.collection,
-          })
-        } else if(existingRoleEntry && existingRoleEntry.id) {
-          existingPermission = find(existingPermissions, {
-            action: permission.action,
-            role: existingRoleEntry.id,
-            collection: permission.collection,
-          })
+        const existingDescription = existingRole.description === undefined ? null : existingRole.description;
+        if (role.description !== undefined && role.description !== existingDescription) {
+          roleToUpdate.description = role.description || null;
+          hasChanges = true;
+        }
+
+        // Resolve parent reference (can be UUID or name) to ID
+        if (role.parent !== undefined) {
+          const resolvedParent = resolveRoleRef(role.parent, existingRoles, options.verbose);
+          const currentParentId = existingRole.parent?.id || existingRole.parent || null;
+          if (resolvedParent !== currentParentId) {
+            roleToUpdate.parent = resolvedParent || null;
+            hasChanges = true;
+          }
+        }
+
+        // Store policies for later attachment (resolve names to IDs)
+        const resolvedPolicies = (role.policies || [])
+          .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
+          .filter(id => id !== null);
+
+        if (hasChanges) {
+          roleToUpdate.policiesToAttach = resolvedPolicies;
+          rolesToUpdate.push(roleToUpdate);
         } else {
-          // do nothing if no existing role entry is found and role is not public
+          // If no metadata changes, still need to check policies
+          rolesToUpdate.push({
+            id: existingRole.id,
+            name: role.name,
+            policiesToAttach: resolvedPolicies,
+            _skipMetadataUpdate: true
+          });
+        }
+      } else {
+        // New role - include all fields from YAML
+        const roleToCreate = {
+          name: role.name,
+          icon: role.icon,
+          description: role.description
+        };
+
+        // Resolve parent reference (can be UUID or name) to ID
+        if (role.parent !== undefined) {
+          const resolvedParent = resolveRoleRef(role.parent, existingRoles, options.verbose);
+          if (resolvedParent) {
+            roleToCreate.parent = resolvedParent;
+          }
         }
 
+        // Store policies for later attachment (resolve names to IDs)
+        const resolvedPolicies = (role.policies || [])
+          .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
+          .filter(id => id !== null);
+        roleToCreate.policiesToAttach = resolvedPolicies;
 
-
-        if (existingPermission && existingPermission.id && existingRoleEntry && existingRoleEntry.id) {
-          permission.id = existingPermission.id;
-          permission.role = roleIsPublic ? null : existingRoleEntry.id;
-          permissionsToUpdate.push(permission);
-        } else {
-          permission.role = roleIsPublic ? null : existingRoleEntry?.id || null;
-          permissionsToCreate.push(permission);
-        }
-      });
+        delete roleToCreate.policies;
+        rolesToCreate.push(roleToCreate);
+      }
     });
 
-    // --- Roles ---
+    // --- Create Roles ---
     if (rolesToCreate.length) {
       if (options.verbose) console.info(`Creating ${rolesToCreate.length} roles`);
-      await client.request(createRoles(rolesToCreate));
-    }
-
-    const safeRolesToUpdate = rolesToUpdate.filter((r) => r.name !== 'Administrator');
-    if (safeRolesToUpdate.length) {
-      if (options.verbose) console.info(`Updating ${safeRolesToUpdate.length} roles`);
-      await Promise.all(
-        safeRolesToUpdate.map((role) =>
-          client.request(updateRole(role.id, role)).catch((err) => {
-            console.error(err, role);
-          })
-        )
-      );
-    }
-
-
-    // --- Map role IDs onto permissions ---
-    permissions.forEach((permission) => {
-      if (permission.role_name === 'Administrator') {
-        // 🔹 Never touch Administrator permissions
-        return;
-      } else if (permission.role_name === 'Public') {
-        permission.role = null;
-      } else {
-        const role = find(roles, ['name', permission.role_name]);
-        permission.role = role.id;
-      }
-    });
-
-    // --- Permissions ---
-    if (permissionsToCreate.length) {
-      if (options.verbose) console.info(`Creating ${permissionsToCreate.length} permissions`);
-      await client.request(createPermissions(permissionsToCreate));
-    }
-
-    if (permissionsToUpdate.length) {
-      if (options.verbose) console.info(`Updating ${permissionsToUpdate.length} permissions`);
-      await Promise.all(
-        permissionsToUpdate.map((permission) =>
-          client.request(updatePermission(permission.id, permission)).catch((err) => {
-            console.error(err, permission);
-          })
-        )
-      );
-    }
-
-    // --- Remove ---
-    if (options.remove) {
-      const rolesToDelete = existingRoles.filter((role) => {
-        // 🔹 Never delete Administrator
-        if (role.name === 'Administrator') return false;
-        return !find(roles, ['name', role.name]);
+      // Clean up internal fields before sending to API
+      const rolesToCreatePayload = rolesToCreate.map((r) => {
+        const { policiesToAttach, ...data } = r;
+        return data;
       });
+      const createdRoles = await client.request(createRoles(rolesToCreatePayload));
 
-      const permissionsToDelete = existingPermissions.filter((permission) => {
-        if (!(permission.id && (permission.role || permission.role === null))) return false;
+      // Update the roles array with the newly created role IDs
+      createdRoles.forEach((createdRole) => {
+        const role = find(rolesToCreate, ['name', createdRole.name]);
+        if (role) role.id = createdRole.id;
+      });
+    }
 
-        const roleEntry =
-          permission.role === null
-            ? { name: 'Public' }
-            : find(existingRoles, ['id', permission.role]);
+    // --- Update Roles ---
+    const rolesToActuallyUpdate = rolesToUpdate.filter((r) => r.name !== 'Administrator' && r.id !== null && !r._skipMetadataUpdate);
+    if (rolesToActuallyUpdate.length) {
+      if (options.verbose) console.info(`Updating ${rolesToActuallyUpdate.length} roles`);
+      await Promise.all(
+        rolesToActuallyUpdate.map((role) => {
+          // Clean up internal fields before sending to API
+          const { id, policiesToAttach, _skipMetadataUpdate, ...data } = role;
+          return client.request(updateRole(id, data)).catch((err) => {
+            console.error(`Error updating role ${role.name || id}:`, err);
+          });
+        })
+      );
+    }
 
-        return (
-          !roleEntry ||
-          !find(permissions, {
-            action: permission.action,
-            role_name: roleEntry.name,
-            collection: permission.collection,
-          })
+    // --- Refresh roles list to get current state ---
+    const updatedRoles = await client.request(readRoles({
+      limit: -1,
+      fields: ['*', 'users.*', 'children.*', 'policies.*']
+    }));
+
+    // --- Attach policies to roles ---
+    // In v11, roles can have multiple policies attached via many-to-many relationship
+    // We use the directus_access table directly for all roles to be consistent and bypass potential 403s on /roles
+    for (const role of [...rolesToCreate, ...rolesToUpdate]) {
+      const policiesToAttach = role.policiesToAttach || [];
+
+      // Find the role ID if it's not already set
+      if (!role.id && role.name !== 'Public') {
+        const updatedRole = find(updatedRoles, ['name', role.name]);
+        if (updatedRole) role.id = updatedRole.id;
+      }
+
+      if (!role.id && role.name !== 'Public') {
+        console.warn(`Could not find role ID for ${role.name}`);
+        continue;
+      }
+
+      // Special handling for Public role - it's built-in and uses directus_access table with role: null
+      const roleIdForAccess = role.name === 'Public' ? null : role.id;
+      await handleRolePolicies(roleIdForAccess, role.name, policiesToAttach, options.verbose);
+    }
+
+    // Helper function to handle role policy attachments via directus_access table
+    async function handleRolePolicies(roleId, roleName, policyIdsToAttach, verbose) {
+      // Build URL helper for directus_access table
+      const buildAccessUrl = (filters) => {
+        const params = new URLSearchParams({
+          limit: -1,
+          fields: 'id,policy',
+        });
+
+        for (const [key, value] of Object.entries(filters)) {
+          if (value === null) {
+            params.append(key, 'null');
+          } else {
+            params.append(key, value);
+          }
+        }
+
+        return `/access?${params.toString()}`;
+      };
+
+      try {
+        // Get existing access entries for this role
+        const filterKey = roleId === null ? 'filter[role][_null]' : 'filter[role][_eq]';
+        const url = buildAccessUrl({ [filterKey]: roleId === null ? 'true' : roleId });
+
+        const response = await fetch(`${directusUrl}${url}`, {
+          headers: {
+            'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const existingAccessEntries = data.data || [];
+        const existingPolicyIds = existingAccessEntries.map(entry => entry.policy);
+
+        // Find which policies need to be added or removed
+        const policiesToAdd = policyIdsToAttach.filter(pid => !existingPolicyIds.includes(pid));
+        const policiesToRemove = existingAccessEntries.filter(entry =>
+          !policyIdsToAttach.includes(entry.policy)
         );
-      });
 
-      if (permissionsToDelete.length) {
-        if (options.verbose) console.info(`Removing ${permissionsToDelete.length} permissions`);
-        await client.request(deletePermissions(permissionsToDelete.map(property('id'))));
+        if (policiesToAdd.length === 0 && policiesToRemove.length === 0) {
+          if (verbose) console.info(`Role ${roleName} already has all specified policies attached`);
+          return;
+        }
+
+        // Remove access entries for policies that should no longer be attached
+        if (policiesToRemove.length > 0) {
+          if (verbose) console.info(`Removing ${policiesToRemove.length} access entries from role ${roleName}`);
+
+          for (const entry of policiesToRemove) {
+            const deleteUrl = `/access/${entry.id}`;
+            const deleteResponse = await fetch(`${directusUrl}${deleteUrl}`, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+              },
+            });
+
+            if (!deleteResponse.ok) {
+              console.warn(`Could not remove access entry ${entry.id} for role ${roleName}: ${deleteResponse.statusText}`);
+            } else if (verbose) {
+              console.info(`Removed access entry ${entry.id} from role ${roleName}`);
+            }
+          }
+        }
+
+        // Add access entries for policies that should be attached
+        if (policiesToAdd.length > 0) {
+          if (verbose) console.info(`Adding ${policiesToAdd.length} access entries to role ${roleName}`);
+
+          for (const policyId of policiesToAdd) {
+            const createUrl = `/access`;
+            const createResponse = await fetch(`${directusUrl}${createUrl}`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                role: roleId,
+                policy: policyId,
+              }),
+            });
+
+            if (!createResponse.ok) {
+              const errorText = await createResponse.text();
+              console.warn(`Could not add access entry for policy ${policyId} to role ${roleName}: ${createResponse.statusText} - ${errorText}`);
+            } else if (verbose) {
+              const created = await createResponse.json();
+              console.info(`Added access entry for policy ${policyId} to role ${roleName} (id: ${created.data?.id})`);
+            }
+          }
+        }
+      } catch (e) {
+        console.error(`Could not update policies for role ${roleName}:`, e.message);
       }
+    }
+
+    // --- Remove orphaned roles ---
+    if (options.remove) {
+      const rolesToDelete = existingRoles.filter((existingRole) => {
+        if (existingRole.name === 'Administrator') return false;
+        return !find(roles, ['name', existingRole.name]);
+      });
 
       if (rolesToDelete.length) {
         if (options.verbose) console.info(`Removing ${rolesToDelete.length} roles`);
-        await client.request(deleteRoles(rolesToDelete.map(property('id'))));
+        const rolesToDeleteIds = rolesToDelete
+          .map(property('id'))
+          .filter(id => id && id !== '');
+        if (rolesToDeleteIds.length) {
+          await client.request(deleteRoles(rolesToDeleteIds));
+        }
       }
     }
 

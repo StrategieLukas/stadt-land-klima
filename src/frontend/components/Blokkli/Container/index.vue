@@ -1,15 +1,17 @@
 <template>
   <section
+    :id="'block-' + uuid"
     class="blokkli-block-container"
-    :class="[bgClass, paddingClass, widthBreakout, borderClass, roundedClass, shadowClass]"
+    :class="[bgClass, paddingClass, marginYClass, widthBreakout, bgNarrowClass, borderClass, roundedClass, shadowClass]"
+    :style="customColumnsVar"
   >
     <div :class="[innerClass]">
       <!-- Nested blokkli field: blocks dropped here live inside this container -->
       <BlokkliField
         name="blocks"
         :list="props.blocks || []"
-        :drop-alignment="options.layout === 'columns-2' || options.layout === 'columns-3' ? 'horizontal' : 'vertical'"
-        :class="[layoutClass]"
+        :drop-alignment="isMultiColumn ? 'horizontal' : 'vertical'"
+        :class="[layoutClass, contentAlignClass]"
         tag="div"
       />
     </div>
@@ -19,7 +21,7 @@
 <script setup lang="ts">
 import type { FieldListItem } from '#blokkli/types'
 
-const { options } = defineBlokkli({
+const { options, uuid } = defineBlokkli({
   bundle: 'container',
   options: {
     layout: {
@@ -32,7 +34,37 @@ const { options } = defineBlokkli({
         single: { columns: [1], label: 'Single Column' },
         'columns-2': { columns: [1, 1], label: '2 Columns' },
         'columns-3': { columns: [1, 1, 1], label: '3 Columns' },
+        'columns-4': { columns: [1, 1, 1, 1], label: '4 Columns' },
         'columns-1-2': { columns: [1, 2], label: '1/3 + 2/3' },
+        'columns-2-1': { columns: [2, 1], label: '2/3 + 1/3' },
+        custom: { columns: [1], label: 'Benutzerdefiniert' },
+      },
+    },
+    customColumns: {
+      type: 'text',
+      label: 'Spaltenbreiten (z.B. 1-2-1)',
+      default: '1-1',
+      group: 'Layout & Abstand',
+    },
+    orientation: {
+      type: 'radios',
+      label: 'Ausrichtung',
+      default: 'vertical',
+      group: 'Layout & Abstand',
+      options: {
+        vertical: 'Vertikal',
+        horizontal: 'Horizontal',
+      },
+    },
+    contentAlign: {
+      type: 'radios',
+      label: 'Inhaltsausrichtung',
+      default: 'start',
+      group: 'Layout & Abstand',
+      options: {
+        start: 'Links',
+        center: 'Zentriert',
+        end: 'Rechts',
       },
     },
     background: {
@@ -57,7 +89,7 @@ const { options } = defineBlokkli({
     },
     padding: {
       type: 'radios',
-      label: 'Padding',
+      label: 'Innenabstand',
       default: 'medium',
       displayAs: 'icons',
       group: 'Layout & Abstand',
@@ -68,16 +100,41 @@ const { options } = defineBlokkli({
         large: { icon: 'icon-blokkli-option-padding-large', label: 'Large' },
       },
     },
-    width: {
+    marginY: {
       type: 'radios',
-      label: 'Max Width',
+      label: 'Außenabstand (vertikal)',
+      default: 'none',
+      displayAs: 'icons',
+      group: 'Layout & Abstand',
+      options: {
+        none: { icon: 'icon-blokkli-option-padding-none', label: 'Kein' },
+        small: { icon: 'icon-blokkli-option-padding-small', label: 'Klein' },
+        medium: { icon: 'icon-blokkli-option-padding-medium', label: 'Mittel' },
+        large: { icon: 'icon-blokkli-option-padding-large', label: 'Groß' },
+      },
+    },
+    bgWidth: {
+      type: 'radios',
+      label: 'Hintergrundbreite',
       default: 'content',
       displayAs: 'icons',
+      group: 'Layout & Abstand',
       options: {
-        page: { icon: 'icon-blokkli-option-width-full', label: 'Page Width' },
-        full: { icon: 'icon-blokkli-option-width-full', label: 'Full' },
-        content: { icon: 'icon-blokkli-option-width-content', label: 'Content' },
-        narrow: { icon: 'icon-blokkli-option-width-narrow', label: 'Narrow' },
+        narrow: { icon: 'icon-blokkli-option-width-narrow', label: 'Schmal' },
+        content: { icon: 'icon-blokkli-option-width-content', label: 'Inhalt' },
+        full: { icon: 'icon-blokkli-option-width-full', label: 'Voll (100vw)' },
+      },
+    },
+    contentWidth: {
+      type: 'radios',
+      label: 'Inhaltsbreite',
+      default: 'full',
+      displayAs: 'icons',
+      group: 'Layout & Abstand',
+      options: {
+        full: { icon: 'icon-blokkli-option-width-full', label: 'Voll' },
+        page: { icon: 'icon-blokkli-option-width-content', label: 'Seite' },
+        narrow: { icon: 'icon-blokkli-option-width-narrow', label: 'Schmal' },
       },
     },
     border: {
@@ -174,28 +231,123 @@ const paddingClass = computed(() => {
   return map[options.value.padding] || 'py-8 px-6'
 })
 
+const marginYClass = computed(() => {
+  const map: Record<string, string> = {
+    none: '',
+    small: 'my-4',
+    medium: 'my-8',
+    large: 'my-16',
+  }
+  return map[options.value.marginY] || ''
+})
+
 const innerClass = computed(() => {
   const map: Record<string, string> = {
-    page: 'max-w-7xl mx-auto',
     full: 'w-full',
-    content: 'max-w-4xl mx-auto',
+    page: 'max-w-4xl mx-auto',
     narrow: 'max-w-2xl mx-auto',
+    // legacy fallbacks
+    content: 'max-w-4xl mx-auto',
   }
-  return map[options.value.width] || 'max-w-4xl mx-auto'
+  return map[options.value.contentWidth] || map[options.value.width] || 'w-full'
 })
 
 const widthBreakout = computed(() => {
-  return options.value.width === 'page' ? 'blokkli-block-container--page-width' : ''
+  // bgWidth 'full' = 100vw breakout; legacy 'full' or 'page' keys also trigger breakout
+  const v = options.value.bgWidth || options.value.width
+  return v === 'full' || v === 'page' ? 'blokkli-block-container--page-width' : ''
+})
+
+// When bgWidth='narrow' the background strip is narrower than the content.
+// We constrain the section itself to max-w-2xl centred, and let the inner
+// content overflow via negative horizontal margins so it sits wider than the bg.
+const bgNarrowClass = computed(() => {
+  if (options.value.bgWidth !== 'narrow') return ''
+  return 'blokkli-block-container--narrow-bg'
+})
+
+const isHorizontal = computed(() => options.value.orientation === 'horizontal')
+
+const isMultiColumn = computed(() => {
+  const l = options.value.layout
+  return l !== 'single' && l !== ''
+})
+
+/** Parse "a-b-c-..." into fr-unit values. Returns null on invalid input. */
+function parseCustomColumns(raw: string): string | null {
+  const parts = raw.split('-').map((s) => Number(s.trim()))
+  if (parts.length < 2 || parts.some((n) => isNaN(n) || n <= 0)) return null
+  return parts.map((n) => `${n}fr`).join(' ')
+}
+
+const customColumnsVar = computed(() => {
+  if (options.value.layout !== 'custom') return undefined
+  const parsed = parseCustomColumns(options.value.customColumns || '1-1')
+  return { '--container-custom-cols': parsed || '1fr 1fr' }
 })
 
 const layoutClass = computed(() => {
-  const map: Record<string, string> = {
-    single: 'flex flex-col gap-6',
-    'columns-2': 'grid grid-cols-1 md:grid-cols-2 gap-6',
-    'columns-3': 'grid grid-cols-1 md:grid-cols-3 gap-6',
-    'columns-1-2': 'grid grid-cols-1 md:grid-cols-3 gap-6 [&>*:first-child]:md:col-span-1 [&>*:last-child]:md:col-span-2',
+  const h = isHorizontal.value
+  const layout = options.value.layout
+
+  if (layout === 'single') {
+    return h ? 'flex flex-row gap-6' : 'flex flex-col gap-6'
   }
-  return map[options.value.layout] || 'flex flex-col gap-6'
+  if (layout === 'custom') {
+    return 'grid gap-6 blokkli-custom-grid'
+  }
+
+  const gridMap: Record<string, { responsive: string; fixed: string }> = {
+    'columns-2': {
+      responsive: 'grid grid-cols-1 md:grid-cols-2 gap-6',
+      fixed: 'grid grid-cols-2 gap-6',
+    },
+    'columns-3': {
+      responsive: 'grid grid-cols-1 md:grid-cols-3 gap-6',
+      fixed: 'grid grid-cols-3 gap-6',
+    },
+    'columns-4': {
+      responsive: 'grid grid-cols-2 md:grid-cols-4 gap-6',
+      fixed: 'grid grid-cols-4 gap-6',
+    },
+    'columns-1-2': {
+      responsive:
+        'grid grid-cols-1 md:grid-cols-3 gap-6 [&>*:first-child]:md:col-span-1 [&>*:last-child]:md:col-span-2',
+      fixed:
+        'grid grid-cols-3 gap-6 [&>*:first-child]:col-span-1 [&>*:last-child]:col-span-2',
+    },
+    'columns-2-1': {
+      responsive:
+        'grid grid-cols-1 md:grid-cols-3 gap-6 [&>*:first-child]:md:col-span-2 [&>*:last-child]:md:col-span-1',
+      fixed:
+        'grid grid-cols-3 gap-6 [&>*:first-child]:col-span-2 [&>*:last-child]:col-span-1',
+    },
+  }
+
+  const entry = gridMap[layout]
+  if (!entry) return 'flex flex-col gap-6'
+  return h ? entry.fixed : entry.responsive
+})
+
+const contentAlignClass = computed(() => {
+  const align = options.value.contentAlign || 'start'
+  const layout = options.value.layout
+  if (layout === 'single' || layout === '') {
+    // flex container: align children
+    const map: Record<string, string> = {
+      start: 'items-start',
+      center: 'items-center',
+      end: 'items-end',
+    }
+    return map[align] || ''
+  }
+  // grid container
+  const map: Record<string, string> = {
+    start: 'justify-items-start',
+    center: 'justify-items-center',
+    end: 'justify-items-end',
+  }
+  return map[align] || ''
 })
 
 const borderClass = computed(() => {
@@ -245,6 +397,10 @@ const shadowClass = computed(() => {
   width: 100%;
 }
 
+.blokkli-block-container :deep(.blokkli-custom-grid) {
+  grid-template-columns: var(--container-custom-cols, 1fr 1fr);
+}
+
 .blokkli-block-container--page-width {
   width: 100vw;
   position: relative;
@@ -252,5 +408,23 @@ const shadowClass = computed(() => {
   right: 50%;
   margin-left: -50vw;
   margin-right: -50vw;
+}
+
+/*
+  Narrow background: the section itself is constrained to max-w-2xl (centred),
+  while the inner content div can overflow it horizontally via negative margins.
+  The overflow on the section is kept visible so content is not clipped.
+*/
+.blokkli-block-container--narrow-bg {
+  max-width: 42rem; /* = max-w-2xl */
+  margin-left: auto;
+  margin-right: auto;
+  overflow: visible;
+}
+
+.blokkli-block-container--narrow-bg > div {
+  /* Push the inner content wider than the narrow background strip */
+  margin-left: calc(-1 * max(0px, (100vw - 42rem) / 2 - (100vw - 56rem) / 2));
+  margin-right: calc(-1 * max(0px, (100vw - 42rem) / 2 - (100vw - 56rem) / 2));
 }
 </style>

@@ -1,0 +1,117 @@
+name: Lokalteam-Mitglied
+icon: badge
+description: Basis-Rolle für Mitglieder eines Lokalteams
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: directus_comments
+    action: read
+    permissions:
+      _and:
+        - user_created:
+            localteams:
+              localteam_id:
+                id:
+                  _in:
+                    - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - collection
+      - item
+      - comment
+      - date_created
+      - date_updated
+      - user_created
+      - user_updated
+  - collection: editors
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - user_created
+      - date_created
+      - email
+      - localteam_id
+      - organisation
+  - collection: localteams
+    action: read
+    permissions:
+      _and:
+        - id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - status
+      - name
+      - municipality_name
+      - admin_id
+      - public_contact
+      - slug
+      - municipality_id
+  - collection: localteams
+    action: update
+    permissions:
+      _and:
+        - id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - public_contact
+  - collection: municipalities
+    action: read
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - name
+      - mayor
+      - party_mayor
+      - id
+      - description
+      - slug
+      - public_contact
+      - details
+      - status
+      - notice-kcc40f
+      - links-g1sxxi
+      - image
+      - creator_verified
+      - preview_token
+      - municipality_type
+  - collection: municipalities
+    action: update
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation: {}
+    presets: null
+    fields:
+      - user_updated
+      - date_updated
+      - mayor
+      - party_mayor
+      - description
+      - public_contact
+      - details
+      - image

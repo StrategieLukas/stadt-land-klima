@@ -1,0 +1,29 @@
+collection: articles
+field: additional_infos_segment
+type: alias
+meta:
+  collection: articles
+  conditions: null
+  display: null
+  display_options: null
+  field: additional_infos_segment
+  group: null
+  hidden: false
+  interface: group-detail
+  note: null
+  options:
+    start: closed
+  readonly: false
+  required: false
+  searchable: true
+  sort: 16
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Zusätzliche Infos
+  validation: null
+  validation_message: null
+  width: full

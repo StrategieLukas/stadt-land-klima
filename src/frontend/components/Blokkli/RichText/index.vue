@@ -1,7 +1,8 @@
 <template>
   <div
-    class="blokkli-block-richtext"
-    :class="[sizeClass, alignClass]"
+    :id="'block-' + uuid"
+    class="blokkli-block-richtext w-full overflow-x-auto"
+    :class="[alignClass]"
   >
     <!-- Edit mode: show raw markdown source for inline editing -->
     <pre
@@ -15,7 +16,7 @@
     <div
       v-else
       class="prose max-w-none"
-      :class="[sizeClass]"
+      :class="[sizeClass, alignClass]"
       v-html="renderedContent"
     />
   </div>
@@ -32,7 +33,7 @@ const md = new MarkdownIt({
   breaks: true,
 })
 
-const { options, isEditing } = defineBlokkli({
+const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'richtext',
   options: {
     size: {

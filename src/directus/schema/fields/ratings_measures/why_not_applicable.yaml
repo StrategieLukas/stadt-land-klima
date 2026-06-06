@@ -1,0 +1,55 @@
+collection: ratings_measures
+field: why_not_applicable
+type: text
+meta:
+  collection: ratings_measures
+  conditions:
+    - hidden: false
+      name: Field is only visible if measure is marked as NOT applicable
+      options:
+        clear: false
+        font: sans-serif
+        trim: true
+      required: true
+      rule:
+        _and:
+          - applicable:
+              _eq: false
+  display: null
+  display_options: null
+  field: why_not_applicable
+  group: null
+  hidden: true
+  interface: input-multiline
+  note: null
+  options:
+    placeholder: $t:measure_rating.why_not_applicable.placeholder
+    trim: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Warum ist diese Maßnahme für eure Kommune nicht anwendbar?
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: why_not_applicable
+  table: ratings_measures
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

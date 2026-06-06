@@ -8,14 +8,14 @@ meta:
   collection: external_projects
   color: null
   display_template: null
-  group: null
+  group: success_projects
   hidden: true
   icon: null
   item_duplication_fields: null
   note: null
   preview_url: null
   singleton: false
-  sort: null
+  sort: 3
   sort_field: null
   translations: null
   unarchive_value: null
