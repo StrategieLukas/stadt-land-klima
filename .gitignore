@@ -17,6 +17,11 @@
 # backup directory
 /backups/*
 
+# generated database exports
+/bin/db_exports/out.sql
+/bin/db_exports/*.dump
+/bin/db_exports/*_dump.sql
+
 # Logs
 logs
 *.log
