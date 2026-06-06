@@ -16,10 +16,10 @@ import readYamlFiles from '../shared/readYamlFiles.mjs';
 
 /**
  * Import policies and permissions for Directus v11+
- * 
+ *
  * In Directus v11, permissions are attached to POLICIES, not directly to roles.
  * This imports policies with their associated permissions.
- * 
+ *
  * YAML file format:
  * - name: Policy name
  * - icon: Optional icon

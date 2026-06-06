@@ -25,7 +25,7 @@ async function importSchema(src, options = {verbose: false}) {
     // Use REST API directly for schema operations
     let diffUrl = new URL('/schema/diff?force=true', client.url).toString();
     let applyUrl = new URL('/schema/apply?force=true', client.url).toString();
-    
+
     // First, try schema/diff
     const diffResponse = await fetch(diffUrl, {
       method: 'POST',
@@ -44,7 +44,7 @@ async function importSchema(src, options = {verbose: false}) {
 
     let diffData;
     const responseText = await diffResponse.text();
-    
+
     // Handle 204 No Content (schema already matches)
     if (diffResponse.status === 204 || !responseText.trim()) {
       if (options.verbose) {

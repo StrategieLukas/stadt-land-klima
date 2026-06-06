@@ -5,15 +5,15 @@ import slugify from 'slugify';
 
 /**
  * Migration script to convert old Directus v10 role YAML files to v11+ format
- * 
+ *
  * In v10: Roles had permissions directly attached
  * In v11+: Permissions are in policies, roles reference policies by ID
- * 
+ *
  * This script:
  * 1. Reads old role YAML files with permissions
  * 2. Creates policy YAML files with the permissions
  * 3. Updates role YAML files to reference the policies
- * 
+ *
  * Usage: node migrateRolesToPolicies.mjs /path/to/roles/folder /path/to/policies/folder
  */
 
@@ -30,7 +30,7 @@ async function migrateRolesToPolicies(rolesSrc, policiesDest) {
   fse.mkdirSync(policiesDest, { recursive: true });
 
   // Read all role files
-  const roleFiles = fse.readdirSync(rolesSrc).filter(f => 
+  const roleFiles = fse.readdirSync(rolesSrc).filter(f =>
     (f.endsWith('.yaml') || f.endsWith('.yml')) && !f.startsWith('.')
   );
 
@@ -40,7 +40,7 @@ async function migrateRolesToPolicies(rolesSrc, policiesDest) {
   for (const roleFile of roleFiles) {
     const rolePath = path.join(rolesSrc, roleFile);
     let role;
-    
+
     try {
       role = parseYamlFile(rolePath);
     } catch (err) {
@@ -91,7 +91,7 @@ async function migrateRolesToPolicies(rolesSrc, policiesDest) {
     // Update role to reference the policy
     const updatedRole = { ...role };
     delete updatedRole.permissions;
-    
+
     // Store policy name as reference (will be resolved during import)
     updatedRole.policies = [policyName];
 

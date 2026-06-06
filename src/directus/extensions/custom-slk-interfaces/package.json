@@ -1,0 +1,61 @@
+{
+  "name": "custom-slk-interfaces",
+  "version": "1.0.0",
+  "private": true,
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "bundle",
+    "interfaces"
+  ],
+  "directus:extension": {
+    "type": "bundle",
+    "host": "^11.0.0",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.js"
+    },
+    "entries": [
+      {
+        "type": "interface",
+        "name": "footer-nav-editor",
+        "source": "./src/footer-nav-editor/index.ts"
+      },
+      {
+        "type": "interface",
+        "name": "icon-radio",
+        "source": "./src/images-as-radio-buttons/index.ts"
+      },
+      {
+        "type": "interface",
+        "name": "measure-preview",
+        "source": "./src/measure-infos/index.ts"
+      },
+      {
+        "type": "interface",
+        "name": "navigation-editor",
+        "source": "./src/navigation-editor/index.ts"
+      },
+      {
+        "type": "interface",
+        "name": "unsplash-image",
+        "source": "./src/unsplash-image/index.ts"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "17.1.4",
+    "esbuild": "^0.28.0",
+    "sass": "^1.69.5",
+    "typescript": "^5.3.0",
+    "vue": "^3.3.8"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
+  }
+}
