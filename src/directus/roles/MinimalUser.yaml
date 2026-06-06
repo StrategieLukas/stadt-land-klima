@@ -3,6 +3,7 @@ icon: not_started
 description: App-Zugriff & Public Zugriff
 children:
   - ErfolgsprojekteRedaktion
+  - Recruiter
   - Planungsteam
 policies:
   - App-Zugriff-Minimum

@@ -50,6 +50,15 @@ const attrs = useAttrs()
 
 const svgFiles = import.meta.glob('@/assets/icons/*.svg', { query: '?raw', eager: true })
 
+function getRawSvg(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (value && typeof value === 'object' && 'default' in value) {
+    const defaultExport = (value as { default?: unknown }).default
+    return typeof defaultExport === 'string' ? defaultExport : ''
+  }
+  return ''
+}
+
 /**
  * Like Blokkli Button's prepareIcon, but also strips <circle class="cls-1">
  * background shapes so icons like icon_newsletter_click render correctly on a
@@ -77,7 +86,7 @@ function prepareIconForButton(raw: string): string {
 const iconMap: Record<string, string> = Object.fromEntries(
   Object.entries(svgFiles).map(([path, svg]) => {
     const name = path.split('/').pop()?.replace('.svg', '') ?? ''
-    return [name, prepareIconForButton(svg as string)]
+    return [name, prepareIconForButton(getRawSvg(svg))]
   }),
 )
 
