@@ -32,6 +32,8 @@ export default defineNuxtConfig({
     welcomeEmailTutorialUrl: process.env.WELCOME_EMAIL_TUTORIAL_URL,
     welcomeEmailCalendarUrl: process.env.WELCOME_EMAIL_CALENDAR_URL,
     welcomeEmailSignalUrl: process.env.WELCOME_EMAIL_SIGNAL_URL,
+    frontendBasicAuthUsername: process.env.FRONTEND_BASIC_AUTH_USERNAME,
+    frontendBasicAuthPassword: process.env.FRONTEND_BASIC_AUTH_PASSWORD,
     // Keys within public, will be also exposed to the client-side
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,
