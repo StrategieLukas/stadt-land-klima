@@ -11,6 +11,7 @@ import exportFlows from './exportFlows.mjs';
 import exportTranslations from './exportTranslations.mjs';
 import exportSettings from './exportSettings.mjs';
 import exportCollectionItems from './exportCollectionItems.mjs';
+import exportDashboards from './exportDashboards.mjs';
 
 const clerDirOpts = {extensions: ['.yaml']};
 
@@ -235,8 +236,37 @@ function exportTasks(yargs) {
   )
 
   .command(
+    'export:dashboards [dest]',
+    'export all dashboards to the folder specified by "dest". By default it will export into "dashboards"',
+    (yargs) => {
+      return yargs
+      .positional('dest', {
+        describe: 'destination folder',
+        default: 'dashboards',
+      });
+    },
+    async (argv) => {
+      if (argv.verbose) {
+        console.info(`Exporting dashboards to ${argv.dest}`);
+      }
+      if (argv.clear) {
+        clear(argv.dest, {
+          verbose: argv.verbose,
+        });
+      }
+
+      await clearDirectusCache();
+      await exportDashboards(argv.dest, {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
     'export:all [dest]',
-    'export schema, policies, roles, flows, presets, translations, and settings consecutively. In v11+, policies are exported separately from roles.',
+    'export schema, policies, roles, flows, presets, translations, settings, and dashboards consecutively. ' +
+      'In v11+, policies are exported separately from roles.',
     (yargs) => {
       return yargs
       .positional('dest', {
@@ -320,6 +350,16 @@ function exportTasks(yargs) {
         clear(path.join(dest, 'settings'), { verbose: argv.verbose });
       }
       await exportSettings(path.join(dest, 'settings'), {
+        verbose: argv.verbose,
+        overwrite: argv.force,
+      });
+
+      // Export dashboards
+      console.info('Exporting dashboards...');
+      if (argv.clear) {
+        clear(path.join(dest, 'dashboards'), { verbose: argv.verbose });
+      }
+      await exportDashboards(path.join(dest, 'dashboards'), {
         verbose: argv.verbose,
         overwrite: argv.force,
       });

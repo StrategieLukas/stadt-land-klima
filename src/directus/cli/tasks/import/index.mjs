@@ -9,6 +9,7 @@ import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
 import importSettings from './importSettings.mjs';
 import importCollectionItems from './importCollectionItems.mjs';
+import importDashboards from './importDashboards.mjs';
 
 function importTasks(yargs) {
   return yargs
@@ -205,8 +206,33 @@ function importTasks(yargs) {
   )
 
   .command(
+    'import:dashboards [src]',
+    'imports the dashboards from the folder specified by "src". By default it will import from "dashboards"',
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: 'source folder',
+        default: 'dashboards',
+      });
+    },
+    async (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing dashboards from ${argv.src}`);
+      }
+
+      await clearDirectusCache();
+      await importDashboards(argv.src, {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+    }
+  )
+
+  .command(
     'import:all [src]',
-    'imports schema, policies, roles, flows, presets, translations, and settings consecutively. In v11+, policies are imported before roles.',
+    'imports schema, policies, roles, flows, presets, translations, and settings consecutively. ' +
+      'Dashboards are intentionally skipped for now.',
     (yargs) => {
       return yargs
       .positional('src', {
@@ -269,6 +295,8 @@ function importTasks(yargs) {
         remove: argv['remove-orphans'],
         overwrite: argv.force,
       });
+
+      console.info('Dashboards are not imported at the moment. Run import:dashboards manually if needed.');
 
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
       console.info(`Full import completed in ${elapsed}s`);
