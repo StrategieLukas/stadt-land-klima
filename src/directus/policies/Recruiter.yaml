@@ -34,6 +34,27 @@ permissions:
     fields:
       - "*"
   - collection: organisations
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - short_description
+      - link
+      - logo
+      - instagram
+      - linkedin
+      - social_media_segment
+  - collection: organisations
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
     action: read
     permissions: null
     validation: null
@@ -44,3 +65,19 @@ permissions:
       - logo
       - link
       - short_description
+      - instagram
+      - linkedin
+      - social_media_segment
+  - collection: organisations
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - short_description
+      - link
+      - logo
+      - instagram
+      - linkedin
+      - social_media_segment
