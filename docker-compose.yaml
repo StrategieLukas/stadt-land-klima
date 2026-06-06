@@ -39,6 +39,7 @@ services:
     env_file: ./src/directus/.env
     volumes:
       - ./src/directus/uploads:/directus/uploads
+      - ./src/directus/dashboards/:/directus/dashboards
       - ./src/directus/extensions:/directus/extensions
       - ./src/directus/schema/:/directus/schema
       - ./src/directus/roles/:/directus/roles
