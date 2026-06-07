@@ -9,10 +9,12 @@ meta:
   field: slug
   group: null
   hidden: true
-  interface: input
+  interface: auto-slug
   note: null
   options:
     slug: true
+    source_field: role_title
+    sync_existing: true
     trim: true
   readonly: true
   required: false

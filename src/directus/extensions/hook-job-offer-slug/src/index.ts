@@ -2,8 +2,7 @@ import { defineHook } from '@directus/extensions-sdk';
 import type { Database } from '@directus/types';
 import slugify from 'slugify';
 
-const COLLECTION = 'job_offers';
-const FALLBACK_SLUG = 'jobangebot';
+const JOB_OFFERS = 'job_offers';
 const MAX_BASE_LENGTH = 90;
 
 const slugifyConfig = {
@@ -15,7 +14,8 @@ const slugifyConfig = {
   trim: true,
 } as const;
 
-type JobOfferPayload = {
+type Payload = Record<string, unknown> & {
+  name?: unknown;
   role_title?: unknown;
   slug?: unknown;
 };
@@ -25,12 +25,17 @@ type HookMeta = {
   keys?: Array<string | number>;
 };
 
+const createSlugFromNameCollections = new Set(['pages', 'municipalities', 'measures']);
+const updateSlugFromNameCollections = new Set(['municipalities', 'measures']);
+
+function slugifyText(value: unknown): string {
+  return slugify(String(value ?? ''), slugifyConfig);
+}
+
 function normalizeSlug(value: unknown): string {
-  const slug = slugify(String(value ?? ''), slugifyConfig)
+  return slugifyText(value)
     .slice(0, MAX_BASE_LENGTH)
     .replace(/-+$/g, '');
-
-  return slug || FALLBACK_SLUG;
 }
 
 async function makeUniqueSlug(
@@ -38,11 +43,13 @@ async function makeUniqueSlug(
   baseSlug: string,
   currentId?: string | number
 ): Promise<string> {
+  if (!baseSlug) return baseSlug;
+
   let slug = baseSlug;
   let suffix = 2;
 
   while (true) {
-    const query = database(COLLECTION).where({ slug }).select('id').first();
+    const query = database(JOB_OFFERS).where({ slug }).select('id').first();
 
     if (currentId !== undefined) {
       query.andWhereNot('id', currentId);
@@ -60,7 +67,7 @@ async function getExistingJobOffer(
   database: Database,
   id: string | number
 ): Promise<{ role_title?: string | null; slug?: string | null } | null> {
-  const existing = await database(COLLECTION)
+  const existing = await database(JOB_OFFERS)
     .where({ id })
     .select('role_title', 'slug')
     .first();
@@ -69,8 +76,15 @@ async function getExistingJobOffer(
 }
 
 export default defineHook(({ filter }) => {
-  filter('items.create', async (payload: JobOfferPayload, meta: HookMeta, { database }) => {
-    if (meta.collection !== COLLECTION) return payload;
+  filter('items.create', async (payload: Payload, meta: HookMeta, { database }) => {
+    if (meta.collection && createSlugFromNameCollections.has(meta.collection)) {
+      return {
+        ...payload,
+        slug: slugifyText(payload.name),
+      };
+    }
+
+    if (meta.collection !== JOB_OFFERS) return payload;
 
     const providedSlug = String(payload.slug ?? '').trim();
     const baseSlug = normalizeSlug(providedSlug || payload.role_title);
@@ -81,8 +95,15 @@ export default defineHook(({ filter }) => {
     };
   });
 
-  filter('items.update', async (payload: JobOfferPayload, meta: HookMeta, { database }) => {
-    if (meta.collection !== COLLECTION) return payload;
+  filter('items.update', async (payload: Payload, meta: HookMeta, { database }) => {
+    if (meta.collection && updateSlugFromNameCollections.has(meta.collection) && payload.name !== null && payload.name !== undefined) {
+      return {
+        ...payload,
+        slug: slugifyText(payload.name),
+      };
+    }
+
+    if (meta.collection !== JOB_OFFERS) return payload;
 
     const key = meta.keys?.length === 1 ? meta.keys[0] : undefined;
     const providedSlug = String(payload.slug ?? '').trim();

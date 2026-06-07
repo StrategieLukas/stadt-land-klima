@@ -1,6 +1,6 @@
 {
-  "name": "hook-job-offer-slug",
-  "description": "Generates stable slugs for job offers.",
+  "name": "hook-content-slugs",
+  "description": "Generates content slugs for Directus collections.",
   "icon": "link",
   "version": "1.0.0",
   "keywords": [
