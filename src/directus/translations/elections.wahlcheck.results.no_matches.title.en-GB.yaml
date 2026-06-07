@@ -1,0 +1,3 @@
+language: en-GB
+key: elections.wahlcheck.results.no_matches.title
+value: "No matches can be calculated"

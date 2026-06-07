@@ -1,0 +1,3 @@
+language: en-GB
+key: localteam.register.onboarding.body
+value: "Our team will set up your local team for <strong class=\"text-gray-700\">:name</strong> and guide you through the first steps, from rating to publication."

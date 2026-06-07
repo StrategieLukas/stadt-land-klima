@@ -76,11 +76,11 @@
                   </span>
                   <!-- Localteam exists but not yet published -->
                   <span v-else-if="area.ctaType === 'in-progress'" class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
-                    Bewertung läuft
+                    {{ $t('rating.in_progress') }}
                   </span>
                   <!-- No localteam -->
                   <span v-else class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400">
-                    Nicht bewertet
+                    {{ $t('administrative_areas.not_rated_yet') }}
                   </span>
                 </div>
               </div>
@@ -95,7 +95,7 @@
                   <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Bewertung anzeigen</span>
+                  <span>{{ $t('rating.view') }}</span>
                 </NuxtLink>
                 <!-- Case: localteam active, rating in progress → support them -->
                 <NuxtLink
@@ -106,7 +106,7 @@
                   <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Lokalteam unterstützen</span>
+                  <span>{{ $t('localteam.support') }}</span>
                 </NuxtLink>
                 <!-- Case: no localteam → found one -->
                 <NuxtLink
@@ -117,7 +117,7 @@
                   <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Lokalteam gründen</span>
+                  <span>{{ $t('localteam.create') }}</span>
                 </NuxtLink>
                 <!-- Statistiken (always shown) -->
                 <NuxtLink
@@ -127,7 +127,7 @@
                   <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span>Statistiken anzeigen</span>
+                  <span>{{ $t('stats.view_stats') }}</span>
                 </NuxtLink>
               </div>
             </div>

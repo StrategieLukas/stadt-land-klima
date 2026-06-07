@@ -58,25 +58,24 @@
       <div v-if="pending && !error" class="flex justify-center items-center py-20">
         <div class="flex flex-col items-center gap-4">
           <SlkFlowerSpinner class="w-20 h-20 text-ff-green" />
-          <p class="text-mid-gray">Lade Wahldaten...</p>
+          <p class="text-mid-gray">{{ $t("elections.loading_data") }}</p>
         </div>
       </div>
 
       <!-- Error State -->
       <div v-else-if="error" class="bg-red/10 border border-red text-red p-8 rounded-xl text-center my-12">
-        <h2 class="text-2xl font-bold mb-4">Fehler beim Laden</h2>
+        <h2 class="text-2xl font-bold mb-4">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
-        <NuxtLink to="/" class="btn btn-primary">Zurück zur Startseite</NuxtLink>
+        <NuxtLink to="/" class="btn btn-primary">{{ $t("generic.back_to_home") }}</NuxtLink>
       </div>
 
       <!-- Not Found / Not Public -->
       <div v-else-if="!electionData?.election" class="bg-orange/10 border border-orange text-orange-800 p-8 rounded-xl text-center my-12">
-        <h2 class="text-2xl font-bold mb-4">Keine öffentliche Wahl verfügbar</h2>
+        <h2 class="text-2xl font-bold mb-4">{{ $t("elections.no_public_election.title") }}</h2>
         <p class="mb-4">
-          Für dieses Lokalteam gibt es aktuell keine öffentliche Wahl. 
-          Nur öffentliche Wahlen können im Wahlcheck verglichen werden.
+          {{ $t("elections.no_public_election.description") }}
         </p>
-        <NuxtLink to="/elections/wahlcheck" class="btn btn-secondary">Zur Wahlcheck-Übersicht</NuxtLink>
+        <NuxtLink to="/elections/wahlcheck" class="btn btn-secondary">{{ $t("elections.back_to_wahlcheck_overview") }}</NuxtLink>
       </div>
 
       <!-- Step 1: Answer Questions -->

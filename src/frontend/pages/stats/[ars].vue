@@ -10,7 +10,7 @@
         <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Zur Maßnahmenstatistik-Übersicht
+	        {{ $t("stats.back_to_measure_statistics") }}
       </NuxtLink>
     </div>
 
@@ -23,8 +23,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
           </svg>
           <div>
-            <h2 class="text-lg font-bold text-white font-heading leading-tight">Kommunale Statistiken</h2>
-            <p class="text-xs text-white/70 mt-0.5">Statistiken und Daten zu einer anderen Kommune oder einem Verwaltungsgebiet suchen</p>
+	            <h2 class="text-lg font-bold text-white font-heading leading-tight">{{ $t("stats.municipal.title") }}</h2>
+	            <p class="text-xs text-white/70 mt-0.5">{{ $t("stats.municipal.search_other_description") }}</p>
           </div>
         </div>
         <!-- Right: search bar -->
@@ -96,9 +96,9 @@
           <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <h2 class="text-base font-semibold text-gray-900">{{ t('stats.measure_catalog_comparison', 'Bewertungen in den verschiedenen Maßnahmenkatalogen') }}</h2>
+          <h2 class="text-base font-semibold text-gray-900">{{ t('stats.measure_catalog_comparison') }}</h2>
           <span class="text-xs text-gray-400 hidden sm:block">
-            ({{ Object.values(municipalityScoresByCatalog).filter(s => s?.percentage_rated >= 98).length }} / {{ allCatalogVersions.length }} vollständig)
+	            {{ $t("stats.catalog_completed_count", { ":count": Object.values(municipalityScoresByCatalog).filter(s => s?.percentage_rated >= 98).length, ":total": allCatalogVersions.length }) }}
           </span>
         </div>
         <svg
@@ -117,23 +117,23 @@
         <div v-if="municipalityDirectusData" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100">
           <p class="text-xs text-blue-700">
             <template v-if="hasLocalteam">
-              Ein Lokalteam bewertet diese Kommune aktiv.
+	              {{ $t("stats.localteam.active") }}
             </template>
             <template v-else>
-              Noch kein Lokalteam für diese Kommune registriert.
+	              {{ $t("stats.localteam.none_registered") }}
             </template>
           </p>
           <CanonicalButton
             v-if="!hasLocalteam"
             href="/register_localteam"
-            :label="t('stats.action.start_rating', 'Lokalteam gründen')"
+            :label="t('stats.action.start_rating')"
             color="green"
             icon-slug="icon_team"
           />
           <CanonicalButton
             v-else
             :href="localteamContactUrl"
-            :label="t('stats.action.help_local_team', 'Lokalteam unterstützen')"
+            :label="t('stats.action.help_local_team')"
             color="green"
             icon-slug="icon_hand_holding_heart"
           />
@@ -150,11 +150,11 @@
                 <div class="flex flex-wrap justify-center gap-1">
                   <span v-if="catalog.isCurrentFrontend"
                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {{ t('stats.catalog_status.current_frontend', 'Momentan gültig') }}
+                    {{ t('stats.catalog_status.current_frontend') }}
                   </span>
                   <span v-if="catalog.isCurrentBackend"
                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                    {{ t('stats.catalog_status.current_backend', 'Momentan im Bewerten') }}
+                    {{ t('stats.catalog_status.current_backend') }}
                   </span>
                 </div>
               </div>
@@ -166,7 +166,7 @@
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                   </svg>
-                  {{ t('stats.rating_status.complete', 'Vollständig bewertet') }}
+                  {{ t('stats.rating_status.complete') }}
                 </span>
                 <span v-else-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated > 0"
                       class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
@@ -175,7 +175,7 @@
                       : parseFloat(municipalityScoresByCatalog[catalog.id].percentage_rated).toFixed(1) || '0.0' }}% {{ $t('administrative_areas.rated') }}
                 </span>
                 <span v-else class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                  {{ t('stats.rating_status.no_data', 'Keine Daten') }}
+                  {{ t('stats.rating_status.no_data') }}
                 </span>
               </div>
 
@@ -185,7 +185,7 @@
                 <CanonicalButton
                   v-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated >= 98 && municipalityScoresByCatalog[catalog.id]?.municipality?.slug"
                   :href="`/municipalities/${municipalityScoresByCatalog[catalog.id].municipality.slug}`"
-                  :label="t('stats.action.current_rating', 'Zur Bewertung')"
+                  :label="t('stats.action.current_rating')"
                   color="bright-green"
                   text-color="white"
                   icon-slug="icon_location"
@@ -193,7 +193,7 @@
                 />
                 <!-- Otherwise: informational text -->
                 <span v-else class="text-sm text-gray-400 text-center italic">
-                  {{ t('stats.action.rating_in_progress', 'Bewertung in Bearbeitung') }}
+                  {{ t('stats.action.rating_in_progress') }}
                 </span>
 
               </div>
@@ -211,12 +211,12 @@
         </svg>
         <div>
           <p class="text-base font-semibold text-amber-900">{{ $t('administrative_areas.not_reasonable_for_rating') }}</p>
-          <p class="text-sm text-amber-700 mt-1">{{ t('stats.not_reasonable_explanation', 'Dieses Gebiet wird im Stadt-Land-Klima-Ranking nicht einzeln bewertet.') }}</p>
+          <p class="text-sm text-amber-700 mt-1">{{ t('stats.not_reasonable_explanation') }}</p>
         </div>
       </div>
       <div v-if="reasonableParent" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2 border-t border-amber-200">
         <p class="text-sm text-amber-800">
-          {{ t('stats.reasonable_parent_hint', 'Die nächste bewertbare Verwaltungseinheit:') }}
+          {{ t('stats.reasonable_parent_hint') }}
         </p>
         <NuxtLink
           :to="`/stats/${reasonableParent.ars}`"
@@ -458,11 +458,11 @@ const hasLocalteam = computed(() => !!municipalityDirectusData.value?.localteam_
 /** Contact URL for supporting the existing local team */
 const localteamContactUrl = computed(() => {
   const name = stats.value?.name || ''
-  return `/contact?type=cooperation&title=${encodeURIComponent(`Lokalteam in ${name} unterstützen`)}&content=${encodeURIComponent(`Ich möchte das Lokalteam in ${name} unterstützen.`)}`
+  return `/contact?type=cooperation&title=${encodeURIComponent($t('localteam.support.contact_title', { ':name': name }))}&content=${encodeURIComponent($t('localteam.support.contact_content', { ':name': name }))}`
 })
 
 // Helper function for translation with fallbacks
-const t = (key, fallback) => {
+const t = (key, fallback = key) => {
   const translation = $t(key);
   return translation === key ? fallback : translation;
 };
@@ -898,7 +898,7 @@ const title = computed(() => {
   if (stats.value?.name) {
     return stats.value.prefix ? `${stats.value.prefix} ${stats.value.name}` : stats.value.name;
   }
-  return 'Statistiken';
+  return $t('stats.title');
 });
 
 // Set the page title

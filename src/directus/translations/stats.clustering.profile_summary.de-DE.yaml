@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.clustering.profile_summary
+value: ":count Kommunen · Ø Gesamtscore: :score"

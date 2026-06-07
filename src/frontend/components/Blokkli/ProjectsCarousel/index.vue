@@ -65,7 +65,7 @@
       >
         <button
           class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-black text-white"
-          aria-label="Zurück"
+          :aria-label="$t('generic.back')"
           @click="scrollBy(-1)"
         >
           <Icon icon="mdi:arrow-left" class="w-5 h-5" />

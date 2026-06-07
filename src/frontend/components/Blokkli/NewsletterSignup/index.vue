@@ -52,7 +52,7 @@
               clip-rule="evenodd"
             />
           </svg>
-          {{ alreadySubscribed ? 'Du bist bereits angemeldet.' : 'Bestätigungsmail gesendet – bitte prüfe dein Postfach.' }}
+          {{ alreadySubscribed ? $t("newsletter.already_subscribed") : $t("newsletter.confirmation_sent") }}
         </div>
 
         <!-- Email input + button -->
@@ -61,12 +61,12 @@
             v-model="email"
             type="email"
             autocomplete="email"
-            placeholder="Deine E-Mail-Adresse"
+            :placeholder="$t('newsletter.email.placeholder')"
             class="flex-1 min-w-0 px-4 py-2.5 text-sm rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
             @keydown.enter.prevent="subscribe"
           />
           <CanonicalButton
-            :label="subscribeState === 'subscribing' ? '\u2026' : 'Anmelden'"
+            :label="subscribeState === 'subscribing' ? '...' : $t('newsletter.subscribe')"
             icon-slug="icon_newsletter_click"
             :color="newsletterButtonColor"
             :disabled="subscribeState === 'subscribing'"
@@ -76,7 +76,7 @@
         </div>
 
         <p v-if="subscribeError" class="mt-2 text-xs text-red-500">{{ subscribeError }}</p>
-        <p class="mt-2 text-xs" :class="hintClass">Abmeldung jederzeit möglich. Kein Spam.</p>
+        <p class="mt-2 text-xs" :class="hintClass">{{ $t("newsletter.no_spam_hint") }}</p>
       </div>
     </div>
   </div>
@@ -93,6 +93,8 @@ const props = defineProps<{
   title: string
   description?: string
 }>()
+
+const { $t } = useNuxtApp()
 
 const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'newsletter_signup',
@@ -196,7 +198,7 @@ const newsletterButtonColor = computed(() =>
 async function subscribe() {
   subscribeError.value = ''
   if (!email.value.trim()) {
-    subscribeError.value = 'Bitte gib deine E-Mail-Adresse ein.'
+    subscribeError.value = $t('newsletter.email.required')
     return
   }
   // Prevent form submission in editor mode
@@ -213,7 +215,7 @@ async function subscribe() {
     subscribeState.value = 'success'
   } catch (err: any) {
     subscribeState.value = 'idle'
-    subscribeError.value = err?.data?.message ?? 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.'
+    subscribeError.value = err?.data?.message ?? $t('newsletter.subscribe_failed')
   }
 }
 </script>

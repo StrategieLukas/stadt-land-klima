@@ -1,0 +1,3 @@
+language: en-GB
+key: elections.wahlcheck.questions.skip
+value: "No answer / skip question"

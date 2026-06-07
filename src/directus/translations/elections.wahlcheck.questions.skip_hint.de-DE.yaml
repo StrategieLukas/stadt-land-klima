@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.wahlcheck.questions.skip_hint
+value: "Sie können Fragen überspringen, indem Sie \"Keine Angabe\" wählen."

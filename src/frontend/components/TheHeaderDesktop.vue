@@ -49,7 +49,7 @@
           ref="searchInputRef"
           v-model="query"
           class="flex-1 min-w-0 text-sm text-gray-700 outline-none bg-transparent placeholder-gray-400"
-          placeholder="Gemeinde, Projekt oder Thema suchen…"
+          :placeholder="$t('search.header.placeholder')"
           @focus="onSearchFocus"
           @keydown.up.prevent="moveFocusEmbedded(-1)"
           @keydown.down.prevent="moveFocusEmbedded(1)"
@@ -60,7 +60,7 @@
           v-if="query"
           type="button"
           class="flex-shrink-0 text-gray-300 hover:text-gray-500 transition-colors"
-          aria-label="Suche löschen"
+          :aria-label="$t('search.clear')"
           @click.stop="onClearSearch"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -299,5 +299,4 @@ onUnmounted(() => {
   if (navStripObserver)     navStripObserver.disconnect()
 })
 </script>
-
 

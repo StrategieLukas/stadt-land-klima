@@ -1,0 +1,3 @@
+language: en-GB
+key: stats.dominance.network.note
+value: "<strong>Closeness</strong> = municipalities are directly connected by a dominance edge and are pulled together. <strong>Distance</strong> = no direct edge, so repulsion dominates. Clusters of nearby nodes are performance tiers where municipalities outperform each other to a similar degree or are roughly level."

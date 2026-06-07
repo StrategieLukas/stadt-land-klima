@@ -11,7 +11,7 @@
           <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
           </svg>
-          <span>Filter &amp; Sortierung</span>
+          <span>{{ $t("generic.filter_and_sort") }}</span>
           <span v-if="activeFilterCount > 0" class="bg-[#16BAE7] text-white text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
         </span>
         <svg class="w-4 h-4 flex-shrink-0 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -30,28 +30,28 @@
         </svg>
         <div class="flex flex-wrap gap-2">
           <FilterBadgeDropdown
-            label="Alle Bundesländer"
+            :label="$t('filters.all_states')"
             :options="stateOptions"
             v-model="selectedState"
             width="min-w-[13rem]"
           />
           <FilterBadgeDropdown
-            label="Alle Sektoren"
+            :label="$t('measure_sectors.all')"
             :options="sectorOptions"
             v-model="selectedSector"
             width="min-w-[11rem]"
           />
           <FilterBadgeDropdown
             v-if="orgOptions.length > 0"
-            label="Alle Organisationen"
+            :label="$t('filters.all_organisations')"
             :options="orgOptions"
             v-model="selectedOrgId"
             width="min-w-[12rem]"
           />
-          <FilterBadgeBoolean label="Eigenständig umsetzbar" v-model="filterAutonomous" />
-          <FilterBadgeBoolean label="Maßnahme amortisiert sich" v-model="filterProfitable" />
-          <FilterBadgeBoolean label="Vorbildwirkung" v-model="filterRoleModel" />
-          <FilterBadgeBoolean label="Akzeptanzfördernd" v-model="filterAcceptance" />
+          <FilterBadgeBoolean :label="$t('projects.filters.autonomous')" v-model="filterAutonomous" />
+          <FilterBadgeBoolean :label="$t('projects.filters.profitable')" v-model="filterProfitable" />
+          <FilterBadgeBoolean :label="$t('projects.filters.role_model')" v-model="filterRoleModel" />
+          <FilterBadgeBoolean :label="$t('projects.filters.acceptance')" v-model="filterAcceptance" />
         </div>
       </div>
 
@@ -74,7 +74,7 @@
                 : 'bg-white text-[#16BAE7] border-[#16BAE7] hover:bg-[#E8F7FD]'
             ]"
           >
-            Neueste zuerst
+            {{ $t("projects.sort.newest_first") }}
           </button>
           <button
             type="button"
@@ -86,7 +86,7 @@
                 : 'bg-white text-[#16BAE7] border-[#16BAE7] hover:bg-[#E8F7FD]'
             ]"
           >
-            Höchstes Einsparpotenzial
+            {{ $t("projects.sort.highest_savings") }}
           </button>
         </div>
       </div>
@@ -184,10 +184,32 @@ const stateOptions = [
   'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen',
 ].map(s => ({ label: s, value: s }));
 
-const sectorOptions = [
+const sectorValues = [
   'Abfallwirtschaft', 'Finanzierung', 'Gebäude', 'Governance', 'Industrie',
   'Kraftstoffe', 'LULUCF', 'Landwirtschaft', 'Sonstiges', 'Strom', 'Verkehr', 'Wärme',
-].map(s => ({ label: s, value: s }));
+];
+
+const sectorKeyMap = {
+  Abfallwirtschaft: 'waste_management',
+  Finanzierung: 'financing',
+  Gebäude: 'buildings',
+  Governance: 'governance',
+  Industrie: 'industry',
+  Kraftstoffe: 'fuels',
+  LULUCF: 'lulucf',
+  Landwirtschaft: 'agriculture',
+  Sonstiges: 'other',
+  Strom: 'electricity',
+  Verkehr: 'transport',
+  Wärme: 'heating',
+};
+
+const sectorOptions = computed(() =>
+  sectorValues.map(value => ({
+    label: $t(`projects.sector.${sectorKeyMap[value]}`),
+    value,
+  }))
+);
 
 // ── Organisation options derived from loaded data (no extra API call) ────────
 const orgOptions = computed(() => {

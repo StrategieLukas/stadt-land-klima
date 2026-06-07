@@ -1,0 +1,3 @@
+language: en-GB
+key: stats.dominance.network.description
+value: "All municipalities as nodes. An edge between two nodes means one municipality outperforms the other in more than 60% of jointly rated measures. Node size and colour reflect win rate."

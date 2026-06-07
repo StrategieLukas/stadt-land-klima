@@ -12,6 +12,7 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { Chart } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
 Chart.register(TreemapController, TreemapElement);
+const { $t } = useNuxtApp();
 
 const props = defineProps({
   ratingsBySector: {
@@ -27,15 +28,10 @@ const props = defineProps({
 const chartCanvas = ref(null);
 let chartInstance = null;
 
-// Sector name mapping
-const sectorNames = {
-  energy: "Energie",
-  transport: "Verkehr",
-  agriculture: "Landwirtschaft, Natur & Ernährung",
-  industry: "Industrie, Wirtschaft & Konsum",
-  buildings: "Gebäude & Wärme",
-  management: "Klimaschutzmanagement & Verwaltung",
-};
+function sectorName(sector) {
+  const translated = $t(`measure_sectors.${sector}.title`);
+  return translated === `measure_sectors.${sector}.title` ? sector : translated;
+}
 
 // Transform data for treemap - use computed to ensure reactivity
 const treeData = computed(() => {
@@ -50,7 +46,7 @@ const treeData = computed(() => {
         
         data.push({
           sector: sector,
-          sectorName: sectorNames[sector] || sector,
+          sectorName: sectorName(sector),
           measure_id: item.measure.measure_id,
           measure_name: item.measure.name,
           rating: rating,
@@ -68,15 +64,15 @@ const treeData = computed(() => {
 
 function getRatingString(rating) {
   if (rating == 0) {
-    return "kaum/nicht";
+    return $t("rating.hardly_or_not");
   } else if (rating == 0.25) {
-    return "ansatzweise";
+    return $t("rating.initial_steps");
   } else if (rating == 0.5) {
-    return "halbwegs";
+    return $t("rating.halfway");
   } else if (rating == 0.75) {
-    return "größtenteils";
+    return $t("rating.mostly");
   } else if (rating == 1) {
-    return "vollständig";
+    return $t("rating.completed");
   } else {
     return rating.toString();
   }
@@ -211,7 +207,7 @@ const chartOptions = {
           const lines = [];
           if (item.measure_id) {
             lines.push(`ID: ${item.measure_id}`);
-            lines.push(`Rating: ${getRatingString(item.rating)}`);
+            lines.push(`${$t("stats.chart.rating")}: ${getRatingString(item.rating)}`);
             lines.push(`Gewichtung: ${item.weight}`);
           }
           return lines;

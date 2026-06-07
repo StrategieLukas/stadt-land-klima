@@ -204,7 +204,7 @@
 
     <!-- Map Section -->
     <div v-if="mapEnabled && ars && dataProductType">
-      <p class="font-bold">{{ $t('stats.labels.map') || 'Map' }}</p>
+      <p class="font-bold">{{ $t('stats.labels.map') }}</p>
       <div class="mt-2 bg-gray-50 rounded-lg p-4">
         <DataProductMap
           :ars="ars"

@@ -1,0 +1,3 @@
+language: en-GB
+key: localteam.register.error.email_registered
+value: "Email address already registered"

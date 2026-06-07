@@ -1,0 +1,3 @@
+language: en-GB
+key: auth.login_failed
+value: Login failed.

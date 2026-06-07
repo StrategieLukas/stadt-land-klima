@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.dominance.description_1
+value: "Für jede Maßnahme wird paarweise verglichen, welche Kommune besser abgeschnitten hat. Aus allen Einzelvergleichen wird eine <strong>Gewinnrate</strong> pro Kommune ermittelt - der Anteil der Matchups, den sie für sich entschieden hat. Das Ergebnis ist robuster als ein einfacher Gesamtscore, weil es die Stärke über viele unabhängige Kategorien widerspiegelt."

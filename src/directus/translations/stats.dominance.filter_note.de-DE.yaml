@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.dominance.filter_note
+value: "Nur Kommunen im aktuellen Filter. Nicht-anwendbare Maßnahmen werden aus dem Vergleich ausgeschlossen."

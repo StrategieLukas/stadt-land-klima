@@ -1,0 +1,3 @@
+language: en-GB
+key: auth.logged_in_as
+value: Logged in as :name

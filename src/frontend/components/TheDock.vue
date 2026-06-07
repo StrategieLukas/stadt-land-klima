@@ -10,7 +10,7 @@
             <div class="size-[3em]">
                 <div v-html="page.icon_svg"></div>
             </div>
-            <span class="dock-label text-center text-sm truncate max-w-full font-heading">{{ page.name }}</span>
+            <span class="dock-label text-center text-sm truncate max-w-full font-heading">{{ navLabel(page, 'name') }}</span>
         </button>
 
         <button 
@@ -29,9 +29,11 @@
 
 <script setup>
 import { defineProps } from "vue";
+import translatedNavigationLabel from "~/shared/translatedNavigationLabel.js";
 const { $t } = useNuxtApp();
 const route = useRoute();
 const props = defineProps(["pages"]);
+const navLabel = (item, field = "label") => translatedNavigationLabel(item, $t, field);
 
 // Use the shared drawer state
 const { isDrawerOpen, toggleDrawer, closeDrawer } = useDrawer();

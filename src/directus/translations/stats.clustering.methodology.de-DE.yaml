@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.clustering.methodology
+value: "Jede Kommune wird durch ihre Einzelmassnahmen-Bewertungen beschrieben (0 = kaum/nicht, 1 = vollständig; N/A und fehlende Bewertungen = 0). PCA reduziert diese hochdimensionalen Vektoren auf zwei Hauptkomponenten (PC1/PC2), die den größten Teil der Varianz erklären. k-Means gruppiert dann ähnliche Kommunen. <strong>Was lässt sich ablesen?</strong> Kommunen, die im Diagramm nah beieinander liegen, haben ein ähnliches Stärken-/Schwächen-Profil über alle Maßnahmen. Das Cluster-Profil rechts zeigt die Ø-Sektorscores des angeklickten Clusters."

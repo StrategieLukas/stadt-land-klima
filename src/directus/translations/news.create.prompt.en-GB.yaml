@@ -1,0 +1,3 @@
+language: en-GB
+key: news.create.prompt
+value: "Title of the new news item:"

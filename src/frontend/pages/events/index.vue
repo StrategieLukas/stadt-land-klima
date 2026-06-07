@@ -1,6 +1,6 @@
 <template>
   <div class="py-8">
-    <h1 class="text-3xl font-bold mb-8">{{ $t('events.title') || 'Veranstaltungen' }}</h1>
+    <h1 class="text-3xl font-bold mb-8">{{ $t('events.title') }}</h1>
 
     <!-- Mobile sticky scroll nav -->
     <nav
@@ -18,7 +18,7 @@
               ? 'bg-orange-100 text-orange-700'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
-        >Momentan</a>
+        >{{ $t('events.section.current') }}</a>
         <a
           v-for="group in futureGroups"
           :key="group.monthKey"
@@ -51,7 +51,7 @@
         class="hidden xl:block w-44 flex-shrink-0 sticky text-sm self-start"
         :style="`top: ${headerHeight + 12}px`"
       >
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Abschnitte</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{{ $t('news.sections') }}</p>
         <ul class="space-y-1">
           <li v-if="currentEvents.length">
             <a
@@ -62,7 +62,7 @@
                   ? 'text-orange-600 font-semibold bg-orange-50'
                   : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
               ]"
-            >Momentan</a>
+            >{{ $t('events.section.current') }}</a>
           </li>
           <li v-for="group in futureGroups" :key="group.monthKey">
             <a
@@ -101,7 +101,7 @@
         >
           <h2 class="text-base font-semibold text-orange-600 uppercase tracking-wide border-b border-orange-200 pb-2 mb-4 flex items-center">
             <span class="inline-block w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-            Momentan
+            {{ $t('events.section.current') }}
           </h2>
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <NuxtLink
@@ -207,7 +207,7 @@
           </div>
         </div>
         <div v-else-if="!currentEvents.length" class="text-gray-500 italic mb-8">
-          Aktuell sind keine kommenden Veranstaltungen geplant.
+          {{ $t('events.no_upcoming') }}
         </div>
 
         <!-- Past events -->
@@ -218,7 +218,7 @@
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
           <h2 class="text-base font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100 pb-2 mb-6">
-            Vergangene Veranstaltungen
+            {{ $t('events.past') }}
           </h2>
           <div
             v-for="group in pastGroups"
@@ -284,7 +284,7 @@ import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { isRaster } from '~/shared/utils'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $directus, $readItems, $t, $locale } = useNuxtApp()
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
 const headerHeight = useHeaderHeight()
@@ -297,7 +297,7 @@ const pillTop = computed(() => {
   return isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
 })
 
-useHead({ title: 'Veranstaltungen' })
+useHead({ title: computed(() => $t('events.title')) })
 
 const { data: events } = await useAsyncData('events-list', async () => {
   try {
@@ -314,23 +314,26 @@ const { data: events } = await useAsyncData('events-list', async () => {
   }
 })
 
-const eventTypeLabels = { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }
-function eventTypeLabel(type) { return eventTypeLabels[type] ?? type ?? '' }
+function eventTypeLabel(type) {
+  if (!type) return ''
+  const translated = $t(`events.type.${type}`)
+  return translated === `events.type.${type}` ? type : translated
+}
 
 function formatDateRange(startIso, endIso) {
   if (!startIso) return ''
   const start = new Date(startIso)
   const end = endIso ? new Date(endIso) : null
   if (!end || end.toDateString() === start.toDateString()) {
-    return start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+    return start.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })
   }
   if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.getDate()}. – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+    return `${start.getDate()}. – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
   }
   if (start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+    return `${start.toLocaleDateString($locale, { day: '2-digit', month: 'long' })} – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
   }
-  return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+  return `${start.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })} – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
 }
 
 const now = new Date()
@@ -366,7 +369,7 @@ function groupByMonth(evList) {
   for (const ev of evList) {
     const d = new Date(ev.start_date)
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+    const label = d.toLocaleDateString($locale, { month: 'long', year: 'numeric' })
     if (!map.has(key)) map.set(key, { monthKey: key, label, events: [] })
     map.get(key).events.push(ev)
   }

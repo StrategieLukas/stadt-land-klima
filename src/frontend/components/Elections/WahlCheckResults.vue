@@ -16,26 +16,25 @@
       <div class="mb-6">
         <img
           src="~/assets/images/Stadt-Land-Klima-Blume.svg"
-          alt="Klimablume"
+          :alt="$t('logo.alt')"
           class="h-24 w-auto mx-auto opacity-80"
         >
       </div>
       <h2 class="text-2xl font-bold text-stats-dark mb-4">
-        Ihre Übereinstimmungen mit den Kandidaten
+        {{ $t('elections.wahlcheck.results.title') }}
       </h2>
       <p class="text-mid-gray max-w-2xl mx-auto">
-        Hier sehen Sie, wie stark Ihre Antworten mit denen der Kandidaten übereinstimmen.
-        Die Übereinstimmung wird als Prozentsatz angegeben.
+        {{ $t('elections.wahlcheck.results.description') }}
       </p>
       <p v-if="election" class="text-sm text-mid-gray mt-4">
-        <strong>Wahl:</strong> {{ election.descriptor }}
+        <strong>{{ $t('elections.election') }}:</strong> {{ election.descriptor }}
       </p>
     </div>
 
     <!-- Bar Chart Overview -->
     <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
-        Vergleich aller Kandidaten
+        {{ $t('elections.wahlcheck.results.all_candidates') }}
       </h3>
       <div class="space-y-4">
         <div v-for="result in sortedResults" :key="result.candidateId" class="flex items-center gap-4">
@@ -63,7 +62,7 @@
     <!-- Results Summary -->
     <div v-if="results.length > 0" class="bg-gradient-to-r from-ff-green/10 to-stats-light/50 p-8 rounded-xl border border-ff-green/30">
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
-        Ihre Top-Matches
+        {{ $t('elections.wahlcheck.results.top_matches') }}
       </h3>
 
       <!-- Animated Results List -->
@@ -111,7 +110,7 @@
                   {{ sortedResults.indexOf(result) + 1 }}
                 </span>
               </div>
-              <span class="text-[10px] text-mid-gray uppercase tracking-wider mt-1">Match</span>
+              <span class="text-[10px] text-mid-gray uppercase tracking-wider mt-1">{{ $t('elections.wahlcheck.results.match') }}</span>
             </div>
 
             <!-- Expand Button -->
@@ -131,7 +130,7 @@
             v-if="expandedCandidate === result.candidateId"
             class="mt-6 pt-6 border-t border-gray/10 overflow-hidden transition-all duration-300"
           >
-            <h5 class="font-bold text-stats-dark mb-4">Detailübersicht:</h5>
+            <h5 class="font-bold text-stats-dark mb-4">{{ $t('elections.wahlcheck.results.details') }}</h5>
 
             <!-- Score Breakdown -->
             <div class="grid grid-cols-2 gap-6 mb-6">
@@ -146,7 +145,7 @@
                 </div>
                 <div class="text-4xl font-bold text-rating-4">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
                 <div class="text-lg font-bold text-rating-4/90 mt-2">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
-                <div class="text-sm text-rating-4/60 mt-1 uppercase tracking-wider">Beste Übereinstimmung</div>
+                <div class="text-sm text-rating-4/60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.best_match") }}</div>
               </div>
               <div class="bg-stats-light/50 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
                 <div class="flex items-center justify-center mb-4">
@@ -159,7 +158,7 @@
                 </div>
                 <div class="text-4xl font-bold text-stats-dark">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
                 <div class="text-lg font-bold text-stats-dark/80 mt-2">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
-                <div class="text-sm text-stats-dark/60 mt-1 uppercase tracking-wider">Geringste Übereinstimmung</div>
+                <div class="text-sm text-stats-dark/60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.lowest_match") }}</div>
               </div>
             </div>
 
@@ -182,10 +181,10 @@
                 <!-- Table Header -->
                 <div class="grid grid-cols-[40px_1fr_80px_120px_120px] gap-2 px-3 py-2 bg-gray/10 rounded-t-lg font-semibold text-sm text-gray/60 border-b border-gray/20">
                   <div class="text-center">#</div>
-                  <div>These</div>
-                  <div class="text-center">Sektor</div>
-                  <div class="text-center">Meine Bewertung</div>
-                  <div class="text-center">Bewertung Kandidat:in</div>
+                  <div>{{ $t("elections.thesis") }}</div>
+                  <div class="text-center">{{ $t("stats.chart.sector") }}</div>
+                  <div class="text-center">{{ $t("elections.wahlcheck.results.my_rating") }}</div>
+                  <div class="text-center">{{ $t("elections.wahlcheck.results.candidate_rating") }}</div>
                 </div>
 
                 <!-- Table Rows -->
@@ -200,7 +199,7 @@
                     <span
                       v-if="doubleWeightedQuestions.has(question.id)"
                       class="text-xs bg-ff-green/80 text-white px-1.5 py-0.5 rounded-full font-bold"
-                      title="Doppelt gewichtet"
+                      :title="$t('elections.wahlcheck.results.double_weighted')"
                     >2×</span>
                   </div>
 
@@ -210,7 +209,7 @@
                       <img
                         :src="getSectorIcon(question.sector)"
                         class="h-8 w-8 opacity-60"
-                        :alt="sectorLabels[question.sector?.toLowerCase()?.trim() || 'unknown'] || question.sector"
+                        :alt="sectorLabel(question.sector)"
                       >
                     </div>
                     <div v-else class="w-8"></div>
@@ -254,22 +253,22 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <h3 class="text-xl font-bold mb-4">Keine Übereinstimmungen berechenbar</h3>
-      <p class="text-mid-gray">
-        Sie haben keine Fragen beantwortet, daher kann keine Übereinstimmung mit den Kandidaten berechnet werden.
+	      <h3 class="text-xl font-bold mb-4">{{ $t("elections.wahlcheck.results.no_matches.title") }}</h3>
+	      <p class="text-mid-gray">
+	        {{ $t("elections.wahlcheck.results.no_matches.description") }}
       </p>
       <button
         @click="$emit('restart')"
         class="btn btn-primary px-8 py-3 rounded-full font-semibold text-white mt-6"
       >
-        Nochmal versuchen
+	        {{ $t("generic.try_again") }}
       </button>
     </div>
 
     <!-- Navigation Buttons -->
     <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
       <div class="text-sm text-mid-gray">
-        {{ results.length }} Kandidaten verglichen
+	        {{ $t("elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
       </div>
       <div class="flex gap-4">
         <button
@@ -277,14 +276,14 @@
           @click="$emit('prev')"
           class="btn btn-outline btn-secondary px-6 py-2 rounded-full font-semibold"
         >
-          Zurück
+	          {{ $t("generic.back") }}
         </button>
         <button
           type="button"
           @click="$emit('restart')"
           class="btn btn-outline px-6 py-2 rounded-full font-semibold border-ff-green text-ff-green hover:bg-ff-green/10"
         >
-          Neu starten
+	          {{ $t("generic.restart") }}
         </button>
       </div>
     </div>
@@ -296,6 +295,8 @@ import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
 import sectorImages from '~/shared/sectorImages.js'
+
+const { $t } = useNuxtApp()
 
 const props = defineProps({
   election: {
@@ -342,10 +343,10 @@ function toggleSort() {
 // Sort label text
 const sortLabel = computed(() => {
   switch (sortBy.value) {
-    case 'default': return 'Thesen sortieren...'
-    case 'agreement': return 'Nach Übereinstimmung sortiert'
-    case 'disagreement': return 'Nach Differenz sortiert'
-    default: return 'Reihenfolge'
+    case 'default': return $t('elections.wahlcheck.results.sort.default')
+    case 'agreement': return $t('elections.wahlcheck.results.sort.agreement')
+    case 'disagreement': return $t('elections.wahlcheck.results.sort.disagreement')
+    default: return $t('elections.wahlcheck.results.sort.order')
   }
 })
 
@@ -421,14 +422,6 @@ const ratingColors = {
   4: 'bg-rating-4'
 }
 
-const ratingLabels = {
-  0: 'stark dagegen',
-  1: 'eher dagegen',
-  2: 'neutral',
-  3: 'eher dafür',
-  4: 'stark dafür'
-}
-
 const progressColors = {
   0: '#e30613',
   1: '#f39200',
@@ -442,7 +435,14 @@ function getRatingColor(value) {
 }
 
 function getRatingLabel(value) {
-  return ratingLabels[value] || 'Keine Antwort'
+  const labels = {
+    0: $t('elections.wahlcheck.answer.strongly_against'),
+    1: $t('elections.wahlcheck.answer.somewhat_against'),
+    2: $t('elections.wahlcheck.answer.neutral'),
+    3: $t('elections.wahlcheck.answer.somewhat_for'),
+    4: $t('elections.wahlcheck.answer.strongly_for'),
+  }
+  return labels[value] || $t('generic.no_answer')
 }
 
 function getProgressColor(percentage) {
@@ -478,7 +478,7 @@ function getRankingBgColor(rank) {
 // Helper functions for candidate data
 function getCandidateName(candidateId) {
   const candidate = props.candidates.find(c => c.id === candidateId)
-  return candidate ? candidate.name : 'Unbekannter Kandidat'
+  return candidate ? candidate.name : $t('elections.unknown_candidate')
 }
 
 function getCandidateParty(candidateId) {
@@ -554,15 +554,11 @@ const results = computed(() => {
   return results
 })
 
-// Sector label translations
-const sectorLabels = {
-  'energy': 'Energie',
-  'transport': 'Verkehr',
-  'buildings': 'Gebäude & Wärme',
-  'industry': 'Industrie, Wirtschaft & Konsum',
-  'agriculture': 'Landwirtschaft, Natur & Ernährung',
-  'management': 'Klimaschutzmanagement & Verwaltung',
-  'unknown': 'Unbekannt'
+function sectorLabel(sector) {
+  const key = sector?.toLowerCase()?.trim() || 'unknown'
+  if (key === 'unknown') return $t('generic.unknown')
+  const translated = $t(`measure_sectors.${key}.title`)
+  return translated === `measure_sectors.${key}.title` ? key : translated
 }
 
 // Get sector icon from imported images
@@ -670,7 +666,7 @@ function getSectorAgreement(candidateId, type = 'highest') {
   const selected = validSectors[0]
   // Normalize sector key: handle null, undefined, or empty string
   const sectorKey = selected.sector?.toLowerCase()?.trim() || 'unknown'
-  const label = sectorLabels[sectorKey] || sectorKey
+  const label = sectorLabel(sectorKey)
   return {
     percentage: selected.percentage,
     sector: label,
@@ -728,16 +724,16 @@ function generateShareableUrl() {
 function copyShareableLink() {
   const url = generateShareableUrl()
   if (!url) {
-    alert('Fehler beim Erstellen des Shareable Links')
+    alert($t('elections.wahlcheck.results.share.create_error'))
     return
   }
 
   // Copy to clipboard
   navigator.clipboard.writeText(url).then(() => {
-    alert('Link wurde in die Zwischenablage kopiert! Sie können ihn jetzt teilen.')
+    alert($t('elections.wahlcheck.results.share.copied'))
   }).catch(err => {
-    console.error('Fehler beim Kopieren:', err)
-    alert('Konnte Link nicht kopieren. Bitte versuchen Sie es manuell.')
+    console.error('Error copying share link:', err)
+    alert($t('elections.wahlcheck.results.share.copy_error'))
   })
 }
 

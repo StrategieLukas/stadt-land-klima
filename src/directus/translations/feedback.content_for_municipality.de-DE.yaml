@@ -1,0 +1,3 @@
+language: de-DE
+key: feedback.content_for_municipality
+value: "Kommune: :name\nLink: /municipalities/:slug\n\nMein Feedback:\n"
