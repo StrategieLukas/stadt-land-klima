@@ -12,6 +12,14 @@
   gap: 2px;
 }
 
+/* Blokkli: keep the edit indicator button always visible in the top-right.
+   The library default z-index (100) is below the site header when the search
+   overlay opens (z-[10003]). Setting it above 10003 ensures the button is
+   never covered by any site UI element. */
+.bk .bk-edit-indicator {
+  z-index: 10010 !important;
+}
+
 /* Reserve scrollbar gutter so appearing/disappearing scrollbars don't change
    the viewport width and cause layout shifts on pages with dynamic content. */
 html {
