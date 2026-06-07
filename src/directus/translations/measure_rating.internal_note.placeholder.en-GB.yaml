@@ -1,0 +1,4 @@
+language: en-GB
+key: measure_rating.internal_note.placeholder
+value: You can add internal notes on this rating here, e.g. to discuss the
+  current state of research with other members of your team.

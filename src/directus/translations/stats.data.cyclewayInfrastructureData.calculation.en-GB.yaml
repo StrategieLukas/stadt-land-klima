@@ -1,0 +1,9 @@
+language: en-GB
+key: stats.data.cyclewayInfrastructureData.calculation
+value: OSM data was analysed. For car route kilometres, highway elements with
+  the tags 'primary', 'secondary', 'tertiary', 'residential', 'service',
+  'unclassified', 'trunk', 'trunk_link', 'primary_link', 'secondary_link' and
+  'tertiary_link' were included. For cycle paths, highway=cycleway, highway=path
+  with bicycle=yes or designated, cycleway=lane or track, bicycle_road=yes, or
+  highway=living_street were used. The data is not complete and may differ from
+  reality.

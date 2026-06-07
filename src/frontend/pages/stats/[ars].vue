@@ -428,7 +428,7 @@ import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 import { getAllCatalogVersions } from '~/composables/getAllCatalogVersions.js';
 
 const route = useRoute();
-const { $t, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp();
+const { $t, $locale, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp();
 
 // Get the current catalog version and all available catalog versions
 const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route));
@@ -729,16 +729,24 @@ onMounted(async () => {
 });
 
 // Helper functions for dynamic data product rendering
+const getTranslatedValue = (value) => {
+  if (!value || typeof value !== 'object') {
+    return value || ''
+  }
+
+  return value[$locale] || value['en-GB'] || value['en-US'] || value['de-DE'] || ''
+}
+
 const getProductTitle = (productData) => {
-  return productData?.property_info?.title?.['de-DE'] || productData?.property_info?.title?.['en-US'] || ''
+  return getTranslatedValue(productData?.property_info?.title)
 }
 
 const getProductDescription = (productData) => {
-  return productData?.property_info?.description?.['de-DE'] || productData?.property_info?.description?.['en-US'] || ''
+  return getTranslatedValue(productData?.property_info?.description)
 }
 
 const getProductCalculation = (productData) => {
-  return productData?.property_info?.calculation?.['de-DE'] || productData?.property_info?.calculation?.['en-US'] || ''
+  return getTranslatedValue(productData?.property_info?.calculation)
 }
 
 const getDataSources = (productData) => {
@@ -764,7 +772,7 @@ const getHistogramConfig = (productKey, productData) => {
   // Get the unit to check if it's a percentage
   let unit = firstRender.unit
   if (typeof firstRender.unit === 'object') {
-    unit = firstRender.unit['de-DE'] || firstRender.unit['en-US'] || ''
+    unit = getTranslatedValue(firstRender.unit)
   }
   const isPercentage = unit === '%' || unit.includes('%')
   
@@ -798,7 +806,7 @@ const formatValue = (value) => {
 const getUnit = (renderItem) => {
   let unit = renderItem.unit
   if (typeof renderItem.unit === 'object') {
-    unit = renderItem.unit['de-DE'] || renderItem.unit['en-US'] || ''
+    unit = getTranslatedValue(renderItem.unit)
   }
   if (renderItem.population_normalized) {
     unit += " / 1000 " + $t('stats.inhabitants_abbrev')

@@ -1,0 +1,5 @@
+language: en-GB
+key: stats.data.wind_power.description
+value: This only covers wind power located within the municipality. If the
+  municipality operates or has a stake in wind power elsewhere, this is not
+  shown here.

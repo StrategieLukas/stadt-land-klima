@@ -1,0 +1,4 @@
+language: en-GB
+key: stats.data.solar_power.description
+value: Electricity generation from ground-mounted photovoltaic systems recorded
+  in the Marktstammdatenregister. Virtual EEG levy systems are not included!

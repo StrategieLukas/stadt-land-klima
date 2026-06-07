@@ -1,7 +1,7 @@
 const fallbackLocale = "de-DE";
 const shorthands = {
   de: "de-DE",
-  en: "en-US",
+  en: "en-GB",
 };
 const supportedLocaleCodes = Object.values(shorthands);
 
