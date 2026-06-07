@@ -24,7 +24,7 @@ const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, ro
 //       { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
 //       filter: { catalog_version: { _eq: selectedCatalogVersion.id }, percentage_rated: { _gt: 0} },
 //       limit: -1,
-//       sort: "-score_total",
+//       sort: ["-score_total", "municipality.name"],
 //     })
 //   )
 // });
@@ -37,7 +37,7 @@ async function fetchMunicipalities(catalogVersionId) {
       { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
       filter: { catalog_version: { _eq: catalogVersionId }, percentage_rated: { _gt: 0} },
       limit: -1,
-      sort: "-score_total",
+      sort: ["-score_total", "municipality.name"],
     })
   )
 }

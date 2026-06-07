@@ -178,6 +178,16 @@ const area = ref(null);
 const municipalities = ref([]);
 const loadingMunicipalities = ref(false);
 const showUnrated = ref(false);
+const municipalityNameCollator = new Intl.Collator('de-DE', {
+  numeric: true,
+  sensitivity: 'base',
+});
+
+function compareByScoreThenName(a, b) {
+  const scoreDifference = (b.score ?? 0) - (a.score ?? 0);
+  if (scoreDifference !== 0) return scoreDifference;
+  return municipalityNameCollator.compare(a.name ?? '', b.name ?? '');
+}
 
 const t = (key, fallback) => {
   const translation = $t(key);
@@ -202,7 +212,7 @@ const rankedMunicipalities = computed(() => {
       };
     })
     .filter(m => m.score !== null)
-    .sort((a, b) => b.score - a.score);
+    .sort(compareByScoreThenName);
 });
 
 const unratedMunicipalities = computed(() => {
