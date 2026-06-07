@@ -10,7 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, unref, watch } from 'vue';
+import type { Ref } from 'vue';
 import slugify from 'slugify';
 
 const slugifyConfig = {
@@ -43,10 +44,12 @@ const emit = defineEmits<{
 
 const localValue = ref(props.value ?? '');
 const lastGeneratedValue = ref('');
+const injectedValues = inject<Ref<Record<string, unknown>> | Record<string, unknown>>('values', ref({}));
 
 const sourceField = computed(() => props.options?.source_field ?? props.source_field ?? 'name');
 const syncExisting = computed(() => props.options?.sync_existing ?? props.sync_existing ?? false);
-const sourceValue = computed(() => props.values?.[sourceField.value]);
+const formValues = computed(() => props.values ?? unref(injectedValues) ?? {});
+const sourceValue = computed(() => formValues.value[sourceField.value]);
 const isNewItem = computed(() => props.primaryKey === '+' || props.primaryKey === null || props.primaryKey === undefined);
 
 function buildSlug(value: unknown): string {
