@@ -99,7 +99,7 @@ import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useHeaderHeight, useHeaderSpacerHeight } from '~/composables/useHeaderHeight.js'
 const { includes } = lodash;
-const { $directus, $readItems, $readSingleton } = useNuxtApp();
+const { $directus, $locale, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 const route = useRoute();
 const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();
@@ -223,6 +223,9 @@ const { data: navigationConfig } = await useAsyncData(
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");
 useHead({
+  htmlAttrs: {
+    lang: $locale,
+  },
   titleTemplate: "%s - Stadt.Land.Klima!",
   meta: [
     {
