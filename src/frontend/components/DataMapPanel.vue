@@ -35,8 +35,8 @@
         <!-- Nearby municipality boundaries — rendered below the mask -->
         <template v-for="nb in visibleNearby" :key="nb.ars">
           <LGeoJson
-            v-if="parseGeo(nb.geoArea)"
-            :geojson="parseGeo(nb.geoArea)"
+            v-if="parseGeo(nb.geo_area ?? nb.geoArea)"
+            :geojson="parseGeo(nb.geo_area ?? nb.geoArea)"
             :options="nearbyOpts(nb)"
           />
         </template>
@@ -219,7 +219,7 @@ const boundaryOpts = {
 
 // ── Nearby areas ──────────────────────────────────────────────────────────────
 
-const visibleNearby = computed(() => props.nearbyAreas.filter(a => a.geoArea))
+const visibleNearby = computed(() => props.nearbyAreas.filter(a => a.geo_area ?? a.geoArea))
 
 function parseGeo(geoArea) {
   if (!geoArea) return null
@@ -269,6 +269,29 @@ const thresholds = computed(() => {
 
 const hasThresholds = computed(() => Object.values(thresholds.value).some(v => v !== null))
 
+async function fetchAllItemPages(firstPageUrl, params) {
+  const allFeatures = []
+  let firstPage = null
+  let nextUrl = null
+
+  const page = await $fetch(firstPageUrl, { params })
+  firstPage = page
+  if (page?.features) allFeatures.push(...page.features)
+  nextUrl = page?.next ?? null
+
+  while (nextUrl) {
+    try {
+      const nextPage = await $fetch(nextUrl)
+      if (nextPage?.features) allFeatures.push(...nextPage.features)
+      nextUrl = nextPage?.next ?? null
+    } catch (_) {
+      break
+    }
+  }
+
+  return firstPage ? { ...firstPage, features: allFeatures } : null
+}
+
 async function fetchActiveData(id) {
   if (!id || !props.ars) {
     dataFeatures.value = []
@@ -279,7 +302,7 @@ async function fetchActiveData(id) {
   loadingFeatures.value = true
   try {
     const [itemsRes, summaryRes] = await Promise.allSettled([
-      $fetch(`${props.baseUrl}/api/collections/${id}/items/`, { params: { area: props.ars } }),
+      fetchAllItemPages(`${props.baseUrl}/api/collections/${id}/items/`, { area: props.ars }),
       $fetch(`${props.baseUrl}/api/collections/${id}/summary/`, { params: { area: props.ars } }),
     ])
     if (itemsRes.status === 'fulfilled' && itemsRes.value?.features) {
@@ -339,7 +362,7 @@ const bigNumRaw = computed(() => {
     for (const k of ['total', 'sum', 'count', 'mean', 'avg', 'value']) {
       if (k in agg && typeof agg[k] === 'number') return { val: agg[k], key: k }
     }
-    const entry = Object.entries(agg).find(([, v]) => typeof v === 'number')
+    const entry = Object.entries(agg).find(([k, v]) => k !== 'id' && typeof v === 'number')
     if (entry) return { val: entry[1], key: entry[0] }
   }
   return dataFeatures.value.length ? { val: dataFeatures.value.length, key: 'Objekte' } : null

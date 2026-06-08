@@ -1,99 +1,33 @@
 /**
  * Resolves a URL slug like "stadtkreis-karlsruhe" to a full area object
- * (including geoCenter + geoArea) by progressively searching via GraphQL.
+ * via the REST areas endpoint.
+ *
+ * geo_area (the boundary polygon) is stripped by default — it can be many MB
+ * for Germany or states, and is only needed client-side. Pass includeGeo=true
+ * to get it (e.g. for the sticky map panel on Kreis/Gemeinde pages).
+ *
+ * The REST API accepts the same slugified prefix-name form directly, so a
+ * single request replaces the old multi-step GraphQL search loop.
  */
 
-function slugify(str: string): string {
-  return str
-    .toLowerCase()
-    .replace(/ä/g, 'ae')
-    .replace(/ö/g, 'oe')
-    .replace(/ü/g, 'ue')
-    .replace(/ß/g, 'ss')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
-function areaToSlug(prefix: string, name: string): string {
-  return slugify(prefix + '-' + name)
-}
-
-const AREA_FIELDS_GQL = `
-  query searchAreasByName($name_Icontains: String!) {
-    allAdministrativeAreas(
-      first: 8
-      orderBy: "-population"
-      name_Icontains: $name_Icontains
-    ) {
-      edges {
-        node {
-          prefix
-          name
-          ars
-          level
-          population
-          isReasonableForMunicipalRating
-          geoCenter
-          geoArea
-          stadtlandklimaDataAll {
-            slug
-            scoreTotal
-            percentageRated
-            measureCatalogName
-          }
-        }
-      }
-    }
-  }
-`
-
-async function searchNodes(apiUrl: string, nameTerm: string) {
-  const res = await fetch(apiUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: AREA_FIELDS_GQL,
-      variables: { name_Icontains: nameTerm },
-    }),
-  })
-  const json = await res.json() as {
-    data?: { allAdministrativeAreas?: { edges?: { node: Record<string, unknown> }[] } }
-  }
-  return json.data?.allAdministrativeAreas?.edges?.map(e => e.node) ?? []
-}
-
-/** Expand slug segment back to possible umlaut forms for searching. */
-function deSlugTerms(term: string): string[] {
-  const terms = new Set([term])
-  // Try restoring common German umlaut encodings
-  const umlaut = term.replace(/ae/g, 'ä').replace(/oe/g, 'ö').replace(/ue/g, 'ü').replace(/ss/g, 'ß')
-  if (umlaut !== term) terms.add(umlaut)
-  return [...terms]
-}
-
 export default defineEventHandler(async (event) => {
-  const { slug } = getQuery(event) as { slug?: string }
-  if (!slug || !slug.trim()) return null
+  // event.url is h3 v2 only; at runtime nitropack uses h3 v1 where event.path is the path+query string
+  const sp = new URLSearchParams((event.path ?? '').split('?')[1] ?? '')
+  const slug = sp.get('slug') ?? ''
+  const includeGeo = sp.get('includeGeo') === 'true'
+  if (!slug.trim()) return null
 
   const config = useRuntimeConfig()
-  const apiUrl = config.public.stadtlandzahlUrl || 'http://localhost:8000/graphql/'
+  const baseUrl = (config.stadtlandzahlServerBaseUrl as string) || (config.public.stadtlandzahlBaseUrl as string)
 
-  const parts = slug.split('-')
-  // Try progressively longer trailing word groups as the name search term
-  for (let i = parts.length - 1; i >= Math.max(0, parts.length - 5); i--) {
-    const baseTerms = deSlugTerms(parts.slice(i).join(' '))
-    for (const term of baseTerms) {
-      try {
-        const nodes = await searchNodes(apiUrl, term)
-        const match = nodes.find(
-          (n) => areaToSlug(String(n.prefix ?? ''), String(n.name ?? '')) === slug
-        )
-        if (match) return match
-      } catch (_) {
-        // continue
-      }
+  try {
+    const data = await $fetch<Record<string, unknown>>(`${baseUrl}/api/areas/${encodeURIComponent(slug)}/`)
+    if (!includeGeo && data && typeof data === 'object') {
+      const { geo_area: _geo, ...rest } = data
+      return rest
     }
+    return data
+  } catch {
+    return null
   }
-
-  return null
 })

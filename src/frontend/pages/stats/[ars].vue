@@ -838,7 +838,7 @@ async function fetchNearbyAlternatives(currentArea) {
     // Fetch bordering municipalities using REST API
     console.log('Fetching bordering municipalities for:', currentArea.ars);
     const config = useRuntimeConfig();
-    const baseUrl = config.public.stadtlandzahlUrl?.replace('/graphql/', '').replace('/graphql', '') || 'http://localhost:8000';
+    const baseUrl = config.public.stadtlandzahlBaseUrl;
     const apiUrl = `${baseUrl}/api/areas/${currentArea.ars}/bordering-municipalities/`;
     
     const response = await fetch(apiUrl);

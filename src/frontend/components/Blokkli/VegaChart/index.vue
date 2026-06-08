@@ -217,8 +217,9 @@ const debugData = ref<any[] | null>(null)
 const { $stadtlandzahlAPI, $apollo, $directus, $readItems } = useNuxtApp()
 const config = useRuntimeConfig()
 
-function parseJsonSafe(text: string | undefined): any | null {
-  if (!text || !text.trim()) return null
+function parseJsonSafe(text: string | object | undefined): any | null {
+  if (!text) return null
+  if (typeof text !== 'string') return text as any
   try {
     return JSON.parse(text)
   } catch {
@@ -309,9 +310,7 @@ async function fetchQueryData(queryConfig: any, source: string): Promise<any[] |
 
     // 3. { "url": "/api/areas/...", "dataPath": "..." }
     if (queryConfig.url) {
-      const baseUrl = (config.public.stadtlandzahlUrl as string || '')
-        .replace('/graphql/', '')
-        .replace('/graphql', '')
+      const baseUrl = config.public.stadtlandzahlBaseUrl as string
       const url = queryConfig.url.startsWith('http')
         ? queryConfig.url
         : `${baseUrl}${queryConfig.url}`
@@ -341,8 +340,9 @@ async function fetchQueryData(queryConfig: any, source: string): Promise<any[] |
 async function renderChart() {
   if (rendering) return
 
-  // Fingerprint to avoid redundant re-renders
-  const key = [props.spec, props.query, options.value.width, options.value.dataSource].join('\0')
+  // Fingerprint to avoid redundant re-renders (spec may be a parsed object, not a string)
+  const specKey = props.spec && typeof props.spec !== 'string' ? JSON.stringify(props.spec) : (props.spec ?? '')
+  const key = [specKey, props.query, options.value.width, options.value.dataSource].join('\0')
   if (key === lastRenderKey) return
   lastRenderKey = key
 

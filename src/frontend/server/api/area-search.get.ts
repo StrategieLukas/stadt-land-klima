@@ -57,16 +57,15 @@ async function fetchFromRest(baseUrl: string, params: Record<string, string>) {
 }
 
 export default defineEventHandler(async (event) => {
-  const { term, mode = 'reasonable' } = getQuery(event) as { term?: string; mode?: string }
+  // event.url is h3 v2 only; at runtime nitropack uses h3 v1 where event.path is the path+query string
+  const sp   = new URLSearchParams((event.path ?? '').split('?')[1] ?? '')
+  const term = sp.get('term') ?? undefined
+  const mode = sp.get('mode') ?? 'reasonable'
 
   if (!term || !term.trim()) return []
 
   const config = useRuntimeConfig()
-  // Prefer the explicit REST URL; fall back to deriving the base from the GraphQL URL
-  // (strips the trailing /graphql/ path, e.g. https://data.stadt-land-klima.de/graphql/ → https://data.stadt-land-klima.de)
-  const restUrl    = (config.public.stadtlandzahlRestUrl as string) || ''
-  const graphqlUrl = (config.public.stadtlandzahlUrl as string) || ''
-  const baseUrl    = restUrl || graphqlUrl.replace(/\/graphql\/?$/, '') || 'http://localhost:8070'
+  const baseUrl = (config.stadtlandzahlServerBaseUrl as string) || (config.public.stadtlandzahlBaseUrl as string)
   const q = term.trim()
 
   try {

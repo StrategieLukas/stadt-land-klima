@@ -258,7 +258,7 @@ onMounted(async () => {
   if (!props.ars) return
   loading.value = true
   try {
-    const baseUrl = config.public.stadtlandzahlUrl?.replace('/graphql/', '').replace('/graphql', '') || 'http://localhost:8000'
+    const baseUrl = config.public.stadtlandzahlBaseUrl
     const res = await fetch(`${baseUrl}/api/areas/${props.ars}/bordering-municipalities/`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()

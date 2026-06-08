@@ -172,7 +172,7 @@ const fetchMapData = async () => {
   error.value = null
   
   try {
-    const baseUrl = config.public.stadtlandzahlUrl?.replace('/graphql/', '').replace('/graphql', '') || 'http://localhost:8000'
+    const baseUrl = config.public.stadtlandzahlBaseUrl
     const apiUrl = `${baseUrl}/api/areas/${props.ars}/maps/${props.dataProductType}/`
     
     console.log('DataProductMap: Fetching from', apiUrl)

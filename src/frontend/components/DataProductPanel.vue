@@ -37,15 +37,21 @@
           </div>
         </div>
 
-        <!-- Histogram -->
-        <div v-if="histogramElements.length" class="min-h-[180px]">
-          <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-            Verteilung (alle Kommunen)
-          </h4>
-          <ClientOnly>
-            <VegaChart :spec="histogramElements[0].vegalite_spec" :height="180" />
-          </ClientOnly>
-        </div>
+        <!-- Histograms (all of them) -->
+        <template v-if="histogramElements.length">
+          <div
+            v-for="hist in histogramElements"
+            :key="hist.field ?? hist.label ?? hist.vegalite_spec"
+            class="min-h-[180px]"
+          >
+            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              Verteilung (alle Kommunen)
+            </h4>
+            <ClientOnly>
+              <VegaChart :spec="hist.vegalite_spec" :height="180" />
+            </ClientOnly>
+          </div>
+        </template>
       </div>
 
       <!-- Row 2: Maps -->
@@ -212,6 +218,13 @@ function cloneWithArea(spec, ars) {
 const combinedMapSpec = computed(() => {
   const els = mapElements.value
   if (!els.length || !props.ars) return null
+
+  // Suppress maps that would show a single uniform-color municipality boundary.
+  // This happens when the collection aggregates to one value per area (e.g. transit
+  // score, debt). The summary's aggregate.count field tells us how many items exist
+  // for this area; ≤ 1 means the feature IS the boundary itself — not useful as a map.
+  const aggCount = summary.value?.aggregate?.count ?? null
+  if (aggCount !== null && aggCount <= 1) return null
 
   if (els.length === 1) {
     return cloneWithArea(els[0].vegalite_spec, props.ars)

@@ -32,6 +32,8 @@ export default defineNuxtConfig({
     welcomeEmailTutorialUrl: process.env.WELCOME_EMAIL_TUTORIAL_URL,
     welcomeEmailCalendarUrl: process.env.WELCOME_EMAIL_CALENDAR_URL,
     welcomeEmailSignalUrl: process.env.WELCOME_EMAIL_SIGNAL_URL,
+    // Server-side base URL for stadtlandzahl backend (Docker container name/URL, no path).
+    stadtlandzahlServerBaseUrl: process.env.STADTLANDZAHL_SERVER_BASE_URL,
     // Keys within public, will be also exposed to the client-side
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,
@@ -40,8 +42,8 @@ export default defineNuxtConfig({
       appEnv: process.env.APP_ENV,
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
-      stadtlandzahlUrl: process.env.STADTLANDZAHL_URL,
-      stadtlandzahlRestUrl: process.env.STADTLANDZAHL_REST_URL || 'http://localhost:8070',
+      // Public base URL of the stadtlandzahl API — no trailing slash, no path segment.
+      stadtlandzahlBaseUrl: process.env.STADTLANDZAHL_BASE_URL,
     },
   },
   devtools: { enabled: true },

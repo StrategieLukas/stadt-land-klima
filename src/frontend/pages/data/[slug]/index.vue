@@ -1,59 +1,121 @@
 <template>
   <div>
 
-    <!-- ── Breadcrumbs (always full-width at top) ──────────────────────────── -->
+    <!-- ── Unified sticky header: breadcrumbs + section nav ──────────────── -->
     <nav
-      class="flex items-center gap-3 py-3 mb-4 -mx-4 px-4 border-b border-gray-100 sticky z-20 bg-white/90 backdrop-blur-sm"
+      ref="sectorBarRef"
+      class="-mx-4 px-4 sticky z-30 bg-white/90 backdrop-blur-sm border-b border-gray-100"
       :style="`top: ${pillTop}px`"
     >
-      <!-- Germany mini-map -->
-      <div class="flex-none">
-        <GermanyMapIndicator
-          v-if="area?.geo_center"
-          :lat="area.geo_center.coordinates?.[1] ?? area.geo_center[1]"
-          :lon="area.geo_center.coordinates?.[0] ?? area.geo_center[0]"
-          :size="34"
-        />
+      <div class="flex flex-col xl:flex-row xl:items-center">
+
+        <!-- Row 1 / Left: breadcrumbs -->
+        <div class="flex items-center gap-3 py-2 xl:flex-none min-w-0">
+          <div class="flex-none">
+            <GermanyMapIndicator
+              v-if="area?.geo_center"
+              :lat="area.geo_center.coordinates?.[1] ?? area.geo_center[1]"
+              :lon="area.geo_center.coordinates?.[0] ?? area.geo_center[0]"
+              :size="30"
+            />
+          </div>
+          <ol class="flex items-center gap-1 flex-wrap min-w-0 text-xs">
+            <template v-if="area?.level > 1">
+              <li>
+                <BreadcrumbItem
+                  label="Deutschland"
+                  href="/data/bundesrepublik-deutschland"
+                  :sibling-level="null"
+                />
+              </li>
+              <li class="text-gray-300 select-none">›</li>
+            </template>
+            <template v-for="crumb in containedBy" :key="crumb.ars || crumb.name">
+              <li>
+                <BreadcrumbItem
+                  :label="`${crumb.prefix} ${crumb.name}`.trim()"
+                  :href="`/data/${areaToSlug(crumb.prefix, crumb.name)}`"
+                  :sibling-level="crumb.level"
+                  :ars-prefix="crumb.level === 4 ? crumb.ars.slice(0, 2) : ''"
+                  :current-ars="area?.ars"
+                />
+              </li>
+              <li class="text-gray-300 select-none">›</li>
+            </template>
+            <li>
+              <BreadcrumbItem
+                :label="`${area?.prefix} ${area?.name}`.trim()"
+                is-current
+                :sibling-level="area?.level === 1 ? null : area?.level"
+                :ars-prefix="area?.level === 4 ? area?.ars?.slice(0, 2) : ''"
+                :current-ars="area?.ars"
+              />
+            </li>
+          </ol>
+        </div>
+
+        <!-- Section nav — only in scrollytelling layout (level > 2) -->
+        <template v-if="area?.level > 2">
+          <!-- Vertical divider, desktop only -->
+          <div class="hidden xl:block w-px h-4 bg-gray-200 flex-none mx-2" />
+
+          <!-- Scrollable section strip -->
+          <div class="flex flex-1 gap-1 overflow-x-auto py-1.5 no-scrollbar items-center min-w-0 border-t border-gray-50 xl:border-t-0">
+            <a
+              v-for="s in staticSections"
+              :key="s.id"
+              :href="`#${s.id}`"
+              class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap"
+              :class="activeSection === s.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
+            >{{ s.label }}</a>
+
+            <div v-if="collectionsBySector.length" class="w-px h-4 bg-gray-200 mx-1 flex-none" />
+
+            <div
+              v-for="sg in collectionsBySector"
+              :key="sg.sector"
+              class="relative flex-none"
+            >
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap"
+                :class="activeSector === sg.sector || openSector === sg.sector ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
+                @click="toggleSector(sg.sector)"
+              >
+                <img
+                  v-if="sectorImages[sg.sector]"
+                  :src="sectorImages[sg.sector]"
+                  class="w-3.5 h-3.5 opacity-60 flex-none"
+                  :alt="sg.label"
+                />
+                {{ sg.label }}
+                <svg
+                  class="w-3 h-3 flex-none transition-transform duration-150"
+                  :class="openSector === sg.sector ? 'rotate-180' : ''"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <div
+                v-if="openSector === sg.sector"
+                class="absolute left-0 top-full mt-1 z-30 min-w-[180px] bg-white rounded-lg shadow-lg border border-gray-100 py-1"
+              >
+                <a
+                  v-for="cs in sg.sections"
+                  :key="cs.id"
+                  :href="`#${cs.id}`"
+                  class="flex items-center px-3 py-2 text-xs font-medium transition-colors"
+                  :class="activeSection === cs.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-700 hover:bg-gray-50'"
+                  @click="openSector = null"
+                >{{ cs.label }}</a>
+              </div>
+            </div>
+          </div>
+        </template>
+
       </div>
-      <!-- Crumb chain -->
-      <ol class="flex items-center gap-1 flex-wrap min-w-0 text-xs">
-        <!-- Germany root — only shown when we're not already on the Germany page -->
-        <template v-if="area?.level > 1">
-          <li>
-            <BreadcrumbItem
-              label="Deutschland"
-              href="/data/bundesrepublik-deutschland"
-              :sibling-level="null"
-            />
-          </li>
-          <li class="text-gray-300 select-none">›</li>
-        </template>
-
-        <!-- Ancestor chain (Bundesland, optional Kreis) -->
-        <template v-for="(crumb, i) in containedBy" :key="crumb.ars || crumb.name">
-          <li>
-            <BreadcrumbItem
-              :label="`${crumb.prefix} ${crumb.name}`.trim()"
-              :href="`/data/${areaToSlug(crumb.prefix, crumb.name)}`"
-              :sibling-level="crumb.level"
-              :ars-prefix="crumb.level === 4 ? crumb.ars.slice(0, 2) : ''"
-              :current-ars="area?.ars"
-            />
-          </li>
-          <li class="text-gray-300 select-none">›</li>
-        </template>
-
-        <!-- Current area (with dropdown of siblings) -->
-        <li>
-          <BreadcrumbItem
-            :label="`${area?.prefix} ${area?.name}`.trim()"
-            is-current
-            :sibling-level="area?.level === 1 ? null : area?.level"
-            :ars-prefix="area?.level === 4 ? area?.ars?.slice(0, 2) : ''"
-            :current-ars="area?.ars"
-          />
-        </li>
-      </ol>
     </nav>
 
     <!-- ── Overview layout (Germany / Bundesland) ────────────────────────── -->
@@ -64,135 +126,10 @@
     <!-- ── Scrollytelling layout (Kreis / Gemeinde) ───────────────────────── -->
     <template v-else>
 
-    <!-- ── Mobile pill nav ─────────────────────────────────────────────────── -->
-    <nav
-      ref="mobilePillStrip"
-      class="xl:hidden sticky z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
-      :style="`top: ${pillTop}px`"
-    >
-      <div class="flex gap-2 overflow-x-auto py-2 no-scrollbar">
-        <a
-          v-for="section in allSections"
-          :key="section.id"
-          :href="`#${section.id}`"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
-          :class="
-            activeSection === section.id
-              ? 'bg-[#374151] text-white border-[#374151]'
-              : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
-          "
-        >{{ section.label }}</a>
-      </div>
-    </nav>
-
-    <!-- ── Sector dropdown nav ─────────────────────────────────────────────── -->
-    <nav
-      ref="sectorBarRef"
-      class="sticky z-[9] bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
-      :style="`top: ${pillTop}px`"
-    >
-      <div class="flex gap-1 overflow-x-auto py-2 no-scrollbar items-center">
-        <!-- Static section links -->
-        <a
-          v-for="s in staticSections"
-          :key="s.id"
-          :href="`#${s.id}`"
-          class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap"
-          :class="activeSection === s.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
-        >{{ s.label }}</a>
-
-        <!-- Divider -->
-        <div v-if="collectionsBySector.length" class="w-px h-4 bg-gray-200 mx-1 flex-none" />
-
-        <!-- Sector dropdown buttons -->
-        <div
-          v-for="sg in collectionsBySector"
-          :key="sg.sector"
-          class="relative flex-none"
-        >
-          <button
-            type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap"
-            :class="activeSector === sg.sector || openSector === sg.sector ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
-            @click="toggleSector(sg.sector)"
-          >
-            <img
-              v-if="sectorImages[sg.sector]"
-              :src="sectorImages[sg.sector]"
-              class="w-3.5 h-3.5 opacity-60 flex-none"
-              :alt="sg.label"
-            />
-            {{ sg.label }}
-            <svg
-              class="w-3 h-3 flex-none transition-transform duration-150"
-              :class="openSector === sg.sector ? 'rotate-180' : ''"
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          <!-- Dropdown panel -->
-          <div
-            v-if="openSector === sg.sector"
-            class="absolute left-0 top-full mt-1 z-30 min-w-[180px] bg-white rounded-lg shadow-lg border border-gray-100 py-1"
-          >
-            <a
-              v-for="cs in sg.sections"
-              :key="cs.id"
-              :href="`#${cs.id}`"
-              class="flex items-center px-3 py-2 text-xs font-medium transition-colors"
-              :class="activeSection === cs.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-700 hover:bg-gray-50'"
-              @click="openSector = null"
-            >{{ cs.label }}</a>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- ── Scrollytelling wrapper ──────────────────────────────────────────── -->
-    <!-- items-start removed → default stretch makes right col full-height for sticky -->
-    <div class="xl:flex xl:gap-0 -mx-4 sm:-mx-6 xl:mx-0">
-
-      <!-- ── Left column (45%): sidebar + content ────────────────────────── -->
-      <div class="xl:w-[45%] xl:max-w-[45%] min-w-0 xl:flex">
-
-        <!-- ── Desktop sidebar nav ──────────────────────────────────────── -->
-        <aside class="hidden xl:flex xl:flex-col flex-none w-[172px] border-r border-gray-100 bg-white">
-          <nav
-            class="sticky flex flex-col p-3 gap-0.5 text-xs overflow-y-auto"
-            :style="`top: ${headerHeight}px; max-height: calc(100vh - ${headerHeight}px)`"
-          >
-            <a
-              v-for="section in staticSections"
-              :key="section.id"
-              :href="`#${section.id}`"
-              class="px-2.5 py-1.5 rounded-md transition-colors font-medium truncate"
-              :class="activeSection === section.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
-            >{{ section.label }}</a>
-            <template v-for="sg in collectionsBySector" :key="sg.sector">
-              <div class="flex items-center gap-1.5 mt-4 mb-0.5 px-1">
-                <img
-                  v-if="sectorImages[sg.sector]"
-                  :src="sectorImages[sg.sector]"
-                  class="w-3.5 h-3.5 opacity-50"
-                  :alt="sg.label"
-                />
-                <span class="text-[10px] font-bold uppercase tracking-wide text-gray-400">{{ sg.label }}</span>
-              </div>
-              <a
-                v-for="cs in sg.sections"
-                :key="cs.id"
-                :href="`#${cs.id}`"
-                class="pl-4 pr-2 py-1 rounded-md transition-colors text-[11px] font-medium leading-snug truncate"
-                :class="activeSection === cs.id ? 'bg-[#006e94]/10 text-[#006e94]' : 'text-gray-600 hover:bg-gray-100'"
-              >{{ cs.label }}</a>
-            </template>
-          </nav>
-        </aside>
-
-        <!-- ── Scrollable content ────────────────────────────────────────── -->
-        <div class="flex-1 min-w-0 px-4 sm:px-6 xl:px-8">
+    <!-- ── Full-width content (carousel layout) ───────────────────────────── -->
+    <div>
+        <!-- ── Content ────────────────────────────────────────── -->
+        <div class="min-w-0">
 
         <!-- ── Hero (Übersicht) ───────────────────────────────────── -->
         <section
@@ -328,85 +265,43 @@
           </div>
         </section>
 
-        <!-- ── Klimadaten scroll steps (grouped by sector) ────────────── -->
+        <!-- ── Klimadaten: sector carousels ─────────────────────────────── -->
         <template v-if="collectionsBySector.length">
-          <template v-for="sg in collectionsBySector" :key="sg.sector">
-            <!-- Sector divider -->
-            <div
-              class="flex items-center gap-3 py-5 xl:pt-14 xl:pb-3 border-t-4 border-gray-100"
-              :id="`sektor-${sg.sector}`"
-              :style="`scroll-margin-top: ${headerHeight + 16}px`"
-            >
+          <div
+            v-for="sg in collectionsBySector"
+            :key="sg.sector"
+            :id="`sektor-${sg.sector}`"
+            class="py-6 border-t border-gray-100"
+            :style="`scroll-margin-top: ${headerHeight + 60}px`"
+          >
+            <!-- Sector heading -->
+            <div class="flex items-center gap-2 mb-4">
               <img
                 v-if="sectorImages[sg.sector]"
                 :src="sectorImages[sg.sector]"
-                class="w-7 h-7 opacity-60 flex-none"
+                class="w-5 h-5 opacity-50 flex-none"
                 :alt="sg.label"
               />
-              <h2 class="text-xl xl:text-2xl font-black text-gray-500 uppercase tracking-widest">{{ sg.label }}</h2>
+              <h2 class="text-sm font-bold uppercase tracking-widest text-gray-400">{{ sg.label }}</h2>
             </div>
-            <!-- Collection steps within this sector -->
-            <section
-              v-for="cs in sg.sections"
-              :key="cs.id"
-              :id="cs.id"
-              :data-collection-step="cs.collection.id"
-              class="xl:min-h-[calc(100vh-var(--header-h,80px))] xl:flex xl:flex-col xl:justify-center py-8 border-t border-gray-100"
-              :style="`scroll-margin-top: ${headerHeight + 16}px`"
-            >
-              <h3 class="text-3xl xl:text-5xl font-black text-gray-900 mb-2 leading-tight">{{ cs.label }}</h3>
-              <p
-                v-if="cs.collection.description?.['de-DE'] || cs.collection.description?.['en-US']"
-                class="text-sm text-gray-500 mb-6 leading-relaxed"
-              >{{ cs.collection.description?.['de-DE'] || cs.collection.description?.['en-US'] }}</p>
-              <ClientOnly>
-                <DataProductPanel
-                  :collection="cs.collection"
-                  :ars="area.ars"
-                  :municipality-name="`${area.prefix} ${area.name}`"
-                  :area-boundary="areaBoundaryGeoJson"
-                  :nearby-areas="nearbyAreas"
-                  :base-url="baseUrl"
-                  :hide-map="isDesktop"
-                  :population="area.population ?? null"
-                />
-                <template #fallback>
-                  <div class="h-32 flex items-center justify-center text-gray-400 text-sm">
-                    Wird geladen…
-                  </div>
-                </template>
-              </ClientOnly>
-            </section>
-          </template>
+            <!-- Horizontal snap-scroll card row -->
+            <div class="flex gap-4 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:-mx-6 sm:px-6">
+              <CollectionCard
+                v-for="cs in sg.sections"
+                :key="cs.id"
+                :collection="cs.collection"
+                :area-slug="slug"
+                :sector-label="sg.label"
+                :sector-key="sg.sector"
+              />
+            </div>
+          </div>
         </template>
         <div v-else-if="!collectionsLoading" class="py-10 text-sm text-gray-400 text-center">
           Keine Klimadatensätze verfügbar.
         </div>
 
-        </div><!-- /.scrollable-content -->
-      </div><!-- /.left-column -->
-
-      <!-- ── Right: sticky map panel (desktop only, 55%) ─────────────────── -->
-      <div class="hidden xl:block xl:w-[55%] -mr-6">
-        <div
-          class="sticky overflow-hidden rounded-l-2xl"
-          :style="`top: ${headerHeight}px; height: calc(100vh - ${headerHeight}px)`"
-        >
-          <ClientOnly>
-            <DataMapPanel
-              :area-boundary="areaBoundaryGeoJson"
-              :nearby-areas="nearbyAreas"
-              :ars="area.ars"
-              :active-collection="activeCollection"
-              :base-url="baseUrl"
-            />
-            <template #fallback>
-              <div class="h-full w-full bg-gray-100 animate-pulse" />
-            </template>
-          </ClientOnly>
-        </div>
-      </div>
-
+        </div><!-- /.content -->
     </div>
 
     </template><!-- end scrollytelling -->
@@ -429,12 +324,11 @@ const router = useRouter()
 const slug = route.params.slug
 
 const runtimeConfig = useRuntimeConfig()
-const baseUrl = runtimeConfig.public.stadtlandzahlRestUrl
-  || runtimeConfig.public.stadtlandzahlUrl.replace('/graphql/', '').replace('/graphql', '')
+const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl
 
 // ── Nuxt app plugins ─────────────────────────────────────────────────────────
 
-const { $stadtlandzahlAPI, $directus, $readItems, $apollo } = useNuxtApp()
+const { $directus, $readItems } = useNuxtApp()
 
 // ── Layout helpers ───────────────────────────────────────────────────────────
 
@@ -454,7 +348,6 @@ const staticSections = [
 ]
 
 const activeSection = ref('uebersicht')
-const mobilePillStrip = ref(null)
 let sectionObserver = null
 
 // ── Sector dropdown nav ──────────────────────────────────────────────────────
@@ -478,12 +371,6 @@ function onSectorOutsideClick(e) {
     openSector.value = null
   }
 }
-
-watch(activeSection, (id) => {
-  if (!id || !mobilePillStrip.value) return
-  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`)
-  if (pill) pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-})
 
 function scrollToSection(id) {
   const el = document.getElementById(id)
@@ -512,16 +399,12 @@ function initObserver() {
 // (watch registered after allSections is defined, below)
 
 onMounted(() => {
-  setTimeout(() => {
-    initObserver()
-    initCollectionStepObserver()
-  }, 200)
+  setTimeout(() => initObserver(), 200)
   document.addEventListener('click', onSectorOutsideClick)
 })
 
 onUnmounted(() => {
   sectionObserver?.disconnect()
-  collectionStepObserver?.disconnect()
   document.removeEventListener('click', onSectorOutsideClick)
 })
 
@@ -535,21 +418,13 @@ const { data: pageData } = await useAsyncData(
     if (!resolvedArea) return { notFound: true }
 
     const ars = resolvedArea.ars
-    const lat = resolvedArea.geo_center?.coordinates?.[1] ?? resolvedArea.geo_center?.[1]
-    const lon = resolvedArea.geo_center?.coordinates?.[0] ?? resolvedArea.geo_center?.[0]
 
-    // 2. Parallel fetches: breadcrumbs + nearby areas
-    const [containedByChain, nearbyResult] = await Promise.allSettled([
-      fetchContainedBy(ars, resolvedArea.level, $apollo),
-      (lat && lon)
-        ? $stadtlandzahlAPI.getNearbyAdministrativeAreas(lat, lon, 40, [4, 5, 6])
-        : Promise.resolve([]),
-    ])
+    // 2. Breadcrumb ancestors
+    const containedByChain = await fetchContainedBy(ars, resolvedArea.level).catch(() => [])
 
     return {
       area: resolvedArea,
-      containedBy: containedByChain.status === 'fulfilled' ? containedByChain.value : [],
-      nearbyAreas: nearbyResult.status === 'fulfilled' ? (nearbyResult.value ?? []) : [],
+      containedBy: containedByChain ?? [],
     }
   }
 )
@@ -560,9 +435,8 @@ if (!pageData.value || pageData.value.notFound) {
 
 const area = computed(() => pageData.value?.area ?? {})
 const containedBy = computed(() => pageData.value?.containedBy ?? [])
-const nearbyAreas = computed(() => pageData.value?.nearbyAreas ?? [])
 
-// Collections — fetched client-side only (REST API at localhost:8070 not reachable from SSR Docker container)
+// Collections — fetched client-side only (uses public stadtlandzahl URL via browser)
 const { data: collectionsData, pending: collectionsLoading } = await useAsyncData(
   'stadtlandzahl-collections',
   () => $fetch(`${baseUrl}/api/collections/`)
@@ -582,9 +456,10 @@ const collectionSections = computed(() =>
 
 const allSections = computed(() => [...staticSections, ...collectionSections.value])
 
-// ── Sector grouping ───────────────────────────────────────────────────────────────────────
+// ── Sector grouping ───────────────────────────────────────────────────────────
 
-const COLLECTION_SECTORS = {
+// Fallback map used when the API does not return a sector on a collection.
+const COLLECTION_SECTORS_FALLBACK = {
   'wind-turbines':           'energy',
   'solar-plants':            'energy',
   'rooftop-solar-plants':    'energy',
@@ -600,64 +475,54 @@ const COLLECTION_SECTORS = {
   'town-greenness':           'agriculture',
 }
 
-const SECTOR_ORDER = ['energy', 'transport', 'agriculture', 'management']
-
-const SECTOR_LABELS = {
+// Label fallback for known sector keys (used when the API omits sector_label).
+const SECTOR_LABELS_FALLBACK = {
   energy:      'Energie',
   transport:   'Mobilität',
   agriculture: 'Grün & Natur',
   management:  'Klima & Daten',
 }
 
-const collectionsBySector = computed(() => {
-  const grouped = {}
-  for (const cs of collectionSections.value) {
-    const sector = COLLECTION_SECTORS[cs.collection.id] ?? 'other'
-    if (!grouped[sector]) grouped[sector] = []
-    grouped[sector].push(cs)
+function resolveSectorLabel(col, sectorKey) {
+  // Prefer API-provided label (may be a localized object or plain string)
+  const raw = col.sector_label ?? col.sector_display
+  if (raw) {
+    if (typeof raw === 'object') return raw['de-DE'] || raw['en-US'] || Object.values(raw)[0] || sectorKey
+    return String(raw)
   }
-  const result = SECTOR_ORDER
-    .filter(s => grouped[s])
-    .map(s => ({ sector: s, label: SECTOR_LABELS[s] ?? s, sections: grouped[s] }))
-  if (grouped['other']?.length) {
-    result.push({ sector: 'other', label: 'Sonstige', sections: grouped['other'] })
-  }
-  return result
-})
-
-// ── Active collection tracking (for sticky map panel) ────────────────────────
-
-const activeCollectionId = ref(null)
-const activeCollection = computed(() =>
-  collections.value.find(c => c.id === activeCollectionId.value) ?? null
-)
-let collectionStepObserver = null
-
-function initCollectionStepObserver() {
-  if (collectionStepObserver) {
-    collectionStepObserver.disconnect()
-    collectionStepObserver = null
-  }
-  const steps = document.querySelectorAll('[data-collection-step]')
-  if (!steps.length) return
-  collectionStepObserver = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          activeCollectionId.value = entry.target.dataset.collectionStep
-        }
-      }
-    },
-    { rootMargin: '-10% 0px -50% 0px', threshold: 0 }
-  )
-  steps.forEach(el => collectionStepObserver.observe(el))
+  return SECTOR_LABELS_FALLBACK[sectorKey] ?? sectorKey
 }
 
-// Re-init both observers when collection sections arrive (client-side, after collections load)
-watch(collectionSections, () => nextTick(() => {
-  initObserver()
-  initCollectionStepObserver()
-}))
+const collectionsBySector = computed(() => {
+  const grouped = {}
+  const labelBySector = {}
+  const sectorOrder = [] // preserve API collection order for sector sequence
+
+  for (const cs of collectionSections.value) {
+    const col = cs.collection
+    // Prefer API-provided sector field, fall back to the static map
+    const sector = col.sector ?? COLLECTION_SECTORS_FALLBACK[col.id] ?? 'other'
+
+    if (!grouped[sector]) {
+      grouped[sector] = []
+      labelBySector[sector] = resolveSectorLabel(col, sector)
+      if (sector !== 'other') sectorOrder.push(sector)
+    }
+    grouped[sector].push(cs)
+  }
+
+  const ordered = [...sectorOrder]
+  if (grouped['other']?.length) ordered.push('other')
+
+  return ordered.map(s => ({
+    sector: s,
+    label: s === 'other' ? 'Sonstige' : (labelBySector[s] ?? s),
+    sections: grouped[s],
+  }))
+})
+
+// Re-init section observer when collection sections arrive (client-side, after collections load)
+watch(collectionSections, () => nextTick(() => initObserver()))
 
 // ── Catalog scores (Directus, client-side) ───────────────────────────────────
 
@@ -718,14 +583,6 @@ onMounted(async () => {
   } catch (_) {}
 })
 
-// ── Area geometry (for map boundary in panel) ─────────────────────────────────
-
-const areaBoundaryGeoJson = computed(() => {
-  const geoArea = area.value?.geo_area
-  if (!geoArea) return null
-  if (typeof geoArea === 'object') return geoArea
-  try { return JSON.parse(geoArea) } catch (_) { return null }
-})
 
 // ── SLK data product slug ─────────────────────────────────────────────────────
 

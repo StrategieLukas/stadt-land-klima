@@ -5,7 +5,8 @@ import resolveForBrowser from '~/shared/resolveForBrowser.js'
 
 export default defineNuxtPlugin(() => {
   const runtimeConfig = useRuntimeConfig();
-  const stadtlandzahlURL = resolveForBrowser(runtimeConfig.public.stadtlandzahlUrl || 'http://localhost:8000/graphql/');
+  const stadtlandzahlBaseURL = resolveForBrowser(runtimeConfig.public.stadtlandzahlBaseUrl)
+  const stadtlandzahlURL = `${stadtlandzahlBaseURL}/graphql/`
 
   // The stadtlandzahl API returns `access-control-allow-origin: *`, so browser
   // requests can go directly to the API without any proxy.
@@ -65,8 +66,7 @@ export default defineNuxtPlugin(() => {
   const fetchStatsByARS = async (ars) => {
     try {
       // The stadtlandzahl API allows CORS from all origins, so use the direct URL.
-      const baseUrl = stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
-      const url = `${baseUrl}/api/areas/${ars}/?format=json`
+      const url = `${stadtlandzahlBaseURL}/api/areas/${ars}/?format=json`
       console.log('Fetching from URL:', url)
       
       const response = await fetch(url)

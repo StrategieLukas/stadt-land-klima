@@ -56,8 +56,7 @@ import {
 } from 'chart.js';
 
 const runtimeConfig = useRuntimeConfig();
-const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl;
-const stadtlandzahlBaseURL = stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
+const stadtlandzahlBaseURL = runtimeConfig.public.stadtlandzahlBaseUrl
 
 // Register Chart.js components
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);

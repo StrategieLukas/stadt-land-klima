@@ -11,19 +11,17 @@
  */
 
 export default defineEventHandler(async (event) => {
-  const query = getQuery(event) as {
-    level?: string
-    arsPrefix?: string
-    includeGeo?: string
-    first?: string
-  }
-
-  const { level, arsPrefix, includeGeo, first = '200' } = query
+  // event.url is h3 v2 only; at runtime nitropack uses h3 v1 where event.path is the path+query string
+  const sp = new URLSearchParams((event.path ?? '').split('?')[1] ?? '')
+  const level      = sp.get('level')      ?? undefined
+  const arsPrefix  = sp.get('arsPrefix')  ?? undefined
+  const includeGeo = sp.get('includeGeo') ?? undefined
+  const first      = sp.get('first')      ?? '200'
 
   if (!level) return []
 
   const config = useRuntimeConfig()
-  const apiUrl = (config.public.stadtlandzahlUrl as string) || 'http://localhost:8000/graphql/'
+  const restUrl = (config.stadtlandzahlServerBaseUrl as string) || (config.public.stadtlandzahlBaseUrl as string)
 
   const numLevel = parseInt(level, 10)
   if (isNaN(numLevel)) return []
@@ -34,43 +32,37 @@ export default defineEventHandler(async (event) => {
   // Sanitise arsPrefix — only allow digits
   const safePrefix = arsPrefix ? String(arsPrefix).replace(/\D/g, '') : null
 
-  const arsFilter = safePrefix ? `, ars_Icontains: "${safePrefix}"` : ''
-  const geoFields = withGeo ? 'geoArea' : ''
-
-  const gqlQuery = `{
-    allAdministrativeAreas(
-      first: ${numFirst}
-      orderBy: "name"
-      level_In: [${numLevel}]
-      ${arsFilter}
-    ) {
-      edges {
-        node {
-          ars
-          name
-          prefix
-          level
-          population
-          geoCenter
-          ${geoFields}
-        }
-      }
-    }
-  }`
-
   try {
-    const res = await $fetch<{ data?: { allAdministrativeAreas?: { edges?: { node: Record<string, unknown> }[] } } }>(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: gqlQuery }),
-    })
-
-    let areas = res.data?.allAdministrativeAreas?.edges?.map(e => e.node) ?? []
-
-    // ars_Icontains can match non-prefix substrings — filter to genuine prefixes client-side
-    if (safePrefix) {
-      areas = areas.filter(a => (a.ars as string).startsWith(safePrefix))
+    const params: Record<string, string> = {
+      level: String(numLevel),
+      limit: String(numFirst),
+      ordering: 'name',
     }
+    if (safePrefix) params.ars = safePrefix
+
+    const res = await $fetch<unknown>(`${restUrl}/api/areas/`, { params })
+
+    // Handle both plain array and paginated { results: [...] } responses
+    const raw: Record<string, unknown>[] = Array.isArray(res)
+      ? (res as Record<string, unknown>[])
+      : (((res as Record<string, unknown>)?.results ?? []) as Record<string, unknown>[])
+
+    // /api/areas/?ars= filters by prefix, but can match sub-strings — keep only genuine prefixes
+    let areas = safePrefix ? raw.filter(a => (a.ars as string)?.startsWith(safePrefix)) : raw
+
+    // Normalise snake_case REST fields to the camelCase shape consumers expect
+    areas = areas.map(a => {
+      const out: Record<string, unknown> = { ...a }
+      if ('geo_center' in a) { out.geoCenter = a.geo_center; delete out.geo_center }
+      if ('geo_area' in a) {
+        if (withGeo) out.geoArea = a.geo_area
+        delete out.geo_area
+      }
+      if ('geo_area_km2' in a)                     { delete out.geo_area_km2 }
+      if ('is_reasonable_for_municipal_rating' in a) { delete out.is_reasonable_for_municipal_rating }
+      if ('stadtlandklima_data_all' in a)            { delete out.stadtlandklima_data_all }
+      return out
+    })
 
     return areas
   } catch {

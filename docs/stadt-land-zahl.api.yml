@@ -1,0 +1,910 @@
+openapi: 3.0.3
+info:
+  title: Stadt-Land-Zahl API
+  version: 1.0.0
+  description: Spatio-temporal data API for German municipalities. Provides OGC API
+    Features–style collections (wind turbines, solar plants, EV charging stations,
+    public transport scores, cycleway infrastructure, population density), administrative
+    area search, data histograms and pipeline lineage via Dagster.
+  contact:
+    name: Stadt.Land.Klima! e.V.
+    url: https://stadt-land-klima.de
+  license:
+    name: AGPL-3.0
+paths:
+  /api/areas/:
+    get:
+      operationId: areas_retrieve
+      description: |-
+        List all administrative areas with optional filtering.
+
+        URL: GET /api/areas/
+
+        Query parameters:
+        - level: Filter by administrative level (1-6)
+        - name: Filter by name (case-insensitive contains)
+        - ars: Filter by ARS (exact match or starts with)
+        - is_reasonable_for_municipal_rating: Filter by rating suitability (true/false)
+        - limit: Maximum number of results (default: 100, max: 1000)
+        - offset: Offset for pagination (default: 0)
+
+        Example: GET /api/areas/?level=6&limit=50
+      tags:
+      - areas
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/areas/{area_id}/:
+    get:
+      operationId: areas_retrieve_2
+      description: |-
+        Retrieve detailed information about an administrative area.
+
+        Accepts either an ARS (Amtlicher Regionalschlüssel, all-digit string) or a
+        slug of the form ``{slugified-prefix}-{slugified-name}`` where spaces in
+        prefix/name are replaced by hyphens and the whole string is lowercased,
+        e.g. ``kreisfreie-stadt-stuttgart`` or ``gemeinde-bad-mergentheim``.
+
+        URL: GET /api/areas/{ars}/
+             GET /api/areas/{prefix-slug}-{name-slug}/
+
+        Examples:
+            GET /api/areas/08111000/
+            GET /api/areas/stadtkreis-stuttgart/
+      parameters:
+      - in: path
+        name: area_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - areas
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/areas/{ars}/ancestors/:
+    get:
+      operationId: areas_ancestors_retrieve
+      description: |-
+        Return the ordered ancestor chain for the given area.
+
+        Derives parent areas from the ARS prefix:
+        - level 2 (Bundesland):  ars[:2]
+        - level 4 (Kreis):       ars[:5]
+
+        Level 3 (Regierungsbezirk) is excluded. Only levels strictly below the
+        area's own level are included. Results are ordered ascending by level
+        (Bundesland → Kreis).
+
+        URL: GET /api/areas/{ars}/ancestors/
+
+        Example: GET /api/areas/08111000/ancestors/
+      summary: Ancestor chain for an administrative area
+      parameters:
+      - in: path
+        name: ars
+        schema:
+          type: string
+        description: ARS of the area
+        required: true
+      tags:
+      - areas
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AncestorsResponse'
+          description: ''
+  /api/areas/{ars}/bordering-municipalities/:
+    get:
+      operationId: areas_bordering_municipalities_retrieve
+      description: |-
+        Retrieve all reasonable municipalities that border the given administrative area.
+
+        This endpoint returns municipalities that:
+        1. Share a geographic border with the specified area (using PostGIS ST_Touches)
+        2. Are marked as reasonable for municipal rating (is_reasonable_for_municipal_rating=True)
+
+        URL: GET /api/areas/{ars}/bordering-municipalities/
+
+        Example: GET /api/areas/08111000/bordering-municipalities/
+
+        Response includes basic information about each bordering municipality:
+        - name, prefix, ars, level, geo_center, geo_area_km2
+      parameters:
+      - in: path
+        name: ars
+        schema:
+          type: string
+        required: true
+      tags:
+      - areas
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/areas/{ars}/maps/{data_product}/:
+    get:
+      operationId: areas_maps_retrieve
+      description: |-
+        Generate map data for visualization of different data products.
+
+        URL: GET /api/areas/{ars}/maps/{data_product}/
+
+        Supported data products:
+        - public_transport_data: Population density raster + geo_routes or beelines  (TODO: needs data wrangling)
+        - wind_power_data: Wind power unit locations with MaStR IDs and power ratings
+        - solar_power_data: Solar power unit locations with MaStR IDs and power ratings
+        - ev_charging_data: EV charging station locations with power and operator info
+        - cycleway_infrastructure_data: Cycling infrastructure with car/bike streets (TODO: needs street data)
+
+        Returns Leaflet-compatible map layers.
+      parameters:
+      - in: path
+        name: ars
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: data_product
+        schema:
+          type: string
+        required: true
+      tags:
+      - areas
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/areas/{ars}/nearby/:
+    get:
+      operationId: areas_nearby_retrieve
+      description: |-
+        Return areas whose geo_center is within radius_km of the given area's geo_center.
+
+        Uses PostGIS ST_DWithin on geo_center for index-backed spatial filtering, then
+        orders results by ascending distance.  The area itself is excluded.
+
+        URL: GET /api/areas/{ars}/nearby/
+
+        Query parameters
+        ----------------
+        radius_km  – float, default 40, max 200
+        levels     – comma-separated ints, default "4,5,6"
+        limit      – int, default 50, max 200
+
+        Example: GET /api/areas/08111000/nearby/?radius_km=40&levels=4,5,6
+      summary: Areas near a given area's center point
+      parameters:
+      - in: path
+        name: ars
+        schema:
+          type: string
+        description: ARS of the area
+        required: true
+      - in: query
+        name: levels
+        schema:
+          type: string
+        description: Comma-separated administrative levels (default '4,5,6')
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Maximum results (default 50, max 200)
+      - in: query
+        name: radius_km
+        schema:
+          type: number
+          format: float
+        description: Search radius in km (default 40, max 200)
+      tags:
+      - areas
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NearbyResponse'
+          description: ''
+  /api/collections/:
+    get:
+      operationId: collections_retrieve
+      description: Returns metadata for every registered data product collection (OGC
+        API Features /collections/).
+      summary: List all data product collections
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: string
+        description: ARS of an administrative area. When supplied, all vegalite_spec.data.url
+          values are pre-injected with the correct area parameters so the frontend
+          can call vegaEmbed(el, element.vegalite_spec) without any URL manipulation.
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/collections/{slug}/:
+    get:
+      operationId: collections_retrieve_2
+      description: Full metadata for a single collection including render config and
+        pipeline steps.
+      summary: Collection metadata
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: string
+        description: ARS of an administrative area. Pre-injects area context into
+          all vegalite_spec URLs.
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/collections/{slug}/histogram/:
+    get:
+      operationId: collections_histogram_retrieve
+      description: 'Returns the pre-computed 20-bin percentile histogram for a collection
+        field, scoped to an optional parent area (default: Germany-wide). Each bin
+        is annotated with the threshold_bar color zone from the render config.'
+      summary: Collection histogram
+      parameters:
+      - in: query
+        name: field
+        schema:
+          type: string
+        description: 'Field name to histogram (default: first rollup_field)'
+      - in: query
+        name: parent_area
+        schema:
+          type: string
+        description: ARS of the parent area (Bundesland/Regierungsbezirk). Omit for
+          Germany-wide.
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/collections/{slug}/items/:
+    get:
+      operationId: collections_items_retrieve
+      description: Returns a paginated GeoJSON FeatureCollection. No aggregate data
+        — use /summary/ concurrently for that. When ?zoom=<int> is below the collection's
+        cluster_zoom_threshold, returns one polygon feature per admin area (choropleth)
+        instead of individual point features.
+      summary: List collection items (GeoJSON FeatureCollection)
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: string
+        description: ARS of an administrative area to filter items to
+      - in: query
+        name: bbox
+        schema:
+          type: string
+        description: 'Bounding box: west,south,east,north (WGS84)'
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Max items per page (default 100, max 1000)
+      - in: query
+        name: offset
+        schema:
+          type: integer
+        description: Pagination offset (default 0)
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: zoom
+        schema:
+          type: integer
+        description: Leaflet zoom level for server-side clustering
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/collections/{slug}/items/{id}/:
+    get:
+      operationId: collections_items_retrieve_2
+      description: |-
+        GET /api/collections/{slug}/items/{pk}/
+
+        Returns a single GeoJSON Feature.
+      summary: Get a single collection item (GeoJSON Feature)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/collections/{slug}/pipeline/:
+    get:
+      operationId: collections_pipeline_retrieve
+      description: Returns the ordered list of Dagster pipeline steps for this collection,
+        each enriched with upstream/downstream deps, source metadata and last materialization
+        timestamp.
+      summary: Collection pipeline lineage
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/collections/{slug}/summary/:
+    get:
+      operationId: collections_summary_retrieve
+      description: Returns pre-computed aggregate data (with license/download metadata),
+        child_distribution statistics, and a histogram_ref link for a specific area.
+        Intended to be fetched concurrently with /items/. Requires ?area=<ARS>.
+      summary: Collection area summary
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: string
+        description: ARS of the administrative area
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Collections
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dagster/assets/:
+    get:
+      operationId: dagster_assets_retrieve
+      description: Returns all registered Dagster assets with their definition metadata
+        (group, tags, owners, source metadata).
+      summary: List all Dagster assets
+      tags:
+      - Pipeline / Dagster
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '502':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dagster/assets/{asset_key}/:
+    get:
+      operationId: dagster_assets_retrieve_2
+      description: Returns one asset with recent materializations, upstream/downstream
+        deps, tags and source metadata.
+      summary: Get a single Dagster asset
+      parameters:
+      - in: path
+        name: asset_key
+        schema:
+          type: string
+        description: Slash-delimited asset key, e.g. aggregate_energy_per_area
+        required: true
+      tags:
+      - Pipeline / Dagster
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/histograms/:
+    get:
+      operationId: histograms_retrieve
+      description: |-
+        List all available data histograms with optional filtering.
+
+        URL: GET /api/histograms/
+
+        Query parameters:
+        - relation_name: Filter by data product type (e.g., 'population', 'wind_power')
+        - field_name: Filter by field name (e.g., 'population', 'power')
+        - method: Filter by binning method (e.g., 'sturges', 'fd', 'scott')
+        - pipeline_name: Filter by pipeline name
+        - limit: Maximum number of results (default: 100, max: 1000)
+        - offset: Offset for pagination (default: 0)
+
+        Example: GET /api/histograms/?relation_name=population
+      tags:
+      - histograms
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/histograms/{histogram_id}/:
+    get:
+      operationId: histograms_retrieve_2
+      description: |-
+        Retrieve detailed information about a specific histogram.
+
+        URL: GET /api/histograms/{id}/
+
+        Example: GET /api/histograms/1/
+      parameters:
+      - in: path
+        name: histogram_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - histograms
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/histograms/{histogram_id}/bins/{bin_index}/areas/:
+    get:
+      operationId: histograms_bins_areas_retrieve
+      description: |-
+        Retrieve administrative areas that fall within a specific histogram bin.
+
+        URL: GET /api/histograms/{histogram_id}/bins/{bin_index}/areas/
+
+        Example: GET /api/histograms/1/bins/3/areas/
+
+        Returns a list of administrative areas with their name, ARS, and the specific value
+        that placed them in this bin.
+      parameters:
+      - in: path
+        name: bin_index
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: histogram_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - histograms
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/sanddance-data/:
+    get:
+      operationId: sanddance_data_retrieve
+      description: |-
+        Return a flat JSON array of administrative areas with all data products.
+
+        Optional query parameters:
+            ?level=<int>  – filter by administrative level (1-6)
+      tags:
+      - sanddance-data
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/search/areas/:
+    get:
+      operationId: search_areas_retrieve
+      description: |-
+        Fast area search optimised for autocomplete / search UI.
+
+        Uses a PostgreSQL trigram GIN index on ``name`` so ILIKE queries are
+        ~50x faster than a sequential scan.  Returns at most 8 results ordered
+        by population descending so the most prominent areas surface first.
+
+        Query parameters
+        ----------------
+        q                              – name fragment (required, min 2 chars)
+        level                          – filter by administrative level (1–6)
+        is_reasonable_for_municipal_rating – "true"/"false"
+
+        Response fields per result
+        --------------------------
+        prefix, name, ars, level, population, is_reasonable_for_municipal_rating,
+        stadtlandklima_data_all (slug, score_total, percentage_rated, measure_catalog_name)
+      summary: Area autocomplete search
+      parameters:
+      - in: query
+        name: is_reasonable_for_municipal_rating
+        schema:
+          type: string
+        description: '"true" or "false"'
+      - in: query
+        name: level
+        schema:
+          type: integer
+        description: Filter by administrative level (1–6)
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Name fragment (min 2 chars)
+        required: true
+      tags:
+      - search
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AreaSearchResponse'
+          description: ''
+components:
+  schemas:
+    AncestorArea:
+      type: object
+      properties:
+        prefix:
+          type: string
+        name:
+          type: string
+        ars:
+          type: string
+        level:
+          type: integer
+        population:
+          type: integer
+          nullable: true
+        geo_center:
+          nullable: true
+        geo_area_km2:
+          type: number
+          format: double
+          nullable: true
+        is_reasonable_for_municipal_rating:
+          type: boolean
+      required:
+      - ars
+      - geo_area_km2
+      - geo_center
+      - is_reasonable_for_municipal_rating
+      - level
+      - name
+      - population
+      - prefix
+    AncestorsResponse:
+      type: object
+      properties:
+        ancestors:
+          type: array
+          items:
+            $ref: '#/components/schemas/AncestorArea'
+      required:
+      - ancestors
+    AreaSearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AreaSearchResult'
+      required:
+      - results
+    AreaSearchResult:
+      type: object
+      properties:
+        prefix:
+          type: string
+        name:
+          type: string
+        ars:
+          type: string
+        level:
+          type: integer
+        population:
+          type: integer
+          nullable: true
+        is_reasonable_for_municipal_rating:
+          type: boolean
+        stadtlandklima_data_all:
+          type: array
+          items: {}
+      required:
+      - ars
+      - is_reasonable_for_municipal_rating
+      - level
+      - name
+      - population
+      - prefix
+      - stadtlandklima_data_all
+    NearbyArea:
+      type: object
+      properties:
+        prefix:
+          type: string
+        name:
+          type: string
+        ars:
+          type: string
+        level:
+          type: integer
+        population:
+          type: integer
+          nullable: true
+        geo_center:
+          nullable: true
+        geo_area_km2:
+          type: number
+          format: double
+          nullable: true
+        is_reasonable_for_municipal_rating:
+          type: boolean
+      required:
+      - ars
+      - geo_area_km2
+      - geo_center
+      - is_reasonable_for_municipal_rating
+      - level
+      - name
+      - population
+      - prefix
+    NearbyResponse:
+      type: object
+      properties:
+        source_area:
+          $ref: '#/components/schemas/NearbySourceArea'
+        radius_km:
+          type: number
+          format: double
+        count:
+          type: integer
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/NearbyArea'
+      required:
+      - areas
+      - count
+      - radius_km
+      - source_area
+    NearbySourceArea:
+      type: object
+      properties:
+        name:
+          type: string
+        prefix:
+          type: string
+        ars:
+          type: string
+        level:
+          type: integer
+        geo_center:
+          nullable: true
+      required:
+      - ars
+      - geo_center
+      - level
+      - name
+      - prefix
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
