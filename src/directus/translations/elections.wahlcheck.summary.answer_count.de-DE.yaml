@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.wahlcheck.summary.answer_count
+value: ":answered / :total Fragen beantwortet, :weighted doppelt gewichtet"

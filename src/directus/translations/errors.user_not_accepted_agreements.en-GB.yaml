@@ -1,0 +1,4 @@
+language: en-GB
+key: errors.user_not_accepted_agreements
+value: The terms and conditions and privacy policy have not been accepted yet.
+  Please accept them on the home page (click the hammer icon in the left menu).

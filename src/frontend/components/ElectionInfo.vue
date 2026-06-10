@@ -3,27 +3,25 @@
     <!-- Header -->
     <div class="bg-white rounded-2xl shadow-list border border-gray/10 p-8 mb-8">
       <h1 class="text-h2 font-bold text-stats-dark mb-4">
-        Fragenkatalog für {{ municipalityScore.municipality.name }}
+        {{ $t('election_info.title_for', { ':name': municipalityScore.municipality.name }) }}
       </h1>
       <p class="text-lg text-mid-gray mb-4">
-        Auf Basis der Bewertung dieser Kommune haben wir die 10 Maßnahmen mit dem größten
-        <span class="font-semibold text-stats-dark">Verbesserungspotenzial</span> für Sie zusammengefasst.
+        {{ $t('election_info.intro_prefix') }}
+        <span class="font-semibold text-stats-dark">{{ $t('election_info.improvement_potential') }}</span>
+        {{ $t('election_info.intro_suffix') }}
       </p>
       <p class="text-mid-gray mb-2">
-        Das Verbesserungspotenzial berechnet sich aus Bewertung und Gewichtung der Maßnahme:
-        Maßnahmen mit niedriger Bewertung und hoher Gewichtung haben das größte Potenzial.
+        {{ $t('election_info.method') }}
       </p>
       <p class="text-mid-gray">
-        Nutzen Sie diesen Katalog als Vorlage für Fragen an Kandidaten oder zur Konfrontation
-        Ihrer Verwaltung / Ihres Stadtrats.
+        {{ $t('election_info.usage_hint') }}
       </p>
 
       <div v-if="usingFallbackCatalog" class="alert alert-warning mt-6">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.167 1.732-3l-5.48-6.76c-.54-.676-1.598-.676-2.138 0l-5.48 6.76c-.77 1.833.262 3 1.732 3z" />
         </svg>
-        <span>Diese Fragen basieren auf einer älteren Bewertung ({{ municipalityScore.catalog_version.name }}),
-          da die Kommune noch nicht für die aktuelle Version ({{ currentCatalogVersion.name }}) bewertet wurde.</span>
+        <span>{{ $t('election_info.fallback_catalog', { ':old': municipalityScore.catalog_version.name, ':current': currentCatalogVersion.name }) }}</span>
       </div>
 
       <div class="flex justify-center mt-6">
@@ -34,7 +32,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          PDF generieren
+          {{ $t('generic.generate_pdf') }}
         </button>
       </div>
     </div>
@@ -67,19 +65,19 @@
 
           <!-- Current Progress -->
           <div v-if="measure.currentProgress" class="p-4 bg-mild-white rounded-lg border border-gray/10">
-            <p class="font-semibold text-stats-dark mb-1">Aktueller Stand:</p>
+            <p class="font-semibold text-stats-dark mb-1">{{ $t('election_info.current_status') }}</p>
             <p class="text-mid-gray">{{ measure.currentProgress }}</p>
           </div>
 
           <!-- Political Demand -->
           <div v-if="measure.politicalDemand" class="p-4 bg-mild-white rounded-lg border border-gray/10">
-            <p class="font-semibold text-stats-dark mb-1">Politische Forderung:</p>
+            <p class="font-semibold text-stats-dark mb-1">{{ $t('election_info.political_demand') }}</p>
             <p class="text-mid-gray">{{ measure.politicalDemand }}</p>
           </div>
 
           <!-- Contribution Description -->
           <div v-if="measure.description_contribution" class="p-4 bg-ff-green/5 rounded-lg border border-ff-green/20">
-            <p class="font-semibold text-ff-green mb-1">So können Sie die Maßnahme einbringen:</p>
+            <p class="font-semibold text-ff-green mb-1">{{ $t('election_info.contribution') }}</p>
             <div class="prose max-w-none text-mid-gray" v-html="md.render(measure.description_contribution)"></div>
           </div>
         </div>
@@ -93,7 +91,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-            Zur Bewertung
+            {{ $t('election_info.to_rating') }}
           </NuxtLink>
         </div>
       </div>
@@ -108,7 +106,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        PDF generieren
+        {{ $t('generic.generate_pdf') }}
       </button>
     </div>
   </div>
@@ -119,6 +117,7 @@
   import measureCurrentProgressStrings from "~/assets/measure-current-progress-strings.json"
   import measurePoliticalDemandStrings from "~/assets/measure-political-demand-strings.json"
 
+  const { $t } = useNuxtApp()
   const md = new MarkdownIt();
 
   const props = defineProps({

@@ -1,0 +1,3 @@
+language: en-GB
+key: article.author_date
+value: Article by :author from :date

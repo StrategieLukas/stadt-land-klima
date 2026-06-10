@@ -26,7 +26,7 @@
             style="max-height: 76vh"
             role="dialog"
             aria-modal="true"
-            aria-label="Suche"
+            :aria-label="$t('generic.search')"
             @click.stop
           >
             <!-- Input row — hidden when the header's embedded input is active -->
@@ -38,7 +38,7 @@
                 ref="inputRef"
                 v-model="query"
                 class="flex-1 py-4 text-base outline-none placeholder-gray-400"
-                placeholder="Gemeinde oder Inhalt suchen…"
+                :placeholder="$t('search.palette.placeholder')"
                 @keydown.up.prevent="moveFocus(-1)"
                 @keydown.down.prevent="moveFocus(1)"
                 @keydown.enter.prevent="navigateToFocused"
@@ -48,7 +48,7 @@
               <button
                 type="button"
                 class="sm:hidden flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
-                aria-label="Schließen"
+                :aria-label="$t('generic.close')"
                 @click="close"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -62,17 +62,17 @@
               <!-- Loading -->
               <div v-if="isLoading" class="flex items-center justify-center gap-2 py-10 text-gray-400 text-sm">
                 <SlkFlowerSpinner :size="20" />
-                Suche...
+                {{ $t('generic.search') }}
               </div>
 
               <!-- No query yet -->
               <div v-else-if="!query.trim()" class="py-10 text-center text-gray-400 text-sm">
-                Tippen Sie einen Suchbegriff ein.
+                {{ $t('search.prompt') }}
               </div>
 
               <!-- No results -->
               <div v-else-if="!results.length" class="py-10 text-center text-gray-400 text-sm">
-                Keine Ergebnisse für „{{ query }}"
+                {{ $t('search.no_results_for', { ':query': query }) }}
               </div>
 
               <!-- Results list -->
@@ -124,9 +124,9 @@
 
             <!-- Footer hint -->
             <div class="border-t border-gray-100 px-4 py-2 flex items-center gap-4 text-xs text-gray-400">
-              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> navigieren</span>
-              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> öffnen</span>
-              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> schließen</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> {{ $t('search.hint.navigate') }}</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> {{ $t('search.hint.open') }}</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> {{ $t('search.hint.close') }}</span>
               <button
                 type="button"
                 class="sm:hidden ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200"
@@ -135,7 +135,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Schließen
+                {{ $t('generic.close') }}
               </button>
             </div>
           </div>
@@ -157,6 +157,7 @@ import { useNavInputRect } from '~/composables/useHeaderHeight.js'
 import sectorImages from '~/shared/sectorImages.js'
 import lodash from 'lodash'
 const { debounce } = lodash
+const { $t } = useNuxtApp()
 
 const { isOpen, query, embeddedInput, open, close } = useSearchPalette()
 const bridge = useEmbeddedSearchBridge()
@@ -269,18 +270,26 @@ function navigateToFocused() {
   }
 }
 
-const contentTypeLabels = { block: 'Block', page: 'Seite', event: 'Veranstaltung', article: 'Projekt', measure: 'Maßnahme', static_page: 'Seite', news_item: 'Neuigkeit' }
+const contentTypeLabelKeys = {
+  block: 'content_type.block',
+  page: 'content_type.page',
+  event: 'content_type.event',
+  article: 'content_type.article',
+  measure: 'content_type.measure',
+  static_page: 'content_type.page',
+  news_item: 'content_type.news_item',
+}
 function contentTypeLabel(type) {
-  return contentTypeLabels[type] ?? type ?? ''
+  return contentTypeLabelKeys[type] ? $t(contentTypeLabelKeys[type]) : type ?? ''
 }
 
 const sectorLabels = {
-  energy: 'Energie',
-  transport: 'Verkehr',
-  buildings: 'Gebäude & Wärme',
-  industry: 'Industrie, Wirtschaft & Konsum',
-  agriculture: 'Landwirtschaft, Natur & Ernährung',
-  management: 'Klimaschutzmanagement & Verwaltung',
+  energy: $t('measure_sectors.energy.title'),
+  transport: $t('measure_sectors.transport.title'),
+  buildings: $t('measure_sectors.buildings.title'),
+  industry: $t('measure_sectors.industry.title'),
+  agriculture: $t('measure_sectors.agriculture.title'),
+  management: $t('measure_sectors.management.title'),
 }
 
 // Global Cmd+K / Ctrl+K shortcut — always route to the embedded header search

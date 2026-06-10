@@ -1,0 +1,3 @@
+language: en-GB
+key: elections.loading_error.description
+value: "An error occurred while loading the election data. Please try again later."

@@ -1,0 +1,3 @@
+language: en-GB
+key: news.editor.title_required
+value: "Title *"

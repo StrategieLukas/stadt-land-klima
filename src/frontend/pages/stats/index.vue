@@ -13,8 +13,8 @@
         <svg class="w-5 h-5 mb-0.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z" />
         </svg>
-        <span class="font-heading font-bold text-base leading-tight">Kommunale Statistiken</span>
-        <span class="text-xs text-white/70 hidden xs:block">Kommunensuche &amp; Bewertungen</span>
+        <span class="font-heading font-bold text-base leading-tight">{{ $t("stats.municipal.title") }}</span>
+        <span class="text-xs text-white/70 hidden xs:block">{{ $t("stats.municipal.nav_subtitle") }}</span>
       </button>
       <div class="w-px flex-shrink-0" style="background-color: rgba(255,255,255,0.15);"></div>
       <button
@@ -25,8 +25,8 @@
         <svg class="w-5 h-5 mb-0.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
-        <span class="font-heading font-bold text-base leading-tight">Maßnahmenstatistiken</span>
-        <span class="text-xs text-white/70 hidden xs:block">Sektoren &amp; Maßnahmen-Analyse</span>
+        <span class="font-heading font-bold text-base leading-tight">{{ $t("stats.measures.title") }}</span>
+        <span class="text-xs text-white/70 hidden xs:block">{{ $t("stats.measures.nav_subtitle") }}</span>
       </button>
     </nav>
 
@@ -42,8 +42,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
           </svg>
           <div>
-            <h2 class="text-lg font-bold text-white font-heading leading-tight">Kommunale Statistiken</h2>
-            <p class="text-xs text-white/70 mt-0.5">Weitere Statistiken und Datenanalysen zu einer Kommune oder anderen Verwaltungsgebieten</p>
+            <h2 class="text-lg font-bold text-white font-heading leading-tight">{{ $t("stats.municipal.title") }}</h2>
+            <p class="text-xs text-white/70 mt-0.5">{{ $t("stats.municipal.description") }}</p>
           </div>
         </div>
         <!-- Right: search bar (padded below on mobile, inline on desktop) -->
@@ -66,8 +66,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
           <div>
-            <h2 class="text-lg font-bold text-white font-heading leading-tight">Maßnahmenstatistiken</h2>
-            <p class="text-xs text-white/70 mt-0.5">Alle Kommunen im Überblick — gefiltert nach Maßnahmenkatalog, Typ und Bundesland</p>
+            <h2 class="text-lg font-bold text-white font-heading leading-tight">{{ $t("stats.measures.title") }}</h2>
+            <p class="text-xs text-white/70 mt-0.5">{{ $t("stats.measures.description") }}</p>
           </div>
         </div>
         <!-- Right: filter panel -->
@@ -79,7 +79,7 @@
               <svg class="w-4 h-4 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
               </svg>
-              <span>Filter</span>
+              <span>{{ $t("generic.filter") }}</span>
               <span v-if="activeFilterCount > 0" class="bg-[#1a4a6e] text-white text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
             </span>
             <svg class="w-4 h-4 flex-shrink-0 text-gray-400 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -149,23 +149,23 @@
         <template v-else>
         <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
           <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalCompleted }}</span>
-          <span class="text-xs text-gray-500 mt-1 leading-tight">vollständig bewertet</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">{{ $t("stats.kpi.fully_rated") }}</span>
         </div>
         <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
           <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalHalfRatedProgress }}</span>
-          <span class="text-xs text-gray-500 mt-1 leading-tight">in Bearbeitung</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">{{ $t("stats.kpi.in_progress") }}</span>
         </div>
         <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
           <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalMunicipalities }}</span>
-          <span class="text-xs text-gray-500 mt-1 leading-tight">Kommunen gesamt</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">{{ $t("stats.kpi.total_municipalities") }}</span>
         </div>
         <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center">
           <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalMeasures }}</span>
-          <span class="text-xs text-gray-500 mt-1 leading-tight">Maßnahmen im Katalog</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">{{ $t("stats.kpi.measures_in_catalog") }}</span>
         </div>
         <div class="bg-white rounded-sm shadow-list p-3 flex flex-col items-center text-center col-span-2 sm:col-span-1">
           <span class="text-2xl font-bold text-[#1a4a6e] leading-none">{{ kpi.totalFilledRatings.toLocaleString('de-DE') }}</span>
-          <span class="text-xs text-gray-500 mt-1 leading-tight">Bewertungen ausgefüllt</span>
+          <span class="text-xs text-gray-500 mt-1 leading-tight">{{ $t("stats.kpi.completed_ratings") }}</span>
         </div>
         </template>
       </div>
@@ -176,17 +176,17 @@
           class="flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
           :class="activeTab === 'measures' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
           @click="activeTab = 'measures'"
-        >Maßnahmenstatistik</button>
+        >{{ $t("stats.measures.singular_title") }}</button>
         <button
           class="flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
           :class="activeTab === 'clustering' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
           @click="switchToClusteringTab"
-        >Kommunen-Clustering</button>
+        >{{ $t("stats.clustering.title") }}</button>
         <button
           class="flex-shrink-0 whitespace-nowrap px-4 py-2 text-sm font-semibold border-b-2 transition-colors"
           :class="activeTab === 'dominance' ? 'border-gray-700 text-gray-800' : 'border-transparent text-gray-500 hover:text-gray-700'"
           @click="switchToDominanceTab"
-        >Paarvergleich</button>
+        >{{ $t("stats.dominance.tab") }}</button>
       </div>
 
     <!-- TAB: Maßnahmenstatistik -->
@@ -447,7 +447,7 @@
                 Zur Seite
               </NuxtLink>
             </template>
-            <span v-else class="text-xs text-gray-400">Klick auf Ring für Details</span>
+            <span v-else class="text-xs text-gray-400">{{ $t("stats.sunburst.click_ring_hint") }}</span>
           </div>
         </div>
 
@@ -455,14 +455,14 @@
         <div v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'plot')" class="bg-white rounded-sm shadow-list p-5 flex flex-col">
           <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm">
             <h2 class="text-base font-bold">
-              <span v-if="!sunburstSelection.type">Histogramm: alle Kommunen{{ filterSuffix }}</span>
-              <span v-else-if="sunburstSelection.type === 'sector'">Histogramm: Sektor {{ sunburstSelection.label }}{{ filterSuffix }}</span>
-              <span v-else>Bewertungsverteilung: {{ sunburstSelection.label }}</span>
+              <span v-if="!sunburstSelection.type">{{ $t("stats.histogram.all_municipalities", { ":filter": filterSuffix }) }}</span>
+              <span v-else-if="sunburstSelection.type === 'sector'">{{ $t("stats.histogram.sector", { ":sector": sunburstSelection.label, ":filter": filterSuffix }) }}</span>
+              <span v-else>{{ $t("stats.histogram.rating_distribution", { ":label": sunburstSelection.label }) }}</span>
             </h2>
             <p class="text-xs text-gray-500 mt-0.5">
-              <span v-if="!sunburstSelection.type">Gesamtscore vollständig bewerteter Kommunen</span>
-              <span v-else-if="sunburstSelection.type === 'sector'">Score-Verteilung im Sektor {{ shortSectorNames[sunburstSelection.sectorKey] ?? sunburstSelection.sectorKey }}</span>
-              <span v-else>Bewertungsverteilung über alle Kommunen</span>
+              <span v-if="!sunburstSelection.type">{{ $t("stats.histogram.total_score_description") }}</span>
+              <span v-else-if="sunburstSelection.type === 'sector'">{{ $t("stats.histogram.sector_score_description", { ":sector": shortSectorNames[sunburstSelection.sectorKey] ?? sunburstSelection.sectorKey }) }}</span>
+              <span v-else>{{ $t("stats.histogram.rating_distribution_description") }}</span>
             </p>
           </div>
           <div ref="distPanelContainer" class="w-full flex-1" style="min-height: 360px;"></div>
@@ -477,7 +477,7 @@
                 <span class="font-bold text-sm leading-none">×</span>
               </button>
             </template>
-            <span v-else-if="sunburstSelection.type" class="text-xs text-gray-400">Klick auf Balken für Details</span>
+            <span v-else-if="sunburstSelection.type" class="text-xs text-gray-400">{{ $t("stats.histogram.click_bar_hint") }}</span>
           </div>
         </div>
 
@@ -502,15 +502,15 @@
         <div class="-mx-5 -mt-5 px-5 py-3 mb-4 bg-gray-100 border-b border-gray-200 rounded-t-sm flex items-center justify-between">
           <h3 class="text-base font-semibold text-gray-800">
             <span v-if="!panelMunFilter.active">
-              Top 10<span v-if="sunburstSelection.label">: {{ sunburstSelection.label }}</span><span v-else> Kommunen{{ filterSuffix }}</span>
+              {{ $t("stats.top_10") }}<span v-if="sunburstSelection.label">: {{ sunburstSelection.label }}</span><span v-else> {{ $t("stats.municipalities") }}{{ filterSuffix }}</span>
             </span>
-            <span v-else>Kommunen mit „{{ panelMunFilter.label }}"</span>
+            <span v-else>{{ $t("stats.municipalities_with", { ":label": panelMunFilter.label }) }}</span>
           </h3>
           <button
             v-if="panelMunFilter.active"
             class="text-xs text-blue-600 hover:underline flex-shrink-0 ml-2"
             @click="clearPanelMunFilter"
-          >× Filter aufheben</button>
+          >× {{ $t("stats.filter.clear") }}</button>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8">
           <div
@@ -529,7 +529,7 @@
               :style="{ background: ratingToColor(parseFloat(ms.score_total) / 100) }"
             >{{ parseFloat(ms.score_total).toFixed(1) }}</span>
           </div>
-          <p v-if="!panelMunicipalities.length" class="text-xs text-gray-400 py-2 col-span-full">Keine Daten</p>
+          <p v-if="!panelMunicipalities.length" class="text-xs text-gray-400 py-2 col-span-full">{{ $t("generic.no_data") }}</p>
         </div>
       </div>
 
@@ -543,19 +543,19 @@
         <div class="bg-white rounded-xl shadow-lg p-6">
           <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-2">
             <div>
-              <h2 class="text-xl font-bold">Kommunen-Clustering</h2>
-              <p class="text-sm text-gray-500 mt-1">Klick auf einen Punkt für das Cluster-Profil →</p>
+              <h2 class="text-xl font-bold">{{ $t("stats.clustering.title") }}</h2>
+              <p class="text-sm text-gray-500 mt-1">{{ $t("stats.clustering.click_hint") }} →</p>
             </div>
             <div class="flex items-center gap-3 flex-shrink-0">
               <label class="text-sm font-semibold whitespace-nowrap">k =</label>
               <input v-model.number="kClusters" type="range" min="2" max="10" class="range range-sm w-28" />
               <span class="font-bold w-4 text-sm">{{ kClusters }}</span>
-              <button class="btn btn-sm btn-outline ml-2" @click="computeClusteringAndRender">Analyse starten</button>
+              <button class="btn btn-sm btn-outline ml-2" @click="computeClusteringAndRender">{{ $t("stats.analysis.start") }}</button>
             </div>
           </div>
           <!-- Methodology note -->
           <div class="text-xs text-gray-400 mb-3 leading-relaxed">
-            Jede Kommune wird durch ihre Einzelmaßnahmen-Bewertungen beschrieben (0 = kaum/nicht, 1 = vollständig; N/A und fehlende Bewertungen = 0). PCA reduziert diese hochdimensionalen Vektoren auf zwei Hauptkomponenten (PC1/PC2), die den größten Teil der Varianz erklären. k-Means gruppiert dann ähnliche Kommunen. <strong>Was lässt sich ablesen?</strong> Kommunen, die im Diagramm nah beieinander liegen, haben ein ähnliches Stärken-/Schwächen-Profil über alle Maßnahmen. Das Cluster-Profil rechts zeigt die Ø-Sektorscores des angeklickten Clusters.
+            <span v-html="$t('stats.clustering.methodology')"></span>
           </div>
           <div ref="clusterContainer" class="w-full" style="min-height: 100px;"></div>
           <p v-if="clusteringError" class="text-error text-sm mt-2">{{ clusteringError }}</p>
@@ -564,12 +564,12 @@
         <!-- Cluster profile panel -->
         <div class="bg-white rounded-sm shadow-list p-5">
           <h3 class="text-base font-bold mb-3">
-            <span v-if="!clusterProfile.clusterLabel">Cluster-Profil</span>
+            <span v-if="!clusterProfile.clusterLabel">{{ $t("stats.clustering.profile") }}</span>
             <span v-else>{{ clusterProfile.clusterLabel }}</span>
           </h3>
-          <p v-if="!clusterProfile.clusterLabel" class="text-sm text-gray-400">Klicke auf einen Punkt im Diagramm, um das Cluster-Profil zu sehen.</p>
+          <p v-if="!clusterProfile.clusterLabel" class="text-sm text-gray-400">{{ $t("stats.clustering.empty_profile") }}</p>
           <template v-else>
-            <p class="text-xs text-gray-500 mb-3">{{ clusterProfile.count }} Kommunen · Ø Gesamtscore: <strong>{{ clusterProfile.avgTotal }}</strong></p>
+            <p class="text-xs text-gray-500 mb-3">{{ $t("stats.clustering.profile_summary", { ":count": clusterProfile.count, ":score": clusterProfile.avgTotal }) }}</p>
             <div class="flex flex-col gap-2 mb-4">
               <div v-for="sector in sectorOrder" :key="sector" class="flex items-center gap-2">
                 <span class="text-xs w-24 text-right flex-shrink-0 truncate" :style="{ color: sectorColors[sector] }">{{ shortSectorNames[sector] }}</span>
@@ -583,7 +583,7 @@
               </div>
             </div>
             <div class="border-t pt-3">
-              <p class="text-xs font-semibold text-gray-600 mb-2">Kommunen in diesem Cluster:</p>
+              <p class="text-xs font-semibold text-gray-600 mb-2">{{ $t("stats.clustering.municipalities_in_cluster") }}</p>
               <div class="columns-2 gap-x-3">
                 <NuxtLink
                   v-for="m in clusterProfile.municipalities"
@@ -603,43 +603,37 @@
 
       <!-- Method description -->
       <div class="bg-white rounded-sm shadow-list p-5 mb-6">
-        <h2 class="text-base font-bold mb-2">Paarweiser Vergleich (Dominanz-Analyse)</h2>
+        <h2 class="text-base font-bold mb-2">{{ $t("stats.dominance.title") }}</h2>
         <p class="text-sm text-gray-600 leading-relaxed mb-2">
-          Für jede Maßnahme wird paarweise verglichen, welche Kommune besser abgeschnitten hat.
-          Aus allen Einzelvergleichen wird eine <strong>Gewinnrate</strong> pro Kommune ermittelt
-          – der Anteil der Matchups, den sie für sich entschieden hat. Das Ergebnis ist robuster als
-          ein einfacher Gesamtscore, weil es die Stärke über viele unabhängige Kategorien widerspiegelt.
+          <span v-html="$t('stats.dominance.description_1')"></span>
         </p>
         <p class="text-sm text-gray-600 leading-relaxed mb-2">
-          Die <strong>Dominanzmatrix</strong> zeigt für jedes Paar (Zeile vs. Spalte), wie oft die
-          Zeilen-Kommune die Spalten-Kommune übertroffen hat. Diagonal angeordnete blaue Blöcke deuten
-          auf Cluster ähnlich starker Kommunen hin – sogenannte Leistungs-„Tiers". Die Matrix ist
-          nach Gewinnrate sortiert (oben = stärkste Kommunen).
+          <span v-html="$t('stats.dominance.description_2')"></span>
         </p>
-        <p class="text-xs text-gray-400 mb-3">Nur Kommunen im aktuellen Filter. Nicht-anwendbare Maßnahmen werden aus dem Vergleich ausgeschlossen.</p>
-        <button class="btn btn-sm btn-outline" @click="computeDominanceAndRender">Analyse starten</button>
+        <p class="text-xs text-gray-400 mb-3">{{ $t("stats.dominance.filter_note") }}</p>
+        <button class="btn btn-sm btn-outline" @click="computeDominanceAndRender">{{ $t("stats.analysis.start") }}</button>
       </div>
 
       <!-- Win rate ranking chart -->
       <div class="bg-white rounded-sm shadow-list p-5 mb-6">
-        <h3 class="text-sm font-bold mb-1">Gewinnrate-Ranking</h3>
-        <p class="text-xs text-gray-500 mb-3">Anteil der paarweisen Maßnahmen-Vergleiche, die eine Kommune gewonnen hat</p>
+        <h3 class="text-sm font-bold mb-1">{{ $t("stats.dominance.win_rate_ranking") }}</h3>
+        <p class="text-xs text-gray-500 mb-3">{{ $t("stats.dominance.win_rate_ranking.description") }}</p>
         <div ref="dominanceRankContainer" class="w-full" style="min-height: 60px;"></div>
         <p v-if="dominanceError" class="text-error text-sm mt-2">{{ dominanceError }}</p>
       </div>
 
       <!-- Dominance heatmap -->
       <div class="bg-white rounded-sm shadow-list p-5 mb-8">
-        <h3 class="text-sm font-bold mb-1">Dominanzmatrix (Top 40)</h3>
-        <p class="text-xs text-gray-500 mb-3">Wie oft gewinnt Zeilen-Kommune gegen Spalten-Kommune. Blau = gewinnt, Rot = verliert, Grau = gleichauf</p>
+        <h3 class="text-sm font-bold mb-1">{{ $t("stats.dominance.matrix_top_40") }}</h3>
+        <p class="text-xs text-gray-500 mb-3">{{ $t("stats.dominance.matrix.description") }}</p>
         <div ref="dominanceHeatmapContainer" class="w-full overflow-x-auto" style="min-height: 60px;"></div>
       </div>
 
       <!-- Force-directed dominance network -->
       <div class="bg-white rounded-sm shadow-list p-5 mb-8">
-        <h3 class="text-sm font-bold mb-1">Dominanz-Netzwerk</h3>
-        <p class="text-xs text-gray-500 mb-2">Alle Kommunen als Knoten. Eine Kante zwischen zwei Knoten bedeutet, dass eine Kommune die andere in &gt; 60% der gemeinsam bewerteten Maßnahmen übertrifft. Knotengröße und -farbe nach Gewinnrate.</p>
-        <p class="text-xs text-gray-400 mb-3"><strong>Nähe</strong> = Kommunen sind durch eine Dominanzkante direkt verbunden und werden zusammengezogen (Federkraft). <strong>Distanz</strong> = keine direkte Kante → Abstoßung dominiert. Cluster aus eng beieinander liegenden Knoten sind Leistungs-„Tiers", in denen sich Kommunen gegenseitig ähnlich stark übertreffen oder auf Augenhöhe sind.</p>
+        <h3 class="text-sm font-bold mb-1">{{ $t("stats.dominance.network") }}</h3>
+        <p class="text-xs text-gray-500 mb-2">{{ $t("stats.dominance.network.description") }}</p>
+        <p class="text-xs text-gray-400 mb-3"><span v-html="$t('stats.dominance.network.note')"></span></p>
         <div ref="dominanceForceContainer" class="w-full" style="min-height: 700px;"></div>
       </div>
 
@@ -690,9 +684,9 @@ const activeFilterCount = computed(() => {
   return count;
 });
 const typeOptions = [
-  { label: 'Alle Kommunen', value: null },
-  { label: 'Großstädte', value: 'big_city' },
-  { label: 'Kleinstädte', value: 'small_city' },
+  { label: $t('stats.type.all_municipalities'), value: null },
+  { label: $t('stats.type.big_cities'), value: 'big_city' },
+  { label: $t('stats.type.small_cities'), value: 'small_city' },
 ];
 
 const filterSuffix = computed(() => {
@@ -784,21 +778,21 @@ const clusterData = ref([]);
 const sectorOrder = ['energy', 'transport', 'agriculture', 'industry', 'buildings', 'management'];
 
 const sectorNames = {
-  energy: 'Energie',
-  transport: 'Verkehr',
-  agriculture: 'Landwirtschaft, Natur & Ernährung',
-  industry: 'Industrie, Wirtschaft & Konsum',
-  buildings: 'Gebäude & Wärme',
-  management: 'Klimaschutzmanagement & Verwaltung',
+  energy: $t('measure_sectors.energy.title'),
+  transport: $t('measure_sectors.transport.title'),
+  agriculture: $t('measure_sectors.agriculture.title'),
+  industry: $t('measure_sectors.industry.title'),
+  buildings: $t('measure_sectors.buildings.title'),
+  management: $t('measure_sectors.management.title'),
 };
 
 const shortSectorNames = {
-  energy: 'Energie',
-  transport: 'Verkehr',
-  agriculture: 'Landwirtschaft',
-  industry: 'Industrie',
-  buildings: 'Gebäude',
-  management: 'Management',
+  energy: $t('measure_sectors.energy.title'),
+  transport: $t('measure_sectors.transport.title'),
+  agriculture: $t('stats.sector_short.agriculture'),
+  industry: $t('stats.sector_short.industry'),
+  buildings: $t('stats.sector_short.buildings'),
+  management: $t('stats.sector_short.management'),
 };
 
 const sectorColors = {
@@ -820,12 +814,12 @@ const ratingColors = {
 };
 
 const ratingLabelsMap = {
-  '-1': 'Nicht anwendbar',
-  '0':  'Kaum/nicht',
-  '0.25': 'Ansatzweise',
-  '0.5':  'Halbwegs',
-  '0.75': 'Größtenteils',
-  '1':    'Vollständig',
+  '-1': $t('rating.not_applicable'),
+  '0':  $t('rating.hardly_or_not'),
+  '0.25': $t('rating.initial_steps'),
+  '0.5':  $t('rating.halfway'),
+  '0.75': $t('rating.mostly'),
+  '1':    $t('rating.fullfilled'),
 };
 
 function getRatingKeys() {
@@ -1133,8 +1127,8 @@ async function renderSunburst() {
             color: { field: 'meanRating', type: 'quantitative', scale: vegaColorScale, legend: null },
             order: { field: 'order', type: 'ordinal' },
             tooltip: [
-              { field: 'name', title: 'Sektor' },
-              { field: 'meanRating', format: '.3f', title: 'Ø Bewertung' },
+              { field: 'name', title: $t('stats.chart.sector') },
+              { field: 'meanRating', format: '.3f', title: $t('stats.chart.average_rating') },
             ],
             stroke: sel.type === 'sector'
               ? { condition: { test: `datum.sectorKey === '${sel.sectorKey}'`, value: '#1d4ed8' }, value: 'white' }
@@ -1153,9 +1147,9 @@ async function renderSunburst() {
             color: { field: 'meanRatingDisplay', type: 'quantitative', scale: vegaColorScale, legend: null },
             order: { field: 'order', type: 'ordinal' },
             tooltip: [
-              { field: 'name', title: 'Maßnahme' },
-              { field: 'sectorName', title: 'Sektor' },
-              { field: 'meanRating', format: '.3f', title: 'Ø Bewertung' },
+              { field: 'name', title: $t('stats.chart.measure') },
+              { field: 'sectorName', title: $t('stats.chart.sector') },
+              { field: 'meanRating', format: '.3f', title: $t('stats.chart.average_rating') },
             ],
             stroke: sel.type === 'measure'
               ? { condition: { test: `datum.measureId === ${JSON.stringify(sel.measureId)}`, value: '#1d4ed8' }, value: 'white' }
@@ -1231,9 +1225,9 @@ async function renderDistPanel() {
       data: { values: scores },
       mark: { type: 'bar', cursor: 'pointer', strokeWidth: 2.5 },
       encoding: {
-        x: { field: 'bin_start', bin: 'binned', type: 'quantitative', title: 'Gesamtscore (%)', scale: { domain: [0, 100] } },
+        x: { field: 'bin_start', bin: 'binned', type: 'quantitative', title: $t('stats.chart.total_score_percent'), scale: { domain: [0, 100] } },
         x2: { field: 'bin_end' },
-        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
+        y: { aggregate: 'count', type: 'quantitative', title: $t('stats.municipalities'), axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
         color: {
           field: 'bin_start',
           type: 'quantitative',
@@ -1241,9 +1235,9 @@ async function renderDistPanel() {
           legend: null,
         },
         tooltip: [
-          { field: 'bin_start', title: 'Score von', format: '.1f' },
-          { field: 'bin_end', title: 'bis', format: '.1f' },
-          { aggregate: 'count', type: 'quantitative', title: 'Kommunen' },
+          { field: 'bin_start', title: $t('stats.chart.score_from'), format: '.1f' },
+          { field: 'bin_end', title: $t('stats.chart.to'), format: '.1f' },
+          { aggregate: 'count', type: 'quantitative', title: $t('stats.municipalities') },
         ],
         stroke: selectedBin0Global != null
           ? { condition: { test: `datum.bin_start === ${selectedBin0Global}`, value: '#1d4ed8' }, value: null }
@@ -1295,7 +1289,7 @@ async function renderDistPanel() {
       encoding: {
         x: { field: 'bin_start', bin: 'binned', type: 'quantitative', title: `Score ${shortSectorNames[sKey]}`, scale: { domain: [0, 100] } },
         x2: { field: 'bin_end' },
-        y: { aggregate: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
+        y: { aggregate: 'count', type: 'quantitative', title: $t('stats.municipalities'), axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
         color: {
           field: 'bin_start',
           type: 'quantitative',
@@ -1303,9 +1297,9 @@ async function renderDistPanel() {
           legend: null,
         },
         tooltip: [
-          { field: 'bin_start', title: 'Score von', format: '.1f' },
-          { field: 'bin_end', title: 'bis', format: '.1f' },
-          { aggregate: 'count', type: 'quantitative', title: 'Kommunen' },
+          { field: 'bin_start', title: $t('stats.chart.score_from'), format: '.1f' },
+          { field: 'bin_end', title: $t('stats.chart.to'), format: '.1f' },
+          { aggregate: 'count', type: 'quantitative', title: $t('stats.municipalities') },
         ],
         stroke: selectedBin0 != null
           ? { condition: { test: `datum.bin_start === ${selectedBin0}`, value: '#1d4ed8' }, value: null }
@@ -1358,10 +1352,10 @@ async function renderDistPanel() {
       data: { values },
       mark: { type: 'bar', cornerRadiusTopLeft: 3, cornerRadiusTopRight: 3, cursor: 'pointer', strokeWidth: 2.5 },
       encoding: {
-        x: { field: 'label', type: 'nominal', sort: null, title: 'Bewertung', axis: { labelAngle: -20 } },
-        y: { field: 'count', type: 'quantitative', title: 'Kommunen', axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
+        x: { field: 'label', type: 'nominal', sort: null, title: $t('stats.chart.rating'), axis: { labelAngle: -20 } },
+        y: { field: 'count', type: 'quantitative', title: $t('stats.municipalities'), axis: { tickMinStep: 1, format: 'd', labelExpr: "datum.value % 1 === 0 ? datum.label : ''" } },
         color: { field: 'color', type: 'nominal', scale: null, legend: null },
-        tooltip: [{ field: 'label', title: 'Bewertung' }, { field: 'count', title: 'Kommunen' }],
+        tooltip: [{ field: 'label', title: $t('stats.chart.rating') }, { field: 'count', title: $t('stats.municipalities') }],
         stroke: { condition: { test: `datum.ratingKey === ${JSON.stringify(selectedRk)}`, value: '#1d4ed8' }, value: null },
       },
     };
@@ -1569,7 +1563,7 @@ async function computeDominanceAndRender() {
         title: null, axis: { labelFontSize: 10 },
       },
       x: {
-        field: 'winRate', type: 'quantitative', title: 'Gewinnrate',
+        field: 'winRate', type: 'quantitative', title: $t('stats.chart.win_rate'),
         axis: { format: '.0%', labelFontSize: 10 },
         scale: { domain: [0, 1] },
       },
@@ -1579,11 +1573,11 @@ async function computeDominanceAndRender() {
         legend: null,
       },
       tooltip: [
-        { field: 'rank', type: 'quantitative', title: 'Rang' },
-        { field: 'name', title: 'Kommune' },
-        { field: 'winRate', format: '.1%', title: 'Gewinnrate' },
-        { field: 'wins', title: 'Siege' },
-        { field: 'losses', title: 'Niederlagen' },
+        { field: 'rank', type: 'quantitative', title: $t('stats.chart.rank') },
+        { field: 'name', title: $t('stats.chart.municipality') },
+        { field: 'winRate', format: '.1%', title: $t('stats.chart.win_rate') },
+        { field: 'wins', title: $t('stats.chart.wins') },
+        { field: 'losses', title: $t('stats.chart.losses') },
       ],
     },
   };
@@ -1614,12 +1608,12 @@ async function computeDominanceAndRender() {
       color: {
         field: 'rate', type: 'quantitative',
         scale: { domain: [0, 0.5, 1], range: ['#d62728', '#f0f0f0', '#1d4ed8'] },
-        legend: { title: 'Gewinnrate' },
+        legend: { title: $t('stats.chart.win_rate') },
       },
       tooltip: [
-        { field: 'row', title: 'Zeile (gewinnt)' },
-        { field: 'col', title: 'Spalte (verliert)' },
-        { field: 'rate', format: '.1%', title: 'Gewinnrate Zeile' },
+        { field: 'row', title: $t('stats.chart.row_wins') },
+        { field: 'col', title: $t('stats.chart.column_loses') },
+        { field: 'rate', format: '.1%', title: $t('stats.chart.row_win_rate') },
       ],
     },
   };
@@ -1882,11 +1876,11 @@ async function computeClusteringAndRender() {
         color: {
           field: 'cluster', type: 'nominal',
           scale: { domain: clusterDomain, range: clusterRange },
-          legend: { title: 'Cluster' },
+          legend: { title: $t('stats.chart.cluster') },
         },
         tooltip: [
-          { field: 'name', type: 'nominal', title: 'Kommune' },
-          { field: 'cluster', type: 'nominal', title: 'Cluster' },
+          { field: 'name', type: 'nominal', title: $t('stats.chart.municipality') },
+          { field: 'cluster', type: 'nominal', title: $t('stats.chart.cluster') },
           { field: 'scoreTotal', type: 'nominal', title: 'Score (%)' },
           { field: 'x', type: 'quantitative', title: 'PC 1', format: '.3f' },
           { field: 'y', type: 'quantitative', title: 'PC 2', format: '.3f' },

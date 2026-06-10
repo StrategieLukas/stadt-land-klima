@@ -1,0 +1,3 @@
+language: en-GB
+key: localteam.join.contact_content
+value: "I would like to join the local team in :name.\n\nMy contact details:\n"

@@ -21,7 +21,7 @@
               <line x1="2" y1="8.5" x2="22" y2="8.5" />
               <line x1="2" y1="15.5" x2="22" y2="15.5" />
             </svg>
-            Polardiagramm
+            {{ $t("municipality.chart.polar") }}
           </a>
           <a 
             role="tab" 
@@ -34,7 +34,7 @@
               <rect x="13" y="2" width="9" height="9" rx="1" />
               <rect x="13" y="13" width="9" height="9" rx="1" />
             </svg>
-            Treemap
+            {{ $t("generic.view.treemap") }}
           </a>
         </div>
         <div class="mt-4 bg-base-100 border-base-300 rounded-box p-6">
@@ -49,10 +49,10 @@
             :name-municipality="municipality.name" 
           />
           <p v-if="activeTab === 'polar'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
-            Die farbigen Segmente zeigen den Punktestand je Sektor. Je größer ein Segment, desto besser schneidet die Kommune in diesem Bereich ab.
+            {{ $t("municipality.chart.polar.description") }}
           </p>
           <p v-else-if="activeTab === 'treemap'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
-            Jede Kachel steht für eine Maßnahme – die Fläche entspricht ihrer Gewichtung. Die Farbe zeigt den Umsetzungsstand: Rot&nbsp;= nicht erfüllt, Grün&nbsp;= vollständig umgesetzt.
+            {{ $t("municipality.chart.treemap.description") }}
           </p>
         </div>
       </div>
@@ -136,7 +136,7 @@
                 <line x1="2" y1="8.5" x2="22" y2="8.5" />
                 <line x1="2" y1="15.5" x2="22" y2="15.5" />
               </svg>
-              Polardiagramm
+              {{ $t("municipality.chart.polar") }}
             </a>
             <a 
               role="tab" 
@@ -149,7 +149,7 @@
                 <rect x="13" y="2" width="9" height="9" rx="1" />
                 <rect x="13" y="13" width="9" height="9" rx="1" />
               </svg>
-              Treemap
+              {{ $t("generic.view.treemap") }}
             </a>
           </div>
           <div class="mt-4 bg-base-100 border-base-300 rounded-box p-6">
@@ -164,10 +164,10 @@
             :name-municipality="municipality.name" 
           />
           <p v-if="activeTab === 'polar'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
-            Die farbigen Segmente zeigen den Punktestand je Sektor. Je größer ein Segment, desto besser schneidet die Kommune in diesem Bereich ab.
+            {{ $t("municipality.chart.polar.description") }}
           </p>
           <p v-else-if="activeTab === 'treemap'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
-            Jede Kachel steht für eine Maßnahme – die Fläche entspricht ihrer Gewichtung. Die Farbe zeigt den Umsetzungsstand: Rot&nbsp;= nicht erfüllt, Grün&nbsp;= vollständig umgesetzt.
+            {{ $t("municipality.chart.treemap.description") }}
           </p>
         </div>
         </div>

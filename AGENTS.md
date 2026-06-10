@@ -29,10 +29,9 @@ alter table "<table>" alter column "id" drop not null — column "id" is in a pr
 
 ### Adding / changing permissions
 
-The frontend makes client-side requests with a static Bearer token (the **frontend** role). Server-side / unauthenticated requests use the **public** role. **Both roles usually need the same read permission** when exposing a new collection to the frontend.
-
+The frontend makes client-side requests with a static Bearer token (the **frontend** role). Server-side / unauthenticated requests use the **public** role.
+DO NOT EVER change the public.yaml permissions. Anything shown on the website is read with the frontend.yaml permissions.
 Edit the relevant files in `src/directus/roles/`:
-- `public.yaml` — unauthenticated / SSR access
 - `frontend.yaml` — client-side requests that include the frontend Bearer token
 
 **Template — add to the `permissions:` list in both files:**
@@ -55,7 +54,6 @@ LEFT JOIN directus_roles r ON p.role = r.id
 WHERE p.collection = '<collection_name>';
 ```
 
-> **Gotcha:** If you only add it to `public.yaml` and the browser still gets a 403, check whether the request has an `Authorization: Bearer` header. If it does, it hits the **frontend** role, not public — add the permission to `frontend.yaml` as well.
 
 ### Custom interface extensions
 
@@ -149,7 +147,7 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 11. Extensions and the CLI script are to be written in Typescript only. Avoid nonsense interfaces for only a single primitive field.
 12. Elsewhere prefer typescript for all new implementations, unless it would be significant effort or would cause interop problems.
 13. NEVER commit automatically. The user must use the diff to be able to review your changes.
-
+14. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
 
 ## Project structure:
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend

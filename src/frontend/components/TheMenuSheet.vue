@@ -76,7 +76,7 @@
                 @click="closeDrawer"
               >
                 <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
-                <span>{{ item.label }}</span>
+                <span>{{ navLabel(item) }}</span>
               </component>
               <component
                 v-else-if="item.link_type === 'external'"
@@ -88,19 +88,19 @@
                 @click="closeDrawer"
               >
                 <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
-                <span>{{ item.label }}</span>
+                <span>{{ navLabel(item) }}</span>
               </component>
               <span
                 v-else
                 class="flex flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800 min-w-0"
               >
                 <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
-                {{ item.label }}
+                {{ navLabel(item) }}
               </span>
               <!-- Chevron toggle -->
               <button
                 class="flex-shrink-0 flex items-center justify-center w-12 h-full py-3 text-gray-400 hover:text-gray-600 transition-colors"
-                :aria-label="expandedId === item.id ? 'Zuklappen' : 'Aufklappen'"
+                :aria-label="expandedId === item.id ? $t('generic.collapse') : $t('generic.expand')"
                 @click="toggleExpanded(item.id)"
               >
                 <svg
@@ -131,7 +131,7 @@
                 >
                   <img :src="imageUrlMap[child.image_id]" class="w-full h-full object-cover" alt="" />
                   <div class="absolute inset-x-0 bottom-0 pt-4 pb-1.5 px-2 bg-gradient-to-t from-black/70 to-transparent">
-                    <div class="text-xs font-semibold text-white leading-snug" style="text-shadow: 0 1px 3px rgba(0,0,0,.5)">{{ child.label }}</div>
+                    <div class="text-xs font-semibold text-white leading-snug" style="text-shadow: 0 1px 3px rgba(0,0,0,.5)">{{ navLabel(child) }}</div>
                   </div>
                 </component>
               </div>
@@ -156,9 +156,9 @@
                     <svg v-if="child.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    {{ child.label }}
+                    {{ navLabel(child) }}
                   </span>
-                  <span v-if="child.description" class="text-xs font-normal text-gray-400 mt-0.5 leading-snug">{{ child.description }}</span>
+                  <span v-if="child.description" class="text-xs font-normal text-gray-400 mt-0.5 leading-snug">{{ navDescription(child) }}</span>
                 </component>
               </template>
             </div>
@@ -183,7 +183,7 @@
             <svg v-if="item.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            {{ item.label }}
+            {{ navLabel(item) }}
           </component>
 
           <!-- Label-only (no link, no children) -->
@@ -192,7 +192,7 @@
             class="flex items-center gap-2 w-full px-5 py-3 text-sm font-semibold text-gray-400 border-b border-gray-100"
           >
             <img v-if="item.image_id && imageUrlMap[item.image_id]" :src="imageUrlMap[item.image_id]" class="h-4 w-auto object-contain flex-shrink-0" alt="" />
-            {{ item.label }}
+            {{ navLabel(item) }}
           </span>
         </li>
       </ul>
@@ -205,7 +205,7 @@
             class="flex items-center gap-2 px-5 py-3 text-sm font-semibold text-gray-800 border-b border-gray-100 hover:bg-gray-50 transition-colors"
             @click="closeDrawer"
           >
-            <span>→</span> {{ page.name }}
+            <span>→</span> {{ navLabel(page, 'name') }}
           </NuxtLink>
         </li>
       </ul>
@@ -216,6 +216,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, resolveComponent } from 'vue'
 import { useRuntimeConfig } from '#imports'
+import translatedNavigationLabel from '~/shared/translatedNavigationLabel.js'
 
 const NuxtLink = resolveComponent('NuxtLink')
 
@@ -223,6 +224,8 @@ const { $t } = useNuxtApp()
 const route = useRoute()
 const config = useRuntimeConfig()
 const { closeDrawer } = useDrawer()
+const navLabel = (item, field = 'label') => translatedNavigationLabel(item, $t, field)
+const navDescription = (item) => translatedNavigationLabel(item, $t, 'description')
 
 // Easter egg: pull-to-reveal SLK flower
 const eggHeight = ref(0)

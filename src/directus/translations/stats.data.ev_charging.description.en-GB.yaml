@@ -1,0 +1,3 @@
+language: en-GB
+key: stats.data.ev_charging.description
+value: Total net rated power of electric vehicle charging points in the area.

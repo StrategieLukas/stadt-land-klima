@@ -63,7 +63,7 @@
       {{ $t("measure_rating.better_examples.title") }}:
     </h3>
 
-    <p v-if="loadingExamples">{{ $t("loading") }}...</p>
+    <p v-if="loadingExamples">{{ $t("generic.loading") }}</p>
 
     <ul v-else-if="similarExamples.length > 0" class="space-y-2 mt-4">
       <li

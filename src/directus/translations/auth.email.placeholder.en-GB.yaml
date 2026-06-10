@@ -1,0 +1,3 @@
+language: en-GB
+key: auth.email.placeholder
+value: "e.g. maria@example.de"

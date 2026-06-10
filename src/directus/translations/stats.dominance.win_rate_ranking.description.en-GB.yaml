@@ -1,0 +1,3 @@
+language: en-GB
+key: stats.dominance.win_rate_ranking.description
+value: "Share of pairwise measure comparisons won by a municipality"

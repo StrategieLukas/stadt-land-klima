@@ -48,7 +48,20 @@ const props = defineProps<{
 
 const attrs = useAttrs()
 
-const svgFiles = import.meta.glob('@/assets/icons/*.svg', { query: '?raw', eager: true })
+const svgFiles = import.meta.glob('@/assets/icons/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+})
+
+function getRawSvg(svg: unknown): string {
+  if (typeof svg === 'string') return svg
+  if (svg && typeof svg === 'object' && 'default' in svg && typeof svg.default === 'string') {
+    return svg.default
+  }
+
+  return ''
+}
 
 /**
  * Like Blokkli Button's prepareIcon, but also strips <circle class="cls-1">
@@ -77,7 +90,7 @@ function prepareIconForButton(raw: string): string {
 const iconMap: Record<string, string> = Object.fromEntries(
   Object.entries(svgFiles).map(([path, svg]) => {
     const name = path.split('/').pop()?.replace('.svg', '') ?? ''
-    return [name, prepareIconForButton(svg as string)]
+    return [name, prepareIconForButton(getRawSvg(svg))]
   }),
 )
 

@@ -5,7 +5,7 @@
       &larr; {{ backLabel }}
     </NuxtLink>
     <waving-banner class="mt-6">
-      Diese Gemeinde wird aktuell durch ein Lokalteam eingerichtet und ist noch nicht öffentlich zugänglich.
+      {{ $t("municipalities.preview_locked") }}
     </waving-banner>
   </div>
 
@@ -29,23 +29,22 @@
       <!-- Complete rating (≥98%) → contact / feedback -->
       <div v-if="ctaType === 'complete'" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
         <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-80" />
-        <h2 class="font-heading text-h2 font-bold text-green mb-2">Mitmachen beim Lokalteam</h2>
+        <h2 class="font-heading text-h2 font-bold text-green mb-2">{{ $t("localteam.join") }}</h2>
         <p class="text-gray-600 max-w-sm mb-6">
-          <strong>{{ directusData.municipalityScore.municipality.name }}</strong> hat eine vollständige Bewertung.
-          Nimm Kontakt zum Lokalteam auf oder schick uns dein Feedback.
+          <span v-html="$t('localteam.join.completed_body', { ':name': directusData.municipalityScore.municipality.name })"></span>
         </p>
         <div class="flex flex-col sm:flex-row gap-3">
           <NuxtLink
-            :to="`/contact?title=${encodeURIComponent('Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mitmachen.\n\nMeine Kontaktdaten:\n')}`"
+            :to="`/contact?title=${encodeURIComponent($t('localteam.contact_title', { ':name': directusData.municipalityScore.municipality.name }))}&type=cooperation&content=${encodeURIComponent($t('localteam.join.contact_content', { ':name': directusData.municipalityScore.municipality.name }))}`"
             class="px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
           >
-            Kontakt aufnehmen →
+            {{ $t("generic.contact") }} →
           </NuxtLink>
           <NuxtLink
-            :to="`/contact?title=${encodeURIComponent('Feedback zu ' + directusData.municipalityScore.municipality.name)}&type=suggestion&content=${encodeURIComponent('Kommune: ' + directusData.municipalityScore.municipality.name + '\nLink: /municipalities/' + route.params.slug + '\n\nMein Feedback:\n')}`"
+            :to="`/contact?title=${encodeURIComponent($t('feedback.title_for', { ':name': directusData.municipalityScore.municipality.name }))}&type=suggestion&content=${encodeURIComponent($t('feedback.content_for_municipality', { ':name': directusData.municipalityScore.municipality.name, ':slug': route.params.slug }))}`"
             class="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
           >
-            Feedback geben
+            {{ $t("feedback.give") }}
           </NuxtLink>
         </div>
       </div>
@@ -53,16 +52,15 @@
       <!-- In-progress rating with localteam → help the team -->
       <div v-else-if="ctaType === 'in-progress'" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-yellow-50">
         <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
-        <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
+        <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">{{ $t("localteam.support") }}</h2>
         <p class="text-gray-600 max-w-sm mb-6">
-          In <strong>{{ directusData.municipalityScore.municipality.name }}</strong> arbeitet bereits ein Lokalteam an der Bewertung.
-          Hilf ihnen dabei, die Bewertung zu vervollständigen.
+          <span v-html="$t('localteam.support.body', { ':name': directusData.municipalityScore.municipality.name })"></span>
         </p>
         <NuxtLink
-          :to="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + directusData.municipalityScore.municipality.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + directusData.municipalityScore.municipality.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
+          :to="`/contact?title=${encodeURIComponent($t('localteam.support.contact_title', { ':name': directusData.municipalityScore.municipality.name }))}&type=cooperation&content=${encodeURIComponent($t('localteam.support.contact_content', { ':name': directusData.municipalityScore.municipality.name }))}`"
           class="px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
         >
-          Lokalteam unterstützen →
+          {{ $t("localteam.support") }} →
         </NuxtLink>
       </div>
     </div>
@@ -171,28 +169,26 @@
         <!-- CTA: support team if Directus municipality with localteam found, otherwise found one -->
         <div v-if="directusMuniByArs" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-yellow-50">
           <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
-          <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
+          <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">{{ $t("localteam.support") }}</h2>
           <p class="text-gray-600 max-w-sm mb-6">
-            In <strong>{{ slzArea.name }}</strong> arbeitet bereits ein Lokalteam an der Bewertung.
-            Hilf ihnen dabei, die Bewertung zu vervollständigen.
+            <span v-html="$t('localteam.support.body', { ':name': slzArea.name })"></span>
           </p>
           <CanonicalButton
-            :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
-            label="Lokalteam unterstützen"
+            :href="`/contact?title=${encodeURIComponent($t('localteam.support.contact_title', { ':name': slzArea.name }))}&type=cooperation&content=${encodeURIComponent($t('localteam.support.contact_content', { ':name': slzArea.name }))}`"
+            :label="$t('localteam.support')"
             icon-slug="icon_team"
             color="dark-green"
           />
         </div>
         <div v-else class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
           <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
-          <h2 class="font-heading text-h2 font-bold text-green mb-2">Lokalteam gründen</h2>
+          <h2 class="font-heading text-h2 font-bold text-green mb-2">{{ $t("localteam.create") }}</h2>
           <p class="text-gray-600 max-w-sm mb-6">
-            <strong>{{ slzArea.name }}</strong> wurde noch nicht bewertet.
-            Gründe ein Lokalteam und bringe aktiven Klimaschutz in deine Kommune.
+            <span v-html="$t('localteam.create.body', { ':name': slzArea.name })"></span>
           </p>
           <CanonicalButton
             :href="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
-            label="Jetzt Lokalteam gründen"
+            :label="$t('localteam.create_now')"
             icon-slug="icon_location_green_marker"
             color="green"
           />
@@ -205,28 +201,26 @@
         <div class="lg:col-span-2">
           <div v-if="directusMuniByArs" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-yellow-50">
             <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
-            <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
+            <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">{{ $t("localteam.support") }}</h2>
             <p class="text-gray-600 max-w-sm mb-6">
-              In <strong>{{ slzArea.name }}</strong> arbeitet bereits ein Lokalteam an der Bewertung.
-              Hilf ihnen dabei, die Bewertung zu vervollständigen.
+              <span v-html="$t('localteam.support.body', { ':name': slzArea.name })"></span>
             </p>
             <CanonicalButton
-              :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + slzArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte beim Lokalteam in ' + slzArea.name + ' mithelfen.\n\nMeine Kontaktdaten:\n')}`"
-              label="Lokalteam unterstützen"
+              :href="`/contact?title=${encodeURIComponent($t('localteam.support.contact_title', { ':name': slzArea.name }))}&type=cooperation&content=${encodeURIComponent($t('localteam.support.contact_content', { ':name': slzArea.name }))}`"
+              :label="$t('localteam.support')"
               icon-slug="icon_team"
               color="dark-green"
             />
           </div>
           <div v-else class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
             <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
-            <h2 class="font-heading text-h2 font-bold text-green mb-2">Lokalteam gründen</h2>
+            <h2 class="font-heading text-h2 font-bold text-green mb-2">{{ $t("localteam.create") }}</h2>
             <p class="text-gray-600 max-w-sm mb-6">
-              <strong>{{ slzArea.name }}</strong> wurde noch nicht bewertet.
-              Gründe ein Lokalteam und bringe aktiven Klimaschutz in deine Kommune.
+              <span v-html="$t('localteam.create.body', { ':name': slzArea.name })"></span>
             </p>
             <CanonicalButton
               :href="`/register_localteam?ars=${slzArea.ars}&name=${encodeURIComponent(slzArea.name)}`"
-              label="Jetzt Lokalteam gründen"
+              :label="$t('localteam.create_now')"
               icon-slug="icon_location_green_marker"
               color="green"
             />

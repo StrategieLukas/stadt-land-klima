@@ -1,0 +1,3 @@
+language: de-DE
+key: feedback.title_for
+value: "Feedback zu :name"

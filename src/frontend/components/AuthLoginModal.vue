@@ -20,7 +20,7 @@
           <button
             @click="close"
             class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Schließen"
+            :aria-label="$t('generic.close')"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -30,7 +30,7 @@
           <!-- Header -->
           <div class="mb-6">
             <h2 id="login-modal-title" class="text-2xl font-bold text-gray-900">
-              Anmelden
+              {{ $t('generic.log_in') }}
             </h2>
           </div>
 
@@ -39,7 +39,7 @@
             <!-- Email Field -->
             <div>
               <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">
-                E-Mail
+                {{ $t('auth.email') }}
               </label>
               <input
                 id="login-email"
@@ -56,7 +56,7 @@
             <!-- Password Field -->
             <div>
               <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">
-                Passwort
+                {{ $t('auth.password') }}
               </label>
               <div class="relative">
                 <input
@@ -67,13 +67,13 @@
                   autocomplete="current-password"
                   :disabled="isLoading"
                   class="w-full px-3 py-2 pr-10 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  placeholder="Passwort eingeben"
+                  :placeholder="$t('auth.password.placeholder')"
                 />
                 <button
                   type="button"
                   @click="showPassword = !showPassword"
                   class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                  :aria-label="showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
+                  :aria-label="showPassword ? $t('auth.password.hide') : $t('auth.password.show')"
                 >
                   <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -104,9 +104,9 @@
             >
               <span v-if="isLoading" class="flex items-center justify-center gap-1.5">
                 <SlkFlowerSpinner :size="16" color="#fbfbfb" />
-                Anmeldung läuft...
+                {{ $t('auth.login_in_progress') }}
               </span>
-              <span v-else>Anmelden</span>
+              <span v-else>{{ $t('generic.log_in') }}</span>
             </button>
           </form>
         </div>
@@ -129,6 +129,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success']);
 
 const { login, isLoading } = useAuth();
+const { $t } = useNuxtApp();
 
 const email = ref('');
 const password = ref('');
@@ -164,7 +165,7 @@ async function handleSubmit() {
       password.value = '';
     }
   } catch (err) {
-    errorMessage.value = err.message || 'Anmeldung fehlgeschlagen.';
+    errorMessage.value = err.message || $t('auth.login_failed');
   }
 }
 

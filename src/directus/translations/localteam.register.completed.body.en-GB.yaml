@@ -1,0 +1,3 @@
+language: en-GB
+key: localteam.register.completed.body
+value: "The local team in <strong>:name</strong> has completed the rating. View the results or get in touch to support the team."

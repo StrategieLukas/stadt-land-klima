@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.theses.answer_all
+value: "Bitte beantworten Sie alle :count Fragen."

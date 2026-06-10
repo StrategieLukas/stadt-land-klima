@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.wahlcheck.results.compared_count
+value: ":count Kandidaten verglichen"

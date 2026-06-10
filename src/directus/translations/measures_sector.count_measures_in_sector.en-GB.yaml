@@ -1,0 +1,3 @@
+language: en-GB
+key: measures_sector.count_measures_in_sector
+value: "Number of measures in this sector: :count"

@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.dominance.network.description
+value: "Alle Kommunen als Knoten. Eine Kante zwischen zwei Knoten bedeutet, dass eine Kommune die andere in > 60% der gemeinsam bewerteten Maßnahmen übertrifft. Knotengröße und -farbe nach Gewinnrate."

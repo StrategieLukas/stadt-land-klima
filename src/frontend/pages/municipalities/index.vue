@@ -20,7 +20,7 @@
         <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
         </svg>
-        <span>Filter &amp; Ansicht</span>
+        <span>{{ $t('generic.filter_and_view') }}</span>
         <span v-if="activeFilterCount > 0" class="text-white text-xs rounded-full px-1.5 py-0.5 font-bold leading-none" style="background-color: #AFCA0B;">{{ activeFilterCount }}</span>
       </span>
       <svg class="w-4 h-4 flex-shrink-0 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -47,7 +47,7 @@
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
-            Ranking
+            {{ $t('municipalities.view.ranking') }}
           </button>
           <button
             class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
@@ -57,7 +57,7 @@
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
-            Karte
+            {{ $t('municipalities.view.map') }}
           </button>
         </div>
       </div>
@@ -80,7 +80,7 @@
             :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"
             class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
             :class="selectedCatalogVersion.name === 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
-          >2025 (Archiv)</NuxtLink>
+          >{{ $t('ranking.archive_year', { ':year': 2025 }) }}</NuxtLink>
         </div>
       </div>
     </div>
@@ -180,17 +180,16 @@
     <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto flex-shrink-0 opacity-80" />
     <div class="flex-1 text-center sm:text-left">
       <h2 class="font-heading text-h2 font-bold text-green mb-2">
-        Deine Kommune ist nicht dabei?
+        {{ $t('municipalities.cta.missing.title') }}
       </h2>
       <p class="text-gray-600 text-sm mb-4">
-        Starte selbst die Bewertung und bringe aktiven Klimaschutz in deine Gemeinde.
-        Gründe ein Lokalteam — wir begleiten dich durch den Prozess.
+        {{ $t('municipalities.cta.missing.body') }}
       </p>
       <NuxtLink
         to="/register_localteam"
         class="inline-block px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
       >
-        Jetzt anfangen →
+        {{ $t('municipalities.cta.missing.action') }}
       </NuxtLink>
     </div>
   </div>
@@ -379,4 +378,3 @@ const activeFilterCount = computed(() => {
 })
 
 </script>
-

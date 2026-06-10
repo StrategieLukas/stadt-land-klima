@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.wahlcheck.results.share.create_error
+value: "Fehler beim Erstellen des teilbaren Links"

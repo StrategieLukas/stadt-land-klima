@@ -10,17 +10,16 @@
         >
       </div>
       <h2 class="text-2xl font-bold text-stats-dark mb-4">
-        Beantworten Sie die Thesen
+	        {{ $t("elections.wahlcheck.questions.title") }}
       </h2>
       <p class="text-mid-gray max-w-2xl mx-auto">
-        Geben Sie zu jeder These an, inwieweit Sie dieser zustimmen. 
-        Ihre Antworten werden später mit den Antworten der Kandidaten verglichen.
+	        {{ $t("elections.wahlcheck.questions.description") }}
       </p>
       <p v-if="localteam" class="text-sm text-mid-gray mt-4">
-        <strong>Lokalteam:</strong> {{ localteam.municipality_name || localteam.name }}
+	        <strong>{{ $t("localteam.singular") }}:</strong> {{ localteam.municipality_name || localteam.name }}
       </p>
       <p class="text-xs text-gray/50 mt-2">
-        Sie können Fragen überspringen, indem Sie "Keine Angabe" wählen.
+	        {{ $t("elections.wahlcheck.questions.skip_hint") }}
       </p>
     </div>
 
@@ -80,7 +79,7 @@
               class="checkbox checkbox-sm border-gray/30"
               @change="handleSkipChange(currentQuestion.id)"
             />
-            <span>Keine Angabe / Frage überspringen</span>
+	            <span>{{ $t("elections.wahlcheck.questions.skip") }}</span>
           </label>
         </div>
       </div>
@@ -88,7 +87,7 @@
       <!-- Navigation Buttons -->
       <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
         <div class="text-sm text-mid-gray">
-          {{ completedCount }} / {{ props.questions.length }} Fragen beantwortet
+	          {{ $t("elections.wahlcheck.questions.answered_count", { ":count": completedCount, ":total": props.questions.length }) }}
         </div>
         <div class="flex gap-4">
           <button
@@ -98,7 +97,7 @@
             class="btn btn-outline btn-secondary px-6 py-2 rounded-full font-semibold"
             :class="{ 'opacity-50 cursor-not-allowed': currentQuestionIndex === 0 }"
           >
-            Zurück
+	            {{ $t("generic.back") }}
           </button>
           <button
             type="button"
@@ -107,8 +106,8 @@
             class="btn btn-primary px-8 py-2 rounded-full font-semibold text-white"
             :class="{ 'opacity-50 cursor-not-allowed': !canProceedToNext }"
           >
-            <span v-if="currentQuestionIndex === props.questions.length - 1">zu den Gewichtungen</span>
-            <span v-else>Nächste Frage</span>
+	            <span v-if="currentQuestionIndex === props.questions.length - 1">{{ $t("elections.wahlcheck.questions.to_weighting") }}</span>
+	            <span v-else>{{ $t("elections.wahlcheck.questions.next") }}</span>
             <span v-if="false" class="loading loading-spinner loading-sm"></span>
           </button>
         </div>
@@ -126,7 +125,7 @@
             'bg-white border-gray/30 text-gray hover:border-ff-green': currentQuestionIndex !== idx,
             'bg-ff-green/10 border-ff-green/30': completedQuestions.has(q.id)
           }"
-          :title="`Zu Frage ${idx + 1}`"
+	          :title="$t('elections.wahlcheck.questions.go_to', { ':number': idx + 1 })"
         >
           {{ completedQuestions.has(q.id) ? '✓' : idx + 1 }}
         </button>
@@ -159,12 +158,14 @@ const props = defineProps({
 
 const emit = defineEmits(['next', 'prev'])
 
+const { $t } = useNuxtApp()
+
 const ratingOptions = [
-  { value: 0, label: 'stark dagegen' },
-  { value: 1, label: 'eher dagegen' },
-  { value: 2, label: 'neutral' },
-  { value: 3, label: 'eher dafür' },
-  { value: 4, label: 'stark dafür' }
+  { value: 0, label: $t('elections.wahlcheck.answer.strongly_against') },
+  { value: 1, label: $t('elections.wahlcheck.answer.somewhat_against') },
+  { value: 2, label: $t('elections.wahlcheck.answer.neutral') },
+  { value: 3, label: $t('elections.wahlcheck.answer.somewhat_for') },
+  { value: 4, label: $t('elections.wahlcheck.answer.strongly_for') }
 ]
 
 const userAnswers = ref({...props.userAnswers})

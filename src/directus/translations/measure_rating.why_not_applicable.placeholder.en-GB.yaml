@@ -1,0 +1,12 @@
+language: en-GB
+key: measure_rating.why_not_applicable.placeholder
+value: >-
+  Missing information is NOT (!) a reason to mark a measure as "not applicable".
+  This option is only intended for cases where the measure clearly cannot be
+  rated, e.g. "renaturing peatlands" cannot be rated in municipalities that do
+  not have any peatland.
+
+
+  If you cannot rate more than two measures for your municipality, we would
+  appreciate a brief note to info@stadt-land-klima.de so that we can improve the
+  measures catalogue :)

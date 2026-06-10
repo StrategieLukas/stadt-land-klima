@@ -1,0 +1,3 @@
+language: en-GB
+key: stats.clustering.profile_summary
+value: ":count municipalities · average total score: :score"

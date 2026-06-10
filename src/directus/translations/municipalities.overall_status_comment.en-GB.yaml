@@ -1,0 +1,9 @@
+language: en-GB
+key: municipalities.overall_status_comment
+value: >-
+  Here you can add general comments about the current status of your
+  municipality that are important for interpreting the ranking.
+
+
+  For example, you could provide information here about planned municipal
+  projects that could significantly improve the ranking in the future.

@@ -1,0 +1,3 @@
+language: en-GB
+key: search.no_results_for
+value: No results for ":query"

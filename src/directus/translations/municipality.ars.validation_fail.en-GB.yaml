@@ -1,0 +1,5 @@
+language: en-GB
+key: municipality.ars.validation_fail
+value: This is not a valid official regional key (ARS). It has 12 digits. You
+  may have tried to enter an official municipality key (AGS), which has 8
+  digits.

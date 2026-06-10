@@ -1,0 +1,3 @@
+language: en-GB
+key: stats.map.error_loading
+value: "Error loading map data"
