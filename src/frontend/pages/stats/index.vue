@@ -662,6 +662,16 @@ import sectorImages from '~/shared/sectorImages.js';
 
 const route = useRoute();
 const router = useRouter();
+const municipalityNameCollator = new Intl.Collator('de-DE', {
+  numeric: true,
+  sensitivity: 'base',
+});
+
+function compareByScoreThenName(a, b) {
+  const scoreDifference = (b.score_total ?? 0) - (a.score_total ?? 0);
+  if (scoreDifference !== 0) return scoreDifference;
+  return municipalityNameCollator.compare(a.name ?? '', b.name ?? '');
+}
 
 function scrollToSection(id) {
   const el = document.getElementById(id);
@@ -923,7 +933,7 @@ const top10 = computed(() => {
         return { id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: isNaN(v) ? null : v };
       })
       .filter(ms => ms.score_total != null)
-      .sort((a, b) => b.score_total - a.score_total)
+      .sort(compareByScoreThenName)
       .slice(0, 10);
   }
   if (sel.type === 'measure' && sel.measureId) {
@@ -938,14 +948,14 @@ const top10 = computed(() => {
         const v = ratingByLtId.get(ms.municipality.localteam_id);
         return { id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: v * 100 };
       })
-      .sort((a, b) => b.score_total - a.score_total)
+      .sort(compareByScoreThenName)
       .slice(0, 10);
   }
   return [...filteredMunScores.value]
     .filter(ms => ms.score_total != null)
     .map(ms => ({ id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: parseFloat(ms.score_total) }))
     .filter(ms => !isNaN(ms.score_total))
-    .sort((a, b) => b.score_total - a.score_total)
+    .sort(compareByScoreThenName)
     .slice(0, 10);
 });
 
@@ -971,8 +981,8 @@ const panelMunicipalities = computed(() => {
     const [bin0, bin1] = binRange;
     return filteredMunScores.value
       .filter(ms => { const s = parseFloat(ms.score_total); return !isNaN(s) && s >= bin0 && s < bin1 + 0.0001; })
-      .sort((a, b) => parseFloat(b.score_total) - parseFloat(a.score_total))
-      .map(ms => ({ id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: parseFloat(ms.score_total) }));
+      .map(ms => ({ id: ms.municipality?.id, name: ms.municipality?.name, slug: ms.municipality?.slug, score_total: parseFloat(ms.score_total) }))
+      .sort(compareByScoreThenName);
   }
   return top10.value;
 });

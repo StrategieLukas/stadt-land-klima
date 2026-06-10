@@ -18,6 +18,39 @@ interface ExtensionContext {
 type ServiceContext = Pick<ExtensionContext, 'services' | 'getSchema' | 'logger'>;
 
 const adminAccountability = { admin: true } as const;
+const municipalityNameCollator = new Intl.Collator('de-DE', {
+  numeric: true,
+  sensitivity: 'base',
+});
+
+type RankedMunicipalityScore = {
+  id: number | string;
+  score_total: number | string | null;
+  municipality?: {
+    name?: string | null;
+  } | null;
+};
+
+const getScoreValue = (score: RankedMunicipalityScore): number => {
+  const value = Number(score.score_total);
+  return Number.isFinite(value) ? value : 0;
+};
+
+const compareMunicipalityScores = (
+  a: RankedMunicipalityScore,
+  b: RankedMunicipalityScore
+): number => {
+  const scoreDifference = getScoreValue(b) - getScoreValue(a);
+  if (scoreDifference !== 0) return scoreDifference;
+
+  const nameDifference = municipalityNameCollator.compare(
+    a.municipality?.name ?? '',
+    b.municipality?.name ?? ''
+  );
+  if (nameDifference !== 0) return nameDifference;
+
+  return String(a.id).localeCompare(String(b.id));
+};
 
 /** ---------- Utility Functions ---------- **/
 
@@ -33,7 +66,7 @@ const updateRanks = async (
   });
 
   // Only rank published municipalities that are more than 98% rated
-  const scores: Array<{ id: number; score_total: number | null }> =
+  const scores: RankedMunicipalityScore[] =
     await municipalityScoresService.readByQuery({
       limit: -1,
       filter: {
@@ -41,7 +74,7 @@ const updateRanks = async (
         municipality: { status: { _eq: 'published' } },
         percentage_rated: { _gt: 98 },
       },
-      fields: ['id', 'score_total'],
+      fields: ['id', 'score_total', 'municipality.name'],
     });
 
   if (!scores?.length) {
@@ -51,17 +84,13 @@ const updateRanks = async (
     return;
   }
 
-  // Sort descending by score_total
-  const sorted = [...scores].sort((a, b) => (b.score_total ?? 0) - (a.score_total ?? 0));
+  // Sort descending by score_total, then alphabetically by municipality name.
+  const sorted = [...scores].sort(compareMunicipalityScores);
 
-  // Assign dense ranks: ties share the same rank
-  const ranked: Array<{ id: number; rank: number }> = [];
-  let currentRank = 1;
+  // Ranks follow the final sorted order; equal scores are ordered by municipality name.
+  const ranked: Array<{ id: number | string; rank: number }> = [];
   for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && sorted[i].score_total !== sorted[i - 1].score_total) {
-      currentRank = i + 1;
-    }
-    ranked.push({ id: sorted[i].id, rank: currentRank });
+    ranked.push({ id: sorted[i].id, rank: i + 1 });
   }
 
   for (const r of ranked) {
