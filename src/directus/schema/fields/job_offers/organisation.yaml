@@ -1,0 +1,46 @@
+collection: job_offers
+field: organisation
+type: integer
+meta:
+  collection: job_offers
+  conditions: null
+  display: related-values
+  display_options:
+    template: "{{name}}"
+  field: organisation
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: null
+  options:
+    enableCreate: false
+    template: "{{name}}"
+  readonly: false
+  required: true
+  searchable: true
+  sort: 7
+  special:
+    - m2o
+  translations:
+    - language: de-DE
+      translation: Organisation
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: organisation
+  table: job_offers
+  data_type: integer
+  default_value: null
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: organisations
+  foreign_key_column: id

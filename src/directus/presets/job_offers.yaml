@@ -1,0 +1,32 @@
+bookmark: null
+user: null
+role: null
+collection: job_offers
+search: null
+layout: tabular
+layout_query:
+  tabular:
+    fields:
+      - status
+      - role_title
+      - type
+      - organisation
+      - weekly_hours
+      - start_date
+      - end_date
+    sort:
+      - start_date
+      - role_title
+layout_options:
+  tabular:
+    widths:
+      role_title: 320
+      type: 150
+      organisation: 260
+      weekly_hours: 160
+      start_date: 160
+      end_date: 160
+refresh_interval: null
+filter: null
+icon: work
+color: null

@@ -1,36 +1,41 @@
-collection: measures
-field: slug
+collection: job_offers
+field: application_url
 type: string
 meta:
-  collection: measures
+  collection: job_offers
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: application_url
   group: null
-  hidden: true
-  interface: auto-slug
+  hidden: false
+  interface: input
   note: null
   options:
-    slug: true
-    source_field: name
-    sync_existing: true
+    placeholder: https://...
     trim: true
   readonly: false
   required: false
   searchable: true
-  sort: 11
+  sort: 14
   special: null
-  translations: null
-  validation: null
-  validation_message: null
+  translations:
+    - language: de-DE
+      translation: Link zum Mitmachen
+  validation:
+    _or:
+      - application_url:
+          _null: true
+      - application_url:
+          _regex: ^https?:\/\/.+$
+  validation_message: Bitte eine vollständige URL mit http:// oder https:// eingeben.
   width: full
 schema:
-  name: slug
-  table: measures
+  name: application_url
+  table: job_offers
   data_type: character varying
   default_value: null
-  max_length: 255
+  max_length: 2048
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

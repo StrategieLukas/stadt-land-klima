@@ -1,42 +1,39 @@
-collection: news_items
-field: slug
+collection: job_offers
+field: role_title
 type: string
 meta:
-  collection: news_items
+  collection: job_offers
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: role_title
   group: null
   hidden: false
-  interface: auto-slug
+  interface: input
   note: null
   options:
-    slug: true
-    source_field: title
-    sync_existing: false
     trim: true
   readonly: false
   required: true
   searchable: true
-  sort: 4
+  sort: 3
   special: null
   translations:
     - language: de-DE
-      translation: Slug (URL-Pfad)
+      translation: Rollentitel
   validation: null
   validation_message: null
   width: half
 schema:
-  name: slug
-  table: news_items
+  name: role_title
+  table: job_offers
   data_type: character varying
   default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: false
-  is_unique: true
+  is_unique: false
   is_indexed: false
   is_primary_key: false
   is_generated: false

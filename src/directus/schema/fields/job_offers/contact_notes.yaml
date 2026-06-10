@@ -1,42 +1,48 @@
-collection: news_items
-field: slug
-type: string
+collection: job_offers
+field: contact_notes
+type: text
 meta:
-  collection: news_items
+  collection: job_offers
   conditions: null
   display: null
   display_options: null
-  field: slug
+  field: contact_notes
   group: null
   hidden: false
-  interface: auto-slug
+  interface: input-rich-text-md
   note: null
   options:
-    slug: true
-    source_field: title
-    sync_existing: false
+    toolbar:
+      - heading
+      - bold
+      - italic
+      - blockquote
+      - bullist
+      - numlist
+      - link
+      - empty
     trim: true
   readonly: false
-  required: true
+  required: false
   searchable: true
-  sort: 4
+  sort: 15
   special: null
   translations:
     - language: de-DE
-      translation: Slug (URL-Pfad)
+      translation: Weitere Anmerkungen & Kontakt
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: slug
-  table: news_items
-  data_type: character varying
+  name: contact_notes
+  table: job_offers
+  data_type: text
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
-  is_unique: true
+  is_nullable: true
+  is_unique: false
   is_indexed: false
   is_primary_key: false
   is_generated: false

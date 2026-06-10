@@ -1,35 +1,35 @@
-collection: news_items
+collection: job_offers
 field: slug
 type: string
 meta:
-  collection: news_items
+  collection: job_offers
   conditions: null
   display: null
   display_options: null
   field: slug
   group: null
-  hidden: false
+  hidden: true
   interface: auto-slug
   note: null
   options:
     slug: true
-    source_field: title
-    sync_existing: false
+    source_field: role_title
+    sync_existing: true
     trim: true
-  readonly: false
-  required: true
+  readonly: true
+  required: false
   searchable: true
   sort: 4
   special: null
   translations:
     - language: de-DE
-      translation: Slug (URL-Pfad)
+      translation: Slug (automatisch)
   validation: null
   validation_message: null
   width: half
 schema:
   name: slug
-  table: news_items
+  table: job_offers
   data_type: character varying
   default_value: null
   max_length: 255

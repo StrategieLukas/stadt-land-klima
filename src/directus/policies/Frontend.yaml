@@ -315,6 +315,32 @@ permissions:
       - sender_contact
       - date_created
       - status
+  - collection: job_offers
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - role_title
+      - slug
+      - organisation
+      - type
+      - status
+      - start_date
+      - end_date
+      - weekly_hours
+      - tasks
+      - qualifications
+      - benefits
+      - salary
+      - hourly_wage
+      - application_url
+      - contact_notes
+      - date_created
   - collection: localteams
     action: read
     permissions: null

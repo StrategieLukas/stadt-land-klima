@@ -18,6 +18,11 @@
     "entries": [
       {
         "type": "interface",
+        "name": "auto-slug",
+        "source": "./src/auto-slug/index.ts"
+      },
+      {
+        "type": "interface",
         "name": "footer-nav-editor",
         "source": "./src/footer-nav-editor/index.ts"
       },
@@ -47,6 +52,9 @@
     "build": "directus-extension build",
     "dev": "directus-extension build -w --no-minify",
     "link": "directus-extension link"
+  },
+  "dependencies": {
+    "slugify": "^1.6.6"
   },
   "devDependencies": {
     "@directus/extensions-sdk": "17.1.4",

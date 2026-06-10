@@ -63,6 +63,15 @@ function getRawSvg(svg: unknown): string {
   return ''
 }
 
+function getRawSvg(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (value && typeof value === 'object' && 'default' in value) {
+    const defaultExport = (value as { default?: unknown }).default
+    return typeof defaultExport === 'string' ? defaultExport : ''
+  }
+  return ''
+}
+
 /**
  * Like Blokkli Button's prepareIcon, but also strips <circle class="cls-1">
  * background shapes so icons like icon_newsletter_click render correctly on a

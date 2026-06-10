@@ -343,6 +343,7 @@ import { useAuth } from '~/composables/useAuth'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 import sectorImages from '~/shared/sectorImages.js'
+import { createSlug } from '~/shared/slugify.js'
 
 import { isRaster } from '~/shared/utils'
 function stripHtml(html) {
@@ -652,12 +653,7 @@ async function createNewsItem() {
   const title = window.prompt($t('news.create.prompt'))
   if (!title?.trim()) return
 
-  const slug = title.trim()
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    + '-' + Date.now().toString(36)
+  const slug = `${createSlug(title)}-${Date.now().toString(36)}`
 
   creating.value = true
   try {
