@@ -43,6 +43,19 @@ permissions:
       - date_updated
       - user_created
       - user_updated
+  - collection: directus_users
+    action: read
+    permissions:
+      role:
+        name:
+          _eq: WahlcheckAdmin
+    validation: null
+    presets: null
+    fields:
+      - id
+      - first_name
+      - last_name
+      - email
   - collection: candidate
     action: create
     permissions:
