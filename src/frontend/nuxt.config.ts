@@ -70,6 +70,7 @@ export default defineNuxtConfig({
       '/**': {
         headers: { 'Referrer-Policy': 'strict-origin-when-cross-origin' },
       },
+      '/api/area-children': { isr: 86400 },
     },
     rollupConfig: {
       plugins: [

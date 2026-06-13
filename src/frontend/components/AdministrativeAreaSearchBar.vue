@@ -53,9 +53,9 @@
               v-for="(suggestion, index) in visibleSuggestions"
               :key="suggestion.ars"
               class="px-3 sm:px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-              :class="{ 'bg-stats-light': index === focusedIndex, 'opacity-60 cursor-default': !suggestion.url }"
-              @mousedown.prevent="suggestion.url ? (goTo(suggestion.url), handleSuggestionClick()) : null"
-              @touchend.prevent="suggestion.url ? (goTo(suggestion.url), handleSuggestionClick()) : null"
+              :class="{ 'bg-stats-light': index === focusedIndex, 'opacity-60 cursor-default': !props.routeBuilder && !suggestion.url }"
+              @mousedown.prevent="(props.routeBuilder || suggestion.url) ? (goTo(suggestion.url, suggestion), handleSuggestionClick()) : null"
+              @touchend.prevent="(props.routeBuilder || suggestion.url) ? (goTo(suggestion.url, suggestion), handleSuggestionClick()) : null"
             >
               <div class="flex items-start sm:items-center justify-between gap-2">
                 <div class="flex-1 min-w-0">
@@ -93,7 +93,7 @@
     </form>
 
     <!-- Filter tabs: horizontal row on mobile, vertical column on sm+ -->
-    <div ref="radioGroup" class="flex flex-row sm:flex-col sm:self-end w-full sm:w-auto flex-shrink-0 rounded border border-gray-200 overflow-hidden text-xs font-semibold">
+    <div v-if="showFilterToggle" ref="radioGroup" class="flex flex-row sm:flex-col sm:self-end w-full sm:w-auto flex-shrink-0 rounded border border-gray-200 overflow-hidden text-xs font-semibold">
       <button
         class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors border-r sm:border-r-0 sm:border-b border-gray-200"
         :class="filterType === 'reasonable'
@@ -138,13 +138,28 @@ const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? 
 const props = defineProps({
   basePath: {
     type: String,
-    required: true,
+    default: '',
   },
   // 'ars'  (default) → navigates to `${basePath}/${area.ars}` (used by /stats pages)
   // 'slug' → navigates to `/municipalities/${slug}` for rated areas (used by hero search)
   linkMode: {
     type: String,
     default: 'ars',
+  },
+  // Controls whether the "reasonable municipalities to rate" filter is applied:
+  // 'include' → always use reasonable mode, hide toggle
+  // 'exclude' → always use all-areas mode, hide toggle
+  // 'switch'  → show toggle so user can switch (default)
+  reasonableMunipsToRate: {
+    type: String,
+    default: 'switch',
+  },
+  // Optional callback: (area) => route | null
+  // When provided, called on selection. Return a route string/object to navigate,
+  // or null/undefined to skip navigation (caller handles side effects in the callback).
+  routeBuilder: {
+    type: Function,
+    default: null,
   },
 })
 
@@ -154,8 +169,10 @@ const inputRef = ref(null)
 const q = ref('')
 const searchFocused = ref(false)
 const focusedIndex = ref(-1)
-const filterType = ref('reasonable')
+const filterType = ref(props.reasonableMunipsToRate === 'exclude' ? 'all' : 'reasonable')
 const router = useRouter()
+
+const showFilterToggle = computed(() => props.reasonableMunipsToRate === 'switch')
 
 // Dynamic dropdown positioning
 const dropdownPosition = ref({ top: 0, left: 0, width: 0, show: false })
@@ -227,12 +244,17 @@ function handleFocus() {
   calculateDropdownPosition()
 }
 
-function goTo(url) {
+function goTo(url, area = null) {
   q.value = ''
   focusedIndex.value = -1
   searchFocused.value = false
   dropdownPosition.value.show = false
-  router.push(url)
+  if (props.routeBuilder && area) {
+    const target = props.routeBuilder(area)
+    if (target != null) router.push(target)
+  } else {
+    router.push(url)
+  }
 }
 
 function moveFocus(direction) {
@@ -242,7 +264,8 @@ function moveFocus(direction) {
 
 function goToFocused() {
   const suggestion = visibleSuggestions.value[focusedIndex.value]
-  if (suggestion && suggestion.url) goTo(suggestion.url)
+  if (!suggestion) return
+  if (props.routeBuilder || suggestion.url) goTo(suggestion.url, suggestion)
 }
 
 function handleFilterChange() {
@@ -275,18 +298,19 @@ function onVisualViewportResize() {
 }
 
 function handleClickOutside(event) {
-  // Only close dropdown if click is outside both dropdown and radio group
+  // Only close dropdown if click is outside both dropdown and (optional) radio group
   if (
     dropdown.value &&
     !dropdown.value.contains(event.target) &&
     !event.target.closest('form') &&
-    radioGroup.value &&
-    !radioGroup.value.contains(event.target)
+    (!radioGroup.value || !radioGroup.value.contains(event.target))
   ) {
     searchFocused.value = false
     dropdownPosition.value.show = false
   }
 }
+
+defineExpose({ focus: () => inputRef.value?.focus() })
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)

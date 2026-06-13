@@ -3,10 +3,14 @@
 
     <!-- ── Sticky breadcrumb + back nav ──────────────────────────────────── -->
     <nav
-      class="-mx-4 px-4 sticky z-30 bg-white/90 backdrop-blur-sm border-b border-gray-100"
+      class="relative sticky z-30"
       :style="`top: ${pillTop}px`"
     >
-      <div class="flex items-center gap-3 py-2 min-w-0">
+      <div
+        class="absolute inset-y-0 bg-white/90 backdrop-blur-sm border-b border-gray-100 -z-10"
+        style="left: calc((100% - 100vw) / 2); right: calc((100% - 100vw) / 2);"
+      />
+      <div class="relative flex items-center gap-3 py-2 min-w-0">
         <NuxtLink
           :to="`/data/${areaSlug}`"
           class="flex items-center gap-1 text-xs text-[#006e94] hover:underline flex-none"
@@ -34,6 +38,13 @@
 
     <template v-else-if="renderSteps.length">
 
+      <!-- ── Journey progress bar ─────────────────────────────────────── -->
+      <ScrollProgressBar
+        v-if="renderSteps.length > 1"
+        :current="activeStepIndex"
+        :total="renderSteps.length"
+      />
+
       <!-- ── Journey step nav ───────────────────────────────────────────── -->
       <JourneyNav
         v-if="renderSteps.length > 1"
@@ -57,7 +68,7 @@
       </div>
 
       <!-- ── Attribution ───────────────────────────────────────────────── -->
-      <AttributionBlock :summary="collectionSummary" />
+      <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
 
     </template>
 
@@ -70,7 +81,7 @@
         :municipality-name="area?.name ?? ''"
         :population="area?.population ?? null"
       />
-      <AttributionBlock :summary="collectionSummary" />
+      <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
     </div>
 
   </div>

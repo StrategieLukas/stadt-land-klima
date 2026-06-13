@@ -64,5 +64,48 @@ export function useCollectionRender(baseUrl: string) {
     }
   }
 
-  return { steps, elementByPlotId, loading, error, load }
+  // Fetches area-injected specs from /render/?area={ars} endpoint.
+  // The endpoint returns a flat render_elements list + narrative_steps with plot_ids.
+  async function loadFromRender(collectionSlug: string, ars: string) {
+    loading.value = true
+    error.value = false
+    try {
+      const data = await $fetch<{
+        narrative_steps: (NarrativeStep & { links?: unknown[] })[]
+        render_elements: RenderElement[]
+      }>(
+        `${baseUrl}/api/collections/${collectionSlug}/render/`,
+        { params: { area: ars } },
+      )
+
+      const elements = data?.render_elements ?? []
+      const map = new Map<string, RenderElement>()
+      for (const el of elements) {
+        if (el.plot_id) map.set(el.plot_id, el)
+      }
+      elementByPlotId.value = map
+
+      const narrativeSteps = data?.narrative_steps ?? []
+      if (narrativeSteps.length) {
+        steps.value = narrativeSteps.map(ns => ({
+          index: ns.index,
+          title: ns.title,
+          description: ns.description,
+          layout: ns.layout,
+          elements: ns.plot_ids.map(id => map.get(id)).filter(Boolean) as RenderElement[],
+        }))
+      } else {
+        steps.value = elements.length
+          ? [{ index: 0, title: {}, description: {}, layout: 'default' as LayoutHint, elements }]
+          : []
+      }
+    } catch (_) {
+      error.value = true
+      steps.value = []
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { steps, elementByPlotId, loading, error, load, loadFromRender }
 }

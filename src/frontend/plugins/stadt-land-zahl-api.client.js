@@ -284,7 +284,7 @@ export default defineNuxtPlugin(() => {
     const prefix = len ? regionArs.slice(0, len) : regionArs.replace(/0+$/, '');
     if (!prefix) return [];
 
-    const PAGE_SIZE = 500;
+    const PAGE_SIZE = 1000;
     const nodes = [];
     let cursor = null;
     let hasNextPage = true;
@@ -295,7 +295,7 @@ export default defineNuxtPlugin(() => {
           query: gql`
             query municipalitiesInRegion($ars_Icontains: String!, $after: String) {
               allAdministrativeAreas(
-                first: 500
+                first: 1000
                 after: $after
                 isReasonableForMunicipalRating: true
                 ars_Icontains: $ars_Icontains
@@ -308,6 +308,7 @@ export default defineNuxtPlugin(() => {
                     name
                     prefix
                     population
+                    geoCenter
                     stadtlandklimaDataAll {
                       slug
                       scoreTotal
@@ -345,6 +346,22 @@ export default defineNuxtPlugin(() => {
     return nodes;
   };
 
+  const fetchCollectionRender = async (slug, areaArs, step = null) => {
+    const params = new URLSearchParams({ area: areaArs })
+    if (step !== null) params.set('step', String(step))
+    const res = await fetch(`${stadtlandzahlBaseURL}/api/collections/${slug}/render/?${params}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
+  }
+
+  const fetchRenderElement = async (slug, plotId, areaArs) => {
+    const res = await fetch(
+      `${stadtlandzahlBaseURL}/api/collections/${slug}/render/${plotId}/?area=${encodeURIComponent(areaArs)}`
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
+  }
+
   const stadtlandzahlAPI = {
     searchThroughAdministrativeAreasByName,
     searchAdministrativeAreas,
@@ -352,6 +369,8 @@ export default defineNuxtPlugin(() => {
     getNearbyAdministrativeAreas,
     fetchHistogramData,
     fetchMunicipalitiesInRegion,
+    fetchCollectionRender,
+    fetchRenderElement,
   };
 
   return {

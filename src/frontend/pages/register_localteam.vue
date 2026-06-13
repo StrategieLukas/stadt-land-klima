@@ -63,71 +63,16 @@
 
       <!-- Step 1: No municipality selected yet → show search -->
       <div v-if="!selectedArea">
-          <div class="rounded-sm shadow-list bg-white p-4 sm:p-8">
+        <div class="rounded-sm shadow-list bg-white p-4 sm:p-8">
           <h2 class="font-heading text-h2 font-bold text-green mb-1">Deine Kommune wählen</h2>
           <p class="text-sm text-gray-500 mb-5">
             Suche nach deiner Gemeinde oder Stadt, um mit der Registrierung zu beginnen.
           </p>
-
-          <!-- Search input -->
-          <div class="relative">
-            <label for="municipality-search" class="block text-sm font-medium text-gray-700 mb-1">
-              Gemeinde / Stadt suchen
-            </label>
-            <div class="relative">
-              <input
-                id="municipality-search"
-                ref="searchInputRef"
-                v-model="searchQuery"
-                type="text"
-                autocomplete="off"
-                placeholder="z.B. München, Freiburg, Potsdam …"
-                class="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
-                @input="onSearchInput"
-                @keydown.down.prevent="moveFocus(1)"
-                @keydown.up.prevent="moveFocus(-1)"
-                @keydown.enter.prevent="selectFocused"
-                @keydown.escape="clearSearch"
-              />
-              <!-- Search icon -->
-              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
-              </svg>
-              <!-- Loading spinner: wrapper handles positioning so transform-translate
-                   is not clobbered by the animation's transform property -->
-              <div v-if="isLoading" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4">
-                <SlkFlowerSpinner :size="16" />
-              </div>
-            </div>
-
-            <!-- Results dropdown -->
-            <ul
-              v-if="searchResults.length && searchQuery.trim()"
-              class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto z-50"
-            >
-              <li
-                v-for="(area, index) in searchResults"
-                :key="area.ars"
-                class="px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
-                :class="{ 'bg-rating-3-light': index === focusedIndex }"
-                @click="area.isMunicipality ? selectArea(area) : router.push('/regions/' + area.ars)"
-              >
-                <AreaSearchResult
-                  :result="area"
-                  :show-population="true"
-                  @chip-action="({ result }) => selectArea(result)"
-                />
-              </li>
-            </ul>
-
-            <!-- No results -->
-            <div
-              v-else-if="!isLoading && searchQuery.trim().length >= 2 && searchResults.length === 0"
-              class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg px-4 py-3 z-50"
-            >
-              <p class="text-sm text-gray-500 italic">Keine Ergebnisse für „{{ searchQuery }}"</p>
-            </div>
-          </div>
+          <AdministrativeAreaSearchBar
+            ref="searchBarRef"
+            reasonable-munips-to-rate="include"
+            :route-builder="handleAreaSelect"
+          />
         </div>
       </div>
 
@@ -272,10 +217,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useAreaSearch } from '~/composables/useAreaSearch.js'
 
 const route = useRoute()
-const router = useRouter()
 const { $stadtlandzahlAPI } = useNuxtApp()
 const { public: { clientDirectusUrl, directusToken } } = useRuntimeConfig()
 
@@ -299,39 +242,14 @@ const hasExistingTeam = ref(false)
 const areaGeoData = ref<{ geo_center: any; geo_area: any } | null>(null)
 const geoLoading = ref(false)
 
-// --- Search ---
-const { data: publishedMunicipalities } = useNuxtData('municipalities')
-const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map((m: any) => m.slug)))
+const searchBarRef = ref<{ focus: () => void } | null>(null)
 
-const searchQuery = ref('')
-const { results: searchResults, isLoading, search, clear } = useAreaSearch({ mode: 'normal', publishedSlugs: publishedSlugs as any })
-const searchInputRef = ref<HTMLElement | null>(null)
-const focusedIndex = ref(-1)
-
-function onSearchInput(e: Event) {
-  focusedIndex.value = -1
-  search((e.target as HTMLInputElement).value)
-}
-
-function moveFocus(delta: number) {
-  const len = searchResults.value.length
-  if (!len) return
-  focusedIndex.value = (focusedIndex.value + delta + len) % len
-}
-
-function selectFocused() {
-  if (focusedIndex.value >= 0 && searchResults.value[focusedIndex.value]) {
-    selectArea(searchResults.value[focusedIndex.value])
-  }
-}
-
-function clearSearch() {
-  clear()
-  focusedIndex.value = -1
+function handleAreaSelect(area: any): null {
+  selectArea(area)
+  return null
 }
 
 async function selectArea(area: any) {
-  clear()
   selectedArea.value = {
     name: area.name,
     ars: area.ars,
@@ -357,8 +275,7 @@ function resetSelection() {
   existingPercentageRated.value = null
   hasExistingTeam.value = false
   areaGeoData.value = null
-  focusedIndex.value = -1
-  nextTick(() => searchInputRef.value?.focus())
+  nextTick(() => searchBarRef.value?.focus())
 }
 
 async function checkExistingLocalteam(

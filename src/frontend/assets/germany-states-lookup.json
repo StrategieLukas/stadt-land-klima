@@ -1,0 +1,18 @@
+[
+  { "name1": "Baden-Württemberg",        "ars": "08", "prefix": "Land",                    "slug": "land-baden-wuerttemberg" },
+  { "name1": "Bayern",                   "ars": "09", "prefix": "Freistaat",               "slug": "freistaat-bayern" },
+  { "name1": "Berlin",                   "ars": "11", "prefix": "Land",                    "slug": "land-berlin" },
+  { "name1": "Brandenburg",              "ars": "12", "prefix": "Land",                    "slug": "land-brandenburg" },
+  { "name1": "Bremen",                   "ars": "04", "prefix": "Freie Hansestadt",        "slug": "freie-hansestadt-bremen" },
+  { "name1": "Hamburg",                  "ars": "02", "prefix": "Freie und Hansestadt",    "slug": "freie-und-hansestadt-hamburg" },
+  { "name1": "Hessen",                   "ars": "06", "prefix": "Land",                    "slug": "land-hessen" },
+  { "name1": "Mecklenburg-Vorpommern",   "ars": "13", "prefix": "Land",                    "slug": "land-mecklenburg-vorpommern" },
+  { "name1": "Niedersachsen",            "ars": "03", "prefix": "Land",                    "slug": "land-niedersachsen" },
+  { "name1": "Nordrhein-Westfalen",      "ars": "05", "prefix": "Land",                    "slug": "land-nordrhein-westfalen" },
+  { "name1": "Rheinland-Pfalz",          "ars": "07", "prefix": "Land",                    "slug": "land-rheinland-pfalz" },
+  { "name1": "Saarland",                 "ars": "10", "prefix": "Saarland",                "slug": "saarland-saarland" },
+  { "name1": "Sachsen",                  "ars": "14", "prefix": "Freistaat",               "slug": "freistaat-sachsen" },
+  { "name1": "Sachsen-Anhalt",           "ars": "15", "prefix": "Land",                    "slug": "land-sachsen-anhalt" },
+  { "name1": "Schleswig-Holstein",       "ars": "01", "prefix": "Land",                    "slug": "land-schleswig-holstein" },
+  { "name1": "Thüringen",                "ars": "16", "prefix": "Freistaat",               "slug": "freistaat-thueringen" }
+]

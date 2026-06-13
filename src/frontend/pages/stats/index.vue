@@ -1943,11 +1943,8 @@ function onChooserSectorClick(sector) {
   clearPanelMunFilter()
   if (isSmall.value) {
     mobileMeasuresTab.value = 'plot'
-  } else {
-    // Switch to sunburst view so it's visible when we re-render
-    showListView.value = false
   }
-  nextTick(() => { renderSunburst(); renderDistPanel() })
+  nextTick(() => { if (!showListView.value) renderSunburst(); renderDistPanel() })
 }
 
 function onChooserMeasureClick(measure, sectorKey) {
@@ -1955,11 +1952,8 @@ function onChooserMeasureClick(measure, sectorKey) {
   clearPanelMunFilter()
   if (isSmall.value) {
     mobileMeasuresTab.value = 'plot'
-  } else {
-    // Switch to sunburst view so it's visible when we re-render
-    showListView.value = false
   }
-  nextTick(() => { renderSunburst(); renderDistPanel() })
+  nextTick(() => { if (!showListView.value) renderSunburst(); renderDistPanel() })
 }
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────

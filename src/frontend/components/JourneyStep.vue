@@ -13,16 +13,15 @@
       </p>
     </div>
 
-    <!-- Layout: kpi_map — KPI left (40%) + Vega map right (60%), or full DataProductPanel if no useful map -->
-    <div v-if="step.layout === 'kpi_map' && mapElement" class="grid grid-cols-5 gap-4 items-start">
+    <!-- Layout: kpi_map — KPI left (40%) + Vega map right (60%) -->
+    <div v-if="step.layout === 'kpi_map' && mapElement && kpiElement" class="grid grid-cols-5 gap-4 items-start">
       <div class="col-span-2">
-        <DataProductPanel
-          v-if="kpiCollection"
-          :collection="kpiCollection"
+        <KPICard
+          :element="kpiElement"
+          :collection-slug="collection.id"
           :ars="ars"
           :base-url="baseUrl"
           :population="population"
-          :hide-map="true"
         />
       </div>
       <div class="col-span-3" style="height: 340px">
@@ -31,6 +30,17 @@
         </ClientOnly>
       </div>
     </div>
+    <!-- kpi_map with no map: fall back to KPICard alone -->
+    <div v-else-if="step.layout === 'kpi_map' && kpiElement">
+      <KPICard
+        :element="kpiElement"
+        :collection-slug="collection.id"
+        :ars="ars"
+        :base-url="baseUrl"
+        :population="population"
+      />
+    </div>
+    <!-- kpi_map with no KPI element: full DataProductPanel fallback -->
     <div v-else-if="step.layout === 'kpi_map'">
       <DataProductPanel
         v-if="kpiCollection"
@@ -65,16 +75,14 @@
 
     <!-- Layout: image_text — image left (50%) + description right (50%) -->
     <div v-else-if="step.layout === 'image_text'" class="grid grid-cols-2 gap-6 items-start">
-      <div class="rounded-lg overflow-hidden bg-gray-100">
-        <img
-          v-if="imageElement?.src_url"
-          :src="imageElement.src_url"
-          :alt="t(imageElement.title)"
-          class="w-full h-auto object-cover"
-        />
-        <div v-else class="h-48 flex items-center justify-center text-gray-400 text-sm">
-          Kein Bild verfügbar
-        </div>
+      <DataImage
+        v-if="imageElement"
+        :element="imageElement"
+        :collection-slug="collection.id"
+        :base-url="baseUrl"
+      />
+      <div v-else class="rounded-lg bg-gray-100 h-48 flex items-center justify-center text-gray-400 text-sm">
+        Kein Bild verfügbar
       </div>
       <div class="text-sm text-gray-600 leading-relaxed">
         {{ t(step.description) }}
@@ -158,6 +166,10 @@ const mapElement = computed(() =>
 // map spec with area injected
 const mapSpec = computed(() =>
   mapElement.value ? injectArea(mapElement.value.vegalite_spec as object, props.ars) : null
+)
+
+const kpiElement = computed(() =>
+  props.step.elements.find(e => e.type === 'kpi') ?? null
 )
 
 const imageElement = computed(() =>

@@ -7,7 +7,7 @@
   </div>
 
   <ClientOnly>
-    <div class="w-full h-[75svh] z-0">
+    <div class="w-full h-[75svh] relative z-0">
       <LMap
         v-if="clientReady"
         :zoom="6"
@@ -15,7 +15,7 @@
         style="height: 100%; width: 100%"
         @ready="onMapReady"
         ref="mapRef"
-        class="z-10000"
+        class="h-full w-full"
       >
         <LTileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
