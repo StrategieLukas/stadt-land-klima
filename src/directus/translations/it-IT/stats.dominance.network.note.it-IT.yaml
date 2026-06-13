@@ -1,0 +1,7 @@
+language: it-IT
+key: stats.dominance.network.note
+value: <strong>Prossimità</strong> = i comuni sono direttamente collegati da un
+  bordo dominante e sono uniti (forza elastica). <strong>Distanza</strong> =
+  nessun bordo diretto - domina la repulsione. I gruppi di nodi ravvicinati sono
+  livelli di prestazione in cui i comuni sovraperformano l’uno rispetto
+  all’altro in misura simile o sono alla pari.

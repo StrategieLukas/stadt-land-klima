@@ -1,0 +1,4 @@
+language: it-IT
+key: localteam.register.completed.body
+value: Il team locale di <strong>:name</strong> ha completato la valutazione.
+  Visualizza i risultati o contattaci per supportare il team.

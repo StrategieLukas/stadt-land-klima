@@ -1,0 +1,4 @@
+language: it-IT
+key: ranking.warn_preview
+value: "Attenzione: questa è un'anteprima della nuova classifica! I valori
+  possono ancora cambiare."

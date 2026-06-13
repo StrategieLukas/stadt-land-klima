@@ -1,0 +1,5 @@
+language: it-IT
+key: measure_rating.history.description
+value: Ogni linea rappresenta un comune. Passa con il mouse sopra per i
+  dettagli, clicca su una linea per andare al comune. Clicca su una barra
+  colorata per visualizzare tutti i comuni con questa valutazione.

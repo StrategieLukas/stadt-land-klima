@@ -1,0 +1,5 @@
+language: it-IT
+key: municipality.chart.treemap.description
+value: "Ogni tessera rappresenta una misura: l'area corrisponde al suo peso. Il
+  colore mostra lo stato di implementazione: rosso = non soddisfatto, verde =
+  completamente implementato."

@@ -1,5 +1,8 @@
 export default defineEventHandler(async (event) => {
-  const { q, limit = '12', types } = getQuery(event) as Record<string, string>
+  const searchParams = getRequestSearchParams(event)
+  const q = searchParams.get('q') ?? ''
+  const limit = searchParams.get('limit') ?? '12'
+  const types = searchParams.get('types')
 
   if (!q || q.trim().length < 2) return { hits: [] }
 

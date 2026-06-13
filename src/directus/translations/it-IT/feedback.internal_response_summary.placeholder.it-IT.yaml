@@ -1,0 +1,5 @@
+language: it-IT
+key: feedback.internal_response_summary.placeholder
+value: Commento interno su come abbiamo gestito questo rapporto, ad es. è stato
+  discusso nel team di pianificazione con risultato xyz" oppure "abbiamo
+  risposto alla persona via email il 13 maggio 2025"

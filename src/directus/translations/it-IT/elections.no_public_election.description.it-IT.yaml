@@ -1,0 +1,4 @@
+language: it-IT
+key: elections.no_public_election.description
+value: Al momento non ci sono elezioni pubbliche per questo team locale. Solo le
+  elezioni pubbliche possono essere confrontate nel Wahlcheck.

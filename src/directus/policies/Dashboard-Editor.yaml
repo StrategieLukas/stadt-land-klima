@@ -33,3 +33,31 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: directus_panels
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_panels
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_panels
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_panels
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"

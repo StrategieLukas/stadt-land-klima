@@ -231,8 +231,7 @@ function importTasks(yargs) {
 
   .command(
     'import:all [src]',
-    'imports schema, policies, roles, flows, presets, translations, and settings consecutively. ' +
-      'Dashboards are intentionally skipped for now.',
+    'imports schema, policies, roles, flows, presets, translations, settings, and dashboards consecutively.',
     (yargs) => {
       return yargs
       .positional('src', {
@@ -296,7 +295,13 @@ function importTasks(yargs) {
         overwrite: argv.force,
       });
 
-      console.info('Dashboards are not imported at the moment. Run import:dashboards manually if needed.');
+      // Import dashboards last because panels can depend on extensions and app-level access.
+      console.info('Importing dashboards...');
+      await importDashboards(path.join(src, 'dashboards'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
 
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
       console.info(`Full import completed in ${elapsed}s`);

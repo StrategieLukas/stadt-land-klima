@@ -1,0 +1,3 @@
+language: it-IT
+key: map.icon.popup.percentageRated
+value: Questo comune è stato valutato al :percentage_rated%.
