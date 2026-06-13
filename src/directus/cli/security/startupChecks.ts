@@ -438,7 +438,7 @@ async function checkSensitiveAccess(pool: InstanceType<typeof Pool>, failures: s
 
 async function main(): Promise<void> {
   if (!securityChecksEnabled) {
-    console.info('Directus startup security checks skipped; SLK_STARTUP_SECURITY_CHECKS is not enabled.');
+    console.info('Custom SLK-Directus startup security checks skipped; SLK_STARTUP_SECURITY_CHECKS is not enabled.');
     return;
   }
 
@@ -466,25 +466,25 @@ async function main(): Promise<void> {
   }
 
   if (warnings.length > 0) {
-    console.warn('Directus startup security check warnings:');
+    console.warn('Custom SLK-Directus startup security check warnings:');
     for (const warning of warnings) {
       console.warn(`- ${warning}`);
     }
   }
 
   if (failures.length > 0) {
-    console.error('Directus startup security checks failed:');
+    console.error('Custom SLK-Directus startup security checks failed:');
     for (const failure of failures) {
       console.error(`- ${failure}`);
     }
     process.exit(1);
   }
 
-  console.info('Directus startup security checks passed.');
+  console.info('Custom SLK-Directus startup security checks passed.');
 }
 
 main().catch((error: unknown) => {
-  console.error('Directus startup security checks failed unexpectedly:');
+  console.error('Custom SLK-Directus startup security checks failed unexpectedly:');
   console.error(error);
   process.exit(1);
 });
