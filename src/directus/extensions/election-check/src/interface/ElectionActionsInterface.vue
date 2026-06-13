@@ -13,6 +13,10 @@
           <v-icon name="check_circle" x-small left />
           Generiert
         </v-chip>
+        <v-chip v-if="reviewRequested" x-small class="status-chip status-chip--success">
+          <v-icon name="rate_review" x-small left />
+          Review angefragt
+        </v-chip>
       </div>
 
       <v-notice v-if="alreadyGenerated" type="success" class="card-notice">
@@ -33,6 +37,21 @@
         <v-button v-else secondary disabled>
           <v-icon name="check" left />
           Thesen generiert
+        </v-button>
+
+        <v-button
+          v-if="!reviewRequested"
+          :loading="loadingReview"
+          :disabled="isAnyLoading || !alreadyGenerated"
+          secondary
+          @click="handleRequestReview"
+        >
+          <v-icon name="rate_review" left />
+          Review der Thesen anfragen
+        </v-button>
+        <v-button v-else secondary disabled>
+          <v-icon name="check" left />
+          Review angefragt
         </v-button>
 
         <v-button
@@ -131,12 +150,14 @@ const remote = ref({
   alreadyGenerated: false,
   alreadySent: false,
   isApproved: false,
+  reviewRequested: false,
 });
 
 // Session-level optimistic flags — set immediately on success so the UI
 // reflects the change without waiting for the next fetchStatus call.
 const sessionGenerated = ref(false);
 const sessionSent = ref(false);
+const sessionReviewRequested = ref(false);
 
 // ---------------------------------------------------------------------------
 // Derived state
@@ -156,6 +177,13 @@ const alreadySent = computed(
     !!props.values?.already_sent_mails,
 );
 
+const reviewRequested = computed(
+  () =>
+    sessionReviewRequested.value ||
+    remote.value.reviewRequested ||
+    !!props.values?.review_requested,
+);
+
 const isApproved = computed(
   () => remote.value.isApproved || !!props.values?.is_approved,
 );
@@ -166,7 +194,10 @@ const isApproved = computed(
 
 const loadingGenerate = ref(false);
 const loadingMails = ref(false);
-const isAnyLoading = computed(() => loadingGenerate.value || loadingMails.value);
+const loadingReview = ref(false);
+const isAnyLoading = computed(
+  () => loadingGenerate.value || loadingMails.value || loadingReview.value,
+);
 
 // ---------------------------------------------------------------------------
 // Feedback
@@ -201,7 +232,7 @@ async function fetchStatus() {
 
   try {
     const { data } = await api.get(`/items/elections/${props.primaryKey}`, {
-      params: { fields: ['already_generated_questions', 'already_sent_mails', 'is_approved'] },
+      params: { fields: ['already_generated_questions', 'already_sent_mails', 'is_approved', 'review_requested'] },
     });
 
     if (data?.data) {
@@ -209,6 +240,7 @@ async function fetchStatus() {
         alreadyGenerated: !!data.data.already_generated_questions,
         alreadySent: !!data.data.already_sent_mails,
         isApproved: !!data.data.is_approved,
+        reviewRequested: !!data.data.review_requested,
       };
     }
   } catch {
@@ -262,6 +294,20 @@ async function handleRegenerate() {
   );
   if (!confirmed) return;
   await handleGenerate();
+}
+
+async function handleRequestReview() {
+  loadingReview.value = true;
+  try {
+    await callEndpoint('request-review');
+    sessionReviewRequested.value = true;
+    showFeedback('success', 'Review der Thesen wurde angefragt.');
+    fetchStatus();
+  } catch (err) {
+    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+  } finally {
+    loadingReview.value = false;
+  }
 }
 
 async function handleSendMails() {
@@ -341,6 +387,7 @@ async function handleSendMails() {
 
 .card-footer {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   padding: 12px 16px 16px;
