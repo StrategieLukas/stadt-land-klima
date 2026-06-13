@@ -4,6 +4,45 @@ enforce_tfa: false
 admin_access: false
 app_access: false
 permissions:
+  - collection: answers
+    action: read
+    permissions:
+      _and:
+        - question:
+            election:
+              localteam:
+                id:
+                  _in:
+                    - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - candidate
+      - question
+      - date_created
+      - date_updated
+  - collection: directus_comments
+    action: read
+    permissions:
+      _and:
+        - collection:
+            _eq: questions
+        - user_created:
+            role:
+              name:
+                _eq: WahlcheckAdmin
+    validation: null
+    presets: null
+    fields:
+      - id
+      - collection
+      - item
+      - comment
+      - date_created
+      - date_updated
+      - user_created
+      - user_updated
   - collection: candidate
     action: create
     permissions:
@@ -113,6 +152,7 @@ permissions:
       - action_buttons
       - already_sent_mails
       - already_generated_questions
+      - review_requested
       - prefill_trigger
       - is_approved
       - is_public
