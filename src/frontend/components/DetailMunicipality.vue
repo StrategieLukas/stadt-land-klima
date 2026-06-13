@@ -122,6 +122,19 @@
       </NuxtLink>
 
       <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector" />
+
+      <!-- Mobile: Associated Projects Link -->
+      <NuxtLink
+        v-if="municipalityProjects && municipalityProjects.length > 0"
+        :to="{ path: '/projects', query: { municipality: municipality.name } }"
+        class="mt-4 flex items-center gap-3 rounded-sm bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
+      >
+        <img src="~/assets/icons/icon_invest.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+        <h3 class="font-heading text-h2">
+          {{ $t("projects.title") }}
+          →
+        </h3>
+      </NuxtLink>
     </div>
 
     <!-- Desktop: Two column layout -->

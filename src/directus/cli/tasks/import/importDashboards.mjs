@@ -15,6 +15,16 @@ function getDashboardId(value) {
   return typeof value === 'object' && value !== null ? value.id : value;
 }
 
+function mapDashboardsByName(dashboards) {
+  return new Map(dashboards.map((dashboard) => [dashboard.name, dashboard]));
+}
+
+function findDashboardByIdOrName(dashboards, dashboardId, dashboardName) {
+  return dashboards.find((dashboard) => dashboard.id === dashboardId)
+    ?? dashboards.find((dashboard) => dashboard.name === dashboardName)
+    ?? null;
+}
+
 function cleanDashboardForImport(dashboard) {
   const clean = { ...dashboard };
 
@@ -67,6 +77,18 @@ async function replaceDashboardPanels(client, dashboardId, panels, existingPanel
   await client.request(createPanels(panels.map((panel) => cleanPanelForImport(panel, dashboardId))));
 }
 
+async function readPersistedDashboard(client, dashboardName, savedDashboard) {
+  const savedDashboardId = getDashboardId(savedDashboard);
+  const dashboards = await client.request(readDashboards({ limit: -1 }));
+  const persistedDashboard = findDashboardByIdOrName(dashboards, savedDashboardId, dashboardName);
+
+  if (!persistedDashboard?.id) {
+    throw new Error(`Dashboard "${dashboardName}" was not persisted before importing panels.`);
+  }
+
+  return { dashboard: persistedDashboard, dashboards };
+}
+
 async function importDashboards(src, options = { verbose: false, overwrite: false, remove: false }) {
   const client = createDirectusClient();
 
@@ -74,12 +96,14 @@ async function importDashboards(src, options = { verbose: false, overwrite: fals
     const dashboards = readYamlFiles(path.join(src));
     const existingDashboards = await client.request(readDashboards({ limit: -1 }));
     const existingPanels = await client.request(readPanels({ limit: -1 }));
-    const existingDashboardsByName = new Map(existingDashboards.map((dashboard) => [dashboard.name, dashboard]));
+    let currentDashboards = existingDashboards;
+    let currentDashboardsByName = mapDashboardsByName(currentDashboards);
+    let currentPanels = existingPanels;
     const importedDashboardNames = new Set(dashboards.map((dashboard) => dashboard.name));
 
     for (const dashboard of dashboards) {
       const panels = dashboard.panels ?? [];
-      const existingDashboard = existingDashboardsByName.get(dashboard.name);
+      const existingDashboard = currentDashboardsByName.get(dashboard.name);
       let savedDashboard = existingDashboard;
 
       if (existingDashboard) {
@@ -105,11 +129,18 @@ async function importDashboards(src, options = { verbose: false, overwrite: fals
         savedDashboard = await client.request(createDashboard(cleanDashboardForImport(dashboard)));
       }
 
-      await replaceDashboardPanels(client, savedDashboard.id, panels, existingPanels, options);
+      const persisted = await readPersistedDashboard(client, dashboard.name, savedDashboard);
+
+      savedDashboard = persisted.dashboard;
+      currentDashboards = persisted.dashboards;
+      currentDashboardsByName = mapDashboardsByName(currentDashboards);
+
+      await replaceDashboardPanels(client, savedDashboard.id, panels, currentPanels, options);
+      currentPanels = await client.request(readPanels({ limit: -1 }));
     }
 
     if (options.remove) {
-      const dashboardsToDelete = existingDashboards.filter((dashboard) => !importedDashboardNames.has(dashboard.name));
+      const dashboardsToDelete = currentDashboards.filter((dashboard) => !importedDashboardNames.has(dashboard.name));
 
       if (dashboardsToDelete.length) {
         if (options.verbose) {
@@ -119,7 +150,7 @@ async function importDashboards(src, options = { verbose: false, overwrite: fals
         const dashboardIdsToDelete = dashboardsToDelete
           .map((dashboard) => dashboard.id)
           .filter((id) => id && id !== '');
-        const panelIdsToDelete = existingPanels
+        const panelIdsToDelete = currentPanels
           .filter((panel) => dashboardIdsToDelete.includes(getDashboardId(panel.dashboard)))
           .map((panel) => panel.id)
           .filter((id) => id && id !== '');
