@@ -122,6 +122,7 @@
 import { computed, ref } from 'vue';
 import { isRaster } from "~/shared/utils";
 const { $directus, $readItems, $t } = useNuxtApp();
+const route = useRoute();
 
 const { data: projectList } = await useAsyncData("articles-index", () => {
   return $directus.request(
@@ -153,6 +154,10 @@ const { data: projectList } = await useAsyncData("articles-index", () => {
 const selectedState    = ref(null);
 const selectedSector   = ref(null);
 const selectedOrgId    = ref(null);
+const selectedMunicipality = computed(() => {
+  const value = route.query.municipality;
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+});
 const filterAutonomous = ref(false);
 const filterProfitable = ref(false);
 const filterRoleModel  = ref(false);
@@ -168,6 +173,7 @@ const activeFilterCount = computed(() => {
   if (selectedState.value) count++;
   if (selectedSector.value) count++;
   if (selectedOrgId.value) count++;
+  if (selectedMunicipality.value) count++;
   if (filterAutonomous.value) count++;
   if (filterProfitable.value) count++;
   if (filterRoleModel.value) count++;
@@ -239,6 +245,7 @@ const filteredProjects = computed(() => {
     if (selectedState.value  !== null && a.state !== selectedState.value) return false;
     if (selectedSector.value !== null && !(a.sectors ?? []).includes(selectedSector.value)) return false;
     if (selectedOrgId.value  !== null && a.organisation?.id !== selectedOrgId.value) return false;
+    if (selectedMunicipality.value !== null && a.municipality_name !== selectedMunicipality.value) return false;
     if (filterAutonomous.value && !a.can_do_autonomously) return false;
     if (filterProfitable.value && !a.is_profitable) return false;
     if (filterRoleModel.value  && !(a.public_impact_effects ?? []).includes('role_model')) return false;

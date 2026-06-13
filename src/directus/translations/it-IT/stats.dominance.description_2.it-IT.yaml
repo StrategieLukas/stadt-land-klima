@@ -1,0 +1,7 @@
+language: it-IT
+key: stats.dominance.description_2
+value: La <strong>matrice di dominanza</strong> mostra per ciascuna coppia (riga
+  vs. colonna) quanto spesso il comune della riga ha sovraperformato il comune
+  della colonna. I blocchi blu disposti diagonalmente indicano gruppi di comuni
+  altrettanto forti - i cosiddetti livelli di prestazione. La matrice è ordinata
+  per tasso di vincita (in alto = comuni più forti).

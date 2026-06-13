@@ -2,6 +2,9 @@
 # Fail early if anything goes wrong
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 NO_DIRECTUS_BUILD=false
 NO_FRONTEND_BUILD=false
 NO_RESTART=false
@@ -33,7 +36,7 @@ for arg in "$@"; do
 done
 
 # target backup directory
-BACKUP_DIR="../../backups"
+BACKUP_DIR="$(cd "$REPO_ROOT/.." && pwd)/backups"
 # ensure directory exists
 mkdir -p "$BACKUP_DIR"
 # generate filename with current date
@@ -41,11 +44,11 @@ DATE=$(date +"%d-%m-%Y")
 FILENAME="backupOnUpdate-$DATE.sql"
 # run the export and redirect to file
 echo "Performing backup... "
-./db_export.sh > "$BACKUP_DIR/$FILENAME"
+"$SCRIPT_DIR/db_exports/export_db.sh" > "$BACKUP_DIR/$FILENAME"
 
 echo "Backup saved to $BACKUP_DIR/$FILENAME"
 
-cd ..
+cd "$REPO_ROOT"
 # no stashing to prevent changes being removed
 # git stash
 git pull
@@ -62,7 +65,7 @@ if [[ $NO_FRONTEND_BUILD != true ]]; then
 echo "building frontend ..."
   docker compose exec -T frontend sh /build.sh
 fi
-cd bin
+cd "$SCRIPT_DIR"
 
 if [[ $NO_RESTART != true ]]; then
   ./stop.sh

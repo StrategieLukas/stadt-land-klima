@@ -1,0 +1,12 @@
+language: it-IT
+key: measure_rating.why_not_applicable.placeholder
+value: >-
+  Le informazioni mancanti NON sono (!) un motivo per contrassegnare una misura
+  come "non applicabile". Questa opzione e pensata solo per i casi in cui la
+  misura e chiaramente non valutabile. Ad esempio, la "rinaturalizzazione delle
+  torbiere" non e valutabile nei comuni che non hanno torbiere.
+
+
+  Se non potete valutare piu di due misure per il vostro comune, saremo lieti di
+  ricevere un breve messaggio a info@stadt-land-klima.de, cosi possiamo
+  migliorare il catalogo delle misure :)

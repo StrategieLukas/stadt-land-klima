@@ -2,19 +2,19 @@
   <!-- Content when municipality data is available -->
   <div>
     <!-- Mobile: Single column layout -->
-    <div class="block lg:hidden w-full flex-col justify-center">
+    <div class="block w-full flex-col justify-center lg:hidden">
       <div class="mb-8">
         <ItemRanking :municipalityScore="municipalityScore" />
       </div>
       <div class="mb-4">
-        <div role="tablist" class="tabs tabs-boxed w-fit">
-          <a 
-            role="tab" 
-            class="tab gap-1.5" 
+        <div role="tablist" class="tabs-boxed tabs w-fit">
+          <a
+            role="tab"
+            class="tab gap-1.5"
             :class="{ 'tab-active': activeTab === 'polar' }"
             @click="activeTab = 'polar'"
           >
-            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
               <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
               <line x1="12" y1="2" x2="12" y2="22" />
@@ -23,13 +23,13 @@
             </svg>
             {{ $t("municipality.chart.polar") }}
           </a>
-          <a 
-            role="tab" 
-            class="tab gap-1.5" 
+          <a
+            role="tab"
+            class="tab gap-1.5"
             :class="{ 'tab-active': activeTab === 'treemap' }"
             @click="activeTab = 'treemap'"
           >
-            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="2" width="9" height="20" rx="1" />
               <rect x="13" y="2" width="9" height="9" rx="1" />
               <rect x="13" y="13" width="9" height="9" rx="1" />
@@ -37,21 +37,22 @@
             {{ $t("generic.view.treemap") }}
           </a>
         </div>
-        <div class="mt-4 bg-base-100 border-base-300 rounded-box p-6">
-          <MunicipalityPolarChart 
+        <div class="mt-4 rounded-box border-base-300 bg-base-100 p-6">
+          <MunicipalityPolarChart
             v-if="activeTab === 'polar'"
-            :sub-scores="subScores" 
-            :name-municipality="municipality.name" 
+            :sub-scores="subScores"
+            :name-municipality="municipality.name"
           />
-          <MunicipalityTreeMap 
+          <MunicipalityTreeMap
             v-if="activeTab === 'treemap'"
-            :ratings-by-sector="ratingsBySector" 
-            :name-municipality="municipality.name" 
+            :ratings-by-sector="ratingsBySector"
+            :name-municipality="municipality.name"
           />
-          <p v-if="activeTab === 'polar'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
-            {{ $t("municipality.chart.polar.description") }}
-          </p>
-          <p v-else-if="activeTab === 'treemap'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
+          <p
+            v-if="activeTab === 'treemap'"
+            class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+            style="max-width: 50vw"
+          >
             {{ $t("municipality.chart.treemap.description") }}
           </p>
         </div>
@@ -72,7 +73,10 @@
       </div>
 
       <!-- Mobile: Participate Section -->
-      <div v-if="municipality.public_contact" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
+      <div
+        v-if="municipality.public_contact"
+        class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+      >
         <input type="checkbox" name="sectors-accordion" autocomplete="off" />
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
           <img src="~/assets/icons/icon_team.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
@@ -88,48 +92,60 @@
       <!-- Mobile: Statistics Section Link -->
       <NuxtLink
         :to="`/stats/${municipality.ars}`"
-        class="mb-4 shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
+        class="mb-4 flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
       >
         <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-        <h2 class="font-heading text-h2">
-          {{ $t("stats.title") }} →
-        </h2>
+        <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
       </NuxtLink>
 
       <!-- Mobile: Kommunalwahl Question Generation Link -->
       <NuxtLink
         :to="`/elections/${municipality.slug}`"
-        class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3/50"
+        class="flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
       >
         <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-        <h3 class="font-heading text-h2 ">
+        <h3 class="font-heading text-h2">
           {{
             $t("local_elections.title", {
-              ":year": municipalElectionYear ?? ""
+              ":year": municipalElectionYear ?? "",
             })
-          }} →
+          }}
+          →
         </h3>
       </NuxtLink>
 
-      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector"/>
+      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector" />
+
+      <!-- Mobile: Associated Projects Link -->
+      <NuxtLink
+        v-if="municipalityProjects && municipalityProjects.length > 0"
+        :to="{ path: '/projects', query: { municipality: municipality.name } }"
+        class="mt-4 flex items-center gap-3 rounded-sm bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
+      >
+        <img src="~/assets/icons/icon_invest.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+        <h3 class="font-heading text-h2">
+          {{ $t("projects.title") }}
+          →
+        </h3>
+      </NuxtLink>
     </div>
 
     <!-- Desktop: Two column layout -->
-    <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8 w-full">
+    <div class="hidden w-full lg:grid lg:grid-cols-3 lg:gap-8">
       <!-- Left Column: Main content (2/3 width) -->
       <div class="lg:col-span-2">
         <div class="mb-8">
           <item-ranking :municipalityScore="municipalityScore" />
         </div>
         <div class="mb-4">
-          <div role="tablist" class="tabs tabs-boxed w-fit">
-            <a 
-              role="tab" 
-              class="tab gap-1.5" 
+          <div role="tablist" class="tabs-boxed tabs w-fit">
+            <a
+              role="tab"
+              class="tab gap-1.5"
               :class="{ 'tab-active': activeTab === 'polar' }"
               @click="activeTab = 'polar'"
             >
-              <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" />
                 <polygon points="12,6 18,9.5 18,14.5 12,18 6,14.5 6,9.5" />
                 <line x1="12" y1="2" x2="12" y2="22" />
@@ -138,13 +154,13 @@
               </svg>
               {{ $t("municipality.chart.polar") }}
             </a>
-            <a 
-              role="tab" 
-              class="tab gap-1.5" 
+            <a
+              role="tab"
+              class="tab gap-1.5"
               :class="{ 'tab-active': activeTab === 'treemap' }"
               @click="activeTab = 'treemap'"
             >
-              <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="2" width="9" height="20" rx="1" />
                 <rect x="13" y="2" width="9" height="9" rx="1" />
                 <rect x="13" y="13" width="9" height="9" rx="1" />
@@ -152,31 +168,42 @@
               {{ $t("generic.view.treemap") }}
             </a>
           </div>
-          <div class="mt-4 bg-base-100 border-base-300 rounded-box p-6">
-          <MunicipalityPolarChart 
-            v-if="activeTab === 'polar'"
-            :sub-scores="subScores" 
-            :name-municipality="municipality.name" 
-          />
-          <MunicipalityTreeMap 
-            v-if="activeTab === 'treemap'"
-            :ratings-by-sector="ratingsBySector" 
-            :name-municipality="municipality.name" 
-          />
-          <p v-if="activeTab === 'polar'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
-            {{ $t("municipality.chart.polar.description") }}
-          </p>
-          <p v-else-if="activeTab === 'treemap'" class="text-xs italic text-gray-500 mt-3 text-center mx-auto" style="max-width:50vw">
-            {{ $t("municipality.chart.treemap.description") }}
-          </p>
-        </div>
+          <div class="mt-4 rounded-box border-base-300 bg-base-100 p-6">
+            <MunicipalityPolarChart
+              v-if="activeTab === 'polar'"
+              :sub-scores="subScores"
+              :name-municipality="municipality.name"
+            />
+            <MunicipalityTreeMap
+              v-if="activeTab === 'treemap'"
+              :ratings-by-sector="ratingsBySector"
+              :name-municipality="municipality.name"
+            />
+            <p
+              v-if="activeTab === 'polar'"
+              class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+              style="max-width: 50vw"
+            >
+              {{ $t("municipality.chart.polar.description") }}
+            </p>
+            <p
+              v-else-if="activeTab === 'treemap'"
+              class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
+              style="max-width: 50vw"
+            >
+              {{ $t("municipality.chart.treemap.description") }}
+            </p>
+          </div>
         </div>
         <div class="mx-auto mb-8 flex justify-center">
           <implementation-traffic-light v-if="activeTab === 'polar'" />
         </div>
 
         <!-- Notice about current developments, if it exists -->
-        <div v-if="municipality.overall_status_comment" class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4">
+        <div
+          v-if="municipality.overall_status_comment"
+          class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+        >
           <input type="checkbox" name="sectors-accordion" autocomplete="off" />
           <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
             <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
@@ -189,43 +216,42 @@
           </div>
         </div>
 
-        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector"/>
+        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector" />
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
-      <div class="lg:col-span-1 pb-4">
+      <div class="pb-4 lg:col-span-1">
         <div class="sticky top-24 space-y-6">
           <!-- Municipality Quick Info -->
-          <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore"/>
+          <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore" />
 
           <!-- Statistics Section Link -->
           <NuxtLink
-          :to="municipality.ars ? `/stats/${municipality.ars}` : '/stats'"
-            class="shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
+            :to="municipality.ars ? `/stats/${municipality.ars}` : '/stats'"
+            class="flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
           >
             <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
-            <h3 class="font-heading text-h3">
-              {{ $t("stats.title") }} →
-            </h3>
+            <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
           </NuxtLink>
 
           <!-- Kommunalwahl Question Generation Link -->
           <NuxtLink
             :to="`/elections/${municipality.slug}`"
-            class="shadow-list flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green hover:bg-rating-3/50"
+            class="flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
           >
             <img src="~/assets/icons/icon_politics.svg" class="h-6 w-6 opacity-60" />
             <h3 class="font-heading text-h3">
               {{
                 $t("local_elections.title", {
-                  ":year": municipalElectionYear ?? ""
+                  ":year": municipalElectionYear ?? "",
                 })
-              }} →
+              }}
+              →
             </h3>
           </NuxtLink>
 
           <!-- Participate Section -->
-          <div v-if="municipality?.public_contact" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
+          <div v-if="municipality?.public_contact" class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2">
             <input type="checkbox" name="contact-accordion" autocomplete="off" />
             <div class="collapse-title flex items-center gap-3 px-2 md:px-4">
               <img src="~/assets/icons/icon_team.svg" class="h-6 w-6 opacity-60" />
@@ -234,16 +260,21 @@
               </h3>
             </div>
             <div class="collapse-content px-2 md:px-4">
-              <div class="has-long-links prose prose-sm max-w-none" v-html="md.render(municipality.public_contact)"></div>
+              <div
+                class="has-long-links prose prose-sm max-w-none"
+                v-html="md.render(municipality.public_contact)"
+              ></div>
             </div>
           </div>
 
           <!-- Associated Projects -->
-          <div v-if="municipalityProjects && municipalityProjects.length > 0" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
-            <div class="p-3 flex items-center gap-3 mb-4">
+          <div
+            v-if="municipalityProjects && municipalityProjects.length > 0"
+            class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2"
+          >
+            <div class="mb-4 flex items-center gap-3 p-3">
               <img src="~/assets/icons/icon_invest.svg" class="h-6 w-6 opacity-60" />
               <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
-
             </div>
             <div class="space-y-4">
               <ProjectCard
@@ -264,10 +295,12 @@
 
           <!-- Last Update Info -->
           <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
-            <div class="flex items-center gap-2 text-sm text-gray-600">
+            <div class="text-gray-600 flex items-center gap-2 text-sm">
               <img src="~/assets/icons/icon_info.svg" class="h-4 w-4 opacity-60" />
               <ClientOnly>
-                <span>{{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale) }}</span>
+                <span>{{
+                  $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale)
+                }}</span>
               </ClientOnly>
             </div>
           </div>
@@ -278,9 +311,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed } from "vue";
 import lodash from "lodash";
-import MarkdownIt from 'markdown-it'
+import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt({
   html: false, // XSS safety
@@ -292,8 +325,7 @@ import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils
 
 const municipalElectionYear = computed(() => {
   return getStateMunicipalElectionYear(municipality?.state);
-})
-
+});
 
 const { range } = lodash;
 const { $t, $locale, $directus, $readItems } = useNuxtApp();
@@ -314,7 +346,7 @@ const municipality = municipalityScore.municipality;
 const subScores = createSubScoreObject(municipalityScore);
 
 // Tab state
-const activeTab = ref('polar');
+const activeTab = ref("polar");
 
 // Fetch projects associated with this municipality
 const municipalityProjects = ref([]);
@@ -322,7 +354,7 @@ const loadingProjects = ref(false);
 
 // Defensive check for municipality data
 const hasMunicipalityData = computed(() => {
-  return municipality && typeof municipality === 'object';
+  return municipality && typeof municipality === "object";
 });
 
 onMounted(async () => {
@@ -349,46 +381,48 @@ async function fetchMunicipalityProjects() {
           "date_created",
           "municipality_name",
           "state",
-          "organisation"
+          "organisation",
         ],
         filter: {
-          municipality_name: { _eq: municipality.name }
+          municipality_name: { _eq: municipality.name },
         },
         sort: "-date_created",
         limit: 5, // Limit to 5 most recent projects
-      })
+      }),
     );
 
     // Get organisation details if articles have organisations
-    const orgIds = [...new Set(
-      articles
-        .map(article => {
-          const org = article.organisation;
-          if (org == null) return null;
-          return typeof org === 'object' ? org.key : org;
-        })
-        .filter(id => id != null)
-    )];
+    const orgIds = [
+      ...new Set(
+        articles
+          .map((article) => {
+            const org = article.organisation;
+            if (org == null) return null;
+            return typeof org === "object" ? org.key : org;
+          })
+          .filter((id) => id != null),
+      ),
+    ];
 
     let organisations = [];
     if (orgIds.length > 0) {
       organisations = await $directus.request(
         $readItems("organisations", {
           fields: ["id", "name", "logo", "link"],
-          filter: { id: { _in: orgIds } }
-        })
+          filter: { id: { _in: orgIds } },
+        }),
       );
     }
 
-    const orgMap = new Map(organisations.map(org => [org.id, org]));
+    const orgMap = new Map(organisations.map((org) => [org.id, org]));
 
-    municipalityProjects.value = articles.map(article => {
+    municipalityProjects.value = articles.map((article) => {
       const orgRaw = article.organisation;
       if (orgRaw == null) return { ...article, organisation: null };
-      const orgId = typeof orgRaw === 'object' ? orgRaw.key : orgRaw;
+      const orgId = typeof orgRaw === "object" ? orgRaw.key : orgRaw;
       return {
         ...article,
-        organisation: orgMap.get(orgId) || null
+        organisation: orgMap.get(orgId) || null,
       };
     });
   } catch (err) {
@@ -408,7 +442,6 @@ function createSubScoreObject(municipalityScore) {
   }
   return temp;
 }
-
 </script>
 
 <style lang=""></style>

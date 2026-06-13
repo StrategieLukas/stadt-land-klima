@@ -1,0 +1,3 @@
+language: it-IT
+key: stats.clustering.empty_profile
+value: Clicca su un punto del grafico per vedere il profilo del cluster.

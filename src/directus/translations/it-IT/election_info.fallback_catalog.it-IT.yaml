@@ -1,0 +1,4 @@
+language: it-IT
+key: election_info.fallback_catalog
+value: Queste domande si basano su una valutazione precedente (:old), poiché il
+  comune non è ancora stato valutato per la versione attuale (:current).

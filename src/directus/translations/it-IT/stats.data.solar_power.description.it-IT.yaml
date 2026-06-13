@@ -1,0 +1,5 @@
+language: it-IT
+key: stats.data.solar_power.description
+value: Produzione di energia elettrica da impianti fotovoltaici in spazio aperto
+  che vengono archiviati nell'anagrafica del mercato. I sistemi di prelievo EEG
+  virtuale non sono inclusi!

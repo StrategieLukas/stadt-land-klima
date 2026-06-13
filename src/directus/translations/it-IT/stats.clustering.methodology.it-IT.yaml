@@ -1,0 +1,9 @@
+language: it-IT
+key: stats.clustering.methodology
+value: Ogni comune è descritto dai suoi punteggi di misura individuali (0 =
+  difficilmente/non, 1 = completamente; N/A e punteggi mancanti = 0). La PCA
+  riduce questi vettori ad alta dimensione a due componenti principali (PC1/PC2)
+  che spiegano la maggior parte della varianza. k-Mezzi quindi raggruppa comuni
+  simili. <strong>Cosa si vede?</strong> I comuni vicini tra loro nel diagramma
+  presentano un profilo di forza/debolezza simile in tutte le misure. Il profilo
+  del cluster a destra mostra i punteggi medi del settore del cluster cliccato.

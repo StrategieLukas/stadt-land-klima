@@ -1,0 +1,6 @@
+language: it-IT
+key: localteam.contact_content
+value: |
+  Vorrei contattare il team locale di :name.
+
+  I miei dati di contatto:

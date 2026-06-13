@@ -1,0 +1,5 @@
+language: it-IT
+key: stats.data.wind_power.description
+value: Questa è solo l'energia eolica che si trova nel territorio del comune. Se
+  il comune gestisce/è coinvolto nell'energia eolica in altre località, questo
+  non viene mostrato qui.

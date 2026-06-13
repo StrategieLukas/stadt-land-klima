@@ -7,7 +7,6 @@ import {
   updatePolicy,
   deletePolicies,
   createPermissions,
-  updatePermission,
   deletePermissions,
   readPermissions,
   readRoles,
@@ -16,7 +15,114 @@ import {
   deleteRoles,
 } from '@directus/sdk';
 import createDirectusClient, { directusUrl } from '../shared/createDirectusClient.mjs';
+import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
+import resolvePolicyByName from '../shared/resolvePolicyByName.mjs';
+
+function assertUniquePolicyNames(policies) {
+  const policiesByName = new Map();
+
+  for (const policy of policies) {
+    if (!policy.name) continue;
+
+    const existing = policiesByName.get(policy.name) || [];
+    existing.push(policy.id);
+    policiesByName.set(policy.name, existing);
+  }
+
+  const duplicates = Array.from(policiesByName.entries())
+  .filter(([, ids]) => ids.length > 1);
+
+  if (duplicates.length > 0) {
+    const details = duplicates
+    .map(([name, ids]) => `"${name}" (${ids.join(', ')})`)
+    .join('; ');
+
+    throw new Error(`Duplicate Directus policy names found. Policy names must be unique for import: ${details}`);
+  }
+}
+
+function getPermissionPayload(permission, policyId) {
+  const { id, policy, role, ...payload } = permission;
+  return { ...payload, policy: policyId };
+}
+
+function isInvalidPolicyForeignKeyError(err) {
+  const messages = [
+    err?.message,
+    ...(Array.isArray(err?.errors) ? err.errors.map((error) => error?.message) : []),
+  ]
+  .filter(Boolean)
+  .join('\n');
+
+  return messages.includes('Invalid foreign key') && messages.includes('field "policy"');
+}
+
+async function removePolicyPermissions(client, existingPermissions, policyId, policyName, verbose) {
+  const policyPermissionsToDelete = existingPermissions
+  .filter((permission) => permission.policy === policyId && permission.id)
+  .map(property('id'));
+
+  if (policyPermissionsToDelete.length) {
+    if (verbose) {
+      console.info(`Removing ${policyPermissionsToDelete.length} existing permissions for policy ${policyName}`);
+    }
+    await client.request(deletePermissions(policyPermissionsToDelete));
+  }
+}
+
+async function createPermissionsForPolicy(client, policyName, policyPermissions, policyObj, existingPermissions, options) {
+  let resolvedPolicy = await resolvePolicyByName(client, policyName, [policyObj], options);
+
+  if (!resolvedPolicy) {
+    throw new Error(`Could not find policy with name ${policyName}`);
+  }
+
+  await removePolicyPermissions(client, existingPermissions, resolvedPolicy.id, policyName, options.verbose);
+
+  let permissionsToCreate = policyPermissions.map((permission) =>
+    getPermissionPayload(permission, resolvedPolicy.id)
+  );
+
+  if (!permissionsToCreate.length) return;
+
+  if (options.verbose) console.info(`Creating ${permissionsToCreate.length} permissions for policy ${policyName}`);
+
+  try {
+    await client.request(createPermissions(permissionsToCreate));
+  } catch (err) {
+    if (!isInvalidPolicyForeignKeyError(err)) {
+      console.error(`Error creating permissions for policy ${policyName} (${resolvedPolicy.id})`, permissionsToCreate);
+      throw err;
+    }
+
+    console.warn(`Policy ID ${resolvedPolicy.id} for ${policyName} was rejected by Directus; clearing cache and retrying by policy name.`);
+    await clearDirectusCache({ verbose: options.verbose });
+
+    const refreshedPolicies = await client.request(readPolicies({ limit: -1 }));
+    assertUniquePolicyNames(refreshedPolicies);
+    resolvedPolicy = await resolvePolicyByName(client, policyName, refreshedPolicies, options);
+
+    if (!resolvedPolicy) {
+      console.error(`Error creating permissions for policy ${policyName}`, permissionsToCreate);
+      throw err;
+    }
+
+    const refreshedPermissions = await client.request(readPermissions({ limit: -1 }));
+    await removePolicyPermissions(client, refreshedPermissions, resolvedPolicy.id, policyName, options.verbose);
+
+    permissionsToCreate = policyPermissions.map((permission) =>
+      getPermissionPayload(permission, resolvedPolicy.id)
+    );
+
+    try {
+      await client.request(createPermissions(permissionsToCreate));
+    } catch (retryErr) {
+      console.error(`Error creating permissions for policy ${policyName} (${resolvedPolicy.id})`, permissionsToCreate);
+      throw retryErr;
+    }
+  }
+}
 
 /**
  * Import roles and policies for Directus v11+
@@ -126,15 +232,13 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
 
     // Get existing policies and permissions
     let existingPolicies = await client.request(readPolicies({ limit: -1 }));
-    let existingPermissions = await client.request(readPermissions({ limit: -1 }));
+    assertUniquePolicyNames(existingPolicies);
 
     // Read policy YAML files
     const policies = readYamlFiles(policiesSrc);
 
     const policiesToCreate = [];
     const policiesToUpdate = [];
-    const permissionsToCreate = [];
-    const permissionsToUpdate = [];
 
     // Track which permissions belong to which policy
     const policyPermissionMap = new Map(); // policyName -> permissions
@@ -181,9 +285,12 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
     }
 
     // --- Refresh policies list to get all IDs ---
+    await clearDirectusCache({ verbose: options.verbose });
     const updatedPolicies = await client.request(readPolicies({ limit: -1 }));
+    assertUniquePolicyNames(updatedPolicies);
+    const existingPermissions = await client.request(readPermissions({ limit: -1 }));
 
-    // --- Process permissions for each policy ---
+    // --- Replace permissions for each managed policy ---
     for (const policy of policies) {
       const policyName = policy.name;
       const policyPermissions = policyPermissionMap.get(policyName) || [];
@@ -195,41 +302,7 @@ async function importRolesAndPolicies(src, options = { verbose: false, remove: f
         continue;
       }
 
-      for (const permission of policyPermissions) {
-        // Add policy reference to permission
-        const permissionWithPolicy = { ...permission, policy: policyObj.id };
-
-        // Check if this permission already exists
-        const existingPermission = find(existingPermissions, {
-          action: permission.action,
-          collection: permission.collection,
-          policy: policyObj.id,
-        });
-
-        if (existingPermission && existingPermission.id) {
-          permissionWithPolicy.id = existingPermission.id;
-          permissionsToUpdate.push(permissionWithPolicy);
-        } else {
-          permissionsToCreate.push(permissionWithPolicy);
-        }
-      }
-    }
-
-    // --- Create/Update Permissions ---
-    if (permissionsToCreate.length) {
-      if (options.verbose) console.info(`Creating ${permissionsToCreate.length} permissions`);
-      await client.request(createPermissions(permissionsToCreate));
-    }
-
-    if (permissionsToUpdate.length) {
-      if (options.verbose) console.info(`Updating ${permissionsToUpdate.length} permissions`);
-      await Promise.all(
-        permissionsToUpdate.map((permission) =>
-          client.request(updatePermission(permission.id, permission)).catch((err) => {
-            console.error(err, permission);
-          })
-        )
-      );
+      await createPermissionsForPolicy(client, policyName, policyPermissions, policyObj, existingPermissions, options);
     }
 
     // --- Remove orphaned policies and permissions ---

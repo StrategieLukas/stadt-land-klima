@@ -1,0 +1,4 @@
+language: it-IT
+key: stats.data.ev_charging.description
+value: Potenza nominale netta totale delle colonnine di ricarica elettrica
+  presenti sul territorio.

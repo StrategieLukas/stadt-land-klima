@@ -1,0 +1,4 @@
+language: it-IT
+key: stats.dominance.matrix.description
+value: Quante volte vince il comune della riga contro il comune della colonna?
+  Blu = vince, rosso = perde, grigio = pareggio

@@ -1,0 +1,4 @@
+language: it-IT
+key: elections.loading_error.description
+value: Si è verificato un errore durante il caricamento dei dati elettorali. Per
+  favore riprova più tardi.

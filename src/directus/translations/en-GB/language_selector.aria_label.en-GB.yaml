@@ -1,0 +1,3 @@
+language: en-GB
+key: language_selector.aria_label
+value: Select language

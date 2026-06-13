@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // The private keys which are only available within server-side
     meilisearchUrl: process.env.MEILISEARCH_URL,
-    meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY,
+    meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY ?? process.env.MEILI_MASTER_KEY,
     altchaSecret: process.env.ALTCHA_SECRET,
     directusFlowRegisterMunicipality: process.env.DIRECTUS_FLOW_REGISTER_MUNICIPALITY,
     directusFlowNotifyAdmin: process.env.DIRECTUS_FLOW_NOTIFY_ADMIN,

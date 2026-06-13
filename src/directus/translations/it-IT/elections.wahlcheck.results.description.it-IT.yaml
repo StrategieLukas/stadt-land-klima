@@ -1,0 +1,4 @@
+language: it-IT
+key: elections.wahlcheck.results.description
+value: Qui puoi vedere quanto le tue risposte corrispondono a quelle dei
+  candidati. L'accordo è espresso in percentuale.

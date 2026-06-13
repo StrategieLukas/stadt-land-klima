@@ -250,7 +250,7 @@ interface BlockRow {
 export default ({ action }: HookContext, { logger, env }: { logger: Logger; env: Record<string, string> }) => {
   const ms = new MeiliSearch({
     host: env.MEILISEARCH_URL || 'http://meilisearch:7700',
-    apiKey: env.MEILISEARCH_MASTER_KEY || '',
+    apiKey: env.MEILISEARCH_MASTER_KEY || env.MEILI_MASTER_KEY || '',
   });
   const index = ms.index('site_content');
 
