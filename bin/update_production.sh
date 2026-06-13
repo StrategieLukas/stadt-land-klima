@@ -33,7 +33,7 @@ for arg in "$@"; do
 done
 
 # target backup directory
-BACKUP_DIR="../../backups"
+BACKUP_DIR="../../../backups"
 # ensure directory exists
 mkdir -p "$BACKUP_DIR"
 # generate filename with current date
@@ -41,11 +41,12 @@ DATE=$(date +"%d-%m-%Y")
 FILENAME="backupOnUpdate-$DATE.sql"
 # run the export and redirect to file
 echo "Performing backup... "
-./db_exports/export_db.sh > "$BACKUP_DIR/$FILENAME"
+cd ./db_exports
+./export_db.sh > "$BACKUP_DIR/$FILENAME"
 
 echo "Backup saved to $BACKUP_DIR/$FILENAME"
 
-cd ..
+cd ../..
 # no stashing to prevent changes being removed
 # git stash
 git pull
