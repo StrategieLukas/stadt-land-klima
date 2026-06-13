@@ -1,0 +1,6 @@
+language: it-IT
+key: localteam.support.contact_content
+value: |
+  Vorrei aiutare il team locale di :name.
+
+  I miei dati di contatto:

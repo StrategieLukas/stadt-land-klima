@@ -1,0 +1,4 @@
+language: it-IT
+key: elections.wahlcheck.summary.description
+value: Controlla le tue risposte e, facoltativamente, seleziona le domande
+  particolarmente importanti per te. Queste verranno ponderate doppio.

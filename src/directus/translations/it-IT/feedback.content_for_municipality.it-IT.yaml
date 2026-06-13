@@ -1,0 +1,7 @@
+language: it-IT
+key: feedback.content_for_municipality
+value: |
+  Comune: :name
+  Link: /municipalities/:slug
+
+  Il mio feedback:

@@ -1,0 +1,4 @@
+language: it-IT
+key: localteam.join.completed_body
+value: <strong>:name</strong> ha una valutazione completa. Contatta il team
+  locale o inviaci il tuo feedback.

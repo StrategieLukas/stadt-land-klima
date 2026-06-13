@@ -1,0 +1,6 @@
+language: it-IT
+key: stats.data.cyclewayInfrastructureData.description
+value: Chilometri di percorso della rete di piste ciclabili diviso per i
+  chilometri di percorso delle strade (escluse autostrade e strade statali). Un
+  valore del 100% significa che ci sono tanti chilometri di piste ciclabili
+  quanti sono le strade (automobilistiche).

@@ -1,0 +1,6 @@
+language: it-IT
+key: localteam.join.contact_content
+value: |
+  Vorrei partecipare al team locale di :name.
+
+  I miei dati di contatto:

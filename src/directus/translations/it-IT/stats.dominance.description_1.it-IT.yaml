@@ -1,0 +1,7 @@
+language: it-IT
+key: stats.dominance.description_1
+value: "Per ciascuna misura viene effettuato un confronto a coppie per vedere
+  quale comune ha ottenuto i risultati migliori. Il tasso di vincita per comune
+  viene determinato da tutti i confronti individuali: la percentuale di incontri
+  vinti. Il risultato è più solido di un semplice punteggio complessivo perché
+  riflette la forza di molte categorie indipendenti."

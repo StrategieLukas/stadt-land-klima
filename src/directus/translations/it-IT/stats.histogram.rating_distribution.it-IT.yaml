@@ -1,0 +1,3 @@
+language: it-IT
+key: stats.histogram.rating_distribution
+value: "Distribuzione della valutazione: :label"

@@ -1,0 +1,3 @@
+language: it-IT
+key: auth.first_name
+value: Nome di battesimo

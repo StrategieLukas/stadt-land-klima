@@ -1,0 +1,4 @@
+language: it-IT
+key: localteam.support.body
+value: In <strong>:name</strong> un team locale sta gia lavorando alla
+  valutazione. Aiutalo a completarla.

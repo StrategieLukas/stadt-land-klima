@@ -1,0 +1,5 @@
+language: it-IT
+key: municipality.ars.validation_fail
+value: Questa non è una chiave regionale ufficiale (ARS) valida. Questo ha 12
+  cifre. Forse hai provato a inserire un codice municipale ufficiale (AGS)
+  (sarebbe di 8 cifre)?
