@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.theses.loading_error.description
+value: "Die angeforderten Daten konnten nicht geladen werden. Bitte überprüfen Sie die URL."

@@ -3,8 +3,8 @@
     <table class="table w-full">
       <thead>
         <tr>
-          <th>Statistik</th>
-          <th>Wert</th>
+          <th>{{ $t("stats.statistic") }}</th>
+          <th>{{ $t("stats.value") }}</th>
         </tr>
       </thead>
       <tbody>

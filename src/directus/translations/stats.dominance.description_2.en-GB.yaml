@@ -1,0 +1,3 @@
+language: en-GB
+key: stats.dominance.description_2
+value: "The <strong>dominance matrix</strong> shows, for each pair (row vs column), how often the row municipality outperformed the column municipality. Diagonal blue blocks indicate clusters of similarly strong municipalities: performance tiers. The matrix is sorted by win rate, with the strongest municipalities at the top."

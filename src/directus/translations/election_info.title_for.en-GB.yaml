@@ -1,0 +1,3 @@
+language: en-GB
+key: election_info.title_for
+value: "Question catalogue for :name"

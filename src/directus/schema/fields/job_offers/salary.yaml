@@ -1,0 +1,68 @@
+collection: job_offers
+field: salary
+type: string
+meta:
+  collection: job_offers
+  conditions:
+    - hidden: true
+      name: Nur bei bezahlten Stellen anzeigen
+      rule:
+        _and:
+          - type:
+              _nin:
+                - full_time
+                - part_time
+                - internship
+    - name: Bei Vollzeit und Teilzeit erforderlich
+      required: true
+      rule:
+        _and:
+          - type:
+              _in:
+                - full_time
+                - part_time
+  display: null
+  display_options: null
+  field: salary
+  group: null
+  hidden: false
+  interface: input
+  note: null
+  options:
+    placeholder: z.B. 4.500 € / Monat
+    trim: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Monatliches Gehalt
+  validation:
+    _or:
+      - type:
+          _nin:
+            - full_time
+            - part_time
+      - salary:
+          _nnull: true
+  validation_message: Für Vollzeit- und Teilzeitstellen muss ein Gehalt angegeben werden.
+  width: half
+schema:
+  name: salary
+  table: job_offers
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

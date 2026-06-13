@@ -2,7 +2,7 @@
   <div class="py-8">
     <!-- Header row: title + admin create button -->
     <div class="flex items-start justify-between gap-4 mb-2">
-      <h1 class="text-3xl font-bold text-[#006e94]">News</h1>
+      <h1 class="text-3xl font-bold text-[#006e94]">{{ $t('news.title') }}</h1>
       <button
         v-if="isAuthenticated"
         type="button"
@@ -13,10 +13,10 @@
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
-        {{ creating ? 'Erstelle…' : 'Neuigkeit erstellen' }}
+        {{ creating ? $t('news.create.in_progress') : $t('news.create') }}
       </button>
     </div>
-    <p class="text-gray-500 mb-8">Aktuelle Meldungen, Veranstaltungen, neue Kommunen und Projekte.</p>
+    <p class="text-gray-500 mb-8">{{ $t('news.description') }}</p>
 
     <!-- Type filter pills -->
     <div class="flex flex-wrap gap-2 mb-6">
@@ -30,7 +30,7 @@
             : 'bg-[#e5e7eb] text-[#374151] border-[#e5e7eb] hover:bg-[#d1d5db]',
         ]"
       >
-        Alle
+        {{ $t('generic.all') }}
       </button>
       <button
         v-for="f in filterOptions"
@@ -65,7 +65,7 @@
               ? 'bg-[#1da64a]/10 text-[#1da64a] font-semibold'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
-        >Zukünftig</a>
+        >{{ $t('news.section.upcoming') }}</a>
         <a
           v-for="group in groupedByMonth"
           :key="group.monthKey"
@@ -87,7 +87,7 @@
         class="hidden xl:block w-44 flex-shrink-0 sticky text-sm self-start"
         :style="`top: ${headerHeight + 12}px`"
       >
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Abschnitte</p>
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{{ $t('news.sections') }}</p>
           <ul class="space-y-1">
             <li
               v-if="upcomingEvents.length && (activeFilter === null || activeFilter === 'event')"
@@ -100,7 +100,7 @@
                     ? 'text-[#1da64a] font-semibold bg-[#1da64a]/5'
                     : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
                 ]"
-              >Zukünftig</a>
+              >{{ $t('news.section.upcoming') }}</a>
             </li>
             <li v-for="group in groupedByMonth" :key="group.monthKey">
               <a
@@ -128,10 +128,10 @@
     >
       <div class="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
         <h2 class="text-base font-semibold text-gray-500 uppercase tracking-wide">
-          Zukünftig
+          {{ $t('news.section.upcoming') }}
         </h2>
         <NuxtLink to="/events" class="text-sm text-[#1da64a] hover:underline flex items-center gap-1 font-medium shrink-0">
-          Alle Veranstaltungen
+          {{ $t('news.all_events') }}
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
@@ -167,14 +167,14 @@
               fit="cover"
               imgClass="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            <span class="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full bg-[#1da64a] text-white">Veranstaltung</span>
+            <span class="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full bg-[#1da64a] text-white">{{ typeLabel('event') }}</span>
           </div>
           <!-- Card body -->
           <div class="p-4 flex flex-col gap-1 flex-1">
             <h3 class="font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#006e94] transition-colors">{{ ev.title }}</h3>
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
               <span v-if="ev.event_type" class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#1da64a]/10 text-[#1da64a]">
-                {{ { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }[ev.event_type] ?? ev.event_type }}
+                {{ eventTypeLabel(ev.event_type) }}
               </span>
               <span class="flex items-center gap-1 text-xs text-gray-500">
                 <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -196,7 +196,7 @@
     </div>
 
     <div v-if="visibleItems.length === 0 && !(upcomingEvents.length && (activeFilter === null || activeFilter === 'event'))" class="text-gray-400 italic">
-      Keine Einträge gefunden.
+      {{ $t('news.no_entries') }}
     </div>
 
     <div v-for="group in groupedByMonth" :key="group.monthKey" :id="`section-${group.monthKey}`" class="mb-10" :style="`scroll-margin-top: ${headerHeight + 16}px`">
@@ -281,7 +281,7 @@
               'absolute top-2 right-2 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide',
               item.status === 'draft' ? 'bg-[#fbbf24] text-[#78350f]' : 'bg-[#9ca3af] text-white',
             ]"
-          >{{ item.status === 'draft' ? 'Entwurf' : 'Archiviert' }}</span>
+          >{{ statusLabel(item.status) }}</span>
         </div>
         <!-- Card body -->
         <div
@@ -297,7 +297,7 @@
           <!-- Event metadata: type badge, date, location -->
           <div v-if="item.type === 'event'" class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
             <span v-if="item.eventType" class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#1da64a]/10 text-[#1da64a]">
-              {{ { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }[item.eventType] ?? item.eventType }}
+              {{ eventTypeLabel(item.eventType) }}
             </span>
             <span class="flex items-center gap-1 text-xs text-gray-500">
               <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -343,6 +343,7 @@ import { useAuth } from '~/composables/useAuth'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 import sectorImages from '~/shared/sectorImages.js'
+import { createSlug } from '~/shared/slugify.js'
 
 import { isRaster } from '~/shared/utils'
 function stripHtml(html) {
@@ -352,7 +353,7 @@ function stripHtml(html) {
 
 const NuxtLinkComponent = resolveComponent('NuxtLink')
 
-const { $directus, $readItems } = useNuxtApp()
+const { $directus, $readItems, $t, $locale } = useNuxtApp()
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
 
@@ -421,7 +422,7 @@ onMounted(async () => {
   }
 })
 
-useHead({ title: 'Neuigkeiten' })
+useHead({ title: computed(() => $t('news.title')) })
 
 // ── Data fetching ──────────────────────────────────────────────────────────────
 
@@ -541,7 +542,7 @@ const allItems = computed(() => {
       type: 'catalog',
       id: c.id,
       title: c.name,
-      teaser: 'Neuer Maßnahmenkatalog veröffentlicht',
+      teaser: $t('news.catalog_published'),
       imageId: null,
       imageType: null,
       date: c.date_created,
@@ -557,13 +558,13 @@ const allItems = computed(() => {
 
 const activeFilter = ref(null)
 
-const filterOptions = [
-  { value: 'news', label: 'Neuigkeiten', activeClass: 'bg-teal-600 text-white border-teal-600' },
-  { value: 'project', label: 'Erfolgsprojekte', activeClass: 'bg-[#006e94] text-white border-[#006e94]' },
-  { value: 'event', label: 'Veranstaltungen', activeClass: 'bg-[#1da64a] text-white border-[#1da64a]' },
-  { value: 'municipality', label: 'Kommunen', activeClass: 'bg-[#afca0b] text-white border-[#afca0b]' },
-  { value: 'catalog', label: 'Maßnahmenkataloge', activeClass: 'bg-[#6b7280] text-white border-[#6b7280]' },
-]
+const filterOptions = computed(() => [
+  { value: 'news', label: $t('news.filter.news'), activeClass: 'bg-teal-600 text-white border-teal-600' },
+  { value: 'project', label: $t('news.filter.project'), activeClass: 'bg-[#006e94] text-white border-[#006e94]' },
+  { value: 'event', label: $t('news.filter.event'), activeClass: 'bg-[#1da64a] text-white border-[#1da64a]' },
+  { value: 'municipality', label: $t('news.filter.municipality'), activeClass: 'bg-[#afca0b] text-white border-[#afca0b]' },
+  { value: 'catalog', label: $t('news.filter.catalog'), activeClass: 'bg-[#6b7280] text-white border-[#6b7280]' },
+])
 
 const visibleItems = computed(() =>
   activeFilter.value
@@ -576,7 +577,7 @@ const groupedByMonth = computed(() => {
   for (const item of visibleItems.value) {
     const d = new Date(item.date)
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+    const label = d.toLocaleDateString($locale, { month: 'long', year: 'numeric' })
     if (!map.has(key)) map.set(key, { monthKey: key, label, items: [] })
     map.get(key).items.push(item)
   }
@@ -595,7 +596,7 @@ const upcomingEvents = computed(() => {
 
 function formatDate(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+  return new Date(iso).toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 function formatDateRange(startIso, endIso) {
@@ -603,25 +604,31 @@ function formatDateRange(startIso, endIso) {
   const start = new Date(startIso)
   const end = endIso ? new Date(endIso) : null
   if (!end || end.toDateString() === start.toDateString()) {
-    return start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+    return start.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })
   }
   if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.getDate()}. – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+    return `${start.getDate()}. – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
   }
   if (start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+    return `${start.toLocaleDateString($locale, { day: '2-digit', month: 'long' })} – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
   }
-  return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+  return `${start.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })} – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
 }
 
 function typeLabel(type) {
-  return {
-    news: 'Neuigkeit',
-    project: 'Erfolgsprojekt',
-    event: 'Veranstaltung',
-    municipality: 'Bewertung geupdated',
-    catalog: 'Maßnahmenkatalog',
-  }[type] ?? type
+  const translated = $t(`news.type.${type}`)
+  return translated === `news.type.${type}` ? type : translated
+}
+
+function eventTypeLabel(type) {
+  if (!type) return ''
+  const translated = $t(`events.type.${type}`)
+  return translated === `events.type.${type}` ? type : translated
+}
+
+function statusLabel(status) {
+  const translated = $t(`status.${status}`)
+  return translated === `status.${status}` ? status : translated
 }
 
 function typeBadgeClass(type) {
@@ -643,15 +650,10 @@ function typeEmoji(type) {
 const creating = ref(false)
 
 async function createNewsItem() {
-  const title = window.prompt('Titel der neuen Neuigkeit:')
+  const title = window.prompt($t('news.create.prompt'))
   if (!title?.trim()) return
 
-  const slug = title.trim()
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    + '-' + Date.now().toString(36)
+  const slug = `${createSlug(title)}-${Date.now().toString(36)}`
 
   creating.value = true
   try {
@@ -663,7 +665,7 @@ async function createNewsItem() {
     }))
     await navigateTo(`/news/${result.slug}`)
   } catch (err) {
-    alert('Fehler beim Erstellen: ' + (err?.errors?.[0]?.message || err?.message || err))
+    alert($t('news.create.error', { ':message': err?.errors?.[0]?.message || err?.message || err }))
   } finally {
     creating.value = false
   }

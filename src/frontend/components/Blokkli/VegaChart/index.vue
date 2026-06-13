@@ -24,7 +24,7 @@
       <div class="mt-3 border border-gray-200 rounded bg-white p-2">
         <div ref="editChartContainer" class="vega-chart-container" />
         <div v-if="loading" class="text-gray-400 text-xs py-4 text-center">
-          Daten werden geladen…
+          {{ $t("generic.loading") }}
         </div>
       </div>
 
@@ -62,7 +62,7 @@
         {{ errorMessage }}
       </div>
       <div v-if="loading" class="text-gray-400 text-sm py-8 text-center">
-        Daten werden geladen…
+        {{ $t("generic.loading") }}
       </div>
     </div>
   </div>

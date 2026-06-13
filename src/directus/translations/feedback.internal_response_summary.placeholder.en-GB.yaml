@@ -1,0 +1,4 @@
+language: en-GB
+key: feedback.internal_response_summary.placeholder
+value: Internal comment on how we handled this message, e.g. discussed in the
+  planning team with result xyz, or replied to the person by email on 13/05/2025

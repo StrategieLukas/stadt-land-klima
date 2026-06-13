@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.wahlcheck.summary.no_answers_warning_description
+value: "Wenn Sie keine Frage beantworten, können Ihre Ergebnisse nicht mit den Kandidaten verglichen werden. Sie können trotzdem fortfahren, aber der Vergleich wird nicht möglich sein."

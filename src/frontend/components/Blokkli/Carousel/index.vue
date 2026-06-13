@@ -40,7 +40,7 @@
         v-if="options.showArrows"
         class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full bg-white shadow transition-opacity"
         :class="canScrollLeft ? 'opacity-100' : 'opacity-30 cursor-default'"
-        aria-label="Zurück"
+        :aria-label="$t('generic.back')"
         @click="scrollBy(-1)"
       >
         <Icon icon="mdi:chevron-left" class="w-5 h-5 text-gray" />

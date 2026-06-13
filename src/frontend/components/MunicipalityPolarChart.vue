@@ -37,6 +37,7 @@ class CustomRadialLinearScale extends RadialLinearScale {
 }
 CustomRadialLinearScale.id = "customRadialLinear";
 Chart.register(CategoryScale, LinearScale, CustomRadialLinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
+const { $t } = useNuxtApp();
 
 const props = defineProps({
   subScores: {
@@ -52,12 +53,12 @@ const subScoresArray = createSubScoreArray(props.subScores);
 const colorsArray = createColorArray(subScoresArray);
 const subScoresArrayScaled = scaleToArea(subScoresArray);
 const labels = [
-  "Energie",
-  "Verkehr",
-  "Landwirtschaft, Natur & Ernährung",
-  "Industrie, Wirtschaft & Konsum",
-  "Gebäude & Wärme",
-  "Klimaschutzmanagement & Verwaltung",
+  $t("measure_sectors.energy.title"),
+  $t("measure_sectors.transport.title"),
+  $t("measure_sectors.agriculture.title"),
+  $t("measure_sectors.industry.title"),
+  $t("measure_sectors.buildings.title"),
+  $t("measure_sectors.management.title"),
 ];
 const chartData = {
   labels: labels,

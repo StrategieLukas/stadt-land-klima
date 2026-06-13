@@ -16,7 +16,7 @@
           <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
           </svg>
-          <span>Filter &amp; Ansicht</span>
+          <span>{{ $t('generic.filter_and_view') }}</span>
           <span v-if="activeFilterCount > 0" class="bg-gray text-white text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
         </span>
         <svg class="w-4 h-4 flex-shrink-0 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -58,7 +58,7 @@
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
-            Liste
+            {{ $t('generic.view.list') }}
           </button>
           <button
             type="button"
@@ -69,7 +69,7 @@
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
-            Karten
+            {{ $t('generic.view.cards') }}
           </button>
           <button
             type="button"
@@ -80,7 +80,7 @@
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z" />
             </svg>
-            Treemap
+            {{ $t('generic.view.treemap') }}
           </button>
         </div>
       </div>
@@ -98,7 +98,7 @@
             :class="selectedSector === null ? 'bg-gray/10 border-gray text-gray' : 'bg-white border-gray/30 text-gray/60 hover:bg-gray/5 hover:border-gray/60'"
             @click="setSector(null)"
           >
-            Alle Sektoren
+            {{ $t('measure_sectors.all') }}
           </button>
           <button
             v-for="sector in SECTORS"
@@ -128,7 +128,7 @@
             :class="filterHighImpact ? 'bg-gray text-white border-gray' : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-            Hohe Wirkung
+            {{ $t('measures.filters.high_impact') }}
           </button>
           <button
             type="button"
@@ -137,7 +137,7 @@
             :class="filterLowCost ? 'bg-gray text-white border-gray' : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Geringe Kosten
+            {{ $t('measures.filters.low_cost') }}
           </button>
           <button
             type="button"
@@ -146,7 +146,7 @@
             :class="filterLowControversy ? 'bg-gray text-white border-gray' : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Geringer Widerstand
+            {{ $t('measures.filters.low_resistance') }}
           </button>
         </div>
       </div>
@@ -166,7 +166,7 @@
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
             :class="sortOrder === 'id' ? 'bg-gray text-white border-gray' : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
           >
-            Nach ID
+            {{ $t('measures.sort.by_id') }}
           </button>
           <button
             type="button"
@@ -174,7 +174,7 @@
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
             :class="sortOrder === 'name' ? 'bg-gray text-white border-gray' : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
           >
-            A–Z
+            {{ $t('measures.sort.alphabetical') }}
           </button>
           <button
             type="button"
@@ -182,7 +182,7 @@
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
             :class="sortOrder === 'impact' ? 'bg-gray text-white border-gray' : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
           >
-            ↑ Wirkung
+            {{ $t('measures.sort.impact_desc') }}
           </button>
           <button
             type="button"
@@ -190,7 +190,7 @@
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
             :class="sortOrder === 'economical' ? 'bg-gray text-white border-gray' : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
           >
-            ↓ Kosten
+            {{ $t('measures.sort.cost_asc') }}
           </button>
           <button
             type="button"
@@ -198,7 +198,7 @@
             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap"
             :class="sortOrder === 'political' ? 'bg-gray text-white border-gray' : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
           >
-            ↓ Widerstand
+            {{ $t('measures.sort.resistance_asc') }}
           </button>
         </div>
       </div>
@@ -214,7 +214,9 @@
     </div>
 
     <!-- Result count (list / cards only) -->
-    <p v-if="viewMode === 'list' || viewMode === 'cards'" class="text-sm text-gray-500 mb-4">{{ filteredMeasures.length }} Maßnahmen</p>
+    <p v-if="viewMode === 'list' || viewMode === 'cards'" class="text-sm text-gray-500 mb-4">
+      {{ $t('measures.count', { ':count': filteredMeasures.length }) }}
+    </p>
 
     <!-- Treemap view -->
     <ClientOnly>

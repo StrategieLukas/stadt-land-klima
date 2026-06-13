@@ -1,0 +1,3 @@
+language: en-GB
+key: elections.no_public_election.description
+value: "There is currently no public election for this local team. Only public elections can be compared in the Wahlcheck."

@@ -27,10 +27,10 @@
           class="font-heading text-h3 font-bold leading-tight transition-colors duration-500"
           :class="processingDone && !processingError ? 'text-green' : processingError ? 'text-red-600' : 'text-gray-500'"
         >
-          {{ processingError ? 'Fehler aufgetreten' : processingDone ? 'Durchstarten!' : 'Wird eingerichtet …' }}
+	          {{ processingError ? $t("generic.error_occurred") : processingDone ? $t("localteam.register.step.get_started_bang") : $t("localteam.register.processing") }}
         </h2>
         <p class="text-sm text-gray-600">
-          Lokalteam für <strong>{{ municipalityName }}</strong>
+	          {{ $t("localteam.for_municipality") }} <strong>{{ municipalityName }}</strong>
         </p>
       </div>
     </div>
@@ -61,7 +61,7 @@
     <!-- Error: retry -->
     <div v-if="processingError" class="px-4 sm:px-8 py-5">
       <p class="text-sm text-red-600 mb-3">{{ processingError }}</p>
-      <button type="button" class="text-sm text-light-blue hover:underline" @click="resetToIdle">← Erneut versuchen</button>
+	      <button type="button" class="text-sm text-light-blue hover:underline" @click="resetToIdle">← {{ $t("generic.try_again") }}</button>
     </div>
 
     <!-- Success: Durchstarten content (fades in once done) -->
@@ -76,10 +76,9 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-sm font-semibold text-gray-800 mb-0.5">Aktivierungs-E-Mail</h3>
-            <p class="text-sm text-gray-500">
-              Wir haben eine E-Mail an <strong class="text-gray-700">{{ submittedEmail }}</strong> gesendet.
-              Klick auf den Link darin, um dein Passwort festzulegen und dich einzuloggen.
+	            <h3 class="text-sm font-semibold text-gray-800 mb-0.5">{{ $t("localteam.register.activation_email.title") }}</h3>
+	            <p class="text-sm text-gray-500">
+	              <span v-html="$t('localteam.register.activation_email.body', { ':email': submittedEmail })"></span>
             </p>
           </div>
         </div>
@@ -94,10 +93,9 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-sm font-semibold text-gray-800 mb-0.5">Onboarding</h3>
-            <p class="text-sm text-gray-500">
-              Unser Team richtet dein Lokalteam für <strong class="text-gray-700">{{ municipalityName }}</strong> ein
-              und begleitet dich durch die ersten Schritte – von der Bewertung bis zur Veröffentlichung.
+	            <h3 class="text-sm font-semibold text-gray-800 mb-0.5">{{ $t("localteam.register.onboarding.title") }}</h3>
+	            <p class="text-sm text-gray-500">
+	              <span v-html="$t('localteam.register.onboarding.body', { ':name': municipalityName })"></span>
             </p>
           </div>
         </div>
@@ -114,25 +112,25 @@
           <div class="flex-1">
             <h3 class="text-sm font-semibold text-gray-800 mb-0.5">Newsletter</h3>
             <p class="text-sm text-gray-500 mb-3">
-              Bleib auf dem Laufenden: Neuigkeiten aus dem Netzwerk, neue Maßnahmen und Klimaschutz-Tipps direkt in dein Postfach.
+	              {{ $t("newsletter.register.description") }}
             </p>
             <div v-if="newsletterState === 'success'" class="flex items-center gap-2 text-sm text-green font-medium">
               <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
-              {{ newsletterAlreadySubscribed ? 'Du bist bereits angemeldet.' : 'Bestätigungsmail wurde gesendet. Bitte prüfe dein Postfach.' }}
+	              {{ newsletterAlreadySubscribed ? $t("newsletter.already_subscribed") : $t("newsletter.confirmation_sent") }}
             </div>
             <div v-else class="flex gap-2">
               <input
                 v-model="newsletterEmail"
                 type="email"
                 autocomplete="email"
-                placeholder="Deine E-Mail-Adresse"
+	                :placeholder="$t('newsletter.email.placeholder')"
                 class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
                 @keydown.enter.prevent="subscribeNewsletter"
               />
               <CanonicalButton
-                :label="newsletterState === 'subscribing' ? '…' : 'Anmelden'"
+	                :label="newsletterState === 'subscribing' ? '...' : $t('newsletter.subscribe')"
                 icon-slug="icon_newsletter_click"
                 color="green"
                 :disabled="newsletterState === 'subscribing'"
@@ -140,7 +138,7 @@
               />
             </div>
             <p v-if="newsletterError" class="mt-1 text-xs text-red-500">{{ newsletterError }}</p>
-            <p class="mt-1.5 text-xs text-gray-400">Abmeldung jederzeit möglich. Kein Spam.</p>
+	            <p class="mt-1.5 text-xs text-gray-400">{{ $t("newsletter.no_spam_hint") }}</p>
           </div>
         </div>
 
@@ -152,10 +150,9 @@
   <div v-else class="rounded-sm shadow-list bg-white overflow-hidden">
     <!-- Form header -->
     <div class="px-4 sm:px-8 pt-7 pb-5 border-b border-gray-100">
-      <h2 class="font-heading text-h3 font-bold text-gray-800 mb-1">Deine Kontaktdaten</h2>
-      <p class="text-sm text-gray-500">
-        Füll das Formular aus – wir richten dann deinen Account für
-        <strong class="text-gray-700">{{ municipalityName }}</strong> ein.
+	      <h2 class="font-heading text-h3 font-bold text-gray-800 mb-1">{{ $t("localteam.register.contact_details.title") }}</h2>
+	      <p class="text-sm text-gray-500">
+	        <span v-html="$t('localteam.register.contact_details.description', { ':name': municipalityName })"></span>
       </p>
     </div>
 
@@ -165,7 +162,7 @@
       <div class="grid grid-cols-1 xs:grid-cols-2 gap-3">
         <div>
           <label for="reg-firstname" class="block text-sm font-medium text-gray-700 mb-1">
-            Vorname <span class="text-red-500">*</span>
+	            {{ $t("auth.first_name") }} <span class="text-red-500">*</span>
           </label>
           <input
             id="reg-firstname"
@@ -173,13 +170,13 @@
             type="text"
             required
             autocomplete="given-name"
-            placeholder="z.B. Maria"
+	            :placeholder="$t('auth.first_name.placeholder')"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
           />
         </div>
         <div>
           <label for="reg-lastname" class="block text-sm font-medium text-gray-700 mb-1">
-            Nachname <span class="text-red-500">*</span>
+	            {{ $t("auth.last_name") }} <span class="text-red-500">*</span>
           </label>
           <input
             id="reg-lastname"
@@ -187,7 +184,7 @@
             type="text"
             required
             autocomplete="family-name"
-            placeholder="z.B. Muster"
+	            :placeholder="$t('auth.last_name.placeholder')"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
           />
         </div>
@@ -196,7 +193,7 @@
       <!-- Email -->
       <div>
         <label for="reg-email" class="block text-sm font-medium text-gray-700 mb-1">
-          E-Mail-Adresse <span class="text-red-500">*</span>
+	          {{ $t("auth.email") }} <span class="text-red-500">*</span>
         </label>
         <input
           id="reg-email"
@@ -204,24 +201,24 @@
           type="email"
           required
           autocomplete="email"
-          placeholder="z.B. maria@example.de"
+	          :placeholder="$t('auth.email.placeholder')"
           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
         />
-        <p class="mt-1 text-xs text-gray-400">An diese Adresse wird dein Link zum Passwort-Setzen gesendet.</p>
+	        <p class="mt-1 text-xs text-gray-400">{{ $t("localteam.register.email_hint") }}</p>
       </div>
 
       <!-- Organisation -->
       <div>
         <label for="reg-org" class="block text-sm font-medium text-gray-700 mb-1">
-          Organisation / Rolle
-          <span class="text-gray-400 font-normal">(optional)</span>
+	          {{ $t("auth.organisation_or_role") }}
+	          <span class="text-gray-400 font-normal">({{ $t("generic.optional") }})</span>
         </label>
         <input
           id="reg-org"
           v-model="form.organisation"
           type="text"
           autocomplete="organization"
-          placeholder="z.B. BUND Ortsgruppe, Gemeindeverwaltung, Privatperson …"
+	          :placeholder="$t('auth.organisation_or_role.placeholder')"
           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
         />
       </div>
@@ -229,19 +226,19 @@
       <!-- Altcha CAPTCHA widget (open-source, self-hosted proof-of-work) -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          Sicherheitsabfrage <span class="text-red-500">*</span>
+	          {{ $t("captcha.title") }} <span class="text-red-500">*</span>
         </label>
         <ClientOnly>
           <altcha-widget
             ref="altchaRef"
             challenge="/api/altcha"
             hidefooter
-            language="de"
+	            :language="$locale.startsWith('en') ? 'en' : 'de'"
             style="--altcha-border-radius: 6px; --altcha-color-border: #d1d5db; width: 100%;"
           />
           <template #fallback>
             <div class="h-16 bg-gray-50 border border-gray-200 rounded-md flex items-center justify-center">
-              <span class="text-xs text-gray-400">Sicherheitsabfrage wird geladen …</span>
+	              <span class="text-xs text-gray-400">{{ $t("captcha.loading") }}</span>
             </div>
           </template>
         </ClientOnly>
@@ -256,20 +253,19 @@
           class="text-sm text-light-blue hover:underline order-last sm:order-first"
           @click="$emit('change-municipality')"
         >
-          ← Andere Kommune wählen
+	          ← {{ $t("localteam.register.select_other_municipality") }}
         </button>
         <button
           type="submit"
           class="w-full sm:w-auto sm:ml-auto py-2.5 px-6 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
         >
-          Lokalteam beantragen →
+	          {{ $t("localteam.register.submit") }} →
         </button>
       </div>
 
       <p class="text-xs text-gray-400 pt-1">
-        Mit dem Absenden stimmst du der Verarbeitung deiner Daten zum Zweck der Einrichtung deines Accounts zu.
-        Weitere Informationen findest du in unserer
-        <NuxtLink to="/datenschutz" class="underline hover:text-gray-600">Datenschutzerklärung</NuxtLink>.
+	        {{ $t("localteam.register.privacy_notice") }}
+	        <NuxtLink to="/datenschutz" class="underline hover:text-gray-600">{{ $t("privacy_policy.title") }}</NuxtLink>.
       </p>
     </form>
   </div>
@@ -289,6 +285,8 @@ const emit = defineEmits<{
   (e: 'change-municipality'): void
   (e: 'success'): void
 }>()
+
+const { $t, $locale } = useNuxtApp()
 
 const formState = ref<'idle' | 'processing' | 'success'>('idle');
 const captchaError = ref('');
@@ -310,9 +308,9 @@ const stepStatuses = reactive<Record<string, StepStatus>>({ user: 'pending', tea
 const processingError = ref('');
 const processingDone = ref(false);
 const stepInfos = [
-  { key: 'user', label: 'Account erstellen', errorLabel: 'E-Mail-Adresse bereits registriert' },
-  { key: 'team', label: 'Lokalteam anlegen', errorLabel: 'Lokalteam konnte nicht angelegt werden' },
-  { key: 'email', label: 'Passwort-E-Mail versenden', errorLabel: 'E-Mail konnte nicht gesendet werden' },
+  { key: 'user', label: $t('localteam.register.step.create_account'), errorLabel: $t('localteam.register.error.email_registered') },
+  { key: 'team', label: $t('localteam.register.step.create_localteam'), errorLabel: $t('localteam.register.error.localteam_create_failed') },
+  { key: 'email', label: $t('localteam.register.step.send_password_email'), errorLabel: $t('localteam.register.error.email_send_failed') },
 ];
 const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 
@@ -368,7 +366,7 @@ async function submit() {
   const widgetEl = document.querySelector('altcha-widget') as any;
   const payload = altchaPayload.value || widgetEl?.value;
   if (!payload) {
-    captchaError.value = 'Bitte bestätige zunächst die Sicherheitsabfrage.';
+    captchaError.value = $t('captcha.required');
     return;
   }
 
@@ -419,14 +417,14 @@ async function submit() {
     stepStatuses.email = errSteps?.email === true ? 'success' : errSteps?.email === false ? 'error' : 'pending';
     await delay(400);
     processingDone.value = true;
-    processingError.value = err?.data?.message ?? 'Ein Fehler ist aufgetreten. Bitte versuche es erneut.';
+    processingError.value = err?.data?.message ?? $t('generic.error_try_again');
   }
 }
 
 async function subscribeNewsletter() {
   newsletterError.value = '';
   if (!newsletterEmail.value.trim()) {
-    newsletterError.value = 'Bitte gib deine E-Mail-Adresse ein.';
+    newsletterError.value = $t('newsletter.email.required');
     return;
   }
   newsletterState.value = 'subscribing';
@@ -439,7 +437,7 @@ async function subscribeNewsletter() {
     newsletterState.value = 'success';
   } catch (err: any) {
     newsletterState.value = 'idle';
-    newsletterError.value = err?.data?.message ?? 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+    newsletterError.value = err?.data?.message ?? $t('newsletter.subscribe_failed');
   }
 }
 </script>

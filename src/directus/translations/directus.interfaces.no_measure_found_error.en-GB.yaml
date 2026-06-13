@@ -1,0 +1,4 @@
+language: en-GB
+key: directus.interfaces.no_measure_found_error
+value: No measure was found. There may be a problem with the measure_id. This is
+  a technical error -> please report it!

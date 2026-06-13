@@ -1,0 +1,3 @@
+language: en-GB
+key: elections.wahlcheck.results.description
+value: "Here you can see how closely your answers match those of the candidates. The match is shown as a percentage."

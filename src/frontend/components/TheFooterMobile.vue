@@ -34,7 +34,7 @@
     <!-- Newsletter Signup -->
     <div class="w-full mb-6 pb-6 border-b border-white/20">
       <h3 class="text-base font-bold mb-0.5">Newsletter</h3>
-      <p class="text-sm text-white/70 mb-3">Neuigkeiten zu Stadt.Land.Klima! direkt ins Postfach.</p>
+      <p class="text-sm text-white/70 mb-3">{{ $t('newsletter.footer.description') }}</p>
       <div
         v-if="newsletterState === 'success'"
         class="flex items-center gap-2 text-sm font-medium"
@@ -42,19 +42,19 @@
         <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
         </svg>
-        {{ newsletterAlreadySubscribed ? 'Du bist bereits angemeldet.' : 'Bestätigungsmail gesendet – bitte prüfe dein Postfach.' }}
+        {{ newsletterAlreadySubscribed ? $t('newsletter.already_subscribed') : $t('newsletter.confirmation_sent') }}
       </div>
       <div v-else class="flex flex-col gap-2">
         <input
           v-model="footerEmail"
           type="email"
           autocomplete="email"
-          placeholder="Deine E-Mail-Adresse"
+          :placeholder="$t('newsletter.email.placeholder')"
           class="w-full min-w-0 px-3 py-2 text-sm rounded-md text-black placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white"
           @keydown.enter.prevent="subscribeNewsletter"
         />
         <CanonicalButton
-          :label="newsletterState === 'subscribing' ? '\u2026' : 'Anmelden'"
+          :label="newsletterState === 'subscribing' ? '\u2026' : $t('newsletter.subscribe')"
           icon-slug="icon_newsletter_click"
           color="green"
           class="w-full flex-shrink-0"
@@ -74,21 +74,21 @@
           class="flex flex-col gap-2"
         >
           <h6 class="footer-title opacity-100 text-white font-bold mb-2 text-sm">
-            {{ col.title }}
+            {{ navTitle(col) }}
           </h6>
           <template v-for="link in col.links" :key="link.id">
             <NuxtLink
               v-if="link.link_type === 'page'"
               :to="'/' + link.page_slug"
               class="link link-hover text-sm"
-            >{{ link.label }}</NuxtLink>
+            >{{ navLabel(link) }}</NuxtLink>
             <a
               v-else
               :href="link.external_url"
               :target="link.open_new_tab ? '_blank' : undefined"
               rel="noopener noreferrer"
               class="link link-hover text-sm"
-            >{{ link.label }}</a>
+            >{{ navLabel(link) }}</a>
           </template>
         </nav>
       </div>
@@ -106,8 +106,9 @@
           />
         </NuxtLink>
 
-        <!-- Backend login button (always visible) -->
-        <div class="flex items-center gap-3">
+        <!-- Footer actions -->
+        <div class="flex flex-col items-center gap-3 xs:flex-row">
+          <LanguageSelector />
           <DonateButton />
           <LoginButton />
         </div>
@@ -120,11 +121,11 @@
           v-if="!isAuthenticated"
           class="mt-1 text-xs text-white/40 hover:text-white/70 transition-colors"
           @click="showLoginModal = true"
-        >Interner Login</button>
+        >{{ $t('auth.internal_login') }}</button>
         <div v-else class="mt-1 text-xs text-white/60 flex items-center justify-center gap-2">
-          <span>Eingeloggt als {{ userName }}</span>
+          <span>{{ $t('auth.logged_in_as', { ':name': userName }) }}</span>
           <span aria-hidden="true">·</span>
-          <button class="hover:text-white transition-colors" @click="handleLogout">Ausloggen</button>
+          <button class="hover:text-white transition-colors" @click="handleLogout">{{ $t('auth.logout') }}</button>
         </div>
       </div>
     </div>
@@ -136,14 +137,18 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import DonateButton from '~/components/DonateButton.vue';
+import LanguageSelector from '~/components/LanguageSelector.vue';
 import LoginButton from '~/components/LoginButton.vue';
 import AuthLoginModal from '~/components/AuthLoginModal.vue';
 import { useAuth } from '~/composables/useAuth';
+import translatedNavigationLabel from '~/shared/translatedNavigationLabel.js';
 
 const { $t } = useNuxtApp();
 const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
 const route = useRoute();
+const navLabel = (item) => translatedNavigationLabel(item, $t);
+const navTitle = (item) => translatedNavigationLabel(item, $t, 'title');
 
 const props = defineProps({
   navItems: {
@@ -161,7 +166,7 @@ const newsletterError = ref('');
 async function subscribeNewsletter() {
   newsletterError.value = '';
   if (!footerEmail.value.trim()) {
-    newsletterError.value = 'Bitte gib deine E-Mail-Adresse ein.';
+    newsletterError.value = $t('newsletter.email.required');
     return;
   }
   newsletterState.value = 'subscribing';
@@ -174,7 +179,7 @@ async function subscribeNewsletter() {
     newsletterState.value = 'success';
   } catch (err) {
     newsletterState.value = 'idle';
-    newsletterError.value = err?.data?.message ?? 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+    newsletterError.value = err?.data?.message ?? $t('newsletter.subscribe_failed');
   }
 }
 

@@ -1,0 +1,3 @@
+language: de-DE
+key: municipality.chart.treemap.description
+value: "Jede Kachel steht für eine Maßnahme - die Fläche entspricht ihrer Gewichtung. Die Farbe zeigt den Umsetzungsstand: Rot = nicht erfüllt, Grün = vollständig umgesetzt."

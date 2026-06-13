@@ -9,6 +9,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { Chart, LinearScale, Tooltip, Legend } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
 Chart.register(TreemapController, TreemapElement, LinearScale, Tooltip, Legend);
+const { $t } = useNuxtApp();
 
 const props = defineProps({
   measures: {
@@ -21,14 +22,10 @@ const props = defineProps({
   },
 });
 
-const sectorNames = {
-  energy: "Energie",
-  transport: "Verkehr",
-  agriculture: "Landwirtschaft",
-  industry: "Industrie & Konsum",
-  buildings: "Gebäude & Wärme",
-  management: "Klimaschutzmanagement",
-};
+function sectorName(sector) {
+  const translated = $t(`measure_sectors.${sector}.title`);
+  return translated === `measure_sectors.${sector}.title` ? sector : translated;
+}
 
 const chartCanvas = ref(null);
 let chartInstance = null;
@@ -38,7 +35,7 @@ const treeData = computed(() => {
     .filter(m => (m.weight ?? 0) > 0)
     .map(m => ({
       sector: m.sector,
-      sectorName: sectorNames[m.sector] || m.sector,
+      sectorName: sectorName(m.sector),
       measure_id: m.measure_id,
       measure_name: m.name,
       slug: m.slug,
@@ -65,7 +62,7 @@ function colorFromRaw(ctx) {
 
 const chartData = computed(() => ({
   datasets: [{
-    label: 'Maßnahmen',
+    label: $t('stats.measures.title'),
     tree: treeData.value,
     key: 'value',
     groups: ['sectorName', 'measure_name'],
@@ -113,7 +110,7 @@ const chartOptions = computed(() => ({
           if (children.length > 1) return '';
           const item = children[0];
           if (!item) return '';
-          return [`ID: ${item.measure_id}`, `Gewichtung: ${item.value}`];
+          return [`ID: ${item.measure_id}`, `${$t('measure.weight')}: ${item.value}`];
         },
       },
       displayColors: false,

@@ -20,7 +20,7 @@
           :class="{ 'nav-item--active': item.link_type === 'page' && isActive(item) }"
           @click="closeMenu"
         >
-          <span>{{ item.label }}</span>
+          <span>{{ navLabel(item) }}</span>
         </component>
 
         <!-- Text-only label (no link, no children) -->
@@ -28,7 +28,7 @@
           v-else-if="!hasChildren(item) && item.link_type === 'none'"
           class="flex items-center nav-px text-sm font-semibold text-gray-400"
         >
-          <span>{{ item.label }}</span>
+          <span>{{ navLabel(item) }}</span>
         </span>
 
         <!-- Trigger with children -->
@@ -46,7 +46,7 @@
             class="flex items-center nav-pl pr-1 text-sm font-semibold cursor-pointer group-hover/trigger:text-gray-900"
             @click="item.link_type === 'page' && item.page_slug ? closeMenu() : toggleMenu(item.id)"
           >
-            <span>{{ item.label }}</span>
+            <span>{{ navLabel(item) }}</span>
           </component>
           <!-- Chevron button: toggles dropdown on click/touch -->
           <button
@@ -54,7 +54,7 @@
             class="flex items-center pl-1 nav-pr cursor-pointer text-gray-600 group-hover/trigger:text-olive-green"
             @click.stop="toggleMenu(item.id)"
             :aria-expanded="openMenuId === item.id"
-            :aria-label="item.label + ' Untermenü'"
+            :aria-label="$t('navigation.submenu_for', { ':label': navLabel(item) })"
           >
             <svg class="h-3 w-3 flex-shrink-0 opacity-60" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5 5-5"/>
@@ -87,9 +87,9 @@
                 <img :src="imageUrlMap[child.image_id]" class="w-full h-full object-cover transition-transform duration-200 group-hover/card:scale-105" alt="" />
                 <div class="absolute inset-x-0 bottom-0 pt-8 pb-2 px-2.5 bg-gradient-to-t from-black/70 to-transparent">
                   <div class="text-xs font-semibold text-white leading-snug" style="text-shadow: 0 1px 3px rgba(0,0,0,.5)">
-                    {{ child.label }}
+                    {{ navLabel(child) }}
                   </div>
-                  <div v-if="child.description" class="text-[10px] font-normal text-white/80 mt-0.5 leading-snug">{{ child.description }}</div>
+                  <div v-if="child.description" class="text-[10px] font-normal text-white/80 mt-0.5 leading-snug">{{ navDescription(child) }}</div>
                 </div>
               </component>
             </div>
@@ -120,9 +120,9 @@
                     <svg v-if="child.link_type === 'external'" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    {{ child.label }}
+                    {{ navLabel(child) }}
                   </div>
-                  <div v-if="child.description" class="text-xs font-normal opacity-60 mt-0.5 leading-snug">{{ child.description }}</div>
+                  <div v-if="child.description" class="text-xs font-normal opacity-60 mt-0.5 leading-snug">{{ navDescription(child) }}</div>
                 </div>
               </component>
             </div>
@@ -136,8 +136,10 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, resolveComponent } from 'vue'
 import { useRoute, useRuntimeConfig } from '#imports'
+import translatedNavigationLabel from '~/shared/translatedNavigationLabel.js'
 
 const NuxtLink = resolveComponent('NuxtLink')
+const { $t } = useNuxtApp()
 
 const props = defineProps({
   items: {
@@ -148,6 +150,8 @@ const props = defineProps({
 
 const route = useRoute()
 const config = useRuntimeConfig()
+const navLabel = (item) => translatedNavigationLabel(item, $t)
+const navDescription = (item) => translatedNavigationLabel(item, $t, 'description')
 
 const safeItems = computed(() => Array.isArray(props.items) ? props.items : [])
 

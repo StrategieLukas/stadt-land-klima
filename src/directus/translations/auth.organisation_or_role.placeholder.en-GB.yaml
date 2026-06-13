@@ -1,0 +1,3 @@
+language: en-GB
+key: auth.organisation_or_role.placeholder
+value: "e.g. local environmental group, municipal administration, private individual ..."

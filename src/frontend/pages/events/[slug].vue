@@ -60,7 +60,7 @@
       rel="noopener noreferrer"
       class="inline-flex items-center gap-2 px-6 py-3 bg-light-green text-white font-bold rounded hover:bg-olive-green transition-colors"
     >
-      {{ event.cta_label || 'Zur Anmeldung' }}
+      {{ event.cta_label || $t('events.register') }}
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
       </svg>
@@ -69,17 +69,17 @@
   </div>
 
   <div v-else class="py-8 text-gray-500">
-    Veranstaltung nicht gefunden.
+    {{ $t('events.not_found') }}
   </div>
 </template>
 
 <script setup>
 import { useReferrer } from '~/composables/useReferrer'
 import { isRaster } from '~/shared/utils'
-const { $directus, $readItems } = useNuxtApp()
+const { $directus, $readItems, $t, $locale } = useNuxtApp()
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
-const { backHref, backLabel } = useReferrer('/events', 'Alle Veranstaltungen')
+const { backHref, backLabel } = useReferrer('/events', $t('news.all_events'))
 const route = useRoute()
 
 const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
@@ -96,16 +96,19 @@ const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
 )
 
 if (!event.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Veranstaltung nicht gefunden', fatal: true })
+  throw createError({ statusCode: 404, statusMessage: $t('events.not_found'), fatal: true })
 }
 
-useHead({ title: event.value?.title ?? 'Veranstaltung' })
+useHead({ title: computed(() => event.value?.title ?? $t('news.type.event')) })
 
-const eventTypeLabels = { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }
-function eventTypeLabel(type) { return eventTypeLabels[type] ?? type ?? '' }
+function eventTypeLabel(type) {
+  if (!type) return ''
+  const translated = $t(`events.type.${type}`)
+  return translated === `events.type.${type}` ? type : translated
+}
 
 function formatDate(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+  return new Date(iso).toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })
 }
 </script>

@@ -1,0 +1,3 @@
+language: de-DE
+key: news.editor.image_id
+value: "Bild-ID (Directus Asset UUID)"

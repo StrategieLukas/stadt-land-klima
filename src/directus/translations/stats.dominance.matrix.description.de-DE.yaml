@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.dominance.matrix.description
+value: "Wie oft gewinnt Zeilen-Kommune gegen Spalten-Kommune. Blau = gewinnt, Rot = verliert, Grau = gleichauf"

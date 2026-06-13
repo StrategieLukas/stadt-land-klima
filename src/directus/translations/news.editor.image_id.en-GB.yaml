@@ -1,0 +1,3 @@
+language: en-GB
+key: news.editor.image_id
+value: "Image ID (Directus asset UUID)"

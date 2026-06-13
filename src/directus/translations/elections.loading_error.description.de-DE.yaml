@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.loading_error.description
+value: "Es ist ein Fehler beim Laden der Wahldaten aufgetreten. Bitte versuchen Sie es später erneut."

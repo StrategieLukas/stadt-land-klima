@@ -1,0 +1,3 @@
+language: de-DE
+key: localteam.register.error.email_send_failed
+value: "E-Mail konnte nicht gesendet werden"

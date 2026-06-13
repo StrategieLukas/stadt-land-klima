@@ -1,0 +1,10 @@
+language: en-GB
+key: municipalities.preview_explanation
+value: >-
+  Your municipality's rating will only appear in the public ranking once its
+  status is set to "Published". You can do this once you have rated the measures
+  :)
+
+
+  If you would like to preview your municipality while the rating is still in
+  progress, you can use this link:

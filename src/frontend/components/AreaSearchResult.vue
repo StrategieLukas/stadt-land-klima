@@ -20,14 +20,14 @@
       <!-- In-progress: two chips -->
       <template v-else-if="result.ctaType === 'in-progress'">
         <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full whitespace-nowrap">
-          Bewertung läuft
+          {{ $t('rating.in_progress') }}
         </span>
         <button
           type="button"
           class="text-xs bg-olive-green/10 text-olive-green border border-olive-green/30 px-2 py-0.5 rounded-full whitespace-nowrap hover:bg-olive-green/20 transition-colors"
           @click.stop="$emit('chip-action', { action: 'mitmachen', ars: result.ars, result })"
         >
-          Jetzt mitmachen!
+          {{ $t('generic.join_now') }}
         </button>
       </template>
 
@@ -38,14 +38,14 @@
         class="text-xs text-gray-500 border border-gray-300 px-2 py-0.5 rounded-full whitespace-nowrap hover:bg-gray-50 transition-colors"
         @click.stop="$emit('chip-action', { action: 'gruenden', ars: result.ars, result })"
       >
-        Jetzt Lokalteam gründen
+        {{ $t('localteam.create_now') }}
       </button>
 
       <!-- Population (if requested) -->
       <span
         v-if="showPopulation && result.population"
         class="text-xs text-gray-400 whitespace-nowrap"
-      >{{ result.population.toLocaleString('de-DE') }} Einw.</span>
+      >{{ result.population.toLocaleString('de-DE') }} {{ $t('stats.inhabitants_abbrev') }}</span>
     </div>
   </div>
 </template>

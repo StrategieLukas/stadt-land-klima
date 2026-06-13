@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.histogram.sector
+value: "Histogramm: Sektor :sector:filter"

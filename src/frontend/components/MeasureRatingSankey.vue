@@ -1,20 +1,20 @@
 <template>
   <div class="my-8 border-t-4 border-gray-200 pt-6">
-    <h2 class="font-heading text-h2 font-bold text-gray mb-1">Bewertungsverlauf aller Kommunen</h2>
+    <h2 class="font-heading text-h2 font-bold text-gray mb-1">{{ $t("measure_rating.history.title") }}</h2>
     <p class="text-sm text-gray-500 mb-4">
-      Jede Linie steht für eine Kommune. Fahren Sie mit der Maus darüber für Details — klicken Sie eine Linie, um zur Kommune zu springen. Klicken Sie einen farbigen Balken, um alle Kommunen dieser Bewertung anzuzeigen.
+      {{ $t("measure_rating.history.description") }}
     </p>
 
-    <div v-if="loading" class="text-gray-400 text-sm py-8 text-center">Daten werden geladen…</div>
-    <div v-else-if="!hasData" class="text-gray-500 text-sm py-4">Keine Bewertungsdaten vorhanden.</div>
+    <div v-if="loading" class="text-gray-400 text-sm py-8 text-center">{{ $t("generic.loading") }}</div>
+    <div v-else-if="!hasData" class="text-gray-500 text-sm py-4">{{ $t("measure_rating.history.no_data") }}</div>
 
     <template v-else>
       <!-- Change summary chips (only when 2 versions exist) -->
       <div v-if="twoVersions" class="flex flex-wrap gap-2 mb-4 text-xs">
-        <span v-if="improvedCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 font-bold">↑ {{ improvedCount }} verbessert</span>
-        <span v-if="sameCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 font-bold">→ {{ sameCount }} gleich</span>
-        <span v-if="degradedCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-bold">↓ {{ degradedCount }} verschlechtert</span>
-        <span v-if="onlySingleCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-50 text-gray-400 border border-gray-200 font-bold">{{ onlySingleCount }} nur in einem Katalog</span>
+        <span v-if="improvedCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 font-bold">↑ {{ $t("measure_rating.history.change.improved", { ":count": improvedCount }) }}</span>
+        <span v-if="sameCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 font-bold">→ {{ $t("measure_rating.history.change.same", { ":count": sameCount }) }}</span>
+        <span v-if="degradedCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-bold">↓ {{ $t("measure_rating.history.change.degraded", { ":count": degradedCount }) }}</span>
+        <span v-if="onlySingleCount" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-50 text-gray-400 border border-gray-200 font-bold">{{ $t("measure_rating.history.change.single_catalog", { ":count": onlySingleCount }) }}</span>
       </div>
 
       <!-- Alluvial SVG -->
@@ -133,16 +133,16 @@
               >{{ ratingLabelMap[hoveredMuniData.leftRating] }}</span>
             </template>
           </div>
-          <p v-else class="text-xs text-gray-400 italic">Überfahren Sie eine Linie für Details zur Kommune.</p>
+          <p v-else class="text-xs text-gray-400 italic">{{ $t("measure_rating.history.hover_hint") }}</p>
         </Transition>
       </div>
 
       <!-- Color legend -->
       <div v-if="twoVersions" class="mt-3 flex flex-wrap gap-4 text-xs text-gray-500">
-        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#4caf50;opacity:0.7" /> Verbessert</span>
-        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#9e9e9e;opacity:0.7" /> Gleich geblieben</span>
-        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#f44336;opacity:0.7" /> Verschlechtert</span>
-        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#90a4ae;opacity:0.7" /> Nicht vergleichbar (n/a)</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#4caf50;opacity:0.7" /> {{ $t("measure_rating.history.legend.improved") }}</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#9e9e9e;opacity:0.7" /> {{ $t("measure_rating.history.legend.same") }}</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#f44336;opacity:0.7" /> {{ $t("measure_rating.history.legend.degraded") }}</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-8 h-2 rounded" style="background:#90a4ae;opacity:0.7" /> {{ $t("measure_rating.history.legend.not_comparable") }}</span>
       </div>
 
       <!-- Selected-node municipality chips -->
@@ -156,7 +156,7 @@
             <span class="text-sm font-semibold" :style="{ color: RATING_CFG[selectedNode.ratingKey].color }">
               {{ RATING_CFG[selectedNode.ratingKey].shortLabel }}
             </span>
-            <span class="text-xs text-gray-400">(Katalog: {{ selectedNode.side === 'left' ? leftVersion?.label : rightVersion?.label }})</span>
+            <span class="text-xs text-gray-400">({{ $t("measure_catalog.singular") }}: {{ selectedNode.side === 'left' ? leftVersion?.label : rightVersion?.label }})</span>
             <button class="ml-auto text-gray-400 hover:text-gray-600 text-sm leading-none" @click="selectedNode = null">✕</button>
           </div>
           <div class="flex flex-wrap gap-1.5">
@@ -182,7 +182,7 @@ const props = defineProps({
   measureVersions: { type: Array, default: () => [] }, // [{ catalog_version: { id, name } }]
 })
 
-const { $directus, $readItems } = useNuxtApp()
+const { $directus, $readItems, $t } = useNuxtApp()
 const router = useRouter()
 
 // ── Layout constants ──────────────────────────────────────────────────────────
@@ -197,13 +197,13 @@ const BUCKET_GAP = 8    // vertical gap between rating buckets
 // ── Rating config ─────────────────────────────────────────────────────────────
 const RATING_KEYS = ['1', '0.75', '0.5', '0.25', '0', 'na', 'unrated']
 const RATING_CFG = {
-  '1':       { label: 'Vollständig erfüllt', shortLabel: 'Vollständig erfüllt', color: '#1da64a' },
-  '0.75':    { label: 'Gut erfüllt',          shortLabel: 'Gut erfüllt',          color: '#8bc34a' },
-  '0.5':     { label: 'Teilweise erfüllt',    shortLabel: 'Teilweise erfüllt',    color: '#fdd835' },
-  '0.25':    { label: 'Kaum erfüllt',         shortLabel: 'Kaum erfüllt',         color: '#f39200' },
-  '0':       { label: 'Nicht erfüllt',        shortLabel: 'Nicht erfüllt',        color: '#d32f2f' },
-  'na':      { label: 'Nicht anwendbar',      shortLabel: 'Nicht anwendbar',      color: '#9e9e9e' },
-  'unrated': { label: 'Nicht bewertet',       shortLabel: 'Nicht bewertet',       color: '#b0bec5' },
+  '1':       { label: $t('rating.fullfilled'), shortLabel: $t('rating.fullfilled'), color: '#1da64a' },
+  '0.75':    { label: $t('rating.well_fullfilled'), shortLabel: $t('rating.well_fullfilled'), color: '#8bc34a' },
+  '0.5':     { label: $t('rating.partially_fullfilled'), shortLabel: $t('rating.partially_fullfilled'), color: '#fdd835' },
+  '0.25':    { label: $t('rating.hardly_fullfilled'), shortLabel: $t('rating.hardly_fullfilled'), color: '#f39200' },
+  '0':       { label: $t('rating.not_fullfilled'), shortLabel: $t('rating.not_fullfilled'), color: '#d32f2f' },
+  'na':      { label: $t('rating.not_applicable'), shortLabel: $t('rating.not_applicable'), color: '#9e9e9e' },
+  'unrated': { label: $t('administrative_areas.not_rated_yet'), shortLabel: $t('administrative_areas.not_rated_yet'), color: '#b0bec5' },
 }
 const ratingColorMap = Object.fromEntries(Object.entries(RATING_CFG).map(([k, v]) => [k, v.color]))
 const ratingLabelMap = Object.fromEntries(Object.entries(RATING_CFG).map(([k, v]) => [k, v.label]))

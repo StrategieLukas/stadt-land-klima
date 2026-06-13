@@ -1,0 +1,5 @@
+language: en-GB
+key: stats.data.cyclewayInfrastructureData.description
+value: Route kilometres of cycleway network divided by route kilometres of roads
+  (excluding motorways and federal highways). A value of 100% means that there
+  are as many kilometres of cycleways as there are roads for cars.

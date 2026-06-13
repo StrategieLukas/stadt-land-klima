@@ -1,0 +1,3 @@
+language: en-GB
+key: elections.wahlcheck.summary.no_answers_warning_title
+value: "Warning: you have not answered any questions."
