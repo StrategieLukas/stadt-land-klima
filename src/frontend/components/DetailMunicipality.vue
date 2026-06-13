@@ -49,14 +49,7 @@
             :name-municipality="municipality.name"
           />
           <p
-            v-if="activeTab === 'polar'"
-            class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
-            style="max-width: 50vw"
-          >
-            {{ $t("municipality.chart.polar.description") }}
-          </p>
-          <p
-            v-else-if="activeTab === 'treemap'"
+            v-if="activeTab === 'treemap'"
             class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
             style="max-width: 50vw"
           >

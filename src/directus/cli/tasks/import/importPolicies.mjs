@@ -11,7 +11,9 @@ import {
   readPermissions,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
+import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
+import resolvePolicyByName from '../shared/resolvePolicyByName.mjs';
 
 function assertUniquePolicyNames(policies) {
   const policiesByName = new Map();
@@ -39,6 +41,83 @@ function assertUniquePolicyNames(policies) {
 function getPermissionPayload(permission, policyId) {
   const { id, policy, role, ...payload } = permission;
   return { ...payload, policy: policyId };
+}
+
+function isInvalidPolicyForeignKeyError(err) {
+  const messages = [
+    err?.message,
+    ...(Array.isArray(err?.errors) ? err.errors.map((error) => error?.message) : []),
+  ]
+  .filter(Boolean)
+  .join('\n');
+
+  return messages.includes('Invalid foreign key') && messages.includes('field "policy"');
+}
+
+async function removePolicyPermissions(client, existingPermissions, policyId, policyName, verbose) {
+  const policyPermissionsToDelete = existingPermissions
+  .filter((permission) => permission.policy === policyId && permission.id)
+  .map(property('id'));
+
+  if (policyPermissionsToDelete.length) {
+    if (verbose) {
+      console.info(`Removing ${policyPermissionsToDelete.length} existing permissions for policy ${policyName}`);
+    }
+    await client.request(deletePermissions(policyPermissionsToDelete));
+  }
+}
+
+async function createPermissionsForPolicy(client, policyName, policyPermissions, policyObj, existingPermissions, options) {
+  let resolvedPolicy = await resolvePolicyByName(client, policyName, [policyObj], options);
+
+  if (!resolvedPolicy) {
+    throw new Error(`Could not find policy with name ${policyName}`);
+  }
+
+  await removePolicyPermissions(client, existingPermissions, resolvedPolicy.id, policyName, options.verbose);
+
+  let permissionsToCreate = policyPermissions.map((permission) =>
+    getPermissionPayload(permission, resolvedPolicy.id)
+  );
+
+  if (!permissionsToCreate.length) return;
+
+  if (options.verbose) console.info(`Creating ${permissionsToCreate.length} permissions for policy ${policyName}`);
+
+  try {
+    await client.request(createPermissions(permissionsToCreate));
+  } catch (err) {
+    if (!isInvalidPolicyForeignKeyError(err)) {
+      console.error(`Error creating permissions for policy ${policyName} (${resolvedPolicy.id})`, permissionsToCreate);
+      throw err;
+    }
+
+    console.warn(`Policy ID ${resolvedPolicy.id} for ${policyName} was rejected by Directus; clearing cache and retrying by policy name.`);
+    await clearDirectusCache({ verbose: options.verbose });
+
+    const refreshedPolicies = await client.request(readPolicies({ limit: -1 }));
+    assertUniquePolicyNames(refreshedPolicies);
+    resolvedPolicy = await resolvePolicyByName(client, policyName, refreshedPolicies, options);
+
+    if (!resolvedPolicy) {
+      console.error(`Error creating permissions for policy ${policyName}`, permissionsToCreate);
+      throw err;
+    }
+
+    const refreshedPermissions = await client.request(readPermissions({ limit: -1 }));
+    await removePolicyPermissions(client, refreshedPermissions, resolvedPolicy.id, policyName, options.verbose);
+
+    permissionsToCreate = policyPermissions.map((permission) =>
+      getPermissionPayload(permission, resolvedPolicy.id)
+    );
+
+    try {
+      await client.request(createPermissions(permissionsToCreate));
+    } catch (retryErr) {
+      console.error(`Error creating permissions for policy ${policyName} (${resolvedPolicy.id})`, permissionsToCreate);
+      throw retryErr;
+    }
+  }
 }
 
 /**
@@ -116,6 +195,7 @@ async function importPolicies(src, options = { verbose: false, remove: false, ov
     }
 
     // --- Refresh policies list to get all IDs ---
+    await clearDirectusCache({ verbose: options.verbose });
     const updatedPolicies = await client.request(readPolicies({ limit: -1 }));
     assertUniquePolicyNames(updatedPolicies);
     const existingPermissions = await client.request(readPermissions({ limit: -1 }));
@@ -132,28 +212,7 @@ async function importPolicies(src, options = { verbose: false, remove: false, ov
         continue;
       }
 
-      const policyPermissionsToDelete = existingPermissions
-      .filter((permission) => permission.policy === policyObj.id && permission.id)
-      .map(property('id'));
-
-      if (policyPermissionsToDelete.length) {
-        if (options.verbose) {
-          console.info(`Removing ${policyPermissionsToDelete.length} existing permissions for policy ${policyName}`);
-        }
-        await client.request(deletePermissions(policyPermissionsToDelete));
-      }
-
-      const permissionsToCreate = policyPermissions.map((permission) =>
-        getPermissionPayload(permission, policyObj.id)
-      );
-
-      if (permissionsToCreate.length) {
-        if (options.verbose) console.info(`Creating ${permissionsToCreate.length} permissions for policy ${policyName}`);
-        await client.request(createPermissions(permissionsToCreate)).catch((err) => {
-          console.error(`Error creating permissions for policy ${policyName} (${policyObj.id})`, permissionsToCreate);
-          throw err;
-        });
-      }
+      await createPermissionsForPolicy(client, policyName, policyPermissions, policyObj, existingPermissions, options);
     }
 
     // --- Remove orphaned policies and permissions ---
