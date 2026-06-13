@@ -45,7 +45,6 @@ const defaultValuePatterns: Array<{ pattern: RegExp; reason: string }> = [
 const envChecks: Array<{ name: string; required: boolean }> = [
   { name: 'KEY', required: true },
   { name: 'SECRET', required: true },
-  { name: 'ADMIN_PASSWORD', required: true },
   { name: 'DB_PASSWORD', required: true },
   { name: 'CLI_DIRECTUS_STATIC_TOKEN', required: false },
   { name: 'MEILI_MASTER_KEY', required: false },
@@ -225,14 +224,17 @@ function cleanEnvValue(value: string): string {
   return value.trim().replace(/^['"]|['"]$/g, '');
 }
 
-function checkEnvironment(failures: string[]): void {
+function checkEnvironment(failures: string[], warnings: string[]): Set<string> {
+  const missingRequiredKeys = new Set<string>();
+
   for (const check of envChecks) {
     const rawValue = process.env[check.name];
     const value = rawValue === undefined ? '' : cleanEnvValue(rawValue);
 
     if (!value) {
       if (check.required) {
-        failures.push(`${check.name} is required for production Directus startup`);
+        warnings.push(`${check.name} is missing; configure it for production Directus startup`);
+        missingRequiredKeys.add(check.name);
       }
       continue;
     }
@@ -242,6 +244,8 @@ function checkEnvironment(failures: string[]): void {
       failures.push(`${check.name} ${defaultMatch.reason}`);
     }
   }
+
+  return missingRequiredKeys;
 }
 
 function normalizeDatabaseValue(value: unknown): unknown {
@@ -439,17 +443,32 @@ async function main(): Promise<void> {
   }
 
   const failures: string[] = [];
+  const warnings: string[] = [];
+  let missingRequiredKeys = new Set<string>();
+
   if (!skipEnvironmentChecks) {
-    checkEnvironment(failures);
+    missingRequiredKeys = checkEnvironment(failures, warnings);
   }
 
-  if (failures.length === 0 && !skipDatabaseChecks) {
+  const missingDatabaseKeys = ['DB_PASSWORD'].filter((key) => missingRequiredKeys.has(key));
+  if (failures.length === 0 && !skipDatabaseChecks && missingDatabaseKeys.length === 0) {
     const pool = createPool();
     try {
       await checkPublicPermissions(pool, failures);
       await checkSensitiveAccess(pool, failures);
     } finally {
       await pool.end();
+    }
+  } else if (!skipDatabaseChecks && missingDatabaseKeys.length > 0) {
+    warnings.push(
+      `Database security checks skipped because required database configuration is missing: ${missingDatabaseKeys.join(', ')}`,
+    );
+  }
+
+  if (warnings.length > 0) {
+    console.warn('Directus startup security check warnings:');
+    for (const warning of warnings) {
+      console.warn(`- ${warning}`);
     }
   }
 

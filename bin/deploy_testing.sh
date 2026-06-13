@@ -1,4 +1,4 @@
 #!/bin/bash
 set -euo pipefail
 
-ssh deploy@staging 'cd slk-testing/bin && ./update_development.sh'
+ssh deploy@staging 'cd slk-testing/bin && git pull &&  ./update_development.sh'
