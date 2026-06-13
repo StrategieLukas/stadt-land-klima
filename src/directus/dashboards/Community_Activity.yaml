@@ -1,0 +1,17 @@
+name: Community Activity
+icon: monitoring
+note: Actionable overview for Lokalteam activity, stalling teams, activity outliers, and measure catalog adoption.
+color: "#1da64a"
+panels:
+  - name: Lokalteam activity
+    icon: groups
+    color: "#1da64a"
+    show_header: true
+    note: null
+    type: community-activity
+    position_x: 1
+    position_y: 1
+    width: 36
+    height: 32
+    options:
+      defaultDays: 30
