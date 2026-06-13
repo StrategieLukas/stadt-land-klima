@@ -41,7 +41,7 @@ DATE=$(date +"%d-%m-%Y")
 FILENAME="backupOnUpdate-$DATE.sql"
 # run the export and redirect to file
 echo "Performing backup... "
-./db_export.sh > "$BACKUP_DIR/$FILENAME"
+./db_exports/export_db.sh > "$BACKUP_DIR/$FILENAME"
 
 echo "Backup saved to $BACKUP_DIR/$FILENAME"
 
