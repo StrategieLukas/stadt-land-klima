@@ -63,6 +63,15 @@ permissions:
       - email
       - party
       - election
+  - collection: directus_comments
+    action: read
+    permissions:
+      collection:
+        _eq: questions
+    validation: null
+    presets: null
+    fields:
+      - "*"
   - collection: elections
     action: create
     permissions: null
