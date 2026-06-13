@@ -112,6 +112,42 @@
       </NuxtLink>
 
       <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector"/>
+
+      <!-- Mobile: Associated Projects -->
+      <div
+        v-if="municipalityProjects && municipalityProjects.length > 0"
+        class="mb-4 rounded-sm bg-very-light-blue p-2 px-0 shadow-list md:px-2"
+      >
+        <button
+          type="button"
+          class="flex w-full items-center gap-4 px-2 pb-3 text-left md:px-4"
+          :aria-expanded="mobileProjectsOpen"
+          @click="mobileProjectsOpen = !mobileProjectsOpen"
+        >
+          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-rating-na text-white">
+            <Icon icon="mdi:medal-outline" class="h-8 w-8" />
+          </span>
+          <h2 class="grow font-heading text-h2 leading-none text-green">
+            {{ $t("projects.title") }} {{ municipality.name }}
+          </h2>
+          <span class="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-current text-black">
+            <Icon v-if="mobileProjectsOpen" icon="mdi:close" class="h-6 w-6" />
+            <Icon v-else icon="mdi:plus" class="h-6 w-6" />
+          </span>
+        </button>
+        <div v-show="mobileProjectsOpen" class="border-t border-light-blue px-10 py-4">
+          <ul class="list-disc space-y-1.5 text-light-blue">
+            <li v-for="project in municipalityProjects" :key="project.id">
+              <NuxtLink
+                :to="`/projects/${project.slug}`"
+                class="text-light-blue underline underline-offset-2 hover:text-blue-600"
+              >
+                Link: {{ project.title }} ↗
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <!-- Desktop: Two column layout -->
@@ -241,7 +277,7 @@
           <!-- Associated Projects -->
           <div v-if="municipalityProjects && municipalityProjects.length > 0" class="collapse-plus collapse rounded-sm p-2 shadow-list md:px-2">
             <div class="p-3 flex items-center gap-3 mb-4">
-              <img src="~/assets/icons/icon_invest.svg" class="h-6 w-6 opacity-60" />
+              <Icon icon="mdi:medal-outline" class="h-6 w-6 text-gray opacity-60" />
               <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
 
             </div>
@@ -279,6 +315,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { Icon } from '@iconify/vue'
 import lodash from "lodash";
 import MarkdownIt from 'markdown-it'
 
@@ -315,6 +352,7 @@ const subScores = createSubScoreObject(municipalityScore);
 
 // Tab state
 const activeTab = ref('polar');
+const mobileProjectsOpen = ref(true);
 
 // Fetch projects associated with this municipality
 const municipalityProjects = ref([]);
