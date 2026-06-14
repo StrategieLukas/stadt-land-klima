@@ -6,11 +6,13 @@ import {
   readTranslations,
   createTranslations,
   updateTranslation,
+  updateTranslationsBatch,
   deleteTranslations,
 } from "@directus/sdk";
 import createDirectusClient from "../shared/createDirectusClient.mjs";
 import readYamlFile from "../shared/readYamlFile.mjs";
 
+const translationBatchSize = 100;
 const languageCodePattern = /^[a-z]{2}-[A-Z]{2}$/;
 
 function getLanguageFromFilename(filename) {
@@ -114,6 +116,16 @@ function isDuplicateTranslationError(err) {
   return messages.includes("Duplicate key and language combination");
 }
 
+function chunkArray(items, chunkSize) {
+  const chunks = [];
+
+  for (let i = 0; i < items.length; i += chunkSize) {
+    chunks.push(items.slice(i, i + chunkSize));
+  }
+
+  return chunks;
+}
+
 async function findTranslationByKeyAndLanguage(client, translation) {
   const matches = await client.request(
     readTranslations({
@@ -166,21 +178,42 @@ async function createTranslationWithFallback(client, translation, options) {
 }
 
 async function createTranslationsWithFallback(client, translations, options) {
-  try {
-    await client.request(createTranslations(translations));
-    return;
-  } catch (err) {
-    if (!isDuplicateTranslationError(err)) {
-      throw err;
+  for (const translationChunk of chunkArray(translations, translationBatchSize)) {
+    try {
+      await client.request(createTranslations(translationChunk));
+      continue;
+    } catch (err) {
+      if (!isDuplicateTranslationError(err)) {
+        throw err;
+      }
+
+      if (options.verbose) {
+        console.warn("Directus reported a duplicate translation during bulk create; retrying translations individually.");
+      }
     }
 
-    if (options.verbose) {
-      console.warn("Directus reported a duplicate translation during bulk create; retrying translations individually.");
+    for (const translation of translationChunk) {
+      await createTranslationWithFallback(client, translation, options);
     }
   }
+}
 
-  for (const translation of translations) {
-    await createTranslationWithFallback(client, translation, options);
+async function updateTranslationsInBatches(client, translations, options) {
+  const translationChunks = chunkArray(translations, translationBatchSize);
+
+  for (const [index, translationChunk] of translationChunks.entries()) {
+    if (options.verbose && translationChunks.length > 1) {
+      console.info(`Updating translation batch ${index + 1}/${translationChunks.length}`);
+    }
+
+    await client.request(
+      updateTranslationsBatch(
+        translationChunk.map((translation) => ({
+          id: translation.id,
+          value: translation.value,
+        })),
+      ),
+    );
   }
 }
 
@@ -208,7 +241,9 @@ async function importTranslations(
 
       if (existingTranslation) {
         translation.id = existingTranslation.id;
-        translationsToUpdate.push(translation);
+        if (translation.value !== existingTranslation.value) {
+          translationsToUpdate.push(translation);
+        }
       } else {
         translationsToCreate.push(translation);
       }
@@ -227,17 +262,7 @@ async function importTranslations(
         console.info(`Updating ${translationsToUpdate.length} translations`);
       }
 
-      await Promise.all(
-        translationsToUpdate.map(async (translation) => {
-          try {
-            await client.request(
-              updateTranslation(translation.id, { value: translation.value }),
-            );
-          } catch (err) {
-            console.error(err, translation);
-          }
-        }),
-      );
+      await updateTranslationsInBatches(client, translationsToUpdate, options);
     }
 
     // Remove
