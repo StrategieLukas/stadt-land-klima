@@ -36,7 +36,7 @@
       <!-- hidden on sm: mirrors the isDesktop breakpoint (≥640px) so mobile users don't
            see the full search bar before hydration swaps to TheHeaderMobile. -->
       <div
-        class="absolute left-1/2 hidden w-full max-w-[18rem] -translate-x-1/2 px-4 sm:block lg:max-w-[20rem] xl:max-w-[23rem] 2xl:max-w-[28rem]"
+        class="absolute left-1/2 hidden w-full max-w-[18rem] -translate-x-1/2 px-4 sm:block lg:-ml-8 lg:max-w-[20rem] xl:-ml-12 xl:max-w-[23rem] 2xl:-ml-20 2xl:max-w-[28rem]"
       >
         <div
           ref="searchBarRef"
