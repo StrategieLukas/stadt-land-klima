@@ -217,14 +217,17 @@ async function importPolicies(src, options = { verbose: false, remove: false, ov
 
     // --- Remove orphaned policies and permissions ---
     if (options.remove) {
-      const policiesToDelete = existingPolicies.filter((existingPolicy) => {
+      const allPolicies = await client.request(readPolicies({ limit: -1 }));
+      const allPermissions = await client.request(readPermissions({ limit: -1 }));
+
+      const policiesToDelete = allPolicies.filter((existingPolicy) => {
         // Don't delete admin policies
         if (existingPolicy.admin_access === true) return false;
         // Don't delete policies that are referenced by roles
         return !find(policies, ['name', existingPolicy.name]);
       });
 
-      const permissionsToDelete = existingPermissions.filter((existingPermission) => {
+      const permissionsToDelete = allPermissions.filter((existingPermission) => {
         if (!existingPermission.id || !existingPermission.policy) return false;
 
         // Check if this permission belongs to a policy that still exists

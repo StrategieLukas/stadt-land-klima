@@ -73,6 +73,117 @@ function readTranslationFiles(dir) {
   );
 }
 
+function getTranslationKey(translation) {
+  return `${translation.language}\0${translation.key}`;
+}
+
+function assertUniqueTranslations(translations) {
+  const translationsByKey = new Map();
+
+  for (const translation of translations) {
+    const key = getTranslationKey(translation);
+    const existing = translationsByKey.get(key) || [];
+    existing.push(translation);
+    translationsByKey.set(key, existing);
+  }
+
+  const duplicates = Array.from(translationsByKey.entries()).filter(
+    ([, entries]) => entries.length > 1,
+  );
+
+  if (duplicates.length > 0) {
+    const details = duplicates
+      .map(([key]) => {
+        const [language, translationKey] = key.split("\0");
+        return `${language}:${translationKey}`;
+      })
+      .join(", ");
+
+    throw new Error(`Duplicate translation keys found in YAML files: ${details}`);
+  }
+}
+
+function isDuplicateTranslationError(err) {
+  const messages = [
+    err?.message,
+    ...(Array.isArray(err?.errors) ? err.errors.map((error) => error?.message) : []),
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return messages.includes("Duplicate key and language combination");
+}
+
+async function findTranslationByKeyAndLanguage(client, translation) {
+  const matches = await client.request(
+    readTranslations({
+      limit: 1,
+      filter: {
+        key: {
+          _eq: translation.key,
+        },
+        language: {
+          _eq: translation.language,
+        },
+      },
+    }),
+  );
+
+  return matches[0] || null;
+}
+
+async function updateExistingTranslation(client, translation, options) {
+  const existingTranslation = await findTranslationByKeyAndLanguage(client, translation);
+
+  if (!existingTranslation) {
+    return false;
+  }
+
+  if (options.overwrite) {
+    await client.request(
+      updateTranslation(existingTranslation.id, { value: translation.value }),
+    );
+  }
+
+  return true;
+}
+
+async function createTranslationWithFallback(client, translation, options) {
+  try {
+    await client.request(createTranslations([translation]));
+    return;
+  } catch (err) {
+    if (!isDuplicateTranslationError(err)) {
+      throw err;
+    }
+  }
+
+  const wasHandled = await updateExistingTranslation(client, translation, options);
+
+  if (!wasHandled) {
+    await client.request(createTranslations([translation]));
+  }
+}
+
+async function createTranslationsWithFallback(client, translations, options) {
+  try {
+    await client.request(createTranslations(translations));
+    return;
+  } catch (err) {
+    if (!isDuplicateTranslationError(err)) {
+      throw err;
+    }
+
+    if (options.verbose) {
+      console.warn("Directus reported a duplicate translation during bulk create; retrying translations individually.");
+    }
+  }
+
+  for (const translation of translations) {
+    await createTranslationWithFallback(client, translation, options);
+  }
+}
+
 async function importTranslations(
   src,
   options = { verbose: false, overwrite: false },
@@ -84,6 +195,8 @@ async function importTranslations(
       readTranslations({ limit: -1 }),
     );
     const translations = readTranslationFiles(path.join(src));
+    assertUniqueTranslations(translations);
+
     const translationsToCreate = [];
     const translationsToUpdate = [];
 
@@ -106,7 +219,7 @@ async function importTranslations(
         console.info(`Creating ${translationsToCreate.length} translations`);
       }
 
-      await client.request(createTranslations(translationsToCreate));
+      await createTranslationsWithFallback(client, translationsToCreate, options);
     }
 
     if (options.overwrite && translationsToUpdate.length) {
