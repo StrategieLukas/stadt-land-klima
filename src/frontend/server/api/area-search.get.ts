@@ -48,7 +48,9 @@ async function fetchNodes(apiUrl: string, variables: Record<string, unknown>) {
 }
 
 export default defineEventHandler(async (event) => {
-  const { term, mode = 'reasonable' } = getQuery(event) as { term?: string; mode?: string }
+  const searchParams = getRequestSearchParams(event)
+  const term = searchParams.get('term') ?? ''
+  const mode = searchParams.get('mode') ?? 'reasonable'
 
   if (!term || !term.trim()) {
     return []

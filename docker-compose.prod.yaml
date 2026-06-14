@@ -8,6 +8,7 @@ services:
       - "9001:8055"
     environment:
       SLK_ENV: production
+      SLK_STARTUP_SECURITY_CHECKS: "true"
 
   frontend:
     restart: unless-stopped
@@ -15,4 +16,3 @@ services:
       - "9000:3000"
     environment:
       SLK_ENV: production
-

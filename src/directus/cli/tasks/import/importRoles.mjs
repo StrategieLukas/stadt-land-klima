@@ -9,7 +9,10 @@ import {
   readPolicies,
 } from '@directus/sdk';
 import createDirectusClient, { directusUrl } from '../shared/createDirectusClient.mjs';
+import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
+import resolvePolicyByName from '../shared/resolvePolicyByName.mjs';
+import resolveRoleByName from '../shared/resolveRoleByName.mjs';
 
 /**
  * Import roles for Directus v11+
@@ -62,14 +65,14 @@ function validateNotUuid(ref, type) {
 }
 
 // Helper function to resolve a policy reference (NAME ONLY - no UUIDs)
-function resolvePolicyRef(ref, existingPolicies, verbose = false) {
+async function resolvePolicyRef(ref, client, existingPolicies, verbose = false) {
   if (!ref) return null;
 
   // Validate that this is not a UUID
   validateNotUuid(ref, 'policy');
 
   // Only try by name (strict name-only resolution)
-  const policy = find(existingPolicies, ['name', ref]);
+  const policy = await resolvePolicyByName(client, ref, existingPolicies, { verbose });
   if (policy) return policy.id;
 
   if (verbose) {
@@ -78,21 +81,33 @@ function resolvePolicyRef(ref, existingPolicies, verbose = false) {
   return null;
 }
 
+async function resolvePolicyRefs(refs, client, existingPolicies, verbose = false) {
+  const resolvedPolicies = await Promise.all(
+    (refs || []).map((ref) => resolvePolicyRef(ref, client, existingPolicies, verbose))
+  );
+
+  return resolvedPolicies.filter((id) => id !== null);
+}
+
 // Helper function to resolve a role reference (NAME ONLY - no UUIDs)
-function resolveRoleRef(ref, existingRoles, verbose = false) {
+async function resolveRoleRef(ref, client, existingRoles, verbose = false) {
   if (!ref) return ref; // Return null/undefined as-is for optional fields
 
   // Validate that this is not a UUID
   validateNotUuid(ref, 'role');
 
   // Only try by name (strict name-only resolution)
-  const role = find(existingRoles, ['name', ref]);
+  const role = await resolveRoleByName(client, ref, existingRoles, { verbose });
   if (role) return role.id;
 
   if (verbose) {
     console.warn(`Could not resolve role reference by name: ${ref}`);
   }
   return null;
+}
+
+function getRelationId(value) {
+  return value && typeof value === 'object' ? value.id : value;
 }
 
 async function importRoles(src, options = { verbose: false, remove: false, overwrite: false }) {
@@ -103,7 +118,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       limit: -1,
       fields: ['*', 'users.*', 'children.*', 'policies.*']
     }));
-    const existingPolicies = await client.request(readPolicies({ limit: -1 }));
+    let existingPolicies = await client.request(readPolicies({ limit: -1 }));
 
     const roles = readYamlFiles(path.join(src));
 
@@ -111,42 +126,46 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
     const rolesToUpdate = [];
 
     // --- Process roles ---
-    roles.forEach((role) => {
+    for (const role of roles) {
       // Always skip Administrator - it's built-in
       if (role.name === 'Administrator') {
         if (options.verbose) console.info(`Skipping Administrator role`);
-        return;
+        continue;
       }
+
+      const policyRefsToAttach = role.policies || [];
+      const resolvedPolicies = await resolvePolicyRefs(policyRefsToAttach, client, existingPolicies, options.verbose);
 
       // Special handling for Public role - it's built-in and doesn't appear in roles list
       // We'll handle its policy attachments separately via directus_access table
       if (role.name === 'Public') {
         if (options.verbose) console.info(`Skipping Public role (built-in), will handle policy attachments separately`);
-        // Resolve policy references to IDs
-        const resolvedPolicies = (role.policies || [])
-          .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
-          .filter(id => id !== null);
         // Store for later - we'll process Public role policy attachments via directus_access
         role.id = null; // Mark as Public role for later processing
         role.policiesToAttach = resolvedPolicies;
+        role.policyRefsToAttach = policyRefsToAttach;
         rolesToUpdate.push(role);
-        return;
+        continue;
       }
 
       const existingRole = find(existingRoles, ['name', role.name]);
+      const resolvedExistingRole = await resolveRoleByName(client, role.name, existingRoles, options);
 
-      if (existingRole) {
+      if (existingRole || resolvedExistingRole) {
         // Preserve existing role data that we don't want to overwrite
         // Only update fields that exist in the YAML AND have changed
-        const roleToUpdate = { id: existingRole.id, name: existingRole.name };
+        const roleToUpdate = {
+          id: resolvedExistingRole?.id || existingRole.id,
+          name: existingRole?.name || resolvedExistingRole.name
+        };
         let hasChanges = false;
 
-        if (role.icon !== undefined && role.icon !== existingRole.icon) {
+        if (role.icon !== undefined && role.icon !== existingRole?.icon) {
           roleToUpdate.icon = role.icon || null;
           hasChanges = true;
         }
 
-        const existingDescription = existingRole.description === undefined ? null : existingRole.description;
+        const existingDescription = existingRole?.description === undefined ? null : existingRole.description;
         if (role.description !== undefined && role.description !== existingDescription) {
           roleToUpdate.description = role.description || null;
           hasChanges = true;
@@ -154,28 +173,25 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
         // Resolve parent reference (can be UUID or name) to ID
         if (role.parent !== undefined) {
-          const resolvedParent = resolveRoleRef(role.parent, existingRoles, options.verbose);
-          const currentParentId = existingRole.parent?.id || existingRole.parent || null;
+          const resolvedParent = await resolveRoleRef(role.parent, client, existingRoles, options.verbose);
+          const currentParentId = existingRole?.parent?.id || existingRole?.parent || null;
           if (resolvedParent !== currentParentId) {
             roleToUpdate.parent = resolvedParent || null;
             hasChanges = true;
           }
         }
 
-        // Store policies for later attachment (resolve names to IDs)
-        const resolvedPolicies = (role.policies || [])
-          .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
-          .filter(id => id !== null);
-
         if (hasChanges) {
           roleToUpdate.policiesToAttach = resolvedPolicies;
+          roleToUpdate.policyRefsToAttach = policyRefsToAttach;
           rolesToUpdate.push(roleToUpdate);
         } else {
           // If no metadata changes, still need to check policies
           rolesToUpdate.push({
-            id: existingRole.id,
+            id: roleToUpdate.id,
             name: role.name,
             policiesToAttach: resolvedPolicies,
+            policyRefsToAttach,
             _skipMetadataUpdate: true
           });
         }
@@ -189,29 +205,26 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
         // Resolve parent reference (can be UUID or name) to ID
         if (role.parent !== undefined) {
-          const resolvedParent = resolveRoleRef(role.parent, existingRoles, options.verbose);
+          const resolvedParent = await resolveRoleRef(role.parent, client, existingRoles, options.verbose);
           if (resolvedParent) {
             roleToCreate.parent = resolvedParent;
           }
         }
 
-        // Store policies for later attachment (resolve names to IDs)
-        const resolvedPolicies = (role.policies || [])
-          .map(p => resolvePolicyRef(p, existingPolicies, options.verbose))
-          .filter(id => id !== null);
         roleToCreate.policiesToAttach = resolvedPolicies;
+        roleToCreate.policyRefsToAttach = policyRefsToAttach;
 
         delete roleToCreate.policies;
         rolesToCreate.push(roleToCreate);
       }
-    });
+    }
 
     // --- Create Roles ---
     if (rolesToCreate.length) {
       if (options.verbose) console.info(`Creating ${rolesToCreate.length} roles`);
       // Clean up internal fields before sending to API
       const rolesToCreatePayload = rolesToCreate.map((r) => {
-        const { policiesToAttach, ...data } = r;
+        const { policiesToAttach, policyRefsToAttach, ...data } = r;
         return data;
       });
       const createdRoles = await client.request(createRoles(rolesToCreatePayload));
@@ -230,7 +243,7 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       await Promise.all(
         rolesToActuallyUpdate.map((role) => {
           // Clean up internal fields before sending to API
-          const { id, policiesToAttach, _skipMetadataUpdate, ...data } = role;
+          const { id, policiesToAttach, policyRefsToAttach, _skipMetadataUpdate, ...data } = role;
           return client.request(updateRole(id, data)).catch((err) => {
             console.error(`Error updating role ${role.name || id}:`, err);
           });
@@ -238,31 +251,36 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
       );
     }
 
-    // --- Refresh roles list to get current state ---
+    // --- Refresh roles and policies to get current state ---
+    await clearDirectusCache({ verbose: options.verbose });
     const updatedRoles = await client.request(readRoles({
       limit: -1,
       fields: ['*', 'users.*', 'children.*', 'policies.*']
     }));
+    existingPolicies = await client.request(readPolicies({ limit: -1 }));
 
     // --- Attach policies to roles ---
     // In v11, roles can have multiple policies attached via many-to-many relationship
     // We use the directus_access table directly for all roles to be consistent and bypass potential 403s on /roles
     for (const role of [...rolesToCreate, ...rolesToUpdate]) {
-      const policiesToAttach = role.policiesToAttach || [];
+      const policiesToAttach = await resolvePolicyRefs(
+        role.policyRefsToAttach || role.policies || [],
+        client,
+        existingPolicies,
+        options.verbose
+      );
 
-      // Find the role ID if it's not already set
-      if (!role.id && role.name !== 'Public') {
-        const updatedRole = find(updatedRoles, ['name', role.name]);
-        if (updatedRole) role.id = updatedRole.id;
-      }
+      // Resolve the role ID immediately before writing directus_access. The Directus API
+      // can briefly return stale role IDs after role imports in some environments.
+      const resolvedRole = await resolveRoleByName(client, role.name, updatedRoles, options);
+      const roleIdForAccess = role.name === 'Public' ? null : resolvedRole?.id;
 
-      if (!role.id && role.name !== 'Public') {
+      if (!roleIdForAccess && role.name !== 'Public') {
         console.warn(`Could not find role ID for ${role.name}`);
         continue;
       }
 
       // Special handling for Public role - it's built-in and uses directus_access table with role: null
-      const roleIdForAccess = role.name === 'Public' ? null : role.id;
       await handleRolePolicies(roleIdForAccess, role.name, policiesToAttach, options.verbose);
     }
 
@@ -303,12 +321,12 @@ async function importRoles(src, options = { verbose: false, remove: false, overw
 
         const data = await response.json();
         const existingAccessEntries = data.data || [];
-        const existingPolicyIds = existingAccessEntries.map(entry => entry.policy);
+        const existingPolicyIds = existingAccessEntries.map(entry => getRelationId(entry.policy));
 
         // Find which policies need to be added or removed
         const policiesToAdd = policyIdsToAttach.filter(pid => !existingPolicyIds.includes(pid));
         const policiesToRemove = existingAccessEntries.filter(entry =>
-          !policyIdsToAttach.includes(entry.policy)
+          !policyIdsToAttach.includes(getRelationId(entry.policy))
         );
 
         if (policiesToAdd.length === 0 && policiesToRemove.length === 0) {

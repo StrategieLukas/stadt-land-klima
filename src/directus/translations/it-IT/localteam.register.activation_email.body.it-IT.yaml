@@ -1,0 +1,5 @@
+language: it-IT
+key: localteam.register.activation_email.body
+value: Abbiamo inviato un'email a <strong class="text-gray-700">:email</strong>.
+  Clicca sul link al suo interno per impostare la password ed effettuare
+  l'accesso.

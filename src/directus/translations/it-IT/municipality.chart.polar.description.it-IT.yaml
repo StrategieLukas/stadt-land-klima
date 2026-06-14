@@ -1,0 +1,4 @@
+language: it-IT
+key: municipality.chart.polar.description
+value: I segmenti colorati mostrano il punteggio per settore. Quanto più ampio è
+  il segmento, tanto migliore è la performance del comune in quest’area.

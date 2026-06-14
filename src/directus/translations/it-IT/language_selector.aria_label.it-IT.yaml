@@ -1,0 +1,3 @@
+language: it-IT
+key: language_selector.aria_label
+value: Seleziona lingua

@@ -1,0 +1,5 @@
+language: it-IT
+key: localteam.register.onboarding.body
+value: Il nostro team costituirà il tuo team locale per <strong
+  class="text-gray-700">:name</strong> e ti accompagnerà attraverso i primi
+  passi, dalla valutazione alla pubblicazione.

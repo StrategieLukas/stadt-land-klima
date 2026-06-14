@@ -2,6 +2,7 @@ const fallbackLocale = "de-DE";
 const shorthands = {
   de: "de-DE",
   en: "en-GB",
+  it: "it-IT",
 };
 const supportedLocaleCodes = Object.values(shorthands);
 
@@ -38,9 +39,7 @@ function parseAcceptLanguageHeader(header) {
 }
 
 export default function resolveFullLocaleCode(locale = null) {
-  const candidates = typeof locale === "string" && locale.includes(",")
-    ? parseAcceptLanguageHeader(locale)
-    : [locale];
+  const candidates = typeof locale === "string" && locale.includes(",") ? parseAcceptLanguageHeader(locale) : [locale];
 
   for (const candidate of candidates) {
     const resolvedLocale = normalizeLocale(candidate);

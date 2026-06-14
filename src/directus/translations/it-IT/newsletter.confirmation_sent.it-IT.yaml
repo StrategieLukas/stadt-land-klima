@@ -1,0 +1,3 @@
+language: it-IT
+key: newsletter.confirmation_sent
+value: "E-mail di conferma inviata: controlla la tua casella di posta."

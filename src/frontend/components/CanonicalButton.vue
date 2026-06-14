@@ -54,15 +54,6 @@ const svgFiles = import.meta.glob('@/assets/icons/*.svg', {
   eager: true,
 })
 
-function getRawSvg(svg: unknown): string {
-  if (typeof svg === 'string') return svg
-  if (svg && typeof svg === 'object' && 'default' in svg && typeof svg.default === 'string') {
-    return svg.default
-  }
-
-  return ''
-}
-
 function getRawSvg(value: unknown): string {
   if (typeof value === 'string') return value
   if (value && typeof value === 'object' && 'default' in value) {

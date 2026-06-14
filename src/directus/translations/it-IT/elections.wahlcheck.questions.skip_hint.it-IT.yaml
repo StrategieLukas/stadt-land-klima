@@ -1,0 +1,3 @@
+language: it-IT
+key: elections.wahlcheck.questions.skip_hint
+value: Puoi saltare le domande selezionando "Non specificato".

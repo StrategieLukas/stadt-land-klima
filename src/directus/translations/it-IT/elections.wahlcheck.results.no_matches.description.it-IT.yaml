@@ -1,0 +1,4 @@
+language: it-IT
+key: elections.wahlcheck.results.no_matches.description
+value: Non hai risposto ad alcuna domanda, quindi non e possibile calcolare una
+  corrispondenza con i candidati.

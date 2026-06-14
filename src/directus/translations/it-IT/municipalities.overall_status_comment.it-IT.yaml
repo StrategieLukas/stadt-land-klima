@@ -1,0 +1,9 @@
+language: it-IT
+key: municipalities.overall_status_comment
+value: >-
+  Qui puoi fare commenti generali sullo stato attuale del tuo comune, importanti
+  per l'interpretazione della classifica.
+
+
+  Qui potresti ad esempio fornire informazioni sui progetti pianificati dal
+  comune che in futuro potrebbero migliorare significativamente la classifica.

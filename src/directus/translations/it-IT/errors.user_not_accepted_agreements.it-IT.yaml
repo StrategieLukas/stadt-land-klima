@@ -1,0 +1,5 @@
+language: it-IT
+key: errors.user_not_accepted_agreements
+value: I termini e le condizioni e l'informativa sulla privacy non sono stati
+  ancora accettati, si prega di accettarli nella home page (fare clic sul
+  simbolo del martello nel menu a sinistra)

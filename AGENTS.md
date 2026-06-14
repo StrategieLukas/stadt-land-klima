@@ -147,7 +147,8 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 11. Extensions and the CLI script are to be written in Typescript only. Avoid nonsense interfaces for only a single primitive field.
 12. Elsewhere prefer typescript for all new implementations, unless it would be significant effort or would cause interop problems.
 13. NEVER commit automatically. The user must use the diff to be able to review your changes.
-14. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
+14. However, if in a git worktree where the project root dir folder contains the word "agent", always commit and squash commits + push when done.
+15. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
 
 ## Project structure:
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend

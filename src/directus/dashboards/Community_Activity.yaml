@@ -1,0 +1,17 @@
+name: Lokalteam-Betreuung
+icon: monitoring
+note: Übersicht für Lokalteam-Aktivität, Stillstand, auffällige Muster und Katalogübernahme.
+color: "#1da64a"
+panels:
+  - name: Lokalteam-Aktivität
+    icon: groups
+    color: "#1da64a"
+    show_header: true
+    note: null
+    type: community-activity
+    position_x: 1
+    position_y: 1
+    width: 60
+    height: 40
+    options:
+      defaultDays: 30

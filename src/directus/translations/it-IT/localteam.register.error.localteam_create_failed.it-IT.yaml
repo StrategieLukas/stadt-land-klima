@@ -1,0 +1,3 @@
+language: it-IT
+key: localteam.register.error.localteam_create_failed
+value: Impossibile creare il team locale

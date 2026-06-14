@@ -1,0 +1,4 @@
+language: it-IT
+key: stats.dominance.filter_note
+value: Solo i comuni nel filtro attuale. Sono escluse dal confronto le misure
+  non applicabili.
