@@ -1,9 +1,9 @@
-name: Community Activity
+name: Lokalteam-Betreuung
 icon: monitoring
-note: Actionable overview for Lokalteam activity, stalling teams, activity outliers, and measure catalog adoption.
+note: Übersicht für Lokalteam-Aktivität, Stillstand, auffällige Muster und Katalogübernahme.
 color: "#1da64a"
 panels:
-  - name: Lokalteam activity
+  - name: Lokalteam-Aktivität
     icon: groups
     color: "#1da64a"
     show_header: true

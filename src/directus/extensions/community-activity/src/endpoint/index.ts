@@ -36,6 +36,7 @@ interface TeamRow {
   status: string | null;
   municipality_name: string | null;
   date_created: string | null;
+  admin_id: string | null;
   municipality_id: string | null;
   municipality: string | null;
   state: string | null;
@@ -43,11 +44,14 @@ interface TeamRow {
   admin_email: string | null;
 }
 
-interface ContactRow {
+interface MemberRow {
   team_id: string;
+  user_id: string | null;
   email: string | null;
   first_name: string | null;
   last_name: string | null;
+  role_name: string | null;
+  is_admin: boolean | string | number | null;
 }
 
 interface ActivityRow {
@@ -80,6 +84,16 @@ interface LatestScoreRow {
   percentage_rated: string | number | null;
   score_total: string | number | null;
   score_date: string | null;
+}
+
+interface LatestActivityRow {
+  team_id: string;
+  timestamp: string | null;
+  action: string | null;
+  user_email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  measure_name: string | null;
 }
 
 type TeamAttentionType = 'stalling' | 'spurious' | 'catalog_adoption';
@@ -115,8 +129,25 @@ function displayTeamName(team: TeamRow): string {
   return team.municipality || team.municipality_name || team.name || 'Unbenanntes Lokalteam';
 }
 
-function uniqueEmails(rows: ContactRow[]): string[] {
+function displayUserName(row: { first_name: string | null; last_name: string | null; user_email?: string | null; email?: string | null }): string {
+  const name = [row.first_name, row.last_name].filter(Boolean).join(' ').trim();
+  return name || row.user_email || row.email || 'Unbekannte Person';
+}
+
+function isTrue(value: boolean | string | number | null | undefined): boolean {
+  return value === true || value === 1 || value === '1' || value === 'true' || value === 't';
+}
+
+function uniqueEmails(rows: MemberRow[]): string[] {
   return [...new Set(rows.map((row) => row.email?.trim().toLowerCase()).filter((email): email is string => Boolean(email)))];
+}
+
+function buildActivitySignal(activityCount: number, daysSinceActivity: number | null): { key: string; label: string; tone: string } {
+  if (activityCount === 0) return { key: 'none', label: 'Keine Aktivität im Zeitraum', tone: 'quiet' };
+  if (daysSinceActivity === 0) return { key: 'today', label: 'Heute aktiv', tone: 'strong' };
+  if (daysSinceActivity !== null && daysSinceActivity <= 7) return { key: 'week', label: 'Diese Woche aktiv', tone: 'active' };
+  if (daysSinceActivity !== null && daysSinceActivity <= 30) return { key: 'recent', label: 'Kürzlich aktiv', tone: 'watch' };
+  return { key: 'quiet', label: 'Länger ruhig', tone: 'quiet' };
 }
 
 async function canAccessDashboard(database: Database, accountability?: Accountability): Promise<boolean> {
@@ -195,7 +226,7 @@ export default {
     router.get('/summary', async (req: AuthenticatedRequest, res: Response) => {
       try {
         if (!(await canAccessDashboard(database, req.accountability))) {
-          return res.status(req.accountability?.user ? 403 : 401).json({ error: 'Forbidden' });
+          return res.status(req.accountability?.user ? 403 : 401).json({ error: 'Kein Zugriff auf dieses Dashboard.' });
         }
 
         const days = clampDays(req.query.days);
@@ -222,12 +253,13 @@ export default {
 
         const [
           teams,
-          contacts,
+          members,
           activityRows,
           globalActiveUserRows,
           userShareRows,
           timelineRows,
           latestScores,
+          latestActivityRows,
         ] = await Promise.all([
           database('localteams as l')
             .leftJoin('municipalities as m', 'm.localteam_id', 'l.id')
@@ -239,6 +271,7 @@ export default {
               'l.status',
               'l.municipality_name',
               'l.date_created',
+              'l.admin_id',
               'm.id as municipality_id',
               'm.name as municipality',
               'm.state',
@@ -249,20 +282,46 @@ export default {
 
           database
             .raw(`
-              select distinct team_id, email, first_name, last_name
+              select distinct on (team_id, user_id)
+                team_id,
+                user_id,
+                email,
+                first_name,
+                last_name,
+                role_name,
+                is_admin
               from (
-                select l.id as team_id, admin.email, admin.first_name, admin.last_name
+                select
+                  l.id as team_id,
+                  admin.id as user_id,
+                  admin.email,
+                  admin.first_name,
+                  admin.last_name,
+                  r.name as role_name,
+                  true as is_admin,
+                  0 as priority
                 from localteams l
                 left join directus_users admin on admin.id = l.admin_id
-                where admin.email is not null and admin.status != 'archived'
-                union
-                select j.localteam_id as team_id, u.email, u.first_name, u.last_name
+                left join directus_roles r on r.id = admin.role
+                where admin.id is not null and coalesce(admin.status, '') != 'archived'
+                union all
+                select
+                  j.localteam_id as team_id,
+                  u.id as user_id,
+                  u.email,
+                  u.first_name,
+                  u.last_name,
+                  r.name as role_name,
+                  l.admin_id = u.id as is_admin,
+                  1 as priority
                 from junction_directus_users_localteams j
                 join directus_users u on u.id = j.directus_users_id
-                where u.email is not null and u.status != 'archived'
-              ) contacts
-              order by team_id, email
-            `).then((result) => result.rows as ContactRow[]),
+                join localteams l on l.id = j.localteam_id
+                left join directus_roles r on r.id = u.role
+                where u.id is not null and coalesce(u.status, '') != 'archived'
+              ) members
+              order by team_id, user_id, is_admin desc, priority asc, email
+            `).then((result) => result.rows as MemberRow[]),
 
           database
             .raw(`
@@ -348,13 +407,52 @@ export default {
                 and s.catalog_version is not null
               order by m.localteam_id, s.catalog_version, coalesce(s.date_updated, s.date_created) desc nulls last
             `).then((result) => result.rows as LatestScoreRow[]),
+
+          database
+            .raw(`
+              select
+                team_id,
+                "timestamp",
+                action,
+                user_email,
+                first_name,
+                last_name,
+                measure_name
+              from (
+                select
+                  r.localteam_id as team_id,
+                  a."timestamp",
+                  a.action,
+                  u.email as user_email,
+                  u.first_name,
+                  u.last_name,
+                  m.name as measure_name,
+                  row_number() over (partition by r.localteam_id order by a."timestamp" desc) as rn
+                from directus_activity a
+                join ratings_measures r on r.id::text = a.item
+                left join directus_users u on u.id = a."user"
+                left join measures m on m.id = r.measure_id
+                where a.collection = 'ratings_measures'
+                  and a.action in ('create', 'update')
+                  and a."timestamp" >= ?
+              ) ranked_activity
+              where rn <= 5
+              order by team_id, "timestamp" desc
+            `, [since.toISOString()]).then((result) => result.rows as LatestActivityRow[]),
         ]);
 
-        const contactsByTeam = new Map<string, ContactRow[]>();
-        for (const contact of contacts) {
-          const list = contactsByTeam.get(contact.team_id) ?? [];
-          list.push(contact);
-          contactsByTeam.set(contact.team_id, list);
+        const membersByTeam = new Map<string, MemberRow[]>();
+        for (const member of members) {
+          const list = membersByTeam.get(member.team_id) ?? [];
+          list.push(member);
+          membersByTeam.set(member.team_id, list);
+        }
+
+        const latestActivityByTeam = new Map<string, LatestActivityRow[]>();
+        for (const activity of latestActivityRows) {
+          const list = latestActivityByTeam.get(activity.team_id) ?? [];
+          list.push(activity);
+          latestActivityByTeam.set(activity.team_id, list);
         }
 
         const activityByTeam = new Map(activityRows.map((row) => [row.team_id, row]));
@@ -374,7 +472,8 @@ export default {
           const currentProgress = toNumber(currentScore?.percentage_rated);
           const previousProgress = toNumber(previousScore?.percentage_rated);
           const daysSinceActivity = daysBetween(now, activity?.last_activity ?? null);
-          const contactEmails = uniqueEmails(contactsByTeam.get(team.id) ?? []);
+          const teamMembers = membersByTeam.get(team.id) ?? [];
+          const contactEmails = uniqueEmails(teamMembers);
           const attentionReasons = buildAttentionReasons(
             activityCount,
             toNumber(activity?.touched_measures),
@@ -394,6 +493,16 @@ export default {
             state: team.state,
             population: team.population,
             contactEmails,
+            memberCount: teamMembers.length,
+            members: teamMembers
+              .map((member) => ({
+                id: member.user_id,
+                name: displayUserName(member),
+                email: member.email?.trim().toLowerCase() ?? null,
+                role: member.role_name,
+                isAdmin: isTrue(member.is_admin) || member.user_id === team.admin_id,
+              }))
+              .sort((a, b) => Number(b.isAdmin) - Number(a.isAdmin) || a.name.localeCompare(b.name)),
             activityCount,
             activeUsers: toNumber(activity?.active_users),
             touchedMeasures: toNumber(activity?.touched_measures),
@@ -406,6 +515,14 @@ export default {
             scoreTotal: round(toNumber(currentScore?.score_total)),
             topUserEmail: topUser?.user_email ?? null,
             topUserShare: round(maxUserShare * 100),
+            activitySignal: buildActivitySignal(activityCount, daysSinceActivity),
+            recentActivity: (latestActivityByTeam.get(team.id) ?? []).map((latestActivity) => ({
+              timestamp: latestActivity.timestamp,
+              action: latestActivity.action,
+              userName: displayUserName(latestActivity),
+              userEmail: latestActivity.user_email?.trim().toLowerCase() ?? null,
+              measureName: latestActivity.measure_name,
+            })),
             attentionReasons,
           };
         });
@@ -421,6 +538,14 @@ export default {
         const averageCurrentProgress = currentProgressValues.length > 0
           ? currentProgressValues.reduce((sum, value) => sum + value, 0) / currentProgressValues.length
           : 0;
+        const teamsByProgress = [...teamSummaries].sort((a, b) =>
+          a.currentCatalogProgress - b.currentCatalogProgress ||
+          (b.daysSinceActivity ?? 9999) - (a.daysSinceActivity ?? 9999) ||
+          a.name.localeCompare(b.name),
+        );
+        const recentTeams = activeTeams
+          .sort((a, b) => new Date(b.lastActivity ?? 0).getTime() - new Date(a.lastActivity ?? 0).getTime())
+          .slice(0, 8);
 
         return res.json({
           meta: {
@@ -452,6 +577,8 @@ export default {
           })),
           catalogAdoption: aggregateCatalogAdoption(catalogs, latestScores),
           teams: {
+            all: teamsByProgress,
+            recent: recentTeams,
             attention: attentionTeams
               .sort((a, b) => b.attentionReasons.length - a.attentionReasons.length || b.activityCount - a.activityCount || a.name.localeCompare(b.name))
               .slice(0, 25),
@@ -473,7 +600,7 @@ export default {
         const message = error instanceof Error ? error.message : String(error);
         logger?.error(`[community-activity] Failed to build summary: ${message}`);
         console.error('[community-activity] Failed to build summary:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ error: 'Dashboard konnte nicht geladen werden.' });
       }
     });
   },

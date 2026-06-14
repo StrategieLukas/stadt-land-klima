@@ -3,24 +3,24 @@ import PanelComponent from './panel.vue';
 
 export default definePanel({
   id: 'community-activity',
-  name: 'Community Activity',
+  name: 'Lokalteam-Betreuung',
   icon: 'monitoring',
-  description: 'Shows actionable Lokalteam activity, stalling, outliers, and catalog adoption.',
+  description: 'Zeigt Lokalteam-Aktivität, Stillstand, auffällige Muster und Katalogübernahme.',
   component: PanelComponent,
   options: [
     {
       field: 'defaultDays',
-      name: 'Default time window',
+      name: 'Standard-Zeitraum',
       type: 'integer',
       meta: {
         interface: 'select-dropdown',
         width: 'half',
         options: {
           choices: [
-            { text: '30 days', value: 30 },
-            { text: '90 days', value: 90 },
-            { text: '180 days', value: 180 },
-            { text: '365 days', value: 365 },
+            { text: '30 Tage', value: 30 },
+            { text: '90 Tage', value: 90 },
+            { text: '180 Tage', value: 180 },
+            { text: '365 Tage', value: 365 },
           ],
         },
       },
