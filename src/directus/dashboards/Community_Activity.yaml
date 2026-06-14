@@ -11,7 +11,7 @@ panels:
     type: community-activity
     position_x: 1
     position_y: 1
-    width: 36
-    height: 32
+    width: 60
+    height: 40
     options:
       defaultDays: 30

@@ -35,7 +35,9 @@
       <!-- Persistent Search Bar — absolutely centered in the header -->
       <!-- hidden on sm: mirrors the isDesktop breakpoint (≥640px) so mobile users don't
            see the full search bar before hydration swaps to TheHeaderMobile. -->
-      <div class="absolute left-1/2 hidden w-full max-w-[28rem] -translate-x-1/2 px-4 sm:block">
+      <div
+        class="absolute left-1/2 hidden w-full max-w-[18rem] -translate-x-1/2 px-4 sm:block lg:max-w-[20rem] xl:max-w-[23rem] 2xl:max-w-[28rem]"
+      >
         <div
           ref="searchBarRef"
           class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150"
@@ -100,7 +102,7 @@
       </div>
 
       <!-- Actions: Login + Donate -->
-      <div class="ml-auto flex items-center gap-2">
+      <div class="relative z-10 ml-auto flex items-center gap-2">
         <LanguageSelector variant="header" size="compact" class="hidden lg:inline-flex" />
         <!-- Search button: only visible on mobile (<sm) to mirror TheHeaderMobile pre-hydration -->
         <button
@@ -123,8 +125,8 @@
             />
           </svg>
         </button>
-        <!-- Login: compact icon until xl, canonical button on wide desktop -->
-        <a href="/backend" class="hidden sm:flex xl:hidden">
+        <!-- Login: compact icon until 2xl, canonical button on wide desktop -->
+        <a href="/backend" class="hidden sm:flex 2xl:hidden">
           <button
             class="flex h-9 w-9 items-center justify-center rounded-md bg-light-green text-white shadow-sm transition-all hover:brightness-110"
             :aria-label="$t('generic.log_in')"
@@ -137,12 +139,12 @@
             </svg>
           </button>
         </a>
-        <div class="hidden xl:block">
+        <div class="hidden 2xl:block">
           <LoginButton />
         </div>
         <a
           href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
-          class="hidden sm:flex xl:hidden"
+          class="hidden sm:flex 2xl:hidden"
           :aria-label="$t('donate.label')"
         >
           <button
@@ -151,7 +153,7 @@
             <img src="~/assets/icons/icon_hand_holding_heart.svg" class="h-5 w-5" aria-hidden="true" />
           </button>
         </a>
-        <div class="hidden xl:block">
+        <div class="hidden 2xl:block">
           <DonateButton />
         </div>
       </div>

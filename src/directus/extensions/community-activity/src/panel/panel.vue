@@ -5,7 +5,8 @@
         <p class="eyebrow">Lokalteam-Betreuung</p>
         <h2>Lokalteams im Blick behalten</h2>
         <p class="header-copy">
-          {{ currentCatalogLabel }} · {{ days }} Tage · zuletzt aktualisiert {{ generatedAtLabel }}
+          {{ currentCatalogLabel }} · {{ days }} Tage · zuletzt aktualisiert
+          {{ generatedAtLabel }}
         </p>
       </div>
 
@@ -23,7 +24,13 @@
           </button>
         </div>
 
-        <button class="icon-button refresh-button" type="button" :disabled="loading" title="Aktualisieren" @click="fetchSummary">
+        <button
+          class="icon-button refresh-button"
+          type="button"
+          :disabled="loading"
+          title="Aktualisieren"
+          @click="fetchSummary"
+        >
           <v-icon name="refresh" />
         </button>
       </div>
@@ -52,7 +59,11 @@
             <h3>Gerade aktiv</h3>
             <p>Teams mit frischen Änderungen im ausgewählten Zeitraum.</p>
           </div>
-          <button class="text-button" type="button" @click="activeTab = 'recent'">
+          <button
+            class="text-button"
+            type="button"
+            @click="activeTab = 'recent'"
+          >
             Aktivitätsansicht öffnen
           </button>
         </div>
@@ -67,7 +78,10 @@
           >
             <span class="signal-dot" :class="activityToneClass(team)" />
             <strong>{{ team.name }}</strong>
-            <small>{{ team.activityCount }} Änderungen · {{ relativeDate(team.lastActivity) }}</small>
+            <small
+              >{{ team.activityCount }} Änderungen ·
+              {{ relativeDate(team.lastActivity) }}</small
+            >
           </button>
 
           <div v-if="recentTeams.length === 0" class="empty-card">
@@ -81,12 +95,26 @@
           <div class="section-head">
             <div>
               <h3>Aktivität über Zeit</h3>
-              <p>{{ summary.meta.bucket === 'week' ? 'Wochenansicht' : 'Tagesansicht' }}</p>
+              <p>
+                {{
+                  summary.meta.bucket === "week"
+                    ? "Wochenansicht"
+                    : "Tagesansicht"
+                }}
+              </p>
             </div>
-            <span class="section-badge">{{ firstTimelineLabel }} bis {{ lastTimelineLabel }}</span>
+            <span class="section-badge"
+              >{{ firstTimelineLabel }} bis {{ lastTimelineLabel }}</span
+            >
           </div>
 
-          <svg class="timeline" viewBox="0 0 640 180" preserveAspectRatio="none" role="img" aria-label="Aktivität über Zeit">
+          <svg
+            class="timeline"
+            viewBox="0 0 640 180"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Aktivität über Zeit"
+          >
             <polyline class="line-fill" :points="activityAreaPoints" />
             <polyline class="line" :points="activityLinePoints" />
             <g v-for="point in timelinePoints" :key="point.x">
@@ -104,13 +132,21 @@
           </div>
 
           <div class="catalog-list">
-            <div v-for="catalog in summary.catalogAdoption" :key="catalog.id" class="catalog-row">
+            <div
+              v-for="catalog in summary.catalogAdoption"
+              :key="catalog.id"
+              class="catalog-row"
+            >
               <div class="catalog-title">
                 <span>{{ catalog.name }}</span>
                 <v-chip v-if="catalog.isCurrentFrontend" small>Aktuell</v-chip>
               </div>
               <div class="progress-track">
-                <span :style="{ width: `${Math.min(catalog.averageProgress, 100)}%` }" />
+                <span
+                  :style="{
+                    width: `${Math.min(catalog.averageProgress, 100)}%`,
+                  }"
+                />
               </div>
               <div class="catalog-meta">
                 <span>{{ catalog.averageProgress }} % Durchschnitt</span>
@@ -124,20 +160,37 @@
       <section class="mail-section panel-card">
         <div>
           <h3>Nachricht vorbereiten</h3>
-          <p>Betreff und Text werden für Sammelmails oder einzelne Teams verwendet.</p>
+          <p>
+            Betreff und Text werden für Sammelmails oder einzelne Teams
+            verwendet.
+          </p>
         </div>
 
         <div class="mail-fields">
           <v-input v-model="mailSubject" placeholder="Betreff" />
-          <textarea v-model="mailBody" class="mail-body" rows="4" placeholder="Nachricht" />
+          <textarea
+            v-model="mailBody"
+            class="mail-body"
+            rows="4"
+            placeholder="Nachricht"
+          />
         </div>
 
         <div class="mail-actions">
-          <button class="action-button" type="button" :disabled="activeEmails.length === 0" @click="copyEmails(activeEmails)">
+          <button
+            class="action-button"
+            type="button"
+            :disabled="activeEmails.length === 0"
+            @click="copyEmails(activeEmails)"
+          >
             <v-icon name="content_copy" />
             E-Mails der Ansicht kopieren
           </button>
-          <a class="action-button" :class="{ disabled: activeEmails.length === 0 }" :href="mailtoFor(activeEmails)">
+          <a
+            class="action-button"
+            :class="{ disabled: activeEmails.length === 0 }"
+            :href="mailtoFor(activeEmails)"
+          >
             <v-icon name="mail" />
             Sammelmail öffnen
           </a>
@@ -149,9 +202,16 @@
           <div class="section-head stacked-head">
             <div>
               <h3>Lokalteams</h3>
-              <p>Standardmäßig nach niedrigstem Fortschritt sortiert.</p>
+              <p>
+                Standardmäßig nach höchstem Fortschritt sortiert.
+                Spaltenüberschriften ändern die Sortierung.
+              </p>
             </div>
-            <v-input v-model="searchTerm" class="search-input" placeholder="Team suchen" />
+            <v-input
+              v-model="searchTerm"
+              class="search-input"
+              placeholder="Team suchen"
+            />
           </div>
 
           <div class="tabs" role="tablist" aria-label="Teamansicht">
@@ -161,7 +221,7 @@
               class="tab"
               :class="{ active: activeTab === tab.key }"
               type="button"
-              @click="activeTab = tab.key"
+              @click="setActiveTab(tab.key)"
             >
               {{ tab.label }}
               <span>{{ tab.count }}</span>
@@ -170,10 +230,38 @@
 
           <div class="team-table">
             <div class="table-row table-head">
-              <span>Lokalteam</span>
-              <span>Fortschritt</span>
-              <span>Aktivität</span>
-              <span>Mitglieder</span>
+              <button
+                class="sort-button"
+                type="button"
+                @click="setSort('name')"
+              >
+                Lokalteam
+                <span>{{ sortIndicator("name") }}</span>
+              </button>
+              <button
+                class="sort-button"
+                type="button"
+                @click="setSort('progress')"
+              >
+                Fortschritt
+                <span>{{ sortIndicator("progress") }}</span>
+              </button>
+              <button
+                class="sort-button"
+                type="button"
+                @click="setSort('activity')"
+              >
+                Letzte Aktivität
+                <span>{{ sortIndicator("activity") }}</span>
+              </button>
+              <button
+                class="sort-button"
+                type="button"
+                @click="setSort('members')"
+              >
+                Mitglieder
+                <span>{{ sortIndicator("members") }}</span>
+              </button>
             </div>
 
             <button
@@ -186,13 +274,23 @@
             >
               <span class="team-name">
                 <strong>{{ team.name }}</strong>
-                <small>{{ statusLabel(team.status) }} · {{ locationLabel(team) }}</small>
+                <small
+                  >{{ statusLabel(team.status) }} ·
+                  {{ locationLabel(team) }}</small
+                >
               </span>
 
               <span class="progress-cell">
-                <span class="progress-label">{{ team.currentCatalogProgress }} %</span>
+                <span class="progress-label"
+                  >{{ team.currentCatalogProgress }} %</span
+                >
                 <span class="progress-track compact">
-                  <span :class="progressClass(team.currentCatalogProgress)" :style="{ width: `${Math.min(team.currentCatalogProgress, 100)}%` }" />
+                  <span
+                    :class="progressClass(team.currentCatalogProgress)"
+                    :style="{
+                      width: `${Math.min(team.currentCatalogProgress, 100)}%`,
+                    }"
+                  />
                 </span>
               </span>
 
@@ -216,14 +314,26 @@
               <div>
                 <p class="eyebrow">Teamprofil</p>
                 <h3>{{ selectedTeam.name }}</h3>
-                <p>{{ statusLabel(selectedTeam.status) }} · {{ locationLabel(selectedTeam) }}</p>
+                <p>
+                  {{ statusLabel(selectedTeam.status) }} ·
+                  {{ locationLabel(selectedTeam) }}
+                </p>
               </div>
 
               <div class="detail-actions">
-                <a class="icon-button" :href="`/admin/content/localteams/${selectedTeam.id}`" title="Datensatz öffnen">
+                <a
+                  class="icon-button"
+                  :href="`/admin/content/localteams/${selectedTeam.id}`"
+                  title="Datensatz öffnen"
+                >
                   <v-icon name="open_in_new" />
                 </a>
-                <a class="icon-button" :class="{ disabled: selectedTeam.contactEmails.length === 0 }" :href="mailtoFor(selectedTeam.contactEmails)" title="Team anschreiben">
+                <a
+                  class="icon-button"
+                  :class="{ disabled: selectedTeam.contactEmails.length === 0 }"
+                  :href="mailtoFor(selectedTeam.contactEmails)"
+                  title="Team anschreiben"
+                >
                   <v-icon name="mail" />
                 </a>
               </div>
@@ -249,7 +359,11 @@
             </div>
 
             <div class="reason-list">
-              <v-chip v-for="reason in selectedTeam.attentionReasons" :key="reason.type" small>
+              <v-chip
+                v-for="reason in selectedTeam.attentionReasons"
+                :key="reason.type"
+                small
+              >
                 {{ reason.label }}
               </v-chip>
               <v-chip v-if="selectedTeam.attentionReasons.length === 0" small>
@@ -260,7 +374,10 @@
             <section class="detail-block">
               <h4>Empfohlene nächste Schritte</h4>
               <ul class="recommendations">
-                <li v-for="recommendation in recommendationsFor(selectedTeam)" :key="recommendation">
+                <li
+                  v-for="recommendation in recommendationsFor(selectedTeam)"
+                  :key="recommendation"
+                >
                   {{ recommendation }}
                 </li>
               </ul>
@@ -269,14 +386,23 @@
             <section class="detail-block">
               <h4>Mitglieder</h4>
               <div class="member-list">
-                <div v-for="member in selectedTeam.members" :key="member.id || member.email" class="member-row">
+                <div
+                  v-for="member in selectedTeam.members"
+                  :key="member.id || member.email"
+                  class="member-row"
+                >
                   <div>
                     <strong>{{ member.name }}</strong>
-                    <small>{{ member.email || 'Keine E-Mail hinterlegt' }}</small>
+                    <small>{{
+                      member.email || "Keine E-Mail hinterlegt"
+                    }}</small>
                   </div>
-                <v-chip v-if="member.isAdmin" small>Teamleitung</v-chip>
+                  <v-chip v-if="member.isAdmin" small>Teamleitung</v-chip>
                 </div>
-                <div v-if="selectedTeam.members.length === 0" class="empty-inline">
+                <div
+                  v-if="selectedTeam.members.length === 0"
+                  class="empty-inline"
+                >
                   Keine Mitglieder hinterlegt.
                 </div>
               </div>
@@ -285,13 +411,22 @@
             <section class="detail-block">
               <h4>Letzte Änderungen</h4>
               <ol class="activity-list">
-                <li v-for="activity in selectedTeam.recentActivity" :key="`${activity.timestamp}-${activity.measureName}`">
+                <li
+                  v-for="activity in selectedTeam.recentActivity"
+                  :key="`${activity.timestamp}-${activity.measureName}`"
+                >
                   <span>{{ relativeDate(activity.timestamp) }}</span>
                   <strong>{{ actionLabel(activity.action) }}</strong>
-                  <small>{{ activity.measureName || 'Maßnahme ohne Namen' }} · {{ activity.userName }}</small>
+                  <small
+                    >{{ activity.measureName || "Maßnahme ohne Namen" }} ·
+                    {{ activity.userName }}</small
+                  >
                 </li>
               </ol>
-              <div v-if="selectedTeam.recentActivity.length === 0" class="empty-inline">
+              <div
+                v-if="selectedTeam.recentActivity.length === 0"
+                class="empty-inline"
+              >
                 Keine Änderungen im ausgewählten Zeitraum.
               </div>
             </section>
@@ -307,18 +442,23 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from 'vue';
-import { useApi } from '@directus/extensions-sdk';
+import { computed, defineComponent, onMounted, ref, watch } from "vue";
+import { useApi } from "@directus/extensions-sdk";
 
 interface Summary {
   meta: {
     generatedAt: string;
     days: number;
-    bucket: 'day' | 'week';
+    bucket: "day" | "week";
     currentCatalog: { name: string } | null;
   };
   kpis: Record<string, number>;
-  timeline: Array<{ bucket: string; activityCount: number; activeUsers: number; activeTeams: number }>;
+  timeline: Array<{
+    bucket: string;
+    activityCount: number;
+    activeUsers: number;
+    activeTeams: number;
+  }>;
   catalogAdoption: Array<{
     id: string;
     name: string;
@@ -373,9 +513,20 @@ interface TeamSummary {
   attentionReasons: Array<{ type: string; label: string }>;
 }
 
-type TabKey = 'all' | 'attention' | 'stalling' | 'catalogLag' | 'spurious' | 'mostActive' | 'recent';
+type TabKey =
+  | "all"
+  | "attention"
+  | "byActivity"
+  | "stalling"
+  | "catalogLag"
+  | "spurious"
+  | "mostActive"
+  | "recent";
+type SortDirection = "asc" | "desc";
+type SortKey = "activity" | "members" | "name" | "progress";
 
-const DEFAULT_BODY = 'Hallo,\n\nwir schauen gerade auf die aktuelle Aktivität im Lokalteam und wollten kurz nachfragen, ob ihr Unterstützung braucht.\n\nViele Grüße';
+const DEFAULT_BODY =
+  "Hallo,\n\nwir schauen gerade auf die aktuelle Aktivität im Lokalteam und wollten kurz nachfragen, ob ihr Unterstützung braucht.\n\nViele Grüße";
 
 export default defineComponent({
   props: {
@@ -394,10 +545,12 @@ export default defineComponent({
     const loading = ref(false);
     const error = ref<string | null>(null);
     const days = ref(Number(props.defaultDays) || 30);
-    const activeTab = ref<TabKey>('all');
+    const activeTab = ref<TabKey>("all");
+    const sortDirection = ref<SortDirection>("desc");
+    const sortKey = ref<SortKey>("progress");
     const selectedTeamId = ref<string | null>(null);
-    const searchTerm = ref('');
-    const mailSubject = ref('Nachfrage zur Lokalteam-Aktivität');
+    const searchTerm = ref("");
+    const mailSubject = ref("Nachfrage zur Lokalteam-Aktivität");
     const mailBody = ref(DEFAULT_BODY);
     const windowOptions = [30, 90, 180, 365];
 
@@ -406,12 +559,15 @@ export default defineComponent({
       error.value = null;
 
       try {
-        const response = await api.get('/community-activity/summary', {
+        const response = await api.get("/community-activity/summary", {
           params: { days: days.value },
         });
         summary.value = response.data;
       } catch (err: any) {
-        error.value = err?.response?.data?.error ?? err?.message ?? 'Dashboard konnte nicht geladen werden.';
+        error.value =
+          err?.response?.data?.error ??
+          err?.message ??
+          "Dashboard konnte nicht geladen werden.";
       } finally {
         loading.value = false;
       }
@@ -430,11 +586,31 @@ export default defineComponent({
       if (!kpis) return [];
 
       return [
-        { label: 'Lokalteams', value: kpis.totalTeams, detail: `${kpis.activeTeams} aktiv im Zeitraum` },
-        { label: 'Aktive Personen', value: kpis.activeUsers, detail: `${days.value} Tage` },
-        { label: 'Bewertungsänderungen', value: kpis.ratingActivity, detail: `${kpis.averageCurrentProgress} % Fortschritt Ø` },
-        { label: 'Handlungsbedarf', value: kpis.attentionTeams, detail: `${kpis.stallingTeams} ohne Schwung` },
-        { label: 'Katalog fertig', value: kpis.completedCurrentCatalog, detail: `${kpis.catalogLagTeams} hängen beim Wechsel` },
+        {
+          label: "Lokalteams",
+          value: kpis.totalTeams,
+          detail: `${kpis.activeTeams} aktiv im Zeitraum`,
+        },
+        {
+          label: "Aktive Personen",
+          value: kpis.activeUsers,
+          detail: `${days.value} Tage`,
+        },
+        {
+          label: "Bewertungsänderungen",
+          value: kpis.ratingActivity,
+          detail: `${kpis.averageCurrentProgress} % Fortschritt Ø`,
+        },
+        {
+          label: "Handlungsbedarf",
+          value: kpis.attentionTeams,
+          detail: `${kpis.stallingTeams} ohne Schwung`,
+        },
+        {
+          label: "Katalog fertig",
+          value: kpis.completedCurrentCatalog,
+          detail: `${kpis.catalogLagTeams} hängen beim Wechsel`,
+        },
       ];
     });
 
@@ -452,44 +628,162 @@ export default defineComponent({
       }));
     });
 
-    const activityLinePoints = computed(() => timelinePoints.value.map((point) => `${point.x},${point.y}`).join(' '));
+    const activityLinePoints = computed(() =>
+      timelinePoints.value.map((point) => `${point.x},${point.y}`).join(" "),
+    );
     const activityAreaPoints = computed(() => {
       const points = timelinePoints.value;
-      if (points.length === 0) return '';
-      return `0,180 ${points.map((point) => `${point.x},${point.y}`).join(' ')} 640,180`;
+      if (points.length === 0) return "";
+      return `0,180 ${points.map((point) => `${point.x},${point.y}`).join(" ")} 640,180`;
     });
 
-    const firstTimelineLabel = computed(() => summary.value?.timeline[0]?.bucket ?? '');
-    const lastTimelineLabel = computed(() => summary.value?.timeline.at(-1)?.bucket ?? '');
-    const currentCatalogLabel = computed(() => summary.value?.meta.currentCatalog?.name ?? 'Kein aktueller Katalog');
-    const generatedAtLabel = computed(() => formatDateTime(summary.value?.meta.generatedAt ?? null));
+    const firstTimelineLabel = computed(
+      () => summary.value?.timeline[0]?.bucket ?? "",
+    );
+    const lastTimelineLabel = computed(
+      () => summary.value?.timeline.at(-1)?.bucket ?? "",
+    );
+    const currentCatalogLabel = computed(
+      () =>
+        summary.value?.meta.currentCatalog?.name ?? "Kein aktueller Katalog",
+    );
+    const generatedAtLabel = computed(() =>
+      formatDateTime(summary.value?.meta.generatedAt ?? null),
+    );
 
     const tabs = computed(() => {
       const teams = summary.value?.teams;
       return [
-        { key: 'all' as TabKey, label: 'Alle nach Fortschritt', count: teams?.all?.length ?? 0 },
-        { key: 'attention' as TabKey, label: 'Handlungsbedarf', count: teams?.attention?.length ?? 0 },
-        { key: 'recent' as TabKey, label: 'Gerade aktiv', count: teams?.recent?.length ?? 0 },
-        { key: 'stalling' as TabKey, label: 'Stillstand', count: teams?.stalling?.length ?? 0 },
-        { key: 'catalogLag' as TabKey, label: 'Katalogwechsel', count: teams?.catalogLag?.length ?? 0 },
-        { key: 'spurious' as TabKey, label: 'Prüfen', count: teams?.spurious?.length ?? 0 },
+        {
+          key: "all" as TabKey,
+          label: "Alle nach Fortschritt",
+          count: teams?.all?.length ?? 0,
+        },
+        {
+          key: "byActivity" as TabKey,
+          label: "Letzte Aktivität",
+          count: teams?.byActivity?.length ?? 0,
+        },
+        {
+          key: "attention" as TabKey,
+          label: "Handlungsbedarf",
+          count: teams?.attention?.length ?? 0,
+        },
+        {
+          key: "recent" as TabKey,
+          label: "Gerade aktiv",
+          count: teams?.recent?.length ?? 0,
+        },
+        {
+          key: "stalling" as TabKey,
+          label: "Stillstand",
+          count: teams?.stalling?.length ?? 0,
+        },
+        {
+          key: "catalogLag" as TabKey,
+          label: "Katalogwechsel",
+          count: teams?.catalogLag?.length ?? 0,
+        },
+        {
+          key: "spurious" as TabKey,
+          label: "Prüfen",
+          count: teams?.spurious?.length ?? 0,
+        },
       ];
     });
 
-    const activeTeams = computed(() => summary.value?.teams[activeTab.value] ?? []);
-    const filteredTeams = computed(() => {
-      const query = searchTerm.value.trim().toLowerCase();
-      if (!query) return activeTeams.value;
-      return activeTeams.value.filter((team) => {
-        const memberMatch = team.members.some((member) => `${member.name} ${member.email ?? ''}`.toLowerCase().includes(query));
-        return `${team.name} ${team.localteamName ?? ''} ${team.state ?? ''}`.toLowerCase().includes(query) || memberMatch;
+    const activeTeams = computed(
+      () => summary.value?.teams[activeTab.value] ?? [],
+    );
+    const sortedTeams = computed(() => {
+      const direction = sortDirection.value === "desc" ? -1 : 1;
+      return [...activeTeams.value].sort((a, b) => {
+        if (sortKey.value === "name") {
+          return direction * a.name.localeCompare(b.name);
+        }
+
+        if (sortKey.value === "members") {
+          return (
+            direction *
+            (a.memberCount - b.memberCount || a.name.localeCompare(b.name))
+          );
+        }
+
+        if (sortKey.value === "activity") {
+          const aTime = new Date(a.lastActivity ?? 0).getTime();
+          const bTime = new Date(b.lastActivity ?? 0).getTime();
+          return (
+            direction *
+            (aTime - bTime ||
+              a.activityCount - b.activityCount ||
+              a.name.localeCompare(b.name))
+          );
+        }
+
+        return (
+          direction *
+          (a.currentCatalogProgress - b.currentCatalogProgress ||
+            a.name.localeCompare(b.name))
+        );
       });
     });
-    const selectedTeam = computed(() => allTeams.value.find((team) => team.id === selectedTeamId.value) ?? filteredTeams.value[0] ?? allTeams.value[0] ?? null);
-    const activeEmails = computed(() => [...new Set(filteredTeams.value.flatMap((team) => team.contactEmails))]);
+    const filteredTeams = computed(() => {
+      const query = searchTerm.value.trim().toLowerCase();
+      if (!query) return sortedTeams.value;
+      return sortedTeams.value.filter((team) => {
+        const memberMatch = team.members.some((member) =>
+          `${member.name} ${member.email ?? ""}`.toLowerCase().includes(query),
+        );
+        return (
+          `${team.name} ${team.localteamName ?? ""} ${team.state ?? ""}`
+            .toLowerCase()
+            .includes(query) || memberMatch
+        );
+      });
+    });
+    const selectedTeam = computed(
+      () =>
+        allTeams.value.find((team) => team.id === selectedTeamId.value) ??
+        filteredTeams.value[0] ??
+        allTeams.value[0] ??
+        null,
+    );
+    const activeEmails = computed(() => [
+      ...new Set(filteredTeams.value.flatMap((team) => team.contactEmails)),
+    ]);
 
     function selectTeam(id: string) {
       selectedTeamId.value = id;
+    }
+
+    function setActiveTab(tab: TabKey) {
+      activeTab.value = tab;
+
+      if (tab === "byActivity" || tab === "recent") {
+        sortKey.value = "activity";
+        sortDirection.value = "desc";
+        return;
+      }
+
+      if (tab === "all") {
+        sortKey.value = "progress";
+        sortDirection.value = "desc";
+      }
+    }
+
+    function setSort(key: SortKey) {
+      if (sortKey.value === key) {
+        sortDirection.value = sortDirection.value === "desc" ? "asc" : "desc";
+        return;
+      }
+
+      sortKey.value = key;
+      sortDirection.value = key === "name" ? "asc" : "desc";
+    }
+
+    function sortIndicator(key: SortKey) {
+      if (sortKey.value !== key) return "";
+      return sortDirection.value === "desc" ? "↓" : "↑";
     }
 
     function mailtoFor(emails: string[]) {
@@ -498,54 +792,62 @@ export default defineComponent({
         subject: mailSubject.value,
         body: mailBody.value,
       });
-      return `mailto:?bcc=${encodeURIComponent(emails.join(','))}&${params.toString()}`;
+      return `mailto:?bcc=${encodeURIComponent(emails.join(","))}&${params.toString()}`;
     }
 
     async function copyEmails(emails: string[]) {
       if (emails.length === 0) return;
-      await navigator.clipboard?.writeText(emails.join(', '));
+      await navigator.clipboard?.writeText(emails.join(", "));
     }
 
     function formatDateTime(value: string | null) {
-      if (!value) return 'noch nicht geladen';
+      if (!value) return "noch nicht geladen";
       const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return 'unbekannt';
-      return new Intl.DateTimeFormat('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
+      if (Number.isNaN(date.getTime())) return "unbekannt";
+      return new Intl.DateTimeFormat("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
       }).format(date);
     }
 
     function relativeDate(value: string | null) {
-      if (!value) return 'keine Aktivität';
+      if (!value) return "keine Aktivität";
       const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return 'unbekannt';
-      const daysAgo = Math.max(0, Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000)));
-      if (daysAgo === 0) return 'heute';
-      if (daysAgo === 1) return 'gestern';
+      if (Number.isNaN(date.getTime())) return "unbekannt";
+      const daysAgo = Math.max(
+        0,
+        Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000)),
+      );
+      if (daysAgo === 0) return "heute";
+      if (daysAgo === 1) return "gestern";
       return `vor ${daysAgo} Tagen`;
     }
 
     function statusLabel(status: string | null) {
       const labels: Record<string, string> = {
-        published: 'Veröffentlicht',
-        draft: 'Entwurf',
-        archived: 'Archiviert',
+        published: "Veröffentlicht",
+        draft: "Entwurf",
+        archived: "Archiviert",
       };
-      return labels[status ?? ''] ?? 'Status unbekannt';
+      return labels[status ?? ""] ?? "Status unbekannt";
     }
 
     function locationLabel(team: TeamSummary) {
-      const parts = [team.state, team.population ? `${new Intl.NumberFormat('de-DE').format(team.population)} Ew.` : null].filter(Boolean);
-      return parts.join(' · ') || 'Ort ohne Zusatzdaten';
+      const parts = [
+        team.state,
+        team.population
+          ? `${new Intl.NumberFormat("de-DE").format(team.population)} Ew.`
+          : null,
+      ].filter(Boolean);
+      return parts.join(" · ") || "Ort ohne Zusatzdaten";
     }
 
     function actionLabel(action: string | null) {
-      if (action === 'create') return 'neu angelegt';
-      if (action === 'update') return 'aktualisiert';
-      return 'geändert';
+      if (action === "create") return "neu angelegt";
+      if (action === "update") return "aktualisiert";
+      return "geändert";
     }
 
     function activityToneClass(team: TeamSummary) {
@@ -553,23 +855,54 @@ export default defineComponent({
     }
 
     function progressClass(value: number) {
-      if (value >= 98) return 'progress-done';
-      if (value >= 60) return 'progress-good';
-      if (value >= 25) return 'progress-mid';
-      return 'progress-low';
+      if (value >= 98) return "progress-done";
+      if (value >= 60) return "progress-good";
+      if (value >= 25) return "progress-mid";
+      return "progress-low";
     }
 
     function recommendationsFor(team: TeamSummary) {
       const recommendations: string[] = [];
 
-      if (team.memberCount === 0) recommendations.push('Mitgliederzuordnung prüfen, damit das Lokalteam erreichbar ist.');
-      if (team.contactEmails.length === 0) recommendations.push('Kontaktadresse ergänzen, sonst sind Nachfragen nicht möglich.');
-      if (team.currentCatalogProgress < 25) recommendations.push('Einstiegshilfe anbieten und die nächsten drei Maßnahmen gemeinsam priorisieren.');
-      if (team.attentionReasons.some((reason) => reason.type === 'stalling')) recommendations.push('Kurz nachfragen, ob Recherche, Quellen oder Rollenverteilung blockieren.');
-      if (team.attentionReasons.some((reason) => reason.type === 'catalog_adoption')) recommendations.push('Beim Katalogwechsel unterstützen und offene Maßnahmen aus dem alten Katalog übertragen.');
-      if (team.topUserShare >= 80 && team.activityCount >= 5) recommendations.push('Arbeit auf mehrere Personen verteilen, damit das Team stabiler wird.');
-      if (team.activitySignal.key === 'today' || team.activitySignal.key === 'week') recommendations.push('Aktivität zeitnah wertschätzen und bei offenen Fragen direkt reagieren.');
-      if (recommendations.length === 0) recommendations.push('Kein akuter Handlungsbedarf. Beim nächsten Check-in kurz bestätigen.');
+      if (team.memberCount === 0)
+        recommendations.push(
+          "Mitgliederzuordnung prüfen, damit das Lokalteam erreichbar ist.",
+        );
+      if (team.contactEmails.length === 0)
+        recommendations.push(
+          "Kontaktadresse ergänzen, sonst sind Nachfragen nicht möglich.",
+        );
+      if (team.currentCatalogProgress < 25)
+        recommendations.push(
+          "Einstiegshilfe anbieten und die nächsten drei Maßnahmen gemeinsam priorisieren.",
+        );
+      if (team.attentionReasons.some((reason) => reason.type === "stalling"))
+        recommendations.push(
+          "Kurz nachfragen, ob Recherche, Quellen oder Rollenverteilung blockieren.",
+        );
+      if (
+        team.attentionReasons.some(
+          (reason) => reason.type === "catalog_adoption",
+        )
+      )
+        recommendations.push(
+          "Beim Katalogwechsel unterstützen und offene Maßnahmen aus dem alten Katalog übertragen.",
+        );
+      if (team.topUserShare >= 80 && team.activityCount >= 5)
+        recommendations.push(
+          "Arbeit auf mehrere Personen verteilen, damit das Team stabiler wird.",
+        );
+      if (
+        team.activitySignal.key === "today" ||
+        team.activitySignal.key === "week"
+      )
+        recommendations.push(
+          "Aktivität zeitnah wertschätzen und bei offenen Fragen direkt reagieren.",
+        );
+      if (recommendations.length === 0)
+        recommendations.push(
+          "Kein akuter Handlungsbedarf. Beim nächsten Check-in kurz bestätigen.",
+        );
 
       return recommendations;
     }
@@ -616,7 +949,10 @@ export default defineComponent({
       searchTerm,
       selectTeam,
       selectedTeam,
+      setActiveTab,
       setDays,
+      setSort,
+      sortIndicator,
       statusLabel,
       summary,
       tabs,
@@ -632,10 +968,17 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 22px;
+  width: 100%;
   min-height: 100%;
   padding: 22px;
+  overflow-x: auto;
   color: var(--theme--foreground, var(--foreground-normal));
   background: var(--theme--background, var(--background-page));
+}
+
+.community-activity,
+.community-activity * {
+  box-sizing: border-box;
 }
 
 .community-activity.has-header {
@@ -658,6 +1001,7 @@ export default defineComponent({
 }
 
 .dashboard-header {
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 24px;
   padding: 22px;
@@ -809,13 +1153,14 @@ textarea {
 
 .kpis {
   display: grid;
-  grid-template-columns: repeat(5, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 14px;
 }
 
 .kpi,
 .panel-card,
 .activity-strip {
+  min-width: 0;
   border: 1px solid var(--theme--border-color, var(--border-normal));
   border-radius: var(--theme--border-radius, 8px);
   background: var(--theme--background, var(--background-page));
@@ -868,7 +1213,7 @@ textarea {
 
 .signal-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 12px;
 }
 
@@ -928,7 +1273,7 @@ textarea {
 
 .main-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.85fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
   gap: 18px;
 }
 
@@ -1009,7 +1354,7 @@ textarea {
 
 .mail-section {
   display: grid;
-  grid-template-columns: minmax(220px, 0.6fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 0.55fr) minmax(0, 1fr);
   gap: 18px;
   align-items: end;
 }
@@ -1037,11 +1382,21 @@ textarea {
   text-decoration: none;
 }
 
+.mail-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+}
+
 .workbench {
   display: grid;
-  grid-template-columns: minmax(520px, 1.15fr) minmax(380px, 0.85fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
   gap: 18px;
   align-items: start;
+}
+
+.team-list,
+.detail-panel {
+  min-width: 0;
 }
 
 .tabs {
@@ -1059,17 +1414,21 @@ textarea {
 }
 
 .team-table {
-  overflow: hidden;
+  overflow-x: auto;
   border: 1px solid var(--theme--border-color, var(--border-normal));
   border-radius: var(--theme--border-radius, 6px);
 }
 
 .table-row {
   display: grid;
-  grid-template-columns: minmax(230px, 1.4fr) minmax(150px, 0.8fr) minmax(160px, 0.9fr) 110px;
+  grid-template-columns: minmax(180px, 1.45fr) minmax(120px, 0.75fr) minmax(
+      140px,
+      0.8fr
+    ) minmax(88px, 0.45fr);
   gap: 16px;
   align-items: center;
   width: 100%;
+  min-width: 620px;
   min-height: 64px;
   padding: 12px 14px;
   border: 0;
@@ -1089,6 +1448,26 @@ textarea {
   background: var(--theme--background-subdued, var(--background-input));
   font-size: 13px;
   font-weight: 700;
+}
+
+.sort-button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sort-button span {
+  display: inline-block;
+  width: 10px;
+  color: var(--theme--primary, var(--primary));
 }
 
 .team-row {
@@ -1287,6 +1666,7 @@ textarea {
 
   .table-row {
     grid-template-columns: minmax(180px, 1fr) 120px;
+    min-width: 0;
   }
 
   .table-row > :nth-child(3),
