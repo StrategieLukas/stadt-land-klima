@@ -4,7 +4,7 @@ import { readPolicies } from '@directus/sdk';
 
 const { Pool } = pg;
 
-function hasDatabaseConfig() {
+export function hasDatabaseConfig() {
   return Boolean(
     process.env.DB_DATABASE &&
     process.env.DB_HOST &&
@@ -13,7 +13,7 @@ function hasDatabaseConfig() {
   );
 }
 
-function createPool() {
+export function createPool() {
   return new Pool({
     database: process.env.DB_DATABASE,
     host: process.env.DB_HOST,
@@ -23,7 +23,7 @@ function createPool() {
   });
 }
 
-async function readPolicyByNameFromDatabase(policyName, verbose = false) {
+export async function readPolicyByNameFromDatabase(policyName, verbose = false) {
   if (!hasDatabaseConfig()) return null;
 
   const pool = createPool();
