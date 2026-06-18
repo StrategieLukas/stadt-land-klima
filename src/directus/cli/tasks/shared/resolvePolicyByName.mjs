@@ -68,21 +68,16 @@ async function resolvePolicyByName(client, policyName, policies = [], options = 
   const apiPolicy = await readPolicyByNameFromApi(client, policyName, policies);
   const databasePolicy = await readPolicyByNameFromDatabase(policyName, options.verbose);
 
-  if (databasePolicy) {
-    if (!apiPolicy) {
-      console.warn(
-        `Policy ${policyName} was not visible via Directus API, but ${databasePolicy.id} exists in directus_policies; using that ID through the Directus API.`
-      );
-      return databasePolicy;
-    }
+  if (apiPolicy && databasePolicy && apiPolicy.id !== databasePolicy.id) {
+    console.warn(
+      `Policy ${policyName} resolved to ${apiPolicy.id} via Directus API, but ${databasePolicy.id} exists in directus_policies; using the Directus API ID for writes.`
+    );
+  }
 
-    if (apiPolicy?.id && apiPolicy.id !== databasePolicy.id) {
-      console.warn(
-        `Policy ${policyName} resolved to ${apiPolicy.id} via Directus API, but ${databasePolicy.id} exists in directus_policies; using the database ID through the Directus API.`
-      );
-    }
-
-    return databasePolicy;
+  if (!apiPolicy && databasePolicy) {
+    console.warn(
+      `Policy ${policyName} exists in directus_policies as ${databasePolicy.id}, but Directus API did not expose it; refusing to use a database-only ID.`
+    );
   }
 
   return apiPolicy;

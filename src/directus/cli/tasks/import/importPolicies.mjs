@@ -74,31 +74,21 @@ async function removePolicyPermissions(client, existingPermissions, policyId, po
   }
 }
 
+function warnPolicyIdMismatch(policyName, apiPolicy, databasePolicy) {
+  if (!apiPolicy || !databasePolicy || apiPolicy.id === databasePolicy.id) return;
+
+  console.warn(
+    `Policy ${policyName} resolved to ${apiPolicy.id} via Directus API, but ${databasePolicy.id} exists in directus_policies; using the Directus API ID for writes.`
+  );
+}
+
 async function resolvePolicyForPermissionWrite(client, policyName, policyObj, options) {
   let apiPolicy = policyObj || null;
+  const databasePolicy = await readPolicyByNameFromDatabase(policyName, options.verbose);
 
   for (let attempt = 1; attempt <= POLICY_RETRY_ATTEMPTS; attempt++) {
-    const databasePolicy = await readPolicyByNameFromDatabase(policyName, options.verbose);
-
-    if (databasePolicy) {
-      if (!apiPolicy) {
-        console.warn(
-          `Policy ${policyName} was not visible via Directus API, but ${databasePolicy.id} exists in directus_policies; using that ID through the Directus API.`
-        );
-        return databasePolicy;
-      }
-
-      if (apiPolicy.id !== databasePolicy.id) {
-        console.warn(
-          `Policy ${policyName} resolved to ${apiPolicy.id} via Directus API, but ${databasePolicy.id} exists in directus_policies; using the database ID through the Directus API.`
-        );
-        return databasePolicy;
-      }
-
-      return apiPolicy;
-    }
-
     if (apiPolicy) {
+      warnPolicyIdMismatch(policyName, apiPolicy, databasePolicy);
       return apiPolicy;
     }
 
@@ -109,6 +99,12 @@ async function resolvePolicyForPermissionWrite(client, policyName, policyObj, op
       assertUniquePolicyNames(policies);
       apiPolicy = find(policies, ['name', policyName]) || null;
     }
+  }
+
+  if (databasePolicy) {
+    console.warn(
+      `Policy ${policyName} exists in directus_policies as ${databasePolicy.id}, but Directus API did not expose it; refusing to create permissions with a database-only ID.`
+    );
   }
 
   return null;
