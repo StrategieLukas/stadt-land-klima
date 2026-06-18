@@ -4,7 +4,7 @@ import { readPolicies } from '@directus/sdk';
 
 const { Pool } = pg;
 
-export function hasDatabaseConfig() {
+function hasDatabaseConfig() {
   return Boolean(
     process.env.DB_DATABASE &&
     process.env.DB_HOST &&
@@ -13,7 +13,7 @@ export function hasDatabaseConfig() {
   );
 }
 
-export function createPool() {
+function createPool() {
   return new Pool({
     database: process.env.DB_DATABASE,
     host: process.env.DB_HOST,
@@ -69,9 +69,16 @@ async function resolvePolicyByName(client, policyName, policies = [], options = 
   const databasePolicy = await readPolicyByNameFromDatabase(policyName, options.verbose);
 
   if (databasePolicy) {
+    if (!apiPolicy) {
+      console.warn(
+        `Policy ${policyName} was not visible via Directus API, but ${databasePolicy.id} exists in directus_policies; using that ID through the Directus API.`
+      );
+      return databasePolicy;
+    }
+
     if (apiPolicy?.id && apiPolicy.id !== databasePolicy.id) {
       console.warn(
-        `Policy ${policyName} resolved to ${apiPolicy.id} via Directus API, but ${databasePolicy.id} exists in directus_policies; using database ID.`
+        `Policy ${policyName} resolved to ${apiPolicy.id} via Directus API, but ${databasePolicy.id} exists in directus_policies; using the database ID through the Directus API.`
       );
     }
 

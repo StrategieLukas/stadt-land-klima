@@ -13,11 +13,14 @@ import {
 import createDirectusClient from '../shared/createDirectusClient.mjs';
 import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
-import resolvePolicyByName, {
-  createPool,
-  hasDatabaseConfig,
-  readPolicyByNameFromDatabase,
-} from '../shared/resolvePolicyByName.mjs';
+import { readPolicyByNameFromDatabase } from '../shared/resolvePolicyByName.mjs';
+
+const POLICY_RETRY_ATTEMPTS = 5;
+const POLICY_RETRY_DELAY_MS = 250;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function assertUniquePolicyNames(policies) {
   const policiesByName = new Map();
@@ -58,30 +61,7 @@ function isInvalidPolicyForeignKeyError(err) {
   return messages.includes('Invalid foreign key') && messages.includes('field "policy"');
 }
 
-function isDirectDatabaseWriteEnabled() {
-  return hasDatabaseConfig() && process.env.DISABLE_DIRECTUS_POLICY_DB_FALLBACK !== 'true';
-}
-
 async function removePolicyPermissions(client, existingPermissions, policyId, policyName, verbose) {
-  if (isDirectDatabaseWriteEnabled()) {
-    const pool = createPool();
-
-    try {
-      const result = await pool.query(
-        'DELETE FROM directus_permissions WHERE policy = $1',
-        [policyId]
-      );
-
-      if (verbose && result.rowCount > 0) {
-        console.info(`Removed ${result.rowCount} existing permissions for policy ${policyName} directly from the database`);
-      }
-
-      return;
-    } finally {
-      await pool.end();
-    }
-  }
-
   const policyPermissionsToDelete = existingPermissions
   .filter((permission) => permission.policy === policyId && permission.id)
   .map(property('id'));
@@ -94,100 +74,63 @@ async function removePolicyPermissions(client, existingPermissions, policyId, po
   }
 }
 
-function normalizeJsonValue(value) {
-  if (value === undefined) return null;
-  if (value === null) return null;
-  return JSON.stringify(value);
-}
-
-function serializeFieldsForDatabase(fields, fieldsColumn) {
-  if (fields === undefined || fields === null) return null;
-
-  const normalizedFields = Array.isArray(fields) ? fields.map(String) : [String(fields)];
-
-  if (fieldsColumn?.data_type === 'ARRAY') {
-    return normalizedFields;
-  }
-
-  if (fieldsColumn?.data_type === 'json' || fieldsColumn?.data_type === 'jsonb') {
-    return JSON.stringify(normalizedFields);
-  }
-
-  return normalizedFields.join(',');
-}
-
-async function readDirectusPermissionsFieldsColumn(pool) {
-  const result = await pool.query(`
-    SELECT data_type, udt_name
-    FROM information_schema.columns
-    WHERE table_name = 'directus_permissions'
-      AND column_name = 'fields'
-    LIMIT 1
-  `);
-
-  return result.rows[0] || null;
-}
-
-async function createPermissionsForPolicyInDatabase(policyName, policyId, policyPermissions, options) {
-  if (!isDirectDatabaseWriteEnabled()) {
-    throw new Error('Direct database permission fallback is unavailable because database configuration is missing.');
-  }
-
-  const pool = createPool();
-
-  try {
-    const fieldsColumn = await readDirectusPermissionsFieldsColumn(pool);
-
-    await pool.query('BEGIN');
-    await pool.query('DELETE FROM directus_permissions WHERE policy = $1', [policyId]);
-
-    for (const permission of policyPermissions) {
-      await pool.query(
-        `INSERT INTO directus_permissions
-          (collection, action, permissions, validation, presets, fields, policy)
-        VALUES
-          ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          permission.collection,
-          permission.action,
-          normalizeJsonValue(permission.permissions),
-          normalizeJsonValue(permission.validation),
-          normalizeJsonValue(permission.presets),
-          serializeFieldsForDatabase(permission.fields, fieldsColumn),
-          policyId,
-        ]
-      );
-    }
-
-    await pool.query('COMMIT');
-
-    if (options.verbose) {
-      console.info(`Created ${policyPermissions.length} permissions for policy ${policyName} directly in the database`);
-    }
-  } catch (err) {
-    await pool.query('ROLLBACK').catch(() => {});
-    throw err;
-  } finally {
-    await pool.end();
-  }
-}
-
 async function resolvePolicyForPermissionWrite(client, policyName, policyObj, options) {
-  if (isDirectDatabaseWriteEnabled()) {
+  let apiPolicy = policyObj || null;
+
+  for (let attempt = 1; attempt <= POLICY_RETRY_ATTEMPTS; attempt++) {
     const databasePolicy = await readPolicyByNameFromDatabase(policyName, options.verbose);
 
     if (databasePolicy) {
-      if (policyObj?.id && policyObj.id !== databasePolicy.id) {
+      if (!apiPolicy) {
         console.warn(
-          `Policy ${policyName} resolved to ${policyObj.id} via Directus API, but ${databasePolicy.id} exists in directus_policies; using database ID.`
+          `Policy ${policyName} was not visible via Directus API, but ${databasePolicy.id} exists in directus_policies; using that ID through the Directus API.`
         );
+        return databasePolicy;
       }
 
-      return databasePolicy;
+      if (apiPolicy.id !== databasePolicy.id) {
+        console.warn(
+          `Policy ${policyName} resolved to ${apiPolicy.id} via Directus API, but ${databasePolicy.id} exists in directus_policies; using the database ID through the Directus API.`
+        );
+        return databasePolicy;
+      }
+
+      return apiPolicy;
+    }
+
+    if (apiPolicy) {
+      return apiPolicy;
+    }
+
+    if (attempt < POLICY_RETRY_ATTEMPTS) {
+      await clearDirectusCache({ verbose: options.verbose });
+      await sleep(POLICY_RETRY_DELAY_MS);
+      const policies = await client.request(readPolicies({ limit: -1 }));
+      assertUniquePolicyNames(policies);
+      apiPolicy = find(policies, ['name', policyName]) || null;
     }
   }
 
-  return resolvePolicyByName(client, policyName, policyObj ? [policyObj] : [], options);
+  return null;
+}
+
+async function readPolicyForDiagnostics(client, policyName) {
+  const policies = await client.request(readPolicies({ limit: -1 }));
+  assertUniquePolicyNames(policies);
+  return find(policies, ['name', policyName]) || null;
+}
+
+async function logPolicyForeignKeyDiagnostics(client, policyName, policyId) {
+  const [apiPolicy, databasePolicy] = await Promise.all([
+    readPolicyForDiagnostics(client, policyName).catch(() => null),
+    readPolicyByNameFromDatabase(policyName, false).catch(() => null),
+  ]);
+
+  console.error(
+    `Directus rejected policy ${policyName} (${policyId}) while creating permissions. ` +
+    `API id: ${apiPolicy?.id || 'not visible'}; database id: ${databasePolicy?.id || 'not readable'}. ` +
+    'No direct database writes were attempted.'
+  );
 }
 
 async function createPermissionsForPolicy(client, policyName, policyPermissions, policyObj, existingPermissions, options) {
@@ -238,14 +181,15 @@ async function createPermissionsForPolicy(client, policyName, policyPermissions,
     try {
       await client.request(createPermissions(permissionsToCreate));
     } catch (retryErr) {
-      if (!isInvalidPolicyForeignKeyError(retryErr) || !isDirectDatabaseWriteEnabled()) {
-        console.error(`Error creating permissions for policy ${policyName} (${resolvedPolicy.id})`, permissionsToCreate);
-        throw retryErr;
+      if (isInvalidPolicyForeignKeyError(retryErr)) {
+        await logPolicyForeignKeyDiagnostics(client, policyName, resolvedPolicy.id);
       }
 
-      console.warn(`Directus still rejected policy ID ${resolvedPolicy.id} for ${policyName}; writing permissions directly to the database.`);
-      await createPermissionsForPolicyInDatabase(policyName, resolvedPolicy.id, policyPermissions, options);
-      await clearDirectusCache({ verbose: options.verbose });
+      if (!isInvalidPolicyForeignKeyError(retryErr)) {
+        console.error(`Error creating permissions for policy ${policyName} (${resolvedPolicy.id})`, permissionsToCreate);
+      }
+
+      throw retryErr;
     }
   }
 
@@ -342,8 +286,7 @@ async function importPolicies(src, options = { verbose: false, remove: false, ov
       // Find the policy ID (either from existing or newly created)
       const policyObj = find(updatedPolicies, ['name', policyName]);
       if (!policyObj) {
-        console.warn(`Could not find policy with name ${policyName}`);
-        continue;
+        console.warn(`Policy ${policyName} was not visible after policy import; trying persistence-aware fallback before skipping permissions.`);
       }
 
       const policyId = await createPermissionsForPolicy(client, policyName, policyPermissions, policyObj, existingPermissions, options);

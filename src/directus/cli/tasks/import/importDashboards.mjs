@@ -9,9 +9,21 @@ import {
   updateDashboard,
 } from '@directus/sdk';
 import createDirectusClient from '../shared/createDirectusClient.mjs';
+import clearDirectusCache from '../shared/clearDirectusCache.mjs';
 import readYamlFiles from '../shared/readYamlFiles.mjs';
 
+const DASHBOARD_RETRY_ATTEMPTS = 5;
+const DASHBOARD_RETRY_DELAY_MS = 250;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function getDashboardId(value) {
+  if (Array.isArray(value)) {
+    return getDashboardId(value[0]);
+  }
+
   return typeof value === 'object' && value !== null ? value.id : value;
 }
 
@@ -77,16 +89,44 @@ async function replaceDashboardPanels(client, dashboardId, panels, existingPanel
   await client.request(createPanels(panels.map((panel) => cleanPanelForImport(panel, dashboardId))));
 }
 
-async function readPersistedDashboard(client, dashboardName, savedDashboard) {
+async function readPersistedDashboard(client, dashboardName, savedDashboard, options) {
   const savedDashboardId = getDashboardId(savedDashboard);
-  const dashboards = await client.request(readDashboards({ limit: -1 }));
-  const persistedDashboard = findDashboardByIdOrName(dashboards, savedDashboardId, dashboardName);
+  let dashboards = [];
 
-  if (!persistedDashboard?.id) {
-    throw new Error(`Dashboard "${dashboardName}" was not persisted before importing panels.`);
+  for (let attempt = 1; attempt <= DASHBOARD_RETRY_ATTEMPTS; attempt++) {
+    dashboards = await client.request(readDashboards({ limit: -1 }));
+    const persistedDashboard = findDashboardByIdOrName(dashboards, savedDashboardId, dashboardName);
+
+    if (persistedDashboard?.id) {
+      return { dashboard: persistedDashboard, dashboards };
+    }
+
+    if (attempt < DASHBOARD_RETRY_ATTEMPTS) {
+      await clearDirectusCache({ verbose: options.verbose });
+      await sleep(DASHBOARD_RETRY_DELAY_MS);
+    }
   }
 
-  return { dashboard: persistedDashboard, dashboards };
+  if (savedDashboardId) {
+    console.warn(
+      `Dashboard "${dashboardName}" was saved as ${savedDashboardId}, but readDashboards() did not return it after cache retries; using the saved ID for panel import.`
+    );
+
+    return {
+      dashboard: {
+        ...(
+          typeof savedDashboard === 'object' && savedDashboard !== null && !Array.isArray(savedDashboard)
+            ? savedDashboard
+            : {}
+        ),
+        id: savedDashboardId,
+        name: dashboardName,
+      },
+      dashboards,
+    };
+  }
+
+  throw new Error(`Dashboard "${dashboardName}" was not persisted before importing panels.`);
 }
 
 async function importDashboards(src, options = { verbose: false, overwrite: false, remove: false }) {
@@ -129,7 +169,7 @@ async function importDashboards(src, options = { verbose: false, overwrite: fals
         savedDashboard = await client.request(createDashboard(cleanDashboardForImport(dashboard)));
       }
 
-      const persisted = await readPersistedDashboard(client, dashboard.name, savedDashboard);
+      const persisted = await readPersistedDashboard(client, dashboard.name, savedDashboard, options);
 
       savedDashboard = persisted.dashboard;
       currentDashboards = persisted.dashboards;
