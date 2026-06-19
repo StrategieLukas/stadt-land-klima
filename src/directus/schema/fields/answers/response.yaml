@@ -9,7 +9,7 @@ meta:
     choices:
       - background: "#e60000"
         foreground: "#ffffff"
-        text: stark dagegen
+        text: dagegen
         value: 0
       - background: "#ff6666"
         foreground: "#ffffff"
@@ -25,7 +25,7 @@ meta:
         value: 3
       - background: "#1da64a"
         foreground: "#ffffff"
-        text: stark dafür
+        text: dafür
         value: 4
   field: response
   group: null
@@ -35,7 +35,7 @@ meta:
   options:
     allowNone: true
     choices:
-      - text: stark dagegen
+      - text: dagegen
         value: 0
       - text: eher dagegen
         value: 1
@@ -43,7 +43,7 @@ meta:
         value: 2
       - text: eher dafür
         value: 3
-      - text: stark dafür
+      - text: dafür
         value: 4
   readonly: false
   required: true

@@ -48,7 +48,10 @@
 
         <!-- Rating Scale -->
         <div class="ml-0 md:ml-14">
-          <div class="grid grid-cols-5 gap-2 mb-3">
+          <div
+            class="grid gap-2 mb-3"
+            :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
+          >
             <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
               <label class="cursor-pointer">
                 <input
@@ -63,7 +66,10 @@
               </label>
             </div>
           </div>
-          <div class="grid grid-cols-5 gap-1 text-[10px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray">
+          <div
+            class="grid gap-1 text-[10px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray"
+            :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
+          >
             <div v-for="option in ratingOptions" :key="option.value">
               {{ option.label }}
             </div>
@@ -136,6 +142,10 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import {
+  getWahlcheckAnswerOptions,
+  usesSimpleWahlcheckAnswerMode,
+} from '~/shared/wahlcheckAnswerOptions.js'
 
 const props = defineProps({
   questions: {
@@ -160,13 +170,10 @@ const emit = defineEmits(['next', 'prev'])
 
 const { $t } = useNuxtApp()
 
-const ratingOptions = [
-  { value: 0, label: $t('elections.wahlcheck.answer.strongly_against') },
-  { value: 1, label: $t('elections.wahlcheck.answer.somewhat_against') },
-  { value: 2, label: $t('elections.wahlcheck.answer.neutral') },
-  { value: 3, label: $t('elections.wahlcheck.answer.somewhat_for') },
-  { value: 4, label: $t('elections.wahlcheck.answer.strongly_for') }
-]
+const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(props.election))
+const ratingOptions = computed(() => {
+  return getWahlcheckAnswerOptions(props.election, $t).reverse()
+})
 
 const userAnswers = ref({...props.userAnswers})
 const skippedQuestions = ref({})
@@ -180,17 +187,9 @@ props.questions.forEach(question => {
   }
 })
 
-// Color classes for rating radios
-const ratingRadioClasses = {
-  0: 'border-rating-0 text-rating-0',
-  1: 'border-rating-1 text-rating-1',
-  2: 'border-rating-na text-rating-na',
-  3: 'border-rating-3 text-rating-3',
-  4: 'border-rating-4 text-rating-4'
-}
-
 function getRadioClass(value) {
-  return ratingRadioClasses[value] || 'border-gray/30 text-gray'
+  const option = ratingOptions.value.find((item) => item.value === Number(value))
+  return option?.radioClass || 'border-gray/30 text-gray'
 }
 
 // Mark question as completed when answered

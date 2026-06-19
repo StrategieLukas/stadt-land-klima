@@ -17,6 +17,8 @@ interface Election {
   id: string | number;
   descriptor?: string;
   response_cutoff_date?: string | null;
+  candidate_email_cc?: string | null;
+  candidate_email_reply_to?: string | null;
   already_generated_questions?: boolean;
   already_sent_mails?: boolean;
   localteam?: { municipality_name?: string } | null;
@@ -46,6 +48,7 @@ interface SendResult {
 const BASE_URL = 'https://stadt-land-klima.de';
 const MIN_QUESTIONS = 10;
 const MIN_CANDIDATES = 2;
+const ALWAYS_CC = 'info@stadt-land-klima.de';
 
 function formatCutoffDate(isoDate: string): string {
   const d = new Date(isoDate);
@@ -57,6 +60,30 @@ function formatCutoffDate(isoDate: string): string {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function splitEmailAddresses(value?: string | null): string[] {
+  if (!value) return [];
+
+  return value
+    .split(/[;,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function uniqueEmailAddresses(addresses: string[]): string[] {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+
+  for (const address of addresses) {
+    const key = address.toLowerCase();
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    unique.push(address);
+  }
+
+  return unique;
 }
 
 /**
@@ -170,6 +197,11 @@ export default {
 
     const cutoffFormatted = formatCutoffDate(election.response_cutoff_date);
     const withTokens = await ensureAccessTokens(candidates, candidateSvc, logger);
+    const ccRecipients = uniqueEmailAddresses([
+      ALWAYS_CC,
+      ...splitEmailAddresses(election.candidate_email_cc),
+    ]);
+    const replyTo = splitEmailAddresses(election.candidate_email_reply_to)[0];
 
     // -----------------------------------------------------------------------
     // 4. Send mails
@@ -184,6 +216,8 @@ export default {
       try {
         await mailSvc.send({
           to: candidate.email,
+          cc: ccRecipients,
+          ...(replyTo ? { replyTo } : {}),
           subject: `Einladung zum Klimawahl-Check: ${municipalityName ?? ''}`.trimEnd(),
           template: {
             name: 'email-template-candidate',

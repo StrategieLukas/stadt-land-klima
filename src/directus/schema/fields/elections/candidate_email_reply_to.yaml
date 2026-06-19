@@ -1,35 +1,35 @@
 collection: elections
-field: already_generated_questions
-type: boolean
+field: candidate_email_reply_to
+type: string
 meta:
   collection: elections
   conditions: null
   display: null
   display_options: null
-  field: already_generated_questions
+  field: candidate_email_reply_to
   group: null
-  hidden: true
-  interface: boolean
-  note: null
-  options: null
+  hidden: false
+  interface: input
+  note: Optionale Reply-To-Adresse für Antworten von Kandidierenden.
+  options:
+    placeholder: lokalteam@example.org
   readonly: false
   required: false
   searchable: true
-  sort: 11
-  special:
-    - cast-boolean
+  sort: 9
+  special: null
   translations:
     - language: de-DE
-      translation: Thesen bereits generiert?
+      translation: Reply-To-Adresse für Kandidierenden-E-Mails
   validation: null
   validation_message: null
   width: half
 schema:
-  name: already_generated_questions
+  name: candidate_email_reply_to
   table: elections
-  data_type: boolean
-  default_value: false
-  max_length: null
+  data_type: character varying
+  default_value: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true

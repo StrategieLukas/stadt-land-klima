@@ -59,7 +59,10 @@
 
           <!-- Rating Scale -->
           <div class="ml-0 sm:ml-12">
-            <div class="grid grid-cols-5 gap-2 mb-2">
+            <div
+              class="grid gap-2 mb-2"
+              :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
+            >
               <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
                 <input
                   type="radio"
@@ -72,7 +75,10 @@
                 />
               </div>
             </div>
-            <div class="grid grid-cols-5 gap-1 text-[8px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray">
+            <div
+              class="grid gap-1 text-[8px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray"
+              :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
+            >
               <div v-for="option in ratingOptions" :key="option.value">
                 {{ option.label }}
               </div>
@@ -129,6 +135,10 @@
 
 <script setup>
 import { createItem, updateItem } from '@directus/sdk'
+import {
+  getWahlcheckAnswerOptions,
+  usesSimpleWahlcheckAnswerMode,
+} from '~/shared/wahlcheckAnswerOptions.js'
 
 const route = useRoute()
 const { $directus, $readItems, $readItem, $t, $locale } = useNuxtApp()
@@ -140,14 +150,6 @@ const explanations = ref({}) // Store reasoning for each question
 const existingAnswerIds = ref({}) // Store existing answer IDs by question ID
 const submitting = ref(false)
 const submitted = ref(false)
-
-const ratingOptions = [
-  { value: 0, label: $t('elections.wahlcheck.answer.strongly_against'), radioClass: 'border-rating-0 text-rating-0' },
-  { value: 1, label: $t('elections.wahlcheck.answer.somewhat_against'), radioClass: 'border-rating-1 text-rating-1' },
-  { value: 2, label: $t('elections.wahlcheck.answer.neutral'), radioClass: 'border-rating-na text-rating-na' },
-  { value: 3, label: $t('elections.wahlcheck.answer.somewhat_for'), radioClass: 'border-rating-3 text-rating-3' },
-  { value: 4, label: $t('elections.wahlcheck.answer.strongly_for'), radioClass: 'border-rating-4 text-rating-4' },
-]
 
 const { data, pending, error } = await useAsyncData(`thesen-${accessToken}`, async () => {
   try {
@@ -205,6 +207,10 @@ const localteam = computed(() => data.value?.localteam)
 const candidate = computed(() => data.value?.candidate)
 const candidateState = computed(() => localteam.value?.municipality_id?.state || '')
 const questions = computed(() => data.value?.questions || [])
+const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(candidate.value?.election))
+const ratingOptions = computed(() => {
+  return getWahlcheckAnswerOptions(candidate.value?.election, $t).reverse()
+})
 
 const isPastCutoff = computed(() => {
   if (!candidate.value?.election?.response_cutoff_date) return false
