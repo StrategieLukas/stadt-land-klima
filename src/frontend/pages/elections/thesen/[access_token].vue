@@ -208,7 +208,9 @@ const candidate = computed(() => data.value?.candidate)
 const candidateState = computed(() => localteam.value?.municipality_id?.state || '')
 const questions = computed(() => data.value?.questions || [])
 const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(candidate.value?.election))
-const ratingOptions = computed(() => getWahlcheckAnswerOptions(candidate.value?.election, $t))
+const ratingOptions = computed(() => {
+  return getWahlcheckAnswerOptions(candidate.value?.election, $t).reverse()
+})
 
 const isPastCutoff = computed(() => {
   if (!candidate.value?.election?.response_cutoff_date) return false

@@ -10,12 +10,13 @@ meta:
   group: null
   hidden: false
   interface: boolean
-  note: Aktiviert den einfachen Modus mit Dagegen, Neutral und Dafür. Aus bedeutet differenzierter Modus.
+  note: Aktiviert den einfachen Modus mit Dagegen, Neutral und Dafür. Aus bedeutet
+    differenzierter Modus.
   options: null
   readonly: false
   required: false
   searchable: true
-  sort: 7
+  sort: 12
   special:
     - cast-boolean
   translations:

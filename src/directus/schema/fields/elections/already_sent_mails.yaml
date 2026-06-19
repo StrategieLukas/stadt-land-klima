@@ -15,7 +15,7 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 12
+  sort: 10
   special:
     - cast-boolean
   translations:

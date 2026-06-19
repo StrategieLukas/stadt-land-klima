@@ -22,40 +22,6 @@ permissions:
       - question
       - date_created
       - date_updated
-  - collection: directus_comments
-    action: read
-    permissions:
-      _and:
-        - collection:
-            _eq: questions
-        - user_created:
-            role:
-              name:
-                _eq: WahlcheckAdmin
-    validation: null
-    presets: null
-    fields:
-      - id
-      - collection
-      - item
-      - comment
-      - date_created
-      - date_updated
-      - user_created
-      - user_updated
-  - collection: directus_users
-    action: read
-    permissions:
-      role:
-        name:
-          _eq: WahlcheckAdmin
-    validation: null
-    presets: null
-    fields:
-      - id
-      - first_name
-      - last_name
-      - email
   - collection: candidate
     action: create
     permissions:
@@ -124,6 +90,40 @@ permissions:
       - has_answered
       - time_first_submitted
       - time_last_edited
+  - collection: directus_comments
+    action: read
+    permissions:
+      _and:
+        - collection:
+            _eq: questions
+        - user_created:
+            role:
+              name:
+                _eq: WahlcheckAdmin
+    validation: null
+    presets: null
+    fields:
+      - id
+      - collection
+      - item
+      - comment
+      - date_created
+      - date_updated
+      - user_created
+      - user_updated
+  - collection: directus_users
+    action: read
+    permissions:
+      role:
+        name:
+          _eq: WahlcheckAdmin
+    validation: null
+    presets: null
+    fields:
+      - id
+      - first_name
+      - last_name
+      - email
   - collection: elections
     action: create
     permissions: {}
