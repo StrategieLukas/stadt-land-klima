@@ -337,11 +337,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from 'vue'
+import { computed, ref, resolveComponent, onMounted } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
+import { useSectionScrollSpy } from '~/composables/useSectionScrollSpy'
 import sectorImages from '~/shared/sectorImages.js'
 import { createSlug } from '~/shared/slugify.js'
 
@@ -361,46 +362,12 @@ const { isAuthenticated, initialize, getAuthenticatedClient } = useAuth()
 const headerHeight = useHeaderHeight()
 const mobileHeaderHidden = useMobileHeaderHidden()
 const isDesktop = useState('layout-isDesktop')
+const { activeSection, mobilePillStrip } = useSectionScrollSpy()
 // On desktop use actual header height (no CSS transition needed — headerHeight updates
 // every frame via ResizeObserver so the pill follows the nav strip animation precisely).
 // On mobile use a fixed 64px / 0 with a CSS transition to match the header slide.
 const pillTop = computed(() => {
   return isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
-})
-
-// ── Section nav active tracking ────────────────────────────────────────────────
-const activeSection = ref(null)
-const mobilePillStrip = ref(null)
-let sectionObserver = null
-
-watch(activeSection, (id) => {
-  if (!id || !mobilePillStrip.value) return
-  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`)
-  if (pill) pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-})
-
-onMounted(() => {
-  const observe = () => {
-    const sections = document.querySelectorAll('[id^="section-"]')
-    if (!sections.length) return
-    sectionObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            activeSection.value = entry.target.id
-          }
-        }
-      },
-      { rootMargin: '-20% 0px -70% 0px', threshold: 0 },
-    )
-    sections.forEach(s => sectionObserver.observe(s))
-  }
-  // Wait one tick for v-for sections to be rendered
-  setTimeout(observe, 100)
-})
-
-onUnmounted(() => {
-  sectionObserver?.disconnect()
 })
 
 // Null until the admin re-fetch completes; when set, overrides the SSR news list
@@ -476,82 +443,93 @@ const [
 
 // ── Map to unified feed items ──────────────────────────────────────────────────
 
+function mapNewsItem(item) {
+  return {
+    type: 'news',
+    id: item.id,
+    title: item.title,
+    teaser: item.teaser || null,
+    imageId: item.image?.id || null,
+    imageType: item.image?.type || null,
+    date: item.date_published || item.date_created,
+    status: item.status || 'published',
+    href: `/news/${item.slug}`,
+  }
+}
+
+function mapProjectItem(item) {
+  return {
+    type: 'project',
+    id: item.id,
+    title: item.title,
+    teaser: item.abstract || null,
+    imageId: item.image?.id || null,
+    imageType: item.image?.type || null,
+    date: item.date_created,
+    href: `/projects/${item.slug}`,
+  }
+}
+
+function isUpcomingEvent(item, now = new Date()) {
+  return Boolean(item.start_date && new Date(item.start_date) >= now)
+}
+
+function mapPastEventItem(item) {
+  return {
+    type: 'event',
+    id: item.id,
+    title: item.title,
+    teaser: stripHtml(item.description),
+    imageId: item.image?.id || null,
+    imageType: item.image?.type || null,
+    date: item.start_date || item.date_created,
+    endDate: item.end_date || null,
+    eventType: item.event_type || null,
+    location: item.location || null,
+    href: `/events/${item.slug}`,
+  }
+}
+
+function mapMunicipalityItem(item) {
+  return {
+    type: 'municipality',
+    id: item.id,
+    title: item.name,
+    teaser: item.description || null,
+    imageId: item.image?.id || null,
+    imageType: item.image?.type || null,
+    date: item.date_updated,
+    href: `/municipalities/${item.slug}`,
+  }
+}
+
+function mapCatalogItem(item) {
+  return {
+    type: 'catalog',
+    id: item.id,
+    title: item.name,
+    teaser: $t('news.catalog_published'),
+    imageId: null,
+    imageType: null,
+    date: item.date_created,
+    href: `/measures?v=${encodeURIComponent(item.name)}`,
+  }
+}
+
+function compareFeedItemsByDateDesc(a, b) {
+  return new Date(b.date) - new Date(a.date)
+}
+
 const allItems = computed(() => {
-  const items = []
-
-  for (const n of (adminNewsItems.value ?? newsData.value ?? [])) {
-    items.push({
-      type: 'news',
-      id: n.id,
-      title: n.title,
-      teaser: n.teaser || null,
-      imageId: n.image?.id || null,
-      imageType: n.image?.type || null,
-      date: n.date_published || n.date_created,
-      status: n.status || 'published',
-      href: `/news/${n.slug}`,
-    })
-  }
-
-  for (const a of articlesData.value || []) {
-    items.push({
-      type: 'project',
-      id: a.id,
-      title: a.title,
-      teaser: a.abstract || null,
-      imageId: a.image?.id || null,
-      imageType: a.image?.type || null,
-      date: a.date_created,
-      href: `/projects/${a.slug}`,
-    })
-  }
-
   const now = new Date()
-  for (const e of eventsData.value || []) {
-    if (e.start_date && new Date(e.start_date) >= now) continue // future events shown in "Zukünftig" section
-    items.push({
-      type: 'event',
-      id: e.id,
-      title: e.title,
-      teaser: stripHtml(e.description),
-      imageId: e.image?.id || null,
-      imageType: e.image?.type || null,
-      date: e.start_date || e.date_created,
-      endDate: e.end_date || null,
-      eventType: e.event_type || null,
-      location: e.location || null,
-      href: `/events/${e.slug}`,
-    })
-  }
 
-  for (const m of municipalitiesData.value || []) {
-    items.push({
-      type: 'municipality',
-      id: m.id,
-      title: m.name,
-      teaser: m.description || null,
-      imageId: m.image?.id || null,
-      imageType: m.image?.type || null,
-      date: m.date_updated,
-      href: `/municipalities/${m.slug}`,
-    })
-  }
-
-  for (const c of catalogData.value || []) {
-    items.push({
-      type: 'catalog',
-      id: c.id,
-      title: c.name,
-      teaser: $t('news.catalog_published'),
-      imageId: null,
-      imageType: null,
-      date: c.date_created,
-      href: `/measures?v=${encodeURIComponent(c.name)}`,
-    })
-  }
-
-  // Sort all items by date descending
-  return items.sort((a, b) => new Date(b.date) - new Date(a.date))
+  return [
+    ...(adminNewsItems.value ?? newsData.value ?? []).map(mapNewsItem),
+    ...(articlesData.value || []).map(mapProjectItem),
+    ...(eventsData.value || []).filter(item => !isUpcomingEvent(item, now)).map(mapPastEventItem),
+    ...(municipalitiesData.value || []).map(mapMunicipalityItem),
+    ...(catalogData.value || []).map(mapCatalogItem),
+  ].sort(compareFeedItemsByDateDesc)
 })
 
 // ── Filtering ──────────────────────────────────────────────────────────────────
@@ -587,7 +565,7 @@ const groupedByMonth = computed(() => {
 const upcomingEvents = computed(() => {
   const upcoming = new Date()
   return (eventsData.value || [])
-    .filter(e => e.start_date && new Date(e.start_date) >= upcoming)
+    .filter(item => isUpcomingEvent(item, upcoming))
     .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
     .slice(0, 2)
 })

@@ -171,13 +171,15 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from "vue";
+import { computed } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
+import { useSectionScrollSpy } from "~/composables/useSectionScrollSpy";
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
 const isDesktop = useState("layout-isDesktop");
+const { activeSection, mobilePillStrip } = useSectionScrollSpy();
 // On desktop use actual header height (no CSS transition needed — headerHeight updates
 // every frame via ResizeObserver so the pill follows the nav strip animation precisely).
 // On mobile use a fixed 64px / 0 with a CSS transition to match the header slide.
@@ -206,29 +208,36 @@ const { data: events } = await useAsyncData("events-list", async () => {
 
 const now = new Date();
 
-// Events currently happening: started but not yet ended
-const currentEvents = computed(() =>
-  (events.value || []).filter((e) => {
-    if (!e.start_date) return false;
-    const start = new Date(e.start_date);
-    const end = e.end_date ? new Date(e.end_date) : null;
-    return start <= now && end && end >= now;
-  }),
-);
+function getEventStart(event) {
+  return event.start_date ? new Date(event.start_date) : null;
+}
 
-// Strictly future events (start_date > now)
-const futureEvents = computed(() => (events.value || []).filter((e) => e.start_date && new Date(e.start_date) > now));
+function getEventEnd(event) {
+  return event.end_date ? new Date(event.end_date) : null;
+}
 
-// Past events (end_date < now, or no end_date and start_date < now)
-const pastEvents = computed(() =>
-  (events.value || []).filter((e) => {
-    if (!e.start_date) return false;
-    const start = new Date(e.start_date);
-    const end = e.end_date ? new Date(e.end_date) : null;
-    if (end) return end < now;
-    return start < now;
-  }),
-);
+function isCurrentEvent(event) {
+  const start = getEventStart(event);
+  const end = getEventEnd(event);
+  return Boolean(start && end && start <= now && end >= now);
+}
+
+function isFutureEvent(event) {
+  const start = getEventStart(event);
+  return Boolean(start && start > now);
+}
+
+function isPastEvent(event) {
+  const start = getEventStart(event);
+  if (!start) return false;
+
+  const end = getEventEnd(event);
+  return end ? end < now : start < now;
+}
+
+const currentEvents = computed(() => (events.value || []).filter(isCurrentEvent));
+const futureEvents = computed(() => (events.value || []).filter(isFutureEvent));
+const pastEvents = computed(() => (events.value || []).filter(isPastEvent));
 
 function groupByMonth(evList) {
   const map = new Map();
@@ -248,35 +257,4 @@ const pastGroups = computed(() => {
   return groupByMonth(sorted);
 });
 
-// ── Section nav active tracking ────────────────────────────────────────────────
-const activeSection = ref(null);
-const mobilePillStrip = ref(null);
-let sectionObserver = null;
-
-watch(activeSection, (id) => {
-  if (!id || !mobilePillStrip.value) return;
-  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`);
-  if (pill) pill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-});
-
-onMounted(() => {
-  const observe = () => {
-    const sections = document.querySelectorAll('[id^="section-"]');
-    if (!sections.length) return;
-    sectionObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) activeSection.value = entry.target.id;
-        }
-      },
-      { rootMargin: "-20% 0px -70% 0px", threshold: 0 },
-    );
-    sections.forEach((s) => sectionObserver.observe(s));
-  };
-  setTimeout(observe, 100);
-});
-
-onUnmounted(() => {
-  sectionObserver?.disconnect();
-});
 </script>

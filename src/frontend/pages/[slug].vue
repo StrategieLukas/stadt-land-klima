@@ -37,9 +37,9 @@
 </template>
 
 <script setup>
-import { readItems } from '@directus/sdk'
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
+import { fetchDirectusBlocks } from '~/composables/useDirectusBlocks'
 const { $directus, $readItems, $t } = useNuxtApp()
 const { isAuthenticated, initialize } = useAuth()
 useBlockHashNavigation()
@@ -70,28 +70,11 @@ if (!page.value) {
 const { data: blocksData } = await useAsyncData(
   `blocks-${route.params.slug}`,
   async () => {
-    if (!page.value) return []
-    try {
-      const blocks = await $directus.request(
-        readItems('blocks', {
-          filter: {
-            entity_type: { _eq: 'pages' },
-            entity_uuid: { _eq: page.value.slug },
-            field_name: { _eq: 'content' },
-            status: { _neq: 'archived' },
-          },
-          sort: ['sort_order'],
-        })
-      )
-      return (blocks || []).map(block => ({
-        uuid: block.uuid,
-        bundle: block.bundle,
-        options: block.options || {},
-        props: block.props || {},
-      }))
-    } catch {
-      return []
-    }
+    return fetchDirectusBlocks({
+      directus: $directus,
+      entityType: 'pages',
+      entityUuid: page.value?.slug,
+    })
   },
   { watch: [page] }
 )

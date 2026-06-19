@@ -394,26 +394,42 @@ function truncateHtml(html, maxLen = 130) {
   return text.length > maxLen ? text.slice(0, maxLen) + '…' : text;
 }
 
+function measureMatchesFilters(measure) {
+  if (selectedSector.value && measure.sector !== selectedSector.value) return false;
+  if (filterHighImpact.value && (measure.impact ?? 0) < 4) return false;
+  if (filterLowCost.value && (measure.feasibility_economical ?? 0) < 4) return false;
+  if (filterLowControversy.value && (measure.feasibility_political ?? 0) < 4) return false;
+  return true;
+}
+
+function compareMeasuresBySortOrder(a, b) {
+  if (sortOrder.value === 'name') {
+    return a.name.localeCompare(b.name, 'de');
+  }
+
+  if (sortOrder.value === 'impact') {
+    return (b.impact ?? 0) - (a.impact ?? 0);
+  }
+
+  if (sortOrder.value === 'economical') {
+    return (b.feasibility_economical ?? 0) - (a.feasibility_economical ?? 0);
+  }
+
+  if (sortOrder.value === 'political') {
+    return (b.feasibility_political ?? 0) - (a.feasibility_political ?? 0);
+  }
+
+  return 0;
+}
+
 // ── Filtered + sorted list ───────────────────────────────────────────────────
 const filteredMeasures = computed(() => {
   if (!measureList.value) return [];
 
-  let list = measureList.value;
-  if (selectedSector.value) list = list.filter(m => m.sector === selectedSector.value);
-  if (filterHighImpact.value) list = list.filter(m => (m.impact ?? 0) >= 4);
-  if (filterLowCost.value) list = list.filter(m => (m.feasibility_economical ?? 0) >= 4);
-  if (filterLowControversy.value) list = list.filter(m => (m.feasibility_political ?? 0) >= 4);
+  const list = measureList.value.filter(measureMatchesFilters);
 
   const sorted = [...list];
-  if (sortOrder.value === 'name') {
-    sorted.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  } else if (sortOrder.value === 'impact') {
-    sorted.sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
-  } else if (sortOrder.value === 'economical') {
-    sorted.sort((a, b) => (b.feasibility_economical ?? 0) - (a.feasibility_economical ?? 0));
-  } else if (sortOrder.value === 'political') {
-    sorted.sort((a, b) => (b.feasibility_political ?? 0) - (a.feasibility_political ?? 0));
-  }
+  sorted.sort(compareMeasuresBySortOrder);
   // 'id' keeps server sort: measure_id
 
   return sorted;

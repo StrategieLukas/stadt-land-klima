@@ -237,28 +237,32 @@ function getSavingsWeight(level) {
   return savingsWeight[level] ?? 0;
 }
 
+function projectMatchesFilters(project) {
+  if (selectedState.value !== null && project.state !== selectedState.value) return false;
+  if (selectedSector.value !== null && !(project.sectors ?? []).includes(selectedSector.value)) return false;
+  if (selectedOrgId.value !== null && project.organisation?.id !== selectedOrgId.value) return false;
+  if (selectedMunicipality.value !== null && project.municipality_name !== selectedMunicipality.value) return false;
+  if (filterAutonomous.value && !project.can_do_autonomously) return false;
+  if (filterProfitable.value && !project.is_profitable) return false;
+  if (filterRoleModel.value && !(project.public_impact_effects ?? []).includes('role_model')) return false;
+  if (filterAcceptance.value && !(project.public_impact_effects ?? []).includes('increase_acceptance')) return false;
+  return true;
+}
+
+function compareProjectsBySavings(a, b) {
+  const diff = getSavingsWeight(b.ghg_savings_level) - getSavingsWeight(a.ghg_savings_level);
+  if (diff !== 0) return diff;
+  return new Date(b.date_created) - new Date(a.date_created);
+}
+
 // ── Filtered + sorted list ───────────────────────────────────────────────────
 const filteredProjects = computed(() => {
   if (!projectList.value) return [];
 
-  const filtered = projectList.value.filter(a => {
-    if (selectedState.value  !== null && a.state !== selectedState.value) return false;
-    if (selectedSector.value !== null && !(a.sectors ?? []).includes(selectedSector.value)) return false;
-    if (selectedOrgId.value  !== null && a.organisation?.id !== selectedOrgId.value) return false;
-    if (selectedMunicipality.value !== null && a.municipality_name !== selectedMunicipality.value) return false;
-    if (filterAutonomous.value && !a.can_do_autonomously) return false;
-    if (filterProfitable.value && !a.is_profitable) return false;
-    if (filterRoleModel.value  && !(a.public_impact_effects ?? []).includes('role_model')) return false;
-    if (filterAcceptance.value && !(a.public_impact_effects ?? []).includes('increase_acceptance')) return false;
-    return true;
-  });
+  const filtered = projectList.value.filter(projectMatchesFilters);
 
   if (sortOrder.value === 'savings') {
-    filtered.sort((a, b) => {
-      const diff = getSavingsWeight(b.ghg_savings_level) - getSavingsWeight(a.ghg_savings_level);
-      if (diff !== 0) return diff;
-      return new Date(b.date_created) - new Date(a.date_created);
-    });
+    filtered.sort(compareProjectsBySavings);
   }
   // 'date' order already comes from the server sort: "-date_created"
 

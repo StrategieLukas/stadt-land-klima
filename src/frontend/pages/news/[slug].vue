@@ -143,6 +143,7 @@
 <script setup>
 import { readItems, updateItem } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
+import { fetchDirectusBlocks } from '~/composables/useDirectusBlocks'
 import { useReferrer } from '~/composables/useReferrer'
 
 import { isRaster } from '~/shared/utils'
@@ -205,28 +206,11 @@ onMounted(async () => {
 const { data: blocksData } = await useAsyncData(
   `blocks-news-${route.params.slug}`,
   async () => {
-    if (!item.value) return []
-    try {
-      const blocks = await $directus.request(
-        readItems('blocks', {
-          filter: {
-            entity_type: { _eq: 'news_items' },
-            entity_uuid: { _eq: item.value.slug },
-            field_name: { _eq: 'content' },
-            status: { _neq: 'archived' },
-          },
-          sort: ['sort_order'],
-        })
-      )
-      return (blocks || []).map(block => ({
-        uuid: block.uuid,
-        bundle: block.bundle,
-        options: block.options || {},
-        props: block.props || {},
-      }))
-    } catch {
-      return []
-    }
+    return fetchDirectusBlocks({
+      directus: $directus,
+      entityType: 'news_items',
+      entityUuid: item.value?.slug,
+    })
   },
   { watch: [item] }
 )
