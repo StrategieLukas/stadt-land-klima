@@ -131,6 +131,9 @@ permissions:
     presets: null
     fields:
       - descriptor
+      - simple_answer_mode
+      - candidate_email_cc
+      - candidate_email_reply_to
       - response_cutoff_date
       - localteam
   - collection: elections
@@ -158,6 +161,9 @@ permissions:
     fields:
       - id
       - response_cutoff_date
+      - simple_answer_mode
+      - candidate_email_cc
+      - candidate_email_reply_to
       - date_created
       - descriptor
       - date_updated
@@ -182,6 +188,8 @@ permissions:
     fields:
       - descriptor
       - response_cutoff_date
+      - candidate_email_cc
+      - candidate_email_reply_to
       - is_public
   - collection: measure_catalog
     action: read

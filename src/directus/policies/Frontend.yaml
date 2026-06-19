@@ -263,6 +263,7 @@ permissions:
       - id
       - descriptor
       - localteam
+      - simple_answer_mode
       - response_cutoff_date
       - is_public
       - date_created

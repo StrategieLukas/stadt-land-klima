@@ -272,24 +272,6 @@ const pending = ref(true)
 const error = ref(false)
 const errorMessage = ref('')
 
-// Rating options (same as in the candidate survey)
-const ratingOptions = [
-  { value: 0, label: 'stark dagegen' },
-  { value: 1, label: 'eher dagegen' },
-  { value: 2, label: 'neutral' },
-  { value: 3, label: 'eher dafür' },
-  { value: 4, label: 'stark dafür' }
-]
-
-// Color classes for rating
-const ratingColors = {
-  0: 'bg-rating-0 text-white',
-  1: 'bg-rating-1 text-white',
-  2: 'bg-rating-na text-black',
-  3: 'bg-rating-3 text-black',
-  4: 'bg-rating-4 text-white'
-}
-
 // Load election data
 async function loadElectionData() {
   pending.value = true
@@ -450,74 +432,6 @@ function toggleDoubleWeight(questionId) {
   } else {
     doubleWeightedQuestions.value.add(questionId)
   }
-}
-
-// Calculate similarity score
-function calculateSimilarity(userAnswers, candidateAnswers, questions, doubleWeighted) {
-  const scores = {}
-  const maxScores = {}
-
-  // Group candidate answers by candidate
-  const candidateAnswersByCandidate = {}
-  candidateAnswers.forEach(ans => {
-    const candidateId = typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate
-    if (!candidateAnswersByCandidate[candidateId]) {
-      candidateAnswersByCandidate[candidateId] = {}
-    }
-    const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
-    candidateAnswersByCandidate[candidateId][questionId] = {
-      response: ans.response,
-      explanation: ans.explanation
-    }
-  })
-
-  // Calculate scores for each candidate
-  questions.forEach(question => {
-    const questionId = question.id
-    const userResponse = userAnswers[questionId]
-    
-    // Skip if user didn't answer
-    if (userResponse === undefined || userResponse === null) return
-
-    const isDoubleWeighted = doubleWeighted.has(questionId)
-    const weight = isDoubleWeighted ? 2 : 1
-
-    Object.keys(candidateAnswersByCandidate).forEach(candidateId => {
-      const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
-      
-      if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
-        const distance = Math.abs(userResponse - candidateAnswer.response)
-        const points = 4 - distance
-        const weightedPoints = points * weight
-        
-        scores[candidateId] = (scores[candidateId] || 0) + weightedPoints
-        maxScores[candidateId] = (maxScores[candidateId] || 0) + (4 * weight)
-      }
-    })
-  })
-
-  // Convert to percentages
-  const results = []
-  Object.keys(scores).forEach(candidateId => {
-    const percentage = maxScores[candidateId] > 0 
-      ? Math.round((scores[candidateId] / maxScores[candidateId]) * 100) 
-      : 0
-    results.push({
-      candidateId,
-      score: scores[candidateId],
-      maxScore: maxScores[candidateId],
-      percentage
-    })
-  })
-
-  return results
-}
-
-// Provide functions to child components
-const sharedFunctions = {
-  ratingOptions,
-  ratingColors,
-  calculateSimilarity
 }
 
 // Load data on mount

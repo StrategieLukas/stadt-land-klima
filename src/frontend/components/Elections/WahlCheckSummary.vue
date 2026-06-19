@@ -129,6 +129,10 @@
 
 <script setup>
 import { computed } from 'vue'
+import {
+  getWahlcheckAnswerLabel,
+  getWahlcheckRatingColor,
+} from '~/shared/wahlcheckAnswerOptions.js'
 
 const { $t } = useNuxtApp()
 
@@ -153,39 +157,12 @@ const props = defineProps({
 
 const emit = defineEmits(['next', 'prev', 'toggle-double-weight'])
 
-// Rating options and colors
-const ratingOptions = [
-  { value: 0, label: $t('elections.wahlcheck.answer.strongly_against') },
-  { value: 1, label: $t('elections.wahlcheck.answer.somewhat_against') },
-  { value: 2, label: $t('elections.wahlcheck.answer.neutral') },
-  { value: 3, label: $t('elections.wahlcheck.answer.somewhat_for') },
-  { value: 4, label: $t('elections.wahlcheck.answer.strongly_for') }
-]
-
-const ratingColors = {
-  0: 'bg-rating-0',
-  1: 'bg-rating-1',
-  2: 'bg-rating-na',
-  3: 'bg-rating-3',
-  4: 'bg-rating-4'
-}
-
-const ratingLabels = Object.fromEntries(ratingOptions.map(option => [option.value, option.label]))
-
-const ratingLabelsShort = {
-  0: 'SD',
-  1: 'ED',
-  2: 'N',
-  3: 'EF',
-  4: 'SF'
-}
-
 function getRatingColor(value) {
-  return ratingColors[value] || 'bg-gray'
+  return getWahlcheckRatingColor(value)
 }
 
 function getRatingLabel(value) {
-  return ratingLabels[value] || $t('generic.no_answer')
+  return getWahlcheckAnswerLabel(value, props.election, $t)
 }
 
 // Computed stats

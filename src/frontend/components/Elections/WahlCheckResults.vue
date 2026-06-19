@@ -295,6 +295,11 @@ import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
 import sectorImages from '~/shared/sectorImages.js'
+import {
+  calculateWahlcheckQuestionScore,
+  getWahlcheckAnswerLabel,
+  getWahlcheckRatingColor,
+} from '~/shared/wahlcheckAnswerOptions.js'
 
 const { $t } = useNuxtApp()
 
@@ -369,17 +374,18 @@ const sortedExpandedQuestions = computed(() => {
   return [...props.questions].map(q => {
     const userAnswer = props.userAnswers[q.id]
     const candidateAnswer = candidateAnswersByQuestion[q.id]
-    const difference = userAnswer !== undefined && candidateAnswer !== null
-      ? Math.abs(userAnswer - candidateAnswer)
-      : null
+    const score = calculateWahlcheckQuestionScore(userAnswer, candidateAnswer)
     return {
       ...q,
-      difference,
+      difference: score?.distance ?? null,
       originalIndex: originalIndices.get(q.id) ?? 0
     }
   }).filter(q => {
     // Only show questions that have both user and candidate answers
-    return props.userAnswers[q.id] !== undefined && candidateAnswersByQuestion[q.id] !== null
+    return props.userAnswers[q.id] !== undefined &&
+      props.userAnswers[q.id] !== null &&
+      candidateAnswersByQuestion[q.id] !== undefined &&
+      candidateAnswersByQuestion[q.id] !== null
   }).sort((a, b) => {
     if (sortBy.value === 'default') {
       return a.originalIndex - b.originalIndex
@@ -413,15 +419,6 @@ function getConfettiColor(index) {
   return confettiColors[index % confettiColors.length]
 }
 
-// Rating config
-const ratingColors = {
-  0: 'bg-rating-0',
-  1: 'bg-rating-1',
-  2: 'bg-rating-na',
-  3: 'bg-rating-3',
-  4: 'bg-rating-4'
-}
-
 const progressColors = {
   0: '#e30613',
   1: '#f39200',
@@ -431,18 +428,11 @@ const progressColors = {
 }
 
 function getRatingColor(value) {
-  return ratingColors[value] || 'bg-gray'
+  return getWahlcheckRatingColor(value)
 }
 
 function getRatingLabel(value) {
-  const labels = {
-    0: $t('elections.wahlcheck.answer.strongly_against'),
-    1: $t('elections.wahlcheck.answer.somewhat_against'),
-    2: $t('elections.wahlcheck.answer.neutral'),
-    3: $t('elections.wahlcheck.answer.somewhat_for'),
-    4: $t('elections.wahlcheck.answer.strongly_for'),
-  }
-  return labels[value] || $t('generic.no_answer')
+  return getWahlcheckAnswerLabel(value, props.election, $t)
 }
 
 function getProgressColor(percentage) {
@@ -527,12 +517,11 @@ const results = computed(() => {
       const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
 
       if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
-        const distance = Math.abs(userResponse - candidateAnswer.response)
-        const points = 4 - distance
-        const weightedPoints = points * weight
+        const score = calculateWahlcheckQuestionScore(userResponse, candidateAnswer.response, weight)
+        if (!score) return
 
-        scores[candidateId] = (scores[candidateId] || 0) + weightedPoints
-        maxScores[candidateId] = (maxScores[candidateId] || 0) + (4 * weight)
+        scores[candidateId] = (scores[candidateId] || 0) + score.points
+        maxScores[candidateId] = (maxScores[candidateId] || 0) + score.maxPoints
       }
     })
   })
@@ -617,12 +606,11 @@ const sectorAgreements = computed(() => {
         const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
 
         if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
-          const distance = Math.abs(userResponse - candidateAnswer.response)
-          const points = 4 - distance
-          const weightedPoints = points * weight
+          const score = calculateWahlcheckQuestionScore(userResponse, candidateAnswer.response, weight)
+          if (!score) return
 
-          sectorScore += weightedPoints
-          sectorMaxScore += 4 * weight
+          sectorScore += score.points
+          sectorMaxScore += score.maxPoints
         }
       })
 

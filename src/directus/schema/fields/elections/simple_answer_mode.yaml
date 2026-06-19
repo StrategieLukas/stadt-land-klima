@@ -1,31 +1,37 @@
 collection: elections
-field: already_generated_questions
+field: simple_answer_mode
 type: boolean
 meta:
   collection: elections
-  conditions: null
-  display: null
+  conditions:
+    - name: Nach Erstellung nicht mehr aenderbar
+      readonly: true
+      rule:
+        _and:
+          - id:
+              _nnull: true
+  display: boolean
   display_options: null
-  field: already_generated_questions
+  field: simple_answer_mode
   group: null
-  hidden: true
+  hidden: false
   interface: boolean
-  note: null
+  note: Aktiviert den einfachen Modus mit Dagegen, Neutral und Dafuer. Aus bedeutet differenzierter Modus.
   options: null
   readonly: false
   required: false
   searchable: true
-  sort: 11
+  sort: 7
   special:
     - cast-boolean
   translations:
     - language: de-DE
-      translation: Thesen bereits generiert?
+      translation: Einfacher Antwortmodus
   validation: null
   validation_message: null
   width: half
 schema:
-  name: already_generated_questions
+  name: simple_answer_mode
   table: elections
   data_type: boolean
   default_value: false
