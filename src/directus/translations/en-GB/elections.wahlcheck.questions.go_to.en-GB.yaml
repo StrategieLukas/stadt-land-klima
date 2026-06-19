@@ -1,3 +1,3 @@
 language: en-GB
 key: elections.wahlcheck.questions.go_to
-value: "Go to question :number"
+value: Go to question :number

@@ -1,3 +1,4 @@
 language: en-GB
 key: stats.dominance.matrix.description
-value: "How often the row municipality wins against the column municipality. Blue = wins, red = loses, grey = tied"
+value: How often the row municipality wins against the column municipality. Blue
+  = wins, red = loses, grey = tied

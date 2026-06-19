@@ -1,3 +1,4 @@
 language: de-DE
 key: elections.wahlcheck.results.no_matches.description
-value: "Sie haben keine Fragen beantwortet, daher kann keine Übereinstimmung mit den Kandidaten berechnet werden."
+value: Sie haben keine Fragen beantwortet, daher kann keine Übereinstimmung mit
+  den Kandidaten berechnet werden.

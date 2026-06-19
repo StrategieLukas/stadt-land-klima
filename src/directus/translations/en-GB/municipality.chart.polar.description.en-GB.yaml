@@ -1,3 +1,4 @@
 language: en-GB
 key: municipality.chart.polar.description
-value: "The coloured segments show the score for each sector. The larger a segment, the better the municipality performs in that area."
+value: The coloured segments show the score for each sector. The larger a
+  segment, the better the municipality performs in that area.

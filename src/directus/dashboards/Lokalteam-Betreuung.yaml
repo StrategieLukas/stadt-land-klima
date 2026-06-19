@@ -1,6 +1,7 @@
 name: Lokalteam-Betreuung
 icon: monitoring
-note: Übersicht für Lokalteam-Aktivität, Stillstand, auffällige Muster und Katalogübernahme.
+note: Übersicht für Lokalteam-Aktivität, Stillstand, auffällige Muster und
+  Katalogübernahme.
 color: "#1da64a"
 panels:
   - name: Lokalteam-Aktivität

@@ -1,3 +1,4 @@
 language: de-DE
 key: localteam.create.body
-value: "<strong>:name</strong> wurde noch nicht bewertet. Gründe ein Lokalteam und bringe aktiven Klimaschutz in deine Kommune."
+value: <strong>:name</strong> wurde noch nicht bewertet. Gründe ein Lokalteam
+  und bringe aktiven Klimaschutz in deine Kommune.

@@ -1,3 +1,4 @@
 language: en-GB
 key: elections.wahlcheck.summary.description
-value: "Review your answers and optionally select questions that are especially important to you. These will then be double weighted."
+value: Review your answers and optionally select questions that are especially
+  important to you. These will then be double weighted.

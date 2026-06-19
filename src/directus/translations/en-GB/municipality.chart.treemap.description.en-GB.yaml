@@ -1,3 +1,5 @@
 language: en-GB
 key: municipality.chart.treemap.description
-value: "Each tile represents a measure; its area reflects its weighting. The colour shows implementation status: red = not fulfilled, green = fully implemented."
+value: "Each tile represents a measure; its area reflects its weighting. The
+  colour shows implementation status: red = not fulfilled, green = fully
+  implemented."

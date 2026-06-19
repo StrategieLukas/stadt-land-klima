@@ -1,3 +1,9 @@
 language: en-GB
 key: stats.clustering.methodology
-value: "Each municipality is described by its individual measure ratings (0 = barely/not, 1 = complete; N/A and missing ratings = 0). PCA reduces these high-dimensional vectors to two principal components (PC1/PC2), which explain most of the variance. k-means then groups similar municipalities. <strong>What can you read from this?</strong> Municipalities close together in the chart have a similar strengths/weaknesses profile across all measures. The cluster profile on the right shows the average sector scores for the selected cluster."
+value: Each municipality is described by its individual measure ratings (0 =
+  barely/not, 1 = complete; N/A and missing ratings = 0). PCA reduces these
+  high-dimensional vectors to two principal components (PC1/PC2), which explain
+  most of the variance. k-means then groups similar municipalities. <strong>What
+  can you read from this?</strong> Municipalities close together in the chart
+  have a similar strengths/weaknesses profile across all measures. The cluster
+  profile on the right shows the average sector scores for the selected cluster.

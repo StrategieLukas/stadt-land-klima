@@ -1,3 +1,6 @@
 language: de-DE
 key: localteam.join.contact_content
-value: "Ich möchte beim Lokalteam in :name mitmachen.\n\nMeine Kontaktdaten:\n"
+value: |
+  Ich möchte beim Lokalteam in :name mitmachen.
+
+  Meine Kontaktdaten:

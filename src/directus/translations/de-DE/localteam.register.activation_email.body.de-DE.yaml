@@ -1,3 +1,5 @@
 language: de-DE
 key: localteam.register.activation_email.body
-value: "Wir haben eine E-Mail an <strong class=\"text-gray-700\">:email</strong> gesendet. Klick auf den Link darin, um dein Passwort festzulegen und dich einzuloggen."
+value: Wir haben eine E-Mail an <strong class="text-gray-700">:email</strong>
+  gesendet. Klick auf den Link darin, um dein Passwort festzulegen und dich
+  einzuloggen.

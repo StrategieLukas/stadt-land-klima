@@ -1,3 +1,4 @@
 language: en-GB
 key: elections.theses.cutoff_reached
-value: "The submission deadline (:date) has passed. The survey is now available in read-only mode."
+value: The submission deadline (:date) has passed. The survey is now available
+  in read-only mode.

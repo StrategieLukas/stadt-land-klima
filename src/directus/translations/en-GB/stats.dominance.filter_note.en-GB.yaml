@@ -1,3 +1,4 @@
 language: en-GB
 key: stats.dominance.filter_note
-value: "Only municipalities in the current filter. Non-applicable measures are excluded from the comparison."
+value: Only municipalities in the current filter. Non-applicable measures are
+  excluded from the comparison.

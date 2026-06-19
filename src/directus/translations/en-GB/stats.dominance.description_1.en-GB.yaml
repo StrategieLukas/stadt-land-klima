@@ -1,3 +1,7 @@
 language: en-GB
 key: stats.dominance.description_1
-value: "For each measure, municipalities are compared pair by pair to see which performed better. All individual comparisons are used to calculate a <strong>win rate</strong> per municipality: the share of matchups it won. This result is more robust than a simple total score because it reflects strength across many independent categories."
+value: "For each measure, municipalities are compared pair by pair to see which
+  performed better. All individual comparisons are used to calculate a
+  <strong>win rate</strong> per municipality: the share of matchups it won. This
+  result is more robust than a simple total score because it reflects strength
+  across many independent categories."

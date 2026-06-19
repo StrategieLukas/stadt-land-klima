@@ -1,3 +1,4 @@
 language: de-DE
 key: elections.no_public_elections.description
-value: "Derzeit gibt es keine öffentlich zugänglichen Wahlen im Klimawahlcheck. Bitte kommen Sie später wieder oder wenden Sie sich an Ihr Lokales Team."
+value: Derzeit gibt es keine öffentlich zugänglichen Wahlen im Klimawahlcheck.
+  Bitte kommen Sie später wieder oder wenden Sie sich an Ihr Lokales Team.

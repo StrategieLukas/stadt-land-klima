@@ -1,3 +1,7 @@
 language: en-GB
 key: feedback.content_for_municipality
-value: "Municipality: :name\nLink: /municipalities/:slug\n\nMy feedback:\n"
+value: |
+  Municipality: :name
+  Link: /municipalities/:slug
+
+  My feedback:
