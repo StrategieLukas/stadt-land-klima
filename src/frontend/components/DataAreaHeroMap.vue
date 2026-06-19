@@ -55,13 +55,13 @@ let pendingBounds = null;
 const mapOptions = {
   attributionControl: false,
   boxZoom: false,
-  doubleClickZoom: false,
-  dragging: false,
+  doubleClickZoom: true,
+  dragging: true,
   keyboard: false,
-  scrollWheelZoom: false,
+  scrollWheelZoom: true,
   tap: false,
   touchZoom: false,
-  zoomControl: false,
+  zoomControl: true,
 };
 
 const areaBoundary = computed(() => parseGeo(props.area?.geo_area ?? props.area?.geoArea));
@@ -118,8 +118,16 @@ function areaOptions(area, selected) {
         permanent: true,
       });
       layer.on("click", () => navigateToArea(area));
-      layer.on("mouseover", () => layer.setStyle({ ...base, fillOpacity: selected ? 0.32 : 0.16, opacity: 1 }));
-      layer.on("mouseout", () => layer.setStyle(base));
+
+      const hoverStyle = { ...base, fillOpacity: selected ? 0.32 : 0.16, opacity: 1 };
+      layer.on("mouseenter", () => {
+        layer.setStyle(hoverStyle);
+        if (!selected) layer.bringToFront();
+      });
+      layer.on("mouseleave", () => {
+        layer.setStyle(base);
+        if (!selected) layer.bringToBack();
+      });
     },
   };
 }

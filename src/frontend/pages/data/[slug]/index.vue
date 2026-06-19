@@ -86,11 +86,11 @@
         :style="`scroll-margin-top: ${headerHeight + 16}px`"
       >
         <div
-          class="border-gray-200 relative overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
+          class="h-full border-gray-200 relative overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
           :class="heroBackgroundImage ? 'bg-gray-900' : 'bg-white'"
           :style="heroBackgroundStyle"
         >
-          <div v-if="heroBackgroundImage" class="absolute inset-0 bg-black/45 backdrop-blur-[1px]" />
+          <div v-if="heroBackgroundImage" class="absolute inset-0 bg-black/45 h-full backdrop-blur-[1px]" />
           <div class="relative">
             <p
               class="mb-2 text-xs font-bold uppercase tracking-widest"
@@ -166,17 +166,21 @@
           />
 
           <nav
-            class="border-gray-100 sticky z-20 -mx-2 border-y bg-white/90 px-2 py-2 backdrop-blur-sm"
+            class="border-gray-100 sticky z-20 -mx-2 bg-white/90 px-2 py-3 backdrop-blur-sm"
             :style="`top: ${sectorBarTop}px`"
           >
-            <div class="flex min-w-0 items-center gap-3">
+            <div
+              class="border-gray-100 absolute border-b border-width-1 bg-white/90 backdrop-blur-sm"
+              style="top: 0; bottom: 0; left: calc((100% - 100vw) / 2); right: calc((100% - 100vw) / 2)"
+            />
+            <div class="relative flex min-w-0 items-center gap-3">
               <span class="text-gray-500 flex-none text-xs font-bold uppercase tracking-wide">Sektoren</span>
               <div class="no-scrollbar flex items-center gap-2 overflow-x-auto">
                 <button
                   v-for="sector in productSectors"
                   :key="sector.key"
                   type="button"
-                  class="flex-none rounded-full border px-3 py-1 text-xs font-semibold transition-colors"
+                  class="inline-flex flex-none items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold transition-colors"
                   :class="
                     sector.key === activeSectorKey
                       ? 'border-transparent text-white'
@@ -185,7 +189,14 @@
                   :style="sector.key === activeSectorKey ? { backgroundColor: sector.color } : undefined"
                   @click="scrollToSector(sector.key)"
                 >
-                  {{ sector.label }}
+                  <img
+                    v-if="sectorImages[sector.key]"
+                    :src="sectorImages[sector.key]"
+                    class="h-4 w-4 flex-shrink-0 invert grayscale mix-blend-multiply"
+                    :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-40'"
+                    alt=""
+                  />
+                  {{ $t(`measure_sectors.${sector.key}.title`) }}
                 </button>
               </div>
             </div>
@@ -199,8 +210,8 @@
                 :style="`scroll-margin-top: ${productScrollMarginTop}px`"
               >
                 <span class="h-3 w-3 rounded-full" :style="{ backgroundColor: group.color }" />
-                <h2 class="text-gray-900 text-xl font-black">{{ group.label }}</h2>
-                <span class="text-gray-400 text-xs">{{ group.collections.length }} Datenprodukte</span>
+                <h2 class="text-gray-900 text-4xl font-black">{{ group.label }}</h2>
+                <span class="text-gray-400 text-xs justify-self-end">{{ group.collections.length }} Datenprodukte</span>
               </div>
               <DataProductScrollSection
                 v-for="col in group.collections"
@@ -228,6 +239,7 @@ import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
 import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug.js";
 import { sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
+import sectorImages from "~/shared/sectorImages.js";
 
 definePageMeta({
   key: (route) => route.fullPath,
@@ -235,6 +247,7 @@ definePageMeta({
 
 // ── Route + config ───────────────────────────────────────────────────────────
 
+const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
 const slug = computed(() => String(route.params.slug ?? ""));
 
@@ -269,11 +282,16 @@ const { data: pageData, pending: areaPending } = await useAsyncData(
     });
     if (!resolvedArea) return { notFound: true };
     const ars = resolvedArea.ars;
-    const [containedByChain, nearbyResult] = await Promise.all([
+    const [containedByChain, nearbyResult, muniResult] = await Promise.all([
       fetchContainedBy(ars, resolvedArea.level).catch(() => []),
-      $fetch("/api/area-nearby", {
+      resolvedArea.level > 2 ? $fetch("/api/area-nearby", {
         params: { ars, radius_km: 45, levels: "4,5,6", limit: 24 },
-      }).catch(() => ({ areas: [] })),
+      }).catch(() => ({ areas: [] })) : { areas: [] },
+      $directus.request($readItems("municipalities", {
+        filter: { ars: { _eq: ars } },
+        fields: ["image"],
+        limit: 1,
+      })).catch(() => []),
     ]);
 
     const nearbyAreas = await Promise.all(
@@ -291,7 +309,12 @@ const { data: pageData, pending: areaPending } = await useAsyncData(
       }),
     );
 
-    return { area: resolvedArea, containedBy: containedByChain ?? [], nearbyAreas };
+    return {
+      area: resolvedArea,
+      containedBy: containedByChain ?? [],
+      nearbyAreas,
+      municipalityImageId: muniResult?.[0]?.image ?? null,
+    };
   },
   { watch: [slug] },
 );
@@ -303,6 +326,7 @@ if (!pageData.value || pageData.value.notFound) {
 const area = computed(() => pageData.value?.area ?? {});
 const containedBy = computed(() => pageData.value?.containedBy ?? []);
 const nearbyAreas = computed(() => pageData.value?.nearbyAreas ?? []);
+const municipalityImageId = computed(() => pageData.value?.municipalityImageId ?? null);
 const loadedAreaSlug = computed(() => {
   if (!area.value?.name) return "";
   return areaToSlug(area.value?.prefix ?? "", area.value.name);
@@ -326,10 +350,8 @@ const { data: collectionsData, pending: collectionsLoading } = await useAsyncDat
     // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded
     try {
       const manifest = await $fetch(`${baseUrl}/api/manifests/collections-index`);
-      const level = area.value?.level;
       const slim = (manifest?.collections ?? [])
-        .filter((c) => c.id !== "administrative-areas")
-        .filter((c) => !c.availableForLevels || c.availableForLevels.includes(level));
+        .filter((c) => c.id !== "administrative-areas");
       if (slim.length > 0) return slim;
     } catch {
       /* manifest not deployed yet — fall through */
@@ -351,7 +373,7 @@ const exploreSection = ref(null);
 const activeSectorKey = ref("");
 let productSectionObserver = null;
 
-const sectorBarTop = computed(() => pillTop.value + 46);
+const sectorBarTop = computed(() => pillTop.value + 52);
 const productScrollMarginTop = computed(() => sectorBarTop.value + 58);
 
 const groupedCollections = computed(() => {
@@ -362,7 +384,7 @@ const groupedCollections = computed(() => {
     if (!byKey.has(key)) {
       const group = {
         key,
-        label: sectorLabel(collection),
+        label: $t(`measure_sectors.${key}.title`) || sectorLabel(collection),
         color: sectorColor(collection),
         collections: [],
       };
@@ -376,7 +398,12 @@ const groupedCollections = computed(() => {
 
 const productSectors = computed(() => groupedCollections.value.map(({ key, label, color }) => ({ key, label, color })));
 
-const heroBackgroundImage = computed(() => findAreaImageUrl(area.value));
+const heroBackgroundImage = computed(() => {
+  if (municipalityImageId.value) {
+    return `${runtimeConfig.public.clientDirectusUrl}/assets/${municipalityImageId.value}?width=1200&quality=80&fit=cover`;
+  }
+  return findAreaImageUrl(area.value);
+});
 const heroBackgroundStyle = computed(() =>
   heroBackgroundImage.value
     ? {
