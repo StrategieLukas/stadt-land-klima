@@ -12,12 +12,14 @@
     >
       <!-- v-blokkli-droppable:imageId enables drag-and-drop and media library selection -->
       <div v-blokkli-droppable:imageId class="relative">
-        <img
-          v-if="imageUrl"
-          :src="imageUrl"
+        <SmartImg
+          v-if="props.imageId"
+          :asset-id="props.imageId"
           :alt="props.alt || ''"
-          loading="lazy"
-          class="w-full h-auto rounded"
+          img-class="w-full h-auto rounded"
+          :width="1200"
+          :quality="80"
+          fit="contain"
         />
         <!-- Placeholder shown when no image is selected -->
         <div
@@ -85,13 +87,6 @@ const props = defineProps<{
   alt?: string
   caption?: string
 }>()
-
-const config = useRuntimeConfig()
-
-const imageUrl = computed(() => {
-  if (!props.imageId) return ''
-  return `${config.public.clientDirectusUrl}/assets/${props.imageId}?width=1200&quality=80`
-})
 
 const sizeClass = computed(() => {
   const map: Record<string, string> = {

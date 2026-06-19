@@ -96,6 +96,10 @@ import { useCollectionRender } from '~/composables/useCollectionRender'
 import { useSlzLocale } from '~/composables/useSlzLocale'
 import type { Collection, CollectionSummary } from '~/types/slz-api'
 
+definePageMeta({
+  key: route => route.fullPath,
+})
+
 const route          = useRoute()
 const runtimeConfig  = useRuntimeConfig()
 const baseUrl        = runtimeConfig.public.stadtlandzahlBaseUrl as string
@@ -112,25 +116,12 @@ const pillTop    = computed(() =>
   isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
 )
 
-onMounted(() => {
-  const mq = window.matchMedia('(min-width: 1280px)')
-  isDesktop.value = mq.matches
-  mq.addEventListener('change', (e) => { isDesktop.value = e.matches })
-})
-
-// ── Area data (SSR) ────────────────────────────────────────────────────────────
-
-const { data: area } = await useAsyncData(
-  `area-${areaSlug.value}`,
-  () => resolveSlugToArea(areaSlug.value),
-)
-
 // ── Collection + render data (CSR) ────────────────────────────────────────────
 
 const collection     = ref<Collection | null>(null)
 const collectionSummary = ref<CollectionSummary | null>(null)
 
-const { steps: renderSteps, loading: renderLoading, error: renderError, load } =
+const { steps: renderSteps, loading: renderLoading, error: renderError, load, loadFromRender } =
   useCollectionRender(baseUrl)
 
 const collectionTitle = computed(() => {
@@ -138,11 +129,33 @@ const collectionTitle = computed(() => {
   return collectionSlug.value
 })
 
+// ── Step observer ─────────────────────────────────────────────────────────────
+
+const activeStepIndex = ref(0)
+const stepsContainer  = ref<HTMLElement | null>(null)
+let stepObserver: IntersectionObserver | null = null
+let mediaQueryList: MediaQueryList | null = null
+let mediaQueryCleanup: (() => void) | null = null
+
+onMounted(() => {
+  mediaQueryList = window.matchMedia('(min-width: 1280px)')
+  const updateIsDesktop = (e: MediaQueryList | MediaQueryListEvent) => {
+    isDesktop.value = e.matches
+  }
+  updateIsDesktop(mediaQueryList)
+  mediaQueryList.addEventListener('change', updateIsDesktop)
+  mediaQueryCleanup = () => mediaQueryList?.removeEventListener('change', updateIsDesktop)
+})
+
 onMounted(async () => {
   try {
     const data = await $fetch<Collection>(`${baseUrl}/api/collections/${collectionSlug.value}/`)
     collection.value = data
-    await load(collectionSlug.value, data)
+    if (area.value?.ars) {
+      await loadFromRender(collectionSlug.value, area.value.ars)
+    } else {
+      await load(collectionSlug.value, data)
+    }
   } catch (_) {
     renderError.value = true
   }
@@ -162,14 +175,16 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  mediaQueryCleanup?.()
   stepObserver?.disconnect()
 })
 
-// ── Step observer ─────────────────────────────────────────────────────────────
+// ── Area data (SSR) ────────────────────────────────────────────────────────────
 
-const activeStepIndex = ref(0)
-const stepsContainer  = ref<HTMLElement | null>(null)
-let stepObserver: IntersectionObserver | null = null
+const { data: area } = await useAsyncData(
+  `area-${areaSlug.value}`,
+  () => resolveSlugToArea(areaSlug.value),
+)
 
 function initStepObserver() {
   if (!stepsContainer.value) return

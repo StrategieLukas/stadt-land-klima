@@ -2,8 +2,9 @@
   <component
     :is="href ? 'a' : 'button'"
     v-bind="linkAttrs"
-    class="canonical-button inline-flex items-stretch rounded-md text-sm font-bold transition-all no-underline overflow-hidden whitespace-nowrap hover:brightness-110 shadow-sm ring-1 ring-inset ring-white/20"
+    class="canonical-button inline-flex items-stretch rounded-md text-sm font-bold transition-all no-underline overflow-hidden whitespace-nowrap shadow-sm ring-1 ring-inset ring-white/20"
     :class="[bgClass, textClass]"
+    :style="{ '--btn-color': colorHex }"
   >
     <!-- Local SVG icon -->
     <span
@@ -104,7 +105,19 @@ const colorConfig: Record<string, { bg: string; autoText: string }> = {
   'yellow':       { bg: 'bg-localzero-yellow', autoText: 'text-gray' },
 }
 
+const hexMap: Record<string, string> = {
+  'green':        '#1da64a',
+  'dark-green':   '#339737',
+  'bright-green': '#AFCA0B',
+  'blue':         '#16bae7',
+  'dark':         '#006e94',
+  'orange':       '#f39200',
+  'red':          '#e30613',
+  'yellow':       '#ffc80c',
+}
+
 const cfg = computed(() => colorConfig[props.color ?? 'green'] ?? colorConfig['green'])
+const colorHex = computed(() => hexMap[props.color ?? 'green'] ?? '#1da64a')
 const bgClass = computed(() => cfg.value.bg)
 const textClass = computed(() => {
   const tc = props.textColor ?? 'auto'
@@ -127,3 +140,10 @@ const linkAttrs = computed(() => {
   return base
 })
 </script>
+
+<style scoped>
+.canonical-button:hover {
+  outline: 2px solid var(--btn-color);
+  outline-offset: 2px;
+}
+</style>

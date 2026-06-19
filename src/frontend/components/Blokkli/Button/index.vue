@@ -19,7 +19,7 @@
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
       <!-- Label -->
-      <span class="flex items-center gap-1" :class="labelClass">
+      <span class="flex items-center gap-1 whitespace-nowrap" :class="labelClass">
         <Icon icon="mdi:open-in-new" class="w-4 h-4 flex-shrink-0 opacity-80" />
         <span v-blokkli-editable:label v-text="props.label" />
       </span>
@@ -49,7 +49,7 @@
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
       <!-- Label -->
-      <span class="flex items-center" :class="labelClass">
+      <span class="flex items-center whitespace-nowrap" :class="labelClass">
         <span v-blokkli-editable:label v-text="props.label" />
       </span>
       <!-- Right icon (position: right or both) -->

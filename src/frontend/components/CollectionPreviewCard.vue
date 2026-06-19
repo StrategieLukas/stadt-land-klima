@@ -154,7 +154,7 @@ const collectionDescription = computed(() =>
 )
 
 const step0Elements = computed(() =>
-  props.collection.render_elements.filter(e => (e.step ?? 0) === 0)
+  (props.collection.render_elements ?? []).filter(e => (e.step ?? 0) === 0)
 )
 
 const kpiEl0 = computed(() =>
@@ -171,7 +171,7 @@ const step0Description = computed(() => {
 })
 
 const stepCount = computed(() =>
-  props.collection.narrative_steps?.length ?? 0
+  props.collection.narrative_steps?.length ?? (props.collection.hasNarrativeSteps ? 1 : 0)
 )
 
 async function expand() {

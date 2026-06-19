@@ -15,50 +15,64 @@
       <div class="relative flex items-center gap-3 py-2 min-w-0">
         <div class="flex-none">
           <GermanyMapIndicator
-            v-if="area?.geo_center"
+            v-if="!isAreaLoading && area?.geo_center"
             :lat="area.geo_center.coordinates?.[1] ?? area.geo_center[1]"
             :lon="area.geo_center.coordinates?.[0] ?? area.geo_center[0]"
             :size="30"
           />
         </div>
         <ol class="flex items-center gap-1 flex-wrap min-w-0 text-xs">
-          <template v-if="area?.level > 1">
-            <li>
-              <BreadcrumbItem
-                label="Deutschland"
-                href="/data/bundesrepublik-deutschland"
-                :sibling-level="null"
-              />
-            </li>
-            <li class="text-gray-300 select-none">›</li>
+          <template v-if="isAreaLoading">
+            <li class="font-semibold text-gray-500">Klimadaten werden geladen...</li>
           </template>
-          <template v-for="crumb in containedBy" :key="crumb.ars || crumb.name">
+          <template v-else>
+            <template v-if="area?.level > 1">
+              <li>
+                <BreadcrumbItem
+                  label="Deutschland"
+                  href="/data"
+                  :sibling-level="null"
+                />
+              </li>
+              <li class="text-gray-300 select-none">›</li>
+            </template>
+            <template v-for="crumb in containedBy" :key="crumb.ars || crumb.name">
+              <li>
+                <BreadcrumbItem
+                  :label="`${crumb.prefix} ${crumb.name}`.trim()"
+                  :href="`/data/${areaToSlug(crumb.prefix, crumb.name)}`"
+                  :sibling-level="crumb.level"
+                  :ars-prefix="crumb.level === 4 ? crumb.ars.slice(0, 2) : ''"
+                  :current-ars="area?.ars"
+                />
+              </li>
+              <li class="text-gray-300 select-none">›</li>
+            </template>
             <li>
               <BreadcrumbItem
-                :label="`${crumb.prefix} ${crumb.name}`.trim()"
-                :href="`/data/${areaToSlug(crumb.prefix, crumb.name)}`"
-                :sibling-level="crumb.level"
-                :ars-prefix="crumb.level === 4 ? crumb.ars.slice(0, 2) : ''"
+                :label="`${area?.prefix} ${area?.name}`.trim()"
+                is-current
+                :sibling-level="area?.level === 1 ? null : area?.level"
+                :ars-prefix="area?.level === 4 ? area?.ars?.slice(0, 2) : ''"
                 :current-ars="area?.ars"
               />
             </li>
-            <li class="text-gray-300 select-none">›</li>
           </template>
-          <li>
-            <BreadcrumbItem
-              :label="`${area?.prefix} ${area?.name}`.trim()"
-              is-current
-              :sibling-level="area?.level === 1 ? null : area?.level"
-              :ars-prefix="area?.level === 4 ? area?.ars?.slice(0, 2) : ''"
-              :current-ars="area?.ars"
-            />
-          </li>
         </ol>
       </div>
     </nav>
 
-    <!-- ── Overview layout (Germany / Bundesland) ────────────────────────── -->
-    <template v-if="area?.level <= 2">
+    <!-- ── Route-level loading: avoid rendering stale area content during reused-page navigation. ── -->
+    <section
+      v-if="isAreaLoading"
+      class="min-h-[52vh] flex flex-col items-center justify-center gap-3 py-16 text-sm text-gray-500"
+    >
+      <span class="loading loading-spinner loading-md text-[#006e94]" />
+      <span>Klimadaten werden geladen...</span>
+    </section>
+
+    <!-- ── Overview layout (Germany / non-rateable Bundesland) ───────────── -->
+    <template v-else-if="usesOverviewLayout">
       <AreaOverview :area="area" :contained-by="containedBy" />
     </template>
 
@@ -250,7 +264,7 @@
 
     <!-- ── Grid overview modal ───────────────────────────────────────────── -->
     <CollectionOverviewModal
-      v-if="overviewOpen"
+      v-if="!isAreaLoading && overviewOpen"
       :collections="collections"
       :area-slug="slug"
       @close="overviewOpen = false"
@@ -261,17 +275,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
 import { resolveSlugToArea, fetchContainedBy, areaToSlug } from '~/composables/useAreaBySlug.js'
 import { getAllCatalogVersions } from '~/composables/getAllCatalogVersions.js'
 import { readItems } from '@directus/sdk'
 
+definePageMeta({
+  key: route => route.fullPath,
+})
+
 // ── Route + config ───────────────────────────────────────────────────────────
 
 const route = useRoute()
-const slug = route.params.slug
+const slug = computed(() => String(route.params.slug ?? ''))
 
 const runtimeConfig = useRuntimeConfig()
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl
@@ -290,17 +308,52 @@ const pillTop = computed(() =>
   isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
 )
 
+// ── Catalog scores (Directus, client-side) ───────────────────────────────────
+
+const allCatalogVersions = ref([])
+const municipalityScoresByCatalog = ref({})
+const catalogOpen = ref(false)
+let stopScoresWatch = null
+
+onMounted(() => {
+  stopScoresWatch = watch(
+    () => isAreaLoading.value ? null : area.value?.ars,
+    async (ars) => {
+      municipalityScoresByCatalog.value = {}
+      if (!ars) return
+      try {
+        if (!allCatalogVersions.value.length) {
+          allCatalogVersions.value = await getAllCatalogVersions($directus, $readItems)
+        }
+        municipalityScoresByCatalog.value = await fetchAllMunicipalityScores(ars)
+      } catch (_) {}
+    },
+    { immediate: true }
+  )
+})
+
+onUnmounted(() => {
+  stopScoresWatch?.()
+})
+
+if (slug.value === 'bundesrepublik-deutschland') {
+  await navigateTo('/data', { redirectCode: 301 })
+}
+
 // ── Main data (SSR) ──────────────────────────────────────────────────────────
 
-const { data: pageData } = await useAsyncData(
-  `data-${slug}`,
+const pageDataKey = computed(() => `data-area-page-${slug.value}`)
+
+const { data: pageData, pending: areaPending } = await useAsyncData(
+  pageDataKey,
   async () => {
-    const resolvedArea = await resolveSlugToArea(slug)
+    const resolvedArea = await resolveSlugToArea(slug.value)
     if (!resolvedArea) return { notFound: true }
     const ars = resolvedArea.ars
     const containedByChain = await fetchContainedBy(ars, resolvedArea.level).catch(() => [])
     return { area: resolvedArea, containedBy: containedByChain ?? [] }
-  }
+  },
+  { watch: [slug] }
 )
 
 if (!pageData.value || pageData.value.notFound) {
@@ -309,18 +362,45 @@ if (!pageData.value || pageData.value.notFound) {
 
 const area = computed(() => pageData.value?.area ?? {})
 const containedBy = computed(() => pageData.value?.containedBy ?? [])
+const loadedAreaSlug = computed(() => {
+  if (!area.value?.name) return ''
+  return areaToSlug(area.value?.prefix ?? '', area.value.name)
+})
+const isAreaLoading = computed(() =>
+  areaPending.value || loadedAreaSlug.value !== slug.value
+)
+const usesOverviewLayout = computed(() =>
+  !isAreaLoading.value && (area.value?.level ?? 99) <= 2 && !area.value?.is_reasonable_for_municipal_rating
+)
 
 // ── Collections (CSR, area-injected) ────────────────────────────────────────
 
+const collectionsDataKey = computed(() => `stadtlandzahl-collections-page-${slug.value}`)
+
 const { data: collectionsData, pending: collectionsLoading } = await useAsyncData(
-  `stadtlandzahl-collections-${area.value?.ars ?? 'all'}`,
-  () => {
+  collectionsDataKey,
+  async () => {
+    // Germany and non-rateable Bundesländer use AreaOverview — no collections rendered there.
+    if (isAreaLoading.value || usesOverviewLayout.value) return []
+
+    // Try slim manifest first: much smaller (no vegalite_specs), CDN-cached
+    // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded
+    try {
+      const manifest = await $fetch(`${baseUrl}/api/manifests/collections-index`)
+      const level = area.value?.level
+      const slim = (manifest?.collections ?? [])
+        .filter(c => c.id !== 'administrative-areas')
+        .filter(c => !c.availableForLevels || c.availableForLevels.includes(level))
+      if (slim.length > 0) return slim
+    } catch { /* manifest not deployed yet — fall through */ }
+
+    // Fall back to full area-specific API
     const params = area.value?.ars ? { area: area.value.ars } : {}
     return $fetch(`${baseUrl}/api/collections/`, { params })
       .then(d => (d?.collections ?? []).filter(c => c.id !== 'administrative-areas'))
       .catch(() => [])
   },
-  { server: false }
+  { server: false, watch: [area] }
 )
 const collections = computed(() => collectionsData.value ?? [])
 
@@ -344,12 +424,6 @@ function scrollToCollection(collectionId) {
   const top = el.getBoundingClientRect().top + window.scrollY - offset
   window.scrollTo({ top, behavior: 'smooth' })
 }
-
-// ── Catalog scores (Directus, client-side) ───────────────────────────────────
-
-const allCatalogVersions = ref([])
-const municipalityScoresByCatalog = ref({})
-const catalogOpen = ref(false)
 
 async function fetchAllMunicipalityScores(ars) {
   const scores = {}
@@ -391,15 +465,6 @@ async function fetchAllMunicipalityScores(ars) {
   } catch (_) {}
   return scores
 }
-
-onMounted(async () => {
-  const ars = area.value?.ars
-  if (!ars) return
-  try {
-    allCatalogVersions.value = await getAllCatalogVersions($directus, $readItems)
-    municipalityScoresByCatalog.value = await fetchAllMunicipalityScores(ars)
-  } catch (_) {}
-})
 
 // ── SLK data product slug ────────────────────────────────────────────────────
 

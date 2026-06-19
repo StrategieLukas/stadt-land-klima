@@ -291,7 +291,7 @@ const layoutClass = computed(() => {
   const layout = options.value.layout
 
   if (layout === 'single') {
-    return h ? 'flex flex-row gap-6' : 'flex flex-col gap-6'
+    return h ? 'flex flex-col sm:flex-row gap-6' : 'flex flex-col gap-6'
   }
   if (layout === 'custom') {
     return 'grid gap-6 blokkli-custom-grid'
@@ -326,7 +326,7 @@ const layoutClass = computed(() => {
 
   const entry = gridMap[layout]
   if (!entry) return 'flex flex-col gap-6'
-  return h ? entry.fixed : entry.responsive
+  return entry.responsive
 })
 
 const contentAlignClass = computed(() => {
@@ -398,7 +398,13 @@ const shadowClass = computed(() => {
 }
 
 .blokkli-block-container :deep(.blokkli-custom-grid) {
-  grid-template-columns: var(--container-custom-cols, 1fr 1fr);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .blokkli-block-container :deep(.blokkli-custom-grid) {
+    grid-template-columns: var(--container-custom-cols, 1fr 1fr);
+  }
 }
 
 .blokkli-block-container--page-width {

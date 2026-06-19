@@ -43,7 +43,8 @@ export interface Collection {
   tags?: string[]
   temporal_extent?: TemporalExtent | null
   narrative_steps?: NarrativeStep[]
-  render_elements: RenderElement[]
+  render_elements?: RenderElement[]
+  hasNarrativeSteps?: boolean
   render_config?: {
     layer_type?: string
     color_field?: string

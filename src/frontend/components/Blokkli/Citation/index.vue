@@ -51,11 +51,15 @@
       />
       <div class="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
         <div v-blokkli-droppable:imageId class="flex-shrink-0">
-          <img
-            v-if="avatarUrl"
-            :src="avatarUrl"
+          <SmartImg
+            v-if="props.imageId"
+            :asset-id="props.imageId"
             alt=""
-            class="w-12 h-12 rounded-full object-cover"
+            img-class="w-12 h-12 rounded-full object-cover"
+            :width="100"
+            :height="100"
+            :quality="80"
+            fit="cover"
           />
           <div
             v-else-if="isEditing"
@@ -189,13 +193,6 @@ const props = defineProps<{
   source?: string
   imageId?: string
 }>()
-
-const config = useRuntimeConfig()
-
-const avatarUrl = computed(() => {
-  if (!props.imageId) return ''
-  return `${config.public.clientDirectusUrl}/assets/${props.imageId}?width=100&height=100&fit=cover&quality=80`
-})
 
 const linkTag = computed(() => {
   if (isEditing.value) return 'div'
