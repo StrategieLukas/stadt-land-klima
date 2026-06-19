@@ -115,16 +115,15 @@ permissions:
   - collection: localteams
     action: read
     permissions:
-      _and:
-        - status:
-            _neq: archived
-        - admin_id:
-            _nnull: true
+      status:
+        _neq: archived
     validation: {}
     presets: null
     fields:
       - id
+      - name
       - municipality_name
+      - slug
       - status
   - collection: measure_questions_template
     action: read

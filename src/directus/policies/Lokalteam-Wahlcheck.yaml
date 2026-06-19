@@ -131,7 +131,6 @@ permissions:
     presets: null
     fields:
       - descriptor
-      - simple_answer_mode
       - candidate_email_cc
       - candidate_email_reply_to
       - response_cutoff_date
@@ -161,7 +160,6 @@ permissions:
     fields:
       - id
       - response_cutoff_date
-      - simple_answer_mode
       - candidate_email_cc
       - candidate_email_reply_to
       - date_created

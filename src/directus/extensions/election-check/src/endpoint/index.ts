@@ -99,7 +99,7 @@ async function requestReview(
   }
 
   if (!election.already_generated_questions) {
-    throw new Error('Thesen muessen vor der Review-Anfrage generiert werden.');
+    throw new Error('Thesen müssen vor der Review-Anfrage generiert werden.');
   }
 
   if (election.review_requested) {
@@ -130,7 +130,7 @@ async function requestReview(
       to: recipient,
       subject: `Review der Wahlcheck-Thesen angefragt: ${electionLabel}`,
       text: [
-        'Ein Lokalteam hat Review fuer die Wahlcheck-Thesen angefragt.',
+        'Ein Lokalteam hat Review für die Wahlcheck-Thesen angefragt.',
         '',
         `Wahl: ${electionLabel}`,
         `Lokalteam: ${localteamName ?? 'unbekannt'}`,

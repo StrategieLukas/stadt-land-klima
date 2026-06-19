@@ -10,7 +10,7 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: Optionale CC-Adresse fuer die Einladung an Kandidierende.
+  note: Optionale CC-Adresse für die Einladung an Kandidierende.
   options:
     placeholder: lokalteam@example.org
   readonly: false
@@ -20,7 +20,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: CC-Adresse fuer Kandidierenden-E-Mails
+      translation: CC-Adresse für Kandidierenden-E-Mails
   validation: null
   validation_message: null
   width: half

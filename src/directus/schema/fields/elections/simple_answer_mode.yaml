@@ -3,20 +3,14 @@ field: simple_answer_mode
 type: boolean
 meta:
   collection: elections
-  conditions:
-    - name: Nach Erstellung nicht mehr aenderbar
-      readonly: true
-      rule:
-        _and:
-          - id:
-              _nnull: true
+  conditions: null
   display: boolean
   display_options: null
   field: simple_answer_mode
   group: null
   hidden: false
   interface: boolean
-  note: Aktiviert den einfachen Modus mit Dagegen, Neutral und Dafuer. Aus bedeutet differenzierter Modus.
+  note: Aktiviert den einfachen Modus mit Dagegen, Neutral und Dafür. Aus bedeutet differenzierter Modus.
   options: null
   readonly: false
   required: false
@@ -34,7 +28,7 @@ schema:
   name: simple_answer_mode
   table: elections
   data_type: boolean
-  default_value: false
+  default_value: true
   max_length: null
   numeric_precision: null
   numeric_scale: null

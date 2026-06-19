@@ -10,7 +10,7 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: Optionale Reply-To-Adresse fuer Antworten von Kandidierenden.
+  note: Optionale Reply-To-Adresse für Antworten von Kandidierenden.
   options:
     placeholder: lokalteam@example.org
   readonly: false
@@ -20,7 +20,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Reply-To-Adresse fuer Kandidierenden-E-Mails
+      translation: Reply-To-Adresse für Kandidierenden-E-Mails
   validation: null
   validation_message: null
   width: half
