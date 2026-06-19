@@ -19,7 +19,7 @@ async function exportTranslations(
   try {
     const translations = await client.request(readTranslations({ limit: -1 }));
 
-    fse.ensureDirSync(dest);
+    fse.mkdirSync(dest, { recursive: true });
 
     translations
       .sort(
@@ -28,7 +28,7 @@ async function exportTranslations(
       )
       .forEach((translation) => {
         const destPath = getTranslationPath(dest, translation);
-        fse.ensureDirSync(path.dirname(destPath));
+        fse.mkdirSync(path.dirname(destPath), { recursive: true });
 
         if (!options.overwrite && fse.existsSync(destPath)) {
           if (options.verbose) {

@@ -171,7 +171,9 @@ const emit = defineEmits(['next', 'prev'])
 const { $t } = useNuxtApp()
 
 const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(props.election))
-const ratingOptions = computed(() => getWahlcheckAnswerOptions(props.election, $t))
+const ratingOptions = computed(() => {
+  return getWahlcheckAnswerOptions(props.election, $t).reverse()
+})
 
 const userAnswers = ref({...props.userAnswers})
 const skippedQuestions = ref({})
