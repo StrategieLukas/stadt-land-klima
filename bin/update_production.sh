@@ -68,7 +68,7 @@ git submodule update --recursive
 #cd "$SCRIPT_DIR"
 
 if [[ $NO_RESTART != true ]]; then
-  ./stop.sh
-  ./build_production.sh
-  ./start_production.sh
+  "$SCRIPT_DIR/stop.sh"
+  "$SCRIPT_DIR/build_production.sh"
+  "$SCRIPT_DIR/start_production.sh"
 fi
