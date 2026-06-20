@@ -101,7 +101,7 @@ function areaLabel(area) {
 
 function navigateToArea(area) {
   if (!area?.prefix || !area?.name) return;
-  startDataRouteFeedback(`${area.name} wird geladen...`);
+  startDataRouteFeedback(`${area.name} wird geladen...`, area);
   router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
 }
 

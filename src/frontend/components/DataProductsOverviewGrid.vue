@@ -6,7 +6,6 @@
   >
     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="text-xs font-bold uppercase tracking-widest text-[#006e94]">Datenprodukte</p>
         <h2 class="text-gray-900 text-2xl font-black leading-tight sm:text-3xl">Alle Datenprodukte</h2>
       </div>
       <p class="text-gray-500 text-xs">{{ collections.length }} Produkte</p>

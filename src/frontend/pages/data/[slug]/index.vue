@@ -11,18 +11,30 @@
       <div class="relative flex min-w-0 flex-wrap items-center gap-3 py-2 sm:flex-nowrap">
         <div class="flex-none">
           <GermanyMapIndicator
-            v-if="!isAreaLoading && area?.geo_center"
-            :lat="area.geo_center.coordinates?.[1] ?? area.geo_center[1]"
-            :lon="area.geo_center.coordinates?.[0] ?? area.geo_center[0]"
+            v-if="displayLat !== null && displayLon !== null"
+            :lat="displayLat"
+            :lon="displayLon"
             :size="30"
           />
+          <div v-else class="skeleton h-[30px] w-[30px] rounded-md" />
         </div>
         <ol class="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-xs">
-          <template v-if="isAreaLoading">
-            <li class="text-gray-500 font-semibold">Klimadaten werden geladen...</li>
+          <template v-if="!hasDisplayArea">
+            <li class="skeleton h-3 w-20" />
+            <li class="text-gray-300 select-none">›</li>
+            <li class="skeleton h-3 w-28" />
+          </template>
+          <template v-else-if="!areaReady">
+            <li>
+              <BreadcrumbItem label="Deutschland" href="/data" :sibling-level="null" />
+            </li>
+            <li class="text-gray-300 select-none">›</li>
+            <li class="skeleton h-3 w-32" />
+            <li class="text-gray-300 select-none">›</li>
+            <li class="text-gray-800 font-semibold">{{ `${displayArea?.prefix} ${displayArea?.name}`.trim() }}</li>
           </template>
           <template v-else>
-            <template v-if="area?.level > 1">
+            <template v-if="displayArea?.level > 1">
               <li>
                 <BreadcrumbItem label="Deutschland" href="/data" :sibling-level="null" />
               </li>
@@ -42,17 +54,17 @@
             </template>
             <li>
               <BreadcrumbItem
-                :label="`${area?.prefix} ${area?.name}`.trim()"
+                :label="`${displayArea?.prefix} ${displayArea?.name}`.trim()"
                 is-current
-                :sibling-level="area?.level === 1 ? null : area?.level"
-                :ars-prefix="area?.level === 4 ? area?.ars?.slice(0, 2) : ''"
-                :current-ars="area?.ars"
+                :sibling-level="displayArea?.level === 1 ? null : displayArea?.level"
+                :ars-prefix="displayArea?.level === 4 ? displayArea?.ars?.slice(0, 2) : ''"
+                :current-ars="displayArea?.ars"
               />
             </li>
           </template>
         </ol>
         <a
-          v-if="!isAreaLoading && collections.length"
+          v-if="areaReady && collections.length"
           href="#alle-datenprodukte"
           class="border-gray-200 text-gray-700 inline-flex flex-none items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors hover:border-[#006e94]/30 hover:text-[#006e94]"
           @click.prevent="scrollToAllProducts"
@@ -64,16 +76,27 @@
     </nav>
 
     <!-- ── Route-level loading: avoid rendering stale area content during reused-page navigation. ── -->
-    <section
-      v-if="isAreaLoading || dataRouteLoading"
-      class="text-gray-500 flex min-h-[52vh] flex-col items-center justify-center gap-3 py-16 text-sm"
-    >
-      <SlkFlowerSpinner :size="32" />
-      <span>{{ dataRouteLabel }}</span>
+    <section v-if="!hasDisplayArea" class="py-6">
+      <div class="text-gray-500 mb-4 flex items-center justify-center gap-3 text-sm">
+        <SlkFlowerSpinner :size="28" />
+        <span>{{ dataRouteLabel }}</span>
+      </div>
+      <div class="grid gap-5 xl:grid-cols-12 xl:items-center">
+        <div class="border-gray-200 rounded-lg border p-5 xl:col-span-5">
+          <div class="skeleton mb-4 h-3 w-24" />
+          <div class="skeleton mb-6 h-14 w-3/4" />
+          <div class="grid grid-cols-2 gap-4">
+            <div class="skeleton h-14" />
+            <div class="skeleton h-14" />
+            <div class="skeleton h-14" />
+          </div>
+        </div>
+        <div class="skeleton h-[240px] rounded-lg sm:h-[280px] xl:col-span-7 xl:h-[320px]" />
+      </div>
     </section>
 
     <!-- ── Overview layout (Germany / non-rateable Bundesland) ───────────── -->
-    <template v-else-if="usesOverviewLayout">
+    <template v-else-if="areaReady && usesOverviewLayout">
       <AreaOverview :area="area" :contained-by="containedBy" />
     </template>
 
@@ -87,51 +110,66 @@
       >
         <div
           class="border-gray-200 relative h-full overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
-          :class="heroBackgroundImage ? 'bg-gray-900' : 'bg-white'"
-          :style="heroBackgroundStyle"
+          :class="areaReady && heroBackgroundImage ? 'bg-gray-900' : 'bg-white'"
+          :style="areaReady ? heroBackgroundStyle : undefined"
         >
-          <div v-if="heroBackgroundImage" class="absolute inset-0 h-full bg-black/45 backdrop-blur-[1px]" />
+          <div v-if="!areaReady" class="skeleton absolute inset-0 rounded-none" />
+          <div v-else-if="heroBackgroundImage" class="absolute inset-0 h-full bg-black/45 backdrop-blur-[1px]" />
           <div class="relative">
             <p
               class="mb-2 text-xs font-bold uppercase tracking-widest"
-              :class="heroBackgroundImage ? 'text-white/80' : 'text-[#006e94]'"
+              :class="areaReady && heroBackgroundImage ? 'text-white/80' : 'text-[#006e94]'"
             >
-              {{ area?.prefix }}
+              {{ displayArea?.prefix }}
             </p>
             <h1
               class="mb-4 text-5xl font-black leading-none xl:text-6xl"
-              :class="heroBackgroundImage ? 'text-white' : 'text-gray-900'"
+              :class="areaReady && heroBackgroundImage ? 'text-white' : 'text-gray-900'"
             >
-              {{ area?.name }}
+              {{ displayArea?.name }}
             </h1>
 
             <dl class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
-              <div v-if="area?.population">
-                <dt class="mb-0.5 text-xs" :class="heroBackgroundImage ? 'text-white/70' : 'text-gray-500'">
+              <div v-if="displayArea?.population">
+                <dt
+                  class="mb-0.5 text-xs"
+                  :class="areaReady && heroBackgroundImage ? 'text-white/70' : 'text-gray-500'"
+                >
                   Einwohner
                 </dt>
                 <dd
                   class="text-2xl font-black tabular-nums"
-                  :class="heroBackgroundImage ? 'text-white' : 'text-gray-900'"
+                  :class="areaReady && heroBackgroundImage ? 'text-white' : 'text-gray-900'"
                 >
-                  {{ area.population?.toLocaleString("de-DE") }}
+                  {{ displayArea.population?.toLocaleString("de-DE") }}
                 </dd>
               </div>
-              <div v-if="area?.level">
-                <dt class="mb-0.5 text-xs" :class="heroBackgroundImage ? 'text-white/70' : 'text-gray-500'">
+              <div v-if="displayArea?.level">
+                <dt
+                  class="mb-0.5 text-xs"
+                  :class="areaReady && heroBackgroundImage ? 'text-white/70' : 'text-gray-500'"
+                >
                   Verwaltungsebene
                 </dt>
-                <dd class="text-2xl font-black" :class="heroBackgroundImage ? 'text-white' : 'text-gray-900'">
-                  {{ levelLabel(area.level) }}
+                <dd
+                  class="text-2xl font-black"
+                  :class="areaReady && heroBackgroundImage ? 'text-white' : 'text-gray-900'"
+                >
+                  {{ levelLabel(displayArea.level) }}
                 </dd>
               </div>
-              <div v-if="area?.ars">
-                <dt class="mb-0.5 text-xs" :class="heroBackgroundImage ? 'text-white/70' : 'text-gray-500'">ARS</dt>
+              <div v-if="displayArea?.ars">
+                <dt
+                  class="mb-0.5 text-xs"
+                  :class="areaReady && heroBackgroundImage ? 'text-white/70' : 'text-gray-500'"
+                >
+                  ARS
+                </dt>
                 <dd
                   class="text-2xl font-black tabular-nums"
-                  :class="heroBackgroundImage ? 'text-white' : 'text-gray-900'"
+                  :class="areaReady && heroBackgroundImage ? 'text-white' : 'text-gray-900'"
                 >
-                  {{ area.ars }}
+                  {{ displayArea.ars }}
                 </dd>
               </div>
             </dl>
@@ -139,7 +177,8 @@
         </div>
 
         <div class="xl:col-span-7">
-          <DataAreaHeroMap :area="area" :nearby-areas="nearbyAreas" />
+          <DataAreaHeroMap v-if="areaReady" :area="area" :nearby-areas="nearbyAreas" />
+          <div v-else class="skeleton h-[240px] rounded-lg sm:h-[280px] xl:h-[320px]" />
         </div>
       </section>
 
@@ -150,17 +189,65 @@
         class="py-2"
         :style="`scroll-margin-top: ${productScrollMarginTop}px`"
       >
-        <div v-if="collectionsLoading" class="text-gray-400 flex items-center gap-2 py-10 text-sm">
-          <SlkFlowerSpinner :size="20" />
-          Datensätze werden geladen…
+        <div v-if="showCollectionsSkeleton">
+          <div class="border-gray-100 border-t py-4">
+            <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div class="skeleton mb-2 h-3 w-28" />
+                <div class="skeleton h-8 w-60" />
+              </div>
+              <div class="skeleton h-3 w-20" />
+            </div>
+            <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+              <div
+                v-for="i in 10"
+                :key="i"
+                class="border-gray-200 min-h-[230px] overflow-hidden rounded-lg border bg-white"
+              >
+                <div class="skeleton h-24 rounded-none" />
+                <div class="space-y-3 p-3">
+                  <div class="skeleton h-4 w-5/6" />
+                  <div class="skeleton h-4 w-3/5" />
+                  <div class="pt-14">
+                    <div class="skeleton h-3 w-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sticky z-20 -mx-2 bg-white/90 px-2 py-3 backdrop-blur-sm" :style="`top: ${sectorBarTop}px`">
+            <div class="relative flex gap-2 overflow-hidden">
+              <div v-for="i in 5" :key="i" class="skeleton h-8 w-36 rounded-full" />
+            </div>
+          </div>
+
+          <div class="py-8">
+            <div class="skeleton mb-4 h-10 w-72" />
+            <div
+              v-for="i in 2"
+              :key="i"
+              class="border-gray-100 h-[1340px] overflow-hidden border-t py-10 sm:h-[1280px] lg:h-[1160px] xl:h-[960px]"
+            >
+              <div class="grid h-[820px] gap-5 sm:h-[760px] xl:h-[430px] xl:grid-cols-12">
+                <div class="space-y-4 xl:col-span-5">
+                  <div class="skeleton h-[280px] rounded-lg" />
+                  <div class="skeleton h-28 rounded-lg" />
+                  <div class="skeleton h-16 rounded-lg" />
+                </div>
+                <div class="skeleton h-[340px] rounded-lg sm:h-[430px] xl:col-span-7 xl:h-full" />
+              </div>
+              <div class="skeleton mt-8 h-[320px] rounded-lg" />
+            </div>
+          </div>
         </div>
 
         <template v-else-if="collections.length">
           <DataProductsOverviewGrid
             :collections="collections"
-            :ars="area?.ars ?? ''"
+            :ars="displayArea?.ars ?? ''"
             :base-url="baseUrl"
-            :population="area?.population ?? null"
+            :population="displayArea?.population ?? null"
             :scroll-margin-top="productScrollMarginTop"
             @select="scrollToCollection"
           />
@@ -189,7 +276,7 @@
                     v-if="sectorImages[sector.key]"
                     :src="sectorImages[sector.key]"
                     class="h-6 w-6 flex-shrink-0 mix-blend-multiply grayscale invert"
-                    :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-40'"
+                    :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-60'"
                     alt=""
                   />
                   {{ $t(`measure_sectors.${sector.key}.title`) }}
@@ -202,6 +289,7 @@
             <template v-for="group in groupedCollections" :key="group.key">
               <div
                 :id="`sector-${group.key}`"
+                :data-sector-heading-key="group.key"
                 class="border-gray-100 flex items-center gap-2 border-t pb-2 pt-8"
                 :style="`scroll-margin-top: ${productScrollMarginTop}px`"
               >
@@ -213,16 +301,18 @@
                 v-for="col in group.collections"
                 :key="col.id"
                 :collection="col"
-                :ars="area?.ars ?? ''"
+                :ars="displayArea?.ars ?? ''"
                 :base-url="baseUrl"
-                :population="area?.population ?? null"
+                :population="displayArea?.population ?? null"
                 :scroll-margin-top="productScrollMarginTop"
               />
             </template>
           </div>
         </template>
 
-        <div v-else class="text-gray-400 py-10 text-center text-sm">Keine Klimadatensätze verfügbar.</div>
+        <div v-else-if="collectionsReady" class="text-gray-400 py-10 text-center text-sm">
+          Keine Klimadatensätze verfügbar.
+        </div>
       </section> </template
     ><!-- end scrollytelling -->
   </div>
@@ -239,6 +329,13 @@ import sectorImages from "~/shared/sectorImages.js";
 
 definePageMeta({
   key: (route) => route.fullPath,
+  middleware: [
+    (to) => {
+      if (String(to.params.slug ?? "") === "bundesrepublik-deutschland") {
+        return navigateTo("/data", { redirectCode: 301 });
+      }
+    },
+  ],
 });
 
 // ── Route + config ───────────────────────────────────────────────────────────
@@ -249,7 +346,7 @@ const slug = computed(() => String(route.params.slug ?? ""));
 
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl;
-const { isLoading: dataRouteLoading, label: dataRouteLabel, stop: stopDataRouteFeedback } = useDataRouteFeedback();
+const { label: dataRouteLabel, seedArea, stop: stopDataRouteFeedback, clearSeedArea } = useDataRouteFeedback();
 
 // ── Layout helpers ───────────────────────────────────────────────────────────
 
@@ -260,24 +357,20 @@ const isDesktop = useState("layout-isDesktop");
 const pillTop = computed(() => (isDesktop.value ? headerHeight.value : mobileHeaderHidden.value ? 0 : 64));
 
 onUnmounted(() => {
-  productSectionObserver?.disconnect();
+  removeProductSectionListeners?.();
 });
-
-if (slug.value === "bundesrepublik-deutschland") {
-  await navigateTo("/data", { redirectCode: 301 });
-}
 
 // ── Main data (SSR) ──────────────────────────────────────────────────────────
 
 const pageDataKey = computed(() => `data-area-page-${slug.value}`);
 
-const { data: pageData, pending: areaPending } = await useAsyncData(
+const { data: pageData, pending: areaPending } = useAsyncData(
   pageDataKey,
   async () => {
     const resolvedArea = await $fetch("/api/area-by-slug", {
       params: { slug: slug.value, includeGeo: true },
     });
-    if (!resolvedArea) return { notFound: true };
+    if (!resolvedArea) return { requestedSlug: slug.value, notFound: true };
     const ars = resolvedArea.ars;
     const [containedByChain, nearbyResult, muniResult] = await Promise.all([
       fetchContainedBy(ars, resolvedArea.level).catch(() => []),
@@ -313,71 +406,143 @@ const { data: pageData, pending: areaPending } = await useAsyncData(
     );
 
     return {
+      requestedSlug: slug.value,
       area: resolvedArea,
       containedBy: containedByChain ?? [],
       nearbyAreas,
       municipalityImageId: muniResult?.[0]?.image ?? null,
     };
   },
-  { watch: [slug] },
+  { watch: [slug], lazy: process.client },
 );
 
-if (!pageData.value || pageData.value.notFound) {
+if (process.server && pageData.value?.notFound) {
   throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
 }
 
-const area = computed(() => pageData.value?.area ?? {});
-const containedBy = computed(() => pageData.value?.containedBy ?? []);
-const nearbyAreas = computed(() => pageData.value?.nearbyAreas ?? []);
-const municipalityImageId = computed(() => pageData.value?.municipalityImageId ?? null);
-const loadedAreaSlug = computed(() => {
-  if (!area.value?.name) return "";
-  return areaToSlug(area.value?.prefix ?? "", area.value.name);
+watch(pageData, (value) => {
+  if (value?.requestedSlug === slug.value && value?.notFound) {
+    throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
+  }
 });
-const isAreaLoading = computed(() => areaPending.value || loadedAreaSlug.value !== slug.value);
+
+const matchingSeedArea = computed(() => (seedArea.value?.slug === slug.value ? seedArea.value : null));
+const resolvedArea = computed(() => {
+  const areaValue = pageData.value?.area;
+  if (!areaValue?.name) return null;
+  const pageSlug = areaToSlug(areaValue?.prefix ?? "", areaValue.name);
+  return pageSlug === slug.value ? areaValue : null;
+});
+const area = computed(() => resolvedArea.value ?? matchingSeedArea.value ?? {});
+const displayArea = computed(() => area.value);
+const hasDisplayArea = computed(() => !!displayArea.value?.name);
+const areaReady = computed(() => !!resolvedArea.value && !areaPending.value);
+const containedBy = computed(() => (areaReady.value ? (pageData.value?.containedBy ?? []) : []));
+const nearbyAreas = computed(() => (areaReady.value ? (pageData.value?.nearbyAreas ?? []) : []));
+const municipalityImageId = computed(() => (areaReady.value ? (pageData.value?.municipalityImageId ?? null) : null));
+const displayGeoCenter = computed(() => displayArea.value?.geo_center ?? displayArea.value?.geoCenter ?? null);
+const displayLat = computed(() => {
+  const center = displayGeoCenter.value;
+  if (!center) return null;
+  if (Array.isArray(center)) return center[1];
+  if (center.coordinates) return center.coordinates[1];
+  return center.lat ?? null;
+});
+const displayLon = computed(() => {
+  const center = displayGeoCenter.value;
+  if (!center) return null;
+  if (Array.isArray(center)) return center[0];
+  if (center.coordinates) return center.coordinates[0];
+  return center.lon ?? center.lng ?? null;
+});
+const isAreaLoading = computed(() => !areaReady.value);
 const usesOverviewLayout = computed(
-  () => !isAreaLoading.value && (area.value?.level ?? 99) <= 2 && !area.value?.is_reasonable_for_municipal_rating,
+  () => areaReady.value && (area.value?.level ?? 99) <= 2 && !area.value?.is_reasonable_for_municipal_rating,
 );
 
 // ── Collections (CSR, area-injected) ────────────────────────────────────────
 
-const collectionsDataKey = computed(() => `stadtlandzahl-collections-page-${slug.value}`);
-
-const { data: collectionsData, pending: collectionsLoading } = await useAsyncData(
-  collectionsDataKey,
-  async () => {
-    // Germany and non-rateable Bundesländer use AreaOverview — no collections rendered there.
-    if (isAreaLoading.value || usesOverviewLayout.value) return [];
-
-    // Try slim manifest first: much smaller (no vegalite_specs), CDN-cached
-    // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded
-    try {
-      const manifest = await $fetch(`${baseUrl}/api/manifests/collections-index`);
-      const slim = (manifest?.collections ?? [])
-        .filter((c) => c.id !== "administrative-areas")
-        .map((c) => normalizeCollection(c));
-      if (slim.length > 0) return slim;
-    } catch {
-      /* manifest not deployed yet — fall through */
-    }
-
-    // Fall back to full area-specific API
-    const params = area.value?.ars ? { area: area.value.ars } : {};
-    return $fetch(`${baseUrl}/api/collections/`, { params })
-      .then((d) =>
-        (d?.collections ?? []).filter((c) => c.id !== "administrative-areas").map((c) => normalizeCollection(c)),
-      )
-      .catch(() => []);
-  },
-  { server: false, watch: [area] },
+const collections = ref([]);
+const collectionsLoading = ref(false);
+const collectionsLoadedForSlug = ref("");
+const collectionsReady = computed(
+  () => areaReady.value && !collectionsLoading.value && collectionsLoadedForSlug.value === slug.value,
 );
-const collections = computed(() => collectionsData.value ?? []);
+const showCollectionsSkeleton = computed(() => !areaReady.value || collectionsLoading.value || !collectionsReady.value);
+let collectionsRequestId = 0;
+
+async function loadCollectionsForCurrentArea() {
+  const requestId = ++collectionsRequestId;
+  const requestSlug = slug.value;
+
+  collections.value = [];
+  collectionsLoadedForSlug.value = "";
+
+  // Germany and non-rateable Bundesländer use AreaOverview — no collections rendered there.
+  if (!areaReady.value || usesOverviewLayout.value) {
+    collectionsLoading.value = false;
+    return;
+  }
+
+  collectionsLoading.value = true;
+
+  try {
+    // Try slim manifest first: much smaller (no vegalite_specs), CDN-cached.
+    // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded.
+    const manifest = await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 });
+    const slim = (manifest?.collections ?? [])
+      .filter((c) => c.id !== "administrative-areas")
+      .map((c) => normalizeCollection(c));
+
+    if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
+
+    if (slim.length > 0) {
+      collections.value = slim;
+      collectionsLoadedForSlug.value = requestSlug;
+      collectionsLoading.value = false;
+      return;
+    }
+  } catch {
+    /* manifest not deployed yet — fall through */
+  }
+
+  try {
+    // Fall back to full area-specific API.
+    const params = area.value?.ars ? { area: area.value.ars } : {};
+    const data = await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 });
+
+    if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
+
+    collections.value = (data?.collections ?? [])
+      .filter((c) => c.id !== "administrative-areas")
+      .map((c) => normalizeCollection(c));
+    collectionsLoadedForSlug.value = requestSlug;
+  } catch {
+    if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
+
+    collections.value = [];
+    collectionsLoadedForSlug.value = requestSlug;
+  } finally {
+    if (requestId === collectionsRequestId && requestSlug === slug.value) {
+      collectionsLoading.value = false;
+    }
+  }
+}
+
+watch(
+  [areaReady, usesOverviewLayout, () => area.value?.ars, slug],
+  () => {
+    loadCollectionsForCurrentArea();
+  },
+  { immediate: true },
+);
 
 // ── Product scroll navigation ────────────────────────────────────────────────
 
 const exploreSection = ref(null);
 const activeSectorKey = ref("");
-let productSectionObserver = null;
+let productSectionScrollFrame = null;
+let removeProductSectionListeners = null;
 
 const sectorBarTop = computed(() => pillTop.value + 52);
 const productScrollMarginTop = computed(() => sectorBarTop.value + 58);
@@ -429,7 +594,10 @@ watch(
 );
 
 watch(isAreaLoading, (loading) => {
-  if (!loading) stopDataRouteFeedback();
+  if (!loading) {
+    stopDataRouteFeedback();
+    clearSeedArea();
+  }
 });
 
 function scrollToExplore() {
@@ -490,34 +658,55 @@ function scrollToCollection(collectionId) {
 }
 
 function scrollToSector(key) {
-  const first = groupedCollections.value.find((group) => group.key === key)?.collections?.[0];
-  if (!first) return;
-  scrollToCollection(first.id);
+  const el = document.getElementById(`sector-${key}`);
+  if (!el) return;
+  activeSectorKey.value = key;
+  const top = el.getBoundingClientRect().top + window.scrollY - productScrollMarginTop.value;
+  window.history.pushState(null, "", `#sector-${key}`);
+  window.scrollTo({ top, behavior: "smooth" });
 }
 
 function initProductSectionObserver() {
-  productSectionObserver?.disconnect();
-  productSectionObserver = null;
-  if (typeof IntersectionObserver === "undefined") return;
+  removeProductSectionListeners?.();
+  removeProductSectionListeners = null;
+  if (typeof window === "undefined") return;
 
-  const sections = document.querySelectorAll("[data-collection-id][data-sector-key]");
-  if (!sections.length) return;
+  updateActiveSectorFromScroll();
+  window.addEventListener("scroll", scheduleActiveSectorUpdate, { passive: true });
+  window.addEventListener("resize", scheduleActiveSectorUpdate, { passive: true });
+  removeProductSectionListeners = () => {
+    window.removeEventListener("scroll", scheduleActiveSectorUpdate);
+    window.removeEventListener("resize", scheduleActiveSectorUpdate);
+    if (productSectionScrollFrame) window.cancelAnimationFrame(productSectionScrollFrame);
+    productSectionScrollFrame = null;
+  };
+}
 
-  productSectionObserver = new IntersectionObserver(
-    (entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top))[0];
-      const key = visible?.target?.getAttribute("data-sector-key");
-      if (key) activeSectorKey.value = key;
-    },
-    {
-      rootMargin: `-${productScrollMarginTop.value}px 0px -55% 0px`,
-      threshold: 0,
-    },
-  );
+function scheduleActiveSectorUpdate() {
+  if (productSectionScrollFrame) return;
+  productSectionScrollFrame = window.requestAnimationFrame(() => {
+    productSectionScrollFrame = null;
+    updateActiveSectorFromScroll();
+  });
+}
 
-  sections.forEach((section) => productSectionObserver.observe(section));
+function updateActiveSectorFromScroll() {
+  const headings = Array.from(document.querySelectorAll("[data-sector-heading-key]"));
+  if (!headings.length) return;
+
+  const activationY = window.scrollY + productScrollMarginTop.value + 8;
+  let active = headings[0]?.getAttribute("data-sector-heading-key") ?? "";
+
+  for (const heading of headings) {
+    const top = heading.getBoundingClientRect().top + window.scrollY;
+    if (top <= activationY) {
+      active = heading.getAttribute("data-sector-heading-key") ?? active;
+    } else {
+      break;
+    }
+  }
+
+  if (active) activeSectorKey.value = active;
 }
 
 onMounted(() => {

@@ -507,7 +507,13 @@ async function selectState(stateObj) {
   if (isDirectDashboardState(stateObj)) {
     isLeavingOverview.value = true;
     hoveredItem.value = null;
-    startDataRouteFeedback(`${stateObj.name} wird geladen...`);
+    const meta = stateMeta(stateObj);
+    startDataRouteFeedback(`${stateObj.name} wird geladen...`, {
+      ...stateObj,
+      prefix: stateObj.prefix ?? meta?.prefix ?? "",
+      geoCenter: rawCentroid(stateObj.geometry),
+      is_reasonable_for_municipal_rating: true,
+    });
     await navigateTo(dashboardHref(stateObj));
     return;
   }
@@ -523,7 +529,7 @@ async function openMunicipality(municipality) {
 function startMunicipalityNavigation(municipality) {
   isLeavingOverview.value = true;
   hoveredItem.value = null;
-  startDataRouteFeedback(`${municipality.name} wird geladen...`);
+  startDataRouteFeedback(`${municipality.name} wird geladen...`, municipality);
 }
 
 function prepareMunicipalityClick() {

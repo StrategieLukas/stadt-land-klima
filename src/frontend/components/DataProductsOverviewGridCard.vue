@@ -120,6 +120,7 @@ async function loadSummary() {
     if (!kpi.value) return;
     const data = await $fetch<CollectionSummary>(`${props.baseUrl}/api/collections/${props.collection.id}/summary/`, {
       params: { area: props.ars },
+      timeout: 10000,
     });
     aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null;
   } catch (_) {
@@ -131,7 +132,9 @@ async function loadCollectionDetails() {
   if (hasRequestedDetails.value || collectionDetails.value) return;
   hasRequestedDetails.value = true;
   try {
-    const data = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`);
+    const data = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`, {
+      timeout: 8000,
+    });
     collectionDetails.value = normalizeCollection(data);
   } catch (_) {
     collectionDetails.value = null;
