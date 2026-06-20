@@ -1,4 +1,8 @@
 #!/bin/bash
-cd ..
+set -euo pipefail
 
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml build --build-arg UID=$(id -u) --build-arg GID=$(id -g)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$REPO_ROOT"
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml build --build-arg UID="$(id -u)" --build-arg GID="$(id -g)"
