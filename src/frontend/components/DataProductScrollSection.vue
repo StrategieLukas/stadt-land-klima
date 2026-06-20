@@ -4,24 +4,24 @@
     :id="collection.id"
     :data-collection-id="collection.id"
     :data-sector-key="sectorKeyValue"
-    class="border-gray-100 border-t py-10"
+    class="border-gray-100 h-[1340px] overflow-hidden border-t py-10 sm:h-[1280px] lg:h-[1160px] xl:h-[960px]"
     :style="`scroll-margin-top: ${scrollMarginTop}px`"
   >
-    <div class="grid gap-5 xl:grid-cols-12 xl:items-stretch">
-      <div class="flex flex-col gap-4 xl:col-span-5">
+    <div class="grid h-[820px] gap-5 overflow-hidden sm:h-[760px] xl:h-[430px] xl:grid-cols-12 xl:items-stretch">
+      <div class="flex min-h-0 flex-col gap-4 overflow-hidden xl:col-span-5">
         <div
-          class="border-gray-200 relative flex min-h-[280px] flex-col justify-end overflow-hidden rounded-lg border bg-white shadow-sm"
+          class="border-gray-200 relative flex h-[280px] flex-none flex-col justify-end overflow-hidden rounded-lg border bg-white shadow-sm xl:h-[280px]"
         >
           <img
-            v-if="collection.cover_image_url"
-            :src="collection.cover_image_url"
+            v-if="coverImageUrl"
+            :src="coverImageUrl"
             :alt="title"
             class="absolute inset-0 h-full w-full object-cover"
             loading="lazy"
           />
           <div v-else class="absolute inset-0 flex items-center justify-center" :style="fallbackBackground">
             <Icon
-              :icon="collection.iconify_str ? String(collection.iconify_str) : 'mdi:chart-areaspline'"
+              :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-areaspline'"
               class="h-20 w-20 opacity-35"
               :style="{ color }"
             />
@@ -49,21 +49,21 @@
           :population="population"
         />
 
-        <p v-if="description" class="text-gray-600 text-sm leading-relaxed">
+        <p v-if="description" class="text-gray-600 line-clamp-4 text-sm leading-relaxed">
           {{ description }}
         </p>
       </div>
 
-      <div class="xl:col-span-7">
-        <div class="border-gray-200 h-full min-h-[340px] overflow-hidden rounded-lg border bg-white shadow-sm">
+      <div class="h-[340px] sm:h-[430px] xl:col-span-7 xl:h-full">
+        <div class="border-gray-200 h-full overflow-hidden rounded-lg border bg-white shadow-sm">
           <div
             v-if="renderLoading && !hasLoaded"
-            class="text-gray-500 flex h-[340px] items-center justify-center gap-2 text-sm"
+            class="text-gray-500 flex h-full items-center justify-center gap-2 text-sm"
           >
             <SlkFlowerSpinner :size="24" />
             Datenprodukt wird geladen…
           </div>
-          <div v-else-if="primaryVisualSpec" class="h-[340px] sm:h-[430px] xl:h-full xl:min-h-[430px]">
+          <div v-else-if="primaryVisualSpec" class="h-full">
             <ClientOnly>
               <VegaChart :spec="primaryVisualSpec" />
             </ClientOnly>
@@ -74,27 +74,58 @@
             :collection-slug="collection.id"
             :base-url="baseUrl"
           />
-          <div v-else class="text-gray-400 bg-gray-50 flex h-[340px] items-center justify-center text-sm">
+          <div v-else class="text-gray-400 bg-gray-50 flex h-full items-center justify-center text-sm">
             Keine Kartenvisualisierung verfügbar.
           </div>
         </div>
       </div>
     </div>
 
-    <DataProductJourneyCarousel
-      v-if="hasLoaded && renderSteps.length"
-      :steps="renderSteps"
-      :collection="collection"
-      :ars="ars"
-      :base-url="baseUrl"
-      :population="population"
-    />
+    <div class="h-[360px] overflow-hidden">
+      <DataProductJourneyCarousel
+        v-if="hasLoaded && renderSteps.length"
+        :steps="renderSteps"
+        :collection="collection"
+        :ars="ars"
+        :base-url="baseUrl"
+        :population="population"
+      />
 
-    <div v-else-if="renderError" class="text-gray-400 mt-6 text-sm">
-      Weitere Visualisierungen konnten nicht geladen werden.
+      <div v-else-if="renderError" class="text-gray-400 mt-8 text-sm">
+        Weitere Visualisierungen konnten nicht geladen werden.
+      </div>
+
+      <div v-else class="mt-8">
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <div class="bg-gray-100 h-4 w-24 animate-pulse rounded" />
+          <div class="flex items-center gap-2">
+            <div class="bg-gray-100 h-6 w-20 animate-pulse rounded" />
+            <div class="bg-gray-100 h-6 w-6 animate-pulse rounded" />
+            <div class="bg-gray-100 h-6 w-6 animate-pulse rounded" />
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div class="border-gray-100 overflow-hidden rounded-lg border bg-white">
+            <div class="border-gray-100 border-b p-4">
+              <div class="bg-gray-100 h-4 w-2/3 animate-pulse rounded" />
+              <div class="bg-gray-100 mt-2 h-3 w-4/5 animate-pulse rounded" />
+            </div>
+            <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
+          </div>
+          <div class="border-gray-100 hidden overflow-hidden rounded-lg border bg-white lg:block">
+            <div class="border-gray-100 border-b p-4">
+              <div class="bg-gray-100 h-4 w-1/2 animate-pulse rounded" />
+              <div class="bg-gray-100 mt-2 h-3 w-3/4 animate-pulse rounded" />
+            </div>
+            <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
+          </div>
+        </div>
+      </div>
     </div>
 
-    <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
+    <div class="h-[72px] overflow-hidden">
+      <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
+    </div>
   </section>
 </template>
 
@@ -105,6 +136,8 @@ import { useCollectionRender } from "~/composables/useCollectionRender";
 import type { Collection, CollectionSummary, RenderElement } from "~/types/slz-api";
 import {
   bestVisualElement,
+  collectionCoverImageUrl,
+  collectionIconifyStr,
   firstKpiElement,
   injectAreaIntoSpec,
   localizedText,
@@ -135,6 +168,8 @@ const {
 } = useCollectionRender(props.baseUrl);
 
 const title = computed(() => localizedText(props.collection.title) || props.collection.id);
+const coverImageUrl = computed(() => collectionCoverImageUrl(props.collection));
+const iconifyStr = computed(() => collectionIconifyStr(props.collection));
 const description = computed(() => {
   const firstStepDescription = localizedText(props.collection.narrative_steps?.[0]?.description);
   return firstStepDescription || localizedText(props.collection.description);

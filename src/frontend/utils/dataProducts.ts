@@ -44,7 +44,15 @@ export function sectorKey(collection: Pick<Collection, "sector">) {
 }
 
 export function sectorLabel(collection: Pick<Collection, "sector" | "sector_label" | "sector_display">) {
-  const explicit = localizedText(collection.sector_label) || collection.sector_display;
+  const camelCollection = collection as Collection & {
+    sectorLabel?: Collection["sector_label"];
+    sectorDisplay?: string;
+  };
+  const explicit =
+    localizedText(collection.sector_label) ||
+    localizedText(camelCollection.sectorLabel) ||
+    collection.sector_display ||
+    camelCollection.sectorDisplay;
   if (explicit) return explicit;
   const raw = collection.sector?.trim() || "";
   return (SECTOR_ALIASES.find((sector) => sector.pattern.test(raw))?.label ?? raw) || "Weitere";
@@ -55,10 +63,18 @@ export function sectorColor(collection: Pick<Collection, "sector">) {
 }
 
 export function firstKpiElement(collection: Pick<Collection, "render_elements">) {
-  const renderElementKpi = collection.render_elements?.find((element) => element.type === "kpi") ?? null;
+  const camelCollection = collection as Collection & {
+    renderElements?: RenderElement[];
+    renderConfig?: Collection["render_config"];
+  };
+  const renderElements = collection.render_elements ?? camelCollection.renderElements ?? [];
+  const renderElementKpi = renderElements.find((element) => element.type === "kpi") ?? null;
   if (renderElementKpi) return renderElementKpi;
 
-  const renderConfig = (collection as Collection).render_config as Record<string, any> | null | undefined;
+  const renderConfig = ((collection as Collection).render_config ?? camelCollection.renderConfig) as
+    | Record<string, any>
+    | null
+    | undefined;
   const configKpi =
     renderConfig?.kpi ??
     renderConfig?.primary_kpi ??
@@ -80,6 +96,41 @@ export function firstKpiElement(collection: Pick<Collection, "render_elements">)
     is_percentage: configKpi.is_percentage ?? configKpi.isPercentage ?? false,
     vegalite_spec: null,
   } as RenderElement;
+}
+
+export function collectionCoverImageUrl(collection: Collection) {
+  const camelCollection = collection as Collection & { coverImageUrl?: string | null };
+  return collection.cover_image_url ?? camelCollection.coverImageUrl ?? null;
+}
+
+export function collectionIconifyStr(collection: Collection) {
+  const camelCollection = collection as Collection & { iconifyStr?: string | null };
+  return collection.iconify_str ?? camelCollection.iconifyStr ?? null;
+}
+
+export function normalizeCollection(collection: Collection) {
+  const camelCollection = collection as Collection & {
+    coverImageUrl?: string | null;
+    iconifyStr?: string | null;
+    sectorLabel?: Collection["sector_label"];
+    sectorDisplay?: string;
+    temporalExtent?: Collection["temporal_extent"];
+    narrativeSteps?: Collection["narrative_steps"];
+    renderElements?: Collection["render_elements"];
+    renderConfig?: Collection["render_config"];
+  };
+
+  return {
+    ...collection,
+    cover_image_url: collection.cover_image_url ?? camelCollection.coverImageUrl ?? null,
+    iconify_str: collection.iconify_str ?? camelCollection.iconifyStr ?? null,
+    sector_label: collection.sector_label ?? camelCollection.sectorLabel,
+    sector_display: collection.sector_display ?? camelCollection.sectorDisplay,
+    temporal_extent: collection.temporal_extent ?? camelCollection.temporalExtent,
+    narrative_steps: collection.narrative_steps ?? camelCollection.narrativeSteps,
+    render_elements: collection.render_elements ?? camelCollection.renderElements,
+    render_config: collection.render_config ?? camelCollection.renderConfig,
+  } as Collection;
 }
 
 export function firstMapElement(collection: Pick<Collection, "render_elements">) {

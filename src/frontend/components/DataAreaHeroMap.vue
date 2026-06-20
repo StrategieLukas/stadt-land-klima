@@ -47,6 +47,7 @@ const props = defineProps({
 });
 
 const router = useRouter();
+const { start: startDataRouteFeedback } = useDataRouteFeedback();
 const mapRef = ref(null);
 const mapReady = ref(false);
 const zoom = ref(10);
@@ -100,6 +101,7 @@ function areaLabel(area) {
 
 function navigateToArea(area) {
   if (!area?.prefix || !area?.name) return;
+  startDataRouteFeedback(`${area.name} wird geladen...`);
   router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
 }
 

@@ -65,11 +65,11 @@
 
     <!-- ── Route-level loading: avoid rendering stale area content during reused-page navigation. ── -->
     <section
-      v-if="isAreaLoading"
+      v-if="isAreaLoading || dataRouteLoading"
       class="text-gray-500 flex min-h-[52vh] flex-col items-center justify-center gap-3 py-16 text-sm"
     >
-      <span class="loading loading-spinner loading-md text-[#006e94]" />
-      <span>Klimadaten werden geladen...</span>
+      <SlkFlowerSpinner :size="32" />
+      <span>{{ dataRouteLabel }}</span>
     </section>
 
     <!-- ── Overview layout (Germany / non-rateable Bundesland) ───────────── -->
@@ -86,11 +86,11 @@
         :style="`scroll-margin-top: ${headerHeight + 16}px`"
       >
         <div
-          class="h-full border-gray-200 relative overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
+          class="border-gray-200 relative h-full overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
           :class="heroBackgroundImage ? 'bg-gray-900' : 'bg-white'"
           :style="heroBackgroundStyle"
         >
-          <div v-if="heroBackgroundImage" class="absolute inset-0 bg-black/45 h-full backdrop-blur-[1px]" />
+          <div v-if="heroBackgroundImage" class="absolute inset-0 h-full bg-black/45 backdrop-blur-[1px]" />
           <div class="relative">
             <p
               class="mb-2 text-xs font-bold uppercase tracking-widest"
@@ -165,16 +165,12 @@
             @select="scrollToCollection"
           />
 
-          <nav
-            class="border-gray-100 sticky z-20 -mx-2 bg-white/90 px-2 py-3 backdrop-blur-sm"
-            :style="`top: ${sectorBarTop}px`"
-          >
+          <nav class="sticky z-20 -mx-2 bg-white/90 px-2 py-3 backdrop-blur-sm" :style="`top: ${sectorBarTop}px`">
             <div
-              class="border-gray-100 absolute border-b border-width-1 bg-white/90 backdrop-blur-sm"
+              class="border-gray-100 pointer-events-none absolute border-b bg-white/90 backdrop-blur-sm"
               style="top: 0; bottom: 0; left: calc((100% - 100vw) / 2); right: calc((100% - 100vw) / 2)"
             />
             <div class="relative flex min-w-0 items-center gap-3">
-              <span class="text-gray-500 flex-none text-xs font-bold uppercase tracking-wide">Sektoren</span>
               <div class="no-scrollbar flex items-center gap-2 overflow-x-auto">
                 <button
                   v-for="sector in productSectors"
@@ -192,7 +188,7 @@
                   <img
                     v-if="sectorImages[sector.key]"
                     :src="sectorImages[sector.key]"
-                    class="h-4 w-4 flex-shrink-0 invert grayscale mix-blend-multiply"
+                    class="h-6 w-6 flex-shrink-0 mix-blend-multiply grayscale invert"
                     :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-40'"
                     alt=""
                   />
@@ -211,7 +207,7 @@
               >
                 <span class="h-3 w-3 rounded-full" :style="{ backgroundColor: group.color }" />
                 <h2 class="text-gray-900 text-4xl font-black">{{ group.label }}</h2>
-                <span class="text-gray-400 text-xs justify-self-end">{{ group.collections.length }} Datenprodukte</span>
+                <span class="text-gray-400 justify-self-end text-xs">{{ group.collections.length }} Datenprodukte</span>
               </div>
               <DataProductScrollSection
                 v-for="col in group.collections"
@@ -238,7 +234,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
 import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug.js";
-import { sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
+import { normalizeCollection, sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
 import sectorImages from "~/shared/sectorImages.js";
 
 definePageMeta({
@@ -253,6 +249,7 @@ const slug = computed(() => String(route.params.slug ?? ""));
 
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl;
+const { isLoading: dataRouteLoading, label: dataRouteLabel, stop: stopDataRouteFeedback } = useDataRouteFeedback();
 
 // ── Layout helpers ───────────────────────────────────────────────────────────
 
@@ -284,14 +281,20 @@ const { data: pageData, pending: areaPending } = await useAsyncData(
     const ars = resolvedArea.ars;
     const [containedByChain, nearbyResult, muniResult] = await Promise.all([
       fetchContainedBy(ars, resolvedArea.level).catch(() => []),
-      resolvedArea.level > 2 ? $fetch("/api/area-nearby", {
-        params: { ars, radius_km: 45, levels: "4,5,6", limit: 24 },
-      }).catch(() => ({ areas: [] })) : { areas: [] },
-      $directus.request($readItems("municipalities", {
-        filter: { ars: { _eq: ars } },
-        fields: ["image"],
-        limit: 1,
-      })).catch(() => []),
+      resolvedArea.level > 2
+        ? $fetch("/api/area-nearby", {
+            params: { ars, radius_km: 45, levels: "4,5,6", limit: 24 },
+          }).catch(() => ({ areas: [] }))
+        : { areas: [] },
+      $directus
+        .request(
+          $readItems("municipalities", {
+            filter: { ars: { _eq: ars } },
+            fields: ["image"],
+            limit: 1,
+          }),
+        )
+        .catch(() => []),
     ]);
 
     const nearbyAreas = await Promise.all(
@@ -351,7 +354,8 @@ const { data: collectionsData, pending: collectionsLoading } = await useAsyncDat
     try {
       const manifest = await $fetch(`${baseUrl}/api/manifests/collections-index`);
       const slim = (manifest?.collections ?? [])
-        .filter((c) => c.id !== "administrative-areas");
+        .filter((c) => c.id !== "administrative-areas")
+        .map((c) => normalizeCollection(c));
       if (slim.length > 0) return slim;
     } catch {
       /* manifest not deployed yet — fall through */
@@ -360,7 +364,9 @@ const { data: collectionsData, pending: collectionsLoading } = await useAsyncDat
     // Fall back to full area-specific API
     const params = area.value?.ars ? { area: area.value.ars } : {};
     return $fetch(`${baseUrl}/api/collections/`, { params })
-      .then((d) => (d?.collections ?? []).filter((c) => c.id !== "administrative-areas"))
+      .then((d) =>
+        (d?.collections ?? []).filter((c) => c.id !== "administrative-areas").map((c) => normalizeCollection(c)),
+      )
       .catch(() => []);
   },
   { server: false, watch: [area] },
@@ -421,6 +427,10 @@ watch(
   },
   { immediate: true },
 );
+
+watch(isAreaLoading, (loading) => {
+  if (!loading) stopDataRouteFeedback();
+});
 
 function scrollToExplore() {
   const el = exploreSection.value?.$el ?? exploreSection.value;

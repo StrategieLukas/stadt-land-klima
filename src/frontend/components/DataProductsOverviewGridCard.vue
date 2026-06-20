@@ -7,15 +7,15 @@
   >
     <div class="bg-gray-100 relative h-24 overflow-hidden">
       <img
-        v-if="collection.cover_image_url"
-        :src="collection.cover_image_url"
+        v-if="coverImageUrl"
+        :src="coverImageUrl"
         :alt="title"
         class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         loading="lazy"
       />
       <div v-else class="flex h-full w-full items-center justify-center" :style="fallbackBackground">
         <Icon
-          :icon="collection.iconify_str ? String(collection.iconify_str) : 'mdi:chart-line'"
+          :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-line'"
           class="h-10 w-10 opacity-50"
           :style="{ color: color }"
         />
@@ -60,10 +60,13 @@ import { Icon } from "@iconify/vue";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import type { Collection, CollectionSummary } from "~/types/slz-api";
 import {
+  collectionCoverImageUrl,
+  collectionIconifyStr,
   firstKpiElement,
   formatKpiValue,
   kpiValueFromAggregate,
   localizedText,
+  normalizeCollection,
   sectorColor,
   sectorLabel,
 } from "~/utils/dataProducts";
@@ -80,14 +83,19 @@ defineEmits<{
 }>();
 
 const cardRef = ref<HTMLElement | null>(null);
+const collectionDetails = ref<Collection | null>(null);
 const aggregate = ref<Record<string, unknown> | null>(null);
 const hasRequestedSummary = ref(false);
+const hasRequestedDetails = ref(false);
 let observer: IntersectionObserver | null = null;
 
-const title = computed(() => localizedText(props.collection.title) || props.collection.id);
-const sector = computed(() => sectorLabel(props.collection));
-const color = computed(() => sectorColor(props.collection));
-const kpi = computed(() => firstKpiElement(props.collection));
+const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
+const title = computed(() => localizedText(effectiveCollection.value.title) || effectiveCollection.value.id);
+const sector = computed(() => sectorLabel(effectiveCollection.value));
+const color = computed(() => sectorColor(effectiveCollection.value));
+const coverImageUrl = computed(() => collectionCoverImageUrl(effectiveCollection.value));
+const iconifyStr = computed(() => collectionIconifyStr(effectiveCollection.value));
+const kpi = computed(() => firstKpiElement(effectiveCollection.value));
 const hasThresholds = computed(() => !!kpi.value?.thresholds && Object.keys(kpi.value.thresholds).length > 0);
 const kpiLabel = computed(() => localizedText(kpi.value?.label) || localizedText(kpi.value?.title));
 const unitLabel = computed(() => localizedText(kpi.value?.unit));
@@ -103,15 +111,30 @@ const fallbackBackground = computed(
 );
 
 async function loadSummary() {
-  if (hasRequestedSummary.value || !props.ars || !props.collection.id || !kpi.value) return;
+  if (hasRequestedSummary.value || !props.ars || !props.collection.id) return;
   hasRequestedSummary.value = true;
   try {
+    if (!kpi.value) {
+      await loadCollectionDetails();
+    }
+    if (!kpi.value) return;
     const data = await $fetch<CollectionSummary>(`${props.baseUrl}/api/collections/${props.collection.id}/summary/`, {
       params: { area: props.ars },
     });
     aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null;
   } catch (_) {
     aggregate.value = null;
+  }
+}
+
+async function loadCollectionDetails() {
+  if (hasRequestedDetails.value || collectionDetails.value) return;
+  hasRequestedDetails.value = true;
+  try {
+    const data = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`);
+    collectionDetails.value = normalizeCollection(data);
+  } catch (_) {
+    collectionDetails.value = null;
   }
 }
 

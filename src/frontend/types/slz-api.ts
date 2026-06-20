@@ -32,27 +32,37 @@ export interface TemporalExtent {
   resolution: string;
 }
 
+export interface CollectionRenderConfig {
+  layer_type?: string;
+  color_field?: string;
+  threshold_bar?: {
+    thresholds?: Record<string, number>;
+  };
+}
+
 export interface Collection {
   id: string;
   title: Record<string, string>;
   description: Record<string, string>;
   sector: string | null;
   sector_label?: Record<string, string> | string;
+  sectorLabel?: Record<string, string> | string;
   sector_display?: string;
+  sectorDisplay?: string;
   cover_image_url?: string | null;
+  coverImageUrl?: string | null;
   iconify_str?: string | null;
+  iconifyStr?: string | null;
   tags?: string[];
   temporal_extent?: TemporalExtent | null;
+  temporalExtent?: TemporalExtent | null;
   narrative_steps?: NarrativeStep[];
+  narrativeSteps?: NarrativeStep[];
   render_elements?: RenderElement[];
+  renderElements?: RenderElement[];
   hasNarrativeSteps?: boolean;
-  render_config?: {
-    layer_type?: string;
-    color_field?: string;
-    threshold_bar?: {
-      thresholds?: Record<string, number>;
-    };
-  };
+  render_config?: CollectionRenderConfig;
+  renderConfig?: CollectionRenderConfig;
 }
 
 export interface SummaryAggregate {
