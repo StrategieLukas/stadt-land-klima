@@ -12,8 +12,15 @@
         :alt="t(collection.title)"
         class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
       />
+      <span
+        v-if="coverImageUrl && coverImageAttribution"
+        class="pointer-events-none absolute bottom-1.5 right-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+        :title="coverImageAttribution"
+      >
+        {{ coverImageAttribution }}
+      </span>
       <div
-        v-else
+        v-if="!coverImageUrl"
         class="flex h-full w-full items-center justify-center"
         :style="`background: linear-gradient(135deg, ${sectorColor}18, ${sectorColor}35)`"
       >
@@ -53,7 +60,7 @@ import { computed } from "vue";
 import type { Collection } from "~/types/slz-api";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import sectorImages from "~/shared/sectorImages.js";
-import { collectionCoverImageUrl } from "~/utils/dataProducts";
+import { collectionCoverImage } from "~/utils/dataProducts";
 
 const SECTOR_COLORS: Record<string, string> = {
   energy: "#F59E0B",
@@ -72,12 +79,15 @@ const props = defineProps<{
 
 const { t } = useSlzLocale();
 const { start: startDataRouteFeedback } = useDataRouteFeedback();
+const runtimeConfig = useRuntimeConfig();
 
 const description = computed(
   () => props.collection.description?.["de-DE"] || props.collection.description?.["en-US"] || "",
 );
 
-const coverImageUrl = computed(() => collectionCoverImageUrl(props.collection));
+const coverImage = computed(() => collectionCoverImage(props.collection, runtimeConfig.public.clientDirectusUrl));
+const coverImageUrl = computed(() => coverImage.value.url);
+const coverImageAttribution = computed(() => coverImage.value.attribution);
 
 const sectorColor = computed(() => SECTOR_COLORS[props.sectorKey ?? "other"] ?? SECTOR_COLORS.other);
 

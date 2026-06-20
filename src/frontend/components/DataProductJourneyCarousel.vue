@@ -1,6 +1,6 @@
 <template>
-  <div v-if="items.length" class="mt-8">
-    <div class="mb-3 flex items-center justify-between gap-3">
+  <div v-if="items.length" class="mt-6">
+    <div class="mb-2 flex items-center justify-between gap-3">
       <h3 class="text-gray-500 text-sm font-bold uppercase tracking-wide">Datenreise</h3>
       <div class="flex items-center gap-2">
         <button
@@ -11,6 +11,21 @@
           <Icon :icon="expanded ? 'mdi:arrow-collapse' : 'mdi:arrow-expand'" class="h-4 w-4" />
           {{ expanded ? "Kompakt" : "Groß" }}
         </button>
+        <div
+          v-if="pages.length > 1"
+          class="border-gray-200 flex h-6 items-center gap-1 rounded-full border bg-white px-2 shadow-sm"
+          aria-label="Grafikgruppen"
+        >
+          <button
+            v-for="(_, pageIndex) in pages"
+            :key="pageIndex"
+            type="button"
+            class="h-2 rounded-full transition-all"
+            :class="pageIndex === activePage ? 'w-5 bg-[#006e94]' : 'bg-gray-300 hover:bg-gray-400 w-2'"
+            :aria-label="`Grafikgruppe ${pageIndex + 1}`"
+            @click="goTo(pageIndex)"
+          />
+        </div>
         <button
           type="button"
           class="border-gray-200 btn btn-ghost btn-xs border bg-white"
@@ -32,23 +47,23 @@
       </div>
     </div>
 
-    <div ref="trackRef" class="no-scrollbar snap-x snap-mandatory overflow-x-auto scroll-smooth">
+    <div ref="trackRef" class="no-scrollbar snap-x snap-mandatory overflow-x-auto scroll-smooth pb-px">
       <div class="flex">
         <div v-for="(page, pageIndex) in pages" :key="pageIndex" class="min-w-full snap-start">
           <div class="grid gap-4" :class="expanded ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'">
             <article
               v-for="item in page"
               :key="item.key"
-              class="border-gray-200 overflow-hidden rounded-lg border bg-white shadow-sm"
+              class="border-gray-200 flex h-[304px] flex-col overflow-hidden rounded-lg border bg-white shadow-sm"
             >
-              <div class="border-gray-100 border-b px-4 py-3">
+              <div class="border-gray-100 border-b px-4 py-2.5">
                 <p class="text-gray-900 text-sm font-bold leading-snug">{{ item.title }}</p>
                 <p v-if="item.description" class="text-gray-500 mt-1 line-clamp-2 text-xs leading-relaxed">
                   {{ item.description }}
                 </p>
               </div>
 
-              <div class="p-3">
+              <div class="min-h-0 flex-1 p-2.5">
                 <KPICard
                   v-if="item.element.type === 'kpi'"
                   :element="item.element"
@@ -63,9 +78,18 @@
                   :collection-slug="collection.id"
                   :base-url="baseUrl"
                 />
-                <div v-else-if="item.spec" class="w-full" :style="`height: ${expanded ? 430 : 280}px`">
+                <div v-else-if="item.spec" class="h-[220px] w-full">
                   <ClientOnly>
-                    <VegaChart :spec="item.spec" />
+                    <VegaChart
+                      :spec="item.spec"
+                      :export-area-name="areaName"
+                      :export-ars="ars"
+                      :export-title="item.title"
+                      :export-subtitle="item.description"
+                      :export-collection-name="collectionTitle"
+                      :export-updated-at="exportUpdatedAt"
+                      :export-attribution="exportAttribution"
+                    />
                   </ClientOnly>
                 </div>
                 <div
@@ -79,18 +103,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div v-if="pages.length > 1" class="mt-3 flex items-center justify-center gap-1.5">
-      <button
-        v-for="(_, pageIndex) in pages"
-        :key="pageIndex"
-        type="button"
-        class="h-1.5 rounded-full transition-all"
-        :class="pageIndex === activePage ? 'w-6 bg-[#006e94]' : 'bg-gray-300 w-1.5'"
-        :aria-label="`Grafikgruppe ${pageIndex + 1}`"
-        @click="goTo(pageIndex)"
-      />
     </div>
   </div>
 </template>
@@ -108,6 +120,9 @@ const props = defineProps<{
   ars: string;
   baseUrl: string;
   population?: number | null;
+  areaName?: string;
+  exportUpdatedAt?: string;
+  exportAttribution?: string;
 }>();
 
 interface CarouselItem {
@@ -121,6 +136,7 @@ interface CarouselItem {
 const expanded = ref(false);
 const activePage = ref(0);
 const trackRef = ref<HTMLElement | null>(null);
+const collectionTitle = computed(() => localizedText(props.collection.title) || props.collection.id);
 
 const items = computed<CarouselItem[]>(() => {
   const list: CarouselItem[] = [];

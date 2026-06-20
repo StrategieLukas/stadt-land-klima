@@ -40,6 +40,20 @@ export interface CollectionRenderConfig {
   };
 }
 
+export interface CollectionCoverImage {
+  type?: "slk_backend_asset" | "url" | string;
+  asset_uuid?: string | null;
+  assetUuid?: string | null;
+  uuid?: string | null;
+  id?: string | null;
+  url?: string | null;
+  src?: string | null;
+  href?: string | null;
+  attribution?: Record<string, string> | string | null;
+  attribution_key?: Record<string, string> | string | null;
+  attributionKey?: Record<string, string> | string | null;
+}
+
 export interface Collection {
   id: string;
   title: Record<string, string>;
@@ -51,6 +65,8 @@ export interface Collection {
   sectorDisplay?: string;
   cover_image_url?: string | null;
   coverImageUrl?: string | null;
+  cover_image?: CollectionCoverImage | null;
+  coverImage?: CollectionCoverImage | null;
   iconify_str?: string | null;
   iconifyStr?: string | null;
   tags?: string[];

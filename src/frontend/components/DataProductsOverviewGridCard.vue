@@ -13,7 +13,14 @@
         class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         loading="lazy"
       />
-      <div v-else class="flex h-full w-full items-center justify-center" :style="fallbackBackground">
+      <span
+        v-if="coverImageUrl && coverImageAttribution"
+        class="pointer-events-none absolute bottom-1.5 right-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+        :title="coverImageAttribution"
+      >
+        {{ coverImageAttribution }}
+      </span>
+      <div v-if="!coverImageUrl" class="flex h-full w-full items-center justify-center" :style="fallbackBackground">
         <Icon
           :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-line'"
           class="h-10 w-10 opacity-50"
@@ -60,7 +67,7 @@ import { Icon } from "@iconify/vue";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import type { Collection, CollectionSummary } from "~/types/slz-api";
 import {
-  collectionCoverImageUrl,
+  collectionCoverImage,
   collectionIconifyStr,
   firstKpiElement,
   formatKpiValue,
@@ -87,13 +94,18 @@ const collectionDetails = ref<Collection | null>(null);
 const aggregate = ref<Record<string, unknown> | null>(null);
 const hasRequestedSummary = ref(false);
 const hasRequestedDetails = ref(false);
+const runtimeConfig = useRuntimeConfig();
 let observer: IntersectionObserver | null = null;
 
 const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
 const title = computed(() => localizedText(effectiveCollection.value.title) || effectiveCollection.value.id);
 const sector = computed(() => sectorLabel(effectiveCollection.value));
 const color = computed(() => sectorColor(effectiveCollection.value));
-const coverImageUrl = computed(() => collectionCoverImageUrl(effectiveCollection.value));
+const coverImage = computed(() =>
+  collectionCoverImage(effectiveCollection.value, runtimeConfig.public.clientDirectusUrl),
+);
+const coverImageUrl = computed(() => coverImage.value.url);
+const coverImageAttribution = computed(() => coverImage.value.attribution);
 const iconifyStr = computed(() => collectionIconifyStr(effectiveCollection.value));
 const kpi = computed(() => firstKpiElement(effectiveCollection.value));
 const hasThresholds = computed(() => !!kpi.value?.thresholds && Object.keys(kpi.value.thresholds).length > 0);

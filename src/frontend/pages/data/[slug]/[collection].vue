@@ -65,6 +65,9 @@
           :ars="area?.ars ?? ''"
           :base-url="baseUrl"
           :population="area?.population ?? null"
+          :area-name="exportAreaName"
+          :export-updated-at="exportUpdatedAt"
+          :export-attribution="exportAttribution"
         />
       </div>
 
@@ -78,8 +81,10 @@
         :collection="collection"
         :ars="area?.ars ?? ''"
         :base-url="baseUrl"
-        :municipality-name="area?.name ?? ''"
+        :municipality-name="exportAreaName"
         :population="area?.population ?? null"
+        :export-updated-at="exportUpdatedAt"
+        :export-attribution="exportAttribution"
       />
       <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
     </div>
@@ -134,6 +139,15 @@ const {
 const collectionTitle = computed(() => {
   if (collection.value?.title) return t(collection.value.title);
   return collectionSlug.value;
+});
+const exportAreaName = computed(
+  () => [area.value?.prefix, area.value?.name].filter(Boolean).join(" ") || area.value?.name || areaSlug.value,
+);
+const summaryMetadata = computed(() => collectionSummary.value?.aggregate?.metadata ?? null);
+const exportUpdatedAt = computed(() => summaryMetadata.value?.effective_date ?? "");
+const exportAttribution = computed(() => {
+  const meta = summaryMetadata.value;
+  return [meta?.attribution, meta?.license_name].filter(Boolean).join(" | ");
 });
 
 // ── Step observer ─────────────────────────────────────────────────────────────

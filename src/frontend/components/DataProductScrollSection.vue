@@ -4,13 +4,13 @@
     :id="collection.id"
     :data-collection-id="collection.id"
     :data-sector-key="sectorKeyValue"
-    class="border-gray-100 h-[1340px] overflow-hidden border-t py-10 sm:h-[1280px] lg:h-[1160px] xl:h-[960px]"
+    class="border-gray-100 overflow-visible border-t pb-6 pt-10"
     :style="`scroll-margin-top: ${scrollMarginTop}px`"
   >
     <div class="grid h-[820px] gap-5 overflow-hidden sm:h-[760px] xl:h-[430px] xl:grid-cols-12 xl:items-stretch">
       <div class="flex min-h-0 flex-col gap-4 overflow-hidden xl:col-span-5">
         <div
-          class="border-gray-200 relative flex h-[280px] flex-none flex-col justify-end overflow-hidden rounded-lg border bg-white shadow-sm xl:h-[280px]"
+          class="group/cover border-gray-200 relative flex h-[280px] flex-none flex-col justify-end overflow-hidden rounded-lg border bg-white shadow-sm xl:h-[280px]"
         >
           <img
             v-if="coverImageUrl"
@@ -19,7 +19,18 @@
             class="absolute inset-0 h-full w-full object-cover"
             loading="lazy"
           />
-          <div v-else class="absolute inset-0 flex items-center justify-center" :style="fallbackBackground">
+          <span
+            v-if="coverImageUrl && coverImageAttribution"
+            class="pointer-events-none absolute right-2 top-2 z-[1] max-w-[calc(100%-1rem)] truncate rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover/cover:opacity-100"
+            :title="coverImageAttribution"
+          >
+            {{ coverImageAttribution }}
+          </span>
+          <div
+            v-if="!coverImageUrl"
+            class="absolute inset-0 flex items-center justify-center"
+            :style="fallbackBackground"
+          >
             <Icon
               :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-areaspline'"
               class="h-20 w-20 opacity-35"
@@ -65,7 +76,16 @@
           </div>
           <div v-else-if="primaryVisualSpec" class="h-full">
             <ClientOnly>
-              <VegaChart :spec="primaryVisualSpec" />
+              <VegaChart
+                :spec="primaryVisualSpec"
+                :export-area-name="areaName"
+                :export-ars="ars"
+                :export-title="primaryVisualTitle"
+                :export-subtitle="primaryVisualSubtitle"
+                :export-collection-name="title"
+                :export-updated-at="exportUpdatedAt"
+                :export-attribution="exportAttribution"
+              />
             </ClientOnly>
           </div>
           <DataImage
@@ -81,7 +101,7 @@
       </div>
     </div>
 
-    <div class="h-[360px] overflow-hidden">
+    <div class="h-[688px] overflow-visible lg:h-[368px]">
       <DataProductJourneyCarousel
         v-if="hasLoaded && renderSteps.length"
         :steps="renderSteps"
@@ -89,6 +109,9 @@
         :ars="ars"
         :base-url="baseUrl"
         :population="population"
+        :area-name="areaName"
+        :export-updated-at="exportUpdatedAt"
+        :export-attribution="exportAttribution"
       />
 
       <div v-else-if="renderError" class="text-gray-400 mt-8 text-sm">
@@ -123,7 +146,7 @@
       </div>
     </div>
 
-    <div class="h-[72px] overflow-hidden">
+    <div class="overflow-visible">
       <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
     </div>
   </section>
@@ -136,11 +159,12 @@ import { useCollectionRender } from "~/composables/useCollectionRender";
 import type { Collection, CollectionSummary, RenderElement } from "~/types/slz-api";
 import {
   bestVisualElement,
-  collectionCoverImageUrl,
+  collectionCoverImage,
   collectionIconifyStr,
   firstKpiElement,
   injectAreaIntoSpec,
   localizedText,
+  normalizeCollection,
   sectorColor,
   sectorKey,
   sectorLabel,
@@ -152,11 +176,14 @@ const props = defineProps<{
   baseUrl: string;
   population?: number | null;
   scrollMarginTop: number;
+  areaName?: string;
 }>();
 
 const sectionRef = ref<HTMLElement | null>(null);
 const hasLoaded = ref(false);
+const collectionDetails = ref<Collection | null>(null);
 const collectionSummary = ref<CollectionSummary | null>(null);
+const runtimeConfig = useRuntimeConfig();
 let observer: IntersectionObserver | null = null;
 
 const {
@@ -167,22 +194,33 @@ const {
   loadFromRender,
 } = useCollectionRender(props.baseUrl);
 
-const title = computed(() => localizedText(props.collection.title) || props.collection.id);
-const coverImageUrl = computed(() => collectionCoverImageUrl(props.collection));
-const iconifyStr = computed(() => collectionIconifyStr(props.collection));
+const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
+const title = computed(() => localizedText(effectiveCollection.value.title) || effectiveCollection.value.id);
+const coverImage = computed(() =>
+  collectionCoverImage(effectiveCollection.value, runtimeConfig.public.clientDirectusUrl),
+);
+const coverImageUrl = computed(() => coverImage.value.url);
+const coverImageAttribution = computed(() => coverImage.value.attribution);
+const iconifyStr = computed(() => collectionIconifyStr(effectiveCollection.value));
 const description = computed(() => {
-  const firstStepDescription = localizedText(props.collection.narrative_steps?.[0]?.description);
-  return firstStepDescription || localizedText(props.collection.description);
+  const firstStepDescription = localizedText(effectiveCollection.value.narrative_steps?.[0]?.description);
+  return firstStepDescription || localizedText(effectiveCollection.value.description);
 });
-const sector = computed(() => sectorLabel(props.collection));
-const sectorKeyValue = computed(() => sectorKey(props.collection));
-const color = computed(() => sectorColor(props.collection));
-const kpi = computed(() => firstKpiElement(props.collection));
+const sector = computed(() => sectorLabel(effectiveCollection.value));
+const sectorKeyValue = computed(() => sectorKey(effectiveCollection.value));
+const color = computed(() => sectorColor(effectiveCollection.value));
+const kpi = computed(() => firstKpiElement(effectiveCollection.value));
+const summaryMetadata = computed(() => collectionSummary.value?.aggregate?.metadata ?? null);
+const exportUpdatedAt = computed(() => summaryMetadata.value?.effective_date ?? "");
+const exportAttribution = computed(() => {
+  const meta = summaryMetadata.value;
+  return [meta?.attribution, meta?.license_name].filter(Boolean).join(" | ");
+});
 
 const loadedElements = computed(() => renderSteps.value.flatMap((step) => step.elements));
 
 const primaryVisual = computed<RenderElement | null>(
-  () => bestVisualElement(loadedElements.value) ?? bestVisualElement(props.collection.render_elements ?? []),
+  () => bestVisualElement(loadedElements.value) ?? bestVisualElement(effectiveCollection.value.render_elements ?? []),
 );
 
 const primaryVisualSpec = computed(() =>
@@ -190,6 +228,8 @@ const primaryVisualSpec = computed(() =>
     ? injectAreaIntoSpec(primaryVisual.value.vegalite_spec as object, props.ars)
     : null,
 );
+const primaryVisualTitle = computed(() => localizedText(primaryVisual.value?.title) || title.value);
+const primaryVisualSubtitle = computed(() => localizedText(primaryVisual.value?.description) || description.value);
 
 const fallbackBackground = computed(() => `background: linear-gradient(135deg, ${color.value}18, ${color.value}36);`);
 
@@ -198,6 +238,13 @@ async function loadSectionData() {
   try {
     if (props.ars) await loadFromRender(props.collection.id, props.ars);
     if (!renderSteps.value.length) await load(props.collection.id, props.collection);
+    try {
+      collectionDetails.value = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`, {
+        timeout: 8000,
+      }).then((data) => normalizeCollection(data));
+    } catch (_) {
+      collectionDetails.value = null;
+    }
   } finally {
     hasLoaded.value = true;
   }

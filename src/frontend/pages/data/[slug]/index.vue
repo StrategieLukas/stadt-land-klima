@@ -109,12 +109,19 @@
         :style="`scroll-margin-top: ${headerHeight + 16}px`"
       >
         <div
-          class="border-gray-200 relative h-full overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
+          class="group/hero border-gray-200 relative h-full overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
           :class="areaReady && heroBackgroundImage ? 'bg-gray-900' : 'bg-white'"
           :style="areaReady ? heroBackgroundStyle : undefined"
         >
           <div v-if="!areaReady" class="skeleton absolute inset-0 rounded-none" />
           <div v-else-if="heroBackgroundImage" class="absolute inset-0 h-full bg-black/45 backdrop-blur-[1px]" />
+          <span
+            v-if="areaReady && heroBackgroundImage && heroBackgroundAttribution"
+            class="pointer-events-none absolute right-2 top-2 z-[1] max-w-[calc(100%-1rem)] truncate rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover/hero:opacity-100"
+            :title="heroBackgroundAttribution"
+          >
+            {{ heroBackgroundAttribution }}
+          </span>
           <div class="relative">
             <p
               class="mb-2 text-xs font-bold uppercase tracking-widest"
@@ -177,7 +184,12 @@
         </div>
 
         <div class="xl:col-span-7">
-          <DataAreaHeroMap v-if="areaReady" :area="area" :nearby-areas="nearbyAreas" />
+          <DataAreaHeroMap
+            v-if="areaReady"
+            :area="area"
+            :nearby-areas="nearbyAreas"
+            :nearby-areas-loading="nearbyAreasLoading"
+          />
           <div v-else class="skeleton h-[240px] rounded-lg sm:h-[280px] xl:h-[320px]" />
         </div>
       </section>
@@ -224,11 +236,7 @@
 
           <div class="py-8">
             <div class="skeleton mb-4 h-10 w-72" />
-            <div
-              v-for="i in 2"
-              :key="i"
-              class="border-gray-100 h-[1340px] overflow-hidden border-t py-10 sm:h-[1280px] lg:h-[1160px] xl:h-[960px]"
-            >
+            <div v-for="i in 2" :key="i" class="border-gray-100 overflow-visible border-t pb-6 pt-10">
               <div class="grid h-[820px] gap-5 sm:h-[760px] xl:h-[430px] xl:grid-cols-12">
                 <div class="space-y-4 xl:col-span-5">
                   <div class="skeleton h-[280px] rounded-lg" />
@@ -237,7 +245,8 @@
                 </div>
                 <div class="skeleton h-[340px] rounded-lg sm:h-[430px] xl:col-span-7 xl:h-full" />
               </div>
-              <div class="skeleton mt-8 h-[320px] rounded-lg" />
+              <div class="skeleton mt-6 h-[688px] rounded-lg lg:h-[368px]" />
+              <div class="skeleton mt-4 h-[66px] rounded-lg" />
             </div>
           </div>
         </div>
@@ -275,8 +284,12 @@
                   <img
                     v-if="sectorImages[sector.key]"
                     :src="sectorImages[sector.key]"
-                    class="h-6 w-6 flex-shrink-0 mix-blend-multiply grayscale invert"
-                    :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-60'"
+                    class="h-6 w-6 flex-shrink-0 grayscale"
+                    :class="
+                      sector.key === activeSectorKey
+                        ? 'opacity-100 mix-blend-screen'
+                        : 'opacity-60 mix-blend-multiply invert'
+                    "
                     alt=""
                   />
                   {{ $t(`measure_sectors.${sector.key}.title`) }}
@@ -305,6 +318,7 @@
                 :base-url="baseUrl"
                 :population="displayArea?.population ?? null"
                 :scroll-margin-top="productScrollMarginTop"
+                :area-name="exportAreaName"
               />
             </template>
           </div>
@@ -372,45 +386,25 @@ const { data: pageData, pending: areaPending } = useAsyncData(
     });
     if (!resolvedArea) return { requestedSlug: slug.value, notFound: true };
     const ars = resolvedArea.ars;
-    const [containedByChain, nearbyResult, muniResult] = await Promise.all([
+    const [containedByChain, muniResult] = await Promise.all([
       fetchContainedBy(ars, resolvedArea.level).catch(() => []),
-      resolvedArea.level > 2
-        ? $fetch("/api/area-nearby", {
-            params: { ars, radius_km: 45, levels: "4,5,6", limit: 24 },
-          }).catch(() => ({ areas: [] }))
-        : { areas: [] },
       $directus
         .request(
           $readItems("municipalities", {
             filter: { ars: { _eq: ars } },
-            fields: ["image"],
+            fields: ["image", "image_credits"],
             limit: 1,
           }),
         )
         .catch(() => []),
     ]);
 
-    const nearbyAreas = await Promise.all(
-      (nearbyResult?.areas ?? []).slice(0, 24).map(async (nearbyArea) => {
-        if (nearbyArea.geo_area ?? nearbyArea.geoArea) return nearbyArea;
-        try {
-          const nearbySlug = areaToSlug(nearbyArea.prefix ?? "", nearbyArea.name ?? "");
-          const withGeo = await $fetch("/api/area-by-slug", {
-            params: { slug: nearbySlug, includeGeo: true },
-          });
-          return withGeo ? { ...nearbyArea, ...withGeo } : nearbyArea;
-        } catch {
-          return nearbyArea;
-        }
-      }),
-    );
-
     return {
       requestedSlug: slug.value,
       area: resolvedArea,
       containedBy: containedByChain ?? [],
-      nearbyAreas,
       municipalityImageId: muniResult?.[0]?.image ?? null,
+      municipalityImageCredits: muniResult?.[0]?.image_credits ?? null,
     };
   },
   { watch: [slug], lazy: process.client },
@@ -436,10 +430,15 @@ const resolvedArea = computed(() => {
 const area = computed(() => resolvedArea.value ?? matchingSeedArea.value ?? {});
 const displayArea = computed(() => area.value);
 const hasDisplayArea = computed(() => !!displayArea.value?.name);
+const exportAreaName = computed(
+  () => [displayArea.value?.prefix, displayArea.value?.name].filter(Boolean).join(" ") || String(slug.value),
+);
 const areaReady = computed(() => !!resolvedArea.value && !areaPending.value);
 const containedBy = computed(() => (areaReady.value ? (pageData.value?.containedBy ?? []) : []));
-const nearbyAreas = computed(() => (areaReady.value ? (pageData.value?.nearbyAreas ?? []) : []));
 const municipalityImageId = computed(() => (areaReady.value ? (pageData.value?.municipalityImageId ?? null) : null));
+const municipalityImageCredits = computed(() =>
+  areaReady.value ? (pageData.value?.municipalityImageCredits ?? null) : null,
+);
 const displayGeoCenter = computed(() => displayArea.value?.geo_center ?? displayArea.value?.geoCenter ?? null);
 const displayLat = computed(() => {
   const center = displayGeoCenter.value;
@@ -458,6 +457,70 @@ const displayLon = computed(() => {
 const isAreaLoading = computed(() => !areaReady.value);
 const usesOverviewLayout = computed(
   () => areaReady.value && (area.value?.level ?? 99) <= 2 && !area.value?.is_reasonable_for_municipal_rating,
+);
+
+// ── Nearby/bordering areas (CSR, intentionally decoupled) ────────────────────
+
+const nearbyAreas = ref([]);
+const nearbyAreasLoading = ref(false);
+let nearbyAreasRequestId = 0;
+
+async function loadNearbyAreasForCurrentArea() {
+  if (process.server) return;
+
+  const requestId = ++nearbyAreasRequestId;
+  const requestSlug = slug.value;
+  const currentArea = resolvedArea.value;
+
+  nearbyAreas.value = [];
+  nearbyAreasLoading.value = false;
+
+  if (!areaReady.value || !currentArea?.ars || currentArea.level <= 2) {
+    return;
+  }
+
+  nearbyAreasLoading.value = true;
+
+  try {
+    const nearbyResult = await $fetch("/api/area-nearby", {
+      params: { ars: currentArea.ars, radius_km: 45, levels: "4,5,6", limit: 24 },
+      timeout: 8000,
+    }).catch(() => ({ areas: [] }));
+
+    const enrichedNearbyAreas = await Promise.all(
+      (nearbyResult?.areas ?? [])
+        .filter(isReasonableArea)
+        .slice(0, 24)
+        .map(async (nearbyArea) => {
+          if (nearbyArea.geo_area ?? nearbyArea.geoArea) return nearbyArea;
+          try {
+            const nearbySlug = areaToSlug(nearbyArea.prefix ?? "", nearbyArea.name ?? "");
+            const withGeo = await $fetch("/api/area-by-slug", {
+              params: { slug: nearbySlug, includeGeo: true },
+              timeout: 8000,
+            });
+            return withGeo ? { ...nearbyArea, ...withGeo } : nearbyArea;
+          } catch {
+            return nearbyArea;
+          }
+        }),
+    );
+
+    if (requestId !== nearbyAreasRequestId || requestSlug !== slug.value) return;
+    nearbyAreas.value = enrichedNearbyAreas;
+  } catch {
+    if (requestId === nearbyAreasRequestId && requestSlug === slug.value) nearbyAreas.value = [];
+  } finally {
+    if (requestId === nearbyAreasRequestId && requestSlug === slug.value) nearbyAreasLoading.value = false;
+  }
+}
+
+watch(
+  [areaReady, () => resolvedArea.value?.ars, slug],
+  () => {
+    loadNearbyAreasForCurrentArea();
+  },
+  { immediate: true },
 );
 
 // ── Collections (CSR, area-injected) ────────────────────────────────────────
@@ -575,6 +638,9 @@ const heroBackgroundImage = computed(() => {
   }
   return findAreaImageUrl(area.value);
 });
+const heroBackgroundAttribution = computed(
+  () => municipalityImageCredits.value || findAreaImageAttribution(area.value),
+);
 const heroBackgroundStyle = computed(() =>
   heroBackgroundImage.value
     ? {
@@ -637,6 +703,24 @@ function findAreaImageUrl(areaValue) {
       const nested = candidate.url ?? candidate.src ?? candidate.href ?? candidate.id;
       if (typeof nested === "string") return normalizeAssetUrl(nested);
     }
+  }
+  return "";
+}
+
+function findAreaImageAttribution(areaValue) {
+  const candidates = [
+    areaValue?.teaser_image,
+    areaValue?.teaserImage,
+    areaValue?.cover_image,
+    areaValue?.coverImage,
+    areaValue?.image,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const attribution =
+      candidate.attribution_key ?? candidate.attributionKey ?? candidate.attribution ?? candidate.credits;
+    if (typeof attribution === "string" && attribution.trim()) return attribution.trim();
   }
   return "";
 }
@@ -732,6 +816,10 @@ function levelLabel(level) {
     6: "Gemeinde",
   };
   return map[level] ?? `Ebene ${level}`;
+}
+
+function isReasonableArea(areaValue) {
+  return (areaValue?.is_reasonable_for_municipal_rating ?? areaValue?.isReasonableForMunicipalRating ?? true) === true;
 }
 
 // ── SEO ──────────────────────────────────────────────────────────────────────

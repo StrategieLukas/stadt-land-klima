@@ -1,4 +1,4 @@
-import type { Collection, RenderElement, SummaryAggregate } from "~/types/slz-api";
+import type { Collection, CollectionCoverImage, RenderElement, SummaryAggregate } from "~/types/slz-api";
 
 export const DATA_PRODUCT_SECTOR_COLORS: Record<string, string> = {
   energy: "#F59E0B",
@@ -98,9 +98,36 @@ export function firstKpiElement(collection: Pick<Collection, "render_elements">)
   } as RenderElement;
 }
 
-export function collectionCoverImageUrl(collection: Collection) {
-  const camelCollection = collection as Collection & { coverImageUrl?: string | null };
-  return collection.cover_image_url ?? camelCollection.coverImageUrl ?? null;
+export function collectionCoverImage(collection: Collection, assetBaseUrl?: string | null) {
+  const camelCollection = collection as Collection & { coverImage?: CollectionCoverImage | null };
+  const cover = collection.cover_image ?? camelCollection.coverImage ?? null;
+  if (!cover || typeof cover !== "object") return { url: null, attribution: null };
+
+  if (cover.type === "slk_backend_asset") {
+    const uuid = cover.asset_uuid ?? cover.assetUuid ?? cover.uuid ?? cover.id ?? null;
+    return {
+      url: uuid ? (buildBackendAssetUrl(uuid, assetBaseUrl) ?? cover.url ?? null) : (cover.url ?? null),
+      attribution:
+        localizedText(cover.attribution_key) || localizedText(cover.attributionKey) || localizedText(cover.attribution),
+    };
+  }
+
+  if (cover.type === "url") {
+    return {
+      url: cover.url ?? cover.src ?? cover.href ?? null,
+      attribution: localizedText(cover.attribution),
+    };
+  }
+
+  return {
+    url: cover.url ?? cover.src ?? cover.href ?? null,
+    attribution: localizedText(cover.attribution),
+  };
+}
+
+function buildBackendAssetUrl(uuid: string, assetBaseUrl?: string | null) {
+  const base = assetBaseUrl?.replace(/\/$/, "");
+  return base ? `${base}/assets/${uuid}` : null;
 }
 
 export function collectionIconifyStr(collection: Collection) {
@@ -110,7 +137,7 @@ export function collectionIconifyStr(collection: Collection) {
 
 export function normalizeCollection(collection: Collection) {
   const camelCollection = collection as Collection & {
-    coverImageUrl?: string | null;
+    coverImage?: Collection["cover_image"];
     iconifyStr?: string | null;
     sectorLabel?: Collection["sector_label"];
     sectorDisplay?: string;
@@ -122,7 +149,7 @@ export function normalizeCollection(collection: Collection) {
 
   return {
     ...collection,
-    cover_image_url: collection.cover_image_url ?? camelCollection.coverImageUrl ?? null,
+    cover_image: collection.cover_image ?? camelCollection.coverImage ?? null,
     iconify_str: collection.iconify_str ?? camelCollection.iconifyStr ?? null,
     sector_label: collection.sector_label ?? camelCollection.sectorLabel,
     sector_display: collection.sector_display ?? camelCollection.sectorDisplay,

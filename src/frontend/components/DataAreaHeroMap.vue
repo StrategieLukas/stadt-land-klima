@@ -34,6 +34,16 @@
         />
       </LMap>
     </ClientOnly>
+
+    <Transition name="fade">
+      <div
+        v-if="nearbyAreasLoading"
+        class="text-gray-600 pointer-events-none absolute right-3 top-3 z-[500] inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-semibold shadow-sm backdrop-blur-sm"
+      >
+        <SlkFlowerSpinner :size="18" />
+        <span>Nachbargebiete laden...</span>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -44,6 +54,7 @@ import { areaToSlug } from "~/composables/useAreaBySlug.js";
 const props = defineProps({
   area: { type: Object, required: true },
   nearbyAreas: { type: Array, default: () => [] },
+  nearbyAreasLoading: { type: Boolean, default: false },
 });
 
 const router = useRouter();
@@ -52,6 +63,12 @@ const mapRef = ref(null);
 const mapReady = ref(false);
 const zoom = ref(10);
 let pendingBounds = null;
+
+const fitMaxZoom = 12;
+const minZoomStepBack = 2;
+const maxZoomStepForward = 4;
+const mapMinZoom = 6;
+const mapMaxZoom = 17;
 
 const mapOptions = {
   attributionControl: false,
@@ -62,6 +79,8 @@ const mapOptions = {
   scrollWheelZoom: true,
   tap: false,
   touchZoom: false,
+  zoomDelta: 1,
+  zoomSnap: 1,
   zoomControl: true,
 };
 
@@ -70,6 +89,7 @@ const areaBoundary = computed(() => parseGeo(props.area?.geo_area ?? props.area?
 const visibleNeighbors = computed(() =>
   props.nearbyAreas.filter((area) => {
     if (!area?.ars || area.ars === props.area?.ars) return false;
+    if (!isReasonableArea(area)) return false;
     return !!parseGeo(area.geo_area ?? area.geoArea);
   }),
 );
@@ -97,6 +117,10 @@ function centerFor(area) {
 
 function areaLabel(area) {
   return `${area?.prefix ?? ""} ${area?.name ?? ""}`.trim();
+}
+
+function isReasonableArea(area) {
+  return (area?.is_reasonable_for_municipal_rating ?? area?.isReasonableForMunicipalRating ?? true) === true;
 }
 
 function navigateToArea(area) {
@@ -140,27 +164,27 @@ function fitBounds(layer) {
     if (!bounds.isValid()) return;
     const leafletMap = mapRef.value?.leafletObject;
     if (mapReady.value && leafletMap) {
-      leafletMap.fitBounds(bounds, { padding: [26, 26], maxZoom: 12 });
-      lockCurrentZoom(leafletMap);
+      leafletMap.fitBounds(bounds, { padding: [26, 26], maxZoom: fitMaxZoom });
+      applyZoomSteps(leafletMap);
     } else {
       pendingBounds = bounds;
     }
   } catch (_) {}
 }
 
-function lockCurrentZoom(leafletMap) {
+function applyZoomSteps(leafletMap) {
   const currentZoom = leafletMap.getZoom();
-  leafletMap.setMinZoom(currentZoom);
-  leafletMap.setMaxZoom(currentZoom);
+  leafletMap.setMinZoom(Math.max(mapMinZoom, currentZoom - minZoomStepBack));
+  leafletMap.setMaxZoom(Math.min(mapMaxZoom, currentZoom + maxZoomStepForward));
 }
 
 function onMapReady(mapInstance) {
   mapReady.value = true;
   if (pendingBounds) {
-    mapInstance.fitBounds(pendingBounds, { padding: [26, 26], maxZoom: 12 });
+    mapInstance.fitBounds(pendingBounds, { padding: [26, 26], maxZoom: fitMaxZoom });
     pendingBounds = null;
   }
-  lockCurrentZoom(mapInstance);
+  applyZoomSteps(mapInstance);
   setTimeout(() => {
     mapRef.value?.leafletObject?.invalidateSize();
   }, 150);
@@ -201,5 +225,18 @@ function onBoundaryReady(layer) {
 .data-area-hero-map :deep(.leaflet-tooltip-left::before),
 .data-area-hero-map :deep(.leaflet-tooltip-right::before) {
   display: none;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>
