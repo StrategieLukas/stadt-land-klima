@@ -214,7 +214,13 @@ const summaryMetadata = computed(() => collectionSummary.value?.aggregate?.metad
 const exportUpdatedAt = computed(() => summaryMetadata.value?.effective_date ?? "");
 const exportAttribution = computed(() => {
   const meta = summaryMetadata.value;
-  return [meta?.attribution, meta?.license_name].filter(Boolean).join(" | ");
+  const aggregateAttribution = [meta?.attribution, meta?.license_name].filter(Boolean).join(" | ");
+  if (aggregateAttribution) return aggregateAttribution;
+  const sources = collectionSummary.value?.source_attributions ?? collectionSummary.value?.sourceAttributions ?? [];
+  return sources
+    .map((source) => [localizedText(source.source), source.attribution, source.license_name ?? source.licenseName].filter(Boolean).join(" | "))
+    .filter(Boolean)
+    .join("; ");
 });
 
 const loadedElements = computed(() => renderSteps.value.flatMap((step) => step.elements));

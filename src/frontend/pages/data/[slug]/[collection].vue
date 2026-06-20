@@ -145,9 +145,20 @@ const exportAreaName = computed(
 );
 const summaryMetadata = computed(() => collectionSummary.value?.aggregate?.metadata ?? null);
 const exportUpdatedAt = computed(() => summaryMetadata.value?.effective_date ?? "");
+function sourceLabel(value: Record<string, string> | string | null | undefined) {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return t(value);
+}
 const exportAttribution = computed(() => {
   const meta = summaryMetadata.value;
-  return [meta?.attribution, meta?.license_name].filter(Boolean).join(" | ");
+  const aggregateAttribution = [meta?.attribution, meta?.license_name].filter(Boolean).join(" | ");
+  if (aggregateAttribution) return aggregateAttribution;
+  const sources = collectionSummary.value?.source_attributions ?? collectionSummary.value?.sourceAttributions ?? [];
+  return sources
+    .map((source) => [sourceLabel(source.source), source.attribution, source.license_name ?? source.licenseName].filter(Boolean).join(" | "))
+    .filter(Boolean)
+    .join("; ");
 });
 
 // ── Step observer ─────────────────────────────────────────────────────────────

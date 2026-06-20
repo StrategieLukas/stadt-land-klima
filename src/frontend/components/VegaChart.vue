@@ -5,6 +5,21 @@
     :style="height ? `height:${height}px` : 'height:100%'"
   >
     <div
+      v-if="nativeZoomEnabled && canExport"
+      class="border-gray-300 pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100"
+    >
+      <button
+        type="button"
+        class="btn btn-ghost btn-xs h-7 min-h-0 px-2 text-[11px]"
+        title="Zoom zurücksetzen"
+        aria-label="Zoom zurücksetzen"
+        @click.stop="resetNativeZoom"
+      >
+        <Icon icon="mdi:restore" class="h-4 w-4" />
+        Zoom
+      </button>
+    </div>
+    <div
       v-if="canExport"
       class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100"
     >
@@ -54,6 +69,7 @@ import slkLogoUrl from "~/assets/images/Stadt-Land-Klima-Logo.svg";
 
 const DATA_WEB_URL = "www.stadt-land-klima.de/data";
 const EXPORT_FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+let nativeZoomId = 0;
 
 const props = defineProps({
   spec: {
@@ -99,6 +115,8 @@ const vegaRef = ref(null);
 const loading = ref(false);
 const renderError = ref(false);
 const exportReady = ref(false);
+const nativeZoomEnabled = ref(false);
+const nativeZoomParamName = `slk_native_scale_zoom_${++nativeZoomId}`;
 const canExport = computed(() => exportReady.value && !loading.value && !renderError.value);
 const resolvedDataApiUrl = computed(() => {
   const url = findDataUrl(props.spec);
@@ -120,8 +138,11 @@ async function render() {
       vegaView = null;
     }
     vegaRef.value.innerHTML = "";
+    nativeZoomEnabled.value = false;
+    const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(props.spec);
+    nativeZoomEnabled.value = hasNativeZoom;
 
-    const result = await vegaEmbed(vegaRef.value, props.spec, {
+    const result = await vegaEmbed(vegaRef.value, embeddableSpec, {
       renderer: "canvas",
       actions: false,
       config: {
@@ -202,6 +223,82 @@ async function copyApiCall() {
   } catch {
     copyTextFallback(resolvedDataApiUrl.value);
   }
+}
+
+function resetNativeZoom() {
+  render();
+}
+
+function withNativeScaleZoom(spec) {
+  if (!supportsNativeScaleZoom(spec)) return { spec, enabled: false };
+
+  const cloned = JSON.parse(JSON.stringify(spec));
+  const params = Array.isArray(cloned.params) ? cloned.params : [];
+  const hasScaleBoundParam = params.some((param) => param?.select?.bind === "scales");
+
+  if (!hasScaleBoundParam) {
+    cloned.params = [
+      ...params,
+      {
+        name: nativeZoomParamName,
+        select: {
+          type: "interval",
+          bind: "scales",
+          translate: true,
+          zoom: true,
+        },
+      },
+    ];
+  }
+
+  return { spec: cloned, enabled: true };
+}
+
+function supportsNativeScaleZoom(spec) {
+  if (!spec || typeof spec !== "object") return false;
+  if (!isVegaLiteSpec(spec)) return false;
+  if (isMultiViewSpec(spec)) return false;
+  if (hasNonFieldCartesianEncoding(spec)) return false;
+  return hasFieldBackedCartesianEncoding(spec);
+}
+
+function isVegaLiteSpec(spec) {
+  const schema = String(spec.$schema ?? "");
+  return schema.includes("vega-lite") || "mark" in spec || "encoding" in spec || "layer" in spec;
+}
+
+function isMultiViewSpec(spec) {
+  return !!(spec.hconcat || spec.vconcat || spec.concat || spec.facet || spec.repeat);
+}
+
+function hasFieldBackedCartesianEncoding(value) {
+  if (!value || typeof value !== "object") return false;
+  const encoding = value.encoding;
+  if (isFieldDef(encoding?.x) || isFieldDef(encoding?.y)) return true;
+  for (const key of ["layer"]) {
+    if (Array.isArray(value[key]) && value[key].some(hasFieldBackedCartesianEncoding)) return true;
+  }
+  if (value.spec && hasFieldBackedCartesianEncoding(value.spec)) return true;
+  return false;
+}
+
+function hasNonFieldCartesianEncoding(value) {
+  if (!value || typeof value !== "object") return false;
+  const encoding = value.encoding;
+  if (isNonFieldPositionDef(encoding?.x) || isNonFieldPositionDef(encoding?.y)) return true;
+  if (Array.isArray(value.layer) && value.layer.some(hasNonFieldCartesianEncoding)) return true;
+  if (value.spec && hasNonFieldCartesianEncoding(value.spec)) return true;
+  return false;
+}
+
+function isFieldDef(channel) {
+  if (!channel || typeof channel !== "object" || Array.isArray(channel)) return false;
+  return typeof channel.field === "string";
+}
+
+function isNonFieldPositionDef(channel) {
+  if (!channel || typeof channel !== "object" || Array.isArray(channel)) return false;
+  return !isFieldDef(channel);
 }
 
 const baseFilename = computed(() => {

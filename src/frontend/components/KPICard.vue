@@ -46,6 +46,7 @@ const { t } = useSlzLocale()
 
 const loading  = ref(false)
 const aggregate = ref<Record<string, unknown> | null>(null)
+const canonicalKpi = ref<{ value: number | null; precision?: number | null } | null>(null)
 
 const unitText  = computed(() => t(props.element.unit))
 const labelText = computed(() => t(props.element.label))
@@ -61,6 +62,7 @@ const kpiRawValue = computed(() => {
 })
 
 const kpiValue = computed(() => {
+  if (canonicalKpi.value && typeof canonicalKpi.value.value === 'number') return canonicalKpi.value.value
   const raw = kpiRawValue.value
   if (raw === null) return null
   if (props.element.population_normalized && props.population) {
@@ -81,6 +83,10 @@ const kpiDisplayValue = computed(() => {
   }
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)} M`
   if (v >= 10_000)    return v.toLocaleString('de-DE')
+  const precision = canonicalKpi.value?.precision
+  if (typeof precision === 'number') {
+    return v.toLocaleString('de-DE', { minimumFractionDigits: precision, maximumFractionDigits: precision })
+  }
   if (!Number.isInteger(v)) return v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
   return v.toLocaleString('de-DE')
 })
@@ -105,6 +111,8 @@ onMounted(async () => {
       { params: { area: props.ars } },
     )
     aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null
+    const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {}
+    canonicalKpi.value = (kpiValues?.[props.element.plot_id] as { value: number | null; precision?: number | null } | undefined) ?? null
   } catch (_) {
     // Silently fail — display '—'
   } finally {

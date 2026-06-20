@@ -2,7 +2,7 @@ export type LayoutHint = "default" | "full_width" | "split" | "kpi_map" | "image
 
 export interface RenderElement {
   plot_id: string;
-  type: "map" | "kpi" | "histogram" | "bar_chart" | "time_series" | "image" | "table" | "graph";
+  type: "map" | "kpi" | "histogram" | "bar_chart" | "pie_chart" | "time_series" | "image" | "table" | "graph" | "altair";
   step?: number;
   title?: Record<string, string>;
   description?: Record<string, string>;
@@ -67,6 +67,8 @@ export interface Collection {
   coverImageUrl?: string | null;
   cover_image?: CollectionCoverImage | null;
   coverImage?: CollectionCoverImage | null;
+  source_attributions?: SourceAttribution[];
+  sourceAttributions?: SourceAttribution[];
   iconify_str?: string | null;
   iconifyStr?: string | null;
   tags?: string[];
@@ -79,6 +81,18 @@ export interface Collection {
   hasNarrativeSteps?: boolean;
   render_config?: CollectionRenderConfig;
   renderConfig?: CollectionRenderConfig;
+}
+
+export interface SourceAttribution {
+  source?: Record<string, string> | string | null;
+  attribution?: string | null;
+  source_url?: string | null;
+  sourceUrl?: string | null;
+  license_name?: string | null;
+  licenseName?: string | null;
+  license_url?: string | null;
+  licenseUrl?: string | null;
+  role?: Record<string, string> | string | null;
 }
 
 export interface SummaryAggregate {
@@ -101,7 +115,13 @@ export interface SummaryAggregate {
 
 export interface CollectionSummary {
   aggregate: SummaryAggregate;
+  kpi_values?: Record<string, { value: number | null; raw_value?: number | null; precision?: number | null }>;
+  kpiValues?: Record<string, { value: number | null; raw_value?: number | null; precision?: number | null }>;
+  source_attributions?: SourceAttribution[];
+  sourceAttributions?: SourceAttribution[];
   area?: string;
+  area_population?: number | null;
+  areaPopulation?: number | null;
 }
 
 export interface AdministrativeArea {

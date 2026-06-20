@@ -145,6 +145,7 @@ export function normalizeCollection(collection: Collection) {
     narrativeSteps?: Collection["narrative_steps"];
     renderElements?: Collection["render_elements"];
     renderConfig?: Collection["render_config"];
+    sourceAttributions?: Collection["source_attributions"];
   };
 
   return {
@@ -157,6 +158,7 @@ export function normalizeCollection(collection: Collection) {
     narrative_steps: collection.narrative_steps ?? camelCollection.narrativeSteps,
     render_elements: collection.render_elements ?? camelCollection.renderElements,
     render_config: collection.render_config ?? camelCollection.renderConfig,
+    source_attributions: collection.source_attributions ?? camelCollection.sourceAttributions,
   } as Collection;
 }
 
@@ -168,6 +170,7 @@ export function bestVisualElement(elements: RenderElement[]) {
   return (
     elements.find((element) => element.type === "map" && element.vegalite_spec) ??
     elements.find((element) => element.type !== "kpi" && element.vegalite_spec) ??
+    elements.find((element) => element.type === "image" && element.src_url) ??
     null
   );
 }
