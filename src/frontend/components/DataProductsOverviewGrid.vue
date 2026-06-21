@@ -11,7 +11,7 @@
       <p class="text-gray-500 text-xs">{{ collections.length }} Produkte</p>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+    <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
       <DataProductsOverviewGridCard
         v-for="collection in collections"
         :key="collection.id"

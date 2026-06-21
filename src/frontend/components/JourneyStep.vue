@@ -28,7 +28,18 @@
       </div>
       <div class="col-span-3" style="height: 340px">
         <ClientOnly>
-          <MapLibreRenderElement v-if="mapLibreSpec(mapElement)" :element="mapElement" :ars="ars" />
+          <MapLibreRenderElement
+            v-if="mapLibreSpec(mapElement)"
+            :element="mapElement"
+            :ars="ars"
+            :export-area-name="areaName"
+            :export-ars="ars"
+            :export-title="localizedElementTitle(mapElement) || stepTitle"
+            :export-subtitle="localizedElementDescription(mapElement) || stepDescription"
+            :export-collection-name="collectionTitle"
+            :export-updated-at="exportUpdatedAt"
+            :export-attribution="exportAttribution"
+          />
           <VegaChart
             v-else-if="mapSpec"
             :spec="mapSpec"
@@ -60,7 +71,7 @@
         :collection="kpiCollection"
         :ars="ars"
         :base-url="baseUrl"
-        :population="population"
+        :population="population ?? undefined"
         :municipality-name="areaName"
         :export-updated-at="exportUpdatedAt"
         :export-attribution="exportAttribution"
@@ -74,7 +85,18 @@
       style="height: 360px"
     >
       <ClientOnly>
-        <MapLibreRenderElement v-if="primaryMapLibreSpec && primaryElement" :element="primaryElement" :ars="ars" />
+        <MapLibreRenderElement
+          v-if="primaryMapLibreSpec && primaryElement"
+          :element="primaryElement"
+          :ars="ars"
+          :export-area-name="areaName"
+          :export-ars="ars"
+          :export-title="localizedElementTitle(primaryElement) || stepTitle"
+          :export-subtitle="localizedElementDescription(primaryElement) || stepDescription"
+          :export-collection-name="collectionTitle"
+          :export-updated-at="exportUpdatedAt"
+          :export-attribution="exportAttribution"
+        />
         <VegaChart
           v-else-if="primarySpec"
           :spec="primarySpec"
@@ -97,10 +119,21 @@
     <div v-else-if="step.layout === 'split'" class="grid grid-cols-2 gap-4" style="height: 300px">
       <ClientOnly>
         <template v-for="el in splitVisualElements" :key="el.plot_id">
-          <MapLibreRenderElement v-if="mapLibreSpec(el)" :element="el" :ars="ars" />
+          <MapLibreRenderElement
+            v-if="mapLibreSpec(el)"
+            :element="el"
+            :ars="ars"
+            :export-area-name="areaName"
+            :export-ars="ars"
+            :export-title="localizedElementTitle(el) || stepTitle"
+            :export-subtitle="localizedElementDescription(el) || stepDescription"
+            :export-collection-name="collectionTitle"
+            :export-updated-at="exportUpdatedAt"
+            :export-attribution="exportAttribution"
+          />
           <VegaChart
-            v-else
-            :spec="injectArea(el.vegalite_spec, ars)"
+            v-else-if="el.vegalite_spec"
+            :spec="injectArea(el.vegalite_spec, ars) ?? {}"
             :export-area-name="areaName"
             :export-ars="ars"
             :export-title="localizedElementTitle(el) || stepTitle"
@@ -131,30 +164,11 @@
         :collection="kpiCollection"
         :ars="ars"
         :base-url="baseUrl"
-        :population="population"
+        :population="population ?? undefined"
         :municipality-name="areaName"
         :export-updated-at="exportUpdatedAt"
         :export-attribution="exportAttribution"
       />
-      <!-- Extra non-KPI vega elements in this step -->
-      <template v-for="el in nonKpiVisualElements" :key="el.plot_id">
-        <div class="mt-4 w-full" style="height: 280px">
-          <ClientOnly>
-            <MapLibreRenderElement v-if="mapLibreSpec(el)" :element="el" :ars="ars" />
-            <VegaChart
-              v-else
-              :spec="injectArea(el.vegalite_spec, ars)"
-              :export-area-name="areaName"
-              :export-ars="ars"
-              :export-title="localizedElementTitle(el) || stepTitle"
-              :export-subtitle="localizedElementDescription(el) || stepDescription"
-              :export-collection-name="collectionTitle"
-              :export-updated-at="exportUpdatedAt"
-              :export-attribution="exportAttribution"
-            />
-          </ClientOnly>
-        </div>
-      </template>
     </div>
   </div>
 </template>
@@ -238,8 +252,4 @@ const kpiElement = computed(() => props.step.elements.find((e) => e.type === "kp
 const imageElement = computed(() => props.step.elements.find((e) => e.type === "image") ?? null);
 
 const splitVisualElements = computed(() => props.step.elements.filter((e) => mapLibreSpec(e) || e.vegalite_spec));
-
-const nonKpiVisualElements = computed(() =>
-  props.step.elements.filter((e) => e.type !== "kpi" && (mapLibreSpec(e) || e.vegalite_spec)),
-);
 </script>

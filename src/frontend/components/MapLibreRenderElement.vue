@@ -1,6 +1,40 @@
 <template>
-  <div class="bg-gray-50 relative h-full w-full overflow-hidden">
+  <div class="group/maplibre bg-gray-50 relative h-full w-full overflow-hidden">
     <div ref="containerRef" class="h-full w-full" />
+    <div
+      v-if="canExport"
+      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/maplibre:pointer-events-auto group-hover/maplibre:opacity-100"
+    >
+      <button
+        v-if="resolvedFeatureApiUrl"
+        type="button"
+        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        title="Kartendaten herunterladen"
+        aria-label="Kartendaten herunterladen"
+        @click.stop="downloadData"
+      >
+        <Icon icon="mdi:database-arrow-down-outline" class="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        title="Karte als PNG herunterladen"
+        aria-label="Karte als PNG herunterladen"
+        @click.stop="downloadPng"
+      >
+        <Icon icon="mdi:file-image-outline" class="h-4 w-4" />
+      </button>
+      <button
+        v-if="resolvedFeatureApiUrl"
+        type="button"
+        class="btn btn-ghost btn-xs h-7 min-h-0 w-7 px-0"
+        title="API-Aufruf kopieren"
+        aria-label="API-Aufruf kopieren"
+        @click.stop="copyApiCall"
+      >
+        <Icon icon="mdi:content-copy" class="h-4 w-4" />
+      </button>
+    </div>
     <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/60">
       <SlkFlowerSpinner :size="24" />
     </div>
@@ -11,19 +45,31 @@
 </template>
 
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import slkLogoUrl from "~/assets/images/Stadt-Land-Klima-Logo.svg";
 import type { MapLibreRenderSpec, RenderElement } from "~/types/slz-api";
 
 const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection", features: [] };
+const DATA_WEB_URL = "www.stadt-land-klima.de/data";
+const EXPORT_FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 const props = defineProps<{
   element: RenderElement;
   ars?: string | null;
+  exportAreaName?: string;
+  exportArs?: string;
+  exportTitle?: string;
+  exportSubtitle?: string;
+  exportCollectionName?: string;
+  exportUpdatedAt?: string;
+  exportAttribution?: string;
 }>();
 
 const containerRef = ref<HTMLElement | null>(null);
 const loading = ref(true);
 const error = ref(false);
+const mapReady = ref(false);
 
 let map: any = null;
 let popup: any = null;
@@ -74,6 +120,7 @@ async function renderMap() {
       style: buildStyle(spec.value),
       attributionControl: true,
       cooperativeGestures: false,
+      preserveDrawingBuffer: true,
       center: [10.4, 51.2],
       zoom: 4.8,
     });
@@ -91,6 +138,7 @@ async function renderMap() {
       await loadDensitySource();
       map.on("moveend", scheduleDensityLoad);
       resizeMapAndRefreshHeatmaps();
+      mapReady.value = true;
       loading.value = false;
     });
 
@@ -105,6 +153,7 @@ async function renderMap() {
 }
 
 function destroyMap() {
+  mapReady.value = false;
   if (densityTimer) clearTimeout(densityTimer);
   densityTimer = null;
   if (resizeTimer) clearTimeout(resizeTimer);
@@ -123,8 +172,50 @@ function destroyMap() {
   map = null;
 }
 
+async function downloadPng() {
+  if (!map) return;
+  try {
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+    resizeMapAndRefreshHeatmaps();
+    await waitForMapIdle();
+    const canvas = await captureMapCanvas();
+    const exportCanvas = await drawExportCanvas(canvas);
+    const blob = await canvasToBlob(exportCanvas);
+    downloadBlob(blob, "image/png", `${baseFilename.value}.png`);
+  } catch (err) {
+    console.warn("[MapLibreRenderElement] PNG export error:", err);
+  }
+}
+
+async function downloadData() {
+  const url = resolvedFeatureApiUrl.value;
+  if (!url) return;
+  try {
+    const response = await fetch(url);
+    const text = await response.text();
+    const contentType = response.headers.get("content-type") || "application/geo+json;charset=utf-8";
+    downloadBlob(text, contentType, `${baseFilename.value}-data.geojson`);
+  } catch (err) {
+    console.warn("[MapLibreRenderElement] data export error:", err);
+  }
+}
+
+async function copyApiCall() {
+  if (!resolvedFeatureApiUrl.value) return;
+  try {
+    await navigator.clipboard.writeText(resolvedFeatureApiUrl.value);
+  } catch {
+    copyTextFallback(resolvedFeatureApiUrl.value);
+  }
+}
+
 function buildStyle(mapSpec: MapLibreRenderSpec) {
-  const baseStyle = mapSpec.style && typeof mapSpec.style === "object" ? structuredCloneSafe(mapSpec.style) : null;
+  const baseStyle =
+    mapSpec.style && typeof mapSpec.style === "object"
+      ? (structuredCloneSafe(mapSpec.style) as Record<string, any>)
+      : null;
   return {
     version: 8,
     glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
@@ -270,6 +361,41 @@ const tooltipFields = computed(() => {
     .filter(Boolean) as Array<{ field: string; label: string }>;
 });
 
+const canExport = computed(() => mapReady.value && !loading.value && !error.value);
+const resolvedFeatureApiUrl = computed(() => {
+  const url = spec.value?.sources?.features?.data;
+  return typeof url === "string" ? resolveUrl(url) : "";
+});
+const exportTitle = computed(() => props.exportTitle || localizedLabel(props.element.title, "Karte"));
+const exportSubtitle = computed(() => props.exportSubtitle || props.exportCollectionName || "");
+const exportHeadline = computed(() =>
+  props.exportAreaName ? `${exportTitle.value} in ${props.exportAreaName}` : exportTitle.value,
+);
+const normalizedExportDate = computed(() => normalizeDate(props.exportUpdatedAt));
+const baseFilename = computed(() => {
+  return (
+    [props.exportAreaName, props.exportCollectionName, exportTitle.value, normalizedExportDate.value]
+      .filter(Boolean)
+      .map(slugify)
+      .filter(Boolean)
+      .join("_") || "maplibre-map"
+  );
+});
+const exportAreaLabel = computed(() => {
+  const name = props.exportAreaName;
+  const ars = props.exportArs;
+  if (name && ars) return `${name} (ARS: ${ars})`;
+  if (ars) return `ARS: ${ars}`;
+  return name;
+});
+const pngFooterLines = computed(() => {
+  const meta: string[] = [];
+  if (exportAreaLabel.value) meta.push(`Kommune: ${exportAreaLabel.value}`);
+  if (props.exportAttribution) meta.push(`Datenquelle: ${props.exportAttribution}`);
+  if (normalizedExportDate.value) meta.push(`Stand: ${normalizedExportDate.value}`);
+  return [meta.join("  ·  "), `Quelle: Stadt.Land.Klima! e.V.  ·  ${DATA_WEB_URL}`].filter(Boolean);
+});
+
 function renderTooltipHtml(properties: Record<string, unknown>, fields: Array<{ field: string; label: string }>) {
   return `<div class="space-y-1 text-xs">${fields
     .map(({ field, label }) => {
@@ -363,6 +489,161 @@ function resizeMapAndRefreshHeatmaps() {
   map.triggerRepaint?.();
 }
 
+function waitForMapIdle() {
+  if (!map) return Promise.resolve();
+  if (map.loaded?.() && !map.isMoving?.()) return nextAnimationFrames(2);
+
+  return new Promise<void>((resolve) => {
+    const timeout = window.setTimeout(() => resolve(), 1500);
+    map.once("idle", () => {
+      window.clearTimeout(timeout);
+      nextAnimationFrames(2).then(resolve);
+    });
+  });
+}
+
+function nextAnimationFrames(count: number) {
+  return new Promise<void>((resolve) => {
+    const step = (remaining: number) => {
+      if (remaining <= 0) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(() => step(remaining - 1));
+    };
+    step(count);
+  });
+}
+
+async function captureMapCanvas() {
+  const sourceCanvas = map.getCanvas() as HTMLCanvasElement;
+  const canvas = document.createElement("canvas");
+  canvas.width = sourceCanvas.width;
+  canvas.height = sourceCanvas.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not create map export canvas");
+  ctx.drawImage(sourceCanvas, 0, 0);
+  return canvas;
+}
+
+async function drawExportCanvas(mapCanvas: HTMLCanvasElement) {
+  const scale = 2;
+  const footerFontPx = 9 * scale;
+  const footerLineHeight = 14 * scale;
+  const maxFooterChars = Math.max(40, Math.floor((mapCanvas.width - 24 * scale) / (4.8 * scale)));
+  const lines = pngFooterLines.value.flatMap((line) => wrapText(line, maxFooterChars));
+  const titleLines = wrapText(
+    exportHeadline.value,
+    Math.max(28, Math.floor((mapCanvas.width - 140 * scale) / (8 * scale))),
+  );
+  const subtitleLines = exportSubtitle.value
+    ? wrapText(exportSubtitle.value, Math.max(34, Math.floor((mapCanvas.width - 24 * scale) / (6 * scale))))
+    : [];
+  const headerHeight = 28 * scale + titleLines.length * 24 * scale + subtitleLines.length * 17 * scale;
+  const footerHeight = lines.length ? 18 * scale + lines.length * footerLineHeight : 0;
+  const canvas = document.createElement("canvas");
+  canvas.width = mapCanvas.width;
+  canvas.height = headerHeight + mapCanvas.height + footerHeight;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not create map export metadata canvas");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await drawHeader(ctx, canvas.width, headerHeight, scale, titleLines, subtitleLines);
+  ctx.drawImage(mapCanvas, 0, headerHeight);
+
+  if (lines.length) {
+    const footerTop = headerHeight + mapCanvas.height;
+    const top = footerTop + 14 * scale;
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = scale;
+    ctx.beginPath();
+    ctx.moveTo(12 * scale, footerTop + 0.5 * scale);
+    ctx.lineTo(canvas.width - 12 * scale, footerTop + 0.5 * scale);
+    ctx.stroke();
+
+    ctx.fillStyle = "#6b7280";
+    ctx.font = `${footerFontPx}px ${EXPORT_FONT}`;
+    lines.forEach((line, index) => {
+      ctx.fillText(line, 12 * scale, top + index * footerLineHeight);
+    });
+  }
+
+  return canvas;
+}
+
+async function drawHeader(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  headerHeight: number,
+  scale: number,
+  titleLines: string[],
+  subtitleLines: string[],
+) {
+  const logo = await loadImage(slkLogoUrl).catch(() => null);
+  if (logo) {
+    const logoWidth = 112 * scale;
+    const logoHeight = Math.min(34 * scale, (logo.height / logo.width) * logoWidth);
+    ctx.drawImage(logo, width - logoWidth - 12 * scale, 12 * scale, logoWidth, logoHeight);
+  } else {
+    ctx.fillStyle = "#006e94";
+    ctx.font = `700 ${14 * scale}px ${EXPORT_FONT}`;
+    ctx.fillText("Stadt.Land.Klima", width - 128 * scale, 28 * scale);
+  }
+
+  ctx.fillStyle = "#111827";
+  ctx.font = `700 ${18 * scale}px ${EXPORT_FONT}`;
+  titleLines.forEach((line, index) => {
+    ctx.fillText(line, 12 * scale, 24 * scale + index * 24 * scale);
+  });
+
+  if (subtitleLines.length) {
+    ctx.fillStyle = "#4b5563";
+    ctx.font = `${11 * scale}px ${EXPORT_FONT}`;
+    const subtitleTop = 32 * scale + titleLines.length * 24 * scale;
+    subtitleLines.forEach((line, index) => {
+      ctx.fillText(line, 12 * scale, subtitleTop + index * 17 * scale);
+    });
+  }
+
+  ctx.strokeStyle = "#e5e7eb";
+  ctx.lineWidth = scale;
+  ctx.beginPath();
+  ctx.moveTo(12 * scale, headerHeight - 0.5 * scale);
+  ctx.lineTo(width - 12 * scale, headerHeight - 0.5 * scale);
+  ctx.stroke();
+}
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+function wrapText(text: string, maxChars: number) {
+  if (!text || text.length <= maxChars) return [text];
+  const words = String(text).split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= maxChars) {
+      current = next;
+      continue;
+    }
+    if (current) lines.push(current);
+    current = word;
+  }
+
+  if (current) lines.push(current);
+  return lines;
+}
+
 function refreshHeatmapLayers() {
   for (const layer of spec.value?.layers ?? []) {
     if (layer.type !== "heatmap" || typeof layer.id !== "string" || !map.getLayer(layer.id)) continue;
@@ -438,6 +719,68 @@ function withAreaInSourceUrls(mapSpec: MapLibreRenderSpec, ars?: string | null):
 function appendAreaParam(url: string, ars: string) {
   if (/[?&]area=/.test(url)) return url;
   return `${url}${url.includes("?") ? "&" : "?"}area=${encodeURIComponent(ars)}`;
+}
+
+function resolveUrl(url: string) {
+  if (/^https?:\/\//i.test(url)) return url;
+  if (typeof window === "undefined") return url;
+  return new URL(url, window.location.origin).toString();
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("PNG export failed"));
+    }, "image/png");
+  });
+}
+
+function downloadBlob(content: Blob | string, type: string, filename: string) {
+  const blob = content instanceof Blob ? content : new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  triggerDownload(url, filename);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function triggerDownload(url: string, filename: string) {
+  if (typeof document === "undefined") return;
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+function copyTextFallback(text: string) {
+  if (typeof document === "undefined") return;
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
+}
+
+function slugify(value: unknown) {
+  return String(value)
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function normalizeDate(value: string | null | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
 }
 
 function formatValue(value: unknown) {

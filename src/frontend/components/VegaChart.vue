@@ -64,12 +64,14 @@
 
 <script setup>
 import { Icon } from "@iconify/vue";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import slkLogoUrl from "~/assets/images/Stadt-Land-Klima-Logo.svg";
 
 const DATA_WEB_URL = "www.stadt-land-klima.de/data";
 const EXPORT_FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 let nativeZoomId = 0;
+const MIN_CHART_WIDTH = 240;
+const MIN_CHART_HEIGHT = 160;
 
 const props = defineProps({
   spec: {
@@ -123,6 +125,9 @@ const resolvedDataApiUrl = computed(() => {
   return url ? resolveUrl(url) : "";
 });
 let vegaView = null;
+let resizeObserver = null;
+let resizeTimer = null;
+let renderedSize = { width: 0, height: 0 };
 
 async function render() {
   if (!vegaRef.value || !props.spec) return;
@@ -139,7 +144,9 @@ async function render() {
     }
     vegaRef.value.innerHTML = "";
     nativeZoomEnabled.value = false;
-    const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(props.spec);
+    await nextTick();
+    const responsiveSpec = withResponsiveSize(props.spec);
+    const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(responsiveSpec);
     nativeZoomEnabled.value = hasNativeZoom;
 
     const result = await vegaEmbed(vegaRef.value, embeddableSpec, {
@@ -151,6 +158,7 @@ async function render() {
       },
     });
     vegaView = result.view;
+    renderedSize = measureChartSize();
     exportReady.value = true;
   } catch (e) {
     console.warn("[VegaChart] render error:", e);
@@ -158,6 +166,60 @@ async function render() {
     exportReady.value = false;
   } finally {
     loading.value = false;
+  }
+}
+
+function withResponsiveSize(spec) {
+  const cloned = JSON.parse(JSON.stringify(spec));
+  if (isMultiViewSpec(cloned)) return cloned;
+
+  const { width, height } = measureChartSize();
+  cloned.width = width;
+  cloned.height = height;
+  cloned.autosize = {
+    ...(typeof cloned.autosize === "object" && !Array.isArray(cloned.autosize) ? cloned.autosize : {}),
+    type: "fit",
+    contains: "padding",
+    resize: true,
+  };
+  return cloned;
+}
+
+function measureChartSize() {
+  const rect = vegaRef.value?.getBoundingClientRect?.() ?? containerRef.value?.getBoundingClientRect?.();
+  return {
+    width: Math.max(MIN_CHART_WIDTH, Math.floor(rect?.width || 0)),
+    height: Math.max(MIN_CHART_HEIGHT, Math.floor(rect?.height || 0)),
+  };
+}
+
+function observeContainerSize() {
+  resizeObserver?.disconnect();
+  if (!containerRef.value || typeof ResizeObserver === "undefined") return;
+
+  resizeObserver = new ResizeObserver(() => scheduleResize());
+  resizeObserver.observe(containerRef.value);
+}
+
+function scheduleResize() {
+  if (resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => resizeVegaView(), 80);
+}
+
+async function resizeVegaView() {
+  if (!vegaView || loading.value || renderError.value || isMultiViewSpec(props.spec)) return;
+
+  const nextSize = measureChartSize();
+  if (Math.abs(nextSize.width - renderedSize.width) < 2 && Math.abs(nextSize.height - renderedSize.height) < 2) {
+    return;
+  }
+
+  renderedSize = nextSize;
+  try {
+    await vegaView.width(nextSize.width).height(nextSize.height).resize().runAsync();
+  } catch (e) {
+    console.warn("[VegaChart] resize error, re-rendering:", e);
+    render();
   }
 }
 
@@ -647,9 +709,16 @@ watch(
   { deep: true },
 );
 
-onMounted(() => render());
+onMounted(() => {
+  observeContainerSize();
+  render();
+});
 
 onUnmounted(() => {
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+  if (resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = null;
   exportReady.value = false;
   if (vegaView) {
     vegaView.finalize();

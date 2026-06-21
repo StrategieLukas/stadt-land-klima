@@ -260,6 +260,10 @@
               <span class="text-gray-800 font-bold tabular-nums">{{ states.length }}</span>
               <span class="text-gray-400 ml-1 text-xs">Bundesländer</span>
             </div>
+            <div v-if="sidebarPopulation" class="text-sm">
+              <span class="text-gray-800 font-bold tabular-nums">{{ sidebarPopulation.toLocaleString("de-DE") }}</span>
+              <span class="text-gray-400 ml-1 text-xs">Einwohner</span>
+            </div>
             <div v-if="selectedState && !municipalitiesLoading && municipalities.length" class="text-sm">
               <span class="text-gray-800 font-bold tabular-nums">{{ visibleMunicipalities.length }}</span>
               <span class="text-gray-400 ml-1 text-xs">sichtbare Kommunen</span>
@@ -437,6 +441,15 @@ const sortedStates = computed(() => [...states.value].sort((a, b) => a.name.loca
 const municipalities = ref([]);
 const municipalitiesLoading = ref(false);
 const directusStatusByArs = ref({});
+const sidebarPopulation = computed(() => {
+  if (!selectedState.value) return numericPopulation(props.area?.population);
+  if (municipalitiesLoading.value) return null;
+  const total = municipalities.value.reduce(
+    (sum, municipality) => sum + (numericPopulation(municipality?.population) ?? 0),
+    0,
+  );
+  return total > 0 ? total : null;
+});
 
 async function loadMunicipalities(stateArs) {
   municipalitiesLoading.value = true;
@@ -458,6 +471,11 @@ async function loadMunicipalities(stateArs) {
   } finally {
     municipalitiesLoading.value = false;
   }
+}
+
+function numericPopulation(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
 }
 
 async function loadDirectusMunicipalityStatus(stateArs) {

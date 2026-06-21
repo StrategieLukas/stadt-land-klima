@@ -34,7 +34,15 @@
         <!-- Map column -->
         <div v-if="mapEl0" :class="kpiEl0 ? 'col-span-3' : 'col-span-1'" style="height: 280px">
           <ClientOnly>
-            <MapLibreRenderElement v-if="mapLibreSpec(mapEl0)" :element="mapEl0" :ars="ars" />
+            <MapLibreRenderElement
+              v-if="mapLibreSpec(mapEl0)"
+              :element="mapEl0"
+              :ars="ars"
+              :export-ars="ars"
+              :export-title="t(mapEl0.title) || collectionTitle"
+              :export-subtitle="t(mapEl0.description) || collectionDescription"
+              :export-collection-name="collectionTitle"
+            />
             <VegaChart
               v-else-if="mapEl0.vegalite_spec"
               :spec="mapEl0.vegalite_spec"

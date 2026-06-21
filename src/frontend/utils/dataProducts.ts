@@ -203,7 +203,7 @@ export function kpiValueFromAggregate(
   return raw;
 }
 
-export function formatKpiValue(kpi: RenderElement | null, value: number | null) {
+export function formatKpiValue(kpi: RenderElement | null, value: number | null, precision?: number | null) {
   if (value === null || value === undefined) return "Keine Daten";
   if (kpi?.is_percentage) {
     const thresholds = kpi.thresholds ?? {};
@@ -213,6 +213,9 @@ export function formatKpiValue(kpi: RenderElement | null, value: number | null) 
   }
   if (value >= 1_000_000) return `${(value / 1_000_000).toLocaleString("de-DE", { maximumFractionDigits: 1 })} Mio.`;
   if (value >= 10_000) return value.toLocaleString("de-DE", { maximumFractionDigits: 0 });
+  if (typeof precision === "number") {
+    return value.toLocaleString("de-DE", { minimumFractionDigits: precision, maximumFractionDigits: precision });
+  }
   return value.toLocaleString("de-DE", { maximumFractionDigits: Number.isInteger(value) ? 0 : 1 });
 }
 

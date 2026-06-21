@@ -72,7 +72,10 @@
       </div>
 
       <!-- ── Attribution ───────────────────────────────────────────────── -->
-      <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
+      <AttributionBlock
+        :summary="collectionSummary?.aggregate ?? null"
+        :sources="collectionSummary?.source_attributions ?? collectionSummary?.sourceAttributions ?? []"
+      />
     </template>
 
     <!-- ── No narrative steps yet: fall back to DataProductPanel ─────────── -->
@@ -86,7 +89,10 @@
         :export-updated-at="exportUpdatedAt"
         :export-attribution="exportAttribution"
       />
-      <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
+      <AttributionBlock
+        :summary="collectionSummary?.aggregate ?? null"
+        :sources="collectionSummary?.source_attributions ?? collectionSummary?.sourceAttributions ?? []"
+      />
     </div>
   </div>
 </template>
@@ -156,7 +162,11 @@ const exportAttribution = computed(() => {
   if (aggregateAttribution) return aggregateAttribution;
   const sources = collectionSummary.value?.source_attributions ?? collectionSummary.value?.sourceAttributions ?? [];
   return sources
-    .map((source) => [sourceLabel(source.source), source.attribution, source.license_name ?? source.licenseName].filter(Boolean).join(" | "))
+    .map((source) =>
+      [sourceLabel(source.source), source.attribution, source.license_name ?? source.licenseName]
+        .filter(Boolean)
+        .join(" | "),
+    )
     .filter(Boolean)
     .join("; ");
 });

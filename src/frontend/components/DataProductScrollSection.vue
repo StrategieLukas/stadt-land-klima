@@ -7,152 +7,179 @@
     class="border-gray-100 overflow-visible border-t pb-6 pt-10"
     :style="`scroll-margin-top: ${scrollMarginTop}px`"
   >
-    <div class="grid h-[820px] gap-5 overflow-hidden sm:h-[760px] xl:h-[430px] xl:grid-cols-12 xl:items-stretch">
-      <div class="flex min-h-0 flex-col gap-4 overflow-hidden xl:col-span-5">
-        <div
-          class="group/cover border-gray-200 relative flex h-[280px] flex-none flex-col justify-end overflow-hidden rounded-lg border bg-white shadow-sm xl:h-[280px]"
-        >
-          <img
-            v-if="coverImageUrl"
-            :src="coverImageUrl"
-            :alt="title"
-            class="absolute inset-0 h-full w-full object-cover"
-            loading="lazy"
-          />
-          <span
-            v-if="coverImageUrl && coverImageAttribution"
-            class="pointer-events-none absolute right-2 top-2 z-[1] max-w-[calc(100%-1rem)] truncate rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover/cover:opacity-100"
-            :title="coverImageAttribution"
-          >
-            {{ coverImageAttribution }}
-          </span>
+    <div class="border-gray-200 overflow-hidden rounded-lg border bg-white shadow-sm">
+      <div
+        class="grid min-h-[900px] overflow-hidden sm:min-h-[820px] xl:min-h-[540px] xl:grid-cols-12 xl:items-stretch"
+      >
+        <div class="border-gray-200 flex min-h-0 flex-col overflow-hidden xl:col-span-5 xl:border-r">
           <div
-            v-if="!coverImageUrl"
-            class="absolute inset-0 flex items-center justify-center"
-            :style="fallbackBackground"
+            class="group/cover relative flex min-h-[340px] flex-1 flex-col justify-end overflow-hidden bg-white xl:min-h-0"
           >
-            <Icon
-              :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-areaspline'"
-              class="h-20 w-20 opacity-35"
-              :style="{ color }"
+            <img
+              v-if="coverImageUrl"
+              :src="coverImageUrl"
+              :alt="title"
+              class="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
             />
-          </div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-          <div class="relative p-5">
             <span
-              class="mb-3 inline-flex max-w-full items-center rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm"
-              :style="{ backgroundColor: color }"
+              v-if="coverImageUrl && coverImageAttribution"
+              class="pointer-events-none absolute right-2 top-2 z-[1] max-w-[calc(100%-1rem)] truncate rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover/cover:opacity-100"
+              :title="coverImageAttribution"
             >
-              {{ sector }}
+              {{ coverImageAttribution }}
             </span>
-            <h2 class="text-3xl font-black leading-none text-white sm:text-4xl">
-              {{ title }}
-            </h2>
+            <div
+              v-if="!coverImageUrl"
+              class="absolute inset-0 flex items-center justify-center"
+              :style="fallbackBackground"
+            >
+              <Icon
+                :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-areaspline'"
+                class="h-20 w-20 opacity-35"
+                :style="{ color }"
+              />
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+            <div class="relative p-5 lg:p-6">
+              <span
+                class="mb-3 inline-flex max-w-full items-center rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm"
+                :style="{ backgroundColor: color }"
+              >
+                {{ sector }}
+              </span>
+              <h2 class="text-3xl font-black leading-none text-white sm:text-4xl lg:text-5xl">
+                {{ title }}
+              </h2>
+            </div>
+          </div>
+
+          <div class="border-gray-200 flex-none border-t">
+            <KPICard
+              v-if="kpi"
+              :element="kpi"
+              :collection-slug="collection.id"
+              :ars="ars"
+              :base-url="baseUrl"
+              :population="population"
+              flush
+            />
+            <p v-else-if="description" class="text-gray-600 text-sm leading-relaxed">
+              {{ description }}
+            </p>
           </div>
         </div>
 
-        <KPICard
-          v-if="kpi"
-          :element="kpi"
-          :collection-slug="collection.id"
+        <div class="min-h-[380px] sm:min-h-[480px] xl:col-span-7 xl:min-h-0">
+          <div class="flex h-full flex-col overflow-hidden bg-white">
+            <div v-if="primaryVisual" class="border-gray-100 flex-none border-b px-4 py-2.5">
+              <p class="text-gray-900 text-sm font-bold leading-snug">{{ primaryVisualTitle }}</p>
+              <p v-if="primaryVisualSubtitle" class="text-gray-500 mt-1 line-clamp-2 text-xs leading-relaxed">
+                {{ primaryVisualSubtitle }}
+              </p>
+            </div>
+            <div
+              v-if="renderLoading && !hasLoaded"
+              class="text-gray-500 flex min-h-0 flex-1 items-center justify-center gap-2 text-sm"
+            >
+              <SlkFlowerSpinner :size="24" />
+              Datenprodukt wird geladen…
+            </div>
+            <div v-else-if="primaryMapLibreSpec && primaryVisual" class="min-h-0 flex-1">
+              <ClientOnly>
+                <MapLibreRenderElement
+                  :element="primaryVisual"
+                  :ars="ars"
+                  :export-area-name="areaName"
+                  :export-ars="ars"
+                  :export-title="primaryVisualTitle"
+                  :export-subtitle="primaryVisualSubtitle"
+                  :export-collection-name="title"
+                  :export-updated-at="exportUpdatedAt"
+                  :export-attribution="exportAttribution"
+                />
+              </ClientOnly>
+            </div>
+            <div v-else-if="primaryVisualSpec" class="min-h-0 flex-1">
+              <ClientOnly>
+                <VegaChart
+                  :spec="primaryVisualSpec"
+                  :export-area-name="areaName"
+                  :export-ars="ars"
+                  :export-title="primaryVisualTitle"
+                  :export-subtitle="primaryVisualSubtitle"
+                  :export-collection-name="title"
+                  :export-updated-at="exportUpdatedAt"
+                  :export-attribution="exportAttribution"
+                />
+              </ClientOnly>
+            </div>
+            <DataImage
+              v-else-if="primaryVisual?.type === 'image'"
+              class="min-h-0 flex-1"
+              :element="primaryVisual"
+              :collection-slug="collection.id"
+              :base-url="baseUrl"
+            />
+            <div v-else class="text-gray-400 bg-gray-50 flex min-h-0 flex-1 items-center justify-center text-sm">
+              Keine Kartenvisualisierung verfügbar.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-gray-200 border-t p-4">
+        <DataProductJourneyCarousel
+          v-if="hasLoaded && journeySteps.length"
+          :steps="journeySteps"
+          :collection="collection"
           :ars="ars"
           :base-url="baseUrl"
           :population="population"
+          :area-name="areaName"
+          :export-updated-at="exportUpdatedAt"
+          :export-attribution="exportAttribution"
         />
 
-        <p v-if="description" class="text-gray-600 line-clamp-4 text-sm leading-relaxed">
-          {{ description }}
-        </p>
-      </div>
-
-      <div class="h-[340px] sm:h-[430px] xl:col-span-7 xl:h-full">
-        <div class="border-gray-200 h-full overflow-hidden rounded-lg border bg-white shadow-sm">
-          <div
-            v-if="renderLoading && !hasLoaded"
-            class="text-gray-500 flex h-full items-center justify-center gap-2 text-sm"
-          >
-            <SlkFlowerSpinner :size="24" />
-            Datenprodukt wird geladen…
-          </div>
-          <div v-else-if="primaryMapLibreSpec && primaryVisual" class="h-full">
-            <ClientOnly>
-              <MapLibreRenderElement :element="primaryVisual" :ars="ars" />
-            </ClientOnly>
-          </div>
-          <div v-else-if="primaryVisualSpec" class="h-full">
-            <ClientOnly>
-              <VegaChart
-                :spec="primaryVisualSpec"
-                :export-area-name="areaName"
-                :export-ars="ars"
-                :export-title="primaryVisualTitle"
-                :export-subtitle="primaryVisualSubtitle"
-                :export-collection-name="title"
-                :export-updated-at="exportUpdatedAt"
-                :export-attribution="exportAttribution"
-              />
-            </ClientOnly>
-          </div>
-          <DataImage
-            v-else-if="primaryVisual?.type === 'image'"
-            :element="primaryVisual"
-            :collection-slug="collection.id"
-            :base-url="baseUrl"
-          />
-          <div v-else class="text-gray-400 bg-gray-50 flex h-full items-center justify-center text-sm">
-            Keine Kartenvisualisierung verfügbar.
-          </div>
+        <div v-else-if="renderError" class="text-gray-400 text-sm">
+          Weitere Visualisierungen konnten nicht geladen werden.
         </div>
-      </div>
-    </div>
 
-    <div class="h-[688px] overflow-visible lg:h-[368px]">
-      <DataProductJourneyCarousel
-        v-if="hasLoaded && renderSteps.length"
-        :steps="renderSteps"
-        :collection="collection"
-        :ars="ars"
-        :base-url="baseUrl"
-        :population="population"
-        :area-name="areaName"
-        :export-updated-at="exportUpdatedAt"
-        :export-attribution="exportAttribution"
-      />
-
-      <div v-else-if="renderError" class="text-gray-400 mt-8 text-sm">
-        Weitere Visualisierungen konnten nicht geladen werden.
-      </div>
-
-      <div v-else class="mt-8">
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <div class="bg-gray-100 h-4 w-24 animate-pulse rounded" />
-          <div class="flex items-center gap-2">
-            <div class="bg-gray-100 h-6 w-20 animate-pulse rounded" />
-            <div class="bg-gray-100 h-6 w-6 animate-pulse rounded" />
-            <div class="bg-gray-100 h-6 w-6 animate-pulse rounded" />
-          </div>
-        </div>
-        <div class="grid gap-4 lg:grid-cols-2">
-          <div class="border-gray-100 overflow-hidden rounded-lg border bg-white">
-            <div class="border-gray-100 border-b p-4">
-              <div class="bg-gray-100 h-4 w-2/3 animate-pulse rounded" />
-              <div class="bg-gray-100 mt-2 h-3 w-4/5 animate-pulse rounded" />
+        <div v-else>
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <div class="bg-gray-100 h-4 w-24 animate-pulse rounded" />
+            <div class="flex items-center gap-2">
+              <div class="bg-gray-100 h-6 w-20 animate-pulse rounded" />
+              <div class="bg-gray-100 h-6 w-6 animate-pulse rounded" />
+              <div class="bg-gray-100 h-6 w-6 animate-pulse rounded" />
             </div>
-            <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
           </div>
-          <div class="border-gray-100 hidden overflow-hidden rounded-lg border bg-white lg:block">
-            <div class="border-gray-100 border-b p-4">
-              <div class="bg-gray-100 h-4 w-1/2 animate-pulse rounded" />
-              <div class="bg-gray-100 mt-2 h-3 w-3/4 animate-pulse rounded" />
+          <div class="grid gap-4 lg:grid-cols-2">
+            <div class="border-gray-100 overflow-hidden rounded-lg border bg-white">
+              <div class="border-gray-100 border-b p-4">
+                <div class="bg-gray-100 h-4 w-2/3 animate-pulse rounded" />
+                <div class="bg-gray-100 mt-2 h-3 w-4/5 animate-pulse rounded" />
+              </div>
+              <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
             </div>
-            <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
+            <div class="border-gray-100 hidden overflow-hidden rounded-lg border bg-white lg:block">
+              <div class="border-gray-100 border-b p-4">
+                <div class="bg-gray-100 h-4 w-1/2 animate-pulse rounded" />
+                <div class="bg-gray-100 mt-2 h-3 w-3/4 animate-pulse rounded" />
+              </div>
+              <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="overflow-visible">
-      <AttributionBlock :summary="collectionSummary?.aggregate ?? null" />
+      <div class="border-gray-200 border-t p-4">
+        <AttributionBlock
+          :summary="collectionSummary?.aggregate ?? null"
+          :sources="collectionSummary?.source_attributions ?? collectionSummary?.sourceAttributions ?? []"
+          embedded
+        />
+      </div>
     </div>
   </section>
 </template>
@@ -247,6 +274,21 @@ const primaryVisualSpec = computed(() =>
 const primaryMapLibreSpec = computed(() => mapLibreSpec(primaryVisual.value));
 const primaryVisualTitle = computed(() => localizedText(primaryVisual.value?.title) || title.value);
 const primaryVisualSubtitle = computed(() => localizedText(primaryVisual.value?.description) || description.value);
+
+const primaryMapPlotId = computed(() => (primaryVisual.value?.type === "map" ? primaryVisual.value.plot_id : null));
+const primaryKpiPlotId = computed(() => kpi.value?.plot_id ?? null);
+
+const journeySteps = computed(() => {
+  const heroPlotIds = new Set([primaryMapPlotId.value, primaryKpiPlotId.value].filter(Boolean));
+  if (!heroPlotIds.size) return renderSteps.value;
+
+  return renderSteps.value
+    .map((step) => ({
+      ...step,
+      elements: step.elements.filter((element) => !heroPlotIds.has(element.plot_id)),
+    }))
+    .filter((step) => step.elements.length > 0);
+});
 
 const fallbackBackground = computed(() => `background: linear-gradient(135deg, ${color.value}18, ${color.value}36);`);
 

@@ -1,7 +1,6 @@
 <template>
-  <div v-if="items.length" class="mt-6">
-    <div class="mb-2 flex items-center justify-between gap-3">
-      <h3 class="text-gray-500 text-sm font-bold uppercase tracking-wide">Datenreise</h3>
+  <div v-if="items.length">
+    <div class="mb-3 flex items-center justify-end gap-3">
       <div class="flex items-center gap-2">
         <button
           type="button"
@@ -55,7 +54,7 @@
               v-for="item in page"
               :key="item.key"
               class="border-gray-200 flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm"
-              :class="expanded ? 'h-[608px]' : 'h-[304px]'"
+              :class="expanded ? 'h-[660px]' : 'h-[304px]'"
             >
               <div class="border-gray-100 border-b px-4 py-2.5">
                 <p class="text-gray-900 text-sm font-bold leading-snug">{{ item.title }}</p>
@@ -82,13 +81,23 @@
                 <div
                   v-else-if="item.maplibre"
                   class="w-full overflow-hidden rounded"
-                  :class="expanded ? 'h-[524px]' : 'h-[220px]'"
+                  :class="expanded ? 'h-[568px]' : 'h-[220px]'"
                 >
                   <ClientOnly>
-                    <MapLibreRenderElement :element="item.element" :ars="ars" />
+                    <MapLibreRenderElement
+                      :element="item.element"
+                      :ars="ars"
+                      :export-area-name="areaName"
+                      :export-ars="ars"
+                      :export-title="item.title"
+                      :export-subtitle="item.description"
+                      :export-collection-name="collectionTitle"
+                      :export-updated-at="exportUpdatedAt"
+                      :export-attribution="exportAttribution"
+                    />
                   </ClientOnly>
                 </div>
-                <div v-else-if="item.spec" class="w-full" :class="expanded ? 'h-[524px]' : 'h-[220px]'">
+                <div v-else-if="item.spec" class="w-full" :class="expanded ? 'h-[568px]' : 'h-[220px]'">
                   <ClientOnly>
                     <VegaChart
                       :spec="item.spec"

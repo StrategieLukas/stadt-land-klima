@@ -56,7 +56,18 @@
       <!-- Row 2: Maps -->
       <div v-if="primaryMapLibreElement || combinedMapSpec" class="mb-6 w-full" style="height: 420px">
         <ClientOnly>
-          <MapLibreRenderElement v-if="primaryMapLibreElement" :element="primaryMapLibreElement" :ars="ars" />
+          <MapLibreRenderElement
+            v-if="primaryMapLibreElement"
+            :element="primaryMapLibreElement"
+            :ars="ars"
+            :export-area-name="municipalityName"
+            :export-ars="ars"
+            :export-title="localizedStr(primaryMapLibreElement.title) || collectionTitle"
+            :export-subtitle="localizedStr(primaryMapLibreElement.description) || collectionDescription"
+            :export-collection-name="collectionTitle"
+            :export-updated-at="exportUpdatedAt"
+            :export-attribution="exportAttribution"
+          />
           <VegaChart
             v-else-if="combinedMapSpec"
             :spec="combinedMapSpec"

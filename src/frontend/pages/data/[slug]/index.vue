@@ -210,19 +210,16 @@
               </div>
               <div class="skeleton h-3 w-20" />
             </div>
-            <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+            <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 lg:grid-cols-4">
               <div
                 v-for="i in 10"
                 :key="i"
-                class="border-gray-200 min-h-[230px] overflow-hidden rounded-lg border bg-white"
+                class="border-gray-200 h-[250px] overflow-hidden rounded-lg border bg-white xl:h-[260px]"
               >
-                <div class="skeleton h-24 rounded-none" />
-                <div class="space-y-3 p-3">
-                  <div class="skeleton h-4 w-5/6" />
-                  <div class="skeleton h-4 w-3/5" />
-                  <div class="pt-14">
-                    <div class="skeleton h-3 w-full" />
-                  </div>
+                <div class="skeleton relative h-full rounded-none">
+                  <div class="absolute left-3 top-3 h-5 w-20 rounded-full bg-white/35" />
+                  <div class="absolute bottom-16 left-3 h-5 w-3/5 rounded bg-white/35" />
+                  <div class="absolute inset-x-0 bottom-0 h-14 bg-white/25" />
                 </div>
               </div>
             </div>
