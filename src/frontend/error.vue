@@ -68,7 +68,7 @@ import { useError, clearError } from '#app'
 
 const error = useError()
 
-const isDev = process.env.NODE_ENV === 'development'
+const isDev = process.env.APP_ENV === 'development'
 
 const is404 = computed(() => error.value?.statusCode === 404)
 

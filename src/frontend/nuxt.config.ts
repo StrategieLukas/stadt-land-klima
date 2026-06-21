@@ -4,7 +4,7 @@ export default defineNuxtConfig({
     '@nuxtjs/leaflet',
     '@blokkli/editor',
   ],
-  
+
   // blökkli configuration
   blokkli: {
     itemEntityType: 'block',
@@ -26,8 +26,8 @@ export default defineNuxtConfig({
     listmonkListId: process.env.LISTMONK_LIST_ID,
     directusServerUrl: process.env.SERVER_DIRECTUS_URL ?? 'http://directus:8055',
     directusAdminToken: process.env.DIRECTUS_ADMIN_TOKEN,
-    appPublicUrl: process.env.APP_PUBLIC_URL,
-    directusPublicUrl: process.env.DIRECTUS_PUBLIC_URL,
+    appPublicUrl: process.env.PUBLIC_URL,
+    directusPublicUrl: process.env.CLIENT_DIRECTUS_URL,
     adminNotificationEmail: process.env.ADMIN_NOTIFICATION_EMAIL,
     welcomeEmailTutorialUrl: process.env.WELCOME_EMAIL_TUTORIAL_URL,
     welcomeEmailCalendarUrl: process.env.WELCOME_EMAIL_CALENDAR_URL,
