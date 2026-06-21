@@ -441,6 +441,7 @@ async function main(): Promise<void> {
     console.info('Custom SLK-Directus startup security checks skipped; SLK_STARTUP_SECURITY_CHECKS is not enabled.');
     return;
   }
+  console.info("Running custom SLK-Directus startup security checks");
 
   const failures: string[] = [];
   const warnings: string[] = [];

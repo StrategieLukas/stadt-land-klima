@@ -26,7 +26,7 @@ export default defineNitroPlugin(async () => {
   const config = useRuntimeConfig()
   const ms = getMeilisearch()
   const index = ms.index('site_content')
-  const reindexIntervalMs = process.env.NODE_ENV === 'production'
+  const reindexIntervalMs = process.env.APP_ENV === 'production'
     ? REINDEX_INTERVAL_MS_PROD
     : REINDEX_INTERVAL_MS_DEV
 
