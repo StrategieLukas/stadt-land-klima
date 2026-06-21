@@ -378,6 +378,7 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
       url: photo.urls.regular,
       data: {
         title: photo.description || `Unsplash photo by ${photo.user.name}`,
+        image_credits: `Photo: ${photo.user.name} on Unsplash`,
         ...(props.folder ? { folder: props.folder } : {}),
       },
     };

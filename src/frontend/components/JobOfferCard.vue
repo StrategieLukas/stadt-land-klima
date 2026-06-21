@@ -17,6 +17,7 @@
         </div>
 
         <div
+          v-if="hasOrganisationIdentity"
           class="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-mild-white"
           :aria-label="organisationName"
         >
@@ -57,11 +58,6 @@
           </svg>
           <span class="truncate">{{ job.weekly_hours }}</span>
         </div>
-
-        <JobOfferStatusPill
-          :is-paid="isPaid"
-          :label="isPaid ? paidLabel : volunteerLabel"
-        />
       </div>
     </div>
   </NuxtLink>
@@ -95,14 +91,8 @@ type JobOffer = {
 const props = defineProps<{
   job: JobOffer
   typeLabel: (type: string) => string
-  paidLabel: string
-  volunteerLabel: string
   flexibleDateLabel: string
 }>()
-
-const paidTypes = new Set(['full_time', 'part_time', 'working_student', 'internship'])
-
-const isPaid = computed(() => paidTypes.has(props.job.type))
 
 const organisation = computed<Organisation | null>(() => {
   return typeof props.job.organisation === 'object' ? props.job.organisation : null
@@ -126,6 +116,7 @@ const organisationInitials = computed(() => {
     .map(part => part.charAt(0).toUpperCase())
     .join('')
 })
+const hasOrganisationIdentity = computed(() => !!organisationLogoAssetId.value || !!organisationInitials.value)
 
 function formatDateRange(startIso?: string | null, endIso?: string | null) {
   if (!startIso) return props.flexibleDateLabel

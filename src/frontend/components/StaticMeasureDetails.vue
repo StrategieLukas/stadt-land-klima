@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-4 py-4 p-4 mb-4">
+  <div v-if="!hideAbout" class="mt-4 py-4 p-4 mb-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure.description_about_heading") }}
     </h3>
@@ -66,6 +66,10 @@ const iconInvest = '/icons/icon_invest.svg'
     measure: {
       type: Object,
       required: true,
+    },
+    hideAbout: {
+      type: Boolean,
+      default: false,
     },
   });
 </script>

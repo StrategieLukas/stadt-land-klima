@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="to" class="card bg-white shadow-xl rounded-none overflow-hidden block hover:shadow-2xl transition-shadow duration-200">
+  <NuxtLink :to="to" class="card group bg-white shadow-xl rounded-none overflow-hidden block hover:shadow-2xl transition-shadow duration-200">
     <div class="relative h-40 bg-gray-200 flex items-center justify-center">
       <SmartImg
         v-if="image_id"
@@ -20,6 +20,12 @@
       <div v-if="sector" class="absolute top-2 left-2 flex items-center gap-1 bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold text-gray">
         <img :src="sectorImages[sector]" class="w-4 h-4 opacity-60" alt="" />
         {{ $t(`measure_sectors.${sector}.title`) }}
+      </div>
+      <div
+        v-if="image_credits"
+        class="absolute inset-x-0 bottom-0 bg-gray/80 px-2 py-1 text-[10px] font-medium text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+      >
+        {{ image_credits }}
       </div>
     </div>
 
@@ -45,5 +51,6 @@ const props = defineProps({
   sector: { type: String, default: null },
   description: { type: String, default: null },
   image_id: { type: String, default: null },
+  image_credits: { type: String, default: null },
 });
 </script>

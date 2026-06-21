@@ -223,7 +223,7 @@
       <MeasuresTreemap
         v-if="viewMode === 'treemap'"
         :measures="filteredMeasures"
-        :on-navigate="(slug) => router.push(`/measures/${slug}?v=${currentCatalogVersion.name}`)"
+        :on-navigate="(slug) => router.push(measureDetailLocation(slug))"
         class="mb-8"
       />
     </ClientOnly>
@@ -233,12 +233,13 @@
       <MeasureCard
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
-        :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
+        :to="measureDetailLocation(measure.slug)"
         :measure_id="measure.measure_id"
         :name="measure.name"
         :sector="measure.sector"
         :description="truncateHtml(measure.description_about)"
-        :image_id="measure.image || null"
+        :image_id="imageId(measure.image)"
+        :image_credits="imageCredits(measure.image)"
       />
     </div>
 
@@ -247,7 +248,7 @@
       <NuxtLink
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
-        :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
+        :to="measureDetailLocation(measure.slug)"
         class="card rounded-md border border-gray/20 shadow hover:shadow-lg transition-shadow duration-200 block"
       >
         <div class="card-body">
@@ -321,7 +322,18 @@ async function fetchMeasures(catalogVersionId) {
   return useAsyncData(`measures-index-${catalogVersionId}`, () => {
     return $directus.request(
       $readItems("measures", {
-        fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight", "image"],
+        fields: [
+          "measure_id",
+          "name",
+          "slug",
+          "sector",
+          "description_about",
+          "impact",
+          "feasibility_economical",
+          "feasibility_political",
+          "weight",
+          { image: ["id", "image_credits"] },
+        ],
         filter: { catalog_version: { _eq: catalogVersionId } },
         sort: "measure_id",
         limit: -1,
@@ -392,6 +404,24 @@ function stripHtml(html) {
 function truncateHtml(html, maxLen = 130) {
   const text = stripHtml(html);
   return text.length > maxLen ? text.slice(0, maxLen) + '…' : text;
+}
+
+function imageId(image) {
+  return typeof image === 'string' ? image : image?.id || null;
+}
+
+function imageCredits(image) {
+  return typeof image === 'object' && image ? image.image_credits || null : null;
+}
+
+function measureDetailLocation(slug) {
+  return {
+    path: `/measures/${slug}`,
+    query: {
+      v: currentCatalogVersion.value.name,
+      ...(selectedSector.value ? { sector: selectedSector.value } : {}),
+    },
+  };
 }
 
 // ── Filtered + sorted list ───────────────────────────────────────────────────

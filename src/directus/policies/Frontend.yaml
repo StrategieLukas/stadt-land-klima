@@ -384,6 +384,7 @@ permissions:
       - name
       - sector
       - slug
+      - image
       - impact
       - weight
       - feasibility_political
