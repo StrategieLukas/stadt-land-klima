@@ -32,9 +32,11 @@
           />
         </div>
         <!-- Map column -->
-        <div v-if="mapEl0 && mapEl0.vegalite_spec" :class="kpiEl0 ? 'col-span-3' : 'col-span-1'" style="height: 280px">
+        <div v-if="mapEl0" :class="kpiEl0 ? 'col-span-3' : 'col-span-1'" style="height: 280px">
           <ClientOnly>
+            <MapLibreRenderElement v-if="mapLibreSpec(mapEl0)" :element="mapEl0" :ars="ars" />
             <VegaChart
+              v-else-if="mapEl0.vegalite_spec"
               :spec="mapEl0.vegalite_spec"
               :export-ars="ars"
               :export-title="t(mapEl0.title) || collectionTitle"
@@ -110,6 +112,7 @@ import type { Collection } from "~/types/slz-api";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import { useCollectionRender } from "~/composables/useCollectionRender";
 import sectorImages from "~/shared/sectorImages.js";
+import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
 const SECTOR_COLORS: Record<string, string> = {
   energy: "#F59E0B",
@@ -157,7 +160,7 @@ const step0Elements = computed(() => (props.collection.render_elements ?? []).fi
 
 const kpiEl0 = computed(() => step0Elements.value.find((e) => e.type === "kpi") ?? null);
 
-const mapEl0 = computed(() => step0Elements.value.find((e) => e.type === "map" && e.vegalite_spec) ?? null);
+const mapEl0 = computed(() => step0Elements.value.find((e) => e.type === "map" && hasMapVisual(e)) ?? null);
 
 const step0Description = computed(() => {
   const step0 = props.collection.narrative_steps?.[0];

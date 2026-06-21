@@ -1,4 +1,10 @@
-import type { Collection, CollectionCoverImage, RenderElement, SummaryAggregate } from "~/types/slz-api";
+import type {
+  Collection,
+  CollectionCoverImage,
+  MapLibreRenderSpec,
+  RenderElement,
+  SummaryAggregate,
+} from "~/types/slz-api";
 
 export const DATA_PRODUCT_SECTOR_COLORS: Record<string, string> = {
   energy: "#F59E0B",
@@ -163,16 +169,26 @@ export function normalizeCollection(collection: Collection) {
 }
 
 export function firstMapElement(collection: Pick<Collection, "render_elements">) {
-  return collection.render_elements?.find((element) => element.type === "map" && element.vegalite_spec) ?? null;
+  return collection.render_elements?.find((element) => element.type === "map" && hasMapVisual(element)) ?? null;
 }
 
 export function bestVisualElement(elements: RenderElement[]) {
   return (
-    elements.find((element) => element.type === "map" && element.vegalite_spec) ??
+    elements.find((element) => element.type === "map" && hasMapVisual(element)) ??
     elements.find((element) => element.type !== "kpi" && element.vegalite_spec) ??
     elements.find((element) => element.type === "image" && element.src_url) ??
     null
   );
+}
+
+export function mapLibreSpec(element?: RenderElement | null): MapLibreRenderSpec | null {
+  const candidate = element?.maplibre_spec ?? element?.maplibreSpec ?? null;
+  if (!candidate || candidate.renderer !== "maplibre" || candidate.version !== 1) return null;
+  return candidate;
+}
+
+export function hasMapVisual(element?: RenderElement | null) {
+  return !!(mapLibreSpec(element) || element?.vegalite_spec);
 }
 
 export function kpiValueFromAggregate(

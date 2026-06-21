@@ -74,6 +74,11 @@
             <SlkFlowerSpinner :size="24" />
             Datenprodukt wird geladen…
           </div>
+          <div v-else-if="primaryMapLibreSpec && primaryVisual" class="h-full">
+            <ClientOnly>
+              <MapLibreRenderElement :element="primaryVisual" :ars="ars" />
+            </ClientOnly>
+          </div>
           <div v-else-if="primaryVisualSpec" class="h-full">
             <ClientOnly>
               <VegaChart
@@ -164,6 +169,7 @@ import {
   firstKpiElement,
   injectAreaIntoSpec,
   localizedText,
+  mapLibreSpec,
   normalizeCollection,
   sectorColor,
   sectorKey,
@@ -218,7 +224,11 @@ const exportAttribution = computed(() => {
   if (aggregateAttribution) return aggregateAttribution;
   const sources = collectionSummary.value?.source_attributions ?? collectionSummary.value?.sourceAttributions ?? [];
   return sources
-    .map((source) => [localizedText(source.source), source.attribution, source.license_name ?? source.licenseName].filter(Boolean).join(" | "))
+    .map((source) =>
+      [localizedText(source.source), source.attribution, source.license_name ?? source.licenseName]
+        .filter(Boolean)
+        .join(" | "),
+    )
     .filter(Boolean)
     .join("; ");
 });
@@ -230,10 +240,11 @@ const primaryVisual = computed<RenderElement | null>(
 );
 
 const primaryVisualSpec = computed(() =>
-  primaryVisual.value?.vegalite_spec
+  !primaryMapLibreSpec.value && primaryVisual.value?.vegalite_spec
     ? injectAreaIntoSpec(primaryVisual.value.vegalite_spec as object, props.ars)
     : null,
 );
+const primaryMapLibreSpec = computed(() => mapLibreSpec(primaryVisual.value));
 const primaryVisualTitle = computed(() => localizedText(primaryVisual.value?.title) || title.value);
 const primaryVisualSubtitle = computed(() => localizedText(primaryVisual.value?.description) || description.value);
 

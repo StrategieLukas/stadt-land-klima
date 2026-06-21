@@ -15,7 +15,7 @@
       </p>
     </div>
 
-    <!-- Layout: kpi_map — KPI left (40%) + Vega map right (60%) -->
+    <!-- Layout: kpi_map — KPI left (40%) + map right (60%) -->
     <div v-if="step.layout === 'kpi_map' && mapElement && kpiElement" class="grid grid-cols-5 items-start gap-4">
       <div class="col-span-2">
         <KPICard
@@ -28,7 +28,9 @@
       </div>
       <div class="col-span-3" style="height: 340px">
         <ClientOnly>
+          <MapLibreRenderElement v-if="mapLibreSpec(mapElement)" :element="mapElement" :ars="ars" />
           <VegaChart
+            v-else-if="mapSpec"
             :spec="mapSpec"
             :export-area-name="areaName"
             :export-ars="ars"
@@ -66,9 +68,15 @@
     </div>
 
     <!-- Layout: full_width — single chart spanning full width -->
-    <div v-else-if="step.layout === 'full_width' && primarySpec" class="w-full" style="height: 360px">
+    <div
+      v-else-if="step.layout === 'full_width' && (primaryMapLibreSpec || primarySpec)"
+      class="w-full"
+      style="height: 360px"
+    >
       <ClientOnly>
+        <MapLibreRenderElement v-if="primaryMapLibreSpec && primaryElement" :element="primaryElement" :ars="ars" />
         <VegaChart
+          v-else-if="primarySpec"
           :spec="primarySpec"
           :export-area-name="areaName"
           :export-ars="ars"
@@ -88,18 +96,20 @@
     <!-- Layout: split — two equal charts side by side -->
     <div v-else-if="step.layout === 'split'" class="grid grid-cols-2 gap-4" style="height: 300px">
       <ClientOnly>
-        <VegaChart
-          v-for="el in step.elements.filter((e) => e.vegalite_spec)"
-          :key="el.plot_id"
-          :spec="injectArea(el.vegalite_spec, ars)"
-          :export-area-name="areaName"
-          :export-ars="ars"
-          :export-title="localizedElementTitle(el) || stepTitle"
-          :export-subtitle="localizedElementDescription(el) || stepDescription"
-          :export-collection-name="collectionTitle"
-          :export-updated-at="exportUpdatedAt"
-          :export-attribution="exportAttribution"
-        />
+        <template v-for="el in splitVisualElements" :key="el.plot_id">
+          <MapLibreRenderElement v-if="mapLibreSpec(el)" :element="el" :ars="ars" />
+          <VegaChart
+            v-else
+            :spec="injectArea(el.vegalite_spec, ars)"
+            :export-area-name="areaName"
+            :export-ars="ars"
+            :export-title="localizedElementTitle(el) || stepTitle"
+            :export-subtitle="localizedElementDescription(el) || stepDescription"
+            :export-collection-name="collectionTitle"
+            :export-updated-at="exportUpdatedAt"
+            :export-attribution="exportAttribution"
+          />
+        </template>
       </ClientOnly>
     </div>
 
@@ -127,10 +137,12 @@
         :export-attribution="exportAttribution"
       />
       <!-- Extra non-KPI vega elements in this step -->
-      <template v-for="el in nonKpiVegaElements" :key="el.plot_id">
+      <template v-for="el in nonKpiVisualElements" :key="el.plot_id">
         <div class="mt-4 w-full" style="height: 280px">
           <ClientOnly>
+            <MapLibreRenderElement v-if="mapLibreSpec(el)" :element="el" :ars="ars" />
             <VegaChart
+              v-else
               :spec="injectArea(el.vegalite_spec, ars)"
               :export-area-name="areaName"
               :export-ars="ars"
@@ -152,6 +164,7 @@ import { computed } from "vue";
 import type { ResolvedStep } from "~/composables/useCollectionRender";
 import type { Collection } from "~/types/slz-api";
 import { useSlzLocale } from "~/composables/useSlzLocale";
+import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
 const props = defineProps<{
   step: ResolvedStep;
@@ -207,10 +220,13 @@ const primaryElement = computed(() => props.step.elements[0] ?? null);
 
 // primary element's Vega spec with area injected (for full_width / split)
 const primarySpec = computed(() =>
-  primaryElement.value?.vegalite_spec ? injectArea(primaryElement.value.vegalite_spec as object, props.ars) : null,
+  !primaryMapLibreSpec.value && primaryElement.value?.vegalite_spec
+    ? injectArea(primaryElement.value.vegalite_spec as object, props.ars)
+    : null,
 );
+const primaryMapLibreSpec = computed(() => mapLibreSpec(primaryElement.value));
 
-const mapElement = computed(() => props.step.elements.find((e) => e.type === "map" && e.vegalite_spec) ?? null);
+const mapElement = computed(() => props.step.elements.find((e) => e.type === "map" && hasMapVisual(e)) ?? null);
 
 // map spec with area injected
 const mapSpec = computed(() =>
@@ -221,5 +237,9 @@ const kpiElement = computed(() => props.step.elements.find((e) => e.type === "kp
 
 const imageElement = computed(() => props.step.elements.find((e) => e.type === "image") ?? null);
 
-const nonKpiVegaElements = computed(() => props.step.elements.filter((e) => e.type !== "kpi" && e.vegalite_spec));
+const splitVisualElements = computed(() => props.step.elements.filter((e) => mapLibreSpec(e) || e.vegalite_spec));
+
+const nonKpiVisualElements = computed(() =>
+  props.step.elements.filter((e) => e.type !== "kpi" && (mapLibreSpec(e) || e.vegalite_spec)),
+);
 </script>

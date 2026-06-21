@@ -54,14 +54,16 @@
       </div>
 
       <!-- Row 2: Maps -->
-      <div v-if="combinedMapSpec" class="mb-6 w-full" style="height: 420px">
+      <div v-if="primaryMapLibreElement || combinedMapSpec" class="mb-6 w-full" style="height: 420px">
         <ClientOnly>
+          <MapLibreRenderElement v-if="primaryMapLibreElement" :element="primaryMapLibreElement" :ars="ars" />
           <VegaChart
+            v-else-if="combinedMapSpec"
             :spec="combinedMapSpec"
             :export-area-name="municipalityName"
             :export-ars="ars"
-            :export-title="localizedStr(mapElements[0]?.title) || collectionTitle"
-            :export-subtitle="localizedStr(mapElements[0]?.description) || collectionDescription"
+            :export-title="localizedStr(vegaMapElements[0]?.title) || collectionTitle"
+            :export-subtitle="localizedStr(vegaMapElements[0]?.description) || collectionDescription"
             :export-collection-name="collectionTitle"
             :export-updated-at="exportUpdatedAt"
             :export-attribution="exportAttribution"
@@ -138,6 +140,7 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
+import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
 const props = defineProps({
   collection: {
@@ -197,7 +200,9 @@ const collectionDescription = computed(() => localizedStr(props.collection?.desc
 
 const histogramElements = computed(() => renderElements.value.filter((e) => e.type === "histogram" && e.vegalite_spec));
 
-const mapElements = computed(() => renderElements.value.filter((e) => e.type === "map" && e.vegalite_spec));
+const mapElements = computed(() => renderElements.value.filter((e) => e.type === "map" && hasMapVisual(e)));
+const primaryMapLibreElement = computed(() => mapElements.value.find((e) => mapLibreSpec(e)) ?? null);
+const vegaMapElements = computed(() => mapElements.value.filter((e) => !mapLibreSpec(e) && e.vegalite_spec));
 
 const timeSeriesElements = computed(() =>
   renderElements.value.filter((e) => e.type === "time_series" && e.vegalite_spec),
@@ -223,7 +228,7 @@ function cloneWithArea(spec, ars) {
 }
 
 const combinedMapSpec = computed(() => {
-  const els = mapElements.value;
+  const els = vegaMapElements.value;
   if (!els.length || !props.ars) return null;
 
   // Suppress maps that would show a single uniform-color municipality boundary.

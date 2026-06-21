@@ -54,7 +54,8 @@
             <article
               v-for="item in page"
               :key="item.key"
-              class="border-gray-200 flex h-[304px] flex-col overflow-hidden rounded-lg border bg-white shadow-sm"
+              class="border-gray-200 flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm"
+              :class="expanded ? 'h-[608px]' : 'h-[304px]'"
             >
               <div class="border-gray-100 border-b px-4 py-2.5">
                 <p class="text-gray-900 text-sm font-bold leading-snug">{{ item.title }}</p>
@@ -78,7 +79,16 @@
                   :collection-slug="collection.id"
                   :base-url="baseUrl"
                 />
-                <div v-else-if="item.spec" class="h-[220px] w-full">
+                <div
+                  v-else-if="item.maplibre"
+                  class="w-full overflow-hidden rounded"
+                  :class="expanded ? 'h-[524px]' : 'h-[220px]'"
+                >
+                  <ClientOnly>
+                    <MapLibreRenderElement :element="item.element" :ars="ars" />
+                  </ClientOnly>
+                </div>
+                <div v-else-if="item.spec" class="w-full" :class="expanded ? 'h-[524px]' : 'h-[220px]'">
                   <ClientOnly>
                     <VegaChart
                       :spec="item.spec"
@@ -112,7 +122,7 @@ import { Icon } from "@iconify/vue";
 import { computed, nextTick, ref, watch } from "vue";
 import type { Collection, RenderElement } from "~/types/slz-api";
 import type { ResolvedStep } from "~/composables/useCollectionRender";
-import { injectAreaIntoSpec, localizedText } from "~/utils/dataProducts";
+import { injectAreaIntoSpec, localizedText, mapLibreSpec } from "~/utils/dataProducts";
 
 const props = defineProps<{
   steps: ResolvedStep[];
@@ -131,6 +141,7 @@ interface CarouselItem {
   description: string;
   element: RenderElement;
   spec: object | null;
+  maplibre: boolean;
 }
 
 const expanded = ref(false);
@@ -142,13 +153,17 @@ const items = computed<CarouselItem[]>(() => {
   const list: CarouselItem[] = [];
   for (const step of props.steps) {
     for (const element of step.elements) {
-      if (element.type === "map") continue;
+      const hasMapLibreSpec = !!mapLibreSpec(element);
       list.push({
         key: `${step.index}-${element.plot_id || list.length}`,
         title: localizedText(element.title) || localizedText(step.title) || localizedText(props.collection.title),
         description: localizedText(element.description) || localizedText(step.description),
         element,
-        spec: element.vegalite_spec ? injectAreaIntoSpec(element.vegalite_spec as object, props.ars) : null,
+        spec:
+          !hasMapLibreSpec && element.vegalite_spec
+            ? injectAreaIntoSpec(element.vegalite_spec as object, props.ars)
+            : null,
+        maplibre: hasMapLibreSpec,
       });
     }
   }

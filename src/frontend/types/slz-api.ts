@@ -2,11 +2,23 @@ export type LayoutHint = "default" | "full_width" | "split" | "kpi_map" | "image
 
 export interface RenderElement {
   plot_id: string;
-  type: "map" | "kpi" | "histogram" | "bar_chart" | "pie_chart" | "time_series" | "image" | "table" | "graph" | "altair";
+  type:
+    | "map"
+    | "kpi"
+    | "histogram"
+    | "bar_chart"
+    | "pie_chart"
+    | "time_series"
+    | "image"
+    | "table"
+    | "graph"
+    | "altair";
   step?: number;
   title?: Record<string, string>;
   description?: Record<string, string>;
   vegalite_spec: object | null;
+  maplibre_spec?: MapLibreRenderSpec | null;
+  maplibreSpec?: MapLibreRenderSpec | null;
   field?: string;
   unit?: Record<string, string>;
   label?: Record<string, string>;
@@ -15,6 +27,32 @@ export interface RenderElement {
   thresholds?: Record<string, number>;
   src_url?: string;
   image_field?: string;
+  [key: string]: unknown;
+}
+
+export interface MapLibreRenderSpec {
+  renderer?: "maplibre" | string;
+  version?: number;
+  style?: Record<string, unknown>;
+  sources?: {
+    features?: {
+      data?: string | Record<string, unknown> | null;
+      [key: string]: unknown;
+    };
+    density?: {
+      url_template?: string;
+      urlTemplate?: string;
+      [key: string]: unknown;
+    };
+    [key: string]: any;
+  };
+  layers?: Array<Record<string, any>>;
+  tooltip_fields?: Array<
+    string | { field?: string; label?: string | Record<string, string>; title?: string | Record<string, string> }
+  >;
+  tooltipFields?: Array<
+    string | { field?: string; label?: string | Record<string, string>; title?: string | Record<string, string> }
+  >;
   [key: string]: unknown;
 }
 
