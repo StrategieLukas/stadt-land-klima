@@ -91,6 +91,16 @@
         <div v-if="!disabled" class="add-child-row">
           <button class="add-child-btn" @click="addChild(idx)">+ Unterpunkt hinzufügen</button>
         </div>
+        <NavItemForm
+          v-if="editingPath === `${idx}.${item.children?.length ?? 0}__new`"
+          :buffer="editBuffer!"
+          :page-results="pageResults"
+          :allow-none-link="false"
+          @slug-input="onSlugInput"
+          @select-page="(p) => handleSelectPage(p)"
+          @save="editingPath && saveEdit(editingPath)"
+          @cancel="cancelEdit"
+        />
       </div>
 
       <!-- New-item form (shown below existing items, before the add button) -->
@@ -221,8 +231,6 @@ function handleSelectPage(page: Page): void {
 function startAddItem(): void {
   if (isAddingNew.value) return;
   editingPath.value = null;
-  editBuffer.value = { ...newItemDefaults(), children: undefined as unknown as NavItem[] };
-  // Cast away children since EditBuffer omits it — children are added on commit
   const { children: _children, id: _id, ...bufferFields } = newItemDefaults();
   editBuffer.value = bufferFields as EditBuffer;
   isAddingNew.value = true;
