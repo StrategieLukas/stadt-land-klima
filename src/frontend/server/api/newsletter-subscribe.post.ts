@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 503, message: 'Newsletter-Dienst nicht konfiguriert.' });
   }
 
-  const body = await readBody(event);
+  const body = await readRequestBody(event);
   const { email, name, listIds } = body ?? {};
 
   if (!email?.trim()) {
