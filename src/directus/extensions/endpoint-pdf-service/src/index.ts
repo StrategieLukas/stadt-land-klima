@@ -1,8 +1,7 @@
 import path from "path";
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { writeFileSync, unlinkSync, existsSync } from "fs";
-import { randomUUID } from "crypto";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
 import { convert } from "html-to-text";
 import type { Request, Response, Router } from "express";
 import type { ItemsService, Schema } from "@directus/types";
@@ -116,36 +115,65 @@ function withPlainTextDescriptions(data: MeasureText[]): MeasureText[] {
 }
 
 /**
- * Writes named temp files and returns their paths plus an idempotent cleanup
- * function. Safe to call cleanup() multiple times.
+ * Creates a writable per-request Typst root with static assets plus JSON inputs.
+ * The source Typst extension directory can stay read-only in production.
  */
-function writeTempFiles(
-  dir: string,
+function createTypstWorkspace(
+  typstAssetsDir: string,
   files: Record<string, unknown>
-): { paths: Record<string, string>; cleanup: () => void } {
-  const id = randomUUID();
-  const paths: Record<string, string> = {};
+): { typstRoot: string; inputs: Record<string, string>; cleanup: () => void } {
+  const baseDir = resolveTempBaseDir();
+  mkdirSync(baseDir, { recursive: true });
 
-  for (const [key, data] of Object.entries(files)) {
-    const filepath = path.join(dir, `${key}_${id}.json`);
-    writeFileSync(filepath, JSON.stringify(data));
-    paths[key] = filepath;
+  const requestDir = mkdtempSync(path.join(baseDir, "request-"));
+  const typstRoot = path.join(requestDir, "typst-root");
+  const inputsDir = path.join(typstRoot, "inputs");
+  const inputs: Record<string, string> = {};
+
+  try {
+    cpSync(typstAssetsDir, typstRoot, { recursive: true });
+    mkdirSync(inputsDir, { recursive: true });
+
+    for (const [key, data] of Object.entries(files)) {
+      const filepath = path.join(inputsDir, `${key}.json`);
+      writeFileSync(filepath, JSON.stringify(data));
+      inputs[key] = toTypstRootPath(filepath, typstRoot);
+    }
+  } catch (err) {
+    rmSync(requestDir, { recursive: true, force: true });
+    throw err;
   }
 
   let cleaned = false;
   const cleanup = () => {
     if (cleaned) return;
     cleaned = true;
-    for (const filepath of Object.values(paths)) {
-      try {
-        unlinkSync(filepath);
-      } catch (err) {
-        console.error("[pdf-service] Failed to delete temp file:", filepath, err);
-      }
+    try {
+      rmSync(requestDir, { recursive: true, force: true });
+    } catch (err) {
+      console.error("[pdf-service] Failed to delete temp directory:", requestDir, err);
     }
   };
 
-  return { paths, cleanup };
+  return { typstRoot, inputs, cleanup };
+}
+
+function resolveTempBaseDir(): string {
+  const tempPath = process.env.TEMP_PATH
+    ? path.resolve(process.env.TEMP_PATH)
+    : path.join(process.cwd(), ".tmp");
+  return path.join(tempPath, "pdf-service");
+}
+
+function toTypstRootPath(filePath: string, typstRoot: string): string {
+  const relativePath = path.relative(typstRoot, filePath);
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    throw new Error(
+      `PDF temp path "${filePath}" must be inside Typst root "${typstRoot}"`
+    );
+  }
+
+  return `/${relativePath.split(path.sep).join("/")}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -217,11 +245,13 @@ async function fetchReportData(
 
 async function compilePdf(
   typstFilePath: string,
+  typstRoot: string,
   typstDir: string,
   inputs: Record<string, string>
 ): Promise<Buffer> {
   const args = [
     "compile",
+    "--root", typstRoot,
     ...Object.entries(inputs).flatMap(([k, v]) => ["--input", `${k}=${v}`]),
     "--font-path", path.join(typstDir, "fonts"),
     typstFilePath,
@@ -327,17 +357,18 @@ export default {
     router.post(
       "/municipality/:slug/:version",
       makeRouteHandler(ItemsService, getSchema, async ([municipalityScore, sortedMeasures], _req, typstDir) => {
-        const { paths, cleanup } = writeTempFiles(typstDir, {
+        const { typstRoot, inputs, cleanup } = createTypstWorkspace(typstDir, {
           municipalityScore,
           measures: sortedMeasures,
         });
         try {
           const pdf = await compilePdf(
-            path.join(typstDir, "municipality_summary.typ"),
-            typstDir,
+            path.join(typstRoot, "municipality_summary.typ"),
+            typstRoot,
+            typstRoot,
             {
-              municipalityScore: path.basename(paths.municipalityScore),
-              measures: path.basename(paths.measures),
+              municipalityScore: inputs.municipalityScore,
+              measures: inputs.measures,
             }
           );
           return { pdf, filename: `${municipalityScore.municipality.slug}_summary.pdf` };
@@ -357,20 +388,21 @@ export default {
         const rawMeasureText: MeasureText[] = req.body.measure_text ?? [];
         const measureText = withPlainTextDescriptions(rawMeasureText);
 
-        const { paths, cleanup } = writeTempFiles(typstDir, {
+        const { typstRoot, inputs, cleanup } = createTypstWorkspace(typstDir, {
           electionGuideText: { measure_text: measureText },
           municipalityScore,
           measures: sortedMeasures,
         });
         try {
           const pdf = await compilePdf(
-            path.join(typstDir, "local_election_checklist_guide.typ"),
-            typstDir,
+            path.join(typstRoot, "local_election_checklist_guide.typ"),
+            typstRoot,
+            typstRoot,
             {
               municipality: req.params.slug,
-              electionGuideText: path.basename(paths.electionGuideText),
-              municipalityScore: path.basename(paths.municipalityScore),
-              measures: path.basename(paths.measures),
+              electionGuideText: inputs.electionGuideText,
+              municipalityScore: inputs.municipalityScore,
+              measures: inputs.measures,
             }
           );
           return { pdf, filename: `${req.params.slug}_election_guide.pdf` };

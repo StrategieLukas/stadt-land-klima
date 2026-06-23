@@ -145,3 +145,4 @@ out
 
 
 **/robots.txt
+!src/frontend/public/robots.txt
