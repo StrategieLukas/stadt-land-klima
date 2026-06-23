@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
 
-  const body = await readBody(event);
+  const body = await readRequestBody(event);
   const { title, type, content, name, contact, altcha } = body ?? {};
 
   // Validate required fields

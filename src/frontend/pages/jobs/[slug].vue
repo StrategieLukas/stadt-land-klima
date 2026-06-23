@@ -14,11 +14,6 @@
             <span class="inline-flex rounded-full bg-rating-3-very-light px-3 py-1 text-xs font-bold uppercase tracking-wide text-olive-green ring-1 ring-light-green/30">
               {{ typeLabel(job.type) }}
             </span>
-            <JobOfferStatusPill
-              :is-paid="isPaid(job.type)"
-              :label="isPaid(job.type) ? $t('jobs.paid') : $t('jobs.volunteer')"
-              show-label
-            />
           </div>
           <h1 class="text-3xl font-bold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">{{ job.role_title }}</h1>
           <div class="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-gray-600">
@@ -71,7 +66,10 @@
         <aside class="space-y-4 lg:sticky lg:top-24">
           <div class="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
             <div class="mb-5 flex items-center gap-3">
-              <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-mild-white">
+              <div
+                v-if="hasOrganisationIdentity"
+                class="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-100 bg-mild-white"
+              >
                 <SmartImg
                   v-if="organisationLogoAssetId"
                   :assetId="organisationLogoAssetId"
@@ -85,42 +83,36 @@
                 <span v-else class="text-sm font-bold text-gray-400">{{ organisationInitials }}</span>
               </div>
               <div class="min-w-0">
-                <p class="text-xs font-bold uppercase tracking-wide text-gray-400">{{ $t('jobs.organisation') }}</p>
+                <p class="text-[11px] font-extrabold uppercase tracking-wide text-gray-500">{{ $t('jobs.organisation') }}</p>
                 <a
                   v-if="job.organisation?.link"
                   :href="job.organisation.link"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="font-bold text-olive-green hover:underline"
+                  class="text-sm font-normal text-olive-green hover:underline"
                 >
                   {{ job.organisation?.name }}
                 </a>
-                <p v-else class="font-bold text-gray-900">{{ job.organisation?.name }}</p>
+                <p v-else class="text-sm font-normal text-gray-900">{{ job.organisation?.name }}</p>
               </div>
             </div>
 
             <dl class="space-y-4 border-t border-gray-100 pt-4 text-sm">
               <div>
-                <dt class="mb-1 font-bold uppercase tracking-wide text-gray-400">{{ $t('jobs.period') }}</dt>
-                <dd class="font-semibold text-gray-800">{{ formatDateRange(job.start_date, job.end_date) }}</dd>
+                <dt class="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-gray-500">{{ $t('jobs.period') }}</dt>
+                <dd class="text-sm font-normal text-gray-800">{{ formatDateRange(job.start_date, job.end_date) }}</dd>
               </div>
               <div v-if="compensation">
-                <dt class="mb-1 font-bold uppercase tracking-wide text-gray-400">{{ $t('jobs.compensation') }}</dt>
-                <dd class="font-semibold text-gray-800">{{ compensation }}</dd>
+                <dt class="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-gray-500">{{ $t('jobs.compensation') }}</dt>
+                <dd class="text-sm font-normal text-gray-800">{{ compensation }}</dd>
               </div>
               <div v-if="job.weekly_hours">
-                <dt class="mb-1 font-bold uppercase tracking-wide text-gray-400">{{ $t('jobs.weekly_hours') }}</dt>
-                <dd class="font-semibold text-gray-800">{{ job.weekly_hours }}</dd>
+                <dt class="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-gray-500">{{ $t('jobs.weekly_hours') }}</dt>
+                <dd class="text-sm font-normal text-gray-800">{{ job.weekly_hours }}</dd>
               </div>
               <div>
-                <dt class="mb-2 font-bold uppercase tracking-wide text-gray-400">{{ typeLabel(job.type) }}</dt>
-                <dd>
-                  <JobOfferStatusPill
-                    :is-paid="isPaid(job.type)"
-                    :label="isPaid(job.type) ? $t('jobs.paid') : $t('jobs.volunteer')"
-                    show-label
-                  />
-                </dd>
+                <dt class="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-gray-500">{{ typeLabel(job.type) }}</dt>
+                <dd class="text-sm font-normal text-gray-800">{{ isPaid(job.type) ? $t('jobs.paid') : $t('jobs.volunteer') }}</dd>
               </div>
             </dl>
 
@@ -302,4 +294,5 @@ const organisationInitials = computed(() => {
     .map((part: string) => part.charAt(0).toUpperCase())
     .join('')
 })
+const hasOrganisationIdentity = computed(() => !!organisationLogoAssetId.value || !!organisationInitials.value)
 </script>

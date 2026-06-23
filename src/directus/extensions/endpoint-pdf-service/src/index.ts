@@ -1,7 +1,7 @@
 import path from "path";
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { writeFileSync, unlinkSync } from "fs";
+import { writeFileSync, unlinkSync, existsSync } from "fs";
 import { randomUUID } from "crypto";
 import { convert } from "html-to-text";
 import type { Request, Response, Router } from "express";
@@ -249,6 +249,19 @@ function sendPdf(res: Response, pdf: Buffer, filename = "output.pdf"): void {
   res.status(200).send(pdf);
 }
 
+function resolveTypstDir(): string {
+  const candidates = [
+    path.join(process.cwd(), "extensions/directus-extension-endpoint-pdf-service/typst"),
+    path.join(process.cwd(), "extensions/endpoint-pdf-service/typst"),
+  ];
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+
+  throw new HttpError(500, "Typst assets directory not found for PDF generation");
+}
+
 // ---------------------------------------------------------------------------
 // Shared route logic
 // ---------------------------------------------------------------------------
@@ -280,10 +293,14 @@ function makeRouteHandler(
       return;
     }
 
-    const typstDir = path.join(
-      process.cwd(),
-      "extensions/directus-extension-endpoint-pdf-service/typst"
-    );
+    let typstDir: string;
+    try {
+      typstDir = resolveTypstDir();
+    } catch (err) {
+      console.error("[pdf-service] Typst directory resolution failed:", err);
+      res.status(500).send("PDF generation failed");
+      return;
+    }
 
     try {
       const { pdf, filename } = await buildPdf(data, req, typstDir);
@@ -304,10 +321,6 @@ export default {
 
   handler: async (router: Router, { services, getSchema }: ExtensionContext) => {
     const { ItemsService } = services;
-    const typstDir = path.join(
-      process.cwd(),
-      "extensions/directus-extension-endpoint-pdf-service/typst"
-    );
 
     // ── Municipality summary ──────────────────────────────────────────────
 

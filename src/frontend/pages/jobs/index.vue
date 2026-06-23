@@ -15,8 +15,6 @@
             :key="job.id"
             :job="job"
             :type-label="typeLabel"
-            :paid-label="$t('jobs.paid')"
-            :volunteer-label="$t('jobs.volunteer')"
             :flexible-date-label="$t('jobs.date.flexible')"
           />
         </div>
@@ -32,8 +30,6 @@
             :key="job.id"
             :job="job"
             :type-label="typeLabel"
-            :paid-label="$t('jobs.paid')"
-            :volunteer-label="$t('jobs.volunteer')"
             :flexible-date-label="$t('jobs.date.flexible')"
           />
         </div>
@@ -49,8 +45,6 @@
             :key="job.id"
             :job="job"
             :type-label="typeLabel"
-            :paid-label="$t('jobs.paid')"
-            :volunteer-label="$t('jobs.volunteer')"
             :flexible-date-label="$t('jobs.date.flexible')"
           />
         </div>

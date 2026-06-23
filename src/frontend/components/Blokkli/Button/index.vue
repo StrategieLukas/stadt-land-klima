@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
-const svgFiles = import.meta.glob('@/assets/icons/*.svg', { query: '?raw', eager: true })
+const svgFiles = import.meta.glob('@/assets/icons/*.svg', { query: '?raw', import: 'default', eager: true })
 
 /** Strip background rects, hardcoded dimensions, and rewrite fills/strokes to currentColor */
 function prepareIcon(raw: string): string {
