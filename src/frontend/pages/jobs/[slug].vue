@@ -216,7 +216,7 @@ const { data: job } = await useAsyncData(`job-${route.params.slug}`, () =>
 )
 
 if (!job.value) {
-  throw createError({ statusCode: 404, statusMessage: $t('jobs.not_found'), fatal: true })
+  throw createError({ statusCode: 404, statusMessage: $t('jobs.not_found'), fatal: import.meta.client })
 }
 
 useHead({ title: job.value?.role_title ?? $t('jobs.title') })

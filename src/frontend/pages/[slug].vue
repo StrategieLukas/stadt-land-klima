@@ -63,7 +63,7 @@ const page = computed(() => pagesWithSlug.value?.[0] || null)
 
 // Throw a real 404 so error.vue is rendered instead of the layout fallback
 if (!page.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
+  throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: import.meta.client })
 }
 
 // Load blocks from Directus — always fresh (no client-side caching)

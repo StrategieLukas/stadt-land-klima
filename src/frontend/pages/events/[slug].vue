@@ -148,7 +148,7 @@ const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
 );
 
 if (!event.value) {
-  throw createError({ statusCode: 404, statusMessage: $t("events.not_found"), fatal: true });
+  throw createError({ statusCode: 404, statusMessage: $t("events.not_found"), fatal: import.meta.client });
 }
 
 useHead({ title: computed(() => event.value?.title ?? $t("news.type.event")) });

@@ -13,7 +13,7 @@ meta:
   icon: location_city
   item_duplication_fields: null
   note: null
-  preview_url: null
+  preview_url: http://localhost:8080/municipalities/{{slug}}?preview={{preview_token}}
   singleton: false
   sort: 3
   sort_field: null

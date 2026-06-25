@@ -1,5 +1,5 @@
 name: Maßnahmenteam
 icon: zoom_in
+parent: MinimalUser
 policies:
-  - App-Zugriff-Minimum
   - Maßnahmen-Team

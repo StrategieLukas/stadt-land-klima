@@ -1,8 +1,8 @@
 name: setMunicipalityPreviewToken
 icon: key
 color: null
-description: Sets a random preview_token on every newly created municipality (if
-  not already set by the registration API).
+description: Sets a random preview_token on unverified municipalities if none
+  exists yet.
 status: active
 trigger: event
 accountability: all
@@ -10,6 +10,7 @@ options:
   type: action
   scope:
     - items.create
+    - items.update
   collections:
     - municipalities
 operations:
@@ -22,15 +23,24 @@ operations:
       code: >
         module.exports = async function({ $trigger, services, getSchema,
         accountability }) {
-          if ($trigger.payload && $trigger.payload.preview_token) return;
           const schema = await getSchema();
           accountability.admin = true;
           const ItemsService = services.ItemsService;
           const municipalityService = new ItemsService('municipalities', { schema, accountability });
-          // crypto.randomUUID is a global in Node.js 14.17+ — no require() needed
-          const token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, '');
-          await municipalityService.updateOne($trigger.key, {
-            preview_token: token,
-          });
+          const keys = $trigger.keys || ($trigger.key ? [$trigger.key] : []);
+          if (!keys.length) return;
+
+          for (const key of keys) {
+            const municipality = await municipalityService.readOne(key, {
+              fields: ['id', 'creator_verified', 'preview_token'],
+            });
+            if (!municipality || municipality.creator_verified === true || municipality.preview_token) continue;
+
+            // crypto.randomUUID is a global in Node.js 14.17+ — no require() needed
+            const token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, '');
+            await municipalityService.updateOne(key, {
+              preview_token: token,
+            });
+          }
         };
 operation_key: set_preview_token

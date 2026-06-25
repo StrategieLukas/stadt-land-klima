@@ -2,7 +2,9 @@ name: MinimalUser
 icon: not_started
 description: App-Zugriff & Public Zugriff
 children:
+  - WahlcheckAdmin
   - ErfolgsprojekteRedaktion
+  - Maßnahmenteam
   - Recruiter
   - Planungsteam
 policies:

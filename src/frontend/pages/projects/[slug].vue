@@ -49,7 +49,7 @@
   });
 
   if (!articles.value?.length) {
-    throw createError({ statusCode: 404, statusMessage: 'Projekt nicht gefunden', fatal: true })
+    throw createError({ statusCode: 404, statusMessage: 'Projekt nicht gefunden', fatal: import.meta.client })
   }
 
   const article = computed(() => articles.value?.[0] || {});
