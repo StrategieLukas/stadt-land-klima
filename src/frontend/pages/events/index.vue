@@ -174,6 +174,7 @@
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
+import { formatEventMonth, getEventMonthKey } from "~/shared/eventDateTime";
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
@@ -233,9 +234,9 @@ const pastEvents = computed(() =>
 function groupByMonth(evList) {
   const map = new Map();
   for (const ev of evList) {
-    const d = new Date(ev.start_date);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString($locale, { month: "long", year: "numeric" });
+    const key = getEventMonthKey(ev.start_date);
+    const label = formatEventMonth(ev.start_date, $locale);
+    if (!key) continue;
     if (!map.has(key)) map.set(key, { monthKey: key, label, events: [] });
     map.get(key).events.push(ev);
   }

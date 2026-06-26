@@ -180,7 +180,7 @@
                 <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                {{ formatDateRange(ev.start_date, ev.end_date) }}
+                {{ formatEventDateTimeRange(ev.start_date, ev.end_date, $locale, $t) }}
               </span>
               <span v-if="ev.location" class="flex items-center gap-1 text-xs text-gray-500">
                 <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -303,7 +303,7 @@
               <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              {{ formatDateRange(item.date, item.endDate) }}
+              {{ formatEventDateTimeRange(item.date, item.endDate, $locale, $t) }}
             </span>
             <span v-if="item.location" class="flex items-center gap-1 text-xs text-gray-500">
               <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -342,6 +342,7 @@ import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
+import { formatEventDateTimeRange, formatEventMonth, getEventMonthKey } from '~/shared/eventDateTime'
 import sectorImages from '~/shared/sectorImages.js'
 import { createSlug } from '~/shared/slugify.js'
 
@@ -575,9 +576,11 @@ const visibleItems = computed(() =>
 const groupedByMonth = computed(() => {
   const map = new Map()
   for (const item of visibleItems.value) {
+    const isEvent = item.type === 'event'
     const d = new Date(item.date)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString($locale, { month: 'long', year: 'numeric' })
+    const key = isEvent ? getEventMonthKey(item.date) : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const label = isEvent ? formatEventMonth(item.date, $locale) : d.toLocaleDateString($locale, { month: 'long', year: 'numeric' })
+    if (!key) continue
     if (!map.has(key)) map.set(key, { monthKey: key, label, items: [] })
     map.get(key).items.push(item)
   }
@@ -597,22 +600,6 @@ const upcomingEvents = computed(() => {
 function formatDate(iso) {
   if (!iso) return ''
   return new Date(iso).toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })
-}
-
-function formatDateRange(startIso, endIso) {
-  if (!startIso) return ''
-  const start = new Date(startIso)
-  const end = endIso ? new Date(endIso) : null
-  if (!end || end.toDateString() === start.toDateString()) {
-    return start.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })
-  }
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.getDate()}. – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
-  }
-  if (start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString($locale, { day: '2-digit', month: 'long' })} – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
-  }
-  return `${start.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })} – ${end.toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })}`
 }
 
 function typeLabel(type) {

@@ -149,6 +149,7 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 13. NEVER commit automatically. The user must use the diff to be able to review your changes.
 14. However, if in a git worktree where the project root dir folder contains the word "agent", always commit and squash commits + push when done.
 15. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
+16. In German user-facing text and translations, use proper German characters (`ä`, `ö`, `ü`, `ß`) instead of ASCII transliterations (`ae`, `oe`, `ue`, `ss`). Keep ASCII transliterations only for stable identifiers, enum values, slugs, emails, URLs, or other machine-facing keys.
 
 ## Project structure:
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
@@ -158,5 +159,4 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 ## Applying changes for directus yamls
 1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.
 2. The yamls are sorted to be in alphabetical order, ensure that you stick to this formatting.
-
 
