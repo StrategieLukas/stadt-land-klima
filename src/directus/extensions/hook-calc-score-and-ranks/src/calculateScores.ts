@@ -148,14 +148,6 @@ export async function calculateScores(
         continue;
       }
 
-      // Deduplicate by measure: if multiple approved ratings exist for the same measure,
-      // keep only the last one (most recent). This prevents double-counting.
-      const ratingByMeasureId = new Map<number, RatingMeasure>();
-      for (const r of allRatings) {
-        const measureId = typeof r.measure_id === 'object' ? r.measure_id.id : r.measure_id;
-        ratingByMeasureId.set(measureId, r);
-      }
-
       // Score accumulators
       const totals: Totals = {
         numerator_rated_sum: 0, // sum(rating * weight) for rated entries
@@ -173,7 +165,8 @@ export async function calculateScores(
 
       let totalRatedWeight = 0; // weight of measures that have a valid rating (numerator of percentage_rated)
 
-      for (const [measureId, r] of ratingByMeasureId) {
+      for (const r of allRatings) {
+        const measureId = typeof r.measure_id === 'object' ? r.measure_id.id : r.measure_id;
         const measure = measureById.get(measureId);
         if (!measure) {
           // Rating references a measure not in the current published set — skip

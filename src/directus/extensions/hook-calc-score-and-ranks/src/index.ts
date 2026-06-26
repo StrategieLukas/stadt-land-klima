@@ -1,55 +1,23 @@
-import type { Accountability, Database, Logger, Schema, Services } from '@directus/types';
+import type { Logger, Schema, Services } from '@directus/types';
 import { calculateScores } from './calculateScores.ts';
 
 interface HookContext {
-  action: (event: string, handler: (meta: any, ctx: ExtensionContext) => Promise<void>) => void;
+  action: (event: string, handler: (meta: any, ctx?: unknown) => Promise<void>) => void;
   filter: (event: string, handler: (...args: any[]) => any) => void;
   schedule: (cron: string, handler: () => Promise<void>) => void;
 }
 
-interface ExtensionContext {
-  accountability: Accountability;
+interface ServiceContext {
   services: Services;
-  database: Database;
   getSchema: () => Promise<Schema>;
   logger: Logger;
 }
 
-type ServiceContext = Pick<ExtensionContext, 'services' | 'getSchema' | 'logger'>;
-
 const adminAccountability = { admin: true } as const;
-const municipalityNameCollator = new Intl.Collator('de-DE', {
-  numeric: true,
-  sensitivity: 'base',
-});
 
 type RankedMunicipalityScore = {
   id: number | string;
   score_total: number | string | null;
-  municipality?: {
-    name?: string | null;
-  } | null;
-};
-
-const getScoreValue = (score: RankedMunicipalityScore): number => {
-  const value = Number(score.score_total);
-  return Number.isFinite(value) ? value : 0;
-};
-
-const compareMunicipalityScores = (
-  a: RankedMunicipalityScore,
-  b: RankedMunicipalityScore
-): number => {
-  const scoreDifference = getScoreValue(b) - getScoreValue(a);
-  if (scoreDifference !== 0) return scoreDifference;
-
-  const nameDifference = municipalityNameCollator.compare(
-    a.municipality?.name ?? '',
-    b.municipality?.name ?? ''
-  );
-  if (nameDifference !== 0) return nameDifference;
-
-  return String(a.id).localeCompare(String(b.id));
 };
 
 /** ---------- Utility Functions ---------- **/
@@ -74,7 +42,7 @@ const updateRanks = async (
         municipality: { status: { _eq: 'published' } },
         percentage_rated: { _gt: 98 },
       },
-      fields: ['id', 'score_total', 'municipality.name'],
+      fields: ['id', 'score_total'],
     });
 
   if (!scores?.length) {
@@ -84,13 +52,21 @@ const updateRanks = async (
     return;
   }
 
-  // Sort descending by score_total, then alphabetically by municipality name.
-  const sorted = [...scores].sort(compareMunicipalityScores);
-
-  // Ranks follow the final sorted order; equal scores are ordered by municipality name.
+  const sortedScores = [...scores].sort(
+    (a, b) => (Number(b.score_total) || 0) - (Number(a.score_total) || 0)
+  );
   const ranked: Array<{ id: number | string; rank: number }> = [];
-  for (let i = 0; i < sorted.length; i++) {
-    ranked.push({ id: sorted[i].id, rank: i + 1 });
+  for (let index = 0; index < sortedScores.length; index++) {
+    const score = sortedScores[index];
+    const previousScore = sortedScores[index - 1];
+    const previousRank = ranked[index - 1]?.rank;
+    ranked.push({
+      id: score.id,
+      rank:
+        index === 0 || score.score_total !== previousScore.score_total
+          ? index + 1
+          : previousRank ?? index + 1,
+    });
   }
 
   for (const r of ranked) {
@@ -135,8 +111,6 @@ const createEmptyRatingsForNewMunicipality = async (
     localteam_id: municipality.localteam_id,
     status: 'draft',
     approved: true,
-    applicable: true,
-    measure_published: true,
     choices: measure.choices_rating,
     rating: null,
   }));
@@ -213,8 +187,6 @@ const createEmptyRatingsForNewMeasure = async (
     localteam_id: mun.localteam_id,
     status: 'draft',
     approved: true,
-    applicable: true,
-    measure_published: true,
     choices: ratingChoices,
     rating: null,
   }));
@@ -296,7 +268,7 @@ const syncAllMunicipalityScores = async ({ services, getSchema, logger }: Servic
 
 /** ---------- Event Handlers ---------- **/
 
-const handleMunicipalityCreated = async (meta: any, ctx: ExtensionContext): Promise<void> => {
+const handleMunicipalityCreated = async (meta: any, ctx: ServiceContext): Promise<void> => {
   const schema = await ctx.getSchema();
   const munService = new ctx.services.ItemsService('municipalities', {
     schema,
@@ -309,7 +281,7 @@ const handleMunicipalityCreated = async (meta: any, ctx: ExtensionContext): Prom
   await createEmptyRatingsForNewMunicipality(municipality, ctx);
 };
 
-const handleMeasureCreatedOrPublished = async (meta: any, ctx: ExtensionContext): Promise<void> => {
+const handleMeasureCreatedOrPublished = async (meta: any, ctx: ServiceContext): Promise<void> => {
   ctx.logger.info('[handleMeasureCreatedOrPublished] Triggered');
 
   const isPublished = meta.payload?.status === 'published';
@@ -361,7 +333,7 @@ const handleMeasureCreatedOrPublished = async (meta: any, ctx: ExtensionContext)
   await updateRanks({ catalogVersionId }, ctx);
 };
 
-const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ExtensionContext): Promise<void> => {
+const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceContext): Promise<void> => {
   const schema = await ctx.getSchema();
   const ratingsService = new ctx.services.ItemsService('ratings_measures', {
     schema,
@@ -406,17 +378,18 @@ const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ExtensionCon
 
 const safeCall = (
   fnName: string,
-  fn: (meta: any, ctx: ExtensionContext) => Promise<void>
-) => async (meta: any, ctx: ExtensionContext): Promise<void> => {
+  extensionContext: ServiceContext,
+  fn: (meta: any, ctx: ServiceContext) => Promise<void>
+) => async (meta: any): Promise<void> => {
   try {
     if (!meta?.collection) {
-      ctx.logger.warn(`[HOOK:${fnName}] meta missing or malformed: ${JSON.stringify(meta)}`);
+      extensionContext.logger.warn(`[HOOK:${fnName}] meta missing or malformed: ${JSON.stringify(meta)}`);
     }
-    await fn(meta, ctx);
+    await fn(meta, extensionContext);
   } catch (err: unknown) {
     const e = err as Error;
-    ctx.logger.error(`[HOOK:${fnName}] Caught error: ${e?.message}`);
-    ctx.logger.error(e?.stack ?? String(err));
+    extensionContext.logger.error(`[HOOK:${fnName}] Caught error: ${e?.message}`);
+    extensionContext.logger.error(e?.stack ?? String(err));
     throw err;
   }
 };
@@ -425,8 +398,10 @@ const safeCall = (
 
 export default (
   { action }: HookContext,
-  { services, getSchema, logger }: ExtensionContext
+  extensionContext: ServiceContext
 ) => {
+  const { services, getSchema, logger } = extensionContext;
+
   // Run initial sync at startup — all context variables are in scope here
   syncAllMunicipalityScores({ services, getSchema, logger }).catch((err: unknown) => {
     const e = err as Error;
@@ -436,7 +411,7 @@ export default (
 
   action(
     'items.create',
-    safeCall('items.create', async (meta, ctx) => {
+    safeCall('items.create', extensionContext, async (meta, ctx) => {
       switch (meta.collection) {
         case 'municipalities':
           return handleMunicipalityCreated(meta, ctx);
@@ -452,7 +427,7 @@ export default (
 
   action(
     'items.update',
-    safeCall('items.update', async (meta, ctx) => {
+    safeCall('items.update', extensionContext, async (meta, ctx) => {
       switch (meta.collection) {
         case 'measures':
           return handleMeasureCreatedOrPublished(meta, ctx);
