@@ -142,15 +142,23 @@ interface NavItem {
   id: string;
   label: string;
   link_type: 'page' | 'external' | 'none';
-  page_slug: string;
-  external_url: string;
+  page_slug: string | null;
+  external_url: string | null;
   open_new_tab: boolean;
   image_id: string | null;
   description: string;
   children: NavItem[];
 }
 
-type EditBuffer = Omit<NavItem, 'id' | 'children'>;
+interface EditBuffer {
+  label: string;
+  link_type: 'page' | 'external' | 'none';
+  page_slug: string;
+  external_url: string;
+  open_new_tab: boolean;
+  image_id: string | null;
+  description: string;
+}
 
 const props = defineProps<{
   value?: string | NavItem[] | null;
@@ -198,9 +206,8 @@ function genId(): string {
   return 'nav-' + Math.random().toString(36).slice(2, 9);
 }
 
-function newItemDefaults(): NavItem {
+function newEditBufferDefaults(): EditBuffer {
   return {
-    id: genId(),
     label: '',
     link_type: 'page',
     page_slug: '',
@@ -208,7 +215,18 @@ function newItemDefaults(): NavItem {
     open_new_tab: false,
     image_id: null,
     description: '',
-    children: [],
+  };
+}
+
+function toStoredLinkFields(buffer: EditBuffer): Omit<NavItem, 'id' | 'children'> {
+  return {
+    label: buffer.label,
+    link_type: buffer.link_type,
+    page_slug: buffer.link_type === 'page' ? buffer.page_slug : null,
+    external_url: buffer.link_type === 'external' ? buffer.external_url : null,
+    open_new_tab: buffer.open_new_tab,
+    image_id: buffer.image_id,
+    description: buffer.description,
   };
 }
 
@@ -231,8 +249,7 @@ function handleSelectPage(page: Page): void {
 function startAddItem(): void {
   if (isAddingNew.value) return;
   editingPath.value = null;
-  const { children: _children, id: _id, ...bufferFields } = newItemDefaults();
-  editBuffer.value = bufferFields as EditBuffer;
+  editBuffer.value = newEditBufferDefaults();
   isAddingNew.value = true;
   clearPageResults();
 }
@@ -241,7 +258,7 @@ function commitNewItem(): void {
   if (!editBuffer.value) return;
   const newItem: NavItem = {
     id: genId(),
-    ...(editBuffer.value as EditBuffer),
+    ...toStoredLinkFields(editBuffer.value),
     children: [],
   };
   items.value.push(newItem);
@@ -283,8 +300,7 @@ function addChild(parentIdx: number): void {
     items.value[parentIdx].children = [];
   }
   // For children we also defer: open form buffer but push only on save
-  const { children: _c, id: _id, ...bufferFields } = newItemDefaults();
-  editBuffer.value = bufferFields as EditBuffer;
+  editBuffer.value = newEditBufferDefaults();
   // Use a sentinel path so the form opens below the last child
   const li = items.value[parentIdx].children.length;
   editingPath.value = `${parentIdx}.${li}__new`;
@@ -327,8 +343,8 @@ function toggleEdit(path: string, item: NavItem): void {
     editBuffer.value = JSON.parse(JSON.stringify({
       label: item.label,
       link_type: item.link_type,
-      page_slug: item.page_slug,
-      external_url: item.external_url,
+      page_slug: item.page_slug || '',
+      external_url: item.external_url || '',
       open_new_tab: item.open_new_tab,
       image_id: item.image_id,
       description: item.description,
@@ -350,7 +366,7 @@ function saveEdit(path: string): void {
   // Handle new-child sentinel paths like "2.3__new"
   if (path.endsWith('__new')) {
     const parentIdx = parseInt(path.split('.')[0]);
-    const newChild: NavItem = { id: genId(), ...(editBuffer.value as EditBuffer), children: [] };
+    const newChild: NavItem = { id: genId(), ...toStoredLinkFields(editBuffer.value), children: [] };
     items.value[parentIdx].children.push(newChild);
     editingPath.value = null;
     editBuffer.value = null;
@@ -361,10 +377,10 @@ function saveEdit(path: string): void {
 
   const parts = path.split('.');
   if (parts.length === 1) {
-    Object.assign(items.value[parseInt(parts[0])], editBuffer.value);
+    Object.assign(items.value[parseInt(parts[0])], toStoredLinkFields(editBuffer.value));
   } else {
     const [parentIdx, childIdx] = parts.map(Number);
-    Object.assign(items.value[parentIdx].children[childIdx], editBuffer.value);
+    Object.assign(items.value[parentIdx].children[childIdx], toStoredLinkFields(editBuffer.value));
   }
   editingPath.value = null;
   editBuffer.value = null;

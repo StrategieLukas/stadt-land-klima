@@ -36,43 +36,18 @@ class ConsentNotAcceptedError extends Error {
   }
 }
 
-// ─── Cache ────────────────────────────────────────────────────────────────────
-//
-// The original hook re-queried role IDs and required agreement version IDs on
-// every single filter event — effectively N+1 DB hits per request. These values
-// change very rarely (role names are static; agreement versions change only on
-// legal updates), so we cache them in module scope for the lifetime of the
-// Directus process.
-//
-// TTL is 5 minutes. For agreement versions this is conservative; adjust upward
-// if DB pressure is a concern.
+class ConsentConfigurationError extends Error {
+  override name = 'DirectusError';
+  code = 'CONSENT_CONFIGURATION_ERROR';
+  status = 500;
 
-const CACHE_TTL_MS = 5 * 60 * 1000;
-
-interface CacheEntry<T> {
-  value: T;
-  expiresAt: number;
+  constructor() {
+    super(
+      'Die aktuellen AGB oder die aktuelle Datenschutzerklärung sind nicht konfiguriert. ' +
+      'Bitte veröffentlichen Sie beide Versionen im Consent Management Modul.'
+    );
+  }
 }
-
-function makeCache<T>() {
-  let entry: CacheEntry<T> | null = null;
-
-  return {
-    get(): T | null {
-      if (entry && Date.now() < entry.expiresAt) return entry.value;
-      return null;
-    },
-    set(value: T): void {
-      entry = { value, expiresAt: Date.now() + CACHE_TTL_MS };
-    },
-    invalidate(): void {
-      entry = null;
-    },
-  };
-}
-
-const ignoredRoleIdsCache = makeCache<Set<string>>();
-const requiredVersionIdsCache = makeCache<{ agbId: string; dataProtectionId: string } | null>();
 
 // ─── Collections that must always be readable regardless of consent status ───
 //
@@ -96,9 +71,6 @@ export default (
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   async function getIgnoredRoleIds(schema: unknown): Promise<Set<string>> {
-    const cached = ignoredRoleIdsCache.get();
-    if (cached) return cached;
-
     const rolesService = new ItemsService('directus_roles', {
       accountability: null,
       schema,
@@ -109,19 +81,12 @@ export default (
       filter: { name: { _in: EXEMPT_ROLE_NAMES } },
     })) as DirectusRole[];
 
-    const ids = new Set(roles.map((r) => r.id));
-    ignoredRoleIdsCache.set(ids);
-    return ids;
+    return new Set(roles.map((r) => r.id));
   }
 
   async function getRequiredVersionIds(
     schema: unknown
   ): Promise<{ agbId: string; dataProtectionId: string } | null> {
-    const cached = requiredVersionIdsCache.get();
-    // null is a valid cached value (means "versions not configured") — only
-    // skip the cache when the entry itself has never been set.
-    if (cached !== null && requiredVersionIdsCache.get() !== null) return cached;
-
     const versionsService = new ItemsService('agreement_versions', {
       accountability: null,
       schema,
@@ -136,11 +101,7 @@ export default (
     const agb = versions.find((v) => v.type === 'terms_of_service');
     const dp = versions.find((v) => v.type === 'data_protection');
 
-    const result =
-      agb && dp ? { agbId: agb.id, dataProtectionId: dp.id } : null;
-
-    requiredVersionIdsCache.set(result);
-    return result;
+    return agb && dp ? { agbId: agb.id, dataProtectionId: dp.id } : null;
   }
 
   async function userHasAcceptedRequiredAgreements(
@@ -149,9 +110,7 @@ export default (
   ): Promise<boolean> {
     const versionIds = await getRequiredVersionIds(schema);
 
-    // If the agreements aren't configured we fail open — throwing here would
-    // lock every user out of the system until an admin publishes versions.
-    if (!versionIds) return true;
+    if (!versionIds) throw new ConsentConfigurationError();
 
     const consentsService = new ItemsService('user_consent', {
       accountability: null,
@@ -192,16 +151,7 @@ export default (
 
   // ── Filter registration ────────────────────────────────────────────────────
   //
-  // We gate create + update only. Blocking `items.read` with a consent check
-  // is dangerous: the consent module itself needs to read `agreement_versions`
-  // to show the user what they're accepting. The CONSENT_COLLECTIONS exclusion
-  // mitigates this partially, but any future collection added to the consent
-  // flow must also be added to that list — an easy mistake to make.
-  //
-  // If you need to restrict reads too, reinstate 'items.read' here and extend
-  // CONSENT_COLLECTIONS to include every collection the acceptance flow touches.
-
-  const GATED_EVENTS = ['items.create', 'items.update'] as const;
+  const GATED_EVENTS = ['items.create', 'items.update', 'items.read'] as const;
 
   GATED_EVENTS.forEach((event) => {
     filter(event, async (items, meta, context) => {

@@ -139,8 +139,8 @@ interface ColumnLink {
   id: string;
   label: string;
   link_type: 'page' | 'external';
-  page_slug: string;
-  external_url: string;
+  page_slug: string | null;
+  external_url: string | null;
   open_new_tab: boolean;
 }
 
@@ -319,8 +319,8 @@ function saveLink(ci: number, li: number): void {
   const link = columns.value[ci].links[li];
   link.label = linkBuffer.value.label;
   link.link_type = linkBuffer.value.link_type;
-  link.page_slug = linkBuffer.value.link_type === 'page' ? linkBuffer.value.page_slug : '';
-  link.external_url = linkBuffer.value.link_type === 'external' ? linkBuffer.value.external_url : '';
+  link.page_slug = linkBuffer.value.link_type === 'page' ? linkBuffer.value.page_slug : null;
+  link.external_url = linkBuffer.value.link_type === 'external' ? linkBuffer.value.external_url : null;
   link.open_new_tab = linkBuffer.value.open_new_tab;
   editingLink.value = null;
   clearPageResults();

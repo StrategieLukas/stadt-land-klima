@@ -5,7 +5,7 @@ import type { Database } from '@directus/types';
 interface ExtensionContext {
   env: {
     SECRET: string;
-    PUBLIC_URL: string;
+    PUBLIC_URL?: string;
   };
   database: Database;
 }
@@ -39,13 +39,17 @@ export default {
         return res.status(403).json({ error: 'Forbidden' });
       }
 
-      const { email } = req.body;
+      const { email } = req.body ?? {};
       if (!email || typeof email !== 'string') {
         return res.status(400).json({ error: 'Missing or invalid "email" field' });
       }
 
       if (!env.SECRET) {
         return res.status(503).json({ error: 'Server misconfiguration: SECRET is not set' });
+      }
+
+      if (!env.PUBLIC_URL) {
+        return res.status(503).json({ error: 'Server misconfiguration: PUBLIC_URL is not set' });
       }
 
       let user: DirectusUser | null;
