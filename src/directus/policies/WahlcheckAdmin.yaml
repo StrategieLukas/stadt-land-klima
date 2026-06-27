@@ -140,6 +140,7 @@ permissions:
     fields:
       - title
       - thesis
+      - background_information
       - sector
       - status
       - election
@@ -168,6 +169,7 @@ permissions:
     fields:
       - title
       - thesis
+      - background_information
       - sector
       - status
   - collection: user_agreements

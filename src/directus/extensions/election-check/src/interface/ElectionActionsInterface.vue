@@ -116,6 +116,99 @@
       </v-notice>
     </transition>
 
+    <teleport to="body">
+      <div
+        v-if="mailSummary"
+        class="mail-summary-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mail-summary-title"
+        @click.self="closeMailSummary"
+      >
+        <div class="mail-summary-dialog">
+          <header class="mail-summary-header">
+            <div>
+              <h3 id="mail-summary-title">Versandübersicht</h3>
+              <p>{{ mailSummarySubtitle }}</p>
+            </div>
+            <button
+              type="button"
+              class="mail-summary-close"
+              aria-label="Versandübersicht schließen"
+              @click="closeMailSummary"
+            >
+              <v-icon name="close" />
+            </button>
+          </header>
+
+          <div class="mail-summary-counts">
+            <div class="mail-summary-count mail-summary-count--success">
+              <strong>{{ mailSummary.sentCount ?? 0 }}</strong>
+              <span>Versendet</span>
+            </div>
+            <div class="mail-summary-count mail-summary-count--danger">
+              <strong>{{ mailSummary.failedCount ?? 0 }}</strong>
+              <span>Fehlgeschlagen</span>
+            </div>
+            <div class="mail-summary-count mail-summary-count--warning">
+              <strong>{{ mailSummary.skippedCount ?? 0 }}</strong>
+              <span>Ohne E-Mail übersprungen</span>
+            </div>
+          </div>
+
+          <div class="mail-summary-sections">
+            <section class="mail-summary-section">
+              <h4>Erfolgreich benachrichtigt</h4>
+              <p v-if="sentCandidates.length === 0" class="mail-summary-empty">
+                Keine Kandidat:innen.
+              </p>
+              <ul v-else>
+                <li v-for="candidate in sentCandidates" :key="`sent-${candidate.id}`">
+                  <span class="mail-summary-name">{{ candidate.name }}</span>
+                  <span class="mail-summary-detail">{{ candidate.email }}</span>
+                </li>
+              </ul>
+            </section>
+
+            <section class="mail-summary-section">
+              <h4>Fehlgeschlagen</h4>
+              <p v-if="failedCandidates.length === 0" class="mail-summary-empty">
+                Keine fehlgeschlagenen E-Mails.
+              </p>
+              <ul v-else>
+                <li v-for="candidate in failedCandidates" :key="`failed-${candidate.id}`">
+                  <span class="mail-summary-name">{{ candidate.name }}</span>
+                  <span class="mail-summary-detail">
+                    {{ candidate.email || 'Keine E-Mail-Adresse' }}
+                    <template v-if="candidate.message"> · {{ candidate.message }}</template>
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section class="mail-summary-section">
+              <h4>Übersprungen</h4>
+              <p v-if="skippedCandidates.length === 0" class="mail-summary-empty">
+                Keine Kandidat:innen ohne E-Mail-Adresse.
+              </p>
+              <ul v-else>
+                <li v-for="candidate in skippedCandidates" :key="`skipped-${candidate.id}`">
+                  <span class="mail-summary-name">{{ candidate.name }}</span>
+                  <span class="mail-summary-detail">
+                    {{ candidate.message || 'Keine E-Mail-Adresse hinterlegt.' }}
+                  </span>
+                </li>
+              </ul>
+            </section>
+          </div>
+
+          <footer class="mail-summary-footer">
+            <v-button @click="closeMailSummary">Schließen</v-button>
+          </footer>
+        </div>
+      </div>
+    </teleport>
+
   </div>
 </template>
 
@@ -208,7 +301,26 @@ interface Feedback {
   message: string | null;
 }
 
+interface MailCandidateSummary {
+  id: string | number;
+  name: string;
+  email: string | null;
+  message?: string;
+}
+
+interface MailSendResult extends Record<string, unknown> {
+  success?: boolean;
+  sentCount?: number;
+  failedCount?: number;
+  skippedCount?: number;
+  totalCandidates?: number;
+  sent?: MailCandidateSummary[];
+  failed?: MailCandidateSummary[];
+  skipped?: MailCandidateSummary[];
+}
+
 const feedback = ref<Feedback>({ type: 'success', message: null });
+const mailSummary = ref<MailSendResult | null>(null);
 let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
 
 function showFeedback(type: Feedback['type'], message: string, durationMs = 6000) {
@@ -222,6 +334,23 @@ function showFeedback(type: Feedback['type'], message: string, durationMs = 6000
 onBeforeUnmount(() => {
   if (feedbackTimer) clearTimeout(feedbackTimer);
 });
+
+const sentCandidates = computed(() => mailSummary.value?.sent ?? []);
+const failedCandidates = computed(() => mailSummary.value?.failed ?? []);
+const skippedCandidates = computed(() => mailSummary.value?.skipped ?? []);
+const mailSummarySubtitle = computed(() => {
+  if (!mailSummary.value) return '';
+
+  return [
+    `${mailSummary.value.sentCount ?? 0} versendet`,
+    `${mailSummary.value.failedCount ?? 0} fehlgeschlagen`,
+    `${mailSummary.value.skippedCount ?? 0} ohne E-Mail übersprungen`,
+  ].join(', ');
+});
+
+function closeMailSummary() {
+  mailSummary.value = null;
+}
 
 // ---------------------------------------------------------------------------
 // Data fetching
@@ -255,13 +384,15 @@ watch(() => props.primaryKey, fetchStatus);
 // Actions
 // ---------------------------------------------------------------------------
 
-async function callEndpoint(endpoint: string): Promise<Record<string, unknown>> {
+async function callEndpoint<T extends Record<string, unknown> = Record<string, unknown>>(
+  endpoint: string,
+): Promise<T> {
   const { data } = await api.post(`/election-actions/${endpoint}`, {
     election_id: String(props.primaryKey),
   });
 
   if (data?.error) throw new Error(data.error);
-  return data;
+  return data as T;
 }
 
 function extractErrorMessage(err: unknown): string {
@@ -312,15 +443,40 @@ async function handleRequestReview() {
 
 async function handleSendMails() {
   const confirmed = window.confirm(
-    'E-Mails wirklich an alle Kandidaten versenden? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'E-Mails wirklich an alle Kandidat:innen mit hinterlegter E-Mail-Adresse versenden? Kandidat:innen ohne E-Mail werden übersprungen.',
   );
   if (!confirmed) return;
 
   loadingMails.value = true;
   try {
-    await callEndpoint('send-mails');
-    sessionSent.value = true;
-    showFeedback('success', 'E-Mails wurden erfolgreich versendet.');
+    const result = await callEndpoint<MailSendResult>('send-mails');
+    const sentCount = result.sentCount ?? 0;
+    const failedCount = result.failedCount ?? 0;
+    const skippedCount = result.skippedCount ?? 0;
+
+    mailSummary.value = result;
+    sessionSent.value = sentCount > 0;
+
+    if (failedCount > 0) {
+      showFeedback(
+        'danger',
+        `E-Mail-Versand abgeschlossen: ${sentCount} versendet, ${failedCount} fehlgeschlagen, ${skippedCount} übersprungen.`,
+        9000,
+      );
+    } else if (sentCount > 0) {
+      showFeedback(
+        'success',
+        `E-Mail-Versand abgeschlossen: ${sentCount} versendet, ${skippedCount} übersprungen.`,
+        9000,
+      );
+    } else {
+      showFeedback(
+        'danger',
+        `Keine E-Mails wurden versendet. ${skippedCount} Kandidat:innen ohne E-Mail wurden übersprungen.`,
+        9000,
+      );
+    }
+
     fetchStatus();
   } catch (err) {
     showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
@@ -418,5 +574,172 @@ async function handleSendMails() {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.mail-summary-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--theme--background-subdued, var(--background-subdued));
+}
+
+.mail-summary-dialog {
+  width: min(860px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--theme--foreground, var(--foreground-normal));
+  background: var(--theme--background, var(--background-page));
+  border: 1px solid var(--theme--border-color, var(--border-normal));
+  border-radius: var(--theme--border-radius, var(--border-radius));
+}
+
+.mail-summary-header,
+.mail-summary-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--theme--border-color, var(--border-normal));
+}
+
+.mail-summary-header h3,
+.mail-summary-header p,
+.mail-summary-section h4,
+.mail-summary-section p {
+  margin: 0;
+}
+
+.mail-summary-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.mail-summary-header p {
+  margin-top: 4px;
+  color: var(--theme--foreground-subdued, var(--foreground-subdued));
+  font-size: 13px;
+}
+
+.mail-summary-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--theme--border-color, var(--border-normal));
+  border-radius: var(--theme--border-radius, var(--border-radius));
+  color: var(--theme--foreground, var(--foreground-normal));
+  background: var(--theme--background, var(--background-page));
+  cursor: pointer;
+}
+
+.mail-summary-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 20px 0;
+}
+
+.mail-summary-count {
+  padding: 14px;
+  border: 1px solid var(--theme--border-color, var(--border-normal));
+  border-radius: var(--theme--border-radius, var(--border-radius));
+  background: var(--theme--background-subdued, var(--background-input));
+}
+
+.mail-summary-count strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.mail-summary-count span {
+  display: block;
+  margin-top: 6px;
+  color: var(--theme--foreground-subdued, var(--foreground-subdued));
+  font-size: 12px;
+}
+
+.mail-summary-count--success strong {
+  color: var(--theme--success, var(--success));
+}
+
+.mail-summary-count--danger strong {
+  color: var(--theme--danger, var(--danger));
+}
+
+.mail-summary-count--warning strong {
+  color: var(--theme--warning, var(--warning));
+}
+
+.mail-summary-sections {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+  overflow: auto;
+}
+
+.mail-summary-section {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--theme--border-color, var(--border-normal));
+  border-radius: var(--theme--border-radius, var(--border-radius));
+  background: var(--theme--background-subdued, var(--background-input));
+}
+
+.mail-summary-section h4 {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mail-summary-section ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.mail-summary-section li {
+  min-width: 0;
+}
+
+.mail-summary-name,
+.mail-summary-detail {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.mail-summary-name {
+  font-weight: 600;
+}
+
+.mail-summary-detail,
+.mail-summary-empty {
+  color: var(--theme--foreground-subdued, var(--foreground-subdued));
+  font-size: 12px;
+}
+
+.mail-summary-footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--theme--border-color, var(--border-normal));
+  border-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .mail-summary-counts,
+  .mail-summary-sections {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

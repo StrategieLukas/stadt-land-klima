@@ -519,6 +519,7 @@ permissions:
       - id
       - title
       - thesis
+      - background_information
       - election
       - status
       - sector

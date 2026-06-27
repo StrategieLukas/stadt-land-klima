@@ -26,17 +26,32 @@ interface Election {
 
 interface Candidate {
   id: string | number;
-  name?: string;
-  email: string;
+  name?: string | null;
+  email?: string | null;
   access_token?: string | null;
+}
+
+interface SendableCandidate extends Candidate {
+  email: string;
+}
+
+interface CandidateMailSummary {
+  id: string | number;
+  name: string;
+  email: string | null;
+  message?: string;
 }
 
 interface SendResult {
   success: boolean;
   sentCount: number;
   failedCount: number;
+  skippedCount: number;
   totalCandidates: number;
   errors: string[];
+  sent: CandidateMailSummary[];
+  failed: CandidateMailSummary[];
+  skipped: CandidateMailSummary[];
   election_id: string | number;
   updated_data?: Record<string, unknown>;
 }
@@ -49,6 +64,7 @@ const BASE_URL = 'https://stadt-land-klima.de';
 const MIN_QUESTIONS = 10;
 const MIN_CANDIDATES = 2;
 const ALWAYS_CC = 'info@stadt-land-klima.de';
+const EMAIL_PATTERN = /^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/;
 
 function formatCutoffDate(isoDate: string): string {
   const d = new Date(isoDate);
@@ -86,6 +102,35 @@ function uniqueEmailAddresses(addresses: string[]): string[] {
   return unique;
 }
 
+function normalizeEmail(value?: string | null): string | null {
+  const email = value?.trim() ?? '';
+  return email.length > 0 ? email : null;
+}
+
+function candidateDisplayName(candidate: Candidate): string {
+  return candidate.name?.trim() || `Kandidat:in ${candidate.id}`;
+}
+
+function summarizeCandidate(
+  candidate: Candidate,
+  message?: string,
+): CandidateMailSummary {
+  return {
+    id: candidate.id,
+    name: candidateDisplayName(candidate),
+    email: normalizeEmail(candidate.email),
+    ...(message ? { message } : {}),
+  };
+}
+
+function formatFailure(summary: CandidateMailSummary): string {
+  const recipient = summary.email
+    ? `${summary.name} <${summary.email}>`
+    : summary.name;
+
+  return `${recipient}: ${summary.message ?? 'Unbekannter Fehler'}`;
+}
+
 /**
  * Ensures every candidate has a stable access token, persisting any newly
  * generated ones in bulk before any mail is sent. This way, if the send loop
@@ -93,10 +138,10 @@ function uniqueEmailAddresses(addresses: string[]): string[] {
  * new ones.
  */
 async function ensureAccessTokens(
-  candidates: Candidate[],
+  candidates: SendableCandidate[],
   candidateSvc: InstanceType<Services['ItemsService']>,
   logger: Logger,
-): Promise<Candidate[]> {
+): Promise<SendableCandidate[]> {
   const needsToken = candidates.filter((c) => !c.access_token);
 
   if (needsToken.length > 0) {
@@ -169,7 +214,7 @@ export default {
         limit: -1,
       }) as Promise<Array<{ id: string | number }>>,
       candidateSvc.readByQuery({
-        filter: { election: { _eq: election_id }, email: { _nnull: true } },
+        filter: { election: { _eq: election_id } },
         fields: ['id', 'name', 'email', 'access_token'],
         limit: -1,
       }) as Promise<Candidate[]>,
@@ -183,12 +228,36 @@ export default {
 
     if (candidates.length < MIN_CANDIDATES) {
       throw new Error(
-        `Only ${candidates.length} candidate(s) with an email address found; at least ${MIN_CANDIDATES} are required.`,
+        `Only ${candidates.length} candidate(s) found; at least ${MIN_CANDIDATES} are required.`,
       );
     }
 
+    const sent: CandidateMailSummary[] = [];
+    const failed: CandidateMailSummary[] = [];
+    const skipped: CandidateMailSummary[] = [];
+    const sendableCandidates: SendableCandidate[] = [];
+
+    for (const candidate of candidates) {
+      const email = normalizeEmail(candidate.email);
+
+      if (!email) {
+        skipped.push(summarizeCandidate(candidate, 'Keine E-Mail-Adresse hinterlegt.'));
+        continue;
+      }
+
+      if (!EMAIL_PATTERN.test(email)) {
+        failed.push(summarizeCandidate(
+          { ...candidate, email },
+          'Ungültige E-Mail-Adresse.',
+        ));
+        continue;
+      }
+
+      sendableCandidates.push({ ...candidate, email });
+    }
+
     logger.info(
-      `[send-candidate-mails] Pre-flight passed: ${questions.length} questions, ${candidates.length} candidates`,
+      `[send-candidate-mails] Pre-flight passed: ${questions.length} questions, ${candidates.length} candidates, ${sendableCandidates.length} sendable, ${skipped.length} skipped`,
     );
 
     // -----------------------------------------------------------------------
@@ -196,7 +265,7 @@ export default {
     // -----------------------------------------------------------------------
 
     const cutoffFormatted = formatCutoffDate(election.response_cutoff_date);
-    const withTokens = await ensureAccessTokens(candidates, candidateSvc, logger);
+    const withTokens = await ensureAccessTokens(sendableCandidates, candidateSvc, logger);
     const ccRecipients = uniqueEmailAddresses([
       ALWAYS_CC,
       ...splitEmailAddresses(election.candidate_email_cc),
@@ -206,9 +275,6 @@ export default {
     // -----------------------------------------------------------------------
     // 4. Send mails
     // -----------------------------------------------------------------------
-
-    let sentCount = 0;
-    const errors: string[] = [];
 
     for (const candidate of withTokens) {
       const personalLink = `${BASE_URL}/elections/thesen/${candidate.access_token}`;
@@ -233,13 +299,14 @@ export default {
           },
         });
 
-        sentCount++;
+        sent.push(summarizeCandidate(candidate));
         logger.info(`[send-candidate-mails] Sent to ${candidate.email}`);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
+        const failedCandidate = summarizeCandidate(candidate, message);
         const detail = `Failed to send to ${candidate.email}: ${message}`;
         logger.error(`[send-candidate-mails] ${detail}`);
-        errors.push(detail);
+        failed.push(failedCandidate);
       }
     }
 
@@ -248,11 +315,11 @@ export default {
     // -----------------------------------------------------------------------
 
     // Only mark as sent if at least one mail was delivered successfully.
-    if (sentCount > 0) {
+    if (sent.length > 0) {
       await electionSvc.updateOne(election_id, { already_sent_mails: true });
     } else {
       logger.warn(
-        `[send-candidate-mails] All ${candidates.length} sends failed; not marking already_sent_mails.`,
+        '[send-candidate-mails] No mails were delivered; not marking already_sent_mails.',
       );
     }
 
@@ -260,16 +327,22 @@ export default {
       fields: ['already_generated_questions', 'already_sent_mails'],
     }) as Record<string, unknown>;
 
+    const errors = failed.map(formatFailure);
+
     logger.info(
-      `[send-candidate-mails] Finished: ${sentCount} sent, ${errors.length} failed`,
+      `[send-candidate-mails] Finished: ${sent.length} sent, ${failed.length} failed, ${skipped.length} skipped`,
     );
 
     return {
-      success: errors.length === 0,
-      sentCount,
-      failedCount: errors.length,
+      success: failed.length === 0 && sent.length > 0,
+      sentCount: sent.length,
+      failedCount: failed.length,
+      skippedCount: skipped.length,
       totalCandidates: candidates.length,
       errors,
+      sent,
+      failed,
+      skipped,
       election_id,
       updated_data: updatedElection,
     };

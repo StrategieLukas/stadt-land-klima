@@ -40,7 +40,7 @@ meta:
       - text: $t:measure_sectors.transport.title
         value: transport
   readonly: false
-  required: true
+  required: false
   searchable: true
   sort: 5
   special: null
