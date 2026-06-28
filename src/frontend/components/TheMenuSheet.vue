@@ -72,7 +72,10 @@
         <LoginButton class="flex-1" @click="closeDrawer" />
         <DonateButton class="flex-1" @click="closeDrawer" />
       </div>
-      <LanguageSelector variant="header" class="self-center" />
+      <div class="flex items-center justify-center gap-3">
+        <ThemeToggle />
+        <LanguageSelector variant="header" />
+      </div>
     </div>
 
     <!-- Divider -->
@@ -169,13 +172,8 @@
                   @click="closeDrawer"
                 >
                   <img :src="imageUrlMap[child.image_id]" class="h-full w-full object-cover" alt="" />
-                  <div
-                    class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4"
-                  >
-                    <div
-                      class="text-xs font-semibold leading-snug text-white"
-                      style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
-                    >
+                  <div class="absolute inset-x-0 bottom-0 bg-stats-dark px-2 pb-1.5 pt-1.5">
+                    <div class="text-xs font-semibold leading-snug text-white">
                       {{ navLabel(child) }}
                     </div>
                   </div>

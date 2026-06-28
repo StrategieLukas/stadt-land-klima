@@ -1,8 +1,7 @@
 <template>
   <header
     ref="headerEl"
-    class="border-gray-200 fixed left-0 right-0 top-0 border-b backdrop-blur-md transition-[box-shadow,background] duration-300"
-    :style="isOpen ? 'background: rgba(255,255,255,1)' : 'background: rgba(255,255,255,0.82)'"
+    class="border-gray-200 fixed left-0 right-0 top-0 border-b bg-white transition-[box-shadow,background] duration-300"
     :class="[scrolled && !isOpen ? 'shadow-lg' : '', isOpen && embeddedInput ? 'z-[10003]' : 'z-50']"
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
@@ -32,11 +31,9 @@
         />
       </NuxtLink>
 
-      <!-- Persistent Search Bar — absolutely centered in the header -->
-      <!-- hidden on sm: mirrors the isDesktop breakpoint (≥640px) so mobile users don't
-           see the full search bar before hydration swaps to TheHeaderMobile. -->
+      <!-- Persistent Search Bar — kept to xl+ so it does not collide with the action cluster. -->
       <div
-        class="absolute left-1/2 hidden w-full max-w-[18rem] -translate-x-1/2 px-4 sm:block lg:-ml-8 lg:max-w-[20rem] xl:-ml-12 xl:max-w-[23rem] 2xl:-ml-20 2xl:max-w-[28rem]"
+        class="absolute left-1/2 hidden w-full max-w-[23rem] -translate-x-1/2 px-4 xl:-ml-12 xl:block 2xl:-ml-20 2xl:max-w-[28rem]"
       >
         <div
           ref="searchBarRef"
@@ -65,7 +62,7 @@
           <input
             ref="searchInputRef"
             v-model="query"
-            class="text-gray-700 placeholder-gray-400 min-w-0 flex-1 bg-transparent text-sm outline-none"
+            class="text-gray-700 placeholder-gray-400 min-w-0 flex-1 bg-white text-sm outline-none"
             :placeholder="$t('search.header.placeholder')"
             @focus="onSearchFocus"
             @keydown.up.prevent="moveFocusEmbedded(-1)"
@@ -103,10 +100,11 @@
 
       <!-- Actions: Login + Donate -->
       <div class="relative z-10 ml-auto flex items-center gap-2">
+        <ThemeToggle class="hidden sm:inline-flex" />
         <LanguageSelector variant="header" size="compact" class="hidden lg:inline-flex" />
-        <!-- Search button: only visible on mobile (<sm) to mirror TheHeaderMobile pre-hydration -->
+        <!-- Compact search button below xl where the centered search bar would crowd actions. -->
         <button
-          class="border-gray-200 text-gray-400 hover:border-gray-300 flex h-10 w-12 flex-none items-center justify-center rounded-full border-2 bg-white transition-colors sm:hidden"
+          class="border-gray-200 text-gray-400 hover:border-gray-300 flex h-10 w-12 flex-none items-center justify-center rounded-full border-2 bg-white transition-colors xl:hidden"
           @click="open()"
           :aria-label="$t('generic.search')"
         >
