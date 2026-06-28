@@ -26,6 +26,7 @@ meta:
   interface: select-dropdown
   note: null
   options:
+    allowNone: true
     choices:
       - text: $t:measure_categories.energie.title
         value: energy
