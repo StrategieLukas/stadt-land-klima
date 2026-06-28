@@ -33,7 +33,7 @@
             {{ catalogStatusLabel(row) }}
           </span>
         </div>
-        <div role="cell">{{ formatNumber(row.score_total) }}</div>
+        <div role="cell">{{ formatScore(row) }}</div>
         <div role="cell">{{ formatNumber(row.percentage_rated) }}%</div>
         <label class="publish-cell" role="cell">
           <input
@@ -74,6 +74,8 @@ type ScoreRow = {
   id: string | number;
   catalog_version: CatalogVersion | string | null;
   score_total: string | number | null;
+  score_points: string | number | null;
+  score_max: string | number | null;
   percentage_rated: string | number | null;
   published: boolean | null;
   saving?: boolean;
@@ -120,6 +122,8 @@ async function loadScores(): Promise<void> {
       'id',
       'published',
       'score_total',
+      'score_points',
+      'score_max',
       'percentage_rated',
       'catalog_version.id',
       'catalog_version.name',
@@ -189,6 +193,10 @@ function catalogStatusLabel(row: ScoreRow): string {
 function catalogLabel(row: ScoreRow): string {
   const catalog = normalizeCatalog(row.catalog_version);
   return catalog?.name || String(row.catalog_version || row.id);
+}
+
+function formatScore(row: ScoreRow): string {
+  return `${formatNumber(row.score_total)} (${formatNumber(row.score_points)}/${formatNumber(row.score_max)})`;
 }
 
 function formatNumber(value: string | number | null): string {

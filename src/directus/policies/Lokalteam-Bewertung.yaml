@@ -101,6 +101,8 @@ permissions:
       - catalog_version
       - published
       - score_total
+      - score_points
+      - score_max
       - score_buildings
       - municipality
       - percentage_rated
