@@ -12,7 +12,7 @@
         :style="{ width: width + '%' }"
       >
         <div
-          class="relative mr-1 font-heading font-bold whitespace-nowrap"
+          class="slk-progress-label relative mr-1 whitespace-nowrap font-heading font-bold"
           :class="[
             layout === 'compact' ? colorClass.text_compact + ' top-0.25 text-sm' : colorClass.text_default + ' text-xl',
           ]"
@@ -58,10 +58,30 @@ const colors = {
     text_default: "text-black sm:text-white left-14 sm:left-0",
     text_compact: "text-black sm:text-white left-9 sm:left-0",
   },
-  20: { bg: "bg-rating-1", border: "border-rating-1", text_default: "text-white", text_compact: "text-white" },
-  40: { bg: "bg-rating-2", border: "border-rating-2", text_default: "text-black", text_compact: "text-black" },
-  60: { bg: "bg-rating-3", border: "border-rating-3", text_default: "text-white", text_compact: "text-white" },
-  80: { bg: "bg-rating-4", border: "border-rating-4", text_default: "text-white", text_compact: "text-white" },
+  20: {
+    bg: "bg-rating-1",
+    border: "border-rating-1",
+    text_default: "slk-progress-label--on-bright",
+    text_compact: "slk-progress-label--on-bright",
+  },
+  40: {
+    bg: "bg-rating-2",
+    border: "border-rating-2",
+    text_default: "slk-progress-label--on-bright",
+    text_compact: "slk-progress-label--on-bright",
+  },
+  60: {
+    bg: "bg-rating-3",
+    border: "border-rating-3",
+    text_default: "slk-progress-label--on-bright",
+    text_compact: "slk-progress-label--on-bright",
+  },
+  80: {
+    bg: "bg-rating-4",
+    border: "border-rating-4",
+    text_default: "slk-progress-label--on-bright",
+    text_compact: "slk-progress-label--on-bright",
+  },
 };
 const durations = {
   0: "duration-[500ms]",

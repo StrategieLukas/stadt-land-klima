@@ -72,7 +72,14 @@
             :height="56"
             :width="56"
             fit="cover"
-            img-class="absolute top-2 right-2 w-14 h-14"
+            :img-class="organisationLogoImgClass(organisation.logo)"
+          />
+          <img
+            v-if="hasDarkOrganisationLogo(organisation.logo)"
+            class="absolute right-2 top-2 hidden h-14 w-14 object-cover dark:block"
+            :src="getDarkOrganisationLogoUrl(organisation.logo)"
+            :alt="organisation.name"
+            loading="lazy"
           />
         </div>
         <p v-if="image_credits" class="text-gray-500 mt-1 text-center text-xs italic">{{ image_credits }}</p>
@@ -136,7 +143,14 @@
         :height="56"
         :width="56"
         fit="cover"
-        img-class="absolute top-2 right-2 w-14 h-14"
+        :img-class="organisationLogoImgClass(organisation.logo)"
+      />
+      <img
+        v-if="hasDarkOrganisationLogo(organisation.logo)"
+        class="absolute right-2 top-2 hidden h-14 w-14 object-cover dark:block"
+        :src="getDarkOrganisationLogoUrl(organisation.logo)"
+        :alt="organisation.name"
+        loading="lazy"
       />
     </div>
 
@@ -283,10 +297,12 @@ import { ref, watchEffect } from "vue";
 import { buildLocationString, toAssetUrl, isRaster } from "~/shared/utils";
 import MarkdownIt from "markdown-it";
 import { useReferrer } from "~/composables/useReferrer";
+import localZeroLogoDark from "~/assets/images/LocalZero-logo-small-dark.png";
 
 const md = new MarkdownIt();
 const { $t, $locale } = useNuxtApp();
 const { backHref, backLabel } = useReferrer("/projects", $t("navigation.return_to_overview"));
+const localZeroLogoId = "85624177-21f4-43c7-9b13-b53087ba2401";
 
 const props = defineProps({
   title: String,
@@ -320,4 +336,20 @@ const src = ref(null);
 // });
 
 const location = computed(() => buildLocationString(props.municipality_name, props.state));
+
+function getAssetId(assetId) {
+  return typeof assetId === "string" ? assetId : assetId?.id;
+}
+
+function hasDarkOrganisationLogo(assetId) {
+  return getAssetId(assetId) === localZeroLogoId;
+}
+
+function getDarkOrganisationLogoUrl(assetId) {
+  return hasDarkOrganisationLogo(assetId) ? localZeroLogoDark : "";
+}
+
+function organisationLogoImgClass(assetId) {
+  return `absolute top-2 right-2 w-14 h-14 ${hasDarkOrganisationLogo(assetId) ? "dark:hidden" : ""}`;
+}
 </script>

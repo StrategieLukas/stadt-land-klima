@@ -119,6 +119,15 @@ html[data-theme="staedteChallemgeTheme"] {
   --slk-blue-tint: #e6f1f5;
   --slk-orange-tint: #fef5e7;
   --slk-red-tint: #fdf1f2;
+  --slk-rating-0-tint: #fdf1f2;
+  --slk-rating-1-tint: #fef5e7;
+  --slk-rating-2-tint: #fffce3;
+  --slk-rating-3-tint: #f6f9e3;
+  --slk-rating-4-tint: #ebf7ef;
+  --slk-rating-na-tint: #efefef;
+  --slk-ranking-card-text: #101820;
+  --slk-ranking-card-muted: #344054;
+  --slk-municipalities-panel-bg: #f6f9e3;
   --slk-warning-text: #9a4d00;
   --slk-success-text: #1f6f31;
   --slk-on-dark-muted: #e7edf1;
@@ -152,6 +161,15 @@ html[data-theme="staedteChallengeDark"] {
   --slk-blue-tint: #173444;
   --slk-orange-tint: #402b16;
   --slk-red-tint: #3d1f24;
+  --slk-rating-0-tint: #f7c8c8;
+  --slk-rating-1-tint: #ffd6a3;
+  --slk-rating-2-tint: #fff08a;
+  --slk-rating-3-tint: #e7f46f;
+  --slk-rating-4-tint: #b9efc8;
+  --slk-rating-na-tint: #d8dee4;
+  --slk-ranking-card-text: #101820;
+  --slk-ranking-card-muted: #344054;
+  --slk-municipalities-panel-bg: #203821;
   --slk-warning-text: #ffd199;
   --slk-success-text: #bfe9a4;
   --slk-on-dark-muted: #dce5ea;
@@ -180,6 +198,61 @@ body {
 
 .slk-modal-backdrop {
   background: var(--slk-backdrop);
+}
+
+.municipalities-filter-panel,
+.municipalities-cta {
+  background-color: var(--slk-municipalities-panel-bg);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-text);
+}
+
+.municipalities-filter-divider {
+  background-color: var(--slk-border-strong);
+}
+
+.municipalities-filter-rule {
+  border-color: var(--slk-border);
+}
+
+.slk-ranking-card {
+  background-color: var(--slk-surface);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-ranking-card-text);
+}
+
+.slk-ranking-card--rating-0 {
+  background-color: var(--slk-rating-0-tint);
+}
+
+.slk-ranking-card--rating-1 {
+  background-color: var(--slk-rating-1-tint);
+}
+
+.slk-ranking-card--rating-2 {
+  background-color: var(--slk-rating-2-tint);
+}
+
+.slk-ranking-card--rating-3 {
+  background-color: var(--slk-rating-3-tint);
+}
+
+.slk-ranking-card--rating-4 {
+  background-color: var(--slk-rating-4-tint);
+}
+
+.slk-ranking-card .text-black,
+.slk-ranking-card .text-gray-700 {
+  color: var(--slk-ranking-card-text) !important;
+}
+
+.slk-ranking-card .text-gray-600,
+.slk-ranking-card .text-gray-500 {
+  color: var(--slk-ranking-card-muted) !important;
+}
+
+.slk-progress-label--on-bright {
+  color: #101820 !important;
 }
 
 .prose {

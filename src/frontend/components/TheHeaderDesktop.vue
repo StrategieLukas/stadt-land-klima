@@ -6,7 +6,7 @@
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
     <div
-      class="relative mx-auto flex w-full max-w-screen-xl items-center px-4 py-2 transition-[padding] duration-300 ease-in-out md:px-8 lg:px-4 xl:px-6 2xl:px-0"
+      class="mx-auto grid w-full max-w-screen-xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 transition-[padding] duration-300 ease-in-out md:px-8 lg:px-4 xl:gap-6 xl:px-6 2xl:px-0"
       :class="scrolled ? 'sm:py-1.5' : 'sm:py-3'"
     >
       <!-- Logo -->
@@ -20,21 +20,29 @@
         <!-- SVG logotype: shown on mobile (<sm, matches TheHeaderMobile) and large desktop (≥lg) -->
         <img
           src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-          class="block h-full w-auto sm:hidden lg:block"
+          class="block h-full w-auto dark:hidden sm:hidden lg:block"
+          :alt="$t('logo.alt')"
+        />
+        <img
+          src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
+          class="hidden h-full w-auto dark:block dark:sm:hidden dark:lg:block"
           :alt="$t('logo.alt')"
         />
         <!-- Quad logo: only shown on sm–lg range where the header is narrow but ≥640px -->
         <img
           src="~/assets/images/Stadt-Land-Kima-Logo_quad.png"
-          class="hidden h-full w-auto sm:block lg:hidden"
+          class="hidden h-full w-auto dark:hidden sm:block lg:hidden"
+          :alt="$t('logo.alt')"
+        />
+        <img
+          src="~/assets/images/Stadt-Land-Kima-Logo_quad-dark.png"
+          class="hidden h-full w-auto dark:sm:block dark:lg:hidden"
           :alt="$t('logo.alt')"
         />
       </NuxtLink>
 
-      <!-- Persistent Search Bar — kept to xl+ so it does not collide with the action cluster. -->
-      <div
-        class="absolute left-1/2 hidden w-full max-w-[23rem] -translate-x-1/2 px-4 xl:-ml-12 xl:block 2xl:-ml-20 2xl:max-w-[28rem]"
-      >
+      <!-- Persistent Search Bar — normal grid column, never overlaying logo/actions. -->
+      <div class="hidden min-w-0 justify-self-center xl:block xl:w-full xl:max-w-[23rem] 2xl:max-w-[28rem]">
         <div
           ref="searchBarRef"
           class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150"
@@ -99,7 +107,7 @@
       </div>
 
       <!-- Actions: Login + Donate -->
-      <div class="relative z-10 ml-auto flex items-center gap-2">
+      <div class="relative z-10 flex min-w-max items-center gap-2 justify-self-end">
         <ThemeToggle class="hidden sm:inline-flex" />
         <LanguageSelector variant="header" size="compact" class="hidden lg:inline-flex" />
         <!-- Compact search button below xl where the centered search bar would crowd actions. -->

@@ -108,7 +108,16 @@
         <!-- Logo -->
         <div class="flex-shrink-0">
           <NuxtLink to="/">
-            <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-24 w-auto" :alt="$t('logo.alt')" />
+            <img
+              src="~/assets/images/Stadt-Land-Klima-Logo.svg"
+              class="h-24 w-auto dark:hidden"
+              :alt="$t('logo.alt')"
+            />
+            <img
+              src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
+              class="hidden h-24 w-auto dark:block"
+              :alt="$t('logo.alt')"
+            />
           </NuxtLink>
         </div>
 

@@ -6,7 +6,12 @@
     <div class="mx-auto flex w-full max-w-screen-xl items-center px-3 py-2">
       <!-- Left: Logo -->
       <NuxtLink to="/" class="flex-shrink-0">
-        <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-12 w-auto" :alt="$t('logo.alt')" />
+        <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-12 w-auto dark:hidden" :alt="$t('logo.alt')" />
+        <img
+          src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
+          class="hidden h-12 w-auto dark:block"
+          :alt="$t('logo.alt')"
+        />
       </NuxtLink>
 
       <div class="flex-1" />
