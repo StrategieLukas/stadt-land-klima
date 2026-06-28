@@ -171,25 +171,19 @@
           measure_id: { _eq: measureId },
           status: { _eq: 'published' },
           rating: { _in: higherRatings },
-          localteam_id: {
-            municipality_id: {
-              status: { _eq: 'published' },
-            }
-          }
         },
-        fields: ['rating', { localteam_id: ["municipality_name", { municipality_id: ['id', 'name', 'slug', 'state', 'party_mayor', 'population', 'geolocation', { scores: ['catalog_version', 'percentage_rated']}]}]}],
+        fields: ['rating', { localteam_id: ["municipality_name", { municipality_id: ['id', 'name', 'slug', 'state', 'party_mayor', 'population', 'geolocation', { scores: ['catalog_version', 'published', 'percentage_rated']}]}]}],
         limit: -1,
       })
     );
 
-    // client-side filter: percentage_rated == 100 for this catalog version
+    // Client-side filter: published score for this catalog version.
     // this is a workaround because adding the filters with _some does not work for some reason...
     const rawRatingResults = (rawRatingResultsBeforeFilter ?? []).filter((row) => {
       const scores = row?.localteam_id?.municipality_id?.[0]?.scores ?? [];
       return scores.some((s) => {
         const cv = typeof s.catalog_version === 'object' ? s.catalog_version?.id : s.catalog_version;
-        const pr = typeof s.percentage_rated === 'string' ? parseFloat(s.percentage_rated) : s.percentage_rated;
-        return cv === props.municipalityScore.catalog_version.id && Number(pr) > 98;
+        return cv === props.municipalityScore.catalog_version.id && s.published === true;
       });
     });
 

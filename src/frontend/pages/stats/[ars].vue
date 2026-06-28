@@ -98,7 +98,7 @@
           </svg>
           <h2 class="text-base font-semibold text-gray-900">{{ t('stats.measure_catalog_comparison') }}</h2>
           <span class="text-xs text-gray-400 hidden sm:block">
-	            {{ $t("stats.catalog_completed_count", { ":count": Object.values(municipalityScoresByCatalog).filter(s => s?.percentage_rated >= 98).length, ":total": allCatalogVersions.length }) }}
+	            {{ $t("stats.catalog_completed_count", { ":count": Object.values(municipalityScoresByCatalog).filter(isMunicipalityScorePublished).length, ":total": allCatalogVersions.length }) }}
           </span>
         </div>
         <svg
@@ -161,7 +161,7 @@
 
               <!-- Rating Status -->
               <div class="flex justify-center mb-4">
-                <span v-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated >= 98"
+                <span v-if="isMunicipalityScorePublished(municipalityScoresByCatalog[catalog.id])"
                       class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -181,10 +181,10 @@
 
               <!-- Action — spacer pushes it to bottom -->
               <div class="mt-auto flex justify-center">
-                <!-- Complete (≥98%): link to municipality detail page (ranking) -->
+                <!-- Published score: link to municipality detail page (ranking) -->
                 <CanonicalButton
-                  v-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated >= 98 && municipalityScoresByCatalog[catalog.id]?.municipality?.slug"
-                  :href="`/municipalities/${municipalityScoresByCatalog[catalog.id].municipality.slug}`"
+                  v-if="isMunicipalityScorePublished(municipalityScoresByCatalog[catalog.id]) && municipalityScoresByCatalog[catalog.id]?.municipality?.slug"
+                  :href="`/municipalities/${municipalityScoresByCatalog[catalog.id].municipality.slug}?v=${catalog.name}`"
                   :label="t('stats.action.current_rating')"
                   color="bright-green"
                   text-color="white"
@@ -426,6 +426,7 @@ import { onMounted, ref, computed, nextTick } from 'vue';
 import { saneLinkifyStr } from '~/shared/utils';
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 import { getAllCatalogVersions } from '~/composables/getAllCatalogVersions.js';
+import { isMunicipalityScorePublished } from '~/shared/municipality-score-publishing.js';
 
 const route = useRoute();
 const { $t, $locale, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp();
@@ -474,7 +475,7 @@ const fetchAllMunicipalityScores = async (ars) => {
   try {
     // First find the municipality by ARS
     const municipalities = await $directus.request($readItems("municipalities", {
-      fields: ["id", "slug", "name", "ars", "localteam_id", "status"],
+      fields: ["id", "slug", "name", "ars", "localteam_id"],
       filter: { ars: { _eq: ars } },
       limit: 1
     }));
@@ -535,7 +536,7 @@ const fetchMunicipalityScore = async (ars, catalogVersionId) => {
   try {
     // First find the municipality by ARS
     const municipalities = await $directus.request($readItems("municipalities", {
-      fields: ["id", "slug", "name", "ars", "localteam_id", "status"],
+      fields: ["id", "slug", "name", "ars", "localteam_id"],
       filter: { ars: { _eq: ars } },
       limit: 1
     }));
@@ -867,7 +868,7 @@ async function fetchNearbyAlternatives(currentArea) {
             ars: area.ars,
             name: area.name,
             prefix: area.prefix,
-            hasRating: score && score.municipality?.slug && score.percentage_rated > 0,
+            hasRating: score && score.municipality?.slug && isMunicipalityScorePublished(score),
             stadtlandklimaData: score ? {
               slug: score.municipality?.slug,
               scoreTotal: score.score_total,

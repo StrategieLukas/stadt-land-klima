@@ -47,9 +47,9 @@
           <LPopup>
             <div class="text-sm space-y-1">
               <div class="font-semibold">{{ s.municipality.name }}</div>
-              <template v-if="s.municipality.status === 'published' && s.percentage_rated > 98">
+              <template v-if="isMunicipalityScorePublished(s)">
                 <div>Score: {{ Number(s.score_total).toFixed(2) }}</div>
-                <NuxtLink :to="`/municipalities/${s.municipality.slug}`" class="text-blue-600 underline hover:text-blue-800">
+                <NuxtLink :to="`/municipalities/${s.municipality.slug}?v=${catalogVersion.name}`" class="text-blue-600 underline hover:text-blue-800">
                   {{ $t("map.icon.popup.goToRanking") }}
                 </NuxtLink>
               </template>
@@ -73,6 +73,7 @@ import { LMap, LTileLayer, LMarker, LPopup, LGeoJson, LRectangle } from '@vue-le
 import 'leaflet/dist/leaflet.css'
 import germanyGeoJson from '~/assets/germany-polygon.json?raw'
 import germanyStatesGeoJson from '~/assets/germany-state-borders.json?raw'
+import { isMunicipalityScorePublished } from '~/shared/municipality-score-publishing.js'
 
 const { $t } = useNuxtApp()
 
@@ -158,7 +159,7 @@ watch([showMunicipalitiesWithUnfinishedRating, filteredMunicipalityScores], () =
 })
 
 function shouldShow(municipalityScore) {
-  return showMunicipalitiesWithUnfinishedRating.value ? municipalityScore.percentage_rated > 0 : (municipalityScore.municipality.status === "published" && municipalityScore.percentage_rated > 98);
+  return showMunicipalitiesWithUnfinishedRating.value ? municipalityScore.percentage_rated > 0 : isMunicipalityScorePublished(municipalityScore);
 }
 
 function onMapReady(map) {
@@ -196,7 +197,7 @@ function getCustomIcon(municipalityScore) {
   if (!DivIcon || !PinSvg.value) return null
   const score_total = municipalityScore.score_total;
   let cssClass = "rating-na"
-  if (municipalityScore.municipality.status === "published" && municipalityScore.percentage_rated > 98) {
+  if (isMunicipalityScorePublished(municipalityScore)) {
     if (score_total < 20) cssClass = "rating-0"
     else if (score_total < 40) cssClass = "rating-1"
     else if (score_total < 60) cssClass = "rating-2"

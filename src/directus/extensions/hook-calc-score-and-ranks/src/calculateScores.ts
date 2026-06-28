@@ -2,7 +2,7 @@ import type { Logger, Schema, Services } from '@directus/types';
 
 interface CalculateScoresParams {
   municipalityIds?: number[] | null;
-  catalogVersionId: number;
+  catalogVersionId: number | string;
 }
 
 interface Context {

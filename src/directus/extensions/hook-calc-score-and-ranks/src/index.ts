@@ -18,12 +18,14 @@ const adminAccountability = { admin: true } as const;
 type RankedMunicipalityScore = {
   id: number | string;
   score_total: number | string | null;
+  published: boolean | null;
+  rank: number | string | null;
 };
 
 /** ---------- Utility Functions ---------- **/
 
 const updateRanks = async (
-  { catalogVersionId }: { catalogVersionId: number },
+  { catalogVersionId }: { catalogVersionId: number | string },
   { services, getSchema, logger }: ServiceContext
 ): Promise<void> => {
   logger.info(`Updating ranks for catalogVersionId=${catalogVersionId}`);
@@ -33,28 +35,32 @@ const updateRanks = async (
     accountability: adminAccountability,
   });
 
-  // Only rank published municipalities that are more than 98% rated
   const scores: RankedMunicipalityScore[] =
     await municipalityScoresService.readByQuery({
       limit: -1,
       filter: {
         catalog_version: { _eq: catalogVersionId },
-        municipality: { status: { _eq: 'published' } },
-        percentage_rated: { _gt: 98 },
       },
-      fields: ['id', 'score_total'],
+      fields: ['id', 'score_total', 'published', 'rank'],
     });
 
   if (!scores?.length) {
     logger.info(
-      `[updateRanks] No published scores with percentage_rated > 98 found for catalogVersion=${catalogVersionId}, skipping rank update.`
+      `[updateRanks] No scores found for catalogVersion=${catalogVersionId}, skipping rank update.`
     );
     return;
   }
 
-  const sortedScores = [...scores].sort(
+  const sortedScores = scores.filter((score) => score.published === true).sort(
     (a, b) => (Number(b.score_total) || 0) - (Number(a.score_total) || 0)
   );
+
+  if (!sortedScores.length) {
+    logger.info(
+      `[updateRanks] No published scores found for catalogVersion=${catalogVersionId}; resetting ranks.`
+    );
+  }
+
   const ranked: Array<{ id: number | string; rank: number }> = [];
   for (let index = 0; index < sortedScores.length; index++) {
     const score = sortedScores[index];
@@ -69,11 +75,17 @@ const updateRanks = async (
     });
   }
 
-  for (const r of ranked) {
-    await municipalityScoresService.updateOne(r.id, { rank: r.rank });
+  const rankById = new Map(ranked.map((entry) => [String(entry.id), entry.rank]));
+  let updated = 0;
+
+  for (const score of scores) {
+    const nextRank = rankById.get(String(score.id)) ?? -1;
+    if (Number(score.rank) === nextRank) continue;
+    await municipalityScoresService.updateOne(score.id, { rank: nextRank });
+    updated++;
   }
 
-  logger.info(`[updateRanks] Updated ranks for ${ranked.length} municipality_scores.`);
+  logger.info(`[updateRanks] Updated ranks for ${updated} municipality_scores.`);
 };
 
 const createEmptyRatingsForNewMunicipality = async (
@@ -143,6 +155,7 @@ const createEmptyScoresForMunicipality = async (
   const scoresToCreate = measureCatalogs.map((cv: any) => ({
     municipality: municipality.id,
     catalog_version: cv.id,
+    published: false,
     score_total: 0,
     percentage_rated: 0,
     score_agriculture: 0,
@@ -235,6 +248,7 @@ const syncAllMunicipalityScores = async ({ services, getSchema, logger }: Servic
         toCreate.push({
           municipality: mun.id,
           catalog_version: cv.id,
+          published: false,
           score_total: 0,
           percentage_rated: 0,
           score_agriculture: 0,
@@ -360,7 +374,7 @@ const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceConte
 
   const municipalityId: number | undefined = rating?.localteam_id?.municipality_id;
   const rawCatalogVersion = rating?.measure_id?.catalog_version;
-  const catalogVersionId: number | undefined =
+  const catalogVersionId: number | string | undefined =
     typeof rawCatalogVersion === 'object' ? rawCatalogVersion?.id : rawCatalogVersion;
 
   if (!municipalityId || !catalogVersionId) {
@@ -372,6 +386,50 @@ const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceConte
 
   await calculateScores({ municipalityIds: [municipalityId], catalogVersionId }, ctx);
   await updateRanks({ catalogVersionId }, ctx);
+};
+
+const handleMunicipalityScoreUpdated = async (meta: any, ctx: ServiceContext): Promise<void> => {
+  if (!Object.prototype.hasOwnProperty.call(meta.payload ?? {}, 'published')) return;
+
+  const scoreIds: Array<number | string> = meta.key
+    ? [meta.key]
+    : Array.isArray(meta.keys)
+      ? meta.keys
+      : [];
+
+  if (!scoreIds.length) {
+    ctx.logger.warn('[handleMunicipalityScoreUpdated] No municipality_score id(s) found in meta.');
+    return;
+  }
+
+  const schema = await ctx.getSchema();
+  const scoresService = new ctx.services.ItemsService('municipality_scores', {
+    schema,
+    accountability: adminAccountability,
+  });
+
+  const scores: Array<{ catalog_version: number | string | { id: number | string } | null }> =
+    await scoresService.readByQuery({
+      limit: -1,
+      filter: { id: { _in: scoreIds } },
+      fields: ['catalog_version'],
+    });
+
+  const catalogVersionIds = [
+    ...new Set(
+      scores
+        .map((score) => (
+          typeof score.catalog_version === 'object'
+            ? score.catalog_version?.id
+            : score.catalog_version
+        ))
+        .filter((id): id is number | string => id !== null && id !== undefined && id !== '')
+    ),
+  ];
+
+  for (const catalogVersionId of catalogVersionIds) {
+    await updateRanks({ catalogVersionId }, ctx);
+  }
 };
 
 /** ---------- Safe wrapper for diagnostic logging ---------- **/
@@ -419,6 +477,8 @@ export default (
           return handleMeasureCreatedOrPublished(meta, ctx);
         case 'ratings_measures':
           return handleRatingsMeasureUpdatedOrCreated(meta, ctx);
+        case 'municipality_scores':
+          return handleMunicipalityScoreUpdated(meta, ctx);
         default:
           return;
       }

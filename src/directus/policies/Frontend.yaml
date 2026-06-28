@@ -431,7 +431,6 @@ permissions:
       - public_contact
       - ars
       - geolocation
-      - percentage_rated
       - id
       - creator_verified
       - preview_token

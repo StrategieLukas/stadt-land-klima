@@ -23,6 +23,8 @@
   </div>
 </template>
 <script setup>
+import { isMunicipalityScorePublished } from '~/shared/municipality-score-publishing.js';
+
 const props = defineProps({
   municipalityScores: {
     type: Array,
@@ -33,13 +35,13 @@ const props = defineProps({
   }
 });
 
-// Hide unpublished municipalities and those with percentage_rated < 98% for the catalog version from the Ranking view
+// Hide municipality scores that are not published for this catalog version.
 const publishedMunicipalityScores = computed(() => {
   if (!props.municipalityScores || !Array.isArray(props.municipalityScores)) {
     return []
   }
   return props.municipalityScores
-    .filter(s => s.municipality.status === "published" && s.percentage_rated > 98)
+    .filter(isMunicipalityScorePublished)
     // Recalculate indices
     .map((item, index) => ({
         ...item,
