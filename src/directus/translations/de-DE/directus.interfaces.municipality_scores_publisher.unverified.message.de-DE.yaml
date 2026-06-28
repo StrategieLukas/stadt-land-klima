@@ -1,0 +1,4 @@
+language: de-DE
+key: directus.interfaces.municipality_scores_publisher.unverified.message
+value: Ihr Account ist noch nicht verifiziert. Katalogbewertungen können erst
+  veröffentlicht werden, wenn ein Admin Ihren Account verifiziert hat.

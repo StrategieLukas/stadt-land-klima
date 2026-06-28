@@ -1,36 +1,41 @@
 <template>
-  <div class="municipality-scores-publisher">
+  <div class="municipality-scores-publisher" @keydown.esc.window="closeUnverifiedDialog">
     <div v-if="!primaryKey || primaryKey === '+'" class="notice">
-      Speichern Sie die Kommune, bevor die Katalogbewertungen angezeigt werden.
+      {{ $t('directus.interfaces.municipality_scores_publisher.save_municipality_first') }}
     </div>
 
     <div v-else-if="loading" class="state">
       <v-progress-circular indeterminate />
-      <span>Katalogbewertungen werden geladen.</span>
+      <span>{{ $t('directus.interfaces.municipality_scores_publisher.loading_scores') }}</span>
     </div>
 
-    <div v-else-if="error" class="notice danger">
-      {{ error }}
-      <button type="button" class="text-button" @click="loadScores">Erneut laden</button>
+    <div v-else-if="errorKey" class="notice danger">
+      {{ $t(errorKey) }}
+      <button type="button" class="text-button" @click="loadScores">{{ $t('generic.try_again') }}</button>
     </div>
 
     <div v-else-if="scores.length === 0" class="notice">
-      Für diese Kommune wurden noch keine Katalogbewertungen erzeugt.
+      {{ $t('directus.interfaces.municipality_scores_publisher.no_scores') }}
     </div>
 
-    <div v-else class="scores-table" role="table" aria-label="Katalogbewertungen">
+    <div
+      v-else
+      class="scores-table"
+      role="table"
+      :aria-label="$t('directus.interfaces.municipality_scores_publisher.table_label')"
+    >
       <div class="scores-row scores-header" role="row">
-        <div role="columnheader">Katalogversion</div>
-        <div role="columnheader">Score</div>
-        <div role="columnheader">Bewertet</div>
-        <div role="columnheader">Veröffentlicht</div>
+        <div role="columnheader">{{ $t('directus.interfaces.municipality_scores_publisher.column.catalog_version') }}</div>
+        <div role="columnheader">{{ $t('directus.interfaces.municipality_scores_publisher.column.score') }}</div>
+        <div role="columnheader">{{ $t('directus.interfaces.municipality_scores_publisher.column.rated') }}</div>
+        <div role="columnheader">{{ $t('directus.interfaces.municipality_scores_publisher.column.published') }}</div>
       </div>
 
       <div v-for="row in sortedScores" :key="row.id" class="scores-row" role="row">
         <div class="version-cell" role="cell">
           <strong>{{ catalogLabel(row) }}</strong>
           <span :class="['badge', `badge--${catalogStatus(row)}`]">
-            {{ catalogStatusLabel(row) }}
+            {{ $t(catalogStatusLabelKey(row)) }}
           </span>
         </div>
         <div role="cell">{{ formatScore(row) }}</div>
@@ -43,24 +48,63 @@
             @input.stop
             @change.stop="onPublishInput(row, $event)"
           />
-          <span>{{ row.published ? 'Ja' : 'Nein' }}</span>
+          <span>
+            {{ row.published ? $t('directus.interfaces.municipality_scores_publisher.boolean.yes') : $t('directus.interfaces.municipality_scores_publisher.boolean.no') }}
+          </span>
         </label>
+      </div>
+    </div>
+
+    <div
+      v-if="showUnverifiedDialog"
+      class="modal-backdrop"
+      role="presentation"
+      @click.self="closeUnverifiedDialog"
+    >
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="municipality-scores-publisher-unverified-title"
+        aria-describedby="municipality-scores-publisher-unverified-message"
+      >
+        <div class="modal-header">
+          <v-icon name="lock" />
+          <strong id="municipality-scores-publisher-unverified-title">
+            {{ $t('directus.interfaces.municipality_scores_publisher.unverified.title') }}
+          </strong>
+        </div>
+        <p id="municipality-scores-publisher-unverified-message">
+          {{ $t('directus.interfaces.municipality_scores_publisher.unverified.message') }}
+        </p>
+        <div class="modal-actions">
+          <button type="button" class="primary-button" @click="closeUnverifiedDialog">
+            {{ $t('generic.close') }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, watch, type Ref } from 'vue';
+import { computed, inject, onMounted, ref, watch, type Ref } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
+type ApiResponse<T> = Promise<{ data?: { data?: T } }>;
+
 type Api = {
-  get: (path: string) => Promise<{ data?: { data?: ScoreRow[] } }>;
-  patch: (path: string, data: Record<string, unknown>) => Promise<{ data?: { data?: ScoreRow } }>;
+  get: <T = unknown>(path: string) => ApiResponse<T>;
+  patch: <T = unknown>(path: string, data: Record<string, unknown>) => ApiResponse<T>;
 };
 
 type CatalogStatus = 'current' | 'future' | 'archive';
+
+type CurrentUser = {
+  id: string;
+  verified?: boolean | null;
+};
 
 type CatalogVersion = {
   id: string;
@@ -92,8 +136,12 @@ defineEmits<{
 
 const api = inject<Api>('api');
 const loading = ref(false);
-const error: Ref<string | null> = ref(null);
+const errorKey: Ref<string | null> = ref(null);
 const scores: Ref<ScoreRow[]> = ref([]);
+const currentUserVerified: Ref<boolean | null> = ref(null);
+const verificationLoading = ref(false);
+const showUnverifiedDialog = ref(false);
+let currentUserVerificationPromise: Promise<boolean> | null = null;
 
 const sortedScores = computed(() => {
   return [...scores.value].sort((a, b) => {
@@ -107,6 +155,9 @@ const sortedScores = computed(() => {
 });
 
 watch(() => props.primaryKey, () => loadScores(), { immediate: true });
+onMounted(() => {
+  void ensureCurrentUserIsVerified();
+});
 
 async function loadScores(): Promise<void> {
   if (!api || !props.primaryKey || props.primaryKey === '+') {
@@ -115,7 +166,7 @@ async function loadScores(): Promise<void> {
   }
 
   loading.value = true;
-  error.value = null;
+  errorKey.value = null;
   try {
     const filter = encodeURIComponent(JSON.stringify({ municipality: { _eq: props.primaryKey } }));
     const fields = [
@@ -131,11 +182,11 @@ async function loadScores(): Promise<void> {
       'catalog_version.isCurrentBackend',
       'catalog_version.date_created',
     ].join(',');
-    const response = await api.get(`/items/municipality_scores?filter=${filter}&fields=${fields}&limit=-1`);
+    const response = await api.get<ScoreRow[]>(`/items/municipality_scores?filter=${filter}&fields=${fields}&limit=-1`);
     scores.value = response.data?.data ?? [];
   } catch (err) {
     console.error('[MunicipalityScoresPublisher] Failed to load scores:', err);
-    error.value = 'Katalogbewertungen konnten nicht geladen werden.';
+    errorKey.value = 'directus.interfaces.municipality_scores_publisher.error_loading';
     scores.value = [];
   } finally {
     loading.value = false;
@@ -144,6 +195,14 @@ async function loadScores(): Promise<void> {
 
 async function onPublishInput(row: ScoreRow, event: Event): Promise<void> {
   const input = event.target as HTMLInputElement;
+  const previous = row.published === true;
+
+  if (!(await ensureCurrentUserIsVerified())) {
+    input.checked = previous;
+    showUnverifiedDialog.value = true;
+    return;
+  }
+
   await setPublished(row, input.checked);
 }
 
@@ -153,17 +212,61 @@ async function setPublished(row: ScoreRow, published: boolean): Promise<void> {
   const previous = row.published === true;
   row.published = published;
   row.saving = true;
-  error.value = null;
+  errorKey.value = null;
 
   try {
     await api.patch(`/items/municipality_scores/${row.id}`, { published });
   } catch (err) {
-    console.error('[MunicipalityScoresPublisher] Failed to update publish flag:', err);
+    console.error('[MunicipalityScoresPublisher] Failed to update publication state:', err);
     row.published = previous;
-    error.value = 'Veröffentlichung konnte nicht gespeichert werden.';
+    errorKey.value = 'directus.interfaces.municipality_scores_publisher.error_saving';
   } finally {
     row.saving = false;
   }
+}
+
+async function ensureCurrentUserIsVerified(): Promise<boolean> {
+  if (currentUserVerified.value !== null) {
+    return currentUserVerified.value === true;
+  }
+
+  if (!api) {
+    return false;
+  }
+
+  if (currentUserVerificationPromise) {
+    return currentUserVerificationPromise;
+  }
+
+  currentUserVerificationPromise = loadCurrentUserVerification().finally(() => {
+    currentUserVerificationPromise = null;
+  });
+
+  return currentUserVerificationPromise;
+}
+
+async function loadCurrentUserVerification(): Promise<boolean> {
+  if (!api) {
+    return false;
+  }
+
+  verificationLoading.value = true;
+
+  try {
+    const response = await api.get<CurrentUser>('/users/me?fields=id,verified');
+    currentUserVerified.value = response.data?.data?.verified === true;
+  } catch (err) {
+    console.error('[MunicipalityScoresPublisher] Failed to load current user verification state:', err);
+    currentUserVerified.value = false;
+  } finally {
+    verificationLoading.value = false;
+  }
+
+  return currentUserVerified.value === true;
+}
+
+function closeUnverifiedDialog(): void {
+  showUnverifiedDialog.value = false;
 }
 
 function normalizeCatalog(catalog: ScoreRow['catalog_version']): CatalogVersion | null {
@@ -183,11 +286,9 @@ function catalogStatus(row: ScoreRow): CatalogStatus {
   return 'archive';
 }
 
-function catalogStatusLabel(row: ScoreRow): string {
+function catalogStatusLabelKey(row: ScoreRow): string {
   const status = catalogStatus(row);
-  if (status === 'current') return 'Aktuelle Version';
-  if (status === 'future') return 'Zukünftige Version';
-  return 'Archiv';
+  return `directus.interfaces.municipality_scores_publisher.status.${status}`;
 }
 
 function catalogLabel(row: ScoreRow): string {
@@ -231,6 +332,62 @@ function formatNumber(value: string | number | null): string {
   color: var(--theme--primary);
   cursor: pointer;
   font: inherit;
+}
+
+.modal-backdrop {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.42);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 9999;
+}
+
+.modal {
+  background: var(--theme--background);
+  border: 1px solid var(--theme--border-color);
+  border-radius: var(--theme--border-radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.24);
+  color: var(--theme--foreground);
+  max-width: 460px;
+  padding: 20px;
+  width: min(100%, 460px);
+}
+
+.modal-header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.modal-header :deep(.v-icon) {
+  color: var(--theme--primary);
+}
+
+.modal p {
+  color: var(--theme--foreground-subdued);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.primary-button {
+  background: var(--theme--primary);
+  border: 1px solid var(--theme--primary);
+  border-radius: var(--theme--border-radius);
+  color: var(--theme--primary-foreground, var(--theme--background));
+  cursor: pointer;
+  font: inherit;
+  min-height: 40px;
+  padding: 0 16px;
 }
 
 .scores-table {

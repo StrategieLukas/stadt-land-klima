@@ -160,3 +160,7 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.
 2. The yamls are sorted to be in alphabetical order, ensure that you stick to this formatting.
 
+## Text
+1. Ensure displayed text uses the proper symbols for the language, i.e. German uses proper Umlauts for ä ö ü ß and not ae/oe/ue/ss
+2. When gendered German text is used, prefer ":" over "*" as separator.
+

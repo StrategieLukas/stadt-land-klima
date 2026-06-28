@@ -78,6 +78,7 @@ permissions:
       - tfa_secret
       - status
       - role
+      - verified
   - collection: directus_users
     action: update
     permissions:

@@ -13,7 +13,17 @@ interface ServiceContext {
   logger: Logger;
 }
 
+interface Accountability {
+  admin?: boolean;
+  user?: number | string | null;
+}
+
+interface FilterContext {
+  accountability?: Accountability | null;
+}
+
 const adminAccountability = { admin: true } as const;
+const unverifiedPublishError = 'Your account must be verified before publishing municipality scores.';
 
 type RankedMunicipalityScore = {
   id: number | string;
@@ -22,7 +32,18 @@ type RankedMunicipalityScore = {
   rank: number | string | null;
 };
 
+type RelationId = number | string | { id?: number | string | null } | null;
+type MunicipalityStatus = 'draft' | 'published';
+
 /** ---------- Utility Functions ---------- **/
+
+const normalizeRelationId = (value: RelationId): number | string | null => {
+  if (typeof value === 'object' && value !== null) {
+    return value.id ?? null;
+  }
+
+  return value ?? null;
+};
 
 const updateRanks = async (
   { catalogVersionId }: { catalogVersionId: number | string },
@@ -86,6 +107,38 @@ const updateRanks = async (
   }
 
   logger.info(`[updateRanks] Updated ranks for ${updated} municipality_scores.`);
+};
+
+const syncMunicipalityPublicationStatus = async (
+  { municipalityId }: { municipalityId: number | string },
+  { services, getSchema, logger }: ServiceContext
+): Promise<void> => {
+  const schema = await getSchema();
+  const municipalityScoresService = new services.ItemsService('municipality_scores', {
+    schema,
+    accountability: adminAccountability,
+  });
+  const municipalitiesService = new services.ItemsService('municipalities', {
+    schema,
+    accountability: adminAccountability,
+  });
+
+  const publishedScores: Array<{ id: number | string }> =
+    await municipalityScoresService.readByQuery({
+      limit: 1,
+      filter: {
+        municipality: { _eq: municipalityId },
+        published: { _eq: true },
+      },
+      fields: ['id'],
+    });
+  const status: MunicipalityStatus = publishedScores.length > 0 ? 'published' : 'draft';
+  const municipality = await municipalitiesService.readOne(municipalityId, { fields: ['status'] }) as { status?: string | null };
+
+  if (municipality?.status === status) return;
+
+  await municipalitiesService.updateOne(municipalityId, { status });
+  logger.info(`[syncMunicipalityPublicationStatus] Municipality ${municipalityId} status updated to ${status}.`);
 };
 
 const createEmptyRatingsForNewMunicipality = async (
@@ -284,6 +337,49 @@ const syncAllMunicipalityScores = async ({ services, getSchema, logger }: Servic
   logger.info('[syncAllMunicipalityScores] Initial sync completed successfully.');
 };
 
+const payloadChangesPublished = (payload: unknown): boolean => {
+  return (
+    payload !== null &&
+    typeof payload === 'object' &&
+    !Array.isArray(payload) &&
+    Object.prototype.hasOwnProperty.call(payload, 'published')
+  );
+};
+
+const enforceVerifiedPublisher = async (
+  payload: unknown,
+  meta: any,
+  eventContext: FilterContext | undefined,
+  serviceContext: ServiceContext
+): Promise<unknown> => {
+  if (meta?.collection !== 'municipality_scores' || !payloadChangesPublished(payload)) {
+    return payload;
+  }
+
+  const accountability = eventContext?.accountability ?? null;
+
+  if (!accountability?.user) {
+    if (accountability?.admin === true) {
+      return payload;
+    }
+
+    throw new Error(unverifiedPublishError);
+  }
+
+  const schema = await serviceContext.getSchema();
+  const usersService = new serviceContext.services.ItemsService('directus_users', {
+    schema,
+    accountability: adminAccountability,
+  });
+  const user = await usersService.readOne(accountability.user, { fields: ['verified'] }) as { verified?: boolean | null };
+
+  if (user?.verified !== true) {
+    throw new Error(unverifiedPublishError);
+  }
+
+  return payload;
+};
+
 /** ---------- Event Handlers ---------- **/
 
 const handleMunicipalityCreated = async (meta: any, ctx: ServiceContext): Promise<void> => {
@@ -412,24 +508,31 @@ const handleMunicipalityScoreUpdated = async (meta: any, ctx: ServiceContext): P
     accountability: adminAccountability,
   });
 
-  const scores: Array<{ catalog_version: number | string | { id: number | string } | null }> =
+  const scores: Array<{ catalog_version: RelationId; municipality: RelationId }> =
     await scoresService.readByQuery({
       limit: -1,
       filter: { id: { _in: scoreIds } },
-      fields: ['catalog_version'],
+      fields: ['catalog_version', 'municipality'],
     });
 
   const catalogVersionIds = [
     ...new Set(
       scores
-        .map((score) => (
-          typeof score.catalog_version === 'object'
-            ? score.catalog_version?.id
-            : score.catalog_version
-        ))
+        .map((score) => normalizeRelationId(score.catalog_version))
         .filter((id): id is number | string => id !== null && id !== undefined && id !== '')
     ),
   ];
+  const municipalityIds = [
+    ...new Set(
+      scores
+        .map((score) => normalizeRelationId(score.municipality))
+        .filter((id): id is number | string => id !== null && id !== undefined && id !== '')
+    ),
+  ];
+
+  for (const municipalityId of municipalityIds) {
+    await syncMunicipalityPublicationStatus({ municipalityId }, ctx);
+  }
 
   for (const catalogVersionId of catalogVersionIds) {
     await updateRanks({ catalogVersionId }, ctx);
@@ -459,7 +562,7 @@ const safeCall = (
 /** ---------- Hook Registration ---------- **/
 
 export default (
-  { action }: HookContext,
+  { action, filter }: HookContext,
   extensionContext: ServiceContext
 ) => {
   const { services, getSchema, logger } = extensionContext;
@@ -469,6 +572,10 @@ export default (
     const e = err as Error;
     logger.error(`[syncAllMunicipalityScores] Failed during startup: ${e?.message}`);
     logger.error(e?.stack ?? String(err));
+  });
+
+  filter('items.update', async (payload, meta, eventContext) => {
+    return enforceVerifiedPublisher(payload, meta, eventContext, extensionContext);
   });
 
   action(
@@ -497,6 +604,8 @@ export default (
           return handleMeasureCreatedOrPublished(meta, ctx);
         case 'ratings_measures':
           return handleRatingsMeasureUpdatedOrCreated(meta, ctx);
+        case 'municipality_scores':
+          return handleMunicipalityScoreUpdated(meta, ctx);
         default:
           return;
       }

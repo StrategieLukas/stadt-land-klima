@@ -1,0 +1,3 @@
+language: en-GB
+key: directus.interfaces.municipality_scores_publisher.save_municipality_first
+value: Save the municipality before catalog scores are shown.

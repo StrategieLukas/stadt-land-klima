@@ -1,0 +1,3 @@
+language: it-IT
+key: directus.interfaces.municipality_scores_publisher.no_scores
+value: Non sono ancora state generate valutazioni del catalogo per questo comune.
