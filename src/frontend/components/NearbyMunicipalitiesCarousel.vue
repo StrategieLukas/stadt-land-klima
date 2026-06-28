@@ -233,7 +233,7 @@ const onNearbyGeoJsonReady = (ars, geoArea) => {
 const fetchMunicipalityData = async (ars) => {
   try {
     const municipalities = await $directus.request($readItems('municipalities', {
-      fields: ['id', 'slug', 'name', 'ars', 'status', 'localteam_id'],
+      fields: ['id', 'slug', 'name', 'ars', 'localteam_id'],
       filter: { ars: { _eq: ars } },
       limit: 1,
     }))
@@ -269,13 +269,13 @@ onMounted(async () => {
           const result = await fetchMunicipalityData(area.ars)
           const municipality = result?.municipality ?? null
           const score = result?.score ?? null
-          const isPublished = municipality?.status === 'published' && !!municipality?.slug
+          const isPublished = score?.published === true && !!municipality?.slug
           const hasLocalteam = !!(municipality?.localteam_id)
           const percentageRated = score?.percentage_rated ?? null
-          // 'complete'    → published + percentage_rated >= 98 → show rating
+          // 'complete'    → published score for this catalog version → show rating
           // 'in-progress' → has a localteam but not yet complete → support the team
           // 'none'        → no localteam at all → found a team
-          const ctaType = isPublished && percentageRated != null && percentageRated >= 98
+          const ctaType = isPublished
             ? 'complete'
             : hasLocalteam
               ? 'in-progress'

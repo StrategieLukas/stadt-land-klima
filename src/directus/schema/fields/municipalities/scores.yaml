@@ -4,20 +4,14 @@ type: alias
 meta:
   collection: municipalities
   conditions: null
-  display: related-values
-  display_options:
-    template: "{{catalog_version.name}}: {{score_total}} ( {{percentage_rated}}%
-      bewertet)"
+  display: null
+  display_options: null
   field: scores
   group: null
   hidden: false
-  interface: list-o2m
+  interface: municipality-scores-publisher
   note: null
-  options:
-    enableCreate: false
-    enableSelect: false
-    template: "{{catalog_version.name}}: {{score_total}} ({{percentage_rated}} %
-      bewertet)"
+  options: null
   readonly: false
   required: false
   searchable: true

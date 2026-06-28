@@ -38,6 +38,11 @@
       },
       {
         "type": "interface",
+        "name": "municipality-scores-publisher",
+        "source": "./src/municipality-scores-publisher/index.ts"
+      },
+      {
+        "type": "interface",
         "name": "navigation-editor",
         "source": "./src/navigation-editor/index.ts"
       },
