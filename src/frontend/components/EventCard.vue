@@ -42,7 +42,7 @@
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 2 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"
               />
             </svg>
-            {{ formatEventDateTimeRange(event.start_date, event.end_date, $locale, $t) }}
+            {{ formatEventDateTimeRange(event.start_date, event.end_date, $locale) }}
           </span>
           <span v-if="event.location" class="flex items-center gap-1">
             <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

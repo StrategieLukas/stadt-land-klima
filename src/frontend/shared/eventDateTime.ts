@@ -1,19 +1,10 @@
 const EVENT_TIME_ZONE = "Europe/Berlin";
 
-type TranslateFn = (key: string, params?: Record<string, string>) => string;
-
 function parseDate(value?: string | null) {
   if (!value) return null;
 
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function translate(t: TranslateFn | undefined, key: string, params: Record<string, string>, fallback: string) {
-  if (!t) return fallback;
-
-  const translated = t(key, params);
-  return translated === key ? fallback : translated;
 }
 
 function getBerlinDateParts(date: Date) {
@@ -60,18 +51,21 @@ function formatEventDateTime(date: Date, locale: string) {
   return `${formatDate(date, locale)}, ${formatTime(date, locale)}`;
 }
 
+export function formatBerlinDate(iso?: string | null, locale = "de-DE") {
+  const date = parseDate(iso);
+  return date ? formatDate(date, locale) : "";
+}
+
 export function formatEventDateTimeRange(
   startIso?: string | null,
   endIso?: string | null,
   locale = "de-DE",
-  t?: TranslateFn,
 ) {
   const start = parseDate(startIso);
   if (!start) return "";
 
   const end = parseDate(endIso);
   const startDateTime = formatEventDateTime(start, locale);
-  const timezone = translate(t, "events.datetime.timezone.europe_berlin", {}, EVENT_TIME_ZONE);
   let dateTime = startDateTime;
 
   if (end && end.getTime() > start.getTime()) {
@@ -81,12 +75,7 @@ export function formatEventDateTimeRange(
       : `${startDateTime} - ${formatEventDateTime(end, locale)}`;
   }
 
-  return translate(
-    t,
-    "events.datetime.with_timezone",
-    { ":dateTime": dateTime, ":timezone": timezone },
-    `${dateTime} (${timezone})`,
-  );
+  return dateTime;
 }
 
 export function getEventMonthKey(startIso?: string | null) {
