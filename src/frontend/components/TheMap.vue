@@ -7,7 +7,7 @@
   </div>
 
   <ClientOnly>
-    <div class="w-full h-[75svh] z-0">
+    <div class="relative isolate z-0 w-full h-[75svh]">
       <LMap
         v-if="clientReady"
         :zoom="6"
@@ -15,7 +15,6 @@
         style="height: 100%; width: 100%"
         @ready="onMapReady"
         ref="mapRef"
-        class="z-10000"
       >
         <LTileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -142,7 +141,6 @@ const filteredMunicipalityScores = computed(() => {
     .filter(s => typeof s.municipality.lat === 'number' && typeof s.municipality.lon === 'number')
     .filter(s => shouldShow(s))
 })
-
 
 onMounted(async () => {
   leaflet.value = await import('leaflet')

@@ -29,8 +29,9 @@
       <div v-for="row in sortedScores" :key="row.id" class="scores-row" role="row">
         <div class="version-cell" role="cell">
           <strong>{{ catalogLabel(row) }}</strong>
-          <span v-if="row.catalog_version?.isCurrentFrontend" class="badge">Frontend</span>
-          <span v-if="row.catalog_version?.isCurrentBackend" class="badge">Backend</span>
+          <span :class="['badge', `badge--${catalogStatus(row)}`]">
+            {{ catalogStatusLabel(row) }}
+          </span>
         </div>
         <div role="cell">{{ formatNumber(row.score_total) }}</div>
         <div role="cell">{{ formatNumber(row.percentage_rated) }}%</div>
@@ -39,7 +40,8 @@
             type="checkbox"
             :checked="row.published === true"
             :disabled="disabled || row.saving"
-            @change="onPublishInput(row, $event)"
+            @input.stop
+            @change.stop="onPublishInput(row, $event)"
           />
           <span>{{ row.published ? 'Ja' : 'Nein' }}</span>
         </label>
@@ -51,10 +53,14 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch, type Ref } from 'vue';
 
+defineOptions({ inheritAttrs: false });
+
 type Api = {
   get: (path: string) => Promise<{ data?: { data?: ScoreRow[] } }>;
   patch: (path: string, data: Record<string, unknown>) => Promise<{ data?: { data?: ScoreRow } }>;
 };
+
+type CatalogStatus = 'current' | 'future' | 'archive';
 
 type CatalogVersion = {
   id: string;
@@ -76,6 +82,10 @@ type ScoreRow = {
 const props = defineProps<{
   disabled?: boolean;
   primaryKey?: string | number | null;
+}>();
+
+defineEmits<{
+  (event: 'input', value: ScoreRow[] | null): void;
 }>();
 
 const api = inject<Api>('api');
@@ -162,6 +172,20 @@ function catalogPriority(catalog: CatalogVersion | null): number {
   return 2;
 }
 
+function catalogStatus(row: ScoreRow): CatalogStatus {
+  const catalog = normalizeCatalog(row.catalog_version);
+  if (catalog?.isCurrentFrontend) return 'current';
+  if (catalog?.isCurrentBackend) return 'future';
+  return 'archive';
+}
+
+function catalogStatusLabel(row: ScoreRow): string {
+  const status = catalogStatus(row);
+  if (status === 'current') return 'Aktuelle Version';
+  if (status === 'future') return 'Zukünftige Version';
+  return 'Archiv';
+}
+
 function catalogLabel(row: ScoreRow): string {
   const catalog = normalizeCatalog(row.catalog_version);
   return catalog?.name || String(row.catalog_version || row.id);
@@ -244,12 +268,26 @@ function formatNumber(value: string | number | null): string {
 }
 
 .badge {
-  background: var(--theme--primary-background);
   border-radius: 999px;
-  color: var(--theme--primary);
   font-size: 12px;
+  font-weight: 600;
   line-height: 1;
   padding: 4px 8px;
+}
+
+.badge--current {
+  background: var(--theme--success-background, var(--success-alt));
+  color: var(--theme--success, var(--success));
+}
+
+.badge--future {
+  background: var(--purple-25, var(--theme--primary-background));
+  color: var(--purple, var(--theme--primary));
+}
+
+.badge--archive {
+  background: var(--theme--warning-background, var(--warning-alt));
+  color: var(--theme--warning, var(--warning));
 }
 
 @media (max-width: 720px) {
