@@ -12,10 +12,10 @@
     </div>
 
     <!-- Filter panel -->
-    <div class="municipalities-filter-panel mb-6 flex flex-col gap-0 p-3 shadow-md">
+    <div class="slk-filter-panel slk-filter-theme-green mb-6 flex flex-col gap-0 p-3 shadow-md">
       <!-- Collapsible toggle (only shown below xs breakpoint) -->
       <button
-        class="flex w-full items-center justify-between py-1 text-sm font-medium text-light-green xs:hidden"
+        class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
         @click="filterOpen = !filterOpen"
       >
         <span class="flex items-center gap-2">
@@ -29,7 +29,7 @@
           <span>{{ $t("generic.filter_and_view") }}</span>
           <span
             v-if="activeFilterCount > 0"
-            class="rounded-full bg-olive-green px-1.5 py-0.5 text-xs font-bold leading-none text-white"
+            class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
             >{{ activeFilterCount }}</span
           >
         </span>
@@ -52,7 +52,7 @@
           <!-- View toggle group: icon + buttons stay together -->
           <div class="flex items-center gap-2">
             <svg
-              class="h-4 w-4 flex-shrink-0 text-light-green"
+              class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -66,8 +66,8 @@
             </svg>
             <div class="flex gap-2">
               <button
-                class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold transition"
-                :class="!isMapView ? activeFilterPillClass : inactiveFilterPillClass"
+                class="slk-filter-pill"
+                :class="!isMapView ? 'slk-filter-pill--active' : ''"
                 @click="router.replace({ query: { ...route.query, view: undefined } })"
               >
                 <svg
@@ -82,8 +82,8 @@
                 {{ $t("municipalities.view.ranking") }}
               </button>
               <button
-                class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold transition"
-                :class="isMapView ? activeFilterPillClass : inactiveFilterPillClass"
+                class="slk-filter-pill"
+                :class="isMapView ? 'slk-filter-pill--active' : ''"
                 @click="router.replace({ query: { ...route.query, view: 'map' } })"
               >
                 <svg
@@ -105,12 +105,12 @@
           </div>
 
           <!-- Vertical divider (hidden when row wraps) -->
-          <div class="municipalities-filter-divider w-px self-stretch" />
+          <div class="slk-filter-divider w-px self-stretch" />
 
           <!-- Catalog version group: icon + buttons stay together -->
           <div class="flex items-center gap-2">
             <svg
-              class="h-4 w-4 flex-shrink-0 text-light-green"
+              class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -125,26 +125,26 @@
             <div class="flex items-center gap-2">
               <NuxtLink
                 :to="{ path: '/municipalities', query: { ...route.query, v: 'v1.0' } }"
-                class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold transition"
-                :class="selectedCatalogVersion.name !== 'beta' ? activeFilterPillClass : inactiveFilterPillClass"
+                class="slk-filter-pill"
+                :class="selectedCatalogVersion.name !== 'beta' ? 'slk-filter-pill--active' : ''"
                 >2026</NuxtLink
               >
               <NuxtLink
                 :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"
-                class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold transition"
-                :class="selectedCatalogVersion.name === 'beta' ? activeFilterPillClass : inactiveFilterPillClass"
+                class="slk-filter-pill"
+                :class="selectedCatalogVersion.name === 'beta' ? 'slk-filter-pill--active' : ''"
                 >{{ $t("ranking.archive_year", { ":year": 2025 }) }}</NuxtLink
               >
             </div>
           </div>
         </div>
 
-        <div class="municipalities-filter-rule my-0.5 border-t" />
+        <div class="slk-filter-rule my-0.5 border-t" />
 
         <!-- Row 2: Municipality type filter -->
         <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-2 py-1.5">
           <svg
-            class="mt-1 h-4 w-4 flex-shrink-0 text-light-green"
+            class="slk-filter-panel-icon mt-1 h-4 w-4 flex-shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -158,42 +158,56 @@
           </svg>
           <div class="flex flex-wrap items-center gap-2">
             <button
-              class="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition"
-              :class="selected === 'all' ? activeFilterPillClass : inactiveFilterPillClass"
+              class="slk-filter-pill"
+              :class="selected === 'all' ? 'slk-filter-pill--active' : ''"
               @click="selected = 'all'"
             >
-              <div class="flex flex-shrink-0 gap-0">
-                <img
-                  class="h-4 w-4"
-                  :src="selected === 'all' ? minorCitySelected : minorCityNotSelected"
-                  :alt="$t('municipalities.all')"
-                />
-                <img class="h-4 w-4" :src="selected === 'all' ? majorCitySelected : majorCityNotSelected" />
-              </div>
+              <span class="flex flex-shrink-0 -space-x-1" aria-hidden="true">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 20h18M5 20V9l4-4 4 4v11" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 20v-5h2v5" />
+                </svg>
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 20h18M6 20V6h8v14M14 20V10h5v10" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 9h2M9 13h2M16 13h1" />
+                </svg>
+              </span>
               <span class="whitespace-nowrap font-bold">{{ $t("municipalities.all") }}</span>
             </button>
             <button
-              class="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition"
-              :class="selected === 'major_city' ? activeFilterPillClass : inactiveFilterPillClass"
+              class="slk-filter-pill"
+              :class="selected === 'major_city' ? 'slk-filter-pill--active' : ''"
               @click="selected = 'major_city'"
             >
-              <img
+              <svg
                 class="h-4 w-4 flex-shrink-0"
-                :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected"
-                :alt="$t('municipalities.major_city.plural')"
-              />
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 20h18M6 20V6h8v14M14 20V10h5v10" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 9h2M9 13h2M16 13h1" />
+              </svg>
               <span class="whitespace-nowrap font-bold">{{ $t("municipalities.major_city.plural") }}</span>
             </button>
             <button
-              class="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition"
-              :class="selected === 'minor_city' ? activeFilterPillClass : inactiveFilterPillClass"
+              class="slk-filter-pill"
+              :class="selected === 'minor_city' ? 'slk-filter-pill--active' : ''"
               @click="selected = 'minor_city'"
             >
-              <img
+              <svg
                 class="h-4 w-4 flex-shrink-0"
-                :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected"
-                :alt="$t('municipalities.minor_city.plural')"
-              />
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 20h18M5 20V9l4-4 4 4v11" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 20v-5h2v5" />
+              </svg>
               <span class="whitespace-nowrap font-bold">{{ $t("municipalities.minor_city.plural") }}</span>
             </button>
             <span v-if="selected === 'major_city'" class="text-gray-500 text-xs italic">{{
@@ -303,13 +317,6 @@
 import { computed, onMounted, ref } from "vue";
 import lodash from "lodash";
 import { isRaster } from "~/shared/utils";
-
-const majorCitySelected = "/icons/major-city-light.svg";
-const majorCityNotSelected = "/icons/major-city-dark.svg";
-const minorCitySelected = "/icons/minor-city-light.svg";
-const minorCityNotSelected = "/icons/minor-city-dark.svg";
-const activeFilterPillClass = "border-olive-green bg-olive-green text-white";
-const inactiveFilterPillClass = "border-light-green bg-white text-olive-green hover:bg-rating-3-very-light";
 
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();

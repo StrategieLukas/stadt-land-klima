@@ -143,7 +143,7 @@
                             v-if="sectorImages[result.meta]"
                             :src="sectorImages[result.meta]"
                             :title="sectorLabels[result.meta] ?? result.meta"
-                            class="h-8 w-8 flex-shrink-0 mix-blend-multiply grayscale invert"
+                            class="slk-filter-sector-icon h-8 w-8 flex-shrink-0 mix-blend-multiply grayscale invert"
                             :alt="sectorLabels[result.meta] ?? result.meta"
                           />
                           <span v-else>{{ result.meta }}</span>
@@ -377,6 +377,6 @@ onBeforeUnmount(() => document.removeEventListener("keydown", handleKeydown));
 }
 .palette-result:hover,
 .palette-result--focused {
-  background-color: #e5e7eb; /* gray-200 — clearly visible on white */
+  background-color: var(--slk-surface-muted);
 }
 </style>

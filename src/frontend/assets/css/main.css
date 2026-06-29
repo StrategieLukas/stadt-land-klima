@@ -128,6 +128,14 @@ html[data-theme="staedteChallemgeTheme"] {
   --slk-ranking-card-text: #101820;
   --slk-ranking-card-muted: #344054;
   --slk-municipalities-panel-bg: #f6f9e3;
+  --slk-filter-panel-bg: #f6f9e3;
+  --slk-filter-accent: #afca0b;
+  --slk-filter-active-bg: #3f8342;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #3f8342;
+  --slk-filter-inactive-border: #afca0b;
+  --slk-filter-hover-bg: #f6f9e3;
   --slk-warning-text: #9a4d00;
   --slk-success-text: #1f6f31;
   --slk-on-dark-muted: #e7edf1;
@@ -170,6 +178,14 @@ html[data-theme="staedteChallengeDark"] {
   --slk-ranking-card-text: #101820;
   --slk-ranking-card-muted: #344054;
   --slk-municipalities-panel-bg: #203821;
+  --slk-filter-panel-bg: #203821;
+  --slk-filter-accent: #e7f46f;
+  --slk-filter-active-bg: #b9efc8;
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #e7f46f;
+  --slk-filter-inactive-border: #e7f46f;
+  --slk-filter-hover-bg: #263f28;
   --slk-warning-text: #ffd199;
   --slk-success-text: #bfe9a4;
   --slk-on-dark-muted: #dce5ea;
@@ -200,19 +216,308 @@ body {
   background: var(--slk-backdrop);
 }
 
-.municipalities-filter-panel,
+.slk-filter-theme-green {
+  --slk-filter-panel-bg: #f6f9e3;
+  --slk-filter-accent: #afca0b;
+  --slk-filter-active-bg: #3f8342;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #3f8342;
+  --slk-filter-inactive-border: #afca0b;
+  --slk-filter-hover-bg: #f6f9e3;
+}
+
+.slk-filter-theme-blue {
+  --slk-filter-panel-bg: #e8f7fd;
+  --slk-filter-accent: #16bae7;
+  --slk-filter-active-bg: #16bae7;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #16bae7;
+  --slk-filter-inactive-border: #16bae7;
+  --slk-filter-hover-bg: #e8f7fd;
+}
+
+.slk-filter-theme-neutral {
+  --slk-filter-panel-bg: #f2f2f2;
+  --slk-filter-accent: #505050;
+  --slk-filter-active-bg: #505050;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #505050;
+  --slk-filter-inactive-border: #505050;
+  --slk-filter-hover-bg: #f2f2f2;
+}
+
+.slk-filter-theme-stats {
+  --slk-filter-panel-bg: #f9fafb;
+  --slk-filter-accent: #6b7280;
+  --slk-filter-active-bg: #1a4a6e;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #4b5563;
+  --slk-filter-inactive-border: #d1d5db;
+  --slk-filter-hover-bg: #f3f4f6;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-green {
+  --slk-filter-panel-bg: #203821;
+  --slk-filter-accent: #e7f46f;
+  --slk-filter-active-bg: #b9efc8;
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #e7f46f;
+  --slk-filter-inactive-border: #e7f46f;
+  --slk-filter-hover-bg: #263f28;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-blue {
+  --slk-filter-panel-bg: #173444;
+  --slk-filter-accent: #6bd6ff;
+  --slk-filter-active-bg: #6bd6ff;
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #6bd6ff;
+  --slk-filter-inactive-border: #6bd6ff;
+  --slk-filter-hover-bg: #1f4153;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-neutral {
+  --slk-filter-panel-bg: #1f2b36;
+  --slk-filter-accent: #dce5ea;
+  --slk-filter-active-bg: #dce5ea;
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #dce5ea;
+  --slk-filter-inactive-border: #91a0aa;
+  --slk-filter-hover-bg: #2a3947;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
+  --slk-filter-panel-bg: #1f2b36;
+  --slk-filter-accent: #b8c4cc;
+  --slk-filter-active-bg: #6bd6ff;
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #dce5ea;
+  --slk-filter-inactive-border: #526575;
+  --slk-filter-hover-bg: #2a3947;
+}
+
+.slk-filter-panel,
 .municipalities-cta {
-  background-color: var(--slk-municipalities-panel-bg);
+  background-color: var(--slk-filter-panel-bg);
   border: 1px solid var(--slk-border);
   color: var(--slk-text);
 }
 
-.municipalities-filter-divider {
+.municipalities-cta {
+  background-color: var(--slk-municipalities-panel-bg);
+}
+
+.slk-filter-panel-icon {
+  color: var(--slk-filter-accent);
+}
+
+.slk-filter-divider {
   background-color: var(--slk-border-strong);
 }
 
-.municipalities-filter-rule {
+.slk-filter-rule {
   border-color: var(--slk-border);
+}
+
+.slk-filter-pill {
+  align-items: center;
+  background-color: var(--slk-filter-inactive-bg);
+  border: 1px solid var(--slk-filter-inactive-border);
+  border-radius: 9999px;
+  color: var(--slk-filter-inactive-text);
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.375rem;
+  line-height: 1rem;
+  padding: 0.25rem 0.625rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+  white-space: nowrap;
+}
+
+.slk-filter-pill:hover {
+  background-color: var(--slk-filter-hover-bg);
+}
+
+.slk-filter-pill--active {
+  background-color: var(--slk-filter-active-bg);
+  border-color: var(--slk-filter-active-bg);
+  color: var(--slk-filter-active-text);
+}
+
+.slk-filter-pill--active:hover {
+  background-color: var(--slk-filter-active-bg);
+}
+
+.slk-filter-count {
+  background-color: var(--slk-filter-active-bg);
+  color: var(--slk-filter-active-text);
+}
+
+.slk-filter-menu {
+  background-color: var(--slk-surface);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-text);
+}
+
+.slk-filter-menu-item {
+  color: var(--slk-text);
+}
+
+.slk-filter-menu-item:hover {
+  background-color: var(--slk-surface-subdued);
+}
+
+.slk-filter-menu-item--active {
+  background-color: var(--slk-filter-active-bg);
+  color: var(--slk-filter-active-text);
+}
+
+.slk-area-search-tabs {
+  border-color: #e5e7eb;
+}
+
+.slk-area-search-tab {
+  background-color: #ffffff;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.slk-area-search-tab:hover {
+  background-color: #f9fafb;
+}
+
+.slk-area-search-tab--active {
+  background-color: #006e94;
+  color: #ffffff;
+}
+
+.slk-bright-badge {
+  color: #ffffff;
+}
+
+.slk-rating-chip {
+  color: #000000 !important;
+}
+
+.slk-rating-chip.bg-rating-0,
+.slk-rating-chip--red {
+  color: #ffffff !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-area-search-tabs {
+  border-color: var(--slk-border);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-area-search-tab {
+  background-color: var(--slk-surface);
+  color: var(--slk-text);
+  border-color: var(--slk-border);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-area-search-tab:hover {
+  background-color: var(--slk-surface-muted);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-area-search-tab--active {
+  background-color: var(--slk-blue);
+  color: var(--slk-page);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge {
+  color: var(--slk-page) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--teal {
+  background-color: #7ddfd2 !important;
+  border-color: #7ddfd2 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--blue {
+  background-color: var(--slk-blue) !important;
+  border-color: var(--slk-blue) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--green {
+  background-color: #b9efc8 !important;
+  border-color: #b9efc8 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--lime {
+  background-color: #e7f46f !important;
+  border-color: #e7f46f !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--neutral {
+  background-color: #d8dee4 !important;
+  border-color: #d8dee4 !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  :where(
+    .bg-light-green.text-white,
+    .bg-rating-2.text-white,
+    .bg-rating-3.text-white,
+    .bg-green.text-white,
+    .bg-ff-green.text-white,
+    .bg-ff-green\/80.text-white,
+    .bg-light-blue.text-white,
+    .bg-orange.text-white,
+    .bg-\[\#AFCA0B\].text-white,
+    .bg-\[\#afca0b\].text-white,
+    .bg-\[\#16BAE7\].text-white,
+    .btn-primary.text-white
+  ) {
+  color: #101820 !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  :where(
+    .bg-light-green.text-white,
+    .bg-rating-3.text-white,
+    .bg-\[\#AFCA0B\].text-white,
+    .bg-\[\#afca0b\].text-white
+  ) {
+  background-color: #e7f46f !important;
+}
+
+html[data-theme="staedteChallengeDark"] :where(.bg-rating-2.text-white) {
+  background-color: #fff08a !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  :where(.bg-green.text-white, .bg-ff-green.text-white, .bg-ff-green\/80.text-white) {
+  background-color: #b9efc8 !important;
+}
+
+html[data-theme="staedteChallengeDark"] :where(.bg-light-blue.text-white, .bg-\[\#16BAE7\].text-white) {
+  background-color: #6bd6ff !important;
+}
+
+html[data-theme="staedteChallengeDark"] :where(.bg-orange.text-white) {
+  background-color: #ffad45 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-sector-icon {
+  filter: none !important;
+  mix-blend-mode: screen !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-pill--active .slk-filter-sector-icon {
+  filter: invert(1) grayscale(1) !important;
+  mix-blend-mode: multiply !important;
 }
 
 .slk-ranking-card {
