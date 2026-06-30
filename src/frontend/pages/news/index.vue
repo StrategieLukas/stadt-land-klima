@@ -49,7 +49,7 @@
     <!-- Sidebar + feed layout -->
     <!-- Mobile sticky scroll nav -->
     <nav
-      class="border-gray-100 sticky z-10 -mx-4 mb-6 border-b bg-white/90 px-4 backdrop-blur-sm xl:hidden"
+      class="border-gray-100 sticky z-10 -mx-4 mb-6 border-b bg-white px-4 backdrop-blur-sm xl:hidden"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
@@ -64,7 +64,7 @@
           :class="[
             'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
             activeSection === 'section-zukunftig'
-              ? 'bg-[#1da64a]/10 font-semibold text-[#1da64a]'
+              ? 'bg-solid-ff-green-10 font-semibold text-[#1da64a]'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
           >{{ $t("news.section.upcoming") }}</a
@@ -76,7 +76,7 @@
           :class="[
             'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
             activeSection === `section-${group.monthKey}`
-              ? 'bg-[#006e94]/10 font-semibold text-[#006e94]'
+              ? 'bg-solid-stats-dark-10 font-semibold text-[#006e94]'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
           >{{ group.label }}</a
@@ -95,7 +95,7 @@
               :class="[
                 'block truncate rounded px-2 py-1 transition-colors',
                 activeSection === 'section-zukunftig'
-                  ? 'bg-[#1da64a]/5 font-semibold text-[#1da64a]'
+                  ? 'bg-solid-ff-green-05 font-semibold text-[#1da64a]'
                   : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
               ]"
               >{{ $t("news.section.upcoming") }}</a
@@ -107,7 +107,7 @@
               :class="[
                 'block truncate rounded px-2 py-1 transition-colors',
                 activeSection === `section-${group.monthKey}`
-                  ? 'bg-[#006e94]/5 font-semibold text-[#006e94]'
+                  ? 'bg-solid-stats-dark-05 font-semibold text-[#006e94]'
                   : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
               ]"
               >{{ group.label }}</a
@@ -144,13 +144,13 @@
               v-for="ev in upcomingEvents"
               :key="ev.id"
               :to="`/events/${ev.slug}`"
-              class="border-gray-100 group flex cursor-pointer flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-150 hover:border-[#16BAE7]/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16BAE7]"
+              class="border-gray-100 group flex cursor-pointer flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-150 hover:border-solid-light-blue-60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16BAE7]"
             >
               <!-- Thumbnail -->
               <div class="bg-gray-50 relative h-40 flex-shrink-0 overflow-hidden">
                 <div
                   v-if="!ev.imageId"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30"
+                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-solid-ff-green-20 via-solid-ff-green-10 to-solid-ff-green-30"
                 >
                   <svg
                     class="h-16 w-16 text-[#1da64a] opacity-30"
@@ -190,7 +190,7 @@
                 <div class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span
                     v-if="ev.event_type"
-                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#1da64a]"
+                    class="rounded-full bg-solid-ff-green-10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#1da64a]"
                   >
                     {{ eventTypeLabel(ev.event_type) }}
                   </span>
@@ -262,7 +262,7 @@
               :to="item.href || undefined"
               :class="
                 item.href
-                  ? 'border-gray-100 group flex cursor-pointer flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-150 hover:border-[#16BAE7]/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16BAE7]'
+                  ? 'border-gray-100 group flex cursor-pointer flex-col overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-150 hover:border-solid-light-blue-60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16BAE7]'
                   : 'bg-gray-50 border-gray-200 flex flex-col overflow-hidden rounded-lg border border-dashed opacity-80'
               "
             >
@@ -277,7 +277,7 @@
                 <!-- Catalog: gray gradient with all sector icons -->
                 <div
                   v-if="item.type === 'catalog'"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#6b7280]/25 via-[#6b7280]/10 to-[#6b7280]/35"
+                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-solid-blue-gray-25 via-solid-blue-gray-10 to-solid-blue-gray-35"
                 >
                   <div class="grid grid-cols-3 gap-3 px-6">
                     <img
@@ -292,7 +292,7 @@
                 <!-- Event: green gradient with calendar icon -->
                 <div
                   v-else-if="item.type === 'event' && !item.imageId"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30"
+                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-solid-ff-green-20 via-solid-ff-green-10 to-solid-ff-green-30"
                 >
                   <svg
                     class="h-16 w-16 text-[#1da64a] opacity-30"
@@ -327,14 +327,14 @@
                 <!-- Project: blue gradient + klimachecker icon -->
                 <div
                   v-else-if="item.type === 'project'"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#006e94]/20 via-[#006e94]/10 to-[#006e94]/30"
+                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-solid-stats-dark-20 via-solid-stats-dark-10 to-solid-stats-dark-30"
                 >
                   <img src="~/assets/icons/icon_klimachecker.svg" alt="" class="h-16 w-16 opacity-20" />
                 </div>
                 <!-- Municipality: yellow-green gradient + location icon -->
                 <div
                   v-else-if="item.type === 'municipality'"
-                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#afca0b]/20 via-[#afca0b]/10 to-[#afca0b]/30"
+                  class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-solid-light-green-20 via-solid-light-green-10 to-solid-light-green-30"
                 >
                   <img src="~/assets/icons/icon_location_green_marker.svg" alt="" class="h-16 w-16 opacity-20" />
                 </div>
@@ -364,7 +364,7 @@
                 :class="[
                   'flex flex-1 flex-col gap-1 p-4',
                   item.href ? '' : '',
-                  item.status && item.status !== 'published' ? 'bg-[#fffbeb]/40' : '',
+                  item.status && item.status !== 'published' ? 'bg-solid-amber50-40' : '',
                 ]"
               >
                 <h3
@@ -380,7 +380,7 @@
                 <div v-if="item.type === 'event'" class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span
                     v-if="item.eventType"
-                    class="rounded-full bg-[#1da64a]/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#1da64a]"
+                    class="rounded-full bg-solid-ff-green-10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#1da64a]"
                   >
                     {{ eventTypeLabel(item.eventType) }}
                   </span>

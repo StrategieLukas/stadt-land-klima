@@ -25,7 +25,7 @@
         </span>
         <button
           type="button"
-          class="whitespace-nowrap rounded-full border border-olive-green/30 bg-olive-green/10 px-2 py-0.5 text-xs text-olive-green transition-colors hover:bg-olive-green/20"
+          class="whitespace-nowrap rounded-full border border-solid-olive-green-30 bg-solid-olive-green-10 px-2 py-0.5 text-xs text-olive-green transition-colors hover:bg-solid-olive-green-20"
           @click.stop="$emit('chip-action', { action: 'mitmachen', ars: result.ars, result })"
         >
           {{ $t("generic.join_now") }}

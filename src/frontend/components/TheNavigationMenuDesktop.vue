@@ -24,7 +24,7 @@
           :title="item.label"
           :class="{
             'bg-olive-green text-white': item.link_type === 'page' && isActive(item),
-            'text-gray-600 hover:text-gray-900 hover:bg-light-green/10': !(item.link_type === 'page' && isActive(item)),
+            'text-gray-600 hover:text-gray-900 hover:bg-solid-light-green-10': !(item.link_type === 'page' && isActive(item)),
           }"
         >
           <img
@@ -77,7 +77,7 @@
           class="group/trigger flex items-stretch transition-colors"
           :class="{
             'bg-olive-green': anyChildActive(item),
-            'hover:bg-light-green/10': !anyChildActive(item),
+            'hover:bg-solid-light-green-10': !anyChildActive(item),
           }"
         >
           <!-- Label part: navigates (NuxtLink) or toggles dropdown (button) -->
@@ -107,7 +107,7 @@
             type="button"
             class="flex cursor-pointer items-center pl-0.5 pr-3 transition-colors"
             :class="{
-              'text-white hover:text-white/80': anyChildActive(item),
+              'text-white hover:text-white': anyChildActive(item),
               'text-gray-600 group-hover/trigger:text-gray-900': !anyChildActive(item),
             }"
             @click.stop="toggleMenu(item.id)"
@@ -151,11 +151,20 @@
                   alt=""
                 />
                 <!-- Label overlay -->
-                <div class="absolute inset-x-0 bottom-0 bg-stats-dark px-2.5 pb-2 pt-2">
-                  <div class="text-xs font-semibold leading-snug text-white">
+                <div
+                  class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2.5 pb-2 pt-8"
+                >
+                  <div
+                    class="text-xs font-semibold leading-snug text-white"
+                    style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
+                  >
                     {{ child.label }}
                   </div>
-                  <div v-if="child.description" class="mt-0.5 text-[10px] font-normal leading-snug text-white">
+                  <div
+                    v-if="child.description"
+                    class="mt-0.5 text-[10px] font-normal leading-snug text-white"
+                    style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
+                  >
                     {{ child.description }}
                   </div>
                 </div>
@@ -179,8 +188,8 @@
                 class="border-gray-50 flex items-start border-b px-4 py-3 text-sm font-semibold transition-colors last:border-b-0"
                 @click="closeMenu"
                 :class="{
-                  'bg-light-green/20 text-olive-green': child.link_type === 'page' && isActive(child),
-                  'text-gray-700 hover:text-gray-900 hover:bg-light-green/10': !(
+                  'bg-solid-light-green-20 text-olive-green': child.link_type === 'page' && isActive(child),
+                  'text-gray-700 hover:text-gray-900 hover:bg-solid-light-green-10': !(
                     child.link_type === 'page' && isActive(child)
                   ),
                 }"

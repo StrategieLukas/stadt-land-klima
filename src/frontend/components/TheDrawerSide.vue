@@ -37,7 +37,7 @@
           <template v-if="hasChildren(item)">
             <div
               class="border-gray-100 hover:bg-gray-50 flex w-full items-center justify-between border-b transition-colors"
-              :class="{ 'bg-light-green/10': anyChildActive(item) }"
+              :class="{ 'bg-solid-light-green-10': anyChildActive(item) }"
             >
               <!-- Label: navigates if the item has a link -->
               <component
@@ -128,8 +128,15 @@
                     @click="closeDrawer"
                   >
                     <img :src="imageUrlMap[child.image_id]" class="h-full w-full object-cover" alt="" />
-                    <div class="absolute inset-x-0 bottom-0 bg-stats-dark px-2 pb-1.5 pt-1.5">
-                      <div class="text-xs font-semibold leading-snug text-white">{{ navLabel(child) }}</div>
+                    <div
+                      class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4"
+                    >
+                      <div
+                        class="text-xs font-semibold leading-snug text-white"
+                        style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
+                      >
+                        {{ navLabel(child) }}
+                      </div>
                     </div>
                   </component>
                 </div>
@@ -145,7 +152,7 @@
                     :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                     class="flex flex-col px-7 py-2.5 text-sm transition-colors"
                     :class="{
-                      'bg-light-green/10 text-olive-green': child.link_type === 'page' && isActive(child),
+                      'bg-solid-light-green-10 text-olive-green': child.link_type === 'page' && isActive(child),
                       'text-gray-700 hover:bg-gray-50': !(child.link_type === 'page' && isActive(child)),
                     }"
                     @click="closeDrawer"
@@ -187,7 +194,7 @@
             :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
             class="border-gray-100 flex w-full items-center gap-2 border-b px-5 py-3 text-sm font-semibold transition-colors"
             :class="{
-              'bg-light-green/10 text-olive-green': item.link_type === 'page' && isActive(item),
+              'bg-solid-light-green-10 text-olive-green': item.link_type === 'page' && isActive(item),
               'text-gray-800 hover:bg-gray-50': !(item.link_type === 'page' && isActive(item)),
             }"
             @click="closeDrawer"

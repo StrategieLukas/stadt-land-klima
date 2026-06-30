@@ -40,7 +40,7 @@
     <transition name="fade">
       <div
         v-if="showCal"
-        class="slk-modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center"
+        class="slk-modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
         @click.self="closeCal"
       >
         <!-- Now sized to viewport -->

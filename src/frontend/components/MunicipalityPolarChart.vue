@@ -39,6 +39,14 @@ CustomRadialLinearScale.id = "customRadialLinear";
 Chart.register(CategoryScale, LinearScale, CustomRadialLinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 const { $t } = useNuxtApp();
 
+function cssColor(name, fallback) {
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+
 const props = defineProps({
   subScores: {
     type: Object,
@@ -117,6 +125,7 @@ const chartOptions = {
       startAngle: 0,
       angleLines: {
         display: true,
+        color: cssColor("--slk-border-strong", "#b9c2b0"),
         lineWidth: 1,
         z: 1,
       },

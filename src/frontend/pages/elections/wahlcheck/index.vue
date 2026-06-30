@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-mild-white">
     <!-- Header -->
-    <div class="border-b border-gray/10 bg-white shadow-sm">
+    <div class="border-b border-solid-gray-10 bg-white shadow-sm">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <NuxtLink to="/" class="flex items-center gap-3">
           <img
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-red/10 p-8 text-center text-red">
+      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
         <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
         <button @click="loadElections" class="btn btn-primary">{{ $t("generic.try_again") }}</button>
@@ -43,7 +43,7 @@
       <!-- No Public Elections -->
       <div
         v-else-if="publicElections.length === 0"
-        class="text-orange-800 my-12 rounded-xl border border-orange bg-orange/10 p-8 text-center"
+        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
       >
         <div class="mb-6">
           <img
@@ -61,7 +61,7 @@
       <!-- Elections List -->
       <div v-else class="space-y-8">
         <!-- Hero Section -->
-        <div class="rounded-xl border border-gray/10 bg-white p-8 text-center shadow-list">
+        <div class="rounded-xl border border-solid-gray-10 bg-white p-8 text-center shadow-list">
           <div class="mb-6">
             <img
               src="~/assets/images/Stadt-Land-Klima-Blume.svg"
@@ -86,7 +86,7 @@
             v-for="election in publicElections"
             :key="election.id"
             :to="`/elections/wahlcheck/${election.localteam?.municipality_id?.[0]?.slug || election.localteam?.municipality_id?.[0]?.name || election.id}`"
-            class="group rounded-xl border border-gray/10 bg-white p-6 shadow-list transition-all duration-300 hover:border-ff-green/30 hover:shadow-xl"
+            class="group rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-all duration-300 hover:border-solid-ff-green-30 hover:shadow-xl"
           >
             <div class="mb-4 flex items-start justify-between">
               <div>
@@ -97,7 +97,7 @@
                   {{ election.localteam.municipality_name || election.localteam.name }}
                 </p>
               </div>
-              <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-ff-green/10">
+              <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-solid-ff-green-10">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5 text-ff-green"
@@ -147,11 +147,11 @@
               </div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between border-t border-gray/10 pt-4">
+            <div class="mt-4 flex items-center justify-between border-t border-solid-gray-10 pt-4">
               <span class="text-sm text-mid-gray">
                 {{ $t("generic.created_at", { ":date": formatDate(election.date_created) }) }}
               </span>
-              <span class="rounded-full bg-ff-green/10 px-2 py-1 text-xs font-medium text-ff-green">
+              <span class="rounded-full bg-solid-ff-green-10 px-2 py-1 text-xs font-medium text-ff-green">
                 {{ $t("generic.public") }}
               </span>
             </div>
@@ -159,13 +159,13 @@
         </div>
 
         <!-- How it works section -->
-        <div class="mt-12 rounded-xl border border-ff-green/20 bg-ff-green/5 p-8">
+        <div class="mt-12 rounded-xl border border-solid-ff-green-20 bg-solid-ff-green-05 p-8">
           <h3 class="mb-6 text-center text-lg font-bold text-stats-dark">
             {{ $t("elections.wahlcheck.how_it_works.title") }}
           </h3>
           <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div class="text-center">
-              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ff-green/20">
+              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-solid-ff-green-20">
                 <span class="text-2xl font-bold text-ff-green">1</span>
               </div>
               <h4 class="mb-2 font-bold text-stats-dark">{{ $t("elections.wahlcheck.how_it_works.step1.title") }}</h4>
@@ -174,7 +174,7 @@
               </p>
             </div>
             <div class="text-center">
-              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ff-green/20">
+              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-solid-ff-green-20">
                 <span class="text-2xl font-bold text-ff-green">2</span>
               </div>
               <h4 class="mb-2 font-bold text-stats-dark">{{ $t("elections.wahlcheck.how_it_works.step2.title") }}</h4>
@@ -183,7 +183,7 @@
               </p>
             </div>
             <div class="text-center">
-              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ff-green/20">
+              <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-solid-ff-green-20">
                 <span class="text-2xl font-bold text-ff-green">3</span>
               </div>
               <h4 class="mb-2 font-bold text-stats-dark">{{ $t("elections.wahlcheck.how_it_works.step3.title") }}</h4>

@@ -7,7 +7,7 @@
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <span
-            class="mb-2 inline-flex rounded-full bg-light-green/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-olive-green"
+            class="mb-2 inline-flex rounded-full bg-solid-light-green-10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-olive-green"
           >
             {{ typeLabel(job.type) }}
           </span>

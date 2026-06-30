@@ -11,7 +11,7 @@
       <header class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
         <div class="max-w-3xl">
           <div class="mb-5 flex flex-wrap items-center gap-3">
-            <span class="inline-flex rounded-full bg-rating-3-very-light px-3 py-1 text-xs font-bold uppercase tracking-wide text-olive-green ring-1 ring-light-green/30">
+            <span class="inline-flex rounded-full bg-rating-3-very-light px-3 py-1 text-xs font-bold uppercase tracking-wide text-olive-green ring-1 ring-solid-light-green-30">
               {{ typeLabel(job.type) }}
             </span>
           </div>

@@ -17,7 +17,7 @@
         <NuxtLink
           v-if="prevMeasure"
           :to="measureDetailLocation(prevMeasure.slug, currentCatalogVersion.name)"
-          class="inline-flex items-center gap-1 rounded border border-gray/30 px-2 py-0.5 text-xs text-gray transition-colors hover:bg-gray/5"
+          class="inline-flex items-center gap-1 rounded border border-solid-gray-30 px-2 py-0.5 text-xs text-gray transition-colors hover:bg-solid-gray-05"
           :title="`← ${prevMeasure.measure_id}: ${prevMeasure.name}`"
         >
           <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -25,11 +25,11 @@
           </svg>
           {{ prevMeasure.measure_id }}
         </NuxtLink>
-        <span class="text-xs text-gray/40">{{ siblingIndex + 1 }} / {{ siblingMeasures.length }}</span>
+        <span class="text-xs text-solid-gray-40">{{ siblingIndex + 1 }} / {{ siblingMeasures.length }}</span>
         <NuxtLink
           v-if="nextMeasure"
           :to="measureDetailLocation(nextMeasure.slug, currentCatalogVersion.name)"
-          class="inline-flex items-center gap-1 rounded border border-gray/30 px-2 py-0.5 text-xs text-gray transition-colors hover:bg-gray/5"
+          class="inline-flex items-center gap-1 rounded border border-solid-gray-30 px-2 py-0.5 text-xs text-gray transition-colors hover:bg-solid-gray-05"
           :title="`${nextMeasure.measure_id}: ${nextMeasure.name} →`"
         >
           {{ nextMeasure.measure_id }}
@@ -67,12 +67,12 @@
         />
         <div
           v-if="measureBackdropUrl"
-          class="via-white/88 pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-white/95 to-white/55"
+          class="via-white pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-white to-white"
           aria-hidden="true"
         />
         <p
           v-if="measureBackdropUrl && measureImageCredits"
-          class="text-gray-500 absolute bottom-3 right-3 max-w-[min(22rem,calc(100%-1.5rem))] rounded bg-white/85 px-2 py-1 text-right text-[11px] italic shadow-sm"
+          class="text-gray-500 absolute bottom-3 right-3 max-w-[min(22rem,calc(100%-1.5rem))] rounded bg-white px-2 py-1 text-right text-[11px] italic shadow-sm"
         >
           {{ measureImageCredits }}
         </p>
@@ -91,7 +91,16 @@
             </h2>
             <div class="measure_ratings-start mb-2 flex flex-row gap-4">
               <figure class="mt-0 flex shrink-0 flex-col">
-                <img src="~/assets/icons/icon_info.svg" alt="" class="h-auto w-10 opacity-50" />
+                <img
+                  src="~/assets/icons/icon_info.svg"
+                  alt=""
+                  class="slk-sector-detail-icon slk-theme-icon--light h-auto w-10 opacity-50"
+                />
+                <img
+                  src="~/assets/icons/icon_info-dark.svg"
+                  alt=""
+                  class="slk-sector-detail-icon slk-theme-icon--dark h-auto w-10 opacity-50"
+                />
               </figure>
               <div class="has-long-links prose" v-html="sanitizeHtml(measure.description_about)" />
             </div>
@@ -119,7 +128,16 @@
     <!-- Feedback section -->
     <div class="border-gray-200 border-t-4 pb-8 pt-6">
       <div class="flex items-start gap-3">
-        <img src="~/assets/icons/icon_hint.svg" alt="" class="mt-0.5 h-6 w-6 flex-shrink-0 opacity-50" />
+        <img
+          src="~/assets/icons/icon_hint.svg"
+          alt=""
+          class="slk-sector-detail-icon slk-theme-icon--light mt-0.5 h-6 w-6 flex-shrink-0 opacity-50"
+        />
+        <img
+          src="~/assets/icons/icon_hint-dark.svg"
+          alt=""
+          class="slk-sector-detail-icon slk-theme-icon--dark mt-0.5 h-6 w-6 flex-shrink-0 opacity-50"
+        />
         <div>
           <h3 class="mb-1 font-heading font-bold text-gray">Haben Sie einen Hinweis zu dieser Maßnahme?</h3>
           <p class="text-gray-500 mb-3 text-sm">

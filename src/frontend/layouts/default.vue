@@ -71,7 +71,7 @@
     <Transition name="slk-fade">
       <div
         v-if="!isDesktop && hydrated && isDrawerOpen"
-        class="slk-modal-backdrop fixed inset-0 z-[49] sm:hidden"
+        class="slk-modal-backdrop fixed inset-0 z-[49] bg-black/20 backdrop-blur-sm sm:hidden"
         @click="closeDrawer"
       />
     </Transition>

@@ -1,5 +1,5 @@
 <template>
-  <main class="mx-auto w-full max-w-7xl px-4 py-6">
+  <main class="stats-page mx-auto w-full max-w-7xl px-4 py-6">
     <!-- ═══════════════════════════════════════════════════════════
          TOP NAV TILES — anchor navigation
          ═══════════════════════════════════════════════════════════ -->
@@ -17,9 +17,9 @@
           />
         </svg>
         <span class="font-heading text-base font-bold leading-tight">{{ $t("stats.municipal.title") }}</span>
-        <span class="hidden text-xs text-white/70 xs:block">{{ $t("stats.municipal.nav_subtitle") }}</span>
+        <span class="hidden text-xs text-white xs:block">{{ $t("stats.municipal.nav_subtitle") }}</span>
       </button>
-      <div class="w-px flex-shrink-0" style="background-color: rgba(255, 255, 255, 0.15)"></div>
+      <div class="w-px flex-shrink-0 bg-solid-stats-white-15"></div>
       <button
         class="flex flex-1 flex-col items-center justify-center gap-0.5 px-4 py-4 text-center text-white transition-opacity hover:opacity-90 active:opacity-80"
         style="background-color: #1a4a6e"
@@ -33,7 +33,7 @@
           />
         </svg>
         <span class="font-heading text-base font-bold leading-tight">{{ $t("stats.measures.title") }}</span>
-        <span class="hidden text-xs text-white/70 xs:block">{{ $t("stats.measures.nav_subtitle") }}</span>
+        <span class="hidden text-xs text-white xs:block">{{ $t("stats.measures.nav_subtitle") }}</span>
       </button>
     </nav>
 
@@ -49,7 +49,7 @@
           style="background-color: #006e94"
         >
           <svg
-            class="h-5 w-5 flex-shrink-0 text-white/80"
+            class="h-5 w-5 flex-shrink-0 text-white"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -63,7 +63,7 @@
           </svg>
           <div>
             <h2 class="font-heading text-lg font-bold leading-tight text-white">{{ $t("stats.municipal.title") }}</h2>
-            <p class="mt-0.5 text-xs text-white/70">{{ $t("stats.municipal.description") }}</p>
+            <p class="mt-0.5 text-xs text-white">{{ $t("stats.municipal.description") }}</p>
           </div>
         </div>
         <!-- Right: search bar (padded below on mobile, inline on desktop) -->
@@ -85,7 +85,7 @@
           style="background-color: #1a4a6e"
         >
           <svg
-            class="h-5 w-5 flex-shrink-0 text-white/80"
+            class="h-5 w-5 flex-shrink-0 text-white"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -99,7 +99,7 @@
           </svg>
           <div>
             <h2 class="font-heading text-lg font-bold leading-tight text-white">{{ $t("stats.measures.title") }}</h2>
-            <p class="mt-0.5 text-xs text-white/70">{{ $t("stats.measures.description") }}</p>
+            <p class="mt-0.5 text-xs text-white">{{ $t("stats.measures.description") }}</p>
           </div>
         </div>
         <!-- Right: filter panel -->

@@ -4,7 +4,7 @@
       <div v-if="isOpen" class="fixed inset-0 z-[10002] font-sans" @click.self="close">
         <!-- Dark backdrop — starts below header in embedded mode so the white bar stays unobscured -->
         <div
-          class="slk-modal-backdrop absolute inset-x-0 bottom-0"
+          class="slk-modal-backdrop absolute inset-x-0 bottom-0 bg-black/50"
           :style="embeddedInput ? `top: ${headerHeight}px` : 'top: 0'"
           @click="close"
         />

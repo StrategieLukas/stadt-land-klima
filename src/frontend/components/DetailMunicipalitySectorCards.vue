@@ -12,7 +12,8 @@
       v-model="openSectors[sector]"
     />
     <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
-      <img :src="sectorImages[sector]" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+      <img :src="sectorImages[sector]" alt="" class="slk-sector-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+      <img :src="sectorImagesDark[sector]" alt="" class="slk-sector-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18" />
       <div class="grow">
         <h2 class="mb-2 font-heading text-h2 leading-none text-green">
           {{ $t(`measure_sectors.${sector}.title`) }}
@@ -93,6 +94,7 @@
 
 <script setup>
 import sectorImages from "~/shared/sectorImages.js";
+import sectorImagesDark from "~/shared/sectorImagesDark.js";
 import ratingIcons, { ratingIndex } from "~/shared/ratingIcons.js";
 import { getRatingDecimalColor } from "~/shared/utils.js";
 import ProgressBar from '~/components/ProgressBar.vue'

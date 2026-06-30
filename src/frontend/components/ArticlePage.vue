@@ -1,6 +1,6 @@
 <template>
   <!-- Mobile version -->
-  <div class="project-page mt-4 block overflow-hidden rounded-md bg-very-light-blue shadow-md lg:hidden">
+  <div class="project-page mt-4 block overflow-hidden rounded-md bg-[#E8F9FD] shadow-md lg:hidden">
     <div class="p-6">
       <NuxtLink :to="backHref" class="text-sm text-blue-500">← {{ backLabel }}</NuxtLink>
 
@@ -101,7 +101,7 @@
             v-for="m in measures"
             :key="m.id"
             :to="`/measures/${m.slug || m.id}`"
-            class="inline-block rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
+            class="slk-related-measure-link inline-block rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
             >{{ m.measure_id }}</NuxtLink
           >
         </div>
@@ -129,7 +129,7 @@
   </div>
 
   <!-- Desktop version -->
-  <div class="project-page relative mt-8 hidden rounded-lg bg-very-light-blue p-8 shadow-lg lg:block">
+  <div class="project-page relative mt-8 hidden rounded-lg bg-[#E8F9FD] p-8 shadow-lg lg:block">
     <NuxtLink :to="backHref" class="text-sm text-blue-500">← {{ backLabel }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div
@@ -216,7 +216,7 @@
               v-for="m in measures"
               :key="m.id"
               :to="`/measures/${m.slug || m.id}`"
-              class="inline-block rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
+              class="slk-related-measure-link inline-block rounded bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
               >{{ m.name }} ({{ m.measure_id }})</NuxtLink
             >
           </div>

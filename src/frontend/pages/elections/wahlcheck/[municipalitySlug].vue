@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-mild-white">
     <!-- Header with SLK Branding -->
-    <div class="border-b border-gray/10 bg-white shadow-sm">
+    <div class="border-b border-solid-gray-10 bg-white shadow-sm">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <NuxtLink to="/" class="flex items-center gap-3">
           <img
@@ -26,7 +26,7 @@
     </div>
 
     <!-- Progress Bar -->
-    <div class="bg-ff-green/10 py-3">
+    <div class="bg-solid-ff-green-10 py-3">
       <div class="mx-auto max-w-6xl px-4">
         <div class="flex items-center justify-between">
           <div v-for="(step, index) in steps" :key="step.id" class="flex items-center">
@@ -35,7 +35,7 @@
                 class="flex h-10 w-10 items-center justify-center rounded-full font-bold transition-all duration-300"
                 :class="{
                   'bg-ff-green text-white': currentStep >= index + 1,
-                  'bg-gray/20 text-gray/50': currentStep < index + 1,
+                  'bg-solid-gray-20 text-solid-gray-50': currentStep < index + 1,
                 }"
               >
                 {{ currentStep > index + 1 ? "✓" : index + 1 }}
@@ -49,7 +49,7 @@
               class="mx-2 h-1 flex-1 rounded-full transition-all duration-300"
               :class="{
                 'bg-ff-green': currentStep > index + 1,
-                'bg-gray/30': currentStep <= index + 1,
+                'bg-solid-gray-30': currentStep <= index + 1,
               }"
             ></div>
           </div>
@@ -68,7 +68,7 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-red/10 p-8 text-center text-red">
+      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
         <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
         <NuxtLink to="/" class="btn btn-primary">{{ $t("generic.back_to_home") }}</NuxtLink>
@@ -77,7 +77,7 @@
       <!-- Not Found / Not Public -->
       <div
         v-else-if="!electionData?.election"
-        class="text-orange-800 my-12 rounded-xl border border-orange bg-orange/10 p-8 text-center"
+        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
       >
         <h2 class="mb-4 text-2xl font-bold">{{ $t("elections.no_public_election.title") }}</h2>
         <p class="mb-4">

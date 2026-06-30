@@ -25,8 +25,8 @@
         :style="tileStyle"
         v-blokkli-droppable:imageId
       >
-        <!-- Translucent color overlay when a background image is active -->
-        <div v-if="imageUrl" class="hex-overlay" :style="{ backgroundColor: hexColor + 'b3' }" />
+        <!-- Solid blend overlay when a background image is active -->
+        <div v-if="imageUrl" class="hex-overlay" :style="{ backgroundColor: hexColor }" />
 
         <div class="hex-content">
           <img
@@ -209,7 +209,7 @@ const tileStyle = computed(() => {
 
 .blokkli-block-hex-item:has(a):hover .hex-outer,
 .blokkli-block-hex-item:has([href]):hover .hex-outer {
-  filter: brightness(1.14) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.28));
+  filter: brightness(1.14) drop-shadow(0 6px 18px #b8b8b8);
 }
 
 /* ── hex-outer ─────────────────────────────────────────────────────────── */
@@ -264,6 +264,7 @@ const tileStyle = computed(() => {
 .hex-overlay {
   position: absolute;
   inset: 0;
+  mix-blend-mode: multiply;
   pointer-events: none;
 }
 
@@ -300,7 +301,7 @@ const tileStyle = computed(() => {
 .hex-icon-placeholder {
   width: calc(var(--hex-h, 130px) * 0.16);
   height: calc(var(--hex-h, 130px) * 0.16);
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 2px solid white;
   border-radius: 50%;
   flex-shrink: 0;
 }

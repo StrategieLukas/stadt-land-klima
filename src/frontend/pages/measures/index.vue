@@ -282,7 +282,7 @@
     <!-- Sector description (shown when a sector is selected) -->
     <div
       v-if="selectedSector"
-      class="text-gray-700 mb-4 max-w-2xl border-l-4 border-gray/30 bg-gray/5 px-4 py-3 text-sm"
+      class="text-gray-700 mb-4 max-w-2xl border-l-4 border-solid-gray-30 bg-solid-gray-05 px-4 py-3 text-sm"
     >
       <p class="mb-1 font-bold">{{ $t(`measure_sectors.${selectedSector}.title`) }}</p>
       <p>{{ $t(`measure_sectors.${selectedSector}.description`) }}</p>
@@ -324,7 +324,7 @@
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
         :to="measureDetailLocation(measure.slug)"
-        class="card block rounded-md border border-gray/20 shadow transition-shadow duration-200 hover:shadow-lg"
+        class="card block rounded-md border border-solid-gray-20 shadow transition-shadow duration-200 hover:shadow-lg"
       >
         <div class="card-body">
           <div class="flex items-start gap-3">

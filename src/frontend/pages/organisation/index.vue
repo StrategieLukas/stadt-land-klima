@@ -51,7 +51,7 @@
             :cy="team.cy"
             :r="team.r + 3"
             fill="none"
-            :stroke="activeTeamId === team.id ? '#333' : 'transparent'"
+            :stroke="activeTeamId === team.id ? '#333' : 'none'"
             stroke-width="2.5"
             stroke-dasharray="6 4"
             style="pointer-events: none; transition: stroke 0.15s"
@@ -86,9 +86,9 @@
             :cx="team.cx"
             :cy="team.cy"
             :r="team.r"
-            fill="transparent"
+            fill="none"
             stroke="none"
-            style="cursor: pointer"
+            style="cursor: pointer; pointer-events: all"
             @click.stop="selectTeam(team.id)"
           />
         </svg>
@@ -104,7 +104,7 @@
             <!-- Header -->
             <div
               class="px-4 py-3"
-              :style="{ background: activeTeam.color + '22', borderBottom: '2px solid ' + activeTeam.color }"
+              :style="{ background: teamTint(activeTeam.color, 0.13), borderBottom: '2px solid ' + activeTeam.color }"
             >
               <h2 class="font-bold text-[15px] text-[#1a1a1a]">{{ activeTeam.label }}</h2>
               <a
@@ -147,7 +147,7 @@
                     <div
                       v-else
                       class="w-full h-full flex items-center justify-center"
-                      :style="{ background: `linear-gradient(135deg, ${activeTeam.color}55 0%, ${activeTeam.color}22 50%, ${activeTeam.color}44 100%)` }"
+                      :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
                     >
                       <span class="font-bold text-xs" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
                     </div>
@@ -216,7 +216,7 @@
               <div
                 v-else
                 class="absolute inset-0 flex items-center justify-center"
-                :style="{ background: `linear-gradient(135deg, ${activeTeam.color}55 0%, ${activeTeam.color}22 50%, ${activeTeam.color}44 100%)` }"
+                :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
               >
                 <span class="font-bold text-3xl" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
               </div>
@@ -258,7 +258,7 @@
             <div
               v-else
               class="absolute inset-0 flex items-center justify-center"
-              :style="{ background: `linear-gradient(135deg, ${memberColor(member)}55 0%, ${memberColor(member)}22 50%, ${memberColor(member)}44 100%)` }"
+              :style="{ background: memberPlaceholderGradient(memberColor(member)) }"
             >
               <span class="font-bold text-3xl" :style="{ color: memberColor(member) }">{{ initials(member.first_name, member.last_name) }}</span>
             </div>
@@ -429,11 +429,32 @@ function memberColor(member) {
   return TEAMS.value.find(t => t.id === firstTeamId)?.color ?? '#16bae7'
 }
 
+function normalizeHex(hex) {
+  return /^#[0-9a-f]{6}$/i.test(hex ?? '') ? hex : '#16bae7'
+}
+
+function blendHex(hex, alpha, background = '#ffffff') {
+  const fg = normalizeHex(hex).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
+  const bg = normalizeHex(background).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
+  return `#${fg
+    .map((value, index) => Math.round(value * alpha + bg[index] * (1 - alpha)).toString(16).padStart(2, '0'))
+    .join('')}`
+}
+
+function teamTint(color, alpha) {
+  return blendHex(color, alpha)
+}
+
+function memberPlaceholderGradient(color) {
+  return `linear-gradient(135deg, ${blendHex(color, 0.33)} 0%, ${blendHex(color, 0.13)} 50%, ${blendHex(color, 0.27)} 100%)`
+}
+
 function scrollToMember(id, color) {
   const el = document.getElementById('member-' + id)
   if (!el) return
   // Set the ring color as a CSS custom property so the keyframe picks it up
-  el.style.setProperty('--highlight-color', color ?? '#16bae7')
+  el.style.setProperty('--highlight-color-strong', blendHex(color ?? '#16bae7', 0.7))
+  el.style.setProperty('--highlight-color-soft', blendHex(color ?? '#16bae7', 0.35))
   el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   el.classList.remove('member-highlight')
   void el.offsetWidth
@@ -469,9 +490,9 @@ function scrollToMember(id, color) {
 }
 
 @keyframes memberHighlight {
-  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 70%, transparent); }
-  30%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--highlight-color, #16bae7) 35%, transparent); }
-  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 0%, transparent); }
+  0%   { box-shadow: 0 0 0 0 var(--highlight-color-strong, #16bae7); }
+  30%  { box-shadow: 0 0 0 8px var(--highlight-color-soft, #16bae7); }
+  100% { box-shadow: 0 0 0 0 #ffffff; }
 }
 .member-highlight {
   animation: memberHighlight 1.2s ease-out;

@@ -95,11 +95,20 @@
                   class="h-full w-full object-cover transition-transform duration-200 group-hover/card:scale-105"
                   alt=""
                 />
-                <div class="absolute inset-x-0 bottom-0 bg-stats-dark px-2.5 pb-2 pt-2">
-                  <div class="text-xs font-semibold leading-snug text-white">
+                <div
+                  class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2.5 pb-2 pt-8"
+                >
+                  <div
+                    class="text-xs font-semibold leading-snug text-white"
+                    style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
+                  >
                     {{ navLabel(child) }}
                   </div>
-                  <div v-if="child.description" class="mt-0.5 text-[10px] font-normal leading-snug text-white">
+                  <div
+                    v-if="child.description"
+                    class="mt-0.5 text-[10px] font-normal leading-snug text-white"
+                    style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
+                  >
                     {{ navDescription(child) }}
                   </div>
                 </div>
@@ -123,8 +132,8 @@
                 class="border-gray-50 flex items-start border-b px-4 py-3 text-sm font-semibold transition-colors last:border-b-0"
                 @click="closeMenu"
                 :class="{
-                  'bg-light-green/20 text-olive-green': child.link_type === 'page' && isActive(child),
-                  'text-gray-700 hover:text-gray-900 hover:bg-light-green/10': !(
+                  'bg-solid-light-green-20 text-olive-green': child.link_type === 'page' && isActive(child),
+                  'text-gray-700 hover:text-gray-900 hover:bg-solid-light-green-10': !(
                     child.link_type === 'page' && isActive(child)
                   ),
                 }"
