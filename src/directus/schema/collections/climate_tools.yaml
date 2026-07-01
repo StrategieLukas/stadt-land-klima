@@ -1,0 +1,37 @@
+collection: climate_tools
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: climate_tools
+  color: null
+  display_template: "{{title}}"
+  group: admin_tools
+  hidden: false
+  icon: construction
+  item_duplication_fields:
+    - title
+    - status
+    - category
+    - description
+    - image
+    - image_credits
+    - link
+    - vendor
+    - sort
+  note: Sammlung externer Klimaschutz-Tools für die Website
+  preview_url: null
+  singleton: false
+  sort: 5
+  sort_field: sort
+  translations:
+    - language: de-DE
+      plural: Klima-Tools
+      singular: Klima-Tool
+      translation: Klima-Tools
+  unarchive_value: draft
+  versioning: false
+schema:
+  name: climate_tools
