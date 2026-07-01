@@ -61,7 +61,7 @@ interface SendResult {
 // ---------------------------------------------------------------------------
 
 const BASE_URL = 'https://stadt-land-klima.de';
-const MIN_QUESTIONS = 10;
+const MIN_QUESTIONS = 7;
 const MIN_CANDIDATES = 2;
 const ALWAYS_CC = 'info@stadt-land-klima.de';
 const EMAIL_PATTERN = /^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/;

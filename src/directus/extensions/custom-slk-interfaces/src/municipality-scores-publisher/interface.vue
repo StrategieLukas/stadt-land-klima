@@ -44,7 +44,7 @@
           <input
             type="checkbox"
             :checked="row.published === true"
-            :disabled="disabled || row.saving"
+            :disabled="disabled || row.saving || !canTogglePublished(row)"
             @input.stop
             @change.stop="onPublishInput(row, $event)"
           />
@@ -142,6 +142,7 @@ const currentUserVerified: Ref<boolean | null> = ref(null);
 const verificationLoading = ref(false);
 const showUnverifiedDialog = ref(false);
 let currentUserVerificationPromise: Promise<boolean> | null = null;
+const MIN_PUBLISH_PERCENTAGE = 95;
 
 const sortedScores = computed(() => {
   return [...scores.value].sort((a, b) => {
@@ -197,6 +198,11 @@ async function onPublishInput(row: ScoreRow, event: Event): Promise<void> {
   const input = event.target as HTMLInputElement;
   const previous = row.published === true;
 
+  if (!canSetPublished(row, input.checked)) {
+    input.checked = previous;
+    return;
+  }
+
   if (!(await ensureCurrentUserIsVerified())) {
     input.checked = previous;
     showUnverifiedDialog.value = true;
@@ -207,7 +213,7 @@ async function onPublishInput(row: ScoreRow, event: Event): Promise<void> {
 }
 
 async function setPublished(row: ScoreRow, published: boolean): Promise<void> {
-  if (!api || props.disabled || row.saving) return;
+  if (!api || props.disabled || row.saving || !canSetPublished(row, published)) return;
 
   const previous = row.published === true;
   row.published = published;
@@ -296,13 +302,29 @@ function catalogLabel(row: ScoreRow): string {
   return catalog?.name || String(row.catalog_version || row.id);
 }
 
+function canTogglePublished(row: ScoreRow): boolean {
+  return row.published === true || hasMinimumPublishPercentage(row);
+}
+
+function canSetPublished(row: ScoreRow, published: boolean): boolean {
+  return !published || hasMinimumPublishPercentage(row);
+}
+
+function hasMinimumPublishPercentage(row: ScoreRow): boolean {
+  return parseNumber(row.percentage_rated) >= MIN_PUBLISH_PERCENTAGE;
+}
+
 function formatScore(row: ScoreRow): string {
   return `${formatNumber(row.score_total)} (${formatNumber(row.score_points)}/${formatNumber(row.score_max)})`;
 }
 
 function formatNumber(value: string | number | null): string {
-  const number = typeof value === 'number' ? value : Number.parseFloat(String(value ?? ''));
+  const number = parseNumber(value);
   return Number.isFinite(number) ? number.toFixed(1) : '0.0';
+}
+
+function parseNumber(value: string | number | null): number {
+  return typeof value === 'number' ? value : Number.parseFloat(String(value ?? ''));
 }
 </script>
 

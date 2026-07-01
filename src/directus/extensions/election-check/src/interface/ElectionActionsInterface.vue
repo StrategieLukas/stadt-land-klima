@@ -90,7 +90,7 @@
         <v-button
           v-if="!alreadySent"
           :loading="loadingMails"
-          :disabled="isAnyLoading || !alreadyGenerated"
+          :disabled="isAnyLoading"
           @click="handleSendMails"
         >
           <v-icon name="send" left />
@@ -101,11 +101,6 @@
           E-Mails versendet
         </v-button>
       </div>
-
-      <p v-if="!alreadyGenerated && !alreadySent" class="card-hint">
-        <v-icon name="info" x-small />
-        Thesen müssen zuerst generiert werden.
-      </p>
     </div>
 
     <!-- Feedback notices -->
@@ -551,15 +546,6 @@ async function handleSendMails() {
 
 .rerun-button {
   --v-button-color: var(--foreground-subdued);
-}
-
-.card-hint {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--foreground-subdued);
-  margin: 0 16px 12px;
 }
 
 .result-notice {
