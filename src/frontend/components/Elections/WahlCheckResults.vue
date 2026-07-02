@@ -133,7 +133,10 @@
             <h5 class="font-bold text-stats-dark mb-4">{{ $t('elections.wahlcheck.results.details') }}</h5>
 
             <!-- Score Breakdown -->
-            <div class="grid grid-cols-2 gap-6 mb-6">
+            <div
+              v-if="hasSectorAgreement(result.candidateId)"
+              class="grid grid-cols-2 gap-6 mb-6"
+            >
               <div class="bg-rating-4/10 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
                 <div class="flex items-center justify-center mb-4">
                   <img
@@ -179,10 +182,13 @@
             <div>
               <div class="min-w-[600px]">
                 <!-- Table Header -->
-                <div class="grid grid-cols-[40px_1fr_80px_120px_120px] gap-2 px-3 py-2 bg-gray/10 rounded-t-lg font-semibold text-sm text-gray/60 border-b border-gray/20">
+                <div
+                  class="grid gap-2 px-3 py-2 bg-gray/10 rounded-t-lg font-semibold text-sm text-gray/60 border-b border-gray/20"
+                  :class="hasQuestionSectors ? 'grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[40px_1fr_120px_120px]'"
+                >
                   <div class="text-center">#</div>
                   <div>{{ $t("elections.thesis") }}</div>
-                  <div class="text-center">{{ $t("stats.chart.sector") }}</div>
+                  <div v-if="hasQuestionSectors" class="text-center">{{ $t("stats.chart.sector") }}</div>
                   <div class="text-center">{{ $t("elections.wahlcheck.results.my_rating") }}</div>
                   <div class="text-center">{{ $t("elections.wahlcheck.results.candidate_rating") }}</div>
                 </div>
@@ -191,7 +197,8 @@
                 <div
                   v-for="(question, qIndex) in sortedExpandedQuestions"
                   :key="question.id"
-                  class="grid grid-cols-[40px_1fr_80px_120px_120px] gap-2 px-3 py-2 bg-white/50 rounded-lg border-b border-gray/10 last:border-0 hover:bg-white transition-all"
+                  class="grid gap-2 px-3 py-2 bg-white/50 rounded-lg border-b border-gray/10 last:border-0 hover:bg-white transition-all"
+                  :class="hasQuestionSectors ? 'grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[40px_1fr_120px_120px]'"
                 >
                   <div class="text-sm text-gray/50 text-center pt-1">{{ question.originalIndex + 1 }}.</div>
                   <div class="text-sm text-black flex items-center gap-2">
@@ -204,7 +211,7 @@
                   </div>
 
                   <!-- Sector -->
-                  <div class="flex justify-center">
+                  <div v-if="hasQuestionSectors" class="flex justify-center">
                     <div v-if="question.sector" class="flex items-center gap-1">
                       <img
                         :src="getSectorIcon(question.sector)"
@@ -483,6 +490,15 @@ function getCandidateAnswer(candidateId, questionId) {
   )
 }
 
+function normalizeSector(sector) {
+  const normalized = String(sector ?? '').toLowerCase().trim()
+  return normalized || null
+}
+
+const hasQuestionSectors = computed(() => {
+  return props.questions.some((question) => normalizeSector(question.sector))
+})
+
 // Calculate similarity scores
 const results = computed(() => {
   const scores = {}
@@ -544,16 +560,16 @@ const results = computed(() => {
 })
 
 function sectorLabel(sector) {
-  const key = sector?.toLowerCase()?.trim() || 'unknown'
-  if (key === 'unknown') return $t('generic.unknown')
+  const key = normalizeSector(sector)
+  if (!key) return ''
   const translated = $t(`measure_sectors.${key}.title`)
   return translated === `measure_sectors.${key}.title` ? key : translated
 }
 
 // Get sector icon from imported images
 function getSectorIcon(sectorKey) {
-  const key = sectorKey?.toLowerCase()?.trim() || 'unknown'
-  return sectorImages[key] || null
+  const key = normalizeSector(sectorKey)
+  return key ? sectorImages[key] || null : null
 }
 
 // Calculate sector agreement scores for each candidate
@@ -577,8 +593,8 @@ const sectorAgreements = computed(() => {
   // Group questions by sector
   const questionsBySector = {}
   props.questions.forEach(q => {
-    // Handle null, undefined, or missing sector field
-    const sector = (q.sector && String(q.sector).toLowerCase().trim()) || 'unknown'
+    const sector = normalizeSector(q.sector)
+    if (!sector) return
     if (!questionsBySector[sector]) {
       questionsBySector[sector] = []
     }
@@ -632,14 +648,14 @@ function getSectorAgreement(candidateId, type = 'highest') {
   const candidateSectors = sectorAgreements.value[candidateId]
 
   if (!candidateSectors || Object.keys(candidateSectors).length === 0) {
-    return { percentage: 0, sector: 'N/A', score: 0, maxScore: 0 }
+    return null
   }
 
   // Filter out sectors with 0 maxScore (no questions answered)
   const validSectors = Object.values(candidateSectors).filter(s => s.maxScore > 0)
 
   if (validSectors.length === 0) {
-    return { percentage: 0, sector: 'N/A', score: 0, maxScore: 0 }
+    return null
   }
 
   // Sort by percentage
@@ -652,8 +668,8 @@ function getSectorAgreement(candidateId, type = 'highest') {
   })
 
   const selected = validSectors[0]
-  // Normalize sector key: handle null, undefined, or empty string
-  const sectorKey = selected.sector?.toLowerCase()?.trim() || 'unknown'
+  const sectorKey = normalizeSector(selected.sector)
+  if (!sectorKey) return null
   const label = sectorLabel(sectorKey)
   return {
     percentage: selected.percentage,
@@ -662,6 +678,10 @@ function getSectorAgreement(candidateId, type = 'highest') {
     score: selected.score,
     maxScore: selected.maxScore
   }
+}
+
+function hasSectorAgreement(candidateId) {
+  return Boolean(getSectorAgreement(candidateId, 'highest') && getSectorAgreement(candidateId, 'lowest'))
 }
 
 // Sorted results by percentage (descending)

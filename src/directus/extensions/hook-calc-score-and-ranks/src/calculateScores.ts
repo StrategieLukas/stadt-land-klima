@@ -2,7 +2,7 @@ import type { Logger, Schema, Services } from '@directus/types';
 
 interface CalculateScoresParams {
   municipalityIds?: number[] | null;
-  catalogVersionId: number;
+  catalogVersionId: number | string;
 }
 
 interface Context {
@@ -14,12 +14,13 @@ interface Context {
 interface Measure {
   id: number;
   sector: string;
-  weight?: number;
+  weight?: number | string | null;
   status?: string;
 }
 
 interface RatingMeasure {
-  rating: number | null | undefined;
+  applicable: boolean | null | undefined;
+  rating: number | string | null | undefined;
   measure_id: number | { id: number };
 }
 
@@ -34,6 +35,8 @@ interface MunicipalityScore {
   municipality: number;
   catalog_version: number;
   score_total?: number;
+  score_points?: number;
+  score_max?: number;
   percentage_rated?: number;
   score_agriculture?: number;
   score_buildings?: number;
@@ -51,7 +54,17 @@ interface SectorScores {
 interface Totals {
   numerator_rated_sum: number;
   denominator_rated: number;
-  denominator_all: number;
+}
+
+function parseFiniteNumber(value: number | string | null | undefined): number {
+  const number = typeof value === 'number' ? value : Number.parseFloat(String(value ?? ''));
+  return Number.isFinite(number) ? number : 0;
+}
+
+function parseOptionalNumber(value: number | string | null | undefined): number {
+  if (value === null || value === undefined) return NaN;
+  const number = typeof value === 'number' ? value : Number.parseFloat(String(value));
+  return Number.isFinite(number) ? number : NaN;
 }
 
 export async function calculateScores(
@@ -102,6 +115,10 @@ export async function calculateScores(
 
     // Map measures for O(1) lookup
     const measureById = new Map<number, Measure>(measures.map((m) => [m.id, m]));
+    const totalCatalogWeight = measures.reduce((sum, measure) => {
+      const weight = parseFiniteNumber(measure.weight);
+      return weight > 0 ? sum + weight : sum;
+    }, 0);
 
     // Load municipalities (optionally filtered)
     const municipalities = (await municipalitiesService.readByQuery({
@@ -126,13 +143,13 @@ export async function calculateScores(
         continue;
       }
 
-      // Fetch all approved, applicable, published ratings for this municipality + catalog version.
-      // We do NOT filter by rating != null so we can count all candidate measures for percentage_rated.
+      // Fetch all approved, published ratings for this municipality + catalog version.
+      // We do NOT filter by applicability or rating so score math can skip not-applicable measures
+      // while percentage_rated counts both rated and explicitly not-applicable measures as complete.
       const allRatings = (await ratingsService.readByQuery({
         limit: -1,
         filter: {
           localteam_id: { _eq: localteamId },
-          applicable: { _eq: true },
           approved: { _eq: true },
           measure_published: { _eq: true },
           measure_id: {
@@ -140,27 +157,13 @@ export async function calculateScores(
             status: { _eq: 'published' },
           },
         },
-        fields: ['rating', 'measure_id'],
+        fields: ['applicable', 'rating', 'measure_id'],
       })) as RatingMeasure[];
-
-      if (!allRatings?.length) {
-        logger.info(`[calculateScores] No candidate ratings for municipality "${municipality.name}".`);
-        continue;
-      }
-
-      // Deduplicate by measure: if multiple approved ratings exist for the same measure,
-      // keep only the last one (most recent). This prevents double-counting.
-      const ratingByMeasureId = new Map<number, RatingMeasure>();
-      for (const r of allRatings) {
-        const measureId = typeof r.measure_id === 'object' ? r.measure_id.id : r.measure_id;
-        ratingByMeasureId.set(measureId, r);
-      }
 
       // Score accumulators
       const totals: Totals = {
         numerator_rated_sum: 0, // sum(rating * weight) for rated entries
-        denominator_rated: 0,   // sum(weight) for entries that have a numeric rating
-        denominator_all: 0,     // sum(weight) for all candidate entries (for percentage_rated)
+        denominator_rated: 0,   // sum(weight) for rated applicable entries
       };
 
       // Per-sector accumulators
@@ -171,54 +174,55 @@ export async function calculateScores(
         }
       }
 
-      let totalRatedWeight = 0; // weight of measures that have a valid rating (numerator of percentage_rated)
+      const completedMeasureIds = new Set<number>();
 
-      for (const [measureId, r] of ratingByMeasureId) {
+      for (const r of allRatings) {
+        const measureId = typeof r.measure_id === 'object' ? r.measure_id.id : r.measure_id;
         const measure = measureById.get(measureId);
         if (!measure) {
           // Rating references a measure not in the current published set — skip
           continue;
         }
 
-        const weight = measure.weight ?? 0;
+        const weight = parseFiniteNumber(measure.weight);
+        const numeric = parseOptionalNumber(r.rating);
+
+        if (!Number.isNaN(numeric) || r.applicable === false) {
+          completedMeasureIds.add(measureId);
+        }
+
+        if (r.applicable !== true || Number.isNaN(numeric)) {
+          continue;
+        }
+
         if (weight <= 0) {
-          // Zero-weight measures contribute nothing; exclude from both denominators
+          // Zero-weight measures contribute nothing to score percentages.
           continue;
         }
 
         const sector = measure.sector ?? 'total';
 
-        // All candidate measures (with positive weight) count toward the total denominator
-        totals.denominator_all += weight;
+        totals.numerator_rated_sum += numeric * weight;
+        totals.denominator_rated += weight;
 
-        // Ratings are stored as 0..1 numerics; guard against string coercion from DB
-        const raw = r.rating;
-        const numeric =
-          raw !== null && raw !== undefined
-            ? typeof raw === 'number'
-              ? raw
-              : parseFloat(raw as unknown as string)
-            : NaN;
-
-        if (!Number.isNaN(numeric)) {
-          totals.numerator_rated_sum += numeric * weight;
-          totals.denominator_rated += weight;
-          totalRatedWeight += weight;
-
-          if (!sectors[sector]) {
-            sectors[sector] = { numerator_rated: 0, denominator_rated: 0 };
-          }
-          sectors[sector].numerator_rated += numeric * weight;
-          sectors[sector].denominator_rated += weight;
+        if (!sectors[sector]) {
+          sectors[sector] = { numerator_rated: 0, denominator_rated: 0 };
         }
+        sectors[sector].numerator_rated += numeric * weight;
+        sectors[sector].denominator_rated += weight;
       }
 
       // Build the scores payload
       const scoresToPush: Record<string, number> = {};
 
-      // percentage_rated: share of (by weight) measures that have been rated
+      // percentage_rated: unweighted share of published measures that are rated or not applicable.
       scoresToPush.percentage_rated =
-        totals.denominator_all > 0 ? (totalRatedWeight / totals.denominator_all) * 100 : 0;
+        measures.length > 0 ? (completedMeasureIds.size / measures.length) * 100 : 0;
+
+      scoresToPush.score_points =
+        totalCatalogWeight > 0 ? (totals.numerator_rated_sum / totalCatalogWeight) * 100 : 0;
+      scoresToPush.score_max =
+        totalCatalogWeight > 0 ? (totals.denominator_rated / totalCatalogWeight) * 100 : 0;
 
       // score_total: weighted-average rating expressed as a percentage (0–100)
       scoresToPush.score_total =

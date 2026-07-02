@@ -260,6 +260,7 @@ permissions:
       - localteam
       - title
       - thesis
+      - background_information
       - election
       - prefill_trigger
       - sector
@@ -299,6 +300,7 @@ permissions:
       - localteam
       - title
       - thesis
+      - background_information
       - election
       - sector
   - collection: questions
@@ -316,6 +318,7 @@ permissions:
       - localteam
       - title
       - thesis
+      - background_information
       - sector
   - collection: ratings_measures
     action: read

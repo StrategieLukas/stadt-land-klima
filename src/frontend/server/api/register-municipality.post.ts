@@ -1,25 +1,60 @@
 import { randomBytes } from 'node:crypto';
 
+type RegistrationStepKey = 'user' | 'team' | 'email';
+type RegistrationSteps = Record<RegistrationStepKey, boolean> & {
+  notify: boolean;
+  welcome: boolean;
+};
+
+function registrationErrorData(
+  steps: RegistrationSteps,
+  failedStep?: RegistrationStepKey,
+  errorKey?: string,
+) {
+  return {
+    steps,
+    ...(failedStep ? { failedStep } : {}),
+    ...(errorKey ? { errorKey } : {}),
+  };
+}
+
+function registrationStatusMessage(statusCode: number) {
+  if (statusCode === 400) return 'Bad Request';
+  if (statusCode === 422) return 'Registration Failed';
+  if (statusCode === 503) return 'Service Unavailable';
+  return 'Registration Error';
+}
+
+function createRegistrationError(statusCode: number, message: string, data?: ReturnType<typeof registrationErrorData>) {
+  return createError({
+    statusCode,
+    statusMessage: registrationStatusMessage(statusCode),
+    message,
+    ...(data ? { data } : {}),
+  });
+}
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
 
   const body = await readRequestBody(event);
   const { firstName, lastName, email, organisation, ars, municipalityName, population, state, geolocation, altcha } = body ?? {};
+  const steps: RegistrationSteps = { user: false, team: false, email: false, notify: false, welcome: false };
 
   // Validate required fields
   if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !ars?.trim() || !municipalityName?.trim()) {
-    throw createError({ statusCode: 400, message: 'Bitte alle Pflichtfelder ausfüllen.' });
+    throw createRegistrationError(400, 'Bitte alle Pflichtfelder ausfüllen.');
   }
 
   // Basic email format check
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-    throw createError({ statusCode: 400, message: 'Ungültige E-Mail-Adresse.' });
+    throw createRegistrationError(400, 'Ungültige E-Mail-Adresse.');
   }
 
   // Verify CAPTCHA
   if (!altcha || !verifyAltcha(altcha, hmacKey)) {
-    throw createError({ statusCode: 400, message: 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.' });
+    throw createRegistrationError(400, 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.');
   }
 
   const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055';
@@ -27,15 +62,17 @@ export default defineEventHandler(async (event) => {
 
   if (!adminToken) {
     console.error('[register-municipality] DIRECTUS_ADMIN_TOKEN not configured');
-    throw createError({ statusCode: 503, message: 'Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.' });
+    throw createRegistrationError(
+      503,
+      'Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.',
+      registrationErrorData(steps, undefined, 'generic.technical_error'),
+    );
   }
 
   const headers = {
     'Authorization': `Bearer ${adminToken}`,
     'Content-Type': 'application/json',
   };
-
-  const steps = { user: false, team: false, email: false, notify: false, welcome: false };
 
   // --- Pre-check: reject if ARS already has a localteam ---
   try {
@@ -44,11 +81,11 @@ export default defineEventHandler(async (event) => {
       { headers, params: { 'filter[ars][_eq]': ars.trim(), 'filter[localteam_id][_nnull]': true, 'fields[]': 'id', limit: 1 } },
     );
     if (arsCheck.data?.length > 0) {
-      throw createError({
-        statusCode: 422,
-        message: 'Für diese Gemeinde existiert bereits ein Lokalteam. Bitte wende dich an info@stadt-land-klima.de, wenn du mitarbeiten möchtest.',
-        data: { steps },
-      });
+      throw createRegistrationError(
+        422,
+        'Für diese Gemeinde existiert bereits ein Lokalteam. Bitte wende dich an info@stadt-land-klima.de, wenn du mitarbeiten möchtest.',
+        registrationErrorData(steps),
+      );
     }
   } catch (err: any) {
     if (err.statusCode === 422) throw err;
@@ -57,7 +94,18 @@ export default defineEventHandler(async (event) => {
   }
 
   // --- Step 1: Create Directus user ---
-  const LOKALTEAM_ADMIN_ROLE = await getLokalteamAdminRoleId();
+  let LOKALTEAM_ADMIN_ROLE: string;
+  try {
+    LOKALTEAM_ADMIN_ROLE = await getLokalteamAdminRoleId();
+  } catch (err) {
+    console.error('[register-municipality] Lokalteam admin role lookup failed:', err);
+    throw createRegistrationError(
+      503,
+      'Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.',
+      registrationErrorData(steps, undefined, 'generic.technical_error'),
+    );
+  }
+
   let userId: string;
   try {
     const userResult = await $fetch<{ data: { id: string } }>(`${directusUrl}/users`, {
@@ -78,13 +126,17 @@ export default defineEventHandler(async (event) => {
     steps.user = true;
   } catch (err: any) {
     const isUnique = err?.data?.errors?.[0]?.extensions?.code === 'RECORD_NOT_UNIQUE';
-    throw createError({
-      statusCode: 422,
-      message: isUnique
+    throw createRegistrationError(
+      422,
+      isUnique
         ? 'Ein Account mit dieser E-Mail-Adresse existiert bereits. Bitte logge dich ein oder verwende die Passwort-vergessen-Funktion.'
         : 'Account konnte nicht erstellt werden. Bitte versuche es später erneut.',
-      data: { steps },
-    });
+      registrationErrorData(
+        steps,
+        'user',
+        isUnique ? 'localteam.register.error.email_registered' : 'localteam.register.error.account_create_failed',
+      ),
+    );
   }
 
   // --- Step 2: Create Lokalteam ---
@@ -103,11 +155,11 @@ export default defineEventHandler(async (event) => {
     localteamId = teamResult.data.id;
     steps.team = true;
   } catch (err: any) {
-    throw createError({
-      statusCode: 422,
-      message: 'Lokalteam konnte nicht angelegt werden. Bitte versuche es später erneut.',
-      data: { steps },
-    });
+    throw createRegistrationError(
+      422,
+      'Lokalteam konnte nicht angelegt werden. Bitte versuche es später erneut.',
+      registrationErrorData(steps, 'team', 'localteam.register.error.localteam_create_failed'),
+    );
   }
 
   // --- Step 2b: Link user to localteam via M2M junction ---

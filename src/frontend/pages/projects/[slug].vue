@@ -29,9 +29,11 @@
 <script setup>
   import ArticlePage from '~/components/ArticlePage.vue';
   import { isRaster } from '~/shared/utils';
+  import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
   const { $directus, $readItems } = useNuxtApp();
 
   const route = useRoute();
+  const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
 
   const { data: articles } = await useAsyncData(`article-${route.params.slug}`, () => {
     return $directus.request(
@@ -60,7 +62,7 @@
       if (!article.value.municipality_name) return false;
       const results = await $directus.request(
         $readItems("municipalities", {
-          fields: ["slug", "ars", "status"],
+          fields: ["slug", "ars", { scores: ["catalog_version", "published"] }],
           filter: { name: { _eq: article.value.municipality_name } },
           limit: 1,
         })
@@ -73,7 +75,13 @@
   const municipalitySlug = computed(() => {
     const m = municipalityData.value;
     if (!m) return null;
-    return m.status === 'published' ? (m.slug ?? null) : (m.ars ?? null);
+    const publishedScore = (m.scores ?? []).find((score) => {
+      const catalogVersion = typeof score.catalog_version === 'object'
+        ? score.catalog_version?.id
+        : score.catalog_version;
+      return catalogVersion === selectedCatalogVersion.id && score.published === true;
+    });
+    return publishedScore ? (m.slug ?? null) : (m.ars ?? null);
   });
 
   const articleMeasures = computed(() => {

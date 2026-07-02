@@ -53,7 +53,7 @@
           <div v-else class="w-4 h-4 rounded-full border-2 border-gray-200" />
         </div>
         <p class="text-sm" :class="stepStatuses[step.key] === 'error' ? 'text-red-600 font-medium' : stepStatuses[step.key] === 'success' ? 'text-gray-700' : 'text-gray-400'">
-          {{ stepStatuses[step.key] === 'error' ? step.errorLabel : step.label }}
+          {{ stepStatuses[step.key] === 'error' ? (stepErrorLabels[step.key] || step.errorLabel) : step.label }}
         </p>
       </div>
     </div>
@@ -303,11 +303,19 @@ const newsletterAlreadySubscribed = ref(false);
 const newsletterError = ref('');
 
 // Processing step state
+type StepKey = 'user' | 'team' | 'email';
 type StepStatus = 'pending' | 'loading' | 'success' | 'error';
-const stepStatuses = reactive<Record<string, StepStatus>>({ user: 'pending', team: 'pending', email: 'pending' });
+type RegistrationErrorData = {
+  steps?: Partial<Record<StepKey, boolean>>;
+  failedStep?: StepKey;
+  errorKey?: string;
+};
+
+const stepStatuses = reactive<Record<StepKey, StepStatus>>({ user: 'pending', team: 'pending', email: 'pending' });
+const stepErrorLabels = reactive<Record<StepKey, string>>({ user: '', team: '', email: '' });
 const processingError = ref('');
 const processingDone = ref(false);
-const stepInfos = [
+const stepInfos: Array<{ key: StepKey; label: string; errorLabel: string }> = [
   { key: 'user', label: $t('localteam.register.step.create_account'), errorLabel: $t('localteam.register.error.email_registered') },
   { key: 'team', label: $t('localteam.register.step.create_localteam'), errorLabel: $t('localteam.register.error.localteam_create_failed') },
   { key: 'email', label: $t('localteam.register.step.send_password_email'), errorLabel: $t('localteam.register.error.email_send_failed') },
@@ -319,6 +327,7 @@ async function resetToIdle() {
   stepStatuses.user = 'pending';
   stepStatuses.team = 'pending';
   stepStatuses.email = 'pending';
+  resetStepErrorLabels();
   processingError.value = '';
   processingDone.value = false;
   altchaPayload.value = '';
@@ -333,6 +342,22 @@ async function resetToIdle() {
     el.removeEventListener('statechange', onAltchaStateChange); // guard against double-attach
     el.addEventListener('statechange', onAltchaStateChange);
   }
+}
+
+function resetStepErrorLabels() {
+  stepErrorLabels.user = '';
+  stepErrorLabels.team = '';
+  stepErrorLabels.email = '';
+}
+
+function getFailedStepStatus(
+  key: StepKey,
+  errSteps: RegistrationErrorData['steps'],
+  failedStep: RegistrationErrorData['failedStep'],
+): StepStatus {
+  if (errSteps?.[key] === true) return 'success';
+  if (failedStep === key) return 'error';
+  return 'pending';
 }
 
 function onAltchaStateChange(e: Event) {
@@ -388,6 +413,7 @@ async function submit() {
   formState.value = 'processing';
   processingDone.value = false;
   processingError.value = '';
+  resetStepErrorLabels();
   stepStatuses.user = 'loading';
   stepStatuses.team = 'loading';
   stepStatuses.email = 'loading';
@@ -407,14 +433,18 @@ async function submit() {
     formState.value = 'success';
     emit('success');
   } catch (err: any) {
-    // err.data.data.steps is present when the server threw a 422 with step info
-    const errSteps = err?.data?.data?.steps as { user?: boolean; team?: boolean; email?: boolean } | undefined;
-    stepStatuses.user = errSteps?.user === true ? 'success' : 'error';
+    const errData = err?.data?.data as RegistrationErrorData | undefined;
+    const errSteps = errData?.steps;
+    const failedStep = errData?.failedStep;
+    if (failedStep && errData?.errorKey) {
+      stepErrorLabels[failedStep] = $t(errData.errorKey);
+    }
+
+    stepStatuses.user = getFailedStepStatus('user', errSteps, failedStep);
     await delay(300);
-    // Steps that never ran (undefined) stay 'pending' (grey circle) to distinguish from failed
-    stepStatuses.team = errSteps?.team === true ? 'success' : errSteps?.team === false ? 'error' : 'pending';
+    stepStatuses.team = getFailedStepStatus('team', errSteps, failedStep);
     await delay(300);
-    stepStatuses.email = errSteps?.email === true ? 'success' : errSteps?.email === false ? 'error' : 'pending';
+    stepStatuses.email = getFailedStepStatus('email', errSteps, failedStep);
     await delay(400);
     processingDone.value = true;
     processingError.value = err?.data?.message ?? $t('generic.error_try_again');

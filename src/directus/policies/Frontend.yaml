@@ -431,7 +431,6 @@ permissions:
       - public_contact
       - ars
       - geolocation
-      - percentage_rated
       - id
       - creator_verified
       - preview_token
@@ -519,6 +518,7 @@ permissions:
       - id
       - title
       - thesis
+      - background_information
       - election
       - status
       - sector

@@ -99,7 +99,10 @@ permissions:
       - date_updated
       - date_created
       - catalog_version
+      - published
       - score_total
+      - score_points
+      - score_max
       - score_buildings
       - municipality
       - percentage_rated
@@ -109,6 +112,21 @@ permissions:
       - score_management
       - score_transport
       - rank
+  - collection: municipality_scores
+    action: update
+    permissions:
+      _and:
+        - municipality:
+            localteam_id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+        - catalog_version:
+            hidden:
+              _neq: true
+    validation: null
+    presets: null
+    fields:
+      - published
   - collection: ratings_measures
     action: read
     permissions:

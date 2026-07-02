@@ -311,16 +311,14 @@ export default ({ action }: HookContext, { logger, env }: { logger: Logger; env:
 
   action('items.create', async ({ collection, payload, key }: ActionPayload, { database }: ActionContext) => {
     if (collection !== 'blocks') return;
-    // payload.uuid is the stable UUID; key is the numeric auto-increment id and
-    // must NOT be used as the block identifier for the search index.
-    const uuid: string | undefined = payload?.uuid;
-    if (!uuid) {
-      logger.warn('[search-index] blocks create: payload missing uuid, skipping');
+    const blockKey: string | number | undefined = payload?.uuid ?? key;
+    if (blockKey == null) {
+      logger.warn('[search-index] blocks create: payload missing uuid and key, skipping');
       return;
     }
     // Re-fetch from DB so we have all fields, not just what was in the create payload.
     try {
-      const row = await fetchBlockRow(uuid, database);
+      const row = await fetchBlockRow(blockKey, database);
       if (row) await syncBlock(row, database);
     } catch (e: any) {
       logger.error('[search-index] blocks create fetch failed:', e?.message ?? e);
@@ -367,13 +365,15 @@ export default ({ action }: HookContext, { logger, env }: { logger: Logger; env:
     if (doc) await upsert(doc);
   });
 
-  action('items.update', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+  action('items.update', async ({ collection, key, keys }: ActionPayload, { database }: ActionContext) => {
     if (collection !== 'pages') return;
-    for (const key of keys as (string | number)[]) {
+    const pageKeys = keys ?? (key != null ? [key] : []);
+    for (const key of pageKeys) {
       try {
-        // Directus always passes numeric IDs in `keys` for items.update.
         const rows = await database('pages')
-          .where('id', key)
+          .where((builder: any) => {
+            builder.where('id', key).orWhere('slug', key);
+          })
           .select('slug', 'name', 'contents', 'status')
           .limit(1);
         if (!rows[0]) continue;

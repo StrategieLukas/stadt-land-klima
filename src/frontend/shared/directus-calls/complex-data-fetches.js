@@ -52,7 +52,7 @@ function sortRatingsBySector(ratingsMeasures, measures) {
         const measure = measureMap.get(item.measure_id);
         if (measure) {
         if(item.applicable && item.rating === null) {
-            console.error(`Item ${item.rating} hat kein rating, obwohl applicable=true. Unbewertete Massnahmen sollten nicht ans Frontend geschickt werden.`)
+            console.error(`Item ${item.rating} hat kein rating, obwohl applicable=true. Unbewertete Maßnahmen sollten nicht ans Frontend geschickt werden.`)
             // Do not add the broken rating to the dict in this case
         } else {
             const { sector } = measure;

@@ -2,6 +2,6 @@ language: de-DE
 key: stats.dominance.network.note
 value: <strong>Nähe</strong> = Kommunen sind durch eine Dominanzkante direkt
   verbunden und werden zusammengezogen (Federkraft). <strong>Distanz</strong> =
-  keine direkte Kante - Abstossung dominiert. Cluster aus eng beieinander
+  keine direkte Kante - Abstoßung dominiert. Cluster aus eng beieinander
   liegenden Knoten sind Leistungs-Tiers, in denen sich Kommunen gegenseitig
-  ähnlich stark übertreffen oder auf Augenhoehe sind.
+  ähnlich stark übertreffen oder auf Augenhöhe sind.

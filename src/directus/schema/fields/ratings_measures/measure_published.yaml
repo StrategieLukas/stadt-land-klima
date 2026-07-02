@@ -20,7 +20,7 @@ meta:
     - cast-boolean
   translations:
     - language: de-DE
-      translation: Massnahme ist veröffentlicht
+      translation: Maßnahme ist veröffentlicht
   validation: null
   validation_message: null
   width: full

@@ -144,6 +144,7 @@
 import { readItems, updateItem } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useReferrer } from '~/composables/useReferrer'
+import { formatBerlinDate } from '~/shared/eventDateTime'
 
 import { isRaster } from '~/shared/utils'
 const { $directus, $readItems, $t, $locale } = useNuxtApp()
@@ -235,8 +236,7 @@ const newsBlocks = computed(() => blocksData.value || [])
 const displayDate = computed(() => item.value?.date_published || item.value?.date_created)
 
 function formatDate(iso) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString($locale, { day: '2-digit', month: 'long', year: 'numeric' })
+  return formatBerlinDate(iso, $locale)
 }
 
 // ── Metadata editing ───────────────────────────────────────────────────────────

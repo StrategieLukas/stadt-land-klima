@@ -11,7 +11,7 @@
 
   <!-- Case 1: Directus data with full rating -->
   <div v-else-if="directusData && directusData.municipalityScore">
-    <waving-banner v-if="directusData.municipalityScore.municipality.status === 'draft'">
+    <waving-banner v-if="!isMunicipalityScorePublished(directusData.municipalityScore)">
       {{ $t("municipalities.preview_text") }}
     </waving-banner>
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
@@ -308,6 +308,7 @@ import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 import { fetchMunicipalityData } from '~/shared/directus-calls/complex-data-fetches.js';
 import { getStateMunicipalElectionYear } from '~/shared/utils.js';
 import { useReferrer } from '~/composables/useReferrer';
+import { isMunicipalityScorePublished } from '~/shared/municipality-score-publishing.js';
 const route = useRoute();
 
 // Guard against browser devtools / extension source-map requests like "installHook.js.map"
@@ -332,23 +333,24 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
 const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id);
 
 // CTA type for directusData case:
-// 'complete'    → percentage_rated >= 98 → contact / feedback
+// 'complete'    → score row is published for this catalog version → contact / feedback
 // 'in-progress' → localteam exists but rating incomplete → help the team
 // null          → no localteam (shouldn't normally occur in directusData case)
 const ctaType = computed(() => {
   const score = directusData?.municipalityScore;
   if (!score) return null;
-  if (score.percentage_rated >= 98) return 'complete';
+  if (isMunicipalityScorePublished(score)) return 'complete';
   if (score.municipality?.localteam_id) return 'in-progress';
   return null;
 });
 
 const isPreviewLocked = computed(() => {
   // Use municipality from scores if available, otherwise fall back to the direct slug lookup
-  const muni = directusData?.municipalityScore?.municipality ?? directusMuniBySlug.value;
+  const score = directusData?.municipalityScore;
+  const muni = score?.municipality ?? directusMuniBySlug.value;
   if (!muni) return false;
-  // Published municipalities are always publicly accessible
-  if (muni.status === 'published') return false;
+  // Published score rows are publicly accessible for their catalog version.
+  if (score && isMunicipalityScorePublished(score)) return false;
   if (muni.creator_verified) return false;
   return route.query.preview !== muni.preview_token;
 });
@@ -387,7 +389,7 @@ const { data: directusMuniBySlug } = useAsyncData(
       const results = await $directus.request(
         $readItems('municipalities', {
           filter: { slug: { _eq: route.params.slug } },
-          fields: ['id', 'name', 'slug', 'status', 'preview_token', 'creator_verified', 'localteam_id', 'ars'],
+          fields: ['id', 'name', 'slug', 'preview_token', 'creator_verified', 'localteam_id', 'ars'],
           limit: 1,
         })
       );

@@ -43,6 +43,10 @@
             <p v-if="currentQuestion.thesis" class="mt-2 text-gray italic text-lg">
               {{ currentQuestion.thesis }}
             </p>
+            <ElectionsQuestionBackgroundInfo
+              :content="currentQuestion.background_information"
+              class="mt-4"
+            />
           </div>
         </div>
 

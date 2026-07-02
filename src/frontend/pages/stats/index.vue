@@ -659,6 +659,7 @@ const { $t, $directus, $readItems } = useNuxtApp();
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 import { getAllCatalogVersions } from '~/composables/getAllCatalogVersions.js';
 import sectorImages from '~/shared/sectorImages.js';
+import { isMunicipalityScorePublished } from '~/shared/municipality-score-publishing.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -880,7 +881,7 @@ function meanSectorScore(sectorKey) {
 const visibleMunicipalityScores = computed(() => {
   if (!statsData.value) return [];
   return statsData.value.municipalityScores.filter(ms => {
-    if (!ms.municipality || ms.municipality.status !== 'published') return false;
+    if (!ms.municipality || !isMunicipalityScorePublished(ms)) return false;
     if (filterState.value && ms.municipality.state !== filterState.value) return false;
     if (filterType.value && ms.municipality.municipality_type !== filterType.value) return false;
     return true;
@@ -888,7 +889,7 @@ const visibleMunicipalityScores = computed(() => {
 });
 
 const filteredMunScores = computed(() =>
-  visibleMunicipalityScores.value.filter(ms => parseFloat(ms.percentage_rated) >= 98),
+  visibleMunicipalityScores.value,
 );
 
 const availableStates = computed(() => {
@@ -1028,7 +1029,7 @@ async function fetchStatsForCatalog(catalogVersionId) {
   const [municipalities, municipalityScores, measures, ratings] = await Promise.all([
     $directus.request($readItems('municipalities', { fields: ['id', 'name', 'slug', 'localteam_id', 'population'], limit: -1 })),
     $directus.request($readItems('municipality_scores', {
-      fields: ['*', { municipality: ['id', 'name', 'slug', 'localteam_id', 'status', 'state', 'municipality_type', 'population'] }],
+      fields: ['*', { municipality: ['id', 'name', 'slug', 'localteam_id', 'state', 'municipality_type', 'population'] }],
       filter: { catalog_version: { _eq: catalogVersionId } },
       limit: -1,
     })),

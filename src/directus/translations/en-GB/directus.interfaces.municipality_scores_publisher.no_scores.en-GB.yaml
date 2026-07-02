@@ -1,0 +1,3 @@
+language: en-GB
+key: directus.interfaces.municipality_scores_publisher.no_scores
+value: No catalog scores have been generated for this municipality yet.

@@ -222,6 +222,7 @@ export default {
       } catch (error: unknown) {
         const msg =
           (error as { response?: { data?: { message?: string } } }).response?.data?.message ??
+          (error as { response?: { data?: { error?: string } } }).response?.data?.error ??
           (error as Error).message ??
           'Unknown error';
         alert('Fehler beim Akzeptieren: ' + msg);
@@ -245,6 +246,7 @@ export default {
       } catch (error: unknown) {
         const msg =
           (error as { response?: { data?: { message?: string } } }).response?.data?.message ??
+          (error as { response?: { data?: { error?: string } } }).response?.data?.error ??
           (error as Error).message ??
           'Unknown error';
         alert('Fehler beim Aktualisieren des Newsletters: ' + msg);

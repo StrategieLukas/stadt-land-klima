@@ -57,6 +57,11 @@
             {{ question.thesis }}
           </div>
 
+          <ElectionsQuestionBackgroundInfo
+            :content="question.background_information"
+            class="mb-6 sm:ml-12"
+          />
+
           <!-- Rating Scale -->
           <div class="ml-0 sm:ml-12">
             <div

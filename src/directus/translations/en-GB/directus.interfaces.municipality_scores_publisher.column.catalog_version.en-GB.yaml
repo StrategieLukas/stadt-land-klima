@@ -1,0 +1,3 @@
+language: en-GB
+key: directus.interfaces.municipality_scores_publisher.column.catalog_version
+value: Catalog version

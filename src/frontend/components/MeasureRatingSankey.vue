@@ -273,11 +273,11 @@ async function fetchAll() {
     }
 
     async function fetchCoverageIds(versionId) {
-      // Returns the set of localteam_ids of published municipalities in this catalog version
+      // Returns the set of localteam_ids with a published score in this catalog version
       const rows = await $directus.request(
         $readItems('municipality_scores', {
           fields: [{ municipality: ['localteam_id'] }],
-          filter: { catalog_version: { _eq: versionId }, municipality: { status: { _eq: 'published' } } },
+          filter: { catalog_version: { _eq: versionId }, published: { _eq: true } },
           limit: -1,
         }),
       )
@@ -318,14 +318,16 @@ async function fetchAll() {
     for (const ltId of rightCoverage) { if (rightMap[ltId] === undefined) rightMap[ltId] = 'unrated' }
 
     // 4. Collect all unique localteam IDs
+    const publishedLtIds = new Set([...leftCoverage, ...rightCoverage])
     const allLtIds = [...new Set([...Object.keys(leftMap), ...Object.keys(rightMap)])]
+      .filter(ltId => publishedLtIds.has(ltId))
 
     // 5. Batch-fetch municipality slugs + names
     const muniRows = allLtIds.length
       ? await $directus.request(
           $readItems('municipalities', {
             fields: ['localteam_id', 'slug', 'name'],
-            filter: { localteam_id: { _in: allLtIds }, status: { _eq: 'published' } },
+            filter: { localteam_id: { _in: allLtIds } },
             limit: -1,
           }),
         )
@@ -336,9 +338,9 @@ async function fetchAll() {
       if (ltId) ltToMuni[ltId] = { slug: m.slug, name: m.name }
     }
 
-    // 6. Assemble municipality list — only include published municipalities (those present in ltToMuni)
+    // 6. Assemble municipality list — only include localteams with a published score row
     munis.value = allLtIds
-      .filter(ltId => ltToMuni[ltId]) // skip localteam IDs with no published municipality
+      .filter(ltId => ltToMuni[ltId])
       .map(ltId => ({
         key:         ltId,
         name:        ltToMuni[ltId].name,

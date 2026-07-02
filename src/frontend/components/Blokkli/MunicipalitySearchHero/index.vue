@@ -262,25 +262,36 @@ onMounted(async () => {
   try {
     const { $directus, $readItems } = useNuxtApp() as any
 
-    // Fetch municipalities with their latest score
+    const catalogs: any[] = await $directus.request(
+      $readItems('measure_catalog', {
+        fields: ['id'],
+        filter: { isCurrentFrontend: { _eq: true } },
+        limit: 1,
+      }),
+    )
+    const catalogId = catalogs?.[0]?.id
+    if (!catalogId) return
+
+    // Fetch municipalities with a published score in the current frontend catalog.
     const data: any[] = await $directus.request(
-      $readItems('municipalities', {
+      $readItems('municipality_scores', {
         limit: 2500,
-        sort: ['-population'],
-        fields: ['id', 'name', 'slug', 'population', 'scores.score_total', 'scores.percentage_rated'],
-        filter: { status: { _eq: 'published' } },
+        sort: ['-municipality.population'],
+        fields: ['score_total', 'percentage_rated', { municipality: ['id', 'name', 'slug', 'population'] }],
+        filter: { catalog_version: { _eq: catalogId }, published: { _eq: true } },
       }),
     )
 
     // Flatten: each municipality → { id, name, slug, population, score_total, percentage_rated }
-    const flat = data.map((m: any) => ({
-      id: m.id as string,
-      name: m.name as string,
-      slug: (m.slug as string) || null,
-      population: Number(m.population) || 0,
-      score_total: m.scores?.[0]?.score_total ?? null,
-      percentage_rated: m.scores?.[0]?.percentage_rated ?? null,
+    const flat = data.map((score: any) => ({
+      id: score.municipality?.id as string,
+      name: score.municipality?.name as string,
+      slug: (score.municipality?.slug as string) || null,
+      population: Number(score.municipality?.population) || 0,
+      score_total: score.score_total ?? null,
+      percentage_rated: score.percentage_rated ?? null,
     }))
+      .filter((m: any) => m.id && m.name)
 
     wordItems.value = buildCloudLayout(flat)
   } catch (e) {

@@ -45,9 +45,9 @@ interface UnsplashApiSearchResponse {
 }
 
 interface SearchQuery {
-  q?: string;
-  page?: string;
-  per_page?: string;
+  q?: string | string[];
+  page?: string | string[];
+  per_page?: string | string[];
 }
 
 interface TriggerDownloadBody {
@@ -98,9 +98,14 @@ function isAuthenticated(req: Request): boolean {
  * Parse a positive integer query-string parameter, clamped to [min, max].
  * Falls back to `defaultValue` when the input is absent or not a valid number.
  */
-function parseIntParam(raw: string | undefined, defaultValue: number, min: number, max: number): number {
-  if (raw == null) return defaultValue;
-  const parsed = parseInt(raw, 10);
+function firstQueryValue(raw: string | string[] | undefined): string | undefined {
+  return Array.isArray(raw) ? raw[0] : raw;
+}
+
+function parseIntParam(raw: string | string[] | undefined, defaultValue: number, min: number, max: number): number {
+  const value = firstQueryValue(raw);
+  if (value == null) return defaultValue;
+  const parsed = parseInt(value, 10);
   if (!Number.isFinite(parsed)) return defaultValue;
   return Math.min(max, Math.max(min, parsed));
 }
@@ -118,7 +123,7 @@ export default {
     // ------------------------------------------------------------------
     // Configuration guard
     // ------------------------------------------------------------------
-    const ACCESS_KEY: string | undefined = env['UNSPLASH_ACCESS_KEY'];
+    const ACCESS_KEY: string | undefined = env['UNSPLASH_ACCESS_KEY'] || process.env.UNSPLASH_ACCESS_KEY;
 
     if (!ACCESS_KEY) {
       logger.error('[unsplash] UNSPLASH_ACCESS_KEY is not set – all requests will be rejected');
@@ -147,7 +152,7 @@ export default {
           return res.status(401).json({ error: 'Authentication required' });
         }
 
-        const q = (req.query.q ?? '').trim();
+        const q = String(firstQueryValue(req.query.q) ?? '').trim();
         if (!q) {
           return res.status(400).json({ error: 'Missing required query parameter "q"' });
         }
@@ -236,12 +241,12 @@ export default {
           return res.status(400).json({ error: 'Malformed download_location URL' });
         }
 
-        if (parsed.hostname !== 'api.unsplash.com') {
-          return res.status(400).json({ error: 'download_location must point to api.unsplash.com' });
+        if (parsed.protocol !== 'https:' || parsed.hostname !== 'api.unsplash.com') {
+          return res.status(400).json({ error: 'download_location must point to https://api.unsplash.com' });
         }
 
         try {
-          await fetch(download_location, {
+          await fetch(parsed.toString(), {
             headers: unsplashHeaders,
             signal: timeoutSignal(FETCH_TIMEOUT_MS),
           });

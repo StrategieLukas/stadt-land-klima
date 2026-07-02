@@ -278,7 +278,7 @@ export default (router: Router, { services }: { services: Services }) => {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const { subscribeNewsletter } = req.body as { subscribeNewsletter?: boolean };
+      const { subscribeNewsletter } = (req.body ?? {}) as { subscribeNewsletter?: boolean };
 
       const consentsService = new ItemsService('user_consent', {
         accountability: null,
@@ -297,6 +297,7 @@ export default (router: Router, { services }: { services: Services }) => {
 
       if (!agbVersion || !dataProtectionVersion) {
         return res.status(500).json({
+          message: 'Required agreement versions (AGB / data protection) are not configured',
           error: 'Required agreement versions (AGB / data protection) are not configured',
         });
       }

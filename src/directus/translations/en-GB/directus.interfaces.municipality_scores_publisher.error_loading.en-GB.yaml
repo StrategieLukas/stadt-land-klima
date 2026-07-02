@@ -1,0 +1,3 @@
+language: en-GB
+key: directus.interfaces.municipality_scores_publisher.error_loading
+value: Catalog scores could not be loaded.

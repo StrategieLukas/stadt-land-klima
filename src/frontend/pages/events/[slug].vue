@@ -40,8 +40,7 @@
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <span>{{ formatDate(event.start_date) }}</span>
-          <span v-if="event.end_date && event.end_date !== event.start_date"> – {{ formatDate(event.end_date) }}</span>
+          <time :datetime="event.start_date">{{ formatEventDateTimeRange(event.start_date, event.end_date, $locale) }}</time>
         </div>
         <div v-if="event.location" class="flex items-center gap-1">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,6 +112,7 @@
 
 <script setup>
 import { useReferrer } from "~/composables/useReferrer";
+import { formatEventDateTimeRange } from "~/shared/eventDateTime";
 import { isRaster } from "~/shared/utils";
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 const { backHref, backLabel } = useReferrer("/events", $t("news.all_events"));
@@ -161,8 +161,4 @@ function eventTypeLabel(type) {
   return translated === `events.type.${type}` ? type : translated;
 }
 
-function formatDate(iso) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString($locale, { day: "2-digit", month: "long", year: "numeric" });
-}
 </script>
