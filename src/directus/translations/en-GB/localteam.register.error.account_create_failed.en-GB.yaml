@@ -1,0 +1,3 @@
+language: en-GB
+key: localteam.register.error.account_create_failed
+value: Account could not be created

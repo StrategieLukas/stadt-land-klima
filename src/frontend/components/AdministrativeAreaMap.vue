@@ -23,8 +23,8 @@
       
       <!-- Display center point -->
       <LCircleMarker
-        v-if="geoCenter"
-        :lat-lng="geoCenter"
+        v-if="geoCenterLatLng"
+        :lat-lng="geoCenterLatLng"
         :radius="8"
         :options="markerOptions"
       />
@@ -57,12 +57,24 @@ const mapReady = ref(false)
 // Default center (Germany)
 const defaultCenter = [51.1657, 10.4515]
 
-const center = computed(() => {
-  if (props.geoCenter?.coordinates) {
-    // GeoJSON coordinates are [longitude, latitude], but Leaflet expects [latitude, longitude]
-    return [props.geoCenter.coordinates[1], props.geoCenter.coordinates[0]]
+const geoCenterLatLng = computed(() => {
+  const coordinates = props.geoCenter?.coordinates
+  if (!Array.isArray(coordinates) || coordinates.length < 2) {
+    return null
   }
-  return defaultCenter
+
+  const longitude = Number(coordinates[0])
+  const latitude = Number(coordinates[1])
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null
+  }
+
+  // GeoJSON coordinates are [longitude, latitude], but Leaflet expects [latitude, longitude].
+  return [latitude, longitude]
+})
+
+const center = computed(() => {
+  return geoCenterLatLng.value ?? defaultCenter
 })
 
 const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
@@ -167,12 +179,12 @@ watch(() => props.geoArea, () => {
 }, { deep: true })
 
 // Also watch for changes in geoCenter if no geoArea
-watch(() => props.geoCenter, (newGeoCenter) => {
-  if (!props.geoArea && newGeoCenter && mapReady.value) {
+watch(() => props.geoCenter, () => {
+  const latLng = geoCenterLatLng.value
+  if (!props.geoArea && latLng && mapReady.value) {
     const leafletMap = map.value?.leafletObject
     if (leafletMap) {
-      const centerLatLng = [newGeoCenter.coordinates[1], newGeoCenter.coordinates[0]]
-      leafletMap.setView(centerLatLng, 12)
+      leafletMap.setView(latLng, 12)
     }
   }
 }, { deep: true })
