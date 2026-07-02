@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Introduction -->
-    <div class="bg-white p-8 rounded-xl shadow-list border border-gray/10 text-center">
+    <div class="bg-white p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <img 
           src="~/assets/images/Stadt-Land-Klima-Blume.svg" 
@@ -18,7 +18,7 @@
       <p v-if="localteam" class="text-sm text-mid-gray mt-4">
 	        <strong>{{ $t("localteam.singular") }}:</strong> {{ localteam.municipality_name || localteam.name }}
       </p>
-      <p class="text-xs text-gray/50 mt-2">
+      <p class="text-xs text-solid-gray-50 mt-2">
 	        {{ $t("elections.wahlcheck.questions.skip_hint") }}
       </p>
     </div>
@@ -26,7 +26,7 @@
     <!-- Single Question Display -->
     <div v-if="props.questions.length > 0" class="space-y-6">
       <div 
-        class="bg-white p-6 rounded-xl shadow-list border border-gray/10 transition-all"
+        class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10 transition-all"
         :class="{
           'ring-2 ring-ff-green': true,
           'opacity-60': completedQuestions.has(currentQuestion.id)
@@ -86,7 +86,7 @@
             <input
               type="checkbox"
               v-model="skippedQuestions[currentQuestion.id]"
-              class="checkbox checkbox-sm border-gray/30"
+              class="checkbox checkbox-sm border-solid-gray-30"
               @change="handleSkipChange(currentQuestion.id)"
             />
 	            <span>{{ $t("elections.wahlcheck.questions.skip") }}</span>
@@ -95,7 +95,7 @@
       </div>
 
       <!-- Navigation Buttons -->
-      <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
+      <div class="flex justify-between items-center mt-8 pt-6 border-t border-solid-gray-10">
         <div class="text-sm text-mid-gray">
 	          {{ $t("elections.wahlcheck.questions.answered_count", { ":count": completedCount, ":total": props.questions.length }) }}
         </div>
@@ -132,8 +132,8 @@
           class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all"
           :class="{
             'bg-ff-green text-white border-ff-green': currentQuestionIndex === idx,
-            'bg-white border-gray/30 text-gray hover:border-ff-green': currentQuestionIndex !== idx,
-            'bg-ff-green/10 border-ff-green/30': completedQuestions.has(q.id)
+            'bg-white border-solid-gray-30 text-gray hover:border-ff-green': currentQuestionIndex !== idx,
+            'bg-solid-ff-green-10 border-solid-ff-green-30': completedQuestions.has(q.id)
           }"
 	          :title="$t('elections.wahlcheck.questions.go_to', { ':number': idx + 1 })"
         >
@@ -193,7 +193,7 @@ props.questions.forEach(question => {
 
 function getRadioClass(value) {
   const option = ratingOptions.value.find((item) => item.value === Number(value))
-  return option?.radioClass || 'border-gray/30 text-gray'
+  return option?.radioClass || 'border-solid-gray-30 text-gray'
 }
 
 // Mark question as completed when answered
@@ -318,12 +318,12 @@ defineExpose({
 }
 
 .radio:checked + label {
-  box-shadow: 0 0 0 2px currentColor, 0 0 0 4px rgba(currentColor, 0.5);
+  box-shadow: 0 0 0 2px currentColor, 0 0 0 4px currentColor;
 }
 
 input[type="radio"]:focus,
 input[type="checkbox"]:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(175, 202, 11, 0.3);
+  box-shadow: 0 0 0 2px #e7efb6;
 }
 </style>

@@ -179,7 +179,7 @@ const headingClass = computed(() =>
 )
 
 const subtextClass = computed(() =>
-  bg.value === 'olive' ? 'text-white/80' : 'text-gray-500',
+  bg.value === 'olive' ? 'text-white' : 'text-gray-500',
 )
 
 const successClass = computed(() =>
@@ -187,7 +187,7 @@ const successClass = computed(() =>
 )
 
 const hintClass = computed(() =>
-  bg.value === 'olive' ? 'text-white/50' : 'text-gray-400',
+  bg.value === 'olive' ? 'text-white' : 'text-gray-400',
 )
 
 // olive bg → white button so it contrasts; all others → green

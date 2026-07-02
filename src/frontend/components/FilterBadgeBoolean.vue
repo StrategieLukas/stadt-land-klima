@@ -1,14 +1,5 @@
 <template>
-  <button
-    type="button"
-    @click="toggle"
-    :class="[
-      'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border transition-colors whitespace-nowrap',
-      modelValue
-        ? 'bg-[#16BAE7] text-white border-[#16BAE7]'
-        : 'bg-white text-[#16BAE7] border-[#16BAE7] hover:bg-[#E8F7FD]'
-    ]"
-  >
+  <button type="button" @click="toggle" class="slk-filter-pill" :class="modelValue ? 'slk-filter-pill--active' : ''">
     {{ label }}
   </button>
 </template>
@@ -19,9 +10,9 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
 function toggle() {
-  emit('update:modelValue', !props.modelValue);
+  emit("update:modelValue", !props.modelValue);
 }
 </script>

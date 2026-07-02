@@ -1,16 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: [
-    '@nuxtjs/leaflet',
-    '@blokkli/editor',
-  ],
+  modules: ["@nuxtjs/leaflet", "@blokkli/editor"],
 
   // blökkli configuration
   blokkli: {
-    itemEntityType: 'block',
-    defaultLanguage: 'de',
+    itemEntityType: "block",
+    defaultLanguage: "de",
     // Block components location pattern
-    pattern: ['components/Blokkli/**/*.vue'],
+    pattern: ["components/Blokkli/**/*.vue"],
   },
   runtimeConfig: {
     // The private keys which are only available within server-side
@@ -24,7 +21,7 @@ export default defineNuxtConfig({
     listmonkApiUsername: process.env.LISTMONK_API_USERNAME,
     listmonkApiToken: process.env.LISTMONK_API_TOKEN,
     listmonkListId: process.env.LISTMONK_LIST_ID,
-    directusServerUrl: process.env.SERVER_DIRECTUS_URL ?? 'http://directus:8055',
+    directusServerUrl: process.env.SERVER_DIRECTUS_URL ?? "http://directus:8055",
     directusAdminToken: process.env.DIRECTUS_ADMIN_TOKEN,
     appPublicUrl: process.env.PUBLIC_URL,
     directusPublicUrl: process.env.CLIENT_DIRECTUS_URL,
@@ -48,13 +45,16 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   app: {
     rootAttrs: {
-      id: 'nuxt-root',
+      id: "nuxt-root",
     },
     head: {
-      meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' }
-      ]
-    }
+      meta: [{ name: "viewport", content: "width=device-width, initial-scale=1" }],
+      script: [
+        {
+          innerHTML: `(function(){try{var key='slk_theme_preference';var light='staedteChallemgeTheme';var dark='staedteChallengeDark';var pref=localStorage.getItem(key);var mode=pref==='light'||pref==='dark'?pref:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');var root=document.documentElement;root.dataset.theme=mode==='dark'?dark:light;root.classList.toggle('dark',mode==='dark');root.style.colorScheme=mode;}catch(e){}})();`,
+        },
+      ],
+    },
   },
   css: ["~/assets/css/main.css"],
   postcss: {
@@ -64,10 +64,10 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
-    preset: 'node-server',
+    preset: "node-server",
     routeRules: {
-      '/**': {
-        headers: { 'Referrer-Policy': 'strict-origin-when-cross-origin' },
+      "/**": {
+        headers: { "Referrer-Policy": "strict-origin-when-cross-origin" },
       },
     },
     rollupConfig: {
@@ -75,10 +75,10 @@ export default defineNuxtConfig({
         {
           // Handles `import foo from '~/...svg?raw'` in the Nitro/SSR bundle.
           // Regular .svg imports (used as <img src>) now use /public/icons/ paths instead.
-          name: 'svg-raw-loader',
+          name: "svg-raw-loader",
           transform(code: string, id: string) {
-            if (id.includes('.svg')) {
-              return { code: `export default ${JSON.stringify(code)}`, map: null }
+            if (id.includes(".svg")) {
+              return { code: `export default ${JSON.stringify(code)}`, map: null };
             }
           },
         },
@@ -86,16 +86,16 @@ export default defineNuxtConfig({
     },
   },
   vite: {
-     define: {
-          __VUE_OPTIONS_API__: false,
-          __VUE_PROD_DEVTOOLS__: false,
-          __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
-        },
+    define: {
+      __VUE_OPTIONS_API__: false,
+      __VUE_PROD_DEVTOOLS__: false,
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+    },
   },
   vue: {
     compilerOptions: {
       // Treat altcha-widget as a native custom element so Vue doesn't try to resolve it as a component
-      isCustomElement: (tag: string) => tag === 'altcha-widget',
+      isCustomElement: (tag: string) => tag === "altcha-widget",
     },
   },
-})
+});

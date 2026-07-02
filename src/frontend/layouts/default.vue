@@ -1,8 +1,7 @@
 <template>
   <!-- Root is a plain block div — nothing here has overflow/transform/will-change
        so the header's sticky top-0 resolves against the viewport scroll container. -->
-  <div class="flex flex-col min-h-screen text-neutral font-sans">
-
+  <div class="flex min-h-screen flex-col font-sans text-neutral">
     <!-- ── Header: lives ABOVE the DaisyUI drawer so sticky always works ── -->
     <!-- Desktop header: rendered immediately in SSR (isDesktop defaults to true via useState).
          This eliminates the post-hydration lag where main content appeared before the nav bar.
@@ -19,22 +18,22 @@
          Split into two CSS-driven divs so the correct height is applied even
          pre-hydration, when isDesktop JS defaults to true on every device. -->
     <!-- Mobile (<sm): always 64px via CSS only -->
-    <div class="flex-shrink-0 h-16 sm:hidden"></div>
+    <div class="h-16 flex-shrink-0 sm:hidden"></div>
     <!-- Desktop (≥sm): JS-driven height, hidden on mobile via CSS -->
-    <div class="hidden sm:block flex-shrink-0" :style="`height: ${headerSpacerHeight}px`"></div>
+    <div class="hidden flex-shrink-0 sm:block" :style="`height: ${headerSpacerHeight}px`"></div>
 
     <!-- ── DaisyUI drawer: wraps sidebar + main content only (no header) ── -->
     <div class="drawer flex-1">
       <input id="page-drawer" type="checkbox" class="drawer-toggle" ref="drawerToggle" />
 
       <div
-        class="drawer-content flex flex-col text-neutral font-sans min-w-0"
+        class="drawer-content flex min-w-0 flex-col font-sans text-neutral"
         style="overflow-x: clip"
         @click="closeDrawerOnOutsideClick"
       >
         <!-- Main Content -->
-        <main class="flex grow flex-col px-2 bg-mild-white min-w-0">
-          <div class="mx-auto w-full max-w-screen-xl flex flex-col min-w-0">
+        <main class="flex min-w-0 grow flex-col bg-mild-white px-2">
+          <div class="mx-auto flex w-full min-w-0 max-w-screen-xl flex-col">
             <slot />
           </div>
         </main>
@@ -72,7 +71,7 @@
     <Transition name="slk-fade">
       <div
         v-if="!isDesktop && hydrated && isDrawerOpen"
-        class="fixed inset-0 z-[49] backdrop-blur-sm bg-black/20 sm:hidden"
+        class="slk-modal-backdrop fixed inset-0 z-[49] bg-black/20 backdrop-blur-sm sm:hidden"
         @click="closeDrawer"
       />
     </Transition>
@@ -91,109 +90,107 @@
   </div>
 </template>
 
-
-
 <script setup>
-
 import lodash from "lodash";
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useHeaderHeight, useHeaderSpacerHeight } from '~/composables/useHeaderHeight.js'
+import { ref, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { useHeaderHeight, useHeaderSpacerHeight } from "~/composables/useHeaderHeight.js";
 const { includes } = lodash;
 const { $directus, $locale, $readItems, $readSingleton } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 const route = useRoute();
 const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();
-const hydrated = ref(false)
+const hydrated = ref(false);
 // useState (not ref) so server and client share the same initial value → no hydration
 // mismatch. Default true = render the desktop header in SSR so it's in the HTML
 // immediately, eliminating the post-hydration nav-bar lag for desktop users.
-const isDesktop = useState('layout-isDesktop', () => true)
-const headerHeight = useHeaderHeight()
-const headerSpacerHeight = useHeaderSpacerHeight()
-const drawerToggle = ref(null)
-let cleanup = null
+const isDesktop = useState("layout-isDesktop", () => true);
+const headerHeight = useHeaderHeight();
+const headerSpacerHeight = useHeaderSpacerHeight();
+const drawerToggle = ref(null);
+let cleanup = null;
 
 // Close drawer when clicking outside
 const closeDrawerOnOutsideClick = (event) => {
   // Only close if drawer is open and click is not on drawer toggle button
   if (drawerToggle.value && drawerToggle.value.checked) {
-    const drawerSide = document.querySelector('.drawer-side')
-    const drawerToggleButton = document.querySelector('label[for="page-drawer"]')
-    
+    const drawerSide = document.querySelector(".drawer-side");
+    const drawerToggleButton = document.querySelector('label[for="page-drawer"]');
+
     // Check if click is outside drawer and not on toggle button
-    if (drawerSide && !drawerSide.contains(event.target) && 
-        (!drawerToggleButton || !drawerToggleButton.contains(event.target))) {
-      closeDrawer()
+    if (
+      drawerSide &&
+      !drawerSide.contains(event.target) &&
+      (!drawerToggleButton || !drawerToggleButton.contains(event.target))
+    ) {
+      closeDrawer();
     }
   }
-}
+};
 
 // Handle escape key
 const handleEscapeKey = (event) => {
-  if (event.key === 'Escape' && drawerToggle.value && drawerToggle.value.checked) {
-    closeDrawer()
+  if (event.key === "Escape" && drawerToggle.value && drawerToggle.value.checked) {
+    closeDrawer();
   }
-}
+};
 
 onMounted(() => {
-  hydrated.value = true
-  
+  hydrated.value = true;
+
   // Initial desktop state detection
-  const checkDesktop = () => window.innerWidth >= 640
-  isDesktop.value = checkDesktop()
-  
+  const checkDesktop = () => window.innerWidth >= 640;
+  isDesktop.value = checkDesktop();
+
   // Media query for more reliable detection
-  const mq = window.matchMedia('(min-width: 640px)')
+  const mq = window.matchMedia("(min-width: 640px)");
   const update = () => {
-    const wasDesktop = isDesktop.value
-    isDesktop.value = mq.matches
-    
+    const wasDesktop = isDesktop.value;
+    isDesktop.value = mq.matches;
+
     // If desktop state changed, force layout recalculation
     if (wasDesktop !== isDesktop.value) {
       nextTick(() => {
-        window.dispatchEvent(new Event('resize'))
+        window.dispatchEvent(new Event("resize"));
         // Force reflow
-        document.body.offsetHeight
-      })
+        document.body.offsetHeight;
+      });
     }
-  }
-  
+  };
+
   // Listen to both media query changes and resize events
-  mq.addEventListener('change', update)
-  window.addEventListener('resize', update)
-  
+  mq.addEventListener("change", update);
+  window.addEventListener("resize", update);
+
   // Add escape key listener
-  document.addEventListener('keydown', handleEscapeKey)
-  
+  document.addEventListener("keydown", handleEscapeKey);
+
   // Monitor drawer checkbox changes to sync state
-  const drawerCheckbox = document.getElementById('page-drawer')
+  const drawerCheckbox = document.getElementById("page-drawer");
   if (drawerCheckbox) {
-    drawerCheckbox.addEventListener('change', syncDrawerState)
+    drawerCheckbox.addEventListener("change", syncDrawerState);
   }
-  
+
   // Initial update
-  update()
-  
+  update();
+
   // Store cleanup function
   cleanup = () => {
-    mq.removeEventListener('change', update)
-    window.removeEventListener('resize', update)
-    document.removeEventListener('keydown', handleEscapeKey)
+    mq.removeEventListener("change", update);
+    window.removeEventListener("resize", update);
+    document.removeEventListener("keydown", handleEscapeKey);
     if (drawerCheckbox) {
-      drawerCheckbox.removeEventListener('change', syncDrawerState)
+      drawerCheckbox.removeEventListener("change", syncDrawerState);
     }
-  }
-})
+  };
+});
 
 onUnmounted(() => {
-  if (cleanup) cleanup()
-})
-
+  if (cleanup) cleanup();
+});
 
 // getCachedData: serve from SSR payload on client-side navigations instead of
 // re-fetching Directus on every page change. These datasets change rarely.
-const cachedPayload = (key, nuxtApp) =>
-  nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
+const cachedPayload = (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
 
 const { data: pages } = await useAsyncData(
   "pages",
@@ -203,14 +200,15 @@ const { data: pages } = await useAsyncData(
 
 const { data: publishedMunicipalities } = await useAsyncData(
   "municipalities",
-  () => $directus.request(
-    $readItems("municipalities", {
-      fields: ["slug", "name"],
-      sort: "name",
-      filter: { status: { _eq: "published" } },
-      limit: -1,
-    }),
-  ),
+  () =>
+    $directus.request(
+      $readItems("municipalities", {
+        fields: ["slug", "name"],
+        sort: "name",
+        filter: { status: { _eq: "published" } },
+        limit: -1,
+      }),
+    ),
   { getCachedData: cachedPayload },
 );
 

@@ -12,7 +12,7 @@
     </div>
 
     <!-- Header -->
-    <div class="bg-white p-8 rounded-xl shadow-list border border-gray/10 text-center">
+    <div class="bg-white p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <img
           src="~/assets/images/Stadt-Land-Klima-Blume.svg"
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Bar Chart Overview -->
-    <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
+    <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
         {{ $t('elections.wahlcheck.results.all_candidates') }}
       </h3>
@@ -60,7 +60,7 @@
     </div>
 
     <!-- Results Summary -->
-    <div v-if="results.length > 0" class="bg-gradient-to-r from-ff-green/10 to-stats-light/50 p-8 rounded-xl border border-ff-green/30">
+    <div v-if="results.length > 0" class="bg-gradient-to-r from-solid-ff-green-10 to-solid-stats-light-50 p-8 rounded-xl border border-solid-ff-green-30">
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
         {{ $t('elections.wahlcheck.results.top_matches') }}
       </h3>
@@ -70,7 +70,7 @@
         <div
           v-for="(result, index) in sortedResults"
           :key="result.candidateId"
-          class="bg-white rounded-xl p-6 shadow-list border border-gray/10 transition-all duration-500"
+          class="bg-white rounded-xl p-6 shadow-list border border-solid-gray-10 transition-all duration-500"
           :style="{ animationDelay: `${index * 100}ms` }"
           :class="`fade-in-up animation-delay-${index}`"
           @mouseenter="hoveredCandidate = result.candidateId"
@@ -116,7 +116,7 @@
             <!-- Expand Button -->
             <button
               @click="toggleExpand(result.candidateId)"
-              class="btn btn-circle btn-ghost btn-sm hover:bg-ff-green/10 transition-all"
+              class="btn btn-circle btn-ghost btn-sm hover:bg-solid-ff-green-10 transition-all"
               :class="{ 'rotate-180': expandedCandidate === result.candidateId }"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-stats-dark transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,7 +128,7 @@
           <!-- Expanded Details -->
           <div
             v-if="expandedCandidate === result.candidateId"
-            class="mt-6 pt-6 border-t border-gray/10 overflow-hidden transition-all duration-300"
+            class="mt-6 pt-6 border-t border-solid-gray-10 overflow-hidden transition-all duration-300"
           >
             <h5 class="font-bold text-stats-dark mb-4">{{ $t('elections.wahlcheck.results.details') }}</h5>
 
@@ -137,7 +137,7 @@
               v-if="hasSectorAgreement(result.candidateId)"
               class="grid grid-cols-2 gap-6 mb-6"
             >
-              <div class="bg-rating-4/10 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
+              <div class="bg-solid-rating-4-10 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
                 <div class="flex items-center justify-center mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
@@ -147,10 +147,10 @@
                   />
                 </div>
                 <div class="text-4xl font-bold text-rating-4">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
-                <div class="text-lg font-bold text-rating-4/90 mt-2">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
-                <div class="text-sm text-rating-4/60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.best_match") }}</div>
+                <div class="text-lg font-bold text-solid-rating-4-90 mt-2">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
+                <div class="text-sm text-solid-rating-4-60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.best_match") }}</div>
               </div>
-              <div class="bg-stats-light/50 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
+              <div class="bg-solid-stats-light-50 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
                 <div class="flex items-center justify-center mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
@@ -160,8 +160,8 @@
                   />
                 </div>
                 <div class="text-4xl font-bold text-stats-dark">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
-                <div class="text-lg font-bold text-stats-dark/80 mt-2">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
-                <div class="text-sm text-stats-dark/60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.lowest_match") }}</div>
+                <div class="text-lg font-bold text-solid-stats-dark-80 mt-2">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
+                <div class="text-sm text-solid-stats-dark-60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.lowest_match") }}</div>
               </div>
             </div>
 
@@ -169,7 +169,7 @@
             <div class="mb-4">
               <button
                 @click="toggleSort"
-                class="btn btn-sm px-4 py-1.5 rounded-full text-sm font-medium border border-gray/20 hover:border-ff-green/30 hover:bg-ff-green/5 bg-white transition-all flex items-center gap-2"
+                class="btn btn-sm px-4 py-1.5 rounded-full text-sm font-medium border border-solid-gray-20 hover:border-solid-ff-green-30 hover:bg-solid-ff-green-05 bg-white transition-all flex items-center gap-2"
               >
                 <span>{{ sortLabel }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stats-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -183,7 +183,7 @@
               <div class="min-w-[600px]">
                 <!-- Table Header -->
                 <div
-                  class="grid gap-2 px-3 py-2 bg-gray/10 rounded-t-lg font-semibold text-sm text-gray/60 border-b border-gray/20"
+                  class="grid gap-2 px-3 py-2 bg-solid-gray-10 rounded-t-lg font-semibold text-sm text-solid-gray-60 border-b border-solid-gray-20"
                   :class="hasQuestionSectors ? 'grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[40px_1fr_120px_120px]'"
                 >
                   <div class="text-center">#</div>
@@ -197,15 +197,15 @@
                 <div
                   v-for="(question, qIndex) in sortedExpandedQuestions"
                   :key="question.id"
-                  class="grid gap-2 px-3 py-2 bg-white/50 rounded-lg border-b border-gray/10 last:border-0 hover:bg-white transition-all"
+                  class="grid gap-2 px-3 py-2 bg-white rounded-lg border-b border-solid-gray-10 last:border-0 hover:bg-white transition-all"
                   :class="hasQuestionSectors ? 'grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[40px_1fr_120px_120px]'"
                 >
-                  <div class="text-sm text-gray/50 text-center pt-1">{{ question.originalIndex + 1 }}.</div>
+                  <div class="text-sm text-solid-gray-50 text-center pt-1">{{ question.originalIndex + 1 }}.</div>
                   <div class="text-sm text-black flex items-center gap-2">
                     <span>{{ question.title }}</span>
                     <span
                       v-if="doubleWeightedQuestions.has(question.id)"
-                      class="text-xs bg-ff-green/80 text-white px-1.5 py-0.5 rounded-full font-bold"
+                      class="text-xs bg-solid-ff-green-80 text-white px-1.5 py-0.5 rounded-full font-bold"
                       :title="$t('elections.wahlcheck.results.double_weighted')"
                     >2×</span>
                   </div>
@@ -230,7 +230,7 @@
                       :class="getRatingColor(userAnswers[question.id])"
                       :title="`Meine Antwort: ${getRatingLabel(userAnswers[question.id])}`"
                     ></div>
-                    <div v-else class="w-8 h-8 rounded-full bg-gray/20">
+                    <div v-else class="w-8 h-8 rounded-full bg-solid-gray-20">
                     </div>
                   </div>
 
@@ -242,7 +242,7 @@
                       :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
                       :title="`Antwort Kandidat:in: ${getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response)}`"
                     ></div>
-                    <div v-else class="w-8 h-8 rounded-full bg-gray/20">
+                    <div v-else class="w-8 h-8 rounded-full bg-solid-gray-20">
                     </div>
                   </div>
                 </div>
@@ -254,7 +254,7 @@
     </div>
 
     <!-- No Results / All Skipped -->
-    <div v-else class="bg-orange/10 border border-orange text-orange-700 p-8 rounded-xl text-center">
+    <div v-else class="bg-solid-orange-10 border border-orange text-orange-700 p-8 rounded-xl text-center">
       <div class="mb-6">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -273,7 +273,7 @@
     </div>
 
     <!-- Navigation Buttons -->
-    <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
+    <div class="flex justify-between items-center mt-8 pt-6 border-t border-solid-gray-10">
       <div class="text-sm text-mid-gray">
 	        {{ $t("elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
       </div>
@@ -288,7 +288,7 @@
         <button
           type="button"
           @click="$emit('restart')"
-          class="btn btn-outline px-6 py-2 rounded-full font-semibold border-ff-green text-ff-green hover:bg-ff-green/10"
+          class="btn btn-outline px-6 py-2 rounded-full font-semibold border-ff-green text-ff-green hover:bg-solid-ff-green-10"
         >
 	          {{ $t("generic.restart") }}
         </button>
@@ -469,7 +469,7 @@ const rankingBgColors = {
 }
 
 function getRankingBgColor(rank) {
-  return rankingBgColors[rank] || 'bg-ff-green/20'
+  return rankingBgColors[rank] || 'bg-solid-ff-green-20'
 }
 
 // Helper functions for candidate data

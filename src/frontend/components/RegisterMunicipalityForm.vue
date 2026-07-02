@@ -5,7 +5,7 @@
     <!-- Header: green tint once done, neutral while processing -->
     <div
       class="px-4 sm:px-8 pt-7 pb-5 border-b flex items-center gap-4 transition-colors duration-500"
-      :class="processingDone && !processingError ? 'bg-rating-3-light border-green/20' : 'bg-white border-gray-100'"
+      :class="processingDone && !processingError ? 'bg-rating-3-light border-solid-green-20' : 'bg-white border-gray-100'"
     >
       <div
         class="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-colors duration-500"
@@ -87,7 +87,7 @@
 
         <!-- Onboarding -->
         <div class="flex gap-4">
-          <div class="flex-shrink-0 w-9 h-9 rounded-full bg-green/10 flex items-center justify-center mt-0.5">
+          <div class="flex-shrink-0 w-9 h-9 rounded-full bg-solid-green-10 flex items-center justify-center mt-0.5">
             <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
