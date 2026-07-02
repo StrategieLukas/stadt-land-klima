@@ -122,6 +122,12 @@
       font-size: 0.85rem;
       color: var(--subtle);
     }
+
+    #refresh-countdown {
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
   </style>
 </head>
 <body>
@@ -142,6 +148,11 @@
       <span id="meta-prefix">Wartungsarbeiten seit</span> <strong id="start-time">-</strong> (<strong id="duration">-</strong>)
     </div>
     <p class="tz" id="timezone-info">Zeitzone: Europe/Berlin</p>
+    <p class="tz" id="refresh-info">
+      <span id="refresh-label">Automatische Aktualisierung in</span>
+      <strong id="refresh-countdown">60</strong>
+      <span id="refresh-unit">Sek</span>
+    </p>
     <p class="foot" id="foot">Vielen Dank für eure Geduld.</p>
   </main>
 
@@ -150,10 +161,13 @@
     (function () {
       var translations = {
         de: {
+          pageTitle: "Wartungsarbeiten",
           title: "Wir sind gleich wieder da",
           subtitle: "Wir spielen gerade ein Update ein. In ein paar Minuten sollte alles wieder wie gewohnt verfügbar sein.",
           metaPrefix: "Wartungsarbeiten seit",
           timezoneLabel: "Zeitzone",
+          refreshLabel: "Automatische Aktualisierung in",
+          refreshUnit: "Sek",
           unknown: "unbekannt",
           running: "laufend",
           foot: "Vielen Dank für eure Geduld.",
@@ -163,10 +177,13 @@
           unitMinute: "Min"
         },
         en: {
+          pageTitle: "Maintenance",
           title: "We will be back shortly",
           subtitle: "We are currently deploying an update. Everything should be available again in a few minutes.",
           metaPrefix: "Maintenance since",
           timezoneLabel: "Time zone",
+          refreshLabel: "Automatic refresh in",
+          refreshUnit: "sec",
           unknown: "unknown",
           running: "in progress",
           foot: "Thank you for your patience.",
@@ -176,10 +193,13 @@
           unitMinute: "min"
         },
         it: {
+          pageTitle: "Manutenzione",
           title: "Torniamo subito",
           subtitle: "Stiamo distribuendo un aggiornamento. Tra pochi minuti tutto dovrebbe essere di nuovo disponibile.",
           metaPrefix: "Manutenzione dalle",
           timezoneLabel: "Fuso orario",
+          refreshLabel: "Aggiornamento automatico tra",
+          refreshUnit: "sec",
           unknown: "sconosciuto",
           running: "in corso",
           foot: "Grazie per la vostra pazienza.",
@@ -191,9 +211,13 @@
       };
 
       function resolveLocale() {
-        var stored = localStorage.getItem("slk-maintenance-locale");
-        if (stored && translations[stored]) {
-          return stored;
+        try {
+          var stored = localStorage.getItem("slk-maintenance-locale");
+          if (stored && translations[stored]) {
+            return stored;
+          }
+        } catch (error) {
+          // ignore storage access errors
         }
 
         var candidate = (navigator.language || "de").toLowerCase();
@@ -208,9 +232,58 @@
 
       var locale = resolveLocale();
       var t = translations.de;
+      var REFRESH_INTERVAL_SECONDS = 60;
+      var refreshRemaining = REFRESH_INTERVAL_SECONDS;
 
       var startRaw = window.__MAINTENANCE_STARTED_AT || "";
       var startDate = startRaw ? new Date(startRaw) : null;
+      var plausibleAnalyticsUrl = (window.__PLAUSIBLE_ANALYTICS_URL || "").replace(/\/$/, "");
+      var plausibleAnalyticsDomain = window.__PLAUSIBLE_ANALYTICS_DOMAIN || window.location.hostname;
+      var plausibleCampaign = window.__PLAUSIBLE_UTM_CAMPAIGN || "maintenance_mode";
+
+      function ensureCampaignInUrl(campaign) {
+        if (!campaign || typeof URL === "undefined" || typeof history === "undefined" || !history.replaceState) {
+          return;
+        }
+
+        try {
+          var current = new URL(window.location.href);
+          current.searchParams.set("utm_campaign", campaign);
+          history.replaceState({}, "", current.toString());
+        } catch (error) {
+          // ignore URL handling errors
+        }
+      }
+
+      function loadPlausible() {
+        if (!plausibleAnalyticsUrl) {
+          return;
+        }
+
+        if (document.querySelector("script[data-slk-plausible='true']")) {
+          return;
+        }
+
+        var script = document.createElement("script");
+        script.defer = true;
+        script.setAttribute("data-domain", plausibleAnalyticsDomain);
+        script.setAttribute("data-slk-plausible", "true");
+        script.src = plausibleAnalyticsUrl + "/js/script.js";
+        document.head.appendChild(script);
+      }
+
+      function trackMaintenanceView() {
+        if (typeof window.plausible !== "function") {
+          return;
+        }
+
+        window.plausible("maintenance_page_view", {
+          props: {
+            utm_campaign: plausibleCampaign,
+            locale: locale
+          }
+        });
+      }
 
       function updateLanguageButtons(activeLocale) {
         var buttons = document.querySelectorAll("[data-lang]");
@@ -225,10 +298,13 @@
         t = translations[locale] || translations.de;
 
         document.documentElement.lang = locale;
+        document.title = t.pageTitle;
         document.getElementById("title").textContent = t.title;
         document.getElementById("subtitle").textContent = t.subtitle;
         document.getElementById("meta-prefix").textContent = t.metaPrefix;
         document.getElementById("timezone-info").textContent = t.timezoneLabel + ": Europe/Berlin";
+        document.getElementById("refresh-label").textContent = t.refreshLabel;
+        document.getElementById("refresh-unit").textContent = t.refreshUnit;
         document.getElementById("foot").textContent = t.foot;
         updateLanguageButtons(locale);
 
@@ -253,7 +329,7 @@
 
       function formatDuration(ms) {
         if (ms < 0) {
-          return "0 Minuten";
+          return "0 " + t.unitMinute;
         }
 
         var totalMinutes = Math.floor(ms / 60000);
@@ -275,6 +351,11 @@
 
       var startEl = document.getElementById("start-time");
       var durationEl = document.getElementById("duration");
+      var refreshCountdownEl = document.getElementById("refresh-countdown");
+
+      function renderRefreshCountdown() {
+        refreshCountdownEl.textContent = String(refreshRemaining);
+      }
 
       function renderDuration() {
         if (!(startDate instanceof Date) || Number.isNaN(startDate.getTime())) {
@@ -294,12 +375,26 @@
         button.addEventListener("click", function () {
           applyLocale(button.getAttribute("data-lang") || "de");
           renderAll();
+          trackMaintenanceView();
         });
       });
 
+      ensureCampaignInUrl(plausibleCampaign);
+      loadPlausible();
       applyLocale(locale);
       renderAll();
+      renderRefreshCountdown();
+      trackMaintenanceView();
       window.setInterval(renderDuration, 30000);
+
+      window.setInterval(function () {
+        refreshRemaining -= 1;
+        if (refreshRemaining <= 0) {
+          window.location.reload();
+          return;
+        }
+        renderRefreshCountdown();
+      }, 1000);
     })();
   </script>
 </body>
