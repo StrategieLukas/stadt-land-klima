@@ -83,8 +83,8 @@ export default defineEventHandler(async (event) => {
     if (arsCheck.data?.length > 0) {
       throw createRegistrationError(
         422,
-        'Für diese Gemeinde existiert bereits ein Lokalteam. Bitte wende dich an info@stadt-land-klima.de, wenn du mitarbeiten möchtest.',
-        registrationErrorData(steps),
+        'Für diese Gemeinde existiert bereits ein Lokalteam oder eine noch nicht veröffentlichte Registrierung. Bitte wende dich an info@stadt-land-klima.de, wenn du mitarbeiten möchtest.',
+        registrationErrorData(steps, undefined, 'localteam.register.error.municipality_already_registered'),
       );
     }
   } catch (err: any) {

@@ -7,7 +7,7 @@
       <div v-if="successMessage" class="py-4">
         <p class="text-green font-semibold">{{ successMessage }}</p>
         <button class="mt-3 text-sm text-light-blue hover:underline" @click="resetForm">
-          Weitere Nachricht senden
+          {{ $t("feedback.form.send_another") }}
         </button>
       </div>
 
@@ -50,6 +50,16 @@
           <input v-model="form.contact" type="email" autocomplete="email" class="w-full border rounded p-2" required />
         </div>
 
+        <!-- Copy to sender -->
+        <label class="mb-4 flex items-start gap-3 text-sm">
+          <input
+            v-model="form.sendCopy"
+            type="checkbox"
+            class="checkbox checkbox-sm mt-0.5 border-gray-300"
+          />
+          <span>{{ $t("feedback.form.send_copy") }}</span>
+        </label>
+
         <!-- Altcha CAPTCHA -->
         <div class="mb-4">
           <ClientOnly>
@@ -57,12 +67,12 @@
               ref="altchaRef"
               challenge="/api/altcha"
               hidefooter
-              language="de"
+              :language="$locale.startsWith('en') ? 'en' : 'de'"
               style="--altcha-border-radius: 4px; width: 100%;"
             />
             <template #fallback>
               <div class="h-14 bg-gray-50 border border-gray-200 rounded flex items-center justify-center">
-                <span class="text-xs text-gray-400">Sicherheitsabfrage wird geladen …</span>
+                <span class="text-xs text-gray-400">{{ $t("captcha.loading") }}</span>
               </div>
             </template>
           </ClientOnly>
@@ -78,7 +88,7 @@
           :disabled="loading"
           class="w-full bg-[#AFCA0B] text-white font-bold py-2 rounded hover:bg-green disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span v-if="loading">Wird gesendet …</span>
+          <span v-if="loading">{{ $t("feedback.form.submit.loading") }}</span>
           <span v-else>{{ $t("feedback.form.submit") }}</span>
         </button>
       </form>
@@ -89,9 +99,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
-const { $t } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 const route = useRoute();
 
 useHead({ title: ref($t("feedback.nav_label")) });
@@ -105,6 +115,7 @@ const form = ref({
   content: route.query.content ? String(route.query.content) : '',
   name:    '',
   contact: '',
+  sendCopy: false,
 })
 
 // Altcha
@@ -145,7 +156,7 @@ async function submitFeedback() {
 
   const payload = altchaPayload.value || document.querySelector('altcha-widget')?.value
   if (!payload) {
-    captchaError.value = 'Bitte bestätige zunächst die Sicherheitsabfrage.'
+    captchaError.value = $t('captcha.required')
     return
   }
 
@@ -159,10 +170,13 @@ async function submitFeedback() {
         content: form.value.content,
         name:    form.value.name,
         contact: form.value.contact,
+        sendCopy: form.value.sendCopy,
         altcha:  payload,
       },
     })
-    successMessage.value = $t('feedback.form.submit.success')
+    successMessage.value = form.value.sendCopy
+      ? $t('feedback.form.submit.success_with_copy')
+      : $t('feedback.form.submit.success')
   } catch (err) {
     errorMessage.value = err?.data?.message ?? $t('generic.technical_error')
   } finally {
@@ -171,7 +185,7 @@ async function submitFeedback() {
 }
 
 function resetForm() {
-  form.value = { title: '', type: '', content: '', name: '', contact: '' }
+  form.value = { title: '', type: '', content: '', name: '', contact: '', sendCopy: false }
   altchaPayload.value = ''
   successMessage.value = ''
   errorMessage.value = ''

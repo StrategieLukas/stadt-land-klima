@@ -7,7 +7,6 @@
 </template>
 
 <script setup>
-import colorLib from '@kurkle/color';
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { Chart } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
@@ -57,8 +56,6 @@ const treeData = computed(() => {
     });
   });
   
-  console.log("Tree Data:", data);
-
   return data;
 });
 
@@ -166,7 +163,6 @@ const chartOptions = {
     else if (elements.length == 2) {
       // measure clicked
       const element = elements[1];
-      console.log(element)
       const item = element.element.$context.raw._data.children[0];
       
       if (item && item.measure_id) {
@@ -182,7 +178,6 @@ const chartOptions = {
     tooltip: {
       callbacks: {
         title: function(context) {
-          console.log(context)
           if (context.length == 1) {
             // it's a group
             return context[0].raw._data.sectorName;
@@ -208,7 +203,7 @@ const chartOptions = {
           if (item.measure_id) {
             lines.push(`ID: ${item.measure_id}`);
             lines.push(`${$t("stats.chart.rating")}: ${getRatingString(item.rating)}`);
-            lines.push(`Gewichtung: ${item.weight}`);
+            lines.push(`${$t("measure.weight")}: ${item.weight}`);
           }
           return lines;
         }

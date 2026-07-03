@@ -179,7 +179,7 @@
             </div>
 
             <!-- Question-by-Question Comparison Table -->
-            <div>
+            <div class="overflow-x-auto pb-2">
               <div class="min-w-[600px]">
                 <!-- Table Header -->
                 <div
@@ -235,13 +235,23 @@
                   </div>
 
                   <!-- Candidate Answer -->
-                  <div class="flex justify-center">
-                    <div
-                      v-if="getCandidateAnswer(result.candidateId, question.id)"
-                      class="w-8 h-8 rounded-full shadow-sm"
-                      :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
-                      :title="`Antwort Kandidat:in: ${getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response)}`"
-                    ></div>
+                  <div class="flex items-center justify-center gap-1.5">
+                    <template v-if="getCandidateAnswer(result.candidateId, question.id)">
+                      <div
+                        class="w-8 h-8 rounded-full shadow-sm"
+                        :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
+                        :title="`Antwort Kandidat:in: ${getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response)}`"
+                      ></div>
+                      <button
+                        type="button"
+                        class="btn btn-circle btn-ghost btn-xs min-h-7 h-7 w-7 border border-gray/20 text-stats-dark hover:bg-stats-light"
+                        :aria-label="$t('elections.wahlcheck.results.show_reasoning')"
+                        :title="$t('elections.wahlcheck.results.show_reasoning')"
+                        @click="showReasoning(result.candidateId, question)"
+                      >
+                        i
+                      </button>
+                    </template>
                     <div v-else class="w-8 h-8 rounded-full bg-gray/20">
                     </div>
                   </div>
@@ -272,6 +282,41 @@
       </button>
     </div>
 
+    <dialog ref="reasoningDialog" class="modal">
+      <div class="modal-box max-w-2xl">
+        <form method="dialog">
+          <button
+            class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3"
+            :aria-label="$t('generic.close')"
+          >
+            x
+          </button>
+        </form>
+
+        <div v-if="selectedReasoning" class="space-y-4">
+          <div>
+            <p class="text-sm text-mid-gray">{{ selectedReasoning.candidateName }}</p>
+            <h3 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.results.reasoning") }}</h3>
+          </div>
+
+          <div class="rounded-lg bg-gray/5 p-4">
+            <p class="text-sm font-semibold text-black">{{ selectedReasoning.questionTitle }}</p>
+            <p class="mt-2 text-sm text-mid-gray">
+              {{ $t("elections.wahlcheck.results.candidate_rating") }}:
+              <span class="font-semibold text-black">{{ selectedReasoning.answerLabel }}</span>
+            </p>
+          </div>
+
+          <p class="whitespace-pre-line text-sm text-gray-700">
+            {{ selectedReasoning.explanation || $t("elections.wahlcheck.results.no_reasoning") }}
+          </p>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>{{ $t("generic.close") }}</button>
+      </form>
+    </dialog>
+
     <!-- Navigation Buttons -->
     <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
       <div class="text-sm text-mid-gray">
@@ -298,7 +343,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
 import sectorImages from '~/shared/sectorImages.js'
@@ -344,6 +389,8 @@ const expandedCandidate = ref(null)
 const hoveredCandidate = ref(null)
 const showConfetti = ref(false)
 const sortBy = ref('default') // 'default', 'agreement', 'disagreement'
+const reasoningDialog = ref(null)
+const selectedReasoning = ref(null)
 
 // Toggle through sort modes
 function toggleSort() {
@@ -488,6 +535,21 @@ function getCandidateAnswer(candidateId, questionId) {
     (typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate) === candidateId &&
     (typeof ans.question === 'object' ? ans.question.id : ans.question) === questionId
   )
+}
+
+async function showReasoning(candidateId, question) {
+  const answer = getCandidateAnswer(candidateId, question.id)
+  if (!answer) return
+
+  selectedReasoning.value = {
+    candidateName: getCandidateName(candidateId),
+    questionTitle: question.title,
+    answerLabel: getRatingLabel(answer.response),
+    explanation: typeof answer.explanation === 'string' ? answer.explanation.trim() : '',
+  }
+
+  await nextTick()
+  reasoningDialog.value?.showModal()
 }
 
 function normalizeSector(sector) {

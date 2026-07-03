@@ -22,7 +22,7 @@
         <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="h-auto w-10 opacity-50" />
       </figure>
 
-      <div class="has-long-links prose" v-html="measure.description_evaluation_criteria" />
+      <div class="has-long-links prose whitespace-pre-line" v-html="sanitizeHtml(measure.description_evaluation_criteria)" />
     </div>
   </div>
 

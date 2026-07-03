@@ -32,7 +32,7 @@
             >
                 <div
                 class="has-long-links prose prose-sm max-w-none"
-                v-html="sanitizeHtml(saneLinkifyStr(municipality.description))"
+                v-html="renderMarkdown(municipality.description)"
                 ></div>
             </div>
             </div>
@@ -100,12 +100,38 @@
 <script setup>
 import majorCity from '~/assets/images/major-city-dark.svg?raw';
 import minorCity from '~/assets/images/minor-city-dark.svg?raw';
+import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
-import { getScorePercentageColor, saneLinkifyStr } from "~/shared/utils.js"
+import { getScorePercentageColor } from "~/shared/utils.js"
 import { overwriteSvgStyles } from "~/shared/svg-logic.js"
 const { $t } = useNuxtApp();
 
 const MunicipalitySvg = ref('')
+
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  breaks: true,
+});
+md.linkify.set({ fuzzyLink: false });
+
+const defaultLinkOpenRenderer = md.renderer.rules.link_open || ((tokens, idx, options, env, self) => self.renderToken(tokens, idx, options));
+md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+  tokens[idx].attrSet("target", "_blank");
+  tokens[idx].attrSet("rel", "noopener noreferrer");
+  return defaultLinkOpenRenderer(tokens, idx, options, env, self);
+};
+
+const markdownAllowedAttributes = {
+  ...sanitizeHtml.defaults.allowedAttributes,
+  a: [...(sanitizeHtml.defaults.allowedAttributes.a || []), "target", "rel"],
+};
+
+function renderMarkdown(value) {
+  return sanitizeHtml(md.render(value || ""), {
+    allowedAttributes: markdownAllowedAttributes,
+  });
+}
 
 
 const props = defineProps({
