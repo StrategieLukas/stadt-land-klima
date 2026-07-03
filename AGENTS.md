@@ -164,3 +164,5 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 1. Ensure displayed text uses the proper symbols for the language, i.e. German uses proper Umlauts for ä ö ü ß and not ae/oe/ue/ss
 2. When gendered German text is used, prefer ":" over "*" as separator.
 
+## Checks
+1. Run ./test_dev.sh in the bin folder and wait for checks to complete.
