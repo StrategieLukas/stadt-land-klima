@@ -3,7 +3,7 @@
     class="border-gray-300 fixed left-0 right-0 top-0 z-50 w-full border-b bg-white transition-transform duration-300 ease-in-out"
     :style="[hidden ? 'transform: translateY(-100%)' : 'transform: translateY(0)']"
   >
-    <div class="mx-auto flex w-full max-w-screen-xl items-center px-3 py-2">
+    <div class="mx-auto flex w-full max-w-screen-xl items-center gap-3 px-3 py-2">
       <!-- Left: Logo -->
       <NuxtLink to="/" class="flex-shrink-0">
         <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-12 w-auto dark:hidden" :alt="$t('logo.alt')" />
@@ -14,29 +14,23 @@
         />
       </NuxtLink>
 
-      <div class="flex-1" />
-
-      <!-- Right: Search button -->
-      <ThemeToggle class="mr-2" />
+      <!-- Search bar fills remaining space -->
       <button
-        class="border-gray-200 text-gray-400 hover:border-gray-300 flex h-10 w-12 flex-none items-center justify-center rounded-full border-2 bg-white transition-colors"
+        class="border-gray-200 dark:border-[var(--slk-border)] flex h-10 min-w-0 flex-1 cursor-text items-center gap-2.5 rounded-full border-2 bg-white dark:bg-[var(--slk-surface-subdued)] px-4 text-left transition-colors hover:border-gray-300 dark:hover:border-[var(--slk-border-strong)]"
         @click="open()"
         :aria-label="$t('generic.search')"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4 flex-shrink-0"
+          class="text-gray-400 h-4 w-4 flex-shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
           stroke-width="2"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
-          />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
         </svg>
+        <span class="text-gray-400 dark:text-[var(--slk-text-subtle)] min-w-0 flex-1 truncate text-sm">{{ $t('search.header.placeholder') }}</span>
       </button>
     </div>
   </header>

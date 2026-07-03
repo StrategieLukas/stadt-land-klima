@@ -158,23 +158,23 @@ html[data-theme="staedteChallengeDark"] {
   --slk-text-strong: #f7fbfd;
   --slk-text-muted: #b8c4cc;
   --slk-text-subtle: #91a0aa;
-  --slk-accent-green: #c5df35;
-  --slk-green: #83c95f;
-  --slk-olive-green: #b7d96a;
-  --slk-blue: #6bd6ff;
-  --slk-blue-bright: #53d7ff;
-  --slk-orange: #ffad45;
-  --slk-red: #ff6f76;
+  --slk-accent-green: #a2b825;
+  --slk-green: #6aaa49;
+  --slk-olive-green: #96b850;
+  --slk-blue: #4ab8d4;
+  --slk-blue-bright: #3ab0ca;
+  --slk-orange: #c07828;
+  --slk-red: #d95860;
   --slk-green-tint: #203821;
   --slk-blue-tint: #173444;
   --slk-orange-tint: #402b16;
   --slk-red-tint: #3d1f24;
-  --slk-rating-0-tint: #e3b8b8;
-  --slk-rating-1-tint: #ebc596;
-  --slk-rating-2-tint: #ebdd7f;
-  --slk-rating-3-tint: #d5e066;
-  --slk-rating-4-tint: #aadcb8;
-  --slk-rating-na-tint: #c7ccd2;
+  --slk-rating-0-tint: #c8a0a0;
+  --slk-rating-1-tint: #c8a870;
+  --slk-rating-2-tint: #c8b850;
+  --slk-rating-3-tint: #aac040;
+  --slk-rating-4-tint: #80b890;
+  --slk-rating-na-tint: #8896a4;
   --slk-ranking-card-text: #101820;
   --slk-ranking-card-muted: #344054;
   --slk-municipalities-panel-bg: #203821;
@@ -270,23 +270,23 @@ html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
 
 html[data-theme="staedteChallengeDark"] .slk-filter-theme-green {
   --slk-filter-panel-bg: #203821;
-  --slk-filter-accent: #e7f46f;
-  --slk-filter-active-bg: #b9efc8;
-  --slk-filter-active-text: #101820;
+  --slk-filter-accent: #b0c520;
+  --slk-filter-active-bg: #3d9a58;
+  --slk-filter-active-text: #ffffff;
   --slk-filter-inactive-bg: #17212b;
-  --slk-filter-inactive-text: #e7f46f;
-  --slk-filter-inactive-border: #e7f46f;
+  --slk-filter-inactive-text: #b0c520;
+  --slk-filter-inactive-border: #b0c520;
   --slk-filter-hover-bg: #263f28;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-filter-theme-blue {
   --slk-filter-panel-bg: #173444;
-  --slk-filter-accent: #6bd6ff;
-  --slk-filter-active-bg: #6bd6ff;
-  --slk-filter-active-text: #101820;
+  --slk-filter-accent: #4ab8d4;
+  --slk-filter-active-bg: #2898b0;
+  --slk-filter-active-text: #ffffff;
   --slk-filter-inactive-bg: #17212b;
-  --slk-filter-inactive-text: #6bd6ff;
-  --slk-filter-inactive-border: #6bd6ff;
+  --slk-filter-inactive-text: #4ab8d4;
+  --slk-filter-inactive-border: #4ab8d4;
   --slk-filter-hover-bg: #1f4153;
 }
 
@@ -304,8 +304,8 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-neutral {
 html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
   --slk-filter-panel-bg: #1f2b36;
   --slk-filter-accent: #b8c4cc;
-  --slk-filter-active-bg: #6bd6ff;
-  --slk-filter-active-text: #101820;
+  --slk-filter-active-bg: #2898b0;
+  --slk-filter-active-text: #ffffff;
   --slk-filter-inactive-bg: #17212b;
   --slk-filter-inactive-text: #dce5ea;
   --slk-filter-inactive-border: #526575;
@@ -444,50 +444,36 @@ html[data-theme="staedteChallengeDark"] .slk-area-search-tab--active {
 }
 
 html[data-theme="staedteChallengeDark"] .slk-bright-badge {
-  color: var(--slk-page) !important;
+  color: #ffffff !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-bright-badge--teal {
-  background-color: #7ddfd2 !important;
-  border-color: #7ddfd2 !important;
+  background-color: #35b0a0 !important;
+  border-color: #35b0a0 !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-bright-badge--blue {
   background-color: var(--slk-blue) !important;
   border-color: var(--slk-blue) !important;
+  color: #ffffff !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-bright-badge--green {
-  background-color: #b9efc8 !important;
-  border-color: #b9efc8 !important;
+  background-color: #3d9a58 !important;
+  border-color: #3d9a58 !important;
+  color: #ffffff !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-bright-badge--lime {
-  background-color: #e7f46f !important;
-  border-color: #e7f46f !important;
+  background-color: #b0c520 !important;
+  border-color: #b0c520 !important;
+  color: #101820 !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-bright-badge--neutral {
-  background-color: #d8dee4 !important;
-  border-color: #d8dee4 !important;
-}
-
-html[data-theme="staedteChallengeDark"]
-  :where(
-    .bg-light-green.text-white,
-    .bg-rating-2.text-white,
-    .bg-rating-3.text-white,
-    .bg-green.text-white,
-    .bg-ff-green.text-white,
-    .bg-ff-green\/80.text-white,
-    .bg-light-blue.text-white,
-    .bg-orange.text-white,
-    .bg-\[\#AFCA0B\].text-white,
-    .bg-\[\#afca0b\].text-white,
-    .bg-\[\#16BAE7\].text-white,
-    .btn-primary.text-white
-  ) {
-  color: #101820 !important;
+  background-color: #8895a3 !important;
+  border-color: #8895a3 !important;
+  color: #ffffff !important;
 }
 
 html[data-theme="staedteChallengeDark"]
@@ -497,24 +483,29 @@ html[data-theme="staedteChallengeDark"]
     .bg-\[\#AFCA0B\].text-white,
     .bg-\[\#afca0b\].text-white
   ) {
-  background-color: #e7f46f !important;
+  color: #ffffff !important;
+  background-color: #6a7f15 !important;
 }
 
 html[data-theme="staedteChallengeDark"] :where(.bg-rating-2.text-white) {
-  background-color: #fff08a !important;
+  color: #ffffff !important;
+  background-color: #907808 !important;
 }
 
 html[data-theme="staedteChallengeDark"]
-  :where(.bg-green.text-white, .bg-ff-green.text-white, .bg-ff-green\/80.text-white) {
-  background-color: #b9efc8 !important;
+  :where(.bg-green.text-white, .bg-ff-green.text-white, .bg-ff-green\/80.text-white, .btn-primary.text-white) {
+  color: #ffffff !important;
+  background-color: #3d9a58 !important;
 }
 
 html[data-theme="staedteChallengeDark"] :where(.bg-light-blue.text-white, .bg-\[\#16BAE7\].text-white) {
-  background-color: #6bd6ff !important;
+  color: #ffffff !important;
+  background-color: #2898b0 !important;
 }
 
 html[data-theme="staedteChallengeDark"] :where(.bg-orange.text-white) {
-  background-color: #ffad45 !important;
+  color: #ffffff !important;
+  background-color: #c07018 !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-filter-sector-icon {
@@ -1238,4 +1229,29 @@ html[data-theme="staedteChallengeDark"] .kbd {
   background-color: var(--slk-surface-subdued);
   border-color: var(--slk-border);
   color: var(--slk-text-muted);
+}
+
+/* ── Stats page dark mode overrides ────────────────────────────────────────── */
+/* KPI cards */
+html[data-theme="staedteChallengeDark"] .stats-page .text-\[\#1a4a6e\] {
+  color: var(--slk-blue) !important;
+}
+html[data-theme="staedteChallengeDark"] .stats-page .border-\[\#1a4a6e\] {
+  border-color: var(--slk-blue) !important;
+}
+/* KPI card backgrounds and filter-selection buttons with bg-white */
+html[data-theme="staedteChallengeDark"] .stats-page .shadow-list.bg-white {
+  background-color: var(--slk-surface) !important;
+  color: var(--slk-text) !important;
+}
+html[data-theme="staedteChallengeDark"] .stats-page .text-gray-500 {
+  color: var(--slk-text-muted) !important;
+}
+/* Filter tab buttons using border-[#1a4a6e] text-[#1a4a6e] */
+html[data-theme="staedteChallengeDark"] .stats-page .hover\:bg-\[\#1a4a6e\]:hover {
+  background-color: var(--slk-blue) !important;
+}
+/* Municipality link button */
+html[data-theme="staedteChallengeDark"] .stats-page .bg-white.border-\[\#1a4a6e\] {
+  background-color: var(--slk-surface) !important;
 }

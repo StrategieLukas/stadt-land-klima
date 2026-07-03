@@ -918,6 +918,32 @@ import { Chart, BarController, BarElement, CategoryScale, LinearScale, Title, To
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
+const { isDark } = useTheme();
+
+const darkVegaConfig = {
+  background: '#17212b',
+  view: { fill: '#17212b', stroke: '#344454' },
+  axis: {
+    labelColor: '#8aa4b8',
+    titleColor: '#8aa4b8',
+    gridColor: '#243444',
+    domainColor: '#344454',
+    tickColor: '#344454',
+  },
+  title: { color: '#d0dce5', subtitleColor: '#8aa4b8' },
+  legend: { labelColor: '#8aa4b8', titleColor: '#8aa4b8' },
+  header: { labelColor: '#8aa4b8', titleColor: '#8aa4b8' },
+};
+
+function vegaEmbedOpts(extra = {}) {
+  return {
+    renderer: 'svg',
+    actions: false,
+    ...extra,
+    ...(isDark.value ? { config: darkVegaConfig } : {}),
+  };
+}
+
 const { $t, $directus, $readItems } = useNuxtApp();
 import { getCatalogVersion } from "~/composables/getCatalogVersion.js";
 import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions.js";
@@ -1516,7 +1542,7 @@ async function renderSunburst() {
       ],
       resolve: { scale: { theta: "independent", color: "independent" } },
     };
-    const result = await vegaEmbed(sunburstContainer.value, spec, { renderer: "svg", actions: false });
+    const result = await vegaEmbed(sunburstContainer.value, spec, vegaEmbedOpts());
     vegaViewSunburst = result.view;
 
     // Click handler: update selection, re-render sunburst with highlight + dist panel
@@ -1877,6 +1903,19 @@ watch([filterState, filterType], () => {
   });
 });
 
+// ── Re-render all active Vega charts when theme changes ───────────────────────
+watch(isDark, () => {
+  nextTick(() => {
+    if (vegaViewSunburst) { vegaViewSunburst.finalize(); vegaViewSunburst = null; }
+    if (vegaViewDist) { vegaViewDist.finalize(); vegaViewDist = null; }
+    if (vegaViewCluster) { vegaViewCluster.finalize(); vegaViewCluster = null; }
+    if (vegaViewDominance) { vegaViewDominance.finalize(); vegaViewDominance = null; }
+    if (vegaViewDominanceHeatmap) { vegaViewDominanceHeatmap.finalize(); vegaViewDominanceHeatmap = null; }
+    renderSunburst();
+    renderDistPanel();
+  });
+});
+
 function switchToClusteringTab() {
   activeTab.value = "clustering";
 }
@@ -2030,7 +2069,7 @@ async function computeDominanceAndRender() {
       },
     };
 
-    const r1 = await vegaEmbed(dominanceRankContainer.value, rankSpec, { renderer: "svg", actions: false });
+    const r1 = await vegaEmbed(dominanceRankContainer.value, rankSpec, vegaEmbedOpts());
     vegaViewDominance = r1.view;
 
     // ── Dominance heatmap ──────────────────────────────────────────────────────
@@ -2076,7 +2115,7 @@ async function computeDominanceAndRender() {
       },
     };
 
-    const r2 = await vegaEmbed(dominanceHeatmapContainer.value, heatSpec, { renderer: "svg", actions: false });
+    const r2 = await vegaEmbed(dominanceHeatmapContainer.value, heatSpec, vegaEmbedOpts());
     vegaViewDominanceHeatmap = r2.view;
 
     // ── Force-directed graph ──────────────────────────────────────────────────
@@ -2166,7 +2205,7 @@ async function computeDominanceAndRender() {
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", String(height));
     svg.style.display = "block";
-    svg.style.background = "white";
+    svg.style.background = isDark.value ? '#17212b' : 'white';
 
     const linksGroup = document.createElementNS(ns, "g");
     const nodesGroup = document.createElementNS(ns, "g");
@@ -2388,7 +2427,7 @@ async function computeClusteringAndRender() {
       vegaViewCluster = null;
     }
     clusterContainer.value.innerHTML = "";
-    const result = await vegaEmbed(clusterContainer.value, spec, { actions: false, renderer: "svg" });
+    const result = await vegaEmbed(clusterContainer.value, spec, vegaEmbedOpts());
     vegaViewCluster = result.view;
 
     // Store rows for profile lookup — keep slug for sector-score lookup

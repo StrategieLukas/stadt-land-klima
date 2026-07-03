@@ -1,7 +1,7 @@
 <template>
   <header
     ref="headerEl"
-    class="border-gray-200 fixed left-0 right-0 top-0 border-b bg-white transition-[box-shadow,background] duration-300"
+    class="border-gray-200 dark:border-[var(--slk-border)] fixed left-0 right-0 top-0 border-b bg-white dark:bg-[var(--slk-surface)] transition-[box-shadow,background] duration-300"
     :class="[scrolled && !isOpen ? 'shadow-lg' : '', isOpen && embeddedInput ? 'z-[10003]' : 'z-50']"
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
@@ -41,14 +41,16 @@
         />
       </NuxtLink>
 
-      <!-- Persistent Search Bar — normal grid column, never overlaying logo/actions. -->
-      <div class="hidden min-w-0 justify-self-center xl:block xl:w-full xl:max-w-[23rem] 2xl:max-w-[28rem]">
+      <!-- Persistent Search Bar — always visible in the middle grid column. -->
+      <div class="min-w-0 w-full 2xl:max-w-[40rem] justify-self-center">
         <div
           ref="searchBarRef"
-          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150"
+          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white dark:bg-[var(--slk-surface-subdued)] px-5 transition-colors duration-150"
           :class="[
             scrolled ? 'h-10' : 'h-11',
-            searchFocused ? 'border-olive-green' : 'border-gray-200 hover:border-gray-300',
+            searchFocused
+              ? 'border-olive-green dark:border-[var(--slk-olive-green)]'
+              : 'border-gray-200 dark:border-[var(--slk-border)] hover:border-gray-300 dark:hover:border-[var(--slk-border-strong)]',
           ]"
           @click="searchInputRef?.focus()"
         >
@@ -70,7 +72,7 @@
           <input
             ref="searchInputRef"
             v-model="query"
-            class="text-gray-700 placeholder-gray-400 min-w-0 flex-1 bg-white text-sm outline-none"
+            class="text-gray-700 dark:text-[var(--slk-text)] placeholder-gray-400 dark:placeholder-[var(--slk-text-subtle)] min-w-0 flex-1 bg-transparent text-sm outline-none"
             :placeholder="$t('search.header.placeholder')"
             @focus="onSearchFocus"
             @keydown.up.prevent="moveFocusEmbedded(-1)"
@@ -108,29 +110,7 @@
 
       <!-- Actions: Login + Donate -->
       <div class="relative z-10 flex min-w-max items-center gap-2 justify-self-end">
-        <ThemeToggle class="hidden sm:inline-flex" />
-        <LanguageSelector variant="header" size="compact" class="hidden lg:inline-flex" />
-        <!-- Compact search button below xl where the centered search bar would crowd actions. -->
-        <button
-          class="border-gray-200 text-gray-400 hover:border-gray-300 flex h-10 w-12 flex-none items-center justify-center rounded-full border-2 bg-white transition-colors xl:hidden"
-          @click="open()"
-          :aria-label="$t('generic.search')"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 flex-shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
-            />
-          </svg>
-        </button>
+        <TheSettingsDropdown class="hidden sm:inline-flex" />
         <!-- Login: compact icon until 2xl, canonical button on wide desktop -->
         <a href="/backend" class="hidden sm:flex 2xl:hidden">
           <button

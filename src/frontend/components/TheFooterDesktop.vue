@@ -121,9 +121,8 @@
           </NuxtLink>
         </div>
 
-        <!-- Buttons: Language + Donate + Login -->
+        <!-- Buttons: Donate + Login -->
         <div class="flex flex-col items-center gap-4 sm:flex-row">
-          <LanguageSelector />
           <DonateButton />
           <LoginButton />
         </div>
@@ -154,7 +153,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import DonateButton from "~/components/DonateButton.vue";
-import LanguageSelector from "~/components/LanguageSelector.vue";
 import LoginButton from "~/components/LoginButton.vue";
 import AuthLoginModal from "~/components/AuthLoginModal.vue";
 import { useAuth } from "~/composables/useAuth";
