@@ -4,7 +4,9 @@ import { createAdminClient } from './lib/directus.js';
 import { TestFixture } from './lib/fixture.js';
 import { TestRunner } from './lib/runner.js';
 import { runAddUserFlow } from './flows/addUserFlow.js';
+import { runRegisterLocalteamFlow } from './flows/registerLocalteamFlow.js';
 import { runRatingWahlcheckFlow } from './flows/ratingWahlcheckFlow.js';
+import { runErfolgsprojekteArticlesFlow } from './flows/erfolgsprojekteArticlesFlow.js';
 
 async function main(): Promise<void> {
   const config = loadConfig(process.argv.slice(2));
@@ -25,6 +27,8 @@ async function main(): Promise<void> {
 
     await runAddUserFlow(runner, fixture, browser);
     await runRatingWahlcheckFlow(runner, fixture, browser);
+    await runRegisterLocalteamFlow(runner, fixture, browser);
+    await runErfolgsprojekteArticlesFlow(runner, fixture, browser);
   } catch {
     exitCode = 1;
   } finally {

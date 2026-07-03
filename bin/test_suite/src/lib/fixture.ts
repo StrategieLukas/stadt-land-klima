@@ -411,6 +411,96 @@ export class TestFixture {
     for (const id of questionIds) await ignore(`question ${id}`, () => this.admin.deleteItem('questions', id));
     for (const id of electionIds) await ignore(`election ${id}`, () => this.admin.deleteItem('elections', id));
 
+    const articles = await this.admin.readItems<{ id: number }>('articles', {
+      filter: {
+        _or: [
+          { title: { _contains: runId } },
+          { slug: { _contains: runId } },
+          { author: { _contains: runId } },
+        ],
+      },
+      fields: ['id'],
+      limit: -1,
+    }).catch(() => []);
+    const articleIds = articles.map((item) => item.id);
+
+    const externalProjects = await this.admin.readItems<{ id: number }>('external_projects', {
+      filter: { title: { _contains: runId } },
+      fields: ['id'],
+      limit: -1,
+    }).catch(() => []);
+    const externalProjectIds = externalProjects.map((item) => item.id);
+
+    if (articleIds.length > 0) {
+      const articleMeasureJunctions = await this.admin.readItems<{ id: number }>('articles_measures', {
+        filter: { articles_id: { _in: articleIds } },
+        fields: ['id'],
+        limit: -1,
+      }).catch(() => []);
+      for (const junction of articleMeasureJunctions) await ignore(
+        `article/measure junction ${junction.id}`,
+        () => this.admin.deleteItem('articles_measures', junction.id),
+      );
+
+      const articleArticleJunctions = await this.admin.readItems<{ id: number }>('articles_articles', {
+        filter: { _or: [{ articles_id: { _in: articleIds } }, { related_articles_id: { _in: articleIds } }] },
+        fields: ['id'],
+        limit: -1,
+      }).catch(() => []);
+      for (const junction of articleArticleJunctions) await ignore(
+        `article/article junction ${junction.id}`,
+        () => this.admin.deleteItem('articles_articles', junction.id),
+      );
+    }
+
+    if (articleIds.length > 0 || externalProjectIds.length > 0) {
+      const articleExternalProjectFilter =
+        articleIds.length > 0 && externalProjectIds.length > 0
+          ? { _or: [{ articles_id: { _in: articleIds } }, { external_projects_id: { _in: externalProjectIds } }] }
+          : articleIds.length > 0
+            ? { articles_id: { _in: articleIds } }
+            : { external_projects_id: { _in: externalProjectIds } };
+      const articleExternalProjectJunctions = await this.admin.readItems<{ id: number }>('articles_external_projects', {
+        filter: articleExternalProjectFilter,
+        fields: ['id'],
+        limit: -1,
+      }).catch(() => []);
+      for (const junction of articleExternalProjectJunctions) await ignore(
+        `article/external project junction ${junction.id}`,
+        () => this.admin.deleteItem('articles_external_projects', junction.id),
+      );
+    }
+
+    for (const article of articles) await ignore(`article ${article.id}`, () => this.admin.deleteItem('articles', article.id));
+    for (const project of externalProjects) await ignore(
+      `external project ${project.id}`,
+      () => this.admin.deleteItem('external_projects', project.id),
+    );
+
+    const organisations = await this.admin.readItems<{ id: number }>('organisations', {
+      filter: { name: { _contains: runId } },
+      fields: ['id'],
+      limit: -1,
+    }).catch(() => []);
+    for (const organisation of organisations) await ignore(
+      `organisation ${organisation.id}`,
+      () => this.admin.deleteItem('organisations', organisation.id),
+    );
+
+    const files = await this.admin.request<Array<{ id: string }>>('GET', '/files', {
+      query: {
+        filter: JSON.stringify({
+          _or: [
+            { title: { _contains: runId } },
+            { filename_download: { _contains: runId } },
+          ],
+        }),
+        fields: 'id',
+        limit: -1,
+      },
+    }).catch(() => []);
+    for (const file of files) await ignore(`file ${file.id}`, () => this.admin.request('DELETE', `/files/${file.id}`));
+
     const editors = await this.admin.readItems<{ id: string }>('editors', {
       filter: { email: { _contains: runId } },
       fields: ['id'],

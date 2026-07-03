@@ -71,7 +71,7 @@
         </div>
 
         <!-- Abstract -->
-        <p v-if="abstract" v-html="md.render(abstract)" class="text-gray-700 font-semibold mb-4"/>
+        <div v-if="abstract" v-html="md.render(abstract)" class="text-gray-700 font-semibold mb-4" />
 
         <!-- Main Text -->
         <div class="text-gray-700 mb-4">
@@ -87,13 +87,23 @@
               :key="m.id"
               :to="`/measures/${m.slug || m.id}`"
               class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-200 transition"
-            >{{ m.measure_id }}</NuxtLink>
+            >{{ m.name ? `${m.name} (${m.measure_id})` : m.measure_id }}</NuxtLink>
           </div>
         </div>
 
       <!-- Organisation note -->
         <p v-if="organisation" class="text-sm text-gray-600 mb-1">
            {{ $t("article.project_by", { ":organisation": organisation.name }) }}
+        </p>
+
+        <p v-if="link" class="text-sm text-gray-600 mb-1">
+          <strong>{{ $t("link") }}</strong>
+          <a
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-blue-500 hover:underline"
+          >{{ link.hostname }}</a>
         </p>
 
         <!-- Contact Information -->

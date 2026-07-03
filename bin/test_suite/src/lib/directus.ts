@@ -119,6 +119,48 @@ export class DirectusClient {
   async deleteUser(id: string): Promise<void> {
     await this.request<null>('DELETE', `/users/${id}`);
   }
+
+  async uploadFile<T>(
+    filename: string,
+    contentType: string,
+    bytes: Uint8Array,
+    title: string,
+  ): Promise<T> {
+    const url = new URL('/files', `${this.baseUrl}/`);
+    const formData = new FormData();
+    formData.set('title', title);
+    const fileBytes = new Uint8Array(bytes);
+    const fileBuffer = fileBytes.buffer.slice(
+      fileBytes.byteOffset,
+      fileBytes.byteOffset + fileBytes.byteLength,
+    ) as ArrayBuffer;
+    formData.set('file', new Blob([fileBuffer], { type: contentType }), filename);
+
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+    };
+    if (this.token) headers.Authorization = `Bearer ${this.token}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    const text = await response.text();
+    const parsed = text ? JSON.parse(text) : null;
+
+    if (!response.ok) {
+      const message =
+        parsed?.errors?.[0]?.message ??
+        parsed?.error ??
+        parsed?.message ??
+        response.statusText;
+      throw new Error(`POST ${url.pathname} failed with ${response.status}: ${message}`);
+    }
+
+    return (parsed?.data ?? parsed) as T;
+  }
 }
 
 export async function createAdminClient(baseUrl: string, env: Record<string, string>): Promise<DirectusClient> {

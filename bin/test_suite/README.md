@@ -25,6 +25,8 @@ The current suite executes:
 
 1. `add_user_flows`: localteam-admin visibility, editor invite screen, editor creation, invited user creation, role assignment, localteam junction, Directus list visibility, and expected invitation email.
 2. `rating_wahlcheck_flow`: ratings completion, preview locking/unlocking, score publish/unpublish through the Directus checkbox interface, ranking visibility, published municipality detail checks on desktop and mobile, sector-card visibility, municipality PDF generation, Wahlcheck thesis generation, extra thesis creation, candidate setup, review request, WahlcheckAdmin approval, candidate mail token generation, public candidate answer forms, public Wahlcheck overview, and public Wahlcheck result wizard.
+3. `register_localteam_flow`: frontend registration page entry, new localteam request with real Altcha/browser submit, Directus user/localteam/municipality creation, localteam-admin junction, success-state copy, expected welcome email, and the existing-localteam contact path.
+4. `erfolgsprojekte_articles_flow`: LokalteamMitglied article contribution without publish access, ErfolgsprojekteRedaktion create/edit/delete/publish access, fully populated published article detail checks on desktop and mobile, projects overview visibility, all overview filters, and savings sort behavior.
 
 ## Test Rules
 
@@ -37,6 +39,8 @@ The current suite executes:
 ## Relevant Pages
 
 - Rankings page: `/municipalities?v=<measure_catalog.name>`, for example `/municipalities?v=beta`.
+- Register localteam page: `/register_localteam` and `/register_localteam?ars=<ars>&name=<municipality>`.
+- Projects overview/detail pages: `/projects` and `/projects/<slug>`.
 - Municipality detail/preview page: `/municipalities/<slug>?v=<measure_catalog.name>` and `/municipalities/<slug>?v=<measure_catalog.name>&preview=<token>`.
 - Overall Wahlcheck page: `/elections/wahlcheck`.
 - Municipality Wahlcheck page: `/elections/wahlcheck/<slug>`.
