@@ -1,24 +1,43 @@
-# How the automatic test suite works
+# Automatic Test Suite
 
-## Developing new tests
-1. Create a new subdirectory of test_suite and add a Markdown file that gives step-by-step instructions of what to test
-2. An Agent turns this into test code in that directory and adds the new script to run_tests.sh, taking backend/frontend and env-file links from there
-3. The code is written in typescript, should share logic for classes across different tests and be compiled appropriately.
+The suite is a TypeScript runner under `bin/test_suite`. It creates disposable Directus data, drives the Directus backend app with Playwright where user-visible backend behavior matters, verifies frontend pages in a browser, and cleans up the created data.
 
-## Running the test suite
-1. Can be run with `test_dev.sh` or `test_staging.sh`, testing on prod is not recommended.
-2. Will create test accounts and run through the relevant flows, perform actions and then clean up after, so the directus state (other than logs) should not be changed afterwards
-3. Will present a list of errors found (if any)
-4. For email tasks, will ensure all emails use the domain @stadt-land-klima.de. At the end, the user will be prompted to check what emails are expected to have arrived for whom and with what content, and which links to check.
+## Running
 
-## Import Info on testing
+Use the wrapper scripts from `bin/`:
 
-- Always ensure the fields that you need to enter in Directus are visible to the user and not 'hidden'. It does not help if a feature is only available programmatically but not to the user.
-- ALWAYS Delete/Revert all resources created by this test, so that includes at least the municipality, localteam, ratings and associated wahlchecks, but potentially more.
-  Delete in a sensible order that doesn't break foreign key constraints (will be stopped by directus)
-- Combine "Ask user" segments from all run tests into one combined box at the end of run_tests.sh to give clear instructions
+```bash
+./bin/test_dev.sh
+./bin/test_staging.sh
+```
 
-### Relevant pages
-Rankings page: It lives under /municipalities in the frontend and takes the name of the measure_catalog as parameter, i.e. ?v=beta. It should default to the currentFrontend if an invalid version is supplied or none given.
-Overall Wahlcheck page: /elections/wahlcheck
-Municipality Wahlcheck page: /elections/wahlcheck/{slug}
+Or call the suite directly:
+
+```bash
+./bin/test_suite/run_tests.sh <backend-url> <frontend-url> <absolute-path-to-src/directus/.env>
+```
+
+`run_tests.sh` installs local npm dependencies on first run and launches the TypeScript runner with `tsx`.
+
+## What It Covers
+
+The current suite executes:
+
+1. `add_user_flows`: localteam-admin visibility, editor invite screen, editor creation, invited user creation, role assignment, localteam junction, Directus list visibility, and expected invitation email.
+2. `rating_wahlcheck_flow`: ratings completion, preview locking/unlocking, score publish/unpublish through the Directus checkbox interface, ranking visibility, published municipality detail checks on desktop and mobile, sector-card visibility, municipality PDF generation, Wahlcheck thesis generation, extra thesis creation, candidate setup, review request, WahlcheckAdmin approval, candidate mail token generation, public candidate answer forms, public Wahlcheck overview, and public Wahlcheck result wizard.
+
+## Test Rules
+
+- Backend visibility must be checked by opening the Directus app and reading rendered HTML. Do not infer visible behavior from permissions alone when the app can be opened.
+- Programmatic API calls are acceptable for high-volume setup or bulk data entry, but the critical user-facing controls must still be verified in the UI.
+- All generated emails use `@stadt-land-klima.de` test addresses. The suite prints one combined manual email checklist at the end because local development usually has SMTP disabled.
+- Every created resource must be cleaned up, including users, editor records, localteams, municipalities, ratings, scores, elections, questions, candidates, and answers.
+- Cleanup must delete in foreign-key-safe order.
+
+## Relevant Pages
+
+- Rankings page: `/municipalities?v=<measure_catalog.name>`, for example `/municipalities?v=beta`.
+- Municipality detail/preview page: `/municipalities/<slug>?v=<measure_catalog.name>` and `/municipalities/<slug>?v=<measure_catalog.name>&preview=<token>`.
+- Overall Wahlcheck page: `/elections/wahlcheck`.
+- Municipality Wahlcheck page: `/elections/wahlcheck/<slug>`.
+- Candidate thesis form: `/elections/thesen/<access_token>`.
