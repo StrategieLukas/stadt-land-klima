@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Header -->
-    <div class="bg-white p-8 rounded-xl shadow-list border border-gray/10 text-center">
+    <div class="bg-white p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <img 
           src="~/assets/images/Stadt-Land-Klima-Blume.svg" 
@@ -25,7 +25,7 @@
       <div 
         v-for="(question, index) in questions" 
         :key="question.id" 
-        class="bg-white p-4 rounded-lg shadow-sm border border-gray/10 transition-all"
+        class="bg-white p-4 rounded-lg shadow-sm border border-solid-gray-10 transition-all"
         :class="{
           'ring-2 ring-ff-green': doubleWeightedQuestions.has(question.id),
           'opacity-60': userAnswers[question.id] === undefined
@@ -51,7 +51,7 @@
                    :class="getRatingColor(userAnswers[question.id])" 
                    :title="getRatingLabel(userAnswers[question.id])"></div>
             </div>
-            <div v-else class="w-8 h-8 rounded-full bg-gray/20 shadow-md" :title="$t('elections.wahlcheck.questions.skip')"></div>
+            <div v-else class="w-8 h-8 rounded-full bg-solid-gray-20 shadow-md" :title="$t('elections.wahlcheck.questions.skip')"></div>
 
             <!-- Double Weight Toggle -->
             <div v-if="userAnswers[question.id] !== undefined" class="flex-shrink-0">
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Summary Stats -->
-    <div class="bg-ff-green/10 border border-ff-green/30 p-6 rounded-xl text-center">
+    <div class="bg-solid-ff-green-10 border border-solid-ff-green-30 p-6 rounded-xl text-center">
       <h3 class="text-lg font-bold text-stats-dark mb-4">{{ $t('elections.wahlcheck.summary.stats_title') }}</h3>
       <div class="flex justify-center gap-8">
         <div class="text-center">
@@ -90,7 +90,7 @@
     </div>
 
     <!-- Warning if all questions are skipped -->
-    <div v-if="answeredCount === 0" class="bg-orange/10 border border-orange text-orange-700 p-4 rounded-xl">
+    <div v-if="answeredCount === 0" class="bg-solid-orange-10 border border-orange text-orange-700 p-4 rounded-xl">
       <p class="font-bold flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -103,7 +103,7 @@
     </div>
 
     <!-- Navigation Buttons -->
-    <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
+    <div class="flex justify-between items-center mt-8 pt-6 border-t border-solid-gray-10">
       <div class="text-sm text-mid-gray">
         {{ $t('elections.wahlcheck.summary.answer_count', { ':answered': answeredCount, ':total': questions.length, ':weighted': doubleWeightedCount }) }}
       </div>

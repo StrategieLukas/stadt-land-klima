@@ -3,8 +3,8 @@
     class="inline-flex items-center justify-center rounded-full border font-semibold transition-transform duration-200 group-hover:scale-105"
     :class="[
       isPaid
-        ? 'border-stats-dark/20 bg-stats-light text-stats-dark'
-        : 'border-light-green/40 bg-rating-3-very-light text-olive-green',
+        ? 'border-solid-stats-dark-20 bg-stats-light text-stats-dark'
+        : 'border-solid-light-green-40 bg-rating-3-very-light text-olive-green',
       showLabel ? 'gap-2 px-3 py-2 text-sm' : 'h-11 w-11'
     ]"
     :aria-label="label"

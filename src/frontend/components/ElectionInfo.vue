@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 py-8">
     <!-- Header -->
-    <div class="bg-white rounded-2xl shadow-list border border-gray/10 p-8 mb-8">
+    <div class="bg-white rounded-2xl shadow-list border border-solid-gray-10 p-8 mb-8">
       <h1 class="text-h2 font-bold text-stats-dark mb-4">
         {{ $t('election_info.title_for', { ':name': municipalityScore.municipality.name }) }}
       </h1>
@@ -42,7 +42,7 @@
       <div
         v-for="(measure, index) in sortedMeasures.slice(0, 10)"
         :key="measure.measure_id"
-        class="bg-white rounded-xl shadow-list border border-gray/10 p-6 transition-shadow hover:shadow-xl"
+        class="bg-white rounded-xl shadow-list border border-solid-gray-10 p-6 transition-shadow hover:shadow-xl"
       >
         <!-- Measure Header -->
         <div class="flex items-start justify-between mb-4">
@@ -64,29 +64,29 @@
           <div v-if="measure.description_benefit" class="prose max-w-none text-mid-gray" v-html="md.render(measure.description_benefit)"></div>
 
           <!-- Current Progress -->
-          <div v-if="measure.currentProgress" class="p-4 bg-mild-white rounded-lg border border-gray/10">
+          <div v-if="measure.currentProgress" class="p-4 bg-mild-white rounded-lg border border-solid-gray-10">
             <p class="font-semibold text-stats-dark mb-1">{{ $t('election_info.current_status') }}</p>
             <p class="text-mid-gray">{{ measure.currentProgress }}</p>
           </div>
 
           <!-- Political Demand -->
-          <div v-if="measure.politicalDemand" class="p-4 bg-mild-white rounded-lg border border-gray/10">
+          <div v-if="measure.politicalDemand" class="p-4 bg-mild-white rounded-lg border border-solid-gray-10">
             <p class="font-semibold text-stats-dark mb-1">{{ $t('election_info.political_demand') }}</p>
             <p class="text-mid-gray">{{ measure.politicalDemand }}</p>
           </div>
 
           <!-- Contribution Description -->
-          <div v-if="measure.description_contribution" class="p-4 bg-ff-green/5 rounded-lg border border-ff-green/20">
+          <div v-if="measure.description_contribution" class="p-4 bg-solid-ff-green-05 rounded-lg border border-solid-ff-green-20">
             <p class="font-semibold text-ff-green mb-1">{{ $t('election_info.contribution') }}</p>
             <div class="prose max-w-none text-mid-gray" v-html="md.render(measure.description_contribution)"></div>
           </div>
         </div>
 
         <!-- Link to Municipality -->
-        <div class="flex justify-end mt-4 pt-4 border-t border-gray/10">
+        <div class="flex justify-end mt-4 pt-4 border-t border-solid-gray-10">
           <NuxtLink
             :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`"
-            class="btn btn-outline btn-secondary btn-sm gap-2 text-stats-dark hover:bg-light-green/10"
+            class="btn btn-outline btn-secondary btn-sm gap-2 text-stats-dark hover:bg-solid-light-green-10"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />

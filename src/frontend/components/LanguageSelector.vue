@@ -70,15 +70,15 @@ const themeClasses = computed(() => {
   if (props.variant === "header") {
     return {
       active: "bg-olive-green text-white shadow-sm",
-      inactive: "text-gray-600 hover:bg-light-green/15 hover:text-olive-green",
+      inactive: "text-gray-600 hover:bg-rating-4-very-light hover:text-olive-green",
       wrapper: "bg-white ring-gray-200",
     };
   }
 
   return {
     active: "bg-white text-olive-green shadow-sm",
-    inactive: "text-white hover:bg-white/15",
-    wrapper: "bg-white/10 ring-white/25",
+    inactive: "text-white hover:bg-green",
+    wrapper: "bg-olive-green ring-white",
   };
 });
 

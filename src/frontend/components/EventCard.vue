@@ -137,7 +137,7 @@ const badgeClasses = computed(() => {
     return `${base} bg-gray-100 text-gray-500`;
   }
 
-  return `${base} bg-light-green/10 text-olive-green`;
+  return `${base} bg-solid-light-green-10 text-olive-green`;
 });
 
 const titleClasses = computed(() =>

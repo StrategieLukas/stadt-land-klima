@@ -46,7 +46,7 @@ const treeData = computed(() => {
 function colorFromRaw(ctx) {
   if (ctx.type !== 'data') return 'transparent';
   const children = ctx.raw._data?.children ?? [];
-  if (children.length > 1) return 'rgba(0,0,0,0.08)';
+  if (children.length > 1) return '#ebebeb';
   const item = children[0];
   if (!item) return '#9D9D9C';
   const sectorColors = {
