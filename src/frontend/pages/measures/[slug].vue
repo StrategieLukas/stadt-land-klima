@@ -6,7 +6,7 @@
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        {{ detailSector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${detailSector}.title`) }) : 'Zurück zu Maßnahmen' }}
+        {{ detailSector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${detailSector}.title`) }) : $t("measures.back_label") }}
       </NuxtLink>
 
       <div v-if="prevMeasure || nextMeasure" class="flex items-center gap-1 ml-2">
@@ -34,7 +34,7 @@
 
     <!-- Version switcher (only if this measure exists in multiple catalog versions) -->
     <div v-if="measureVersions && measureVersions.length > 1" class="mt-3 flex items-center gap-2 flex-wrap">
-      <span class="text-xs text-gray-500">Version:</span>
+      <span class="text-xs text-gray-500">{{ $t("measure.version_label") }}</span>
       <NuxtLink
         v-for="mv in measureVersions"
         :key="mv.catalog_version.id"
@@ -110,13 +110,13 @@
       <div class="flex items-start gap-3">
         <img src="~/assets/icons/icon_hint.svg" alt="" class="w-6 h-6 opacity-50 flex-shrink-0 mt-0.5" />
         <div>
-          <h3 class="font-heading font-bold text-gray mb-1">Haben Sie einen Hinweis zu dieser Maßnahme?</h3>
-          <p class="text-sm text-gray-500 mb-3">Fehler, Ungenauigkeiten oder Verbesserungsvorschläge – teilen Sie uns Ihr Feedback mit.</p>
+          <h3 class="font-heading font-bold text-gray mb-1">{{ $t("measure.feedback.title") }}</h3>
+          <p class="text-sm text-gray-500 mb-3">{{ $t("measure.feedback.description") }}</p>
           <NuxtLink
-            :to="`/contact?title=${encodeURIComponent(measure?.measure_id + ': ' + measure?.name)}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure?.measure_id + '\nLink: /measures/' + route.params.slug + '?v=' + currentCatalogVersion.name + '\n\nMein Hinweis:\n')}`"
+            :to="feedbackLocation"
             class="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-bold bg-light-blue text-white hover:brightness-110 transition"
           >
-            Feedback geben ↗
+            {{ $t("feedback.give_external") }}
           </NuxtLink>
         </div>
       </div>
@@ -207,6 +207,24 @@ const measureIndexLocation = computed(() => {
     query: {
       v: currentCatalogVersion.value.name,
       ...(detailSector.value ? { sector: detailSector.value } : {}),
+    },
+  };
+});
+const feedbackLocation = computed(() => {
+  const measureTitle = measure.value
+    ? `${measure.value.measure_id}: ${measure.value.name}`
+    : '';
+  const measureLink = `/measures/${route.params.slug}?v=${currentCatalogVersion.value.name}`;
+
+  return {
+    path: '/contact',
+    query: {
+      title: measureTitle,
+      type: 'suggestion',
+      content: $t('measure.feedback.prefill_content', {
+        ':measure': measureTitle,
+        ':link': measureLink,
+      }),
     },
   };
 });

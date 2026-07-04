@@ -228,7 +228,7 @@
                       v-if="userAnswers[question.id] !== undefined"
                       class="w-8 h-8 rounded-full shadow-sm"
                       :class="getRatingColor(userAnswers[question.id])"
-                      :title="`Meine Antwort: ${getRatingLabel(userAnswers[question.id])}`"
+                      :title="$t('elections.wahlcheck.results.my_rating_title', { ':rating': getRatingLabel(userAnswers[question.id]) })"
                     ></div>
                     <div v-else class="w-8 h-8 rounded-full bg-gray/20">
                     </div>
@@ -240,7 +240,7 @@
                       <div
                         class="w-8 h-8 rounded-full shadow-sm"
                         :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
-                        :title="`Antwort Kandidat:in: ${getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response)}`"
+                        :title="$t('elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
                       ></div>
                       <button
                         type="button"

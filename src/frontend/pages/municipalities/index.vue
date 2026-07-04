@@ -3,8 +3,8 @@
   <!-- Title -->
   <div class="mb-4">
     <h1 class="text-4xl font-bold" style="color: #AFCA0B;">
-      <span v-if="selectedCatalogVersion.name === 'beta'">{{ $t("municipalities.heading") }} 2025</span>
-      <span v-else>{{ $t("municipalities.heading") }} 2026</span>
+      <span v-if="selectedCatalogVersion.name === 'beta'">{{ $t("municipalities.heading") }} {{ $t("ranking.current_year", { ":year": 2025 }) }}</span>
+      <span v-else>{{ $t("municipalities.heading") }} {{ $t("ranking.current_year", { ":year": 2026 }) }}</span>
     </h1>
     <p class="text-xs text-gray-400 mt-1">
       <ClientOnly>{{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}</ClientOnly>
@@ -75,7 +75,7 @@
             :to="{ path: '/municipalities', query: { ...route.query, v: 'v1.0' } }"
             class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
             :class="selectedCatalogVersion.name !== 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
-          >2026</NuxtLink>
+          >{{ $t('ranking.current_year', { ':year': 2026 }) }}</NuxtLink>
           <NuxtLink
             :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"
             class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
