@@ -245,6 +245,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - recommended_search_queries
       - accordion-p4jgb8
       - description
       - verification_description

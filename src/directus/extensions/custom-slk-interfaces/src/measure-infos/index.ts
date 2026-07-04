@@ -37,7 +37,7 @@ const config: DirectusInterfaceConfig = {
         }
       },
       schema: { 
-        default_value: '["description_about","description_evaluation_criteria","description_verification"]'
+        default_value: '["description_about","description_evaluation_criteria","description_verification","recommended_search_queries"]'
       }
     }
   ]

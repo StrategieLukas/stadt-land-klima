@@ -404,6 +404,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - recommended_search_queries
       - measure_id
       - catalog_version
       - must_be_rated_again
