@@ -27,6 +27,14 @@ const props = defineProps({
 const chartCanvas = ref(null);
 let chartInstance = null;
 
+function cssColor(name, fallback) {
+  if (typeof window === 'undefined') {
+    return fallback;
+  }
+
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+
 function sectorName(sector) {
   const translated = $t(`measure_sectors.${sector}.title`);
   return translated === `measure_sectors.${sector}.title` ? sector : translated;
@@ -82,13 +90,13 @@ function colorFromRaw(ctx) {
   // return color based on rating
 
   if (ctx.type !== 'data') {
-    return 'transparent';
+    return cssColor('--slk-surface', '#ffffff');
   }
   
 
   if (ctx.raw._data.children.length > 1) {
     // it's a group
-    return 'rgba(0,0,0,0.1)';
+    return cssColor('--slk-surface-muted', '#e5e7eb');
   }
 
   const item = ctx.raw._data.children[0];
@@ -115,7 +123,7 @@ const chartData = computed(() => ({
     displayMode: "container_boxes",
     spacing: 0.5,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: () => cssColor('--slk-surface', '#ffffff'),
     backgroundColor: (ctx) => colorFromRaw(ctx),
     labels: {
       display: true,
@@ -136,7 +144,14 @@ const chartData = computed(() => ({
         }
         return item.sectorName || '';
       },
-      color: ['white', 'black'],
+      color: (ctx) => {
+        if (!ctx.raw || ctx.raw._data.children.length > 1) {
+          return cssColor('--slk-text-strong', '#101820');
+        }
+
+        const item = ctx.raw._data.children[0];
+        return item?.rating === 0 ? '#ffffff' : '#101820';
+      },
       font: {
         size: 12,
         weight: 'bold',

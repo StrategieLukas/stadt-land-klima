@@ -23,13 +23,13 @@
           role="img"
           @click.self="activeTeamId = null"
         >
-          <!-- Base rect so mix-blend-mode: multiply renders correctly -->
-          <rect x="140" y="5" width="620" height="555" fill="#fbfbfb" />
+          <!-- Base rect so mix-blend-mode renders correctly. CSS class controls fill per theme. -->
+          <rect x="140" y="5" width="620" height="555" class="org-bg-rect" />
 
           <!-- Separator line -->
-          <line x1="166.8" y1="365.9" x2="733.2" y2="365.9" stroke="#c8c8c8" stroke-width="0.9" />
+          <line x1="166.8" y1="365.9" x2="733.2" y2="365.9" class="org-separator" stroke-width="0.9" />
 
-          <!-- Blended circles (isolation group so multiply blends only within group) -->
+          <!-- Blended circles (isolation group so blend mode is self-contained) -->
           <g style="isolation: isolate">
             <circle
               v-for="team in TEAMS"
@@ -38,7 +38,8 @@
               :cy="team.cy"
               :r="team.r"
               :fill="team.color"
-              style="mix-blend-mode: multiply; cursor: pointer"
+              class="org-team-circle"
+              style="cursor: pointer"
               @click.stop="selectTeam(team.id)"
             />
           </g>
@@ -51,7 +52,7 @@
             :cy="team.cy"
             :r="team.r + 3"
             fill="none"
-            :stroke="activeTeamId === team.id ? '#333' : 'transparent'"
+            :stroke="activeTeamId === team.id ? 'var(--slk-text-strong)' : 'none'"
             stroke-width="2.5"
             stroke-dasharray="6 4"
             style="pointer-events: none; transition: stroke 0.15s"
@@ -68,7 +69,7 @@
             :font-size="team.fontSize"
             font-weight="700"
             font-family="'Roboto Condensed', 'Inter', sans-serif"
-            fill="#1a1a1a"
+            class="org-label-text"
             style="pointer-events: none"
           >
             <tspan
@@ -86,9 +87,9 @@
             :cx="team.cx"
             :cy="team.cy"
             :r="team.r"
-            fill="transparent"
+            fill="none"
             stroke="none"
-            style="cursor: pointer"
+            style="cursor: pointer; pointer-events: all"
             @click.stop="selectTeam(team.id)"
           />
         </svg>
@@ -100,29 +101,30 @@
       <div class="org-detail-panel" :class="svgHeight > 0 ? 'lg:overflow-y-auto' : ''" :style="panelStyle">
         <template v-if="activeTeam">
           <!-- Popover card -->
-          <div id="team-detail-panel" class="rounded-lg overflow-hidden border border-[#e0e0e0] shadow-md mb-6">
+          <div id="team-detail-panel" class="rounded-lg overflow-hidden border border-[var(--slk-border)] shadow-md mb-6">
             <!-- Header -->
             <div
               class="px-4 py-3"
-              :style="{ background: activeTeam.color + '22', borderBottom: '2px solid ' + activeTeam.color }"
+              :style="{ background: teamTint(activeTeam.color, 0.13), borderBottom: '2px solid ' + activeTeam.color }"
             >
-              <h2 class="font-bold text-[15px] text-[#1a1a1a]">{{ activeTeam.label }}</h2>
+              <h2 class="font-bold text-[15px]" :style="{ color: 'var(--slk-text-strong)' }">{{ activeTeam.label }}</h2>
               <a
                 v-if="activeTeam.email"
                 :href="'mailto:' + activeTeam.email"
-                class="mt-0.5 text-xs text-[#006e94] hover:underline block"
+                class="mt-0.5 text-xs hover:underline block"
+                :style="{ color: 'var(--slk-blue)' }"
               >{{ activeTeam.email }}</a>
             </div>
 
             <!-- Task list -->
-            <div class="bg-white px-4 py-3">
-              <ul class="text-sm leading-relaxed space-y-1 text-[#333] list-disc list-inside">
+            <div class="bg-[var(--slk-surface)] px-4 py-3">
+              <ul class="text-sm leading-relaxed space-y-1 text-[var(--slk-text)] list-disc list-inside">
                 <li v-for="task in activeTeam.tasks" :key="task">{{ task }}</li>
               </ul>
             </div>
 
             <!-- Members footer: small clickable avatars (replaces name strip) -->
-            <div class="px-4 py-3 border-t border-[#e0e0e0]">
+            <div class="px-4 py-3 border-t border-[var(--slk-border)]">
               <div v-if="filteredMembers.length" class="flex flex-wrap gap-3">
                 <button
                   v-for="member in filteredMembers"
@@ -147,15 +149,15 @@
                     <div
                       v-else
                       class="w-full h-full flex items-center justify-center"
-                      :style="{ background: `linear-gradient(135deg, ${activeTeam.color}55 0%, ${activeTeam.color}22 50%, ${activeTeam.color}44 100%)` }"
+                      :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
                     >
                       <span class="font-bold text-xs" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
                     </div>
                   </div>
-                  <span class="text-[10px] leading-tight text-center text-gray-600 max-w-[48px] truncate">{{ member.first_name }}</span>
+                  <span class="text-[10px] leading-tight text-center text-[var(--slk-text-muted)] max-w-[48px] truncate">{{ member.first_name }}</span>
                 </button>
               </div>
-              <p v-else class="text-sm italic text-gray-400">{{ $t("organisation.no_members") }}</p>
+              <p v-else class="text-sm italic text-[var(--slk-text-subtle)]">{{ $t("organisation.no_members") }}</p>
             </div>
           </div>
         </template>
@@ -163,7 +165,7 @@
         <!-- No-selection placeholder — min-height matches SVG height to keep page height stable -->
         <div
           v-else
-          class="flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-[#e5e7eb] text-gray gap-3"
+          class="flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-[var(--slk-border)] text-[var(--slk-text-muted)] gap-3"
           :style="placeholderStyle"
         >
           <svg class="w-10 h-10 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -190,11 +192,11 @@
             v-for="member in filteredMembers"
             :key="'all-active-' + member.id"
             :id="'member-' + member.id"
-            class="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border-2"
+          class="flex flex-col bg-[var(--slk-surface)] rounded-xl overflow-hidden shadow-sm border-2"
             :style="{ borderColor: activeTeam.color }"
             style="transition: box-shadow 0.1s;"
           >
-            <div class="relative aspect-square bg-gray-100 overflow-hidden flex-shrink-0">
+            <div class="relative aspect-square bg-[var(--slk-surface-subdued)] overflow-hidden flex-shrink-0">
               <template v-if="member.avatar">
                 <!-- Blurred fill layer keeps the container looking full at any aspect ratio -->
                 <SmartImg
@@ -216,27 +218,29 @@
               <div
                 v-else
                 class="absolute inset-0 flex items-center justify-center"
-                :style="{ background: `linear-gradient(135deg, ${activeTeam.color}55 0%, ${activeTeam.color}22 50%, ${activeTeam.color}44 100%)` }"
+                :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
               >
                 <span class="font-bold text-3xl" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
               </div>
             </div>
             <div class="p-4 flex flex-col gap-2 flex-1">
-              <p class="font-bold text-gray-900 leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
-              <div v-if="member.bio" class="text-sm text-gray-500 prose prose-sm max-w-none" v-html="member.bio" />
+              <p class="font-bold text-[var(--slk-text-strong)] leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
+              <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="member.bio" />
             </div>
           </div>
         </div>
-        <hr class="border-[#e5e7eb] mb-6" />
+        <hr class="border-[var(--slk-border)] mb-6" />
       </template>
 
       <!-- All other members (alphabetically by last name) -->
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div
           v-for="member in otherMembers"
-          :key="'all-other-' + member.id"            :id="'member-' + member.id"          class="flex flex-col bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
+          :key="'all-other-' + member.id"
+          :id="'member-' + member.id"
+          class="flex flex-col bg-[var(--slk-surface)] rounded-xl border border-[var(--slk-border)] shadow-sm overflow-hidden"
         >
-          <div class="relative aspect-square bg-gray-100 overflow-hidden flex-shrink-0">
+          <div class="relative aspect-square bg-[var(--slk-surface-subdued)] overflow-hidden flex-shrink-0">
             <template v-if="member.avatar">
               <!-- Blurred fill layer -->
               <SmartImg
@@ -258,14 +262,14 @@
             <div
               v-else
               class="absolute inset-0 flex items-center justify-center"
-              :style="{ background: `linear-gradient(135deg, ${memberColor(member)}55 0%, ${memberColor(member)}22 50%, ${memberColor(member)}44 100%)` }"
+              :style="{ background: memberPlaceholderGradient(memberColor(member)) }"
             >
               <span class="font-bold text-3xl" :style="{ color: memberColor(member) }">{{ initials(member.first_name, member.last_name) }}</span>
             </div>
           </div>
           <div class="p-4 flex flex-col gap-2 flex-1">
-            <p class="font-bold text-gray-900 leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
-            <div v-if="member.bio" class="text-sm text-gray-500 prose prose-sm max-w-none" v-html="member.bio" />
+            <p class="font-bold text-[var(--slk-text-strong)] leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
+            <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="member.bio" />
           </div>
         </div>
       </div>
@@ -275,6 +279,7 @@
 
 <script setup>
 const { $directus, $readItems, $t } = useNuxtApp()
+const { isDark } = useTheme()
 
 useHead({ title: $t('organisation') })
 // ── SVG layout — coordinates from the original Illustrator SVG ──────────────
@@ -435,11 +440,33 @@ function memberColor(member) {
   return TEAMS.value.find(t => t.id === firstTeamId)?.color ?? '#16bae7'
 }
 
+function normalizeHex(hex) {
+  return /^#[0-9a-f]{6}$/i.test(hex ?? '') ? hex : '#16bae7'
+}
+
+function blendHex(hex, alpha, background) {
+  const bg = background ?? (isDark.value ? '#17212b' : '#ffffff')
+  const fg = normalizeHex(hex).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
+  const bgArr = normalizeHex(bg).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
+  return `#${fg
+    .map((value, index) => Math.round(value * alpha + bgArr[index] * (1 - alpha)).toString(16).padStart(2, '0'))
+    .join('')}`
+}
+
+function teamTint(color, alpha) {
+  return blendHex(color, alpha)
+}
+
+function memberPlaceholderGradient(color) {
+  return `linear-gradient(135deg, ${blendHex(color, 0.33)} 0%, ${blendHex(color, 0.13)} 50%, ${blendHex(color, 0.27)} 100%)`
+}
+
 function scrollToMember(id, color) {
   const el = document.getElementById('member-' + id)
   if (!el) return
   // Set the ring color as a CSS custom property so the keyframe picks it up
-  el.style.setProperty('--highlight-color', color ?? '#16bae7')
+  el.style.setProperty('--highlight-color-strong', blendHex(color ?? '#16bae7', 0.7))
+  el.style.setProperty('--highlight-color-soft', blendHex(color ?? '#16bae7', 0.35))
   el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   el.classList.remove('member-highlight')
   void el.offsetWidth
@@ -475,11 +502,48 @@ function scrollToMember(id, color) {
 }
 
 @keyframes memberHighlight {
-  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 70%, transparent); }
-  30%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--highlight-color, #16bae7) 35%, transparent); }
-  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 0%, transparent); }
+  0%   { box-shadow: 0 0 0 0 var(--highlight-color-strong, #16bae7); }
+  30%  { box-shadow: 0 0 0 8px var(--highlight-color-soft, #16bae7); }
+  100% { box-shadow: 0 0 0 0 transparent; }
 }
 .member-highlight {
   animation: memberHighlight 1.2s ease-out;
+}
+
+/* SVG chart theming */
+.org-bg-rect {
+  fill: #fbfbfb;
+}
+
+.org-separator {
+  stroke: #c8c8c8;
+}
+
+/* Light mode: multiply makes circles darken at overlaps on the light bg */
+.org-team-circle {
+  mix-blend-mode: multiply;
+}
+
+.org-label-text {
+  fill: #1a1a1a;
+}
+
+/* Dark mode: dark surface background, screen blend at reduced opacity so
+   overlap brightening is subtle rather than glaring */
+html[data-theme="staedteChallengeDark"] .org-bg-rect {
+  fill: var(--slk-surface);
+}
+
+html[data-theme="staedteChallengeDark"] .org-separator {
+  stroke: var(--slk-border);
+}
+
+html[data-theme="staedteChallengeDark"] .org-team-circle {
+  mix-blend-mode: screen;
+  opacity: 0.75;
+}
+
+html[data-theme="staedteChallengeDark"] .org-label-text {
+  fill: var(--slk-text-strong);
 }
 </style>

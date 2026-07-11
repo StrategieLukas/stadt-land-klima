@@ -11,7 +11,8 @@
             />
             <div class="collapse-title flex items-center justify-between px-6 py-4">
                 <div class="flex items-center gap-2">
-                <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
+                <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60" />
+                <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-6 w-6 opacity-60" />
                 <h3 class="font-heading text-h3 text-green leading-none">{{ $t("municipality.municipality_info") }}</h3>
                 </div>
                 <GermanyMapIndicator
@@ -61,7 +62,8 @@
 
             <div v-if="municipality?.mayor" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
+                <img src="~/assets/icons/icon_politics.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-5 w-5 opacity-60" />
+                <img src="~/assets/icons/icon_politics-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-5 w-5 opacity-60" />
                 <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
                 </div>
                 <span v-if="municipality.party_mayor" class="text-sm font-bold text-gray-900 text-right">
@@ -85,7 +87,8 @@
             <div v-if="municipalityScore?.score_total">
                 <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-5 w-5 opacity-60" />
+                    <img src="~/assets/icons/icon_evaluation_criteria.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-5 w-5 opacity-60" />
+                    <img src="~/assets/icons/icon_evaluation_criteria-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-5 w-5 opacity-60" />
                     <span class="text-sm font-medium text-right text-gray-700">{{ $t("municipality.overall_score") }}</span>
                 </div>
                 <span class="text-sm font-bold" :class="`text-${getScorePercentageColor(municipalityScore.score_total)}`">

@@ -4,7 +4,7 @@
 
     <!-- Mobile sticky scroll nav -->
     <nav
-      class="border-gray-100 sticky z-10 -mx-4 mb-6 border-b bg-white/90 px-4 backdrop-blur-sm xl:hidden"
+      class="border-gray-100 sticky z-10 -mx-4 mb-6 border-b bg-white px-4 backdrop-blur-sm xl:hidden"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
@@ -31,7 +31,7 @@
           :class="[
             'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
             activeSection === `section-${group.monthKey}`
-              ? 'bg-[#006e94]/10 font-semibold text-[#006e94]'
+              ? 'bg-solid-stats-dark-10 font-semibold text-[#006e94]'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
           >{{ group.label }}</a
@@ -74,7 +74,7 @@
               :class="[
                 'block truncate rounded px-2 py-1 transition-colors',
                 activeSection === `section-${group.monthKey}`
-                  ? 'bg-[#006e94]/5 font-semibold text-[#006e94]'
+                  ? 'bg-solid-stats-dark-05 font-semibold text-[#006e94]'
                   : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
               ]"
               >{{ group.label }}</a

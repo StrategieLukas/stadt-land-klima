@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wartungsarbeiten</title>
+  <style>
+    :root {
+      --bg-1: #f2f8f5;
+      --bg-2: #ddece4;
+      --text: #1f2d26;
+      --subtle: #4f6359;
+      --panel: rgba(255, 255, 255, 0.85);
+      --accent: #2f8f5b;
+      --ring: rgba(47, 143, 91, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, transparent 40%),
+                  linear-gradient(140deg, var(--bg-1), var(--bg-2));
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(680px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--ring);
+      border-radius: 20px;
+      box-shadow: 0 18px 44px rgba(23, 38, 31, 0.12);
+      padding: 28px;
+      backdrop-filter: blur(6px);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .logo {
+      width: min(260px, 100%);
+      height: auto;
+      display: block;
+      margin-bottom: 0;
+    }
+
+    .lang-switcher {
+      display: inline-flex;
+      gap: 6px;
+      border: 1px solid var(--ring);
+      border-radius: 999px;
+      padding: 4px;
+      background: rgba(255, 255, 255, 0.95);
+      flex-shrink: 0;
+    }
+
+    .lang-switcher button {
+      border: 0;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: transparent;
+      color: var(--subtle);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+    }
+
+    .lang-switcher button[aria-pressed="true"] {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.5rem, 2vw, 2rem);
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.55;
+      color: var(--subtle);
+    }
+
+    .meta {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid var(--ring);
+      font-size: 0.98rem;
+      color: var(--text);
+    }
+
+    .meta strong {
+      color: var(--accent);
+    }
+
+    .foot {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: var(--subtle);
+      opacity: 0.92;
+    }
+
+    .tz {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--subtle);
+    }
+
+    #refresh-countdown {
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+  </style>
+</head>
+<body>
+  <main class="card" data-maintenance="true">
+    <div class="toolbar">
+      <img class="logo" src="/logo.svg" alt="Stadt Land Klima Logotype">
+      <div class="lang-switcher" aria-label="Language switcher">
+        <button type="button" data-lang="de" aria-pressed="false">DE</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        <button type="button" data-lang="it" aria-pressed="false">IT</button>
+      </div>
+    </div>
+    <h1 id="title">Wir sind gleich wieder da</h1>
+    <p id="subtitle">
+      Wir spielen gerade ein Update ein. In ein paar Minuten sollte alles wieder wie gewohnt verfügbar sein.
+    </p>
+    <div class="meta" id="maintenance-meta">
+      <span id="meta-prefix">Wartungsarbeiten seit</span> <strong id="start-time">-</strong> (<strong id="duration">-</strong>)
+    </div>
+    <p class="tz" id="timezone-info">Zeitzone: Europe/Berlin</p>
+    <p class="tz" id="refresh-info">
+      <span id="refresh-label">Automatische Aktualisierung in</span>
+      <strong id="refresh-countdown">60</strong>
+      <span id="refresh-unit">Sek</span>
+    </p>
+    <p class="foot" id="foot">Vielen Dank für eure Geduld.</p>
+  </main>
+
+  <script src="/maintenance-meta.js"></script>
+  <script>
+    (function () {
+      var translations = {
+        de: {
+          pageTitle: "Wartungsarbeiten",
+          title: "Wir sind gleich wieder da",
+          subtitle: "Wir spielen gerade ein Update ein. In ein paar Minuten sollte alles wieder wie gewohnt verfügbar sein.",
+          metaPrefix: "Wartungsarbeiten seit",
+          timezoneLabel: "Zeitzone",
+          refreshLabel: "Automatische Aktualisierung in",
+          refreshUnit: "Sek",
+          unknown: "unbekannt",
+          running: "laufend",
+          foot: "Vielen Dank für eure Geduld.",
+          unitDay: "Tag",
+          unitDays: "Tage",
+          unitHour: "Std",
+          unitMinute: "Min"
+        },
+        en: {
+          pageTitle: "Maintenance",
+          title: "We will be back shortly",
+          subtitle: "We are currently deploying an update. Everything should be available again in a few minutes.",
+          metaPrefix: "Maintenance since",
+          timezoneLabel: "Time zone",
+          refreshLabel: "Automatic refresh in",
+          refreshUnit: "sec",
+          unknown: "unknown",
+          running: "in progress",
+          foot: "Thank you for your patience.",
+          unitDay: "day",
+          unitDays: "days",
+          unitHour: "h",
+          unitMinute: "min"
+        },
+        it: {
+          pageTitle: "Manutenzione",
+          title: "Torniamo subito",
+          subtitle: "Stiamo distribuendo un aggiornamento. Tra pochi minuti tutto dovrebbe essere di nuovo disponibile.",
+          metaPrefix: "Manutenzione dalle",
+          timezoneLabel: "Fuso orario",
+          refreshLabel: "Aggiornamento automatico tra",
+          refreshUnit: "sec",
+          unknown: "sconosciuto",
+          running: "in corso",
+          foot: "Grazie per la vostra pazienza.",
+          unitDay: "giorno",
+          unitDays: "giorni",
+          unitHour: "h",
+          unitMinute: "min"
+        }
+      };
+
+      function resolveLocale() {
+        try {
+          var stored = localStorage.getItem("slk-maintenance-locale");
+          if (stored && translations[stored]) {
+            return stored;
+          }
+        } catch (error) {
+          // ignore storage access errors
+        }
+
+        var candidate = (navigator.language || "de").toLowerCase();
+        if (candidate.indexOf("it") === 0) {
+          return "it";
+        }
+        if (candidate.indexOf("en") === 0) {
+          return "en";
+        }
+        return "de";
+      }
+
+      var locale = resolveLocale();
+      var t = translations.de;
+      var REFRESH_INTERVAL_SECONDS = 60;
+      var refreshRemaining = REFRESH_INTERVAL_SECONDS;
+
+      var startRaw = window.__MAINTENANCE_STARTED_AT || "";
+      var startDate = startRaw ? new Date(startRaw) : null;
+      var plausibleAnalyticsUrl = (window.__PLAUSIBLE_ANALYTICS_URL || "").replace(/\/$/, "");
+      var plausibleAnalyticsDomain = window.__PLAUSIBLE_ANALYTICS_DOMAIN || window.location.hostname;
+      var plausibleCampaign = window.__PLAUSIBLE_UTM_CAMPAIGN || "maintenance_mode";
+
+      function ensureCampaignInUrl(campaign) {
+        if (!campaign || typeof URL === "undefined" || typeof history === "undefined" || !history.replaceState) {
+          return;
+        }
+
+        try {
+          var current = new URL(window.location.href);
+          current.searchParams.set("utm_campaign", campaign);
+          history.replaceState({}, "", current.toString());
+        } catch (error) {
+          // ignore URL handling errors
+        }
+      }
+
+      function loadPlausible() {
+        if (!plausibleAnalyticsUrl) {
+          return;
+        }
+
+        if (document.querySelector("script[data-slk-plausible='true']")) {
+          return;
+        }
+
+        var script = document.createElement("script");
+        script.defer = true;
+        script.setAttribute("data-domain", plausibleAnalyticsDomain);
+        script.setAttribute("data-slk-plausible", "true");
+        script.src = plausibleAnalyticsUrl + "/js/script.js";
+        document.head.appendChild(script);
+      }
+
+      function trackMaintenanceView() {
+        if (typeof window.plausible !== "function") {
+          return;
+        }
+
+        window.plausible("maintenance_page_view", {
+          props: {
+            utm_campaign: plausibleCampaign,
+            locale: locale
+          }
+        });
+      }
+
+      function updateLanguageButtons(activeLocale) {
+        var buttons = document.querySelectorAll("[data-lang]");
+        buttons.forEach(function (button) {
+          var isActive = button.getAttribute("data-lang") === activeLocale;
+          button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      }
+
+      function applyLocale(nextLocale) {
+        locale = translations[nextLocale] ? nextLocale : "de";
+        t = translations[locale] || translations.de;
+
+        document.documentElement.lang = locale;
+        document.title = t.pageTitle;
+        document.getElementById("title").textContent = t.title;
+        document.getElementById("subtitle").textContent = t.subtitle;
+        document.getElementById("meta-prefix").textContent = t.metaPrefix;
+        document.getElementById("timezone-info").textContent = t.timezoneLabel + ": Europe/Berlin";
+        document.getElementById("refresh-label").textContent = t.refreshLabel;
+        document.getElementById("refresh-unit").textContent = t.refreshUnit;
+        document.getElementById("foot").textContent = t.foot;
+        updateLanguageButtons(locale);
+
+        try {
+          localStorage.setItem("slk-maintenance-locale", locale);
+        } catch (error) {
+          // ignore storage access errors
+        }
+      }
+
+      function formatStart(date) {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+          return t.unknown;
+        }
+
+        return new Intl.DateTimeFormat(locale, {
+          timeZone: "Europe/Berlin",
+          dateStyle: "medium",
+          timeStyle: "medium"
+        }).format(date);
+      }
+
+      function formatDuration(ms) {
+        if (ms < 0) {
+          return "0 " + t.unitMinute;
+        }
+
+        var totalMinutes = Math.floor(ms / 60000);
+        var days = Math.floor(totalMinutes / 1440);
+        var hours = Math.floor((totalMinutes % 1440) / 60);
+        var minutes = totalMinutes % 60;
+        var parts = [];
+
+        if (days > 0) {
+          parts.push(days + " " + (days === 1 ? t.unitDay : t.unitDays));
+        }
+        if (hours > 0) {
+          parts.push(hours + " " + t.unitHour);
+        }
+        parts.push(minutes + " " + t.unitMinute);
+
+        return parts.join(" ");
+      }
+
+      var startEl = document.getElementById("start-time");
+      var durationEl = document.getElementById("duration");
+      var refreshCountdownEl = document.getElementById("refresh-countdown");
+
+      function renderRefreshCountdown() {
+        refreshCountdownEl.textContent = String(refreshRemaining);
+      }
+
+      function renderDuration() {
+        if (!(startDate instanceof Date) || Number.isNaN(startDate.getTime())) {
+          durationEl.textContent = t.running;
+          return;
+        }
+
+        durationEl.textContent = formatDuration(Date.now() - startDate.getTime());
+      }
+
+      function renderAll() {
+        startEl.textContent = formatStart(startDate);
+        renderDuration();
+      }
+
+      document.querySelectorAll("[data-lang]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          applyLocale(button.getAttribute("data-lang") || "de");
+          renderAll();
+          trackMaintenanceView();
+        });
+      });
+
+      ensureCampaignInUrl(plausibleCampaign);
+      loadPlausible();
+      applyLocale(locale);
+      renderAll();
+      renderRefreshCountdown();
+      trackMaintenanceView();
+      window.setInterval(renderDuration, 30000);
+
+      window.setInterval(function () {
+        refreshRemaining -= 1;
+        if (refreshRemaining <= 0) {
+          window.location.reload();
+          return;
+        }
+        renderRefreshCountdown();
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>

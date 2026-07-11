@@ -1,13 +1,12 @@
 <template>
   <header
     ref="headerEl"
-    class="border-gray-200 fixed left-0 right-0 top-0 border-b backdrop-blur-md transition-[box-shadow,background] duration-300"
-    :style="isOpen ? 'background: rgba(255,255,255,1)' : 'background: rgba(255,255,255,0.82)'"
+    class="border-gray-200 dark:border-[var(--slk-border)] fixed left-0 right-0 top-0 border-b bg-white dark:bg-[var(--slk-surface)] transition-[box-shadow,background] duration-300"
     :class="[scrolled && !isOpen ? 'shadow-lg' : '', isOpen && embeddedInput ? 'z-[10003]' : 'z-50']"
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
     <div
-      class="relative mx-auto flex w-full max-w-screen-xl items-center px-4 py-2 transition-[padding] duration-300 ease-in-out md:px-8 lg:px-4 xl:px-6 2xl:px-0"
+      class="mx-auto grid w-full max-w-screen-xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2 transition-[padding] duration-300 ease-in-out md:px-8 lg:px-4 xl:gap-6 xl:px-6 2xl:px-0"
       :class="scrolled ? 'sm:py-1.5' : 'sm:py-3'"
     >
       <!-- Logo -->
@@ -21,29 +20,37 @@
         <!-- SVG logotype: shown on mobile (<sm, matches TheHeaderMobile) and large desktop (≥lg) -->
         <img
           src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-          class="block h-full w-auto sm:hidden lg:block"
+          class="block h-full w-auto dark:hidden sm:hidden lg:block"
+          :alt="$t('logo.alt')"
+        />
+        <img
+          src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
+          class="hidden h-full w-auto dark:block dark:sm:hidden dark:lg:block"
           :alt="$t('logo.alt')"
         />
         <!-- Quad logo: only shown on sm–lg range where the header is narrow but ≥640px -->
         <img
           src="~/assets/images/Stadt-Land-Kima-Logo_quad.png"
-          class="hidden h-full w-auto sm:block lg:hidden"
+          class="hidden h-full w-auto dark:hidden sm:block lg:hidden"
+          :alt="$t('logo.alt')"
+        />
+        <img
+          src="~/assets/images/Stadt-Land-Kima-Logo_quad-dark.png"
+          class="hidden h-full w-auto dark:sm:block dark:lg:hidden"
           :alt="$t('logo.alt')"
         />
       </NuxtLink>
 
-      <!-- Persistent Search Bar — absolutely centered in the header -->
-      <!-- hidden on sm: mirrors the isDesktop breakpoint (≥640px) so mobile users don't
-           see the full search bar before hydration swaps to TheHeaderMobile. -->
-      <div
-        class="absolute left-1/2 hidden w-full max-w-[18rem] -translate-x-1/2 px-4 sm:block lg:-ml-8 lg:max-w-[20rem] xl:-ml-12 xl:max-w-[23rem] 2xl:-ml-20 2xl:max-w-[28rem]"
-      >
+      <!-- Persistent Search Bar — always visible in the middle grid column. -->
+      <div class="min-w-0 w-full 2xl:max-w-[40rem] justify-self-center">
         <div
           ref="searchBarRef"
-          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150"
+          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white dark:bg-[var(--slk-surface-subdued)] px-5 transition-colors duration-150"
           :class="[
             scrolled ? 'h-10' : 'h-11',
-            searchFocused ? 'border-olive-green' : 'border-gray-200 hover:border-gray-300',
+            searchFocused
+              ? 'border-olive-green dark:border-[var(--slk-olive-green)]'
+              : 'border-gray-200 dark:border-[var(--slk-border)] hover:border-gray-300 dark:hover:border-[var(--slk-border-strong)]',
           ]"
           @click="searchInputRef?.focus()"
         >
@@ -65,7 +72,7 @@
           <input
             ref="searchInputRef"
             v-model="query"
-            class="text-gray-700 placeholder-gray-400 min-w-0 flex-1 bg-transparent text-sm outline-none"
+            class="text-gray-700 dark:text-[var(--slk-text)] placeholder-gray-400 dark:placeholder-[var(--slk-text-subtle)] min-w-0 flex-1 bg-transparent text-sm outline-none"
             :placeholder="$t('search.header.placeholder')"
             @focus="onSearchFocus"
             @keydown.up.prevent="moveFocusEmbedded(-1)"
@@ -102,29 +109,8 @@
       </div>
 
       <!-- Actions: Login + Donate -->
-      <div class="relative z-10 ml-auto flex items-center gap-2">
-        <LanguageSelector variant="header" size="compact" class="hidden lg:inline-flex" />
-        <!-- Search button: only visible on mobile (<sm) to mirror TheHeaderMobile pre-hydration -->
-        <button
-          class="border-gray-200 text-gray-400 hover:border-gray-300 flex h-10 w-12 flex-none items-center justify-center rounded-full border-2 bg-white transition-colors sm:hidden"
-          @click="open()"
-          :aria-label="$t('generic.search')"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 flex-shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
-            />
-          </svg>
-        </button>
+      <div class="relative z-10 flex min-w-max items-center gap-2 justify-self-end">
+        <TheSettingsDropdown class="hidden sm:inline-flex" />
         <!-- Login: compact icon until 2xl, canonical button on wide desktop -->
         <a href="/backend" class="hidden sm:flex 2xl:hidden">
           <button

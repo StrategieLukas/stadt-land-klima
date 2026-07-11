@@ -30,7 +30,7 @@
             v-for="(suggestion, index) in visibleSuggestions"
             :key="index"
             :to="suggestion.url"
-            class="block w-full p-2 hover:bg-primary/20 rounded cursor-pointer"
+            class="block w-full p-2 hover:bg-solid-light-green-20 rounded cursor-pointer"
             @click="handleSuggestionClick"
           >
             {{ suggestion.label }}

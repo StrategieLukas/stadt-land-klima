@@ -189,6 +189,27 @@ permissions:
       - has_answered
       - time_first_submitted
       - time_last_edited
+  - collection: climate_tools
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - title
+      - description
+      - category
+      - vendor
+      - link
+      - image
+      - image_credits
+      - sort
+      - date_created
+      - date_updated
+      - status
   - collection: directus_files
     action: read
     permissions: {}
@@ -404,6 +425,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - recommended_search_queries
       - measure_id
       - catalog_version
       - must_be_rated_again

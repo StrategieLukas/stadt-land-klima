@@ -1,6 +1,17 @@
 <template>
   <figure class="m-0 flex w-12 flex-col items-center md:w-14 lg:w-18">
-    <img :src="icon" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+    <img
+      :src="icon"
+      alt=""
+      class="slk-sector-detail-icon h-auto w-12 opacity-50 md:w-14 lg:w-18"
+      :class="{ 'slk-theme-icon--light': darkIcon }"
+    />
+    <img
+      v-if="darkIcon"
+      :src="darkIcon"
+      alt=""
+      class="slk-sector-detail-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
+    />
     <figcaption class="-mt-2 w-full">
       <div class="flex h-10 flex-row items-end gap-x-1">
         <div
@@ -23,6 +34,10 @@ const props = defineProps({
   icon: {
     type: String,
     required: true,
+  },
+  darkIcon: {
+    type: String,
+    default: "",
   },
   label: {
     type: String,
