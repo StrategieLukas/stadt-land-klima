@@ -69,6 +69,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - recommended_search_queries
       - description
       - verification_description
       - notes
