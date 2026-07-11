@@ -6,17 +6,17 @@
         <NuxtLink to="/" class="flex items-center gap-3">
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-            alt="Stadt.Land.Klima! Logo"
+            :alt="$t('logo.alt')"
             class="h-10 w-auto dark:hidden"
           />
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
-            alt="Stadt.Land.Klima! Logo"
+            :alt="$t('logo.alt')"
             class="hidden h-10 w-auto dark:block"
           />
         </NuxtLink>
         <div class="flex-1 text-center">
-          <h1 class="text-xl font-bold text-stats-dark">Klimawahlcheck</h1>
+          <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
           <p class="text-sm text-mid-gray">{{ $t("elections.wahlcheck.subtitle") }}</p>
         </div>
         <div class="w-10"></div>
@@ -48,7 +48,7 @@
         <div class="mb-6">
           <img
             src="~/assets/images/Stadt-Land-Klima-Blume.svg"
-            alt="Klimablume"
+            :alt="$t('logo.alt')"
             class="mx-auto h-24 w-auto opacity-60"
           />
         </div>

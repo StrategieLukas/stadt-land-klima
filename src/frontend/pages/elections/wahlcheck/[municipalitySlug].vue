@@ -6,17 +6,17 @@
         <NuxtLink to="/" class="flex items-center gap-3">
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-            alt="Stadt.Land.Klima! Logo"
+            :alt="$t('logo.alt')"
             class="h-10 w-auto dark:hidden"
           />
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
-            alt="Stadt.Land.Klima! Logo"
+            :alt="$t('logo.alt')"
             class="hidden h-10 w-auto dark:block"
           />
         </NuxtLink>
         <div class="flex-1 text-center">
-          <h1 class="text-xl font-bold text-stats-dark">Klimawahlcheck</h1>
+          <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
           <p v-if="electionData?.election" class="text-sm text-mid-gray">
             {{ electionData.election.descriptor }}
           </p>
@@ -138,16 +138,16 @@ import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
-const { $directus, $readItems, $readItem } = useNuxtApp();
+const { $directus, $readItems, $readItem, $t } = useNuxtApp();
 
 const municipalitySlug = route.params.municipalitySlug;
 
 // Step management
 const currentStep = ref(1);
 const steps = [
-  { id: 1, label: "Fragen" },
-  { id: 2, label: "Übersicht" },
-  { id: 3, label: "Ergebnis" },
+  { id: 1, label: $t("elections.wahlcheck.steps.questions") },
+  { id: 2, label: $t("elections.wahlcheck.steps.summary") },
+  { id: 3, label: $t("elections.wahlcheck.steps.results") },
 ];
 
 // User data
@@ -409,8 +409,7 @@ async function loadElectionData() {
   } catch (err) {
     console.error("Error loading election data:", err);
     error.value = true;
-    errorMessage.value =
-      "Es ist ein Fehler beim Laden der Wahldaten aufgetreten. Bitte versuchen Sie es später erneut.";
+    errorMessage.value = $t("elections.loading_error.description");
   } finally {
     pending.value = false;
   }
@@ -486,8 +485,8 @@ watch(
 useHead({
   title: computed(() =>
     electionData.value?.election?.descriptor
-      ? `Klimawahlcheck: ${electionData.value.election.descriptor} - Stadt.Land.Klima`
-      : "Klimawahlcheck - Stadt.Land.Klima",
+      ? $t("elections.wahlcheck.head_title_for", { ":descriptor": electionData.value.election.descriptor })
+      : $t("elections.wahlcheck.title"),
   ),
 });
 </script>

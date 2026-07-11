@@ -1,14 +1,14 @@
 <template>
   <div class="w-full px-4 sm:px-8 py-8 pb-16">
-    <h1 class="text-h1 font-bold text-center mb-4">Unsere Organisation</h1>
+    <h1 class="text-h1 font-bold text-center mb-4">{{ $t("organisation.title") }}</h1>
 
     <!-- Intro text -->
     <div class="max-w-2xl mx-auto text-center mb-10">
-      <h2 class="text-h2 font-bold mb-2">Ressorts/Aufgabenbereiche</h2>
+      <h2 class="text-h2 font-bold mb-2">{{ $t("organisation.teams.title") }}</h2>
       <p class="text-base text-gray">
-        Wir sind selbstorganisiert und arbeiten in Arbeits- und Projektgruppen. Die Ressorts/Aufgabenbereiche fassen die AGs und PGs thematisch zusammen.
+        {{ $t("organisation.teams.description") }}
       </p>
-      <p class="mt-2 text-sm italic text-gray-400">Klicke auf eine Blase, um mehr über das Ressort zu erfahren.</p>
+      <p class="mt-2 text-sm italic text-gray-400">{{ $t("organisation.teams.bubble_hint") }}</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8 items-start">
@@ -19,7 +19,7 @@
           viewBox="140 5 620 555"
           class="w-full select-none"
           xmlns="http://www.w3.org/2000/svg"
-          aria-label="Organisationsdiagramm"
+          :aria-label="$t('organisation.diagram.aria_label')"
           role="img"
           @click.self="activeTeamId = null"
         >
@@ -132,7 +132,7 @@
                   type="button"
                   class="flex flex-col items-center gap-1 cursor-pointer group focus:outline-none"
                   @click="scrollToMember(member.id, activeTeam.color)"
-                  :title="member.first_name + ' ' + member.last_name"
+                  :title="memberFullName(member)"
                 >
                   <div
                     class="w-10 h-10 rounded-full overflow-hidden border-2 group-hover:scale-110 transition-transform"
@@ -157,7 +157,7 @@
                   <span class="text-[10px] leading-tight text-center text-[var(--slk-text-muted)] max-w-[48px] truncate">{{ member.first_name }}</span>
                 </button>
               </div>
-              <p v-else class="text-sm italic text-[var(--slk-text-subtle)]">Noch keine Mitglieder eingetragen.</p>
+              <p v-else class="text-sm italic text-[var(--slk-text-subtle)]">{{ $t("organisation.no_members") }}</p>
             </div>
           </div>
         </template>
@@ -176,14 +176,14 @@
               d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <p class="text-sm font-medium">Wähle eine Gruppe aus dem Diagramm</p>
+          <p class="text-sm font-medium">{{ $t("organisation.select_group") }}</p>
         </div>
       </div>
     </div>
 
     <!-- ── All members list (below chart) ─────────────────────────────────── -->
     <div v-if="members && members.length" class="mt-12">
-      <h2 class="text-h2 font-bold mb-6">Alle Teammitglieder</h2>
+      <h2 class="text-h2 font-bold mb-6">{{ $t("organisation.all_members") }}</h2>
 
       <!-- Active-team members first (coloured border highlight) -->
       <template v-if="activeTeam && filteredMembers.length">
@@ -278,21 +278,21 @@
 </template>
 
 <script setup>
-useHead({ title: 'Organisation' })
-
-const { $directus, $readItems } = useNuxtApp()
+const { $directus, $readItems, $t } = useNuxtApp()
 const { isDark } = useTheme()
+
+useHead({ title: $t('organisation') })
 // ── SVG layout — coordinates from the original Illustrator SVG ──────────────
 // These are purely geometric/layout values that never need to change via CMS.
 // Label, email, color and tasks come from the organisation_teams Directus collection.
 const TEAM_LAYOUT = [
-  { id: 'lokalteams',   lines: ['Lokalteams/', 'Netzwerk'],                        cx: 527.2, cy: 81.7,  r: 72,   fontSize: 20, lineHeight: 24 },
-  { id: 'technik',      lines: ['Technik & IT'],                                   cx: 351,   cy: 143.5, r: 72,   fontSize: 20, lineHeight: 24 },
-  { id: 'steuerkreis',  lines: ['Steuerkreis'],                                    cx: 458.8, cy: 198.4, r: 89.7, fontSize: 20, lineHeight: 24 },
-  { id: 'massnahmen',   lines: ['Maßnahmen'],                                      cx: 365,   cy: 270.4, r: 72,   fontSize: 20, lineHeight: 24 },
-  { id: 'kommunikation',lines: ['Kommunikation', 'Öffentlichkeits-', 'Pressearbeit'], cx: 531.6, cy: 276.2, r: 72, fontSize: 16, lineHeight: 19 },
-  { id: 'vorstand',     lines: ['Vorstand/', 'Verwaltung'],                        cx: 458.8, cy: 447.3, r: 72,   fontSize: 20, lineHeight: 24 },
-  { id: 'kassenwart',   lines: ['Kassenwart'],                                     cx: 548,   cy: 468,   r: 52,   fontSize: 17, lineHeight: 22 },
+  { id: 'lokalteams', lineKeys: ['organisation.team.lokalteams.line1', 'organisation.team.lokalteams.line2'], cx: 527.2, cy: 81.7, r: 72, fontSize: 20, lineHeight: 24 },
+  { id: 'technik', lineKeys: ['organisation.team.technik.line1'], cx: 351, cy: 143.5, r: 72, fontSize: 20, lineHeight: 24 },
+  { id: 'steuerkreis', lineKeys: ['organisation.team.steuerkreis.line1'], cx: 458.8, cy: 198.4, r: 89.7, fontSize: 20, lineHeight: 24 },
+  { id: 'massnahmen', lineKeys: ['organisation.team.massnahmen.line1'], cx: 365, cy: 270.4, r: 72, fontSize: 20, lineHeight: 24 },
+  { id: 'kommunikation', lineKeys: ['organisation.team.kommunikation.line1', 'organisation.team.kommunikation.line2', 'organisation.team.kommunikation.line3'], cx: 531.6, cy: 276.2, r: 72, fontSize: 16, lineHeight: 19 },
+  { id: 'vorstand', lineKeys: ['organisation.team.vorstand.line1', 'organisation.team.vorstand.line2'], cx: 458.8, cy: 447.3, r: 72, fontSize: 20, lineHeight: 24 },
+  { id: 'kassenwart', lineKeys: ['organisation.team.kassenwart.line1'], cx: 548, cy: 468, r: 52, fontSize: 17, lineHeight: 22 },
 ]
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
@@ -308,9 +308,11 @@ const { data: cmsTeams } = await useAsyncData('org-teams', () =>
 const TEAMS = computed(() =>
   TEAM_LAYOUT.map(layout => {
     const cms = cmsTeams.value?.find(t => t.team_key === layout.id)
+    const lines = layout.lineKeys.map(key => $t(key))
     return {
       ...layout,
-      label: cms?.label ?? layout.id,
+      lines,
+      label: cms?.label ?? lines.join(' '),
       email: cms?.email ?? '',
       color: cms?.color ?? '#9d9d9c',
       tasks: Array.isArray(cms?.tasks) ? cms.tasks : [],
@@ -373,6 +375,10 @@ const otherMembers = computed(() => {
   const activeIds = new Set(filteredMembers.value.map(m => m.id))
   return members.value.filter(m => !activeIds.has(m.id)).sort(byLastName)
 })
+
+function memberFullName(member) {
+  return [member.first_name, member.last_name].filter(Boolean).join(' ')
+}
 
 // ── Layout stability: lock panel height to SVG height ───────────────────────
 // When panel content changes height the flex-row height must not change,

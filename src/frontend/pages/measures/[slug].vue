@@ -9,7 +9,7 @@
         {{
           detailSector
             ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${detailSector}.title`) })
-            : "Zurück zu Maßnahmen"
+            : $t("measures.back_label")
         }}
       </NuxtLink>
 
@@ -45,7 +45,7 @@
       v-if="measureVersions && measureVersions.length > 1"
       class="slk-filter-theme-neutral mt-3 flex flex-wrap items-center gap-2"
     >
-      <span class="text-gray-500 text-xs">Version:</span>
+      <span class="text-gray-500 text-xs">{{ $t("measure.version_label") }}</span>
       <NuxtLink
         v-for="mv in measureVersions"
         :key="mv.catalog_version.id"
@@ -139,15 +139,13 @@
           class="slk-sector-detail-icon slk-theme-icon--dark mt-0.5 h-6 w-6 flex-shrink-0 opacity-50"
         />
         <div>
-          <h3 class="mb-1 font-heading font-bold text-gray">Haben Sie einen Hinweis zu dieser Maßnahme?</h3>
-          <p class="text-gray-500 mb-3 text-sm">
-            Fehler, Ungenauigkeiten oder Verbesserungsvorschläge – teilen Sie uns Ihr Feedback mit.
-          </p>
+          <h3 class="mb-1 font-heading font-bold text-gray">{{ $t("measure.feedback.title") }}</h3>
+          <p class="text-gray-500 mb-3 text-sm">{{ $t("measure.feedback.description") }}</p>
           <NuxtLink
-            :to="`/contact?title=${encodeURIComponent(measure?.measure_id + ': ' + measure?.name)}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure?.measure_id + '\nLink: /measures/' + route.params.slug + '?v=' + currentCatalogVersion.name + '\n\nMein Hinweis:\n')}`"
+            :to="feedbackLocation"
             class="inline-flex items-center gap-2 rounded bg-light-blue px-4 py-2 text-sm font-bold text-white transition hover:brightness-110"
           >
-            Feedback geben ↗
+            {{ $t("feedback.give_external") }}
           </NuxtLink>
         </div>
       </div>
@@ -235,6 +233,24 @@ const measureIndexLocation = computed(() => {
     query: {
       v: currentCatalogVersion.value.name,
       ...(detailSector.value ? { sector: detailSector.value } : {}),
+    },
+  };
+});
+const feedbackLocation = computed(() => {
+  const measureTitle = measure.value
+    ? `${measure.value.measure_id}: ${measure.value.name}`
+    : '';
+  const measureLink = `/measures/${route.params.slug}?v=${currentCatalogVersion.value.name}`;
+
+  return {
+    path: '/contact',
+    query: {
+      title: measureTitle,
+      type: 'suggestion',
+      content: $t('measure.feedback.prefill_content', {
+        ':measure': measureTitle,
+        ':link': measureLink,
+      }),
     },
   };
 });

@@ -3,8 +3,10 @@
     <!-- Title -->
     <div class="mb-4">
       <h1 class="text-4xl font-bold text-light-green">
-        <span v-if="selectedCatalogVersion.name === 'beta'">{{ $t("municipalities.heading") }} 2025</span>
-        <span v-else>{{ $t("municipalities.heading") }} 2026</span>
+        <span v-if="selectedCatalogVersion.name === 'beta'">
+          {{ $t("municipalities.heading") }} {{ $t("ranking.current_year", { ":year": 2025 }) }}
+        </span>
+        <span v-else>{{ $t("municipalities.heading") }} {{ $t("ranking.current_year", { ":year": 2026 }) }}</span>
       </h1>
       <p class="text-gray-400 mt-1 text-xs">
         <ClientOnly>{{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}</ClientOnly>
@@ -127,7 +129,7 @@
                 :to="{ path: '/municipalities', query: { ...route.query, v: 'v1.0' } }"
                 class="slk-filter-pill"
                 :class="selectedCatalogVersion.name !== 'beta' ? 'slk-filter-pill--active' : ''"
-                >2026</NuxtLink
+                >{{ $t("ranking.current_year", { ":year": 2026 }) }}</NuxtLink
               >
               <NuxtLink
                 :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"

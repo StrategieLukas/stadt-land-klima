@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
 
   const body = await readRequestBody(event);
-  const { title, type, content, name, contact, altcha } = body ?? {};
+  const { title, type, content, name, contact, sendCopy, altcha } = body ?? {};
 
   // Validate required fields
   if (!title?.trim() || !type?.trim() || !content?.trim() || !name?.trim() || !contact?.trim()) {
@@ -75,6 +75,7 @@ export default defineEventHandler(async (event) => {
         content: content.trim(),
         sender_name: name.trim(),
         sender_contact: contact.trim(),
+        send_copy: sendCopy === true,
       }),
     );
   } catch (err) {

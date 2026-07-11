@@ -3,7 +3,7 @@
     <!-- ═══════════════════════════════════════════════════════════
          TOP NAV TILES — anchor navigation
          ═══════════════════════════════════════════════════════════ -->
-    <nav class="-mx-4 -mt-6 mb-6 flex md:hidden" aria-label="Sektionen">
+    <nav class="-mx-4 -mt-6 mb-6 flex md:hidden" :aria-label="$t('stats.sections.aria_label')">
       <button
         class="flex flex-1 flex-col items-center justify-center gap-0.5 px-4 py-4 text-center text-white transition-opacity hover:opacity-90 active:opacity-80"
         style="background-color: #006e94"

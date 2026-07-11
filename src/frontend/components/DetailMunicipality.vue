@@ -48,6 +48,7 @@
             :ratings-by-sector="ratingsBySector"
             :name-municipality="municipality.name"
           />
+          <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
           <p
             v-if="activeTab === 'treemap'"
             class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
@@ -197,6 +198,7 @@
               :ratings-by-sector="ratingsBySector"
               :name-municipality="municipality.name"
             />
+            <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
             <p
               v-if="activeTab === 'polar'"
               class="text-gray-500 mx-auto mt-3 text-center text-xs italic"

@@ -5,7 +5,7 @@
       <div class="mb-6">
         <img 
           src="~/assets/images/Stadt-Land-Klima-Blume.svg" 
-          alt="Klimablume" 
+          :alt="$t('logo.alt')"
           class="h-24 w-auto mx-auto opacity-80"
         >
       </div>

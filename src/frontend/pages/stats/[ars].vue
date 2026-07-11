@@ -65,7 +65,7 @@
 
           <!-- ARS code -->
           <div class="mt-2">
-            <span class="text-xs text-gray-500 font-semibold">ARS </span>
+            <span class="text-xs text-gray-500 font-semibold">{{ $t('region.ars_label') }} </span>
             <span class="text-xs font-mono text-gray-600">{{ stats?.ars || '-' }}</span>
           </div>
         </div>
