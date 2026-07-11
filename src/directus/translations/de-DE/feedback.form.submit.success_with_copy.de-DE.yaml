@@ -1,0 +1,4 @@
+language: de-DE
+key: feedback.form.submit.success_with_copy
+value: Ihre Nachricht wurde gespeichert. Eine Kopie wird an Ihre E-Mail-Adresse
+  gesendet.

@@ -16,7 +16,7 @@
           v-else
           class="w-full h-full bg-gradient-to-br from-stats-dark to-light-blue flex items-center justify-center"
         >
-          <span v-if="isEditing" class="text-white/50 text-sm">Hintergrundbild hier ablegen</span>
+          <span v-if="isEditing" class="text-white text-sm">Hintergrundbild hier ablegen</span>
         </div>
       </div>
       <!-- Overlay -->

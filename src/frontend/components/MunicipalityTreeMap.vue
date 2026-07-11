@@ -7,7 +7,6 @@
 </template>
 
 <script setup>
-import colorLib from '@kurkle/color';
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { Chart } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
@@ -27,6 +26,14 @@ const props = defineProps({
 
 const chartCanvas = ref(null);
 let chartInstance = null;
+
+function cssColor(name, fallback) {
+  if (typeof window === 'undefined') {
+    return fallback;
+  }
+
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
 
 function sectorName(sector) {
   const translated = $t(`measure_sectors.${sector}.title`);
@@ -57,8 +64,6 @@ const treeData = computed(() => {
     });
   });
   
-  console.log("Tree Data:", data);
-
   return data;
 });
 
@@ -85,13 +90,13 @@ function colorFromRaw(ctx) {
   // return color based on rating
 
   if (ctx.type !== 'data') {
-    return 'transparent';
+    return cssColor('--slk-surface', '#ffffff');
   }
   
 
   if (ctx.raw._data.children.length > 1) {
     // it's a group
-    return 'rgba(0,0,0,0.1)';
+    return cssColor('--slk-surface-muted', '#e5e7eb');
   }
 
   const item = ctx.raw._data.children[0];
@@ -118,7 +123,7 @@ const chartData = computed(() => ({
     displayMode: "container_boxes",
     spacing: 0.5,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: () => cssColor('--slk-surface', '#ffffff'),
     backgroundColor: (ctx) => colorFromRaw(ctx),
     labels: {
       display: true,
@@ -139,7 +144,14 @@ const chartData = computed(() => ({
         }
         return item.sectorName || '';
       },
-      color: ['white', 'black'],
+      color: (ctx) => {
+        if (!ctx.raw || ctx.raw._data.children.length > 1) {
+          return cssColor('--slk-text-strong', '#101820');
+        }
+
+        const item = ctx.raw._data.children[0];
+        return item?.rating === 0 ? '#ffffff' : '#101820';
+      },
       font: {
         size: 12,
         weight: 'bold',
@@ -166,7 +178,6 @@ const chartOptions = {
     else if (elements.length == 2) {
       // measure clicked
       const element = elements[1];
-      console.log(element)
       const item = element.element.$context.raw._data.children[0];
       
       if (item && item.measure_id) {
@@ -182,7 +193,6 @@ const chartOptions = {
     tooltip: {
       callbacks: {
         title: function(context) {
-          console.log(context)
           if (context.length == 1) {
             // it's a group
             return context[0].raw._data.sectorName;
@@ -208,7 +218,7 @@ const chartOptions = {
           if (item.measure_id) {
             lines.push(`ID: ${item.measure_id}`);
             lines.push(`${$t("stats.chart.rating")}: ${getRatingString(item.rating)}`);
-            lines.push(`Gewichtung: ${item.weight}`);
+            lines.push(`${$t("measure.weight")}: ${item.weight}`);
           }
           return lines;
         }

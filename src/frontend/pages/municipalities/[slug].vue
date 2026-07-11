@@ -127,7 +127,8 @@
         <!-- Info box -->
         <div class="rounded-sm shadow-list">
           <div class="flex items-center gap-2 px-6 py-4">
-            <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
+            <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60" />
+            <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-6 w-6 opacity-60" />
             <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
           </div>
           <div class="px-6 pb-6 space-y-3">
@@ -149,7 +150,8 @@
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
+                <img src="~/assets/icons/icon_politics.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-5 w-5 opacity-60" />
+                <img src="~/assets/icons/icon_politics-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-5 w-5 opacity-60" />
                 <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
               </div>
               <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
@@ -160,9 +162,18 @@
         <!-- Stats link -->
         <NuxtLink
           :to="`/stats/${slzArea.ars}`"
-          class="shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
+          class="slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
         >
-          <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14" />
+          <img
+            src="~/assets/icons/icon_evaluation_criteria.svg"
+            alt=""
+            class="slk-municipality-cta-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14"
+          />
+          <img
+            src="~/assets/icons/icon_evaluation_criteria-dark.svg"
+            alt=""
+            class="slk-municipality-cta-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14"
+          />
           <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
         </NuxtLink>
 
@@ -233,7 +244,8 @@
             <!-- Info box -->
             <div class="rounded-sm shadow-list">
               <div class="flex items-center gap-2 px-6 py-4">
-                <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
+                <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60" />
+                <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-6 w-6 opacity-60" />
                 <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
               </div>
               <div class="px-6 pb-6 space-y-3">
@@ -255,7 +267,8 @@
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
+                    <img src="~/assets/icons/icon_politics.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-5 w-5 opacity-60" />
+                    <img src="~/assets/icons/icon_politics-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-5 w-5 opacity-60" />
                     <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
                   </div>
                   <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
@@ -266,9 +279,18 @@
             <!-- Stats link -->
             <NuxtLink
               :to="`/stats/${slzArea.ars}`"
-              class="shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
+              class="slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
             >
-              <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
+              <img
+                src="~/assets/icons/icon_evaluation_criteria.svg"
+                alt=""
+                class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
+              />
+              <img
+                src="~/assets/icons/icon_evaluation_criteria-dark.svg"
+                alt=""
+                class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
+              />
               <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
             </NuxtLink>
 

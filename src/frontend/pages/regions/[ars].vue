@@ -30,7 +30,7 @@
         </div>
         <div class="flex flex-col lg:text-right space-y-3 flex-shrink-0">
           <div class="lg:text-right">
-            <p class="text-xs text-gray-500 font-semibold">ARS</p>
+            <p class="text-xs text-gray-500 font-semibold">{{ t('region.ars_label') }}</p>
             <p class="text-sm font-mono text-gray-700">{{ area?.ars || '-' }}</p>
           </div>
           <div class="lg:text-right">
@@ -89,7 +89,7 @@
           <div class="flex-shrink-0 flex items-center gap-2">
             <div v-if="muni.score !== null" class="text-right">
               <span class="text-sm font-bold text-green-700">{{ muni.score.toFixed(1) }}</span>
-              <span class="text-xs text-gray-400 ml-0.5">Pkt</span>
+              <span class="text-xs text-gray-400 ml-0.5">{{ t('stats.points_abbrev') }}</span>
             </div>
             <NuxtLink
               v-if="muni.slug"
@@ -226,7 +226,7 @@ const pageTitle = computed(() => {
   if (area.value?.name) {
     return area.value.prefix ? `${area.value.prefix} ${area.value.name}` : area.value.name;
   }
-  return 'Region';
+  return t('region.title_fallback');
 });
 
 useHead({ title: pageTitle });

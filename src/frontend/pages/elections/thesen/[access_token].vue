@@ -21,7 +21,7 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error || !localteam || !candidate" class="bg-red/10 border border-red text-red p-6 rounded-lg text-center">
+      <div v-else-if="error || !localteam || !candidate" class="bg-solid-red-10 border border-red text-red p-6 rounded-lg text-center">
 	        <p class="font-bold text-xl mb-2">{{ $t("generic.loading_error") }}</p>
 	        <p>{{ $t("elections.theses.loading_error.description") }}</p>
       </div>
@@ -39,11 +39,11 @@
 
       <!-- Survey Form -->
       <div v-else-if="questions && questions.length > 0" class="space-y-8">
-        <div v-if="isPastCutoff" class="bg-orange/10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
+        <div v-if="isPastCutoff" class="bg-solid-orange-10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
 	          {{ $t("elections.theses.cutoff_reached", { ":date": new Date(candidate.election.response_cutoff_date).toLocaleDateString($locale) }) }}
         </div>
 
-        <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
+        <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
           <div class="flex items-start mb-6">
             <span class="flex-shrink-0 w-8 h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold mr-4">
               {{ index + 1 }}

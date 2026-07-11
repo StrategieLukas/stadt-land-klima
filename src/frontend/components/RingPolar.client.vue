@@ -1,5 +1,5 @@
 <template lang="">
-  <div class="h-full w-full">
+  <div class="slk-polar-ring h-full w-full">
     <svg
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
@@ -1162,21 +1162,30 @@
 </template>
 <script setup></script>
 <style>
-.st0 {
-  fill: #ededed;
+.slk-polar-ring .st0 {
+  fill: var(--slk-surface-muted);
 }
-.st1 {
+.slk-polar-ring .st1 {
   font-family: "RobotoCondensed-Regular";
+  fill: var(--slk-text-strong);
 }
-.st2 {
+.slk-polar-ring .st2 {
   font-size: 12px;
+  fill: var(--slk-text-strong);
 }
-.st3 {
-  fill: #ffffff;
+.slk-polar-ring .st3 {
+  fill: var(--slk-surface);
 }
-.st4 {
+.slk-polar-ring .st4 {
   fill-rule: evenodd;
   clip-rule: evenodd;
-  fill: #ffffff;
+  fill: var(--slk-surface);
+}
+.slk-polar-ring .st5 {
+  fill: var(--slk-text-strong);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-polar-ring .st0 {
+  fill: var(--slk-blue-tint);
 }
 </style>

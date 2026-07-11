@@ -7,7 +7,7 @@
         <ItemRanking :municipalityScore="municipalityScore" />
       </div>
       <div class="mb-4">
-        <div role="tablist" class="tabs-boxed tabs w-fit">
+        <div role="tablist" class="slk-chart-tabs tabs-boxed tabs w-fit">
           <a
             role="tab"
             class="tab gap-1.5"
@@ -37,7 +37,7 @@
             {{ $t("generic.view.treemap") }}
           </a>
         </div>
-        <div class="mt-4 rounded-box border-base-300 bg-base-100 p-6">
+        <div class="slk-chart-panel mt-4 rounded-box border-base-300 bg-base-100 p-6">
           <MunicipalityPolarChart
             v-if="activeTab === 'polar'"
             :sub-scores="subScores"
@@ -48,6 +48,7 @@
             :ratings-by-sector="ratingsBySector"
             :name-municipality="municipality.name"
           />
+          <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
           <p
             v-if="activeTab === 'treemap'"
             class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
@@ -92,18 +93,36 @@
       <!-- Mobile: Statistics Section Link -->
       <NuxtLink
         :to="`/stats/${municipality.ars}`"
-        class="mb-4 flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
+        class="slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
       >
-        <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+        <img
+          src="~/assets/icons/icon_evaluation_criteria.svg"
+          alt=""
+          class="slk-municipality-cta-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18"
+        />
+        <img
+          src="~/assets/icons/icon_evaluation_criteria-dark.svg"
+          alt=""
+          class="slk-municipality-cta-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
+        />
         <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
       </NuxtLink>
 
       <!-- Mobile: Kommunalwahl Question Generation Link -->
       <NuxtLink
         :to="`/elections/${municipality.slug}`"
-        class="flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
+        class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
       >
-        <img src="~/assets/icons/icon_politics.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+        <img
+          src="~/assets/icons/icon_politics.svg"
+          alt=""
+          class="slk-municipality-cta-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18"
+        />
+        <img
+          src="~/assets/icons/icon_politics-dark.svg"
+          alt=""
+          class="slk-municipality-cta-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
+        />
         <h3 class="font-heading text-h2">
           {{
             $t("local_elections.title", {
@@ -138,7 +157,7 @@
           <item-ranking :municipalityScore="municipalityScore" />
         </div>
         <div class="mb-4">
-          <div role="tablist" class="tabs-boxed tabs w-fit">
+          <div role="tablist" class="slk-chart-tabs tabs-boxed tabs w-fit">
             <a
               role="tab"
               class="tab gap-1.5"
@@ -168,7 +187,7 @@
               {{ $t("generic.view.treemap") }}
             </a>
           </div>
-          <div class="mt-4 rounded-box border-base-300 bg-base-100 p-6">
+          <div class="slk-chart-panel mt-4 rounded-box border-base-300 bg-base-100 p-6">
             <MunicipalityPolarChart
               v-if="activeTab === 'polar'"
               :sub-scores="subScores"
@@ -179,6 +198,7 @@
               :ratings-by-sector="ratingsBySector"
               :name-municipality="municipality.name"
             />
+            <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
             <p
               v-if="activeTab === 'polar'"
               class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
@@ -206,7 +226,8 @@
         >
           <input type="checkbox" name="sectors-accordion" autocomplete="off" />
           <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
-            <img src="~/assets/icons/icon_info.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+            <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+            <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18" />
             <h2 class="font-heading text-h2 leading-none text-green">
               {{ $t("municipality.overall_status_heading") }}
             </h2>
@@ -228,18 +249,36 @@
           <!-- Statistics Section Link -->
           <NuxtLink
             :to="municipality.ars ? `/stats/${municipality.ars}` : '/stats'"
-            class="flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
+            class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
           >
-            <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
+            <img
+              src="~/assets/icons/icon_evaluation_criteria.svg"
+              alt=""
+              class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
+            />
+            <img
+              src="~/assets/icons/icon_evaluation_criteria-dark.svg"
+              alt=""
+              class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
+            />
             <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
           </NuxtLink>
 
           <!-- Kommunalwahl Question Generation Link -->
           <NuxtLink
             :to="`/elections/${municipality.slug}`"
-            class="flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
+            class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
           >
-            <img src="~/assets/icons/icon_politics.svg" class="h-6 w-6 opacity-60" />
+            <img
+              src="~/assets/icons/icon_politics.svg"
+              alt=""
+              class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
+            />
+            <img
+              src="~/assets/icons/icon_politics-dark.svg"
+              alt=""
+              class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6 opacity-60"
+            />
             <h3 class="font-heading text-h3">
               {{
                 $t("local_elections.title", {
@@ -273,7 +312,8 @@
             class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2"
           >
             <div class="mb-4 flex items-center gap-3 p-3">
-              <img src="~/assets/icons/icon_invest.svg" class="h-6 w-6 opacity-60" />
+              <img src="~/assets/icons/icon_invest.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60" />
+              <img src="~/assets/icons/icon_invest-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-6 w-6 opacity-60" />
               <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
             </div>
             <div class="space-y-4">
@@ -296,7 +336,8 @@
           <!-- Last Update Info -->
           <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
             <div class="text-gray-600 flex items-center gap-2 text-sm">
-              <img src="~/assets/icons/icon_info.svg" class="h-4 w-4 opacity-60" />
+              <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-4 w-4 opacity-60" />
+              <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-4 w-4 opacity-60" />
               <ClientOnly>
                 <span>{{
                   $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated, $locale)

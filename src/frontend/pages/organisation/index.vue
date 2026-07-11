@@ -1,14 +1,14 @@
 <template>
   <div class="w-full px-4 sm:px-8 py-8 pb-16">
-    <h1 class="text-h1 font-bold text-center mb-4">Unsere Organisation</h1>
+    <h1 class="text-h1 font-bold text-center mb-4">{{ $t("organisation.title") }}</h1>
 
     <!-- Intro text -->
     <div class="max-w-2xl mx-auto text-center mb-10">
-      <h2 class="text-h2 font-bold mb-2">Ressorts/Aufgabenbereiche</h2>
+      <h2 class="text-h2 font-bold mb-2">{{ $t("organisation.teams.title") }}</h2>
       <p class="text-base text-gray">
-        Wir sind selbstorganisiert und arbeiten in Arbeits- und Projektgruppen. Die Ressorts/Aufgabenbereiche fassen die AGs und PGs thematisch zusammen.
+        {{ $t("organisation.teams.description") }}
       </p>
-      <p class="mt-2 text-sm italic text-gray-400">Klicke auf eine Blase, um mehr über das Ressort zu erfahren.</p>
+      <p class="mt-2 text-sm italic text-gray-400">{{ $t("organisation.teams.bubble_hint") }}</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8 items-start">
@@ -19,17 +19,17 @@
           viewBox="140 5 620 555"
           class="w-full select-none"
           xmlns="http://www.w3.org/2000/svg"
-          aria-label="Organisationsdiagramm"
+          :aria-label="$t('organisation.diagram.aria_label')"
           role="img"
           @click.self="activeTeamId = null"
         >
-          <!-- Base rect so mix-blend-mode: multiply renders correctly -->
-          <rect x="140" y="5" width="620" height="555" fill="#fbfbfb" />
+          <!-- Base rect so mix-blend-mode renders correctly. CSS class controls fill per theme. -->
+          <rect x="140" y="5" width="620" height="555" class="org-bg-rect" />
 
           <!-- Separator line -->
-          <line x1="166.8" y1="365.9" x2="733.2" y2="365.9" stroke="#c8c8c8" stroke-width="0.9" />
+          <line x1="166.8" y1="365.9" x2="733.2" y2="365.9" class="org-separator" stroke-width="0.9" />
 
-          <!-- Blended circles (isolation group so multiply blends only within group) -->
+          <!-- Blended circles (isolation group so blend mode is self-contained) -->
           <g style="isolation: isolate">
             <circle
               v-for="team in TEAMS"
@@ -38,7 +38,8 @@
               :cy="team.cy"
               :r="team.r"
               :fill="team.color"
-              style="mix-blend-mode: multiply; cursor: pointer"
+              class="org-team-circle"
+              style="cursor: pointer"
               @click.stop="selectTeam(team.id)"
             />
           </g>
@@ -51,7 +52,7 @@
             :cy="team.cy"
             :r="team.r + 3"
             fill="none"
-            :stroke="activeTeamId === team.id ? '#333' : 'transparent'"
+            :stroke="activeTeamId === team.id ? 'var(--slk-text-strong)' : 'none'"
             stroke-width="2.5"
             stroke-dasharray="6 4"
             style="pointer-events: none; transition: stroke 0.15s"
@@ -68,7 +69,7 @@
             :font-size="team.fontSize"
             font-weight="700"
             font-family="'Roboto Condensed', 'Inter', sans-serif"
-            fill="#1a1a1a"
+            class="org-label-text"
             style="pointer-events: none"
           >
             <tspan
@@ -86,9 +87,9 @@
             :cx="team.cx"
             :cy="team.cy"
             :r="team.r"
-            fill="transparent"
+            fill="none"
             stroke="none"
-            style="cursor: pointer"
+            style="cursor: pointer; pointer-events: all"
             @click.stop="selectTeam(team.id)"
           />
         </svg>
@@ -100,29 +101,30 @@
       <div class="org-detail-panel" :class="svgHeight > 0 ? 'lg:overflow-y-auto' : ''" :style="panelStyle">
         <template v-if="activeTeam">
           <!-- Popover card -->
-          <div id="team-detail-panel" class="rounded-lg overflow-hidden border border-[#e0e0e0] shadow-md mb-6">
+          <div id="team-detail-panel" class="rounded-lg overflow-hidden border border-[var(--slk-border)] shadow-md mb-6">
             <!-- Header -->
             <div
               class="px-4 py-3"
-              :style="{ background: activeTeam.color + '22', borderBottom: '2px solid ' + activeTeam.color }"
+              :style="{ background: teamTint(activeTeam.color, 0.13), borderBottom: '2px solid ' + activeTeam.color }"
             >
-              <h2 class="font-bold text-[15px] text-[#1a1a1a]">{{ activeTeam.label }}</h2>
+              <h2 class="font-bold text-[15px]" :style="{ color: 'var(--slk-text-strong)' }">{{ activeTeam.label }}</h2>
               <a
                 v-if="activeTeam.email"
                 :href="'mailto:' + activeTeam.email"
-                class="mt-0.5 text-xs text-[#006e94] hover:underline block"
+                class="mt-0.5 text-xs hover:underline block"
+                :style="{ color: 'var(--slk-blue)' }"
               >{{ activeTeam.email }}</a>
             </div>
 
             <!-- Task list -->
-            <div class="bg-white px-4 py-3">
-              <ul class="text-sm leading-relaxed space-y-1 text-[#333] list-disc list-inside">
+            <div class="bg-[var(--slk-surface)] px-4 py-3">
+              <ul class="text-sm leading-relaxed space-y-1 text-[var(--slk-text)] list-disc list-inside">
                 <li v-for="task in activeTeam.tasks" :key="task">{{ task }}</li>
               </ul>
             </div>
 
             <!-- Members footer: small clickable avatars (replaces name strip) -->
-            <div class="px-4 py-3 border-t border-[#e0e0e0]">
+            <div class="px-4 py-3 border-t border-[var(--slk-border)]">
               <div v-if="filteredMembers.length" class="flex flex-wrap gap-3">
                 <button
                   v-for="member in filteredMembers"
@@ -130,7 +132,7 @@
                   type="button"
                   class="flex flex-col items-center gap-1 cursor-pointer group focus:outline-none"
                   @click="scrollToMember(member.id, activeTeam.color)"
-                  :title="member.first_name + ' ' + member.last_name"
+                  :title="memberFullName(member)"
                 >
                   <div
                     class="w-10 h-10 rounded-full overflow-hidden border-2 group-hover:scale-110 transition-transform"
@@ -147,15 +149,15 @@
                     <div
                       v-else
                       class="w-full h-full flex items-center justify-center"
-                      :style="{ background: `linear-gradient(135deg, ${activeTeam.color}55 0%, ${activeTeam.color}22 50%, ${activeTeam.color}44 100%)` }"
+                      :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
                     >
                       <span class="font-bold text-xs" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
                     </div>
                   </div>
-                  <span class="text-[10px] leading-tight text-center text-gray-600 max-w-[48px] truncate">{{ member.first_name }}</span>
+                  <span class="text-[10px] leading-tight text-center text-[var(--slk-text-muted)] max-w-[48px] truncate">{{ member.first_name }}</span>
                 </button>
               </div>
-              <p v-else class="text-sm italic text-gray-400">Noch keine Mitglieder eingetragen.</p>
+              <p v-else class="text-sm italic text-[var(--slk-text-subtle)]">{{ $t("organisation.no_members") }}</p>
             </div>
           </div>
         </template>
@@ -163,7 +165,7 @@
         <!-- No-selection placeholder — min-height matches SVG height to keep page height stable -->
         <div
           v-else
-          class="flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-[#e5e7eb] text-gray gap-3"
+          class="flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-[var(--slk-border)] text-[var(--slk-text-muted)] gap-3"
           :style="placeholderStyle"
         >
           <svg class="w-10 h-10 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -174,14 +176,14 @@
               d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <p class="text-sm font-medium">Wähle eine Gruppe aus dem Diagramm</p>
+          <p class="text-sm font-medium">{{ $t("organisation.select_group") }}</p>
         </div>
       </div>
     </div>
 
     <!-- ── All members list (below chart) ─────────────────────────────────── -->
     <div v-if="members && members.length" class="mt-12">
-      <h2 class="text-h2 font-bold mb-6">Alle Teammitglieder</h2>
+      <h2 class="text-h2 font-bold mb-6">{{ $t("organisation.all_members") }}</h2>
 
       <!-- Active-team members first (coloured border highlight) -->
       <template v-if="activeTeam && filteredMembers.length">
@@ -190,11 +192,11 @@
             v-for="member in filteredMembers"
             :key="'all-active-' + member.id"
             :id="'member-' + member.id"
-            class="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border-2"
+          class="flex flex-col bg-[var(--slk-surface)] rounded-xl overflow-hidden shadow-sm border-2"
             :style="{ borderColor: activeTeam.color }"
             style="transition: box-shadow 0.1s;"
           >
-            <div class="relative aspect-square bg-gray-100 overflow-hidden flex-shrink-0">
+            <div class="relative aspect-square bg-[var(--slk-surface-subdued)] overflow-hidden flex-shrink-0">
               <template v-if="member.avatar">
                 <!-- Blurred fill layer keeps the container looking full at any aspect ratio -->
                 <SmartImg
@@ -216,27 +218,29 @@
               <div
                 v-else
                 class="absolute inset-0 flex items-center justify-center"
-                :style="{ background: `linear-gradient(135deg, ${activeTeam.color}55 0%, ${activeTeam.color}22 50%, ${activeTeam.color}44 100%)` }"
+                :style="{ background: memberPlaceholderGradient(activeTeam.color) }"
               >
                 <span class="font-bold text-3xl" :style="{ color: activeTeam.color }">{{ initials(member.first_name, member.last_name) }}</span>
               </div>
             </div>
             <div class="p-4 flex flex-col gap-2 flex-1">
-              <p class="font-bold text-gray-900 leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
-              <div v-if="member.bio" class="text-sm text-gray-500 prose prose-sm max-w-none" v-html="member.bio" />
+              <p class="font-bold text-[var(--slk-text-strong)] leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
+              <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="member.bio" />
             </div>
           </div>
         </div>
-        <hr class="border-[#e5e7eb] mb-6" />
+        <hr class="border-[var(--slk-border)] mb-6" />
       </template>
 
       <!-- All other members (alphabetically by last name) -->
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div
           v-for="member in otherMembers"
-          :key="'all-other-' + member.id"            :id="'member-' + member.id"          class="flex flex-col bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
+          :key="'all-other-' + member.id"
+          :id="'member-' + member.id"
+          class="flex flex-col bg-[var(--slk-surface)] rounded-xl border border-[var(--slk-border)] shadow-sm overflow-hidden"
         >
-          <div class="relative aspect-square bg-gray-100 overflow-hidden flex-shrink-0">
+          <div class="relative aspect-square bg-[var(--slk-surface-subdued)] overflow-hidden flex-shrink-0">
             <template v-if="member.avatar">
               <!-- Blurred fill layer -->
               <SmartImg
@@ -258,14 +262,14 @@
             <div
               v-else
               class="absolute inset-0 flex items-center justify-center"
-              :style="{ background: `linear-gradient(135deg, ${memberColor(member)}55 0%, ${memberColor(member)}22 50%, ${memberColor(member)}44 100%)` }"
+              :style="{ background: memberPlaceholderGradient(memberColor(member)) }"
             >
               <span class="font-bold text-3xl" :style="{ color: memberColor(member) }">{{ initials(member.first_name, member.last_name) }}</span>
             </div>
           </div>
           <div class="p-4 flex flex-col gap-2 flex-1">
-            <p class="font-bold text-gray-900 leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
-            <div v-if="member.bio" class="text-sm text-gray-500 prose prose-sm max-w-none" v-html="member.bio" />
+            <p class="font-bold text-[var(--slk-text-strong)] leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
+            <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="member.bio" />
           </div>
         </div>
       </div>
@@ -274,20 +278,21 @@
 </template>
 
 <script setup>
-useHead({ title: 'Organisation' })
+const { $directus, $readItems, $t } = useNuxtApp()
+const { isDark } = useTheme()
 
-const { $directus, $readItems } = useNuxtApp()
+useHead({ title: $t('organisation') })
 // ── SVG layout — coordinates from the original Illustrator SVG ──────────────
 // These are purely geometric/layout values that never need to change via CMS.
 // Label, email, color and tasks come from the organisation_teams Directus collection.
 const TEAM_LAYOUT = [
-  { id: 'lokalteams',   lines: ['Lokalteams/', 'Netzwerk'],                        cx: 527.2, cy: 81.7,  r: 72,   fontSize: 20, lineHeight: 24 },
-  { id: 'technik',      lines: ['Technik & IT'],                                   cx: 351,   cy: 143.5, r: 72,   fontSize: 20, lineHeight: 24 },
-  { id: 'steuerkreis',  lines: ['Steuerkreis'],                                    cx: 458.8, cy: 198.4, r: 89.7, fontSize: 20, lineHeight: 24 },
-  { id: 'massnahmen',   lines: ['Maßnahmen'],                                      cx: 365,   cy: 270.4, r: 72,   fontSize: 20, lineHeight: 24 },
-  { id: 'kommunikation',lines: ['Kommunikation', 'Öffentlichkeits-', 'Pressearbeit'], cx: 531.6, cy: 276.2, r: 72, fontSize: 16, lineHeight: 19 },
-  { id: 'vorstand',     lines: ['Vorstand/', 'Verwaltung'],                        cx: 458.8, cy: 447.3, r: 72,   fontSize: 20, lineHeight: 24 },
-  { id: 'kassenwart',   lines: ['Kassenwart'],                                     cx: 548,   cy: 468,   r: 52,   fontSize: 17, lineHeight: 22 },
+  { id: 'lokalteams', lineKeys: ['organisation.team.lokalteams.line1', 'organisation.team.lokalteams.line2'], cx: 527.2, cy: 81.7, r: 72, fontSize: 20, lineHeight: 24 },
+  { id: 'technik', lineKeys: ['organisation.team.technik.line1'], cx: 351, cy: 143.5, r: 72, fontSize: 20, lineHeight: 24 },
+  { id: 'steuerkreis', lineKeys: ['organisation.team.steuerkreis.line1'], cx: 458.8, cy: 198.4, r: 89.7, fontSize: 20, lineHeight: 24 },
+  { id: 'massnahmen', lineKeys: ['organisation.team.massnahmen.line1'], cx: 365, cy: 270.4, r: 72, fontSize: 20, lineHeight: 24 },
+  { id: 'kommunikation', lineKeys: ['organisation.team.kommunikation.line1', 'organisation.team.kommunikation.line2', 'organisation.team.kommunikation.line3'], cx: 531.6, cy: 276.2, r: 72, fontSize: 16, lineHeight: 19 },
+  { id: 'vorstand', lineKeys: ['organisation.team.vorstand.line1', 'organisation.team.vorstand.line2'], cx: 458.8, cy: 447.3, r: 72, fontSize: 20, lineHeight: 24 },
+  { id: 'kassenwart', lineKeys: ['organisation.team.kassenwart.line1'], cx: 548, cy: 468, r: 52, fontSize: 17, lineHeight: 22 },
 ]
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
@@ -303,9 +308,11 @@ const { data: cmsTeams } = await useAsyncData('org-teams', () =>
 const TEAMS = computed(() =>
   TEAM_LAYOUT.map(layout => {
     const cms = cmsTeams.value?.find(t => t.team_key === layout.id)
+    const lines = layout.lineKeys.map(key => $t(key))
     return {
       ...layout,
-      label: cms?.label ?? layout.id,
+      lines,
+      label: cms?.label ?? lines.join(' '),
       email: cms?.email ?? '',
       color: cms?.color ?? '#9d9d9c',
       tasks: Array.isArray(cms?.tasks) ? cms.tasks : [],
@@ -369,6 +376,10 @@ const otherMembers = computed(() => {
   return members.value.filter(m => !activeIds.has(m.id)).sort(byLastName)
 })
 
+function memberFullName(member) {
+  return [member.first_name, member.last_name].filter(Boolean).join(' ')
+}
+
 // ── Layout stability: lock panel height to SVG height ───────────────────────
 // When panel content changes height the flex-row height must not change,
 // otherwise a page scrollbar can appear/disappear → viewport narrows/widens
@@ -429,11 +440,33 @@ function memberColor(member) {
   return TEAMS.value.find(t => t.id === firstTeamId)?.color ?? '#16bae7'
 }
 
+function normalizeHex(hex) {
+  return /^#[0-9a-f]{6}$/i.test(hex ?? '') ? hex : '#16bae7'
+}
+
+function blendHex(hex, alpha, background) {
+  const bg = background ?? (isDark.value ? '#17212b' : '#ffffff')
+  const fg = normalizeHex(hex).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
+  const bgArr = normalizeHex(bg).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
+  return `#${fg
+    .map((value, index) => Math.round(value * alpha + bgArr[index] * (1 - alpha)).toString(16).padStart(2, '0'))
+    .join('')}`
+}
+
+function teamTint(color, alpha) {
+  return blendHex(color, alpha)
+}
+
+function memberPlaceholderGradient(color) {
+  return `linear-gradient(135deg, ${blendHex(color, 0.33)} 0%, ${blendHex(color, 0.13)} 50%, ${blendHex(color, 0.27)} 100%)`
+}
+
 function scrollToMember(id, color) {
   const el = document.getElementById('member-' + id)
   if (!el) return
   // Set the ring color as a CSS custom property so the keyframe picks it up
-  el.style.setProperty('--highlight-color', color ?? '#16bae7')
+  el.style.setProperty('--highlight-color-strong', blendHex(color ?? '#16bae7', 0.7))
+  el.style.setProperty('--highlight-color-soft', blendHex(color ?? '#16bae7', 0.35))
   el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   el.classList.remove('member-highlight')
   void el.offsetWidth
@@ -469,11 +502,48 @@ function scrollToMember(id, color) {
 }
 
 @keyframes memberHighlight {
-  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 70%, transparent); }
-  30%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--highlight-color, #16bae7) 35%, transparent); }
-  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight-color, #16bae7) 0%, transparent); }
+  0%   { box-shadow: 0 0 0 0 var(--highlight-color-strong, #16bae7); }
+  30%  { box-shadow: 0 0 0 8px var(--highlight-color-soft, #16bae7); }
+  100% { box-shadow: 0 0 0 0 transparent; }
 }
 .member-highlight {
   animation: memberHighlight 1.2s ease-out;
+}
+
+/* SVG chart theming */
+.org-bg-rect {
+  fill: #fbfbfb;
+}
+
+.org-separator {
+  stroke: #c8c8c8;
+}
+
+/* Light mode: multiply makes circles darken at overlaps on the light bg */
+.org-team-circle {
+  mix-blend-mode: multiply;
+}
+
+.org-label-text {
+  fill: #1a1a1a;
+}
+
+/* Dark mode: dark surface background, screen blend at reduced opacity so
+   overlap brightening is subtle rather than glaring */
+html[data-theme="staedteChallengeDark"] .org-bg-rect {
+  fill: var(--slk-surface);
+}
+
+html[data-theme="staedteChallengeDark"] .org-separator {
+  stroke: var(--slk-border);
+}
+
+html[data-theme="staedteChallengeDark"] .org-team-circle {
+  mix-blend-mode: screen;
+  opacity: 0.75;
+}
+
+html[data-theme="staedteChallengeDark"] .org-label-text {
+  fill: var(--slk-text-strong);
 }
 </style>

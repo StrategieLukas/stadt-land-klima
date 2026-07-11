@@ -32,7 +32,7 @@
       </p>
 
       <!-- Dev error message -->
-      <p v-if="error?.message && isDev" class="mt-3 text-xs font-mono text-red bg-red/5 rounded px-3 py-2 text-left break-all max-w-lg">
+      <p v-if="error?.message && isDev" class="mt-3 text-xs font-mono text-red bg-solid-red-05 rounded px-3 py-2 text-left break-all max-w-lg">
         {{ error.message }}
       </p>
 

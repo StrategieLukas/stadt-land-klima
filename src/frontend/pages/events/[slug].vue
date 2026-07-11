@@ -22,7 +22,7 @@
 
       <!-- Type badge -->
       <span
-        class="mb-4 inline-block rounded-full bg-light-green/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-olive-green"
+        class="mb-4 inline-block rounded-full bg-solid-light-green-10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-olive-green"
       >
         {{ eventTypeLabel(event.event_type) }}
       </span>
@@ -68,7 +68,7 @@
         <a
           :href="calendarHref"
           :download="`${event.slug}.ics`"
-          class="inline-flex items-center gap-2 rounded border border-light-green px-6 py-3 font-bold text-olive-green transition-colors hover:bg-light-green/10"
+          class="inline-flex items-center gap-2 rounded border border-light-green px-6 py-3 font-bold text-olive-green transition-colors hover:bg-solid-light-green-10"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path

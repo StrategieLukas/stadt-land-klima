@@ -1,17 +1,22 @@
 <template>
   <div class="min-h-screen bg-mild-white">
     <!-- Header with SLK Branding -->
-    <div class="bg-white shadow-sm border-b border-gray/10">
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="border-b border-solid-gray-10 bg-white shadow-sm">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <NuxtLink to="/" class="flex items-center gap-3">
-          <img 
-            src="~/assets/images/Stadt-Land-Klima-Logo.svg" 
-            alt="Stadt.Land.Klima! Logo" 
-            class="h-10 w-auto"
-          >
+          <img
+            src="~/assets/images/Stadt-Land-Klima-Logo.svg"
+            :alt="$t('logo.alt')"
+            class="h-10 w-auto dark:hidden"
+          />
+          <img
+            src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
+            :alt="$t('logo.alt')"
+            class="hidden h-10 w-auto dark:block"
+          />
         </NuxtLink>
-        <div class="text-center flex-1">
-          <h1 class="text-xl font-bold text-stats-dark">Klimawahlcheck</h1>
+        <div class="flex-1 text-center">
+          <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
           <p v-if="electionData?.election" class="text-sm text-mid-gray">
             {{ electionData.election.descriptor }}
           </p>
@@ -21,30 +26,30 @@
     </div>
 
     <!-- Progress Bar -->
-    <div class="bg-ff-green/10 py-3">
-      <div class="max-w-6xl mx-auto px-4">
+    <div class="bg-solid-ff-green-10 py-3">
+      <div class="mx-auto max-w-6xl px-4">
         <div class="flex items-center justify-between">
           <div v-for="(step, index) in steps" :key="step.id" class="flex items-center">
             <div class="flex flex-col items-center">
-              <div 
-                class="w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300"
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-full font-bold transition-all duration-300"
                 :class="{
                   'bg-ff-green text-white': currentStep >= index + 1,
-                  'bg-gray/20 text-gray/50': currentStep < index + 1
+                  'bg-solid-gray-20 text-solid-gray-50': currentStep < index + 1,
                 }"
               >
-                {{ currentStep > index + 1 ? '✓' : index + 1 }}
+                {{ currentStep > index + 1 ? "✓" : index + 1 }}
               </div>
-              <span class="text-xs mt-1 font-medium text-stats-dark whitespace-nowrap">
+              <span class="mt-1 whitespace-nowrap text-xs font-medium text-stats-dark">
                 {{ step.label }}
               </span>
             </div>
-            <div 
-              v-if="index < steps.length - 1" 
-              class="flex-1 h-1 mx-2 rounded-full transition-all duration-300"
+            <div
+              v-if="index < steps.length - 1"
+              class="mx-2 h-1 flex-1 rounded-full transition-all duration-300"
               :class="{
                 'bg-ff-green': currentStep > index + 1,
-                'bg-gray/30': currentStep <= index + 1
+                'bg-solid-gray-30': currentStep <= index + 1,
               }"
             ></div>
           </div>
@@ -53,69 +58,72 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="mx-auto max-w-6xl px-4 py-8">
       <!-- Loading State -->
-      <div v-if="pending && !error" class="flex justify-center items-center py-20">
+      <div v-if="pending && !error" class="flex items-center justify-center py-20">
         <div class="flex flex-col items-center gap-4">
-          <SlkFlowerSpinner class="w-20 h-20 text-ff-green" />
+          <SlkFlowerSpinner class="h-20 w-20 text-ff-green" />
           <p class="text-mid-gray">{{ $t("elections.loading_data") }}</p>
         </div>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="bg-red/10 border border-red text-red p-8 rounded-xl text-center my-12">
-        <h2 class="text-2xl font-bold mb-4">{{ $t("generic.loading_error") }}</h2>
+      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
+        <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
         <NuxtLink to="/" class="btn btn-primary">{{ $t("generic.back_to_home") }}</NuxtLink>
       </div>
 
       <!-- Not Found / Not Public -->
-      <div v-else-if="!electionData?.election" class="bg-orange/10 border border-orange text-orange-800 p-8 rounded-xl text-center my-12">
-        <h2 class="text-2xl font-bold mb-4">{{ $t("elections.no_public_election.title") }}</h2>
+      <div
+        v-else-if="!electionData?.election"
+        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
+      >
+        <h2 class="mb-4 text-2xl font-bold">{{ $t("elections.no_public_election.title") }}</h2>
         <p class="mb-4">
           {{ $t("elections.no_public_election.description") }}
         </p>
-        <NuxtLink to="/elections/wahlcheck" class="btn btn-secondary">{{ $t("elections.back_to_wahlcheck_overview") }}</NuxtLink>
+        <NuxtLink to="/elections/wahlcheck" class="btn btn-secondary">{{
+          $t("elections.back_to_wahlcheck_overview")
+        }}</NuxtLink>
       </div>
 
       <!-- Step 1: Answer Questions -->
-      <ElectionsWahlCheckQuestions 
-        v-if="currentStep === 1 && electionData" 
-        :questions="electionData.questions" 
-        :election="electionData.election" 
-        :localteam="electionData.localteam" 
-        :userAnswers="userAnswers" 
-        @next="handleQuestionsNext" 
-        @prev="handlePrev" 
+      <ElectionsWahlCheckQuestions
+        v-if="currentStep === 1 && electionData"
+        :questions="electionData.questions"
+        :election="electionData.election"
+        :localteam="electionData.localteam"
+        :userAnswers="userAnswers"
+        @next="handleQuestionsNext"
+        @prev="handlePrev"
       />
 
       <!-- Step 2: Review Answers & Select Double Weight -->
-      <ElectionsWahlCheckSummary 
-        v-if="currentStep === 2 && electionData" 
-        :questions="electionData.questions" 
-        :userAnswers="userAnswers" 
-        :doubleWeightedQuestions="doubleWeightedQuestions" 
-        :election="electionData.election" 
-        @next="handleSummaryNext" 
-        @prev="handlePrev" 
-        @toggle-double-weight="toggleDoubleWeight" 
+      <ElectionsWahlCheckSummary
+        v-if="currentStep === 2 && electionData"
+        :questions="electionData.questions"
+        :userAnswers="userAnswers"
+        :doubleWeightedQuestions="doubleWeightedQuestions"
+        :election="electionData.election"
+        @next="handleSummaryNext"
+        @prev="handlePrev"
+        @toggle-double-weight="toggleDoubleWeight"
       />
 
       <!-- Step 3: View Results -->
-      <ElectionsWahlCheckResults 
-        v-if="currentStep === 3 && electionData" 
-        :election="electionData.election" 
-        :candidates="electionData.candidates" 
-        :questions="electionData.questions" 
-        :userAnswers="userAnswers" 
-        :doubleWeightedQuestions="doubleWeightedQuestions" 
-        :candidateAnswers="electionData.answers" 
-        @restart="handleRestart" 
-        @prev="handlePrev" 
+      <ElectionsWahlCheckResults
+        v-if="currentStep === 3 && electionData"
+        :election="electionData.election"
+        :candidates="electionData.candidates"
+        :questions="electionData.questions"
+        :userAnswers="userAnswers"
+        :doubleWeightedQuestions="doubleWeightedQuestions"
+        :candidateAnswers="electionData.answers"
+        @restart="handleRestart"
+        @prev="handlePrev"
       />
     </div>
-
-
 
     <!-- Footer -->
     <div class="mt-20">
@@ -125,122 +133,120 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-const route = useRoute()
-const router = useRouter()
-const { $directus, $readItems, $readItem } = useNuxtApp()
+const route = useRoute();
+const router = useRouter();
+const { $directus, $readItems, $readItem, $t } = useNuxtApp();
 
-const municipalitySlug = route.params.municipalitySlug
+const municipalitySlug = route.params.municipalitySlug;
 
 // Step management
-const currentStep = ref(1)
+const currentStep = ref(1);
 const steps = [
-  { id: 1, label: 'Fragen' },
-  { id: 2, label: 'Übersicht' },
-  { id: 3, label: 'Ergebnis' }
-]
+  { id: 1, label: $t("elections.wahlcheck.steps.questions") },
+  { id: 2, label: $t("elections.wahlcheck.steps.summary") },
+  { id: 3, label: $t("elections.wahlcheck.steps.results") },
+];
 
 // User data
-const userAnswers = ref({}) // { questionId: responseValue (0-4) }
-const doubleWeightedQuestions = ref(new Set()) // Set of questionIds
+const userAnswers = ref({}); // { questionId: responseValue (0-4) }
+const doubleWeightedQuestions = ref(new Set()); // Set of questionIds
 
 // Session storage key
-const sessionStorageKey = `wahlcheck_${municipalitySlug}`
+const sessionStorageKey = `wahlcheck_${municipalitySlug}`;
 
 // Load from session storage
 function loadFromSessionStorage() {
   try {
-    const savedData = sessionStorage.getItem(sessionStorageKey)
+    const savedData = sessionStorage.getItem(sessionStorageKey);
     if (savedData) {
-      const parsed = JSON.parse(savedData)
-      userAnswers.value = parsed.userAnswers || {}
-      doubleWeightedQuestions.value = new Set(parsed.doubleWeightedQuestions || [])
+      const parsed = JSON.parse(savedData);
+      userAnswers.value = parsed.userAnswers || {};
+      doubleWeightedQuestions.value = new Set(parsed.doubleWeightedQuestions || []);
     }
   } catch (err) {
-    console.error('Error loading from session storage:', err)
+    console.error("Error loading from session storage:", err);
   }
 }
 
 // Update URL with shareable parameters when answers change
 function updateShareableUrl() {
   if (currentStep.value !== 3) {
-    return
+    return;
   }
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === "undefined") {
+    return;
   }
-  
+
   try {
     // Check if we have election data
     if (!electionData.value?.election?.id) {
-      return
+      return;
     }
-    
+
     // Check if we have user answers
     if (Object.keys(userAnswers.value).length === 0) {
-      return
+      return;
     }
-    
+
     // Encode user answers and double-weighted questions
-    const doubleWeightedArray = Array.from(doubleWeightedQuestions.value)
-    
+    const doubleWeightedArray = Array.from(doubleWeightedQuestions.value);
+
     const shareData = {
       answers: userAnswers.value,
       doubleWeighted: doubleWeightedArray,
-      electionId: electionData.value?.election?.id
-    }
-    
+      electionId: electionData.value?.election?.id,
+    };
+
     // Convert to JSON and encode
-    const jsonString = JSON.stringify(shareData)
-    const encoded = btoa(encodeURIComponent(jsonString))
-    
+    const jsonString = JSON.stringify(shareData);
+    const encoded = btoa(encodeURIComponent(jsonString));
+
     // Update URL without reloading
-    const newUrl = `${window.location.pathname}?share=${encoded}`
-    window.history.replaceState({}, '', newUrl)
-    
+    const newUrl = `${window.location.pathname}?share=${encoded}`;
+    window.history.replaceState({}, "", newUrl);
   } catch (error) {
-    console.error('Error updating shareable URL:', error)
+    console.error("Error updating shareable URL:", error);
   }
 }
 
 // Check for shared results in URL and load them
 function checkForSharedResults() {
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === "undefined") {
+    return;
   }
-  
+
   try {
-    const urlParams = new URLSearchParams(window.location.search)
-    const shareParam = urlParams.get('share')
-    
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareParam = urlParams.get("share");
+
     if (shareParam) {
       try {
-        const decoded = decodeURIComponent(atob(shareParam))
-        const shareData = JSON.parse(decoded)
-        
+        const decoded = decodeURIComponent(atob(shareParam));
+        const shareData = JSON.parse(decoded);
+
         if (shareData.answers) {
-          userAnswers.value = shareData.answers
+          userAnswers.value = shareData.answers;
         }
         if (shareData.doubleWeighted) {
-          doubleWeightedQuestions.value = new Set(shareData.doubleWeighted)
+          doubleWeightedQuestions.value = new Set(shareData.doubleWeighted);
         }
-        
+
         // Save to session storage as well
-        saveToSessionStorage()
-        
+        saveToSessionStorage();
+
         // If we have answers, automatically go to results page
         if (Object.keys(shareData.answers).length > 0) {
-          currentStep.value = 3
+          currentStep.value = 3;
         }
-        
       } catch (error) {
-        console.error('Error decoding shared results:', error)
+        console.error("Error decoding shared results:", error);
       }
     }
   } catch (error) {
-    console.error('Error checking for shared results:', error)
+    console.error("Error checking for shared results:", error);
   }
 }
 
@@ -249,132 +255,148 @@ function saveToSessionStorage() {
   try {
     const dataToSave = {
       userAnswers: userAnswers.value,
-      doubleWeightedQuestions: Array.from(doubleWeightedQuestions.value)
-    }
-    sessionStorage.setItem(sessionStorageKey, JSON.stringify(dataToSave))
+      doubleWeightedQuestions: Array.from(doubleWeightedQuestions.value),
+    };
+    sessionStorage.setItem(sessionStorageKey, JSON.stringify(dataToSave));
   } catch (err) {
-    console.error('Error saving to session storage:', err)
+    console.error("Error saving to session storage:", err);
   }
 }
 
 // Clear session storage
 function clearSessionStorage() {
   try {
-    sessionStorage.removeItem(sessionStorageKey)
+    sessionStorage.removeItem(sessionStorageKey);
   } catch (err) {
-    console.error('Error clearing session storage:', err)
+    console.error("Error clearing session storage:", err);
   }
 }
 
 // Election data
-const electionData = ref(null)
-const pending = ref(true)
-const error = ref(false)
-const errorMessage = ref('')
+const electionData = ref(null);
+const pending = ref(true);
+const error = ref(false);
+const errorMessage = ref("");
 
 // Load election data
 async function loadElectionData() {
-  pending.value = true
-  error.value = false
-  errorMessage.value = ''
+  pending.value = true;
+  error.value = false;
+  errorMessage.value = "";
 
   try {
     // Try to find the municipality by slug first
-    let municipalities = await $directus.request($readItems('municipalities', {
-      filter: {
-        slug: { _eq: municipalitySlug }
-      },
-      fields: ['localteam_id']
-    }))
+    let municipalities = await $directus.request(
+      $readItems("municipalities", {
+        filter: {
+          slug: { _eq: municipalitySlug },
+        },
+        fields: ["localteam_id"],
+      }),
+    );
 
-    let localteams = []
-    
+    let localteams = [];
+
     // If municipality found by slug, get the localteam_id and find the localteam
     if (municipalities && municipalities.length > 0 && municipalities[0].localteam_id) {
-      localteams = await $directus.request($readItems('localteams', {
-        filter: {
-          id: { _eq: municipalities[0].localteam_id }
-        },
-        fields: ['*', 'municipality_id.*']
-      }))
+      localteams = await $directus.request(
+        $readItems("localteams", {
+          filter: {
+            id: { _eq: municipalities[0].localteam_id },
+          },
+          fields: ["*", "municipality_id.*"],
+        }),
+      );
     }
 
     // If no localteam found by municipality slug, try to find by localteam slug
     if (!localteams || localteams.length === 0) {
-      localteams = await $directus.request($readItems('localteams', {
-        filter: {
-          slug: { _eq: municipalitySlug }
-        },
-        fields: ['*', 'municipality_id.*']
-      }))
+      localteams = await $directus.request(
+        $readItems("localteams", {
+          filter: {
+            slug: { _eq: municipalitySlug },
+          },
+          fields: ["*", "municipality_id.*"],
+        }),
+      );
     }
 
     // If still no localteam found, try to find by ID (in case the parameter is an ID)
     if (!localteams || localteams.length === 0) {
-      localteams = await $directus.request($readItems('localteams', {
-        filter: {
-          id: { _eq: municipalitySlug }
-        },
-        fields: ['*', 'municipality_id.*']
-      }))
+      localteams = await $directus.request(
+        $readItems("localteams", {
+          filter: {
+            id: { _eq: municipalitySlug },
+          },
+          fields: ["*", "municipality_id.*"],
+        }),
+      );
     }
 
     if (!localteams || localteams.length === 0) {
-      electionData.value = null
-      pending.value = false
-      return
+      electionData.value = null;
+      pending.value = false;
+      return;
     }
 
-    const localteam = localteams[0]
-    
+    const localteam = localteams[0];
+
     // Find the most recent public election for this localteam
-    const elections = await $directus.request($readItems('elections', {
-      filter: {
-        localteam: { _eq: localteam.id },
-        is_public: { _eq: true }
-      },
-      sort: ['-date_created'],
-      limit: 1,
-      fields: ['*']
-    }))
+    const elections = await $directus.request(
+      $readItems("elections", {
+        filter: {
+          localteam: { _eq: localteam.id },
+          is_public: { _eq: true },
+        },
+        sort: ["-date_created"],
+        limit: 1,
+        fields: ["*"],
+      }),
+    );
 
     if (!elections || elections.length === 0) {
-      electionData.value = null
-      pending.value = false
-      return
+      electionData.value = null;
+      pending.value = false;
+      return;
     }
 
-    const election = elections[0]
-    
+    const election = elections[0];
+
     // Load questions for this election
-    const questions = await $directus.request($readItems('questions', {
-      filter: {
-        election: { _eq: election.id },
-        status: { _eq: 'published' }
-      },
-      sort: ['date_created'],
-      fields: ['*']
-    }))
+    const questions = await $directus.request(
+      $readItems("questions", {
+        filter: {
+          election: { _eq: election.id },
+          status: { _eq: "published" },
+        },
+        sort: ["date_created"],
+        fields: ["*"],
+      }),
+    );
 
     // Load candidates who have answered
-    const candidates = await $directus.request($readItems('candidate', {
-      filter: {
-        election: { _eq: election.id },
-        has_answered: { _eq: true }
-      },
-      fields: ['*']
-    }))
+    const candidates = await $directus.request(
+      $readItems("candidate", {
+        filter: {
+          election: { _eq: election.id },
+          has_answered: { _eq: true },
+        },
+        fields: ["*"],
+      }),
+    );
 
     // Load all answers for these candidates
-    let allAnswers = []
+    let allAnswers = [];
     if (candidates && candidates.length > 0 && questions && questions.length > 0) {
-      allAnswers = await $directus.request($readItems('answers', {
-        filter: {
-          candidate: { _in: candidates.map(c => c.id) },
-          question: { _in: questions.map(q => q.id) }
-        },
-        fields: ['*']
-      }))
+      allAnswers = await $directus.request(
+        $readItems("answers", {
+          filter: {
+            candidate: { _in: candidates.map((c) => c.id) },
+            question: { _in: questions.map((q) => q.id) },
+          },
+          fields: ["*"],
+        }),
+      );
     }
 
     electionData.value = {
@@ -382,84 +404,91 @@ async function loadElectionData() {
       localteam,
       questions: questions || [],
       candidates: candidates || [],
-      answers: allAnswers || []
-    }
-
+      answers: allAnswers || [],
+    };
   } catch (err) {
-    console.error('Error loading election data:', err)
-    error.value = true
-    errorMessage.value = 'Es ist ein Fehler beim Laden der Wahldaten aufgetreten. Bitte versuchen Sie es später erneut.'
+    console.error("Error loading election data:", err);
+    error.value = true;
+    errorMessage.value = $t("elections.loading_error.description");
   } finally {
-    pending.value = false
+    pending.value = false;
   }
 }
 
 // Handle step navigation
 function handleQuestionsNext(answers) {
-  userAnswers.value = { ...answers }
-  currentStep.value = 2
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  userAnswers.value = { ...answers };
+  currentStep.value = 2;
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function handleSummaryNext() {
-  currentStep.value = 3
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  currentStep.value = 3;
+  window.scrollTo({ top: 0, behavior: "smooth" });
   // Update shareable URL when reaching results page
   // Use setTimeout to ensure this runs after the step change is processed
   setTimeout(() => {
-    updateShareableUrl()
-  }, 50)
+    updateShareableUrl();
+  }, 50);
 }
 
 function handlePrev() {
   if (currentStep.value > 1) {
-    currentStep.value--
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    currentStep.value--;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 
 function handleRestart() {
-  userAnswers.value = {}
-  doubleWeightedQuestions.value = new Set()
-  currentStep.value = 1
-  clearSessionStorage()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  userAnswers.value = {};
+  doubleWeightedQuestions.value = new Set();
+  currentStep.value = 1;
+  clearSessionStorage();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function toggleDoubleWeight(questionId) {
   if (doubleWeightedQuestions.value.has(questionId)) {
-    doubleWeightedQuestions.value.delete(questionId)
+    doubleWeightedQuestions.value.delete(questionId);
   } else {
-    doubleWeightedQuestions.value.add(questionId)
+    doubleWeightedQuestions.value.add(questionId);
   }
 }
 
 // Load data on mount
 onMounted(() => {
-  loadElectionData()
-  loadFromSessionStorage()
-  checkForSharedResults()
+  loadElectionData();
+  loadFromSessionStorage();
+  checkForSharedResults();
   // Update shareable URL if we're already at step 3 (e.g., page refresh)
-  updateShareableUrl()
-})
+  updateShareableUrl();
+});
 
 // Update data when route changes
-watch(() => route.params.municipalitySlug, () => {
-  loadElectionData()
-})
+watch(
+  () => route.params.municipalitySlug,
+  () => {
+    loadElectionData();
+  },
+);
 
 // Save to session storage and update URL when user data changes
-watch([userAnswers, doubleWeightedQuestions], () => {
-  saveToSessionStorage()
-  updateShareableUrl()
-}, { deep: true })
+watch(
+  [userAnswers, doubleWeightedQuestions],
+  () => {
+    saveToSessionStorage();
+    updateShareableUrl();
+  },
+  { deep: true },
+);
 
 useHead({
-  title: computed(() => electionData.value?.election?.descriptor 
-    ? `Klimawahlcheck: ${electionData.value.election.descriptor} - Stadt.Land.Klima`
-    : 'Klimawahlcheck - Stadt.Land.Klima'
-  )
-})
+  title: computed(() =>
+    electionData.value?.election?.descriptor
+      ? $t("elections.wahlcheck.head_title_for", { ":descriptor": electionData.value.election.descriptor })
+      : $t("elections.wahlcheck.title"),
+  ),
+});
 </script>
 
 <style scoped>

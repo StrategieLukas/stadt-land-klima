@@ -6,7 +6,7 @@
 
     <div v-if="hasJobs" class="space-y-12">
       <section v-if="employmentJobs.length" id="festanstellung">
-        <h2 class="mb-4 border-b border-light-green/40 pb-2 text-base font-semibold uppercase tracking-wide text-olive-green">
+        <h2 class="mb-4 border-b border-solid-light-green-40 pb-2 text-base font-semibold uppercase tracking-wide text-olive-green">
           {{ $t('jobs.heading.employment') }}
         </h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

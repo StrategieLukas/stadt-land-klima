@@ -17,6 +17,7 @@ operations:
     type: mail
     position_x: 19
     position_y: 1
+    resolve_key: condition_send_copy
     options:
       to:
         - info@stadt-land-klima.de
@@ -24,6 +25,32 @@ operations:
       body: <p>Eine neue Kontaktanfrage ist eingegangen.</p><p><strong>Name:</strong>
         {{$trigger.payload.sender_name}}</p><p><strong>Kontakt:</strong>
         {{$trigger.payload.sender_contact}}</p><p><strong>Betreff:</strong>
+        {{$trigger.payload.title}}</p><p><strong>Typ:</strong>
+        {{$trigger.payload.type}}</p><p><strong>Nachricht:</strong></p><p>{{$trigger.payload.content}}</p>
+      type: wysiwyg
+  - name: Should Send Copy
+    key: condition_send_copy
+    type: condition
+    position_x: 19
+    position_y: 21
+    options:
+      filter:
+        $trigger:
+          payload:
+            send_copy:
+              _eq: true
+    resolve_key: send_feedback_copy
+  - name: Send Copy Email
+    key: send_feedback_copy
+    type: mail
+    position_x: 19
+    position_y: 41
+    options:
+      to:
+        - "{{$trigger.payload.sender_contact}}"
+      subject: "Kopie Ihrer Nachricht an Stadt.Land.Klima!: {{$trigger.payload.title}}"
+      body: <p>Vielen Dank für Ihre Nachricht. Dies ist die gewünschte Kopie
+        Ihres Feedbacks.</p><p><strong>Betreff:</strong>
         {{$trigger.payload.title}}</p><p><strong>Typ:</strong>
         {{$trigger.payload.type}}</p><p><strong>Nachricht:</strong></p><p>{{$trigger.payload.content}}</p>
       type: wysiwyg

@@ -129,7 +129,7 @@ const isLight = computed(() => options.value.background === 'light')
 const cardClass = computed(() =>
   isLight.value
     ? 'bg-white border border-gray-200 shadow-xl'
-    : 'backdrop-blur-md bg-black/50 border border-white/10 shadow-2xl',
+    : 'backdrop-blur-md bg-black/50 border border-white shadow-2xl',
 )
 const titleClass = computed(() => isLight.value ? 'text-gray-900' : 'text-white')
 const subtitleClass = computed(() => isLight.value ? 'text-gray-600' : 'text-slate-300')

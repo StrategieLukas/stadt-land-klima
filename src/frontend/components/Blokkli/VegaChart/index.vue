@@ -71,6 +71,23 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick, unref } from 'vue'
 
+const { isDark } = useTheme()
+
+const darkVegaConfig = {
+  background: '#17212b',
+  view: { fill: '#17212b', stroke: '#344454' },
+  axis: {
+    labelColor: '#8aa4b8',
+    titleColor: '#8aa4b8',
+    gridColor: '#243444',
+    domainColor: '#344454',
+    tickColor: '#344454',
+  },
+  title: { color: '#d0dce5', subtitleColor: '#8aa4b8' },
+  legend: { labelColor: '#8aa4b8', titleColor: '#8aa4b8' },
+  header: { labelColor: '#8aa4b8', titleColor: '#8aa4b8' },
+}
+
 let renderTimer: ReturnType<typeof setTimeout> | null = null
 let rendering = false
 let lastRenderKey = ''
@@ -393,15 +410,15 @@ async function renderChart() {
     if (!specObj.width) {
       specObj.width = widthMap[options.value.width] || 'container'
     }
-    if (!specObj.background) {
-      specObj.background = '#fbfbfb'
-    }
+    // Always set background based on current theme
+    specObj.background = isDark.value ? '#17212b' : '#fbfbfb'
 
     const { default: vegaEmbed } = await import('vega-embed')
 
     const embedOpts: any = {
       actions: false,
       renderer: 'svg',
+      ...(isDark.value ? { config: darkVegaConfig } : {}),
     }
 
     if (specObj._fetchedDatasets) {
@@ -427,7 +444,7 @@ function scheduleRender() {
 
 // Watch for prop changes and re-render
 watch(
-  () => [props.spec, props.query, options.value.width, options.value.dataSource, options.value.showTable],
+  () => [props.spec, props.query, options.value.width, options.value.dataSource, options.value.showTable, isDark.value],
   scheduleRender,
 )
 

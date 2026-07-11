@@ -1,0 +1,4 @@
+language: en-GB
+key: elections.guide.not_rated
+value: This municipality has not been rated yet, so a local election guide cannot
+  be created from the rating. Rate the municipality!

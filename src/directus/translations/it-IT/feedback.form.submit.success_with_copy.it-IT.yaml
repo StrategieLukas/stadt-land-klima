@@ -1,0 +1,4 @@
+language: it-IT
+key: feedback.form.submit.success_with_copy
+value: Il tuo messaggio è stato salvato. Una copia sarà inviata al tuo indirizzo
+  email.

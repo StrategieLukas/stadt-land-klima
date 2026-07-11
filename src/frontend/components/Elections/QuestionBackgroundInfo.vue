@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="html"
-    class="question-background has-long-links prose prose-sm max-w-none rounded-lg border border-light-blue/30 bg-very-light-blue/60 p-4 text-gray"
+    class="question-background has-long-links prose prose-sm max-w-none rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4 text-gray"
     v-html="html"
   />
 </template>
