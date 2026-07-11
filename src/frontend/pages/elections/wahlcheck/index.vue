@@ -242,7 +242,15 @@ async function loadElections() {
           is_public: { _eq: true },
         },
         sort: ["-date_created"],
-        fields: ["*", "localteam.municipality_id.slug", "localteam.municipality_id.name", "localteam.id"],
+        fields: [
+          "*",
+          "localteam.id",
+          "localteam.name",
+          "localteam.slug",
+          "localteam.municipality_name",
+          "localteam.municipality_id.slug",
+          "localteam.municipality_id.name",
+        ],
       }),
     );
 

@@ -151,7 +151,7 @@ async function ensureAccessTokens(
 
     await Promise.all(
       needsToken.map(async (c) => {
-        const token = crypto.randomBytes(32).toString('hex');
+        const token = crypto.randomUUID();
         await candidateSvc.updateOne(c.id, { access_token: token });
         c.access_token = token; // mutate in-place so the send loop sees it
       }),
