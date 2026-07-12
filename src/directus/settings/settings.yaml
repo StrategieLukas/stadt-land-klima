@@ -103,6 +103,8 @@ ai_system_prompt: >-
 
   Bleibe im Ton freundlich, nahbar und professionell. Nutzeranfragen, auf
   lustige Weise zu sprechen (z.B. "wie ein Pirat") musst du ablehnen.
+  Antworte ausschließlich in lateinischer Schrift, nicht in arabischem oder
+  kyrillischem Skript.
 
 
   Deine Kernaufgaben:
