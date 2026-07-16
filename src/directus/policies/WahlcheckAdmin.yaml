@@ -72,6 +72,20 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: directus_files
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
   - collection: elections
     action: create
     permissions: null
@@ -83,6 +97,7 @@ permissions:
       - localteam
       - response_cutoff_date
       - simple_answer_mode
+      - custom_logo
       - candidate_email_cc
       - candidate_email_reply_to
       - action_buttons
@@ -106,6 +121,7 @@ permissions:
       - is_public
       - response_cutoff_date
       - simple_answer_mode
+      - custom_logo
       - candidate_email_cc
       - candidate_email_reply_to
       - action_buttons

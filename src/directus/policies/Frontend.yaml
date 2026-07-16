@@ -283,6 +283,7 @@ permissions:
     fields:
       - id
       - descriptor
+      - custom_logo
       - localteam
       - simple_answer_mode
       - response_cutoff_date

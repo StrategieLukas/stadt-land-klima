@@ -3,11 +3,13 @@
     <!-- Header -->
     <div class="bg-white p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
-        <img 
-          src="~/assets/images/Stadt-Land-Klima-Blume.svg" 
-          :alt="$t('logo.alt')" 
-          class="h-24 w-auto mx-auto opacity-80"
-        >
+        <ElectionsWahlCheckLogo
+          :logo="election?.custom_logo"
+          fallback="flower"
+          :alt="$t('logo.alt')"
+          logo-class="h-24 w-auto mx-auto object-contain"
+          fallback-class="h-24 w-auto mx-auto opacity-80"
+        />
       </div>
       <h2 class="text-2xl font-bold text-stats-dark mb-4">
         {{ $t('elections.wahlcheck.summary.title') }}

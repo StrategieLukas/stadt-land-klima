@@ -4,15 +4,12 @@
     <div class="border-b border-solid-gray-10 bg-white shadow-sm">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <NuxtLink to="/" class="flex items-center gap-3">
-          <img
-            src="~/assets/images/Stadt-Land-Klima-Logo.svg"
+          <ElectionsWahlCheckLogo
+            :logo="electionData?.election?.custom_logo"
+            fallback="full"
             :alt="$t('logo.alt')"
-            class="h-10 w-auto dark:hidden"
-          />
-          <img
-            src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
-            :alt="$t('logo.alt')"
-            class="hidden h-10 w-auto dark:block"
+            logo-class="h-10 w-auto object-contain"
+            fallback-class="h-10 w-auto"
           />
         </NuxtLink>
         <div class="flex-1 text-center">

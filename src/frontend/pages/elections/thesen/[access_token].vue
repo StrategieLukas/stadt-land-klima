@@ -3,6 +3,13 @@
     <div class="max-w-3xl mx-auto">
       <!-- Header -->
       <div v-if="!submitted" class="text-center mb-12">
+        <ElectionsWahlCheckLogo
+          v-if="candidate?.election?.custom_logo"
+          :logo="candidate.election.custom_logo"
+          fallback="none"
+          :alt="$t('logo.alt')"
+          logo-class="mx-auto mb-6 h-20 max-w-full object-contain"
+        />
         <h1 class="text-h1 font-bold text-black mb-4">
 	          {{ $t("elections.theses.title") }}
         </h1>
@@ -28,6 +35,13 @@
 
       <!-- Success State -->
       <div v-else-if="submitted" class="bg-rating-4-very-light border border-rating-4 text-rating-4 p-10 rounded-2xl text-center shadow-lg my-12">
+        <ElectionsWahlCheckLogo
+          v-if="candidate?.election?.custom_logo"
+          :logo="candidate.election.custom_logo"
+          fallback="none"
+          :alt="$t('logo.alt')"
+          logo-class="mx-auto mb-8 h-20 max-w-full object-contain"
+        />
         <div class="mb-6">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-rating-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
