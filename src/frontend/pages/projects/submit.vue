@@ -187,6 +187,18 @@
             />
           </div>
         </div>
+
+        <label class="border-gray-200 bg-gray-50 flex items-start gap-3 rounded-sm border p-3 text-sm">
+          <input
+            v-model="form.imageRightsConfirmed"
+            type="checkbox"
+            required
+            class="border-gray-300 checkbox checkbox-sm mt-0.5 shrink-0"
+          />
+          <span class="text-gray-700">
+            {{ $t("projects.submit.field.image_rights_confirmed") }} <span class="text-red-500">*</span>
+          </span>
+        </label>
       </section>
 
       <section class="border-gray-100 space-y-4 border-t pt-6">
@@ -276,6 +288,7 @@ type ArticleSubmissionForm = {
   instagram: string;
   linkedin: string;
   imageCredits: string;
+  imageRightsConfirmed: boolean;
   author: string;
   submitterEmail: string;
 };
@@ -352,6 +365,7 @@ const emptyForm = (): ArticleSubmissionForm => ({
   instagram: "",
   linkedin: "",
   imageCredits: "",
+  imageRightsConfirmed: false,
   author: "",
   submitterEmail: "",
 });
@@ -415,6 +429,10 @@ async function submitArticle() {
     errorMessage.value = $t("projects.submit.error.image_required");
     return;
   }
+  if (!form.imageRightsConfirmed) {
+    errorMessage.value = $t("projects.submit.error.image_rights_required");
+    return;
+  }
   if (form.sectors.length === 0) {
     errorMessage.value = $t("projects.submit.error.sectors_required");
     return;
@@ -432,6 +450,7 @@ async function submitArticle() {
   submitData.append("instagram", form.instagram);
   submitData.append("linkedin", form.linkedin);
   submitData.append("imageCredits", form.imageCredits);
+  submitData.append("imageRightsConfirmed", String(form.imageRightsConfirmed));
   submitData.append("author", form.author);
   submitData.append("submitterEmail", form.submitterEmail);
   submitData.append("image", selectedImage.value);
