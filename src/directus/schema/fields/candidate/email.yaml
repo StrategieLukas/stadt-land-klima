@@ -21,6 +21,10 @@ meta:
   translations:
     - language: de-DE
       translation: E-Mail
+    - language: en-GB
+      translation: Email
+    - language: it-IT
+      translation: Email
   validation:
     _or:
       - email:

@@ -26,6 +26,10 @@ meta:
   translations:
     - language: de-DE
       translation: Öffentlich sichtbar
+    - language: en-GB
+      translation: Publicly visible
+    - language: it-IT
+      translation: Visibile pubblicamente
   validation: null
   validation_message: null
   width: half

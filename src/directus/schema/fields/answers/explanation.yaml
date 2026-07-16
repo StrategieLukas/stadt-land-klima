@@ -21,6 +21,10 @@ meta:
   translations:
     - language: de-DE
       translation: Begründung
+    - language: en-GB
+      translation: Reasoning
+    - language: it-IT
+      translation: Motivazione
   validation: null
   validation_message: null
   width: full

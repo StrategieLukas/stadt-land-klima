@@ -21,6 +21,10 @@ meta:
   translations:
     - language: de-DE
       translation: Wurde die Wahl freigegeben?
+    - language: en-GB
+      translation: Has the election been approved?
+    - language: it-IT
+      translation: L'elezione è stata approvata?
   validation: null
   validation_message: null
   width: full

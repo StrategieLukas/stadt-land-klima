@@ -20,6 +20,10 @@ meta:
   translations:
     - language: de-DE
       translation: Titel
+    - language: en-GB
+      translation: Title
+    - language: it-IT
+      translation: Titolo
   validation: null
   validation_message: null
   width: half

@@ -10,7 +10,8 @@ meta:
   group: null
   hidden: false
   interface: boolean
-  note: Aktiviert den einfachen Modus mit Dagegen, Neutral und Dafür. Aus bedeutet
+  note:
+    Aktiviert den einfachen Modus mit Dagegen, Neutral und Dafür. Aus bedeutet
     differenzierter Modus.
   options: null
   readonly: false
@@ -22,6 +23,10 @@ meta:
   translations:
     - language: de-DE
       translation: Einfacher Antwortmodus
+    - language: en-GB
+      translation: Simple answer mode
+    - language: it-IT
+      translation: Modalità di risposta semplice
   validation: null
   validation_message: null
   width: half

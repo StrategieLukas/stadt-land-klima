@@ -21,6 +21,10 @@ meta:
   translations:
     - language: de-DE
       translation: Reply-To-Adresse für Kandidierenden-E-Mails
+    - language: en-GB
+      translation: Reply-To address for candidate emails
+    - language: it-IT
+      translation: Indirizzo Reply-To per le email ai/alle candidati/e
   validation: null
   validation_message: null
   width: half

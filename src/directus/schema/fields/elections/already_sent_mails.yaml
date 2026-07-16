@@ -21,6 +21,10 @@ meta:
   translations:
     - language: de-DE
       translation: Emails an Kandidierende verschickt?
+    - language: en-GB
+      translation: Emails sent to candidates?
+    - language: it-IT
+      translation: Email inviate ai/alle candidati/e?
   validation: null
   validation_message: null
   width: half

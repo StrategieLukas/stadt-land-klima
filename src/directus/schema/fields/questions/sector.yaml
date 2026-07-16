@@ -48,6 +48,10 @@ meta:
   translations:
     - language: de-DE
       translation: Sektor
+    - language: en-GB
+      translation: Sector
+    - language: it-IT
+      translation: Settore
   validation: null
   validation_message: null
   width: half

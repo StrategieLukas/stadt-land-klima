@@ -21,6 +21,10 @@ meta:
   translations:
     - language: de-DE
       translation: CC-Adresse für Kandidierenden-E-Mails
+    - language: en-GB
+      translation: CC address for candidate emails
+    - language: it-IT
+      translation: Indirizzo CC per le email ai/alle candidati/e
   validation: null
   validation_message: null
   width: half

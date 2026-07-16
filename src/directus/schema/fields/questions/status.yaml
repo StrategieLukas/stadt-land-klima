@@ -47,6 +47,10 @@ meta:
   translations:
     - language: de-DE
       translation: Status
+    - language: en-GB
+      translation: Status
+    - language: it-IT
+      translation: Stato
   validation: null
   validation_message: null
   width: half

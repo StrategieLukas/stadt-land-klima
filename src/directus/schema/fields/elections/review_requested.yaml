@@ -21,6 +21,10 @@ meta:
   translations:
     - language: de-DE
       translation: Review der Thesen angefragt?
+    - language: en-GB
+      translation: Thesis review requested?
+    - language: it-IT
+      translation: Revisione delle tesi richiesta?
   validation: null
   validation_message: null
   width: half
