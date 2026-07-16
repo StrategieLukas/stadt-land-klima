@@ -26,6 +26,7 @@ export default defineNuxtConfig({
     appPublicUrl: process.env.PUBLIC_URL,
     directusPublicUrl: process.env.CLIENT_DIRECTUS_URL,
     adminNotificationEmail: process.env.ADMIN_NOTIFICATION_EMAIL,
+    erfolgsprojekteNotificationEmail: process.env.ERFOLGSPROJEKTE_NOTIFICATION_EMAIL ?? "presse@stadt-land-klima.de",
     welcomeEmailTutorialUrl: process.env.WELCOME_EMAIL_TUTORIAL_URL,
     welcomeEmailCalendarUrl: process.env.WELCOME_EMAIL_CALENDAR_URL,
     welcomeEmailSignalUrl: process.env.WELCOME_EMAIL_SIGNAL_URL,
