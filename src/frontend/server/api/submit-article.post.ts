@@ -56,6 +56,27 @@ type EventWithWebBody = H3Event & {
   };
 };
 
+type ArticlePayload = {
+  status: "draft";
+  slug: string;
+  title: string;
+  author: string;
+  submitter_email: string;
+  municipality_name: string;
+  sectors: string[];
+  abstract: string;
+  article_text: string;
+  image: string;
+  image_credits: string;
+  subtitle?: string;
+  state?: string;
+  link?: string;
+  instagram?: string;
+  linkedin?: string;
+};
+
+type NotificationValue = string | string[] | null | undefined;
+
 function submissionError(statusCode: number, message: string) {
   return createError({ statusCode, message });
 }
@@ -168,6 +189,28 @@ function escapeHtml(value: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function normalizeNotificationValue(value: NotificationValue) {
+  if (Array.isArray(value)) {
+    return value.length ? value.join(", ") : "—";
+  }
+
+  return value?.trim() || "—";
+}
+
+function formatNotificationRows(fields: Array<{ label: string; value: NotificationValue }>) {
+  return fields
+    .map(({ label, value }) => {
+      const formattedValue = escapeHtml(normalizeNotificationValue(value)).replace(/\r?\n/g, "<br>");
+      return `<tr><th align="left">${escapeHtml(label)}</th><td>${formattedValue}</td></tr>`;
+    })
+    .join("\n");
+}
+
+function buildDirectusItemUrl(directusPublicUrl: string, collection: string, id: string) {
+  const baseUrl = directusPublicUrl.replace(/\/+$/, "");
+  return `${baseUrl}/admin/content/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`;
 }
 
 function getContentLength(event: H3Event) {
@@ -352,54 +395,75 @@ export default defineEventHandler(async (event) => {
     });
     imageId = uploadedImage.data.id;
 
+    const articlePayload: ArticlePayload = {
+      status: "draft",
+      slug: buildDraftSlug(title),
+      title,
+      author,
+      submitter_email: submitterEmail,
+      municipality_name: municipalityName,
+      sectors,
+      abstract,
+      article_text: articleText,
+      image: imageId,
+      image_credits: imageCredits,
+      ...(subtitle ? { subtitle } : {}),
+      ...(state ? { state } : {}),
+      ...(link ? { link } : {}),
+      ...(instagram ? { instagram } : {}),
+      ...(linkedin ? { linkedin } : {}),
+    };
+
     const article = await $fetch<{ data: { id: string; status: string } }>(`${directusUrl}/items/articles`, {
       method: "POST",
       headers: { ...headers, "Content-Type": "application/json" },
-      body: {
-        status: "draft",
-        slug: buildDraftSlug(title),
-        title,
-        author,
-        submitter_email: submitterEmail,
-        municipality_name: municipalityName,
-        sectors,
-        abstract,
-        article_text: articleText,
-        image: imageId,
-        image_credits: imageCredits,
-        ...(subtitle ? { subtitle } : {}),
-        ...(state ? { state } : {}),
-        ...(link ? { link } : {}),
-        ...(instagram ? { instagram } : {}),
-        ...(linkedin ? { linkedin } : {}),
-      },
+      body: articlePayload,
     });
 
     const directusPublicUrl = (config.directusPublicUrl as string) || "https://stadt-land-klima.de/backend";
+    const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "articles", article.data.id);
     const notifyAdminFlowUrl = config.directusFlowNotifyAdmin as string | undefined;
-    const adminEmail = (config.adminNotificationEmail as string) || "info@stadt-land-klima.de";
-    if (notifyAdminFlowUrl) {
+    const notificationEmail = (config.erfolgsprojekteNotificationEmail as string) || "presse@stadt-land-klima.de";
+    if (!notifyAdminFlowUrl) {
+      console.warn(
+        "[submit-article] DIRECTUS_FLOW_NOTIFY_ADMIN not configured - skipping Erfolgsprojekte notification",
+      );
+    } else {
       await $fetch(notifyAdminFlowUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: {
-          to: adminEmail,
+          to: notificationEmail,
           subject: `Neues Erfolgsprojekt eingereicht: ${title}`,
           body: [
             "<p>Über das öffentliche Formular wurde ein neues Erfolgsprojekt eingereicht.</p>",
-            "<ul>",
-            `<li><strong>Titel:</strong> ${escapeHtml(title)}</li>`,
-            `<li><strong>Autor:in:</strong> ${escapeHtml(author)}</li>`,
-            `<li><strong>Kontakt:</strong> ${escapeHtml(submitterEmail)}</li>`,
-            `<li><strong>Kommune:</strong> ${escapeHtml(municipalityName)}</li>`,
-            `<li><strong>Bildnachweis:</strong> ${escapeHtml(imageCredits)}</li>`,
-            "<li><strong>Bildrechte bestätigt:</strong> ja</li>",
-            "</ul>",
-            `<p><a href="${directusPublicUrl}/admin/content/articles/${article.data.id}">Draft in Directus öffnen</a></p>`,
+            `<p><a href="${escapeHtml(directusItemUrl)}">Entwurf in Directus öffnen</a></p>`,
+            "<table>",
+            formatNotificationRows([
+              { label: "id", value: article.data.id },
+              { label: "status", value: article.data.status },
+              { label: "slug", value: articlePayload.slug },
+              { label: "title", value: articlePayload.title },
+              { label: "subtitle", value: subtitle },
+              { label: "author", value: articlePayload.author },
+              { label: "submitter_email", value: articlePayload.submitter_email },
+              { label: "municipality_name", value: articlePayload.municipality_name },
+              { label: "state", value: state },
+              { label: "sectors", value: articlePayload.sectors },
+              { label: "abstract", value: articlePayload.abstract },
+              { label: "article_text", value: articlePayload.article_text },
+              { label: "image", value: articlePayload.image },
+              { label: "image_credits", value: articlePayload.image_credits },
+              { label: "image_rights_confirmed", value: "ja" },
+              { label: "link", value: link },
+              { label: "instagram", value: instagram },
+              { label: "linkedin", value: linkedin },
+            ]),
+            "</table>",
           ].join("\n"),
         },
       }).catch((err) => {
-        console.warn("[submit-article] Admin notification email failed (non-fatal):", err);
+        console.warn("[submit-article] Erfolgsprojekte notification email failed (non-fatal):", err);
       });
     }
 
