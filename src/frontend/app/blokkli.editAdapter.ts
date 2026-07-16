@@ -256,6 +256,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { title: 'Gemeinde finden', subtitle: 'Suche deine Gemeinde und entdecke deren Klimaschutz-Bewertung.' }
       case 'newsletter_signup':
         return { title: 'Newsletter abonnieren', description: 'Bleib auf dem Laufenden mit Neuigkeiten und Tipps zu kommunalem Klimaschutz.' }
+      case 'donation_widget':
+        return {}
       case 'icon':
         return { iconifySlug: 'mdi:star', slkIcon: '' }
       default:
@@ -448,14 +450,15 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'projects_carousel', label: 'Projektkarussell', description: 'Automatisches Karussell der Erfolgsprojekte', allowReusable: true },
         { id: 'municipality_search_hero', label: 'Gemeinde-Suche', description: 'Vollflächen-Sektion mit Wortwolke und Gemeinde-Suchfeld', allowReusable: true },
         { id: 'newsletter_signup', label: 'Newsletter-Anmeldung', description: 'E-Mail-Anmeldeformular für Newsletter-Listen', allowReusable: true },
+        { id: 'donation_widget', label: 'Spenden-Widget', description: 'betterplace.org Spenden-Widget', allowReusable: true },
         { id: 'icon', label: 'Icon', description: 'Icon aus SLK-Bibliothek oder Iconify', allowReusable: true },
         { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'newsletter_signup', 'icon', 'from_library']
-      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'newsletter_signup', 'icon', 'from_library']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'newsletter_signup', 'donation_widget', 'icon', 'from_library']
+      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'newsletter_signup', 'donation_widget', 'icon', 'from_library']
       const allowedInCarousel = allowedInRoot
       return Promise.resolve([
         {
