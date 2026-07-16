@@ -299,6 +299,7 @@ export default defineEventHandler(async (event) => {
   const abstract = getTextField(parts, "abstract", 1500, true);
   const articleText = getTextField(parts, "articleText", 10000, true);
   const imageCredits = getTextField(parts, "imageCredits", 255, true);
+  const imageRightsConfirmed = getTextField(parts, "imageRightsConfirmed", 10) === "true";
   const sectors = parseSectors(getTextField(parts, "sectors", 1000, true));
   const link = normalizeOptionalUrl(getTextField(parts, "link", 255), "Projektlink");
   const instagram = normalizeOptionalUrl(
@@ -317,6 +318,9 @@ export default defineEventHandler(async (event) => {
   }
   if (!image) {
     throw submissionError(400, "Bitte ein Bild hochladen.");
+  }
+  if (!imageRightsConfirmed) {
+    throw submissionError(400, "Bitte bestätige die Bildrechte und den Bildnachweis.");
   }
   validateImage(image);
 
@@ -388,6 +392,8 @@ export default defineEventHandler(async (event) => {
             `<li><strong>Autor:in:</strong> ${escapeHtml(author)}</li>`,
             `<li><strong>Kontakt:</strong> ${escapeHtml(submitterEmail)}</li>`,
             `<li><strong>Kommune:</strong> ${escapeHtml(municipalityName)}</li>`,
+            `<li><strong>Bildnachweis:</strong> ${escapeHtml(imageCredits)}</li>`,
+            "<li><strong>Bildrechte bestätigt:</strong> ja</li>",
             "</ul>",
             `<p><a href="${directusPublicUrl}/admin/content/articles/${article.data.id}">Draft in Directus öffnen</a></p>`,
           ].join("\n"),
