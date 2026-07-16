@@ -20,6 +20,10 @@ meta:
   translations:
     - language: de-DE
       translation: Hat geantwortet
+    - language: en-GB
+      translation: Has answered
+    - language: it-IT
+      translation: Ha risposto
   validation: null
   validation_message: null
   width: half

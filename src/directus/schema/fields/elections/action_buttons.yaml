@@ -28,6 +28,10 @@ meta:
   translations:
     - language: de-DE
       translation: Thesen auf Basis der Bewertung generieren
+    - language: en-GB
+      translation: Generate theses based on rating
+    - language: it-IT
+      translation: Genera tesi sulla base della valutazione
   validation: null
   validation_message: null
   width: full

@@ -20,6 +20,10 @@ meta:
   translations:
     - language: de-DE
       translation: Name
+    - language: en-GB
+      translation: Name
+    - language: it-IT
+      translation: Nome
   validation: null
   validation_message: null
   width: half

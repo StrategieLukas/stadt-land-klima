@@ -29,6 +29,10 @@ meta:
   translations:
     - language: de-DE
       translation: Deadline (Beantwortung der Thesen)
+    - language: en-GB
+      translation: Deadline (answering theses)
+    - language: it-IT
+      translation: Scadenza (risposta alle tesi)
   validation:
     _and:
       - response_cutoff_date:
