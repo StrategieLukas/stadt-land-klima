@@ -308,8 +308,7 @@ onMounted(() => {
       }
       if (searchBarRef.value) {
         const r = searchBarRef.value.getBoundingClientRect();
-        const hr = headerEl.value.getBoundingClientRect();
-        navInputRect.value = { left: r.left, width: r.width, topInHeader: r.top - hr.top };
+        navInputRect.value = { left: r.left, width: r.width, bottom: r.bottom };
       }
     };
     update();
