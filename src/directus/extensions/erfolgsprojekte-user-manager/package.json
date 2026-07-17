@@ -1,0 +1,49 @@
+{
+  "name": "erfolgsprojekte-user-manager",
+  "description": "Directus dashboard panel and endpoint for inviting Erfolgsprojekte editors.",
+  "version": "1.0.0",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-extension-bundle"
+  ],
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "directus:extension": {
+    "type": "bundle",
+    "host": "^11.0.0",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.js"
+    },
+    "entries": [
+      {
+        "type": "endpoint",
+        "name": "erfolgsprojekte-user-manager-endpoint",
+        "source": "src/endpoint/index.ts"
+      },
+      {
+        "type": "panel",
+        "name": "erfolgsprojekte-user-manager-panel",
+        "source": "src/panel/index.ts"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "17.1.4",
+    "@directus/types": "^11.0.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.0.0",
+    "vue": "^3.4.21"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
+  }
+}

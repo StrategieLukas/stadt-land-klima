@@ -7,7 +7,9 @@ app_access: false
 permissions:
   - collection: directus_dashboards
     action: read
-    permissions: {}
+    permissions:
+      name:
+        _eq: Maßnahmen
     validation: {}
     presets: null
     fields:
