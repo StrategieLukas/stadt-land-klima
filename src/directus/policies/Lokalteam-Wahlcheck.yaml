@@ -111,19 +111,6 @@ permissions:
       - date_updated
       - user_created
       - user_updated
-  - collection: directus_users
-    action: read
-    permissions:
-      role:
-        name:
-          _eq: WahlcheckAdmin
-    validation: null
-    presets: null
-    fields:
-      - id
-      - first_name
-      - last_name
-      - email
   - collection: directus_files
     action: create
     permissions: {}
@@ -138,6 +125,19 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: directus_users
+    action: read
+    permissions:
+      role:
+        name:
+          _eq: WahlcheckAdmin
+    validation: null
+    presets: null
+    fields:
+      - id
+      - first_name
+      - last_name
+      - email
   - collection: elections
     action: create
     permissions: {}
@@ -290,6 +290,9 @@ permissions:
             localteam:
               _in:
                 - $CURRENT_USER.localteams.localteam_id
+        - election:
+            is_public:
+              _neq: true
     validation:
       answers:
         _func:
@@ -329,6 +332,9 @@ permissions:
             localteam:
               _in:
                 - $CURRENT_USER.localteams.localteam_id
+        - election:
+            is_public:
+              _neq: true
     validation: null
     presets: null
     fields:
