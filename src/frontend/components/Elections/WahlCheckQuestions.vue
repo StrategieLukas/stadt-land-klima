@@ -42,13 +42,17 @@
             <h3 class="text-xl font-semibold text-black leading-tight">
               {{ currentQuestion.title }}
             </h3>
-            <p v-if="currentQuestion.thesis" class="mt-2 text-gray italic text-lg">
-              {{ currentQuestion.thesis }}
-            </p>
             <ElectionsQuestionBackgroundInfo
               :content="currentQuestion.background_information"
-              class="mt-4"
+              appearance="italic"
+              class="mt-2"
             />
+            <p
+              v-if="currentQuestion.thesis"
+              class="mt-4 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4 text-lg text-gray"
+            >
+              {{ currentQuestion.thesis }}
+            </p>
           </div>
         </div>
 
