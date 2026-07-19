@@ -199,7 +199,7 @@ const api = inject<{
 
 const previewUrl = computed((): string | null => {
   if (!props.value) return null;
-  return `/assets/${props.value}?fit=cover&width=400&height=300`;
+  return `/assets/${encodeURIComponent(props.value)}`;
 });
 
 function removeImage(): void {

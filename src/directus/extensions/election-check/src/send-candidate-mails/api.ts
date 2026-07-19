@@ -65,6 +65,9 @@ const MIN_QUESTIONS = 7;
 const MIN_CANDIDATES = 2;
 const ALWAYS_CC = 'info@stadt-land-klima.de';
 const EMAIL_PATTERN = /^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/;
+const HEALTH4FUTURE_ELECTION_NAME = 'Gesundheitswahlcheck';
+const DEFAULT_CANDIDATE_EMAIL_TEMPLATE = 'email-template-candidate';
+const HEALTH4FUTURE_CANDIDATE_EMAIL_TEMPLATE = 'email-template-candidate-health4future';
 
 function formatCutoffDate(isoDate: string): string {
   const d = new Date(isoDate);
@@ -271,6 +274,9 @@ export default {
       ...splitEmailAddresses(election.candidate_email_cc),
     ]);
     const replyTo = splitEmailAddresses(election.candidate_email_reply_to)[0];
+    const candidateEmailTemplate = election.descriptor === HEALTH4FUTURE_ELECTION_NAME
+      ? HEALTH4FUTURE_CANDIDATE_EMAIL_TEMPLATE
+      : DEFAULT_CANDIDATE_EMAIL_TEMPLATE;
 
     // -----------------------------------------------------------------------
     // 4. Send mails
@@ -286,7 +292,7 @@ export default {
           ...(replyTo ? { replyTo } : {}),
           subject: `Einladung zum Klimawahl-Check: ${municipalityName ?? ''}`.trimEnd(),
           template: {
-            name: 'email-template-candidate',
+            name: candidateEmailTemplate,
             data: {
               candidate_name: candidate.name ?? '',
               municipality_name: municipalityName ?? '',
