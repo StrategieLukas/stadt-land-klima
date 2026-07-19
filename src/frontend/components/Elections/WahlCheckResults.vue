@@ -144,7 +144,7 @@
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
                     :src="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
-                    class="h-12 w-12 opacity-90"
+                    class="slk-sector-icon h-12 w-12 opacity-90"
                     :alt="getSectorAgreement(result.candidateId, 'highest').sector"
                   />
                 </div>
@@ -157,7 +157,7 @@
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
                     :src="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
-                    class="h-12 w-12 opacity-90"
+                    class="slk-sector-icon h-12 w-12 opacity-90"
                     :alt="getSectorAgreement(result.candidateId, 'lowest').sector"
                   />
                 </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-mild-white">
+  <div class="elections-flow min-h-screen bg-mild-white">
     <!-- Header with SLK Branding -->
     <div class="border-b border-solid-gray-10 bg-white shadow-sm">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">

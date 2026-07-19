@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-mild-white py-12 px-4 sm:px-6 lg:px-8">
+  <div class="elections-flow min-h-screen bg-mild-white py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-3xl mx-auto">
       <!-- Header -->
       <div v-if="!submitted" class="text-center mb-12">

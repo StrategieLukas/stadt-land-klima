@@ -1231,6 +1231,104 @@ html[data-theme="staedteChallengeDark"] .kbd {
   color: var(--slk-text-muted);
 }
 
+/* Election forms use a number of fixed light-mode tint utilities. Keep them
+   within the shared semantic palette so every WahlCheck step remains legible
+   in dark mode without changing its light-mode presentation. */
+html[data-theme="staedteChallengeDark"] .elections-flow {
+  background-color: var(--slk-page) !important;
+  color: var(--slk-text);
+}
+
+html[data-theme="staedteChallengeDark"] .elections-flow .bg-solid-red-10 {
+  background-color: var(--slk-red-tint) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .elections-flow .bg-solid-orange-10 {
+  background-color: var(--slk-orange-tint) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.bg-solid-ff-green-05, .bg-solid-ff-green-10, .bg-solid-ff-green-20, .bg-solid-rating-4-10) {
+  background-color: var(--slk-green-tint) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.bg-solid-very-light-blue-60, .bg-solid-stats-light-50) {
+  background-color: var(--slk-blue-tint) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .elections-flow .bg-solid-gray-10 {
+  background-color: var(--slk-surface-subdued) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.bg-solid-gray-20, .bg-solid-gray-30) {
+  background-color: var(--slk-surface-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .elections-flow .from-solid-ff-green-10 {
+  --tw-gradient-from: var(--slk-green-tint) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(32 56 33 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .elections-flow .to-solid-stats-light-50 {
+  --tw-gradient-to: var(--slk-blue-tint) var(--tw-gradient-to-position) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.border-solid-gray-10, .border-solid-gray-20, .border-gray\/10, .border-gray\/20) {
+  border-color: var(--slk-border) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .elections-flow .border-solid-gray-30 {
+  border-color: var(--slk-border-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.border-solid-ff-green-20, .border-solid-ff-green-30, .border-ff-green) {
+  border-color: var(--slk-olive-green) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.border-solid-light-blue-30, .border-stats-dark, .border-stats-dark\/15) {
+  border-color: var(--slk-blue) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.text-solid-gray-50, .text-solid-gray-60) {
+  color: var(--slk-text-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.text-solid-rating-4-60, .text-solid-rating-4-90) {
+  color: var(--slk-success-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.text-solid-stats-dark-60, .text-solid-stats-dark-80) {
+  color: var(--slk-blue) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .elections-flow .hover\:bg-solid-ff-green-05:hover,
+html[data-theme="staedteChallengeDark"] .elections-flow .hover\:bg-solid-ff-green-10:hover {
+  background-color: var(--slk-green-tint) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .elections-flow .hover\:border-solid-ff-green-30:hover,
+html[data-theme="staedteChallengeDark"] .elections-flow .hover\:border-ff-green:hover {
+  border-color: var(--slk-olive-green) !important;
+}
+
 /* ── Stats page dark mode overrides ────────────────────────────────────────── */
 /* KPI cards */
 html[data-theme="staedteChallengeDark"] .stats-page .text-\[\#1a4a6e\] {
