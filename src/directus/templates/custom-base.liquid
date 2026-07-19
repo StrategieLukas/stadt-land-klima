@@ -306,6 +306,7 @@
                     {% block content %}{{ html }}{% endblock %}
                   </div>
 
+                  {% unless hideBaseSignoff %}
                   <p style="padding: 20px 0 10px 0">Liebe Grüße,</p>
                   <table border="0" cellpadding="0" cellspacing="0">
                     <tr>
@@ -336,6 +337,7 @@
                       </td>
                     </tr>
                   </table>
+                  {% endunless %}
 
                   <hr style="margin: 40px 0 0 0; border-top: 1px solid #d3dae4" width="100%" />
 

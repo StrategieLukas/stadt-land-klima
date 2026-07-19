@@ -63,7 +63,6 @@ interface SendResult {
 // ---------------------------------------------------------------------------
 
 const BASE_URL = 'https://stadt-land-klima.de';
-const DIRECTUS_PUBLIC_URL = `${BASE_URL}/backend`;
 const MIN_QUESTIONS = 7;
 const MIN_CANDIDATES = 2;
 const ALWAYS_CC = 'info@stadt-land-klima.de';
@@ -71,6 +70,7 @@ const EMAIL_PATTERN = /^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/;
 const HEALTH4FUTURE_ELECTION_NAME = 'Gesundheitswahlcheck';
 const DEFAULT_CANDIDATE_EMAIL_TEMPLATE = 'email-template-candidate';
 const HEALTH4FUTURE_CANDIDATE_EMAIL_TEMPLATE = 'email-template-candidate-health4future';
+const CUSTOM_LOGO_CONTENT_ID = 'wahlcheck-logo@stadt-land-klima.de';
 const LAST_NAME_PARTICLES = new Set([
   'da', 'das', 'de', 'del', 'della', 'den', 'der', 'di', 'dos', 'du', 'la', 'le',
   'ten', 'ter', 'van', 'von', 'zu', 'zum', 'zur',
@@ -212,11 +212,12 @@ export default {
   ): Promise<SendResult> => {
     const schema = await getSchema();
     const sysAcc = { ...accountability, admin: true };
-    const { ItemsService, MailService } = services;
+    const { AssetsService, ItemsService, MailService } = services;
 
     const electionSvc = new ItemsService('elections', { schema, accountability: sysAcc });
     const candidateSvc = new ItemsService('candidate', { schema, accountability: sysAcc });
     const questionsSvc = new ItemsService('questions', { schema, accountability: sysAcc });
+    const assetsSvc = new AssetsService({ schema, accountability: sysAcc });
     const mailSvc = new MailService({ schema, accountability: sysAcc });
 
     // -----------------------------------------------------------------------
@@ -320,9 +321,28 @@ export default {
     const customLogoId = typeof election.custom_logo === 'string'
       ? election.custom_logo
       : election.custom_logo?.id;
-    const customLogoUrl = customLogoId
-      ? `${DIRECTUS_PUBLIC_URL}/assets/${encodeURIComponent(customLogoId)}`
-      : '';
+    let customLogoAttachment: {
+      content: Buffer;
+      filename: string;
+      contentType: string;
+      cid: string;
+    } | null = null;
+
+    if (customLogoId) {
+      const { stream, file } = await assetsSvc.getAsset(customLogoId);
+      const chunks: Buffer[] = [];
+
+      for await (const chunk of stream) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+
+      customLogoAttachment = {
+        content: Buffer.concat(chunks),
+        filename: file.filename_download || 'wahlcheck-logo',
+        contentType: file.type || 'application/octet-stream',
+        cid: CUSTOM_LOGO_CONTENT_ID,
+      };
+    }
 
     // -----------------------------------------------------------------------
     // 4. Send mails
@@ -336,6 +356,7 @@ export default {
           to: candidate.email,
           cc: ccRecipients,
           ...(replyTo ? { replyTo } : {}),
+          ...(customLogoAttachment ? { attachments: [customLogoAttachment] } : {}),
           subject: candidateEmailSubject,
           template: {
             name: candidateEmailTemplate,
@@ -348,7 +369,8 @@ export default {
               projectName: 'Klimawahlcheck',
               projectColor: '#1da64a',
               projectUrl: BASE_URL,
-              customLogoUrl,
+              customLogoUrl: customLogoAttachment ? `cid:${CUSTOM_LOGO_CONTENT_ID}` : '',
+              hideBaseSignoff: true,
             },
           },
         });

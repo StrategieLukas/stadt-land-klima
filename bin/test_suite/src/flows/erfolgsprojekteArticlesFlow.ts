@@ -7,6 +7,7 @@ import {
 } from '../lib/browser.js';
 import { DirectusClient, type JsonRecord } from '../lib/directus.js';
 import type { TestFixture } from '../lib/fixture.js';
+import { PNG_1X1 } from '../lib/images.js';
 import type { TestRunner } from '../lib/runner.js';
 import { sleep, waitFor } from '../lib/wait.js';
 
@@ -118,11 +119,6 @@ const DETAIL_ERROR_PATTERNS = [
   /Loading error/i,
   /access denied/i,
 ];
-
-const PNG_1X1 = Uint8Array.from(Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=',
-  'base64',
-));
 
 function roleName(user: DirectusUser): string | undefined | null {
   return typeof user.role === 'object' ? user.role.name : undefined;

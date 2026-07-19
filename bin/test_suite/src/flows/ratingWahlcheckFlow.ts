@@ -8,6 +8,7 @@ import {
 } from '../lib/browser.js';
 import type { JsonRecord } from '../lib/directus.js';
 import type { TestFixture } from '../lib/fixture.js';
+import { PNG_1X1 } from '../lib/images.js';
 import type { TestRunner } from '../lib/runner.js';
 import { waitFor } from '../lib/wait.js';
 
@@ -659,9 +660,18 @@ export async function runRatingWahlcheckFlow(
   });
 
   await runner.step('Wahlcheck: create election and generate ten theses from Directus action UI', async () => {
+    const customLogo = await fixture.admin.uploadFile<{ id: string }>(
+      `automated-wahlcheck-logo-${fixture.config.runId}.png`,
+      'image/png',
+      PNG_1X1,
+      `Automated Wahlcheck Logo ${fixture.config.runId}`,
+    );
+    assert(customLogo.id, 'Uploaded Wahlcheck logo must include an id');
+
     election = await fixture.localteamMember.client.createItem<Election>('elections', {
       descriptor: `AutomatedElectionTest ${fixture.config.runId}`,
       localteam: fixture.localteam.id,
+      custom_logo: customLogo.id,
       candidate_email_cc: fixture.localteamMember.email,
       candidate_email_reply_to: fixture.localteamMember.email,
     });
