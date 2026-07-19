@@ -19,6 +19,7 @@ interface Election {
   response_cutoff_date?: string | null;
   candidate_email_cc?: string | null;
   candidate_email_reply_to?: string | null;
+  custom_logo?: string | { id?: string | null } | null;
   already_generated_questions?: boolean;
   already_sent_mails?: boolean;
   localteam?: { municipality_name?: string } | null;
@@ -27,6 +28,7 @@ interface Election {
 interface Candidate {
   id: string | number;
   name?: string | null;
+  salutation?: 'frau' | 'herr' | 'neutral' | null;
   email?: string | null;
   access_token?: string | null;
 }
@@ -61,6 +63,7 @@ interface SendResult {
 // ---------------------------------------------------------------------------
 
 const BASE_URL = 'https://stadt-land-klima.de';
+const DIRECTUS_PUBLIC_URL = `${BASE_URL}/backend`;
 const MIN_QUESTIONS = 7;
 const MIN_CANDIDATES = 2;
 const ALWAYS_CC = 'info@stadt-land-klima.de';
@@ -68,6 +71,10 @@ const EMAIL_PATTERN = /^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/;
 const HEALTH4FUTURE_ELECTION_NAME = 'Gesundheitswahlcheck';
 const DEFAULT_CANDIDATE_EMAIL_TEMPLATE = 'email-template-candidate';
 const HEALTH4FUTURE_CANDIDATE_EMAIL_TEMPLATE = 'email-template-candidate-health4future';
+const LAST_NAME_PARTICLES = new Set([
+  'da', 'das', 'de', 'del', 'della', 'den', 'der', 'di', 'dos', 'du', 'la', 'le',
+  'ten', 'ter', 'van', 'von', 'zu', 'zum', 'zur',
+]);
 
 function formatCutoffDate(isoDate: string): string {
   const d = new Date(isoDate);
@@ -112,6 +119,35 @@ function normalizeEmail(value?: string | null): string | null {
 
 function candidateDisplayName(candidate: Candidate): string {
   return candidate.name?.trim() || `Kandidat:in ${candidate.id}`;
+}
+
+function candidateLastName(name?: string | null): string {
+  const nameParts = name?.trim().split(/\s+/).filter(Boolean) ?? [];
+  if (nameParts.length === 0) return '';
+
+  let lastNameStart = nameParts.length - 1;
+  while (
+    lastNameStart > 0
+    && LAST_NAME_PARTICLES.has(nameParts[lastNameStart - 1]!.toLocaleLowerCase('de-DE'))
+  ) {
+    lastNameStart -= 1;
+  }
+
+  return nameParts.slice(lastNameStart).join(' ');
+}
+
+function candidateFormalSalutation(candidate: Candidate): string {
+  const lastName = candidateLastName(candidate.name);
+
+  if (candidate.salutation === 'frau') {
+    return lastName ? `Sehr geehrte Frau ${lastName}` : 'Sehr geehrte Frau';
+  }
+
+  if (candidate.salutation === 'herr') {
+    return lastName ? `Sehr geehrter Herr ${lastName}` : 'Sehr geehrter Herr';
+  }
+
+  return lastName ? `Guten Tag ${lastName}` : 'Guten Tag';
 }
 
 function summarizeCandidate(
@@ -218,7 +254,7 @@ export default {
       }) as Promise<Array<{ id: string | number }>>,
       candidateSvc.readByQuery({
         filter: { election: { _eq: election_id } },
-        fields: ['id', 'name', 'email', 'access_token'],
+        fields: ['id', 'name', 'salutation', 'email', 'access_token'],
         limit: -1,
       }) as Promise<Candidate[]>,
     ]);
@@ -274,9 +310,19 @@ export default {
       ...splitEmailAddresses(election.candidate_email_cc),
     ]);
     const replyTo = splitEmailAddresses(election.candidate_email_reply_to)[0];
-    const candidateEmailTemplate = election.descriptor === HEALTH4FUTURE_ELECTION_NAME
+    const isHealth4FutureElection = election.descriptor === HEALTH4FUTURE_ELECTION_NAME;
+    const candidateEmailTemplate = isHealth4FutureElection
       ? HEALTH4FUTURE_CANDIDATE_EMAIL_TEMPLATE
       : DEFAULT_CANDIDATE_EMAIL_TEMPLATE;
+    const candidateEmailSubject = isHealth4FutureElection
+      ? 'Einladung zum Gesundheits-Wahlcheck zur Berlin-Wahl'
+      : `Einladung zum Klimawahl-Check: ${municipalityName ?? ''}`.trimEnd();
+    const customLogoId = typeof election.custom_logo === 'string'
+      ? election.custom_logo
+      : election.custom_logo?.id;
+    const customLogoUrl = customLogoId
+      ? `${DIRECTUS_PUBLIC_URL}/assets/${encodeURIComponent(customLogoId)}`
+      : '';
 
     // -----------------------------------------------------------------------
     // 4. Send mails
@@ -290,17 +336,19 @@ export default {
           to: candidate.email,
           cc: ccRecipients,
           ...(replyTo ? { replyTo } : {}),
-          subject: `Einladung zum Klimawahl-Check: ${municipalityName ?? ''}`.trimEnd(),
+          subject: candidateEmailSubject,
           template: {
             name: candidateEmailTemplate,
             data: {
               candidate_name: candidate.name ?? '',
+              candidate_salutation: candidateFormalSalutation(candidate),
               municipality_name: municipalityName ?? '',
               cutoff_date: cutoffFormatted,
               personal_link: personalLink,
               projectName: 'Klimawahlcheck',
               projectColor: '#1da64a',
               projectUrl: BASE_URL,
+              customLogoUrl,
             },
           },
         });

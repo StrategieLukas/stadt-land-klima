@@ -1,0 +1,67 @@
+collection: candidate
+field: salutation
+type: string
+meta:
+  collection: candidate
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+      - text: Frau
+        value: frau
+      - text: Herr
+        value: herr
+      - text: Geschlechtsneutral
+        value: neutral
+  field: salutation
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    allowNone: false
+    choices:
+      - text: Frau
+        value: frau
+      - text: Herr
+        value: herr
+      - text: Geschlechtsneutral
+        value: neutral
+  readonly: false
+  required: true
+  searchable: true
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Anrede
+    - language: en-GB
+      translation: Salutation
+    - language: it-IT
+      translation: Appellativo
+  validation:
+    _and:
+      - salutation:
+          _in:
+            - frau
+            - herr
+            - neutral
+  validation_message: null
+  width: half
+schema:
+  name: salutation
+  table: candidate
+  data_type: character varying
+  default_value: neutral
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -26,6 +26,7 @@ permissions:
     presets: null
     fields:
       - name
+      - salutation
       - email
       - party
       - election
@@ -48,6 +49,7 @@ permissions:
       - id
       - election
       - name
+      - salutation
       - party
       - email
       - has_answered
@@ -60,6 +62,7 @@ permissions:
     presets: null
     fields:
       - name
+      - salutation
       - email
       - party
       - election

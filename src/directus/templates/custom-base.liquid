@@ -238,10 +238,10 @@
                       mso-table-rspace: 0pt;
                       padding: 0 0 40px 0;
                     ">
-                  <table>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width: 100%;">
                     <tbody>
                       <tr>
-                        <td align="center" valign="middle">
+                        <td align="center" valign="middle"{% if customLogoUrl != blank %} width="50%" style="padding-right: 8px;"{% endif %}>
                           <img id="logo"
                             src="https://stadt-land-klima.de/backend/assets/50669a5f-7b67-4f3f-8b76-46193800d8fe"
                             alt="{{ projectName }} Logo" height="40" border="0" style="
@@ -249,7 +249,7 @@
                                 border: 1px solid white;
                                 border-radius: 8px;
                                 height: 120px;
-                                max-width: 400px;
+                                max-width: {% if customLogoUrl != blank %}250px{% else %}400px{% endif %};
                                 line-height: 100%;
                                 outline: none;
                                 text-decoration: none;
@@ -258,6 +258,25 @@
                                 padding: 10px;
                               " />
                         </td>
+                        {% if customLogoUrl != blank %}
+                        <td align="center" valign="middle" width="50%" style="padding-left: 8px;">
+                          <img
+                            src="{{ customLogoUrl }}"
+                            alt="Logo des Wahlchecks" height="120" border="0" style="
+                                -ms-interpolation-mode: bicubic;
+                                border: 1px solid white;
+                                border-radius: 8px;
+                                height: 120px;
+                                max-width: 250px;
+                                line-height: 100%;
+                                outline: none;
+                                text-decoration: none;
+                                display: block;
+                                object-fit: contain;
+                                padding: 10px;
+                              " />
+                        </td>
+                        {% endif %}
                       </tr>
                     </tbody>
                   </table>

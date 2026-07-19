@@ -33,6 +33,7 @@ permissions:
     fields:
       - id
       - name
+      - salutation
       - email
       - party
       - access_token
@@ -65,6 +66,7 @@ permissions:
     fields:
       - id
       - name
+      - salutation
       - party
       - email
       - has_answered
@@ -85,6 +87,7 @@ permissions:
     presets: null
     fields:
       - name
+      - salutation
       - email
       - party
       - has_answered

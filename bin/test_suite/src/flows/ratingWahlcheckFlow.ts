@@ -60,6 +60,7 @@ interface Question {
 interface Candidate {
   id: string;
   name: string;
+  salutation?: 'frau' | 'herr' | 'neutral' | null;
   email: string;
   party?: string | null;
   access_token?: string | null;
@@ -362,7 +363,7 @@ async function readQuestions(fixture: TestFixture, electionId: string): Promise<
 async function readCandidates(fixture: TestFixture, electionId: string): Promise<Candidate[]> {
   return fixture.admin.readItems<Candidate>('candidate', {
     filter: { election: { _eq: electionId } },
-    fields: ['id', 'name', 'email', 'party', 'access_token', 'has_answered'],
+    fields: ['id', 'name', 'salutation', 'email', 'party', 'access_token', 'has_answered'],
     limit: -1,
   });
 }
@@ -736,12 +737,14 @@ export async function runRatingWahlcheckFlow(
     await fixture.localteamMember.client.createItem<Candidate>('candidate', {
       election: election.id,
       name: `AutomatedCandidateA ${fixture.config.runId}`,
+      salutation: 'frau',
       email: fixture.candidateAEmail,
       party: 'Gruene',
     });
     await fixture.localteamMember.client.createItem<Candidate>('candidate', {
       election: election.id,
       name: `AutomatedCandidateB ${fixture.config.runId}`,
+      salutation: 'herr',
       email: fixture.candidateBEmail,
       party: `AutomatedParty ${fixture.config.runId}`,
     });
@@ -750,6 +753,14 @@ export async function runRatingWahlcheckFlow(
     assertEqual(candidates.length, 2, 'Election must have exactly two candidates');
     assert(candidates.some((candidate) => candidate.email === fixture.candidateAEmail), 'Candidate A must exist');
     assert(candidates.some((candidate) => candidate.email === fixture.candidateBEmail), 'Candidate B must exist');
+    assert(
+      candidates.some((candidate) => candidate.salutation === 'frau'),
+      'Candidate A must retain the selected salutation',
+    );
+    assert(
+      candidates.some((candidate) => candidate.salutation === 'herr'),
+      'Candidate B must retain the selected salutation',
+    );
 
     const answers = await fixture.localteamMember.client.readItems<Answer>('answers', {
       fields: ['id'],

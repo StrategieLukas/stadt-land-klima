@@ -109,7 +109,7 @@ meta:
   readonly: false
   required: true
   searchable: true
-  sort: 4
+  sort: 5
   special: null
   translations:
     - language: de-DE
