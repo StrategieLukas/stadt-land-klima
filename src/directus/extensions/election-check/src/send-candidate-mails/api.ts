@@ -18,6 +18,7 @@ interface Election {
   descriptor?: string;
   response_cutoff_date?: string | null;
   candidate_email_cc?: string | null;
+  candidate_email_template?: string | null;
   candidate_email_reply_to?: string | null;
   custom_logo?: string | { id?: string | null } | null;
   already_generated_questions?: boolean;
@@ -67,9 +68,7 @@ const MIN_QUESTIONS = 7;
 const MIN_CANDIDATES = 2;
 const ALWAYS_CC = 'info@stadt-land-klima.de';
 const EMAIL_PATTERN = /^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/;
-const HEALTH4FUTURE_ELECTION_NAME = 'Gesundheitswahlcheck';
 const DEFAULT_CANDIDATE_EMAIL_TEMPLATE = 'email-template-candidate';
-const HEALTH4FUTURE_CANDIDATE_EMAIL_TEMPLATE = 'email-template-candidate-health4future';
 const CUSTOM_LOGO_CONTENT_ID = 'wahlcheck-logo@stadt-land-klima.de';
 const LAST_NAME_PARTICLES = new Set([
   'da', 'das', 'de', 'del', 'della', 'den', 'der', 'di', 'dos', 'du', 'la', 'le',
@@ -115,6 +114,26 @@ function uniqueEmailAddresses(addresses: string[]): string[] {
 function normalizeEmail(value?: string | null): string | null {
   const email = value?.trim() ?? '';
   return email.length > 0 ? email : null;
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[character]!);
+}
+
+function renderCandidateEmailHtml(
+  template: string,
+  variables: Record<string, string>,
+): string {
+  return template.replace(/\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g, (placeholder, name: string) => {
+    const value = variables[name];
+    return value === undefined ? placeholder : escapeHtml(value);
+  });
 }
 
 function candidateDisplayName(candidate: Candidate): string {
@@ -311,13 +330,7 @@ export default {
       ...splitEmailAddresses(election.candidate_email_cc),
     ]);
     const replyTo = splitEmailAddresses(election.candidate_email_reply_to)[0];
-    const isHealth4FutureElection = election.descriptor === HEALTH4FUTURE_ELECTION_NAME;
-    const candidateEmailTemplate = isHealth4FutureElection
-      ? HEALTH4FUTURE_CANDIDATE_EMAIL_TEMPLATE
-      : DEFAULT_CANDIDATE_EMAIL_TEMPLATE;
-    const candidateEmailSubject = isHealth4FutureElection
-      ? 'Einladung zum Gesundheits-Wahlcheck zur Berlin-Wahl'
-      : `Einladung zum Klimawahl-Check: ${municipalityName ?? ''}`.trimEnd();
+    const candidateEmailSubject = `Einladung zum Klimawahl-Check: ${municipalityName ?? ''}`.trimEnd();
     const customLogoId = typeof election.custom_logo === 'string'
       ? election.custom_logo
       : election.custom_logo?.id;
@@ -350,6 +363,17 @@ export default {
 
     for (const candidate of withTokens) {
       const personalLink = `${BASE_URL}/elections/thesen/${candidate.access_token}`;
+      const customEmailTemplate = election.candidate_email_template?.trim();
+      const candidateEmailHtml = customEmailTemplate
+        ? renderCandidateEmailHtml(customEmailTemplate, {
+            candidate_name: candidate.name ?? '',
+            candidate_salutation: candidateFormalSalutation(candidate),
+            municipality_name: municipalityName ?? '',
+            cutoff_date: cutoffFormatted,
+            personal_link: personalLink,
+            projectName: 'Klimawahlcheck',
+          })
+        : '';
 
       try {
         await mailSvc.send({
@@ -359,8 +383,9 @@ export default {
           ...(customLogoAttachment ? { attachments: [customLogoAttachment] } : {}),
           subject: candidateEmailSubject,
           template: {
-            name: candidateEmailTemplate,
+            name: DEFAULT_CANDIDATE_EMAIL_TEMPLATE,
             data: {
+              candidate_email_html: candidateEmailHtml,
               candidate_name: candidate.name ?? '',
               candidate_salutation: candidateFormalSalutation(candidate),
               municipality_name: municipalityName ?? '',

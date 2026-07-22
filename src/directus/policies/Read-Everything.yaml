@@ -130,7 +130,22 @@ permissions:
     validation: null
     presets: null
     fields:
-      - "*"
+      - action_buttons
+      - already_generated_questions
+      - already_sent_mails
+      - candidate_email_cc
+      - candidate_email_reply_to
+      - custom_logo
+      - date_created
+      - date_updated
+      - descriptor
+      - id
+      - is_approved
+      - is_public
+      - localteam
+      - response_cutoff_date
+      - review_requested
+      - simple_answer_mode
   - collection: events
     action: read
     permissions: null

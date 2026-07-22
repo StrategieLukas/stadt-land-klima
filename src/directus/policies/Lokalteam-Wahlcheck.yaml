@@ -20,6 +20,7 @@ permissions:
       - id
       - candidate
       - question
+      - explanation
       - date_created
       - date_updated
   - collection: candidate
