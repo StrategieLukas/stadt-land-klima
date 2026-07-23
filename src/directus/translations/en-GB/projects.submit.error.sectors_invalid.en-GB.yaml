@@ -1,0 +1,3 @@
+language: en-GB
+key: projects.submit.error.sectors_invalid
+value: The selected sectors are invalid. Please check your selection.

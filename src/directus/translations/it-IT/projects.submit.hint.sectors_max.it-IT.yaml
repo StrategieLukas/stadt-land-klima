@@ -1,0 +1,3 @@
+language: it-IT
+key: projects.submit.hint.sectors_max
+value: "Puoi selezionare fino a :max settori."

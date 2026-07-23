@@ -1,0 +1,3 @@
+language: en-GB
+key: projects.submit.error.image_too_large
+value: "The image must be no larger than :max MB."

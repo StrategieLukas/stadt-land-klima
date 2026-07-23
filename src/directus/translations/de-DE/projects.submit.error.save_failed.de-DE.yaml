@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.save_failed
+value: Die Einreichung konnte nicht gespeichert werden. Bitte versuche es später erneut.

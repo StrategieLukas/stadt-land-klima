@@ -1,0 +1,3 @@
+language: en-GB
+key: projects.submit.error.captcha_failed
+value: CAPTCHA verification failed. Please reload the page and try again.

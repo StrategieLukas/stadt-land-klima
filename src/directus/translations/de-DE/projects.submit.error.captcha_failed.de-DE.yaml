@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.captcha_failed
+value: Die CAPTCHA-Überprüfung ist fehlgeschlagen. Bitte lade die Seite neu und versuche es noch einmal.

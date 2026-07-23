@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.sectors_too_many
+value: "Bitte wähle höchstens :max Sektoren aus."
