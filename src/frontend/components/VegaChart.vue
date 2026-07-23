@@ -6,7 +6,7 @@
   >
     <div
       v-if="nativeZoomEnabled && canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
+      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         type="button"
@@ -21,7 +21,7 @@
     </div>
     <div
       v-if="canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
+      class="border-gray-300 pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         type="button"

@@ -1,114 +1,112 @@
 <template>
-  <main class="px-4 py-6 max-w-7xl mx-auto w-full">
-
-    <h1 class="text-3xl font-bold font-heading mb-6" style="color: #1a4a6e;">Dashboard Maßnahmen-Statistiken</h1>
+  <main class="mx-auto w-full max-w-7xl px-4 py-6">
+    <h1 class="mb-6 font-heading text-3xl font-bold" style="color: #1a4a6e">Dashboard Maßnahmen-Statistiken</h1>
 
     <section id="massnahmenstatistiken" class="mb-8">
-
       <!-- Filter panel — full width -->
-      <div class="flex flex-col gap-0 px-3 py-3 mb-4 bg-gray-50 rounded-sm border border-gray-200">
-
-          <!-- Collapsible toggle (only shown below xs breakpoint) -->
-          <button
-            class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
-            @click="filterOpen = !filterOpen"
+      <div class="bg-gray-50 border-gray-200 mb-4 flex flex-col gap-0 rounded-sm border px-3 py-3">
+        <!-- Collapsible toggle (only shown below xs breakpoint) -->
+        <button
+          class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
+          @click="filterOpen = !filterOpen"
+        >
+          <span class="flex items-center gap-2">
+            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
+              />
+            </svg>
+            <span>{{ $t("generic.filter") }}</span>
+            <span
+              v-if="activeFilterCount > 0"
+              class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
+              >{{ activeFilterCount }}</span
+            >
+          </span>
+          <svg
+            class="h-4 w-4 flex-shrink-0 transition-transform duration-200"
+            :class="filterOpen ? 'rotate-180' : ''"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
           >
-            <span class="flex items-center gap-2">
-              <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
-                />
-              </svg>
-              <span>{{ $t("generic.filter") }}</span>
-              <span
-                v-if="activeFilterCount > 0"
-                class="slk-filter-count rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
-                >{{ activeFilterCount }}</span
-              >
-            </span>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <!-- Filter rows (always visible at xs+, collapsible below xs) -->
+        <div v-show="filterOpen" class="xs:!block">
+          <!-- Row 0: catalog + type -->
+          <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-3 py-1.5">
             <svg
-              class="h-4 w-4 flex-shrink-0 transition-transform duration-200"
-              :class="filterOpen ? 'rotate-180' : ''"
+              class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
               stroke-width="2"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
-          </button>
-
-          <!-- Filter rows (always visible at xs+, collapsible below xs) -->
-          <div v-show="filterOpen" class="xs:!block">
-            <!-- Row 0: catalog + type -->
-            <div class="grid grid-cols-[1.5rem_1fr] items-center gap-x-3 py-1.5">
-              <svg
-                class="slk-filter-panel-icon h-4 w-4 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                v-for="v in catalogVersions"
+                :key="v.id"
+                class="slk-filter-pill"
+                :class="selectedCatalogVersionId === v.id ? 'slk-filter-pill--active' : ''"
+                @click="onCatalogVersionChange(v.id)"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <div class="flex flex-wrap items-center gap-2">
-                <button
-                  v-for="v in catalogVersions"
-                  :key="v.id"
-                  class="slk-filter-pill"
-                  :class="selectedCatalogVersionId === v.id ? 'slk-filter-pill--active' : ''"
-                  @click="onCatalogVersionChange(v.id)"
-                >
-                  {{ v.name }}
-                </button>
-                <div class="slk-filter-divider mx-1 hidden w-px self-stretch sm:block" />
-                <button
-                  v-for="opt in typeOptions"
-                  :key="opt.value ?? 'alltype'"
-                  class="slk-filter-pill"
-                  :class="filterType === opt.value ? 'slk-filter-pill--active' : ''"
-                  @click="filterType = opt.value"
-                >
-                  {{ opt.label }}
-                </button>
-              </div>
-            </div>
-
-            <div class="slk-filter-rule my-0.5 border-t" />
-
-            <!-- Row 1: state dropdown -->
-            <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-3 py-1.5">
-              <svg
-                class="slk-filter-panel-icon mt-1 h-4 w-4 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
+                {{ v.name }}
+              </button>
+              <div class="slk-filter-divider mx-1 hidden w-px self-stretch sm:block" />
+              <button
+                v-for="opt in typeOptions"
+                :key="opt.value ?? 'alltype'"
+                class="slk-filter-pill"
+                :class="filterType === opt.value ? 'slk-filter-pill--active' : ''"
+                @click="filterType = opt.value"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
-                />
-              </svg>
-              <div class="flex flex-wrap items-center gap-2">
-                <FilterBadgeDropdown
-                  label="Alle Bundesländer"
-                  :options="availableStates.map((s) => ({ label: s, value: s }))"
-                  v-model="filterState"
-                  width="min-w-[13rem]"
-                  :dark="false"
-                />
-              </div>
+                {{ opt.label }}
+              </button>
             </div>
           </div>
-          </div><!-- /filter panel -->
+
+          <div class="slk-filter-rule my-0.5 border-t" />
+
+          <!-- Row 1: state dropdown -->
+          <div class="grid grid-cols-[1.5rem_1fr] items-start gap-x-3 py-1.5">
+            <svg
+              class="slk-filter-panel-icon mt-1 h-4 w-4 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z"
+              />
+            </svg>
+            <div class="flex flex-wrap items-center gap-2">
+              <FilterBadgeDropdown
+                label="Alle Bundesländer"
+                :options="availableStates.map((s) => ({ label: s, value: s }))"
+                v-model="filterState"
+                width="min-w-[13rem]"
+                :dark="false"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /filter panel -->
 
       <!-- desktop content padding wrapper -->
       <div class="md:px-4 md:pb-6 md:pt-4">
@@ -820,27 +818,37 @@ Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Too
 
 const { isDark } = useTheme();
 
+const VEGA_LIGHT_BACKGROUND = "#ffffff";
+const VEGA_DARK_BACKGROUND = "#17212b";
+
 const darkVegaConfig = {
-  background: '#17212b',
-  view: { fill: '#17212b', stroke: '#344454' },
+  background: VEGA_DARK_BACKGROUND,
+  view: { fill: VEGA_DARK_BACKGROUND, stroke: "#344454" },
   axis: {
-    labelColor: '#8aa4b8',
-    titleColor: '#8aa4b8',
-    gridColor: '#243444',
-    domainColor: '#344454',
-    tickColor: '#344454',
+    labelColor: "#8aa4b8",
+    titleColor: "#8aa4b8",
+    gridColor: "#243444",
+    domainColor: "#344454",
+    tickColor: "#344454",
   },
-  title: { color: '#d0dce5', subtitleColor: '#8aa4b8' },
-  legend: { labelColor: '#8aa4b8', titleColor: '#8aa4b8' },
-  header: { labelColor: '#8aa4b8', titleColor: '#8aa4b8' },
+  title: { color: "#d0dce5", subtitleColor: "#8aa4b8" },
+  legend: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
+  header: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
 };
 
 function vegaEmbedOpts(extra = {}) {
   return {
-    renderer: 'svg',
+    renderer: "svg",
     actions: false,
     ...extra,
     ...(isDark.value ? { config: darkVegaConfig } : {}),
+  };
+}
+
+function themedVegaSpec(spec) {
+  return {
+    ...spec,
+    background: isDark.value ? VEGA_DARK_BACKGROUND : VEGA_LIGHT_BACKGROUND,
   };
 }
 
@@ -862,7 +870,6 @@ function compareByScoreThenName(a, b) {
   if (scoreDifference !== 0) return scoreDifference;
   return municipalityNameCollator.compare(a.name ?? "", b.name ?? "");
 }
-
 
 function scrollToSection(id) {
   const el = document.getElementById(id);
@@ -1443,7 +1450,7 @@ async function renderSunburst() {
       ],
       resolve: { scale: { theta: "independent", color: "independent" } },
     };
-    const result = await vegaEmbed(sunburstContainer.value, spec, vegaEmbedOpts());
+    const result = await vegaEmbed(sunburstContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
     vegaViewSunburst = result.view;
 
     // Click handler: update selection, re-render sunburst with highlight + dist panel
@@ -1559,7 +1566,7 @@ async function renderDistPanel() {
             : { value: null },
       },
     };
-    const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: "svg", actions: false });
+    const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
     vegaViewDist = res.view;
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
@@ -1646,7 +1653,7 @@ async function renderDistPanel() {
             : { value: null },
       },
     };
-    const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: "svg", actions: false });
+    const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
     vegaViewDist = res.view;
     // Click on a bin: filter municipality list to that bin
     res.view.addEventListener("click", (_e, item) => {
@@ -1713,7 +1720,7 @@ async function renderDistPanel() {
         },
       },
     };
-    const res = await vegaEmbed(distPanelContainer.value, spec, { renderer: "svg", actions: false });
+    const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
     vegaViewDist = res.view;
     // Click on a bar: filter municipality list to that rating
     res.view.addEventListener("click", (_e, item) => {
@@ -1807,11 +1814,26 @@ watch([filterState, filterType], () => {
 // ── Re-render all active Vega charts when theme changes ───────────────────────
 watch(isDark, () => {
   nextTick(() => {
-    if (vegaViewSunburst) { vegaViewSunburst.finalize(); vegaViewSunburst = null; }
-    if (vegaViewDist) { vegaViewDist.finalize(); vegaViewDist = null; }
-    if (vegaViewCluster) { vegaViewCluster.finalize(); vegaViewCluster = null; }
-    if (vegaViewDominance) { vegaViewDominance.finalize(); vegaViewDominance = null; }
-    if (vegaViewDominanceHeatmap) { vegaViewDominanceHeatmap.finalize(); vegaViewDominanceHeatmap = null; }
+    if (vegaViewSunburst) {
+      vegaViewSunburst.finalize();
+      vegaViewSunburst = null;
+    }
+    if (vegaViewDist) {
+      vegaViewDist.finalize();
+      vegaViewDist = null;
+    }
+    if (vegaViewCluster) {
+      vegaViewCluster.finalize();
+      vegaViewCluster = null;
+    }
+    if (vegaViewDominance) {
+      vegaViewDominance.finalize();
+      vegaViewDominance = null;
+    }
+    if (vegaViewDominanceHeatmap) {
+      vegaViewDominanceHeatmap.finalize();
+      vegaViewDominanceHeatmap = null;
+    }
     renderSunburst();
     renderDistPanel();
   });
@@ -1970,7 +1992,7 @@ async function computeDominanceAndRender() {
       },
     };
 
-    const r1 = await vegaEmbed(dominanceRankContainer.value, rankSpec, vegaEmbedOpts());
+    const r1 = await vegaEmbed(dominanceRankContainer.value, themedVegaSpec(rankSpec), vegaEmbedOpts());
     vegaViewDominance = r1.view;
 
     // ── Dominance heatmap ──────────────────────────────────────────────────────
@@ -2016,7 +2038,7 @@ async function computeDominanceAndRender() {
       },
     };
 
-    const r2 = await vegaEmbed(dominanceHeatmapContainer.value, heatSpec, vegaEmbedOpts());
+    const r2 = await vegaEmbed(dominanceHeatmapContainer.value, themedVegaSpec(heatSpec), vegaEmbedOpts());
     vegaViewDominanceHeatmap = r2.view;
 
     // ── Force-directed graph ──────────────────────────────────────────────────
@@ -2106,7 +2128,7 @@ async function computeDominanceAndRender() {
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", String(height));
     svg.style.display = "block";
-    svg.style.background = isDark.value ? '#17212b' : 'white';
+    svg.style.background = isDark.value ? "#17212b" : "white";
 
     const linksGroup = document.createElementNS(ns, "g");
     const nodesGroup = document.createElementNS(ns, "g");
@@ -2328,7 +2350,7 @@ async function computeClusteringAndRender() {
       vegaViewCluster = null;
     }
     clusterContainer.value.innerHTML = "";
-    const result = await vegaEmbed(clusterContainer.value, spec, vegaEmbedOpts());
+    const result = await vegaEmbed(clusterContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
     vegaViewCluster = result.view;
 
     // Store rows for profile lookup — keep slug for sector-score lookup
@@ -2451,22 +2473,19 @@ function onChooserSectorClick(sector) {
   sunburstSelection.value = { type: "sector", sectorKey: key, measureId: null, label: shortSectorNames[key] ?? key };
   clearPanelMunFilter();
   if (isSmall.value) {
-    mobileMeasuresTab.value = 'plot'
-  } else {
-    // Switch to sunburst view so it's visible when we re-render
-    showListView.value = false;
+    mobileMeasuresTab.value = "plot";
   }
-  nextTick(() => { renderSunburst(); renderDistPanel() })
+  nextTick(() => {
+    renderSunburst();
+    renderDistPanel();
+  });
 }
 
 function onChooserMeasureClick(measure, sectorKey) {
   sunburstSelection.value = { type: "measure", sectorKey, measureId: measure.id, label: measure.name };
   clearPanelMunFilter();
   if (isSmall.value) {
-    mobileMeasuresTab.value = 'plot'
-  } else {
-    // Switch to sunburst view so it's visible when we re-render
-    showListView.value = false;
+    mobileMeasuresTab.value = "plot";
   }
   nextTick(() => {
     renderSunburst();

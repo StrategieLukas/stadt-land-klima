@@ -19,10 +19,7 @@
         :style="{ left: markerPct + '%' }"
       >
         <!-- Triangle pointing down, sitting on the bar -->
-        <div
-          class="w-0 h-0 -mt-1.5"
-          style="border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #1f2937;"
-        />
+        <div class="slk-threshold-marker -mt-1.5 h-0 w-0" />
       </div>
     </div>
 
@@ -133,3 +130,15 @@ const thresholdLabels = computed(() => {
     }))
 })
 </script>
+
+<style>
+.slk-threshold-marker {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #1f2937;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-threshold-marker {
+  border-top-color: var(--slk-text-strong);
+}
+</style>

@@ -3,7 +3,7 @@
     <div ref="containerRef" class="h-full w-full" />
     <div
       v-if="canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/maplibre:pointer-events-auto group-hover/maplibre:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
+      class="border-gray-300 pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/maplibre:pointer-events-auto group-hover/maplibre:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         v-if="resolvedFeatureApiUrl"
@@ -684,14 +684,23 @@ function resizeMapAndRefreshHeatmaps() {
 
 function waitForMapIdle() {
   if (!map) return Promise.resolve();
-  if (map.loaded?.() && !map.isMoving?.()) return nextAnimationFrames(2);
-
   return new Promise<void>((resolve) => {
-    const timeout = window.setTimeout(() => resolve(), 1500);
-    map.once("idle", () => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
       window.clearTimeout(timeout);
       nextAnimationFrames(2).then(resolve);
-    });
+    };
+    const timeout = window.setTimeout(finish, 5000);
+
+    // Calling resize() immediately before an export clears the WebGL drawing
+    // buffer. Do not rely on map.loaded() here: it may already be true while
+    // the repaint triggered by resize is still pending, resulting in a blank
+    // PNG. A repaint followed by idle guarantees a rendered frame is available
+    // to copy from the canvas.
+    map.once("idle", finish);
+    map.triggerRepaint?.();
   });
 }
 
@@ -710,13 +719,149 @@ function nextAnimationFrames(count: number) {
 
 async function captureMapCanvas() {
   const sourceCanvas = map.getCanvas() as HTMLCanvasElement;
+  const featureCanvas = await renderFeatureScatterCanvas(sourceCanvas.width, sourceCanvas.height);
+  if (featureCanvas) return featureCanvas;
+
+  // Maps without GeoJSON features still use the rendered MapLibre canvas.
+  // The data-product maps use the branch above, which deliberately avoids
+  // WebGL capture and therefore always exports the actual scatter points.
   const canvas = document.createElement("canvas");
   canvas.width = sourceCanvas.width;
   canvas.height = sourceCanvas.height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not create map export canvas");
-  ctx.drawImage(sourceCanvas, 0, 0);
+
+  // Serializing the WebGL canvas first is more reliable than drawing it
+  // directly into a 2D canvas. Direct draws can copy an empty framebuffer in
+  // Chromium even though MapLibre is visibly rendered on screen.
+  const image = await loadImage(sourceCanvas.toDataURL("image/png"));
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
   return canvas;
+}
+
+async function renderFeatureScatterCanvas(width: number, height: number) {
+  const data = await featureDataForExport();
+  const bounds = geoJsonBounds(data);
+  if (!bounds || !width || !height) return null;
+
+  const coordinates: Array<[number, number]> = [];
+  collectCoordinates(data, coordinates);
+  if (!coordinates.length) return null;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  const padding = Math.max(24, Math.round(Math.min(width, height) * 0.06));
+  const [[west, south], [east, north]] = bounds;
+  const westMercator = mercatorX(west);
+  const eastMercator = mercatorX(east);
+  const northMercator = mercatorY(north);
+  const southMercator = mercatorY(south);
+  const mapWidth = Math.max(eastMercator - westMercator, 0.00005);
+  const mapHeight = Math.max(southMercator - northMercator, 0.00005);
+  const drawWidth = Math.max(1, width - padding * 2);
+  const drawHeight = Math.max(1, height - padding * 2);
+  const scale = Math.min(drawWidth / mapWidth, drawHeight / mapHeight);
+  const offsetX = (width - mapWidth * scale) / 2 - westMercator * scale;
+  const offsetY = (height - mapHeight * scale) / 2 - northMercator * scale;
+  const project = ([lng, lat]: [number, number]) => [
+    offsetX + mercatorX(lng) * scale,
+    offsetY + mercatorY(lat) * scale,
+  ];
+
+  ctx.fillStyle = "#edf3f7";
+  ctx.fillRect(0, 0, width, height);
+  await drawCartoBasemap(ctx, width, height, offsetX, offsetY, scale);
+  drawBasemapAttribution(ctx, width, height);
+
+  const radius = Math.max(4, Math.min(8, Math.round(Math.min(width, height) / 80)));
+  ctx.fillStyle = "#2563eb";
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = Math.max(1.5, radius / 3);
+  for (const coordinate of coordinates) {
+    const [x, y] = project(coordinate);
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = Math.max(1, width / 1000);
+  ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+  return canvas;
+}
+
+async function featureDataForExport() {
+  const sourceData = spec.value?.sources?.features?.data;
+  if (typeof sourceData !== "string") return sourceData ?? null;
+
+  try {
+    const response = await fetch(resolvedFeatureApiUrl.value);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (err) {
+    console.warn("[MapLibreRenderElement] feature export fetch error:", err);
+    return null;
+  }
+}
+
+async function drawCartoBasemap(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  offsetX: number,
+  offsetY: number,
+  scale: number,
+) {
+  const zoom = Math.max(0, Math.min(18, Math.floor(Math.log2(scale / 256))));
+  const tileCount = 2 ** zoom;
+  const tileSize = scale / tileCount;
+  const minX = Math.max(0, Math.floor(-offsetX / tileSize));
+  const maxX = Math.min(tileCount - 1, Math.ceil((width - offsetX) / tileSize));
+  const minY = Math.max(0, Math.floor(-offsetY / tileSize));
+  const maxY = Math.min(tileCount - 1, Math.ceil((height - offsetY) / tileSize));
+  const tiles: Promise<void>[] = [];
+
+  for (let x = minX; x <= maxX; x += 1) {
+    for (let y = minY; y <= maxY; y += 1) {
+      const url = `https://a.basemaps.cartocdn.com/light_all/${zoom}/${x}/${y}.png`;
+      tiles.push(
+        loadImage(url)
+          .then((image) => ctx.drawImage(image, offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize))
+          .catch(() => undefined),
+      );
+    }
+  }
+  await Promise.all(tiles);
+}
+
+function drawBasemapAttribution(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  const text = "© OpenStreetMap contributors  © CARTO";
+  const padding = Math.max(5, Math.round(width / 180));
+  const fontSize = Math.max(10, Math.round(width / 90));
+  ctx.font = `${fontSize}px ${EXPORT_FONT}`;
+  const textWidth = ctx.measureText(text).width;
+  const boxHeight = fontSize + padding * 2;
+  const x = width - textWidth - padding * 3;
+  const y = height - boxHeight - padding;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+  ctx.fillRect(x, y, textWidth + padding * 2, boxHeight);
+  ctx.fillStyle = "#475569";
+  ctx.fillText(text, x + padding, y + padding + fontSize);
+}
+
+function mercatorX(longitude: number) {
+  return (longitude + 180) / 360;
+}
+
+function mercatorY(latitude: number) {
+  const limitedLatitude = Math.max(-85.05112878, Math.min(85.05112878, latitude));
+  return (1 - Math.log(Math.tan(Math.PI / 4 + (limitedLatitude * Math.PI) / 360)) / Math.PI) / 2;
 }
 
 async function drawExportCanvas(mapCanvas: HTMLCanvasElement) {
