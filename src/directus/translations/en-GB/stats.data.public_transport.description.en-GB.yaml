@@ -1,0 +1,6 @@
+language: en-GB
+key: stats.data.public_transport.description
+value: Typical travel time and travel speed (straight-line distance) by local
+  public transport, including walking, within the administrative area at typical
+  departure times (averaged over one week using the 2022 time-use study) from
+  typical departure and arrival locations weighted by population density.

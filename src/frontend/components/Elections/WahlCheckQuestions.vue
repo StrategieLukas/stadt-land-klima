@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Introduction -->
-    <div class="bg-white p-8 rounded-xl shadow-list border border-gray/10 text-center">
+    <div class="bg-white p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <img 
           src="~/assets/images/Stadt-Land-Klima-Blume.svg" 
@@ -10,24 +10,23 @@
         >
       </div>
       <h2 class="text-2xl font-bold text-stats-dark mb-4">
-        Beantworten Sie die Thesen
+	        {{ $t("elections.wahlcheck.questions.title") }}
       </h2>
       <p class="text-mid-gray max-w-2xl mx-auto">
-        Geben Sie zu jeder These an, inwieweit Sie dieser zustimmen. 
-        Ihre Antworten werden später mit den Antworten der Kandidaten verglichen.
+	        {{ $t("elections.wahlcheck.questions.description") }}
       </p>
       <p v-if="localteam" class="text-sm text-mid-gray mt-4">
-        <strong>Lokalteam:</strong> {{ localteam.municipality_name || localteam.name }}
+	        <strong>{{ $t("localteam.singular") }}:</strong> {{ localteam.municipality_name || localteam.name }}
       </p>
-      <p class="text-xs text-gray/50 mt-2">
-        Sie können Fragen überspringen, indem Sie "Keine Angabe" wählen.
+      <p class="text-xs text-solid-gray-50 mt-2">
+	        {{ $t("elections.wahlcheck.questions.skip_hint") }}
       </p>
     </div>
 
     <!-- Single Question Display -->
     <div v-if="props.questions.length > 0" class="space-y-6">
       <div 
-        class="bg-white p-6 rounded-xl shadow-list border border-gray/10 transition-all"
+        class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10 transition-all"
         :class="{
           'ring-2 ring-ff-green': true,
           'opacity-60': completedQuestions.has(currentQuestion.id)
@@ -44,12 +43,19 @@
             <p v-if="currentQuestion.thesis" class="mt-2 text-gray italic text-lg">
               {{ currentQuestion.thesis }}
             </p>
+            <ElectionsQuestionBackgroundInfo
+              :content="currentQuestion.background_information"
+              class="mt-4"
+            />
           </div>
         </div>
 
         <!-- Rating Scale -->
         <div class="ml-0 md:ml-14">
-          <div class="grid grid-cols-5 gap-2 mb-3">
+          <div
+            class="grid gap-2 mb-3"
+            :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
+          >
             <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
               <label class="cursor-pointer">
                 <input
@@ -64,7 +70,10 @@
               </label>
             </div>
           </div>
-          <div class="grid grid-cols-5 gap-1 text-[10px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray">
+          <div
+            class="grid gap-1 text-[10px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray"
+            :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
+          >
             <div v-for="option in ratingOptions" :key="option.value">
               {{ option.label }}
             </div>
@@ -77,18 +86,18 @@
             <input
               type="checkbox"
               v-model="skippedQuestions[currentQuestion.id]"
-              class="checkbox checkbox-sm border-gray/30"
+              class="checkbox checkbox-sm border-solid-gray-30"
               @change="handleSkipChange(currentQuestion.id)"
             />
-            <span>Keine Angabe / Frage überspringen</span>
+	            <span>{{ $t("elections.wahlcheck.questions.skip") }}</span>
           </label>
         </div>
       </div>
 
       <!-- Navigation Buttons -->
-      <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
+      <div class="flex justify-between items-center mt-8 pt-6 border-t border-solid-gray-10">
         <div class="text-sm text-mid-gray">
-          {{ completedCount }} / {{ props.questions.length }} Fragen beantwortet
+	          {{ $t("elections.wahlcheck.questions.answered_count", { ":count": completedCount, ":total": props.questions.length }) }}
         </div>
         <div class="flex gap-4">
           <button
@@ -98,7 +107,7 @@
             class="btn btn-outline btn-secondary px-6 py-2 rounded-full font-semibold"
             :class="{ 'opacity-50 cursor-not-allowed': currentQuestionIndex === 0 }"
           >
-            Zurück
+	            {{ $t("generic.back") }}
           </button>
           <button
             type="button"
@@ -107,8 +116,8 @@
             class="btn btn-primary px-8 py-2 rounded-full font-semibold text-white"
             :class="{ 'opacity-50 cursor-not-allowed': !canProceedToNext }"
           >
-            <span v-if="currentQuestionIndex === props.questions.length - 1">zu den Gewichtungen</span>
-            <span v-else>Nächste Frage</span>
+	            <span v-if="currentQuestionIndex === props.questions.length - 1">{{ $t("elections.wahlcheck.questions.to_weighting") }}</span>
+	            <span v-else>{{ $t("elections.wahlcheck.questions.next") }}</span>
             <span v-if="false" class="loading loading-spinner loading-sm"></span>
           </button>
         </div>
@@ -123,10 +132,10 @@
           class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all"
           :class="{
             'bg-ff-green text-white border-ff-green': currentQuestionIndex === idx,
-            'bg-white border-gray/30 text-gray hover:border-ff-green': currentQuestionIndex !== idx,
-            'bg-ff-green/10 border-ff-green/30': completedQuestions.has(q.id)
+            'bg-white border-solid-gray-30 text-gray hover:border-ff-green': currentQuestionIndex !== idx,
+            'bg-solid-ff-green-10 border-solid-ff-green-30': completedQuestions.has(q.id)
           }"
-          :title="`Zu Frage ${idx + 1}`"
+	          :title="$t('elections.wahlcheck.questions.go_to', { ':number': idx + 1 })"
         >
           {{ completedQuestions.has(q.id) ? '✓' : idx + 1 }}
         </button>
@@ -137,6 +146,10 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import {
+  getWahlcheckAnswerOptions,
+  usesSimpleWahlcheckAnswerMode,
+} from '~/shared/wahlcheckAnswerOptions.js'
 
 const props = defineProps({
   questions: {
@@ -159,13 +172,12 @@ const props = defineProps({
 
 const emit = defineEmits(['next', 'prev'])
 
-const ratingOptions = [
-  { value: 0, label: 'stark dagegen' },
-  { value: 1, label: 'eher dagegen' },
-  { value: 2, label: 'neutral' },
-  { value: 3, label: 'eher dafür' },
-  { value: 4, label: 'stark dafür' }
-]
+const { $t } = useNuxtApp()
+
+const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(props.election))
+const ratingOptions = computed(() => {
+  return getWahlcheckAnswerOptions(props.election, $t).reverse()
+})
 
 const userAnswers = ref({...props.userAnswers})
 const skippedQuestions = ref({})
@@ -179,17 +191,9 @@ props.questions.forEach(question => {
   }
 })
 
-// Color classes for rating radios
-const ratingRadioClasses = {
-  0: 'border-rating-0 text-rating-0',
-  1: 'border-rating-1 text-rating-1',
-  2: 'border-rating-na text-rating-na',
-  3: 'border-rating-3 text-rating-3',
-  4: 'border-rating-4 text-rating-4'
-}
-
 function getRadioClass(value) {
-  return ratingRadioClasses[value] || 'border-gray/30 text-gray'
+  const option = ratingOptions.value.find((item) => item.value === Number(value))
+  return option?.radioClass || 'border-solid-gray-30 text-gray'
 }
 
 // Mark question as completed when answered
@@ -314,12 +318,12 @@ defineExpose({
 }
 
 .radio:checked + label {
-  box-shadow: 0 0 0 2px currentColor, 0 0 0 4px rgba(currentColor, 0.5);
+  box-shadow: 0 0 0 2px currentColor, 0 0 0 4px currentColor;
 }
 
 input[type="radio"]:focus,
 input[type="checkbox"]:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(175, 202, 11, 0.3);
+  box-shadow: 0 0 0 2px #e7efb6;
 }
 </style>

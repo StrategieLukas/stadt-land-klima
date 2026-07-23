@@ -4,13 +4,13 @@
       <!-- Header -->
       <div v-if="!submitted" class="text-center mb-12">
         <h1 class="text-h1 font-bold text-black mb-4">
-          Thesen-Check
+	          {{ $t("elections.theses.title") }}
         </h1>
         <p v-if="localteam" class="text-lg text-mid-gray mb-2">
-          Lokalteam: <span class="font-semibold text-stats-dark">{{ localteam.name }}</span>
+	          {{ $t("localteam.singular") }}: <span class="font-semibold text-stats-dark">{{ localteam.name }}</span>
         </p>
         <p v-if="candidate" class="text-lg text-mid-gray flex items-center justify-center gap-2">
-          Kandidat: <span class="font-semibold text-stats-dark">{{ candidate.name }}</span>
+	          {{ $t("elections.candidate") }}: <span class="font-semibold text-stats-dark">{{ candidate.name }}</span>
           <CandidatePartyLabel :party="candidate.party" :state="candidateState" />
         </p>
       </div>
@@ -21,9 +21,9 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error || !localteam || !candidate" class="bg-red/10 border border-red text-red p-6 rounded-lg text-center">
-        <p class="font-bold text-xl mb-2">Fehler beim Laden</p>
-        <p>Die angeforderten Daten konnten nicht geladen werden. Bitte überprüfen Sie die URL.</p>
+      <div v-else-if="error || !localteam || !candidate" class="bg-solid-red-10 border border-red text-red p-6 rounded-lg text-center">
+	        <p class="font-bold text-xl mb-2">{{ $t("generic.loading_error") }}</p>
+	        <p>{{ $t("elections.theses.loading_error.description") }}</p>
       </div>
 
       <!-- Success State -->
@@ -33,17 +33,17 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 class="text-3xl font-bold mb-4 text-black">Vielen Dank!</h2>
-        <p class="text-xl text-mid-gray">Ihre Antworten wurden erfolgreich übermittelt.</p>
+	        <h2 class="text-3xl font-bold mb-4 text-black">{{ $t("generic.thank_you") }}</h2>
+	        <p class="text-xl text-mid-gray">{{ $t("elections.theses.submitted") }}</p>
       </div>
 
       <!-- Survey Form -->
       <div v-else-if="questions && questions.length > 0" class="space-y-8">
-        <div v-if="isPastCutoff" class="bg-orange/10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
-          Der Stichtag für die Abgabe ({{ new Date(candidate.election.response_cutoff_date).toLocaleDateString('de-DE') }}) ist bereits erreicht. Die Umfrage ist nur noch im Lesemodus verfügbar.
+        <div v-if="isPastCutoff" class="bg-solid-orange-10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
+	          {{ $t("elections.theses.cutoff_reached", { ":date": new Date(candidate.election.response_cutoff_date).toLocaleDateString($locale) }) }}
         </div>
 
-        <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
+        <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
           <div class="flex items-start mb-6">
             <span class="flex-shrink-0 w-8 h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold mr-4">
               {{ index + 1 }}
@@ -57,9 +57,17 @@
             {{ question.thesis }}
           </div>
 
+          <ElectionsQuestionBackgroundInfo
+            :content="question.background_information"
+            class="mb-6 sm:ml-12"
+          />
+
           <!-- Rating Scale -->
           <div class="ml-0 sm:ml-12">
-            <div class="grid grid-cols-5 gap-2 mb-2">
+            <div
+              class="grid gap-2 mb-2"
+              :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
+            >
               <div v-for="option in ratingOptions" :key="option.value" class="flex flex-col items-center">
                 <input
                   type="radio"
@@ -72,7 +80,10 @@
                 />
               </div>
             </div>
-            <div class="grid grid-cols-5 gap-1 text-[8px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray">
+            <div
+              class="grid gap-1 text-[8px] sm:text-xs text-center font-medium uppercase tracking-wider text-mid-gray"
+              :class="{ 'grid-cols-3': isSimpleAnswerMode, 'grid-cols-5': !isSimpleAnswerMode }"
+            >
               <div v-for="option in ratingOptions" :key="option.value">
                 {{ option.label }}
               </div>
@@ -82,7 +93,7 @@
           <!-- Reasoning Field -->
           <div class="mt-8 ml-0 sm:ml-12">
             <label :for="'explanation-' + question.id" class="block text-sm font-semibold text-stats-dark mb-2">
-              Begründung (optional, max. 500 Zeichen)
+	              {{ $t("elections.theses.reasoning_label") }}
             </label>
             <textarea
               :id="'explanation-' + question.id"
@@ -92,7 +103,7 @@
               :disabled="isPastCutoff"
               class="textarea textarea-bordered w-full bg-mild-white focus:border-stats-dark focus:ring-1 focus:ring-stats-dark text-black transition-all resize-none"
               :class="{ 'opacity-50 cursor-not-allowed': isPastCutoff }"
-              placeholder="Erläutern Sie Ihre Position..."
+	              :placeholder="$t('elections.theses.reasoning_placeholder')"
             ></textarea>
             <div class="flex justify-end mt-1 text-xs text-mid-gray">
               <span :class="{ 'text-red font-bold': (explanations[question.id]?.length || 0) >= 500 }">
@@ -111,17 +122,17 @@
             class="btn btn-primary btn-lg px-12 text-white font-bold rounded-full shadow-lg transition-all hover:scale-105 disabled:opacity-50"
           >
             <span v-if="submitting" class="loading loading-spinner"></span>
-            Bestätigen
+	            {{ $t("generic.confirm") }}
           </button>
           <p v-if="!isFormComplete" class="mt-4 text-orange font-medium animate-pulse">
-            Bitte beantworten Sie alle {{ questions.length }} Fragen.
+	            {{ $t("elections.theses.answer_all", { ":count": questions.length }) }}
           </p>
         </div>
       </div>
 
       <!-- No Questions State -->
       <div v-else class="bg-white p-12 rounded-2xl shadow-list text-center">
-        <p class="text-xl text-mid-gray">Für dieses Lokalteam sind aktuell keine veröffentlichten Thesen verfügbar.</p>
+	        <p class="text-xl text-mid-gray">{{ $t("elections.theses.no_published") }}</p>
       </div>
     </div>
   </div>
@@ -129,9 +140,13 @@
 
 <script setup>
 import { createItem, updateItem } from '@directus/sdk'
+import {
+  getWahlcheckAnswerOptions,
+  usesSimpleWahlcheckAnswerMode,
+} from '~/shared/wahlcheckAnswerOptions.js'
 
 const route = useRoute()
-const { $directus, $readItems, $readItem } = useNuxtApp()
+const { $directus, $readItems, $readItem, $t, $locale } = useNuxtApp()
 
 const accessToken = route.params.access_token
 
@@ -140,14 +155,6 @@ const explanations = ref({}) // Store reasoning for each question
 const existingAnswerIds = ref({}) // Store existing answer IDs by question ID
 const submitting = ref(false)
 const submitted = ref(false)
-
-const ratingOptions = [
-  { value: 0, label: 'stark dagegen', radioClass: 'border-rating-0 text-rating-0' },
-  { value: 1, label: 'eher dagegen', radioClass: 'border-rating-1 text-rating-1' },
-  { value: 2, label: 'neutral', radioClass: 'border-rating-na text-rating-na' },
-  { value: 3, label: 'eher dafür', radioClass: 'border-rating-3 text-rating-3' },
-  { value: 4, label: 'stark dafür', radioClass: 'border-rating-4 text-rating-4' },
-]
 
 const { data, pending, error } = await useAsyncData(`thesen-${accessToken}`, async () => {
   try {
@@ -205,6 +212,10 @@ const localteam = computed(() => data.value?.localteam)
 const candidate = computed(() => data.value?.candidate)
 const candidateState = computed(() => localteam.value?.municipality_id?.state || '')
 const questions = computed(() => data.value?.questions || [])
+const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(candidate.value?.election))
+const ratingOptions = computed(() => {
+  return getWahlcheckAnswerOptions(candidate.value?.election, $t).reverse()
+})
 
 const isPastCutoff = computed(() => {
   if (!candidate.value?.election?.response_cutoff_date) return false

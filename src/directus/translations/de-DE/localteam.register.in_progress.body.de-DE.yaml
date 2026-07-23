@@ -1,0 +1,4 @@
+language: de-DE
+key: localteam.register.in_progress.body
+value: In <strong>:name</strong> ist bereits ein Lokalteam aktiv und arbeitet
+  gerade an der Bewertung. Möchtest du das Team unterstützen?

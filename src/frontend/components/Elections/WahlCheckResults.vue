@@ -12,30 +12,29 @@
     </div>
 
     <!-- Header -->
-    <div class="bg-white p-8 rounded-xl shadow-list border border-gray/10 text-center">
+    <div class="bg-white p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <img
           src="~/assets/images/Stadt-Land-Klima-Blume.svg"
-          alt="Klimablume"
+          :alt="$t('logo.alt')"
           class="h-24 w-auto mx-auto opacity-80"
         >
       </div>
       <h2 class="text-2xl font-bold text-stats-dark mb-4">
-        Ihre Übereinstimmungen mit den Kandidaten
+        {{ $t('elections.wahlcheck.results.title') }}
       </h2>
       <p class="text-mid-gray max-w-2xl mx-auto">
-        Hier sehen Sie, wie stark Ihre Antworten mit denen der Kandidaten übereinstimmen.
-        Die Übereinstimmung wird als Prozentsatz angegeben.
+        {{ $t('elections.wahlcheck.results.description') }}
       </p>
       <p v-if="election" class="text-sm text-mid-gray mt-4">
-        <strong>Wahl:</strong> {{ election.descriptor }}
+        <strong>{{ $t('elections.election') }}:</strong> {{ election.descriptor }}
       </p>
     </div>
 
     <!-- Bar Chart Overview -->
-    <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-gray/10">
+    <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
-        Vergleich aller Kandidaten
+        {{ $t('elections.wahlcheck.results.all_candidates') }}
       </h3>
       <div class="space-y-4">
         <div v-for="result in sortedResults" :key="result.candidateId" class="flex items-center gap-4">
@@ -61,9 +60,9 @@
     </div>
 
     <!-- Results Summary -->
-    <div v-if="results.length > 0" class="bg-gradient-to-r from-ff-green/10 to-stats-light/50 p-8 rounded-xl border border-ff-green/30">
+    <div v-if="results.length > 0" class="bg-gradient-to-r from-solid-ff-green-10 to-solid-stats-light-50 p-8 rounded-xl border border-solid-ff-green-30">
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
-        Ihre Top-Matches
+        {{ $t('elections.wahlcheck.results.top_matches') }}
       </h3>
 
       <!-- Animated Results List -->
@@ -71,7 +70,7 @@
         <div
           v-for="(result, index) in sortedResults"
           :key="result.candidateId"
-          class="bg-white rounded-xl p-6 shadow-list border border-gray/10 transition-all duration-500"
+          class="bg-white rounded-xl p-6 shadow-list border border-solid-gray-10 transition-all duration-500"
           :style="{ animationDelay: `${index * 100}ms` }"
           :class="`fade-in-up animation-delay-${index}`"
           @mouseenter="hoveredCandidate = result.candidateId"
@@ -111,13 +110,13 @@
                   {{ sortedResults.indexOf(result) + 1 }}
                 </span>
               </div>
-              <span class="text-[10px] text-mid-gray uppercase tracking-wider mt-1">Match</span>
+              <span class="text-[10px] text-mid-gray uppercase tracking-wider mt-1">{{ $t('elections.wahlcheck.results.match') }}</span>
             </div>
 
             <!-- Expand Button -->
             <button
               @click="toggleExpand(result.candidateId)"
-              class="btn btn-circle btn-ghost btn-sm hover:bg-ff-green/10 transition-all"
+              class="btn btn-circle btn-ghost btn-sm hover:bg-solid-ff-green-10 transition-all"
               :class="{ 'rotate-180': expandedCandidate === result.candidateId }"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-stats-dark transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,13 +128,16 @@
           <!-- Expanded Details -->
           <div
             v-if="expandedCandidate === result.candidateId"
-            class="mt-6 pt-6 border-t border-gray/10 overflow-hidden transition-all duration-300"
+            class="mt-6 pt-6 border-t border-solid-gray-10 overflow-hidden transition-all duration-300"
           >
-            <h5 class="font-bold text-stats-dark mb-4">Detailübersicht:</h5>
+            <h5 class="font-bold text-stats-dark mb-4">{{ $t('elections.wahlcheck.results.details') }}</h5>
 
             <!-- Score Breakdown -->
-            <div class="grid grid-cols-2 gap-6 mb-6">
-              <div class="bg-rating-4/10 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
+            <div
+              v-if="hasSectorAgreement(result.candidateId)"
+              class="grid grid-cols-2 gap-6 mb-6"
+            >
+              <div class="bg-solid-rating-4-10 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
                 <div class="flex items-center justify-center mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
@@ -145,10 +147,10 @@
                   />
                 </div>
                 <div class="text-4xl font-bold text-rating-4">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
-                <div class="text-lg font-bold text-rating-4/90 mt-2">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
-                <div class="text-sm text-rating-4/60 mt-1 uppercase tracking-wider">Beste Übereinstimmung</div>
+                <div class="text-lg font-bold text-solid-rating-4-90 mt-2">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
+                <div class="text-sm text-solid-rating-4-60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.best_match") }}</div>
               </div>
-              <div class="bg-stats-light/50 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
+              <div class="bg-solid-stats-light-50 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
                 <div class="flex items-center justify-center mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
@@ -158,8 +160,8 @@
                   />
                 </div>
                 <div class="text-4xl font-bold text-stats-dark">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
-                <div class="text-lg font-bold text-stats-dark/80 mt-2">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
-                <div class="text-sm text-stats-dark/60 mt-1 uppercase tracking-wider">Geringste Übereinstimmung</div>
+                <div class="text-lg font-bold text-solid-stats-dark-80 mt-2">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
+                <div class="text-sm text-solid-stats-dark-60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.lowest_match") }}</div>
               </div>
             </div>
 
@@ -167,7 +169,7 @@
             <div class="mb-4">
               <button
                 @click="toggleSort"
-                class="btn btn-sm px-4 py-1.5 rounded-full text-sm font-medium border border-gray/20 hover:border-ff-green/30 hover:bg-ff-green/5 bg-white transition-all flex items-center gap-2"
+                class="btn btn-sm px-4 py-1.5 rounded-full text-sm font-medium border border-solid-gray-20 hover:border-solid-ff-green-30 hover:bg-solid-ff-green-05 bg-white transition-all flex items-center gap-2"
               >
                 <span>{{ sortLabel }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stats-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,37 +182,41 @@
             <div>
               <div class="min-w-[600px]">
                 <!-- Table Header -->
-                <div class="grid grid-cols-[40px_1fr_80px_120px_120px] gap-2 px-3 py-2 bg-gray/10 rounded-t-lg font-semibold text-sm text-gray/60 border-b border-gray/20">
+                <div
+                  class="grid gap-2 px-3 py-2 bg-solid-gray-10 rounded-t-lg font-semibold text-sm text-solid-gray-60 border-b border-solid-gray-20"
+                  :class="hasQuestionSectors ? 'grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[40px_1fr_120px_120px]'"
+                >
                   <div class="text-center">#</div>
-                  <div>These</div>
-                  <div class="text-center">Sektor</div>
-                  <div class="text-center">Meine Bewertung</div>
-                  <div class="text-center">Bewertung Kandidat:in</div>
+                  <div>{{ $t("elections.thesis") }}</div>
+                  <div v-if="hasQuestionSectors" class="text-center">{{ $t("stats.chart.sector") }}</div>
+                  <div class="text-center">{{ $t("elections.wahlcheck.results.my_rating") }}</div>
+                  <div class="text-center">{{ $t("elections.wahlcheck.results.candidate_rating") }}</div>
                 </div>
 
                 <!-- Table Rows -->
                 <div
                   v-for="(question, qIndex) in sortedExpandedQuestions"
                   :key="question.id"
-                  class="grid grid-cols-[40px_1fr_80px_120px_120px] gap-2 px-3 py-2 bg-white/50 rounded-lg border-b border-gray/10 last:border-0 hover:bg-white transition-all"
+                  class="grid gap-2 px-3 py-2 bg-white rounded-lg border-b border-solid-gray-10 last:border-0 hover:bg-white transition-all"
+                  :class="hasQuestionSectors ? 'grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[40px_1fr_120px_120px]'"
                 >
-                  <div class="text-sm text-gray/50 text-center pt-1">{{ question.originalIndex + 1 }}.</div>
+                  <div class="text-sm text-solid-gray-50 text-center pt-1">{{ question.originalIndex + 1 }}.</div>
                   <div class="text-sm text-black flex items-center gap-2">
                     <span>{{ question.title }}</span>
                     <span
                       v-if="doubleWeightedQuestions.has(question.id)"
-                      class="text-xs bg-ff-green/80 text-white px-1.5 py-0.5 rounded-full font-bold"
-                      title="Doppelt gewichtet"
+                      class="text-xs bg-solid-ff-green-80 text-white px-1.5 py-0.5 rounded-full font-bold"
+                      :title="$t('elections.wahlcheck.results.double_weighted')"
                     >2×</span>
                   </div>
 
                   <!-- Sector -->
-                  <div class="flex justify-center">
+                  <div v-if="hasQuestionSectors" class="flex justify-center">
                     <div v-if="question.sector" class="flex items-center gap-1">
                       <img
                         :src="getSectorIcon(question.sector)"
                         class="h-8 w-8 opacity-60"
-                        :alt="sectorLabels[question.sector?.toLowerCase()?.trim() || 'unknown'] || question.sector"
+                        :alt="sectorLabel(question.sector)"
                       >
                     </div>
                     <div v-else class="w-8"></div>
@@ -224,7 +230,7 @@
                       :class="getRatingColor(userAnswers[question.id])"
                       :title="`Meine Antwort: ${getRatingLabel(userAnswers[question.id])}`"
                     ></div>
-                    <div v-else class="w-8 h-8 rounded-full bg-gray/20">
+                    <div v-else class="w-8 h-8 rounded-full bg-solid-gray-20">
                     </div>
                   </div>
 
@@ -236,7 +242,7 @@
                       :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
                       :title="`Antwort Kandidat:in: ${getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response)}`"
                     ></div>
-                    <div v-else class="w-8 h-8 rounded-full bg-gray/20">
+                    <div v-else class="w-8 h-8 rounded-full bg-solid-gray-20">
                     </div>
                   </div>
                 </div>
@@ -248,28 +254,28 @@
     </div>
 
     <!-- No Results / All Skipped -->
-    <div v-else class="bg-orange/10 border border-orange text-orange-700 p-8 rounded-xl text-center">
+    <div v-else class="bg-solid-orange-10 border border-orange text-orange-700 p-8 rounded-xl text-center">
       <div class="mb-6">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <h3 class="text-xl font-bold mb-4">Keine Übereinstimmungen berechenbar</h3>
-      <p class="text-mid-gray">
-        Sie haben keine Fragen beantwortet, daher kann keine Übereinstimmung mit den Kandidaten berechnet werden.
+	      <h3 class="text-xl font-bold mb-4">{{ $t("elections.wahlcheck.results.no_matches.title") }}</h3>
+	      <p class="text-mid-gray">
+	        {{ $t("elections.wahlcheck.results.no_matches.description") }}
       </p>
       <button
         @click="$emit('restart')"
         class="btn btn-primary px-8 py-3 rounded-full font-semibold text-white mt-6"
       >
-        Nochmal versuchen
+	        {{ $t("generic.try_again") }}
       </button>
     </div>
 
     <!-- Navigation Buttons -->
-    <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray/10">
+    <div class="flex justify-between items-center mt-8 pt-6 border-t border-solid-gray-10">
       <div class="text-sm text-mid-gray">
-        {{ results.length }} Kandidaten verglichen
+	        {{ $t("elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
       </div>
       <div class="flex gap-4">
         <button
@@ -277,14 +283,14 @@
           @click="$emit('prev')"
           class="btn btn-outline btn-secondary px-6 py-2 rounded-full font-semibold"
         >
-          Zurück
+	          {{ $t("generic.back") }}
         </button>
         <button
           type="button"
           @click="$emit('restart')"
-          class="btn btn-outline px-6 py-2 rounded-full font-semibold border-ff-green text-ff-green hover:bg-ff-green/10"
+          class="btn btn-outline px-6 py-2 rounded-full font-semibold border-ff-green text-ff-green hover:bg-solid-ff-green-10"
         >
-          Neu starten
+	          {{ $t("generic.restart") }}
         </button>
       </div>
     </div>
@@ -296,6 +302,13 @@ import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
 import sectorImages from '~/shared/sectorImages.js'
+import {
+  calculateWahlcheckQuestionScore,
+  getWahlcheckAnswerLabel,
+  getWahlcheckRatingColor,
+} from '~/shared/wahlcheckAnswerOptions.js'
+
+const { $t } = useNuxtApp()
 
 const props = defineProps({
   election: {
@@ -342,10 +355,10 @@ function toggleSort() {
 // Sort label text
 const sortLabel = computed(() => {
   switch (sortBy.value) {
-    case 'default': return 'Thesen sortieren...'
-    case 'agreement': return 'Nach Übereinstimmung sortiert'
-    case 'disagreement': return 'Nach Differenz sortiert'
-    default: return 'Reihenfolge'
+    case 'default': return $t('elections.wahlcheck.results.sort.default')
+    case 'agreement': return $t('elections.wahlcheck.results.sort.agreement')
+    case 'disagreement': return $t('elections.wahlcheck.results.sort.disagreement')
+    default: return $t('elections.wahlcheck.results.sort.order')
   }
 })
 
@@ -368,17 +381,18 @@ const sortedExpandedQuestions = computed(() => {
   return [...props.questions].map(q => {
     const userAnswer = props.userAnswers[q.id]
     const candidateAnswer = candidateAnswersByQuestion[q.id]
-    const difference = userAnswer !== undefined && candidateAnswer !== null
-      ? Math.abs(userAnswer - candidateAnswer)
-      : null
+    const score = calculateWahlcheckQuestionScore(userAnswer, candidateAnswer)
     return {
       ...q,
-      difference,
+      difference: score?.distance ?? null,
       originalIndex: originalIndices.get(q.id) ?? 0
     }
   }).filter(q => {
     // Only show questions that have both user and candidate answers
-    return props.userAnswers[q.id] !== undefined && candidateAnswersByQuestion[q.id] !== null
+    return props.userAnswers[q.id] !== undefined &&
+      props.userAnswers[q.id] !== null &&
+      candidateAnswersByQuestion[q.id] !== undefined &&
+      candidateAnswersByQuestion[q.id] !== null
   }).sort((a, b) => {
     if (sortBy.value === 'default') {
       return a.originalIndex - b.originalIndex
@@ -412,23 +426,6 @@ function getConfettiColor(index) {
   return confettiColors[index % confettiColors.length]
 }
 
-// Rating config
-const ratingColors = {
-  0: 'bg-rating-0',
-  1: 'bg-rating-1',
-  2: 'bg-rating-na',
-  3: 'bg-rating-3',
-  4: 'bg-rating-4'
-}
-
-const ratingLabels = {
-  0: 'stark dagegen',
-  1: 'eher dagegen',
-  2: 'neutral',
-  3: 'eher dafür',
-  4: 'stark dafür'
-}
-
 const progressColors = {
   0: '#e30613',
   1: '#f39200',
@@ -438,11 +435,11 @@ const progressColors = {
 }
 
 function getRatingColor(value) {
-  return ratingColors[value] || 'bg-gray'
+  return getWahlcheckRatingColor(value)
 }
 
 function getRatingLabel(value) {
-  return ratingLabels[value] || 'Keine Antwort'
+  return getWahlcheckAnswerLabel(value, props.election, $t)
 }
 
 function getProgressColor(percentage) {
@@ -472,13 +469,13 @@ const rankingBgColors = {
 }
 
 function getRankingBgColor(rank) {
-  return rankingBgColors[rank] || 'bg-ff-green/20'
+  return rankingBgColors[rank] || 'bg-solid-ff-green-20'
 }
 
 // Helper functions for candidate data
 function getCandidateName(candidateId) {
   const candidate = props.candidates.find(c => c.id === candidateId)
-  return candidate ? candidate.name : 'Unbekannter Kandidat'
+  return candidate ? candidate.name : $t('elections.unknown_candidate')
 }
 
 function getCandidateParty(candidateId) {
@@ -492,6 +489,15 @@ function getCandidateAnswer(candidateId, questionId) {
     (typeof ans.question === 'object' ? ans.question.id : ans.question) === questionId
   )
 }
+
+function normalizeSector(sector) {
+  const normalized = String(sector ?? '').toLowerCase().trim()
+  return normalized || null
+}
+
+const hasQuestionSectors = computed(() => {
+  return props.questions.some((question) => normalizeSector(question.sector))
+})
 
 // Calculate similarity scores
 const results = computed(() => {
@@ -527,12 +533,11 @@ const results = computed(() => {
       const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
 
       if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
-        const distance = Math.abs(userResponse - candidateAnswer.response)
-        const points = 4 - distance
-        const weightedPoints = points * weight
+        const score = calculateWahlcheckQuestionScore(userResponse, candidateAnswer.response, weight)
+        if (!score) return
 
-        scores[candidateId] = (scores[candidateId] || 0) + weightedPoints
-        maxScores[candidateId] = (maxScores[candidateId] || 0) + (4 * weight)
+        scores[candidateId] = (scores[candidateId] || 0) + score.points
+        maxScores[candidateId] = (maxScores[candidateId] || 0) + score.maxPoints
       }
     })
   })
@@ -554,21 +559,17 @@ const results = computed(() => {
   return results
 })
 
-// Sector label translations
-const sectorLabels = {
-  'energy': 'Energie',
-  'transport': 'Verkehr',
-  'buildings': 'Gebäude & Wärme',
-  'industry': 'Industrie, Wirtschaft & Konsum',
-  'agriculture': 'Landwirtschaft, Natur & Ernährung',
-  'management': 'Klimaschutzmanagement & Verwaltung',
-  'unknown': 'Unbekannt'
+function sectorLabel(sector) {
+  const key = normalizeSector(sector)
+  if (!key) return ''
+  const translated = $t(`measure_sectors.${key}.title`)
+  return translated === `measure_sectors.${key}.title` ? key : translated
 }
 
 // Get sector icon from imported images
 function getSectorIcon(sectorKey) {
-  const key = sectorKey?.toLowerCase()?.trim() || 'unknown'
-  return sectorImages[key] || null
+  const key = normalizeSector(sectorKey)
+  return key ? sectorImages[key] || null : null
 }
 
 // Calculate sector agreement scores for each candidate
@@ -592,8 +593,8 @@ const sectorAgreements = computed(() => {
   // Group questions by sector
   const questionsBySector = {}
   props.questions.forEach(q => {
-    // Handle null, undefined, or missing sector field
-    const sector = (q.sector && String(q.sector).toLowerCase().trim()) || 'unknown'
+    const sector = normalizeSector(q.sector)
+    if (!sector) return
     if (!questionsBySector[sector]) {
       questionsBySector[sector] = []
     }
@@ -621,12 +622,11 @@ const sectorAgreements = computed(() => {
         const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
 
         if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
-          const distance = Math.abs(userResponse - candidateAnswer.response)
-          const points = 4 - distance
-          const weightedPoints = points * weight
+          const score = calculateWahlcheckQuestionScore(userResponse, candidateAnswer.response, weight)
+          if (!score) return
 
-          sectorScore += weightedPoints
-          sectorMaxScore += 4 * weight
+          sectorScore += score.points
+          sectorMaxScore += score.maxPoints
         }
       })
 
@@ -648,14 +648,14 @@ function getSectorAgreement(candidateId, type = 'highest') {
   const candidateSectors = sectorAgreements.value[candidateId]
 
   if (!candidateSectors || Object.keys(candidateSectors).length === 0) {
-    return { percentage: 0, sector: 'N/A', score: 0, maxScore: 0 }
+    return null
   }
 
   // Filter out sectors with 0 maxScore (no questions answered)
   const validSectors = Object.values(candidateSectors).filter(s => s.maxScore > 0)
 
   if (validSectors.length === 0) {
-    return { percentage: 0, sector: 'N/A', score: 0, maxScore: 0 }
+    return null
   }
 
   // Sort by percentage
@@ -668,9 +668,9 @@ function getSectorAgreement(candidateId, type = 'highest') {
   })
 
   const selected = validSectors[0]
-  // Normalize sector key: handle null, undefined, or empty string
-  const sectorKey = selected.sector?.toLowerCase()?.trim() || 'unknown'
-  const label = sectorLabels[sectorKey] || sectorKey
+  const sectorKey = normalizeSector(selected.sector)
+  if (!sectorKey) return null
+  const label = sectorLabel(sectorKey)
   return {
     percentage: selected.percentage,
     sector: label,
@@ -678,6 +678,10 @@ function getSectorAgreement(candidateId, type = 'highest') {
     score: selected.score,
     maxScore: selected.maxScore
   }
+}
+
+function hasSectorAgreement(candidateId) {
+  return Boolean(getSectorAgreement(candidateId, 'highest') && getSectorAgreement(candidateId, 'lowest'))
 }
 
 // Sorted results by percentage (descending)
@@ -728,16 +732,16 @@ function generateShareableUrl() {
 function copyShareableLink() {
   const url = generateShareableUrl()
   if (!url) {
-    alert('Fehler beim Erstellen des Shareable Links')
+    alert($t('elections.wahlcheck.results.share.create_error'))
     return
   }
 
   // Copy to clipboard
   navigator.clipboard.writeText(url).then(() => {
-    alert('Link wurde in die Zwischenablage kopiert! Sie können ihn jetzt teilen.')
+    alert($t('elections.wahlcheck.results.share.copied'))
   }).catch(err => {
-    console.error('Fehler beim Kopieren:', err)
-    alert('Konnte Link nicht kopieren. Bitte versuchen Sie es manuell.')
+    console.error('Error copying share link:', err)
+    alert($t('elections.wahlcheck.results.share.copy_error'))
   })
 }
 

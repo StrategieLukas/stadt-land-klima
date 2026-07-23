@@ -1,0 +1,4 @@
+language: it-IT
+key: elections.theses.cutoff_reached
+value: La scadenza per la presentazione (:date) è già stata raggiunta. Il
+  sondaggio è disponibile solo in modalità lettura.

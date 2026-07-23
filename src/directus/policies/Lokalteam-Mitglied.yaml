@@ -72,6 +72,20 @@ permissions:
     presets: null
     fields:
       - public_contact
+  - collection: measure_catalog
+    action: read
+    permissions:
+      _and:
+        - hidden:
+            _neq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - isCurrentFrontend
+      - isCurrentBackend
+      - date_created
   - collection: municipalities
     action: read
     permissions:
@@ -91,6 +105,7 @@ permissions:
       - public_contact
       - details
       - status
+      - scores
       - notice-kcc40f
       - links-g1sxxi
       - image
@@ -115,3 +130,41 @@ permissions:
       - public_contact
       - details
       - image
+      - scores
+  - collection: municipality_scores
+    action: read
+    permissions:
+      _and:
+        - municipality:
+            localteam_id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+        - catalog_version:
+            hidden:
+              _neq: true
+    validation: null
+    presets: null
+    fields:
+      - id
+      - municipality
+      - catalog_version
+      - published
+      - score_total
+      - score_points
+      - score_max
+      - percentage_rated
+  - collection: municipality_scores
+    action: update
+    permissions:
+      _and:
+        - municipality:
+            localteam_id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
+        - catalog_version:
+            hidden:
+              _neq: true
+    validation: null
+    presets: null
+    fields:
+      - published

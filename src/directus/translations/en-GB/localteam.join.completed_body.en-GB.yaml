@@ -1,0 +1,4 @@
+language: en-GB
+key: localteam.join.completed_body
+value: <strong>:name</strong> has a complete rating. Contact the local team or
+  send us your feedback.

@@ -1,0 +1,3 @@
+language: en-GB
+key: municipalities.minor_city.threshold
+value: under 100,000 people

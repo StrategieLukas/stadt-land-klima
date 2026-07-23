@@ -1,0 +1,3 @@
+language: it-IT
+key: auth.login_failed
+value: Accesso non riuscito.

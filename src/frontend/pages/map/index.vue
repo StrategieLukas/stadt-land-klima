@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TheMap :municipalityScores="municipality_scores" />
+    <TheMap :municipalityScores="municipality_scores" :catalog-version="selectedCatalogVersion" />
   </div>
 </template>
 
@@ -21,10 +21,10 @@ const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, ro
 //   return $directus.request(
 //     $readItems("municipality_scores", {
 //       fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
-//       { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
+//       { municipality: ["id", "slug", "state", "municipality_type", "geolocation", "date_updated"] }],
 //       filter: { catalog_version: { _eq: selectedCatalogVersion.id }, percentage_rated: { _gt: 0} },
 //       limit: -1,
-//       sort: "-score_total",
+//       sort: ["-score_total", "municipality.name"],
 //     })
 //   )
 // });
@@ -33,11 +33,11 @@ const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, ro
 async function fetchMunicipalities(catalogVersionId) {
   municipality_scores.value = await $directus.request(
     $readItems("municipality_scores", {
-      fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
-      { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
+      fields: ["id", "catalog_version", "published", "rank", "score_total", "percentage_rated", "municipality.name", 
+      { municipality: ["id", "slug", "state", "municipality_type", "geolocation", "date_updated"] }],
       filter: { catalog_version: { _eq: catalogVersionId }, percentage_rated: { _gt: 0} },
       limit: -1,
-      sort: "-score_total",
+      sort: ["-score_total", "municipality.name"],
     })
   )
 }

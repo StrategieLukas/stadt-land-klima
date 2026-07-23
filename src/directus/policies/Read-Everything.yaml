@@ -54,6 +54,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: climate_tools
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: directus_dashboards
     action: read
     permissions: {}

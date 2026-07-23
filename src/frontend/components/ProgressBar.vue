@@ -12,7 +12,7 @@
         :style="{ width: width + '%' }"
       >
         <div
-          class="relative mr-1 font-heading font-bold whitespace-nowrap"
+          class="slk-progress-label relative mr-1 whitespace-nowrap font-heading font-bold"
           :class="[
             layout === 'compact' ? colorClass.text_compact + ' top-0.25 text-sm' : colorClass.text_default + ' text-xl',
           ]"

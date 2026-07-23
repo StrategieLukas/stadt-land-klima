@@ -90,7 +90,6 @@ permissions:
       - municipality_type
       - localteam_id
       - scores
-      - percentage_rated
       - notice-kcc40f
       - public_contact
       - links-g1sxxi

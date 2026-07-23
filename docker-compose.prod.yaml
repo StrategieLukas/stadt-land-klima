@@ -16,3 +16,13 @@ services:
     environment:
       SLK_ENV: production
 
+  maintenance:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "9090:80"
+    volumes:
+      - ./docker/maintenance/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/maintenance/index.html:/usr/share/nginx/html/index.html:ro
+      - ./src/frontend/assets/images/Stadt-Land-Klima-Logotype_bordered.svg:/usr/share/nginx/html/logo.svg:ro
+      - ./docker/maintenance/maintenance-meta.js:/usr/share/nginx/html/maintenance-meta.js:ro

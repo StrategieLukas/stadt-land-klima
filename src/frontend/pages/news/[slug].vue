@@ -49,17 +49,17 @@
         <!-- Metadata edit panel (visible to authenticated editors only) -->
         <div v-if="canEdit" class="not-prose mt-8 border-t border-gray-200 pt-6">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Metadaten bearbeiten</h2>
+            <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">{{ $t('news.editor.metadata') }}</h2>
             <button
               type="button"
               @click="editOpen = !editOpen"
               class="text-xs px-3 py-1.5 rounded-full border border-[#16BAE7] text-[#16BAE7] hover:bg-[#E8F7FD] transition-colors"
-            >{{ editOpen ? 'Schließen' : 'Bearbeiten' }}</button>
+            >{{ editOpen ? $t('generic.close') : $t('generic.edit') }}</button>
           </div>
 
           <form v-if="editOpen" @submit.prevent="saveMetadata" class="flex flex-col gap-4 bg-[#f5fafb] rounded-lg p-5 border border-gray-100">
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Titel *</label>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $t('news.editor.title_required') }}</label>
               <input
                 v-model="editForm.title"
                 type="text"
@@ -68,7 +68,7 @@
               />
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Teaser (Feed-Karte)</label>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $t('news.editor.teaser') }}</label>
               <textarea
                 v-model="editForm.teaser"
                 rows="3"
@@ -76,17 +76,17 @@
               />
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Autor/in</label>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $t('news.editor.author') }}</label>
               <input
                 v-model="editForm.author"
                 type="text"
-                placeholder="z.B. Max Mustermann"
+                :placeholder="$t('news.editor.author_placeholder')"
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#16BAE7]"
               />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Veröffentlichungsdatum</label>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $t('news.editor.published_at') }}</label>
                 <input
                   v-model="editForm.date_published"
                   type="datetime-local"
@@ -94,28 +94,28 @@
                 />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Status</label>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $t('news.editor.status') }}</label>
                 <select
                   v-model="editForm.status"
                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#16BAE7]"
                 >
-                  <option value="draft">Entwurf</option>
-                  <option value="published">Veröffentlicht</option>
-                  <option value="archived">Archiviert</option>
+                  <option value="draft">{{ $t('status.draft') }}</option>
+                  <option value="published">{{ $t('status.published') }}</option>
+                  <option value="archived">{{ $t('status.archived') }}</option>
                 </select>
               </div>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Bild-ID (Directus Asset UUID)</label>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $t('news.editor.image_id') }}</label>
               <input
                 v-model="editForm.image"
                 type="text"
-                placeholder="z.B. 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90"
+                :placeholder="$t('news.editor.image_id_placeholder')"
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#16BAE7]"
               />
               <p class="text-xs text-gray-400 mt-1">
-                UUID des Bildes aus dem
-                <a :href="`${directusUrl}/admin/files`" target="_blank" class="underline">Directus Dateimanager</a>.
+                {{ $t('news.editor.image_id_hint_prefix') }}
+                <a :href="`${directusUrl}/admin/files`" target="_blank" class="underline">{{ $t('news.editor.directus_file_manager') }}</a>.
               </p>
             </div>
             <div class="flex items-center gap-3">
@@ -123,8 +123,8 @@
                 type="submit"
                 :disabled="saving"
                 class="px-4 py-2 rounded bg-[#006e94] text-white text-sm font-semibold hover:bg-[#005a7a] disabled:opacity-50 transition-colors"
-              >{{ saving ? 'Speichern…' : 'Speichern' }}</button>
-              <span v-if="saveSuccess" class="text-sm text-green-600 font-medium">✓ Gespeichert</span>
+              >{{ saving ? $t('generic.saving') : $t('generic.save') }}</button>
+              <span v-if="saveSuccess" class="text-sm text-green-600 font-medium">✓ {{ $t('generic.saved') }}</span>
               <span v-if="saveError" class="text-sm text-red-600">{{ saveError }}</span>
             </div>
           </form>
@@ -145,10 +145,11 @@
 import { readItems, updateItem } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useReferrer } from '~/composables/useReferrer'
+import { formatBerlinDate } from '~/shared/eventDateTime'
 
 import { isRaster } from '~/shared/utils'
-const { $directus, $readItems, $t } = useNuxtApp()
-const { backHref, backLabel } = useReferrer('/news', 'Zurück zur News-Übersicht')
+const { $directus, $readItems, $t, $locale } = useNuxtApp()
+const { backHref, backLabel } = useReferrer('/news', $t('news.back_to_overview'))
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
 
@@ -236,8 +237,7 @@ const newsBlocks = computed(() => blocksData.value || [])
 const displayDate = computed(() => item.value?.date_published || item.value?.date_created)
 
 function formatDate(iso) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+  return formatBerlinDate(iso, $locale)
 }
 
 // ── Metadata editing ───────────────────────────────────────────────────────────
@@ -294,11 +294,11 @@ async function saveMetadata() {
     saveSuccess.value = true
     setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (err) {
-    saveError.value = err?.errors?.[0]?.message || err?.message || 'Fehler beim Speichern'
+    saveError.value = err?.errors?.[0]?.message || err?.message || $t('news.editor.save_error')
   } finally {
     saving.value = false
   }
 }
 
-useHead({ title: computed(() => item.value?.title || 'Neuigkeit') })
+useHead({ title: computed(() => item.value?.title || $t('news.type.news')) })
 </script>

@@ -1,0 +1,3 @@
+language: de-DE
+key: stats.catalog_completed_count
+value: (:count / :total vollständig)

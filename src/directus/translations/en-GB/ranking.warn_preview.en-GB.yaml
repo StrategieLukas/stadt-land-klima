@@ -1,0 +1,3 @@
+language: en-GB
+key: ranking.warn_preview
+value: "Warning: this is a preview of the new ranking. Values may still change."

@@ -1,5 +1,6 @@
 name: WahlcheckAdmin
 icon: how_to_vote
 description: Administrator for Wahlcheck/election related data
+parent: MinimalUser
 policies:
   - WahlcheckAdmin

@@ -1,0 +1,4 @@
+language: en-GB
+key: localteam.register.contact_details.description
+value: Fill in the form and we will set up your account for <strong
+  class="text-gray-700">:name</strong>.

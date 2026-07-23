@@ -29,10 +29,9 @@ alter table "<table>" alter column "id" drop not null — column "id" is in a pr
 
 ### Adding / changing permissions
 
-The frontend makes client-side requests with a static Bearer token (the **frontend** role). Server-side / unauthenticated requests use the **public** role. **Both roles usually need the same read permission** when exposing a new collection to the frontend.
-
+The frontend makes client-side requests with a static Bearer token (the **frontend** role). Server-side / unauthenticated requests use the **public** role.
+DO NOT EVER change the public.yaml permissions. Anything shown on the website is read with the frontend.yaml permissions.
 Edit the relevant files in `src/directus/roles/`:
-- `public.yaml` — unauthenticated / SSR access
 - `frontend.yaml` — client-side requests that include the frontend Bearer token
 
 **Template — add to the `permissions:` list in both files:**
@@ -55,7 +54,6 @@ LEFT JOIN directus_roles r ON p.role = r.id
 WHERE p.collection = '<collection_name>';
 ```
 
-> **Gotcha:** If you only add it to `public.yaml` and the browser still gets a 403, check whether the request has an `Authorization: Bearer` header. If it does, it hits the **frontend** role, not public — add the permission to `frontend.yaml` as well.
 
 ### Custom interface extensions
 
@@ -146,15 +144,23 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 8. IMPORTANT: Always verify if changes to the frontend actually work by doing curl requests to localhost:8080
 9. The frontend automatically hot-reloads when changes are made, no need to restart containers.
 10. Do not edit the permissions of public.yaml. The frontend permissions belong to frontend.yaml.
-
+11. Extensions and the CLI script are to be written in Typescript only. Avoid nonsense interfaces for only a single primitive field.
+12. Elsewhere prefer typescript for all new implementations, unless it would be significant effort or would cause interop problems.
+13. NEVER commit automatically. The user must use the diff to be able to review your changes.
+14. However, if in a git worktree where the project root dir folder contains the word "agent", always commit and squash commits + push when done.
+15. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
+16. In German user-facing text and translations, use proper German characters (`ä`, `ö`, `ü`, `ß`) instead of ASCII transliterations (`ae`, `oe`, `ue`, `ss`). Keep ASCII transliterations only for stable identifiers, enum values, slugs, emails, URLs, or other machine-facing keys.
 
 ## Project structure:
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
-2. src/backend - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
-3. directus-extension-not-build - the original code for directus extension, that are compiled from here with `npm install` and then `npm run build`. The dist and package files are then manually copied over to the src/directus/extensions
+2. src/directus - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
+3. src/directus/extensions - our custom extensions. Compile with `npm install` and then `npm run build`.
 
 ## Applying changes for directus yamls
 1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.
 2. The yamls are sorted to be in alphabetical order, ensure that you stick to this formatting.
 
+## Text
+1. Ensure displayed text uses the proper symbols for the language, i.e. German uses proper Umlauts for ä ö ü ß and not ae/oe/ue/ss
+2. When gendered German text is used, prefer ":" over "*" as separator.
 

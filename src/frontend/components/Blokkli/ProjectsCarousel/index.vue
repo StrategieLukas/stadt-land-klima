@@ -15,7 +15,7 @@
     </div>
 
     <!-- Editor fallback -->
-    <div v-if="isEditing" class="px-6 pb-10 text-sm text-black/50 italic">
+    <div v-if="isEditing" class="px-6 pb-10 text-sm text-solid-black-50 italic">
       [Projektkarussell – {{ projects?.length ?? 0 }} Einträge geladen]
     </div>
 
@@ -65,7 +65,7 @@
       >
         <button
           class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full bg-black text-white"
-          aria-label="Zurück"
+          :aria-label="$t('generic.back')"
           @click="scrollBy(-1)"
         >
           <Icon icon="mdi:arrow-left" class="w-5 h-5" />
@@ -76,7 +76,7 @@
             v-for="(project, i) in projects"
             :key="i"
             class="rounded-full transition-all duration-200"
-            :class="currentIndex === i ? 'w-3 h-3 bg-black' : 'w-2 h-2 bg-black/40'"
+            :class="currentIndex === i ? 'w-3 h-3 bg-black' : 'w-2 h-2 bg-solid-black-40'"
             :aria-label="`Projekt ${i + 1}`"
             @click="scrollToIndex(i)"
           />

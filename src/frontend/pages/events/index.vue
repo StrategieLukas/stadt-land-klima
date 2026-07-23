@@ -1,97 +1,102 @@
 <template>
   <div class="py-8">
-    <h1 class="text-3xl font-bold mb-8">{{ $t('events.title') || 'Veranstaltungen' }}</h1>
+    <h1 class="mb-8 text-3xl font-bold">{{ $t("events.title") }}</h1>
 
     <!-- Mobile sticky scroll nav -->
     <nav
-      class="xl:hidden sticky z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 -mx-4 px-4 mb-6"
+      class="border-gray-100 sticky z-10 -mx-4 mb-6 border-b bg-white px-4 backdrop-blur-sm xl:hidden"
       :class="isDesktop ? '' : 'transition-[top] duration-300 ease-in-out'"
       :style="`top: ${pillTop}px`"
     >
-      <div ref="mobilePillStrip" class="flex gap-2 overflow-x-auto py-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+      <div
+        ref="mobilePillStrip"
+        class="flex gap-2 overflow-x-auto py-2"
+        style="scrollbar-width: none; -ms-overflow-style: none"
+      >
         <a
           v-if="currentEvents.length"
           href="#section-momentan"
           :class="[
-            'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
+            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
             activeSection === 'section-momentan'
               ? 'bg-orange-100 text-orange-700'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
-        >Momentan</a>
+          >{{ $t("events.section.current") }}</a
+        >
         <a
           v-for="group in futureGroups"
           :key="group.monthKey"
           :href="`#section-${group.monthKey}`"
           :class="[
-            'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
+            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
             activeSection === `section-${group.monthKey}`
-              ? 'bg-[#006e94]/10 text-[#006e94] font-semibold'
+              ? 'bg-solid-stats-dark-10 font-semibold text-[#006e94]'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
           ]"
-        >{{ group.label }}</a>
+          >{{ group.label }}</a
+        >
         <a
           v-for="group in pastGroups"
           :key="group.monthKey"
           :href="`#section-${group.monthKey}`"
           :class="[
-            'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
+            'flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
             activeSection === `section-${group.monthKey}`
               ? 'bg-gray-200 text-gray-700 font-semibold'
               : 'bg-gray-100 text-gray-400 hover:bg-gray-200',
           ]"
-        >{{ group.label }}</a>
+          >{{ group.label }}</a
+        >
       </div>
     </nav>
 
-    <div class="flex gap-8 items-start">
-
+    <div class="flex items-start gap-8">
       <!-- Left sticky sidebar (desktop only) -->
-      <nav
-        class="hidden xl:block w-44 flex-shrink-0 sticky text-sm self-start"
-        :style="`top: ${headerHeight + 12}px`"
-      >
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Abschnitte</p>
+      <nav class="sticky hidden w-44 flex-shrink-0 self-start text-sm xl:block" :style="`top: ${headerHeight + 12}px`">
+        <p class="text-gray-400 mb-3 text-xs font-bold uppercase tracking-widest">{{ $t("news.sections") }}</p>
         <ul class="space-y-1">
           <li v-if="currentEvents.length">
             <a
               href="#section-momentan"
               :class="[
-                'block px-2 py-1 rounded transition-colors truncate',
+                'block truncate rounded px-2 py-1 transition-colors',
                 activeSection === 'section-momentan'
-                  ? 'text-orange-600 font-semibold bg-orange-50'
+                  ? 'text-orange-600 bg-orange-50 font-semibold'
                   : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
               ]"
-            >Momentan</a>
+              >{{ $t("events.section.current") }}</a
+            >
           </li>
           <li v-for="group in futureGroups" :key="group.monthKey">
             <a
               :href="`#section-${group.monthKey}`"
               :class="[
-                'block px-2 py-1 rounded transition-colors truncate',
+                'block truncate rounded px-2 py-1 transition-colors',
                 activeSection === `section-${group.monthKey}`
-                  ? 'text-[#006e94] font-semibold bg-[#006e94]/5'
+                  ? 'bg-solid-stats-dark-05 font-semibold text-[#006e94]'
                   : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
               ]"
-            >{{ group.label }}</a>
+              >{{ group.label }}</a
+            >
           </li>
           <li v-for="group in pastGroups" :key="group.monthKey">
             <a
               :href="`#section-${group.monthKey}`"
               :class="[
-                'block px-2 py-1 rounded transition-colors truncate',
+                'block truncate rounded px-2 py-1 transition-colors',
                 activeSection === `section-${group.monthKey}`
-                  ? 'text-gray-600 font-semibold bg-gray-100'
+                  ? 'text-gray-600 bg-gray-100 font-semibold'
                   : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50',
               ]"
-            >{{ group.label }}</a>
+              >{{ group.label }}</a
+            >
           </li>
         </ul>
       </nav>
 
       <!-- Main content -->
-      <div class="flex-1 min-w-0">
-
+      <div class="min-w-0 flex-1">
         <!-- Currently happening -->
         <div
           v-if="currentEvents.length"
@@ -99,55 +104,14 @@
           class="mb-10"
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
-          <h2 class="text-base font-semibold text-orange-600 uppercase tracking-wide border-b border-orange-200 pb-2 mb-4 flex items-center">
-            <span class="inline-block w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-            Momentan
+          <h2
+            class="text-orange-600 border-orange-200 mb-4 flex items-center border-b pb-2 text-base font-semibold uppercase tracking-wide"
+          >
+            <span class="bg-orange-500 inline-block h-2 w-2 animate-pulse rounded-full"></span>
+            {{ $t("events.section.current") }}
           </h2>
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <NuxtLink
-              v-for="event in currentEvents"
-              :key="event.id"
-              :to="`/events/${event.slug}`"
-              class="block bg-white rounded-lg shadow-sm border border-orange-200 overflow-hidden hover:shadow-md hover:border-orange-400 transition-all"
-            >
-              <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
-                <SmartImg
-                  :assetId="event.image?.id || event.image"
-                  :isRaster="event.image?.type ? isRaster(event.image.type) : true"
-                  :alt="event.title"
-                  :width="600"
-                  :height="160"
-                  fit="cover"
-                  img-class="w-full h-full object-cover"
-                />
-              </div>
-              <div v-else class="relative h-40 bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
-                <svg class="w-14 h-14 text-orange-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </div>
-              <div class="p-5">
-                <span class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 mb-2 inline-block">
-                  {{ eventTypeLabel(event.event_type) }}
-                </span>
-                <h3 class="font-bold text-gray-900 mb-1 leading-snug">{{ event.title }}</h3>
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
-                  <span class="flex items-center gap-1">
-                    <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {{ formatDateRange(event.start_date, event.end_date) }}
-                  </span>
-                  <span v-if="event.location" class="flex items-center gap-1">
-                    <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {{ event.location }}
-                  </span>
-                </div>
-              </div>
-            </NuxtLink>
+            <EventCard v-for="event in currentEvents" :key="event.id" :event="event" variant="current" />
           </div>
         </div>
 
@@ -160,54 +124,18 @@
             class="mb-10"
             :style="`scroll-margin-top: ${headerHeight + 16}px`"
           >
-            <h2 class="text-base font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200 pb-2 mb-4">
+            <h2
+              class="text-gray-500 border-gray-200 mb-4 border-b pb-2 text-base font-semibold uppercase tracking-wide"
+            >
               {{ group.label }}
             </h2>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <NuxtLink
-                v-for="event in group.events"
-                :key="event.id"
-                :to="`/events/${event.slug}`"
-                class="block bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-light-green transition-all"
-              >
-                <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
-                  <SmartImg
-                    :assetId="event.image?.id || event.image"
-                    :isRaster="event.image?.type ? isRaster(event.image.type) : true"
-                    :alt="event.title"
-                    :width="600"
-                    :height="160"
-                    fit="cover"
-                    img-class="w-full h-full object-cover"
-                  />
-                </div>
-                <div class="p-5">
-                  <span class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-light-green/10 text-olive-green mb-2 inline-block">
-                    {{ eventTypeLabel(event.event_type) }}
-                  </span>
-                  <h3 class="font-bold text-gray-900 mb-1 leading-snug">{{ event.title }}</h3>
-                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
-                    <span class="flex items-center gap-1">
-                      <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {{ formatDateRange(event.start_date, event.end_date) }}
-                    </span>
-                    <span v-if="event.location" class="flex items-center gap-1">
-                      <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      {{ event.location }}
-                    </span>
-                  </div>
-                </div>
-              </NuxtLink>
+              <EventCard v-for="event in group.events" :key="event.id" :event="event" />
             </div>
           </div>
         </div>
-        <div v-else-if="!currentEvents.length" class="text-gray-500 italic mb-8">
-          Aktuell sind keine kommenden Veranstaltungen geplant.
+        <div v-else-if="!currentEvents.length" class="text-gray-500 mb-8 italic">
+          {{ $t("events.no_upcoming") }}
         </div>
 
         <!-- Past events -->
@@ -217,8 +145,8 @@
           class="mt-10"
           :style="`scroll-margin-top: ${headerHeight + 16}px`"
         >
-          <h2 class="text-base font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100 pb-2 mb-6">
-            Vergangene Veranstaltungen
+          <h2 class="text-gray-400 border-gray-100 mb-6 border-b pb-2 text-base font-semibold uppercase tracking-wide">
+            {{ $t("events.past") }}
           </h2>
           <div
             v-for="group in pastGroups"
@@ -227,185 +155,129 @@
             class="mb-10"
             :style="`scroll-margin-top: ${headerHeight + 16}px`"
           >
-            <h2 class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide border-b border-gray-100 pb-2">
+            <h2 class="text-gray-400 border-gray-100 mb-4 border-b pb-2 text-sm font-semibold uppercase tracking-wide">
               {{ group.label }}
             </h2>
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <NuxtLink
-                v-for="event in group.events"
-                :key="event.id"
-                :to="`/events/${event.slug}`"
-                class="block bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all opacity-70"
-              >
-                <div v-if="event.image" class="relative h-40 bg-gray-100 overflow-hidden">
-                  <SmartImg
-                    :assetId="event.image?.id || event.image"
-                    :isRaster="event.image?.type ? isRaster(event.image.type) : true"
-                    :alt="event.title"
-                    :width="600"
-                    :height="160"
-                    fit="cover"
-                    img-class="w-full h-full object-cover grayscale"
-                  />
-                </div>
-                <div class="p-5">
-                  <span class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 mb-2 inline-block">
-                    {{ eventTypeLabel(event.event_type) }}
-                  </span>
-                  <h3 class="font-bold text-gray-700 mb-1 leading-snug">{{ event.title }}</h3>
-                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-400">
-                    <span class="flex items-center gap-1">
-                      <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {{ formatDateRange(event.start_date, event.end_date) }}
-                    </span>
-                    <span v-if="event.location" class="flex items-center gap-1">
-                      <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      {{ event.location }}
-                    </span>
-                  </div>
-                </div>
-              </NuxtLink>
+              <EventCard v-for="event in group.events" :key="event.id" :event="event" variant="past" />
             </div>
           </div>
         </div>
-
-      </div><!-- /main content -->
-    </div><!-- /flex layout -->
+      </div>
+      <!-- /main content -->
+    </div>
+    <!-- /flex layout -->
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
-import { isRaster } from '~/shared/utils'
-import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
-import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
-const { $directus, $readItems, $t } = useNuxtApp()
-const config = useRuntimeConfig()
-const directusUrl = config.public.clientDirectusUrl
-const headerHeight = useHeaderHeight()
-const mobileHeaderHidden = useMobileHeaderHidden()
-const isDesktop = useState('layout-isDesktop')
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
+import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
+import { formatEventMonth, getEventMonthKey } from "~/shared/eventDateTime";
+const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const headerHeight = useHeaderHeight();
+const mobileHeaderHidden = useMobileHeaderHidden();
+const isDesktop = useState("layout-isDesktop");
 // On desktop use actual header height (no CSS transition needed — headerHeight updates
 // every frame via ResizeObserver so the pill follows the nav strip animation precisely).
 // On mobile use a fixed 64px / 0 with a CSS transition to match the header slide.
 const pillTop = computed(() => {
-  return isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
-})
+  return isDesktop.value ? headerHeight.value : mobileHeaderHidden.value ? 0 : 64;
+});
 
-useHead({ title: 'Veranstaltungen' })
+useHead({ title: computed(() => $t("events.title")) });
 
-const { data: events } = await useAsyncData('events-list', async () => {
+const { data: events } = await useAsyncData("events-list", async () => {
   try {
-    const results = await $directus.request($readItems('events', {
-      filter: { status: { _eq: 'published' } },
-      fields: ['id', 'title', 'slug', 'start_date', 'end_date', 'location', 'event_type', { image: ['id', 'type'] }],
-      sort: ['start_date'],
-      limit: -1,
-    }))
-    return results
+    const results = await $directus.request(
+      $readItems("events", {
+        filter: { status: { _eq: "published" } },
+        fields: ["id", "title", "slug", "start_date", "end_date", "location", "event_type", { image: ["id", "type"] }],
+        sort: ["start_date"],
+        limit: -1,
+      }),
+    );
+    return results;
   } catch (e) {
-    console.warn('[events] Failed to load events:', e?.message)
-    return []
+    console.warn("[events] Failed to load events:", e?.message);
+    return [];
   }
-})
+});
 
-const eventTypeLabels = { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }
-function eventTypeLabel(type) { return eventTypeLabels[type] ?? type ?? '' }
-
-function formatDateRange(startIso, endIso) {
-  if (!startIso) return ''
-  const start = new Date(startIso)
-  const end = endIso ? new Date(endIso) : null
-  if (!end || end.toDateString() === start.toDateString()) {
-    return start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
-  }
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.getDate()}. – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
-  }
-  if (start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
-  }
-  return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
-}
-
-const now = new Date()
+const now = new Date();
 
 // Events currently happening: started but not yet ended
 const currentEvents = computed(() =>
-  (events.value || []).filter(e => {
-    if (!e.start_date) return false
-    const start = new Date(e.start_date)
-    const end = e.end_date ? new Date(e.end_date) : null
-    return start <= now && end && end >= now
-  })
-)
+  (events.value || []).filter((e) => {
+    if (!e.start_date) return false;
+    const start = new Date(e.start_date);
+    const end = e.end_date ? new Date(e.end_date) : null;
+    return start <= now && end && end >= now;
+  }),
+);
 
 // Strictly future events (start_date > now)
-const futureEvents = computed(() =>
-  (events.value || []).filter(e => e.start_date && new Date(e.start_date) > now)
-)
+const futureEvents = computed(() => (events.value || []).filter((e) => e.start_date && new Date(e.start_date) > now));
 
 // Past events (end_date < now, or no end_date and start_date < now)
 const pastEvents = computed(() =>
-  (events.value || []).filter(e => {
-    if (!e.start_date) return false
-    const start = new Date(e.start_date)
-    const end = e.end_date ? new Date(e.end_date) : null
-    if (end) return end < now
-    return start < now
-  })
-)
+  (events.value || []).filter((e) => {
+    if (!e.start_date) return false;
+    const start = new Date(e.start_date);
+    const end = e.end_date ? new Date(e.end_date) : null;
+    if (end) return end < now;
+    return start < now;
+  }),
+);
 
 function groupByMonth(evList) {
-  const map = new Map()
+  const map = new Map();
   for (const ev of evList) {
-    const d = new Date(ev.start_date)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
-    if (!map.has(key)) map.set(key, { monthKey: key, label, events: [] })
-    map.get(key).events.push(ev)
+    const key = getEventMonthKey(ev.start_date);
+    const label = formatEventMonth(ev.start_date, $locale);
+    if (!key) continue;
+    if (!map.has(key)) map.set(key, { monthKey: key, label, events: [] });
+    map.get(key).events.push(ev);
   }
-  return [...map.values()]
+  return [...map.values()];
 }
 
-const futureGroups = computed(() => groupByMonth(futureEvents.value))
+const futureGroups = computed(() => groupByMonth(futureEvents.value));
 const pastGroups = computed(() => {
-  const sorted = [...pastEvents.value].sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
-  return groupByMonth(sorted)
-})
+  const sorted = [...pastEvents.value].sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+  return groupByMonth(sorted);
+});
 
 // ── Section nav active tracking ────────────────────────────────────────────────
-const activeSection = ref(null)
-const mobilePillStrip = ref(null)
-let sectionObserver = null
+const activeSection = ref(null);
+const mobilePillStrip = ref(null);
+let sectionObserver = null;
 
 watch(activeSection, (id) => {
-  if (!id || !mobilePillStrip.value) return
-  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`)
-  if (pill) pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-})
+  if (!id || !mobilePillStrip.value) return;
+  const pill = mobilePillStrip.value.querySelector(`[href="#${id}"]`);
+  if (pill) pill.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+});
 
 onMounted(() => {
   const observe = () => {
-    const sections = document.querySelectorAll('[id^="section-"]')
-    if (!sections.length) return
+    const sections = document.querySelectorAll('[id^="section-"]');
+    if (!sections.length) return;
     sectionObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) activeSection.value = entry.target.id
+          if (entry.isIntersecting) activeSection.value = entry.target.id;
         }
       },
-      { rootMargin: '-20% 0px -70% 0px', threshold: 0 },
-    )
-    sections.forEach(s => sectionObserver.observe(s))
-  }
-  setTimeout(observe, 100)
-})
+      { rootMargin: "-20% 0px -70% 0px", threshold: 0 },
+    );
+    sections.forEach((s) => sectionObserver.observe(s));
+  };
+  setTimeout(observe, 100);
+});
 
-onUnmounted(() => { sectionObserver?.disconnect() })
+onUnmounted(() => {
+  sectionObserver?.disconnect();
+});
 </script>

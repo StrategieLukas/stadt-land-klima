@@ -1,0 +1,4 @@
+language: de-DE
+key: municipality.chart.polar.description
+value: Die farbigen Segmente zeigen den Punktestand je Sektor. Je größer ein
+  Segment, desto besser schneidet die Kommune in diesem Bereich ab.

@@ -1,0 +1,4 @@
+language: en-GB
+key: localteam.support.body
+value: A local team in <strong>:name</strong> is already working on the rating.
+  Help them complete the rating.

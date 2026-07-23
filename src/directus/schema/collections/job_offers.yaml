@@ -1,0 +1,42 @@
+collection: job_offers
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: job_offers
+  color: null
+  display_template: "{{role_title}}"
+  group: admin_tools
+  hidden: false
+  icon: work
+  item_duplication_fields:
+    - role_title
+    - status
+    - slug
+    - organisation
+    - type
+    - start_date
+    - end_date
+    - tasks
+    - qualifications
+    - benefits
+    - salary
+    - hourly_wage
+    - application_url
+    - contact_notes
+  note: Stellenangebote und Ehrenamtsangebote
+  preview_url: null
+  singleton: false
+  sort: 5
+  sort_field: start_date
+  translations:
+    - language: de-DE
+      plural: Jobs & Ehrenamt
+      singular: Jobangebot
+      translation: Jobs & Ehrenamt
+  unarchive_value: draft
+  versioning: false
+schema:
+  name: job_offers

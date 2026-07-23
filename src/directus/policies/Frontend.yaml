@@ -189,6 +189,27 @@ permissions:
       - has_answered
       - time_first_submitted
       - time_last_edited
+  - collection: climate_tools
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - title
+      - description
+      - category
+      - vendor
+      - link
+      - image
+      - image_credits
+      - sort
+      - date_created
+      - date_updated
+      - status
   - collection: directus_files
     action: read
     permissions: {}
@@ -263,6 +284,7 @@ permissions:
       - id
       - descriptor
       - localteam
+      - simple_answer_mode
       - response_cutoff_date
       - is_public
       - date_created
@@ -316,6 +338,32 @@ permissions:
       - sender_contact
       - date_created
       - status
+  - collection: job_offers
+    action: read
+    permissions:
+      _and:
+        - status:
+            _eq: published
+    validation: null
+    presets: null
+    fields:
+      - id
+      - role_title
+      - slug
+      - organisation
+      - type
+      - status
+      - start_date
+      - end_date
+      - weekly_hours
+      - tasks
+      - qualifications
+      - benefits
+      - salary
+      - hourly_wage
+      - application_url
+      - contact_notes
+      - date_created
   - collection: localteams
     action: read
     permissions: null
@@ -359,6 +407,7 @@ permissions:
       - name
       - sector
       - slug
+      - image
       - impact
       - weight
       - feasibility_political
@@ -407,7 +456,6 @@ permissions:
       - public_contact
       - ars
       - geolocation
-      - percentage_rated
       - id
       - creator_verified
       - preview_token
@@ -497,6 +545,7 @@ permissions:
       - id
       - title
       - thesis
+      - background_information
       - election
       - status
       - sector

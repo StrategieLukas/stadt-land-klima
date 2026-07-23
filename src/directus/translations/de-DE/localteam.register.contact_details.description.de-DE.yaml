@@ -1,0 +1,4 @@
+language: de-DE
+key: localteam.register.contact_details.description
+value: Füll das Formular aus - wir richten dann deinen Account für <strong
+  class="text-gray-700">:name</strong> ein.

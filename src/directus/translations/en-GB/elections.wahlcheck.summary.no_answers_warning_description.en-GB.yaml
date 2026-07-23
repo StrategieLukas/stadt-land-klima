@@ -1,0 +1,5 @@
+language: en-GB
+key: elections.wahlcheck.summary.no_answers_warning_description
+value: If you do not answer any questions, your results cannot be compared with
+  the candidates. You can still continue, but the comparison will not be
+  possible.

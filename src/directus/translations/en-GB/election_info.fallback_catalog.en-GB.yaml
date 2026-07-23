@@ -1,0 +1,4 @@
+language: en-GB
+key: election_info.fallback_catalog
+value: These questions are based on an older rating (:old), because the
+  municipality has not yet been rated for the current version (:current).

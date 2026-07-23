@@ -32,7 +32,7 @@
       </p>
 
       <!-- Dev error message -->
-      <p v-if="error?.message && isDev" class="mt-3 text-xs font-mono text-red bg-red/5 rounded px-3 py-2 text-left break-all max-w-lg">
+      <p v-if="error?.message && isDev" class="mt-3 text-xs font-mono text-red bg-solid-red-05 rounded px-3 py-2 text-left break-all max-w-lg">
         {{ error.message }}
       </p>
 
@@ -68,7 +68,7 @@ import { useError, clearError } from '#app'
 
 const error = useError()
 
-const isDev = process.env.NODE_ENV === 'development'
+const isDev = process.env.APP_ENV === 'development'
 
 const is404 = computed(() => error.value?.statusCode === 404)
 

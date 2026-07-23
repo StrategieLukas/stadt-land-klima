@@ -1,0 +1,3 @@
+language: de-DE
+key: news.create.error
+value: "Fehler beim Erstellen: :message"

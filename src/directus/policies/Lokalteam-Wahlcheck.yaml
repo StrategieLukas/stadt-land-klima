@@ -4,6 +4,24 @@ enforce_tfa: false
 admin_access: false
 app_access: false
 permissions:
+  - collection: answers
+    action: read
+    permissions:
+      _and:
+        - question:
+            election:
+              localteam:
+                id:
+                  _in:
+                    - $CURRENT_USER.localteams.localteam_id
+    validation: null
+    presets: null
+    fields:
+      - id
+      - candidate
+      - question
+      - date_created
+      - date_updated
   - collection: candidate
     action: create
     permissions:
@@ -72,6 +90,40 @@ permissions:
       - has_answered
       - time_first_submitted
       - time_last_edited
+  - collection: directus_comments
+    action: read
+    permissions:
+      _and:
+        - collection:
+            _eq: questions
+        - user_created:
+            role:
+              name:
+                _eq: WahlcheckAdmin
+    validation: null
+    presets: null
+    fields:
+      - id
+      - collection
+      - item
+      - comment
+      - date_created
+      - date_updated
+      - user_created
+      - user_updated
+  - collection: directus_users
+    action: read
+    permissions:
+      role:
+        name:
+          _eq: WahlcheckAdmin
+    validation: null
+    presets: null
+    fields:
+      - id
+      - first_name
+      - last_name
+      - email
   - collection: elections
     action: create
     permissions: {}
@@ -79,6 +131,8 @@ permissions:
     presets: null
     fields:
       - descriptor
+      - candidate_email_cc
+      - candidate_email_reply_to
       - response_cutoff_date
       - localteam
   - collection: elections
@@ -106,6 +160,8 @@ permissions:
     fields:
       - id
       - response_cutoff_date
+      - candidate_email_cc
+      - candidate_email_reply_to
       - date_created
       - descriptor
       - date_updated
@@ -113,6 +169,7 @@ permissions:
       - action_buttons
       - already_sent_mails
       - already_generated_questions
+      - review_requested
       - prefill_trigger
       - is_approved
       - is_public
@@ -129,6 +186,8 @@ permissions:
     fields:
       - descriptor
       - response_cutoff_date
+      - candidate_email_cc
+      - candidate_email_reply_to
       - is_public
   - collection: measure_catalog
     action: read
@@ -201,6 +260,7 @@ permissions:
       - localteam
       - title
       - thesis
+      - background_information
       - election
       - prefill_trigger
       - sector
@@ -240,6 +300,7 @@ permissions:
       - localteam
       - title
       - thesis
+      - background_information
       - election
       - sector
   - collection: questions
@@ -257,6 +318,7 @@ permissions:
       - localteam
       - title
       - thesis
+      - background_information
       - sector
   - collection: ratings_measures
     action: read

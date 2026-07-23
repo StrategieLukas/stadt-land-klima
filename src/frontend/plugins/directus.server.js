@@ -1,15 +1,18 @@
-import { defineNuxtPlugin, useRuntimeConfig } from "#app";
+import { defineNuxtPlugin, useCookie, useRequestHeaders, useRuntimeConfig } from "#app";
 import { createDirectus, staticToken, rest, readItem, readItems, readSingleton, readTranslations } from "@directus/sdk";
 import resolveFullLocaleCode from "~/shared/resolveFullLocaleCode.js";
 import createTranslator from "~/shared/createTranslator.js";
 
-const locale = resolveFullLocaleCode();
+const localeCookieName = "slk_locale";
 
 export default defineNuxtPlugin(async () => {
   const runtimeConfig = useRuntimeConfig();
   const token = runtimeConfig.public.directusToken;
   const directusUrl = runtimeConfig.directusServerUrl || "http://directus:8055";
   const appEnv = runtimeConfig.public.appEnv || "development";
+  const localeCookie = useCookie(localeCookieName);
+  const headers = useRequestHeaders(["accept-language"]);
+  const locale = resolveFullLocaleCode(localeCookie.value || headers["accept-language"]);
   let directus = createDirectus(directusUrl).with(rest()).with(staticToken(token));
   let translations = []
   try {

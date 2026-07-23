@@ -34,7 +34,7 @@
             <p class="text-sm font-mono text-gray-700">{{ area?.ars || '-' }}</p>
           </div>
           <div class="lg:text-right">
-            <p class="text-xs text-gray-500 font-semibold">{{ t('region.municipalities_count', 'Kommunen') }}</p>
+            <p class="text-xs text-gray-500 font-semibold">{{ t('region.municipalities_count') }}</p>
             <p class="text-sm font-bold text-gray-700">{{ municipalities.length }}</p>
           </div>
         </div>
@@ -54,7 +54,7 @@
     <div class="mt-6 bg-white rounded-lg shadow-md overflow-hidden">
       <div class="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-900">
-          {{ t('region.ranking_title', 'Kommunen-Ranking in dieser Region') }}
+          {{ t('region.ranking_title') }}
         </h2>
         <div v-if="selectedCatalogVersion" class="text-xs text-gray-500 font-mono">
           {{ selectedCatalogVersion.name }}
@@ -64,7 +64,7 @@
       <!-- Loading -->
       <div v-if="loadingMunicipalities" class="flex items-center justify-center py-12 gap-2">
         <SlkFlowerSpinner :size="32" />
-        <span class="text-gray-600">{{ $t('generic.loading') }}...</span>
+        <span class="text-gray-600">{{ $t('generic.loading') }}</span>
       </div>
 
       <!-- Ranked List -->
@@ -96,7 +96,7 @@
               :to="`/municipalities/${muni.slug}`"
               class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors whitespace-nowrap"
             >
-              {{ t('region.view_rating', 'Bewertung') }}
+              {{ t('region.view_rating') }}
               <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -106,7 +106,7 @@
               :to="`/stats/${muni.ars}`"
               class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors whitespace-nowrap"
             >
-              {{ t('stats.view_stats', 'Statistiken') }}
+              {{ t('stats.view_stats') }}
               <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -121,7 +121,7 @@
           class="w-full px-4 py-3 text-left text-sm text-gray-500 hover:bg-gray-50 flex items-center justify-between"
           @click="showUnrated = !showUnrated"
         >
-          <span>{{ unratedMunicipalities.length }} {{ t('region.unrated_municipalities', 'weitere Kommunen ohne Bewertung') }}</span>
+          <span>{{ unratedMunicipalities.length }} {{ t('region.unrated_municipalities') }}</span>
           <svg class="w-4 h-4 transition-transform" :class="showUnrated ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
@@ -143,7 +143,7 @@
               :to="`/stats/${muni.ars}`"
               class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors whitespace-nowrap"
             >
-              {{ t('stats.view_stats', 'Statistiken') }}
+              {{ t('stats.view_stats') }}
               <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -157,7 +157,7 @@
         <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.016-5.707-2.572" />
         </svg>
-        <p class="mt-2 text-sm">{{ t('region.no_municipalities', 'Keine Kommunen gefunden') }}</p>
+        <p class="mt-2 text-sm">{{ t('region.no_municipalities') }}</p>
       </div>
     </div>
   </main>
@@ -178,8 +178,18 @@ const area = ref(null);
 const municipalities = ref([]);
 const loadingMunicipalities = ref(false);
 const showUnrated = ref(false);
+const municipalityNameCollator = new Intl.Collator('de-DE', {
+  numeric: true,
+  sensitivity: 'base',
+});
 
-const t = (key, fallback) => {
+function compareByScoreThenName(a, b) {
+  const scoreDifference = (b.score ?? 0) - (a.score ?? 0);
+  if (scoreDifference !== 0) return scoreDifference;
+  return municipalityNameCollator.compare(a.name ?? '', b.name ?? '');
+}
+
+const t = (key, fallback = key) => {
   const translation = $t(key);
   return translation === key ? fallback : translation;
 };
@@ -202,7 +212,7 @@ const rankedMunicipalities = computed(() => {
       };
     })
     .filter(m => m.score !== null)
-    .sort((a, b) => b.score - a.score);
+    .sort(compareByScoreThenName);
 });
 
 const unratedMunicipalities = computed(() => {

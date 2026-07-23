@@ -59,6 +59,7 @@ This will export:
 5. `presets/` - Preset definitions
 6. `translations/` - Translation files
 7. `settings/` - Settings
+8. `dashboards/` - Dashboard and panel definitions
 
 ### Import All Configuration
 
@@ -74,6 +75,9 @@ This will import in the correct order:
 5. Presets
 6. Translations
 7. Settings
+
+Dashboards are intentionally not imported by `import:all` at the moment.
+Use `import:dashboards` manually when dashboard imports are enabled for an environment.
 
 ### Individual Commands
 
@@ -98,6 +102,16 @@ This will import in the correct order:
 ```
 
 > **Note:** Policies must be imported before roles, as roles reference policies by ID.
+
+#### Export Dashboards
+```bash
+./directus-cli export:dashboards /path/to/dashboards
+```
+
+#### Import Dashboards
+```bash
+./directus-cli import:dashboards /path/to/dashboards
+```
 
 ## Command Line Options
 

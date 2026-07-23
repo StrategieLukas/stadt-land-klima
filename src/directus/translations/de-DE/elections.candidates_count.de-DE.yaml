@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.candidates_count
+value: :count Kandidaten

@@ -1,0 +1,127 @@
+name: Maßnahmen
+icon: space_dashboard
+note: null
+color: null
+panels:
+  - name: Ausgewählte Maßnahme
+    icon: null
+    color: null
+    show_header: true
+    note: null
+    type: variable
+    position_x: 20
+    position_y: 1
+    width: 12
+    height: 6
+    options:
+      type: string
+      inter: input
+      defaultValue: EN_01
+      options:
+        placeholder: z.B. EN_01
+        trim: true
+      field: measure_id
+  - name: Bewertungen für die Maßnahme
+    icon: null
+    color: null
+    show_header: true
+    note: null
+    type: pie-chart
+    position_x: 1
+    position_y: 8
+    width: 26
+    height: 17
+    options:
+      collection: ratings_measures
+      column: rating
+      showLabels: true
+      legend: bottom
+      filter:
+        _and:
+          - measure_id:
+              measure_id:
+                _contains: "{{ measure_id }}"
+          - localteam_id:
+              municipality_name:
+                _ncontains: Südtirol
+      color: "#1EA64A"
+  - name: "# Bewertungen"
+    icon: null
+    color: null
+    show_header: true
+    note: null
+    type: metric
+    position_x: 29
+    position_y: 8
+    width: 17
+    height: 6
+    options:
+      collection: ratings_measures
+      field: id
+      filter:
+        _and:
+          - status:
+              _eq: published
+          - measure_id:
+              status:
+                _eq: published
+          - measure_id:
+              measure_id:
+                _eq: "{{ measure_id }}"
+      function: count
+  - name: Davon als "nicht anwendbar" markiert
+    icon: null
+    color: null
+    show_header: true
+    note: null
+    type: metric
+    position_x: 29
+    position_y: 15
+    width: 17
+    height: 6
+    options:
+      collection: ratings_measures
+      field: id
+      filter:
+        _and:
+          - status:
+              _eq: published
+          - measure_id:
+              status:
+                _eq: published
+          - measure_id:
+              measure_id:
+                _eq: "{{ measure_id }}"
+          - applicable:
+              _eq: false
+      function: count
+  - name: "Vergleich: Insgesamt vergebene Maßnahmenbewertungen"
+    icon: null
+    color: null
+    show_header: true
+    note: null
+    type: pie-chart
+    position_x: 1
+    position_y: 26
+    width: 26
+    height: 16
+    options:
+      collection: ratings_measures
+      xAxis: rating
+      filter:
+        _and:
+          - rating:
+              _nnull: true
+          - measure_id:
+              status:
+                _eq: published
+          - status:
+              _eq: published
+      column: rating
+      groupByField: measure_id
+      aggregateField: rating
+      aggregateFunction: count
+      limit: 50
+      showLabels: true
+      legend: bottom
+      color: "#1EA64A"

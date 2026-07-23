@@ -1,0 +1,10 @@
+language: it-IT
+key: stats.data.cyclewayInfrastructureData.calculation
+value: Sono stati valutati i dati OSM. Per i chilometri dei percorsi
+  automobilistici, sono stati presi in considerazione gli elementi autostradali
+  con i tag 'primary', 'secondary', 'tertiary', 'residential', 'service',
+  'unclassified', 'trunk', 'trunk_link', 'primary_link', 'secondary_link',
+  'tertiary_link'. Highway=cycleway, Highway=path with Bicycle=yes o designato o
+  Cycleway=lane, track o Bicycle_road=yes o Highway=living_street sono stati
+  utilizzati per le piste ciclabili. I dati non sono completi e potrebbero
+  differire dalla realtà.

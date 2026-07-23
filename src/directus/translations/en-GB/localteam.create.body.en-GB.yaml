@@ -1,0 +1,4 @@
+language: en-GB
+key: localteam.create.body
+value: <strong>:name</strong> has not been rated yet. Create a local team and
+  bring active climate action to your municipality.

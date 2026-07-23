@@ -1,0 +1,83 @@
+name: Recruiter
+icon: work
+description: Kann Jobs und Ehrenamtsangebote verwalten
+enforce_tfa: false
+admin_access: false
+app_access: false
+permissions:
+  - collection: job_offers
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: job_offers
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: job_offers
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: job_offers
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
+    action: create
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - short_description
+      - link
+      - logo
+      - instagram
+      - linkedin
+      - social_media_segment
+  - collection: organisations
+    action: delete
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: organisations
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - id
+      - name
+      - logo
+      - link
+      - short_description
+      - instagram
+      - linkedin
+      - social_media_segment
+  - collection: organisations
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - name
+      - short_description
+      - link
+      - logo
+      - instagram
+      - linkedin
+      - social_media_segment

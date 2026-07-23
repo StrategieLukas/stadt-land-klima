@@ -1,0 +1,3 @@
+language: de-DE
+key: directus.interfaces.municipality_scores_publisher.error_loading
+value: Katalogbewertungen konnten nicht geladen werden.

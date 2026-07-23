@@ -7,11 +7,11 @@
 </template>
 
 <script setup>
-import colorLib from '@kurkle/color';
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { Chart } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
 Chart.register(TreemapController, TreemapElement);
+const { $t } = useNuxtApp();
 
 const props = defineProps({
   ratingsBySector: {
@@ -27,15 +27,18 @@ const props = defineProps({
 const chartCanvas = ref(null);
 let chartInstance = null;
 
-// Sector name mapping
-const sectorNames = {
-  energy: "Energie",
-  transport: "Verkehr",
-  agriculture: "Landwirtschaft, Natur & Ernährung",
-  industry: "Industrie, Wirtschaft & Konsum",
-  buildings: "Gebäude & Wärme",
-  management: "Klimaschutzmanagement & Verwaltung",
-};
+function cssColor(name, fallback) {
+  if (typeof window === 'undefined') {
+    return fallback;
+  }
+
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+
+function sectorName(sector) {
+  const translated = $t(`measure_sectors.${sector}.title`);
+  return translated === `measure_sectors.${sector}.title` ? sector : translated;
+}
 
 // Transform data for treemap - use computed to ensure reactivity
 const treeData = computed(() => {
@@ -50,7 +53,7 @@ const treeData = computed(() => {
         
         data.push({
           sector: sector,
-          sectorName: sectorNames[sector] || sector,
+          sectorName: sectorName(sector),
           measure_id: item.measure.measure_id,
           measure_name: item.measure.name,
           rating: rating,
@@ -68,15 +71,15 @@ const treeData = computed(() => {
 
 function getRatingString(rating) {
   if (rating == 0) {
-    return "kaum/nicht";
+    return $t("rating.hardly_or_not");
   } else if (rating == 0.25) {
-    return "ansatzweise";
+    return $t("rating.initial_steps");
   } else if (rating == 0.5) {
-    return "halbwegs";
+    return $t("rating.halfway");
   } else if (rating == 0.75) {
-    return "größtenteils";
+    return $t("rating.mostly");
   } else if (rating == 1) {
-    return "vollständig";
+    return $t("rating.completed");
   } else {
     return rating.toString();
   }
@@ -89,13 +92,13 @@ function colorFromRaw(ctx) {
   // return color based on rating
 
   if (ctx.type !== 'data') {
-    return 'transparent';
+    return cssColor('--slk-surface', '#ffffff');
   }
   
 
   if (ctx.raw._data.children.length > 1) {
     // it's a group
-    return 'rgba(0,0,0,0.1)';
+    return cssColor('--slk-surface-muted', '#e5e7eb');
   }
 
   const item = ctx.raw._data.children[0];
@@ -122,7 +125,7 @@ const chartData = computed(() => ({
     displayMode: "container_boxes",
     spacing: 0.5,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: () => cssColor('--slk-surface', '#ffffff'),
     backgroundColor: (ctx) => colorFromRaw(ctx),
     labels: {
       display: true,
@@ -143,7 +146,14 @@ const chartData = computed(() => ({
         }
         return item.sectorName || '';
       },
-      color: ['white', 'black'],
+      color: (ctx) => {
+        if (!ctx.raw || ctx.raw._data.children.length > 1) {
+          return cssColor('--slk-text-strong', '#101820');
+        }
+
+        const item = ctx.raw._data.children[0];
+        return item?.rating === 0 ? '#ffffff' : '#101820';
+      },
       font: {
         size: 12,
         weight: 'bold',
@@ -211,7 +221,7 @@ const chartOptions = {
           const lines = [];
           if (item.measure_id) {
             lines.push(`ID: ${item.measure_id}`);
-            lines.push(`Rating: ${getRatingString(item.rating)}`);
+            lines.push(`${$t("stats.chart.rating")}: ${getRatingString(item.rating)}`);
             lines.push(`Gewichtung: ${item.weight}`);
           }
           return lines;

@@ -1,0 +1,3 @@
+language: en-GB
+key: elections.wahlcheck.questions.answered_count
+value: :count / :total questions answered

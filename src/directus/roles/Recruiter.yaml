@@ -1,0 +1,5 @@
+name: Recruiter
+icon: work
+parent: MinimalUser
+policies:
+  - Recruiter

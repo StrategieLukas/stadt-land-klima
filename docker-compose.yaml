@@ -25,7 +25,7 @@ services:
     volumes:
       - ./docker/data/meilisearch:/meili_data
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:7700/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:7700/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -36,9 +36,12 @@ services:
       args:
         - "UID=${UID:-1000}"
         - "GID=${GID:-1000}"
-    env_file: ./src/directus/.env
+    env_file:
+      - ./src/directus/.env
+      - ./docker/meilisearch/.env
     volumes:
       - ./src/directus/uploads:/directus/uploads
+      - ./src/directus/dashboards/:/directus/dashboards
       - ./src/directus/extensions:/directus/extensions
       - ./src/directus/schema/:/directus/schema
       - ./src/directus/roles/:/directus/roles
@@ -68,7 +71,9 @@ services:
         - "GID=${GID:-1000}"
     volumes:
       - ./src/frontend:/frontend
-    env_file: ./src/frontend/.env
+    env_file:
+      - ./src/frontend/.env
+      - ./docker/meilisearch/.env
     networks:
       - default
       - stadt-land-zahl_default

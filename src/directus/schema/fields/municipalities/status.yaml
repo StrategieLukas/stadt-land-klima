@@ -3,23 +3,7 @@ field: status
 type: string
 meta:
   collection: municipalities
-  conditions:
-    - name: AllowPublishIFRatingsAreDone
-      options:
-        allowNone: false
-        allowOther: false
-      readonly: true
-      rule:
-        _and:
-          - status:
-              _eq: draft
-          - _or:
-              - percentage_rated:
-                  _null: true
-              - percentage_rated:
-                  _lt: "95"
-              - creator_verified:
-                  _neq: true
+  conditions: null
   display: labels
   display_options:
     choices:
@@ -38,7 +22,7 @@ meta:
     showAsDot: true
   field: status
   group: null
-  hidden: false
+  hidden: true
   interface: select-dropdown
   note: null
   options:

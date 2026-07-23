@@ -92,7 +92,7 @@
                     <a :href="dataSource.attributionUrl" 
                        target="_blank" 
                        rel="noopener noreferrer" 
-                       class="inline-flex items-center text-sm text-primary hover:text-primary/70 underline break-all">
+                       class="inline-flex items-center text-sm text-primary hover:text-solid-light-green-70 underline break-all">
                       {{ dataSource.attributionUrl }}
                       <svg class="ml-1 w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -204,7 +204,7 @@
 
     <!-- Map Section -->
     <div v-if="mapEnabled && ars && dataProductType">
-      <p class="font-bold">{{ $t('stats.labels.map') || 'Map' }}</p>
+      <p class="font-bold">{{ $t('stats.labels.map') }}</p>
       <div class="mt-2 bg-gray-50 rounded-lg p-4">
         <DataProductMap
           :ars="ars"

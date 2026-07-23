@@ -1,0 +1,6 @@
+language: en-GB
+key: localteam.contact_content
+value: |
+  I would like to contact the local team in :name.
+
+  My contact details:

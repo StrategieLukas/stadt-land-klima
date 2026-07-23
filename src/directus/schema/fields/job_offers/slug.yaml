@@ -1,0 +1,46 @@
+collection: job_offers
+field: slug
+type: string
+meta:
+  collection: job_offers
+  conditions: null
+  display: null
+  display_options: null
+  field: slug
+  group: null
+  hidden: true
+  interface: auto-slug
+  note: null
+  options:
+    slug: true
+    source_field: role_title
+    sync_existing: true
+    trim: true
+  readonly: true
+  required: false
+  searchable: true
+  sort: 4
+  special: null
+  translations:
+    - language: de-DE
+      translation: Slug (automatisch)
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: slug
+  table: job_offers
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: true
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

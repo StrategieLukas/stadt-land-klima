@@ -1,0 +1,5 @@
+language: en-GB
+key: measure_rating.history.description
+value: Each line represents a municipality. Hover over it for details; click a
+  line to open the municipality. Click a coloured bar to show all municipalities
+  with that rating.

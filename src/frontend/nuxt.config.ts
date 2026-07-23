@@ -12,7 +12,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // The private keys which are only available within server-side
     meilisearchUrl: process.env.MEILISEARCH_URL,
-    meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY,
+    meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY ?? process.env.MEILI_MASTER_KEY,
     altchaSecret: process.env.ALTCHA_SECRET,
     directusFlowRegisterMunicipality: process.env.DIRECTUS_FLOW_REGISTER_MUNICIPALITY,
     directusFlowNotifyAdmin: process.env.DIRECTUS_FLOW_NOTIFY_ADMIN,
@@ -23,14 +23,16 @@ export default defineNuxtConfig({
     listmonkListId: process.env.LISTMONK_LIST_ID,
     directusServerUrl: process.env.SERVER_DIRECTUS_URL ?? "http://directus:8055",
     directusAdminToken: process.env.DIRECTUS_ADMIN_TOKEN,
-    appPublicUrl: process.env.APP_PUBLIC_URL,
-    directusPublicUrl: process.env.DIRECTUS_PUBLIC_URL,
+    appPublicUrl: process.env.PUBLIC_URL,
+    directusPublicUrl: process.env.CLIENT_DIRECTUS_URL,
     adminNotificationEmail: process.env.ADMIN_NOTIFICATION_EMAIL,
     welcomeEmailTutorialUrl: process.env.WELCOME_EMAIL_TUTORIAL_URL,
     welcomeEmailCalendarUrl: process.env.WELCOME_EMAIL_CALENDAR_URL,
     welcomeEmailSignalUrl: process.env.WELCOME_EMAIL_SIGNAL_URL,
     // Server-side base URL for stadtlandzahl backend (Docker container name/URL, no path).
     stadtlandzahlServerBaseUrl: process.env.STADTLANDZAHL_SERVER_BASE_URL,
+    frontendBasicAuthUsername: process.env.FRONTEND_BASIC_AUTH_USERNAME,
+    frontendBasicAuthPassword: process.env.FRONTEND_BASIC_AUTH_PASSWORD,
     // Keys within public, will be also exposed to the client-side
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,
@@ -50,6 +52,11 @@ export default defineNuxtConfig({
     },
     head: {
       meta: [{ name: "viewport", content: "width=device-width, initial-scale=1" }],
+      script: [
+        {
+          innerHTML: `(function(){try{var key='slk_theme_preference';var light='staedteChallemgeTheme';var dark='staedteChallengeDark';var pref=localStorage.getItem(key);var mode=pref==='light'||pref==='dark'?pref:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');var root=document.documentElement;root.dataset.theme=mode==='dark'?dark:light;root.classList.toggle('dark',mode==='dark');root.style.colorScheme=mode;}catch(e){}})();`,
+        },
+      ],
     },
   },
   css: ["maplibre-gl/dist/maplibre-gl.css", "~/assets/css/main.css"],

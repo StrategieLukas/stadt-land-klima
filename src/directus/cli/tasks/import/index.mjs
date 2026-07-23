@@ -9,204 +9,119 @@ import importFlows from './importFlows.mjs';
 import importTranslations from './importTranslations.mjs';
 import importSettings from './importSettings.mjs';
 import importCollectionItems from './importCollectionItems.mjs';
+import importDashboards from './importDashboards.mjs';
+
+function getImportOptions(argv) {
+  return {
+    verbose: argv.verbose,
+    remove: argv['remove-orphans'],
+    overwrite: argv.force,
+  };
+}
+
+function registerFolderImportCommand(yargs, {
+  command,
+  description,
+  defaultSrc,
+  importer,
+  label,
+  srcDescription = 'source folder',
+}) {
+  return yargs.command(
+    command,
+    description,
+    (yargs) => {
+      return yargs
+      .positional('src', {
+        describe: srcDescription,
+        default: defaultSrc,
+      });
+    },
+    async (argv) => {
+      if (argv.verbose) {
+        console.info(`Importing ${label} from ${argv.src}`);
+      }
+
+      await clearDirectusCache();
+      await importer(argv.src, getImportOptions(argv));
+    }
+  );
+}
 
 function importTasks(yargs) {
-  return yargs
-  .command(
-    'import:schema [src]',
-    'imports the schema from the folder specified by "src". By default it will import from "schema"',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder',
-        default: 'schema',
-      });
+  const importCommands = [
+    {
+      command: 'import:schema [src]',
+      description: 'imports the schema from the folder specified by "src". By default it will import from "schema"',
+      defaultSrc: 'schema',
+      importer: importSchema,
+      label: 'schema',
     },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Importing schema from ${argv.src}`);
-      }
-
-      await clearDirectusCache();
-      await importSchema(argv.src, {
-        verbose: argv.verbose,
-      });
-    }
-  )
-
-  .command(
-    'import:policies [src]',
-    'imports the policies from the folder specified by "src". By default it will import from "policies"',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder',
-        default: 'policies',
-      });
+    {
+      command: 'import:policies [src]',
+      description: 'imports the policies from the folder specified by "src". By default it will import from "policies"',
+      defaultSrc: 'policies',
+      importer: importPolicies,
+      label: 'policies',
     },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Importing policies from ${argv.src}`);
-      }
-
-      await clearDirectusCache();
-      await importPolicies(argv.src, {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-    }
-  )
-
-  .command(
-    'import:roles [src]',
-    'imports the roles from the folder specified by "src". By default it will import from "roles". NOTE: Import policies first, as roles reference policies by ID.',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder',
-        default: 'roles',
-      });
+    {
+      command: 'import:roles [src]',
+      description: 'imports the roles from the folder specified by "src". By default it will import from "roles". NOTE: Import policies first, as roles reference policies by ID.',
+      defaultSrc: 'roles',
+      importer: importRoles,
+      label: 'roles',
     },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Importing roles from ${argv.src}`);
-      }
-
-      await clearDirectusCache();
-      await importRoles(argv.src, {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-    }
-  )
-
-  .command(
-    'import:roles-and-policies [src]',
-    'imports roles and policies from the folder specified by "src". Expects policies/ and roles/ subdirectories. By default imports from current directory.',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder containing policies/ and roles/ subdirectories',
-        default: '.',
-      });
+    {
+      command: 'import:roles-and-policies [src]',
+      description: 'imports roles and policies from the folder specified by "src". Expects policies/ and roles/ subdirectories. By default imports from current directory.',
+      defaultSrc: '.',
+      importer: importRolesAndPolicies,
+      label: 'roles and policies',
+      srcDescription: 'source folder containing policies/ and roles/ subdirectories',
     },
-    async (argv) => {
-      const src = argv.src;
-
-      if (argv.verbose) {
-        console.info(`Importing roles and policies from ${src}`);
-      }
-
-      await clearDirectusCache();
-      await importRolesAndPolicies(src, {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-    }
-  )
-
-  .command(
-    'import:presets [src]',
-    'imports the presets from the folder specified by "src". By default it will import from "presets"',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder',
-        default: 'presets',
-      });
+    {
+      command: 'import:presets [src]',
+      description: 'imports the presets from the folder specified by "src". By default it will import from "presets"',
+      defaultSrc: 'presets',
+      importer: importPresets,
+      label: 'presets',
     },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Importing presets from ${argv.src}`);
-      }
-
-      await clearDirectusCache();
-      await importPresets(argv.src, {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-    }
-  )
-
-  .command(
-    'import:flows [src]',
-    'imports the flows from the folder specified by "src". By default it will import from "flows"',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder',
-        default: 'flows',
-      });
+    {
+      command: 'import:flows [src]',
+      description: 'imports the flows from the folder specified by "src". By default it will import from "flows"',
+      defaultSrc: 'flows',
+      importer: importFlows,
+      label: 'flows',
     },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Importing flows from ${argv.src}`);
-      }
-
-      await clearDirectusCache();
-      await importFlows(argv.src, {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-    }
-  )
-
-  .command(
-    'import:translations [src]',
-    'imports the translations from the folder specified by "src". By default it will import from "translations"',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder',
-        default: 'translations',
-      });
+    {
+      command: 'import:translations [src]',
+      description: 'imports the translations from the folder specified by "src". By default it will import from "translations"',
+      defaultSrc: 'translations',
+      importer: importTranslations,
+      label: 'translations',
     },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Importing translations from ${argv.src}`);
-      }
-
-      await clearDirectusCache();
-      await importTranslations(argv.src, {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-    }
-  )
-
-  .command(
-    'import:settings [src]',
-    'imports the settings from the folder specified by "src". By default it will import from "settings"',
-    (yargs) => {
-      return yargs
-      .positional('src', {
-        describe: 'source folder',
-        default: 'settings',
-      });
+    {
+      command: 'import:settings [src]',
+      description: 'imports the settings from the folder specified by "src". By default it will import from "settings"',
+      defaultSrc: 'settings',
+      importer: importSettings,
+      label: 'settings',
     },
-    async (argv) => {
-      if (argv.verbose) {
-        console.info(`Importing settings from ${argv.src}`);
-      }
+    {
+      command: 'import:dashboards [src]',
+      description: 'imports the dashboards from the folder specified by "src". By default it will import from "dashboards"',
+      defaultSrc: 'dashboards',
+      importer: importDashboards,
+      label: 'dashboards',
+    },
+  ];
 
-      await clearDirectusCache();
-      await importSettings(argv.src, {
-        verbose: argv.verbose,
-        remove: argv['remove-orphans'],
-        overwrite: argv.force,
-      });
-    }
-  )
+  return importCommands
+  .reduce(registerFolderImportCommand, yargs)
 
   .command(
     'import:all [src]',
-    'imports schema, policies, roles, flows, presets, translations, and settings consecutively. In v11+, policies are imported before roles.',
+    'imports schema, policies, roles, flows, presets, translations, settings, and dashboards consecutively.',
     (yargs) => {
       return yargs
       .positional('src', {
@@ -265,6 +180,14 @@ function importTasks(yargs) {
       // Import settings
       console.info('Importing settings...');
       await importSettings(path.join(src, 'settings'), {
+        verbose: argv.verbose,
+        remove: argv['remove-orphans'],
+        overwrite: argv.force,
+      });
+
+      // Import dashboards last because panels can depend on extensions and app-level access.
+      console.info('Importing dashboards...');
+      await importDashboards(path.join(src, 'dashboards'), {
         verbose: argv.verbose,
         remove: argv['remove-orphans'],
         overwrite: argv.force,

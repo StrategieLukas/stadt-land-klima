@@ -1,0 +1,4 @@
+language: en-GB
+key: directus.interfaces.municipality_scores_publisher.unverified.message
+value: Your account is not verified yet. Catalog scores can only be published after
+  an admin has verified your account.

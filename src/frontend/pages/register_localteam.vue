@@ -1,13 +1,13 @@
 <template>
   <div class="px-2 xs:px-4 py-8 max-w-3xl mx-auto">
     <NuxtLink to="/municipalities" class="font-heading text-h4 text-light-blue">
-      ← Zurück zu den Kommunen
+      ← {{ $t("municipalities.back_to_overview") }}
     </NuxtLink>
 
     <div class="mt-6">
-      <h1 class="font-heading text-h1 font-bold text-green mb-2">Lokalteam gründen</h1>
+      <h1 class="font-heading text-h1 font-bold text-green mb-2">{{ $t("localteam.create") }}</h1>
       <p class="text-gray-600 mb-6">
-        Starte jetzt ein Lokalteam in deiner Kommune und treibe aktiven Klimaschutz vor Ort voran.
+        {{ $t("localteam.register.intro") }}
       </p>
 
       <!-- Step indicator -->
@@ -24,7 +24,7 @@
             <span v-else>1</span>
           </div>
           <span class="hidden xs:inline text-sm font-medium" :class="selectedArea ? 'text-gray-400' : 'text-gray-800'">
-            Kommune wählen
+            {{ $t("localteam.register.step.select_municipality") }}
           </span>
         </div>
         <div class="flex-1 border-t-2" :class="selectedArea ? 'border-green' : 'border-gray-200'" />
@@ -40,7 +40,7 @@
             <span v-else>2</span>
           </div>
           <span class="hidden xs:inline text-sm font-medium" :class="registrationSuccess ? 'text-gray-400' : selectedArea ? 'text-gray-800' : 'text-gray-400'">
-            Kontaktdaten
+            {{ $t("localteam.register.step.contact_details") }}
           </span>
         </div>
         <div class="flex-1 border-t-2" :class="registrationSuccess ? 'border-green' : 'border-gray-200'" />
@@ -56,7 +56,7 @@
             <span v-else>3</span>
           </div>
           <span class="hidden xs:inline text-sm font-medium" :class="registrationSuccess ? 'text-green font-semibold' : 'text-gray-400'">
-            Durchstarten
+            {{ $t("localteam.register.step.get_started") }}
           </span>
         </div>
       </div>
@@ -64,9 +64,9 @@
       <!-- Step 1: No municipality selected yet → show search -->
       <div v-if="!selectedArea">
         <div class="rounded-sm shadow-list bg-white p-4 sm:p-8">
-          <h2 class="font-heading text-h2 font-bold text-green mb-1">Deine Kommune wählen</h2>
+          <h2 class="font-heading text-h2 font-bold text-green mb-1">{{ $t("localteam.register.select.title") }}</h2>
           <p class="text-sm text-gray-500 mb-5">
-            Suche nach deiner Gemeinde oder Stadt, um mit der Registrierung zu beginnen.
+            {{ $t("localteam.register.select.description") }}
           </p>
           <AdministrativeAreaSearchBar
             ref="searchBarRef"
@@ -87,7 +87,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span class="text-sm font-medium text-gray-700">
-              Ausgewählte Kommune:
+              {{ $t("localteam.register.selected_municipality") }}:
               <strong class="text-green">{{ selectedArea.name }}</strong>
               <span v-if="selectedArea.prefix" class="text-gray-500 font-normal"> ({{ selectedArea.prefix }})</span>
             </span>
@@ -106,7 +106,7 @@
               <SlkFlowerSpinner :size="32" />
             </div>
             <div v-else class="h-24 bg-gray-100 flex items-center justify-center">
-              <span class="text-sm text-gray-400 italic">Kartenansicht nicht verfügbar</span>
+              <span class="text-sm text-gray-400 italic">{{ $t("map.not_available") }}</span>
             </div>
           </ClientOnly>
 
@@ -115,7 +115,7 @@
             <svg class="w-4 h-4 text-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
             </svg>
-            Bitte überprüfe, ob das die richtige Kommune ist.
+            {{ $t("localteam.register.verify_municipality") }}
           </div>
         </div>
 
@@ -129,10 +129,9 @@
               </svg>
             </div>
             <div>
-              <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">Bewertung abgeschlossen</h2>
+              <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">{{ $t("rating.completed") }}</h2>
               <p class="text-sm text-gray-600">
-                Das Lokalteam in <strong>{{ selectedArea.name }}</strong> hat die Bewertung abgeschlossen.
-                Schau dir die Ergebnisse an oder nimm Kontakt auf, um das Team zu unterstützen.
+                <span v-html="$t('localteam.register.completed.body', { ':name': selectedArea.name })"></span>
               </p>
             </div>
           </div>
@@ -140,14 +139,14 @@
             <CanonicalButton
               v-if="existingSlug"
               :href="`/municipalities/${existingSlug}`"
-              label="Zur Bewertung"
+              :label="$t('rating.view')"
               icon-slug="icon_login_arrow"
               color="green"
               class="flex-1"
             />
             <CanonicalButton
-              :href="`/contact?title=${encodeURIComponent('Mitarbeit Lokalteam ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte das Lokalteam in ' + selectedArea.name + ' unterstützen.\n\nMeine Kontaktdaten:\n')}`"
-              label="Kontakt aufnehmen"
+              :href="`/contact?title=${encodeURIComponent($t('localteam.support.contact_title', { ':name': selectedArea.name }))}&type=cooperation&content=${encodeURIComponent($t('localteam.support.contact_content', { ':name': selectedArea.name }))}`"
+              :label="$t('generic.contact')"
               icon-slug="icon_login_arrow"
               color="blue"
               class="flex-1"
@@ -159,7 +158,7 @@
             class="mt-4 text-sm text-light-blue hover:underline block"
             @click="resetSelection"
           >
-            Andere Kommune wählen
+            {{ $t("localteam.register.select_other_municipality") }}
           </button>
         </div>
 
@@ -172,17 +171,16 @@
               </svg>
             </div>
             <div>
-              <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">Lokalteam aktiv – Bewertung läuft</h2>
+              <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">{{ $t("localteam.active_rating_in_progress") }}</h2>
               <p class="text-sm text-gray-600">
-                In <strong>{{ selectedArea.name }}</strong> ist bereits ein Lokalteam aktiv und arbeitet gerade an der Bewertung.
-                Möchtest du das Team unterstützen?
+                <span v-html="$t('localteam.register.in_progress.body', { ':name': selectedArea.name })"></span>
               </p>
             </div>
           </div>
           <div class="flex flex-col sm:flex-row gap-3">
             <CanonicalButton
-              :href="`/contact?title=${encodeURIComponent('Kontakt Lokalteam ' + selectedArea.name)}&type=cooperation&content=${encodeURIComponent('Ich möchte Kontakt zum Lokalteam in ' + selectedArea.name + ' aufnehmen.\n\nMeine Kontaktdaten:\n')}`"
-              label="Kontakt aufnehmen"
+              :href="`/contact?title=${encodeURIComponent($t('localteam.contact_title', { ':name': selectedArea.name }))}&type=cooperation&content=${encodeURIComponent($t('localteam.contact_content', { ':name': selectedArea.name }))}`"
+              :label="$t('generic.contact')"
               icon-slug="icon_login_arrow"
               color="blue"
               class="flex-1"
@@ -194,7 +192,7 @@
             class="mt-4 text-sm text-light-blue hover:underline block"
             @click="resetSelection"
           >
-            Andere Kommune wählen
+            {{ $t("localteam.register.select_other_municipality") }}
           </button>
         </div>
 
@@ -439,5 +437,5 @@ watch(
 )
 
 // Meta
-useHead({ title: 'Lokalteam gründen' })
+useHead({ title: $t('localteam.create') })
 </script>

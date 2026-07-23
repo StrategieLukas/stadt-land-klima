@@ -1,0 +1,4 @@
+language: en-GB
+key: elections.wahlcheck.results.no_matches.description
+value: You did not answer any questions, so no match with the candidates can be
+  calculated.

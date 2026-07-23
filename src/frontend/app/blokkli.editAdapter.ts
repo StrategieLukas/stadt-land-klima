@@ -428,7 +428,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       return Promise.resolve([
         { id: 'text', label: 'Text', description: 'Rich text content block', allowReusable: true },
         { id: 'richtext', label: 'Markdown', description: 'Rich text with Markdown editor', allowReusable: true },
-        { id: 'heading', label: 'Ueberschrift', description: 'Heading block', allowReusable: true },
+        { id: 'heading', label: 'Überschrift', description: 'Heading block', allowReusable: true },
         { id: 'image', label: 'Bild', description: 'Image block with caption', allowReusable: true },
         { id: 'button', label: 'Button', description: 'Button with internal page link', allowReusable: true },
         { id: 'container', label: 'Container', description: 'Layout container with nested blocks', allowReusable: true },

@@ -8,7 +8,7 @@ import createDirectusClient from '../shared/createDirectusClient.mjs';
 
 /**
  * Export policies and their permissions for Directus v11+
- * 
+ *
  * In Directus v11, permissions are attached to POLICIES, not directly to roles.
  * This exports policies with their associated permissions.
  */

@@ -1,0 +1,7 @@
+language: de-DE
+key: feedback.content_for_municipality
+value: |
+  Kommune: :name
+  Link: /municipalities/:slug
+
+  Mein Feedback:

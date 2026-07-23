@@ -1,9 +1,8 @@
 export default defineEventHandler(async (event) => {
-  // event.url is h3 v2 only; at runtime nitropack uses h3 v1 where event.path is the path+query string
-  const sp    = new URLSearchParams((event.path ?? '').split('?')[1] ?? '')
-  const q     = sp.get('q')     ?? ''
-  const limit = sp.get('limit') ?? '12'
-  const types = sp.get('types') ?? undefined
+  const searchParams = getRequestSearchParams(event)
+  const q = searchParams.get('q') ?? ''
+  const limit = searchParams.get('limit') ?? '12'
+  const types = searchParams.get('types')
 
   if (!q || q.trim().length < 2) return { hits: [] }
 

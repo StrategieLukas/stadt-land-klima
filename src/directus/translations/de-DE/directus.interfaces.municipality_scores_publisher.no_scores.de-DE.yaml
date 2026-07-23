@@ -1,0 +1,3 @@
+language: de-DE
+key: directus.interfaces.municipality_scores_publisher.no_scores
+value: Für diese Kommune wurden noch keine Katalogbewertungen erzeugt.

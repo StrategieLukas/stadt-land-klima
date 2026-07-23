@@ -1,0 +1,5 @@
+language: de-DE
+key: localteam.register.completed.body
+value: Das Lokalteam in <strong>:name</strong> hat die Bewertung abgeschlossen.
+  Schau dir die Ergebnisse an oder nimm Kontakt auf, um das Team zu
+  unterstützen.

@@ -1,0 +1,4 @@
+language: it-IT
+key: localteam.register.contact_details.description
+value: 'Compila il modulo: configureremo quindi il tuo account per <strong
+  class="text-gray-700">:name</strong>.'

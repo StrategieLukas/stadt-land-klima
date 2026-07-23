@@ -1,0 +1,3 @@
+language: en-GB
+key: captcha.required
+value: Please complete the security check first.

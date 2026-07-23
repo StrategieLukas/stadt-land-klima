@@ -1,0 +1,4 @@
+language: de-DE
+key: election_info.fallback_catalog
+value: Diese Fragen basieren auf einer älteren Bewertung (:old), da die Kommune
+  noch nicht für die aktuelle Version (:current) bewertet wurde.

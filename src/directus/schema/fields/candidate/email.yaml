@@ -11,17 +11,25 @@ meta:
   hidden: false
   interface: input
   note: null
-  options: null
+  options:
+    trim: true
   readonly: false
-  required: true
+  required: false
   searchable: true
   sort: 5
   special: null
   translations:
     - language: de-DE
       translation: E-Mail
-  validation: null
-  validation_message: null
+  validation:
+    _or:
+      - email:
+          _null: true
+      - email:
+          _eq: ""
+      - email:
+          _regex: ^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$
+  validation_message: Bitte eine gültige E-Mail-Adresse eingeben.
   width: half
 schema:
   name: email

@@ -1,0 +1,7 @@
+language: en-GB
+key: feedback.content_for_municipality
+value: |
+  Municipality: :name
+  Link: /municipalities/:slug
+
+  My feedback:

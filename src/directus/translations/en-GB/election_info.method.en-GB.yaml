@@ -1,0 +1,5 @@
+language: en-GB
+key: election_info.method
+value: "The improvement potential is calculated from the measure rating and
+  weighting: measures with a low rating and high weighting have the greatest
+  potential."

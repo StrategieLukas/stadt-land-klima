@@ -1,0 +1,7 @@
+language: it-IT
+key: stats.data.public_transport.description
+value: Tempo di viaggio abituale e velocità di viaggio (in linea d'aria) con i
+  trasporti locali (inclusi i percorsi a piedi) all'interno dell'area
+  amministrativa agli orari di partenza abituali (media di una settimana dallo
+  studio sull'uso del tempo del 2022) dai punti di partenza e di arrivo abituali
+  (ponderati in base alla densità di popolazione).

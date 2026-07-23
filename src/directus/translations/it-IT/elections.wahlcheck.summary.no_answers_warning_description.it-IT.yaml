@@ -1,0 +1,5 @@
+language: it-IT
+key: elections.wahlcheck.summary.no_answers_warning_description
+value: Se non rispondi a una domanda, i tuoi risultati non possono essere
+  confrontati con quelli dei candidati. Puoi ancora continuare, ma il confronto
+  non sarà possibile.

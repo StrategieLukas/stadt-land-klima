@@ -1,0 +1,6 @@
+language: en-GB
+key: localteam.support.contact_content
+value: |
+  I would like to help the local team in :name.
+
+  My contact details:

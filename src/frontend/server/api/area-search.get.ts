@@ -57,10 +57,9 @@ async function fetchFromRest(baseUrl: string, params: Record<string, string>) {
 }
 
 export default defineEventHandler(async (event) => {
-  // event.url is h3 v2 only; at runtime nitropack uses h3 v1 where event.path is the path+query string
-  const sp   = new URLSearchParams((event.path ?? '').split('?')[1] ?? '')
-  const term = sp.get('term') ?? undefined
-  const mode = sp.get('mode') ?? 'reasonable'
+  const searchParams = getRequestSearchParams(event)
+  const term = searchParams.get('term') ?? ''
+  const mode = searchParams.get('mode') ?? 'reasonable'
 
   if (!term || !term.trim()) return []
 

@@ -1,0 +1,5 @@
+language: it-IT
+key: stats.dominance.network.description
+value: Tutti i comuni come nodi. Un confine tra due nodi significa che un comune
+  supera l’altro in > 60% delle misure valutate congiuntamente. Dimensioni e
+  colore dei nodi in base alla percentuale di vincita.

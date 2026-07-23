@@ -40,7 +40,7 @@
         v-if="options.showArrows"
         class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full bg-white shadow transition-opacity"
         :class="canScrollLeft ? 'opacity-100' : 'opacity-30 cursor-default'"
-        aria-label="Zurück"
+        :aria-label="$t('generic.back')"
         @click="scrollBy(-1)"
       >
         <Icon icon="mdi:chevron-left" class="w-5 h-5 text-gray" />
@@ -236,12 +236,12 @@ const activeDotClass = computed(() => {
 
 const inactiveDotClass = computed(() => {
   const map: Record<string, string> = {
-    green: 'bg-ff-green/30',
-    blue: 'bg-light-blue/30',
-    dark: 'bg-stats-dark/30',
-    orange: 'bg-orange/30',
+    green: 'bg-solid-ff-green-30',
+    blue: 'bg-solid-light-blue-30',
+    dark: 'bg-solid-stats-dark-30',
+    orange: 'bg-solid-orange-30',
   }
-  return map[options.value.accentColor] || 'bg-ff-green/30'
+  return map[options.value.accentColor] || 'bg-solid-ff-green-30'
 })
 
 // Distance to scroll in order to advance exactly one slide.

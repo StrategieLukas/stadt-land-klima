@@ -28,10 +28,18 @@ html {
 
 /* Block hash navigation highlight */
 @keyframes block-highlight-pulse {
-  0%   { outline: 3px solid transparent; }
-  20%  { outline: 3px solid #1da64a; }
-  80%  { outline: 3px solid #1da64a; }
-  100% { outline: 3px solid transparent; }
+  0% {
+    outline: 0 solid var(--slk-accent-green);
+  }
+  20% {
+    outline: 3px solid var(--slk-accent-green);
+  }
+  80% {
+    outline: 3px solid var(--slk-accent-green);
+  }
+  100% {
+    outline: 0 solid var(--slk-accent-green);
+  }
 }
 
 [id^="block-"] {
@@ -58,7 +66,6 @@ a {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-
 
 .collapse-plus > .collapse-title::after {
   font-size: 1.5rem;
@@ -95,4 +102,1164 @@ a {
     font-style: normal;
     font-display: swap;
   }
+}
+
+:root,
+html[data-theme="staedteChallemgeTheme"] {
+  --slk-page: #fbfbfb;
+  --slk-surface: #ffffff;
+  --slk-surface-subdued: #f3f5f1;
+  --slk-surface-muted: #e5e7eb;
+  --slk-border: #d9dfd3;
+  --slk-border-strong: #b9c2b0;
+  --slk-text: #505050;
+  --slk-text-strong: #101820;
+  --slk-text-muted: #667085;
+  --slk-text-subtle: #8a96a3;
+  --slk-accent-green: #afca0b;
+  --slk-green: #339737;
+  --slk-olive-green: #3f8342;
+  --slk-blue: #006e94;
+  --slk-blue-bright: #16bae7;
+  --slk-orange: #f39200;
+  --slk-red: #e30613;
+  --slk-green-tint: #ebf7ef;
+  --slk-blue-tint: #e6f1f5;
+  --slk-orange-tint: #fef5e7;
+  --slk-red-tint: #fdf1f2;
+  --slk-rating-0-tint: #fdf1f2;
+  --slk-rating-1-tint: #fef5e7;
+  --slk-rating-2-tint: #fffce3;
+  --slk-rating-3-tint: #f6f9e3;
+  --slk-rating-4-tint: #ebf7ef;
+  --slk-rating-na-tint: #efefef;
+  --slk-ranking-card-text: #101820;
+  --slk-ranking-card-muted: #344054;
+  --slk-municipalities-panel-bg: #f6f9e3;
+  --slk-filter-panel-bg: #f6f9e3;
+  --slk-filter-accent: #afca0b;
+  --slk-filter-active-bg: #3f8342;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #3f8342;
+  --slk-filter-inactive-border: #afca0b;
+  --slk-filter-hover-bg: #f6f9e3;
+  --slk-warning-text: #9a4d00;
+  --slk-success-text: #1f6f31;
+  --slk-on-dark-muted: #e7edf1;
+  --slk-on-green-muted: #e7f0df;
+  --slk-on-green-subtle: #cadbbd;
+  --slk-on-green-border: #77a35a;
+  --slk-backdrop: #17212b;
+  --slk-shadow-color: #d4d9ce;
+  color-scheme: light;
+}
+
+html[data-theme="staedteChallengeDark"] {
+  --slk-page: #101820;
+  --slk-surface: #17212b;
+  --slk-surface-subdued: #1f2b36;
+  --slk-surface-muted: #2a3947;
+  --slk-border: #344454;
+  --slk-border-strong: #526575;
+  --slk-text: #dce5ea;
+  --slk-text-strong: #f7fbfd;
+  --slk-text-muted: #b8c4cc;
+  --slk-text-subtle: #91a0aa;
+  --slk-accent-green: #a2b825;
+  --slk-green: #6aaa49;
+  --slk-olive-green: #96b850;
+  --slk-blue: #4ab8d4;
+  --slk-blue-bright: #3ab0ca;
+  --slk-orange: #c07828;
+  --slk-red: #d95860;
+  --slk-green-tint: #203821;
+  --slk-blue-tint: #173444;
+  --slk-orange-tint: #402b16;
+  --slk-red-tint: #3d1f24;
+  --slk-rating-0-tint: #c8a0a0;
+  --slk-rating-1-tint: #c8a870;
+  --slk-rating-2-tint: #c8b850;
+  --slk-rating-3-tint: #aac040;
+  --slk-rating-4-tint: #80b890;
+  --slk-rating-na-tint: #8896a4;
+  --slk-ranking-card-text: #101820;
+  --slk-ranking-card-muted: #344054;
+  --slk-municipalities-panel-bg: #203821;
+  --slk-filter-panel-bg: #203821;
+  --slk-filter-accent: #e7f46f;
+  --slk-filter-active-bg: #b9efc8;
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #e7f46f;
+  --slk-filter-inactive-border: #e7f46f;
+  --slk-filter-hover-bg: #263f28;
+  --slk-warning-text: #ffd199;
+  --slk-success-text: #bfe9a4;
+  --slk-on-dark-muted: #dce5ea;
+  --slk-on-green-muted: #eef8e9;
+  --slk-on-green-subtle: #d5e9ca;
+  --slk-on-green-border: #91ba77;
+  --slk-backdrop: #050b11;
+  --slk-shadow-color: #050b11;
+  color-scheme: dark;
+}
+
+html,
+body,
+#nuxt-root,
+#__nuxt,
+.__nuxt,
+.bk-main-canvas {
+  min-height: 100%;
+}
+
+html[data-theme="staedteChallengeDark"],
+html[data-theme="staedteChallengeDark"] body,
+html[data-theme="staedteChallengeDark"] #nuxt-root,
+html[data-theme="staedteChallengeDark"] #__nuxt,
+html[data-theme="staedteChallengeDark"] .__nuxt,
+html[data-theme="staedteChallengeDark"] .bk-main-canvas {
+  background: var(--slk-page);
+  color: var(--slk-text);
+}
+
+html[data-theme="staedteChallengeDark"] body {
+  color: var(--slk-text);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
+  background: var(--slk-backdrop);
+}
+
+.slk-filter-theme-green {
+  --slk-filter-panel-bg: #f6f9e3;
+  --slk-filter-accent: #afca0b;
+  --slk-filter-active-bg: #3f8342;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #3f8342;
+  --slk-filter-inactive-border: #afca0b;
+  --slk-filter-hover-bg: #f6f9e3;
+}
+
+.slk-filter-theme-blue {
+  --slk-filter-panel-bg: #e8f7fd;
+  --slk-filter-accent: #16bae7;
+  --slk-filter-active-bg: #16bae7;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #16bae7;
+  --slk-filter-inactive-border: #16bae7;
+  --slk-filter-hover-bg: #e8f7fd;
+}
+
+.slk-filter-theme-neutral {
+  --slk-filter-panel-bg: #f2f2f2;
+  --slk-filter-accent: #505050;
+  --slk-filter-active-bg: #505050;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #505050;
+  --slk-filter-inactive-border: #505050;
+  --slk-filter-hover-bg: #f2f2f2;
+}
+
+.slk-filter-theme-stats {
+  --slk-filter-panel-bg: #f9fafb;
+  --slk-filter-accent: #6b7280;
+  --slk-filter-active-bg: #1a4a6e;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #4b5563;
+  --slk-filter-inactive-border: #d1d5db;
+  --slk-filter-hover-bg: #f3f4f6;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-green {
+  --slk-filter-panel-bg: #203821;
+  --slk-filter-accent: #b0c520;
+  --slk-filter-active-bg: #3d9a58;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #b0c520;
+  --slk-filter-inactive-border: #b0c520;
+  --slk-filter-hover-bg: #263f28;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-blue {
+  --slk-filter-panel-bg: #173444;
+  --slk-filter-accent: #4ab8d4;
+  --slk-filter-active-bg: #2898b0;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #4ab8d4;
+  --slk-filter-inactive-border: #4ab8d4;
+  --slk-filter-hover-bg: #1f4153;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-neutral {
+  --slk-filter-panel-bg: #1f2b36;
+  --slk-filter-accent: #dce5ea;
+  --slk-filter-active-bg: #dce5ea;
+  --slk-filter-active-text: #101820;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #dce5ea;
+  --slk-filter-inactive-border: #91a0aa;
+  --slk-filter-hover-bg: #2a3947;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
+  --slk-filter-panel-bg: #1f2b36;
+  --slk-filter-accent: #b8c4cc;
+  --slk-filter-active-bg: #2898b0;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #dce5ea;
+  --slk-filter-inactive-border: #526575;
+  --slk-filter-hover-bg: #2a3947;
+}
+
+.slk-filter-panel,
+.municipalities-cta {
+  background-color: var(--slk-filter-panel-bg);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-text);
+}
+
+.municipalities-cta {
+  background-color: var(--slk-municipalities-panel-bg);
+}
+
+.slk-filter-panel-icon {
+  color: var(--slk-filter-accent);
+}
+
+.slk-filter-divider {
+  background-color: var(--slk-border-strong);
+}
+
+.slk-filter-rule {
+  border-color: var(--slk-border);
+}
+
+.slk-filter-pill {
+  align-items: center;
+  background-color: var(--slk-filter-inactive-bg);
+  border: 1px solid var(--slk-filter-inactive-border);
+  border-radius: 9999px;
+  color: var(--slk-filter-inactive-text);
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.375rem;
+  line-height: 1rem;
+  padding: 0.25rem 0.625rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+  white-space: nowrap;
+}
+
+.slk-filter-pill:hover {
+  background-color: var(--slk-filter-hover-bg);
+}
+
+.slk-filter-pill--active {
+  background-color: var(--slk-filter-active-bg);
+  border-color: var(--slk-filter-active-bg);
+  color: var(--slk-filter-active-text);
+}
+
+.slk-filter-pill--active:hover {
+  background-color: var(--slk-filter-active-bg);
+}
+
+.slk-filter-count {
+  background-color: var(--slk-filter-active-bg);
+  color: var(--slk-filter-active-text);
+}
+
+.slk-filter-menu {
+  background-color: var(--slk-surface);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-text);
+}
+
+.slk-filter-menu-item {
+  color: var(--slk-text);
+}
+
+.slk-filter-menu-item:hover {
+  background-color: var(--slk-surface-subdued);
+}
+
+.slk-filter-menu-item--active {
+  background-color: var(--slk-filter-active-bg);
+  color: var(--slk-filter-active-text);
+}
+
+.slk-area-search-tabs {
+  border-color: #e5e7eb;
+}
+
+.slk-area-search-tab {
+  background-color: #ffffff;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.slk-area-search-tab:hover {
+  background-color: #f9fafb;
+}
+
+.slk-area-search-tab--active {
+  background-color: #006e94;
+  color: #ffffff;
+}
+
+.slk-bright-badge {
+  color: #ffffff;
+}
+
+.slk-rating-chip {
+  color: #000000 !important;
+}
+
+.slk-rating-chip.bg-rating-0,
+.slk-rating-chip--red {
+  color: #ffffff !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-area-search-tabs {
+  border-color: var(--slk-border);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-area-search-tab {
+  background-color: var(--slk-surface);
+  color: var(--slk-text);
+  border-color: var(--slk-border);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-area-search-tab:hover {
+  background-color: var(--slk-surface-muted);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-area-search-tab--active {
+  background-color: var(--slk-blue);
+  color: var(--slk-page);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge {
+  color: #ffffff !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--teal {
+  background-color: #35b0a0 !important;
+  border-color: #35b0a0 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--blue {
+  background-color: var(--slk-blue) !important;
+  border-color: var(--slk-blue) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--green {
+  background-color: #3d9a58 !important;
+  border-color: #3d9a58 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--lime {
+  background-color: #b0c520 !important;
+  border-color: #b0c520 !important;
+  color: #101820 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-bright-badge--neutral {
+  background-color: #8895a3 !important;
+  border-color: #8895a3 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  :where(
+    .bg-light-green.text-white,
+    .bg-rating-3.text-white,
+    .bg-\[\#AFCA0B\].text-white,
+    .bg-\[\#afca0b\].text-white
+  ) {
+  color: #ffffff !important;
+  background-color: #6a7f15 !important;
+}
+
+html[data-theme="staedteChallengeDark"] :where(.bg-rating-2.text-white) {
+  color: #ffffff !important;
+  background-color: #907808 !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  :where(.bg-green.text-white, .bg-ff-green.text-white, .bg-ff-green\/80.text-white, .btn-primary.text-white) {
+  color: #ffffff !important;
+  background-color: #3d9a58 !important;
+}
+
+html[data-theme="staedteChallengeDark"] :where(.bg-light-blue.text-white, .bg-\[\#16BAE7\].text-white) {
+  color: #ffffff !important;
+  background-color: #2898b0 !important;
+}
+
+html[data-theme="staedteChallengeDark"] :where(.bg-orange.text-white) {
+  color: #ffffff !important;
+  background-color: #c07018 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-sector-icon {
+  filter: none !important;
+  mix-blend-mode: screen !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-filter-pill--active .slk-filter-sector-icon {
+  filter: invert(1) grayscale(1) !important;
+  mix-blend-mode: multiply !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-related-measure-link {
+  background-color: var(--slk-surface-muted);
+  border-color: var(--slk-border-strong);
+  color: var(--slk-blue) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-related-measure-link:hover {
+  background-color: var(--slk-border);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-chart-tabs {
+  background-color: var(--slk-surface-subdued);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-text-strong);
+  gap: 0.125rem;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-chart-tabs .tab {
+  color: var(--slk-text-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-chart-tabs .tab-active {
+  background-color: var(--slk-green-tint) !important;
+  border: 1px solid var(--slk-green);
+  color: var(--slk-text-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-chart-tabs .tab:hover {
+  background-color: var(--slk-surface-muted);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-chart-panel {
+  background-color: var(--slk-surface);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-text);
+}
+
+html[data-theme="staedteChallengeDark"] .stats-page {
+  background-color: var(--slk-page);
+  color: var(--slk-text);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta {
+  border: 1px solid currentColor;
+  color: var(--slk-text-strong);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta :where(h2, h3) {
+  color: inherit !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta--stats {
+  background-color: var(--slk-blue-tint) !important;
+  border-color: var(--slk-blue);
+  color: var(--slk-blue) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta--elections {
+  background-color: var(--slk-green-tint) !important;
+  border-color: var(--slk-green);
+  color: var(--slk-text-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta--stats:hover {
+  background-color: var(--slk-surface-muted);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta--elections:hover {
+  background-color: var(--slk-filter-hover-bg);
+}
+
+.slk-theme-icon--dark {
+  display: none;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-theme-icon--light {
+  display: none !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-theme-icon--dark {
+  display: block !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-municipality-cta-icon,
+html[data-theme="staedteChallengeDark"] .slk-sector-icon,
+html[data-theme="staedteChallengeDark"] .slk-sector-detail-icon {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card {
+  background-color: var(--slk-surface);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-ranking-card-text);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-0 {
+  background-color: var(--slk-rating-0-tint);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-1 {
+  background-color: var(--slk-rating-1-tint);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-2 {
+  background-color: var(--slk-rating-2-tint);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-3 {
+  background-color: var(--slk-rating-3-tint);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card--rating-4 {
+  background-color: var(--slk-rating-4-tint);
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-black,
+html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-gray-700 {
+  color: var(--slk-ranking-card-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-gray-600,
+html[data-theme="staedteChallengeDark"] .slk-ranking-card .text-gray-500 {
+  color: var(--slk-ranking-card-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-progress-label:is(.text-white),
+html[data-theme="staedteChallengeDark"] .bg-rating-1 .slk-progress-label,
+html[data-theme="staedteChallengeDark"] .bg-rating-2 .slk-progress-label,
+html[data-theme="staedteChallengeDark"] .bg-rating-3 .slk-progress-label,
+html[data-theme="staedteChallengeDark"] .bg-rating-4 .slk-progress-label {
+  color: var(--slk-page) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .prose {
+  --tw-prose-body: var(--slk-text);
+  --tw-prose-headings: var(--slk-text-strong);
+  --tw-prose-lead: var(--slk-text);
+  --tw-prose-links: var(--slk-blue);
+  --tw-prose-bold: var(--slk-text-strong);
+  --tw-prose-counters: var(--slk-text-muted);
+  --tw-prose-bullets: var(--slk-text-muted);
+  --tw-prose-hr: var(--slk-border);
+  --tw-prose-quotes: var(--slk-text-strong);
+  --tw-prose-quote-borders: var(--slk-accent-green);
+  --tw-prose-captions: var(--slk-text-muted);
+  --tw-prose-code: var(--slk-text-strong);
+  --tw-prose-pre-code: var(--slk-text-strong);
+  --tw-prose-pre-bg: var(--slk-surface-subdued);
+  --tw-prose-th-borders: var(--slk-border-strong);
+  --tw-prose-td-borders: var(--slk-border);
+}
+
+html[data-theme="staedteChallengeDark"] .prose,
+html[data-theme="staedteChallengeDark"] .has-long-links {
+  color: var(--slk-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .prose
+  :where(h1, h2, h3, h4, h5, h6, strong, th):not(:where(.not-prose, .not-prose *)),
+html[data-theme="staedteChallengeDark"] :where(.project-page, article) :where(h1, h2, h3, h4, h5, h6, strong) {
+  color: var(--slk-text-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"]
+  .prose
+  :where(p, li, blockquote, td, dd, figcaption):not(:where(.not-prose, .not-prose *)),
+html[data-theme="staedteChallengeDark"] :where(.project-page, article) :where(p, li, span, dd, figcaption) {
+  color: var(--slk-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .prose :where(a):not(:where(.not-prose, .not-prose *)),
+html[data-theme="staedteChallengeDark"] :where(.project-page, article) a {
+  color: var(--slk-blue) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .project-page {
+  background-color: var(--slk-blue-tint) !important;
+  color: var(--slk-text);
+}
+
+html[data-theme="staedteChallengeDark"] .project-page .clip-triangle {
+  background-color: var(--slk-surface) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-nav-image-overlay {
+  background-color: var(--slk-backdrop) !important;
+  background-image: none !important;
+}
+
+html[data-theme="staedteChallengeDark"] .shadow-list {
+  box-shadow: 0 3pt 6pt var(--slk-shadow-color);
+}
+
+html[data-theme="staedteChallengeDark"] main,
+html[data-theme="staedteChallengeDark"] .drawer-content {
+  background: var(--slk-page);
+  color: var(--slk-text);
+}
+
+html[data-theme="staedteChallengeDark"] input,
+html[data-theme="staedteChallengeDark"] textarea,
+html[data-theme="staedteChallengeDark"] select {
+  background-color: var(--slk-surface);
+  color: var(--slk-text-strong);
+}
+
+html[data-theme="staedteChallengeDark"] input::placeholder,
+html[data-theme="staedteChallengeDark"] textarea::placeholder {
+  color: var(--slk-text-subtle);
+}
+
+html[data-theme="staedteChallengeDark"] mark {
+  background-color: var(--slk-green-tint);
+  color: var(--slk-text-strong);
+}
+
+html[data-theme="staedteChallengeDark"] .bg-mild-white,
+html[data-theme="staedteChallengeDark"] .bg-base-200 {
+  background-color: var(--slk-page) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-white,
+html[data-theme="staedteChallengeDark"] .bg-base-100,
+html[data-theme="staedteChallengeDark"] .card,
+html[data-theme="staedteChallengeDark"] .modal-box {
+  background-color: var(--slk-surface) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-gray-50,
+html[data-theme="staedteChallengeDark"] .bg-gray-100,
+html[data-theme="staedteChallengeDark"] .bg-slate-100,
+html[data-theme="staedteChallengeDark"] .bg-very-light-blue,
+html[data-theme="staedteChallengeDark"] .bg-stats-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-3-very-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-4-very-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-na-very-light {
+  background-color: var(--slk-surface-subdued) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-gray-200,
+html[data-theme="staedteChallengeDark"] .bg-gray-300,
+html[data-theme="staedteChallengeDark"] .bg-slate-200,
+html[data-theme="staedteChallengeDark"] .bg-rating-0-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-0-very-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-1-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-1-very-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-2-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-2-very-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-3-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-4-light,
+html[data-theme="staedteChallengeDark"] .bg-rating-na-light {
+  background-color: var(--slk-surface-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-white\/10,
+html[data-theme="staedteChallengeDark"] .bg-white\/15,
+html[data-theme="staedteChallengeDark"] .bg-white\/50,
+html[data-theme="staedteChallengeDark"] .bg-white\/80,
+html[data-theme="staedteChallengeDark"] .bg-white\/85,
+html[data-theme="staedteChallengeDark"] .bg-white\/90,
+html[data-theme="staedteChallengeDark"] .bg-white\/95 {
+  background-color: var(--slk-surface) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-gray\/5 {
+  background-color: var(--slk-surface-subdued) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-gray\/10 {
+  background-color: var(--slk-surface-subdued) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-gray\/20 {
+  background-color: var(--slk-surface-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-gray\/30 {
+  background-color: var(--slk-surface-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-gray\/80 {
+  background-color: var(--slk-border-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-light-green\/10 {
+  background-color: theme("colors.solid-light-green-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-light-green\/15 {
+  background-color: theme("colors.solid-light-green-15") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-light-green\/20,
+html[data-theme="staedteChallengeDark"] .bg-primary\/20 {
+  background-color: theme("colors.solid-light-green-20") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#AFCA0B\]\/30,
+html[data-theme="staedteChallengeDark"] .bg-\[\#afca0b\]\/30,
+html[data-theme="staedteChallengeDark"] .bg-light-green\/30 {
+  background-color: theme("colors.solid-light-green-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#1da64a\]\/5,
+html[data-theme="staedteChallengeDark"] .bg-ff-green\/5 {
+  background-color: theme("colors.solid-ff-green-05") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#1da64a\]\/10,
+html[data-theme="staedteChallengeDark"] .bg-ff-green\/10 {
+  background-color: theme("colors.solid-ff-green-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-ff-green\/20 {
+  background-color: theme("colors.solid-ff-green-20") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-ff-green\/30 {
+  background-color: theme("colors.solid-ff-green-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-ff-green\/80 {
+  background-color: theme("colors.solid-ff-green-80") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-green\/10 {
+  background-color: theme("colors.solid-green-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-olive-green\/10 {
+  background-color: theme("colors.solid-olive-green-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-olive-green\/20 {
+  background-color: theme("colors.solid-olive-green-20") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-rating-3\/50 {
+  background-color: theme("colors.solid-light-green-50") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-rating-4\/10 {
+  background-color: theme("colors.solid-rating-4-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-light-blue\/30 {
+  background-color: theme("colors.solid-light-blue-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-stats-dark\/30 {
+  background-color: theme("colors.solid-stats-dark-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-stats-light\/50 {
+  background-color: theme("colors.solid-stats-light-50") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#006e94\]\/5 {
+  background-color: theme("colors.solid-stats-dark-05") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#006e94\]\/10 {
+  background-color: theme("colors.solid-stats-dark-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-blue-50,
+html[data-theme="staedteChallengeDark"] .bg-blue-100,
+html[data-theme="staedteChallengeDark"] .bg-blue-200,
+html[data-theme="staedteChallengeDark"] .bg-indigo-50,
+html[data-theme="staedteChallengeDark"] .bg-indigo-100,
+html[data-theme="staedteChallengeDark"] .bg-very-light-blue\/60 {
+  background-color: var(--slk-blue-tint) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-amber-50,
+html[data-theme="staedteChallengeDark"] .bg-amber-100,
+html[data-theme="staedteChallengeDark"] .bg-yellow-50,
+html[data-theme="staedteChallengeDark"] .bg-yellow-100 {
+  background-color: var(--slk-orange-tint) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-green-100,
+html[data-theme="staedteChallengeDark"] .bg-green-200 {
+  background-color: var(--slk-green-tint) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .from-blue-50 {
+  --tw-gradient-from: var(--slk-surface-subdued) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: var(--slk-surface-subdued) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .to-indigo-50 {
+  --tw-gradient-to: var(--slk-surface-muted) var(--tw-gradient-to-position) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#6b7280\]\/10 {
+  background-color: theme("colors.solid-blue-gray-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#6b7280\]\/25 {
+  background-color: theme("colors.solid-blue-gray-25") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#6b7280\]\/35 {
+  background-color: theme("colors.solid-blue-gray-35") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-orange\/10 {
+  background-color: theme("colors.solid-orange-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-orange\/30 {
+  background-color: theme("colors.solid-orange-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-\[\#fffbeb\]\/40 {
+  background-color: theme("colors.solid-amber50-40") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-red\/5 {
+  background-color: theme("colors.solid-red-05") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .bg-red\/10 {
+  background-color: theme("colors.solid-red-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-neutral,
+html[data-theme="staedteChallengeDark"] .text-black,
+html[data-theme="staedteChallengeDark"] .text-gray,
+html[data-theme="staedteChallengeDark"] .text-gray-900,
+html[data-theme="staedteChallengeDark"] .text-gray-800,
+html[data-theme="staedteChallengeDark"] .text-gray-700 {
+  color: var(--slk-text-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-gray-600,
+html[data-theme="staedteChallengeDark"] .text-gray-500,
+html[data-theme="staedteChallengeDark"] .text-mid-gray {
+  color: var(--slk-text-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-gray-400,
+html[data-theme="staedteChallengeDark"] .text-gray-300 {
+  color: var(--slk-text-subtle) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-gray\/40 {
+  color: theme("colors.solid-gray-40") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-gray\/50 {
+  color: theme("colors.solid-gray-50") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-gray\/60 {
+  color: theme("colors.solid-gray-60") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-gray\/80 {
+  color: theme("colors.solid-gray-80") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-black\/50 {
+  color: theme("colors.solid-black-50") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-green,
+html[data-theme="staedteChallengeDark"] .text-olive-green,
+html[data-theme="staedteChallengeDark"] .text-ff-green,
+html[data-theme="staedteChallengeDark"] .text-\[\#1da64a\],
+html[data-theme="staedteChallengeDark"] .text-\[\#AFCA0B\],
+html[data-theme="staedteChallengeDark"] .text-\[\#afca0b\],
+html[data-theme="staedteChallengeDark"] .text-rating-3,
+html[data-theme="staedteChallengeDark"] .text-rating-4 {
+  color: var(--slk-olive-green) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-stats-dark,
+html[data-theme="staedteChallengeDark"] .text-light-blue,
+html[data-theme="staedteChallengeDark"] .text-\[\#006e94\],
+html[data-theme="staedteChallengeDark"] .text-\[\#16BAE7\],
+html[data-theme="staedteChallengeDark"] .text-\[\#1a4a6e\],
+html[data-theme="staedteChallengeDark"] .text-blue-500,
+html[data-theme="staedteChallengeDark"] .text-blue-600,
+html[data-theme="staedteChallengeDark"] .text-blue-700,
+html[data-theme="staedteChallengeDark"] .text-blue-800,
+html[data-theme="staedteChallengeDark"] .text-indigo-800 {
+  color: var(--slk-blue) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-stats-dark\/60 {
+  color: theme("colors.solid-stats-dark-60") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-stats-dark\/80 {
+  color: theme("colors.solid-stats-dark-80") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-rating-4\/60 {
+  color: theme("colors.solid-rating-4-60") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-rating-4\/90 {
+  color: theme("colors.solid-rating-4-90") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-orange,
+html[data-theme="staedteChallengeDark"] .text-amber-500,
+html[data-theme="staedteChallengeDark"] .text-amber-600,
+html[data-theme="staedteChallengeDark"] .text-amber-700,
+html[data-theme="staedteChallengeDark"] .text-amber-800,
+html[data-theme="staedteChallengeDark"] .text-amber-900,
+html[data-theme="staedteChallengeDark"] .text-orange-700,
+html[data-theme="staedteChallengeDark"] .text-orange-800,
+html[data-theme="staedteChallengeDark"] .text-yellow-700,
+html[data-theme="staedteChallengeDark"] .text-yellow-800 {
+  color: var(--slk-warning-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-green-800 {
+  color: var(--slk-success-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-red,
+html[data-theme="staedteChallengeDark"] .text-red-500,
+html[data-theme="staedteChallengeDark"] .text-red-600 {
+  color: var(--slk-red) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .text-white\/40,
+html[data-theme="staedteChallengeDark"] .text-white\/50,
+html[data-theme="staedteChallengeDark"] .text-white\/60,
+html[data-theme="staedteChallengeDark"] .text-white\/70,
+html[data-theme="staedteChallengeDark"] .text-white\/80 {
+  color: theme("colors.white") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .placeholder-gray-400::placeholder,
+html[data-theme="staedteChallengeDark"] .placeholder-gray-600::placeholder {
+  color: var(--slk-text-subtle) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-gray,
+html[data-theme="staedteChallengeDark"] .border-gray-50,
+html[data-theme="staedteChallengeDark"] .border-gray-100,
+html[data-theme="staedteChallengeDark"] .border-gray-200,
+html[data-theme="staedteChallengeDark"] .border-gray-300 {
+  border-color: var(--slk-border) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-blue-100,
+html[data-theme="staedteChallengeDark"] .border-blue-200,
+html[data-theme="staedteChallengeDark"] .border-blue-600,
+html[data-theme="staedteChallengeDark"] .border-indigo-100,
+html[data-theme="staedteChallengeDark"] .border-amber-200,
+html[data-theme="staedteChallengeDark"] .border-yellow-200 {
+  border-color: var(--slk-border-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-gray\/10 {
+  border-color: theme("colors.solid-gray-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-gray\/20 {
+  border-color: theme("colors.solid-gray-20") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-gray\/30 {
+  border-color: theme("colors.solid-gray-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-gray\/60 {
+  border-color: theme("colors.solid-gray-60") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-\[\#16BAE7\]\/20 {
+  border-color: theme("colors.solid-light-blue-20") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-\[\#16BAE7\]\/60 {
+  border-color: theme("colors.solid-light-blue-60") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-\[\#AFCA0B\]\/20,
+html[data-theme="staedteChallengeDark"] .border-green\/20 {
+  border-color: theme("colors.solid-light-green-20") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-\[\#AFCA0B\]\/30,
+html[data-theme="staedteChallengeDark"] .border-light-green\/30 {
+  border-color: theme("colors.solid-light-green-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-light-green\/40 {
+  border-color: theme("colors.solid-light-green-40") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-light-blue\/30 {
+  border-color: theme("colors.solid-light-blue-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-ff-green\/20 {
+  border-color: theme("colors.solid-ff-green-20") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-ff-green\/30 {
+  border-color: theme("colors.solid-ff-green-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-stats-dark\/20 {
+  border-color: theme("colors.solid-stats-dark-20") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-olive-green\/30 {
+  border-color: theme("colors.solid-olive-green-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .border-white\/20,
+html[data-theme="staedteChallengeDark"] .border-white\/25,
+html[data-theme="staedteChallengeDark"] .border-white\/30 {
+  border-color: theme("colors.white") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .ring-gray-200 {
+  --tw-ring-color: var(--slk-border) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .ring-light-green\/30 {
+  --tw-ring-color: theme("colors.solid-light-green-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .ring-white\/20,
+html[data-theme="staedteChallengeDark"] .ring-white\/25 {
+  --tw-ring-color: theme("colors.white") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--slk-border) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:bg-gray-50:hover,
+html[data-theme="staedteChallengeDark"] .hover\:bg-gray-100:hover,
+html[data-theme="staedteChallengeDark"] .hover\:bg-gray-200:hover,
+html[data-theme="staedteChallengeDark"] .hover\:bg-\[\#E8F7FD\]:hover,
+html[data-theme="staedteChallengeDark"] .hover\:bg-\[\#F5F9E6\]:hover,
+html[data-theme="staedteChallengeDark"] .hover\:bg-\[\#f2f2f2\]:hover,
+html[data-theme="staedteChallengeDark"] .hover\:bg-white:hover {
+  background-color: var(--slk-surface-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:bg-light-green\/10:hover {
+  background-color: theme("colors.solid-light-green-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:bg-ff-green\/5:hover {
+  background-color: theme("colors.solid-ff-green-05") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:bg-ff-green\/10:hover {
+  background-color: theme("colors.solid-ff-green-10") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:bg-gray\/5:hover {
+  background-color: theme("colors.solid-gray-05") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:bg-white\/15:hover,
+html[data-theme="staedteChallengeDark"] .hover\:bg-white\/20:hover {
+  background-color: var(--slk-surface-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:border-gray-300:hover {
+  border-color: var(--slk-border-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:border-ff-green\/30:hover {
+  border-color: theme("colors.solid-ff-green-30") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:border-\[\#16BAE7\]\/60:hover {
+  border-color: theme("colors.solid-light-blue-60") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:text-gray-900:hover,
+html[data-theme="staedteChallengeDark"] .hover\:text-gray-800:hover,
+html[data-theme="staedteChallengeDark"] .hover\:text-gray-700:hover,
+html[data-theme="staedteChallengeDark"] .hover\:text-gray-600:hover {
+  color: var(--slk-text-strong) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:text-white\/80:hover {
+  color: theme("colors.white") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .hover\:text-primary\/70:hover {
+  color: theme("colors.solid-light-green-70") !important;
+}
+
+html[data-theme="staedteChallengeDark"] .kbd {
+  background-color: var(--slk-surface-subdued);
+  border-color: var(--slk-border);
+  color: var(--slk-text-muted);
+}
+
+/* ── Stats page dark mode overrides ────────────────────────────────────────── */
+/* KPI cards */
+html[data-theme="staedteChallengeDark"] .stats-page .text-\[\#1a4a6e\] {
+  color: var(--slk-blue) !important;
+}
+html[data-theme="staedteChallengeDark"] .stats-page .border-\[\#1a4a6e\] {
+  border-color: var(--slk-blue) !important;
+}
+/* KPI card backgrounds and filter-selection buttons with bg-white */
+html[data-theme="staedteChallengeDark"] .stats-page .shadow-list.bg-white {
+  background-color: var(--slk-surface) !important;
+  color: var(--slk-text) !important;
+}
+html[data-theme="staedteChallengeDark"] .stats-page .text-gray-500 {
+  color: var(--slk-text-muted) !important;
+}
+/* Filter tab buttons using border-[#1a4a6e] text-[#1a4a6e] */
+html[data-theme="staedteChallengeDark"] .stats-page .hover\:bg-\[\#1a4a6e\]:hover {
+  background-color: var(--slk-blue) !important;
+}
+/* Municipality link button */
+html[data-theme="staedteChallengeDark"] .stats-page .bg-white.border-\[\#1a4a6e\] {
+  background-color: var(--slk-surface) !important;
 }
