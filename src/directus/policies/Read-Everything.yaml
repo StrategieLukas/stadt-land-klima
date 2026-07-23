@@ -134,6 +134,7 @@ permissions:
       - already_generated_questions
       - already_sent_mails
       - candidate_email_reply_to
+      - candidate_email_cc
       - custom_logo
       - date_created
       - date_updated
