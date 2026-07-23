@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.invalid_submission
+value: Die Einreichung ist ungültig. Bitte prüfe deine Eingaben und versuche es erneut.

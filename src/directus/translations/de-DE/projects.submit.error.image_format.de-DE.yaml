@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.image_format
+value: Bitte lade ein Bild im Format JPG, PNG oder WebP hoch.

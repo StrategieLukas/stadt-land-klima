@@ -1,0 +1,3 @@
+language: en-GB
+key: projects.submit.error.image_invalid
+value: The image file could not be validated. Please select a different file.

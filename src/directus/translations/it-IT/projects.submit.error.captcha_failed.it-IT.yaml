@@ -1,0 +1,3 @@
+language: it-IT
+key: projects.submit.error.captcha_failed
+value: La verifica CAPTCHA non è riuscita. Ricarica la pagina e riprova.

@@ -1,0 +1,3 @@
+language: it-IT
+key: projects.submit.error.image_invalid
+value: Non è stato possibile convalidare il file immagine. Seleziona un altro file.

@@ -1,11 +1,18 @@
 import { randomBytes } from "node:crypto";
 import type { H3Event } from "h3";
+import {
+  ARTICLE_SUBMISSION_LIMITS,
+  ARTICLE_SUBMISSION_MAX_IMAGE_BYTES,
+  ARTICLE_SUBMISSION_MAX_MULTIPART_BYTES,
+  ARTICLE_SUBMISSION_MAX_SECTORS,
+  type ArticleSubmissionErrorCode,
+  type ArticleSubmissionErrorData,
+  type ArticleSubmissionTextField,
+} from "~/shared/articleSubmission";
 import { createSlug } from "~/shared/slugify.js";
 import { verifyAltcha } from "../utils/verifyAltcha";
 
 const ARTICLE_IMAGE_FOLDER_ID = "82d3f1c5-9a8d-4aeb-8335-ca9330a43b90";
-const MAX_MULTIPART_BYTES = 7 * 1024 * 1024;
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const ALLOWED_STATES = new Set([
   "Baden-Württemberg",
@@ -77,18 +84,50 @@ type ArticlePayload = {
 
 type NotificationValue = string | string[] | null | undefined;
 
-function submissionError(statusCode: number, message: string) {
-  return createError({ statusCode, message });
+function submissionStatusMessage(statusCode: number) {
+  if (statusCode === 400) return "Invalid submission";
+  if (statusCode === 413) return "Submission too large";
+  if (statusCode === 503) return "Submission service unavailable";
+  return "Submission failed";
 }
 
-function getTextField(parts: MultipartPart[], name: string, maxLength: number, required = false) {
+function submissionError(
+  statusCode: number,
+  errorCode: ArticleSubmissionErrorCode,
+  message: string,
+  details: Omit<ArticleSubmissionErrorData, "errorCode"> = {},
+) {
+  return createError({
+    statusCode,
+    statusMessage: submissionStatusMessage(statusCode),
+    message,
+    data: { errorCode, ...details } satisfies ArticleSubmissionErrorData,
+  });
+}
+
+function getTextField(parts: MultipartPart[], name: ArticleSubmissionTextField, required = false) {
   const part = parts.find((item) => item.name === name && !item.filename);
-  const value = part?.data.toString("utf8").replace(/\0/g, "").trim() ?? "";
+  // Browsers normalize textarea values to LF for maxlength checks, but multipart
+  // encoding converts line endings to CRLF. Normalize them back before measuring.
+  const value = part?.data.toString("utf8").replace(/\0/g, "").replace(/\r\n?/g, "\n").trim() ?? "";
   if (required && !value) {
-    throw submissionError(400, "Bitte alle Pflichtfelder ausfüllen.");
+    throw submissionError(400, "required_fields", "Bitte alle Pflichtfelder ausfüllen.");
+  }
+  const maxLength = ARTICLE_SUBMISSION_LIMITS[name];
+  if (value.length > maxLength) {
+    throw submissionError(400, "field_too_long", `${name} ist zu lang.`, { field: name, maxLength });
+  }
+  return value;
+}
+
+function getInternalTextField(parts: MultipartPart[], name: string, maxLength: number, required = false) {
+  const part = parts.find((item) => item.name === name && !item.filename);
+  const value = part?.data.toString("utf8").replace(/\0/g, "").replace(/\r\n?/g, "\n").trim() ?? "";
+  if (required && !value) {
+    throw submissionError(400, "required_fields", "Bitte alle Pflichtfelder ausfüllen.");
   }
   if (value.length > maxLength) {
-    throw submissionError(400, "Ein Feld ist zu lang.");
+    throw submissionError(400, "invalid_submission", `${name} ist zu lang.`);
   }
   return value;
 }
@@ -102,36 +141,42 @@ function parseSectors(rawValue: string) {
   try {
     values = JSON.parse(rawValue);
   } catch {
-    throw submissionError(400, "Ungültige Sektoren.");
+    throw submissionError(400, "sectors_invalid", "Ungültige Sektoren.");
   }
   if (!Array.isArray(values) || values.length === 0) {
-    throw submissionError(400, "Bitte mindestens einen Sektor auswählen.");
+    throw submissionError(400, "sectors_required", "Bitte mindestens einen Sektor auswählen.");
   }
   const sectors = values.map((value) => String(value));
-  if (sectors.length > 5 || sectors.some((value) => !ALLOWED_SECTORS.has(value))) {
-    throw submissionError(400, "Ungültige Sektoren.");
+  if (sectors.length > ARTICLE_SUBMISSION_MAX_SECTORS) {
+    throw submissionError(400, "sectors_too_many", "Zu viele Sektoren ausgewählt.", {
+      maxSectors: ARTICLE_SUBMISSION_MAX_SECTORS,
+    });
+  }
+  if (sectors.some((value) => !ALLOWED_SECTORS.has(value))) {
+    throw submissionError(400, "sectors_invalid", "Ungültige Sektoren.");
   }
   return sectors;
 }
 
-function normalizeOptionalUrl(value: string, fieldLabel: string, hostnamePattern?: RegExp) {
+function normalizeOptionalUrl(value: string, field: "link" | "instagram" | "linkedin", hostnamePattern?: RegExp) {
   if (!value) return null;
   const candidate = /^https?:\/\//i.test(value) ? value : `https://${value}`;
   let url: URL;
   try {
     url = new URL(candidate);
   } catch {
-    throw submissionError(400, `${fieldLabel} ist keine gültige URL.`);
+    throw submissionError(400, "url_invalid", `${field} ist keine gültige URL.`, { field });
   }
   if (!["http:", "https:"].includes(url.protocol)) {
-    throw submissionError(400, `${fieldLabel} ist keine gültige URL.`);
+    throw submissionError(400, "url_invalid", `${field} ist keine gültige URL.`, { field });
   }
   if (hostnamePattern && !hostnamePattern.test(url.hostname)) {
-    throw submissionError(400, `${fieldLabel} ist keine gültige URL.`);
+    throw submissionError(400, "url_invalid", `${field} ist keine gültige URL.`, { field });
   }
   const normalized = url.toString();
-  if (normalized.length > 255) {
-    throw submissionError(400, `${fieldLabel} ist zu lang.`);
+  const maxLength = ARTICLE_SUBMISSION_LIMITS[field];
+  if (normalized.length > maxLength) {
+    throw submissionError(400, "url_too_long", `${field} ist zu lang.`, { field, maxLength });
   }
   return normalized;
 }
@@ -167,13 +212,15 @@ function hasValidImageSignature(part: MultipartPart) {
 
 function validateImage(part: MultipartPart) {
   if (!part.type || !ALLOWED_IMAGE_TYPES.has(part.type)) {
-    throw submissionError(400, "Bitte ein Bild im Format JPG, PNG oder WebP hochladen.");
+    throw submissionError(400, "image_format", "Bitte ein Bild im Format JPG, PNG oder WebP hochladen.");
   }
-  if (part.data.length > MAX_IMAGE_BYTES) {
-    throw submissionError(413, "Das Bild ist zu groß.");
+  if (part.data.length > ARTICLE_SUBMISSION_MAX_IMAGE_BYTES) {
+    throw submissionError(413, "image_too_large", "Das Bild ist zu groß.", {
+      maxSizeMb: ARTICLE_SUBMISSION_MAX_IMAGE_BYTES / 1024 / 1024,
+    });
   }
   if (!hasValidImageSignature(part)) {
-    throw submissionError(400, "Die Bilddatei konnte nicht validiert werden.");
+    throw submissionError(400, "image_invalid", "Die Bilddatei konnte nicht validiert werden.");
   }
 }
 
@@ -263,7 +310,7 @@ async function readMultipartParts(event: H3Event) {
     /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType)?.[1] ??
     /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType)?.[2];
   if (!boundary) {
-    throw submissionError(400, "Ungültige Einreichung.");
+    throw submissionError(400, "invalid_submission", "Ungültige Einreichung.");
   }
 
   const body = await readRequestBuffer(event);
@@ -314,56 +361,56 @@ async function readMultipartParts(event: H3Event) {
   return parts;
 }
 
-export default defineEventHandler(async (event) => {
+async function submitArticle(event: H3Event) {
   const contentLength = getContentLength(event);
-  if (contentLength > MAX_MULTIPART_BYTES) {
-    throw submissionError(413, "Die Einreichung ist zu groß.");
+  if (contentLength > ARTICLE_SUBMISSION_MAX_MULTIPART_BYTES) {
+    throw submissionError(413, "submission_too_large", "Die Einreichung ist zu groß.");
   }
 
   const parts = await readMultipartParts(event);
   if (!parts?.length) {
-    throw submissionError(400, "Ungültige Einreichung.");
+    throw submissionError(400, "invalid_submission", "Ungültige Einreichung.");
   }
 
   const config = useRuntimeConfig();
   const hmacKey = (config.altchaSecret as string) || "dev-secret-change-in-production";
-  const altcha = getTextField(parts, "altcha", 4096, true);
+  const altcha = getInternalTextField(parts, "altcha", 4096, true);
 
   if (!verifyAltcha(altcha, hmacKey)) {
-    throw submissionError(400, "CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.");
+    throw submissionError(
+      400,
+      "captcha_failed",
+      "CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.",
+    );
   }
 
-  const title = getTextField(parts, "title", 180, true);
-  const subtitle = getTextField(parts, "subtitle", 255);
-  const author = getTextField(parts, "author", 120, true);
-  const submitterEmail = getTextField(parts, "submitterEmail", 255, true).toLowerCase();
-  const municipalityName = getTextField(parts, "municipalityName", 120, true);
-  const state = getTextField(parts, "state", 80);
-  const abstract = getTextField(parts, "abstract", 1500, true);
-  const articleText = getTextField(parts, "articleText", 10000, true);
-  const imageCredits = getTextField(parts, "imageCredits", 255, true);
-  const imageRightsConfirmed = getTextField(parts, "imageRightsConfirmed", 10) === "true";
-  const sectors = parseSectors(getTextField(parts, "sectors", 1000, true));
-  const link = normalizeOptionalUrl(getTextField(parts, "link", 255), "Projektlink");
-  const instagram = normalizeOptionalUrl(
-    getTextField(parts, "instagram", 255),
-    "Instagram-Link",
-    /(^|\.)instagram\.com$/i,
-  );
-  const linkedin = normalizeOptionalUrl(getTextField(parts, "linkedin", 255), "LinkedIn-Link", /(^|\.)linkedin\.com$/i);
+  const title = getTextField(parts, "title", true);
+  const subtitle = getTextField(parts, "subtitle");
+  const author = getTextField(parts, "author", true);
+  const submitterEmail = getTextField(parts, "submitterEmail", true).toLowerCase();
+  const municipalityName = getTextField(parts, "municipalityName", true);
+  const state = getTextField(parts, "state");
+  const abstract = getTextField(parts, "abstract", true);
+  const articleText = getTextField(parts, "articleText", true);
+  const imageCredits = getTextField(parts, "imageCredits", true);
+  const imageRightsConfirmed = getInternalTextField(parts, "imageRightsConfirmed", 10) === "true";
+  const sectors = parseSectors(getInternalTextField(parts, "sectors", 1000, true));
+  const link = normalizeOptionalUrl(getTextField(parts, "link"), "link");
+  const instagram = normalizeOptionalUrl(getTextField(parts, "instagram"), "instagram", /(^|\.)instagram\.com$/i);
+  const linkedin = normalizeOptionalUrl(getTextField(parts, "linkedin"), "linkedin", /(^|\.)linkedin\.com$/i);
   const image = getImagePart(parts);
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submitterEmail)) {
-    throw submissionError(400, "Ungültige E-Mail-Adresse.");
+    throw submissionError(400, "email_invalid", "Ungültige E-Mail-Adresse.", { field: "submitterEmail" });
   }
   if (state && !ALLOWED_STATES.has(state)) {
-    throw submissionError(400, "Ungültiges Bundesland.");
+    throw submissionError(400, "state_invalid", "Ungültiges Bundesland.", { field: "state" });
   }
   if (!image) {
-    throw submissionError(400, "Bitte ein Bild hochladen.");
+    throw submissionError(400, "image_required", "Bitte ein Bild hochladen.");
   }
   if (!imageRightsConfirmed) {
-    throw submissionError(400, "Bitte bestätige die Bildrechte und den Bildnachweis.");
+    throw submissionError(400, "image_rights_required", "Bitte bestätige die Bildrechte und den Bildnachweis.");
   }
   validateImage(image);
 
@@ -371,7 +418,19 @@ export default defineEventHandler(async (event) => {
   const adminToken = config.directusAdminToken as string | undefined;
   if (!adminToken) {
     console.error("[submit-article] DIRECTUS_ADMIN_TOKEN not configured");
-    throw submissionError(503, "Einreichung kann momentan nicht gespeichert werden. Bitte versuche es später erneut.");
+    throw submissionError(
+      503,
+      "service_unavailable",
+      "Einreichung kann momentan nicht gespeichert werden. Bitte versuche es später erneut.",
+    );
+  }
+  if (adminToken === config.public.directusToken) {
+    console.error("[submit-article] DIRECTUS_ADMIN_TOKEN must not be the public frontend token");
+    throw submissionError(
+      503,
+      "service_unavailable",
+      "Einreichung kann momentan nicht gespeichert werden. Bitte versuche es später erneut.",
+    );
   }
 
   const headers = { Authorization: `Bearer ${adminToken}` };
@@ -468,13 +527,50 @@ export default defineEventHandler(async (event) => {
     }
 
     return { success: true, id: article.data.id, status: article.data.status };
-  } catch (err) {
+  } catch (err: any) {
     if (imageId) {
       await $fetch(`${directusUrl}/files/${imageId}`, { method: "DELETE", headers }).catch((cleanupErr) => {
         console.warn("[submit-article] Failed to clean up uploaded image after article error:", cleanupErr);
       });
     }
-    console.error("[submit-article] Directus error:", err);
-    throw submissionError(502, "Einreichung konnte nicht gespeichert werden. Bitte versuche es später erneut.");
+    const directusError = err?.data?.errors?.[0];
+    const directusCode = directusError?.extensions?.code;
+    const directusStatus = err?.statusCode ?? err?.response?.status;
+    console.error("[submit-article] Directus error:", {
+      status: directusStatus,
+      code: directusCode,
+      message: directusError?.message ?? err?.message,
+    });
+    if (directusStatus === 401 || directusStatus === 403 || directusCode === "FORBIDDEN") {
+      console.error("[submit-article] DIRECTUS_ADMIN_TOKEN lacks permission to create articles or files");
+      throw submissionError(
+        503,
+        "service_unavailable",
+        "Einreichung kann momentan nicht gespeichert werden. Bitte versuche es später erneut.",
+      );
+    }
+    throw submissionError(
+      502,
+      "save_failed",
+      "Einreichung konnte nicht gespeichert werden. Bitte versuche es später erneut.",
+    );
+  }
+}
+
+export default defineEventHandler(async (event) => {
+  try {
+    return await submitArticle(event);
+  } catch (err: any) {
+    const errorData = err?.data as ArticleSubmissionErrorData | undefined;
+    if (errorData?.errorCode) {
+      const statusCode = Number(err.statusCode) || 500;
+      event.node.res.statusCode = statusCode;
+      event.node.res.statusMessage = err.statusMessage || submissionStatusMessage(statusCode);
+      return {
+        success: false,
+        error: errorData,
+      };
+    }
+    throw err;
   }
 });
