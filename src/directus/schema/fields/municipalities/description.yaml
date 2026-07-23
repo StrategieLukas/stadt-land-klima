@@ -23,7 +23,6 @@ meta:
       - numlist
       - table
       - empty
-    trim: true
   readonly: false
   required: false
   searchable: true

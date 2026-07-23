@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: input
   note: User-visible name for this library item
-  options: null
+  options:
+    trim: true
   readonly: false
   required: true
   searchable: true

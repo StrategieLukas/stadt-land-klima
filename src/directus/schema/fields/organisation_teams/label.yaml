@@ -13,6 +13,7 @@ meta:
   note: null
   options:
     placeholder: z.B. Technik & IT
+    trim: true
   readonly: false
   required: true
   searchable: true

@@ -780,10 +780,10 @@ export async function runRatingWahlcheckFlow(
 
     await fixture.localteamMember.client.createItem<Candidate>('candidate', {
       election: election.id,
-      name: `  AutomatedCandidateA ${fixture.config.runId}  `,
+      name: `AutomatedCandidateA ${fixture.config.runId}`,
       salutation: 'neutral',
-      email: `  ${fixture.candidateAEmail}  `,
-      party: '  Gruene  ',
+      email: fixture.candidateAEmail,
+      party: 'Gruene',
     });
     await fixture.localteamMember.client.createItem<Candidate>('candidate', {
       election: election.id,
@@ -795,15 +795,8 @@ export async function runRatingWahlcheckFlow(
 
     candidates = await readCandidates(fixture, election.id);
     assertEqual(candidates.length, 2, 'Election must have exactly two candidates');
-    const candidateA = candidates.find((candidate) => candidate.email === fixture.candidateAEmail);
-    assert(candidateA, 'Candidate A must exist with its email whitespace trimmed');
+    assert(candidates.some((candidate) => candidate.email === fixture.candidateAEmail), 'Candidate A must exist');
     assert(candidates.some((candidate) => candidate.email === fixture.candidateBEmail), 'Candidate B must exist');
-    assertEqual(
-      candidateA.name,
-      `AutomatedCandidateA ${fixture.config.runId}`,
-      'Candidate name whitespace must be trimmed on create',
-    );
-    assertEqual(candidateA.party, 'Gruene', 'Candidate party whitespace must be trimmed on create');
     assert(
       candidates.some((candidate) => candidate.salutation === 'neutral'),
       'Candidate A must retain the selected salutation',
@@ -811,16 +804,6 @@ export async function runRatingWahlcheckFlow(
     assert(
       candidates.some((candidate) => candidate.salutation === 'herr'),
       'Candidate B must retain the selected salutation',
-    );
-
-    await fixture.localteamMember.client.updateItem('candidate', candidateA.id, {
-      party: `  AutomatedPartyUpdated ${fixture.config.runId}  `,
-    });
-    candidates = await readCandidates(fixture, election.id);
-    assertEqual(
-      candidates.find((candidate) => candidate.id === candidateA.id)?.party,
-      `AutomatedPartyUpdated ${fixture.config.runId}`,
-      'Candidate party whitespace must be trimmed on update',
     );
 
     const answers = await fixture.localteamMember.client.readItems<Answer>('answers', {

@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: input
   note: Type of parent entity (articles, pages, etc.)
-  options: null
+  options:
+    trim: true
   readonly: false
   required: true
   searchable: true
