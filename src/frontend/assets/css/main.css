@@ -187,12 +187,12 @@ html[data-theme="staedteChallengeDark"] {
   --slk-ranking-card-muted: #344054;
   --slk-municipalities-panel-bg: #203821;
   --slk-filter-panel-bg: #203821;
-  --slk-filter-accent: #e7f46f;
-  --slk-filter-active-bg: #b9efc8;
-  --slk-filter-active-text: #101820;
+  --slk-filter-accent: #8faa10;
+  --slk-filter-active-bg: #8faa10;
+  --slk-filter-active-text: #ffffff;
   --slk-filter-inactive-bg: #17212b;
-  --slk-filter-inactive-text: #e7f46f;
-  --slk-filter-inactive-border: #e7f46f;
+  --slk-filter-inactive-text: #b0c520;
+  --slk-filter-inactive-border: #b0c520;
   --slk-filter-hover-bg: #263f28;
   --slk-warning-text: #ffd199;
   --slk-success-text: #bfe9a4;
@@ -226,6 +226,36 @@ html[data-theme="staedteChallengeDark"] .bk-main-canvas {
 
 html[data-theme="staedteChallengeDark"] body {
   color: var(--slk-text);
+}
+
+html[data-theme="staedteChallengeDark"] .leaflet-control-zoom,
+html[data-theme="staedteChallengeDark"] .leaflet-bar,
+html[data-theme="staedteChallengeDark"] .leaflet-control-attribution {
+  border-color: var(--slk-border-strong) !important;
+  background-color: color-mix(in srgb, var(--slk-surface) 92%, transparent) !important;
+  color: var(--slk-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .leaflet-control-zoom a,
+html[data-theme="staedteChallengeDark"] .leaflet-bar a,
+html[data-theme="staedteChallengeDark"] .leaflet-control-attribution a {
+  border-color: var(--slk-border-strong) !important;
+  background-color: color-mix(in srgb, var(--slk-surface) 94%, transparent) !important;
+  color: var(--slk-text) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .leaflet-control-zoom a:hover,
+html[data-theme="staedteChallengeDark"] .leaflet-bar a:hover {
+  background-color: var(--slk-surface-muted) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .leaflet-control-attribution {
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--slk-shadow-color) 35%, transparent);
+}
+
+html[data-theme="staedteChallengeDark"] .leaflet-control-attribution,
+html[data-theme="staedteChallengeDark"] .leaflet-control-attribution a {
+  color: var(--slk-muted) !important;
 }
 
 html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
@@ -265,6 +295,17 @@ html[data-theme="staedteChallengeDark"] .slk-modal-backdrop {
   --slk-filter-hover-bg: #f2f2f2;
 }
 
+/* Lime/yellow-green accent, brand-green selection — municipalities page */
+.slk-filter-theme-lime {
+  --slk-filter-panel-bg: #f5f9e6;
+  --slk-filter-accent: #afca0b;
+  --slk-filter-active-bg: #afca0b;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #ffffff;
+  --slk-filter-inactive-text: #6b8000;
+  --slk-filter-inactive-border: #afca0b;
+  --slk-filter-hover-bg: #f5f9e6;
+}
 .slk-filter-theme-stats {
   --slk-filter-panel-bg: #f9fafb;
   --slk-filter-accent: #6b7280;
@@ -309,6 +350,16 @@ html[data-theme="staedteChallengeDark"] .slk-filter-theme-neutral {
   --slk-filter-hover-bg: #2a3947;
 }
 
+html[data-theme="staedteChallengeDark"] .slk-filter-theme-lime {
+  --slk-filter-panel-bg: #1a2e1b;
+  --slk-filter-accent: #8faa10;
+  --slk-filter-active-bg: #8faa10;
+  --slk-filter-active-text: #ffffff;
+  --slk-filter-inactive-bg: #17212b;
+  --slk-filter-inactive-text: #b0c520;
+  --slk-filter-inactive-border: #b0c520;
+  --slk-filter-hover-bg: #263f28;
+}
 html[data-theme="staedteChallengeDark"] .slk-filter-theme-stats {
   --slk-filter-panel-bg: #1f2b36;
   --slk-filter-accent: #b8c4cc;
@@ -539,7 +590,7 @@ html[data-theme="staedteChallengeDark"] .slk-related-measure-link:hover {
 
 html[data-theme="staedteChallengeDark"] .slk-chart-tabs {
   background-color: var(--slk-surface-subdued);
-  border: 1px solid var(--slk-border);
+  border: 1px solid var(--slk-surface-muted);
   color: var(--slk-text-strong);
   gap: 0.125rem;
 }
@@ -560,7 +611,7 @@ html[data-theme="staedteChallengeDark"] .slk-chart-tabs .tab:hover {
 
 html[data-theme="staedteChallengeDark"] .slk-chart-panel {
   background-color: var(--slk-surface);
-  border: 1px solid var(--slk-border);
+  border: 1px solid var(--slk-surface-muted);
   color: var(--slk-text);
 }
 
@@ -736,6 +787,7 @@ html[data-theme="staedteChallengeDark"] input,
 html[data-theme="staedteChallengeDark"] textarea,
 html[data-theme="staedteChallengeDark"] select {
   background-color: var(--slk-surface);
+  border-color: var(--slk-border);
   color: var(--slk-text-strong);
 }
 
@@ -1262,4 +1314,50 @@ html[data-theme="staedteChallengeDark"] .stats-page .hover\:bg-\[\#1a4a6e\]:hove
 /* Municipality link button */
 html[data-theme="staedteChallengeDark"] .stats-page .bg-white.border-\[\#1a4a6e\] {
   background-color: var(--slk-surface) !important;
+}
+
+/* ── Municipalities accent border (lime-green #AFCA0B) ──────────────────────── */
+html[data-theme="staedteChallengeDark"] .border-\[\#AFCA0B\] {
+  border-color: var(--slk-accent-green) !important;
+}
+html[data-theme="staedteChallengeDark"] .hover\:bg-\[\#F5F9E6\]:hover {
+  background-color: var(--slk-surface-muted) !important;
+}
+
+/* ── Area search dropdown ─────────────────────────────────────────────────── */
+html[data-theme="staedteChallengeDark"] .slk-area-search-dropdown {
+  background-color: var(--slk-surface);
+  border-color: var(--slk-border);
+  color: var(--slk-text);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+html[data-theme="staedteChallengeDark"] .slk-area-search-result {
+  border-bottom-color: var(--slk-border);
+}
+html[data-theme="staedteChallengeDark"] .slk-area-search-result:hover,
+html[data-theme="staedteChallengeDark"] .slk-area-search-result--focused {
+  background-color: var(--slk-surface-muted);
+}
+html[data-theme="staedteChallengeDark"] .slk-area-search-result--focused {
+  background-color: var(--slk-blue-tint);
+}
+
+/* ── General shadow-list card dark mode ──────────────────────────────────── */
+html[data-theme="staedteChallengeDark"] .shadow-list {
+  background-color: var(--slk-surface);
+}
+
+/* ── Area search result — base (light mode) hover ──────────────────────── */
+.slk-area-search-result:hover {
+  background-color: #f9fafb;
+}
+.slk-area-search-result--focused {
+  background-color: #e8f7fd;
+}
+
+/* ── CanonicalButton ring — muted in dark mode ──────────────────── */
+html[data-theme="staedteChallengeDark"] .canonical-button {
+  box-shadow:
+    inset 0 0 0 1px var(--slk-border-strong),
+    0 1px 2px rgba(0, 0, 0, 0.3);
 }

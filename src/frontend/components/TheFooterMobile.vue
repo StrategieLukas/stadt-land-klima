@@ -1,6 +1,6 @@
 <template>
   <!-- Social Media & Onboarding Section -->
-  <div class="w-full bg-gray-100">
+  <div class="w-full bg-gray-100 border-t border-gray-200">
   <div class="max-w-screen-xl mx-auto text-center py-8">
     <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
       <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />

@@ -54,7 +54,7 @@ export default defineNuxtConfig({
       meta: [{ name: "viewport", content: "width=device-width, initial-scale=1" }],
       script: [
         {
-          innerHTML: `(function(){try{var key='slk_theme_preference';var light='staedteChallemgeTheme';var dark='staedteChallengeDark';var pref=localStorage.getItem(key);var mode=pref==='light'||pref==='dark'?pref:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');var root=document.documentElement;root.dataset.theme=mode==='dark'?dark:light;root.classList.toggle('dark',mode==='dark');root.style.colorScheme=mode;}catch(e){}})();`,
+          innerHTML: `(function(){try{var key='slk_theme_preference';var light='staedteChallemgeTheme';var dark='staedteChallengeDark';var pref=localStorage.getItem(key);var mode=pref==='light'||pref==='dark'?pref:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');var root=document.documentElement;root.dataset.theme=mode==='dark'?dark:light;root.classList.remove('dark');root.style.colorScheme=mode;}catch(e){}})();`,
         },
       ],
     },

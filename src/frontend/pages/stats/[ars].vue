@@ -1,77 +1,86 @@
 <template>
-  <main class="stats-page px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0">
-
+  <main class="stats-page mx-auto w-full min-w-0 max-w-4xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
     <!-- Back to measure statistics index -->
     <div class="mb-4">
       <NuxtLink
         to="/stats"
         class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1a4a6e] hover:underline"
       >
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-	        {{ $t("stats.back_to_measure_statistics") }}
+        {{ $t("stats.back_to_measure_statistics") }}
       </NuxtLink>
     </div>
 
     <!-- Search section — same layout as stats index page -->
-    <section class="mb-6 overflow-hidden shadow-list rounded-sm">
+    <section class="mb-6 overflow-hidden rounded-sm shadow-list">
       <div class="flex flex-col md:flex-row md:items-stretch">
         <!-- Dark left: icon + title -->
-        <div class="py-4 px-4 flex items-center gap-3 md:w-[35%] md:flex-shrink-0" style="background-color: #006e94;">
-          <svg class="w-5 h-5 flex-shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+        <div class="flex items-center gap-3 px-4 py-4 md:w-[35%] md:flex-shrink-0" style="background-color: #006e94">
+          <svg
+            class="h-5 w-5 flex-shrink-0 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
+            />
           </svg>
           <div>
-	            <h2 class="text-lg font-bold text-white font-heading leading-tight">{{ $t("stats.municipal.title") }}</h2>
-	            <p class="text-xs text-white mt-0.5">{{ $t("stats.municipal.search_other_description") }}</p>
+            <h2 class="font-heading text-lg font-bold leading-tight text-white">{{ $t("stats.municipal.title") }}</h2>
+            <p class="mt-0.5 text-xs text-white">{{ $t("stats.municipal.search_other_description") }}</p>
           </div>
         </div>
         <!-- Right: search bar -->
-        <div class="px-1 pt-4 pb-3 md:flex-1 md:px-5 md:flex md:items-center md:py-3">
+        <div class="px-1 pb-3 pt-4 md:flex md:flex-1 md:items-center md:px-5 md:py-3">
           <AdministrativeAreaSearchBar base-path="/stats" class="w-full" />
         </div>
       </div>
     </section>
 
     <!-- Main Info Container -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6 min-w-0 max-w-full">
+    <div class="mt-6 min-w-0 max-w-full overflow-hidden rounded-lg bg-white shadow-lg">
       <!-- Breadcrumbs section from contained_by -->
-      <div class="breadcrumbs bg-gray-50 px-3 sm:px-4 lg:px-6 py-3 text-sm text-gray-600 overflow-x-auto">
-        <ul class="flex flex-row flex-nowrap items-center min-w-0">
+      <div class="bg-gray-50 text-gray-600 breadcrumbs overflow-x-auto px-3 py-3 text-sm sm:px-4 lg:px-6">
+        <ul class="flex min-w-0 flex-row flex-nowrap items-center">
           <li v-for="containedArea in stats?.contained_by" :key="containedArea.ars" class="flex-shrink-0">
-            <NuxtLink :to="`/stats/${containedArea.ars}`" class="hover:underline whitespace-nowrap text-xs sm:text-sm">
+            <NuxtLink :to="`/stats/${containedArea.ars}`" class="whitespace-nowrap text-xs hover:underline sm:text-sm">
               {{ containedArea.prefix }} {{ containedArea.name }}
             </NuxtLink>
           </li>
         </ul>
       </div>
-      
 
       <!-- Header Section -->
-      <div class="flex flex-row w-full justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 gap-3 overflow-hidden">
+      <div
+        class="flex w-full flex-row justify-between gap-3 overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8"
+      >
         <!-- Left Column: Location Info -->
-        <div class="flex-1 min-w-0">
-
-          <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-            {{ stats?.prefix || $t('generic.loading') }}
+        <div class="min-w-0 flex-1">
+          <p class="text-gray-600 text-sm font-semibold uppercase tracking-wide">
+            {{ stats?.prefix || $t("generic.loading") }}
           </p>
 
-          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">
-            {{ stats?.name || $t('generic.loading') }}
+          <h1 class="text-gray-900 mb-2 break-words text-2xl font-bold sm:text-3xl">
+            {{ stats?.name || $t("generic.loading") }}
           </h1>
 
-          <p class="text-base lg:text-lg text-gray-600">{{ stats?.state || '' }}</p>
+          <p class="text-gray-600 text-base lg:text-lg">{{ stats?.state || "" }}</p>
 
           <!-- ARS code -->
           <div class="mt-2">
-            <span class="text-xs text-gray-500 font-semibold">ARS </span>
-            <span class="text-xs font-mono text-gray-600">{{ stats?.ars || '-' }}</span>
+            <span class="text-gray-500 text-xs font-semibold">ARS </span>
+            <span class="text-gray-600 font-mono text-xs">{{ stats?.ars || "-" }}</span>
           </div>
         </div>
-        
+
         <!-- Right Column: Germany map indicator -->
-        <div class="flex flex-col items-end gap-2 flex-shrink-0">
+        <div class="flex flex-shrink-0 flex-col items-end gap-2">
           <!-- Germany map with marker -->
           <GermanyMapIndicator
             v-if="stats?.geo_center"
@@ -85,26 +94,40 @@
     </div>
 
     <!-- Measure Catalog Comparison Section -->
-    <div v-if="stats?.is_reasonable_for_municipal_rating && allCatalogVersions.length > 0" class="mt-6 border border-gray-200 shadow-md overflow-hidden">
-
+    <div
+      v-if="stats?.is_reasonable_for_municipal_rating && allCatalogVersions.length > 0"
+      class="border-gray-200 mt-6 overflow-hidden border shadow-md"
+    >
       <!-- Collapsible header -->
       <button
-        class="w-full flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+        class="bg-gray-50 hover:bg-gray-100 flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors"
         @click="catalogOpen = !catalogOpen"
       >
-        <div class="flex items-center gap-2 min-w-0">
-          <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <div class="flex min-w-0 items-center gap-2">
+          <svg class="text-gray-500 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
           </svg>
-          <h2 class="text-base font-semibold text-gray-900">{{ t('stats.measure_catalog_comparison') }}</h2>
-          <span class="text-xs text-gray-400 hidden sm:block">
-	            {{ $t("stats.catalog_completed_count", { ":count": Object.values(municipalityScoresByCatalog).filter(isMunicipalityScorePublished).length, ":total": allCatalogVersions.length }) }}
+          <h2 class="text-gray-900 text-base font-semibold">{{ t("stats.measure_catalog_comparison") }}</h2>
+          <span class="text-gray-400 hidden text-xs sm:block">
+            {{
+              $t("stats.catalog_completed_count", {
+                ":count": Object.values(municipalityScoresByCatalog).filter(isMunicipalityScorePublished).length,
+                ":total": allCatalogVersions.length,
+              })
+            }}
           </span>
         </div>
         <svg
-          class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-200"
+          class="text-gray-400 h-5 w-5 flex-shrink-0 transition-transform duration-200"
           :class="catalogOpen ? 'rotate-180' : ''"
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
@@ -112,15 +135,17 @@
 
       <!-- Cards Grid -->
       <div v-show="catalogOpen" class="p-4">
-
         <!-- Localteam CTA (shown once) -->
-        <div v-if="municipalityDirectusData" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100">
+        <div
+          v-if="municipalityDirectusData"
+          class="mb-4 flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+        >
           <p class="text-xs text-blue-700">
             <template v-if="hasLocalteam">
-	              {{ $t("stats.localteam.active") }}
+              {{ $t("stats.localteam.active") }}
             </template>
             <template v-else>
-	              {{ $t("stats.localteam.none_registered") }}
+              {{ $t("stats.localteam.none_registered") }}
             </template>
           </p>
           <CanonicalButton
@@ -140,42 +165,57 @@
         </div>
 
         <div class="flex flex-wrap gap-4">
-          <div v-for="catalog in allCatalogVersions" :key="catalog.id"
-               class="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col w-full sm:w-72">
-            <div class="p-4 flex flex-col flex-1">
-
+          <div
+            v-for="catalog in allCatalogVersions"
+            :key="catalog.id"
+            class="border-gray-200 flex w-full flex-col border bg-white shadow-sm transition-shadow hover:shadow-md sm:w-72"
+          >
+            <div class="flex flex-1 flex-col p-4">
               <!-- Catalog Header -->
-              <div class="flex flex-col items-center text-center mb-3">
-                <h3 class="text-sm font-semibold text-gray-800 mb-2">{{ catalog.name }}</h3>
+              <div class="mb-3 flex flex-col items-center text-center">
+                <h3 class="text-gray-800 mb-2 text-sm font-semibold">{{ catalog.name }}</h3>
                 <div class="flex flex-wrap justify-center gap-1">
-                  <span v-if="catalog.isCurrentFrontend"
-                       class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {{ t('stats.catalog_status.current_frontend') }}
+                  <span
+                    v-if="catalog.isCurrentFrontend"
+                    class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
+                  >
+                    {{ t("stats.catalog_status.current_frontend") }}
                   </span>
-                  <span v-if="catalog.isCurrentBackend"
-                       class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                    {{ t('stats.catalog_status.current_backend') }}
+                  <span
+                    v-if="catalog.isCurrentBackend"
+                    class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800"
+                  >
+                    {{ t("stats.catalog_status.current_backend") }}
                   </span>
                 </div>
               </div>
 
               <!-- Rating Status -->
-              <div class="flex justify-center mb-4">
-                <span v-if="isMunicipalityScorePublished(municipalityScoresByCatalog[catalog.id])"
-                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="mb-4 flex justify-center">
+                <span
+                  v-if="isMunicipalityScorePublished(municipalityScoresByCatalog[catalog.id])"
+                  class="bg-green-100 text-green-800 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
+                >
+                  <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                   </svg>
-                  {{ t('stats.rating_status.complete') }}
+                  {{ t("stats.rating_status.complete") }}
                 </span>
-                <span v-else-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated > 0"
-                      class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                  {{ typeof municipalityScoresByCatalog[catalog.id].percentage_rated === 'number'
+                <span
+                  v-else-if="municipalityScoresByCatalog[catalog.id]?.percentage_rated > 0"
+                  class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800"
+                >
+                  {{
+                    typeof municipalityScoresByCatalog[catalog.id].percentage_rated === "number"
                       ? municipalityScoresByCatalog[catalog.id].percentage_rated.toFixed(1)
-                      : parseFloat(municipalityScoresByCatalog[catalog.id].percentage_rated).toFixed(1) || '0.0' }}% {{ $t('administrative_areas.rated') }}
+                      : parseFloat(municipalityScoresByCatalog[catalog.id].percentage_rated).toFixed(1) || "0.0"
+                  }}% {{ $t("administrative_areas.rated") }}
                 </span>
-                <span v-else class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                  {{ t('stats.rating_status.no_data') }}
+                <span
+                  v-else
+                  class="bg-gray-100 text-gray-500 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                >
+                  {{ t("stats.rating_status.no_data") }}
                 </span>
               </div>
 
@@ -183,7 +223,10 @@
               <div class="mt-auto flex justify-center">
                 <!-- Published score: link to municipality detail page (ranking) -->
                 <CanonicalButton
-                  v-if="isMunicipalityScorePublished(municipalityScoresByCatalog[catalog.id]) && municipalityScoresByCatalog[catalog.id]?.municipality?.slug"
+                  v-if="
+                    isMunicipalityScorePublished(municipalityScoresByCatalog[catalog.id]) &&
+                    municipalityScoresByCatalog[catalog.id]?.municipality?.slug
+                  "
                   :href="`/municipalities/${municipalityScoresByCatalog[catalog.id].municipality.slug}?v=${catalog.name}`"
                   :label="t('stats.action.current_rating')"
                   color="bright-green"
@@ -192,10 +235,9 @@
                   icon-size="lg"
                 />
                 <!-- Otherwise: informational text -->
-                <span v-else class="text-sm text-gray-400 text-center italic">
-                  {{ t('stats.action.rating_in_progress') }}
+                <span v-else class="text-gray-400 text-center text-sm italic">
+                  {{ t("stats.action.rating_in_progress") }}
                 </span>
-
               </div>
             </div>
           </div>
@@ -204,27 +246,50 @@
     </div>
 
     <!-- Municipality not suitable message (level 4-6, not reasonable for rating) -->
-    <div v-else-if="stats && !stats.is_reasonable_for_municipal_rating" class="flex border min-h-[100px] flex-col gap-4 p-6 bg-amber-50 border-amber-200 shadow-md mt-6 rounded-lg">
+    <div
+      v-else-if="stats && !stats.is_reasonable_for_municipal_rating"
+      class="mt-6 flex min-h-[100px] flex-col gap-4 rounded-lg border border-amber-200 bg-amber-50 p-6 shadow-md"
+    >
       <div class="flex items-start gap-3">
-        <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg class="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
         <div>
-          <p class="text-base font-semibold text-amber-900">{{ $t('administrative_areas.not_reasonable_for_rating') }}</p>
-          <p class="text-sm text-amber-700 mt-1">{{ t('stats.not_reasonable_explanation') }}</p>
+          <p class="text-base font-semibold text-amber-900">
+            {{ $t("administrative_areas.not_reasonable_for_rating") }}
+          </p>
+          <p class="mt-1 text-sm text-amber-700">{{ t("stats.not_reasonable_explanation") }}</p>
         </div>
       </div>
-      <div v-if="reasonableParent" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2 border-t border-amber-200">
+      <div
+        v-if="reasonableParent"
+        class="flex flex-col items-start gap-3 border-t border-amber-200 pt-2 sm:flex-row sm:items-center"
+      >
         <p class="text-sm text-amber-800">
-          {{ t('stats.reasonable_parent_hint') }}
+          {{ t("stats.reasonable_parent_hint") }}
         </p>
         <NuxtLink
           :to="`/stats/${reasonableParent.ars}`"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-md hover:bg-amber-700 transition-colors"
+          class="inline-flex items-center gap-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
           </svg>
           {{ reasonableParent.prefix }} {{ reasonableParent.name }}
         </NuxtLink>
@@ -232,7 +297,10 @@
     </div>
 
     <!-- Map Section -->
-    <div v-if="stats && (stats.geo_center || stats.geo_area)" class="mt-6 bg-base-100 shadow-md overflow-hidden max-w-full">
+    <div
+      v-if="stats && (stats.geo_center || stats.geo_area)"
+      class="mt-6 max-w-full overflow-hidden bg-base-100 shadow-md"
+    >
       <AdministrativeAreaMap
         :geo-center="stats.geo_center"
         :geo-area="stats.geo_area"
@@ -240,30 +308,35 @@
         :zoom="3"
       />
       <!-- centroid coordinates and area in km^2-->
-      <div v-if="stats.geo_center && stats.geo_area_km2" class="text-xs sm:text-sm text-gray-600 mt-2 pb-2 text-center px-2 overflow-hidden">
-        <p class="break-all max-w-full overflow-hidden">
-          <span class="block sm:inline">{{ $t('administrative_areas.centroid_coordinates') }}:</span> 
-          <span class="font-mono text-xs break-all">
+      <div
+        v-if="stats.geo_center && stats.geo_area_km2"
+        class="text-gray-600 mt-2 overflow-hidden px-2 pb-2 text-center text-xs sm:text-sm"
+      >
+        <p class="max-w-full overflow-hidden break-all">
+          <span class="block sm:inline">{{ $t("administrative_areas.centroid_coordinates") }}:</span>
+          <span class="break-all font-mono text-xs">
             [{{ stats.geo_center.coordinates[1].toFixed(4) }}, {{ stats.geo_center.coordinates[0].toFixed(4) }}]
           </span>
-          <br class="sm:hidden">
-          <span class="block sm:inline sm:ml-2">{{ $t('administrative_areas.area') }}: </span> 
-          <span class="font-mono text-xs break-all">
-            {{ stats.geo_area_km2.toLocaleString() }} km²
-          </span>
+          <br class="sm:hidden" />
+          <span class="block sm:ml-2 sm:inline">{{ $t("administrative_areas.area") }}: </span>
+          <span class="break-all font-mono text-xs"> {{ stats.geo_area_km2.toLocaleString() }} km² </span>
         </p>
       </div>
     </div>
 
     <!-- Data Sections -->
-    <div class="mt-6 space-y-6 w-full max-w-full overflow-hidden">
+    <div class="mt-6 w-full max-w-full space-y-6 overflow-hidden">
       <!-- Dynamic Data Products -->
       <template v-if="stats?.data_products">
         <template v-for="(productData, productKey) in stats.data_products" :key="productKey">
           <DataProductViewWrapper
             v-if="productData && productData.property_info"
             :title="getProductTitle(productData)"
-            :code="productData.property_info?.catalog_version && productData.property_info?.measure_id ? productData.property_info.measure_id : undefined"
+            :code="
+              productData.property_info?.catalog_version && productData.property_info?.measure_id
+                ? productData.property_info.measure_id
+                : undefined
+            "
             :description="getProductDescription(productData)"
             :calculation="getProductCalculation(productData)"
             :show-measure-link="!!(productData.property_info?.measure_id && productData.property_info?.catalog_version)"
@@ -278,22 +351,34 @@
               <div v-if="productData.property_info?.display_config?.render">
                 <div v-for="(renderItem, idx) in productData.property_info.display_config.render" :key="idx">
                   <!-- BigNumber display type -->
-                  <div v-if="renderItem.type === 'BigNumber'" class="text-center max-w-full overflow-hidden">
-                    <span class="text-base sm:text-lg lg:text-2xl font-bold break-all inline-block max-w-full">
+                  <div v-if="renderItem.type === 'BigNumber'" class="max-w-full overflow-hidden text-center">
+                    <span class="inline-block max-w-full break-all text-base font-bold sm:text-lg lg:text-2xl">
                       {{ formatValue(productData[renderItem.key]) }}
                       {{ getUnit(renderItem.unit) }}
                     </span>
                   </div>
-                  
+
                   <!-- ThresholdBar display type -->
                   <ThresholdProgressBar
                     v-else-if="renderItem.type === 'ThresholdBar'"
                     className="w-full"
                     :progress="calculateProgress(productData, renderItem)"
-                    :orange-threshold="renderItem.is_percentage ? renderItem.thresholds.orange * 100 : renderItem.thresholds.orange|| 0"
-                    :yellow-threshold="renderItem.is_percentage ? renderItem.thresholds.yellow * 100 : renderItem.thresholds.yellow || 0"
-                    :light-green-threshold="renderItem.is_percentage ? renderItem.thresholds.lightgreen * 100 : renderItem.thresholds.lightgreen || 0"
-                    :dark-green-threshold="renderItem.is_percentage ? renderItem.thresholds.darkgreen * 100 : renderItem.thresholds.darkgreen || 0"
+                    :orange-threshold="
+                      renderItem.is_percentage ? renderItem.thresholds.orange * 100 : renderItem.thresholds.orange || 0
+                    "
+                    :yellow-threshold="
+                      renderItem.is_percentage ? renderItem.thresholds.yellow * 100 : renderItem.thresholds.yellow || 0
+                    "
+                    :light-green-threshold="
+                      renderItem.is_percentage
+                        ? renderItem.thresholds.lightgreen * 100
+                        : renderItem.thresholds.lightgreen || 0
+                    "
+                    :dark-green-threshold="
+                      renderItem.is_percentage
+                        ? renderItem.thresholds.darkgreen * 100
+                        : renderItem.thresholds.darkgreen || 0
+                    "
                     :unit="getUnit(renderItem)"
                   />
                 </div>
@@ -304,68 +389,79 @@
       </template>
 
       <!-- Debug: Show if no data products -->
-      <div v-else-if="stats && !stats.data_products" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div v-else-if="stats && !stats.data_products" class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
         <p class="text-sm text-yellow-800">No data_products found in stats object</p>
-        <pre class="text-xs mt-2 overflow-auto">{{ JSON.stringify(Object.keys(stats), null, 2) }}</pre>
+        <pre class="mt-2 overflow-auto text-xs">{{ JSON.stringify(Object.keys(stats), null, 2) }}</pre>
       </div>
 
       <!-- Nearby Areas Section -->
-      <div v-if="stats?.is_reasonable_for_municipal_rating" class="border-t border-b bg-blue-50 px-3 sm:px-4 lg:px-6 py-6 max-w-full overflow-hidden">
+      <div
+        v-if="stats?.is_reasonable_for_municipal_rating"
+        class="max-w-full overflow-hidden border-b border-t bg-blue-50 px-3 py-6 sm:px-4 lg:px-6"
+      >
         <div class="mb-4">
-          <h3 class="text-lg font-semibold text-blue-900 mb-2">
-            {{ $t('administrative_areas.nearby_alternatives') }}
+          <h3 class="mb-2 text-lg font-semibold text-blue-900">
+            {{ $t("administrative_areas.nearby_alternatives") }}
           </h3>
           <p class="text-sm text-blue-700">
-            {{ $t('administrative_areas.nearby_alternatives_description') }}
+            {{ $t("administrative_areas.nearby_alternatives_description") }}
           </p>
         </div>
-        
+
         <!-- Loading State -->
-        <div v-if="loadingNearbyAreas" class="flex items-center justify-center py-8 gap-2">
+        <div v-if="loadingNearbyAreas" class="flex items-center justify-center gap-2 py-8">
           <SlkFlowerSpinner :size="32" />
-          <span class="text-blue-600">{{ $t('generic.loading') }}...</span>
+          <span class="text-blue-600">{{ $t("generic.loading") }}...</span>
         </div>
-        
+
         <!-- Alternatives Carousel -->
         <div v-else-if="nearbyAreas.length > 0" class="relative">
-          <div 
-            class="carousel-container relative"
-            ref="carouselContainer"
-          >
+          <div class="carousel-container relative" ref="carouselContainer">
             <!-- Left Shadow -->
-            <div 
-              class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-blue-50 to-transparent z-10 pointer-events-none transition-opacity duration-300"
+            <div
+              class="pointer-events-none absolute bottom-0 left-0 top-0 z-10 w-8 bg-gradient-to-r from-blue-50 to-transparent transition-opacity duration-300"
               :class="{ 'opacity-0': !showLeftShadow }"
             ></div>
-            
+
             <!-- Right Shadow -->
-            <div 
-              class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-blue-50 to-transparent z-10 pointer-events-none transition-opacity duration-300"
+            <div
+              class="pointer-events-none absolute bottom-0 right-0 top-0 z-10 w-8 bg-gradient-to-l from-blue-50 to-transparent transition-opacity duration-300"
               :class="{ 'opacity-0': !showRightShadow }"
             ></div>
-            
+
             <!-- Scrollable Content -->
-            <div 
-              class="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
+            <div
+              class="scrollbar-hide flex space-x-4 overflow-x-auto pb-4"
               ref="scrollContainer"
               @scroll="updateShadows"
             >
-              <div v-for="area in nearbyAreas" :key="area.ars" 
-                   class="flex-none w-64 sm:w-72 lg:w-80 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow max-w-full">
-                
+              <div
+                v-for="area in nearbyAreas"
+                :key="area.ars"
+                class="border-gray-200 w-64 max-w-full flex-none overflow-hidden rounded-lg border bg-white shadow-md transition-shadow hover:shadow-lg sm:w-72 lg:w-80"
+              >
                 <!-- Mini Map Placeholder -->
-                <div class="h-32 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center relative">
+                <div
+                  class="from-green-100 relative flex h-32 items-center justify-center bg-gradient-to-br to-blue-100"
+                >
                   <LMap
-                    :ref="el => { if (el) nearbyMapRefs[area.ars] = el }"
+                    :ref="
+                      (el) => {
+                        if (el) nearbyMapRefs[area.ars] = el;
+                      }
+                    "
                     :zoom="10"
                     :center="[area.geoCenter?.coordinates[1] || 51.1657, area.geoCenter?.coordinates[0] || 10.4515]"
-                    class="h-full w-full z-0"
+                    class="z-0 h-full w-full"
                     :options="{ zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false }"
                     @ready="() => onNearbyMapReady(area.ars, area.geoArea)"
                   >
                     <LTileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      :key="tileUrl"
+                      :url="tileUrl"
+                      :attribution="attribution"
+                      :subdomains="subdomains"
+                      :max-zoom="20"
                     />
                     <LGeoJson
                       v-if="area.geoArea"
@@ -375,22 +471,30 @@
                     />
                   </LMap>
                 </div>
-                
+
                 <!-- Card Content -->
                 <div class="p-3 sm:p-4">
                   <div class="mb-3">
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                    <p class="text-gray-500 mb-1 text-xs font-semibold uppercase tracking-wide">
                       {{ area.prefix }}
                     </p>
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight break-words">
+                    <h4 class="text-gray-900 break-words text-sm font-bold leading-tight">
                       {{ area.name }}
                     </h4>
                   </div>
-                  
-                  <NuxtLink :to="area.hasRating ? `/municipalities/${area.stadtlandklimaData.slug}?v=${selectedCatalogVersion.name}` : `/stats/${area.ars}?v=${selectedCatalogVersion.name}`"
-                            class="inline-flex items-center text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    <span class="truncate">{{ area.hasRating ? $t('stats.view_ranking') : $t('stats.view_stats') }}</span>
-                    <svg class="w-4 h-4 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                  <NuxtLink
+                    :to="
+                      area.hasRating
+                        ? `/municipalities/${area.stadtlandklimaData.slug}?v=${selectedCatalogVersion.name}`
+                        : `/stats/${area.ars}?v=${selectedCatalogVersion.name}`
+                    "
+                    class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 sm:text-sm"
+                  >
+                    <span class="truncate">{{
+                      area.hasRating ? $t("stats.view_ranking") : $t("stats.view_stats")
+                    }}</span>
+                    <svg class="ml-1 h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                   </NuxtLink>
@@ -399,37 +503,42 @@
             </div>
           </div>
         </div>
-        
+
         <!-- No Alternatives -->
-        <div v-else class="text-center py-8">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.016-5.707-2.572" />
+        <div v-else class="py-8 text-center">
+          <svg class="text-gray-400 mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.016-5.707-2.572"
+            />
           </svg>
-          <p class="mt-2 text-sm text-gray-500">
-            {{ $t('administrative_areas.no_alternatives_found') }}
+          <p class="text-gray-500 mt-2 text-sm">
+            {{ $t("administrative_areas.no_alternatives_found") }}
           </p>
         </div>
       </div>
 
       <!-- Available soon-->
-      <div class="bg-gray-50 px-3 sm:px-4 lg:px-6 py-6 text-center text-gray-500 max-w-full overflow-hidden">
-        <p class="text-sm sm:text-base break-words" v-html="saneLinkifyStr($t('stats.more_data_coming_soon'))"></p>
+      <div class="bg-gray-50 text-gray-500 max-w-full overflow-hidden px-3 py-6 text-center sm:px-4 lg:px-6">
+        <p class="break-words text-sm sm:text-base" v-html="saneLinkifyStr($t('stats.more_data_coming_soon'))"></p>
       </div>
-
     </div>
   </main>
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router';
-import { onMounted, ref, computed, nextTick } from 'vue';
-import { saneLinkifyStr } from '~/shared/utils';
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
-import { getAllCatalogVersions } from '~/composables/getAllCatalogVersions.js';
-import { isMunicipalityScorePublished } from '~/shared/municipality-score-publishing.js';
+import { useRoute } from "vue-router";
+import { onMounted, ref, computed, nextTick } from "vue";
+import { saneLinkifyStr } from "~/shared/utils";
+import { getCatalogVersion } from "~/composables/getCatalogVersion.js";
+import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions.js";
+import { isMunicipalityScorePublished } from "~/shared/municipality-score-publishing.js";
 
 const route = useRoute();
 const { $t, $locale, $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp();
+const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
 // Get the current catalog version and all available catalog versions
 const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route));
@@ -450,17 +559,17 @@ const municipalityScoresByCatalog = ref({});
 
 /** Build a prefilled contact URL for the "help local team" CTA */
 function catalogContactUrl(catalogName) {
-  const name = stats.value?.name || ''
-  return `/contact?type=cooperation&title=${encodeURIComponent(`Bewertung von ${name} unterstützen (${catalogName})`)}&content=${encodeURIComponent(`Ich möchte beim Bewertungsprozess für die Kommune ${name} helfen.`)}`
+  const name = stats.value?.name || "";
+  return `/contact?type=cooperation&title=${encodeURIComponent(`Bewertung von ${name} unterstützen (${catalogName})`)}&content=${encodeURIComponent(`Ich möchte beim Bewertungsprozess für die Kommune ${name} helfen.`)}`;
 }
 
 /** True when this municipality already has a registered local team */
-const hasLocalteam = computed(() => !!municipalityDirectusData.value?.localteam_id)
+const hasLocalteam = computed(() => !!municipalityDirectusData.value?.localteam_id);
 /** Contact URL for supporting the existing local team */
 const localteamContactUrl = computed(() => {
-  const name = stats.value?.name || ''
-  return `/contact?type=cooperation&title=${encodeURIComponent($t('localteam.support.contact_title', { ':name': name }))}&content=${encodeURIComponent($t('localteam.support.contact_content', { ':name': name }))}`
-})
+  const name = stats.value?.name || "";
+  return `/contact?type=cooperation&title=${encodeURIComponent($t("localteam.support.contact_title", { ":name": name }))}&content=${encodeURIComponent($t("localteam.support.contact_content", { ":name": name }))}`;
+});
 
 // Helper function for translation with fallbacks
 const t = (key, fallback = key) => {
@@ -471,14 +580,16 @@ const t = (key, fallback = key) => {
 // Function to fetch municipality score from Directus for all catalog versions
 const fetchAllMunicipalityScores = async (ars) => {
   const scores = {};
-  
+
   try {
     // First find the municipality by ARS
-    const municipalities = await $directus.request($readItems("municipalities", {
-      fields: ["id", "slug", "name", "ars", "localteam_id"],
-      filter: { ars: { _eq: ars } },
-      limit: 1
-    }));
+    const municipalities = await $directus.request(
+      $readItems("municipalities", {
+        fields: ["id", "slug", "name", "ars", "localteam_id"],
+        filter: { ars: { _eq: ars } },
+        limit: 1,
+      }),
+    );
 
     if (!municipalities || municipalities.length === 0) {
       console.log(`No municipality found for ARS: ${ars}`);
@@ -492,22 +603,24 @@ const fetchAllMunicipalityScores = async (ars) => {
     // Fetch municipality scores for all catalog versions in parallel
     const scorePromises = allCatalogVersions.value.map(async (catalog) => {
       try {
-        const municipalityScores = await $directus.request($readItems("municipality_scores", {
-          fields: ["*"],
-          filter: { 
-            municipality: { _eq: municipality.id },
-            catalog_version: { _eq: catalog.id }
-          },
-          limit: 1
-        }));
+        const municipalityScores = await $directus.request(
+          $readItems("municipality_scores", {
+            fields: ["*"],
+            filter: {
+              municipality: { _eq: municipality.id },
+              catalog_version: { _eq: catalog.id },
+            },
+            limit: 1,
+          }),
+        );
 
         if (municipalityScores && municipalityScores.length > 0) {
           return {
             catalogId: catalog.id,
             data: {
               ...municipalityScores[0],
-              municipality: municipality
-            }
+              municipality: municipality,
+            },
           };
         }
         return { catalogId: catalog.id, data: null };
@@ -518,7 +631,7 @@ const fetchAllMunicipalityScores = async (ars) => {
     });
 
     const results = await Promise.all(scorePromises);
-    
+
     // Convert results to an object keyed by catalog ID
     results.forEach(({ catalogId, data }) => {
       scores[catalogId] = data;
@@ -526,7 +639,7 @@ const fetchAllMunicipalityScores = async (ars) => {
 
     return scores;
   } catch (error) {
-    console.error('Error fetching municipality scores:', error);
+    console.error("Error fetching municipality scores:", error);
     return scores;
   }
 };
@@ -535,11 +648,13 @@ const fetchAllMunicipalityScores = async (ars) => {
 const fetchMunicipalityScore = async (ars, catalogVersionId) => {
   try {
     // First find the municipality by ARS
-    const municipalities = await $directus.request($readItems("municipalities", {
-      fields: ["id", "slug", "name", "ars", "localteam_id"],
-      filter: { ars: { _eq: ars } },
-      limit: 1
-    }));
+    const municipalities = await $directus.request(
+      $readItems("municipalities", {
+        fields: ["id", "slug", "name", "ars", "localteam_id"],
+        filter: { ars: { _eq: ars } },
+        limit: 1,
+      }),
+    );
 
     if (!municipalities || municipalities.length === 0) {
       console.log(`No municipality found for ARS: ${ars}`);
@@ -549,26 +664,30 @@ const fetchMunicipalityScore = async (ars, catalogVersionId) => {
     const municipality = municipalities[0];
 
     // Then fetch the municipality score for this municipality and catalog version
-    const scores = await $directus.request($readItems("municipality_scores", {
-      fields: ["*"],
-      filter: { 
-        municipality: { _eq: municipality.id },
-        catalog_version: { _eq: catalogVersionId }
-      },
-      limit: 1
-    }));
+    const scores = await $directus.request(
+      $readItems("municipality_scores", {
+        fields: ["*"],
+        filter: {
+          municipality: { _eq: municipality.id },
+          catalog_version: { _eq: catalogVersionId },
+        },
+        limit: 1,
+      }),
+    );
 
     if (!scores || scores.length === 0) {
-      console.log(`No municipality score found for municipality ID: ${municipality.id} and catalog version: ${catalogVersionId}`);
+      console.log(
+        `No municipality score found for municipality ID: ${municipality.id} and catalog version: ${catalogVersionId}`,
+      );
       return null;
     }
 
     return {
       ...scores[0],
-      municipality: municipality
+      municipality: municipality,
     };
   } catch (error) {
-    console.error('Error fetching municipality score:', error);
+    console.error("Error fetching municipality score:", error);
     return null;
   }
 };
@@ -583,22 +702,22 @@ const showRightShadow = ref(true);
 const filteredStadtlandklimaData = computed(() => {
   const currentCatalogScore = municipalityScoresByCatalog.value[selectedCatalogVersion.value.id];
   if (!currentCatalogScore) return null;
-  
+
   return {
     slug: currentCatalogScore.municipality?.slug,
     percentage_rated: parseFloat(currentCatalogScore.percentage_rated),
-    score_total: parseFloat(currentCatalogScore.score_total)
+    score_total: parseFloat(currentCatalogScore.score_total),
   };
 });
 
 const updateShadows = () => {
   if (!scrollContainer.value) return;
-  
+
   const { scrollLeft, scrollWidth, clientWidth } = scrollContainer.value;
-  
+
   // Show left shadow if scrolled right
   showLeftShadow.value = scrollLeft > 0;
-  
+
   // Show right shadow if not scrolled to the end
   showRightShadow.value = scrollLeft < scrollWidth - clientWidth - 1;
 };
@@ -613,15 +732,15 @@ const fitBoundsToGeoArea = (ars, geoArea) => {
     const leafletMap = mapRef.leafletObject;
     const geoJsonLayer = L.geoJSON(geoArea);
     const bounds = geoJsonLayer.getBounds();
-    
+
     if (bounds.isValid()) {
-      leafletMap.fitBounds(bounds, { 
+      leafletMap.fitBounds(bounds, {
         padding: [20, 20],
-        maxZoom: 12
+        maxZoom: 12,
       });
     }
   } catch (error) {
-    console.warn('Could not fit bounds to geoArea for nearby map:', error);
+    console.warn("Could not fit bounds to geoArea for nearby map:", error);
   }
 };
 
@@ -633,7 +752,7 @@ const onNearbyMapReady = (ars, geoArea) => {
       fitBoundsToGeoArea(ars, geoArea);
     }
   }, 100);
-  
+
   setTimeout(() => {
     const mapRef = nearbyMapRefs.value[ars];
     if (mapRef?.leafletObject) {
@@ -651,7 +770,7 @@ const onNearbyGeoJsonReady = (ars, geoArea) => {
       fitBoundsToGeoArea(ars, geoArea);
     }
   });
-  
+
   setTimeout(() => {
     const mapRef = nearbyMapRefs.value[ars];
     if (mapRef?.leafletObject) {
@@ -665,9 +784,7 @@ const onNearbyGeoJsonReady = (ars, geoArea) => {
 const findReasonableParent = async (containedBy) => {
   if (!containedBy || containedBy.length === 0) return null;
   // Filter to levels 4-6, sort by level descending (most specific first)
-  const candidates = containedBy
-    .filter(a => a.level >= 4 && a.level <= 6)
-    .sort((a, b) => b.level - a.level);
+  const candidates = containedBy.filter((a) => a.level >= 4 && a.level <= 6).sort((a, b) => b.level - a.level);
   for (const parent of candidates) {
     try {
       const data = await $stadtlandzahlAPI.fetchStatsByARS(parent.ars);
@@ -683,22 +800,22 @@ const findReasonableParent = async (containedBy) => {
 
 onMounted(async () => {
   // Default open on lg+ screens (≥1024px), collapsed on mobile/tablet
-  catalogOpen.value = typeof window !== 'undefined' && window.innerWidth >= 1024;
+  catalogOpen.value = typeof window !== "undefined" && window.innerWidth >= 1024;
 
   try {
     // Start both fetches in parallel for better performance
     const [result, scores] = await Promise.all([
       $stadtlandzahlAPI.fetchStatsByARS(route.params.ars),
-      fetchAllMunicipalityScores(route.params.ars)
+      fetchAllMunicipalityScores(route.params.ars),
     ]);
 
-    console.log('API result:', result);
-    console.log('data_products:', result?.data_products);
-    console.log('data_products keys:', result?.data_products ? Object.keys(result.data_products) : 'none');
-    
+    console.log("API result:", result);
+    console.log("data_products:", result?.data_products);
+    console.log("data_products keys:", result?.data_products ? Object.keys(result.data_products) : "none");
+
     // Set municipality scores for all catalogs immediately
     municipalityScoresByCatalog.value = scores;
-    
+
     if (result) {
       // Redirect level 1-3 areas (Germany, federal states, Regierungsbezirke) to /regions/
       // unless the area itself is rateable (e.g. city-states like Hamburg, Berlin, Bremen).
@@ -715,68 +832,67 @@ onMounted(async () => {
       } else {
         await fetchNearbyAlternatives(result);
       }
-      
+
       // Update shadows after content is loaded
       await nextTick();
       updateShadows();
     }
 
-    console.log('Stats set to:', stats.value);
-    console.log('Municipality scores by catalog set to:', municipalityScoresByCatalog.value);
+    console.log("Stats set to:", stats.value);
+    console.log("Municipality scores by catalog set to:", municipalityScoresByCatalog.value);
   } catch (error) {
-    console.error('Error fetching stats:', error);
-    stats.value = { name: 'Fehler beim Laden', prefix: '' };
+    console.error("Error fetching stats:", error);
+    stats.value = { name: "Fehler beim Laden", prefix: "" };
   }
 });
 
 // Helper functions for dynamic data product rendering
 const getTranslatedValue = (value) => {
-  if (!value || typeof value !== 'object') {
-    return value || ''
+  if (!value || typeof value !== "object") {
+    return value || "";
   }
 
-  return value[$locale] || value['en-GB'] || value['en-US'] || value['de-DE'] || ''
-}
+  return value[$locale] || value["en-GB"] || value["en-US"] || value["de-DE"] || "";
+};
 
 const getProductTitle = (productData) => {
-  return getTranslatedValue(productData?.property_info?.title)
-}
+  return getTranslatedValue(productData?.property_info?.title);
+};
 
 const getProductDescription = (productData) => {
-  return getTranslatedValue(productData?.property_info?.description)
-}
+  return getTranslatedValue(productData?.property_info?.description);
+};
 
 const getProductCalculation = (productData) => {
-  return getTranslatedValue(productData?.property_info?.calculation)
-}
+  return getTranslatedValue(productData?.property_info?.calculation);
+};
 
 const getDataSources = (productData) => {
   if (productData?.data_source_download) {
-    return [productData.data_source_download]
+    return [productData.data_source_download];
   }
   if (productData?.pipeline_run?.downloads) {
-    return productData.pipeline_run.downloads
+    return productData.pipeline_run.downloads;
   }
-  return []
-}
-
+  return [];
+};
 
 const getHistogramConfig = (productKey, productData) => {
   // Get the first render item to determine the primary attribute
-  const firstRender = productData?.property_info?.display_config?.render?.[0]
-  if (!firstRender) return null
-  
+  const firstRender = productData?.property_info?.display_config?.render?.[0];
+  if (!firstRender) return null;
+
   // Check if histogram URL is available
-  const histogramUrl = productData?.histograms?.[firstRender.key]
-  if (!histogramUrl) return null
-  
+  const histogramUrl = productData?.histograms?.[firstRender.key];
+  if (!histogramUrl) return null;
+
   // Get the unit to check if it's a percentage
-  let unit = firstRender.unit
-  if (typeof firstRender.unit === 'object') {
-    unit = getTranslatedValue(firstRender.unit)
+  let unit = firstRender.unit;
+  if (typeof firstRender.unit === "object") {
+    unit = getTranslatedValue(firstRender.unit);
   }
-  const isPercentage = unit === '%' || unit.includes('%')
-  
+  const isPercentage = unit === "%" || unit.includes("%");
+
   // Pass the productKey directly (snake_case format like 'ev_charging_data')
   // The mapping to GraphQL field names is handled by the components
   return {
@@ -793,102 +909,104 @@ const getHistogramConfig = (productKey, productData) => {
     orangeThreshold: firstRender.thresholds?.orange || null,
     yellowThreshold: firstRender.thresholds?.yellow || null,
     lightGreenThreshold: firstRender.thresholds?.lightgreen || null,
-    darkGreenThreshold: firstRender.thresholds?.darkgreen || null
-  }
-}
+    darkGreenThreshold: firstRender.thresholds?.darkgreen || null,
+  };
+};
 
 const formatValue = (value) => {
-  if (typeof value === 'number') {
-    return value.toLocaleString()
+  if (typeof value === "number") {
+    return value.toLocaleString();
   }
-  return value
-}
+  return value;
+};
 
 const getUnit = (renderItem) => {
-  let unit = renderItem.unit
-  if (typeof renderItem.unit === 'object') {
-    unit = getTranslatedValue(renderItem.unit)
+  let unit = renderItem.unit;
+  if (typeof renderItem.unit === "object") {
+    unit = getTranslatedValue(renderItem.unit);
   }
   if (renderItem.population_normalized) {
-    unit += " / 1000 " + $t('stats.inhabitants_abbrev')
+    unit += " / 1000 " + $t("stats.inhabitants_abbrev");
   }
-  return unit
-}
+  return unit;
+};
 
 const calculateProgress = (productData, renderItem) => {
-  let value = productData[renderItem.key]
-  
+  let value = productData[renderItem.key];
+
   // If value is not available, return 0
-  if (value === null || value === undefined) return 0
-  
+  if (value === null || value === undefined) return 0;
+
   // Check if we need to normalize by population
   if (renderItem.population_normalized && stats.value?.data_products?.population_data?.population) {
-    const population = stats.value.data_products.population_data.population
+    const population = stats.value.data_products.population_data.population;
     // Normalize and convert to per-1000-inhabitants (multiply by 1000)
-    value = (value / population) * 1000
+    value = (value / population) * 1000;
   }
   if (renderItem.is_percentage) {
     // If it's a percentage, ensure it's between 0 and 100
-    value = value * 100
+    value = value * 100;
   }
-  
-  return value
-}
+
+  return value;
+};
 
 async function fetchNearbyAlternatives(currentArea) {
   console.log("Fetching nearby alternatives for area:", currentArea);
   if (currentArea.is_reasonable_for_municipal_rating === false || !currentArea.ars) {
-    console.log('Area not reasonable for municipal rating or missing ARS, skipping nearby alternatives fetch.');
+    console.log("Area not reasonable for municipal rating or missing ARS, skipping nearby alternatives fetch.");
     return;
   }
-  
+
   loadingNearbyAreas.value = true;
   try {
     // Fetch bordering municipalities using REST API
-    console.log('Fetching bordering municipalities for:', currentArea.ars);
+    console.log("Fetching bordering municipalities for:", currentArea.ars);
     const config = useRuntimeConfig();
     const baseUrl = config.public.stadtlandzahlBaseUrl;
     const apiUrl = `${baseUrl}/api/areas/${currentArea.ars}/bordering-municipalities/`;
-    
+
     const response = await fetch(apiUrl);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const result = await response.json();
-    console.log('Bordering municipalities result:', result);
+    console.log("Bordering municipalities result:", result);
 
     if (result?.bordering_municipalities) {
       // Fetch municipality scores for each nearby area from Directus
       const nearbyAreasWithScores = await Promise.all(
         result.bordering_municipalities.map(async (area) => {
           const score = await fetchMunicipalityScore(area.ars, selectedCatalogVersion.value.id);
-          
+
           return {
             ars: area.ars,
             name: area.name,
             prefix: area.prefix,
             hasRating: score && score.municipality?.slug && isMunicipalityScorePublished(score),
-            stadtlandklimaData: score ? {
-              slug: score.municipality?.slug,
-              scoreTotal: score.score_total,
-              percentageRated: score.percentage_rated,
-            } : null,
+            stadtlandklimaData: score
+              ? {
+                  slug: score.municipality?.slug,
+                  scoreTotal: score.score_total,
+                  percentageRated: score.percentage_rated,
+                }
+              : null,
             geoCenter: area.geo_center,
             geoArea: area.geo_area,
           };
-        })
+        }),
       );
-      
+
       nearbyAreas.value = nearbyAreasWithScores;
-      console.log('Nearby areas set to:', nearbyAreas.value);
-      
+      console.log("Nearby areas set to:", nearbyAreas.value);
+
       // Update shadows after nearby areas are loaded
       await nextTick();
       updateShadows();
     }
   } catch (error) {
-    console.error('Error fetching bordering municipalities:', error);
+    console.error("Error fetching bordering municipalities:", error);
   } finally {
     loadingNearbyAreas.value = false;
   }
@@ -899,38 +1017,36 @@ const title = computed(() => {
   if (stats.value?.name) {
     return stats.value.prefix ? `${stats.value.prefix} ${stats.value.name}` : stats.value.name;
   }
-  return $t('stats.title');
+  return $t("stats.title");
 });
 
 // Set the page title
 useHead({
-  title
-})
+  title,
+});
 
 const getOrdinalSuffix = (day) => {
-  if (day >= 11 && day <= 13) return '.';
+  if (day >= 11 && day <= 13) return ".";
   switch (day % 10) {
-    case 1: return '.';
-    case 2: return '.';
-    case 3: return '.';
-    default: return '.';
+    case 1:
+      return ".";
+    case 2:
+      return ".";
+    case 3:
+      return ".";
+    default:
+      return ".";
   }
 };
 
 // Check if a product type supports map visualization
 const isMapSupportedForProduct = (productKey) => {
-  const supportedProducts = [
-    'ev_charging_data',
-    'public_transport_data', 
-    'wind_power_data',
-    'solar_power_data'
-  ]
-  return supportedProducts.includes(productKey)
-}
+  const supportedProducts = ["ev_charging_data", "public_transport_data", "wind_power_data", "solar_power_data"];
+  return supportedProducts.includes(productKey);
+};
 </script>
 
 <style scoped>
-
 /* Ensure no element can expand beyond viewport */
 main {
   max-width: 100vw;

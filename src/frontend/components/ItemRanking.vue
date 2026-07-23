@@ -24,9 +24,27 @@
 
     
     <div v-if="isRanking" class="flex items-start">
-      <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
+      <svg
+        class="h-6 w-4 text-black dark:text-white"
+        viewBox="0 0 14 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <path d="M1 1l12 11L1 23" />
+      </svg>
     </div>
-    <button v-else @click="fetchPDF()" class="p-4 flex items-center justify-end text-white bg-gray h-10">PDF</button>
+    <button
+      v-else
+      type="button"
+      :disabled="isGeneratingPdf"
+      @click="fetchPDF"
+      class="flex h-10 w-16 items-center justify-center bg-gray text-white disabled:cursor-wait disabled:opacity-70"
+    >
+      <SlkFlowerSpinner v-if="isGeneratingPdf" :size="20" color="#fbfbfb" />
+      <span v-else>PDF</span>
+    </button>
     
   </div>
 </template>
@@ -69,11 +87,14 @@ const colorClass = computed(() => {
 });
 
 const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config
+const isGeneratingPdf = ref(false);
 
 async function fetchPDF() {
+  if (isGeneratingPdf.value) return;
   console.log("municipality: ", municipality)
   if (!municipality.slug) return;
 
+  isGeneratingPdf.value = true;
   try {
     const baseUrl = config.public.clientDirectusUrl;
     const token = config.public.directusToken;
@@ -95,6 +116,8 @@ async function fetchPDF() {
 
   } catch (err) {
     console.error('Error fetching PDF:', err);
+  } finally {
+    isGeneratingPdf.value = false;
   }
 }
 

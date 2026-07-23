@@ -8,7 +8,7 @@
       <img src="~/assets/icons/icon_hint.svg" class="h-7 w-7 flex-shrink-0 mt-0.5 hidden sm:block" style="filter: brightness(0) saturate(100%) invert(62%) sepia(100%) saturate(520%) hue-rotate(355deg) brightness(95%)" />
       <div class="flex-1 min-w-0">
         <p class="font-heading font-bold text-gray text-base leading-snug mb-1">
-          Zugriff eingeschränkt: \u201e{{ previewMuniName }}\u201c
+          Zugriff eingeschränkt: „{{ previewMuniName }}“
         </p>
         <p class="text-sm leading-snug mb-3 text-mid-gray">
           Der Lokalteam-Administrator wurde noch nicht verifiziert. Der Zugang ist eingeschränkt und erfordert
@@ -22,7 +22,7 @@
           <NuxtLink
             :to="`/contact?title=${encodeURIComponent('Verifizierung Lokalteam ' + previewMuniName)}&type=cooperation&content=${encodeURIComponent('Ich bitte um Verifizierung meines Lokalteam-Accounts für ' + previewMuniName + '.\n\nMeine Kontaktdaten:\n')}`"
             class="px-4 py-1.5 text-sm font-semibold bg-olive-green text-white rounded-md hover:opacity-90 transition-colors"
-          >Kontakt aufnehmen \u2192</NuxtLink>
+          >Kontakt aufnehmen →</NuxtLink>
         </div>
       </div>
     </div>
@@ -73,7 +73,7 @@
       <img src="~/assets/icons/icon_hint.svg" class="h-7 w-7 flex-shrink-0 mt-0.5 hidden sm:block" style="filter: brightness(0) saturate(100%) invert(62%) sepia(100%) saturate(520%) hue-rotate(355deg) brightness(95%)" />
       <div class="flex-1 min-w-0">
         <p class="font-heading font-bold text-gray text-base leading-snug mb-1">
-          Vorschau: \u201e{{ directusData.municipalityScore.municipality.name }}\u201c
+          Vorschau: „{{ directusData.municipalityScore.municipality.name }}“
         </p>
         <p class="text-sm leading-snug mb-3 text-mid-gray">
           {{ $t("municipalities.preview_text") }}

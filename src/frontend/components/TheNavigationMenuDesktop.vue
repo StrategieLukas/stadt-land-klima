@@ -189,7 +189,7 @@
                 @click="closeMenu"
                 :class="{
                   'bg-solid-light-green-20 text-olive-green': child.link_type === 'page' && isActive(child),
-                  'text-gray-700 hover:text-gray-900 hover:bg-solid-light-green-10': !(
+                  'text-gray-600 hover:text-gray-900 hover:bg-solid-light-green-10': !(
                     child.link_type === 'page' && isActive(child)
                   ),
                 }"

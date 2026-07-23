@@ -278,16 +278,11 @@
                   :style="sector.key === activeSectorKey ? { backgroundColor: sector.color } : undefined"
                   @click="scrollToSector(sector.key)"
                 >
-                  <img
-                    v-if="sectorImages[sector.key]"
-                    :src="sectorImages[sector.key]"
-                    class="h-6 w-6 flex-shrink-0 grayscale"
-                    :class="
-                      sector.key === activeSectorKey
-                        ? 'opacity-100 mix-blend-screen'
-                        : 'opacity-60 mix-blend-multiply invert'
-                    "
-                    alt=""
+                  <span
+                    v-if="sectorIconSvg(sector.key)"
+                    class="flex h-5 w-5 flex-shrink-0 items-center justify-center text-current [&>svg]:h-full [&>svg]:w-full"
+                    :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-60'"
+                    v-html="sectorIconSvg(sector.key)"
                   />
                   {{ $t(`measure_sectors.${sector.key}.title`) }}
                 </button>
@@ -303,7 +298,12 @@
                 class="border-gray-100 flex items-center gap-2 border-t pb-2 pt-8"
                 :style="`scroll-margin-top: ${productScrollMarginTop}px`"
               >
-                <span class="h-3 w-3 rounded-full" :style="{ backgroundColor: group.color }" />
+                <span
+                  v-if="sectorIconSvg(group.key)"
+                  class="flex h-10 w-10 flex-shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                  :style="{ color: group.color }"
+                  v-html="sectorIconSvg(group.key)"
+                />
                 <h2 class="text-gray-900 text-4xl font-black">{{ group.label }}</h2>
                 <span class="text-gray-400 justify-self-end text-xs">{{ group.collections.length }} Datenprodukte</span>
               </div>
@@ -336,7 +336,26 @@ import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
 import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug.js";
 import { normalizeCollection, sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
-import sectorImages from "~/shared/sectorImages.js";
+
+const sectorSvgFiles = import.meta.glob("@/assets/icons/icon_category_*.svg", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+const sectorIconNames = {
+  energy: "icon_category_energy",
+  buildings: "icon_category_buildings",
+  industry: "icon_category_industry",
+  management: "icon_category_management",
+  agriculture: "icon_category_agriculture",
+  transport: "icon_category_transport",
+};
+const sectorIconSvgs = Object.fromEntries(
+  Object.entries(sectorSvgFiles).map(([path, svg]) => {
+    const name = path.split("/").pop()?.replace(".svg", "") || "";
+    return [name, prepareIconSvg(svg)];
+  }),
+);
 
 definePageMeta({
   key: (route) => route.fullPath,
@@ -628,6 +647,26 @@ const groupedCollections = computed(() => {
 });
 
 const productSectors = computed(() => groupedCollections.value.map(({ key, label, color }) => ({ key, label, color })));
+
+function sectorIconSvg(key) {
+  const iconName = sectorIconNames[key];
+  return iconName ? (sectorIconSvgs[iconName] ?? "") : "";
+}
+
+function prepareIconSvg(raw) {
+  return String(raw)
+    .replace(/<\?xml[^?]*\?>/g, "")
+    .replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1")
+    .replace(/(<svg[^>]*?)\s+height="[^"]*"/g, "$1")
+    .replace(/<rect[^>]*class="cls-2"[^/>]*\/>/g, "")
+    .replace(/<rect[^>]*class="cls-2"[^>]*>[^<]*<\/rect>/g, "")
+    .replace(/<rect[^>]*class="cls-3"[^/>]*\/>/g, "")
+    .replace(/<rect[^>]*class="cls-3"[^>]*>[^<]*<\/rect>/g, "")
+    .replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, "fill: currentColor")
+    .replace(/stroke:\s*#[0-9a-fA-F]{3,6}/g, "stroke: currentColor")
+    .replace(/fill="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'fill="currentColor"')
+    .replace(/stroke="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'stroke="currentColor"');
+}
 
 const heroBackgroundImage = computed(() => {
   if (municipalityImageId.value) {

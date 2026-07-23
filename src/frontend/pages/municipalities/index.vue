@@ -2,7 +2,7 @@
 <div class="px-4 py-8">
   <!-- Title -->
   <div class="mb-4">
-    <h1 class="text-4xl font-bold" style="color: #AFCA0B;">
+    <h1 class="text-4xl font-bold">
       <span v-if="selectedCatalogVersion.name === 'beta'">{{ $t("municipalities.heading") }} 2025</span>
       <span v-else>{{ $t("municipalities.heading") }} 2026</span>
     </h1>
@@ -64,16 +64,16 @@
   </div>
 
   <!-- Filter panel -->
-  <div class="flex flex-col gap-0 mb-6 shadow-md p-3" style="background-color: #F5F9E6;">
+  <div class="slk-filter-panel slk-filter-theme-lime flex flex-col gap-0 mb-6 shadow-md p-3">
 
     <!-- Collapsible toggle (only shown below xs breakpoint) -->
-    <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium" style="color: #AFCA0B;" @click="filterOpen = !filterOpen">
+    <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium slk-filter-panel-icon" @click="filterOpen = !filterOpen">
       <span class="flex items-center gap-2">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
         </svg>
         <span>Filter &amp; Ansicht</span>
-        <span v-if="activeFilterCount > 0" class="text-white text-xs rounded-full px-1.5 py-0.5 font-bold leading-none" style="background-color: #AFCA0B;">{{ activeFilterCount }}</span>
+        <span v-if="activeFilterCount > 0" class="slk-filter-count text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
       </span>
       <svg class="w-4 h-4 flex-shrink-0 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -87,13 +87,13 @@
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2 py-1.5">
       <!-- View toggle group: icon + buttons stay together -->
       <div class="flex items-center gap-2">
-        <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="w-4 h-4 flex-shrink-0 slk-filter-panel-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
         </svg>
         <div class="flex gap-2">
           <button
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
-            :class="!isMapView ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+            class="slk-filter-pill"
+            :class="{ 'slk-filter-pill--active': !isMapView }"
             @click="router.replace({ query: { ...route.query, view: undefined } })"
           >
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -102,8 +102,8 @@
             Ranking
           </button>
           <button
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-bold"
-            :class="isMapView ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+            class="slk-filter-pill"
+            :class="{ 'slk-filter-pill--active': isMapView }"
             @click="router.replace({ query: { ...route.query, view: 'map' } })"
           >
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -115,39 +115,39 @@
       </div>
 
       <!-- Vertical divider (hidden when row wraps) -->
-      <div class="self-stretch w-px bg-[#AFCA0B]/30" />
+      <div class="slk-filter-divider self-stretch w-px" />
 
       <!-- Catalog version group: icon + buttons stay together -->
       <div class="flex items-center gap-2">
-        <svg class="w-4 h-4 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="w-4 h-4 flex-shrink-0 slk-filter-panel-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         <div class="flex gap-2 items-center">
           <NuxtLink
             :to="{ path: '/municipalities', query: { ...route.query, v: 'v1.0' } }"
-            class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
-            :class="selectedCatalogVersion.name !== 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+            class="slk-filter-pill"
+            :class="{ 'slk-filter-pill--active': selectedCatalogVersion.name !== 'beta' }"
           >2026</NuxtLink>
           <NuxtLink
             :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"
-            class="inline-flex items-center px-2.5 py-1 rounded-full border transition text-xs font-bold"
-            :class="selectedCatalogVersion.name === 'beta' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+            class="slk-filter-pill"
+            :class="{ 'slk-filter-pill--active': selectedCatalogVersion.name === 'beta' }"
           >2025 (Archiv)</NuxtLink>
         </div>
       </div>
     </div>
 
-    <div class="border-t border-[#AFCA0B]/20 my-0.5" />
+    <div class="slk-filter-rule border-t my-0.5" />
 
     <!-- Row 2: Municipality type filter -->
     <div class="grid grid-cols-[1.5rem_1fr] gap-x-2 items-start py-1.5">
-      <svg class="w-4 h-4 mt-1 flex-shrink-0" style="color: #AFCA0B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <svg class="w-4 h-4 mt-1 flex-shrink-0 slk-filter-panel-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
       </svg>
       <div class="flex flex-wrap gap-2 items-center">
         <button
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-medium"
-          :class="selected === 'all' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+          class="slk-filter-pill"
+          :class="{ 'slk-filter-pill--active': selected === 'all' }"
           @click="selected = 'all'"
         >
           <div class="flex gap-0 flex-shrink-0">
@@ -157,16 +157,16 @@
           <span class="font-bold whitespace-nowrap">{{ $t('municipalities.all') }}</span>
         </button>
         <button
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-medium"
-          :class="selected === 'major_city' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+          class="slk-filter-pill"
+          :class="{ 'slk-filter-pill--active': selected === 'major_city' }"
           @click="selected = 'major_city'"
         >
           <img class="h-4 w-4 flex-shrink-0" :src="selected === 'major_city' ? majorCitySelected : majorCityNotSelected" :alt="$t('municipalities.major_city.plural')" />
           <span class="font-bold whitespace-nowrap">{{ $t('municipalities.major_city.plural') }}</span>
         </button>
         <button
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition text-xs font-medium"
-          :class="selected === 'minor_city' ? 'bg-[#AFCA0B] text-white border-[#AFCA0B]' : 'bg-white border-[#AFCA0B] text-[#AFCA0B] hover:bg-[#F5F9E6]'"
+          class="slk-filter-pill"
+          :class="{ 'slk-filter-pill--active': selected === 'minor_city' }"
           @click="selected = 'minor_city'"
         >
           <img class="h-4 w-4 flex-shrink-0" :src="selected === 'minor_city' ? minorCitySelected : minorCityNotSelected" :alt="$t('municipalities.minor_city.plural')" />
@@ -379,7 +379,7 @@ async function fetchMunicipalityScores(catalogVersionId) {
   return await useAsyncData(`municipalities_ranking_scores_${catalogVersionId}`, () => {
   return $directus.request(
     $readItems("municipality_scores", {
-      fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
+      fields: ["id", "catalog_version", "published", "rank", "score_total", "percentage_rated", "municipality.name", 
       { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
       filter: { catalog_version: { _eq: catalogVersionId }, percentage_rated: { _gt: 0} },
       limit: -1,

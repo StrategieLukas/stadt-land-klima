@@ -31,7 +31,7 @@ function applyTheme(theme: ThemeMode) {
 
   const root = document.documentElement;
   root.dataset.theme = theme === "dark" ? darkThemeName : lightThemeName;
-  root.classList.toggle("dark", theme === "dark");
+  root.classList.remove("dark");
   root.style.colorScheme = theme;
 }
 

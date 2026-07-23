@@ -177,7 +177,7 @@
           <div class="p-4 flex flex-col gap-1 flex-1">
             <h3 class="font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#006e94] transition-colors">{{ ev.title }}</h3>
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
-              <span v-if="ev.event_type" class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#1da64a]/10 text-[#1da64a]">
+              <span v-if="ev.event_type" class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#1da64a]/10 text-[#1da64a] dark:bg-[var(--slk-green)] dark:text-[var(--slk-text-strong)]">
                 {{ { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }[ev.event_type] ?? ev.event_type }}
               </span>
               <span class="flex items-center gap-1 text-xs text-gray-500">
@@ -304,7 +304,7 @@
           </h3>
           <!-- Event metadata: type badge, date, location -->
           <div v-if="item.type === 'event'" class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
-            <span v-if="item.eventType" class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#1da64a]/10 text-[#1da64a]">
+            <span v-if="item.eventType" class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#1da64a]/10 text-[#1da64a] dark:bg-[var(--slk-green)] dark:text-[var(--slk-text-strong)]">
               {{ { conference: 'Konferenz', workshop: 'Workshop', webinar: 'Webinar', other: 'Sonstiges' }[item.eventType] ?? item.eventType }}
             </span>
             <span class="flex items-center gap-1 text-xs text-gray-500">

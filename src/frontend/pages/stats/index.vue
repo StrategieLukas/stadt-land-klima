@@ -8,112 +8,6 @@
       <!-- Filter panel — full width -->
       <div class="flex flex-col gap-0 px-3 py-3 mb-4 bg-gray-50 rounded-sm border border-gray-200">
 
-  <main class="stats-page mx-auto w-full max-w-7xl px-4 py-6">
-    <!-- ═══════════════════════════════════════════════════════════
-         TOP NAV TILES — anchor navigation
-         ═══════════════════════════════════════════════════════════ -->
-    <nav class="-mx-4 -mt-6 mb-6 flex md:hidden" aria-label="Sektionen">
-      <button
-        class="flex flex-1 flex-col items-center justify-center gap-0.5 px-4 py-4 text-center text-white transition-opacity hover:opacity-90 active:opacity-80"
-        style="background-color: #006e94"
-        @click="scrollToSection('kommunale-statistiken')"
-      >
-        <svg class="mb-0.5 h-5 w-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5z"
-          />
-        </svg>
-        <span class="font-heading text-base font-bold leading-tight">{{ $t("stats.municipal.title") }}</span>
-        <span class="hidden text-xs text-white xs:block">{{ $t("stats.municipal.nav_subtitle") }}</span>
-      </button>
-      <div class="w-px flex-shrink-0 bg-solid-stats-white-15"></div>
-      <button
-        class="flex flex-1 flex-col items-center justify-center gap-0.5 px-4 py-4 text-center text-white transition-opacity hover:opacity-90 active:opacity-80"
-        style="background-color: #1a4a6e"
-        @click="scrollToSection('massnahmenstatistiken')"
-      >
-        <svg class="mb-0.5 h-5 w-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-          />
-        </svg>
-        <span class="font-heading text-base font-bold leading-tight">{{ $t("stats.measures.title") }}</span>
-        <span class="hidden text-xs text-white xs:block">{{ $t("stats.measures.nav_subtitle") }}</span>
-      </button>
-    </nav>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         ZONE A: Kommunensuche — find a specific city's stats
-         ═══════════════════════════════════════════════════════════ -->
-    <section id="kommunale-statistiken" class="mb-7 md:overflow-hidden md:rounded-sm md:shadow-list">
-      <!-- Hero: mobile = stacked header + search, desktop = side-by-side in dark band -->
-      <div class="flex flex-col md:flex-row md:items-stretch">
-        <!-- Dark left: icon + title -->
-        <div
-          class="-mx-4 mb-0 flex items-center gap-3 px-4 py-4 md:mx-0 md:w-[35%] md:flex-shrink-0"
-          style="background-color: #006e94"
-        >
-          <svg
-            class="h-5 w-5 flex-shrink-0 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
-            />
-          </svg>
-          <div>
-            <h2 class="font-heading text-lg font-bold leading-tight text-white">{{ $t("stats.municipal.title") }}</h2>
-            <p class="mt-0.5 text-xs text-white">{{ $t("stats.municipal.description") }}</p>
-          </div>
-        </div>
-        <!-- Right: search bar (padded below on mobile, inline on desktop) -->
-        <div class="px-1 pb-3 pt-4 md:flex md:flex-1 md:items-center md:px-5 md:py-3">
-          <AdministrativeAreaSearchBar base-path="/stats" class="w-full" />
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         ZONE B: Gesamtstatistik — aggregate data across all cities
-         ═══════════════════════════════════════════════════════════ -->
-    <section id="massnahmenstatistiken" class="md:mb-8 md:overflow-hidden md:rounded-sm md:shadow-list">
-      <!-- Hero row: mobile = stacked, desktop = side-by-side title + filter -->
-      <div class="border-gray-200 flex flex-col border-b md:flex-row md:items-stretch">
-        <!-- Left: dark title column -->
-        <div
-          class="-mx-4 mb-0 flex items-center gap-3 px-4 py-4 md:mx-0 md:w-[35%] md:flex-shrink-0"
-          style="background-color: #1a4a6e"
-        >
-          <svg
-            class="h-5 w-5 flex-shrink-0 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
-          <div>
-            <h2 class="font-heading text-lg font-bold leading-tight text-white">{{ $t("stats.measures.title") }}</h2>
-            <p class="mt-0.5 text-xs text-white">{{ $t("stats.measures.description") }}</p>
-          </div>
-        </div>
-        <!-- Right: filter panel -->
-        <div class="slk-filter-panel slk-filter-theme-stats flex flex-col gap-0 px-3 py-3 md:flex-1 md:justify-center">
->>>>>>> main
           <!-- Collapsible toggle (only shown below xs breakpoint) -->
           <button
             class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
@@ -214,8 +108,7 @@
               </div>
             </div>
           </div>
-          </div><!-- /collapsible -->
-      </div><!-- /filter panel -->
+          </div><!-- /filter panel -->
 
       <!-- desktop content padding wrapper -->
       <div class="md:px-4 md:pb-6 md:pt-4">
@@ -2564,17 +2457,6 @@ function onChooserSectorClick(sector) {
     showListView.value = false;
   }
   nextTick(() => { renderSunburst(); renderDistPanel() })
-=======
-    mobileMeasuresTab.value = "plot";
-  } else {
-    // Switch to sunburst view so it's visible when we re-render
-    showListView.value = false;
-  }
-  nextTick(() => {
-    renderSunburst();
-    renderDistPanel();
-  });
->>>>>>> main
 }
 
 function onChooserMeasureClick(measure, sectorKey) {

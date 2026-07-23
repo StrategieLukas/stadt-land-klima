@@ -133,7 +133,7 @@
                 @click="closeMenu"
                 :class="{
                   'bg-solid-light-green-20 dark:bg-[var(--slk-green-tint)] text-olive-green dark:text-[var(--slk-olive-green)]': child.link_type === 'page' && isActive(child),
-                  'text-gray-700 dark:text-[var(--slk-text)] hover:text-gray-900 dark:hover:text-[var(--slk-text-strong)] hover:bg-solid-light-green-10 dark:hover:bg-[var(--slk-surface-muted)]': !(
+                  'text-gray-700 dark:text-[var(--slk-text-muted)] hover:text-gray-900 dark:hover:text-[var(--slk-text-strong)] hover:bg-solid-light-green-10 dark:hover:bg-[var(--slk-surface-muted)]': !(
                     child.link_type === 'page' && isActive(child)
                   ),
                 }"

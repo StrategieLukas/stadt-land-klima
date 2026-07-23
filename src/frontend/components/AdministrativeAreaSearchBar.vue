@@ -26,7 +26,7 @@
       <Teleport to="body">
         <div
           v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !visibleSuggestions.length)) && searchFocused && dropdownPosition.show"
-          class="fixed z-[99999] bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto font-sans"
+          class="slk-area-search-dropdown fixed z-[99999] rounded-md border max-h-60 overflow-y-auto font-sans shadow-lg bg-white border-gray-200"
           :style="{
             top: dropdownPosition.top + 'px',
             left: dropdownPosition.left + 'px',
@@ -52,8 +52,8 @@
             <div
               v-for="(suggestion, index) in visibleSuggestions"
               :key="suggestion.ars"
-              class="px-3 sm:px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-              :class="{ 'bg-stats-light': index === focusedIndex, 'opacity-60 cursor-default': !props.routeBuilder && !suggestion.url }"
+              class="slk-area-search-result px-3 sm:px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0"
+              :class="{ 'slk-area-search-result--focused': index === focusedIndex, 'opacity-60 cursor-default': !props.routeBuilder && !suggestion.url }"
               @mousedown.prevent="(props.routeBuilder || suggestion.url) ? (goTo(suggestion.url, suggestion), handleSuggestionClick()) : null"
               @touchend.prevent="(props.routeBuilder || suggestion.url) ? (goTo(suggestion.url, suggestion), handleSuggestionClick()) : null"
             >
@@ -93,19 +93,15 @@
     </form>
 
     <!-- Filter tabs: horizontal row on mobile, vertical column on sm+ -->
-    <div v-if="showFilterToggle" ref="radioGroup" class="flex flex-row sm:flex-col sm:self-end w-full sm:w-auto flex-shrink-0 rounded border border-gray-200 overflow-hidden text-xs font-semibold">
+    <div v-if="showFilterToggle" ref="radioGroup" class="slk-area-search-tabs flex flex-row sm:flex-col sm:self-end w-full sm:w-auto flex-shrink-0 overflow-hidden rounded border text-xs font-semibold">
       <button
-        class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors border-r sm:border-r-0 sm:border-b border-gray-200"
-        :class="filterType === 'reasonable'
-          ? 'bg-[#006e94] text-white'
-          : 'bg-white text-gray-600 hover:bg-gray-50'"
+        class="slk-area-search-tab flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors border-r sm:border-r-0 sm:border-b"
+        :class="{ 'slk-area-search-tab--active': filterType === 'reasonable' }"
         @click="filterType = 'reasonable'; handleFilterChange()"
       >{{ $t('administrative_areas.search.reasonable_rate_able_municipalities') }}</button>
       <button
-        class="flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors"
-        :class="filterType === 'all'
-          ? 'bg-[#006e94] text-white'
-          : 'bg-white text-gray-600 hover:bg-gray-50'"
+        class="slk-area-search-tab flex-1 sm:flex-none px-3 py-2 leading-tight transition-colors"
+        :class="{ 'slk-area-search-tab--active': filterType === 'all' }"
         @click="filterType = 'all'; handleFilterChange()"
       >{{ $t('all_administrative_areas') }}</button>
     </div>

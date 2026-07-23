@@ -1,12 +1,12 @@
 <template>
   <div
     ref="containerRef"
-    class="group/vega-chart relative w-full"
+    class="slk-vega-chart group/vega-chart relative w-full bg-white dark:bg-[#17212b]"
     :style="height ? `height:${height}px` : 'height:100%'"
   >
     <div
       v-if="nativeZoomEnabled && canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100"
+      class="border-gray-300 pointer-events-none absolute bottom-2 left-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         type="button"
@@ -21,7 +21,7 @@
     </div>
     <div
       v-if="canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100"
+      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/vega-chart:pointer-events-auto group-hover/vega-chart:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         type="button"
@@ -55,7 +55,10 @@
     <div v-if="loading" class="absolute inset-0 flex items-center justify-center">
       <SlkFlowerSpinner :size="24" />
     </div>
-    <div v-if="renderError" class="text-gray-400 absolute inset-0 flex items-center justify-center text-xs">
+    <div
+      v-if="renderError"
+      class="text-gray-400 absolute inset-0 flex items-center justify-center text-xs dark:text-slate-400"
+    >
       Diagramm konnte nicht geladen werden.
     </div>
     <div ref="vegaRef" class="h-full w-full" />
@@ -72,6 +75,22 @@ const EXPORT_FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe
 let nativeZoomId = 0;
 const MIN_CHART_WIDTH = 240;
 const MIN_CHART_HEIGHT = 160;
+const LIGHT_VEGA_BACKGROUND = "#ffffff";
+const DARK_VEGA_BACKGROUND = "#17212b";
+const darkVegaConfig = {
+  background: DARK_VEGA_BACKGROUND,
+  view: { fill: DARK_VEGA_BACKGROUND, stroke: "#344454" },
+  axis: {
+    labelColor: "#8aa4b8",
+    titleColor: "#8aa4b8",
+    gridColor: "#243444",
+    domainColor: "#344454",
+    tickColor: "#344454",
+  },
+  title: { color: "#d0dce5", subtitleColor: "#8aa4b8" },
+  legend: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
+  header: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
+};
 
 const props = defineProps({
   spec: {
@@ -120,6 +139,7 @@ const exportReady = ref(false);
 const nativeZoomEnabled = ref(false);
 const nativeZoomParamName = `slk_native_scale_zoom_${++nativeZoomId}`;
 const canExport = computed(() => exportReady.value && !loading.value && !renderError.value);
+const { isDark } = useTheme();
 const resolvedDataApiUrl = computed(() => {
   const url = findDataUrl(props.spec);
   return url ? resolveUrl(url) : "";
@@ -145,17 +165,14 @@ async function render() {
     vegaRef.value.innerHTML = "";
     nativeZoomEnabled.value = false;
     await nextTick();
-    const responsiveSpec = withResponsiveSize(props.spec);
+    const responsiveSpec = withTheme(withResponsiveSize(props.spec));
     const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(responsiveSpec);
     nativeZoomEnabled.value = hasNativeZoom;
 
     const result = await vegaEmbed(vegaRef.value, embeddableSpec, {
       renderer: "canvas",
       actions: false,
-      config: {
-        background: "transparent",
-        font: EXPORT_FONT,
-      },
+      config: vegaConfig.value,
     });
     vegaView = result.view;
     renderedSize = measureChartSize();
@@ -167,6 +184,25 @@ async function render() {
   } finally {
     loading.value = false;
   }
+}
+
+const vegaConfig = computed(() => ({
+  ...(isDark.value ? darkVegaConfig : { background: LIGHT_VEGA_BACKGROUND, view: { fill: LIGHT_VEGA_BACKGROUND } }),
+  font: EXPORT_FONT,
+}));
+
+function withTheme(spec) {
+  const themed = JSON.parse(JSON.stringify(spec));
+  themed.background = isDark.value ? DARK_VEGA_BACKGROUND : LIGHT_VEGA_BACKGROUND;
+  themed.config = {
+    ...(themed.config ?? {}),
+    ...vegaConfig.value,
+    view: {
+      ...(themed.config?.view ?? {}),
+      ...(vegaConfig.value.view ?? {}),
+    },
+  };
+  return themed;
 }
 
 function withResponsiveSize(spec) {
@@ -704,7 +740,7 @@ function normalizeDate(value) {
 }
 
 watch(
-  () => props.spec,
+  () => [props.spec, isDark.value],
   () => render(),
   { deep: true },
 );
@@ -726,3 +762,14 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<style scoped>
+.slk-vega-chart :deep(.vega-embed),
+.slk-vega-chart :deep(canvas) {
+  max-width: 100%;
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-vega-chart .vega-embed) {
+  background: #17212b;
+}
+</style>

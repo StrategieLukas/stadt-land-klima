@@ -1,9 +1,9 @@
 <template>
-  <div class="group/maplibre bg-gray-50 relative h-full w-full overflow-hidden">
+  <div class="slk-maplibre-render group/maplibre bg-gray-50 relative h-full w-full overflow-hidden dark:bg-slate-900">
     <div ref="containerRef" class="h-full w-full" />
     <div
       v-if="canExport"
-      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/maplibre:pointer-events-auto group-hover/maplibre:opacity-100"
+      class="border-gray-300 pointer-events-none absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-full border bg-white/95 p-1 opacity-0 shadow-md transition-opacity focus-within:pointer-events-auto focus-within:opacity-100 group-hover/maplibre:pointer-events-auto group-hover/maplibre:opacity-100 dark:border-slate-600 dark:bg-slate-800/95"
     >
       <button
         v-if="resolvedFeatureApiUrl"
@@ -35,10 +35,13 @@
         <Icon icon="mdi:content-copy" class="h-4 w-4" />
       </button>
     </div>
-    <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/60">
+    <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-slate-950/60">
       <SlkFlowerSpinner :size="24" />
     </div>
-    <div v-if="error" class="text-gray-400 absolute inset-0 flex items-center justify-center text-sm">
+    <div
+      v-if="error"
+      class="text-gray-400 absolute inset-0 flex items-center justify-center text-sm dark:text-slate-400"
+    >
       Karte konnte nicht geladen werden.
     </div>
   </div>
@@ -53,6 +56,12 @@ import type { MapLibreRenderSpec, RenderElement } from "~/types/slz-api";
 const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection", features: [] };
 const DATA_WEB_URL = "www.stadt-land-klima.de/data";
 const EXPORT_FONT = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+const LIGHT_MAP_BACKGROUND = "#f9fafb";
+const DARK_MAP_BACKGROUND = "#17212b";
+const CARTO_BASEMAP_SOURCE_ID = "slk-carto-basemap";
+const CARTO_BASEMAP_LAYER_ID = "slk-carto-basemap";
+const CARTO_BASEMAP_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 const props = defineProps<{
   element: RenderElement;
@@ -70,6 +79,7 @@ const containerRef = ref<HTMLElement | null>(null);
 const loading = ref(true);
 const error = ref(false);
 const mapReady = ref(false);
+const { isDark } = useTheme();
 
 let map: any = null;
 let popup: any = null;
@@ -79,6 +89,7 @@ let featureBoundsAbortController: AbortController | null = null;
 let densityTimer: ReturnType<typeof setTimeout> | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+let themeObserver: MutationObserver | null = null;
 let didFitInitialBounds = false;
 let cleanupLayerListeners: Array<() => void> = [];
 
@@ -89,7 +100,7 @@ const spec = computed<MapLibreRenderSpec | null>(() => {
 });
 
 watch(
-  spec,
+  [spec, isDark],
   () => {
     if (process.client) renderMap();
   },
@@ -97,10 +108,13 @@ watch(
 );
 
 onMounted(() => {
+  observeTheme();
   renderMap();
 });
 
 onBeforeUnmount(() => {
+  themeObserver?.disconnect();
+  themeObserver = null;
   destroyMap();
 });
 
@@ -172,6 +186,19 @@ function destroyMap() {
   map = null;
 }
 
+function observeTheme() {
+  if (typeof MutationObserver === "undefined") return;
+
+  themeObserver?.disconnect();
+  themeObserver = new MutationObserver(() => {
+    renderMap();
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
+}
+
 async function downloadPng() {
   if (!map) return;
   try {
@@ -214,27 +241,75 @@ async function copyApiCall() {
 function buildStyle(mapSpec: MapLibreRenderSpec) {
   const baseStyle =
     mapSpec.style && typeof mapSpec.style === "object"
-      ? (structuredCloneSafe(mapSpec.style) as Record<string, any>)
+      ? (themeStyleUrls(structuredCloneSafe(mapSpec.style)) as Record<string, any>)
       : null;
+  const baseLayers = Array.isArray(baseStyle?.layers) ? baseStyle.layers : [];
+  const externalBasemapSourceIds = basemapSourceIds(mapSpec.sources ?? {});
   return {
     version: 8,
     glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     ...(baseStyle ?? {}),
     sources: {
-      ...(baseStyle?.sources ?? {}),
-      ...buildSources(mapSpec),
+      [CARTO_BASEMAP_SOURCE_ID]: cartoRasterSource(),
+      ...buildSources(mapSpec, externalBasemapSourceIds),
     },
-    layers: [...(baseStyle?.layers ?? []), ...buildLayers(mapSpec)],
+    layers: [
+      ensureThemedBackgroundLayer(baseLayers),
+      cartoRasterLayer(),
+      ...buildLayers(mapSpec, externalBasemapSourceIds),
+    ].filter(Boolean),
   };
 }
 
-function buildSources(mapSpec: MapLibreRenderSpec) {
+function cartoRasterSource() {
+  const tileTemplate = isDarkThemeActive()
+    ? "https://{subdomain}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+    : "https://{subdomain}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png";
+  return {
+    type: "raster",
+    tiles: ["a", "b", "c", "d"].map((subdomain) => tileTemplate.replace("{subdomain}", subdomain)),
+    tileSize: 256,
+    attribution: CARTO_BASEMAP_ATTRIBUTION,
+  };
+}
+
+function cartoRasterLayer() {
+  return {
+    id: CARTO_BASEMAP_LAYER_ID,
+    type: "raster",
+    source: CARTO_BASEMAP_SOURCE_ID,
+    paint: {
+      "raster-opacity": 1,
+    },
+  };
+}
+
+function themeStyleUrls(value: unknown): unknown {
+  if (typeof value === "string") {
+    return isDarkThemeActive()
+      ? value
+          .replace(/\/light_all\//g, "/dark_all/")
+          .replace(/\/positron\//g, "/dark-matter/")
+          .replace(/\/positron-gl-style\//g, "/dark-matter-gl-style/")
+      : value
+          .replace(/\/dark_all\//g, "/light_all/")
+          .replace(/\/dark-matter\//g, "/positron/")
+          .replace(/\/dark-matter-gl-style\//g, "/positron-gl-style/");
+  }
+  if (Array.isArray(value)) return value.map(themeStyleUrls);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, themeStyleUrls(item)]));
+}
+
+function buildSources(mapSpec: MapLibreRenderSpec, externalBasemapSourceIds: Set<string>) {
   const sourceEntries = Object.entries(mapSpec.sources ?? {});
   const sources: Record<string, any> = {};
 
   for (const [sourceId, source] of sourceEntries) {
     if (!source || typeof source !== "object") continue;
-    const cleanSource = omitSourcePrivateFields(source);
+    if (externalBasemapSourceIds.has(sourceId)) continue;
+
+    const cleanSource = themeStyleUrls(omitSourcePrivateFields(source)) as Record<string, any>;
 
     if (sourceId === "features") {
       sources[sourceId] = {
@@ -272,8 +347,126 @@ function buildSources(mapSpec: MapLibreRenderSpec) {
   return sources;
 }
 
-function buildLayers(mapSpec: MapLibreRenderSpec) {
-  return (mapSpec.layers ?? []).map((layer) => normalizeLayer(structuredCloneSafe(layer))).filter(Boolean);
+function buildLayers(mapSpec: MapLibreRenderSpec, externalBasemapSourceIds: Set<string>) {
+  return (mapSpec.layers ?? [])
+    .filter((layer) => !isExternalBasemapLayer(layer, externalBasemapSourceIds))
+    .map((layer) => normalizeLayer(themeLayer(layer)))
+    .filter(Boolean);
+}
+
+function basemapSourceIds(sources: Record<string, any>) {
+  const ids = new Set<string>();
+
+  for (const [sourceId, source] of Object.entries(sources)) {
+    if (isExternalBasemapSource(sourceId, source)) {
+      ids.add(sourceId);
+    }
+  }
+
+  return ids;
+}
+
+function isExternalBasemapLayer(layer: Record<string, any> | null, externalBasemapSourceIds: Set<string>) {
+  if (!layer || !layer.source || typeof layer.source !== "string") return false;
+  if (layer.id === CARTO_BASEMAP_LAYER_ID || layer.source === CARTO_BASEMAP_SOURCE_ID) return true;
+  return externalBasemapSourceIds.has(layer.source);
+}
+
+function isExternalBasemapSource(sourceId: string, source: unknown) {
+  if (!source || typeof source !== "object") return false;
+
+  const haystack = `${sourceId} ${JSON.stringify(source)}`.toLowerCase();
+  return (
+    haystack.includes("basemaps.cartocdn.com") ||
+    haystack.includes("tile.openstreetmap.org") ||
+    haystack.includes("carto.com/basemaps") ||
+    haystack.includes("carto-basemap") ||
+    haystack.includes("positron") ||
+    haystack.includes("dark-matter")
+  );
+}
+
+function ensureThemedBackgroundLayer(layers: Array<Record<string, any>>) {
+  const backgroundLayer = layers.find((layer) => layer?.type === "background");
+  const fallback = {
+    id: "slk-background",
+    type: "background",
+    paint: { "background-color": isDarkThemeActive() ? DARK_MAP_BACKGROUND : LIGHT_MAP_BACKGROUND },
+  };
+  return themeLayer(backgroundLayer ?? fallback);
+}
+
+function themeLayer(layer: Record<string, any> | null) {
+  if (!layer) return layer;
+  const cloned = structuredCloneSafe(layer);
+  cloned.paint = themePaint(
+    cloned.type === "background" ? themeBackgroundPaint(cloned.paint ?? {}) : (cloned.paint ?? {}),
+  );
+  return cloned;
+}
+
+function themeBackgroundPaint(paint: Record<string, any>) {
+  return {
+    ...paint,
+    "background-color": paint["background-color"] ?? (isDarkThemeActive() ? DARK_MAP_BACKGROUND : LIGHT_MAP_BACKGROUND),
+  };
+}
+
+function themePaint(paint: Record<string, any>) {
+  if (!isDarkThemeActive()) return paint;
+
+  const next = { ...paint };
+  const neutralColors: Record<string, string> = {
+    "#ffffff": DARK_MAP_BACKGROUND,
+    "#fff": DARK_MAP_BACKGROUND,
+    white: DARK_MAP_BACKGROUND,
+    "#f9fafb": DARK_MAP_BACKGROUND,
+    "#f8fafc": DARK_MAP_BACKGROUND,
+    "#f3f4f6": "#1f2d3a",
+    "#f1f5f9": "#1f2d3a",
+    "#e5e7eb": "#344454",
+    "#e2e8f0": "#344454",
+    "#d1d5db": "#42566a",
+    "#cbd5e1": "#42566a",
+    "#6b7280": "#8aa4b8",
+    "#64748b": "#8aa4b8",
+    "#4b5563": "#adc3d4",
+    "#334155": "#d0dce5",
+    "#1f2937": "#d0dce5",
+    "#111827": "#d0dce5",
+    black: "#d0dce5",
+    "#000000": "#d0dce5",
+    "#000": "#d0dce5",
+  };
+
+  for (const key of [
+    "background-color",
+    "fill-color",
+    "fill-outline-color",
+    "line-color",
+    "circle-stroke-color",
+    "text-color",
+    "text-halo-color",
+  ]) {
+    if (next[key] !== undefined) {
+      next[key] = themePaintValue(next[key], neutralColors);
+    }
+  }
+
+  return next;
+}
+
+function themePaintValue(value: unknown, colorMap: Record<string, string>): unknown {
+  if (typeof value === "string") return colorMap[value.toLowerCase()] ?? value;
+  if (Array.isArray(value)) return value.map((item) => themePaintValue(item, colorMap));
+  return value;
+}
+
+function isDarkThemeActive() {
+  if (typeof document !== "undefined") {
+    return document.documentElement.dataset.theme === "staedteChallengeDark";
+  }
+  return isDark.value;
 }
 
 function normalizeLayer(layer: Record<string, any> | null) {
@@ -803,3 +996,74 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#039;");
 }
 </script>
+
+<style scoped>
+.slk-maplibre-render :deep(.maplibregl-popup-content) {
+  border: 1px solid rgb(209 213 219);
+  background: rgb(255 255 255);
+  color: rgb(31 41 55);
+  box-shadow: 0 16px 36px rgb(15 23 42 / 0.18);
+}
+
+.slk-maplibre-render :deep(.maplibregl-popup-tip) {
+  border-top-color: rgb(255 255 255);
+  border-bottom-color: rgb(255 255 255);
+}
+
+.slk-maplibre-render :deep(.maplibregl-ctrl-group) {
+  border-color: rgb(209 213 219);
+  background: rgb(255 255 255 / 0.95);
+}
+
+.slk-maplibre-render :deep(.maplibregl-ctrl-attrib) {
+  border: 1px solid rgb(209 213 219);
+  background: rgb(255 255 255 / 0.9);
+  color: rgb(75 85 99);
+}
+
+.slk-maplibre-render :deep(.maplibregl-ctrl button) {
+  color: rgb(31 41 55);
+}
+
+.slk-maplibre-render :deep(.maplibregl-ctrl-attrib a) {
+  color: rgb(37 99 235);
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-maplibre-render .maplibregl-popup-content) {
+  border-color: rgb(71 85 105);
+  background: rgb(30 41 59);
+  color: rgb(208 220 229);
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-maplibre-render .maplibregl-popup-tip) {
+  border-top-color: rgb(30 41 59);
+  border-bottom-color: rgb(30 41 59);
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-maplibre-render .maplibregl-ctrl-group) {
+  border-color: rgb(71 85 105);
+  background: rgb(30 41 59 / 0.95);
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-maplibre-render .maplibregl-ctrl-attrib) {
+  border-color: rgb(71 85 105);
+  background: rgb(30 41 59 / 0.9);
+  color: rgb(138 164 184);
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-maplibre-render .maplibregl-ctrl button) {
+  color: rgb(208 220 229);
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-maplibre-render .maplibregl-ctrl button .maplibregl-ctrl-icon) {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-maplibre-render .maplibregl-ctrl button:hover) {
+  background-color: rgb(51 65 85);
+}
+
+:global(html[data-theme="staedteChallengeDark"] .slk-maplibre-render .maplibregl-ctrl-attrib a) {
+  color: rgb(173 195 212);
+}
+</style>

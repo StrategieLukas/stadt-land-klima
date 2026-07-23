@@ -12,12 +12,7 @@
         class="z-0 h-full w-full"
         @ready="onMapReady"
       >
-        <LTileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          :subdomains="'abcd'"
-          :max-zoom="20"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
-        />
+        <LTileLayer :key="tileUrl" :url="tileUrl" :subdomains="subdomains" :max-zoom="20" :attribution="attribution" />
 
         <LGeoJson
           v-for="neighbor in visibleNeighbors"
@@ -59,6 +54,7 @@ const props = defineProps({
 
 const router = useRouter();
 const { start: startDataRouteFeedback } = useDataRouteFeedback();
+const { attribution, subdomains, tileUrl } = useCartoBasemap();
 const mapRef = ref(null);
 const mapReady = ref(false);
 const zoom = ref(10);

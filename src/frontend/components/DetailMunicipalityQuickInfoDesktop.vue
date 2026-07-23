@@ -23,6 +23,9 @@
                   fill-color="#dcfce7"
                   stroke-color="#86efac"
                   marker-color="#339737"
+                  dark-fill-color="var(--slk-green-tint)"
+                  dark-stroke-color="var(--slk-green)"
+                  dark-marker-color="var(--slk-green)"
                 />
             </div>
 

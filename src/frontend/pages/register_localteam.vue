@@ -217,7 +217,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 
 const route = useRoute()
-const { $stadtlandzahlAPI } = useNuxtApp()
+const { $stadtlandzahlAPI, $t } = useNuxtApp()
 const { public: { clientDirectusUrl, directusToken } } = useRuntimeConfig()
 
 // --- Query-param pre-fill ---

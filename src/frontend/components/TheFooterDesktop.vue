@@ -1,6 +1,6 @@
 <template>
   <!-- Social Media Section -->
-  <div class="w-full bg-gray-100">
+  <div class="w-full bg-gray-100 border-t border-gray-200">
   <div class="max-w-screen-xl mx-auto text-center py-8">
     <p class="mb-4">
       {{ $t("generic.social_media.support_by_sharing") }}

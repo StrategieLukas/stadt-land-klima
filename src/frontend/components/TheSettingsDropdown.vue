@@ -9,33 +9,53 @@
       :aria-label="$t('settings.label')"
       @click="toggle"
     >
-      <!-- Sun icon (light mode) -->
-      <svg
-        v-if="!isDark"
-        class="settings-trigger__icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="4" />
-        <path
-          d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
-        />
-      </svg>
-      <!-- Moon icon (dark mode) -->
-      <svg
-        v-else
-        class="settings-trigger__icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        aria-hidden="true"
-      >
-        <path d="M20.35 15.35A8 8 0 0 1 8.65 3.65A8.5 8.5 0 1 0 20.35 15.35Z" />
-      </svg>
+      <!-- Theme icon: ClientOnly to avoid SSR/client hydration mismatch
+           (server always renders light, client may have dark from localStorage) -->
+      <ClientOnly>
+        <!-- Sun icon (light mode) -->
+        <svg
+          v-if="!isDark"
+          class="settings-trigger__icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+          />
+        </svg>
+        <!-- Moon icon (dark mode) -->
+        <svg
+          v-else
+          class="settings-trigger__icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="M20.35 15.35A8 8 0 0 1 8.65 3.65A8.5 8.5 0 1 0 20.35 15.35Z" />
+        </svg>
+        <!-- Fallback: sun icon shown during SSR and initial hydration (matches server render) -->
+        <template #fallback>
+          <svg
+            class="settings-trigger__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+            />
+          </svg>
+        </template>
+      </ClientOnly>
       <!-- Divider line -->
       <span class="settings-trigger__divider" aria-hidden="true" />
       <!-- Current language code -->
