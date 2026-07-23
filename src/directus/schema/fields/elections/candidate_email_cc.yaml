@@ -10,9 +10,15 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: Optionale CC-Adresse für die Einladung an Kandidierende.
+  note: >-
+    Hier könnt ihr *eine E-Mail-Adresse aus eurem Team* angeben, wenn ihr Kopien
+    erhalten möchtet.
+
+    **Wichtig:** Wer diese E-Mails erhält, kann die Antworten aller Kandidierenden
+    einsehen und bearbeiten.
   options:
     placeholder: lokalteam@example.org
+    trim: true
   readonly: false
   required: false
   searchable: true
@@ -25,8 +31,15 @@ meta:
       translation: CC address for candidate emails
     - language: it-IT
       translation: Indirizzo CC per le email ai/alle candidati/e
-  validation: null
-  validation_message: null
+  validation:
+    _or:
+      - candidate_email_cc:
+          _null: true
+      - candidate_email_cc:
+          _eq: ""
+      - candidate_email_cc:
+          _regex: ^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+(?:\s*[;,]\s*[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+)*$
+  validation_message: Bitte eine oder mehrere gültige E-Mail-Adressen eingeben.
   width: half
 schema:
   name: candidate_email_cc

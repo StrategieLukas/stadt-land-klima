@@ -149,7 +149,6 @@ permissions:
     presets: null
     fields:
       - descriptor
-      - candidate_email_cc
       - candidate_email_reply_to
       - custom_logo
       - response_cutoff_date
@@ -179,7 +178,6 @@ permissions:
     fields:
       - id
       - response_cutoff_date
-      - candidate_email_cc
       - candidate_email_reply_to
       - date_created
       - custom_logo
@@ -206,7 +204,6 @@ permissions:
     fields:
       - descriptor
       - response_cutoff_date
-      - candidate_email_cc
       - candidate_email_reply_to
       - custom_logo
       - is_public

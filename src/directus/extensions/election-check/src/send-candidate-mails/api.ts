@@ -156,6 +156,7 @@ function candidateLastName(name?: string | null): string {
 }
 
 function candidateFormalSalutation(candidate: Candidate): string {
+  const fullName = candidate.name?.trim().replace(/\s+/g, ' ') ?? '';
   const lastName = candidateLastName(candidate.name);
 
   if (candidate.salutation === 'frau') {
@@ -166,7 +167,7 @@ function candidateFormalSalutation(candidate: Candidate): string {
     return lastName ? `Sehr geehrter Herr ${lastName}` : 'Sehr geehrter Herr';
   }
 
-  return lastName ? `Guten Tag ${lastName}` : 'Guten Tag';
+  return fullName ? `Guten Tag ${fullName}` : 'Guten Tag';
 }
 
 function summarizeCandidate(

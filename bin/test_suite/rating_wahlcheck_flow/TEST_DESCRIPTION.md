@@ -45,14 +45,16 @@
 6. Verify exactly 10 published questions are generated, each with title, thesis, and sector.
 7. Create an additional published question with a sample thesis and sector.
 8. Verify the user sees 11 total questions in Directus.
-9. Create two candidates:
-   - `AutomatedCandidateA <runId>` with the first candidate email and a listed party
+9. Verify candidate creation is rejected when the required salutation is omitted or explicitly set to `null`.
+10. Create two candidates:
+   - `AutomatedCandidateA <runId>` with a gender-neutral salutation, the first candidate email, and a listed party; submit padded name, email, and party values to verify whitespace trimming on create
    - `AutomatedCandidateB <runId>` with the second candidate email and an `AutomatedParty <runId>` party
-10. Verify the candidate list shows exactly those two candidates for this election.
-11. Verify the answers collection is visible and empty before candidate responses.
-12. Set a response deadline a few days in the future.
-13. Click `Review der Thesen anfragen`.
-14. Verify `review_requested` is set and the Directus app shows `Review angefragt`.
+11. Update the first candidate with a padded party value and verify whitespace trimming on update.
+12. Verify the candidate list shows exactly those two candidates for this election.
+13. Verify the answers collection is visible and empty before candidate responses.
+14. Set a response deadline a few days in the future.
+15. Click `Review der Thesen anfragen`.
+16. Verify `review_requested` is set and the Directus app shows `Review angefragt`.
 
 # Approve Wahlcheck
 

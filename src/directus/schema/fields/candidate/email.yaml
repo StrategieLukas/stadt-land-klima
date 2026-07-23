@@ -32,7 +32,7 @@ meta:
       - email:
           _eq: ""
       - email:
-          _regex: ^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$
+          _regex: ^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$
   validation_message: Bitte eine gültige E-Mail-Adresse eingeben.
   width: half
 schema:

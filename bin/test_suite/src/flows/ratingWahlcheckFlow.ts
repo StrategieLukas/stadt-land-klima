@@ -672,7 +672,6 @@ export async function runRatingWahlcheckFlow(
       descriptor: `AutomatedElectionTest ${fixture.config.runId}`,
       localteam: fixture.localteam.id,
       custom_logo: customLogo.id,
-      candidate_email_cc: fixture.localteamMember.email,
       candidate_email_reply_to: fixture.localteamMember.email,
     });
 
@@ -744,12 +743,47 @@ export async function runRatingWahlcheckFlow(
   });
 
   await runner.step('Wahlcheck: create candidates and verify the empty answers collection', async () => {
+    let missingSalutationError: Error | null = null;
+    try {
+      await fixture.localteamMember.client.createItem<Candidate>('candidate', {
+        election: election.id,
+        name: `AutomatedCandidateWithoutSalutation ${fixture.config.runId}`,
+        email: fixture.candidateAEmail,
+      });
+    } catch (error) {
+      missingSalutationError = error instanceof Error ? error : new Error(String(error));
+    }
+    assert(missingSalutationError, 'Creating a candidate without a salutation must be rejected');
+    assertIncludes(
+      missingSalutationError.message,
+      'salutation',
+      'Missing candidate salutation error must identify the required field',
+    );
+
+    let nullSalutationError: Error | null = null;
+    try {
+      await fixture.localteamMember.client.createItem<Candidate>('candidate', {
+        election: election.id,
+        name: `AutomatedCandidateWithNullSalutation ${fixture.config.runId}`,
+        salutation: null,
+        email: fixture.candidateAEmail,
+      });
+    } catch (error) {
+      nullSalutationError = error instanceof Error ? error : new Error(String(error));
+    }
+    assert(nullSalutationError, 'Creating a candidate with a null salutation must be rejected');
+    assertIncludes(
+      nullSalutationError.message,
+      'salutation',
+      'Null candidate salutation error must identify the required field',
+    );
+
     await fixture.localteamMember.client.createItem<Candidate>('candidate', {
       election: election.id,
-      name: `AutomatedCandidateA ${fixture.config.runId}`,
-      salutation: 'frau',
-      email: fixture.candidateAEmail,
-      party: 'Gruene',
+      name: `  AutomatedCandidateA ${fixture.config.runId}  `,
+      salutation: 'neutral',
+      email: `  ${fixture.candidateAEmail}  `,
+      party: '  Gruene  ',
     });
     await fixture.localteamMember.client.createItem<Candidate>('candidate', {
       election: election.id,
@@ -761,15 +795,32 @@ export async function runRatingWahlcheckFlow(
 
     candidates = await readCandidates(fixture, election.id);
     assertEqual(candidates.length, 2, 'Election must have exactly two candidates');
-    assert(candidates.some((candidate) => candidate.email === fixture.candidateAEmail), 'Candidate A must exist');
+    const candidateA = candidates.find((candidate) => candidate.email === fixture.candidateAEmail);
+    assert(candidateA, 'Candidate A must exist with its email whitespace trimmed');
     assert(candidates.some((candidate) => candidate.email === fixture.candidateBEmail), 'Candidate B must exist');
+    assertEqual(
+      candidateA.name,
+      `AutomatedCandidateA ${fixture.config.runId}`,
+      'Candidate name whitespace must be trimmed on create',
+    );
+    assertEqual(candidateA.party, 'Gruene', 'Candidate party whitespace must be trimmed on create');
     assert(
-      candidates.some((candidate) => candidate.salutation === 'frau'),
+      candidates.some((candidate) => candidate.salutation === 'neutral'),
       'Candidate A must retain the selected salutation',
     );
     assert(
       candidates.some((candidate) => candidate.salutation === 'herr'),
       'Candidate B must retain the selected salutation',
+    );
+
+    await fixture.localteamMember.client.updateItem('candidate', candidateA.id, {
+      party: `  AutomatedPartyUpdated ${fixture.config.runId}  `,
+    });
+    candidates = await readCandidates(fixture, election.id);
+    assertEqual(
+      candidates.find((candidate) => candidate.id === candidateA.id)?.party,
+      `AutomatedPartyUpdated ${fixture.config.runId}`,
+      'Candidate party whitespace must be trimmed on update',
     );
 
     const answers = await fixture.localteamMember.client.readItems<Answer>('answers', {

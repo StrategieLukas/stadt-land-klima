@@ -52,7 +52,7 @@ schema:
   name: salutation
   table: candidate
   data_type: character varying
-  default_value: neutral
+  default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
