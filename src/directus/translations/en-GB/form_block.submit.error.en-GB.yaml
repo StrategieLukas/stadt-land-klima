@@ -1,0 +1,3 @@
+language: en-GB
+key: form_block.submit.error
+value: The form response could not be sent. Please try again later.

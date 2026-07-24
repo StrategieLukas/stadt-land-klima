@@ -167,6 +167,13 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: form_responses
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: junction_directus_users_localteams
     action: read
     permissions: {}
