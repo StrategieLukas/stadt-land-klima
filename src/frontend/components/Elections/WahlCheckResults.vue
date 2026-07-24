@@ -626,9 +626,12 @@ function normalizeSector(sector) {
   return normalized || null
 }
 
-const hasQuestionSectors = computed(() => {
-  return props.questions.some((question) => normalizeSector(question.sector))
+const questionSectors = computed(() => {
+  return new Set(props.questions.map((question) => normalizeSector(question.sector)).filter(Boolean))
 })
+
+const hasQuestionSectors = computed(() => questionSectors.value.size > 0)
+const hasMultipleQuestionSectors = computed(() => questionSectors.value.size > 1)
 
 // Calculate similarity scores
 const results = computed(() => {
@@ -812,7 +815,11 @@ function getSectorAgreement(candidateId, type = 'highest') {
 }
 
 function hasSectorAgreement(candidateId) {
-  return Boolean(getSectorAgreement(candidateId, 'highest') && getSectorAgreement(candidateId, 'lowest'))
+  return Boolean(
+    hasMultipleQuestionSectors.value &&
+    getSectorAgreement(candidateId, 'highest') &&
+    getSectorAgreement(candidateId, 'lowest')
+  )
 }
 
 // Sorted results by percentage (descending)
