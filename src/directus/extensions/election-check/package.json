@@ -54,5 +54,8 @@
   },
   "overrides": {
     "esbuild": "^0.28.0"
+  },
+  "dependencies": {
+    "html-validate": "^10.11.3"
   }
 }

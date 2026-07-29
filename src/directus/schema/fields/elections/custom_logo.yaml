@@ -11,8 +11,8 @@ meta:
   hidden: false
   interface: unsplash-image
   note:
-    Optionales Logo für diesen Klimawahlcheck. Wenn kein Logo hinterlegt ist,
-    wird das Standard-Logo verwendet.
+    Optionales zusätzliches Logo für diesen Klimawahlcheck. Es wird über den
+    Platzhalter {{ custom_logo }} in der HTML-Vorlage eingebettet.
   options:
     folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
     letterbox: true

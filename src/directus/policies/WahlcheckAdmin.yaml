@@ -103,6 +103,8 @@ permissions:
       - custom_logo
       - candidate_email_cc
       - candidate_email_reply_to
+      - candidate_email_subject
+      - candidate_email_template
       - action_buttons
       - already_sent_mails
       - already_generated_questions
@@ -118,6 +120,8 @@ permissions:
       - already_sent_mails
       - candidate_email_cc
       - candidate_email_reply_to
+      - candidate_email_subject
+      - candidate_email_template
       - custom_logo
       - date_created
       - date_updated
@@ -142,6 +146,8 @@ permissions:
       - custom_logo
       - candidate_email_cc
       - candidate_email_reply_to
+      - candidate_email_subject
+      - candidate_email_template
       - action_buttons
       - already_sent_mails
       - already_generated_questions
