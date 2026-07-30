@@ -275,11 +275,11 @@ const primaryMapLibreSpec = computed(() => mapLibreSpec(primaryVisual.value));
 const primaryVisualTitle = computed(() => localizedText(primaryVisual.value?.title) || title.value);
 const primaryVisualSubtitle = computed(() => localizedText(primaryVisual.value?.description) || description.value);
 
-const primaryMapPlotId = computed(() => (primaryVisual.value?.type === "map" ? primaryVisual.value.plot_id : null));
+const primaryVisualPlotId = computed(() => primaryVisual.value?.plot_id ?? null);
 const primaryKpiPlotId = computed(() => kpi.value?.plot_id ?? null);
 
 const journeySteps = computed(() => {
-  const heroPlotIds = new Set([primaryMapPlotId.value, primaryKpiPlotId.value].filter(Boolean));
+  const heroPlotIds = new Set([primaryVisualPlotId.value, primaryKpiPlotId.value].filter(Boolean));
   if (!heroPlotIds.size) return renderSteps.value;
 
   return renderSteps.value
