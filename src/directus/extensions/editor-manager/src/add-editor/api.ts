@@ -91,8 +91,9 @@ export default {
     // New user path: create user then send invitation email.
     // ------------------------------------------------------------------
 
-    // inviteUrl signature in Directus v11: inviteUrl(email, role)
-    const url = usersService.inviteUrl(email, targetRole.id);
+    // Without a custom URL, Directus builds the fully qualified
+    // `${PUBLIC_URL}/admin/accept-invite` link and appends the invite token.
+    const url = usersService.inviteUrl(email);
 
     await usersService.createOne({
       email,
