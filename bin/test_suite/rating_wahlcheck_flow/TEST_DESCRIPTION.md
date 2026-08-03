@@ -61,20 +61,21 @@
 2. Open the election in Directus and verify the review request is visible.
 3. Approve the Wahlcheck by setting `is_approved` as WahlcheckAdmin.
 4. Switch back to the LokalteamMitglied user.
-5. Verify the Directus action UI now exposes `E-Mails versenden`.
+5. Verify the Directus action UI now exposes `E-Mails versenden` and `Test-E-Mail senden`.
 
 # Send emails and evaluate responses
 
-1. Click `E-Mails versenden` in the Directus action UI and accept the browser confirmation.
-2. Verify the rendered `Versandübersicht` appears.
-3. Verify both candidates receive unique stable access tokens.
-4. For each candidate token, open `/elections/thesen/<access_token>` in the frontend.
-5. Verify the candidate name and localteam are displayed.
-6. Answer all 11 theses and fill a reasoning text for every thesis.
-7. Submit the form and verify the success message is shown.
-8. Verify `candidate.has_answered` is true.
-9. Verify exactly 11 answer records exist for each candidate and each answer has a response and explanation.
-10. Ask the user to manually verify actual candidate emails if SMTP is configured. Local development usually only verifies token generation, because mail transport is disabled.
+1. Verify `Test-E-Mail senden` is displayed next to the normal send action.
+2. Click `E-Mails versenden` in the Directus action UI and accept the browser confirmation.
+3. Verify the rendered `Versandübersicht` appears.
+4. Verify both candidates receive unique stable access tokens.
+5. For each candidate token, open `/elections/thesen/<access_token>` in the frontend.
+6. Verify the candidate name and localteam are displayed.
+7. Answer all 11 theses and fill a reasoning text for every thesis.
+8. Submit the form and verify the success message is shown.
+9. Verify `candidate.has_answered` is true.
+10. Verify exactly 11 answer records exist for each candidate and each answer has a response and explanation.
+11. Ask the user to manually verify actual candidate emails if SMTP is configured. Local development usually only verifies token generation, because mail transport is disabled.
 
 # Publish Wahlcheck
 

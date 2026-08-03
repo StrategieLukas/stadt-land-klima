@@ -14,6 +14,11 @@ interface HandlerContext {
   data: Record<string, unknown>;
 }
 
+interface HandlerInput {
+  election_id: string | number;
+  test_mode?: boolean;
+}
+
 interface Election {
   id: string | number;
   descriptor?: string;
@@ -49,6 +54,7 @@ interface CandidateMailSummary {
 
 interface SendResult {
   success: boolean;
+  testMode: boolean;
   sentCount: number;
   failedCount: number;
   skippedCount: number;
@@ -58,6 +64,8 @@ interface SendResult {
   failed: CandidateMailSummary[];
   skipped: CandidateMailSummary[];
   election_id: string | number;
+  testRecipient?: string;
+  selectedCandidate?: CandidateMailSummary;
   updated_data?: Record<string, unknown>;
 }
 
@@ -311,11 +319,11 @@ function formatFailure(summary: CandidateMailSummary): string {
  * is interrupted, candidates already have tokens and a re-run won't generate
  * new ones.
  */
-async function ensureAccessTokens(
-  candidates: SendableCandidate[],
+async function ensureAccessTokens<TCandidate extends Candidate>(
+  candidates: TCandidate[],
   candidateSvc: InstanceType<Services['ItemsService']>,
   logger: Logger,
-): Promise<SendableCandidate[]> {
+): Promise<TCandidate[]> {
   const needsToken = candidates.filter((c) => !c.access_token);
 
   if (needsToken.length > 0) {
@@ -368,7 +376,7 @@ async function loadInlineAttachment(
 export default {
   id: 'operation-send-candidate-mails',
   handler: async (
-    { election_id }: { election_id: string | number },
+    { election_id, test_mode = false }: HandlerInput,
     { logger, accountability, services, getSchema }: HandlerContext,
   ): Promise<SendResult> => {
     const schema = await getSchema();
@@ -394,8 +402,9 @@ export default {
     }
 
     const municipalityName = election.localteam?.municipality_name;
+    const logPrefix = test_mode ? 'test-candidate-mail' : 'send-candidate-mails';
     logger.info(
-      `[send-candidate-mails] Starting for election "${election.descriptor ?? election_id}", municipality: "${municipalityName ?? 'unknown'}"`,
+      `[${logPrefix}] Starting for election "${election.descriptor ?? election_id}", municipality: "${municipalityName ?? 'unknown'}"`,
     );
 
     // -----------------------------------------------------------------------
@@ -506,38 +515,47 @@ export default {
     const skipped: CandidateMailSummary[] = [];
     const sendableCandidates: SendableCandidate[] = [];
 
-    for (const candidate of candidates) {
-      const email = normalizeEmail(candidate.email);
+    if (!test_mode) {
+      for (const candidate of candidates) {
+        const email = normalizeEmail(candidate.email);
 
-      if (!email) {
-        skipped.push(summarizeCandidate(candidate, 'Keine E-Mail-Adresse hinterlegt.'));
-        continue;
+        if (!email) {
+          skipped.push(summarizeCandidate(candidate, 'Keine E-Mail-Adresse hinterlegt.'));
+          continue;
+        }
+
+        if (!EMAIL_PATTERN.test(email)) {
+          failed.push(summarizeCandidate(
+            { ...candidate, email },
+            'Ungültige E-Mail-Adresse.',
+          ));
+          continue;
+        }
+
+        sendableCandidates.push({ ...candidate, email });
       }
-
-      if (!EMAIL_PATTERN.test(email)) {
-        failed.push(summarizeCandidate(
-          { ...candidate, email },
-          'Ungültige E-Mail-Adresse.',
-        ));
-        continue;
-      }
-
-      sendableCandidates.push({ ...candidate, email });
     }
 
+    const selectedCandidate = test_mode
+      ? candidates[crypto.randomInt(candidates.length)]!
+      : undefined;
+    const candidatesToSend = selectedCandidate ? [selectedCandidate] : sendableCandidates;
+
     logger.info(
-      `[send-candidate-mails] Pre-flight passed: ${questions.length} questions, ${candidates.length} candidates, ${sendableCandidates.length} sendable, ${skipped.length} skipped`,
+      `[${logPrefix}] Pre-flight passed: ${questions.length} questions, ${candidates.length} candidates, ${candidatesToSend.length} selected, ${skipped.length} skipped`,
     );
 
     // -----------------------------------------------------------------------
     // 3. Ensure all candidates have stable access tokens
     // -----------------------------------------------------------------------
 
-    const withTokens = await ensureAccessTokens(sendableCandidates, candidateSvc, logger);
-    const ccRecipients = uniqueEmailAddresses([
-      ALWAYS_CC,
-      ...splitEmailAddresses(election.candidate_email_cc),
-    ]);
+    const withTokens = await ensureAccessTokens(candidatesToSend, candidateSvc, logger);
+    const ccRecipients = test_mode
+      ? []
+      : uniqueEmailAddresses([
+          ALWAYS_CC,
+          ...splitEmailAddresses(election.candidate_email_cc),
+        ]);
     const replyTo = splitEmailAddresses(election.candidate_email_reply_to)[0];
     const attachments: Array<{
       content: Buffer;
@@ -569,6 +587,12 @@ export default {
     // -----------------------------------------------------------------------
 
     for (const candidate of withTokens) {
+      const recipient = test_mode ? ALWAYS_CC : normalizeEmail(candidate.email);
+      if (!recipient) {
+        failed.push(summarizeCandidate(candidate, 'Keine E-Mail-Adresse hinterlegt.'));
+        continue;
+      }
+
       const personalLink = `${BASE_URL}/elections/thesen/${candidate.access_token}`;
       const variables = templateVariables(
         candidate,
@@ -586,21 +610,23 @@ export default {
 
       try {
         await mailSvc.send({
-          to: candidate.email,
-          cc: ccRecipients,
+          to: recipient,
+          ...(ccRecipients.length > 0 ? { cc: ccRecipients } : {}),
           ...(replyTo ? { replyTo } : {}),
           ...(attachments.length > 0 ? { attachments } : {}),
           subject: candidateEmailSubject,
           html: candidateEmailHtml,
         });
 
-        sent.push(summarizeCandidate(candidate));
-        logger.info(`[send-candidate-mails] Sent to ${candidate.email}`);
+        sent.push(summarizeCandidate({ ...candidate, email: recipient }));
+        logger.info(
+          `[${logPrefix}] Sent email prepared for candidate ${candidate.id} to ${recipient}`,
+        );
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
-        const failedCandidate = summarizeCandidate(candidate, message);
-        const detail = `Failed to send to ${candidate.email}: ${message}`;
-        logger.error(`[send-candidate-mails] ${detail}`);
+        const failedCandidate = summarizeCandidate({ ...candidate, email: recipient }, message);
+        const detail = `Failed to send to ${recipient}: ${message}`;
+        logger.error(`[${logPrefix}] ${detail}`);
         failed.push(failedCandidate);
       }
     }
@@ -609,10 +635,10 @@ export default {
     // 5. Persist result
     // -----------------------------------------------------------------------
 
-    // Only mark as sent if at least one mail was delivered successfully.
-    if (sent.length > 0) {
+    // A test email must never mark the candidate invitation run as completed.
+    if (!test_mode && sent.length > 0) {
       await electionSvc.updateOne(election_id, { already_sent_mails: true });
-    } else {
+    } else if (!test_mode) {
       logger.warn(
         '[send-candidate-mails] No mails were delivered; not marking already_sent_mails.',
       );
@@ -625,11 +651,12 @@ export default {
     const errors = failed.map(formatFailure);
 
     logger.info(
-      `[send-candidate-mails] Finished: ${sent.length} sent, ${failed.length} failed, ${skipped.length} skipped`,
+      `[${logPrefix}] Finished: ${sent.length} sent, ${failed.length} failed, ${skipped.length} skipped`,
     );
 
     return {
       success: failed.length === 0 && sent.length > 0,
+      testMode: test_mode,
       sentCount: sent.length,
       failedCount: failed.length,
       skippedCount: skipped.length,
@@ -639,6 +666,10 @@ export default {
       failed,
       skipped,
       election_id,
+      ...(test_mode ? {
+        testRecipient: ALWAYS_CC,
+        selectedCandidate: summarizeCandidate(selectedCandidate!),
+      } : {}),
       updated_data: updatedElection,
     };
   },

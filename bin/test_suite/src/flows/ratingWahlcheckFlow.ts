@@ -848,6 +848,7 @@ export async function runRatingWahlcheckFlow(
       );
       let text = await gotoDirectusContent(memberPage, fixture.config.backendUrl, 'elections', election.id);
       assertNotIncludes(text, 'E-Mails versenden', 'Send emails button must not be available before approval');
+      assertNotIncludes(text, 'Test-E-Mail senden', 'Test email button must not be available before approval');
       await clickDirectusAction(memberPage, 'Review der Thesen anfragen');
       await memberPage.getByText('Review der Thesen wurde angefragt.').waitFor({ state: 'visible', timeout: 30_000 });
       election = await waitFor(
@@ -908,6 +909,7 @@ export async function runRatingWahlcheckFlow(
       );
       const text = await gotoDirectusContent(page, fixture.config.backendUrl, 'elections', election.id);
       assertIncludes(text, 'E-Mails versenden', 'Send emails action must be available after approval');
+      assertIncludes(text, 'Test-E-Mail senden', 'Test email action must be available after approval');
       await clickDirectusAction(page, 'E-Mails versenden');
       await page.getByText('Versandübersicht').waitFor({ state: 'visible', timeout: 60_000 });
     } finally {

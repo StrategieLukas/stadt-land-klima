@@ -200,6 +200,17 @@ export default {
     );
 
     router.post(
+      '/test-mail',
+      makeActionHandler('test-mail', (election_id, { accountability, services, getSchema, logger }) =>
+          sendCandidateMails.handler(
+            { election_id, test_mode: true },
+            { logger, accountability, services, getSchema, data: {} },
+          ),
+        ctx,
+      ),
+    );
+
+    router.post(
       '/request-review',
       makeActionHandler('request-review', requestReview, ctx),
     );
