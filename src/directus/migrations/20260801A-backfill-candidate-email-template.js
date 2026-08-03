@@ -17,12 +17,13 @@ export async function up(knex) {
 
     const [{ count: invalidCount }] = await transaction('elections')
       .whereIn('id', legacyElections.map(({ id }) => id))
-      .whereRaw(`
-        candidate_email_template IS NULL
-        OR position('<!doctype html>' in lower(candidate_email_template)) = 0
-        OR position('{{ stadt_land_klima_logo }}' in candidate_email_template) = 0
-        OR position('{{ custom_logo }}' in candidate_email_template) = 0
-      `)
+      .where(function validateUpdatedTemplate() {
+        this
+          .whereNull('candidate_email_template')
+          .orWhereRaw("position('<!doctype html>' in lower(candidate_email_template)) = 0")
+          .orWhereRaw("position('{{ stadt_land_klima_logo }}' in candidate_email_template) = 0")
+          .orWhereRaw("position('{{ custom_logo }}' in candidate_email_template) = 0");
+      })
       .count('*');
 
     if (Number(invalidCount) > 0) {
