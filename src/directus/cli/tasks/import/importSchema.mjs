@@ -186,7 +186,7 @@ async function runSchemaImport(src, options, client, retryConfig) {
   }
 
   // Use REST API directly for schema operations
-  const directusBaseUrl = `${client.url.replace(/\/+$/, '')}/`;
+  const directusBaseUrl = `${client.url.toString().replace(/\/+$/, '')}/`;
   let diffUrl = new URL('schema/diff?force=true', directusBaseUrl).toString();
   let applyUrl = new URL('schema/apply?force=true', directusBaseUrl).toString();
 
