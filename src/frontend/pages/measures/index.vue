@@ -349,7 +349,7 @@
     <div class="mt-12 flex justify-center">
       <NuxtLink
         v-if="currentCatalogVersion.name === 'v1.0'"
-        :to="`/backend/assets/ac1df0cd-8a57-4082-bdd3-432f43e4a374.xslx`"
+        :to="measureCatalogDownloadUrl('ac1df0cd-8a57-4082-bdd3-432f43e4a374.xslx')"
       >
         <button class="flex h-10 items-center justify-end bg-gray p-4 text-white">
           {{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})
@@ -357,7 +357,7 @@
       </NuxtLink>
       <NuxtLink
         v-if="currentCatalogVersion.name === 'beta'"
-        :to="`/backend/assets/9c270dd0-52dc-449b-9c2e-bbd5d5b829.xslx`"
+        :to="measureCatalogDownloadUrl('9c270dd0-52dc-449b-9c2e-bbd5d5b829.xslx')"
       >
         <button class="flex h-10 items-center justify-end bg-gray p-4 text-white">
           {{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})
@@ -374,8 +374,13 @@ import sectorImages from "~/shared/sectorImages.js";
 const SECTORS = ["energy", "agriculture", "transport", "industry", "buildings", "management"];
 
 const { $directus, $readItems, $t } = useNuxtApp();
+const config = useRuntimeConfig();
 const route = useRoute();
 const router = useRouter();
+const measureCatalogDownloadUrl = (fileName) => {
+  const directusUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081";
+  return `${directusUrl.replace(/\/+$/, "")}/assets/${encodeURIComponent(fileName)}`;
+};
 let selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
 const currentCatalogVersion = ref(selectedCatalogVersion);
 

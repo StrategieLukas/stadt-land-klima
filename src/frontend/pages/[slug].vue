@@ -41,6 +41,7 @@ import { readItems } from '@directus/sdk'
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
 const { $directus, $readItems, $t } = useNuxtApp()
+const config = useRuntimeConfig()
 const { isAuthenticated, initialize } = useAuth()
 useBlockHashNavigation()
 const canEdit = ref(false)
@@ -96,6 +97,10 @@ const { data: blocksData } = await useAsyncData(
   { watch: [page] }
 )
 const pageBlocks = computed(() => blocksData.value || [])
+const onboardingAvatarUrl = computed(() => {
+  const directusUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081"
+  return `${directusUrl.replace(/\/+$/, "")}/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96`
+})
 
 // Dynamically render component for [[[ONBOARDING_BOX]]] block
 // Split content into blocks and inject Vue component(s)
@@ -113,8 +118,7 @@ const processedPageContent = computed(() => {
         component: OnboardingBox,
         props: {
           name: "Otto",
-          "avatar-src":
-            "https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96",
+          "avatar-src": onboardingAvatarUrl.value,
         },
       })
     }

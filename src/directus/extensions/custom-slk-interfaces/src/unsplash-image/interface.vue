@@ -67,7 +67,7 @@
             @click="selectLibraryFile(file)"
           >
             <img
-              :src="`/assets/${file.id}?fit=cover&width=150&height=150`"
+              :src="assetUrl(file.id, 'fit=cover&width=150&height=150')"
               :alt="file.title || file.filename_download"
               class="photo-thumb"
               loading="lazy"
@@ -176,6 +176,7 @@
 <script setup lang="ts">
 import { ref, computed, inject, type Ref } from 'vue';
 import type { DirectusFile, UnsplashPhoto, UnsplashSearchResponse } from '../types';
+import { directusUrl } from '../directus-url';
 
 const MAX_FILE_SIZE_MB = 10;
 
@@ -191,6 +192,9 @@ const emit = defineEmits<{
 }>();
 
 const api = inject<{
+  defaults?: {
+    baseURL?: string;
+  };
   get: (path: string, config?: { params?: Record<string, unknown> }) => Promise<{ data?: unknown }>;
   post: (path: string, data?: unknown) => Promise<{ data?: { data?: { id?: string } } }>;
 }>('api');
@@ -199,8 +203,13 @@ const api = inject<{
 
 const previewUrl = computed((): string | null => {
   if (!props.value) return null;
-  return `/assets/${encodeURIComponent(props.value)}`;
+  return assetUrl(props.value);
 });
+
+function assetUrl(fileId: string, query?: string): string {
+  const url = directusUrl(api, `assets/${encodeURIComponent(fileId)}`);
+  return query ? `${url}?${query}` : url;
+}
 
 function removeImage(): void {
   emit('input', null);

@@ -190,10 +190,10 @@ export default {
 
     router.post(
       '/send-mails',
-      makeActionHandler('send-mails', (election_id, { accountability, services, getSchema, logger }) =>
+      makeActionHandler('send-mails', (election_id, { accountability, services, getSchema, logger, env }) =>
           sendCandidateMails.handler(
             { election_id },
-            { logger, accountability, services, getSchema, data: {} },
+            { logger, accountability, services, getSchema, env, data: {} },
           ),
         ctx,
       ),
@@ -201,10 +201,10 @@ export default {
 
     router.post(
       '/test-mail',
-      makeActionHandler('test-mail', (election_id, { accountability, services, getSchema, logger }) =>
+      makeActionHandler('test-mail', (election_id, { accountability, services, getSchema, logger, env }) =>
           sendCandidateMails.handler(
             { election_id, test_mode: true },
-            { logger, accountability, services, getSchema, data: {} },
+            { logger, accountability, services, getSchema, env, data: {} },
           ),
         ctx,
       ),

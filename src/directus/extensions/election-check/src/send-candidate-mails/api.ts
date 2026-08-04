@@ -11,6 +11,7 @@ interface HandlerContext {
   accountability: Accountability;
   services: Services;
   getSchema: GetSchema;
+  env: Record<string, string | undefined>;
   data: Record<string, unknown>;
 }
 
@@ -73,7 +74,6 @@ interface SendResult {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const BASE_URL = 'https://stadt-land-klima.de';
 const MIN_QUESTIONS = 7;
 const MIN_CANDIDATES = 2;
 const ALWAYS_CC = 'info@stadt-land-klima.de';
@@ -377,7 +377,7 @@ export default {
   id: 'operation-send-candidate-mails',
   handler: async (
     { election_id, test_mode = false }: HandlerInput,
-    { logger, accountability, services, getSchema }: HandlerContext,
+    { logger, accountability, services, getSchema, env }: HandlerContext,
   ): Promise<SendResult> => {
     const schema = await getSchema();
     const sysAcc = { ...accountability, admin: true };
@@ -439,6 +439,12 @@ export default {
 
     const municipality = municipalityName?.trim() ?? '';
     const cutoffFormatted = formatCutoffDate(election.response_cutoff_date);
+    const frontendBaseUrl = env.FRONTEND_BASE_URL?.trim().replace(/\/+$/, '');
+    if (!frontendBaseUrl) {
+      throw new Error(
+        'Server misconfiguration: FRONTEND_BASE_URL is not set. Es wurden keine E-Mails versendet.',
+      );
+    }
     const customLogoId = typeof election.custom_logo === 'string'
       ? election.custom_logo
       : election.custom_logo?.id;
@@ -447,7 +453,7 @@ export default {
       municipality,
       election.descriptor?.trim() ?? '',
       cutoffFormatted,
-      `${BASE_URL}/elections/thesen/preview`,
+      `${frontendBaseUrl}/elections/thesen/preview`,
       Boolean(customLogoId),
     );
     const previewHtml = renderTemplate(candidateEmailTemplate, previewVariables);
@@ -593,7 +599,7 @@ export default {
         continue;
       }
 
-      const personalLink = `${BASE_URL}/elections/thesen/${candidate.access_token}`;
+      const personalLink = `${frontendBaseUrl}/elections/thesen/${candidate.access_token}`;
       const variables = templateVariables(
         candidate,
         municipality,

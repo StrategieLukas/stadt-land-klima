@@ -1,5 +1,6 @@
-interface DirectusApi {
+export type DirectusApi = {
   defaults?: {
+    baseURL?: string;
     headers?: {
       Authorization?: string;
       common?: {
@@ -7,7 +8,7 @@ interface DirectusApi {
       };
     };
   };
-}
+};
 
 export interface DirectusTokenUtils {
   addQueryToPath: (path: string, query: Record<string, string>) => string;
