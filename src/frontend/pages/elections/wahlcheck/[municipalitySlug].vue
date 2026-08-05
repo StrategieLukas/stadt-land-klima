@@ -136,6 +136,7 @@ import { useRoute, useRouter } from "vue-router";
 const route = useRoute();
 const router = useRouter();
 const { $directus, $readItems, $readItem, $t } = useNuxtApp();
+const runtimeConfig = useRuntimeConfig();
 
 const municipalitySlug = route.params.municipalitySlug;
 
@@ -153,6 +154,59 @@ const doubleWeightedQuestions = ref(new Set()); // Set of questionIds
 
 // Session storage key
 const sessionStorageKey = `wahlcheck_${municipalitySlug}`;
+const trackedCompletionIds = new Set();
+let completionTrackingPending = false;
+
+function completionStorageKey(electionId) {
+  return `wahlcheck_completion_tracked_${electionId}`;
+}
+
+function wasCompletionTracked(electionId) {
+  if (trackedCompletionIds.has(electionId)) {
+    return true;
+  }
+
+  try {
+    return sessionStorage.getItem(completionStorageKey(electionId)) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function markCompletionTracked(electionId) {
+  trackedCompletionIds.add(electionId);
+
+  try {
+    sessionStorage.setItem(completionStorageKey(electionId), "true");
+  } catch {
+    // The in-memory guard still prevents duplicates while this page is open.
+  }
+}
+
+async function trackWahlcheckCompletion() {
+  const electionId = electionData.value?.election?.id;
+  if (!electionId || completionTrackingPending || wasCompletionTracked(electionId)) {
+    return;
+  }
+
+  try {
+    completionTrackingPending = true;
+    const directusUrl = runtimeConfig.public.clientDirectusUrl || "http://127.0.0.1:8081";
+    const token = runtimeConfig.public.directusToken;
+
+    await $fetch(`${directusUrl}/election-actions/complete`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: { election_id: electionId },
+    });
+
+    markCompletionTracked(electionId);
+  } catch (err) {
+    console.warn("Could not record Wahlcheck completion:", err);
+  } finally {
+    completionTrackingPending = false;
+  }
+}
 
 // Load from session storage
 function loadFromSessionStorage() {
@@ -422,6 +476,7 @@ function handleQuestionsNext(answers) {
 function handleSummaryNext() {
   currentStep.value = 3;
   window.scrollTo({ top: 0, behavior: "smooth" });
+  void trackWahlcheckCompletion();
   // Update shareable URL when reaching results page
   // Use setTimeout to ensure this runs after the step change is processed
   setTimeout(() => {

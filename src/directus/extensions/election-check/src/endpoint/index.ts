@@ -1,12 +1,14 @@
 import generateQuestions from '../generate-questions/api.js';
 import sendCandidateMails from '../send-candidate-mails/api.js';
 import type { Router, Services, GetSchema, Logger, Accountability } from '@directus/extensions-sdk';
+import type { Knex } from 'knex';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 interface ActionContext {
+  database: Knex;
   services: Services;
   getSchema: GetSchema;
   logger: Logger;
@@ -29,6 +31,11 @@ interface RequestReviewResult {
   emailSent: boolean;
   election_id: string | number;
   updated_data?: Record<string, unknown>;
+}
+
+interface PublicElection {
+  id: string | number;
+  is_public?: boolean | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -65,6 +72,53 @@ function makeActionHandler<TResult>(
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       ctx.logger.error(`[election-actions] ${name} failed for election ${election_id}: ${message}`);
+      const status = typeof (err as { status?: unknown })?.status === 'number'
+        ? (err as { status: number }).status
+        : 500;
+      return res.status(status).json({ error: message });
+    }
+  };
+}
+
+function makeCompletionHandler(ctx: ActionContext) {
+  return async (req: any, res: any) => {
+    const { election_id: electionId } = req.body as { election_id?: string | number };
+
+    if (!electionId) {
+      return res.status(400).json({ error: 'Missing required field: election_id' });
+    }
+
+    try {
+      const schema = await ctx.getSchema();
+      const electionService = new ctx.services.ItemsService('elections', {
+        schema,
+        accountability: req.accountability,
+      });
+      const election = await electionService.readOne(electionId, {
+        fields: ['id', 'is_public'],
+      }) as PublicElection | null;
+
+      if (!election?.is_public) {
+        return res.status(404).json({ error: 'Public election not found' });
+      }
+
+      const updatedRows = await ctx.database('elections')
+        .where({ id: electionId, is_public: true })
+        .update({
+          wahlcheck_completion_count: ctx.database.raw(
+            'COALESCE(??, 0) + 1',
+            ['wahlcheck_completion_count'],
+          ),
+        });
+
+      if (updatedRows !== 1) {
+        return res.status(404).json({ error: 'Public election not found' });
+      }
+
+      return res.json({ success: true });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      ctx.logger.error(`[election-actions] complete failed for election ${electionId}: ${message}`);
       const status = typeof (err as { status?: unknown })?.status === 'number'
         ? (err as { status: number }).status
         : 500;
@@ -213,6 +267,11 @@ export default {
     router.post(
       '/request-review',
       makeActionHandler('request-review', requestReview, ctx),
+    );
+
+    router.post(
+      '/complete',
+      makeCompletionHandler(ctx),
     );
   },
 };

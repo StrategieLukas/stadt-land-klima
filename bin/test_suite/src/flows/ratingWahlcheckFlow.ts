@@ -48,6 +48,7 @@ interface Election {
   review_requested?: boolean | null;
   is_approved?: boolean | null;
   is_public?: boolean | null;
+  wahlcheck_completion_count?: number | null;
 }
 
 interface Question {
@@ -349,6 +350,7 @@ async function readElection(fixture: TestFixture, electionId: string): Promise<E
     'review_requested',
     'is_approved',
     'is_public',
+    'wahlcheck_completion_count',
   ]);
 }
 
@@ -416,6 +418,7 @@ async function submitCandidateAnswers(
 async function completePublicWahlcheck(
   browser: Browser,
   fixture: TestFixture,
+  electionId: string,
   questions: Question[],
   candidateNames: string[],
 ): Promise<void> {
@@ -449,6 +452,26 @@ async function completePublicWahlcheck(
       'public Wahlcheck share URL generated',
       async () => page.url().includes('share='),
       { timeoutMs: 10_000, intervalMs: 500 },
+    );
+
+    await waitFor(
+      'public Wahlcheck completion tracked',
+      async () => {
+        const election = await readElection(fixture, electionId);
+        return election.wahlcheck_completion_count === 1 ? election : false;
+      },
+      { timeoutMs: 10_000, intervalMs: 500 },
+    );
+
+    await page.locator('button.btn-secondary').last().click();
+    await page.locator('button.btn-primary').last().click();
+    await page.waitForTimeout(1_000);
+
+    const electionAfterRecalculation = await readElection(fixture, electionId);
+    assertEqual(
+      electionAfterRecalculation.wahlcheck_completion_count,
+      1,
+      'Recalculating results in the same browser session must not increment the completion counter again',
     );
   } finally {
     await context.close();
@@ -986,6 +1009,7 @@ export async function runRatingWahlcheckFlow(
     await completePublicWahlcheck(
       browser,
       fixture,
+      election.id,
       generatedQuestions,
       candidates.map((candidate) => candidate.name),
     );
