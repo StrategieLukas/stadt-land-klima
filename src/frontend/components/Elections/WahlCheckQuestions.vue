@@ -207,6 +207,7 @@ function markQuestionCompleted(questionId) {
   completedQuestions.value.add(questionId)
   // Remove from skipped if it was skipped
   delete skippedQuestions.value[questionId]
+  advanceToNextQuestion()
 }
 
 // Handle skip checkbox change
@@ -215,9 +216,16 @@ function handleSkipChange(questionId) {
     // Skipping the question
     userAnswers.value[questionId] = undefined
     completedQuestions.value.delete(questionId)
+    advanceToNextQuestion()
   } else {
     // Un-skipping - set to undefined so user can answer
     userAnswers.value[questionId] = undefined
+  }
+}
+
+function advanceToNextQuestion() {
+  if (currentQuestionIndex.value < props.questions.length - 1) {
+    currentQuestionIndex.value++
   }
 }
 

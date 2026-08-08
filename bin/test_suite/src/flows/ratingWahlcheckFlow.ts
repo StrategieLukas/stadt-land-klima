@@ -431,11 +431,12 @@ async function completePublicWahlcheck(
     );
     await page.getByText('Klimawahlcheck').first().waitFor({ state: 'visible', timeout: 30_000 });
 
-    for (let i = 0; i < questions.length; i += 1) {
-      await page.locator('input[type="radio"]').first().check({ force: true });
-      await page.locator('button.btn-primary').last().click();
-      await page.waitForTimeout(250);
+    for (const question of questions) {
+      const radio = page.locator(`input[name="question-${question.id}"]`).first();
+      await radio.waitFor({ state: 'visible', timeout: 30_000 });
+      await radio.click({ force: true });
     }
+    await page.locator('button.btn-primary').last().click();
 
     const weightCheckbox = page.locator('input[type="checkbox"].checkbox-primary').first();
     await weightCheckbox.waitFor({ state: 'visible', timeout: 30_000 });
