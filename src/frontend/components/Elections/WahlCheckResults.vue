@@ -33,6 +33,14 @@
       </p>
     </div>
 
+    <p
+      v-if="nonRespondingCandidateLabels.length > 0"
+      class="rounded-lg border border-solid-gray-20 bg-solid-gray-05 px-4 py-3 text-sm leading-relaxed text-mid-gray"
+    >
+      <span class="font-semibold text-gray">{{ $t('elections.wahlcheck.results.no_response') }}:</span>
+      {{ nonRespondingCandidateLabels.join(', ') }}
+    </p>
+
     <!-- Bar Chart Overview -->
     <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
@@ -398,6 +406,7 @@
 import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
+import { formatCandidateNameAndParty } from '~/shared/candidateParties.js'
 import sectorImages from '~/shared/sectorImages.js'
 import {
   calculateWahlcheckQuestionScore,
@@ -443,6 +452,13 @@ const showConfetti = ref(false)
 const sortBy = ref('default') // 'default', 'agreement', 'disagreement'
 const reasoningDialog = ref(null)
 const activeReasoning = ref(null)
+
+const nonRespondingCandidateLabels = computed(() => {
+  return props.candidates
+    .filter((candidate) => candidate.has_answered !== true)
+    .map((candidate) => formatCandidateNameAndParty(candidate))
+    .filter(Boolean)
+})
 
 // Toggle through sort modes
 function toggleSort() {

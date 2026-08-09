@@ -425,24 +425,26 @@ async function loadElectionData() {
       }),
     );
 
-    // Load candidates who have answered
+    // Load all candidates so the results can also identify non-responders.
     const candidates = await $directus.request(
       $readItems("candidate", {
         filter: {
           election: { _eq: election.id },
-          has_answered: { _eq: true },
         },
         fields: ["*"],
       }),
     );
 
+    // Only responding candidates can contribute answers to the comparison.
+    const respondingCandidates = (candidates || []).filter((candidate) => candidate.has_answered === true);
+
     // Load all answers for these candidates
     let allAnswers = [];
-    if (candidates && candidates.length > 0 && questions && questions.length > 0) {
+    if (respondingCandidates.length > 0 && questions && questions.length > 0) {
       allAnswers = await $directus.request(
         $readItems("answers", {
           filter: {
-            candidate: { _in: candidates.map((c) => c.id) },
+            candidate: { _in: respondingCandidates.map((candidate) => candidate.id) },
             question: { _in: questions.map((q) => q.id) },
           },
           fields: ["*"],
