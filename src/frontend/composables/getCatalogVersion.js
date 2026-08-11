@@ -35,6 +35,22 @@ export async function getCurrentFrontendCatalogVersion($directus, $readItems) {
   return response?.[0];
 }
 
+export async function getCurrentBackendCatalogVersion($directus, $readItems) {
+  const response = await $directus.request(
+    $readItems("measure_catalog", {
+      fields: ["id", "name", "isCurrentFrontend", "isCurrentBackend"],
+      filter: { hidden: { _eq: false }, isCurrentBackend: { _eq: true } },
+      limit: -1,
+    })
+  );
+
+  if (response?.length !== 1) {
+    throw new Error("Exactly one visible catalog version with isCurrentBackend===true is required.");
+  }
+
+  return response[0];
+}
+
 // Fetches the catalog version and updates the URL to match it
 export async function setCatalogVersionUrl(route, router, selectedCatalogVersion) {
   // Change the URL to match the catalog version, if it didn't to begin with

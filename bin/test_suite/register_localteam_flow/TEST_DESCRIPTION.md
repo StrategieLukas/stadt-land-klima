@@ -30,11 +30,18 @@
 2. Patch that municipality with a valid test ARS.
 3. Open `/register_localteam?ars=<existing-test-ars>&name=<existing-test-municipality>` in a mobile frontend viewport.
 4. Fulfill the optional StadtLandZahl area lookup with deterministic test data for that ARS.
-5. Verify the rendered page detects the existing localteam from Directus and shows `Lokalteam aktiv - Bewertung läuft`.
+5. Verify the rendered page detects the existing localteam from Directus and shows `Lokalteam aktiv – Bewertung noch nicht begonnen` for its 0% current rating.
 6. Verify the selected municipality name is visible.
 7. Verify `Kontakt aufnehmen` is available and links to `/contact` with municipality context.
 8. Verify the new-team registration form and `Lokalteam beantragen` submit button are not shown.
 9. Verify no visible registration error and no browser console/page errors occur.
+
+# Rating Status Cases
+
+1. Verify municipality search uses `mode=reasonable` and therefore excludes non-rateable higher-level regions.
+2. Verify an unpublished current-backend rating above 0% shows `Lokalteam aktiv - Bewertung läuft`.
+3. Verify a published current-backend rating shows `Bewertung abgeschlossen` even when its percentage is 0%.
+4. Verify a stale `slug` URL parameter cannot create an existing-team state for an ARS without a team.
 
 # Ask User To Verify
 
