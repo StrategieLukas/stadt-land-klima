@@ -3,7 +3,7 @@
 ## Project overview
 
 Nuxt 3 frontend + Directus CMS backend, running in Docker Compose.
-
+Code language and variables always favour english language.
 ---
 
 ## Directus schema & permissions workflow
