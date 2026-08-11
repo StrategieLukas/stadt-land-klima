@@ -1,0 +1,4 @@
+language: it-IT
+key: localteam.register.not_started.body
+value: A <strong>:name</strong> esiste già un gruppo locale. La valutazione del
+  catalogo delle misure attuale non è ancora iniziata. Vuoi sostenere il gruppo?

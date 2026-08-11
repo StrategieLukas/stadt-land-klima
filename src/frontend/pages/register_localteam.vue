@@ -175,8 +175,8 @@
         </div>
 
         <!-- Already has a local team → contact prompt -->
-        <!-- Case 1: Localteam exists AND rating is complete (≥98%) -->
-        <div v-if="hasExistingTeam && existingPercentageRated != null && existingPercentageRated >= 98" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
+        <!-- Case 1: Current backend catalog rating is published -->
+        <div v-if="ratingState === 'complete'" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
           <div class="flex items-start gap-3 sm:gap-4 mb-5">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,8 +217,8 @@
           </button>
         </div>
 
-        <!-- Case 2: Localteam exists but rating is still in progress -->
-        <div v-else-if="hasExistingTeam" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
+        <!-- Case 2: Localteam exists and the current rating has been started -->
+        <div v-else-if="ratingState === 'in-progress'" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
           <div class="flex items-start gap-3 sm:gap-4 mb-5">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,6 +229,40 @@
               <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">{{ $t("localteam.active_rating_in_progress") }}</h2>
               <p class="text-sm text-gray-600">
                 <span v-html="$t('localteam.register.in_progress.body', { ':name': selectedArea.name })"></span>
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <CanonicalButton
+              :href="`/contact?title=${encodeURIComponent($t('localteam.contact_title', { ':name': selectedArea.name }))}&type=cooperation&content=${encodeURIComponent($t('localteam.contact_content', { ':name': selectedArea.name }))}`"
+              :label="$t('generic.contact')"
+              icon-slug="icon_login_arrow"
+              color="blue"
+              class="flex-1"
+            />
+          </div>
+          <button
+            v-if="!hasQueryParams"
+            type="button"
+            class="mt-4 text-sm text-light-blue hover:underline block"
+            @click="resetSelection"
+          >
+            {{ $t("localteam.register.select_other_municipality") }}
+          </button>
+        </div>
+
+        <!-- Case 3: Localteam exists, but the current rating has not been started -->
+        <div v-else-if="ratingState === 'not-started'" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
+          <div class="flex items-start gap-3 sm:gap-4 mb-5">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">{{ $t("localteam.active_rating_not_started") }}</h2>
+              <p class="text-sm text-gray-600">
+                <span v-html="$t('localteam.register.not_started.body', { ':name': selectedArea.name })"></span>
               </p>
             </div>
           </div>
@@ -271,11 +305,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAreaSearch } from '~/composables/useAreaSearch.js'
+import { getCurrentBackendCatalogVersion } from '~/composables/getCatalogVersion.js'
 
 const route = useRoute()
 const router = useRouter()
-const { $stadtlandzahlAPI, $t } = useNuxtApp()
-const { public: { clientDirectusUrl, directusToken } } = useRuntimeConfig()
+const { $stadtlandzahlAPI, $directus, $readItems, $t } = useNuxtApp()
+const currentVersionBackend = await getCurrentBackendCatalogVersion($directus, $readItems)
 
 // --- Query-param pre-fill ---
 const hasQueryParams = computed(() => !!route.query.ars)
@@ -293,16 +328,30 @@ const registrationSuccess = ref(false)
 const selectedArea = ref<AreaInfo | null>(null)
 const existingSlug = ref<string | null>(null)
 const existingPercentageRated = ref<number | null>(null)
+const existingScorePublished = ref(false)
 const hasExistingTeam = ref(false)
 const areaGeoData = ref<{ geo_center: any; geo_area: any } | null>(null)
 const geoLoading = ref(false)
 
-// --- Search ---
-const { data: publishedMunicipalities } = useNuxtData('municipalities')
-const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map((m: any) => m.slug)))
+const ratingState = computed<'none' | 'not-started' | 'in-progress' | 'complete'>(() => {
+  if (!hasExistingTeam.value) return 'none'
+  if (existingScorePublished.value) return 'complete'
+  if (Number(existingPercentageRated.value ?? 0) > 0) return 'in-progress'
+  return 'not-started'
+})
 
+// --- Search ---
 const searchQuery = ref('')
-const { results: searchResults, isLoading, search, clear } = useAreaSearch({ mode: 'normal', publishedSlugs: publishedSlugs as any })
+const {
+  results: searchResults,
+  isLoading,
+  search,
+  clear,
+} = useAreaSearch({
+  mode: 'reasonable',
+  catalogVersionName: currentVersionBackend.name,
+  statusCatalogVersionId: currentVersionBackend.id,
+})
 const searchInputRef = ref<HTMLElement | null>(null)
 const focusedIndex = ref(-1)
 
@@ -340,12 +389,8 @@ async function selectArea(area: any) {
   // Collect slugs from the stadtlandzahl search result — these are Directus municipality slugs
   // associated to this ARS. We must still check whether each one has a localteam_id.
   const existingSlugs: string[] = (area.stadtlandklimaDataAll ?? []).map((d: any) => d.slug).filter(Boolean)
-  // Use known percentageRated from search result to avoid an extra API call
-  const knownPercentageRated: number | null = area.stadtlandklimaDataAll?.[0]?.percentageRated ?? null
-  const teamInfo = await checkExistingLocalteam(area.ars, existingSlugs, knownPercentageRated)
-  existingSlug.value = teamInfo.slug
-  existingPercentageRated.value = teamInfo.percentageRated
-  hasExistingTeam.value = !!teamInfo.slug
+  const teamInfo = await checkExistingLocalteam(area.ars, existingSlugs)
+  applyTeamInfo(teamInfo)
   await fetchGeoData(area.ars)
 }
 
@@ -353,6 +398,7 @@ function resetSelection() {
   selectedArea.value = null
   existingSlug.value = null
   existingPercentageRated.value = null
+  existingScorePublished.value = false
   hasExistingTeam.value = false
   areaGeoData.value = null
   focusedIndex.value = -1
@@ -362,77 +408,60 @@ function resetSelection() {
 async function checkExistingLocalteam(
   ars: string,
   slugs: string[] = [],
-  knownPercentageRated?: number | null,
-): Promise<{ slug: string | null; percentageRated: number | null }> {
+): Promise<{ hasTeam: boolean; slug: string | null; percentageRated: number | null; published: boolean }> {
   try {
-    const authHeaders = directusToken ? { Authorization: `Bearer ${directusToken}` } : undefined
-    let foundSlug: string | null = null
+    const identityFilters: any[] = [{ ars: { _eq: ars } }]
+    const uniqueSlugs = [...new Set(slugs.filter(Boolean))]
+    if (uniqueSlugs.length > 0) identityFilters.push({ slug: { _in: uniqueSlugs } })
 
-    // Prefer slug-based lookup: the createMunicipality flow creates records without ARS,
-    // but always sets localteam_id. Checking by slug + localteam_id is reliable.
-    if (slugs.length) {
-      const result = await $fetch<{ data: Array<{ slug: string | null; localteam_id: string | null }> }>(
-        `${clientDirectusUrl}/items/municipalities`,
-        {
-          params: {
-            'filter[slug][_in]': slugs.join(','),
-            'filter[localteam_id][_nnull]': true,
-            'fields[]': ['slug', 'localteam_id'],
-            limit: slugs.length,
-          },
-          headers: authHeaders,
-        }
-      )
-      foundSlug = result.data?.find(m => m.localteam_id)?.slug ?? null
+    const municipalities = await $directus.request(
+      $readItems('municipalities', {
+        filter: {
+          _and: [{ localteam_id: { _nnull: true } }, { _or: identityFilters }],
+        },
+        fields: ['ars', 'slug', 'localteam_id', { scores: ['catalog_version', 'published', 'percentage_rated'] }],
+        limit: -1,
+      }),
+    )
+
+    const municipality =
+      uniqueSlugs.map((slug) => municipalities.find((item: any) => item.slug === slug)).find(Boolean) ??
+      municipalities.find((item: any) => item.ars === ars)
+
+    if (!municipality?.localteam_id) {
+      return { hasTeam: false, slug: null, percentageRated: null, published: false }
     }
 
-    if (!foundSlug) {
-      // Fallback: ARS-based lookup (works for municipalities updated by step 3 of registration)
-      const result = await $fetch<{ data: Array<{ slug: string | null }> }>(
-        `${clientDirectusUrl}/items/municipalities`,
-        {
-          params: {
-            'filter[ars][_eq]': ars,
-            'filter[localteam_id][_nnull]': true,
-            'fields[]': 'slug',
-            limit: 1,
-          },
-          headers: authHeaders,
-        }
-      )
-      foundSlug = result.data?.[0]?.slug ?? null
-    }
+    const score = (municipality.scores ?? []).find((item: any) => {
+      const catalogId = typeof item.catalog_version === 'object' ? item.catalog_version?.id : item.catalog_version
+      return catalogId === currentVersionBackend.id
+    })
 
-    if (!foundSlug) return { slug: null, percentageRated: null }
-
-    // Resolve percentage_rated: use search-provided value if available, otherwise query scores
-    if (knownPercentageRated != null) {
-      return { slug: foundSlug, percentageRated: knownPercentageRated }
-    }
-    try {
-      const scores = await $fetch<{ data: Array<{ percentage_rated: number | null }> }>(
-        `${clientDirectusUrl}/items/municipality_scores`,
-        {
-          params: {
-            'filter[municipality][slug][_eq]': foundSlug,
-            'fields[]': 'percentage_rated',
-            limit: 1,
-            sort: '-percentage_rated',
-          },
-          headers: authHeaders,
-        }
-      )
-      return { slug: foundSlug, percentageRated: scores.data?.[0]?.percentage_rated ?? null }
-    } catch {
-      return { slug: foundSlug, percentageRated: null }
+    return {
+      hasTeam: true,
+      slug: municipality.slug ?? null,
+      percentageRated: score?.percentage_rated ?? null,
+      published: score?.published === true,
     }
   } catch {
-    return { slug: null, percentageRated: null }
+    return { hasTeam: false, slug: null, percentageRated: null, published: false }
   }
 }
 
+function applyTeamInfo(teamInfo: {
+  hasTeam: boolean
+  slug: string | null
+  percentageRated: number | null
+  published: boolean
+}) {
+  existingSlug.value = teamInfo.slug
+  existingPercentageRated.value = teamInfo.percentageRated
+  existingScorePublished.value = teamInfo.published
+  hasExistingTeam.value = teamInfo.hasTeam
+}
+
 async function fetchGeoData(ars: string) {
-  if (!$stadtlandzahlAPI) return
+  if (!$stadtlandzahlAPI) return null
   geoLoading.value = true
   try {
     const data = await $stadtlandzahlAPI.fetchStatsByARS(ars)
@@ -452,67 +481,52 @@ async function fetchGeoData(ars: string) {
         selectedArea.value = { ...selectedArea.value, population: data.data_products.population_data.population }
       }
     }
+    return data
   } catch {
     // geo data optional — form still works without it
+    return null
   } finally {
     geoLoading.value = false
   }
 }
 
 // --- Initialise from ARS query param ---
-async function initFromQueryParams(ars: string, name?: string, slug?: string) {
+async function initFromQueryParams(ars: string, name?: string) {
   // Reset state before loading new area
   selectedArea.value = { name: name ?? ars, ars }
-  existingSlug.value = slug ?? null
+  existingSlug.value = null
   existingPercentageRated.value = null
+  existingScorePublished.value = false
   hasExistingTeam.value = false
   areaGeoData.value = null
 
-  // Always verify against Directus — the URL param may be stale or missing
-  const teamInfo = await checkExistingLocalteam(ars)
-  if (teamInfo.slug) {
-    existingSlug.value = teamInfo.slug
-    existingPercentageRated.value = teamInfo.percentageRated
-  }
-  hasExistingTeam.value = !!existingSlug.value
-
-  if ($stadtlandzahlAPI) {
-    geoLoading.value = true
-    try {
-      const data = await $stadtlandzahlAPI.fetchStatsByARS(ars)
-      if (data?.name) {
-        selectedArea.value = {
-          name: data.name,
-          ars: data.ars ?? ars,
-          prefix: data.prefix ?? undefined,
-          population: data.data_products?.population_data?.population ?? null,
-          state: data.state ?? null,
-        }
-      }
-      if (data?.geo_center || data?.geo_area) {
-        areaGeoData.value = {
-          geo_center: data.geo_center ?? null,
-          geo_area: data.geo_area ?? null,
-        }
-      }
-    } catch {
-      // keep name from query param
-    } finally {
-      geoLoading.value = false
+  // Resolve the ARS through StadtLandZahl first. Its catalog data provides the
+  // authoritative municipality slug even for older Directus records without ARS.
+  // URL-provided slugs are deliberately ignored because they can be stale or forged.
+  const data = await fetchGeoData(ars)
+  if (data?.name && selectedArea.value) {
+    selectedArea.value = {
+      ...selectedArea.value,
+      name: data.name,
+      ars: data.ars ?? ars,
+      prefix: data.prefix ?? undefined,
     }
   }
+  const trustedSlugs = (data?.stadtlandklima_data ?? []).map((item: any) => item.slug).filter(Boolean)
+  const teamInfo = await checkExistingLocalteam(ars, trustedSlugs)
+  applyTeamInfo(teamInfo)
 }
 
 onMounted(() => {
   const ars = route.query.ars as string | undefined
-  if (ars) initFromQueryParams(ars, route.query.name as string | undefined, route.query.slug as string | undefined)
+  if (ars) initFromQueryParams(ars, route.query.name as string | undefined)
 })
 
 watch(
   () => route.query.ars,
   (ars) => {
     if (ars) {
-      initFromQueryParams(ars as string, route.query.name as string | undefined, route.query.slug as string | undefined)
+      initFromQueryParams(ars as string, route.query.name as string | undefined)
     } else {
       resetSelection()
     }

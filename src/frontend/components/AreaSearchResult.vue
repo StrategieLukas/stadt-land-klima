@@ -32,6 +32,20 @@
         </button>
       </template>
 
+      <!-- Localteam exists, but the current catalog has not been started -->
+      <template v-else-if="result.ctaType === 'not-started'">
+        <span class="bg-gray-100 text-gray-700 whitespace-nowrap rounded-full px-2 py-0.5 text-xs">
+          {{ $t("rating.not_started") }}
+        </span>
+        <button
+          type="button"
+          class="whitespace-nowrap rounded-full border border-solid-olive-green-30 bg-solid-olive-green-10 px-2 py-0.5 text-xs text-olive-green transition-colors hover:bg-solid-olive-green-20"
+          @click.stop="$emit('chip-action', { action: 'mitmachen', ars: result.ars, result })"
+        >
+          {{ $t("generic.join_now") }}
+        </button>
+      </template>
+
       <!-- None: register CTA -->
       <button
         v-else-if="result.ctaType === 'none'"
