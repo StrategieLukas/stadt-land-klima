@@ -13,6 +13,7 @@ meta:
   note: null
   options:
     placeholder: https://www.instagram.com/stadt.land.klima
+    trim: true
   readonly: false
   required: false
   searchable: true

@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: input
   note: Slug or identifier of parent entity
-  options: null
+  options:
+    trim: true
   readonly: false
   required: true
   searchable: true

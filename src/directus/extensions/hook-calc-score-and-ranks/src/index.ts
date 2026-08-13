@@ -34,6 +34,14 @@ type RankedMunicipalityScore = {
 
 type RelationId = number | string | { id?: number | string | null } | null;
 type MunicipalityStatus = 'draft' | 'published';
+type MeasureSnapshot = {
+  id: number | string;
+  status: string | null;
+  catalogVersionId: number | string | null;
+};
+
+const pendingMeasureSnapshots = new Map<string, MeasureSnapshot>();
+const ratingScoreFields = ['rating', 'applicable', 'approved'] as const;
 
 /** ---------- Utility Functions ---------- **/
 
@@ -43,6 +51,41 @@ const normalizeRelationId = (value: RelationId): number | string | null => {
   }
 
   return value ?? null;
+};
+
+const normalizeRelationIds = (
+  value: RelationId | RelationId[]
+): Array<number | string> => {
+  const values = Array.isArray(value) ? value : [value];
+  return values
+    .map(normalizeRelationId)
+    .filter((id): id is number | string => id !== null);
+};
+
+const getEventKeys = (meta: any): Array<number | string> => {
+  if (meta?.key !== null && meta?.key !== undefined) return [meta.key];
+  return Array.isArray(meta?.keys) ? meta.keys : [];
+};
+
+const payloadHasAnyField = (
+  payload: unknown,
+  fields: readonly string[]
+): boolean => {
+  if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+    return false;
+  }
+
+  return fields.some((field) => Object.prototype.hasOwnProperty.call(payload, field));
+};
+
+const recalculateCatalogVersions = async (
+  catalogVersionIds: Iterable<number | string>,
+  ctx: ServiceContext
+): Promise<void> => {
+  for (const catalogVersionId of new Set(catalogVersionIds)) {
+    await calculateScores({ catalogVersionId }, ctx);
+    await updateRanks({ catalogVersionId }, ctx);
+  }
 };
 
 const updateRanks = async (
@@ -229,13 +272,13 @@ const createEmptyScoresForMunicipality = async (
   );
 };
 
-const createEmptyRatingsForNewMeasure = async (
+const ensureRatingsForPublishedMeasure = async (
   measureId: number | string,
-  catalogVersionId: number,
+  catalogVersionId: number | string,
   ratingChoices: any,
   { services, getSchema, logger }: ServiceContext
 ): Promise<void> => {
-  logger.info(`[createEmptyRatingsForNewMeasure] Creating ratings for measure=${measureId}, catalogVersion=${catalogVersionId}`);
+  logger.info(`[ensureRatingsForPublishedMeasure] Syncing ratings for measure=${measureId}, catalogVersion=${catalogVersionId}`);
   const schema = await getSchema();
   const municipalitiesService = new services.ItemsService('municipalities', {
     schema,
@@ -246,23 +289,53 @@ const createEmptyRatingsForNewMeasure = async (
     accountability: adminAccountability,
   });
 
-  const municipalities: any[] = await municipalitiesService.readByQuery({ limit: -1 });
+  const municipalities: Array<{ localteam_id?: RelationId }> =
+    await municipalitiesService.readByQuery({
+      limit: -1,
+      fields: ['localteam_id'],
+    });
   if (!municipalities?.length) return;
 
-  const toCreate = municipalities.map((mun: any) => ({
-    measure_id: measureId,
-    catalog_version: catalogVersionId,
-    localteam_id: mun.localteam_id,
-    status: 'draft',
-    approved: true,
-    choices: ratingChoices,
-    rating: null,
-  }));
+  const existingRatings: Array<{ id: number | string; localteam_id: RelationId }> =
+    await ratingsService.readByQuery({
+      limit: -1,
+      filter: { measure_id: { _eq: measureId } },
+      fields: ['id', 'localteam_id'],
+    });
+  const existingLocalteamIds = new Set(
+    existingRatings
+      .map((rating) => normalizeRelationId(rating.localteam_id))
+      .filter((id): id is number | string => id !== null)
+      .map(String)
+  );
+  const toCreate = municipalities.flatMap((municipality) => {
+    const localteamId = normalizeRelationId(municipality.localteam_id ?? null);
+    if (localteamId === null || existingLocalteamIds.has(String(localteamId))) return [];
 
-  // Do not emit events — calculateScores and updateRanks are handled by the caller
-  await ratingsService.createMany(toCreate, { emitEvents: false });
+    return [{
+      measure_id: measureId,
+      catalog_version: catalogVersionId,
+      localteam_id: localteamId,
+      status: 'draft',
+      approved: true,
+      choices: ratingChoices,
+      rating: null,
+    }];
+  });
+
+  if (existingRatings.length) {
+    await ratingsService.updateMany(
+      existingRatings.map((rating) => rating.id),
+      { measure_published: true },
+      { emitEvents: false }
+    );
+  }
+  if (toCreate.length) {
+    // Do not emit events — score and rank recalculation is handled by the caller.
+    await ratingsService.createMany(toCreate, { emitEvents: false });
+  }
   logger.info(
-    `[createEmptyRatingsForNewMeasure] Created ${toCreate.length} ratings for measure=${measureId}, catalogVersion=${catalogVersionId}.`
+    `[ensureRatingsForPublishedMeasure] Created ${toCreate.length} missing ratings for measure=${measureId}, catalogVersion=${catalogVersionId}.`
   );
 };
 
@@ -380,6 +453,39 @@ const enforceVerifiedPublisher = async (
   return payload;
 };
 
+const captureMeasureSnapshots = async (
+  meta: any,
+  serviceContext: ServiceContext
+): Promise<void> => {
+  if (meta?.collection !== 'measures') return;
+
+  const measureIds = getEventKeys(meta);
+  if (!measureIds.length) return;
+
+  const schema = await serviceContext.getSchema();
+  const measuresService = new serviceContext.services.ItemsService('measures', {
+    schema,
+    accountability: adminAccountability,
+  });
+  const measures: Array<{
+    id: number | string;
+    status?: string | null;
+    catalog_version?: RelationId;
+  }> = await measuresService.readByQuery({
+    limit: -1,
+    filter: { id: { _in: measureIds } },
+    fields: ['id', 'status', 'catalog_version'],
+  });
+
+  for (const measure of measures) {
+    pendingMeasureSnapshots.set(String(measure.id), {
+      id: measure.id,
+      status: measure.status ?? null,
+      catalogVersionId: normalizeRelationId(measure.catalog_version ?? null),
+    });
+  }
+};
+
 /** ---------- Event Handlers ---------- **/
 
 const handleMunicipalityCreated = async (meta: any, ctx: ServiceContext): Promise<void> => {
@@ -395,59 +501,82 @@ const handleMunicipalityCreated = async (meta: any, ctx: ServiceContext): Promis
   await createEmptyRatingsForNewMunicipality(municipality, ctx);
 };
 
-const handleMeasureCreatedOrPublished = async (meta: any, ctx: ServiceContext): Promise<void> => {
-  ctx.logger.info('[handleMeasureCreatedOrPublished] Triggered');
-
-  const isPublished = meta.payload?.status === 'published';
-  ctx.logger.info(`[handleMeasureCreatedOrPublished] Status is published: ${isPublished}`);
-  if (!isPublished) return;
-
-  // On create events meta.key is set; on bulk update events meta.keys is an array
-  const measureId: number | string =
-    meta.key ?? (Array.isArray(meta.keys) ? meta.keys[0] : null);
-
-  if (!measureId) {
-    ctx.logger.error('[handleMeasureCreatedOrPublished] Could not determine measure id from meta.');
+const handleMeasuresCreatedOrUpdated = async (meta: any, ctx: ServiceContext): Promise<void> => {
+  const measureIds = getEventKeys(meta);
+  if (!measureIds.length) {
+    ctx.logger.warn('[handleMeasuresCreatedOrUpdated] No measure id(s) found in meta.');
     return;
   }
 
-  ctx.logger.info(`[handleMeasureCreatedOrPublished] Measure id: ${measureId}`);
+  const schema = await ctx.getSchema();
+  const measureService = new ctx.services.ItemsService('measures', {
+    schema,
+    accountability: adminAccountability,
+  });
+  const currentMeasures: Array<{
+    id: number | string;
+    status?: string | null;
+    catalog_version?: RelationId;
+    choices_rating?: any;
+  }> = await measureService.readByQuery({
+    limit: -1,
+    filter: { id: { _in: measureIds } },
+    fields: ['id', 'status', 'catalog_version', 'choices_rating'],
+  });
+  const currentById = new Map(currentMeasures.map((measure) => [String(measure.id), measure]));
+  const catalogVersionIds = new Set<number | string>();
 
-  let catalogVersionId: number = meta.payload?.catalog_version;
-  let ratingChoices: any = meta.payload?.choices_rating;
+  for (const measureId of measureIds) {
+    const previous = pendingMeasureSnapshots.get(String(measureId));
+    pendingMeasureSnapshots.delete(String(measureId));
+    const current = currentById.get(String(measureId));
+    if (!current) continue;
 
-  if (!catalogVersionId || !ratingChoices) {
-    ctx.logger.info(
-      '[handleMeasureCreatedOrPublished] catalogVersion/ratingChoices not in payload — fetching from DB (normal for updates).'
-    );
-    const schema = await ctx.getSchema();
-    const measureService = new ctx.services.ItemsService('measures', {
-      schema,
-      accountability: adminAccountability,
-    });
-    const measure = await measureService.readOne(measureId);
-    if (!measure?.catalog_version) {
-      ctx.logger.error(
-        `[handleMeasureCreatedOrPublished] Unable to fetch measure: ${measureId}`
-      );
-      return;
+    const currentCatalogVersionId = normalizeRelationId(current.catalog_version ?? null);
+    const wasPublished = previous?.status === 'published';
+    const isPublished = current.status === 'published';
+
+    if (wasPublished && previous?.catalogVersionId !== null && previous?.catalogVersionId !== undefined) {
+      catalogVersionIds.add(previous.catalogVersionId);
     }
-    catalogVersionId =
-      typeof measure.catalog_version === 'object'
-        ? measure.catalog_version.id
-        : measure.catalog_version;
-    ratingChoices = measure.choices_rating;
+    if (
+      isPublished &&
+      currentCatalogVersionId !== null
+    ) {
+      catalogVersionIds.add(currentCatalogVersionId);
+    }
+
+    // If a filter snapshot is unavailable, a status change away from published
+    // still needs a conservative recalculation of the measure's current catalog.
+    if (
+      !previous &&
+      payloadHasAnyField(meta.payload, ['status']) &&
+      currentCatalogVersionId !== null
+    ) {
+      catalogVersionIds.add(currentCatalogVersionId);
+    }
+
+    if (isPublished && !wasPublished && currentCatalogVersionId !== null) {
+      await ensureRatingsForPublishedMeasure(
+        measureId,
+        currentCatalogVersionId,
+        current.choices_rating,
+        ctx
+      );
+    }
   }
 
-  ctx.logger.info(
-    `[handleMeasureCreatedOrPublished] Creating empty ratings for measure=${measureId}, catalogVersion=${catalogVersionId}`
-  );
-  await createEmptyRatingsForNewMeasure(measureId, catalogVersionId, ratingChoices, ctx);
-  await calculateScores({ catalogVersionId }, ctx);
-  await updateRanks({ catalogVersionId }, ctx);
+  await recalculateCatalogVersions(catalogVersionIds, ctx);
 };
 
 const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceContext): Promise<void> => {
+  if (
+    meta.event === 'update' &&
+    !payloadHasAnyField(meta.payload, ratingScoreFields)
+  ) {
+    return;
+  }
+
   const schema = await ctx.getSchema();
   const ratingsService = new ctx.services.ItemsService('ratings_measures', {
     schema,
@@ -455,37 +584,75 @@ const handleRatingsMeasureUpdatedOrCreated = async (meta: any, ctx: ServiceConte
   });
 
   // Support both single (meta.key) and bulk (meta.keys) events
-  const ratingIds: (number | string)[] = meta.key
-    ? [meta.key]
-    : Array.isArray(meta.keys)
-      ? meta.keys
-      : [];
+  const ratingIds = getEventKeys(meta);
 
   if (!ratingIds.length) {
     ctx.logger.warn('[handleRatingsMeasureUpdatedOrCreated] No rating id(s) found in meta.');
     return;
   }
 
-  // Read the first rating to determine municipality + catalog version
-  // (all ratings in a batch update should share the same localteam/catalog)
-  const rating = await ratingsService.readOne(ratingIds[0], {
+  const ratings: Array<{
+    localteam_id?: { municipality_id?: RelationId | RelationId[] } | null;
+    measure_id?: { catalog_version?: RelationId } | null;
+  }> = await ratingsService.readByQuery({
+    limit: -1,
+    filter: { id: { _in: ratingIds } },
     fields: ['localteam_id.municipality_id', 'measure_id.catalog_version'],
   });
+  const municipalityIdsByCatalog = new Map<string, {
+    catalogVersionId: number | string;
+    municipalityIds: Set<number | string>;
+  }>();
 
-  const municipalityId: number | undefined = rating?.localteam_id?.municipality_id;
-  const rawCatalogVersion = rating?.measure_id?.catalog_version;
-  const catalogVersionId: number | string | undefined =
-    typeof rawCatalogVersion === 'object' ? rawCatalogVersion?.id : rawCatalogVersion;
-
-  if (!municipalityId || !catalogVersionId) {
-    ctx.logger.warn(
-      `[handleRatingsMeasureUpdatedOrCreated] Missing municipalityId (${municipalityId}) or catalogVersionId (${catalogVersionId}), skipping.`
+  for (const rating of ratings) {
+    const municipalityIds = normalizeRelationIds(
+      rating.localteam_id?.municipality_id ?? null
     );
+    const catalogVersionId = normalizeRelationId(
+      rating.measure_id?.catalog_version ?? null
+    );
+    if (!municipalityIds.length || catalogVersionId === null) continue;
+
+    const key = String(catalogVersionId);
+    const scope = municipalityIdsByCatalog.get(key) ?? {
+      catalogVersionId,
+      municipalityIds: new Set<number | string>(),
+    };
+    for (const municipalityId of municipalityIds) {
+      scope.municipalityIds.add(municipalityId);
+    }
+    municipalityIdsByCatalog.set(key, scope);
+  }
+
+  for (const { catalogVersionId, municipalityIds } of municipalityIdsByCatalog.values()) {
+    await calculateScores({
+      municipalityIds: [...municipalityIds],
+      catalogVersionId,
+    }, ctx);
+    await updateRanks({ catalogVersionId }, ctx);
+  }
+};
+
+const handleMeasuresDeleted = async (meta: any, ctx: ServiceContext): Promise<void> => {
+  const catalogVersionIds = new Set<number | string>();
+
+  for (const measureId of getEventKeys(meta)) {
+    const previous = pendingMeasureSnapshots.get(String(measureId));
+    pendingMeasureSnapshots.delete(String(measureId));
+    if (
+      previous?.status === 'published' &&
+      previous.catalogVersionId !== null
+    ) {
+      catalogVersionIds.add(previous.catalogVersionId);
+    }
+  }
+
+  if (!catalogVersionIds.size) {
+    ctx.logger.info('[handleMeasuresDeleted] No published measures were deleted.');
     return;
   }
 
-  await calculateScores({ municipalityIds: [municipalityId], catalogVersionId }, ctx);
-  await updateRanks({ catalogVersionId }, ctx);
+  await recalculateCatalogVersions(catalogVersionIds, ctx);
 };
 
 const handleMunicipalityScoreUpdated = async (meta: any, ctx: ServiceContext): Promise<void> => {
@@ -575,7 +742,13 @@ export default (
   });
 
   filter('items.update', async (payload, meta, eventContext) => {
+    await captureMeasureSnapshots(meta, extensionContext);
     return enforceVerifiedPublisher(payload, meta, eventContext, extensionContext);
+  });
+
+  filter('items.delete', async (keys, meta) => {
+    await captureMeasureSnapshots({ ...meta, keys }, extensionContext);
+    return keys;
   });
 
   action(
@@ -585,9 +758,9 @@ export default (
         case 'municipalities':
           return handleMunicipalityCreated(meta, ctx);
         case 'measures':
-          return handleMeasureCreatedOrPublished(meta, ctx);
+          return handleMeasuresCreatedOrUpdated({ ...meta, event: 'create' }, ctx);
         case 'ratings_measures':
-          return handleRatingsMeasureUpdatedOrCreated(meta, ctx);
+          return handleRatingsMeasureUpdatedOrCreated({ ...meta, event: 'create' }, ctx);
         case 'municipality_scores':
           return handleMunicipalityScoreUpdated(meta, ctx);
         default:
@@ -601,13 +774,22 @@ export default (
     safeCall('items.update', extensionContext, async (meta, ctx) => {
       switch (meta.collection) {
         case 'measures':
-          return handleMeasureCreatedOrPublished(meta, ctx);
+          return handleMeasuresCreatedOrUpdated({ ...meta, event: 'update' }, ctx);
         case 'ratings_measures':
-          return handleRatingsMeasureUpdatedOrCreated(meta, ctx);
+          return handleRatingsMeasureUpdatedOrCreated({ ...meta, event: 'update' }, ctx);
         case 'municipality_scores':
           return handleMunicipalityScoreUpdated(meta, ctx);
         default:
           return;
+      }
+    })
+  );
+
+  action(
+    'items.delete',
+    safeCall('items.delete', extensionContext, async (meta, ctx) => {
+      if (meta.collection === 'measures') {
+        return handleMeasuresDeleted(meta, ctx);
       }
     })
   );

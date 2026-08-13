@@ -46,7 +46,8 @@
 
 <script setup lang="ts">
 import { inject, nextTick, computed } from 'vue';
-import useDirectusToken from './use-directus-token';
+import { directusUrl } from '../directus-url';
+import useDirectusToken, { type DirectusApi } from './use-directus-token';
 
 interface Choice {
   value: string;
@@ -80,7 +81,7 @@ const emit = defineEmits<{
   (e: 'setFieldValue', payload: { field: string; value: string }): void;
 }>();
 
-const api = inject<unknown>('api');
+const api = inject<DirectusApi>('api');
 
 const containerStyle = computed(() => ({
   '--v-radio-color': 'var(--theme--primary)',
@@ -108,9 +109,16 @@ function isChecked(input: string | undefined, value: string): boolean {
 
 function renderImage(file_id: string | null | undefined, modified_on: string = new Date().toISOString()): string | undefined {
   if (!file_id) return undefined;
-  const { addTokenToURL } = useDirectusToken(api as never);
+  const { addTokenToURL } = useDirectusToken(api ?? {});
+  const query = new URLSearchParams({
+    width: '42',
+    height: '42',
+    fit: 'cover',
+    'cache-buster': modified_on,
+  });
+
   return addTokenToURL(
-    `/assets/${file_id}?width=42&height=42&fit=cover&cache-buster=${modified_on}`
+    `${directusUrl(api, `assets/${encodeURIComponent(file_id)}`)}?${query.toString()}`
   );
 }
 

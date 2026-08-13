@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.sectors_invalid
+value: Die ausgewählten Sektoren sind ungültig. Bitte prüfe deine Auswahl.

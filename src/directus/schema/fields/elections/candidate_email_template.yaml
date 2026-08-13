@@ -1,0 +1,162 @@
+collection: elections
+field: candidate_email_template
+type: text
+meta:
+  collection: elections
+  conditions: null
+  display: raw
+  display_options: null
+  field: candidate_email_template
+  group: null
+  hidden: false
+  interface: input-code
+  note: >-
+    Vollständiges HTML-Dokument für die Einladung. Verfügbare Platzhalter: {{
+    candidate_name }}, {{ candidate_salutation }}, {{ municipality_name }}, {{
+    election_descriptor }}, {{ cutoff_date }}, {{ personal_link }}, {{
+    projectName }}, {{ stadt_land_klima_logo }} und {{ custom_logo }}. Die beiden
+    Logo-Platzhalter erzeugen jeweils eine vollständige Tabellenzelle mit einem
+    eingebetteten Bild und gehören deshalb direkt in eine Tabellenzeile. {{
+    custom_logo }} bleibt leer, wenn kein eigenes Logo hinterlegt ist. Eine leere
+    oder ungültige Vorlage verhindert den Versand.
+  options:
+    language: html
+  readonly: false
+  required: false
+  searchable: false
+  sort: 18
+  special: null
+  translations:
+    - language: de-DE
+      translation: HTML-Vorlage für Kandidierenden-E-Mails
+    - language: en-GB
+      translation: HTML template for candidate emails
+    - language: it-IT
+      translation: Modello HTML per le email ai/alle candidati/e
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: candidate_email_template
+  table: elections
+  data_type: text
+  default_value: |-
+    <!doctype html>
+    <html lang="de">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="x-apple-disable-message-reformatting" />
+      <title>Einladung zum Klimawahl-Check: {{ municipality_name }}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background: #f6f6f6; color: #171717; font-family: Arial, Helvetica, sans-serif;">
+      <div style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent;">
+        Ihre persönliche Einladung zum Klimawahl-Check für {{ municipality_name }}
+      </div>
+
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse; background: #f6f6f6;">
+        <tr>
+          <td align="center" style="padding: 30px 15px;">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background: #ffffff;">
+              <tr>
+                <td style="padding: 30px 30px 10px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      {{ stadt_land_klima_logo }}
+                      {{ custom_logo }}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding: 20px 30px 10px;">
+                  <h1 style="margin: 0 0 10px; color: #006e94; font-size: 28px; line-height: 34px; font-weight: 700;">
+                    Einladung zum Klimawahl-Check
+                  </h1>
+                  <p style="margin: 0; color: #525252; font-size: 18px; line-height: 26px; font-weight: 600;">
+                    Klimawahl-Check für {{ municipality_name }}
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding: 20px 30px 30px; color: #525252; font-size: 16px; line-height: 24px;">
+                  <p style="margin: 0 0 16px;">{{ candidate_salutation }},</p>
+
+                  <p style="margin: 0 0 24px;">
+                    wir freuen uns, Sie zur Teilnahme am Klimawahl-Check für die Gemeinde {{ municipality_name }} einzuladen. Über den untenstehenden Button gelangen Sie direkt zu Ihrem persönlichen Fragebogen, in dem Sie Ihre Positionen zu wichtigen Klimaschutz-Maßnahmen darlegen können.
+                  </p>
+
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 30px; border-collapse: collapse;">
+                    <tr>
+                      <td align="center" bgcolor="#006e94" style="border-radius: 8px;">
+                        <a href="{{ personal_link }}" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 32px; border: 1px solid #006e94; border-radius: 8px; color: #ffffff; font-size: 16px; line-height: 24px; font-weight: 600; text-decoration: none;">
+                          Zum Klimawahl-Check
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <p style="margin: 0 0 16px;">
+                    Bitte beachten Sie, dass die Frist für die Abgabe Ihrer Antworten am <strong>{{ cutoff_date }}</strong> endet.
+                  </p>
+
+                  <p style="margin: 0 0 24px;">
+                    Sollten Sie Fragen haben oder Unterstützung benötigen, können Sie sich jederzeit gerne an uns wenden.
+                  </p>
+
+                  <hr style="margin: 0 0 24px; border: 0; border-top: 1px solid #d3dae4;" />
+
+                  <p style="margin: 0; color: #737373; font-size: 14px; line-height: 21px;">
+                    Vielen Dank für Ihren Beitrag zum Klimaschutz!<br />
+                    Ihr Team von {{ projectName }}
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding: 24px 30px; border-top: 1px solid #d3dae4; color: #737373; font-size: 12px; line-height: 18px;">
+                  <p style="margin: 0 0 12px;">
+                    <strong style="color: #525252;">Stadt.Land.Klima!</strong> ist ein gemeinsames bewegungsübergreifendes Projekt mit Fokus auf Klimaschutz im kommunalen Kontext.
+                  </p>
+                  <p style="margin: 0 0 12px;">
+                    Zum Ranking:
+                    <a href="https://stadt-land-klima.de/municipalities" target="_blank" style="color: #3f8342;">stadt-land-klima.de/municipalities</a>
+                  </p>
+                  <p style="margin: 0 0 12px;">
+                    <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" style="color: #525252;">Instagram</a>
+                    ·
+                    <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" style="color: #525252;">LinkedIn</a>
+                    ·
+                    <a href="https://www.reflecta.network/organisationen/stadt-land-klima" target="_blank" style="color: #525252;">Reflecta</a>
+                  </p>
+                  <p style="margin: 0 0 12px;">
+                    <a href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran" target="_blank" style="display: inline-block; padding: 8px 18px; border-radius: 4px; background: #3f8342; color: #ffffff; font-weight: 600; text-decoration: none;">Jetzt spenden!</a>
+                  </p>
+                  <p style="margin: 0;">
+                    <strong style="color: #525252;">Stadt.Land.Klima! e.V.</strong><br />
+                    Neue Schönhauser Str. 20, 10178 Berlin<br />
+                    Vorstand: Lukas Langer (1. Vorsitzender), Smilla Friedel (2. Vorsitzende), Jakob Krieger (Kassenwart)<br />
+                    VR 704334 · Amtsgericht Mannheim
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

@@ -13,6 +13,7 @@ meta:
   note: Interner Bezeichner (z.B. „technik"). Nicht ändern – wird im Code verwendet.
   options:
     placeholder: z.B. technik
+    trim: true
   readonly: true
   required: true
   searchable: true

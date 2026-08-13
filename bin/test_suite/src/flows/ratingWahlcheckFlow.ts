@@ -8,6 +8,7 @@ import {
 } from '../lib/browser.js';
 import type { JsonRecord } from '../lib/directus.js';
 import type { TestFixture } from '../lib/fixture.js';
+import { PNG_1X1 } from '../lib/images.js';
 import type { TestRunner } from '../lib/runner.js';
 import { waitFor } from '../lib/wait.js';
 
@@ -47,6 +48,7 @@ interface Election {
   review_requested?: boolean | null;
   is_approved?: boolean | null;
   is_public?: boolean | null;
+  wahlcheck_completion_count?: number | null;
 }
 
 interface Question {
@@ -60,6 +62,7 @@ interface Question {
 interface Candidate {
   id: string;
   name: string;
+  salutation?: 'frau' | 'herr' | 'neutral' | null;
   email: string;
   party?: string | null;
   access_token?: string | null;
@@ -347,6 +350,7 @@ async function readElection(fixture: TestFixture, electionId: string): Promise<E
     'review_requested',
     'is_approved',
     'is_public',
+    'wahlcheck_completion_count',
   ]);
 }
 
@@ -362,7 +366,7 @@ async function readQuestions(fixture: TestFixture, electionId: string): Promise<
 async function readCandidates(fixture: TestFixture, electionId: string): Promise<Candidate[]> {
   return fixture.admin.readItems<Candidate>('candidate', {
     filter: { election: { _eq: electionId } },
-    fields: ['id', 'name', 'email', 'party', 'access_token', 'has_answered'],
+    fields: ['id', 'name', 'salutation', 'email', 'party', 'access_token', 'has_answered'],
     limit: -1,
   });
 }
@@ -414,6 +418,7 @@ async function submitCandidateAnswers(
 async function completePublicWahlcheck(
   browser: Browser,
   fixture: TestFixture,
+  electionId: string,
   questions: Question[],
   candidateNames: string[],
 ): Promise<void> {
@@ -426,11 +431,12 @@ async function completePublicWahlcheck(
     );
     await page.getByText('Klimawahlcheck').first().waitFor({ state: 'visible', timeout: 30_000 });
 
-    for (let i = 0; i < questions.length; i += 1) {
-      await page.locator('input[type="radio"]').first().check({ force: true });
-      await page.locator('button.btn-primary').last().click();
-      await page.waitForTimeout(250);
+    for (const question of questions) {
+      const radio = page.locator(`input[name="question-${question.id}"]`).first();
+      await radio.waitFor({ state: 'visible', timeout: 30_000 });
+      await radio.click({ force: true });
     }
+    await page.locator('button.btn-primary').last().click();
 
     const weightCheckbox = page.locator('input[type="checkbox"].checkbox-primary').first();
     await weightCheckbox.waitFor({ state: 'visible', timeout: 30_000 });
@@ -447,6 +453,26 @@ async function completePublicWahlcheck(
       'public Wahlcheck share URL generated',
       async () => page.url().includes('share='),
       { timeoutMs: 10_000, intervalMs: 500 },
+    );
+
+    await waitFor(
+      'public Wahlcheck completion tracked',
+      async () => {
+        const election = await readElection(fixture, electionId);
+        return election.wahlcheck_completion_count === 1 ? election : false;
+      },
+      { timeoutMs: 10_000, intervalMs: 500 },
+    );
+
+    await page.locator('button.btn-secondary').last().click();
+    await page.locator('button.btn-primary').last().click();
+    await page.waitForTimeout(1_000);
+
+    const electionAfterRecalculation = await readElection(fixture, electionId);
+    assertEqual(
+      electionAfterRecalculation.wahlcheck_completion_count,
+      1,
+      'Recalculating results in the same browser session must not increment the completion counter again',
     );
   } finally {
     await context.close();
@@ -658,10 +684,18 @@ export async function runRatingWahlcheckFlow(
   });
 
   await runner.step('Wahlcheck: create election and generate ten theses from Directus action UI', async () => {
+    const customLogo = await fixture.admin.uploadFile<{ id: string }>(
+      `automated-wahlcheck-logo-${fixture.config.runId}.png`,
+      'image/png',
+      PNG_1X1,
+      `Automated Wahlcheck Logo ${fixture.config.runId}`,
+    );
+    assert(customLogo.id, 'Uploaded Wahlcheck logo must include an id');
+
     election = await fixture.localteamMember.client.createItem<Election>('elections', {
       descriptor: `AutomatedElectionTest ${fixture.config.runId}`,
       localteam: fixture.localteam.id,
-      candidate_email_cc: fixture.localteamMember.email,
+      custom_logo: customLogo.id,
       candidate_email_reply_to: fixture.localteamMember.email,
     });
 
@@ -733,15 +767,52 @@ export async function runRatingWahlcheckFlow(
   });
 
   await runner.step('Wahlcheck: create candidates and verify the empty answers collection', async () => {
+    let missingSalutationError: Error | null = null;
+    try {
+      await fixture.localteamMember.client.createItem<Candidate>('candidate', {
+        election: election.id,
+        name: `AutomatedCandidateWithoutSalutation ${fixture.config.runId}`,
+        email: fixture.candidateAEmail,
+      });
+    } catch (error) {
+      missingSalutationError = error instanceof Error ? error : new Error(String(error));
+    }
+    assert(missingSalutationError, 'Creating a candidate without a salutation must be rejected');
+    assertIncludes(
+      missingSalutationError.message,
+      'salutation',
+      'Missing candidate salutation error must identify the required field',
+    );
+
+    let nullSalutationError: Error | null = null;
+    try {
+      await fixture.localteamMember.client.createItem<Candidate>('candidate', {
+        election: election.id,
+        name: `AutomatedCandidateWithNullSalutation ${fixture.config.runId}`,
+        salutation: null,
+        email: fixture.candidateAEmail,
+      });
+    } catch (error) {
+      nullSalutationError = error instanceof Error ? error : new Error(String(error));
+    }
+    assert(nullSalutationError, 'Creating a candidate with a null salutation must be rejected');
+    assertIncludes(
+      nullSalutationError.message,
+      'salutation',
+      'Null candidate salutation error must identify the required field',
+    );
+
     await fixture.localteamMember.client.createItem<Candidate>('candidate', {
       election: election.id,
       name: `AutomatedCandidateA ${fixture.config.runId}`,
+      salutation: 'neutral',
       email: fixture.candidateAEmail,
       party: 'Gruene',
     });
     await fixture.localteamMember.client.createItem<Candidate>('candidate', {
       election: election.id,
       name: `AutomatedCandidateB ${fixture.config.runId}`,
+      salutation: 'herr',
       email: fixture.candidateBEmail,
       party: `AutomatedParty ${fixture.config.runId}`,
     });
@@ -750,6 +821,14 @@ export async function runRatingWahlcheckFlow(
     assertEqual(candidates.length, 2, 'Election must have exactly two candidates');
     assert(candidates.some((candidate) => candidate.email === fixture.candidateAEmail), 'Candidate A must exist');
     assert(candidates.some((candidate) => candidate.email === fixture.candidateBEmail), 'Candidate B must exist');
+    assert(
+      candidates.some((candidate) => candidate.salutation === 'neutral'),
+      'Candidate A must retain the selected salutation',
+    );
+    assert(
+      candidates.some((candidate) => candidate.salutation === 'herr'),
+      'Candidate B must retain the selected salutation',
+    );
 
     const answers = await fixture.localteamMember.client.readItems<Answer>('answers', {
       fields: ['id'],
@@ -793,6 +872,7 @@ export async function runRatingWahlcheckFlow(
       );
       let text = await gotoDirectusContent(memberPage, fixture.config.backendUrl, 'elections', election.id);
       assertNotIncludes(text, 'E-Mails versenden', 'Send emails button must not be available before approval');
+      assertNotIncludes(text, 'Test-E-Mail senden', 'Test email button must not be available before approval');
       await clickDirectusAction(memberPage, 'Review der Thesen anfragen');
       await memberPage.getByText('Review der Thesen wurde angefragt.').waitFor({ state: 'visible', timeout: 30_000 });
       election = await waitFor(
@@ -853,6 +933,7 @@ export async function runRatingWahlcheckFlow(
       );
       const text = await gotoDirectusContent(page, fixture.config.backendUrl, 'elections', election.id);
       assertIncludes(text, 'E-Mails versenden', 'Send emails action must be available after approval');
+      assertIncludes(text, 'Test-E-Mail senden', 'Test email action must be available after approval');
       await clickDirectusAction(page, 'E-Mails versenden');
       await page.getByText('Versandübersicht').waitFor({ state: 'visible', timeout: 60_000 });
     } finally {
@@ -929,6 +1010,7 @@ export async function runRatingWahlcheckFlow(
     await completePublicWahlcheck(
       browser,
       fixture,
+      election.id,
       generatedQuestions,
       candidates.map((candidate) => candidate.name),
     );

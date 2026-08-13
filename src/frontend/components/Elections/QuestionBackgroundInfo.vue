@@ -1,7 +1,11 @@
 <template>
   <div
     v-if="html"
-    class="question-background has-long-links prose prose-sm max-w-none rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4 text-gray"
+    class="question-background has-long-links prose prose-sm max-w-none text-gray"
+    :class="{
+      'rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4': appearance === 'box',
+      'text-sm italic': appearance === 'italic',
+    }"
     v-html="html"
   />
 </template>
@@ -10,9 +14,14 @@
 import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   content?: string | null;
-}>();
+  appearance?: "box" | "italic";
+}>(), {
+  appearance: "box",
+});
+
+const appearance = computed(() => props.appearance);
 
 const md = new MarkdownIt({
   html: false,

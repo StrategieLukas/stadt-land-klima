@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.service_unavailable
+value: Die Einreichung ist momentan nicht verfügbar. Bitte versuche es später erneut.

@@ -1,13 +1,14 @@
 <template>
   <CanonicalButton
     :label="$t('donate.label')"
-    href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
+    :href="DONATION_PAGE_PATH"
     icon-slug="icon_hand_holding_heart"
     color="orange"
-    :external="true"
   />
 </template>
 
 <script setup lang="ts">
+import { DONATION_PAGE_PATH } from "~/shared/donation";
+
 const { $t } = useNuxtApp()
 </script>

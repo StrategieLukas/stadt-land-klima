@@ -100,6 +100,16 @@
           <v-icon name="check" left />
           E-Mails versendet
         </v-button>
+
+        <v-button
+          :loading="loadingTestMail"
+          :disabled="isAnyLoading"
+          secondary
+          @click="handleSendTestMail"
+        >
+          <v-icon name="forward_to_inbox" left />
+          Test-E-Mail senden
+        </v-button>
       </div>
     </div>
 
@@ -283,8 +293,13 @@ const isApproved = computed(
 const loadingGenerate = ref(false);
 const loadingMails = ref(false);
 const loadingReview = ref(false);
+const loadingTestMail = ref(false);
 const isAnyLoading = computed(
-  () => loadingGenerate.value || loadingMails.value || loadingReview.value,
+  () =>
+    loadingGenerate.value ||
+    loadingMails.value ||
+    loadingReview.value ||
+    loadingTestMail.value,
 );
 
 // ---------------------------------------------------------------------------
@@ -305,6 +320,7 @@ interface MailCandidateSummary {
 
 interface MailSendResult extends Record<string, unknown> {
   success?: boolean;
+  testMode?: boolean;
   sentCount?: number;
   failedCount?: number;
   skippedCount?: number;
@@ -312,6 +328,8 @@ interface MailSendResult extends Record<string, unknown> {
   sent?: MailCandidateSummary[];
   failed?: MailCandidateSummary[];
   skipped?: MailCandidateSummary[];
+  testRecipient?: string;
+  selectedCandidate?: MailCandidateSummary;
 }
 
 const feedback = ref<Feedback>({ type: 'success', message: null });
@@ -477,6 +495,34 @@ async function handleSendMails() {
     showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
   } finally {
     loadingMails.value = false;
+  }
+}
+
+async function handleSendTestMail() {
+  loadingTestMail.value = true;
+  try {
+    const result = await callEndpoint<MailSendResult>('test-mail');
+    const candidateName = result.selectedCandidate?.name ?? 'eine zufällig ausgewählte Person';
+    const recipient = result.testRecipient ?? 'info@stadt-land-klima.de';
+
+    if ((result.sentCount ?? 0) > 0) {
+      showFeedback(
+        'success',
+        `Test-E-Mail für ${candidateName} wurde an ${recipient} versendet.`,
+        9000,
+      );
+    } else {
+      const failure = result.failed?.[0]?.message;
+      showFeedback(
+        'danger',
+        `Test-E-Mail konnte nicht versendet werden.${failure ? ` ${failure}` : ''}`,
+        9000,
+      );
+    }
+  } catch (err) {
+    showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
+  } finally {
+    loadingTestMail.value = false;
   }
 }
 </script>

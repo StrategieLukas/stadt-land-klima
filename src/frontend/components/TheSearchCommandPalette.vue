@@ -1,20 +1,20 @@
 <template>
   <Teleport to="body">
     <Transition name="palette-fade">
-      <div v-if="isOpen" class="fixed inset-0 z-[10002] font-sans" @click.self="close">
+      <div v-if="isOpen" class="pointer-events-none fixed inset-0 z-[10004] font-sans">
         <!-- Dark backdrop — starts below header in embedded mode so the white bar stays unobscured -->
         <div
-          class="slk-modal-backdrop absolute inset-x-0 bottom-0 bg-black/50"
+          class="slk-modal-backdrop pointer-events-auto absolute inset-x-0 bottom-0 bg-black/50"
           :style="embeddedInput ? `top: ${headerHeight}px` : 'top: 0'"
           @click="close"
         />
 
-        <!-- Panel: drops below header when embedded, centred floating otherwise -->
+        <!-- Panel: drops below the header input when embedded, centred floating otherwise -->
         <div
-          class="absolute z-10"
+          class="pointer-events-auto absolute z-10"
           :style="
-            embeddedInput && navInputRect.left !== null
-              ? `left: ${navInputRect.left}px; width: ${navInputRect.width}px; top: ${headerHeight + 8}px`
+            embeddedInput && navInputRect.left !== null && navInputRect.bottom !== null
+              ? `left: ${navInputRect.left}px; width: ${navInputRect.width}px; top: ${navInputRect.bottom + 8}px`
               : `left: 50%; transform: translateX(-50%); width: 100%; max-width: 36rem; padding: 0 1rem; top: 80px`
           "
         >

@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.email_invalid
+value: Bitte gib eine gültige E-Mail-Adresse ein.

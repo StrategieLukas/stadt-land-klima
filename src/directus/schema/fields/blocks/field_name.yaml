@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: input
   note: Field name where this block belongs
-  options: null
+  options:
+    trim: true
   readonly: false
   required: true
   searchable: true

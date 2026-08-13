@@ -26,6 +26,7 @@ permissions:
     presets: null
     fields:
       - name
+      - salutation
       - email
       - party
       - election
@@ -48,6 +49,7 @@ permissions:
       - id
       - election
       - name
+      - salutation
       - party
       - email
       - has_answered
@@ -60,6 +62,7 @@ permissions:
     presets: null
     fields:
       - name
+      - salutation
       - email
       - party
       - election
@@ -100,6 +103,8 @@ permissions:
       - custom_logo
       - candidate_email_cc
       - candidate_email_reply_to
+      - candidate_email_subject
+      - candidate_email_template
       - action_buttons
       - already_sent_mails
       - already_generated_questions
@@ -110,7 +115,24 @@ permissions:
     validation: null
     presets: null
     fields:
-      - "*"
+      - action_buttons
+      - already_generated_questions
+      - already_sent_mails
+      - candidate_email_cc
+      - candidate_email_reply_to
+      - candidate_email_subject
+      - candidate_email_template
+      - custom_logo
+      - date_created
+      - date_updated
+      - descriptor
+      - id
+      - is_approved
+      - is_public
+      - localteam
+      - response_cutoff_date
+      - review_requested
+      - simple_answer_mode
   - collection: elections
     action: update
     permissions: null
@@ -124,6 +146,8 @@ permissions:
       - custom_logo
       - candidate_email_cc
       - candidate_email_reply_to
+      - candidate_email_subject
+      - candidate_email_template
       - action_buttons
       - already_sent_mails
       - already_generated_questions

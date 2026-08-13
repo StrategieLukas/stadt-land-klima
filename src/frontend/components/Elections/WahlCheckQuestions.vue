@@ -42,13 +42,17 @@
             <h3 class="text-xl font-semibold text-black leading-tight">
               {{ currentQuestion.title }}
             </h3>
-            <p v-if="currentQuestion.thesis" class="mt-2 text-gray italic text-lg">
-              {{ currentQuestion.thesis }}
-            </p>
             <ElectionsQuestionBackgroundInfo
               :content="currentQuestion.background_information"
-              class="mt-4"
+              appearance="italic"
+              class="mt-2"
             />
+            <p
+              v-if="currentQuestion.thesis"
+              class="mt-4 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4 text-lg text-gray"
+            >
+              {{ currentQuestion.thesis }}
+            </p>
           </div>
         </div>
 
@@ -203,6 +207,7 @@ function markQuestionCompleted(questionId) {
   completedQuestions.value.add(questionId)
   // Remove from skipped if it was skipped
   delete skippedQuestions.value[questionId]
+  advanceToNextQuestion()
 }
 
 // Handle skip checkbox change
@@ -211,9 +216,16 @@ function handleSkipChange(questionId) {
     // Skipping the question
     userAnswers.value[questionId] = undefined
     completedQuestions.value.delete(questionId)
+    advanceToNextQuestion()
   } else {
     // Un-skipping - set to undefined so user can answer
     userAnswers.value[questionId] = undefined
+  }
+}
+
+function advanceToNextQuestion() {
+  if (currentQuestionIndex.value < props.questions.length - 1) {
+    currentQuestionIndex.value++
   }
 }
 

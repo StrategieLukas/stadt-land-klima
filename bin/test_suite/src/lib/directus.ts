@@ -20,6 +20,11 @@ export class DirectusClient {
     this.token = token;
   }
 
+  private url(path: string): URL {
+    const baseUrl = `${this.baseUrl.replace(/\/+$/, '')}/`;
+    return new URL(path.replace(/^\/+/, ''), baseUrl);
+  }
+
   async login(email: string, password: string): Promise<string> {
     const response = await this.request<{ access_token: string }>('POST', '/auth/login', {
       body: { email, password },
@@ -35,7 +40,7 @@ export class DirectusClient {
     path: string,
     options: { body?: unknown; query?: Record<string, string | number | boolean | undefined>; auth?: boolean } = {},
   ): Promise<T> {
-    const url = new URL(path, `${this.baseUrl}/`);
+    const url = this.url(path);
     for (const [key, value] of Object.entries(options.query ?? {})) {
       if (value !== undefined) url.searchParams.set(key, String(value));
     }
@@ -126,7 +131,7 @@ export class DirectusClient {
     bytes: Uint8Array,
     title: string,
   ): Promise<T> {
-    const url = new URL('/files', `${this.baseUrl}/`);
+    const url = this.url('/files');
     const formData = new FormData();
     formData.set('title', title);
     const fileBytes = new Uint8Array(bytes);

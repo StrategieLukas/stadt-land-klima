@@ -1,0 +1,16 @@
+name: Erfolgsprojekte-Redaktion
+icon: edit_note
+note: Redakteur:innen für Erfolgsprojekte einladen und verwalten.
+color: null
+panels:
+  - name: Redakteur:in einladen
+    icon: person_add
+    color: null
+    show_header: false
+    note: null
+    type: erfolgsprojekte-user-manager
+    position_x: 1
+    position_y: 1
+    width: 36
+    height: 18
+    options: {}

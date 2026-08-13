@@ -129,7 +129,7 @@
           <LoginButton />
         </div>
         <a
-          href="https://www.betterplace.org/de/projects/157241-stadt-land-klima-bringe-kommunalen-klimaschutz-voran"
+          :href="DONATION_PAGE_PATH"
           class="hidden sm:flex 2xl:hidden"
           :aria-label="$t('donate.label')"
         >
@@ -173,6 +173,7 @@ import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { useSearchPalette } from "~/composables/useSearchPalette.js";
 import { useEmbeddedSearchBridge } from "~/composables/useEmbeddedSearchBridge.js";
 import { useHeaderHeight, useHeaderSpacerHeight, useNavInputRect } from "~/composables/useHeaderHeight.js";
+import { DONATION_PAGE_PATH } from "~/shared/donation";
 
 const { $t } = useNuxtApp();
 const { isOpen, query, embeddedInput, close, open } = useSearchPalette();
@@ -308,8 +309,7 @@ onMounted(() => {
       }
       if (searchBarRef.value) {
         const r = searchBarRef.value.getBoundingClientRect();
-        const hr = headerEl.value.getBoundingClientRect();
-        navInputRect.value = { left: r.left, width: r.width, topInHeader: r.top - hr.top };
+        navInputRect.value = { left: r.left, width: r.width, bottom: r.bottom };
       }
     };
     update();

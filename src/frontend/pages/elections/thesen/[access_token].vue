@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-mild-white py-12 px-4 sm:px-6 lg:px-8">
+  <div class="elections-flow min-h-screen bg-mild-white py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-3xl mx-auto">
       <!-- Header -->
       <div v-if="!submitted" class="text-center mb-12">
@@ -67,14 +67,18 @@
             </h3>
           </div>
 
-          <div v-if="question.title && question.thesis" class="mb-6 ml-12 text-gray italic">
-            {{ question.thesis }}
-          </div>
-
           <ElectionsQuestionBackgroundInfo
             :content="question.background_information"
-            class="mb-6 sm:ml-12"
+            appearance="italic"
+            class="mb-4 sm:ml-12"
           />
+
+          <div
+            v-if="question.title && question.thesis"
+            class="mb-6 sm:ml-12 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4 text-lg text-gray"
+          >
+            {{ question.thesis }}
+          </div>
 
           <!-- Rating Scale -->
           <div class="ml-0 sm:ml-12">

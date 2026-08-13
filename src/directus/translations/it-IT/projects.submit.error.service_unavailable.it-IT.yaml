@@ -1,0 +1,3 @@
+language: it-IT
+key: projects.submit.error.service_unavailable
+value: Al momento non è possibile inviare il modulo. Riprova più tardi.

@@ -10,9 +10,14 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: Optionale Reply-To-Adresse für Antworten von Kandidierenden.
+  note: >-
+    Hier kann optional eine Reply-To-Adresse angegeben werden. Wenn Kandidierende
+    auf die automatisierten Einladungs-E-Mails zum Wahlcheck antworten, etwa bei
+    Rückfragen, wird die Antwort an diese Adresse gesendet. Ohne Angabe wird sie an
+    info@stadt-land-klima.de gesendet.
   options:
     placeholder: lokalteam@example.org
+    trim: true
   readonly: false
   required: false
   searchable: true
@@ -25,8 +30,15 @@ meta:
       translation: Reply-To address for candidate emails
     - language: it-IT
       translation: Indirizzo Reply-To per le email ai/alle candidati/e
-  validation: null
-  validation_message: null
+  validation:
+    _or:
+      - candidate_email_reply_to:
+          _null: true
+      - candidate_email_reply_to:
+          _eq: ""
+      - candidate_email_reply_to:
+          _regex: ^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$
+  validation_message: Bitte eine gültige E-Mail-Adresse eingeben.
   width: half
 schema:
   name: candidate_email_reply_to

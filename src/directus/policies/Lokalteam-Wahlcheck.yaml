@@ -20,6 +20,7 @@ permissions:
       - id
       - candidate
       - question
+      - explanation
       - date_created
       - date_updated
   - collection: candidate
@@ -33,6 +34,7 @@ permissions:
     fields:
       - id
       - name
+      - salutation
       - email
       - party
       - access_token
@@ -65,6 +67,7 @@ permissions:
     fields:
       - id
       - name
+      - salutation
       - party
       - email
       - has_answered
@@ -85,6 +88,7 @@ permissions:
     presets: null
     fields:
       - name
+      - salutation
       - email
       - party
       - has_answered
@@ -111,6 +115,20 @@ permissions:
       - date_updated
       - user_created
       - user_updated
+  - collection: directus_files
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: directus_files
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: directus_users
     action: read
     permissions:
@@ -124,20 +142,6 @@ permissions:
       - first_name
       - last_name
       - email
-  - collection: directus_files
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
   - collection: elections
     action: create
     permissions: {}
@@ -145,7 +149,6 @@ permissions:
     presets: null
     fields:
       - descriptor
-      - candidate_email_cc
       - candidate_email_reply_to
       - custom_logo
       - response_cutoff_date
@@ -175,7 +178,6 @@ permissions:
     fields:
       - id
       - response_cutoff_date
-      - candidate_email_cc
       - candidate_email_reply_to
       - date_created
       - custom_logo
@@ -202,7 +204,6 @@ permissions:
     fields:
       - descriptor
       - response_cutoff_date
-      - candidate_email_cc
       - candidate_email_reply_to
       - custom_logo
       - is_public
@@ -290,6 +291,9 @@ permissions:
             localteam:
               _in:
                 - $CURRENT_USER.localteams.localteam_id
+        - election:
+            is_public:
+              _neq: true
     validation:
       answers:
         _func:
@@ -329,6 +333,9 @@ permissions:
             localteam:
               _in:
                 - $CURRENT_USER.localteams.localteam_id
+        - election:
+            is_public:
+              _neq: true
     validation: null
     presets: null
     fields:

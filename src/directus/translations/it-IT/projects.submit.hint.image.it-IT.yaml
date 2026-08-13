@@ -1,0 +1,3 @@
+language: it-IT
+key: projects.submit.hint.image
+value: "JPG, PNG o WebP, fino a :max MB."

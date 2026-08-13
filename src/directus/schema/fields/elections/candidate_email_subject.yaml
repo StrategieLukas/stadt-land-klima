@@ -1,0 +1,52 @@
+collection: elections
+field: candidate_email_subject
+type: string
+meta:
+  collection: elections
+  conditions: null
+  display: null
+  display_options: null
+  field: candidate_email_subject
+  group: null
+  hidden: false
+  interface: input
+  note: >-
+    Betreff der Einladung. Verfügbare Platzhalter: {{ candidate_name }}, {{
+    candidate_salutation }}, {{ municipality_name }}, {{ election_descriptor }},
+    {{ cutoff_date }}, {{ personal_link }} und {{ projectName }}. Ein leerer
+    Betreff verhindert den Versand.
+  options:
+    placeholder: "Einladung zum Klimawahl-Check: {{ municipality_name }}"
+    trim: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 17
+  special: null
+  translations:
+    - language: de-DE
+      translation: Betreff für Kandidierenden-E-Mails
+    - language: en-GB
+      translation: Subject for candidate emails
+    - language: it-IT
+      translation: Oggetto delle email ai/alle candidati/e
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: candidate_email_subject
+  table: elections
+  data_type: character varying
+  default_value: "Einladung zum Klimawahl-Check: {{ municipality_name }}"
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

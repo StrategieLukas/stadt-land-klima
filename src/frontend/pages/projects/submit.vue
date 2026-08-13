@@ -28,7 +28,7 @@
             id="project-title"
             v-model="form.title"
             type="text"
-            maxlength="180"
+            :maxlength="ARTICLE_SUBMISSION_LIMITS.title"
             required
             class="input input-bordered w-full"
           />
@@ -42,7 +42,7 @@
             id="project-subtitle"
             v-model="form.subtitle"
             type="text"
-            maxlength="255"
+            :maxlength="ARTICLE_SUBMISSION_LIMITS.subtitle"
             class="input input-bordered w-full"
           />
         </div>
@@ -56,7 +56,7 @@
               id="project-municipality"
               v-model="form.municipalityName"
               type="text"
-              maxlength="120"
+              :maxlength="ARTICLE_SUBMISSION_LIMITS.municipalityName"
               required
               class="input input-bordered w-full"
             />
@@ -84,10 +84,20 @@
                 type="checkbox"
                 class="border-gray-300 checkbox checkbox-sm"
                 :value="sector.value"
+                :disabled="
+                  !form.sectors.includes(sector.value) && form.sectors.length >= ARTICLE_SUBMISSION_MAX_SECTORS
+                "
               />
               <span>{{ sector.label }}</span>
             </label>
           </div>
+          <p class="text-gray-500 mt-2 text-xs">
+            {{
+              $t("projects.submit.hint.sectors_max", {
+                ":max": ARTICLE_SUBMISSION_MAX_SECTORS,
+              })
+            }}
+          </p>
         </fieldset>
 
         <div>
@@ -98,10 +108,13 @@
             id="project-abstract"
             v-model="form.abstract"
             rows="4"
-            maxlength="1500"
+            :maxlength="ARTICLE_SUBMISSION_LIMITS.abstract"
             required
             class="textarea textarea-bordered w-full"
           />
+          <p class="text-gray-500 mt-1 text-right text-xs">
+            {{ form.abstract.length }} / {{ ARTICLE_SUBMISSION_LIMITS.abstract }}
+          </p>
         </div>
 
         <div>
@@ -112,10 +125,13 @@
             id="project-article-text"
             v-model="form.articleText"
             rows="9"
-            maxlength="10000"
+            :maxlength="ARTICLE_SUBMISSION_LIMITS.articleText"
             required
             class="textarea textarea-bordered w-full"
           />
+          <p class="text-gray-500 mt-1 text-right text-xs">
+            {{ form.articleText.length }} / {{ ARTICLE_SUBMISSION_LIMITS.articleText }}
+          </p>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -127,7 +143,7 @@
               id="project-link"
               v-model="form.link"
               type="url"
-              maxlength="255"
+              :maxlength="ARTICLE_SUBMISSION_LIMITS.link"
               class="input input-bordered w-full"
             />
           </div>
@@ -139,7 +155,7 @@
               id="project-instagram"
               v-model="form.instagram"
               type="url"
-              maxlength="255"
+              :maxlength="ARTICLE_SUBMISSION_LIMITS.instagram"
               class="input input-bordered w-full"
             />
           </div>
@@ -151,7 +167,7 @@
               id="project-linkedin"
               v-model="form.linkedin"
               type="url"
-              maxlength="255"
+              :maxlength="ARTICLE_SUBMISSION_LIMITS.linkedin"
               class="input input-bordered w-full"
             />
           </div>
@@ -166,11 +182,14 @@
               id="project-image"
               ref="imageInputRef"
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              :accept="ALLOWED_IMAGE_TYPES.join(',')"
               required
               class="file-input file-input-bordered w-full"
               @change="onImageChange"
             />
+            <p class="text-gray-500 mt-1 text-xs">
+              {{ $t("projects.submit.hint.image", { ":max": ARTICLE_SUBMISSION_MAX_IMAGE_MB }) }}
+            </p>
           </div>
 
           <div>
@@ -181,7 +200,7 @@
               id="project-image-credits"
               v-model="form.imageCredits"
               type="text"
-              maxlength="255"
+              :maxlength="ARTICLE_SUBMISSION_LIMITS.imageCredits"
               required
               class="input input-bordered w-full"
             />
@@ -214,7 +233,7 @@
               v-model="form.author"
               type="text"
               autocomplete="name"
-              maxlength="120"
+              :maxlength="ARTICLE_SUBMISSION_LIMITS.author"
               required
               class="input input-bordered w-full"
             />
@@ -229,7 +248,7 @@
               v-model="form.submitterEmail"
               type="email"
               autocomplete="email"
-              maxlength="255"
+              :maxlength="ARTICLE_SUBMISSION_LIMITS.submitterEmail"
               required
               class="input input-bordered w-full"
             />
@@ -257,7 +276,9 @@
           <p v-if="captchaError" class="text-red-500 mt-1 text-xs">{{ captchaError }}</p>
         </div>
 
-        <p v-if="errorMessage" class="text-red-600 text-sm">{{ errorMessage }}</p>
+        <div v-if="errorMessage" role="alert" class="alert alert-error text-sm">
+          <span>{{ errorMessage }}</span>
+        </div>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p class="text-gray-400 text-xs">{{ $t("generic.privacy.disclaimer") }}</p>
@@ -276,6 +297,15 @@
 </template>
 
 <script setup lang="ts">
+import {
+  ARTICLE_SUBMISSION_LIMITS,
+  ARTICLE_SUBMISSION_MAX_IMAGE_BYTES,
+  ARTICLE_SUBMISSION_MAX_SECTORS,
+  type ArticleSubmissionErrorCode,
+  type ArticleSubmissionErrorData,
+  type ArticleSubmissionTextField,
+} from "~/shared/articleSubmission";
+
 type ArticleSubmissionForm = {
   title: string;
   subtitle: string;
@@ -296,6 +326,46 @@ type ArticleSubmissionForm = {
 const { $t, $locale } = useNuxtApp();
 
 useHead({ title: $t("projects.submit.title") });
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ARTICLE_SUBMISSION_MAX_IMAGE_MB = ARTICLE_SUBMISSION_MAX_IMAGE_BYTES / 1024 / 1024;
+
+const fieldTranslationKeys: Record<ArticleSubmissionTextField, string> = {
+  title: "projects.submit.field.title",
+  subtitle: "projects.submit.field.subtitle",
+  municipalityName: "projects.submit.field.municipality",
+  state: "projects.submit.field.state",
+  abstract: "projects.submit.field.abstract",
+  articleText: "projects.submit.field.article_text",
+  link: "projects.submit.field.link",
+  instagram: "projects.submit.field.instagram",
+  linkedin: "projects.submit.field.linkedin",
+  imageCredits: "projects.submit.field.image_credits",
+  author: "projects.submit.field.author",
+  submitterEmail: "projects.submit.field.email",
+};
+
+const errorTranslationKeys: Record<ArticleSubmissionErrorCode, string> = {
+  captcha_failed: "projects.submit.error.captcha_failed",
+  email_invalid: "projects.submit.error.email_invalid",
+  field_too_long: "projects.submit.error.field_too_long",
+  image_format: "projects.submit.error.image_format",
+  image_invalid: "projects.submit.error.image_invalid",
+  image_required: "projects.submit.error.image_required",
+  image_rights_required: "projects.submit.error.image_rights_required",
+  image_too_large: "projects.submit.error.image_too_large",
+  invalid_submission: "projects.submit.error.invalid_submission",
+  required_fields: "projects.submit.error.required_fields",
+  save_failed: "projects.submit.error.save_failed",
+  sectors_invalid: "projects.submit.error.sectors_invalid",
+  sectors_required: "projects.submit.error.sectors_required",
+  sectors_too_many: "projects.submit.error.sectors_too_many",
+  service_unavailable: "projects.submit.error.service_unavailable",
+  state_invalid: "projects.submit.error.state_invalid",
+  submission_too_large: "projects.submit.error.submission_too_large",
+  url_invalid: "projects.submit.error.url_invalid",
+  url_too_long: "projects.submit.error.field_too_long",
+};
 
 const stateOptions = [
   "Baden-Württemberg",
@@ -402,7 +472,23 @@ onUnmounted(() => {
 
 function onImageChange(event: Event) {
   const input = event.target as HTMLInputElement;
-  selectedImage.value = input.files?.[0] ?? null;
+  const image = input.files?.[0] ?? null;
+  errorMessage.value = "";
+  if (image && !ALLOWED_IMAGE_TYPES.includes(image.type)) {
+    selectedImage.value = null;
+    input.value = "";
+    errorMessage.value = $t("projects.submit.error.image_format");
+    return;
+  }
+  if (image && image.size > ARTICLE_SUBMISSION_MAX_IMAGE_BYTES) {
+    selectedImage.value = null;
+    input.value = "";
+    errorMessage.value = $t("projects.submit.error.image_too_large", {
+      ":max": ARTICLE_SUBMISSION_MAX_IMAGE_MB,
+    });
+    return;
+  }
+  selectedImage.value = image;
 }
 
 function resetForm() {
@@ -416,10 +502,46 @@ function resetForm() {
   }
 }
 
+function translateSubmissionError(data: ArticleSubmissionErrorData) {
+  const translationKey = errorTranslationKeys[data.errorCode];
+  const field = data.field ? $t(fieldTranslationKeys[data.field]) : "";
+  return $t(translationKey, {
+    ":field": field,
+    ":max": data.maxLength ?? data.maxSectors ?? data.maxSizeMb ?? "",
+  });
+}
+
+function getSubmissionErrorMessage(err: any) {
+  const data = (err?.data?.error ?? err?.data?.data) as ArticleSubmissionErrorData | undefined;
+  if (data?.errorCode && errorTranslationKeys[data.errorCode]) {
+    return translateSubmissionError(data);
+  }
+  const publicMessage = err?.data?.message;
+  if (publicMessage && publicMessage !== "Server Error") {
+    return publicMessage;
+  }
+  return $t("generic.technical_error");
+}
+
+function validateTextLengths() {
+  for (const [field, maxLength] of Object.entries(ARTICLE_SUBMISSION_LIMITS) as Array<
+    [ArticleSubmissionTextField, number]
+  >) {
+    if (form[field].length > maxLength) {
+      errorMessage.value = translateSubmissionError({ errorCode: "field_too_long", field, maxLength });
+      return false;
+    }
+  }
+  return true;
+}
+
 async function submitArticle() {
   errorMessage.value = "";
   captchaError.value = "";
 
+  if (!validateTextLengths()) {
+    return;
+  }
   const payload = altchaPayload.value || altchaRef.value?.value;
   if (!payload) {
     captchaError.value = $t("captcha.required");
@@ -435,6 +557,12 @@ async function submitArticle() {
   }
   if (form.sectors.length === 0) {
     errorMessage.value = $t("projects.submit.error.sectors_required");
+    return;
+  }
+  if (form.sectors.length > ARTICLE_SUBMISSION_MAX_SECTORS) {
+    errorMessage.value = $t("projects.submit.error.sectors_too_many", {
+      ":max": ARTICLE_SUBMISSION_MAX_SECTORS,
+    });
     return;
   }
 
@@ -467,7 +595,7 @@ async function submitArticle() {
       resetForm();
     }
   } catch (err: any) {
-    errorMessage.value = err?.data?.message ?? $t("generic.technical_error");
+    errorMessage.value = getSubmissionErrorMessage(err);
   } finally {
     loading.value = false;
   }

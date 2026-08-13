@@ -74,6 +74,7 @@ permissions:
       - first_name
       - last_name
       - email
+      - phone
       - password
       - tfa_secret
       - status
@@ -93,6 +94,7 @@ permissions:
       - appearance
       - theme_light
       - theme_dark
+      - phone
   - collection: user_agreements
     action: create
     permissions: null

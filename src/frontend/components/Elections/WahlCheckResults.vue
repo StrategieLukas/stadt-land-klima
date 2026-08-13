@@ -33,6 +33,14 @@
       </p>
     </div>
 
+    <p
+      v-if="nonRespondingCandidateLabels.length > 0"
+      class="rounded-lg border border-solid-gray-20 bg-solid-gray-05 px-4 py-3 text-sm leading-relaxed text-mid-gray"
+    >
+      <span class="font-semibold text-gray">{{ $t('elections.wahlcheck.results.no_response') }}:</span>
+      {{ nonRespondingCandidateLabels.join(', ') }}
+    </p>
+
     <!-- Bar Chart Overview -->
     <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
       <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
@@ -144,7 +152,7 @@
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
                     :src="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
-                    class="h-12 w-12 opacity-90"
+                    class="slk-sector-icon h-12 w-12 opacity-90"
                     :alt="getSectorAgreement(result.candidateId, 'highest').sector"
                   />
                 </div>
@@ -157,7 +165,7 @@
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
                     :src="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
-                    class="h-12 w-12 opacity-90"
+                    class="slk-sector-icon h-12 w-12 opacity-90"
                     :alt="getSectorAgreement(result.candidateId, 'lowest').sector"
                   />
                 </div>
@@ -398,6 +406,7 @@
 import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
+import { formatCandidateNameAndParty } from '~/shared/candidateParties.js'
 import sectorImages from '~/shared/sectorImages.js'
 import {
   calculateWahlcheckQuestionScore,
@@ -443,6 +452,13 @@ const showConfetti = ref(false)
 const sortBy = ref('default') // 'default', 'agreement', 'disagreement'
 const reasoningDialog = ref(null)
 const activeReasoning = ref(null)
+
+const nonRespondingCandidateLabels = computed(() => {
+  return props.candidates
+    .filter((candidate) => candidate.has_answered !== true)
+    .map((candidate) => formatCandidateNameAndParty(candidate))
+    .filter(Boolean)
+})
 
 // Toggle through sort modes
 function toggleSort() {
@@ -626,9 +642,12 @@ function normalizeSector(sector) {
   return normalized || null
 }
 
-const hasQuestionSectors = computed(() => {
-  return props.questions.some((question) => normalizeSector(question.sector))
+const questionSectors = computed(() => {
+  return new Set(props.questions.map((question) => normalizeSector(question.sector)).filter(Boolean))
 })
+
+const hasQuestionSectors = computed(() => questionSectors.value.size > 0)
+const hasMultipleQuestionSectors = computed(() => questionSectors.value.size > 1)
 
 // Calculate similarity scores
 const results = computed(() => {
@@ -812,7 +831,11 @@ function getSectorAgreement(candidateId, type = 'highest') {
 }
 
 function hasSectorAgreement(candidateId) {
-  return Boolean(getSectorAgreement(candidateId, 'highest') && getSectorAgreement(candidateId, 'lowest'))
+  return Boolean(
+    hasMultipleQuestionSectors.value &&
+    getSectorAgreement(candidateId, 'highest') &&
+    getSectorAgreement(candidateId, 'lowest')
+  )
 }
 
 // Sorted results by percentage (descending)

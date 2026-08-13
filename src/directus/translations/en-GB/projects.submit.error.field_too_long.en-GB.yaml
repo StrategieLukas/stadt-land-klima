@@ -1,0 +1,3 @@
+language: en-GB
+key: projects.submit.error.field_too_long
+value: ":field must be no more than :max characters long."

@@ -1,0 +1,50 @@
+collection: elections
+field: wahlcheck_completion_count
+type: integer
+meta:
+  collection: elections
+  conditions: null
+  display: formatted-value
+  display_options: null
+  field: wahlcheck_completion_count
+  group: null
+  hidden: false
+  interface: input
+  note: null
+  options:
+    max: null
+    min: 0
+    placeholder: null
+    step: 1
+  readonly: true
+  required: false
+  searchable: false
+  sort: 19
+  special: null
+  translations:
+    - language: de-DE
+      translation: Klimawahlcheck-Abschlüsse
+    - language: en-GB
+      translation: Klimawahlcheck completions
+    - language: it-IT
+      translation: Completamenti del Klimawahlcheck
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: wahlcheck_completion_count
+  table: elections
+  data_type: integer
+  default_value: 0
+  max_length: null
+  numeric_precision: 32
+  numeric_scale: 0
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

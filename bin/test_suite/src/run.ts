@@ -7,6 +7,7 @@ import { runAddUserFlow } from './flows/addUserFlow.js';
 import { runRegisterLocalteamFlow } from './flows/registerLocalteamFlow.js';
 import { runRatingWahlcheckFlow } from './flows/ratingWahlcheckFlow.js';
 import { runErfolgsprojekteArticlesFlow } from './flows/erfolgsprojekteArticlesFlow.js';
+import { runErfolgsprojekteInviteDashboardFlow } from './flows/erfolgsprojekteInviteDashboardFlow.js';
 
 async function main(): Promise<void> {
   const config = loadConfig(process.argv.slice(2));
@@ -26,6 +27,7 @@ async function main(): Promise<void> {
     });
 
     await runAddUserFlow(runner, fixture, browser);
+    await runErfolgsprojekteInviteDashboardFlow(runner, fixture);
     await runRatingWahlcheckFlow(runner, fixture, browser);
     await runRegisterLocalteamFlow(runner, fixture, browser);
     await runErfolgsprojekteArticlesFlow(runner, fixture, browser);

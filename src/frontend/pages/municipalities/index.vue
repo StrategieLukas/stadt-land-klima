@@ -273,7 +273,7 @@
           <div class="mx-auto max-w-md space-y-4">
             <OnboardingBox
               name="Otto"
-              avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"
+              :avatar-src="onboardingAvatarUrl"
             />
             <ProjectCard
               v-for="project in projects"
@@ -322,8 +322,13 @@ import { isRaster } from "~/shared/utils";
 
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const config = useRuntimeConfig();
 const rankingColumn = ref(null);
 const rankingColumnHeight = ref(0);
+const onboardingAvatarUrl = computed(() => {
+  const directusUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081";
+  return `${directusUrl.replace(/\/+$/, "")}/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96`;
+});
 
 function updateRankingColumnHeight() {
   if (rankingColumn.value) {
