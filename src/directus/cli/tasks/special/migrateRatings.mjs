@@ -1,6 +1,26 @@
 import readline from "readline";
 import createDirectusClient from "../shared/createDirectusClient.mjs";
-import { readItems, updateItem } from "@directus/sdk";
+import { readItems, updateItem, updateItems } from "@directus/sdk";
+
+export const SUPERSEDED_RATING_UPDATE = Object.freeze({ status: "draft" });
+
+export function buildNewRatingUpdate(oldRating, mustBeRatedAgain) {
+  const preservedText = {
+    internal_note: oldRating.internal_note,
+    current_progress: oldRating.current_progress,
+    source: oldRating.source,
+  };
+
+  if (mustBeRatedAgain) return preservedText;
+
+  return {
+    ...preservedText,
+    status: oldRating.status,
+    applicable: oldRating.applicable,
+    why_not_applicable: oldRating.why_not_applicable,
+    rating: oldRating.rating,
+  };
+}
 
 /**
  * Migrate ratings between two measure catalog versions (oldVersion → newVersion)
@@ -48,7 +68,10 @@ async function migrateRatings(oldVersion, newVersion) {
   );
 
   // Safety confirmation
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
   const confirm = await new Promise((resolve) => {
     rl.question(
       `⚠️  This will copy ratings from "${oldVersion}" → "${newVersion}".\n` +
@@ -71,14 +94,20 @@ async function migrateRatings(oldVersion, newVersion) {
     const [oldMeasures, newMeasures] = await Promise.all([
       client.request(
         readItems("measures", {
-          filter: { catalog_version: { _eq: oldCatalog.id }, status: { _eq: "published" } },
+          filter: {
+            catalog_version: { _eq: oldCatalog.id },
+            status: { _eq: "published" },
+          },
           fields: ["id", "measure_id"],
           limit: -1,
         })
       ),
       client.request(
         readItems("measures", {
-          filter: { catalog_version: { _eq: newCatalog.id }, status: { _eq: "published" } },
+          filter: {
+            catalog_version: { _eq: newCatalog.id },
+            status: { _eq: "published" },
+          },
           fields: ["id", "measure_id", "must_be_rated_again"],
           limit: -1,
         })
@@ -95,12 +124,11 @@ async function migrateRatings(oldVersion, newVersion) {
     const commonMeasureIds = [...oldMap.keys()].filter((id) => newMap.has(id));
 
     console.log(
-      `🔗 Found ${commonMeasureIds.length} measures existing in both catalogs:\n  ${commonMeasureIds.join(
-        ", "
-      )}`
+      `🔗 Found ${commonMeasureIds.length} measures existing in both catalogs:\n  ${commonMeasureIds.join(", ")}`
     );
 
     let updatedCount = 0;
+    let draftedCount = 0;
 
     // Process each shared measure
     for (const measureId of commonMeasureIds) {
@@ -137,19 +165,25 @@ async function migrateRatings(oldVersion, newVersion) {
       );
 
       console.log(`   🧮 ${oldRatings.length} old → ${newRatings.length} new ratings`);
-      if(oldRatings.length != newRatings.length) {
-        console.warn("Amount of new and old ratings should be identical, were some manually deleted?")
+      if (oldRatings.length !== newRatings.length) {
+        console.warn(
+          "Amount of new and old ratings should be identical, were some manually deleted?"
+        );
       }
 
-      if (oldRatings.length === 0 || newRatings.length === 0) continue;
+      if (oldRatings.length === 0) continue;
 
       const newByLocalteam = new Map(newRatings.map((r) => [r.localteam_id, r]));
       const mustBeRatedAgain = !!newMeasure.must_be_rated_again;
 
-      if(mustBeRatedAgain) {
-        console.log(`\n Measure "${measureId}" must be rated again, so only copying over internal note...`);
+      if (mustBeRatedAgain) {
+        console.log(
+          `\n Measure "${measureId}" must be rated again, so only copying over internal note, current progress and source...`
+        );
       } else {
-        console.log(`\n Measure "${measureId}" must NOT be rated again, so copying over the entire rating info...`);
+        console.log(
+          `\n Measure "${measureId}" must NOT be rated again, so copying over the entire rating info...`
+        );
       }
 
       let updatedForThisMeasure = 0;
@@ -159,17 +193,7 @@ async function migrateRatings(oldVersion, newVersion) {
         const target = newByLocalteam.get(oldRating.localteam_id);
         if (!target) continue;
 
-        const updateData = mustBeRatedAgain
-          ? { internal_note: oldRating.internal_note }
-          : {
-              internal_note: oldRating.internal_note,
-              status: oldRating.status,
-              applicable: oldRating.applicable,
-              why_not_applicable: oldRating.why_not_applicable,
-              rating: oldRating.rating,
-              current_progress: oldRating.current_progress,
-              source: oldRating.source,
-            };
+        const updateData = buildNewRatingUpdate(oldRating, mustBeRatedAgain);
 
         try {
           await client.request(updateItem("ratings_measures", target.id, updateData));
@@ -177,7 +201,7 @@ async function migrateRatings(oldVersion, newVersion) {
           updatedForThisMeasure++;
         } catch (err) {
           // Log the first error in full detail, but not repeats
-          if(!hasLoggedDetailedError) {
+          if (!hasLoggedDetailedError) {
             console.log(err);
             console.log(updateData);
             hasLoggedDetailedError = true;
@@ -190,10 +214,26 @@ async function migrateRatings(oldVersion, newVersion) {
       }
 
       console.log(`   ✅ Updated ${updatedForThisMeasure} ratings for measure "${measureId}"`);
+
+      try {
+        await client.request(
+          updateItems(
+            "ratings_measures",
+            oldRatings.map((rating) => rating.id),
+            SUPERSEDED_RATING_UPDATE
+          )
+        );
+        draftedCount += oldRatings.length;
+        console.log(`   ✅ Set ${oldRatings.length} superseded ratings to draft`);
+      } catch (err) {
+        console.error(`   ❌ Failed to set superseded ratings to draft: ${err.message}`);
+      }
     }
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`\n🎉 Migration complete: ${updatedCount} ratings updated in ${elapsed}s`);
+    console.log(
+      `\n🎉 Migration complete: ${updatedCount} ratings updated and ${draftedCount} superseded ratings set to draft in ${elapsed}s`
+    );
   } catch (err) {
     console.error("❌ Migration failed:", err);
     process.exit(1);
