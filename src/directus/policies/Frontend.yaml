@@ -438,6 +438,7 @@ permissions:
     presets: null
     fields:
       - slug
+      - climate_region_type
       - municipality_type
       - details
       - scores
