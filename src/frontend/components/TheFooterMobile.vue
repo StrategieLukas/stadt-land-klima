@@ -118,7 +118,9 @@
 
       <!-- Copyright + internal login -->
       <div class="w-full pb-4 text-center text-xs text-rating-4-very-light">
-        <div>{{ $t("footer.copyright") }}</div>
+        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed">
+          <div>{{ $t("footer.copyright") }}</div>
+        </a>
         <button
           v-if="!isAuthenticated"
           class="mt-1 text-xs text-rating-4-light transition-colors hover:text-white"
