@@ -46,7 +46,7 @@ type AdapterState = {
 }
 
 export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
-  const { $directus } = useNuxtApp()
+  const { $directus, $t } = useNuxtApp()
   const config = useRuntimeConfig()
   const { isAuthenticated, getAuthenticatedClient, user } = useAuth()
 
@@ -319,6 +319,21 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       .filter((v): v is FieldListItem[] => Array.isArray(v))
   }
 
+  /**
+   * Contenteditable represents Enter in different ways across browsers. Keep
+   * headings inline-only and turn those wrappers into explicit line breaks.
+   */
+  function normalizeInlineMarkup(value: unknown): string {
+    if (typeof value !== 'string') return ''
+
+    return value
+      .replace(/<div><br\s*\/?>\s*<\/div>/gi, '<br>')
+      .replace(/<\/?(?:div|p)(?:\s[^>]*)?>/gi, (tag) =>
+        tag.startsWith('</') ? '' : '<br>',
+      )
+      .replace(/^(?:\s*<br>)+|(?:<br>\s*)+$/gi, '')
+  }
+
   /** Find a block by uuid anywhere in the tree (root + all nested fields). */
   function findBlock(uuid: string, list: FieldListItem[]): FieldListItem | undefined {
     for (const block of list) {
@@ -376,6 +391,29 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     }
 
     return true
+  }
+
+  function getTargetList(host: {
+    type: string
+    uuid: string
+    fieldName?: string
+  }): FieldListItem[] {
+    if (
+      host.type === 'block' &&
+      host.uuid !== ctx.value.entityUuid &&
+      host.fieldName &&
+      NESTED_FIELD_KEYS.includes(host.fieldName)
+    ) {
+      const parent = findBlock(host.uuid, state.blocks)
+      if (parent) {
+        if (!Array.isArray((parent.props as any)[host.fieldName])) {
+          ;(parent.props as any)[host.fieldName] = []
+        }
+        return (parent.props as any)[host.fieldName]
+      }
+    }
+
+    return state.blocks
   }
 
   // ==========================================
@@ -501,7 +539,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'form_field', label: 'Formularfeld', description: 'Einzelnes Feld in einem Formular', allowReusable: false },
         { id: 'form_label', label: 'Formularbeschriftung', description: 'Beschriftung und Hilfetext für ein Formularfeld', allowReusable: false },
         { id: 'icon', label: 'Icon', description: 'Icon aus SLK-Bibliothek oder Iconify', allowReusable: true },
-        { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
+        { id: 'from_library', label: 'Aus Bibliothek', description: 'Wiederverwendbaren Block aus der Bibliothek einfügen' },
       ])
     },
 
@@ -718,7 +756,12 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       const block = findBlock(e.uuid, state.blocks)
       if (block) {
         if (!block.props) block.props = {}
-        block.props[e.fieldName] = e.fieldValue
+        const isInlineMarkup =
+          (block.bundle === 'heading' && e.fieldName === 'text') ||
+          (block.bundle === 'hero' && e.fieldName === 'title')
+        block.props[e.fieldName] = isInlineMarkup
+          ? normalizeInlineMarkup(e.fieldValue)
+          : e.fieldValue
         trackMutation("Edit '" + block.bundle + "' block", block.uuid)
       }
       return ok()
@@ -860,7 +903,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           entityType: 'block',
           entityBundle: 'heading',
           label: 'Text',
-          type: 'plain',
+          type: 'markup',
           required: false,
           maxLength: 0,
         },
@@ -907,7 +950,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           entityType: 'block',
           entityBundle: 'hero',
           label: 'Titel',
-          type: 'plain',
+          type: 'markup',
           required: false,
           maxLength: 0,
         },
@@ -1329,20 +1372,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       }
 
       // Insert into the right location
-      let targetList: FieldListItem[]
-      if (e.host.type === 'block' && e.host.fieldName === 'blocks') {
-        const container = findBlock(e.host.uuid, state.blocks)
-        if (container) {
-          if (!Array.isArray((container.props as any).blocks)) {
-            ;(container.props as any).blocks = []
-          }
-          targetList = (container.props as any).blocks
-        } else {
-          targetList = state.blocks
-        }
-      } else {
-        targetList = state.blocks
-      }
+      const targetList = getTargetList(e.host)
 
       const afterIndex = e.afterUuid
         ? targetList.findIndex((v) => v.uuid === e.afterUuid)
@@ -1370,10 +1400,23 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       const PER_PAGE = 24
       // e.page is 0-based (blökkli internal); Directus uses offset instead
       const offset = e.page * PER_PAGE
+      const search = typeof e.filters.search === 'string'
+        ? e.filters.search.trim()
+        : ''
+      const filter: Record<string, any> = {
+        type: { _starts_with: 'image/' },
+      }
+      if (search) {
+        filter._or = [
+          { title: { _icontains: search } },
+          { filename_download: { _icontains: search } },
+          { description: { _icontains: search } },
+        ]
+      }
       // Fetch one extra item to detect if a next page exists (sentinel approach)
       const files = await getClient().request(
         readFiles({
-          filter: { type: { _starts_with: 'image/' } } as any,
+          filter: filter as any,
           sort: ['-uploaded_on'] as any,
           limit: PER_PAGE + 1,
           offset,
@@ -1394,7 +1437,12 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       const tokenParam = token ? `&access_token=${encodeURIComponent(token)}` : ''
 
       return {
-        filters: {},
+        filters: {
+          search: {
+            type: 'text',
+            placeholder: $t('blokkli.media.search_placeholder'),
+          },
+        },
         items: pageItems.map((file: any) => ({
           mediaId: file.id,
           label: file.title || file.filename_download,
@@ -1416,7 +1464,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         options: {},
       }
 
-      const insertInto = state.blocks
+      const insertInto = getTargetList(e.host)
       const afterIndex = e.preceedingUuid
         ? insertInto.findIndex((v) => v.uuid === e.preceedingUuid)
         : -1

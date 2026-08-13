@@ -5,12 +5,22 @@ export function useBlockHashNavigation() {
   const route = useRoute()
 
   function scrollToHash(hash) {
-    if (!hash || !hash.startsWith('#block-')) return
-    const el = document.getElementById(hash.slice(1))
+    if (!hash || !hash.startsWith('#')) return
+
+    let id
+    try {
+      id = decodeURIComponent(hash.slice(1))
+    } catch {
+      id = hash.slice(1)
+    }
+
+    const el = document.getElementById(id)
     if (!el) return
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.classList.add('block-anchor-highlight')
-    setTimeout(() => el.classList.remove('block-anchor-highlight'), 2000)
+    if (el.matches('[class*="blokkli-block-"]')) {
+      el.classList.add('block-anchor-highlight')
+      setTimeout(() => el.classList.remove('block-anchor-highlight'), 2000)
+    }
   }
 
   onMounted(() => {

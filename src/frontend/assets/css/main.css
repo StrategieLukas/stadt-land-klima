@@ -42,6 +42,40 @@ html {
   animation: block-highlight-pulse 2s ease forwards;
 }
 
+/* Formatting controls added to blökkli's markup editor. */
+.slk-rich-text-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid rgb(var(--bk-theme-mono-300) / 1);
+  background: rgb(var(--bk-theme-mono-100) / 1);
+}
+
+.slk-rich-text-toolbar__button {
+  display: inline-flex;
+  min-width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(var(--bk-theme-mono-300) / 1);
+  border-radius: 0.25rem;
+  background: rgb(255 255 255 / 1);
+  color: rgb(var(--bk-theme-mono-900) / 1);
+  cursor: pointer;
+}
+
+.slk-rich-text-toolbar__button:hover,
+.slk-rich-text-toolbar__button:focus-visible {
+  border-color: rgb(var(--bk-theme-accent-700) / 1);
+  color: rgb(var(--bk-theme-accent-800) / 1);
+}
+
+.slk-rich-text-toolbar__light,
+.slk-text-light {
+  font-weight: 300;
+}
+
 /* Meilisearch highlight marks in search results */
 mark {
   background-color: #bbf7d0;
