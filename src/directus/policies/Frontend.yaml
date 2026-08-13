@@ -132,28 +132,7 @@ permissions:
     fields:
       - "*"
   - collection: blocks
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
     action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: update
     permissions: {}
     validation: {}
     presets: null
@@ -247,34 +226,6 @@ permissions:
       - bio
       - slk_team
       - show_on_team_page
-  - collection: edit_states
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
   - collection: elections
     action: read
     permissions: null
@@ -486,6 +437,7 @@ permissions:
       - slug
       - title
       - teaser
+      - author
       - image
       - date_published
       - date_created

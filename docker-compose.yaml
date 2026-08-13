@@ -39,6 +39,9 @@ services:
     env_file:
       - ./src/directus/.env
       - ./docker/meilisearch/.env
+    environment:
+      # Published Blökkli content must not remain stale until the cache TTL expires.
+      CACHE_AUTO_PURGE: "true"
     volumes:
       - ./src/directus/uploads:/directus/uploads
       - ./src/directus/dashboards/:/directus/dashboards

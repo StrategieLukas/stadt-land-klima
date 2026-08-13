@@ -1,38 +1,38 @@
 collection: edit_states
-field: entity_uuid
+field: base_revision
 type: string
 meta:
   collection: edit_states
   conditions: null
   display: null
   display_options: null
-  field: entity_uuid
+  field: base_revision
   group: null
-  hidden: false
+  hidden: true
   interface: input
-  note: Immutable Directus UUID of the entity being edited
+  note: Revision of the published blocks on which this draft is based
   options:
     trim: true
   readonly: false
-  required: true
-  searchable: true
-  sort: 3
+  required: false
+  searchable: false
+  sort: 8
   special: null
   translations:
     - language: de-DE
-      translation: Entitäts-UUID
+      translation: Ausgangsrevision
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: entity_uuid
+  name: base_revision
   table: edit_states
   data_type: character varying
   default_value: null
-  max_length: 255
+  max_length: 64
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_indexed: false
   is_primary_key: false

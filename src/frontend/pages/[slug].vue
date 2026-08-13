@@ -3,7 +3,7 @@
     v-if="page"
     entity-type="pages"
     entity-bundle="page"
-    :entity-uuid="page.slug"
+    :entity-uuid="page.id"
     :can-edit="canEdit"
     :entity="page"
     class="self-center"
@@ -40,6 +40,7 @@
 import { readItems } from '@directus/sdk'
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
+import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
 const { $directus, $readItems, $t } = useNuxtApp()
 const config = useRuntimeConfig()
 const { isAuthenticated, initialize } = useAuth()
@@ -67,9 +68,11 @@ if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: import.meta.client })
 }
 
-// Load blocks from Directus — always fresh (no client-side caching)
+const blocksKey = getBlokkliDataKey('pages', String(page.value?.id || 'missing'))
+
+// Load blocks by the immutable page ID. Slugs are routing labels and may change.
 const { data: blocksData } = await useAsyncData(
-  `blocks-${route.params.slug}`,
+  blocksKey,
   async () => {
     if (!page.value) return []
     try {
@@ -77,21 +80,17 @@ const { data: blocksData } = await useAsyncData(
         readItems('blocks', {
           filter: {
             entity_type: { _eq: 'pages' },
-            entity_uuid: { _eq: page.value.slug },
+            entity_uuid: { _eq: page.value.id },
             field_name: { _eq: 'content' },
             status: { _neq: 'archived' },
           },
           sort: ['sort_order'],
         })
       )
-      return (blocks || []).map(block => ({
-        uuid: block.uuid,
-        bundle: block.bundle,
-        options: block.options || {},
-        props: block.props || {},
-      }))
-    } catch {
-      return []
+      return mapBlokkliBlocks(blocks)
+    } catch (error) {
+      console.error('[blokkli] Failed to load page blocks:', error)
+      throw error
     }
   },
   { watch: [page] }

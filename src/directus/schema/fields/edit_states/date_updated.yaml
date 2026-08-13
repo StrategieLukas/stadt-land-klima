@@ -1,38 +1,37 @@
 collection: edit_states
-field: entity_uuid
-type: string
+field: date_updated
+type: timestamp
 meta:
   collection: edit_states
   conditions: null
-  display: null
-  display_options: null
-  field: entity_uuid
+  display: datetime
+  display_options:
+    relative: true
+  field: date_updated
   group: null
-  hidden: false
-  interface: input
-  note: Immutable Directus UUID of the entity being edited
-  options:
-    trim: true
-  readonly: false
-  required: true
+  hidden: true
+  interface: datetime
+  note: null
+  options: null
+  readonly: true
+  required: false
   searchable: true
-  sort: 3
-  special: null
-  translations:
-    - language: de-DE
-      translation: Entitäts-UUID
+  sort: 11
+  special:
+    - date-updated
+  translations: null
   validation: null
   validation_message: null
   width: half
 schema:
-  name: entity_uuid
+  name: date_updated
   table: edit_states
-  data_type: character varying
+  data_type: timestamp with time zone
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_indexed: false
   is_primary_key: false

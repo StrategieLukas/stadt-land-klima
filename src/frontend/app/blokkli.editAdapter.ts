@@ -30,6 +30,7 @@ import type {
   MediaLibraryReplaceMediaEvent,
   BlokkliAdapterGetLibraryItemsData,
   BlokkliAdapterGetLibraryItemsResult,
+  BlokkliAdapterPublishOptions,
 } from '#blokkli/adapter'
 import {
   readItems,
@@ -37,16 +38,36 @@ import {
   createItem,
   updateItem,
   deleteItem,
+  customEndpoint,
 } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useAuthStore } from '~/stores/auth'
+import {
+  BLOKKLI_CONTENT_FIELD,
+  getBlokkliDataKey,
+  mapBlokkliBlocks,
+} from '~/shared/blokkliPersistence'
 
 type AdapterState = {
   blocks: FieldListItem[]
 }
 
+type PersistenceResponse = {
+  blocks: FieldListItem[]
+  revision: string
+}
+
+type StoredDraft = {
+  blocks: FieldListItem[]
+  mutations: MutationItem[]
+  currentIndex: number
+  baseRevision: string
+  updatedAt: string
+  ownerId: string
+}
+
 export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
-  const { $directus } = useNuxtApp()
+  const { $directus, $t } = useNuxtApp()
   const config = useRuntimeConfig()
   const { isAuthenticated, getAuthenticatedClient, user } = useAuth()
 
@@ -58,12 +79,6 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   }
 
   // --- Typed Directus SDK wrappers ---
-
-  async function fetchBlocks(query: Record<string, any>): Promise<any[]> {
-    const cmd = (readItems as Function)('blocks', query)
-    const result = await getClient().request(cmd)
-    return Array.isArray(result) ? result : []
-  }
 
   function doCreateItem(collection: string, data: Record<string, any>) {
     return getClient().request((createItem as Function)(collection, data))
@@ -84,7 +99,6 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   // --- In-memory state ---
 
   const state: AdapterState = { blocks: [] }
-  const blockIdMap = new Map<string, number>()
 
   // --- Mutation tracking ---
 
@@ -94,13 +108,20 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   // --- Initial state snapshot (for revert + publish diff) ---
 
   let initialBlocks: FieldListItem[] = []
-  const initialBlockIds = new Map<string, number>()
+  let baseRevision = ''
 
   // --- Edit state tracking ---
 
   let editStateId: number | null = null
   let currentOwnerName = ''
   let isCurrentUserOwner = true
+  let editStateDateUpdated = 0
+  let draftSaveTimer: ReturnType<typeof setTimeout> | null = null
+  let draftWriteQueue: Promise<void> = Promise.resolve()
+
+  function cloneBlocks(blocks: FieldListItem[]): FieldListItem[] {
+    return JSON.parse(JSON.stringify(blocks))
+  }
 
   function getCurrentUserName(): string {
     const u = user.value as any
@@ -108,10 +129,124 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email || ''
   }
 
-  async function loadEditState(): Promise<void> {
+  function getCurrentUserId(): string {
+    return String((user.value as any)?.id || '')
+  }
+
+  function getLocalDraftKey(): string {
+    return `slk:blokkli-draft:${ctx.value.entityType}:${ctx.value.entityUuid}`
+  }
+
+  function parseStoredDraft(value: unknown): StoredDraft | null {
+    if (!value || typeof value !== 'object') return null
+    const candidate = value as Partial<StoredDraft>
+    if (!Array.isArray(candidate.blocks)) return null
+
+    return {
+      blocks: mapBlokkliBlocks(candidate.blocks) as FieldListItem[],
+      mutations: Array.isArray(candidate.mutations) ? candidate.mutations : [],
+      currentIndex: Number.isInteger(candidate.currentIndex) ? candidate.currentIndex! : -1,
+      baseRevision: typeof candidate.baseRevision === 'string' ? candidate.baseRevision : '',
+      updatedAt: typeof candidate.updatedAt === 'string' ? candidate.updatedAt : '',
+      ownerId: typeof candidate.ownerId === 'string' ? candidate.ownerId : '',
+    }
+  }
+
+  function loadLocalDraft(): StoredDraft | null {
+    if (!import.meta.client) return null
+    try {
+      const raw = window.localStorage.getItem(getLocalDraftKey())
+      const draft = raw ? parseStoredDraft(JSON.parse(raw)) : null
+      return draft?.ownerId === getCurrentUserId() ? draft : null
+    } catch (err) {
+      console.warn('[blokkli] Failed to read local draft backup:', err)
+      return null
+    }
+  }
+
+  function saveLocalDraft(draft: StoredDraft) {
+    if (!import.meta.client) return
+    try {
+      window.localStorage.setItem(getLocalDraftKey(), JSON.stringify(draft))
+    } catch (err) {
+      console.warn('[blokkli] Failed to write local draft backup:', err)
+    }
+  }
+
+  function clearLocalDraft() {
+    if (!import.meta.client) return
+    try {
+      window.localStorage.removeItem(getLocalDraftKey())
+    } catch (err) {
+      console.warn('[blokkli] Failed to clear local draft backup:', err)
+    }
+  }
+
+  function draftSnapshot(): StoredDraft {
+    return {
+      blocks: cloneBlocks(state.blocks),
+      mutations: JSON.parse(JSON.stringify(mutationItems)),
+      currentIndex: mutationIndex,
+      baseRevision,
+      updatedAt: new Date().toISOString(),
+      ownerId: getCurrentUserId(),
+    }
+  }
+
+  async function persistDraftNow(): Promise<void> {
+    if (!editStateId || !isCurrentUserOwner) return
+    const snapshot = draftSnapshot()
+    saveLocalDraft(snapshot)
+
+    draftWriteQueue = draftWriteQueue
+      .catch(() => undefined)
+      .then(async () => {
+        await doUpdateItem('edit_states', editStateId, {
+          owner: getCurrentUserId() || null,
+          owner_name: getCurrentUserName(),
+          current_index: snapshot.currentIndex,
+          mutations: snapshot.mutations,
+          draft_blocks: snapshot.blocks,
+          base_revision: snapshot.baseRevision,
+        })
+        editStateDateUpdated = Date.now()
+      })
+    return draftWriteQueue
+  }
+
+  function scheduleDraftSave() {
+    if (!editStateId || !isCurrentUserOwner || !import.meta.client) return
+    // Keep a synchronous browser copy even if the tab closes before the
+    // debounced Directus autosave starts.
+    saveLocalDraft(draftSnapshot())
+    if (draftSaveTimer) window.clearTimeout(draftSaveTimer)
+    draftSaveTimer = window.setTimeout(() => {
+      draftSaveTimer = null
+      void persistDraftNow().catch((err) => {
+        console.error('[blokkli] Autosave failed; the in-browser draft is retained:', err)
+      })
+    }, 750)
+  }
+
+  async function flushDraftSave(): Promise<void> {
+    if (draftSaveTimer && import.meta.client) {
+      window.clearTimeout(draftSaveTimer)
+      draftSaveTimer = null
+      await persistDraftNow()
+    } else {
+      await draftWriteQueue
+    }
+  }
+
+  async function loadEditState(): Promise<StoredDraft | null> {
     const entityType = ctx.value.entityType
     const entityUuid = ctx.value.entityUuid
     const myName = getCurrentUserName()
+    const myId = getCurrentUserId()
+
+    if (!isAuthenticated.value || !myId) {
+      throw new Error('Authentication is required to load a Blökkli edit state.')
+    }
 
     try {
       const existing = await getClient().request(
@@ -120,6 +255,16 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
             entity_type: { _eq: entityType },
             entity_uuid: { _eq: entityUuid },
           },
+          fields: [
+            'id',
+            'owner',
+            'owner_name',
+            'current_index',
+            'mutations',
+            'draft_blocks',
+            'base_revision',
+            'date_updated',
+          ],
           limit: 1,
         }),
       )
@@ -128,26 +273,57 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         const rec = existing[0]
         editStateId = rec.id
         currentOwnerName = rec.owner_name || ''
-        // Current user owns it if the record has no owner or their name matches
-        isCurrentUserOwner = !currentOwnerName || currentOwnerName === myName
+        const ownerId = typeof rec.owner === 'object' ? rec.owner?.id : rec.owner
+        // Legacy states have no owner UUID, so retain the old name comparison once.
+        isCurrentUserOwner = ownerId
+          ? String(ownerId) === myId
+          : !currentOwnerName || currentOwnerName === myName
+        editStateDateUpdated = Date.parse(rec.date_updated || '') || 0
+
+        // A foreign lock makes the editor read-only. Its private draft must not
+        // replace the published state rendered for this user.
+        if (!isCurrentUserOwner) return null
+
+        const serverDraft = parseStoredDraft({
+          blocks: rec.draft_blocks,
+          mutations: rec.mutations,
+          currentIndex: rec.current_index,
+          baseRevision: rec.base_revision,
+          updatedAt: rec.date_updated,
+          ownerId: String(ownerId || ''),
+        })
+        const localDraft = loadLocalDraft()
+        if (
+          localDraft &&
+          (!serverDraft || Date.parse(localDraft.updatedAt) > Date.parse(serverDraft.updatedAt))
+        ) {
+          return localDraft
+        }
+        return serverDraft
       } else {
         // No edit state yet — claim ownership
         const created: any = await doCreateItem('edit_states', {
           entity_type: entityType,
           entity_uuid: entityUuid,
           entity_bundle: ctx.value.entityBundle,
+          owner: myId,
           owner_name: myName,
           current_index: -1,
           mutations: [],
+          draft_blocks: null,
+          base_revision: baseRevision,
         })
         editStateId = created?.id ?? null
         currentOwnerName = myName
         isCurrentUserOwner = true
+        editStateDateUpdated = Date.now()
+        return loadLocalDraft()
       }
     } catch (err) {
       console.error('[blokkli] loadEditState failed:', err)
-      // Fall back to allowing edit so a broken edit_states table doesn't lock the editor
-      isCurrentUserOwner = true
+      // Editing without a working lock/recovery state risks concurrent data loss.
+      isCurrentUserOwner = false
+      throw err
     }
   }
 
@@ -171,41 +347,29 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       },
     })
     mutationIndex = mutationItems.length - 1
+    scheduleDraftSave()
   }
 
   // --- Load blocks from Directus ---
 
   async function loadBlocksFromDirectus(): Promise<AdapterState> {
-    const blocks = await fetchBlocks({
-      filter: {
-        entity_type: { _eq: ctx.value.entityType },
-        entity_uuid: { _eq: ctx.value.entityUuid },
-        status: { _neq: 'archived' },
-      },
-      sort: ['sort_order'],
-      limit: -1,
+    const query = new URLSearchParams({
+      entity_type: ctx.value.entityType,
+      entity_uuid: ctx.value.entityUuid,
+      field_name: BLOKKLI_CONTENT_FIELD,
     })
+    const result = await getClient().request(
+      customEndpoint<PersistenceResponse>({
+        path: `/blokkli-persistence/state?${query.toString()}`,
+        method: 'GET',
+      }),
+    )
 
-    state.blocks = []
-    blockIdMap.clear()
-
-    for (const block of blocks) {
-      if (!block.uuid || !block.bundle) continue
-      state.blocks.push({
-        uuid: block.uuid,
-        bundle: block.bundle,
-        options: block.options || {},
-        props: block.props || {},
-      })
-      blockIdMap.set(block.uuid, block.id)
-    }
+    state.blocks = mapBlokkliBlocks(result.blocks) as FieldListItem[]
+    baseRevision = result.revision
 
     // Save initial snapshot for revert/publish
-    initialBlocks = JSON.parse(JSON.stringify(state.blocks))
-    initialBlockIds.clear()
-    for (const [uuid, id] of blockIdMap) {
-      initialBlockIds.set(uuid, id)
-    }
+    initialBlocks = cloneBlocks(state.blocks)
 
     return state
   }
@@ -389,8 +553,22 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     async loadState(): Promise<AdapterState> {
       mutationIndex = -1
       mutationItems.length = 0
-      await loadEditState()
-      return loadBlocksFromDirectus()
+      await loadBlocksFromDirectus()
+      const draft = await loadEditState()
+
+      if (draft) {
+        state.blocks = cloneBlocks(draft.blocks)
+        mutationItems.push(...draft.mutations)
+        mutationIndex = Math.min(
+          Math.max(draft.currentIndex, -1),
+          mutationItems.length - 1,
+        )
+        // Keep the revision on which the recovered draft was originally based.
+        // A concurrent publish will then be detected instead of overwritten.
+        if (draft.baseRevision) baseRevision = draft.baseRevision
+      }
+
+      return state
     },
 
     /**
@@ -728,88 +906,110 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
      * Revert all changes: restore from initial snapshot and clear mutations.
      */
     async revertAllChanges() {
-      state.blocks = JSON.parse(JSON.stringify(initialBlocks))
-      blockIdMap.clear()
-      for (const [uuid, id] of initialBlockIds) {
-        blockIdMap.set(uuid, id)
-      }
+      state.blocks = cloneBlocks(initialBlocks)
       mutationIndex = -1
       mutationItems.length = 0
+      clearLocalDraft()
+      if (editStateId) {
+        try {
+          await doUpdateItem('edit_states', editStateId, {
+            current_index: -1,
+            mutations: [],
+            draft_blocks: null,
+            base_revision: baseRevision,
+          })
+          editStateDateUpdated = Date.now()
+        } catch (err) {
+          console.error('[blokkli] Failed to discard recoverable draft:', err)
+          return {
+            success: false as const,
+            state,
+            errors: [$t('blokkli.editor.discard_draft_error')],
+          }
+        }
+      }
       return { success: true as const, state }
     },
 
     /**
      * Publish: persist current in-memory state to Directus, then reset mutations.
      */
-    async publish() {
-      const currentUuids = new Set(state.blocks.map((b) => b.uuid))
-
-      // Delete blocks that were removed
-      for (const [uuid, id] of initialBlockIds) {
-        if (!currentUuids.has(uuid)) {
-          try {
-            await doDeleteItem('blocks', id)
-          } catch (err) {
-            console.error('[blokkli] publish delete failed:', err)
-          }
-        }
+    async publish(options: BlokkliAdapterPublishOptions = {}) {
+      try {
+        // Ensure the recoverable copy contains the exact state being published.
+        await flushDraftSave()
+      } catch (err) {
+        console.warn('[blokkli] Server autosave failed before publish; local backup remains:', err)
       }
 
-      // Create or update all current blocks
-      for (let i = 0; i < state.blocks.length; i++) {
-        const block = state.blocks[i]
-        const existingId = blockIdMap.get(block.uuid)
-        try {
-          if (existingId) {
-            await doUpdateItem('blocks', existingId, {
-              sort_order: i,
-              status: 'published',
-              props: block.props || {},
-              options: block.options || {},
-            })
-          } else {
-            const result: any = await doCreateItem('blocks', {
-              uuid: block.uuid,
-              bundle: block.bundle,
-              entity_type: ctx.value.entityType,
-              entity_uuid: ctx.value.entityUuid,
-              field_name: 'content',
-              sort_order: i,
-              status: 'published',
-              props: block.props || {},
-              options: block.options || {},
-            })
-            if (result?.id) {
-              blockIdMap.set(block.uuid, result.id)
-            }
-          }
-        } catch (err) {
-          console.error('[blokkli] publish create/update failed:', err)
-        }
+      let result: PersistenceResponse
+      try {
+        result = await getClient().request(
+          customEndpoint<PersistenceResponse>({
+            path: '/blokkli-persistence/publish',
+            method: 'POST',
+            body: JSON.stringify({
+              entityType: ctx.value.entityType,
+              entityUuid: ctx.value.entityUuid,
+              fieldName: BLOKKLI_CONTENT_FIELD,
+              baseRevision,
+              blocks: state.blocks,
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        )
+      } catch (err: any) {
+        console.error('[blokkli] Atomic publish failed; draft was retained:', err)
+        const status = err?.response?.status || err?.status
+        const message = $t(
+          status === 409
+            ? 'blokkli.editor.publish_conflict'
+            : 'blokkli.editor.publish_error',
+        )
+        return { success: false as const, state, errors: [message] }
       }
 
-      // Save new initial state and reset mutations
-      initialBlocks = JSON.parse(JSON.stringify(state.blocks))
-      initialBlockIds.clear()
-      for (const [uuid, id] of blockIdMap) {
-        initialBlockIds.set(uuid, id)
-      }
+      state.blocks = mapBlokkliBlocks(result.blocks) as FieldListItem[]
+      baseRevision = result.revision
+      initialBlocks = cloneBlocks(state.blocks)
       mutationIndex = -1
       mutationItems.length = 0
 
-      // Refresh Nuxt data cache so the page re-fetches blocks immediately
-      // (Directus Redis cache is auto-purged on mutation via CACHE_AUTO_PURGE=true)
-      await refreshNuxtData(`blocks-${ctx.value.entityUuid}`)
+      // Do not immediately re-fetch through a possibly stale shared API cache.
+      // Put the transaction's canonical response directly into this page's data.
+      const dataKey = getBlokkliDataKey(ctx.value.entityType, ctx.value.entityUuid)
+      const pageData = useNuxtData<FieldListItem[]>(dataKey)
+      pageData.data.value = cloneBlocks(state.blocks)
+      clearLocalDraft()
 
       // Clean up edit state on successful publish
       if (editStateId) {
-        try {
-          await doDeleteItem('edit_states', editStateId)
-          editStateId = null
-          currentOwnerName = ''
-          isCurrentUserOwner = true
-        } catch (err) {
-          console.warn('[blokkli] Failed to delete edit state after publish:', err)
+        if (options.closeAfterPublish) {
+          try {
+            await doDeleteItem('edit_states', editStateId)
+            editStateId = null
+            currentOwnerName = ''
+            isCurrentUserOwner = true
+          } catch (err) {
+            console.warn('[blokkli] Failed to delete edit state after publish:', err)
+          }
+        }
+
+        // When the editor stays open, retain its lock and reset the recoverable
+        // draft to the newly published revision. Subsequent edits then continue
+        // to be autosaved instead of becoming memory-only again.
+        if (editStateId) {
+          try {
+            await doUpdateItem('edit_states', editStateId, {
+              current_index: -1,
+              mutations: [],
+              draft_blocks: null,
+              base_revision: baseRevision,
+            })
+            editStateDateUpdated = Date.now()
+          } catch (cleanupError) {
+            console.warn('[blokkli] Failed to clear edit state after publish:', cleanupError)
+          }
         }
       }
 
@@ -821,6 +1021,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       try {
         if (editStateId) {
           await doUpdateItem('edit_states', editStateId, {
+            owner: getCurrentUserId() || null,
             owner_name: myName,
             current_index: mutationIndex,
           })
@@ -829,19 +1030,27 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
             entity_type: ctx.value.entityType,
             entity_uuid: ctx.value.entityUuid,
             entity_bundle: ctx.value.entityBundle,
+            owner: getCurrentUserId() || null,
             owner_name: myName,
             current_index: mutationIndex,
             mutations: [],
+            draft_blocks: state.blocks,
+            base_revision: baseRevision,
           })
           editStateId = created?.id ?? null
         }
         currentOwnerName = myName
         isCurrentUserOwner = true
+        await persistDraftNow()
       } catch (err) {
         console.error('[blokkli] takeOwnership failed:', err)
         return { success: false as const, state }
       }
       return { success: true as const, state }
+    },
+
+    getLastChanged() {
+      return Promise.resolve(editStateDateUpdated)
     },
 
     getEditableFieldConfig(): Promise<EditableFieldConfig[]> {
