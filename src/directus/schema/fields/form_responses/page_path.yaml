@@ -1,0 +1,43 @@
+collection: form_responses
+field: page_path
+type: string
+meta:
+  collection: form_responses
+  conditions: null
+  display: null
+  display_options: null
+  field: page_path
+  group: null
+  hidden: false
+  interface: input
+  note: null
+  options:
+    trim: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 8
+  special: null
+  translations:
+    - language: de-DE
+      translation: Seitenpfad
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: page_path
+  table: form_responses
+  data_type: character varying
+  default_value: null
+  max_length: 500
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

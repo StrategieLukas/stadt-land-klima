@@ -212,6 +212,19 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
 
   // --- Default props per bundle ---
 
+  function createNestedBlock(
+    bundle: string,
+    props: Record<string, any> = {},
+    options: Record<string, any> = {},
+  ): FieldListItem {
+    return {
+      uuid: crypto.randomUUID(),
+      bundle,
+      props,
+      options,
+    }
+  }
+
   function getPropsForNewBlock(bundle: string): Record<string, any> {
     switch (bundle) {
       case 'text':
@@ -258,6 +271,37 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         return { title: 'Newsletter abonnieren', description: 'Bleib auf dem Laufenden mit Neuigkeiten und Tipps zu kommunalem Klimaschutz.' }
       case 'donation_widget':
         return {}
+      case 'form':
+        return {
+          title: 'Kontaktformular',
+          description: '',
+          successMessage: '',
+          fields: [
+            createNestedBlock('form_field', {
+              label: [createNestedBlock('form_label', { text: 'Name', description: '' })],
+            }),
+            createNestedBlock(
+              'form_field',
+              {
+                label: [createNestedBlock('form_label', { text: 'E-Mail', description: '' })],
+              },
+              { fieldType: 'email', required: true },
+            ),
+            createNestedBlock(
+              'form_field',
+              {
+                label: [createNestedBlock('form_label', { text: 'Nachricht', description: '' })],
+              },
+              { fieldType: 'textarea', required: true },
+            ),
+          ],
+        }
+      case 'form_field':
+        return {
+          label: [createNestedBlock('form_label', { text: 'Feldbeschriftung', description: '' })],
+        }
+      case 'form_label':
+        return { text: 'Feldbeschriftung', description: '' }
       case 'icon':
         return { iconifySlug: 'mdi:star', slkIcon: '' }
       default:
@@ -266,7 +310,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   }
 
   /** All prop keys that may contain nested FieldListItem arrays. */
-  const NESTED_FIELD_KEYS = ['blocks', 'items', 'slides', 'hexagons']
+  const NESTED_FIELD_KEYS = ['blocks', 'items', 'slides', 'hexagons', 'fields', 'label']
 
   /** Return all nested FieldListItem arrays for a block. */
   function getNestedLists(block: FieldListItem): FieldListItem[][] {
@@ -377,6 +421,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         timeline_item: ['blocks'],
         hex_grid: ['hexagons'],
         carousel: ['slides'],
+        form: ['fields'],
+        form_field: ['label'],
       }
       function collectContainerFields(list: FieldListItem[]): MutatedField[] {
         const fields: MutatedField[] = []
@@ -451,14 +497,17 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'municipality_search_hero', label: 'Gemeinde-Suche', description: 'Vollflächen-Sektion mit Wortwolke und Gemeinde-Suchfeld', allowReusable: true },
         { id: 'newsletter_signup', label: 'Newsletter-Anmeldung', description: 'E-Mail-Anmeldeformular für Newsletter-Listen', allowReusable: true },
         { id: 'donation_widget', label: 'Spenden-Widget', description: 'betterplace.org Spenden-Widget', allowReusable: true },
+        { id: 'form', label: 'Formular', description: 'Formular mit Feldern und Antwortspeicherung', allowReusable: true },
+        { id: 'form_field', label: 'Formularfeld', description: 'Einzelnes Feld in einem Formular', allowReusable: false },
+        { id: 'form_label', label: 'Formularbeschriftung', description: 'Beschriftung und Hilfetext für ein Formularfeld', allowReusable: false },
         { id: 'icon', label: 'Icon', description: 'Icon aus SLK-Bibliothek oder Iconify', allowReusable: true },
         { id: 'from_library', label: 'From Library', description: 'Reusable block from the library' },
       ])
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
-      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'newsletter_signup', 'donation_widget', 'icon', 'from_library']
-      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'newsletter_signup', 'donation_widget', 'icon', 'from_library']
+      const allowedInRoot = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'directus_page', 'video', 'hero', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'page_nav', 'hex_grid', 'projects_carousel', 'municipality_search_hero', 'newsletter_signup', 'form', 'donation_widget', 'icon', 'from_library']
+      const allowedInContainer = ['text', 'richtext', 'heading', 'image', 'button', 'container', 'video', 'citation', 'stat', 'vega_chart', 'timeline', 'carousel', 'progress_bar', 'hex_grid', 'projects_carousel', 'newsletter_signup', 'form', 'donation_widget', 'icon', 'from_library']
       const allowedInCarousel = allowedInRoot
       return Promise.resolve([
         {
@@ -523,6 +572,24 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           cardinality: 15,
           canEdit: true,
           allowedBundles: ['hex_item'],
+        },
+        {
+          name: 'fields',
+          entityType: 'block',
+          entityBundle: 'form',
+          label: 'Felder',
+          cardinality: -1,
+          canEdit: true,
+          allowedBundles: ['form_field'],
+        },
+        {
+          name: 'label',
+          entityType: 'block',
+          entityBundle: 'form_field',
+          label: 'Beschriftung',
+          cardinality: 1,
+          canEdit: true,
+          allowedBundles: ['form_label'],
         },
       ])
     },
@@ -1060,6 +1127,52 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           required: false,
           maxLength: 0,
         },
+        // form
+        {
+          name: 'title',
+          entityType: 'block',
+          entityBundle: 'form',
+          label: 'Titel',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'form',
+          label: 'Beschreibung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'successMessage',
+          entityType: 'block',
+          entityBundle: 'form',
+          label: 'Erfolgsmeldung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'text',
+          entityType: 'block',
+          entityBundle: 'form_label',
+          label: 'Beschriftung',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
+        {
+          name: 'description',
+          entityType: 'block',
+          entityBundle: 'form_label',
+          label: 'Hilfetext',
+          type: 'plain',
+          required: false,
+          maxLength: 0,
+        },
       ])
     },
 
@@ -1196,12 +1309,14 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       // Deep-clone and assign new UUIDs to the block (and any nested blocks)
       function cloneWithNewUuids(props: Record<string, any>): Record<string, any> {
         const cloned = JSON.parse(JSON.stringify(props))
-        if (Array.isArray(cloned.blocks)) {
-          cloned.blocks = cloned.blocks.map((nested: any) => ({
-            ...nested,
-            uuid: crypto.randomUUID(),
-            props: cloneWithNewUuids(nested.props || {}),
-          }))
+        for (const key of NESTED_FIELD_KEYS) {
+          if (Array.isArray(cloned[key])) {
+            cloned[key] = cloned[key].map((nested: any) => ({
+              ...nested,
+              uuid: crypto.randomUUID(),
+              props: cloneWithNewUuids(nested.props || {}),
+            }))
+          }
         }
         return cloned
       }
