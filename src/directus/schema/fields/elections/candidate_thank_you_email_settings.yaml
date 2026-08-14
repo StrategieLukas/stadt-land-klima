@@ -1,0 +1,33 @@
+collection: elections
+field: candidate_thank_you_email_settings
+type: alias
+meta:
+  collection: elections
+  conditions: null
+  display: null
+  display_options: null
+  field: candidate_thank_you_email_settings
+  group: null
+  hidden: false
+  interface: group-detail
+  note: null
+  options:
+    start: closed
+  readonly: false
+  required: false
+  searchable: true
+  sort: 21
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Dankes-E-Mail
+    - language: en-GB
+      translation: Thank-you email
+    - language: it-IT
+      translation: Email di ringraziamento
+  validation: null
+  validation_message: null
+  width: full

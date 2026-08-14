@@ -186,6 +186,8 @@ permissions:
       - localteam
       - action_buttons
       - already_sent_mails
+      - already_sent_reminder_mails
+      - already_sent_thank_you_mails
       - already_generated_questions
       - review_requested
       - prefill_trigger

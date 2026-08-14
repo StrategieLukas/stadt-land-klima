@@ -1,0 +1,87 @@
+collection: elections
+field: candidate_thank_you_email_template
+type: text
+meta:
+  collection: elections
+  conditions: null
+  display: raw
+  display_options: null
+  field: candidate_thank_you_email_template
+  group: candidate_thank_you_email_settings
+  hidden: false
+  interface: input-code
+  note: >-
+    Vollständiges HTML-Dokument für die einmalige Dankesmail an Kandidat:innen,
+    die Antworten eingereicht haben. Es gelten dieselben Platzhalter wie für die
+    Einladungs-E-Mail. Eine leere oder ungültige Vorlage verhindert den Versand.
+  options:
+    language: html
+  readonly: false
+  required: false
+  searchable: false
+  sort: 2
+  special: null
+  translations:
+    - language: de-DE
+      translation: HTML-Vorlage der Dankes-E-Mail
+    - language: en-GB
+      translation: Thank-you email HTML template
+    - language: it-IT
+      translation: Modello HTML dell'email di ringraziamento
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: candidate_thank_you_email_template
+  table: elections
+  data_type: text
+  default_value: |-
+    <!doctype html>
+    <html lang="de">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Vielen Dank für Ihre Teilnahme am Klimawahl-Check</title>
+    </head>
+    <body style="margin: 0; padding: 0; background: #f6f6f6; color: #171717; font-family: Arial, Helvetica, sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse; background: #f6f6f6;">
+        <tr>
+          <td align="center" style="padding: 30px 15px;">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background: #ffffff;">
+              <tr>
+                <td style="padding: 30px 30px 10px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      {{ stadt_land_klima_logo }}
+                      {{ custom_logo }}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 20px 30px 30px; color: #525252; font-size: 16px; line-height: 24px;">
+                  <h1 style="margin: 0 0 20px; color: #006e94; font-size: 28px; line-height: 34px;">Vielen Dank für Ihre Teilnahme!</h1>
+                  <p style="margin: 0 0 16px;">{{ candidate_salutation }},</p>
+                  <p style="margin: 0 0 16px;">vielen Dank, dass Sie Ihre Antworten für den Klimawahl-Check in {{ municipality_name }} eingereicht haben.</p>
+                  <p style="margin: 0 0 24px;">Mit Ihrer Teilnahme leisten Sie einen wichtigen Beitrag zu einer transparenten Diskussion über kommunalen Klimaschutz.</p>
+                  <p style="margin: 0; color: #737373; font-size: 14px; line-height: 21px;">Ihr Team von {{ projectName }}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

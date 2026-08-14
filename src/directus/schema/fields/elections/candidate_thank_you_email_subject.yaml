@@ -1,22 +1,22 @@
 collection: elections
-field: candidate_email_subject
+field: candidate_thank_you_email_subject
 type: string
 meta:
   collection: elections
   conditions: null
   display: null
   display_options: null
-  field: candidate_email_subject
-  group: candidate_invitation_email_settings
+  field: candidate_thank_you_email_subject
+  group: candidate_thank_you_email_settings
   hidden: false
   interface: input
   note: >-
-    Betreff der Einladung. Verfügbare Platzhalter: {{ candidate_name }}, {{
+    Betreff der Dankesmail. Verfügbare Platzhalter: {{ candidate_name }}, {{
     candidate_salutation }}, {{ municipality_name }}, {{ election_descriptor }},
     {{ cutoff_date }}, {{ personal_link }} und {{ projectName }}. Ein leerer
     Betreff verhindert den Versand.
   options:
-    placeholder: "Einladung zum Klimawahl-Check: {{ municipality_name }}"
+    placeholder: "Vielen Dank für Ihre Teilnahme am Klimawahl-Check"
     trim: true
   readonly: false
   required: false
@@ -25,19 +25,19 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Betreff für Kandidierenden-E-Mails
+      translation: Betreff der Dankes-E-Mail
     - language: en-GB
-      translation: Subject for candidate emails
+      translation: Thank-you email subject
     - language: it-IT
-      translation: Oggetto delle email ai/alle candidati/e
+      translation: Oggetto dell'email di ringraziamento
   validation: null
   validation_message: null
   width: full
 schema:
-  name: candidate_email_subject
+  name: candidate_thank_you_email_subject
   table: elections
   data_type: character varying
-  default_value: "Einladung zum Klimawahl-Check: {{ municipality_name }}"
+  default_value: "Vielen Dank für Ihre Teilnahme am Klimawahl-Check"
   max_length: 255
   numeric_precision: null
   numeric_scale: null
