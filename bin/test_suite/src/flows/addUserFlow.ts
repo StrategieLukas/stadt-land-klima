@@ -72,20 +72,20 @@ export async function runAddUserFlow(
       await loginDirectus(
         page,
         fixture.config.backendUrl,
-        fixture.localteamAdmin.email,
-        fixture.localteamAdmin.password,
+        fixture.localteamMember.email,
+        fixture.localteamMember.password,
       );
       await gotoDirectusContent(page, fixture.config.backendUrl, 'localteams');
       await page.getByText(fixture.municipalityName).waitFor({ state: 'visible', timeout: 20_000 });
       const text = await visibleText(page);
-      assertIncludes(text, fixture.municipalityName, 'LokalteamAdmin must see their assigned localteam in Directus');
+      assertIncludes(text, fixture.municipalityName, 'LokalteamMitglied must see their assigned localteam in Directus');
       assertNotIncludes(
         text,
         hiddenMunicipalityName,
-        'LokalteamAdmin must not see unassigned localteams in Directus',
+        'LokalteamMitglied must not see unassigned localteams in Directus',
       );
 
-      const visibleLocalteams = await fixture.localteamAdmin.client.readItems<{ id: string; name: string }>(
+      const visibleLocalteams = await fixture.localteamMember.client.readItems<{ id: string; name: string }>(
         'localteams',
         {
           fields: ['id', 'name'],
@@ -106,8 +106,8 @@ export async function runAddUserFlow(
       await loginDirectus(
         page,
         fixture.config.backendUrl,
-        fixture.localteamAdmin.email,
-        fixture.localteamAdmin.password,
+        fixture.localteamMember.email,
+        fixture.localteamMember.password,
       );
       const text = await gotoDirectusContent(page, fixture.config.backendUrl, 'editors', '+');
       assertIncludes(text, 'Erstelle Teammitglied', 'Editor create page must render in Directus');
@@ -120,10 +120,28 @@ export async function runAddUserFlow(
     }
   });
 
+  await runner.step('Add user: member cannot invite users to another localteam', async () => {
+    assert(hiddenLocalteamId, 'Hidden localteam setup did not run');
+
+    let createError: unknown;
+    try {
+      await fixture.localteamMember.client.createItem<Editor>('editors', {
+        email: `forbidden-invite-${fixture.config.runId}@stadt-land-klima.de`,
+        localteam_id: hiddenLocalteamId,
+        organisation: `Forbidden Organisation ${fixture.config.runId}`,
+      });
+    } catch (error) {
+      createError = error;
+    }
+
+    assert(createError, 'LokalteamMitglied must not invite users to an unrelated localteam');
+    assertIncludes(String(createError), '403', 'Cross-localteam invitation must return HTTP 403');
+  });
+
   await runner.step('Add user: creating an editor triggers invited user creation and localteam assignment', async () => {
     assert(hiddenLocalteamId, 'Hidden localteam setup did not run');
 
-    const editor = await fixture.localteamAdmin.client.createItem<Editor>('editors', {
+    const editor = await fixture.localteamMember.client.createItem<Editor>('editors', {
       email: fixture.invitedEmail,
       localteam_id: fixture.localteam.id,
       organisation: `Automated Organisation ${fixture.config.runId}`,
@@ -156,7 +174,7 @@ export async function runAddUserFlow(
     );
     assertEqual(junctions.length, 1, 'Invited user must be linked to the invited localteam exactly once');
 
-    const visibleEditors = await fixture.localteamAdmin.client.readItems<Editor>('editors', {
+    const visibleEditors = await fixture.localteamMember.client.readItems<Editor>('editors', {
       filter: { email: { _eq: fixture.invitedEmail } },
       fields: ['id', 'email', 'localteam_id'],
       limit: 1,
@@ -171,8 +189,8 @@ export async function runAddUserFlow(
       await loginDirectus(
         page,
         fixture.config.backendUrl,
-        fixture.localteamAdmin.email,
-        fixture.localteamAdmin.password,
+        fixture.localteamMember.email,
+        fixture.localteamMember.password,
       );
       await gotoDirectusContent(page, fixture.config.backendUrl, 'editors');
       await page.getByText(fixture.invitedEmail).waitFor({ state: 'visible', timeout: 20_000 });

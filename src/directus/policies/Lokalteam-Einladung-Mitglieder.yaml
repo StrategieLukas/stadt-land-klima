@@ -7,8 +7,16 @@ app_access: false
 permissions:
   - collection: editors
     action: create
-    permissions: null
-    validation: null
+    permissions:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
+    validation:
+      _and:
+        - localteam_id:
+            _in:
+              - $CURRENT_USER.localteams.localteam_id
     presets: null
     fields:
       - email
@@ -16,7 +24,12 @@ permissions:
       - organisation
   - collection: editors
     action: update
-    permissions: null
+    permissions:
+      _and:
+        - localteam_id:
+            id:
+              _in:
+                - $CURRENT_USER.localteams.localteam_id
     validation: null
     presets: null
     fields:

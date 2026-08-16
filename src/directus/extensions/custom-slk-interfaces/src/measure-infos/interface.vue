@@ -241,7 +241,9 @@ async function ensureMeasureLoaded(): Promise<void> {
 
 async function fetchParentItem(pk: string | number): Promise<Record<string, unknown>> {
   const resp = await api?.get(`/items/${props.collection}/${pk}`, {
-    params: { fields: '*,localteam_id.municipality_id.name' },
+    params: {
+      fields: '*,localteam_id.municipality_name,localteam_id.municipality_id.name',
+    },
   });
   return (resp?.data?.data as Record<string, unknown>) ?? {};
 }
@@ -305,20 +307,29 @@ function searchUrlFor(query: string): string {
 
 function extractMunicipalityName(item: Record<string, unknown>): string | null {
   const localteam = asRecord(item.localteam_id);
-  const municipality = localteam ? asRecord(localteam.municipality_id) : null;
-  const nestedName = municipality?.name;
-  const directName = item.municipality_name;
-  return typeof nestedName === 'string' && nestedName.trim()
-    ? nestedName
-    : typeof directName === 'string' && directName.trim()
-      ? directName
-      : null;
+  const localteamName = localteam?.municipality_name;
+  if (typeof localteamName === 'string' && localteamName.trim()) {
+    return localteamName;
+  }
+
+  const municipality = firstRecord(localteam?.municipality_id);
+  const municipalityName = municipality?.name;
+  return typeof municipalityName === 'string' && municipalityName.trim()
+    ? municipalityName
+    : null;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : null;
+}
+
+function firstRecord(value: unknown): Record<string, unknown> | null {
+  if (Array.isArray(value)) {
+    return value.map(asRecord).find((item) => item !== null) ?? null;
+  }
+  return asRecord(value);
 }
 
 // ─── Label resolution ─────────────────────────────────────────────────────────
