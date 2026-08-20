@@ -1,12 +1,12 @@
 collection: elections
-field: already_generated_questions
+field: already_sent_thank_you_mails
 type: boolean
 meta:
   collection: elections
   conditions: null
   display: null
   display_options: null
-  field: already_generated_questions
+  field: already_sent_thank_you_mails
   group: null
   hidden: true
   interface: boolean
@@ -15,21 +15,21 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 13
+  sort: 12
   special:
     - cast-boolean
   translations:
     - language: de-DE
-      translation: Thesen bereits generiert?
+      translation: Dankes-E-Mails an Kandidierende verschickt?
     - language: en-GB
-      translation: Theses already generated?
+      translation: Thank-you emails sent to candidates?
     - language: it-IT
-      translation: Tesi già generate?
+      translation: Email di ringraziamento inviate ai/alle candidati/e?
   validation: null
   validation_message: null
   width: half
 schema:
-  name: already_generated_questions
+  name: already_sent_thank_you_mails
   table: elections
   data_type: boolean
   default_value: false

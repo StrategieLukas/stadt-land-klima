@@ -95,20 +95,29 @@ permissions:
     validation: null
     presets: null
     fields:
-      - descriptor
-      - is_public
-      - localteam
-      - response_cutoff_date
-      - simple_answer_mode
-      - custom_logo
+      - action_buttons
+      - already_generated_questions
+      - already_sent_mails
+      - already_sent_reminder_mails
+      - already_sent_thank_you_mails
       - candidate_email_cc
       - candidate_email_reply_to
       - candidate_email_subject
       - candidate_email_template
-      - action_buttons
-      - already_sent_mails
-      - already_generated_questions
+      - candidate_invitation_email_settings
+      - candidate_reminder_email_settings
+      - candidate_reminder_email_subject
+      - candidate_reminder_email_template
+      - candidate_thank_you_email_settings
+      - candidate_thank_you_email_subject
+      - candidate_thank_you_email_template
+      - custom_logo
+      - descriptor
+      - is_public
+      - localteam
       - prefill_trigger
+      - response_cutoff_date
+      - simple_answer_mode
   - collection: elections
     action: read
     permissions: null
@@ -118,10 +127,19 @@ permissions:
       - action_buttons
       - already_generated_questions
       - already_sent_mails
+      - already_sent_reminder_mails
+      - already_sent_thank_you_mails
       - candidate_email_cc
       - candidate_email_reply_to
       - candidate_email_subject
       - candidate_email_template
+      - candidate_invitation_email_settings
+      - candidate_reminder_email_settings
+      - candidate_reminder_email_subject
+      - candidate_reminder_email_template
+      - candidate_thank_you_email_settings
+      - candidate_thank_you_email_subject
+      - candidate_thank_you_email_template
       - custom_logo
       - date_created
       - date_updated
@@ -139,19 +157,28 @@ permissions:
     validation: null
     presets: null
     fields:
-      - descriptor
-      - is_public
-      - response_cutoff_date
-      - simple_answer_mode
-      - custom_logo
+      - action_buttons
+      - already_generated_questions
+      - already_sent_mails
+      - already_sent_reminder_mails
+      - already_sent_thank_you_mails
       - candidate_email_cc
       - candidate_email_reply_to
       - candidate_email_subject
       - candidate_email_template
-      - action_buttons
-      - already_sent_mails
-      - already_generated_questions
+      - candidate_invitation_email_settings
+      - candidate_reminder_email_settings
+      - candidate_reminder_email_subject
+      - candidate_reminder_email_template
+      - candidate_thank_you_email_settings
+      - candidate_thank_you_email_subject
+      - candidate_thank_you_email_template
+      - custom_logo
+      - descriptor
       - is_approved
+      - is_public
+      - response_cutoff_date
+      - simple_answer_mode
   - collection: localteams
     action: read
     permissions:

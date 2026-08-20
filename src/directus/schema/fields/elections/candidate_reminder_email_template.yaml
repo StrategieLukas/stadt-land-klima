@@ -1,0 +1,94 @@
+collection: elections
+field: candidate_reminder_email_template
+type: text
+meta:
+  collection: elections
+  conditions: null
+  display: raw
+  display_options: null
+  field: candidate_reminder_email_template
+  group: candidate_reminder_email_settings
+  hidden: false
+  interface: input-code
+  note: >-
+    Vollständiges HTML-Dokument für den einmaligen Reminder. Es gelten dieselben
+    Platzhalter wie für die Einladungs-E-Mail. Eine leere oder ungültige Vorlage
+    verhindert den Versand.
+  options:
+    language: html
+  readonly: false
+  required: false
+  searchable: false
+  sort: 2
+  special: null
+  translations:
+    - language: de-DE
+      translation: HTML-Vorlage der Reminder-E-Mail
+    - language: en-GB
+      translation: Reminder email HTML template
+    - language: it-IT
+      translation: Modello HTML dell'email di promemoria
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: candidate_reminder_email_template
+  table: elections
+  data_type: text
+  default_value: |-
+    <!doctype html>
+    <html lang="de">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Erinnerung: Klimawahl-Check für {{ municipality_name }}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background: #f6f6f6; color: #171717; font-family: Arial, Helvetica, sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse; background: #f6f6f6;">
+        <tr>
+          <td align="center" style="padding: 30px 15px;">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background: #ffffff;">
+              <tr>
+                <td style="padding: 30px 30px 10px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      {{ stadt_land_klima_logo }}
+                      {{ custom_logo }}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 20px 30px 30px; color: #525252; font-size: 16px; line-height: 24px;">
+                  <h1 style="margin: 0 0 20px; color: #006e94; font-size: 28px; line-height: 34px;">Erinnerung an den Klimawahl-Check</h1>
+                  <p style="margin: 0 0 16px;">{{ candidate_salutation }},</p>
+                  <p style="margin: 0 0 16px;">uns liegen noch keine Antworten von Ihnen für den Klimawahl-Check in {{ municipality_name }} vor. Wir freuen uns, wenn Sie Ihre Positionen noch einreichen.</p>
+                  <p style="margin: 0 0 24px;">Die Frist endet am <strong>{{ cutoff_date }}</strong>.</p>
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 30px; border-collapse: collapse;">
+                    <tr>
+                      <td align="center" bgcolor="#006e94" style="border-radius: 8px;">
+                        <a href="{{ personal_link }}" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 32px; border: 1px solid #006e94; border-radius: 8px; color: #ffffff; font-weight: 600; text-decoration: none;">Antworten einreichen</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin: 0; color: #737373; font-size: 14px; line-height: 21px;">Vielen Dank für Ihre Zeit!<br />Ihr Team von {{ projectName }}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

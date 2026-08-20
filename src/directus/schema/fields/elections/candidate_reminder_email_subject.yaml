@@ -1,22 +1,22 @@
 collection: elections
-field: candidate_email_subject
+field: candidate_reminder_email_subject
 type: string
 meta:
   collection: elections
   conditions: null
   display: null
   display_options: null
-  field: candidate_email_subject
-  group: candidate_invitation_email_settings
+  field: candidate_reminder_email_subject
+  group: candidate_reminder_email_settings
   hidden: false
   interface: input
   note: >-
-    Betreff der Einladung. Verfügbare Platzhalter: {{ candidate_name }}, {{
+    Betreff des Reminders. Verfügbare Platzhalter: {{ candidate_name }}, {{
     candidate_salutation }}, {{ municipality_name }}, {{ election_descriptor }},
     {{ cutoff_date }}, {{ personal_link }} und {{ projectName }}. Ein leerer
     Betreff verhindert den Versand.
   options:
-    placeholder: "Einladung zum Klimawahl-Check: {{ municipality_name }}"
+    placeholder: "Erinnerung: Klimawahl-Check für {{ municipality_name }}"
     trim: true
   readonly: false
   required: false
@@ -25,19 +25,19 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Betreff für Kandidierenden-E-Mails
+      translation: Betreff der Reminder-E-Mail
     - language: en-GB
-      translation: Subject for candidate emails
+      translation: Reminder email subject
     - language: it-IT
-      translation: Oggetto delle email ai/alle candidati/e
+      translation: Oggetto dell'email di promemoria
   validation: null
   validation_message: null
   width: full
 schema:
-  name: candidate_email_subject
+  name: candidate_reminder_email_subject
   table: elections
   data_type: character varying
-  default_value: "Einladung zum Klimawahl-Check: {{ municipality_name }}"
+  default_value: "Erinnerung: Klimawahl-Check für {{ municipality_name }}"
   max_length: 255
   numeric_precision: null
   numeric_scale: null

@@ -7,7 +7,7 @@ meta:
   display: raw
   display_options: null
   field: candidate_email_template
-  group: null
+  group: candidate_invitation_email_settings
   hidden: false
   interface: input-code
   note: >-
@@ -24,7 +24,7 @@ meta:
   readonly: false
   required: false
   searchable: false
-  sort: 18
+  sort: 2
   special: null
   translations:
     - language: de-DE

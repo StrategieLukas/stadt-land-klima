@@ -45,6 +45,8 @@ interface Election {
   descriptor: string;
   already_generated_questions?: boolean | null;
   already_sent_mails?: boolean | null;
+  already_sent_reminder_mails?: boolean | null;
+  already_sent_thank_you_mails?: boolean | null;
   review_requested?: boolean | null;
   is_approved?: boolean | null;
   is_public?: boolean | null;
@@ -325,6 +327,20 @@ async function clickScoreCheckbox(page: Page, catalogLabel: string): Promise<voi
 }
 
 async function clickDirectusAction(page: Page, label: string): Promise<void> {
+  const exactLabels = page.getByText(label, { exact: true });
+  const exactLabelCount = await exactLabels.count();
+  if (exactLabelCount > 0) {
+    await exactLabels.nth(exactLabelCount - 1).click({ force: true });
+    return;
+  }
+
+  const exactButtons = page.getByRole('button', { name: label, exact: true });
+  const exactButtonCount = await exactButtons.count();
+  if (exactButtonCount > 0) {
+    await exactButtons.nth(exactButtonCount - 1).click({ force: true });
+    return;
+  }
+
   const buttons = page.locator('button').filter({ hasText: label });
   const buttonCount = await buttons.count();
   if (buttonCount > 0) {
@@ -347,6 +363,8 @@ async function readElection(fixture: TestFixture, electionId: string): Promise<E
     'descriptor',
     'already_generated_questions',
     'already_sent_mails',
+    'already_sent_reminder_mails',
+    'already_sent_thank_you_mails',
     'review_requested',
     'is_approved',
     'is_public',
@@ -900,6 +918,9 @@ export async function runRatingWahlcheckFlow(
       );
       const text = await gotoDirectusContent(adminPage, fixture.config.backendUrl, 'elections', election.id);
       assertIncludes(text, 'Review angefragt', 'WahlcheckAdmin must see the review-requested state');
+      assertIncludes(text, 'Einladungs-E-Mail', 'WahlcheckAdmin must see the collapsed invitation email settings');
+      assertIncludes(text, 'Reminder-E-Mail', 'WahlcheckAdmin must see the collapsed reminder email settings');
+      assertIncludes(text, 'Dankes-E-Mail', 'WahlcheckAdmin must see the collapsed thank-you email settings');
       const values = await renderedControlValues(adminPage);
       assert(
         values.some((value) => value.includes(election.descriptor)),
@@ -934,6 +955,9 @@ export async function runRatingWahlcheckFlow(
       const text = await gotoDirectusContent(page, fixture.config.backendUrl, 'elections', election.id);
       assertIncludes(text, 'E-Mails versenden', 'Send emails action must be available after approval');
       assertIncludes(text, 'Test-E-Mail senden', 'Test email action must be available after approval');
+      const reminderButton = page.locator('button').filter({ hasText: 'Reminder-E-Mails versenden' }).last();
+      await reminderButton.waitFor({ state: 'visible', timeout: 30_000 });
+      assert(await reminderButton.isDisabled(), 'Reminder action must be disabled before invitation emails are sent');
       await clickDirectusAction(page, 'E-Mails versenden');
       await page.getByText('Versandübersicht').waitFor({ state: 'visible', timeout: 60_000 });
     } finally {
@@ -951,22 +975,87 @@ export async function runRatingWahlcheckFlow(
     const tokens = new Set(candidates.map((candidate) => candidate.access_token));
     assertEqual(tokens.size, 2, 'Each candidate must have a unique stable access token');
 
+    election = await readElection(fixture, election.id);
+    if (!election.already_sent_mails) {
+      // The local Directus mail transport may be unavailable. Simulate a
+      // successful production delivery so the dependent reminder flow can be
+      // exercised without weakening the production flag semantics.
+      election = await fixture.admin.updateItem<Election>('elections', election.id, {
+        already_sent_mails: true,
+      });
+    }
+
     runner.addManualCheck(
       'rating_wahlcheck_flow',
       `Verify candidate invitation emails to ${fixture.candidateAEmail} and ${fixture.candidateBEmail}. Each should include a personal thesis link. In local dev, SMTP is usually disabled, so the test verifies generated tokens and uses ${fixture.config.frontendUrl}/elections/thesen/<token>.`,
     );
   });
 
-  await runner.step('Wahlcheck: candidates answer all theses through their public links', async () => {
+  await runner.step('Wahlcheck: one candidate submits answers before reminders', async () => {
     generatedQuestions = await readQuestions(fixture, election.id);
     assertEqual(generatedQuestions.length, 11, 'Candidate answer form must be backed by eleven questions');
 
+    const candidateA = candidates.find((candidate) => candidate.email === fixture.candidateAEmail);
+    assert(candidateA, 'Candidate A missing before answer submission');
+    await submitCandidateAnswers(browser, fixture, candidateA, generatedQuestions, 4);
+
+    await waitFor(
+      `${candidateA.name} answer persistence before reminder`,
+      async () => {
+        const [fresh] = (await readCandidates(fixture, election.id))
+          .filter((item) => item.id === candidateA.id);
+        const answers = await readAnswersForCandidate(fixture, candidateA.id);
+        return fresh?.has_answered === true && answers.length === generatedQuestions.length
+          ? { fresh, answers }
+          : false;
+      },
+      { timeoutMs: 45_000, intervalMs: 1_000 },
+    );
+  });
+
+  await runner.step('Wahlcheck: send one-time reminders only after candidate invitations', async () => {
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    try {
+      page.on('dialog', (dialog) => dialog.accept());
+      await loginDirectus(
+        page,
+        fixture.config.backendUrl,
+        fixture.localteamMember.email,
+        fixture.localteamMember.password,
+      );
+      await gotoDirectusContent(page, fixture.config.backendUrl, 'elections', election.id);
+      const reminderButton = page.locator('button').filter({ hasText: 'Reminder-E-Mails versenden' }).last();
+      await reminderButton.waitFor({ state: 'visible', timeout: 30_000 });
+      assert(!(await reminderButton.isDisabled()), 'Reminder action must be enabled after invitation emails are sent');
+      await reminderButton.click();
+      await page.getByText('Versandübersicht').waitFor({ state: 'visible', timeout: 60_000 });
+      const summaryText = await page.locator('.mail-summary-dialog').innerText();
+      assertIncludes(summaryText, `AutomatedCandidateB ${fixture.config.runId}`, 'Reminder must include the candidate without answers');
+      assertNotIncludes(summaryText, `AutomatedCandidateA ${fixture.config.runId}`, 'Reminder must exclude the candidate who answered');
+    } finally {
+      await context.close();
+    }
+
+    election = await readElection(fixture, election.id);
+    if (!election.already_sent_reminder_mails) {
+      election = await fixture.admin.updateItem<Election>('elections', election.id, {
+        already_sent_reminder_mails: true,
+      });
+    }
+
+    runner.addManualCheck(
+      'rating_wahlcheck_flow',
+      `Verify the reminder email was sent only to ${fixture.candidateBEmail}, because candidate A had already submitted answers.`,
+    );
+  });
+
+  await runner.step('Wahlcheck: candidates answer all theses through their public links', async () => {
     const candidateA = candidates.find((candidate) => candidate.email === fixture.candidateAEmail);
     const candidateB = candidates.find((candidate) => candidate.email === fixture.candidateBEmail);
     assert(candidateA, 'Candidate A missing before answer submission');
     assert(candidateB, 'Candidate B missing before answer submission');
 
-    await submitCandidateAnswers(browser, fixture, candidateA, generatedQuestions, 4);
     await submitCandidateAnswers(browser, fixture, candidateB, generatedQuestions, 0);
 
     for (const candidate of [candidateA, candidateB]) {
@@ -989,6 +1078,40 @@ export async function runRatingWahlcheckFlow(
         assertIncludes(answer.explanation ?? '', fixture.config.runId, 'Each candidate answer must keep its explanation');
       }
     }
+  });
+
+  await runner.step('Wahlcheck: send one-time thank-you emails to candidates who answered', async () => {
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    try {
+      page.on('dialog', (dialog) => dialog.accept());
+      await loginDirectus(
+        page,
+        fixture.config.backendUrl,
+        fixture.localteamMember.email,
+        fixture.localteamMember.password,
+      );
+      await gotoDirectusContent(page, fixture.config.backendUrl, 'elections', election.id);
+      await clickDirectusAction(page, 'Dankes-E-Mails versenden');
+      await page.getByText('Versandübersicht').waitFor({ state: 'visible', timeout: 60_000 });
+      const summaryText = await page.locator('.mail-summary-dialog').innerText();
+      assertIncludes(summaryText, `AutomatedCandidateA ${fixture.config.runId}`, 'Thank-you email must include candidate A');
+      assertIncludes(summaryText, `AutomatedCandidateB ${fixture.config.runId}`, 'Thank-you email must include candidate B');
+    } finally {
+      await context.close();
+    }
+
+    election = await readElection(fixture, election.id);
+    if (!election.already_sent_thank_you_mails) {
+      election = await fixture.admin.updateItem<Election>('elections', election.id, {
+        already_sent_thank_you_mails: true,
+      });
+    }
+
+    runner.addManualCheck(
+      'rating_wahlcheck_flow',
+      `Verify thank-you emails were sent to ${fixture.candidateAEmail} and ${fixture.candidateBEmail}.`,
+    );
   });
 
   await runner.step('Wahlcheck: public election appears and public wizard produces ranked results', async () => {

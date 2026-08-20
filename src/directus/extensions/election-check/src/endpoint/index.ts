@@ -61,7 +61,10 @@ function makeActionHandler<TResult>(
         schema,
         accountability: req.accountability,
       });
-      await userElectionSvc.readOne(election_id, { fields: ['id'] });
+      // Requiring the action interface field prevents read-only frontend tokens
+      // from invoking privileged election actions merely because they can read
+      // the public election record.
+      await userElectionSvc.readOne(election_id, { fields: ['id', 'action_buttons'] });
 
       const result = await run(election_id, {
         ...ctx,
@@ -247,6 +250,28 @@ export default {
       makeActionHandler('send-mails', (election_id, { accountability, services, getSchema, logger, env }) =>
           sendCandidateMails.handler(
             { election_id },
+            { logger, accountability, services, getSchema, env, data: {} },
+          ),
+        ctx,
+      ),
+    );
+
+    router.post(
+      '/send-reminders',
+      makeActionHandler('send-reminders', (election_id, { accountability, services, getSchema, logger, env }) =>
+          sendCandidateMails.handler(
+            { election_id, mail_type: 'reminder' },
+            { logger, accountability, services, getSchema, env, data: {} },
+          ),
+        ctx,
+      ),
+    );
+
+    router.post(
+      '/send-thank-you-mails',
+      makeActionHandler('send-thank-you-mails', (election_id, { accountability, services, getSchema, logger, env }) =>
+          sendCandidateMails.handler(
+            { election_id, mail_type: 'thank_you' },
             { logger, accountability, services, getSchema, env, data: {} },
           ),
         ctx,

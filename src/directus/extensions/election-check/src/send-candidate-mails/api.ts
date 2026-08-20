@@ -18,7 +18,10 @@ interface HandlerContext {
 interface HandlerInput {
   election_id: string | number;
   test_mode?: boolean;
+  mail_type?: CandidateMailType;
 }
+
+type CandidateMailType = 'invitation' | 'reminder' | 'thank_you';
 
 interface Election {
   id: string | number;
@@ -27,10 +30,16 @@ interface Election {
   candidate_email_cc?: string | null;
   candidate_email_subject?: string | null;
   candidate_email_template?: string | null;
+  candidate_reminder_email_subject?: string | null;
+  candidate_reminder_email_template?: string | null;
+  candidate_thank_you_email_subject?: string | null;
+  candidate_thank_you_email_template?: string | null;
   candidate_email_reply_to?: string | null;
   custom_logo?: string | { id?: string | null } | null;
   already_generated_questions?: boolean;
   already_sent_mails?: boolean;
+  already_sent_reminder_mails?: boolean;
+  already_sent_thank_you_mails?: boolean;
   localteam?: { municipality_name?: string } | null;
 }
 
@@ -40,6 +49,7 @@ interface Candidate {
   salutation?: 'frau' | 'herr' | 'neutral' | null;
   email?: string | null;
   access_token?: string | null;
+  has_answered?: boolean | null;
 }
 
 interface SendableCandidate extends Candidate {
@@ -60,6 +70,8 @@ interface SendResult {
   failedCount: number;
   skippedCount: number;
   totalCandidates: number;
+  eligibleCandidates: number;
+  mailType: CandidateMailType;
   errors: string[];
   sent: CandidateMailSummary[];
   failed: CandidateMailSummary[];
@@ -68,6 +80,14 @@ interface SendResult {
   testRecipient?: string;
   selectedCandidate?: CandidateMailSummary;
   updated_data?: Record<string, unknown>;
+}
+
+interface MailConfiguration {
+  subject: string;
+  template: string;
+  sentFlag: 'already_sent_mails' | 'already_sent_reminder_mails' | 'already_sent_thank_you_mails';
+  emptyRecipientsMessage: string;
+  label: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -148,6 +168,45 @@ function uniqueValues(values: string[]): string[] {
 function normalizeEmail(value?: string | null): string | null {
   const email = value?.trim() ?? '';
   return email.length > 0 ? email : null;
+}
+
+function getMailConfiguration(
+  election: Election,
+  mailType: CandidateMailType,
+): MailConfiguration {
+  if (mailType === 'reminder') {
+    return {
+      subject: election.candidate_reminder_email_subject?.trim() ?? '',
+      template: election.candidate_reminder_email_template?.trim() ?? '',
+      sentFlag: 'already_sent_reminder_mails',
+      emptyRecipientsMessage: 'Alle Kandidat:innen haben bereits Antworten eingereicht.',
+      label: 'Reminder-E-Mail',
+    };
+  }
+
+  if (mailType === 'thank_you') {
+    return {
+      subject: election.candidate_thank_you_email_subject?.trim() ?? '',
+      template: election.candidate_thank_you_email_template?.trim() ?? '',
+      sentFlag: 'already_sent_thank_you_mails',
+      emptyRecipientsMessage: 'Noch keine Kandidat:innen haben Antworten eingereicht.',
+      label: 'Dankes-E-Mail',
+    };
+  }
+
+  return {
+    subject: election.candidate_email_subject?.trim() ?? '',
+    template: election.candidate_email_template?.trim() ?? '',
+    sentFlag: 'already_sent_mails',
+    emptyRecipientsMessage: 'Für diese Wahl sind keine Kandidat:innen vorhanden.',
+    label: 'Einladungs-E-Mail',
+  };
+}
+
+function isEligibleCandidate(candidate: Candidate, mailType: CandidateMailType): boolean {
+  if (mailType === 'reminder') return candidate.has_answered !== true;
+  if (mailType === 'thank_you') return candidate.has_answered === true;
+  return true;
 }
 
 function escapeHtml(value: string): string {
@@ -376,7 +435,7 @@ async function loadInlineAttachment(
 export default {
   id: 'operation-send-candidate-mails',
   handler: async (
-    { election_id, test_mode = false }: HandlerInput,
+    { election_id, test_mode = false, mail_type = 'invitation' }: HandlerInput,
     { logger, accountability, services, getSchema, env }: HandlerContext,
   ): Promise<SendResult> => {
     const schema = await getSchema();
@@ -402,7 +461,8 @@ export default {
     }
 
     const municipalityName = election.localteam?.municipality_name;
-    const logPrefix = test_mode ? 'test-candidate-mail' : 'send-candidate-mails';
+    const mailConfiguration = getMailConfiguration(election, mail_type);
+    const logPrefix = test_mode ? `test-candidate-${mail_type}-mail` : `send-candidate-${mail_type}-mails`;
     logger.info(
       `[${logPrefix}] Starting for election "${election.descriptor ?? election_id}", municipality: "${municipalityName ?? 'unknown'}"`,
     );
@@ -417,17 +477,27 @@ export default {
       );
     }
 
-    const candidateEmailTemplate = election.candidate_email_template?.trim() ?? '';
-    if (!candidateEmailTemplate) {
+    if (mail_type !== 'invitation' && !election.already_sent_mails) {
       throw new Error(
-        'Die HTML-Vorlage für Kandidierenden-E-Mails ist leer. Es wurden keine E-Mails versendet.',
+        'Die Einladungs-E-Mails müssen versendet worden sein, bevor diese E-Mails versendet werden können.',
       );
     }
 
-    const candidateEmailSubjectTemplate = election.candidate_email_subject?.trim() ?? '';
+    if (!test_mode && mail_type !== 'invitation' && election[mailConfiguration.sentFlag]) {
+      throw new Error(`${mailConfiguration.label} wurde bereits versendet.`);
+    }
+
+    const candidateEmailTemplate = mailConfiguration.template;
+    if (!candidateEmailTemplate) {
+      throw new Error(
+        `Die HTML-Vorlage für die ${mailConfiguration.label} ist leer. Es wurden keine E-Mails versendet.`,
+      );
+    }
+
+    const candidateEmailSubjectTemplate = mailConfiguration.subject;
     if (!candidateEmailSubjectTemplate) {
       throw new Error(
-        'Der Betreff für Kandidierenden-E-Mails ist leer. Es wurden keine E-Mails versendet.',
+        `Der Betreff für die ${mailConfiguration.label} ist leer. Es wurden keine E-Mails versendet.`,
       );
     }
 
@@ -499,7 +569,7 @@ export default {
       }) as Promise<Array<{ id: string | number }>>,
       candidateSvc.readByQuery({
         filter: { election: { _eq: election_id } },
-        fields: ['id', 'name', 'salutation', 'email', 'access_token'],
+        fields: ['id', 'name', 'salutation', 'email', 'access_token', 'has_answered'],
         limit: -1,
       }) as Promise<Candidate[]>,
     ]);
@@ -516,13 +586,19 @@ export default {
       );
     }
 
+    const eligibleCandidates = candidates.filter((candidate) => isEligibleCandidate(candidate, mail_type));
+
+    if (eligibleCandidates.length === 0) {
+      throw new Error(mailConfiguration.emptyRecipientsMessage);
+    }
+
     const sent: CandidateMailSummary[] = [];
     const failed: CandidateMailSummary[] = [];
     const skipped: CandidateMailSummary[] = [];
     const sendableCandidates: SendableCandidate[] = [];
 
     if (!test_mode) {
-      for (const candidate of candidates) {
+      for (const candidate of eligibleCandidates) {
         const email = normalizeEmail(candidate.email);
 
         if (!email) {
@@ -543,12 +619,12 @@ export default {
     }
 
     const selectedCandidate = test_mode
-      ? candidates[crypto.randomInt(candidates.length)]!
+      ? eligibleCandidates[crypto.randomInt(eligibleCandidates.length)]!
       : undefined;
     const candidatesToSend = selectedCandidate ? [selectedCandidate] : sendableCandidates;
 
     logger.info(
-      `[${logPrefix}] Pre-flight passed: ${questions.length} questions, ${candidates.length} candidates, ${candidatesToSend.length} selected, ${skipped.length} skipped`,
+      `[${logPrefix}] Pre-flight passed: ${questions.length} questions, ${candidates.length} candidates, ${eligibleCandidates.length} eligible, ${candidatesToSend.length} selected, ${skipped.length} skipped`,
     );
 
     // -----------------------------------------------------------------------
@@ -641,17 +717,22 @@ export default {
     // 5. Persist result
     // -----------------------------------------------------------------------
 
-    // A test email must never mark the candidate invitation run as completed.
+    // A test email must never mark a mail run as completed.
     if (!test_mode && sent.length > 0) {
-      await electionSvc.updateOne(election_id, { already_sent_mails: true });
+      await electionSvc.updateOne(election_id, { [mailConfiguration.sentFlag]: true });
     } else if (!test_mode) {
       logger.warn(
-        '[send-candidate-mails] No mails were delivered; not marking already_sent_mails.',
+        `[${logPrefix}] No mails were delivered; not marking ${mailConfiguration.sentFlag}.`,
       );
     }
 
     const updatedElection = await electionSvc.readOne(election_id, {
-      fields: ['already_generated_questions', 'already_sent_mails'],
+      fields: [
+        'already_generated_questions',
+        'already_sent_mails',
+        'already_sent_reminder_mails',
+        'already_sent_thank_you_mails',
+      ],
     }) as Record<string, unknown>;
 
     const errors = failed.map(formatFailure);
@@ -667,6 +748,8 @@ export default {
       failedCount: failed.length,
       skippedCount: skipped.length,
       totalCandidates: candidates.length,
+      eligibleCandidates: eligibleCandidates.length,
+      mailType: mail_type,
       errors,
       sent,
       failed,

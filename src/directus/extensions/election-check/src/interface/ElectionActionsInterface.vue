@@ -113,6 +113,76 @@
       </div>
     </div>
 
+    <!-- Reminder card — invitations must have been sent first -->
+    <div v-if="isApproved" class="action-card">
+      <div class="card-header">
+        <v-icon name="notifications_active" class="card-icon" />
+        <div class="card-title-group">
+          <h3 class="card-title">Kandidat:innen erinnern</h3>
+          <p class="card-subtitle">Einmalig an Kandidat:innen ohne eingereichte Antworten senden</p>
+        </div>
+        <v-chip v-if="alreadySentReminder" x-small class="status-chip status-chip--success">
+          <v-icon name="check_circle" x-small left />
+          Versendet
+        </v-chip>
+      </div>
+
+      <v-notice v-if="alreadySentReminder" type="success" class="card-notice">
+        Reminder-E-Mails wurden bereits versendet.
+      </v-notice>
+
+      <div class="card-footer">
+        <v-button
+          v-if="!alreadySentReminder"
+          :loading="loadingReminders"
+          :disabled="isAnyLoading || !alreadySent"
+          @click="handleSendReminders"
+        >
+          <v-icon name="send" left />
+          Reminder-E-Mails versenden
+        </v-button>
+        <v-button v-else disabled>
+          <v-icon name="check" left />
+          Reminder-E-Mails versendet
+        </v-button>
+      </div>
+    </div>
+
+    <!-- Thank-you card -->
+    <div v-if="isApproved" class="action-card">
+      <div class="card-header">
+        <v-icon name="volunteer_activism" class="card-icon" />
+        <div class="card-title-group">
+          <h3 class="card-title">Für Antworten bedanken</h3>
+          <p class="card-subtitle">Einmalig an Kandidat:innen mit eingereichten Antworten senden</p>
+        </div>
+        <v-chip v-if="alreadySentThankYou" x-small class="status-chip status-chip--success">
+          <v-icon name="check_circle" x-small left />
+          Versendet
+        </v-chip>
+      </div>
+
+      <v-notice v-if="alreadySentThankYou" type="success" class="card-notice">
+        Dankes-E-Mails wurden bereits versendet.
+      </v-notice>
+
+      <div class="card-footer">
+        <v-button
+          v-if="!alreadySentThankYou"
+          :loading="loadingThankYou"
+          :disabled="isAnyLoading || !alreadySent"
+          @click="handleSendThankYouMails"
+        >
+          <v-icon name="send" left />
+          Dankes-E-Mails versenden
+        </v-button>
+        <v-button v-else disabled>
+          <v-icon name="check" left />
+          Dankes-E-Mails versendet
+        </v-button>
+      </div>
+    </div>
+
     <!-- Feedback notices -->
     <transition name="fade">
       <v-notice v-if="feedback.message" :type="feedback.type" class="result-notice">
@@ -218,7 +288,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, type Ref } from 'vue';
 import { useApi } from '@directus/extensions-sdk';
 
 // ---------------------------------------------------------------------------
@@ -247,6 +317,8 @@ const isExistingRecord = computed(
 const remote = ref({
   alreadyGenerated: false,
   alreadySent: false,
+  alreadySentReminder: false,
+  alreadySentThankYou: false,
   isApproved: false,
   reviewRequested: false,
 });
@@ -255,6 +327,8 @@ const remote = ref({
 // reflects the change without waiting for the next fetchStatus call.
 const sessionGenerated = ref(false);
 const sessionSent = ref(false);
+const sessionSentReminder = ref(false);
+const sessionSentThankYou = ref(false);
 const sessionReviewRequested = ref(false);
 
 // ---------------------------------------------------------------------------
@@ -275,6 +349,20 @@ const alreadySent = computed(
     !!props.values?.already_sent_mails,
 );
 
+const alreadySentReminder = computed(
+  () =>
+    sessionSentReminder.value ||
+    remote.value.alreadySentReminder ||
+    !!props.values?.already_sent_reminder_mails,
+);
+
+const alreadySentThankYou = computed(
+  () =>
+    sessionSentThankYou.value ||
+    remote.value.alreadySentThankYou ||
+    !!props.values?.already_sent_thank_you_mails,
+);
+
 const reviewRequested = computed(
   () =>
     sessionReviewRequested.value ||
@@ -292,12 +380,16 @@ const isApproved = computed(
 
 const loadingGenerate = ref(false);
 const loadingMails = ref(false);
+const loadingReminders = ref(false);
+const loadingThankYou = ref(false);
 const loadingReview = ref(false);
 const loadingTestMail = ref(false);
 const isAnyLoading = computed(
   () =>
     loadingGenerate.value ||
     loadingMails.value ||
+    loadingReminders.value ||
+    loadingThankYou.value ||
     loadingReview.value ||
     loadingTestMail.value,
 );
@@ -325,6 +417,8 @@ interface MailSendResult extends Record<string, unknown> {
   failedCount?: number;
   skippedCount?: number;
   totalCandidates?: number;
+  eligibleCandidates?: number;
+  mailType?: 'invitation' | 'reminder' | 'thank_you';
   sent?: MailCandidateSummary[];
   failed?: MailCandidateSummary[];
   skipped?: MailCandidateSummary[];
@@ -374,13 +468,24 @@ async function fetchStatus() {
 
   try {
     const { data } = await api.get(`/items/elections/${props.primaryKey}`, {
-      params: { fields: ['already_generated_questions', 'already_sent_mails', 'is_approved', 'review_requested'] },
+      params: {
+        fields: [
+          'already_generated_questions',
+          'already_sent_mails',
+          'already_sent_reminder_mails',
+          'already_sent_thank_you_mails',
+          'is_approved',
+          'review_requested',
+        ],
+      },
     });
 
     if (data?.data) {
       remote.value = {
         alreadyGenerated: !!data.data.already_generated_questions,
         alreadySent: !!data.data.already_sent_mails,
+        alreadySentReminder: !!data.data.already_sent_reminder_mails,
+        alreadySentThankYou: !!data.data.already_sent_thank_you_mails,
         isApproved: !!data.data.is_approved,
         reviewRequested: !!data.data.review_requested,
       };
@@ -455,20 +560,55 @@ async function handleRequestReview() {
 }
 
 async function handleSendMails() {
-  const confirmed = window.confirm(
-    'E-Mails wirklich an alle Kandidat:innen mit hinterlegter E-Mail-Adresse versenden? Kandidat:innen ohne E-Mail werden übersprungen.',
-  );
+  await handleBulkMail({
+    endpoint: 'send-mails',
+    confirmation: 'E-Mails wirklich an alle Kandidat:innen mit hinterlegter E-Mail-Adresse versenden? Kandidat:innen ohne E-Mail werden übersprungen.',
+    loading: loadingMails,
+    setSessionSent: () => { sessionSent.value = true; },
+  });
+}
+
+async function handleSendReminders() {
+  await handleBulkMail({
+    endpoint: 'send-reminders',
+    confirmation: 'Reminder-E-Mails wirklich einmalig an alle Kandidat:innen ohne eingereichte Antworten versenden?',
+    loading: loadingReminders,
+    setSessionSent: () => { sessionSentReminder.value = true; },
+  });
+}
+
+async function handleSendThankYouMails() {
+  await handleBulkMail({
+    endpoint: 'send-thank-you-mails',
+    confirmation: 'Dankes-E-Mails wirklich einmalig an alle Kandidat:innen mit eingereichten Antworten versenden?',
+    loading: loadingThankYou,
+    setSessionSent: () => { sessionSentThankYou.value = true; },
+  });
+}
+
+async function handleBulkMail({
+  endpoint,
+  confirmation,
+  loading,
+  setSessionSent,
+}: {
+  endpoint: string;
+  confirmation: string;
+  loading: Ref<boolean>;
+  setSessionSent: () => void;
+}) {
+  const confirmed = window.confirm(confirmation);
   if (!confirmed) return;
 
-  loadingMails.value = true;
+  loading.value = true;
   try {
-    const result = await callEndpoint<MailSendResult>('send-mails');
+    const result = await callEndpoint<MailSendResult>(endpoint);
     const sentCount = result.sentCount ?? 0;
     const failedCount = result.failedCount ?? 0;
     const skippedCount = result.skippedCount ?? 0;
 
     mailSummary.value = result;
-    sessionSent.value = sentCount > 0;
+    if (sentCount > 0) setSessionSent();
 
     if (failedCount > 0) {
       showFeedback(
@@ -494,7 +634,7 @@ async function handleSendMails() {
   } catch (err) {
     showFeedback('danger', `Fehler: ${extractErrorMessage(err)}`);
   } finally {
-    loadingMails.value = false;
+    loading.value = false;
   }
 }
 

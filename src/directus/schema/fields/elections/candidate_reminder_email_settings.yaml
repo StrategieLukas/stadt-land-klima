@@ -1,0 +1,33 @@
+collection: elections
+field: candidate_reminder_email_settings
+type: alias
+meta:
+  collection: elections
+  conditions: null
+  display: null
+  display_options: null
+  field: candidate_reminder_email_settings
+  group: null
+  hidden: false
+  interface: group-detail
+  note: null
+  options:
+    start: closed
+  readonly: false
+  required: false
+  searchable: true
+  sort: 20
+  special:
+    - alias
+    - group
+    - no-data
+  translations:
+    - language: de-DE
+      translation: Reminder-E-Mail
+    - language: en-GB
+      translation: Reminder email
+    - language: it-IT
+      translation: Email di promemoria
+  validation: null
+  validation_message: null
+  width: full
