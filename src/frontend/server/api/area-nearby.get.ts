@@ -15,11 +15,8 @@ export default defineEventHandler(async (event) => {
 
   if (!ars.trim()) return { areas: [] }
 
-  const config  = useRuntimeConfig()
-  const baseUrl = (config.stadtlandzahlServerBaseUrl as string) || (config.public.stadtlandzahlBaseUrl as string)
-
   try {
-    return await $fetch(`${baseUrl}/api/areas/${encodeURIComponent(ars)}/nearby/`, {
+    return await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/nearby/`, {
       params: { radius_km: radiusKm, levels, limit },
     })
   } catch {

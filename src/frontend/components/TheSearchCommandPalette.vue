@@ -21,7 +21,7 @@
             : `left: 50%; transform: translateX(-50%); width: 100%; max-width: 36rem; padding: 0 1rem; top: 80px`"
         >
           <div
-            class="bg-white overflow-hidden flex flex-col"
+            class="palette-panel flex flex-col overflow-hidden"
             :class="embeddedInput ? 'rounded-2xl border border-gray-200 shadow-xl' : 'rounded-2xl shadow-2xl'"
             style="max-height: 76vh"
             role="dialog"
@@ -30,7 +30,7 @@
             @click.stop
           >
             <!-- Input row — hidden when the header's embedded input is active -->
-            <div v-if="!embeddedInput" class="flex items-center border-b border-gray-200 px-4 gap-3">
+            <div v-if="!embeddedInput" class="palette-input-row flex items-center gap-3 border-b px-4">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
               </svg>
@@ -89,7 +89,7 @@
                   <li
                     v-for="result in group.results"
                     :key="result._key ?? result._flatIndex"
-                    class="palette-result px-4 py-3 cursor-pointer border-b border-gray-50 last:border-b-0 transition-colors"
+                    class="palette-result cursor-pointer border-b px-4 py-3 transition-colors last:border-b-0"
                     :class="focusedIndex === result._flatIndex ? 'palette-result--focused' : ''"
                     @click="navigate(result)"
                     @mouseenter="focusedIndex = result._flatIndex"
@@ -133,7 +133,7 @@
             </div>
 
             <!-- Footer hint -->
-            <div class="border-t border-gray-100 px-4 py-2 flex items-center gap-4 text-xs text-gray-400">
+            <div class="palette-footer flex items-center gap-4 border-t px-4 py-2 text-xs text-gray-400">
               <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> navigieren</span>
               <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> öffnen</span>
               <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> schließen</span>
@@ -317,13 +317,26 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 .palette-fade-leave-to {
   opacity: 0;
 }
-.palette-group-header {
-  background-color: #f3f4f6;
-  border-bottom: 1px solid #e5e7eb;
-  color: #6b7280;
+.palette-panel {
+  background-color: var(--slk-surface);
+  border-color: var(--slk-border);
+  color: var(--slk-text);
 }
-.palette-result:hover,
+.palette-input-row,
+.palette-footer,
+.palette-result {
+  border-color: var(--slk-border);
+}
+.palette-group-header {
+  background-color: var(--slk-surface-subdued);
+  border-bottom: 1px solid var(--slk-border);
+  color: var(--slk-text-muted);
+}
+.palette-result:hover {
+  background-color: var(--slk-surface-muted);
+}
 .palette-result--focused {
-  background-color: #e5e7eb; /* gray-200 — clearly visible on white */
+  background-color: var(--slk-blue-tint);
+  box-shadow: inset 3px 0 0 var(--slk-blue);
 }
 </style>

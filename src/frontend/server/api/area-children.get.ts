@@ -20,9 +20,6 @@ export default defineEventHandler(async (event) => {
 
   if (!level) return []
 
-  const config = useRuntimeConfig()
-  const restUrl = (config.stadtlandzahlServerBaseUrl as string) || (config.public.stadtlandzahlBaseUrl as string)
-
   const numLevel = parseInt(level, 10)
   if (isNaN(numLevel)) return []
 
@@ -40,7 +37,7 @@ export default defineEventHandler(async (event) => {
     }
     if (safePrefix) params.ars = safePrefix
 
-    const res = await $fetch<unknown>(`${restUrl}/api/areas/`, { params })
+    const res = await fetchStadtlandzahl<unknown>('/api/areas/', { params })
 
     // Handle both plain array and paginated { results: [...] } responses
     const raw: Record<string, unknown>[] = Array.isArray(res)

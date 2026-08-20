@@ -2,7 +2,7 @@
   <component
     :is="href ? 'a' : 'button'"
     v-bind="linkAttrs"
-    class="canonical-button inline-flex items-stretch rounded-md text-sm font-bold transition-all no-underline overflow-hidden whitespace-nowrap shadow-sm ring-1 ring-inset ring-white/20"
+    class="canonical-button inline-flex items-stretch rounded-md text-sm font-bold no-underline overflow-hidden whitespace-nowrap shadow-sm ring-1 ring-inset ring-white/20"
     :class="[bgClass, textClass]"
     :style="{ '--btn-color': colorHex }"
   >
@@ -142,8 +142,14 @@ const linkAttrs = computed(() => {
 </script>
 
 <style scoped>
-.canonical-button:hover {
-  outline: 2px solid var(--btn-color);
+.canonical-button {
+  outline: 2px solid transparent;
   outline-offset: 2px;
+  transition: outline-color 150ms ease;
+}
+
+.canonical-button:hover,
+.canonical-button:focus-visible {
+  outline-color: var(--btn-color);
 }
 </style>

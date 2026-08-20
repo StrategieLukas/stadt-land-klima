@@ -17,11 +17,8 @@ export default defineEventHandler(async (event) => {
   const includeGeo = sp.get('includeGeo') === 'true'
   if (!slug.trim()) return null
 
-  const config = useRuntimeConfig()
-  const baseUrl = (config.stadtlandzahlServerBaseUrl as string) || (config.public.stadtlandzahlBaseUrl as string)
-
   try {
-    const data = await $fetch<Record<string, unknown>>(`${baseUrl}/api/areas/${encodeURIComponent(slug)}/`)
+    const data = await fetchStadtlandzahl<Record<string, unknown>>(`/api/areas/${encodeURIComponent(slug)}/`)
     if (!includeGeo && data && typeof data === 'object') {
       const { geo_area: _geo, ...rest } = data
       return rest

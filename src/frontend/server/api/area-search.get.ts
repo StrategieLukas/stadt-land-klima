@@ -47,12 +47,8 @@ function normalise(area: RestArea) {
   }
 }
 
-async function fetchFromRest(baseUrl: string, params: Record<string, string>) {
-  const url = new URL(`${baseUrl}/api/search/areas/`)
-  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
-  const res = await fetch(url.toString())
-  if (!res.ok) throw new Error(`[area-search] REST ${res.status}: ${url}`)
-  const json = await res.json() as RestSearchResponse
+async function fetchFromRest(params: Record<string, string>) {
+  const json = await fetchStadtlandzahl<RestSearchResponse>('/api/search/areas/', { params })
   return (json.results ?? []).map(normalise)
 }
 
@@ -63,8 +59,6 @@ export default defineEventHandler(async (event) => {
 
   if (!term || !term.trim()) return []
 
-  const config = useRuntimeConfig()
-  const baseUrl = (config.stadtlandzahlServerBaseUrl as string) || (config.public.stadtlandzahlBaseUrl as string)
   const q = term.trim()
 
   try {
@@ -72,8 +66,8 @@ export default defineEventHandler(async (event) => {
       // Two parallel requests: one for all areas (filtered to level ≤ 3 client-side)
       // and one for reasonable municipalities.
       const [allSettled, muniSettled] = await Promise.allSettled([
-        fetchFromRest(baseUrl, { q }),
-        fetchFromRest(baseUrl, { q, is_reasonable_for_municipal_rating: 'true' }),
+        fetchFromRest({ q }),
+        fetchFromRest({ q, is_reasonable_for_municipal_rating: 'true' }),
       ])
       const allNodes = allSettled.status === 'fulfilled' ? allSettled.value : []
       const muniNodes = muniSettled.status === 'fulfilled' ? muniSettled.value : []
@@ -85,9 +79,9 @@ export default defineEventHandler(async (event) => {
       }
       return merged
     } else if (mode === 'reasonable') {
-      return await fetchFromRest(baseUrl, { q, is_reasonable_for_municipal_rating: 'true' })
+      return await fetchFromRest({ q, is_reasonable_for_municipal_rating: 'true' })
     } else {
-      return await fetchFromRest(baseUrl, { q })
+      return await fetchFromRest({ q })
     }
   } catch (err) {
     console.error('[area-search] failed:', err)

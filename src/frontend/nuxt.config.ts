@@ -29,8 +29,13 @@ export default defineNuxtConfig({
     welcomeEmailTutorialUrl: process.env.WELCOME_EMAIL_TUTORIAL_URL,
     welcomeEmailCalendarUrl: process.env.WELCOME_EMAIL_CALENDAR_URL,
     welcomeEmailSignalUrl: process.env.WELCOME_EMAIL_SIGNAL_URL,
+    // Private Stadtlandzahl upstream configuration. Browser requests use the
+    // same-origin proxy exposed through public.stadtlandzahlBaseUrl below.
+    stadtlandzahlBaseUrl: process.env.STADTLANDZAHL_BASE_URL,
     // Server-side base URL for stadtlandzahl backend (Docker container name/URL, no path).
     stadtlandzahlServerBaseUrl: process.env.STADTLANDZAHL_SERVER_BASE_URL,
+    stadtlandzahlBasicAuthUser: process.env.STADTLANDZAHL_BASE_HTTP_BASIC_AUTH_USER,
+    stadtlandzahlBasicAuthPassword: process.env.STADTLANDZAHL_BASE_HTTP_BASIC_AUTH_PASSWORD,
     frontendBasicAuthUsername: process.env.FRONTEND_BASIC_AUTH_USERNAME,
     frontendBasicAuthPassword: process.env.FRONTEND_BASIC_AUTH_PASSWORD,
     // Keys within public, will be also exposed to the client-side
@@ -41,8 +46,8 @@ export default defineNuxtConfig({
       appEnv: process.env.APP_ENV,
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
-      // Public base URL of the stadtlandzahl API — no trailing slash, no path segment.
-      stadtlandzahlBaseUrl: process.env.STADTLANDZAHL_BASE_URL,
+      // Same-origin browser proxy. The real upstream URL and credentials stay private.
+      stadtlandzahlBaseUrl: "/api/stadtlandzahl",
     },
   },
   devtools: { enabled: true },

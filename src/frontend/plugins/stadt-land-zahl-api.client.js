@@ -1,20 +1,15 @@
 import { useRuntimeConfig } from "#app";
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client/core'
 import gql from 'graphql-tag'
-import resolveForBrowser from '~/shared/resolveForBrowser.js'
 
 export default defineNuxtPlugin(() => {
   const runtimeConfig = useRuntimeConfig();
-  const stadtlandzahlBaseURL = resolveForBrowser(runtimeConfig.public.stadtlandzahlBaseUrl)
+  const stadtlandzahlBaseURL = runtimeConfig.public.stadtlandzahlBaseUrl
   const stadtlandzahlURL = `${stadtlandzahlBaseURL}/graphql/`
-
-  // The stadtlandzahl API returns `access-control-allow-origin: *`, so browser
-  // requests can go directly to the API without any proxy.
-  const resolvedGraphqlURL = stadtlandzahlURL;
 
   // Create HTTP link
   const httpLink = new HttpLink({
-    uri: resolvedGraphqlURL,
+    uri: stadtlandzahlURL,
   })
 
   // Create Apollo client
@@ -65,7 +60,6 @@ export default defineNuxtPlugin(() => {
 
   const fetchStatsByARS = async (ars) => {
     try {
-      // The stadtlandzahl API allows CORS from all origins, so use the direct URL.
       const url = `${stadtlandzahlBaseURL}/api/areas/${ars}/?format=json`
       console.log('Fetching from URL:', url)
       
@@ -244,8 +238,8 @@ export default defineNuxtPlugin(() => {
   /**
    * Unified area search used by useAreaSearch composable.
    * Delegates to the /api/area-search server route so the GraphQL request
-   * is made server-side — this avoids mobile network/CORS issues that arise
-   * when the browser fetches data.stadt-land-klima.de directly.
+   * is made server-side — this avoids mobile network/CORS issues and keeps
+   * Stadtlandzahl credentials out of the browser.
    *
    * mode: 'normal'     → level 1-3 areas + reasonable municipalities
    *       'reasonable' → isReasonableForMunicipalRating only

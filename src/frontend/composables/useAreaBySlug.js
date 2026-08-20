@@ -16,7 +16,7 @@ export function areaToSlug(prefix, name) {
 }
 
 /**
- * Resolve a slug like "stadtkreis-karlsruhe" to a full area object.
+ * Resolve a slug like "stadtkreis_karlsruhe" to a full area object.
  * Calls the Nuxt server route /api/area-by-slug which proxies to the REST
  * areas endpoint (works in both SSR and CSR contexts).
  */

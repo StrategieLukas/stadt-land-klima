@@ -146,7 +146,10 @@
       </div>
 
       <!-- RATED_IN_PROGRESS / RATED_DRAFT: help the team complete the rating -->
-      <div v-else-if="pageView === PV.RATED_IN_PROGRESS || pageView === PV.RATED_DRAFT" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-yellow-50">
+      <div
+        v-else-if="pageView === PV.RATED_IN_PROGRESS || pageView === PV.RATED_DRAFT"
+        class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+      >
         <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
         <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
         <p class="text-gray-600 max-w-sm mb-6">
@@ -210,13 +213,15 @@
   </div>
 
   <!-- SLZ_FOUND: no score, area found in Stadt-Land-Zahl (ARS-based page) -->
-  <div v-else-if="pageView === PV.SLZ_FOUND">
+  <div v-else-if="pageView === PV.SLZ_FOUND" class="slk-municipality-pending">
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
     </NuxtLink>
     <article class="mb-8 mt-10">
       <!-- Header band (mirrors ItemRanking, no score) -->
-      <div class="relative mb-3 flex items-stretch gap-4 py-5 pl-10 pr-4" style="background-color: #e5e7eb;">
+      <div
+        class="slk-municipality-pending-header relative mb-3 flex items-stretch gap-4 py-5 pl-10 pr-4"
+      >
         <div class="relative h-full pt-6">
           <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
           <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black">?</div>
@@ -225,7 +230,7 @@
           <h3 class="font-heading text-h2 font-bold text-black">{{ slzArea.name }}</h3>
           <p class="text-sm text-gray-500">{{ slzArea.prefix }}</p>
           <!-- Gray placeholder bar instead of score progress -->
-          <div class="mt-2 h-3 w-full rounded bg-gray-300 opacity-60"></div>
+          <div class="slk-municipality-pending-progress mt-2 h-3 w-full rounded"></div>
         </div>
         <div v-if="slzArea.geo_center" class="flex items-center flex-shrink-0">
           <GermanyMapIndicator
@@ -239,9 +244,14 @@
       <!-- Mobile layout -->
       <div class="block lg:hidden mt-6 space-y-4">
         <!-- Info box -->
-        <div class="rounded-sm shadow-list">
+        <div class="slk-municipality-pending-card rounded-sm shadow-list">
           <div class="flex items-center gap-2 px-6 py-4">
-            <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
+            <img
+              src="~/assets/icons/icon_info.svg"
+              alt=""
+              class="slk-theme-icon--light h-6 w-6 opacity-60"
+            />
+            <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-theme-icon--dark h-6 w-6" />
             <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
           </div>
           <div class="px-6 pb-6 space-y-3">
@@ -263,7 +273,12 @@
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
+                <img
+                  src="~/assets/icons/icon_politics.svg"
+                  alt=""
+                  class="slk-theme-icon--light h-5 w-5 opacity-60"
+                />
+                <img src="~/assets/icons/icon_politics-dark.svg" alt="" class="slk-theme-icon--dark h-5 w-5" />
                 <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
               </div>
               <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
@@ -283,14 +298,26 @@
         <!-- Stats link -->
         <NuxtLink
           :to="`/stats/${slzArea.ars}`"
-          class="shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
+          class="slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
         >
-          <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-auto w-12 opacity-50 md:w-14" />
+          <img
+            src="~/assets/icons/icon_evaluation_criteria.svg"
+            alt=""
+            class="slk-municipality-cta-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14"
+          />
+          <img
+            src="~/assets/icons/icon_evaluation_criteria-dark.svg"
+            alt=""
+            class="slk-municipality-cta-icon slk-theme-icon--dark h-auto w-12 md:w-14"
+          />
           <h2 class="font-heading text-h2">{{ $t("stats.title") }} →</h2>
         </NuxtLink>
 
         <!-- CTA: support existing localteam or invite to found one -->
-        <div v-if="hasLocalteam" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-yellow-50">
+        <div
+          v-if="hasLocalteam"
+          class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+        >
           <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
           <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
           <p class="text-gray-600 max-w-sm mb-6">
@@ -304,7 +331,10 @@
             color="dark-green"
           />
         </div>
-        <div v-else class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
+        <div
+          v-else
+          class="slk-municipality-pending-card slk-municipality-pending-card--found flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+        >
           <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
           <h2 class="font-heading text-h2 font-bold text-green mb-2">Lokalteam gründen</h2>
           <p class="text-gray-600 max-w-sm mb-6">
@@ -324,7 +354,10 @@
       <div class="hidden lg:grid lg:grid-cols-3 lg:gap-8 mt-6">
         <!-- Left column (2/3): CTA -->
         <div class="lg:col-span-2">
-          <div v-if="hasLocalteam" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-yellow-50">
+          <div
+            v-if="hasLocalteam"
+            class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+          >
             <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
             <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
             <p class="text-gray-600 max-w-sm mb-6">
@@ -338,7 +371,10 @@
               color="dark-green"
             />
           </div>
-          <div v-else class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
+          <div
+            v-else
+            class="slk-municipality-pending-card slk-municipality-pending-card--found flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+          >
             <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
             <h2 class="font-heading text-h2 font-bold text-green mb-2">Lokalteam gründen</h2>
             <p class="text-gray-600 max-w-sm mb-6">
@@ -358,9 +394,14 @@
         <div class="lg:col-span-1 pb-4">
           <div class="sticky top-24 space-y-6">
             <!-- Info box -->
-            <div class="rounded-sm shadow-list">
+            <div class="slk-municipality-pending-card rounded-sm shadow-list">
               <div class="flex items-center gap-2 px-6 py-4">
-                <img src="~/assets/icons/icon_info.svg" class="h-6 w-6 opacity-60" />
+                <img
+                  src="~/assets/icons/icon_info.svg"
+                  alt=""
+                  class="slk-theme-icon--light h-6 w-6 opacity-60"
+                />
+                <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-theme-icon--dark h-6 w-6" />
                 <h3 class="font-heading text-h3 text-green">{{ $t("municipality.municipality_info") }}</h3>
               </div>
               <div class="px-6 pb-6 space-y-3">
@@ -382,7 +423,12 @@
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <img src="~/assets/icons/icon_politics.svg" class="h-5 w-5 opacity-60" />
+                    <img
+                      src="~/assets/icons/icon_politics.svg"
+                      alt=""
+                      class="slk-theme-icon--light h-5 w-5 opacity-60"
+                    />
+                    <img src="~/assets/icons/icon_politics-dark.svg" alt="" class="slk-theme-icon--dark h-5 w-5" />
                     <span class="text-sm text-gray-700">{{ $t("municipality.mayor") }}</span>
                   </div>
                   <span class="text-sm font-bold text-gray-400 italic">{{ $t("generic.not_entered") }}</span>
@@ -402,9 +448,18 @@
             <!-- Stats link -->
             <NuxtLink
               :to="`/stats/${slzArea.ars}`"
-              class="shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
+              class="slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
             >
-              <img src="~/assets/icons/icon_evaluation_criteria.svg" class="h-6 w-6 opacity-60" />
+              <img
+                src="~/assets/icons/icon_evaluation_criteria.svg"
+                alt=""
+                class="slk-municipality-cta-icon slk-theme-icon--light h-6 w-6 opacity-60"
+              />
+              <img
+                src="~/assets/icons/icon_evaluation_criteria-dark.svg"
+                alt=""
+                class="slk-municipality-cta-icon slk-theme-icon--dark h-6 w-6"
+              />
               <h3 class="font-heading text-h3">{{ $t("stats.title") }} →</h3>
             </NuxtLink>
 
@@ -437,7 +492,7 @@
 
 
 <script setup>
-const { $directus, $readItems, $stadtlandzahlAPI, $t } = useNuxtApp();
+const { $directus, $readItems, $t } = useNuxtApp();
 const router = useRouter();
 
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
@@ -468,18 +523,22 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
 
 const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id, route.query.preview === 'true');
 
-// If no Directus data, fetch from Stadt-Land-Zahl with a loading state
-const { data: slzArea, pending: slzPending } = useAsyncData(
+// If no Directus data, fetch the area through the Nuxt server endpoint so the
+// same lookup works during SSR and client-side navigation.
+const slzAreaLookup = useAsyncData(
   `slz-area-${route.params.slug}`,
   async () => {
-    if (directusData?.municipalityScore || !$stadtlandzahlAPI) return false;
+    if (directusData?.municipalityScore) return false;
     try {
-      const data = await $stadtlandzahlAPI.fetchStatsByARS(route.params.slug);
+      const data = await $fetch('/api/area-by-slug', {
+        query: { slug: route.params.slug },
+      });
       if (data?.name) {
+        const stateArea = data.contained_by?.find((area) => area.level === 2);
         return {
           name: data.name,
           prefix: data.prefix ?? '',
-          state: data.state ?? null,
+          state: stateArea?.name ?? data.state ?? null,
           ars: data.ars ?? route.params.slug,
           population: data.data_products?.population_data?.population ?? null,
           geo_center: data.geo_center ?? null,
@@ -494,7 +553,7 @@ const { data: slzArea, pending: slzPending } = useAsyncData(
 
 // When there is no score data, directly fetch the municipality by slug to check
 // preview_token / creator_verified (gates locked preview for newly registered municipalities).
-const { data: directusMuniBySlug } = useAsyncData(
+const directusMuniBySlugLookup = useAsyncData(
   `directus-muni-slug-${route.params.slug}`,
   async () => {
     if (directusData?.municipalityScore) return false;
@@ -515,7 +574,7 @@ const { data: directusMuniBySlug } = useAsyncData(
 
 // When the slug is an ARS (unpublished municipality), check if Directus has
 // a municipality record with that ARS that already has a localteam.
-const { data: directusMuniByArs } = useAsyncData(
+const directusMuniByArsLookup = useAsyncData(
   `directus-muni-ars-${route.params.slug}`,
   async () => {
     if (directusData?.municipalityScore) return false;
@@ -533,6 +592,15 @@ const { data: directusMuniByArs } = useAsyncData(
     }
   }
 );
+
+// These lookups determine whether the route is valid. Waiting for all of them
+// prevents SSR from serialising an unresolved/false area result and prevents
+// the immediate 404 watcher from winning a race against Directus.
+const [
+  { data: slzArea, pending: slzPending },
+  { data: directusMuniBySlug },
+  { data: directusMuniByArs },
+] = await Promise.all([slzAreaLookup, directusMuniBySlugLookup, directusMuniByArsLookup]);
 
 // Centralised page-view state. All 9 cases are documented in useMunicipalityPageState.js.
 // Debug tip: console.log(pageView.value) to see which view is active.

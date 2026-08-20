@@ -11,11 +11,8 @@ export default defineEventHandler(async (event) => {
   const ars = sp.get('ars') ?? ''
   if (!ars.trim()) return { ancestors: [] }
 
-  const config  = useRuntimeConfig()
-  const baseUrl = (config.stadtlandzahlServerBaseUrl as string) || (config.public.stadtlandzahlBaseUrl as string)
-
   try {
-    return await $fetch(`${baseUrl}/api/areas/${encodeURIComponent(ars)}/ancestors/`)
+    return await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/ancestors/`)
   } catch {
     return { ancestors: [] }
   }

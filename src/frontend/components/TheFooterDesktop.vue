@@ -1,6 +1,6 @@
 <template>
   <!-- Social Media Section -->
-  <div class="w-full bg-gray-100 border-t border-gray-200">
+  <div class="w-full bg-gray-100">
   <div class="max-w-screen-xl mx-auto text-center py-8">
     <p class="mb-4">
       {{ $t("generic.social_media.support_by_sharing") }}
@@ -32,9 +32,16 @@
   </div>
 
   <!-- Main Footer -->
-  <footer class="footer footer-center bg-olive-green px-4 py-10 text-white xl:px-10">
+  <footer class="footer footer-center relative isolate overflow-hidden bg-olive-green px-4 py-10 text-white xl:px-10">
+    <img
+      src="~/assets/images/Stadt-Land-Klima-Blume.svg"
+      alt=""
+      aria-hidden="true"
+      class="pointer-events-none absolute left-1/2 top-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 select-none brightness-0 invert opacity-[0.08]"
+    />
+
     <!-- Newsletter Signup -->
-    <div class="mx-auto mb-8 w-full max-w-screen-xl border-b border-rating-4-light pb-8">
+    <div class="relative z-10 mx-auto mb-10 w-full max-w-screen-xl">
       <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-10">
         <div class="max-w-xs flex-shrink-0">
           <h3 class="text-lg font-bold">Newsletter</h3>
@@ -74,16 +81,12 @@
     </div>
 
     <!-- Navigation Links: footer_columns (from navigation_config) -->
-    <div v-if="footerColumnsData.length > 0" class="mx-auto mb-8 w-full max-w-screen-xl">
+    <div v-if="footerColumnsData.length > 0" class="relative z-10 mx-auto mb-10 w-full max-w-screen-xl">
       <div
-        class="grid w-full gap-8"
+        class="grid w-full gap-x-12 gap-y-8"
         :style="{ gridTemplateColumns: `repeat(${footerColumnsData.length}, minmax(0, 1fr))` }"
       >
-        <nav
-          v-for="(col, index) in footerColumnsData"
-          :key="col.id"
-          :class="['flex flex-col gap-2 text-left', index !== 0 ? 'border-l border-rating-4-light pl-6' : '']"
-        >
+        <nav v-for="col in footerColumnsData" :key="col.id" class="flex flex-col gap-2 text-left">
           <h6 class="footer-title mb-2 flex min-h-[3rem] items-start font-bold text-white opacity-100">
             {{ navTitle(col) }}
           </h6>
@@ -104,8 +107,13 @@
       </div>
     </div>
 
+    <!-- Condensed organisation details -->
+    <div class="relative z-10 mx-auto mb-10 w-full max-w-screen-xl">
+      <FooterOrganizationDetails />
+    </div>
+
     <!-- Bottom Section: Logo, Buttons, Copyright -->
-    <div class="mx-auto w-full max-w-screen-xl border-t border-rating-4-light py-8">
+    <div class="relative z-10 mx-auto w-full max-w-screen-xl pb-4 pt-2">
       <div class="flex w-full flex-col items-center justify-between gap-6 lg:flex-row">
         <!-- Logo -->
         <div class="flex-shrink-0">

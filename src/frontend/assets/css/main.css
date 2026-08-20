@@ -615,6 +615,32 @@ html[data-theme="staedteChallengeDark"] .slk-chart-panel {
   color: var(--slk-text);
 }
 
+.slk-municipality-pending-header {
+  background-color: var(--slk-surface-muted);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-text);
+}
+
+.slk-municipality-pending-progress {
+  background-color: var(--slk-border-strong);
+}
+
+.slk-municipality-pending-card {
+  background-color: var(--slk-surface);
+  border: 1px solid var(--slk-border);
+  color: var(--slk-text);
+}
+
+.slk-municipality-pending-card--support {
+  background-color: var(--slk-orange-tint);
+  border-color: color-mix(in srgb, var(--slk-orange) 55%, var(--slk-border));
+}
+
+.slk-municipality-pending-card--found {
+  background-color: var(--slk-green-tint);
+  border-color: color-mix(in srgb, var(--slk-green) 55%, var(--slk-border));
+}
+
 html[data-theme="staedteChallengeDark"] .stats-page {
   background-color: var(--slk-page);
   color: var(--slk-text);

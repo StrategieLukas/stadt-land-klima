@@ -328,16 +328,11 @@ async function fetchQueryData(queryConfig: any, source: string): Promise<any[] |
     // 3. { "url": "/api/areas/...", "dataPath": "..." }
     if (queryConfig.url) {
       const baseUrl = config.public.stadtlandzahlBaseUrl as string
-      const url = queryConfig.url.startsWith('http')
-        ? queryConfig.url
-        : `${baseUrl}${queryConfig.url}`
-
-      // Validate URL is from expected origin
-      const allowedOrigin = new URL(baseUrl).origin
-      const requestOrigin = new URL(url).origin
-      if (requestOrigin !== allowedOrigin) {
-        throw new Error('REST queries are restricted to the stadtlandzahl API')
-      }
+      // Older CMS entries may contain an absolute Stadtlandzahl URL. Discard
+      // its origin and send only its path/query through the fixed server proxy.
+      const configuredUrl = new URL(queryConfig.url, window.location.origin)
+      const proxyPath = `${configuredUrl.pathname}${configuredUrl.search}`
+      const url = proxyPath.startsWith(`${baseUrl}/`) ? proxyPath : `${baseUrl}${proxyPath}`
 
       const response = await fetch(url)
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
