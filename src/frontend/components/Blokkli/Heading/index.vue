@@ -1,17 +1,25 @@
 <template>
-  <div class="blokkli-block-heading-wrapper" :id="'block-' + uuid" :class="[alignClass]">
+  <div
+    class="blokkli-block-heading-wrapper"
+    :id="getBlokkliBlockId(options.anchor, uuid)"
+    :class="[alignClass]"
+  >
     <component
       :is="headingTag"
       v-blokkli-editable:text
-      class="blokkli-block-heading font-bold"
-      :class="[colorClass, sizeClass]"
-    >{{ props.text || '' }}</component>
+      class="blokkli-block-heading whitespace-pre-line"
+      :class="[colorClass, sizeClass, weightClass]"
+      v-html="props.text || ''"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { getBlokkliBlockId } from '~/utils/blokkliLinks'
+
 const { options, uuid } = defineBlokkli({
   bundle: 'heading',
+  globalOptions: ['anchor'],
   options: {
     level: {
       type: 'radios',
@@ -23,8 +31,17 @@ const { options, uuid } = defineBlokkli({
         h2: 'H2',
         h3: 'H3',
         h4: 'H4',
-        h5: 'H5',
-        h6: 'H6'
+      },
+    },
+    weight: {
+      type: 'radios',
+      label: 'Schriftstärke',
+      default: 'bold',
+      options: {
+        light: 'Leicht',
+        normal: 'Normal',
+        semibold: 'Halbfett',
+        bold: 'Fett',
       },
     },
     color: {
@@ -74,6 +91,16 @@ const props = defineProps<{
 }>()
 
 const headingTag = computed(() => options.value.level || 'h2')
+
+const weightClass = computed(() => {
+  const map: Record<string, string> = {
+    light: 'font-light',
+    normal: 'font-normal',
+    semibold: 'font-semibold',
+    bold: 'font-bold',
+  }
+  return map[options.value.weight] || 'font-bold'
+})
 
 const sizeClass = computed(() => {
   const map: Record<string, string> = {

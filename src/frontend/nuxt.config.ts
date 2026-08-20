@@ -6,6 +6,15 @@ export default defineNuxtConfig({
   blokkli: {
     itemEntityType: "block",
     defaultLanguage: "de",
+    globalOptions: {
+      anchor: {
+        type: "text",
+        label: "Anker",
+        default: "",
+        inputType: "text",
+        group: "Link & Anker",
+      },
+    },
     // Block components location pattern
     pattern: ["components/Blokkli/**/*.vue"],
   },
