@@ -3,7 +3,7 @@
     v-if="item"
     entity-type="news_items"
     entity-bundle="news_item"
-    :entity-uuid="item.slug"
+    :entity-uuid="item.id"
     :can-edit="canEdit"
     :entity="item"
   >
@@ -145,6 +145,7 @@ import { readItems, updateItem } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useReferrer } from '~/composables/useReferrer'
 import { formatBerlinDate } from '~/shared/eventDateTime'
+import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
 
 import { isRaster } from '~/shared/utils'
 const { $directus, $readItems, $t, $locale } = useNuxtApp()
@@ -203,8 +204,13 @@ onMounted(async () => {
   authChecked.value = true
 })
 
+const blocksKey = getBlokkliDataKey(
+  'news_items',
+  String(item.value?.id || `missing-${route.params.slug}`),
+)
+
 const { data: blocksData } = await useAsyncData(
-  `blocks-news-${route.params.slug}`,
+  blocksKey,
   async () => {
     if (!item.value) return []
     try {
@@ -212,21 +218,17 @@ const { data: blocksData } = await useAsyncData(
         readItems('blocks', {
           filter: {
             entity_type: { _eq: 'news_items' },
-            entity_uuid: { _eq: item.value.slug },
+            entity_uuid: { _eq: item.value.id },
             field_name: { _eq: 'content' },
             status: { _neq: 'archived' },
           },
           sort: ['sort_order'],
         })
       )
-      return (blocks || []).map(block => ({
-        uuid: block.uuid,
-        bundle: block.bundle,
-        options: block.options || {},
-        props: block.props || {},
-      }))
-    } catch {
-      return []
+      return mapBlokkliBlocks(blocks)
+    } catch (error) {
+      console.error('[blokkli] Failed to load news blocks:', error)
+      throw error
     }
   },
   { watch: [item] }

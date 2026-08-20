@@ -1,38 +1,39 @@
 collection: edit_states
-field: entity_uuid
-type: string
+field: draft_blocks
+type: json
 meta:
   collection: edit_states
   conditions: null
   display: null
   display_options: null
-  field: entity_uuid
+  field: draft_blocks
   group: null
-  hidden: false
-  interface: input
-  note: Immutable Directus UUID of the entity being edited
+  hidden: true
+  interface: input-code
+  note: Recoverable snapshot of all unsaved Blökkli blocks
   options:
-    trim: true
+    language: JSON
   readonly: false
-  required: true
-  searchable: true
-  sort: 3
-  special: null
+  required: false
+  searchable: false
+  sort: 10
+  special:
+    - cast-json
   translations:
     - language: de-DE
-      translation: Entitäts-UUID
+      translation: Gesicherter Entwurf
   validation: null
   validation_message: null
-  width: half
+  width: full
 schema:
-  name: entity_uuid
+  name: draft_blocks
   table: edit_states
-  data_type: character varying
+  data_type: json
   default_value: null
-  max_length: 255
+  max_length: null
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_indexed: false
   is_primary_key: false

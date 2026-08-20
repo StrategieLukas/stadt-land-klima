@@ -270,6 +270,7 @@ export function buildBlockDoc(
   block: Record<string, any>,
   pageName: string,
   baseUrl = '',
+  entitySlug = block.entity_uuid,
 ): SiteContentDoc | null {
   const text = extractBlockText(block.bundle, block.props || {})
   if (!text) return null
@@ -278,7 +279,7 @@ export function buildBlockDoc(
     type: 'block',
     title: pageName || block.entity_uuid,
     text,
-    url: `${baseUrl}/${block.entity_uuid}#block-${block.uuid}`,
+    url: `${baseUrl}/${entitySlug}#block-${block.uuid}`,
     meta: bundleLabel(block.bundle),
   }
 }

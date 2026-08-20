@@ -1,38 +1,42 @@
-collection: edit_states
-field: entity_uuid
+collection: news_items
+field: author
 type: string
 meta:
-  collection: edit_states
+  collection: news_items
   conditions: null
   display: null
   display_options: null
-  field: entity_uuid
+  field: author
   group: null
   hidden: false
   interface: input
-  note: Immutable Directus UUID of the entity being edited
+  note: null
   options:
     trim: true
   readonly: false
-  required: true
+  required: false
   searchable: true
-  sort: 3
+  sort: 7
   special: null
   translations:
     - language: de-DE
-      translation: Entitäts-UUID
+      translation: Autor:in
+    - language: en-GB
+      translation: Author
+    - language: it-IT
+      translation: Autore:rice
   validation: null
   validation_message: null
   width: half
 schema:
-  name: entity_uuid
-  table: edit_states
+  name: author
+  table: news_items
   data_type: character varying
   default_value: null
   max_length: 255
   numeric_precision: null
   numeric_scale: null
-  is_nullable: false
+  is_nullable: true
   is_unique: false
   is_indexed: false
   is_primary_key: false
