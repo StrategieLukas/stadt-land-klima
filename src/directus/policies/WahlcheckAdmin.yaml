@@ -100,6 +100,14 @@ permissions:
       - already_sent_mails
       - already_sent_reminder_mails
       - already_sent_thank_you_mails
+      - descriptor
+      - is_public
+      - localteam
+      - response_cutoff_date
+      - simple_answer_mode
+      - custom_logo
+      - sharepic
+      - sharepic_dark
       - candidate_email_cc
       - candidate_email_reply_to
       - candidate_email_subject
@@ -141,6 +149,8 @@ permissions:
       - candidate_thank_you_email_subject
       - candidate_thank_you_email_template
       - custom_logo
+      - sharepic
+      - sharepic_dark
       - date_created
       - date_updated
       - descriptor
@@ -162,6 +172,13 @@ permissions:
       - already_sent_mails
       - already_sent_reminder_mails
       - already_sent_thank_you_mails
+      - descriptor
+      - is_public
+      - response_cutoff_date
+      - simple_answer_mode
+      - custom_logo
+      - sharepic
+      - sharepic_dark
       - candidate_email_cc
       - candidate_email_reply_to
       - candidate_email_subject

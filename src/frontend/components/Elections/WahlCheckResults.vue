@@ -12,20 +12,20 @@
     </div>
 
     <!-- Header -->
-    <div class="bg-white p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
+    <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <ElectionsWahlCheckLogo
           :logo="election?.custom_logo"
           fallback="flower"
           :alt="$t('logo.alt')"
-          logo-class="h-24 w-auto mx-auto object-contain"
-          fallback-class="h-24 w-auto mx-auto opacity-80"
+          logo-class="h-20 sm:h-24 w-auto mx-auto object-contain"
+          fallback-class="h-20 sm:h-24 w-auto mx-auto opacity-80"
         />
       </div>
-      <h2 class="text-2xl font-bold text-stats-dark mb-4">
+      <h2 class="text-xl sm:text-2xl font-bold text-stats-dark mb-4">
         {{ $t('elections.wahlcheck.results.title') }}
       </h2>
-      <p class="text-mid-gray max-w-2xl mx-auto">
+      <p class="text-mid-gray max-w-2xl mx-auto text-sm sm:text-base">
         {{ $t('elections.wahlcheck.results.description') }}
       </p>
       <p v-if="election" class="text-sm text-mid-gray mt-4">
@@ -41,28 +41,30 @@
       {{ nonRespondingCandidateLabels.join(', ') }}
     </p>
 
-    <!-- Bar Chart Overview -->
-    <div v-if="results.length > 0" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
-      <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
+    <!-- Bar Chart Overview (Requirement 7) -->
+    <div v-if="results.length > 0" class="bg-white p-4 sm:p-6 rounded-xl shadow-list border border-solid-gray-10">
+      <h3 class="text-lg sm:text-xl font-bold text-center text-stats-dark mb-6">
         {{ $t('elections.wahlcheck.results.all_candidates') }}
       </h3>
       <div class="space-y-4">
-        <div v-for="result in sortedResults" :key="result.candidateId" class="flex items-center gap-4">
-          <div class="w-64 flex-shrink-0">
-            <div class="flex items-baseline gap-2 min-h-[44px]">
-              <span class="font-bold text-stats-dark pt-1">{{ sortedResults.indexOf(result) + 1 }}.</span>
-              <div class="min-w-0">
-                <div class="text-sm font-bold text-black truncate">{{ getCandidateName(result.candidateId) }}</div>
-                <CandidatePartyLabel
-                  v-if="getCandidateParty(result.candidateId)"
-                  :party="getCandidateParty(result.candidateId)"
-                  :state="null"
-                  class="text-xs mt-0.5"
-                />
-              </div>
+        <div 
+          v-for="result in sortedResults" 
+          :key="result.candidateId" 
+          class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 pb-3 md:pb-0 border-b border-solid-gray-10 md:border-0 last:border-0"
+        >
+          <div class="w-full md:w-64 md:flex-shrink-0">
+            <div class="flex items-center flex-wrap gap-x-2 gap-y-1">
+              <span class="font-bold text-stats-dark">{{ sortedResults.indexOf(result) + 1 }}.</span>
+              <span class="text-sm font-bold text-black break-words hyphens-auto">{{ getCandidateName(result.candidateId) }}</span>
+              <CandidatePartyLabel
+                v-if="getCandidateParty(result.candidateId)"
+                :party="getCandidateParty(result.candidateId)"
+                :state="null"
+                class="text-xs"
+              />
             </div>
           </div>
-          <div class="flex-1">
+          <div class="w-full flex-1 min-w-0">
             <ProgressBar :scoreTotal="result.percentage" layout="default" />
           </div>
         </div>
@@ -70,66 +72,66 @@
     </div>
 
     <!-- Results Summary -->
-    <div v-if="results.length > 0" class="bg-gradient-to-r from-solid-ff-green-10 to-solid-stats-light-50 p-8 rounded-xl border border-solid-ff-green-30">
-      <h3 class="text-xl font-bold text-center text-stats-dark mb-6">
+    <div v-if="results.length > 0" class="bg-gradient-to-r from-solid-ff-green-10 to-solid-stats-light-50 p-4 sm:p-8 rounded-xl border border-solid-ff-green-30">
+      <h3 class="text-lg sm:text-xl font-bold text-center text-stats-dark mb-6">
         {{ $t('elections.wahlcheck.results.top_matches') }}
       </h3>
 
-      <!-- Animated Results List -->
+      <!-- Animated Results List (Requirement 8) -->
       <div class="space-y-4">
         <div
           v-for="(result, index) in sortedResults"
           :key="result.candidateId"
-          class="bg-white rounded-xl p-6 shadow-list border border-solid-gray-10 transition-all duration-500"
+          class="bg-white rounded-xl p-4 sm:p-6 shadow-list border border-solid-gray-10 transition-all duration-500"
           :style="{ animationDelay: `${index * 100}ms` }"
           :class="`fade-in-up animation-delay-${index}`"
           @mouseenter="hoveredCandidate = result.candidateId"
           @mouseleave="hoveredCandidate = null"
         >
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center justify-between gap-2.5 sm:gap-4">
             <!-- Rank -->
-            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-stats-dark text-white flex items-center justify-center font-bold text-xl shadow-lg">
+            <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-stats-dark text-white flex items-center justify-center font-bold text-base sm:text-xl shadow-md">
               {{ index + 1 }}
             </div>
 
-            <!-- Candidate Info -->
-            <div class="flex-1">
-              <div class="flex items-center gap-3">
-                <h4 class="text-lg font-bold text-black">
-                  {{ getCandidateName(result.candidateId) }}
-                </h4>
+            <!-- Candidate Info (Party Tag below name on mobile/desktop per Requirement 8) -->
+            <div class="flex-1 min-w-0">
+              <h4 class="text-base sm:text-lg font-bold text-black break-words hyphens-auto leading-snug">
+                {{ getCandidateName(result.candidateId) }}
+              </h4>
+              <div v-if="getCandidateParty(result.candidateId)" class="mt-1">
                 <CandidatePartyLabel
-                  v-if="getCandidateParty(result.candidateId)"
                   :party="getCandidateParty(result.candidateId)"
                   :state="null"
-                  class="text-xs"
+                  class="text-xs inline-block"
                 />
               </div>
             </div>
 
             <!-- Ranking Indicator -->
-            <div class="flex-shrink-0 w-20 flex flex-col items-center justify-center">
-              <div class="relative w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
+            <div class="flex-shrink-0 w-14 sm:w-20 flex flex-col items-center justify-center">
+              <div class="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-md">
                 <!-- Medal background -->
                 <div
                   class="absolute inset-0 rounded-full opacity-20"
                   :class="getRankingBgColor(sortedResults.indexOf(result) + 1)"
                 ></div>
                 <!-- Rank number -->
-                <span class="relative text-3xl font-bold" :class="getRankingColor(sortedResults.indexOf(result) + 1)">
+                <span class="relative text-2xl sm:text-3xl font-bold" :class="getRankingColor(sortedResults.indexOf(result) + 1)">
                   {{ sortedResults.indexOf(result) + 1 }}
                 </span>
               </div>
-              <span class="text-[10px] text-mid-gray uppercase tracking-wider mt-1">{{ $t('elections.wahlcheck.results.match') }}</span>
+              <span class="text-[9px] sm:text-[10px] text-mid-gray uppercase tracking-wider mt-0.5 sm:mt-1">{{ $t('elections.wahlcheck.results.match') }}</span>
             </div>
 
             <!-- Expand Button -->
             <button
               @click="toggleExpand(result.candidateId)"
-              class="btn btn-circle btn-ghost btn-sm hover:bg-solid-ff-green-10 transition-all"
+              class="btn btn-circle btn-ghost btn-sm hover:bg-solid-ff-green-10 transition-all flex-shrink-0"
               :class="{ 'rotate-180': expandedCandidate === result.candidateId }"
+              :aria-label="$t('elections.wahlcheck.results.details')"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-stats-dark transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-stats-dark transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -140,38 +142,38 @@
             v-if="expandedCandidate === result.candidateId"
             class="mt-6 pt-6 border-t border-solid-gray-10 overflow-hidden transition-all duration-300"
           >
-            <h5 class="font-bold text-stats-dark mb-4">{{ $t('elections.wahlcheck.results.details') }}</h5>
+            <h5 class="font-bold text-stats-dark mb-4 break-words hyphens-auto">{{ $t('elections.wahlcheck.results.details') }}</h5>
 
             <!-- Score Breakdown -->
             <div
               v-if="hasSectorAgreement(result.candidateId)"
-              class="grid grid-cols-2 gap-6 mb-6"
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6"
             >
-              <div class="bg-solid-rating-4-10 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
-                <div class="flex items-center justify-center mb-4">
+              <div class="bg-solid-rating-4-10 p-4 sm:p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-center mb-3 sm:mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
                     :src="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
-                    class="slk-sector-icon h-12 w-12 opacity-90"
+                    class="slk-sector-icon h-10 w-10 sm:h-12 sm:w-12 opacity-90"
                     :alt="getSectorAgreement(result.candidateId, 'highest').sector"
                   />
                 </div>
-                <div class="text-4xl font-bold text-rating-4">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
-                <div class="text-lg font-bold text-solid-rating-4-90 mt-2">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
-                <div class="text-sm text-solid-rating-4-60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.best_match") }}</div>
+                <div class="text-3xl sm:text-4xl font-bold text-rating-4">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
+                <div class="text-base sm:text-lg font-bold text-solid-rating-4-90 mt-2 break-words hyphens-auto">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
+                <div class="text-xs sm:text-sm text-solid-rating-4-60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.best_match") }}</div>
               </div>
-              <div class="bg-solid-stats-light-50 p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
-                <div class="flex items-center justify-center mb-4">
+              <div class="bg-solid-stats-light-50 p-4 sm:p-6 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-center mb-3 sm:mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
                     :src="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
-                    class="slk-sector-icon h-12 w-12 opacity-90"
+                    class="slk-sector-icon h-10 w-10 sm:h-12 sm:w-12 opacity-90"
                     :alt="getSectorAgreement(result.candidateId, 'lowest').sector"
                   />
                 </div>
-                <div class="text-4xl font-bold text-stats-dark">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
-                <div class="text-lg font-bold text-solid-stats-dark-80 mt-2">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
-                <div class="text-sm text-solid-stats-dark-60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.lowest_match") }}</div>
+                <div class="text-3xl sm:text-4xl font-bold text-stats-dark">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
+                <div class="text-base sm:text-lg font-bold text-solid-stats-dark-80 mt-2 break-words hyphens-auto">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
+                <div class="text-xs sm:text-sm text-solid-stats-dark-60 mt-1 uppercase tracking-wider">{{ $t("elections.wahlcheck.results.lowest_match") }}</div>
               </div>
             </div>
 
@@ -188,13 +190,82 @@
               </button>
             </div>
 
-            <!-- Question-by-Question Comparison Table -->
-            <div class="overflow-x-auto pb-2">
-              <div class="min-w-[640px]">
+            <!-- Mobile Question-by-Question Comparison Table (Requirement 5) -->
+            <div class="sm:hidden space-y-1">
+              <!-- Mobile Header -->
+              <div class="grid grid-cols-[1fr_48px_68px] gap-1 px-2.5 py-2 bg-solid-gray-10 rounded-t-lg font-semibold text-xs text-solid-gray-60 border-b border-solid-gray-20 items-center">
+                <div>{{ $t("elections.thesis") }}</div>
+                <div class="text-center">{{ $t("elections.wahlcheck.results.my_rating") }}</div>
+                <div class="text-center">{{ $t("elections.wahlcheck.results.candidate_rating") }}</div>
+              </div>
+
+              <!-- Mobile Rows -->
+              <div
+                v-for="(question, qIndex) in sortedExpandedQuestions"
+                :key="'mobile-' + question.id"
+                class="grid grid-cols-[1fr_48px_68px] gap-1 px-2.5 py-2.5 bg-white rounded-lg border-b border-solid-gray-10 last:border-0 hover:bg-mild-white items-center"
+              >
+                <!-- Thesis Title -->
+                <div class="text-xs text-black pr-1 min-w-0">
+                  <span class="break-words hyphens-auto font-medium leading-snug">{{ question.title }}</span>
+                  <span
+                    v-if="doubleWeightedQuestions.has(question.id)"
+                    class="ml-1 text-[10px] bg-orange text-white px-1.5 py-0.2 rounded-full font-bold inline-block"
+                    :title="$t('elections.wahlcheck.results.double_weighted')"
+                  >2×</span>
+                </div>
+
+                <!-- User Answer -->
+                <div class="flex justify-center">
+                  <div
+                    v-if="userAnswers[question.id] !== undefined"
+                    class="w-6 h-6 rounded-full shadow-sm"
+                    :class="getRatingColor(userAnswers[question.id])"
+                    :title="$t('elections.wahlcheck.results.my_rating_title', { ':rating': getRatingLabel(userAnswers[question.id]) })"
+                  ></div>
+                  <div v-else class="w-6 h-6 rounded-full bg-solid-gray-20"></div>
+                </div>
+
+                <!-- Candidate Answer -->
+                <div class="flex items-center justify-center gap-1">
+                  <div
+                    v-if="getCandidateAnswer(result.candidateId, question.id)"
+                    class="w-6 h-6 rounded-full shadow-sm flex-shrink-0"
+                    :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
+                    :title="$t('elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
+                  ></div>
+                  <div v-else class="w-6 h-6 rounded-full bg-solid-gray-20 flex-shrink-0"></div>
+                  
+                  <button
+                    v-if="getCandidateAnswer(result.candidateId, question.id)"
+                    type="button"
+                    class="btn btn-circle btn-ghost btn-xs h-6 min-h-6 w-6 p-0 border flex-shrink-0"
+                    :class="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? 'border-stats-dark/15 text-stats-dark hover:bg-stats-light' : 'border-gray/20 text-gray/40 hover:bg-gray/10'"
+                    :aria-label="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning')"
+                    :title="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning')"
+                    @click="openReasoning(result.candidateId, question)"
+                  >
+                    <span aria-hidden="true" class="text-xs font-bold leading-none">i</span>
+                  </button>
+                  <span
+                    v-else
+                    class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-gray/20 text-xs font-bold leading-none text-gray/30 flex-shrink-0"
+                    :title="$t('elections.wahlcheck.results.no_reasoning')"
+                    aria-hidden="true"
+                  >
+                    i
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Desktop Question-by-Question Comparison Table -->
+            <div class="hidden sm:block overflow-x-auto pb-2">
+              <div class="min-w-[560px] sm:min-w-[640px]">
                 <!-- Table Header -->
                 <div
-                  class="grid gap-2 px-3 py-2 bg-solid-gray-10 rounded-t-lg font-semibold text-sm text-solid-gray-60 border-b border-solid-gray-20"
-                  :class="hasQuestionSectors ? 'grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[40px_1fr_120px_120px]'"
+                  class="grid gap-2 px-3 py-2 bg-solid-gray-10 rounded-t-lg font-semibold text-xs sm:text-sm text-solid-gray-60 border-b border-solid-gray-20"
+                  :class="hasQuestionSectors ? 'grid-cols-[36px_1fr_60px_100px_100px] sm:grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[36px_1fr_100px_100px] sm:grid-cols-[40px_1fr_120px_120px]'"
                 >
                   <div class="text-center">#</div>
                   <div>{{ $t("elections.thesis") }}</div>
@@ -207,15 +278,15 @@
                 <div
                   v-for="(question, qIndex) in sortedExpandedQuestions"
                   :key="question.id"
-                  class="grid gap-2 px-3 py-2 bg-white rounded-lg border-b border-solid-gray-10 last:border-0 hover:bg-white transition-all"
-                  :class="hasQuestionSectors ? 'grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[40px_1fr_120px_120px]'"
+                  class="grid gap-2 px-3 py-2.5 bg-white rounded-lg border-b border-solid-gray-10 last:border-0 hover:bg-mild-white transition-all items-center"
+                  :class="hasQuestionSectors ? 'grid-cols-[36px_1fr_60px_100px_100px] sm:grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[36px_1fr_100px_100px] sm:grid-cols-[40px_1fr_120px_120px]'"
                 >
-                  <div class="text-sm text-solid-gray-50 text-center pt-1">{{ question.originalIndex + 1 }}.</div>
-                  <div class="text-sm text-black flex items-center gap-2">
-                    <span>{{ question.title }}</span>
+                  <div class="text-xs sm:text-sm text-solid-gray-50 text-center">{{ question.originalIndex + 1 }}.</div>
+                  <div class="text-xs sm:text-sm text-black flex items-center gap-2 flex-wrap">
+                    <span class="break-words hyphens-auto">{{ question.title }}</span>
                     <span
                       v-if="doubleWeightedQuestions.has(question.id)"
-                      class="text-xs bg-solid-ff-green-80 text-white px-1.5 py-0.5 rounded-full font-bold"
+                      class="text-[10px] sm:text-xs bg-orange text-white px-1.5 py-0.5 rounded-full font-bold"
                       :title="$t('elections.wahlcheck.results.double_weighted')"
                     >2×</span>
                   </div>
@@ -225,39 +296,39 @@
                     <div v-if="question.sector" class="flex items-center gap-1">
                       <img
                         :src="getSectorIcon(question.sector)"
-                        class="h-8 w-8 opacity-60"
+                        class="h-6 w-6 sm:h-8 sm:w-8 opacity-60"
                         :alt="sectorLabel(question.sector)"
                       >
                     </div>
-                    <div v-else class="w-8"></div>
+                    <div v-else class="w-6 sm:w-8"></div>
                   </div>
 
                   <!-- User Answer -->
                   <div class="flex justify-center">
                     <div
                       v-if="userAnswers[question.id] !== undefined"
-                      class="w-8 h-8 rounded-full shadow-sm"
+                      class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-sm"
                       :class="getRatingColor(userAnswers[question.id])"
                       :title="$t('elections.wahlcheck.results.my_rating_title', { ':rating': getRatingLabel(userAnswers[question.id]) })"
                     ></div>
-                    <div v-else class="w-8 h-8 rounded-full bg-solid-gray-20">
+                    <div v-else class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-solid-gray-20">
                     </div>
                   </div>
 
                   <!-- Candidate Answer -->
-                  <div class="flex items-center justify-center gap-2">
+                  <div class="flex items-center justify-center gap-1.5 sm:gap-2">
                     <div
                       v-if="getCandidateAnswer(result.candidateId, question.id)"
-                      class="w-8 h-8 rounded-full shadow-sm"
+                      class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-sm"
                       :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
                       :title="$t('elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
                     ></div>
-                    <div v-else class="w-8 h-8 rounded-full bg-solid-gray-20">
+                    <div v-else class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-solid-gray-20">
                     </div>
                     <button
                       v-if="getCandidateAnswer(result.candidateId, question.id)"
                       type="button"
-                      class="btn btn-circle btn-ghost btn-xs h-8 min-h-8 w-8 border"
+                      class="btn btn-circle btn-ghost btn-xs h-7 min-h-7 w-7 sm:h-8 sm:min-h-8 sm:w-8 border"
                       :class="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? 'border-stats-dark/15 text-stats-dark hover:bg-stats-light' : 'border-gray/20 text-gray/40 hover:bg-gray/10'"
                       :aria-label="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning')"
                       :title="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning')"
@@ -266,11 +337,11 @@
                       <span class="sr-only">
                         {{ getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning') }}
                       </span>
-                      <span aria-hidden="true" class="text-sm font-bold leading-none">i</span>
+                      <span aria-hidden="true" class="text-xs sm:text-sm font-bold leading-none">i</span>
                     </button>
                     <span
                       v-else
-                      class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray/20 text-sm font-bold leading-none text-gray/30"
+                      class="inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full border border-gray/20 text-xs sm:text-sm font-bold leading-none text-gray/30"
                       :title="$t('elections.wahlcheck.results.no_reasoning')"
                       aria-hidden="true"
                     >
@@ -377,25 +448,35 @@
       </form>
     </dialog>
 
-    <!-- Navigation Buttons -->
-    <div class="flex justify-between items-center mt-8 pt-6 border-t border-solid-gray-10">
-      <div class="text-sm text-mid-gray">
-	        {{ $t("elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
+    <!-- Share Section -->
+    <ElectionsWahlCheckShare
+      v-if="results.length > 0"
+      :election="election"
+      :sorted-results="sortedResults"
+      :candidates="candidates"
+      :user-answers="userAnswers"
+      :double-weighted-questions="doubleWeightedQuestions"
+    />
+
+    <!-- Navigation Buttons (Requirement 1) -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-8 pt-6 border-t border-solid-gray-10 gap-4">
+      <div class="text-xs sm:text-sm text-mid-gray text-center sm:text-left">
+        {{ $t("elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
       </div>
-      <div class="flex gap-4">
+      <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
         <button
           type="button"
           @click="$emit('prev')"
-          class="btn btn-outline btn-secondary px-6 py-2 rounded-full font-semibold"
+          class="flex-1 sm:flex-initial btn btn-outline btn-secondary px-4 sm:px-6 py-2 rounded-full font-semibold"
         >
-	          {{ $t("generic.back") }}
+          {{ $t("generic.back") }}
         </button>
         <button
           type="button"
           @click="$emit('restart')"
-          class="btn btn-outline px-6 py-2 rounded-full font-semibold border-ff-green text-ff-green hover:bg-solid-ff-green-10"
+          class="flex-1 sm:flex-initial btn btn-outline px-4 sm:px-6 py-2 rounded-full font-semibold border-ff-green text-ff-green hover:bg-solid-ff-green-10 whitespace-nowrap"
         >
-	          {{ $t("generic.restart") }}
+          {{ $t("generic.restart") }}
         </button>
       </div>
     </div>

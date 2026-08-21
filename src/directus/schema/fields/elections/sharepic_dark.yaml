@@ -1,0 +1,49 @@
+collection: elections
+field: sharepic_dark
+type: uuid
+meta:
+  collection: elections
+  conditions: null
+  display: image
+  display_options: null
+  field: sharepic_dark
+  group: null
+  hidden: false
+  interface: unsplash-image
+  note: Optionales Dark-Mode-Sharepic für diesen Klimawahlcheck. Wird im Dark Mode verwendet oder als Fallback.
+  options:
+    folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
+    letterbox: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 21
+  special:
+    - file
+  translations:
+    - language: de-DE
+      translation: Sharepic (Dark Mode)
+    - language: en-GB
+      translation: Share image (Dark Mode)
+    - language: it-IT
+      translation: Immagine da condividere (Dark Mode)
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: sharepic_dark
+  table: elections
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: directus_files
+  foreign_key_column: id

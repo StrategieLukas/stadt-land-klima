@@ -147,6 +147,8 @@ permissions:
       - candidate_thank_you_email_subject
       - candidate_thank_you_email_template
       - custom_logo
+      - sharepic
+      - sharepic_dark
       - date_created
       - date_updated
       - descriptor

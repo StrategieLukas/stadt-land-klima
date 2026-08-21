@@ -454,7 +454,6 @@ async function completePublicWahlcheck(
       await radio.waitFor({ state: 'visible', timeout: 30_000 });
       await radio.click({ force: true });
     }
-    await page.locator('button.btn-primary').last().click();
 
     const weightCheckbox = page.locator('input[type="checkbox"].checkbox-primary').first();
     await weightCheckbox.waitFor({ state: 'visible', timeout: 30_000 });
@@ -467,6 +466,9 @@ async function completePublicWahlcheck(
     const text = await visibleText(page);
     assertIncludes(text, 'Klimawahlcheck', 'Public Wahlcheck result page must render');
     assertIncludes(text, '1.', 'Public Wahlcheck result page must rank candidates');
+    assertIncludes(text, 'Ergebnis teilen', 'Public Wahlcheck result page must render share section');
+    assertIncludes(text, 'WhatsApp', 'Public Wahlcheck result page must offer WhatsApp sharing');
+    assertIncludes(text, 'In Story teilen', 'Public Wahlcheck result page must offer Story sharing');
     await waitFor(
       'public Wahlcheck share URL generated',
       async () => page.url().includes('share='),

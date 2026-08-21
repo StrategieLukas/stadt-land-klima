@@ -235,6 +235,8 @@ permissions:
       - id
       - descriptor
       - custom_logo
+      - sharepic
+      - sharepic_dark
       - localteam
       - simple_answer_mode
       - response_cutoff_date

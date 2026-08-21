@@ -23,7 +23,7 @@
     </div>
 
     <!-- Progress Bar -->
-    <div class="bg-solid-ff-green-10 py-3">
+    <div id="wahlcheck-progress-bar" class="bg-solid-ff-green-10 py-3 scroll-mt-0">
       <div class="mx-auto max-w-6xl px-4">
         <div class="flex items-center justify-between">
           <div v-for="(step, index) in steps" :key="step.id" class="flex items-center">
@@ -85,41 +85,48 @@
         }}</NuxtLink>
       </div>
 
-      <!-- Step 1: Answer Questions -->
-      <ElectionsWahlCheckQuestions
-        v-if="currentStep === 1 && electionData"
-        :questions="electionData.questions"
-        :election="electionData.election"
-        :localteam="electionData.localteam"
-        :userAnswers="userAnswers"
-        @next="handleQuestionsNext"
-        @prev="handlePrev"
-      />
+      <!-- Steps with transition (Requirement 3) -->
+      <Transition name="step-fade" mode="out-in">
+        <!-- Step 1: Answer Questions -->
+        <ElectionsWahlCheckQuestions
+          v-if="currentStep === 1 && electionData"
+          :key="1"
+          :questions="electionData.questions"
+          :election="electionData.election"
+          :localteam="electionData.localteam"
+          :userAnswers="userAnswers"
+          :initial-question-index="initialQuestionIndex"
+          @next="handleQuestionsNext"
+          @prev="handlePrev"
+        />
 
-      <!-- Step 2: Review Answers & Select Double Weight -->
-      <ElectionsWahlCheckSummary
-        v-if="currentStep === 2 && electionData"
-        :questions="electionData.questions"
-        :userAnswers="userAnswers"
-        :doubleWeightedQuestions="doubleWeightedQuestions"
-        :election="electionData.election"
-        @next="handleSummaryNext"
-        @prev="handlePrev"
-        @toggle-double-weight="toggleDoubleWeight"
-      />
+        <!-- Step 2: Review Answers & Select Double Weight -->
+        <ElectionsWahlCheckSummary
+          v-else-if="currentStep === 2 && electionData"
+          :key="2"
+          :questions="electionData.questions"
+          :userAnswers="userAnswers"
+          :doubleWeightedQuestions="doubleWeightedQuestions"
+          :election="electionData.election"
+          @next="handleSummaryNext"
+          @prev="handlePrev"
+          @toggle-double-weight="toggleDoubleWeight"
+        />
 
-      <!-- Step 3: View Results -->
-      <ElectionsWahlCheckResults
-        v-if="currentStep === 3 && electionData"
-        :election="electionData.election"
-        :candidates="electionData.candidates"
-        :questions="electionData.questions"
-        :userAnswers="userAnswers"
-        :doubleWeightedQuestions="doubleWeightedQuestions"
-        :candidateAnswers="electionData.answers"
-        @restart="handleRestart"
-        @prev="handlePrev"
-      />
+        <!-- Step 3: View Results -->
+        <ElectionsWahlCheckResults
+          v-else-if="currentStep === 3 && electionData"
+          :key="3"
+          :election="electionData.election"
+          :candidates="electionData.candidates"
+          :questions="electionData.questions"
+          :userAnswers="userAnswers"
+          :doubleWeightedQuestions="doubleWeightedQuestions"
+          :candidateAnswers="electionData.answers"
+          @restart="handleRestart"
+          @prev="handlePrev"
+        />
+      </Transition>
     </div>
 
     <!-- Footer -->
@@ -142,6 +149,7 @@ const municipalitySlug = route.params.municipalitySlug;
 
 // Step management
 const currentStep = ref(1);
+const initialQuestionIndex = ref(0);
 const steps = [
   { id: 1, label: $t("elections.wahlcheck.steps.questions") },
   { id: 2, label: $t("elections.wahlcheck.steps.summary") },
@@ -468,16 +476,29 @@ async function loadElectionData() {
   }
 }
 
+function scrollToProgress() {
+  if (typeof window === "undefined") return;
+  const el = document.getElementById("wahlcheck-progress-bar");
+  if (el) {
+    const targetTop = el.offsetTop || 0;
+    if (Math.abs(window.scrollY - targetTop) > 10) {
+      window.scrollTo({ top: targetTop });
+    }
+  } else {
+    window.scrollTo({ top: 0 });
+  }
+}
+
 // Handle step navigation
 function handleQuestionsNext(answers) {
   userAnswers.value = { ...answers };
   currentStep.value = 2;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  scrollToProgress();
 }
 
 function handleSummaryNext() {
   currentStep.value = 3;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  scrollToProgress();
   void trackWahlcheckCompletion();
   // Update shareable URL when reaching results page
   // Use setTimeout to ensure this runs after the step change is processed
@@ -488,25 +509,33 @@ function handleSummaryNext() {
 
 function handlePrev() {
   if (currentStep.value > 1) {
+    if (currentStep.value === 2) {
+      // Returning to questions: jump to the last question
+      const totalQuestions = electionData.value?.questions?.length || 1;
+      initialQuestionIndex.value = Math.max(0, totalQuestions - 1);
+    }
     currentStep.value--;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToProgress();
   }
 }
 
 function handleRestart() {
   userAnswers.value = {};
   doubleWeightedQuestions.value = new Set();
+  initialQuestionIndex.value = 0;
   currentStep.value = 1;
   clearSessionStorage();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  scrollToProgress();
 }
 
 function toggleDoubleWeight(questionId) {
-  if (doubleWeightedQuestions.value.has(questionId)) {
-    doubleWeightedQuestions.value.delete(questionId);
+  const newSet = new Set(doubleWeightedQuestions.value);
+  if (newSet.has(questionId)) {
+    newSet.delete(questionId);
   } else {
-    doubleWeightedQuestions.value.add(questionId);
+    newSet.add(questionId);
   }
+  doubleWeightedQuestions.value = newSet;
 }
 
 // Load data on mount
@@ -546,6 +575,22 @@ useHead({
 </script>
 
 <style scoped>
+/* Phase Transitions */
+.step-fade-enter-active,
+.step-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.step-fade-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.step-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
 /* Custom scrollbar for the progress bar area */
 ::-webkit-scrollbar {
   width: 8px;

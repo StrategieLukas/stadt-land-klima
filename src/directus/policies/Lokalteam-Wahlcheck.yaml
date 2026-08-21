@@ -151,6 +151,8 @@ permissions:
       - descriptor
       - candidate_email_reply_to
       - custom_logo
+      - sharepic
+      - sharepic_dark
       - response_cutoff_date
       - localteam
   - collection: elections
@@ -181,6 +183,8 @@ permissions:
       - candidate_email_reply_to
       - date_created
       - custom_logo
+      - sharepic
+      - sharepic_dark
       - descriptor
       - date_updated
       - localteam
@@ -208,6 +212,8 @@ permissions:
       - response_cutoff_date
       - candidate_email_reply_to
       - custom_logo
+      - sharepic
+      - sharepic_dark
       - is_public
   - collection: measure_catalog
     action: read
