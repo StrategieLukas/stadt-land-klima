@@ -1,5 +1,5 @@
 language: en-GB
 key: localteam.register.not_started.body
-value:
-  There is already a local team in <strong>:name</strong>. It has not started
-  rating the current catalogue of measures yet. Would you like to support the team?
+value: There is already a local team in <strong>:name</strong>. It has not
+  started rating the current catalogue of measures yet. Would you like to
+  support the team?

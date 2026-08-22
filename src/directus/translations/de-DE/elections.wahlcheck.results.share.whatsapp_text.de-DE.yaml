@@ -1,3 +1,4 @@
 language: de-DE
 key: elections.wahlcheck.results.share.whatsapp_text
-value: "Ich habe gerade den Klimawahlcheck für :election gemacht! Finde heraus, welche Kandidierenden deine Klimapositionen am besten vertreten:"
+value: "Ich habe gerade den Klimawahlcheck für :election gemacht! Finde heraus,
+  welche Kandidierenden deine Klimapositionen am besten vertreten:"

@@ -1,3 +1,4 @@
 language: it-IT
 key: projects.submit.success.body
-value: Grazie per l'invio. La bozza è stata salvata e sarà controllata dalla redazione.
+value: Grazie per l'invio. La bozza è stata salvata e sarà controllata dalla
+  redazione.

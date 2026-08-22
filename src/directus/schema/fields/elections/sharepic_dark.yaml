@@ -10,7 +10,8 @@ meta:
   group: null
   hidden: false
   interface: unsplash-image
-  note: Optionales Dark-Mode-Sharepic für diesen Klimawahlcheck. Wird im Dark Mode verwendet oder als Fallback.
+  note: Optionales Dark-Mode-Sharepic für diesen Klimawahlcheck. Wird im Dark Mode
+    verwendet oder als Fallback.
   options:
     folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
     letterbox: true

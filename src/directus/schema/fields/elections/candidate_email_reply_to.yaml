@@ -10,11 +10,10 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: >-
-    Hier kann optional eine Reply-To-Adresse angegeben werden. Wenn Kandidierende
-    auf die automatisierten Einladungs-E-Mails zum Wahlcheck antworten, etwa bei
-    Rückfragen, wird die Antwort an diese Adresse gesendet. Ohne Angabe wird sie an
-    info@stadt-land-klima.de gesendet.
+  note: Hier kann optional eine Reply-To-Adresse angegeben werden. Wenn
+    Kandidierende auf die automatisierten Einladungs-E-Mails zum Wahlcheck
+    antworten, etwa bei Rückfragen, wird die Antwort an diese Adresse gesendet.
+    Ohne Angabe wird sie an info@stadt-land-klima.de gesendet.
   options:
     placeholder: lokalteam@example.org
     trim: true

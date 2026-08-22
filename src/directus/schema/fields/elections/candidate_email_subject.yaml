@@ -10,11 +10,10 @@ meta:
   group: candidate_invitation_email_settings
   hidden: false
   interface: input
-  note: >-
-    Betreff der Einladung. Verfügbare Platzhalter: {{ candidate_name }}, {{
+  note: "Betreff der Einladung. Verfügbare Platzhalter: {{ candidate_name }}, {{
     candidate_salutation }}, {{ municipality_name }}, {{ election_descriptor }},
     {{ cutoff_date }}, {{ personal_link }} und {{ projectName }}. Ein leerer
-    Betreff verhindert den Versand.
+    Betreff verhindert den Versand."
   options:
     placeholder: "Einladung zum Klimawahl-Check: {{ municipality_name }}"
     trim: true

@@ -16,7 +16,7 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 19
+  sort: 22
   special:
     - alias
     - group

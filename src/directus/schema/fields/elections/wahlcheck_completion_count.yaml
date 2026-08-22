@@ -19,7 +19,7 @@ meta:
   readonly: true
   required: false
   searchable: false
-  sort: 22
+  sort: 15
   special: null
   translations:
     - language: de-DE

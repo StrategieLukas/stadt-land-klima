@@ -1,3 +1,4 @@
 language: it-IT
 key: elections.wahlcheck.results.share.whatsapp_text
-value: "Ho appena completato il Controllo Elettorale per il Clima per :election! Scopri quali candidati rappresentano meglio le tue posizioni climatiche:"
+value: "Ho appena completato il Controllo Elettorale per il Clima per :election!
+  Scopri quali candidati rappresentano meglio le tue posizioni climatiche:"

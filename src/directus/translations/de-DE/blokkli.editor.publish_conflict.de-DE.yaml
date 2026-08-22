@@ -1,3 +1,4 @@
 language: de-DE
 key: blokkli.editor.publish_conflict
-value: Die Seite wurde zwischenzeitlich geändert. Dein Entwurf bleibt erhalten. Lade die Seite neu und prüfe die Änderungen vor dem erneuten Veröffentlichen.
+value: Die Seite wurde zwischenzeitlich geändert. Dein Entwurf bleibt erhalten.
+  Lade die Seite neu und prüfe die Änderungen vor dem erneuten Veröffentlichen.

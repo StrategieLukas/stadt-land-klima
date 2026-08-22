@@ -10,8 +10,7 @@ meta:
   group: null
   hidden: false
   interface: unsplash-image
-  note:
-    Optionales zusätzliches Logo für diesen Klimawahlcheck. Es wird über den
+  note: Optionales zusätzliches Logo für diesen Klimawahlcheck. Es wird über den
     Platzhalter {{ custom_logo }} in der HTML-Vorlage eingebettet.
   options:
     folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
@@ -19,7 +18,7 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 18
+  sort: 19
   special:
     - file
   translations:
@@ -31,7 +30,7 @@ meta:
       translation: Logo personalizzato
   validation: null
   validation_message: null
-  width: half
+  width: fill
 schema:
   name: custom_logo
   table: elections

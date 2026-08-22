@@ -1,3 +1,3 @@
 language: en-GB
 key: blokkli.rich_text.link_prompt
-value: Enter a link target (for example /page or #section)
+value: Enter a link target (for example /page or

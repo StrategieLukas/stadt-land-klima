@@ -10,10 +10,9 @@ meta:
   group: candidate_reminder_email_settings
   hidden: false
   interface: input-code
-  note: >-
-    Vollständiges HTML-Dokument für den einmaligen Reminder. Es gelten dieselben
-    Platzhalter wie für die Einladungs-E-Mail. Eine leere oder ungültige Vorlage
-    verhindert den Versand.
+  note: Vollständiges HTML-Dokument für den einmaligen Reminder. Es gelten
+    dieselben Platzhalter wie für die Einladungs-E-Mail. Eine leere oder
+    ungültige Vorlage verhindert den Versand.
   options:
     language: html
   readonly: false
@@ -35,15 +34,19 @@ schema:
   name: candidate_reminder_email_template
   table: elections
   data_type: text
-  default_value: |-
+  default_value: >-
     <!doctype html>
+
     <html lang="de">
+
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>Erinnerung: Klimawahl-Check für {{ municipality_name }}</title>
     </head>
-    <body style="margin: 0; padding: 0; background: #f6f6f6; color: #171717; font-family: Arial, Helvetica, sans-serif;">
+
+    <body style="margin: 0; padding: 0; background: #f6f6f6; color: #171717;
+    font-family: Arial, Helvetica, sans-serif;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse; background: #f6f6f6;">
         <tr>
           <td align="center" style="padding: 30px 15px;">
@@ -79,6 +82,7 @@ schema:
         </tr>
       </table>
     </body>
+
     </html>
   max_length: null
   numeric_precision: null

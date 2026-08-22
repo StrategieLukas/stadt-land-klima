@@ -1,3 +1,4 @@
 language: de-DE
 key: form_block.submit.error
-value: Die Formularantwort konnte nicht gesendet werden. Bitte versuche es später erneut.
+value: Die Formularantwort konnte nicht gesendet werden. Bitte versuche es
+  später erneut.

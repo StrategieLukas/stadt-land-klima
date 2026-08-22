@@ -10,13 +10,12 @@ meta:
   group: candidate_thank_you_email_settings
   hidden: false
   interface: input
-  note: >-
-    Betreff der Dankesmail. Verfügbare Platzhalter: {{ candidate_name }}, {{
+  note: "Betreff der Dankesmail. Verfügbare Platzhalter: {{ candidate_name }}, {{
     candidate_salutation }}, {{ municipality_name }}, {{ election_descriptor }},
     {{ cutoff_date }}, {{ personal_link }} und {{ projectName }}. Ein leerer
-    Betreff verhindert den Versand.
+    Betreff verhindert den Versand."
   options:
-    placeholder: "Vielen Dank für Ihre Teilnahme am Klimawahl-Check"
+    placeholder: Vielen Dank für Ihre Teilnahme am Klimawahl-Check
     trim: true
   readonly: false
   required: false
@@ -37,7 +36,7 @@ schema:
   name: candidate_thank_you_email_subject
   table: elections
   data_type: character varying
-  default_value: "Vielen Dank für Ihre Teilnahme am Klimawahl-Check"
+  default_value: Vielen Dank für Ihre Teilnahme am Klimawahl-Check
   max_length: 255
   numeric_precision: null
   numeric_scale: null

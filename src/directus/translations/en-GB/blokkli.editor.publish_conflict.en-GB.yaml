@@ -1,3 +1,4 @@
 language: en-GB
 key: blokkli.editor.publish_conflict
-value: The page changed in the meantime. Your draft is still available. Reload and review the changes before publishing again.
+value: The page changed in the meantime. Your draft is still available. Reload
+  and review the changes before publishing again.

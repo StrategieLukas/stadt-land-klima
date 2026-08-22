@@ -10,7 +10,8 @@ meta:
   group: null
   hidden: false
   interface: input-multiline
-  note: Eine Suchabfrage pro Zeile. Verwende KOMMUNE als Platzhalter für den Namen der Kommune.
+  note: Eine Suchabfrage pro Zeile. Verwende KOMMUNE als Platzhalter für den Namen
+    der Kommune.
   options:
     trim: true
   readonly: false

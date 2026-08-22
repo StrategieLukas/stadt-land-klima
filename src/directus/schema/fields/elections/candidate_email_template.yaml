@@ -10,15 +10,14 @@ meta:
   group: candidate_invitation_email_settings
   hidden: false
   interface: input-code
-  note: >-
-    Vollständiges HTML-Dokument für die Einladung. Verfügbare Platzhalter: {{
+  note: "Vollständiges HTML-Dokument für die Einladung. Verfügbare Platzhalter: {{
     candidate_name }}, {{ candidate_salutation }}, {{ municipality_name }}, {{
     election_descriptor }}, {{ cutoff_date }}, {{ personal_link }}, {{
-    projectName }}, {{ stadt_land_klima_logo }} und {{ custom_logo }}. Die beiden
-    Logo-Platzhalter erzeugen jeweils eine vollständige Tabellenzelle mit einem
-    eingebetteten Bild und gehören deshalb direkt in eine Tabellenzeile. {{
-    custom_logo }} bleibt leer, wenn kein eigenes Logo hinterlegt ist. Eine leere
-    oder ungültige Vorlage verhindert den Versand.
+    projectName }}, {{ stadt_land_klima_logo }} und {{ custom_logo }}. Die
+    beiden Logo-Platzhalter erzeugen jeweils eine vollständige Tabellenzelle mit
+    einem eingebetteten Bild und gehören deshalb direkt in eine Tabellenzeile.
+    {{ custom_logo }} bleibt leer, wenn kein eigenes Logo hinterlegt ist. Eine
+    leere oder ungültige Vorlage verhindert den Versand."
   options:
     language: html
   readonly: false
@@ -40,16 +39,20 @@ schema:
   name: candidate_email_template
   table: elections
   data_type: text
-  default_value: |-
+  default_value: >-
     <!doctype html>
+
     <html lang="de">
+
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="x-apple-disable-message-reformatting" />
       <title>Einladung zum Klimawahl-Check: {{ municipality_name }}</title>
     </head>
-    <body style="margin: 0; padding: 0; background: #f6f6f6; color: #171717; font-family: Arial, Helvetica, sans-serif;">
+
+    <body style="margin: 0; padding: 0; background: #f6f6f6; color: #171717;
+    font-family: Arial, Helvetica, sans-serif;">
       <div style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; color: transparent;">
         Ihre persönliche Einladung zum Klimawahl-Check für {{ municipality_name }}
       </div>
@@ -147,6 +150,7 @@ schema:
         </tr>
       </table>
     </body>
+
     </html>
   max_length: null
   numeric_precision: null

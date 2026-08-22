@@ -10,7 +10,8 @@ meta:
   group: null
   hidden: false
   interface: unsplash-image
-  note: Optionales Sharepic für diesen Klimawahlcheck. Kann von Nutzer:innen nach Abschluss geteilt werden.
+  note: Optionales Sharepic für diesen Klimawahlcheck. Kann von Nutzer:innen nach
+    Abschluss geteilt werden.
   options:
     folder: 82d3f1c5-9a8d-4aeb-8335-ca9330a43b90
     letterbox: true
