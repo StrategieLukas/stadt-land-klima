@@ -70,18 +70,18 @@
                   <span>Klimawahlcheck</span>
                 </div>
                 <!-- SLK Header Logo -->
-                <div class="h-6 flex items-center">
+                <div class="h-8 flex items-center">
                   <img
                     v-if="isDark"
                     src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
                     alt="Stadt.Land.Klima!"
-                    class="h-5 w-auto object-contain brightness-0 invert opacity-90"
+                    class="h-[26px] w-auto object-contain brightness-0 invert opacity-90"
                   />
                   <img
                     v-else
                     src="~/assets/images/Stadt-Land-Klima-Logo.svg"
                     alt="Stadt.Land.Klima!"
-                    class="h-5 w-auto object-contain"
+                    class="h-[26px] w-auto object-contain"
                   />
                 </div>
               </div>
@@ -101,7 +101,7 @@
               </p>
             </div>
 
-            <!-- Top 3 Candidates Cards (Mirrored from Candidates Overview) -->
+            <!-- Top 5 Candidates Cards (Mirrored from Candidates Overview) -->
             <div class="relative z-10 space-y-2 my-auto">
               <div
                 v-for="(result, idx) in topCandidates"
@@ -151,6 +151,15 @@
               >
                 Keine Ergebnisse vorhanden
               </div>
+
+              <div
+                v-else-if="hasMoreCandidates"
+                class="text-center text-xl font-extrabold leading-none tracking-[0.35em]"
+                :class="isDark ? 'text-white/80' : 'text-stats-dark/70'"
+                aria-hidden="true"
+              >
+                ...
+              </div>
             </div>
 
             <!-- Bottom CTA -->
@@ -159,22 +168,16 @@
                 v-if="isDark"
                 class="bg-gradient-to-r from-ff-green to-stats-light rounded-xl p-2 text-stats-dark shadow-md font-bold text-[11px] leading-tight flex items-center justify-center gap-1"
               >
-                <span>👉 Jetzt mitmachen:</span>
-                <span class="underline">stadt-land-klima.de</span>
+                <span>👉 {{ $t('elections.wahlcheck.results.share.cta_button') }}</span>
+                <span class="underline">{{ sharepicCtaUrl }}</span>
               </div>
               <div
                 v-else
                 class="bg-stats-dark rounded-xl p-2 text-white shadow-md font-bold text-[11px] leading-tight flex items-center justify-center gap-1"
               >
-                <span>👉 Jetzt mitmachen:</span>
-                <span class="underline text-stats-light">stadt-land-klima.de</span>
+                <span>👉 {{ $t('elections.wahlcheck.results.share.cta_button') }}</span>
+                <span class="underline text-stats-light">{{ sharepicCtaUrl }}</span>
               </div>
-              <p
-                class="text-[8px] mt-1.5"
-                :class="isDark ? 'text-white/50' : 'text-stats-dark/60'"
-              >
-                Überparteilich & unabhängig
-              </p>
             </div>
           </div>
 
@@ -219,31 +222,56 @@
           </div>
         </Transition>
 
-        <!-- Instagram / TikTok Story Share Button -->
-        <button
-          type="button"
-          @click="shareToStory"
-          :disabled="isGenerating"
-          class="btn btn-primary text-white w-full rounded-xl py-3 px-4 font-bold flex items-center justify-center gap-3 shadow-md hover:shadow-lg transition-all"
-        >
-          <span v-if="isGenerating" class="loading loading-spinner loading-sm text-white"></span>
-          <svg v-else class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-          </svg>
-          <span>{{ $t('elections.wahlcheck.results.share.button_insta') }}</span>
-        </button>
+        <!-- Compact social share buttons -->
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <button
+            type="button"
+            @click="shareToStory"
+            :disabled="isGenerating"
+            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            :aria-label="$t('elections.wahlcheck.results.share.button_insta')"
+            :title="$t('elections.wahlcheck.results.share.button_insta')"
+          >
+            <span v-if="isGenerating" class="loading loading-spinner loading-xs"></span>
+            <img v-else src="~/assets/icons/icon_instagram.svg" alt="" class="h-5 w-5" />
+            <span>{{ $t('elections.wahlcheck.results.share.button_insta') }}</span>
+          </button>
 
-        <!-- WhatsApp Button -->
-        <button
-          type="button"
-          @click="shareToWhatsApp"
-          class="btn bg-[#25D366] hover:bg-[#1EBE5D] text-white w-full rounded-xl py-3 px-4 font-bold flex items-center justify-center gap-3 shadow-sm border-0 transition-all"
-        >
-          <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-          </svg>
-          <span>{{ $t('elections.wahlcheck.results.share.button_whatsapp') }}</span>
-        </button>
+          <button
+            type="button"
+            @click="shareToWhatsApp"
+            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            :aria-label="$t('elections.wahlcheck.results.share.button_whatsapp')"
+            :title="$t('elections.wahlcheck.results.share.button_whatsapp')"
+          >
+            <img src="~/assets/icons/icon_whatsapp.svg" alt="" class="h-5 w-5" />
+            <span>{{ $t('elections.wahlcheck.results.share.button_whatsapp') }}</span>
+          </button>
+
+          <button
+            type="button"
+            @click="shareToLinkedIn"
+            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            :aria-label="$t('elections.wahlcheck.results.share.button_linkedin')"
+            :title="$t('elections.wahlcheck.results.share.button_linkedin')"
+          >
+            <img src="~/assets/icons/icon_linkedin.svg" alt="" class="h-5 w-5" />
+            <span>{{ $t('elections.wahlcheck.results.share.button_linkedin') }}</span>
+          </button>
+
+          <button
+            type="button"
+            @click="shareToTikTok"
+            :disabled="isGenerating"
+            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            :aria-label="$t('elections.wahlcheck.results.share.button_tiktok')"
+            :title="$t('elections.wahlcheck.results.share.button_tiktok')"
+          >
+            <img v-if="!isGenerating" src="~/assets/icons/icon_tiktok.svg" alt="" class="h-5 w-5" />
+            <span v-else class="loading loading-spinner loading-xs"></span>
+            <span>{{ $t('elections.wahlcheck.results.share.button_tiktok') }}</span>
+          </button>
+        </div>
 
         <!-- Secondary Actions Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -300,7 +328,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { candidateParties, getCandidatePartyLabel } from '~/shared/candidateParties.js'
+import {
+  candidateNameMatchesParty,
+  candidateParties,
+  getCandidateDisplayName,
+  getCandidatePartyLabel,
+} from '~/shared/candidateParties.js'
 import { useTheme } from '~/composables/useTheme'
 import logoDarkSvg from '~/assets/images/Stadt-Land-Klima-Logo-dark.svg'
 import logoLightSvg from '~/assets/images/Stadt-Land-Klima-Logo.svg'
@@ -346,10 +379,13 @@ const directusUrl = computed(() => {
   return config.public.clientDirectusUrl || 'http://127.0.0.1:8081'
 })
 
-// Top 3 Candidates
+// Top 5 Candidates
 const topCandidates = computed(() => {
-  return props.sortedResults.slice(0, 3)
+  return props.sortedResults.slice(0, 5)
 })
+
+const hasMoreCandidates = computed(() => props.sortedResults.length > topCandidates.value.length)
+const sharepicCtaUrl = 'stadt-land-klima.de/wahl'
 
 // Official Sharepic Fallback:
 // If dark mode -> check sharepic_dark, fallback to sharepic
@@ -390,21 +426,20 @@ function getCandidate(candidateId) {
 
 function getCandidateName(candidateId) {
   const candidate = getCandidate(candidateId)
-  const name = `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim()
-  return name || candidate.name || 'Kandidat'
+  return getCandidateDisplayName(candidate) || $t('elections.unknown_candidate')
 }
 
 function getCandidateParty(candidateId) {
   const candidate = getCandidate(candidateId)
-  return candidate.party || ''
+  return candidate.party && !candidateNameMatchesParty(candidate) ? candidate.party : ''
 }
 
 function getProgressColorHex(percentage) {
-  if (percentage >= 80) return '#46962b'
-  if (percentage >= 60) return '#84b819'
-  if (percentage >= 40) return '#f5a300'
-  if (percentage >= 20) return '#e06100'
-  return '#dc2626'
+  if (percentage >= 80) return '#1EA64A'
+  if (percentage >= 60) return '#AFCA0B'
+  if (percentage >= 40) return '#FFD400'
+  if (percentage >= 20) return '#F39200'
+  return '#E30613'
 }
 
 // Generate share URL
@@ -513,11 +548,11 @@ async function generateDynamicCanvas() {
   }
 
   if (dark) {
-    drawGlow(960, 200, 420, 'rgba(132, 184, 25, 0.22)')
+    drawGlow(960, 200, 420, 'rgba(175, 202, 11, 0.22)')
     drawGlow(100, 950, 500, 'rgba(35, 115, 80, 0.25)')
     drawGlow(900, 1680, 460, 'rgba(243, 146, 0, 0.16)')
   } else {
-    drawGlow(960, 200, 420, 'rgba(132, 184, 25, 0.16)')
+    drawGlow(960, 200, 420, 'rgba(175, 202, 11, 0.16)')
     drawGlow(100, 950, 500, 'rgba(164, 200, 56, 0.28)')
     drawGlow(900, 1680, 460, 'rgba(243, 146, 0, 0.10)')
   }
@@ -536,7 +571,7 @@ async function generateDynamicCanvas() {
   ctx.stroke()
 
   // Green pulse dot inside badge
-  ctx.fillStyle = '#84b819'
+  ctx.fillStyle = '#AFCA0B'
   ctx.beginPath()
   ctx.arc(badgeX + 32, badgeY + badgeH / 2, 8, 0, Math.PI * 2)
   ctx.fill()
@@ -551,7 +586,7 @@ async function generateDynamicCanvas() {
   const logoUrl = dark ? logoDarkSvg : logoLightSvg
   const logoImg = await loadImage(logoUrl)
   if (logoImg) {
-    const logoW = 260
+    const logoW = 338
     const logoH = (logoImg.height / logoImg.width) * logoW
     ctx.drawImage(logoImg, width - 80 - logoW, badgeY + (badgeH - logoH) / 2, logoW, logoH)
   } else {
@@ -582,16 +617,17 @@ async function generateDynamicCanvas() {
   ctx.font = '600 28px system-ui, -apple-system, sans-serif'
   ctx.fillText($t('elections.wahlcheck.results.share.my_matches'), 80, currentY)
 
-  // 4. Candidate Match Cards (Top 3 Candidates)
+  // 4. Candidate Match Cards (Top 5 Candidates)
   let cardY = currentY + 60
   const cardW = width - 160
-  const cardH = 220
+  const cardH = props.sortedResults.length > 3 ? 190 : 220
   const cardRadius = 28
+  const cardGap = props.sortedResults.length > 3 ? 20 : 30
 
-  const top3 = props.sortedResults.slice(0, 3)
+  const top5 = props.sortedResults.slice(0, 5)
 
-  for (let i = 0; i < top3.length; i++) {
-    const item = top3[i]
+  for (let i = 0; i < top5.length; i++) {
+    const item = top5[i]
     const candidateName = getCandidateName(item.candidateId)
     const partyKey = getCandidateParty(item.candidateId)
     const partyLabel = partyKey ? getCandidatePartyLabel(partyKey) : ''
@@ -656,7 +692,7 @@ async function generateDynamicCanvas() {
     }
 
     // Match Percentage
-    ctx.fillStyle = '#46962b'
+    ctx.fillStyle = '#1EA64A'
     ctx.font = '900 48px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'right'
     ctx.textBaseline = 'middle'
@@ -664,7 +700,7 @@ async function generateDynamicCanvas() {
 
     // Full-width Progress Bar
     const barX = 120
-    const barY = cardY + 135
+    const barY = cardY + (props.sortedResults.length > 3 ? 115 : 135)
     const barW = cardW - 80
     const barH = 26
     const barRadius = 13
@@ -680,7 +716,15 @@ async function generateDynamicCanvas() {
     drawRoundedRect(ctx, barX, barY, fillW, barH, barRadius)
     ctx.fill()
 
-    cardY += cardH + 30
+    cardY += cardH + cardGap
+  }
+
+  if (props.sortedResults.length > top5.length) {
+    ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(10, 39, 49, 0.7)'
+    ctx.font = '900 42px system-ui, -apple-system, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('...', width / 2, cardY - cardGap / 2)
   }
 
   // 5. Call To Action Button (Bottom Area)
@@ -699,11 +743,11 @@ async function generateDynamicCanvas() {
   ctx.font = '800 38px system-ui, -apple-system, sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'top'
-  ctx.fillText('Wen wählst du fürs Klima?', width / 2, ctaBoxY + 35)
+  ctx.fillText($t('elections.wahlcheck.results.share.cta_title'), width / 2, ctaBoxY + 35)
 
   ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.8)' : '#4b5563'
   ctx.font = '500 26px system-ui, -apple-system, sans-serif'
-  ctx.fillText('Mach auch mit beim Klimawahlcheck!', width / 2, ctaBoxY + 85)
+  ctx.fillText($t('elections.wahlcheck.results.share.cta_text'), width / 2, ctaBoxY + 85)
 
   // Action Button
   const btnW = 540
@@ -711,7 +755,7 @@ async function generateDynamicCanvas() {
   const btnX = width / 2 - btnW / 2
   const btnY = ctaBoxY + 138
 
-  ctx.fillStyle = dark ? '#84b819' : '#0a2731'
+  ctx.fillStyle = dark ? '#AFCA0B' : '#0a2731'
   drawRoundedRect(ctx, btnX, btnY, btnW, btnH, 34)
   ctx.fill()
 
@@ -719,14 +763,7 @@ async function generateDynamicCanvas() {
   ctx.font = '800 28px system-ui, -apple-system, sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('👉 Jetzt mitmachen: stadt-land-klima.de', width / 2, btnY + btnH / 2)
-
-  // 6. Footer Note
-  ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(10, 39, 49, 0.6)'
-  ctx.font = '500 22px system-ui, -apple-system, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'bottom'
-  ctx.fillText('stadt-land-klima.de · Überparteilich & unabhängig', width / 2, height - 40)
+  ctx.fillText(`👉 ${$t('elections.wahlcheck.results.share.cta_button')} ${sharepicCtaUrl}`, width / 2, btnY + btnH / 2)
 
   isGenerating.value = false
   return canvas
@@ -828,6 +865,21 @@ function shareToWhatsApp() {
   const fullText = `${text}\n\n${shareUrl}`
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`
   window.open(whatsappUrl, '_blank')
+}
+
+// Share the result URL through LinkedIn's official share endpoint.
+function shareToLinkedIn() {
+  const shareUrl = getShareUrl()
+  if (!shareUrl) return
+
+  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
+  window.open(linkedinUrl, '_blank', 'noopener,noreferrer')
+}
+
+// TikTok does not provide a public web share endpoint for an image story.
+// Reuse the native file share on supported phones and the download fallback elsewhere.
+async function shareToTikTok() {
+  await shareToStory()
 }
 
 // Share via Native Web Share API

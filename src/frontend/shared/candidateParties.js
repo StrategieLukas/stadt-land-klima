@@ -27,14 +27,45 @@ export function getCandidatePartyLabel(party, state = "") {
   return candidateParties[party]?.label || party;
 }
 
+function getCandidateName(candidate) {
+  const explicitName = String(candidate?.name ?? "").trim();
+  if (explicitName) return explicitName;
+
+  return `${candidate?.first_name || ""} ${candidate?.last_name || ""}`.trim();
+}
+
+function normalizeCandidateLabel(value) {
+  return String(value ?? "").trim().toLocaleLowerCase();
+}
+
+export function candidateNameMatchesParty(candidate, state = "") {
+  const name = normalizeCandidateLabel(getCandidateName(candidate));
+  const rawParty = String(candidate?.party ?? "").trim();
+  const party = normalizeCandidateLabel(getCandidatePartyLabel(rawParty, state));
+
+  if (!name || !rawParty) return false;
+
+  return name === normalizeCandidateLabel(rawParty) || name === party;
+}
+
+export function getCandidateDisplayName(candidate, state = "") {
+  const name = getCandidateName(candidate);
+  const party = getCandidatePartyLabel(String(candidate?.party ?? "").trim(), state).trim();
+
+  if (candidateNameMatchesParty(candidate, state)) {
+    return party || name;
+  }
+
+  return name || party;
+}
+
 export function formatCandidateNameAndParty(candidate, state = "") {
-  const name = String(candidate?.name ?? "").trim();
+  const name = getCandidateName(candidate);
   const rawParty = String(candidate?.party ?? "").trim();
   const party = getCandidatePartyLabel(rawParty, state).trim();
-  const normalizedName = name.toLocaleLowerCase();
 
-  if (!party || normalizedName === rawParty.toLocaleLowerCase() || normalizedName === party.toLocaleLowerCase()) {
-    return name;
+  if (!party || candidateNameMatchesParty(candidate, state)) {
+    return party || name;
   }
 
   return `${name} (${party})`;

@@ -34,6 +34,32 @@ function createRegistrationError(statusCode: number, message: string, data?: Ret
   });
 }
 
+function isDuplicateEmailError(err: any): boolean {
+  const errorLists = [
+    err?.data?.errors,
+    err?.response?._data?.errors,
+    err?.response?.data?.errors,
+  ].filter(Array.isArray);
+
+  return errorLists.flat().some((directusError: any) => {
+    const code = String(directusError?.extensions?.code ?? '').toUpperCase();
+    const message = String(directusError?.message ?? '').toLowerCase();
+
+    return (
+      ['RECORD_NOT_UNIQUE', 'INVALID_UNIQUE', 'UNIQUE_CONSTRAINT'].includes(code) ||
+      (message.includes('email') && (message.includes('exist') || message.includes('unique') || message.includes('duplicate')))
+    );
+  });
+}
+
+function duplicateEmailRegistrationError(steps: RegistrationSteps) {
+  return createRegistrationError(
+    422,
+    'Für diese E-Mail-Adresse existiert bereits ein Account. Wenn du mehrere Kommunen bewerten möchtest, melde dich bitte mit einer separaten E-Mail-Adresse an.',
+    registrationErrorData(steps, 'user', 'localteam.register.error.email_registered'),
+  );
+}
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
@@ -73,6 +99,34 @@ export default defineEventHandler(async (event) => {
     'Authorization': `Bearer ${adminToken}`,
     'Content-Type': 'application/json',
   };
+
+  // Give users a useful error before Directus returns a generic server error.
+  try {
+    const existingUsers = await $fetch<{ data: Array<{ id: string; email?: string | null }> }>(
+      `${directusUrl}/users`,
+      {
+        headers,
+        params: {
+          'filter[email][_icontains]': email.trim(),
+          'fields[]': ['id', 'email'],
+          limit: 20,
+        },
+      },
+    );
+
+    const normalizedEmail = email.trim().toLocaleLowerCase();
+    const emailAlreadyExists = existingUsers.data?.some(
+      (user) => String(user.email ?? '').trim().toLocaleLowerCase() === normalizedEmail,
+    );
+
+    if (emailAlreadyExists) {
+      throw duplicateEmailRegistrationError(steps);
+    }
+  } catch (err: any) {
+    if (err?.statusCode === 422) throw err;
+    // Non-fatal: the unique constraint below remains the final safeguard.
+    console.warn('[register-municipality] Email duplicate check failed (non-fatal):', err);
+  }
 
   // --- Pre-check: reject if ARS already has a localteam ---
   try {
@@ -125,7 +179,7 @@ export default defineEventHandler(async (event) => {
     userId = userResult.data.id;
     steps.user = true;
   } catch (err: any) {
-    const isUnique = err?.data?.errors?.[0]?.extensions?.code === 'RECORD_NOT_UNIQUE';
+    const isUnique = isDuplicateEmailError(err);
     throw createRegistrationError(
       422,
       isUnique

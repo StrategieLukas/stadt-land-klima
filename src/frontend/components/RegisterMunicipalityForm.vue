@@ -447,7 +447,9 @@ async function submit() {
     stepStatuses.email = getFailedStepStatus('email', errSteps, failedStep);
     await delay(400);
     processingDone.value = true;
-    processingError.value = err?.data?.message ?? $t('generic.error_try_again');
+    processingError.value = errData?.errorKey
+      ? $t(errData.errorKey)
+      : err?.data?.message ?? $t('generic.error_try_again');
   }
 }
 
