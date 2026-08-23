@@ -107,7 +107,7 @@
                 v-for="(result, idx) in topCandidates"
                 :key="result.candidateId"
                 class="rounded-xl p-2.5 shadow-md text-stats-dark"
-                :class="isDark ? 'bg-white/95 backdrop-blur-md border border-white/20' : 'bg-white border border-solid-gray-20'"
+                :class="isDark ? 'bg-[#17212b] backdrop-blur-md border border-white/20 text-white' : 'bg-white border border-solid-gray-20'"
               >
                 <!-- Row 1: Rank Badge + Candidate Name + Party Tag -->
                 <div class="flex items-center justify-between gap-1.5 mb-1.5">
@@ -115,7 +115,10 @@
                     <span class="w-5 h-5 rounded-full bg-stats-dark text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
                       {{ idx + 1 }}
                     </span>
-                    <span class="font-bold text-xs text-black truncate leading-tight">
+                    <span
+                      class="font-bold text-xs truncate leading-tight"
+                      :class="isDark ? 'text-white' : 'text-black'"
+                    >
                       {{ getCandidateName(result.candidateId) }}
                     </span>
                     <CandidatePartyLabel
@@ -166,10 +169,10 @@
             <div class="relative z-10 text-center pt-2">
               <div
                 v-if="isDark"
-                class="bg-gradient-to-r from-ff-green to-stats-light rounded-xl p-2 text-stats-dark shadow-md font-bold text-[11px] leading-tight flex items-center justify-center gap-1"
+                class="rounded-xl border border-white/20 bg-[#17212b] p-2 text-white shadow-md font-bold text-[11px] leading-tight flex items-center justify-center gap-1"
               >
                 <span>👉 {{ $t('elections.wahlcheck.results.share.cta_button') }}</span>
-                <span class="underline">{{ sharepicCtaUrl }}</span>
+                <span class="text-light-green underline">{{ sharepicCtaUrl }}</span>
               </div>
               <div
                 v-else
@@ -732,38 +735,40 @@ async function generateDynamicCanvas() {
   const ctaBoxH = 240
   const ctaBoxW = width - 160
 
-  ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(10, 39, 49, 0.04)'
+  ctx.fillStyle = dark ? '#17212b' : 'rgba(10, 39, 49, 0.04)'
   drawRoundedRect(ctx, 80, ctaBoxY, ctaBoxW, ctaBoxH, 32)
   ctx.fill()
-  ctx.strokeStyle = dark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(10, 39, 49, 0.12)'
+  ctx.strokeStyle = dark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(10, 39, 49, 0.12)'
   ctx.lineWidth = 2
   ctx.stroke()
 
-  ctx.fillStyle = dark ? '#ffffff' : '#0a2731'
+  ctx.fillStyle = dark ? '#f7fbfd' : '#0a2731'
   ctx.font = '800 38px system-ui, -apple-system, sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'top'
   ctx.fillText($t('elections.wahlcheck.results.share.cta_title'), width / 2, ctaBoxY + 35)
 
-  ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.8)' : '#4b5563'
+  ctx.fillStyle = dark ? '#dce5ea' : '#4b5563'
   ctx.font = '500 26px system-ui, -apple-system, sans-serif'
   ctx.fillText($t('elections.wahlcheck.results.share.cta_text'), width / 2, ctaBoxY + 85)
 
   // Action Button
-  const btnW = 540
-  const btnH = 68
+  const btnW = dark ? 720 : 620
+  const btnH = 88
   const btnX = width / 2 - btnW / 2
-  const btnY = ctaBoxY + 138
+  const btnY = ctaBoxY + 127
 
   ctx.fillStyle = dark ? '#AFCA0B' : '#0a2731'
   drawRoundedRect(ctx, btnX, btnY, btnW, btnH, 34)
   ctx.fill()
 
   ctx.fillStyle = dark ? '#0a2731' : '#ffffff'
-  ctx.font = '800 28px system-ui, -apple-system, sans-serif'
+  ctx.font = '800 26px system-ui, -apple-system, sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(`👉 ${$t('elections.wahlcheck.results.share.cta_button')} ${sharepicCtaUrl}`, width / 2, btnY + btnH / 2)
+  ctx.fillText(`👉 ${$t('elections.wahlcheck.results.share.cta_button')}`, width / 2, btnY + 28)
+  ctx.font = '700 23px system-ui, -apple-system, sans-serif'
+  ctx.fillText(sharepicCtaUrl, width / 2, btnY + 62)
 
   isGenerating.value = false
   return canvas

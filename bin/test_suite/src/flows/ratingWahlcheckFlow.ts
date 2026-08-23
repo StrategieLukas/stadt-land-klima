@@ -468,7 +468,7 @@ async function completePublicWahlcheck(
     assertIncludes(text, '1.', 'Public Wahlcheck result page must rank candidates');
     assertIncludes(text, 'Ergebnis teilen', 'Public Wahlcheck result page must render share section');
     assertIncludes(text, 'WhatsApp', 'Public Wahlcheck result page must offer WhatsApp sharing');
-    assertIncludes(text, 'In Story teilen', 'Public Wahlcheck result page must offer Story sharing');
+    assertIncludes(text, 'Instagram', 'Public Wahlcheck result page must offer Instagram sharing');
     await waitFor(
       'public Wahlcheck share URL generated',
       async () => page.url().includes('share='),
