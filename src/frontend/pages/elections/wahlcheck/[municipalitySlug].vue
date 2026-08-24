@@ -129,10 +129,6 @@
       </Transition>
     </div>
 
-    <!-- Footer -->
-    <div class="mt-20">
-      <TheFooterDesktop />
-    </div>
   </div>
 </template>
 

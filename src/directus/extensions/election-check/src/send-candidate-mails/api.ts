@@ -126,15 +126,11 @@ const LAST_NAME_PARTICLES = new Set([
 ]);
 
 function formatCutoffDate(isoDate: string): string {
-  const d = new Date(isoDate);
-  d.setHours(23, 59, 0, 0);
-  return d.toLocaleString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  if (!match) return isoDate;
+
+  // The stored value is a calendar date; the deadline is its Berlin end of day.
+  return `${match[3]}.${match[2]}.${match[1]}, 23:59`;
 }
 
 function splitEmailAddresses(value?: string | null): string[] {

@@ -54,7 +54,7 @@
       <!-- Survey Form -->
       <div v-else-if="questions && questions.length > 0" class="space-y-8">
         <div v-if="isPastCutoff" class="bg-solid-orange-10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
-	          {{ $t("elections.theses.cutoff_reached", { ":date": new Date(candidate.election.response_cutoff_date).toLocaleDateString($locale) }) }}
+	          {{ $t("elections.theses.cutoff_reached", { ":date": formatBerlinDate(candidate.election.response_cutoff_date, $locale) }) }}
         </div>
 
         <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
@@ -162,6 +162,7 @@ import {
   getWahlcheckAnswerOptions,
   usesSimpleWahlcheckAnswerMode,
 } from '~/shared/wahlcheckAnswerOptions.js'
+import { formatBerlinDate, getBerlinEndOfDay } from '~/shared/eventDateTime'
 
 const route = useRoute()
 const { $directus, $readItems, $readItem, $t, $locale } = useNuxtApp()
@@ -235,9 +236,36 @@ const ratingOptions = computed(() => {
   return getWahlcheckAnswerOptions(candidate.value?.election, $t).reverse()
 })
 
+const currentTime = ref(Date.now())
+let cutoffTimer
+
+function refreshCutoffStatus() {
+  currentTime.value = Date.now()
+
+  const cutoff = getBerlinEndOfDay(candidate.value?.election?.response_cutoff_date)
+  if (!cutoff || cutoff.getTime() <= currentTime.value) {
+    cutoffTimer = undefined
+    return
+  }
+
+  const maxTimeout = 60 * 60 * 1000
+  const delay = Math.min(cutoff.getTime() - currentTime.value + 1, maxTimeout)
+  cutoffTimer = window.setTimeout(refreshCutoffStatus, delay)
+}
+
+watch(() => candidate.value?.election?.response_cutoff_date, () => {
+  if (!import.meta.client) return
+  if (cutoffTimer !== undefined) window.clearTimeout(cutoffTimer)
+  refreshCutoffStatus()
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (cutoffTimer !== undefined) window.clearTimeout(cutoffTimer)
+})
+
 const isPastCutoff = computed(() => {
-  if (!candidate.value?.election?.response_cutoff_date) return false
-  return new Date() > new Date(candidate.value.election.response_cutoff_date)
+  const cutoff = getBerlinEndOfDay(candidate.value?.election?.response_cutoff_date)
+  return cutoff ? currentTime.value > cutoff.getTime() : false
 })
 
 const isFormComplete = computed(() => {

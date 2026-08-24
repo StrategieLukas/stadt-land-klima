@@ -16,14 +16,23 @@ permissions:
         - candidate:
             election:
               response_cutoff_date:
-                _gt: $NOW
+                _gt: $NOW(-24 hours)
     validation: {}
     presets: null
     fields:
       - "*"
   - collection: answers
     action: delete
-    permissions: {}
+    permissions:
+      _or:
+        - candidate:
+            election:
+              response_cutoff_date:
+                _null: true
+        - candidate:
+            election:
+              response_cutoff_date:
+                _gt: $NOW(-24 hours)
     validation: {}
     presets: null
     fields:
@@ -50,7 +59,7 @@ permissions:
         - candidate:
             election:
               response_cutoff_date:
-                _gt: $NOW
+                _gt: $NOW(-24 hours)
     validation: {}
     presets: null
     fields:
@@ -161,7 +170,7 @@ permissions:
               _null: true
         - election:
             response_cutoff_date:
-              _gt: $NOW
+              _gt: $NOW(-24 hours)
     validation: {}
     presets: null
     fields:
