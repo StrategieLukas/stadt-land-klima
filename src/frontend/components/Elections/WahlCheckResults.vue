@@ -50,11 +50,12 @@
       <h3 class="text-lg sm:text-xl font-bold text-center text-stats-dark mb-6">
         {{ $t(hasPartyCandidate ? 'elections.wahlcheck.results.all_parties' : 'elections.wahlcheck.results.all_candidates') }}
       </h3>
-      <div class="space-y-4">
-        <div 
+      <div data-testid="wahlcheck-progress-match-list" class="space-y-2 md:space-y-4">
+        <div
           v-for="result in sortedResults" 
           :key="result.candidateId" 
-          class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 pb-3 md:pb-0 border-b border-solid-gray-10 md:border-0 last:border-0"
+          data-testid="wahlcheck-progress-match-row"
+          class="flex flex-col gap-1 border-b border-solid-gray-10 pb-1.5 last:border-0 md:flex-row md:items-center md:gap-4 md:border-0 md:pb-0"
         >
           <div class="w-full md:w-64 md:flex-shrink-0">
             <div class="flex items-center flex-wrap gap-x-2 gap-y-1">
@@ -64,7 +65,8 @@
                 v-if="getCandidateParty(result.candidateId)"
                 :party="getCandidateParty(result.candidateId)"
                 :state="null"
-                class="text-xs"
+                data-testid="wahlcheck-progress-party-badge"
+                class="!px-3 !py-1.5 !text-sm !font-semibold !leading-tight"
               />
             </div>
           </div>
@@ -107,7 +109,8 @@
                 <CandidatePartyLabel
                   :party="getCandidateParty(result.candidateId)"
                   :state="null"
-                  class="text-xs inline-block"
+                  data-testid="wahlcheck-match-party-badge"
+                  class="inline-block max-w-full !px-3 !py-1.5 !text-sm !font-semibold !leading-tight sm:!px-5 sm:!py-2 sm:!text-lg"
                 />
               </div>
             </div>

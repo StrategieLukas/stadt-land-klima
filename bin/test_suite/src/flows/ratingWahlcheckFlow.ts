@@ -568,6 +568,51 @@ async function completePublicWahlcheck(
       await page.getByText(name).first().waitFor({ state: 'visible', timeout: 30_000 });
     }
     await assertWahlcheckLogoLayout(page, 'Results step', customLogoId);
+    const matchPartyBadge = page.getByTestId('wahlcheck-match-party-badge').first();
+    await matchPartyBadge.waitFor({ state: 'visible', timeout: 30_000 });
+    const matchPartyBadgeDimensions = await matchPartyBadge.evaluate((element) => {
+      const style = window.getComputedStyle(element);
+      return {
+        fontSize: Number.parseFloat(style.fontSize),
+        height: element.getBoundingClientRect().height,
+        paddingLeft: Number.parseFloat(style.paddingLeft),
+      };
+    });
+    assert(
+      matchPartyBadgeDimensions.fontSize >= 18
+        && matchPartyBadgeDimensions.height >= 36
+        && matchPartyBadgeDimensions.paddingLeft >= 20,
+      `Expandable match party badges must use the available card space. Got ${JSON.stringify(matchPartyBadgeDimensions)}.`,
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    const progressPartyBadge = page.getByTestId('wahlcheck-progress-party-badge').first();
+    await progressPartyBadge.waitFor({ state: 'visible', timeout: 30_000 });
+    const mobileProgressLayout = await progressPartyBadge.evaluate((element) => {
+      const badgeStyle = window.getComputedStyle(element);
+      const row = element.closest('[data-testid="wahlcheck-progress-match-row"]');
+      const rowStyle = row ? window.getComputedStyle(row) : null;
+      const rows = row?.parentElement
+        ? Array.from(row.parentElement.querySelectorAll<HTMLElement>('[data-testid="wahlcheck-progress-match-row"]'))
+        : [];
+      const rowGap = rows.length > 1
+        ? rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().bottom
+        : 0;
+      return {
+        badgeFontSize: Number.parseFloat(badgeStyle.fontSize),
+        badgeHeight: element.getBoundingClientRect().height,
+        rowPaddingBottom: Number.parseFloat(rowStyle?.paddingBottom ?? ''),
+        rowGap,
+      };
+    });
+    assert(
+      mobileProgressLayout.badgeFontSize >= 14 && mobileProgressLayout.badgeHeight >= 28,
+      `Mobile progress-bar party badges must remain clearly readable. Got ${JSON.stringify(mobileProgressLayout)}.`,
+    );
+    assert(
+      mobileProgressLayout.rowPaddingBottom <= 8 && mobileProgressLayout.rowGap <= 8.5,
+      `Mobile progress-bar matches must use compact row spacing. Got ${JSON.stringify(mobileProgressLayout)}.`,
+    );
+    await page.setViewportSize({ width: 1440, height: 1000 });
 
     if (scoreExpectation) {
       const candidateLabel = page.getByText(scoreExpectation.candidateName, { exact: true }).first();
