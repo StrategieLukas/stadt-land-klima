@@ -1293,7 +1293,9 @@ html[data-theme="staedteChallengeDark"]
   background-color: var(--slk-blue-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .elections-flow .bg-solid-gray-10 {
+html[data-theme="staedteChallengeDark"]
+  .elections-flow
+  :where(.bg-solid-gray-05, .bg-solid-gray-10) {
   background-color: var(--slk-surface-subdued) !important;
 }
 

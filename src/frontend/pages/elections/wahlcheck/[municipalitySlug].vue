@@ -425,6 +425,7 @@ async function loadElectionData() {
           status: { _eq: "published" },
         },
         sort: ["date_created"],
+        limit: -1,
         fields: ["*"],
       }),
     );
@@ -435,6 +436,7 @@ async function loadElectionData() {
         filter: {
           election: { _eq: election.id },
         },
+        limit: -1,
         fields: ["*"],
       }),
     );
@@ -451,6 +453,7 @@ async function loadElectionData() {
             candidate: { _in: respondingCandidates.map((candidate) => candidate.id) },
             question: { _in: questions.map((q) => q.id) },
           },
+          limit: -1,
           fields: ["*"],
         }),
       );

@@ -111,6 +111,26 @@ function numeric(value: string | number | null | undefined): number {
   return typeof value === 'number' ? value : Number.parseFloat(String(value ?? ''));
 }
 
+function relativeLuminance(color: string): number {
+  const [red = 0, green = 0, blue = 0] = (color.match(/[\d.]+/g) ?? [])
+    .slice(0, 3)
+    .map(Number)
+    .map((channel) => {
+      const normalized = channel / 255;
+      return normalized <= 0.03928
+        ? normalized / 12.92
+        : ((normalized + 0.055) / 1.055) ** 2.4;
+    });
+  return (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+}
+
+function colorContrastRatio(foregroundColor: string, backgroundColor: string): number {
+  const foreground = relativeLuminance(foregroundColor);
+  const background = relativeLuminance(backgroundColor);
+  return (Math.max(foreground, background) + 0.05)
+    / (Math.min(foreground, background) + 0.05);
+}
+
 function catalog(value: Score['catalog_version']): CatalogVersion | null {
   return typeof value === 'object' && value !== null ? value : null;
 }
@@ -169,6 +189,29 @@ async function openFrontendPage(page: Page, url: string): Promise<string> {
   await page.waitForLoadState('networkidle').catch(() => undefined);
   await page.waitForTimeout(1_000);
   return visibleText(page);
+}
+
+async function assertWahlcheckLogoLayout(page: Page, step: string): Promise<void> {
+  const logo = page.getByAltText('Klimawahlcheck', { exact: true }).first();
+  await logo.waitFor({ state: 'visible', timeout: 20_000 });
+  const dimensions = await logo.evaluate((element) => {
+    const image = element as HTMLImageElement;
+    const bounds = image.getBoundingClientRect();
+    return {
+      height: bounds.height,
+      naturalHeight: image.naturalHeight,
+      naturalWidth: image.naturalWidth,
+      width: bounds.width,
+    };
+  });
+  assert(dimensions.naturalHeight > 0 && dimensions.naturalWidth > 0, `${step} logo must be loaded`);
+  assert(dimensions.width >= 480, `${step} logo must use the available desktop width`);
+  assertNear(
+    dimensions.width / dimensions.height,
+    dimensions.naturalWidth / dimensions.naturalHeight,
+    0.02,
+    `${step} logo must preserve its intrinsic aspect ratio`,
+  );
 }
 
 function watchPageErrors(page: Page, label: string): () => void {
@@ -439,19 +482,46 @@ async function completePublicWahlcheck(
   electionId: string,
   questions: Question[],
   candidateNames: string[],
+  expectedCandidateAnswerCount: number,
   missingAnswerExpectation?: {
     candidateName: string;
     questionTitle: string;
+  },
+  nonRespondingCandidateName?: string,
+  scoreExpectation?: {
+    candidateName: string;
+    percentage: number;
   },
 ): Promise<void> {
   const context = await newContext(browser);
   const page = await context.newPage();
   try {
+    const candidateAnswersResponsePromise = page.waitForResponse(
+      (response) => {
+        const url = new URL(response.url());
+        return response.request().method() === 'GET' && url.pathname.endsWith('/items/answers');
+      },
+      { timeout: 30_000 },
+    );
     await openFrontendPage(
       page,
       `${fixture.config.frontendUrl}/elections/wahlcheck/${fixture.municipality.slug}`,
     );
     await page.getByText('Klimawahlcheck').first().waitFor({ state: 'visible', timeout: 30_000 });
+    await assertWahlcheckLogoLayout(page, 'Question step');
+
+    const candidateAnswersResponse = await candidateAnswersResponsePromise;
+    assert(
+      candidateAnswersResponse.ok(),
+      `Candidate answers request must succeed. Got HTTP ${candidateAnswersResponse.status()}.`,
+    );
+    const candidateAnswersPayload = await candidateAnswersResponse.json() as { data?: unknown[] };
+    assert(Array.isArray(candidateAnswersPayload.data), 'Candidate answers response must contain a data array');
+    assertEqual(
+      candidateAnswersPayload.data.length,
+      expectedCandidateAnswerCount,
+      'Public Wahlcheck must load every candidate answer, including datasets above the Directus page limit',
+    );
 
     for (const question of questions) {
       const radio = page.locator(`input[name="question-${question.id}"]`).first();
@@ -461,11 +531,46 @@ async function completePublicWahlcheck(
 
     const weightCheckbox = page.locator('input[type="checkbox"].checkbox-primary').first();
     await weightCheckbox.waitFor({ state: 'visible', timeout: 30_000 });
+    await assertWahlcheckLogoLayout(page, 'Summary step');
     await weightCheckbox.check({ force: true });
     await page.locator('button.btn-primary').last().click();
 
     for (const name of candidateNames) {
       await page.getByText(name).first().waitFor({ state: 'visible', timeout: 30_000 });
+    }
+    await assertWahlcheckLogoLayout(page, 'Results step');
+
+    if (scoreExpectation) {
+      const candidateLabel = page.getByText(scoreExpectation.candidateName, { exact: true }).first();
+      const overviewRow = candidateLabel.locator('xpath=../../..');
+      const displayedScore = Number(await overviewRow.locator('.slk-progress-label').innerText());
+      assertEqual(
+        displayedScore,
+        scoreExpectation.percentage,
+        `${scoreExpectation.candidateName} match must use all fetched candidate answers`,
+      );
+    }
+
+    if (nonRespondingCandidateName) {
+      await page.getByText(nonRespondingCandidateName, { exact: true })
+        .waitFor({ state: 'visible', timeout: 30_000 });
+      const noResponseBanner = page.getByText('Nicht geantwortet:', { exact: true }).locator('..');
+      await page.evaluate(() => {
+        document.documentElement.classList.add('dark');
+        document.documentElement.dataset.theme = 'staedteChallengeDark';
+      });
+      const bannerColors = await noResponseBanner.evaluate((element) => {
+        const style = window.getComputedStyle(element);
+        return {
+          background: style.backgroundColor,
+          foreground: style.color,
+        };
+      });
+      const contrastRatio = colorContrastRatio(bannerColors.foreground, bannerColors.background);
+      assert(
+        contrastRatio >= 4.5,
+        `The non-responder banner must remain readable in dark mode. Got contrast ratio ${contrastRatio.toFixed(2)}.`,
+      );
     }
 
     if (missingAnswerExpectation) {
@@ -1174,15 +1279,68 @@ export async function runRatingWahlcheckFlow(
     assert(answerToRemove, 'The candidate answer selected for the result regression must exist');
     await fixture.admin.deleteItem('answers', answerToRemove.id);
 
+    const paginationCandidates = await fixture.admin.request<Candidate[]>('POST', '/items/candidate', {
+      body: Array.from({ length: 8 }, (_, index) => ({
+        election: election.id,
+        name: `PaginationParty${index + 1} ${fixture.config.runId}`,
+        salutation: 'neutral',
+        email: `pagination-party-${index + 1}-${fixture.config.runId}@stadt-land-klima.de`,
+        party: `PaginationParty${index + 1} ${fixture.config.runId}`,
+        has_answered: true,
+      })),
+    });
+    assertEqual(paginationCandidates.length, 8, 'Pagination regression must create eight additional candidates');
+
+    const paginationAnswerInput = paginationCandidates.flatMap((candidate, candidateIndex) => (
+      generatedQuestions.map((question, questionIndex) => ({
+        candidate: candidate.id,
+        question: question.id,
+        response: (candidateIndex + questionIndex) % 5,
+        explanation: `Pagination regression ${fixture.config.runId}`,
+      }))
+    ));
+    const paginationAnswers = await fixture.admin.request<Answer[]>('POST', '/items/answers', {
+      body: paginationAnswerInput,
+    });
+    assertEqual(
+      paginationAnswers.length,
+      paginationAnswerInput.length,
+      'Pagination regression must persist every additional candidate answer',
+    );
+
+    const nonRespondingCandidate = await fixture.admin.createItem<Candidate>('candidate', {
+      election: election.id,
+      name: `NonRespondingParty ${fixture.config.runId}`,
+      salutation: 'neutral',
+      email: `non-responding-party-${fixture.config.runId}@stadt-land-klima.de`,
+      party: `NonRespondingParty ${fixture.config.runId}`,
+      has_answered: false,
+    });
+
+    const resultCandidates = [...candidates, ...paginationCandidates];
+    const expectedCandidateAnswerCount = (candidates.length * generatedQuestions.length)
+      - 1
+      + paginationAnswers.length;
+    assert(
+      expectedCandidateAnswerCount > 100,
+      'Pagination regression dataset must exceed the Directus default page limit',
+    );
+
     await completePublicWahlcheck(
       browser,
       fixture,
       election.id,
       generatedQuestions,
-      candidates.map((candidate) => candidate.name),
+      resultCandidates.map((candidate) => candidate.name),
+      expectedCandidateAnswerCount,
       {
         candidateName: incompleteCandidate.name,
         questionTitle: missingAnswerQuestion.title,
+      },
+      nonRespondingCandidate.name,
+      {
+        candidateName: paginationCandidates[0].name,
+        percentage: 42,
       },
     );
   });

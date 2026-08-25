@@ -6,7 +6,7 @@
         <img
           src="~/assets/images/Klima-Wahlcheck-Logo.svg"
           :alt="$t('elections.wahlcheck.header_title')"
-          class="h-20 sm:h-24 w-auto mx-auto object-contain"
+          class="mx-auto h-auto w-full max-w-lg object-contain"
         />
       </div>
       <h2 class="text-xl sm:text-2xl font-bold text-stats-dark mb-4">
