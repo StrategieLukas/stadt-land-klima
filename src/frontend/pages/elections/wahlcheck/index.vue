@@ -64,9 +64,9 @@
         <div class="rounded-xl border border-solid-gray-10 bg-white p-8 text-center shadow-list">
           <div class="mb-6">
             <img
-              src="~/assets/images/Stadt-Land-Klima-Blume.svg"
-              :alt="$t('logo.alt')"
-              class="mx-auto h-24 w-auto opacity-80"
+              src="~/assets/images/Mach_den-Klima-Wahlcheck.svg"
+              :alt="$t('elections.wahlcheck.header_title')"
+              class="mx-auto h-24 w-auto object-contain"
             />
           </div>
           <h2 class="mb-4 text-2xl font-bold text-stats-dark">

@@ -14,16 +14,14 @@
     <!-- Header -->
     <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
-        <ElectionsWahlCheckLogo
-          :logo="election?.custom_logo"
-          fallback="flower"
-          :alt="$t('logo.alt')"
-          logo-class="h-20 sm:h-24 w-auto mx-auto object-contain"
-          fallback-class="h-20 sm:h-24 w-auto mx-auto opacity-80"
+        <img
+          src="~/assets/images/Klima-Wahlcheck-Logo.svg"
+          :alt="$t('elections.wahlcheck.header_title')"
+          class="h-20 sm:h-24 w-auto mx-auto object-contain"
         />
       </div>
       <h2 class="text-xl sm:text-2xl font-bold text-stats-dark mb-4">
-        {{ $t('elections.wahlcheck.results.title') }}
+        {{ $t(hasPartyCandidate ? 'elections.wahlcheck.results.title_parties' : 'elections.wahlcheck.results.title') }}
       </h2>
       <p class="text-mid-gray max-w-2xl mx-auto text-sm sm:text-base">
         {{ $t('elections.wahlcheck.results.description') }}
