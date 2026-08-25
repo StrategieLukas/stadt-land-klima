@@ -239,11 +239,18 @@
                   <div v-else class="w-6 h-6 rounded-full bg-solid-gray-20 flex-shrink-0"></div>
                   
                   <button
-                    v-if="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))"
+                    v-if="getCandidateAnswer(result.candidateId, question.id)"
                     type="button"
-                    class="btn btn-circle btn-ghost btn-xs h-6 min-h-6 w-6 p-0 border border-stats-dark/15 text-stats-dark hover:bg-stats-light flex-shrink-0"
-                    :aria-label="$t('elections.wahlcheck.results.show_reasoning')"
-                    :title="$t('elections.wahlcheck.results.show_reasoning')"
+                    class="btn btn-circle btn-ghost btn-xs h-6 min-h-6 w-6 p-0 border flex-shrink-0"
+                    :class="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))
+                      ? 'border-stats-dark/15 text-stats-dark hover:bg-stats-light'
+                      : 'border-red/40 text-red hover:border-red hover:bg-red/10'"
+                    :aria-label="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))
+                      ? $t('elections.wahlcheck.results.show_reasoning')
+                      : $t('elections.wahlcheck.results.no_reasoning')"
+                    :title="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))
+                      ? $t('elections.wahlcheck.results.show_reasoning')
+                      : $t('elections.wahlcheck.results.no_reasoning')"
                     @click="openReasoning(result.candidateId, question)"
                   >
                     <span aria-hidden="true" class="text-xs font-bold leading-none">i</span>
@@ -319,15 +326,24 @@
                     <div v-else class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-solid-gray-20">
                     </div>
                     <button
-                      v-if="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))"
+                      v-if="getCandidateAnswer(result.candidateId, question.id)"
                       type="button"
-                      class="btn btn-circle btn-ghost btn-xs h-7 min-h-7 w-7 sm:h-8 sm:min-h-8 sm:w-8 border border-stats-dark/15 text-stats-dark hover:bg-stats-light"
-                      :aria-label="$t('elections.wahlcheck.results.show_reasoning')"
-                      :title="$t('elections.wahlcheck.results.show_reasoning')"
+                      class="btn btn-circle btn-ghost btn-xs h-7 min-h-7 w-7 sm:h-8 sm:min-h-8 sm:w-8 border"
+                      :class="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))
+                        ? 'border-stats-dark/15 text-stats-dark hover:bg-stats-light'
+                        : 'border-red/40 text-red hover:border-red hover:bg-red/10'"
+                      :aria-label="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))
+                        ? $t('elections.wahlcheck.results.show_reasoning')
+                        : $t('elections.wahlcheck.results.no_reasoning')"
+                      :title="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))
+                        ? $t('elections.wahlcheck.results.show_reasoning')
+                        : $t('elections.wahlcheck.results.no_reasoning')"
                       @click="openReasoning(result.candidateId, question)"
                     >
                       <span class="sr-only">
-                        {{ $t('elections.wahlcheck.results.show_reasoning') }}
+                        {{ getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))
+                          ? $t('elections.wahlcheck.results.show_reasoning')
+                          : $t('elections.wahlcheck.results.no_reasoning') }}
                       </span>
                       <span aria-hidden="true" class="text-xs sm:text-sm font-bold leading-none">i</span>
                     </button>
@@ -365,7 +381,25 @@
       @close="activeReasoning = null"
     >
       <div class="modal-box w-[calc(100%-2rem)] max-w-2xl overflow-hidden p-0">
-        <div class="flex items-start justify-between gap-4 border-b border-gray/10 p-5">
+        <div
+          v-if="activeReasoning && !activeReasoning.explanation"
+          class="flex items-start justify-between gap-4 p-5"
+        >
+          <p class="rounded-lg border border-red/20 bg-red/5 p-4 text-base font-medium leading-relaxed text-red">
+            {{ $t('elections.wahlcheck.results.no_reasoning') }}
+          </p>
+          <form method="dialog">
+            <button
+              type="submit"
+              class="btn btn-circle btn-ghost btn-sm flex-shrink-0"
+              :aria-label="$t('generic.close')"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </form>
+        </div>
+
+        <div v-else class="flex items-start justify-between gap-4 border-b border-gray/10 p-5">
           <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold uppercase tracking-wider text-ff-green">
               {{ $t('elections.wahlcheck.results.reasoning') }}
@@ -406,7 +440,7 @@
           </form>
         </div>
 
-        <div v-if="activeReasoning" class="space-y-5 p-5">
+        <div v-if="activeReasoning?.explanation" class="space-y-5 p-5">
           <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-mid-gray">
               {{ $t('elections.thesis') }}
@@ -706,7 +740,7 @@ function openReasoning(candidateId, question) {
   const answer = getCandidateAnswer(candidateId, question.id)
   const explanation = getCandidateExplanation(answer)
 
-  if (!answer || !explanation) {
+  if (!answer) {
     return
   }
 

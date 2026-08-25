@@ -212,6 +212,13 @@ async function assertWahlcheckLogoLayout(page: Page, step: string): Promise<void
     0.02,
     `${step} logo must preserve its intrinsic aspect ratio`,
   );
+
+  const svgMarkup = await logo.evaluate(async (element) => {
+    const image = element as HTMLImageElement;
+    const response = await fetch(image.currentSrc || image.src);
+    return response.text();
+  });
+  assert(!/<(?:text|tspan)\b/i.test(svgMarkup), `${step} logo must not depend on externally loaded fonts`);
 }
 
 function watchPageErrors(page: Page, label: string): () => void {
@@ -492,6 +499,10 @@ async function completePublicWahlcheck(
     candidateName: string;
     percentage: number;
   },
+  missingReasoningExpectation?: {
+    candidateName: string;
+    questionTitle: string;
+  },
 ): Promise<void> {
   const context = await newContext(browser);
   const page = await context.newPage();
@@ -597,6 +608,39 @@ async function completePublicWahlcheck(
         0,
         'A missing candidate answer must not render a reasoning indicator',
       );
+    }
+
+    if (missingReasoningExpectation) {
+      const resultCard = page.locator('.fade-in-up')
+        .filter({ hasText: missingReasoningExpectation.candidateName })
+        .first();
+      await resultCard.locator('button').first().click();
+
+      const missingReasoningTitle = resultCard
+        .getByText(missingReasoningExpectation.questionTitle, { exact: true })
+        .last();
+      const missingReasoningRow = missingReasoningTitle.locator('xpath=../..');
+      const missingReasoningMessage = 'Es wurde zu dieser These keine Begründung eingereicht.';
+      const missingReasoningButton = missingReasoningRow.getByRole('button', {
+        name: missingReasoningMessage,
+      });
+      await missingReasoningButton.waitFor({ state: 'visible', timeout: 30_000 });
+      assertIncludes(
+        await missingReasoningButton.getAttribute('class') ?? '',
+        'text-red',
+        'An answer without reasoning must render a red information indicator',
+      );
+      await missingReasoningButton.click();
+
+      const reasoningDialog = page.locator('dialog[open]');
+      await reasoningDialog.getByText(missingReasoningMessage, { exact: true })
+        .waitFor({ state: 'visible', timeout: 30_000 });
+      assertEqual(
+        await reasoningDialog.getByText('Begründung', { exact: true }).count(),
+        0,
+        'The missing-reasoning dialog must only show the explanatory message',
+      );
+      await page.keyboard.press('Escape');
     }
 
     const text = await visibleText(page);
@@ -1307,6 +1351,18 @@ export async function runRatingWahlcheckFlow(
       paginationAnswerInput.length,
       'Pagination regression must persist every additional candidate answer',
     );
+    const missingReasoningCandidate = paginationCandidates[0];
+    const missingReasoningQuestion = generatedQuestions[0];
+    assert(missingReasoningCandidate, 'A candidate is required for the missing-reasoning regression');
+    assert(missingReasoningQuestion, 'A question is required for the missing-reasoning regression');
+    const answerWithoutReasoning = paginationAnswers.find(
+      (answer) => answer.candidate === missingReasoningCandidate.id
+        && answer.question === missingReasoningQuestion.id,
+    );
+    assert(answerWithoutReasoning, 'A candidate answer is required for the missing-reasoning regression');
+    await fixture.admin.updateItem<Answer>('answers', answerWithoutReasoning.id, {
+      explanation: null,
+    });
 
     const nonRespondingCandidate = await fixture.admin.createItem<Candidate>('candidate', {
       election: election.id,
@@ -1341,6 +1397,10 @@ export async function runRatingWahlcheckFlow(
       {
         candidateName: paginationCandidates[0].name,
         percentage: 42,
+      },
+      {
+        candidateName: missingReasoningCandidate.name,
+        questionTitle: missingReasoningQuestion.title,
       },
     );
   });
