@@ -65,6 +65,7 @@
                   <label
                     class="p-1 rounded-full focus-within:outline-none transition-transform relative option-btn cursor-pointer flex items-center justify-center"
                     :class="{ 'sparkle-active': sparklingOption === option.value }"
+                    :style="{ '--sparkle-rgb': option.sparkleRgb }"
                   >
                     <input
                       type="radio"
@@ -447,15 +448,15 @@ defineExpose({
 
 @keyframes sparkleRing {
   0% {
-    box-shadow: 0 0 0 0 rgba(70, 150, 43, 0.85);
+    box-shadow: 0 0 0 0 rgba(var(--sparkle-rgb), 0.85);
     transform: scale(0.95);
   }
   50% {
-    box-shadow: 0 0 0 7px rgba(70, 150, 43, 0.4);
+    box-shadow: 0 0 0 7px rgba(var(--sparkle-rgb), 0.4);
     transform: scale(1.1);
   }
   100% {
-    box-shadow: 0 0 0 12px rgba(70, 150, 43, 0);
+    box-shadow: 0 0 0 12px rgba(var(--sparkle-rgb), 0);
     transform: scale(1);
   }
 }

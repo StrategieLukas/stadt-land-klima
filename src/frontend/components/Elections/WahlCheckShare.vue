@@ -61,7 +61,7 @@
 
             <!-- Top Header & Logo -->
             <div class="relative z-10">
-              <div class="flex items-center justify-between gap-2 mb-3">
+              <div class="flex items-center justify-between gap-2 mb-1">
                 <div
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold"
                   :class="isDark ? 'bg-white/10 backdrop-blur-md border border-white/15 text-white/90' : 'bg-stats-dark/5 backdrop-blur-md border border-stats-dark/15 text-stats-dark'"
@@ -94,7 +94,7 @@
                 {{ election?.descriptor || 'Klimawahlcheck' }}
               </h4>
               <p
-                class="text-[10px] mt-0.5 font-medium"
+                class="text-[10px] mt-0.5 font-bold"
                 :class="isDark ? 'text-white/70' : 'text-mid-gray'"
               >
                 {{ $t('elections.wahlcheck.results.share.my_matches') }}
@@ -102,7 +102,7 @@
             </div>
 
             <!-- Top 5 Candidates Cards (Mirrored from Candidates Overview) -->
-            <div class="relative z-10 space-y-2 my-auto">
+            <div class="relative z-10 space-y-1 my-auto">
               <div
                 v-for="(result, idx) in topCandidates"
                 :key="result.candidateId"
@@ -116,6 +116,7 @@
                       {{ idx + 1 }}
                     </span>
                     <span
+                      v-if="!isPartyCandidate(result.candidateId)"
                       class="font-bold text-xs truncate leading-tight"
                       :class="isDark ? 'text-white' : 'text-black'"
                     >
@@ -125,7 +126,7 @@
                       v-if="getCandidateParty(result.candidateId)"
                       :party="getCandidateParty(result.candidateId)"
                       :state="null"
-                      class="text-[9px] px-1.5 py-0 flex-shrink-0"
+                      class="text-[9px] px-1.5 py-0 flex-shrink-0 max-w-[8rem] truncate"
                     />
                   </div>
                   <!-- Percentage -->
@@ -433,8 +434,11 @@ function getCandidateName(candidateId) {
 }
 
 function getCandidateParty(candidateId) {
-  const candidate = getCandidate(candidateId)
-  return candidate.party && !candidateNameMatchesParty(candidate) ? candidate.party : ''
+  return getCandidate(candidateId).party || ''
+}
+
+function isPartyCandidate(candidateId) {
+  return candidateNameMatchesParty(getCandidate(candidateId))
 }
 
 function getProgressColorHex(percentage) {
@@ -608,7 +612,7 @@ async function generateDynamicCanvas() {
   ctx.textBaseline = 'top'
 
   const titleLines = wrapText(ctx, electionTitle, width - 160)
-  let currentY = 190
+  let currentY = 174
   titleLines.slice(0, 2).forEach((line) => {
     ctx.fillText(line, 80, currentY)
     currentY += 64
@@ -617,7 +621,7 @@ async function generateDynamicCanvas() {
   // Subtitle / Results Intro
   currentY += 10
   ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.75)' : '#4b5563'
-  ctx.font = '600 28px system-ui, -apple-system, sans-serif'
+  ctx.font = '800 28px system-ui, -apple-system, sans-serif'
   ctx.fillText($t('elections.wahlcheck.results.share.my_matches'), 80, currentY)
 
   // 4. Candidate Match Cards (Top 5 Candidates)
@@ -634,6 +638,7 @@ async function generateDynamicCanvas() {
     const candidateName = getCandidateName(item.candidateId)
     const partyKey = getCandidateParty(item.candidateId)
     const partyLabel = partyKey ? getCandidatePartyLabel(partyKey) : ''
+    const partyOnly = isPartyCandidate(item.candidateId)
     const percentage = item.percentage || 0
 
     // Card Background
@@ -658,18 +663,20 @@ async function generateDynamicCanvas() {
     ctx.textBaseline = 'middle'
     ctx.fillText(`${i + 1}`, rankX, rankY + 1)
 
-    // Candidate Name
-    ctx.fillStyle = '#000000'
-    ctx.font = '800 36px system-ui, -apple-system, sans-serif'
-    ctx.textAlign = 'left'
-    ctx.textBaseline = 'middle'
+    if (!partyOnly) {
+      // Candidate Name
+      ctx.fillStyle = '#000000'
+      ctx.font = '800 36px system-ui, -apple-system, sans-serif'
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'middle'
 
-    // Truncate name if too long
-    let nameText = candidateName
-    while (ctx.measureText(nameText).width > 420 && nameText.length > 3) {
-      nameText = nameText.slice(0, -2) + '…'
+      // Truncate name if too long
+      let nameText = candidateName
+      while (ctx.measureText(nameText).width > 420 && nameText.length > 3) {
+        nameText = nameText.slice(0, -2) + '…'
+      }
+      ctx.fillText(nameText, rankX + 50, rankY - 10)
     }
-    ctx.fillText(nameText, rankX + 50, rankY - 10)
 
     // Party Pill Tag
     if (partyLabel) {
@@ -677,12 +684,16 @@ async function generateDynamicCanvas() {
       const partyBg = partyConf.color
       const partyText = partyConf.textColor
 
-      ctx.font = '700 20px system-ui, -apple-system, sans-serif'
-      const partyMetrics = ctx.measureText(partyLabel)
+      ctx.font = `${partyOnly ? '800 26px' : '700 20px'} system-ui, -apple-system, sans-serif`
+      let visiblePartyLabel = partyLabel
+      while (ctx.measureText(visiblePartyLabel).width > 420 && visiblePartyLabel.length > 3) {
+        visiblePartyLabel = visiblePartyLabel.slice(0, -2) + '…'
+      }
+      const partyMetrics = ctx.measureText(visiblePartyLabel)
       const pillW = partyMetrics.width + 24
-      const pillH = 34
+      const pillH = partyOnly ? 42 : 34
       const pillX = rankX + 50
-      const pillY = rankY + 18
+      const pillY = partyOnly ? rankY - pillH / 2 : rankY + 18
 
       ctx.fillStyle = partyBg
       drawRoundedRect(ctx, pillX, pillY, pillW, pillH, 17)
@@ -691,7 +702,7 @@ async function generateDynamicCanvas() {
       ctx.fillStyle = partyText
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText(partyLabel, pillX + pillW / 2, pillY + pillH / 2 + 1)
+      ctx.fillText(visiblePartyLabel, pillX + pillW / 2, pillY + pillH / 2 + 1)
     }
 
     // Match Percentage
@@ -727,7 +738,7 @@ async function generateDynamicCanvas() {
     ctx.font = '900 42px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText('...', width / 2, cardY - cardGap / 2)
+    ctx.fillText('...', width / 2, cardY - cardGap + 6)
   }
 
   // 5. Call To Action Button (Bottom Area)
@@ -832,7 +843,7 @@ async function shareToStory() {
     try {
       await navigator.share({
         title: props.election?.descriptor || 'Klimawahlcheck',
-        text: 'Mein Ergebnis beim Klimawahlcheck auf stadt-land-klima.de',
+        text: `${$t('elections.wahlcheck.results.share.my_matches')}: ${props.election?.descriptor || 'Klimawahlcheck'}`,
         files: [file]
       })
       return

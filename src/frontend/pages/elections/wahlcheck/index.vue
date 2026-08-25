@@ -126,7 +126,13 @@
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span>{{ $t("elections.candidates_count", { ":count": election.candidateCount }) }}</span>
+                <span>
+                  {{
+                    $t(election.hasPartyCandidate ? "elections.parties_count" : "elections.candidates_count", {
+                      ":count": election.candidateCount,
+                    })
+                  }}
+                </span>
               </div>
               <div class="flex items-center gap-1">
                 <svg
@@ -147,12 +153,9 @@
               </div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between border-t border-solid-gray-10 pt-4">
+            <div class="mt-4 border-t border-solid-gray-10 pt-4">
               <span class="text-sm text-mid-gray">
                 {{ $t("generic.created_at", { ":date": formatDate(election.date_created) }) }}
-              </span>
-              <span class="rounded-full bg-solid-ff-green-10 px-2 py-1 text-xs font-medium text-ff-green">
-                {{ $t("generic.public") }}
               </span>
             </div>
           </NuxtLink>
@@ -201,6 +204,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { candidateNameMatchesParty } from "~/shared/candidateParties.js";
 
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 
@@ -285,6 +289,7 @@ async function loadElections() {
         electionsWithCounts.push({
           ...election,
           candidateCount: candidates?.length || 0,
+          hasPartyCandidate: candidates?.some((candidate) => candidateNameMatchesParty(candidate)) || false,
           questionCount: questions?.length || 0,
         });
       } catch (err) {
@@ -292,6 +297,7 @@ async function loadElections() {
         electionsWithCounts.push({
           ...election,
           candidateCount: 0,
+          hasPartyCandidate: false,
           questionCount: 0,
         });
       }

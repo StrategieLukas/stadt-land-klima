@@ -33,18 +33,22 @@
       </p>
     </div>
 
-    <p
-      v-if="nonRespondingCandidateLabels.length > 0"
-      class="rounded-lg border border-solid-gray-20 bg-solid-gray-05 px-4 py-3 text-sm leading-relaxed text-mid-gray"
+    <div
+      v-if="nonRespondingCandidates.length > 0"
+      class="flex flex-wrap items-center gap-x-1 gap-y-2 rounded-lg border border-solid-gray-20 bg-solid-gray-05 px-4 py-3 text-sm leading-relaxed text-mid-gray"
     >
       <span class="font-semibold text-gray">{{ $t('elections.wahlcheck.results.no_response') }}:</span>
-      {{ nonRespondingCandidateLabels.join(', ') }}
-    </p>
+      <template v-for="(candidate, index) in nonRespondingCandidates" :key="candidate.id">
+        <span v-if="index > 0" aria-hidden="true">,</span>
+        <span v-if="!candidateNameMatchesParty(candidate)">{{ getCandidateDisplayName(candidate) }}</span>
+        <CandidatePartyLabel v-if="candidate.party" :party="candidate.party" :state="null" class="text-xs" />
+      </template>
+    </div>
 
     <!-- Bar Chart Overview (Requirement 7) -->
     <div v-if="results.length > 0" class="bg-white p-4 sm:p-6 rounded-xl shadow-list border border-solid-gray-10">
       <h3 class="text-lg sm:text-xl font-bold text-center text-stats-dark mb-6">
-        {{ $t('elections.wahlcheck.results.all_candidates') }}
+        {{ $t(hasPartyCandidate ? 'elections.wahlcheck.results.all_parties' : 'elections.wahlcheck.results.all_candidates') }}
       </h3>
       <div class="space-y-4">
         <div 
@@ -55,7 +59,7 @@
           <div class="w-full md:w-64 md:flex-shrink-0">
             <div class="flex items-center flex-wrap gap-x-2 gap-y-1">
               <span class="font-bold text-stats-dark">{{ sortedResults.indexOf(result) + 1 }}.</span>
-              <span class="text-sm font-bold text-black break-words hyphens-auto">{{ getCandidateName(result.candidateId) }}</span>
+              <span v-if="!isPartyCandidate(result.candidateId)" class="text-sm font-bold text-black break-words hyphens-auto">{{ getCandidateName(result.candidateId) }}</span>
               <CandidatePartyLabel
                 v-if="getCandidateParty(result.candidateId)"
                 :party="getCandidateParty(result.candidateId)"
@@ -96,10 +100,10 @@
 
             <!-- Candidate Info (Party Tag below name on mobile/desktop per Requirement 8) -->
             <div class="flex-1 min-w-0">
-              <h4 class="text-base sm:text-lg font-bold text-black break-words hyphens-auto leading-snug">
+              <h4 v-if="!isPartyCandidate(result.candidateId)" class="text-base sm:text-lg font-bold text-black break-words hyphens-auto leading-snug">
                 {{ getCandidateName(result.candidateId) }}
               </h4>
-              <div v-if="getCandidateParty(result.candidateId)" class="mt-1">
+              <div v-if="getCandidateParty(result.candidateId)" :class="{ 'mt-1': !isPartyCandidate(result.candidateId) }">
                 <CandidatePartyLabel
                   :party="getCandidateParty(result.candidateId)"
                   :state="null"
@@ -237,24 +241,15 @@
                   <div v-else class="w-6 h-6 rounded-full bg-solid-gray-20 flex-shrink-0"></div>
                   
                   <button
-                    v-if="getCandidateAnswer(result.candidateId, question.id)"
+                    v-if="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))"
                     type="button"
-                    class="btn btn-circle btn-ghost btn-xs h-6 min-h-6 w-6 p-0 border flex-shrink-0"
-                    :class="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? 'border-stats-dark/15 text-stats-dark hover:bg-stats-light' : 'border-gray/20 text-gray/40 hover:bg-gray/10'"
-                    :aria-label="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning')"
-                    :title="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning')"
+                    class="btn btn-circle btn-ghost btn-xs h-6 min-h-6 w-6 p-0 border border-stats-dark/15 text-stats-dark hover:bg-stats-light flex-shrink-0"
+                    :aria-label="$t('elections.wahlcheck.results.show_reasoning')"
+                    :title="$t('elections.wahlcheck.results.show_reasoning')"
                     @click="openReasoning(result.candidateId, question)"
                   >
                     <span aria-hidden="true" class="text-xs font-bold leading-none">i</span>
                   </button>
-                  <span
-                    v-else
-                    class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-gray/20 text-xs font-bold leading-none text-gray/30 flex-shrink-0"
-                    :title="$t('elections.wahlcheck.results.no_reasoning')"
-                    aria-hidden="true"
-                  >
-                    i
-                  </span>
                 </div>
               </div>
             </div>
@@ -326,27 +321,18 @@
                     <div v-else class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-solid-gray-20">
                     </div>
                     <button
-                      v-if="getCandidateAnswer(result.candidateId, question.id)"
+                      v-if="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id))"
                       type="button"
-                      class="btn btn-circle btn-ghost btn-xs h-7 min-h-7 w-7 sm:h-8 sm:min-h-8 sm:w-8 border"
-                      :class="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? 'border-stats-dark/15 text-stats-dark hover:bg-stats-light' : 'border-gray/20 text-gray/40 hover:bg-gray/10'"
-                      :aria-label="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning')"
-                      :title="getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning')"
+                      class="btn btn-circle btn-ghost btn-xs h-7 min-h-7 w-7 sm:h-8 sm:min-h-8 sm:w-8 border border-stats-dark/15 text-stats-dark hover:bg-stats-light"
+                      :aria-label="$t('elections.wahlcheck.results.show_reasoning')"
+                      :title="$t('elections.wahlcheck.results.show_reasoning')"
                       @click="openReasoning(result.candidateId, question)"
                     >
                       <span class="sr-only">
-                        {{ getCandidateExplanation(getCandidateAnswer(result.candidateId, question.id)) ? $t('elections.wahlcheck.results.show_reasoning') : $t('elections.wahlcheck.results.no_reasoning') }}
+                        {{ $t('elections.wahlcheck.results.show_reasoning') }}
                       </span>
                       <span aria-hidden="true" class="text-xs sm:text-sm font-bold leading-none">i</span>
                     </button>
-                    <span
-                      v-else
-                      class="inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full border border-gray/20 text-xs sm:text-sm font-bold leading-none text-gray/30"
-                      :title="$t('elections.wahlcheck.results.no_reasoning')"
-                      aria-hidden="true"
-                    >
-                      i
-                    </span>
                   </div>
                 </div>
               </div>
@@ -387,7 +373,13 @@
               {{ $t('elections.wahlcheck.results.reasoning') }}
             </p>
             <div class="mt-1 flex min-w-0 items-start justify-between gap-3">
-              <h3 class="min-w-0 break-words text-xl font-bold leading-tight text-black">
+              <CandidatePartyLabel
+                v-if="activeReasoning && isPartyCandidate(activeReasoning.candidateId)"
+                :party="getCandidateParty(activeReasoning.candidateId)"
+                :state="null"
+                class="flex-shrink-0 text-sm"
+              />
+              <h3 v-else class="min-w-0 break-words text-xl font-bold leading-tight text-black">
                 {{ activeReasoning ? getCandidateName(activeReasoning.candidateId) : '' }}
               </h3>
               <div
@@ -460,7 +452,7 @@
     <!-- Navigation Buttons (Requirement 1) -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-8 pt-6 border-t border-solid-gray-10 gap-4">
       <div class="text-xs sm:text-sm text-mid-gray text-center sm:text-left">
-        {{ $t("elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
+        {{ $t(hasPartyCandidate ? "elections.wahlcheck.results.compared_parties" : "elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
       </div>
       <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
         <button
@@ -488,7 +480,6 @@ import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
 import {
   candidateNameMatchesParty,
-  formatCandidateNameAndParty,
   getCandidateDisplayName,
 } from '~/shared/candidateParties.js'
 import sectorImages from '~/shared/sectorImages.js'
@@ -537,11 +528,14 @@ const sortBy = ref('default') // 'default', 'agreement', 'disagreement'
 const reasoningDialog = ref(null)
 const activeReasoning = ref(null)
 
-const nonRespondingCandidateLabels = computed(() => {
-  return props.candidates
-    .filter((candidate) => candidate.has_answered !== true)
-    .map((candidate) => formatCandidateNameAndParty(candidate))
-    .filter(Boolean)
+const nonRespondingCandidates = computed(() => {
+  return props.candidates.filter((candidate) => candidate.has_answered !== true)
+})
+
+const hasPartyCandidate = computed(() => {
+  return props.candidates.some(
+    (candidate) => candidate.has_answered === true && candidateNameMatchesParty(candidate)
+  )
 })
 
 // Toggle through sort modes
@@ -672,14 +666,21 @@ function getRankingBgColor(rank) {
 }
 
 // Helper functions for candidate data
+function getCandidate(candidateId) {
+  return props.candidates.find(candidate => String(candidate.id) === String(candidateId))
+}
+
 function getCandidateName(candidateId) {
-  const candidate = props.candidates.find(c => c.id === candidateId)
+  const candidate = getCandidate(candidateId)
   return candidate ? getCandidateDisplayName(candidate) : $t('elections.unknown_candidate')
 }
 
 function getCandidateParty(candidateId) {
-  const candidate = props.candidates.find(c => c.id === candidateId)
-  return candidate && !candidateNameMatchesParty(candidate) ? candidate.party : null
+  return getCandidate(candidateId)?.party || null
+}
+
+function isPartyCandidate(candidateId) {
+  return candidateNameMatchesParty(getCandidate(candidateId))
 }
 
 function getCandidateAnswer(candidateId, questionId) {
@@ -708,7 +709,7 @@ function openReasoning(candidateId, question) {
   const answer = getCandidateAnswer(candidateId, question.id)
   const explanation = getCandidateExplanation(answer)
 
-  if (!answer) {
+  if (!answer || !explanation) {
     return
   }
 
@@ -716,7 +717,7 @@ function openReasoning(candidateId, question) {
     candidateId,
     question,
     answer,
-    explanation: explanation || $t('elections.wahlcheck.results.no_reasoning')
+    explanation
   }
   reasoningDialog.value?.showModal()
 }
