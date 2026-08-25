@@ -334,8 +334,8 @@
 import { ref, computed, onMounted } from 'vue'
 import {
   candidateNameMatchesParty,
-  candidateParties,
   getCandidateDisplayName,
+  getCandidatePartyConfig,
   getCandidatePartyLabel,
 } from '~/shared/candidateParties.js'
 import { useTheme } from '~/composables/useTheme'
@@ -680,7 +680,7 @@ async function generateDynamicCanvas() {
 
     // Party Pill Tag
     if (partyLabel) {
-      const partyConf = candidateParties[partyKey] || { color: '#cccccc', textColor: '#ffffff' }
+      const partyConf = getCandidatePartyConfig(partyKey) || { color: '#cccccc', textColor: '#ffffff' }
       const partyBg = partyConf.color
       const partyText = partyConf.textColor
 

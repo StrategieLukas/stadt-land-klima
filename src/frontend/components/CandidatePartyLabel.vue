@@ -10,7 +10,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { candidateParties, getCandidatePartyLabel } from '~/shared/candidateParties.js'
+import { getCandidatePartyConfig, getCandidatePartyLabel } from '~/shared/candidateParties.js'
 
 const props = defineProps({
   party: {
@@ -27,17 +27,13 @@ const partyName = computed(() => {
   return getCandidatePartyLabel(props.party, props.state)
 })
 
+const partyConfig = computed(() => getCandidatePartyConfig(props.party))
+
 const partyColor = computed(() => {
-  if (candidateParties[props.party]) {
-    return candidateParties[props.party].color
-  }
-  return '#cccccc' // Default for unknown/custom
+  return partyConfig.value?.color || '#cccccc' // Default for unknown/custom
 })
 
 const textColor = computed(() => {
-  if (candidateParties[props.party]) {
-    return candidateParties[props.party].textColor
-  }
-  return '#ffffff'
+  return partyConfig.value?.textColor || '#ffffff'
 })
 </script>
