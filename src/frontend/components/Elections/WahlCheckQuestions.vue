@@ -3,10 +3,12 @@
     <!-- Introduction -->
     <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
-        <img
-          src="~/assets/images/Klima-Wahlcheck-Logo.svg"
+        <ElectionsWahlCheckLogo
+          :logo="election?.custom_logo"
+          fallback="wahlcheck"
           :alt="$t('elections.wahlcheck.header_title')"
-          class="mx-auto h-auto w-full max-w-lg object-contain"
+          logo-class="mx-auto h-auto max-h-48 w-auto max-w-full object-contain"
+          fallback-class="mx-auto h-auto w-full max-w-lg object-contain"
         />
       </div>
       <h2 class="text-xl sm:text-2xl font-bold text-stats-dark mb-4">

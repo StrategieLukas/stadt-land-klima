@@ -1,24 +1,12 @@
 <template>
   <div class="elections-flow min-h-screen bg-mild-white">
-    <!-- Header with SLK Branding -->
+    <!-- Header -->
     <div class="border-b border-solid-gray-10 bg-white shadow-sm">
-      <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <NuxtLink to="/" class="flex items-center gap-3">
-          <ElectionsWahlCheckLogo
-            :logo="electionData?.election?.custom_logo"
-            fallback="full"
-            :alt="$t('logo.alt')"
-            logo-class="h-10 w-auto object-contain"
-            fallback-class="h-10 w-auto"
-          />
-        </NuxtLink>
-        <div class="flex-1 text-center">
-          <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
-          <p v-if="electionData?.election" class="text-sm text-mid-gray">
-            {{ electionData.election.descriptor }}
-          </p>
-        </div>
-        <div class="w-10"></div>
+      <div class="mx-auto max-w-6xl px-4 py-4 text-center">
+        <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
+        <p v-if="electionData?.election" class="text-sm text-mid-gray">
+          {{ electionData.election.descriptor }}
+        </p>
       </div>
     </div>
 

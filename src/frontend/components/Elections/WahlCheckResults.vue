@@ -14,10 +14,12 @@
     <!-- Header -->
     <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
-        <img
-          src="~/assets/images/Klima-Wahlcheck-Logo.svg"
+        <ElectionsWahlCheckLogo
+          :logo="election?.custom_logo"
+          fallback="wahlcheck"
           :alt="$t('elections.wahlcheck.header_title')"
-          class="mx-auto h-auto w-full max-w-lg object-contain"
+          logo-class="mx-auto h-auto max-h-48 w-auto max-w-full object-contain"
+          fallback-class="mx-auto h-auto w-full max-w-lg object-contain"
         />
       </div>
       <h2 class="text-xl sm:text-2xl font-bold text-stats-dark mb-4">
@@ -380,15 +382,18 @@
       class="modal"
       @close="activeReasoning = null"
     >
-      <div class="modal-box w-[calc(100%-2rem)] max-w-2xl overflow-hidden p-0">
+      <div
+        class="modal-box max-h-[calc(100dvh_-_2rem)] w-[calc(100%_-_2rem)] overflow-y-auto overscroll-contain p-0"
+        :class="activeReasoning?.explanation ? 'max-w-2xl' : 'max-w-lg'"
+      >
         <div
           v-if="activeReasoning && !activeReasoning.explanation"
-          class="flex items-start justify-between gap-4 p-5"
+          class="relative p-5"
         >
-          <p class="rounded-lg border border-red/20 bg-red/5 p-4 text-base font-medium leading-relaxed text-red">
+          <p class="w-full rounded-lg border border-red/20 bg-red/5 p-4 pr-12 text-base font-medium leading-relaxed text-red">
             {{ $t('elections.wahlcheck.results.no_reasoning') }}
           </p>
-          <form method="dialog">
+          <form method="dialog" class="absolute right-7 top-7">
             <button
               type="submit"
               class="btn btn-circle btn-ghost btn-sm flex-shrink-0"

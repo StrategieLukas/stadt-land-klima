@@ -42,7 +42,8 @@
           <!-- Dynamic generated sharepic preview (HTML/CSS Based -> No Canvas permission needed on load!) -->
           <div
             v-if="activeTab === 'personal'"
-            class="w-full h-full p-4 flex flex-col justify-between select-none relative overflow-hidden"
+            data-testid="wahlcheck-personal-sharepic"
+            class="relative flex h-full w-full select-none flex-col overflow-hidden px-4 pb-32 pt-4"
             :class="isDark ? 'bg-gradient-to-b from-[#0a2731] via-[#0e3a47] to-[#164c5d] text-white' : 'bg-gradient-to-b from-[#ffffff] via-[#f1f8f4] to-[#dfeee4] text-stats-dark'"
           >
             <!-- Background Glow Effects -->
@@ -102,15 +103,15 @@
             </div>
 
             <!-- Top 5 Candidates Cards (Mirrored from Candidates Overview) -->
-            <div class="relative z-10 space-y-1 my-auto">
+            <div data-testid="wahlcheck-sharepic-matches" class="relative z-10 my-auto space-y-1">
               <div
                 v-for="(result, idx) in topCandidates"
                 :key="result.candidateId"
-                class="rounded-xl p-2.5 shadow-md text-stats-dark"
+                class="rounded-xl p-1.5 shadow-md text-stats-dark"
                 :class="isDark ? 'bg-[#17212b] backdrop-blur-md border border-white/20 text-white' : 'bg-white border border-solid-gray-20'"
               >
                 <!-- Row 1: Rank Badge + Candidate Name + Party Tag -->
-                <div class="flex items-center justify-between gap-1.5 mb-1.5">
+                <div class="mb-1 flex items-center justify-between gap-1.5">
                   <div class="flex items-center gap-1.5 min-w-0 flex-1">
                     <span class="w-5 h-5 rounded-full bg-stats-dark text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
                       {{ idx + 1 }}
@@ -156,18 +157,10 @@
                 Keine Ergebnisse vorhanden
               </div>
 
-              <div
-                v-else-if="hasMoreCandidates"
-                class="text-center text-xl font-extrabold leading-none tracking-[0.35em]"
-                :class="isDark ? 'text-white/80' : 'text-stats-dark/70'"
-                aria-hidden="true"
-              >
-                ...
-              </div>
             </div>
 
             <!-- Bottom CTA -->
-            <div class="relative z-10 text-center pt-2">
+            <div data-testid="wahlcheck-sharepic-cta" class="absolute inset-x-4 bottom-20 z-10 pt-2 text-center">
               <div
                 v-if="isDark"
                 class="rounded-xl border border-white/20 bg-[#17212b] p-2 text-white shadow-md font-bold text-[11px] leading-tight flex items-center justify-center gap-1"
@@ -388,7 +381,6 @@ const topCandidates = computed(() => {
   return props.sortedResults.slice(0, 5)
 })
 
-const hasMoreCandidates = computed(() => props.sortedResults.length > topCandidates.value.length)
 const sharepicCtaUrl = 'stadt-land-klima.de/wahl'
 
 // Official Sharepic Fallback:
@@ -627,7 +619,7 @@ async function generateDynamicCanvas() {
   // 4. Candidate Match Cards (Top 5 Candidates)
   let cardY = currentY + 60
   const cardW = width - 160
-  const cardH = props.sortedResults.length > 3 ? 190 : 220
+  const cardH = props.sortedResults.length > 3 ? 180 : 220
   const cardRadius = 28
   const cardGap = props.sortedResults.length > 3 ? 20 : 30
 
@@ -733,18 +725,11 @@ async function generateDynamicCanvas() {
     cardY += cardH + cardGap
   }
 
-  if (props.sortedResults.length > top5.length) {
-    ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(10, 39, 49, 0.7)'
-    ctx.font = '900 42px system-ui, -apple-system, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('...', width / 2, cardY - cardGap + 6)
-  }
-
   // 5. Call To Action Button (Bottom Area)
-  const ctaBoxY = height - 420
+  const storyUiSafeAreaHeight = 300
   const ctaBoxH = 240
   const ctaBoxW = width - 160
+  const ctaBoxY = height - storyUiSafeAreaHeight - ctaBoxH
 
   ctx.fillStyle = dark ? '#17212b' : 'rgba(10, 39, 49, 0.04)'
   drawRoundedRect(ctx, 80, ctaBoxY, ctaBoxW, ctaBoxH, 32)

@@ -43,6 +43,7 @@ interface Rating {
 interface Election {
   id: string;
   descriptor: string;
+  custom_logo?: string | null;
   already_generated_questions?: boolean | null;
   already_sent_mails?: boolean | null;
   already_sent_reminder_mails?: boolean | null;
@@ -191,8 +192,14 @@ async function openFrontendPage(page: Page, url: string): Promise<string> {
   return visibleText(page);
 }
 
-async function assertWahlcheckLogoLayout(page: Page, step: string): Promise<void> {
-  const logo = page.getByAltText('Klimawahlcheck', { exact: true }).first();
+async function assertWahlcheckLogoLayout(
+  page: Page,
+  step: string,
+  expectedCustomLogoId?: string,
+): Promise<void> {
+  const logos = page.getByAltText('Klimawahlcheck', { exact: true });
+  assertEqual(await logos.count(), 1, `${step} must render the election image only once`);
+  const logo = logos.first();
   await logo.waitFor({ state: 'visible', timeout: 20_000 });
   const dimensions = await logo.evaluate((element) => {
     const image = element as HTMLImageElement;
@@ -201,11 +208,11 @@ async function assertWahlcheckLogoLayout(page: Page, step: string): Promise<void
       height: bounds.height,
       naturalHeight: image.naturalHeight,
       naturalWidth: image.naturalWidth,
+      source: image.currentSrc || image.src,
       width: bounds.width,
     };
   });
   assert(dimensions.naturalHeight > 0 && dimensions.naturalWidth > 0, `${step} logo must be loaded`);
-  assert(dimensions.width >= 480, `${step} logo must use the available desktop width`);
   assertNear(
     dimensions.width / dimensions.height,
     dimensions.naturalWidth / dimensions.naturalHeight,
@@ -213,6 +220,16 @@ async function assertWahlcheckLogoLayout(page: Page, step: string): Promise<void
     `${step} logo must preserve its intrinsic aspect ratio`,
   );
 
+  if (expectedCustomLogoId) {
+    assertIncludes(
+      dimensions.source,
+      `/assets/${expectedCustomLogoId}`,
+      `${step} must render the uploaded election image`,
+    );
+    return;
+  }
+
+  assert(dimensions.width >= 480, `${step} fallback logo must use the available desktop width`);
   const svgMarkup = await logo.evaluate(async (element) => {
     const image = element as HTMLImageElement;
     const response = await fetch(image.currentSrc || image.src);
@@ -490,6 +507,7 @@ async function completePublicWahlcheck(
   questions: Question[],
   candidateNames: string[],
   expectedCandidateAnswerCount: number,
+  customLogoId: string,
   missingAnswerExpectation?: {
     candidateName: string;
     questionTitle: string;
@@ -519,7 +537,7 @@ async function completePublicWahlcheck(
       `${fixture.config.frontendUrl}/elections/wahlcheck/${fixture.municipality.slug}`,
     );
     await page.getByText('Klimawahlcheck').first().waitFor({ state: 'visible', timeout: 30_000 });
-    await assertWahlcheckLogoLayout(page, 'Question step');
+    await assertWahlcheckLogoLayout(page, 'Question step', customLogoId);
 
     const candidateAnswersResponse = await candidateAnswersResponsePromise;
     assert(
@@ -542,14 +560,14 @@ async function completePublicWahlcheck(
 
     const weightCheckbox = page.locator('input[type="checkbox"].checkbox-primary').first();
     await weightCheckbox.waitFor({ state: 'visible', timeout: 30_000 });
-    await assertWahlcheckLogoLayout(page, 'Summary step');
+    await assertWahlcheckLogoLayout(page, 'Summary step', customLogoId);
     await weightCheckbox.check({ force: true });
     await page.locator('button.btn-primary').last().click();
 
     for (const name of candidateNames) {
       await page.getByText(name).first().waitFor({ state: 'visible', timeout: 30_000 });
     }
-    await assertWahlcheckLogoLayout(page, 'Results step');
+    await assertWahlcheckLogoLayout(page, 'Results step', customLogoId);
 
     if (scoreExpectation) {
       const candidateLabel = page.getByText(scoreExpectation.candidateName, { exact: true }).first();
@@ -635,12 +653,55 @@ async function completePublicWahlcheck(
       const reasoningDialog = page.locator('dialog[open]');
       await reasoningDialog.getByText(missingReasoningMessage, { exact: true })
         .waitFor({ state: 'visible', timeout: 30_000 });
+      const missingReasoningLayout = await reasoningDialog.evaluate((dialog) => {
+        const modalBox = dialog.querySelector('.modal-box');
+        const message = modalBox?.querySelector('p');
+        return {
+          boxWidth: modalBox?.getBoundingClientRect().width ?? 0,
+          messageWidth: message?.getBoundingClientRect().width ?? 0,
+        };
+      });
+      assert(
+        missingReasoningLayout.messageWidth / missingReasoningLayout.boxWidth >= 0.85,
+        'The missing-reasoning message must not leave an unnecessary empty column',
+      );
       assertEqual(
         await reasoningDialog.getByText('Begründung', { exact: true }).count(),
         0,
         'The missing-reasoning dialog must only show the explanatory message',
       );
       await page.keyboard.press('Escape');
+
+      await page.setViewportSize({ width: 390, height: 480 });
+      const reasoningButton = resultCard.getByRole('button', { name: 'Begründung anzeigen' }).first();
+      await reasoningButton.waitFor({ state: 'visible', timeout: 30_000 });
+      await reasoningButton.click();
+      const scrollableDialog = page.locator('dialog[open] .modal-box');
+      const scrollMetrics = await scrollableDialog.evaluate((element) => {
+        const style = window.getComputedStyle(element);
+        return {
+          clientHeight: element.clientHeight,
+          overflowY: style.overflowY,
+          scrollHeight: element.scrollHeight,
+        };
+      });
+      assert(
+        scrollMetrics.scrollHeight > scrollMetrics.clientHeight,
+        'A long reasoning dialog must overflow within the mobile viewport',
+      );
+      assert(
+        ['auto', 'scroll'].includes(scrollMetrics.overflowY),
+        'The complete reasoning dialog must be vertically scrollable on mobile',
+      );
+      await scrollableDialog.evaluate((element) => {
+        element.scrollTop = element.scrollHeight;
+      });
+      assert(
+        await scrollableDialog.evaluate((element) => element.scrollTop > 0),
+        'The reasoning dialog must scroll to its full content',
+      );
+      await page.keyboard.press('Escape');
+      await page.setViewportSize({ width: 1440, height: 1000 });
     }
 
     const text = await visibleText(page);
@@ -649,6 +710,32 @@ async function completePublicWahlcheck(
     assertIncludes(text, 'Ergebnis teilen', 'Public Wahlcheck result page must render share section');
     assertIncludes(text, 'WhatsApp', 'Public Wahlcheck result page must offer WhatsApp sharing');
     assertIncludes(text, 'Instagram', 'Public Wahlcheck result page must offer Instagram sharing');
+    const personalSharepic = page.getByTestId('wahlcheck-personal-sharepic');
+    await personalSharepic.waitFor({ state: 'visible', timeout: 30_000 });
+    assertEqual(
+      await personalSharepic.getByText('...', { exact: true }).count(),
+      0,
+      'The generated sharepic preview must not render a more-candidates ellipsis',
+    );
+    const sharepicSafeArea = await personalSharepic.evaluate((preview) => {
+      const cta = preview.querySelector('[data-testid="wahlcheck-sharepic-cta"]');
+      const matches = preview.querySelector('[data-testid="wahlcheck-sharepic-matches"]');
+      const previewBounds = preview.getBoundingClientRect();
+      const ctaBounds = cta?.getBoundingClientRect();
+      const matchesBounds = matches?.getBoundingClientRect();
+      return {
+        candidatesToCtaGap: ctaBounds && matchesBounds ? ctaBounds.top - matchesBounds.bottom : -1,
+        ctaToBottomGap: ctaBounds ? previewBounds.bottom - ctaBounds.bottom : 0,
+      };
+    });
+    assert(
+      sharepicSafeArea.candidatesToCtaGap >= 0,
+      `The generated sharepic CTA must not overlap the candidate cards. Got ${sharepicSafeArea.candidatesToCtaGap}px.`,
+    );
+    assert(
+      sharepicSafeArea.ctaToBottomGap >= 60,
+      `The generated sharepic must reserve space below the CTA for story UI. Got ${sharepicSafeArea.ctaToBottomGap}px.`,
+    );
     await waitFor(
       'public Wahlcheck share URL generated',
       async () => page.url().includes('share='),
@@ -689,6 +776,7 @@ export async function runRatingWahlcheckFlow(
   let generatedQuestions: Question[] = [];
   let extraQuestion: Question;
   let candidates: Candidate[] = [];
+  let customLogoId = '';
 
   await runner.step('Ratings: municipality is hidden before scores are published', async () => {
     const score = await currentScore(fixture);
@@ -891,6 +979,7 @@ export async function runRatingWahlcheckFlow(
       `Automated Wahlcheck Logo ${fixture.config.runId}`,
     );
     assert(customLogo.id, 'Uploaded Wahlcheck logo must include an id');
+    customLogoId = customLogo.id;
 
     election = await fixture.localteamMember.client.createItem<Election>('elections', {
       descriptor: `AutomatedElectionTest ${fixture.config.runId}`,
@@ -1363,6 +1452,18 @@ export async function runRatingWahlcheckFlow(
     await fixture.admin.updateItem<Answer>('answers', answerWithoutReasoning.id, {
       explanation: null,
     });
+    const longReasoningQuestion = generatedQuestions.find(
+      (question) => question.id !== missingReasoningQuestion.id,
+    );
+    assert(longReasoningQuestion, 'A second question is required for the long-reasoning regression');
+    const answerWithLongReasoning = paginationAnswers.find(
+      (answer) => answer.candidate === missingReasoningCandidate.id
+        && answer.question === longReasoningQuestion.id,
+    );
+    assert(answerWithLongReasoning, 'A candidate answer is required for the long-reasoning regression');
+    await fixture.admin.updateItem<Answer>('answers', answerWithLongReasoning.id, {
+      explanation: 'Ausführliche Begründung für den mobilen Scrolltest. '.repeat(20).trim(),
+    });
 
     const nonRespondingCandidate = await fixture.admin.createItem<Candidate>('candidate', {
       election: election.id,
@@ -1389,6 +1490,7 @@ export async function runRatingWahlcheckFlow(
       generatedQuestions,
       resultCandidates.map((candidate) => candidate.name),
       expectedCandidateAnswerCount,
+      customLogoId,
       {
         candidateName: incompleteCandidate.name,
         questionTitle: missingAnswerQuestion.title,
@@ -1403,5 +1505,21 @@ export async function runRatingWahlcheckFlow(
         questionTitle: missingReasoningQuestion.title,
       },
     );
+
+    await fixture.admin.updateItem<Election>('elections', election.id, { custom_logo: null });
+    const fallbackContext = await newContext(browser);
+    try {
+      const fallbackPage = await fallbackContext.newPage();
+      await openFrontendPage(
+        fallbackPage,
+        `${fixture.config.frontendUrl}/elections/wahlcheck/${fixture.municipality.slug}`,
+      );
+      await assertWahlcheckLogoLayout(fallbackPage, 'Question step fallback');
+    } finally {
+      await fallbackContext.close();
+      election = await fixture.admin.updateItem<Election>('elections', election.id, {
+        custom_logo: customLogoId,
+      });
+    }
   });
 }
