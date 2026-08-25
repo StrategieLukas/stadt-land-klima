@@ -568,9 +568,19 @@ async function completePublicWahlcheck(
       await page.getByText(name).first().waitFor({ state: 'visible', timeout: 30_000 });
     }
     await assertWahlcheckLogoLayout(page, 'Results step', customLogoId);
-    const matchPartyBadge = page.getByTestId('wahlcheck-match-party-badge').first();
-    await matchPartyBadge.waitFor({ state: 'visible', timeout: 30_000 });
-    const matchPartyBadgeDimensions = await matchPartyBadge.evaluate((element) => {
+    assertEqual(
+      await page.getByTestId('wahlcheck-results-overview').count(),
+      1,
+      'The match overview and detail tables must render as one unified section',
+    );
+    assertEqual(
+      await page.getByTestId('wahlcheck-progress-match-list').count(),
+      1,
+      'The ranked candidates must not be repeated in a second list',
+    );
+    const progressPartyBadge = page.getByTestId('wahlcheck-progress-party-badge').first();
+    await progressPartyBadge.waitFor({ state: 'visible', timeout: 30_000 });
+    const desktopProgressBadgeDimensions = await progressPartyBadge.evaluate((element) => {
       const style = window.getComputedStyle(element);
       return {
         fontSize: Number.parseFloat(style.fontSize),
@@ -579,13 +589,31 @@ async function completePublicWahlcheck(
       };
     });
     assert(
-      matchPartyBadgeDimensions.fontSize >= 18
-        && matchPartyBadgeDimensions.height >= 36
-        && matchPartyBadgeDimensions.paddingLeft >= 20,
-      `Expandable match party badges must use the available card space. Got ${JSON.stringify(matchPartyBadgeDimensions)}.`,
+      desktopProgressBadgeDimensions.fontSize >= 16
+        && desktopProgressBadgeDimensions.height >= 32
+        && desktopProgressBadgeDimensions.paddingLeft >= 16,
+      `Desktop progress-bar party badges must remain clearly readable. Got ${JSON.stringify(desktopProgressBadgeDimensions)}.`,
+    );
+    const firstResultToggle = page.getByTestId('wahlcheck-result-toggle').first();
+    assertEqual(
+      await firstResultToggle.getAttribute('aria-expanded'),
+      'false',
+      'Match details must initially be collapsed',
+    );
+    await firstResultToggle.locator('.slk-progress-label').click();
+    await page.getByTestId('wahlcheck-match-details').waitFor({ state: 'visible', timeout: 30_000 });
+    assertEqual(
+      await firstResultToggle.getAttribute('aria-expanded'),
+      'true',
+      'Clicking the progress-bar row must expand its detail table',
+    );
+    await firstResultToggle.click();
+    assertEqual(
+      await page.getByTestId('wahlcheck-match-details').count(),
+      0,
+      'Clicking an expanded progress-bar row must collapse its detail table',
     );
     await page.setViewportSize({ width: 390, height: 844 });
-    const progressPartyBadge = page.getByTestId('wahlcheck-progress-party-badge').first();
     await progressPartyBadge.waitFor({ state: 'visible', timeout: 30_000 });
     const mobileProgressLayout = await progressPartyBadge.evaluate((element) => {
       const badgeStyle = window.getComputedStyle(element);
@@ -648,10 +676,10 @@ async function completePublicWahlcheck(
     }
 
     if (missingAnswerExpectation) {
-      const resultCard = page.locator('.fade-in-up')
+      const resultCard = page.getByTestId('wahlcheck-progress-match-row')
         .filter({ hasText: missingAnswerExpectation.candidateName })
         .first();
-      await resultCard.locator('button').first().click();
+      await resultCard.getByTestId('wahlcheck-result-toggle').click();
 
       for (const question of questions) {
         await resultCard.getByText(question.title, { exact: true }).last()
@@ -674,10 +702,10 @@ async function completePublicWahlcheck(
     }
 
     if (missingReasoningExpectation) {
-      const resultCard = page.locator('.fade-in-up')
+      const resultCard = page.getByTestId('wahlcheck-progress-match-row')
         .filter({ hasText: missingReasoningExpectation.candidateName })
         .first();
-      await resultCard.locator('button').first().click();
+      await resultCard.getByTestId('wahlcheck-result-toggle').click();
 
       const missingReasoningTitle = resultCard
         .getByText(missingReasoningExpectation.questionTitle, { exact: true })

@@ -45,109 +45,68 @@
       </template>
     </div>
 
-    <!-- Bar Chart Overview (Requirement 7) -->
-    <div v-if="results.length > 0" class="bg-white p-4 sm:p-6 rounded-xl shadow-list border border-solid-gray-10">
+    <!-- Unified match overview and details -->
+    <div
+      v-if="results.length > 0"
+      data-testid="wahlcheck-results-overview"
+      class="rounded-xl border border-solid-gray-10 bg-white p-4 shadow-list sm:p-6"
+    >
       <h3 class="text-lg sm:text-xl font-bold text-center text-stats-dark mb-6">
         {{ $t(hasPartyCandidate ? 'elections.wahlcheck.results.all_parties' : 'elections.wahlcheck.results.all_candidates') }}
       </h3>
       <div data-testid="wahlcheck-progress-match-list" class="space-y-2 md:space-y-4">
         <div
-          v-for="result in sortedResults" 
-          :key="result.candidateId" 
-          data-testid="wahlcheck-progress-match-row"
-          class="flex flex-col gap-1 border-b border-solid-gray-10 pb-1.5 last:border-0 md:flex-row md:items-center md:gap-4 md:border-0 md:pb-0"
-        >
-          <div class="w-full md:w-64 md:flex-shrink-0">
-            <div class="flex items-center flex-wrap gap-x-2 gap-y-1">
-              <span class="font-bold text-stats-dark">{{ sortedResults.indexOf(result) + 1 }}.</span>
-              <span v-if="!isPartyCandidate(result.candidateId)" class="text-sm font-bold text-black break-words hyphens-auto">{{ getCandidateName(result.candidateId) }}</span>
-              <CandidatePartyLabel
-                v-if="getCandidateParty(result.candidateId)"
-                :party="getCandidateParty(result.candidateId)"
-                :state="null"
-                data-testid="wahlcheck-progress-party-badge"
-                class="!px-3 !py-1.5 !text-sm !font-semibold !leading-tight"
-              />
-            </div>
-          </div>
-          <div class="w-full flex-1 min-w-0">
-            <ProgressBar :scoreTotal="result.percentage" layout="default" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Results Summary -->
-    <div v-if="results.length > 0" class="bg-gradient-to-r from-solid-ff-green-10 to-solid-stats-light-50 p-4 sm:p-8 rounded-xl border border-solid-ff-green-30">
-      <h3 class="text-lg sm:text-xl font-bold text-center text-stats-dark mb-6">
-        {{ $t('elections.wahlcheck.results.top_matches') }}
-      </h3>
-
-      <!-- Animated Results List (Requirement 8) -->
-      <div class="space-y-4">
-        <div
           v-for="(result, index) in sortedResults"
           :key="result.candidateId"
-          class="bg-white rounded-xl p-4 sm:p-6 shadow-list border border-solid-gray-10 transition-all duration-500"
-          :style="{ animationDelay: `${index * 100}ms` }"
-          :class="`fade-in-up animation-delay-${index}`"
-          @mouseenter="hoveredCandidate = result.candidateId"
-          @mouseleave="hoveredCandidate = null"
+          data-testid="wahlcheck-progress-match-row"
+          class="border-b border-solid-gray-10 pb-1.5 last:border-0 md:pb-0"
         >
-          <div class="flex items-center justify-between gap-2.5 sm:gap-4">
-            <!-- Rank -->
-            <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-stats-dark text-white flex items-center justify-center font-bold text-base sm:text-xl shadow-md">
-              {{ index + 1 }}
-            </div>
-
-            <!-- Candidate Info (Party Tag below name on mobile/desktop per Requirement 8) -->
-            <div class="flex-1 min-w-0">
-              <h4 v-if="!isPartyCandidate(result.candidateId)" class="text-base sm:text-lg font-bold text-black break-words hyphens-auto leading-snug">
-                {{ getCandidateName(result.candidateId) }}
-              </h4>
-              <div v-if="getCandidateParty(result.candidateId)" :class="{ 'mt-1': !isPartyCandidate(result.candidateId) }">
+          <button
+            type="button"
+            data-testid="wahlcheck-result-toggle"
+            class="group flex w-full flex-col gap-1 rounded-lg text-left transition-colors hover:bg-solid-ff-green-05 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ff-green md:flex-row md:items-center md:gap-4 md:px-2 md:py-1"
+            :aria-expanded="expandedCandidate === result.candidateId"
+            :aria-controls="`wahlcheck-details-${result.candidateId}`"
+            @click="toggleExpand(result.candidateId)"
+          >
+            <div class="w-full md:w-64 md:flex-shrink-0">
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span class="font-bold text-stats-dark">{{ index + 1 }}.</span>
+                <span v-if="!isPartyCandidate(result.candidateId)" class="break-words text-sm font-bold text-black hyphens-auto sm:text-base">{{ getCandidateName(result.candidateId) }}</span>
                 <CandidatePartyLabel
+                  v-if="getCandidateParty(result.candidateId)"
                   :party="getCandidateParty(result.candidateId)"
                   :state="null"
-                  data-testid="wahlcheck-match-party-badge"
-                  class="inline-block max-w-full !px-3 !py-1.5 !text-sm !font-semibold !leading-tight sm:!px-5 sm:!py-2 sm:!text-lg"
+                  data-testid="wahlcheck-progress-party-badge"
+                  class="max-w-full !px-3 !py-1.5 !text-sm !font-semibold !leading-tight sm:!px-4 sm:!py-2 sm:!text-base"
                 />
               </div>
             </div>
-
-            <!-- Ranking Indicator -->
-            <div class="flex-shrink-0 w-14 sm:w-20 flex flex-col items-center justify-center">
-              <div class="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-md">
-                <!-- Medal background -->
-                <div
-                  class="absolute inset-0 rounded-full opacity-20"
-                  :class="getRankingBgColor(sortedResults.indexOf(result) + 1)"
-                ></div>
-                <!-- Rank number -->
-                <span class="relative text-2xl sm:text-3xl font-bold" :class="getRankingColor(sortedResults.indexOf(result) + 1)">
-                  {{ sortedResults.indexOf(result) + 1 }}
-                </span>
+            <div class="flex w-full min-w-0 flex-1 items-center gap-2">
+              <div class="min-w-0 flex-1">
+                <ProgressBar :scoreTotal="result.percentage" layout="default" />
               </div>
-              <span class="text-[9px] sm:text-[10px] text-mid-gray uppercase tracking-wider mt-0.5 sm:mt-1">{{ $t('elections.wahlcheck.results.match') }}</span>
-            </div>
-
-            <!-- Expand Button -->
-            <button
-              @click="toggleExpand(result.candidateId)"
-              class="btn btn-circle btn-ghost btn-sm hover:bg-solid-ff-green-10 transition-all flex-shrink-0"
-              :class="{ 'rotate-180': expandedCandidate === result.candidateId }"
-              :aria-label="$t('elections.wahlcheck.results.details')"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-stats-dark transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 flex-shrink-0 text-stats-dark transition-transform duration-300 sm:h-6 sm:w-6"
+                :class="{ 'rotate-180': expandedCandidate === result.candidateId }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
-            </button>
-          </div>
+            </div>
+            <span class="sr-only">{{ $t('elections.wahlcheck.results.details') }}</span>
+          </button>
 
           <!-- Expanded Details -->
           <div
             v-if="expandedCandidate === result.candidateId"
-            class="mt-6 pt-6 border-t border-solid-gray-10 overflow-hidden transition-all duration-300"
+            :id="`wahlcheck-details-${result.candidateId}`"
+            data-testid="wahlcheck-match-details"
+            class="mt-3 overflow-hidden border-t border-solid-gray-10 pt-4 transition-all duration-300 sm:mt-4 sm:pt-6"
           >
             <h5 class="font-bold text-stats-dark mb-4 break-words hyphens-auto">{{ $t('elections.wahlcheck.results.details') }}</h5>
 
@@ -562,7 +521,6 @@ const emit = defineEmits(['restart', 'prev'])
 
 // State
 const expandedCandidate = ref(null)
-const hoveredCandidate = ref(null)
 const showConfetti = ref(false)
 const sortBy = ref('default') // 'default', 'agreement', 'disagreement'
 const reasoningDialog = ref(null)
@@ -658,50 +616,12 @@ function getConfettiColor(index) {
   return confettiColors[index % confettiColors.length]
 }
 
-const progressColors = {
-  0: '#e30613',
-  1: '#f39200',
-  2: '#ffd400',
-  3: '#afca0b',
-  4: '#1da64a'
-}
-
 function getRatingColor(value) {
   return getWahlcheckRatingColor(value)
 }
 
 function getRatingLabel(value) {
   return getWahlcheckAnswerLabel(value, props.election, $t)
-}
-
-function getProgressColor(percentage) {
-  if (percentage >= 80) return progressColors[4]
-  if (percentage >= 60) return progressColors[3]
-  if (percentage >= 40) return progressColors[2]
-  if (percentage >= 20) return progressColors[1]
-  return progressColors[0]
-}
-
-// Ranking colors - gold, silver, bronze
-const rankingColors = {
-  1: 'text-yellow-500',  // Gold
-  2: 'text-gray-700',   // Silver
-  3: 'text-amber-700'   // Bronze
-}
-
-function getRankingColor(rank) {
-  return rankingColors[rank] || 'text-stats-dark'
-}
-
-// Ranking background colors (subtle medal colors)
-const rankingBgColors = {
-  1: 'bg-yellow-400',
-  2: 'bg-black',
-  3: 'bg-amber-800'
-}
-
-function getRankingBgColor(rank) {
-  return rankingBgColors[rank] || 'bg-solid-ff-green-20'
 }
 
 // Helper functions for candidate data
@@ -1058,33 +978,6 @@ function decodeShareableData(encodedString) {
     opacity: 0;
   }
 }
-
-/* Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-
-.animation-delay-0 { animation-delay: 0ms; }
-.animation-delay-1 { animation-delay: 100ms; }
-.animation-delay-2 { animation-delay: 200ms; }
-.animation-delay-3 { animation-delay: 300ms; }
-.animation-delay-4 { animation-delay: 400ms; }
-.animation-delay-5 { animation-delay: 500ms; }
-.animation-delay-6 { animation-delay: 600ms; }
-.animation-delay-7 { animation-delay: 700ms; }
-.animation-delay-8 { animation-delay: 800ms; }
-.animation-delay-9 { animation-delay: 900ms; }
 
 /* Circular progress animation */
 svg path {
