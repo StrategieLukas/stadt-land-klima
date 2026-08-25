@@ -439,6 +439,10 @@ async function completePublicWahlcheck(
   electionId: string,
   questions: Question[],
   candidateNames: string[],
+  missingAnswerExpectation?: {
+    candidateName: string;
+    questionTitle: string;
+  },
 ): Promise<void> {
   const context = await newContext(browser);
   const page = await context.newPage();
@@ -463,6 +467,33 @@ async function completePublicWahlcheck(
     for (const name of candidateNames) {
       await page.getByText(name).first().waitFor({ state: 'visible', timeout: 30_000 });
     }
+
+    if (missingAnswerExpectation) {
+      const resultCard = page.locator('.fade-in-up')
+        .filter({ hasText: missingAnswerExpectation.candidateName })
+        .first();
+      await resultCard.locator('button').first().click();
+
+      for (const question of questions) {
+        await resultCard.getByText(question.title, { exact: true }).last()
+          .waitFor({ state: 'visible', timeout: 30_000 });
+      }
+
+      const missingAnswerTitle = resultCard
+        .getByText(missingAnswerExpectation.questionTitle, { exact: true })
+        .last();
+      const missingAnswerRow = missingAnswerTitle.locator('xpath=../..');
+      assert(
+        await missingAnswerRow.locator('.bg-solid-gray-20').count() > 0,
+        'A missing candidate answer must render a neutral placeholder',
+      );
+      assertEqual(
+        await missingAnswerRow.locator('button').count(),
+        0,
+        'A missing candidate answer must not render a reasoning indicator',
+      );
+    }
+
     const text = await visibleText(page);
     assertIncludes(text, 'Klimawahlcheck', 'Public Wahlcheck result page must render');
     assertIncludes(text, '1.', 'Public Wahlcheck result page must rank candidates');
@@ -1132,12 +1163,27 @@ export async function runRatingWahlcheckFlow(
       await context.close();
     }
 
+    const incompleteCandidate = candidates[1];
+    const missingAnswerQuestion = generatedQuestions[0];
+    assert(incompleteCandidate, 'A candidate is required for the incomplete-answer result regression');
+    assert(missingAnswerQuestion, 'A question is required for the incomplete-answer result regression');
+    const incompleteCandidateAnswers = await readAnswersForCandidate(fixture, incompleteCandidate.id);
+    const answerToRemove = incompleteCandidateAnswers.find(
+      (answer) => answer.question === missingAnswerQuestion.id,
+    );
+    assert(answerToRemove, 'The candidate answer selected for the result regression must exist');
+    await fixture.admin.deleteItem('answers', answerToRemove.id);
+
     await completePublicWahlcheck(
       browser,
       fixture,
       election.id,
       generatedQuestions,
       candidates.map((candidate) => candidate.name),
+      {
+        candidateName: incompleteCandidate.name,
+        questionTitle: missingAnswerQuestion.title,
+      },
     );
   });
 }

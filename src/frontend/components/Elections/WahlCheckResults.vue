@@ -579,11 +579,10 @@ const sortedExpandedQuestions = computed(() => {
       originalIndex: originalIndices.get(q.id) ?? 0
     }
   }).filter(q => {
-    // Only show questions that have both user and candidate answers
+    // Show every thesis the user answered. A missing candidate answer is
+    // represented by the neutral placeholder in the comparison table.
     return props.userAnswers[q.id] !== undefined &&
-      props.userAnswers[q.id] !== null &&
-      candidateAnswersByQuestion[q.id] !== undefined &&
-      candidateAnswersByQuestion[q.id] !== null
+      props.userAnswers[q.id] !== null
   }).sort((a, b) => {
     if (sortBy.value === 'default') {
       return a.originalIndex - b.originalIndex
