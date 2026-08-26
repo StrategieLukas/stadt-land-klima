@@ -84,7 +84,7 @@
             </div>
             <div class="flex w-full min-w-0 flex-1 items-center gap-2">
               <div class="min-w-0 flex-1">
-                <ProgressBar :scoreTotal="result.percentage" layout="default" />
+                <ProgressBar :scoreTotal="result.percentage" layout="default" :showScaleMaximum="false" />
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"

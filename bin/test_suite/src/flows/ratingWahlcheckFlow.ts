@@ -578,6 +578,11 @@ async function completePublicWahlcheck(
       1,
       'The ranked candidates must not be repeated in a second list',
     );
+    assertEqual(
+      await page.getByTestId('progress-scale-maximum').count(),
+      0,
+      'Wahlcheck result progress bars must not render a redundant maximum label',
+    );
     const progressPartyBadge = page.getByTestId('wahlcheck-progress-party-badge').first();
     await progressPartyBadge.waitFor({ state: 'visible', timeout: 30_000 });
     const desktopProgressBadgeDimensions = await progressPartyBadge.evaluate((element) => {
@@ -837,6 +842,61 @@ async function completePublicWahlcheck(
   } finally {
     await context.close();
   }
+}
+
+async function completeWahlcheckForCounterRegression(
+  page: Page,
+  fixture: TestFixture,
+  municipalitySlug: string,
+  electionId: string,
+  electionDescriptor: string,
+  questions: Question[],
+): Promise<void> {
+  await openFrontendPage(
+    page,
+    `${fixture.config.frontendUrl}/elections/wahlcheck/${municipalitySlug}`,
+  );
+  await page.getByText(electionDescriptor, { exact: true }).first()
+    .waitFor({ state: 'visible', timeout: 30_000 });
+
+  for (const question of questions) {
+    const radio = page.locator(`input[name="question-${question.id}"]`).first();
+    await radio.waitFor({ state: 'visible', timeout: 30_000 });
+    await radio.click({ force: true });
+  }
+
+  await page.locator('input[type="checkbox"].checkbox-primary').first()
+    .waitFor({ state: 'visible', timeout: 30_000 });
+  const completionResponsePromise = page.waitForResponse(
+    (response) => {
+      const url = new URL(response.url());
+      return response.request().method() === 'POST'
+        && url.pathname.endsWith('/election-actions/complete');
+    },
+    { timeout: 30_000 },
+  );
+  await page.locator('button.btn-primary').last().click();
+
+  const completionResponse = await completionResponsePromise;
+  assert(
+    completionResponse.ok(),
+    `Completion request for ${electionDescriptor} must succeed. Got HTTP ${completionResponse.status()}.`,
+  );
+  const completionRequestBody = completionResponse.request().postDataJSON() as { election_id?: string };
+  assertEqual(
+    completionRequestBody.election_id,
+    electionId,
+    `Completion request for ${electionDescriptor} must target its own election`,
+  );
+
+  await waitFor(
+    `${electionDescriptor} completion counter`,
+    async () => {
+      const completedElection = await readElection(fixture, electionId);
+      return completedElection.wahlcheck_completion_count === 1 ? completedElection : false;
+    },
+    { timeoutMs: 10_000, intervalMs: 500 },
+  );
 }
 
 export async function runRatingWahlcheckFlow(
@@ -1593,6 +1653,104 @@ export async function runRatingWahlcheckFlow(
       election = await fixture.admin.updateItem<Election>('elections', election.id, {
         custom_logo: customLogoId,
       });
+    }
+  });
+
+  await runner.step('Wahlcheck: count two distinct completions in one browser session', async () => {
+    await fixture.admin.updateItem<Election>('elections', election.id, {
+      wahlcheck_completion_count: 0,
+    });
+
+    const secondLocalteam = await fixture.admin.createItem<{ id: string; slug: string }>('localteams', {
+      name: `Automated Counter Localteam ${fixture.config.runId}`,
+      municipality_name: `Automated Counter Municipality ${fixture.config.runId}`,
+      slug: `automated-counter-${fixture.config.runId}`,
+      status: 'published',
+    });
+    await waitFor(
+      'second municipality created for Wahlcheck counter regression',
+      async () => {
+        const municipalities = await fixture.admin.readItems<{ id: string }>('municipalities', {
+          filter: { localteam_id: { _eq: secondLocalteam.id } },
+          fields: ['id'],
+          limit: 1,
+        });
+        return municipalities[0];
+      },
+      { timeoutMs: 45_000 },
+    );
+
+    const secondElection = await fixture.admin.createItem<Election>('elections', {
+      descriptor: `Automated Counter Election ${fixture.config.runId}`,
+      localteam: secondLocalteam.id,
+      is_approved: true,
+      is_public: true,
+    });
+    const secondQuestion = await fixture.admin.createItem<Question>('questions', {
+      election: secondElection.id,
+      status: 'published',
+      title: `Automated Counter Question ${fixture.config.runId}`,
+      thesis: `Automated counter thesis ${fixture.config.runId}`,
+    });
+    const secondCandidate = await fixture.admin.createItem<Candidate>('candidate', {
+      election: secondElection.id,
+      name: `Automated Counter Candidate ${fixture.config.runId}`,
+      salutation: 'neutral',
+      email: `automated-counter-candidate-${fixture.config.runId}@stadt-land-klima.de`,
+      party: `Automated Counter Party ${fixture.config.runId}`,
+      has_answered: true,
+    });
+    await fixture.admin.createItem<Answer>('answers', {
+      candidate: secondCandidate.id,
+      question: secondQuestion.id,
+      response: 2,
+      explanation: `Automated counter explanation ${fixture.config.runId}`,
+    });
+
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    try {
+      await completeWahlcheckForCounterRegression(
+        page,
+        fixture,
+        fixture.municipality.slug || fixture.localteam.slug,
+        election.id,
+        election.descriptor,
+        generatedQuestions,
+      );
+      await completeWahlcheckForCounterRegression(
+        page,
+        fixture,
+        secondLocalteam.slug,
+        secondElection.id,
+        secondElection.descriptor,
+        [secondQuestion],
+      );
+
+      const [firstMarker, secondMarker] = await page.evaluate(
+        ([firstElectionId, secondElectionId]) => [
+          sessionStorage.getItem(`wahlcheck_completion_tracked_${firstElectionId}`),
+          sessionStorage.getItem(`wahlcheck_completion_tracked_${secondElectionId}`),
+        ],
+        [election.id, secondElection.id],
+      );
+      assertEqual(firstMarker, 'true', 'The first election must keep its own session completion marker');
+      assertEqual(secondMarker, 'true', 'The second election must get a separate session completion marker');
+
+      const firstElectionAfterSecondCompletion = await readElection(fixture, election.id);
+      const secondElectionAfterCompletion = await readElection(fixture, secondElection.id);
+      assertEqual(
+        firstElectionAfterSecondCompletion.wahlcheck_completion_count,
+        1,
+        'Completing a second Wahlcheck in the same session must not change the first counter again',
+      );
+      assertEqual(
+        secondElectionAfterCompletion.wahlcheck_completion_count,
+        1,
+        'Completing a second Wahlcheck in the same session must increment its own counter',
+      );
+    } finally {
+      await context.close();
     }
   });
 }

@@ -21,7 +21,7 @@
         </div>
       </div>
     </div>
-    <div class="ml-auto text-sm">100</div>
+    <div v-if="showScaleMaximum" data-testid="progress-scale-maximum" class="ml-auto text-sm">100</div>
   </div>
 </template>
 <script setup>
@@ -37,6 +37,10 @@ const props = defineProps({
       return ["default", "compact"];
     },
     default: "default",
+  },
+  showScaleMaximum: {
+    type: Boolean,
+    default: true,
   },
 });
 const colors = {
