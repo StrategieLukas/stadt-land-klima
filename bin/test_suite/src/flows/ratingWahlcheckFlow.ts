@@ -1554,6 +1554,12 @@ export async function runRatingWahlcheckFlow(
       const overviewText = await openFrontendPage(page, `${fixture.config.frontendUrl}/elections/wahlcheck`);
       assertIncludes(overviewText, election.descriptor, 'Public Wahlcheck overview must list the published election');
       assertIncludes(overviewText, fixture.municipalityName, 'Public Wahlcheck overview must show the municipality/localteam');
+      await page.getByTestId('wahlcheck-intro-disclaimer').waitFor({ state: 'visible' });
+      assertIncludes(
+        overviewText,
+        'Der Klimawahlcheck ist keine Wahlempfehlung, sondern ein Bildungsangebot',
+        'Public Wahlcheck overview must show the voting recommendation disclaimer',
+      );
     } finally {
       await context.close();
     }

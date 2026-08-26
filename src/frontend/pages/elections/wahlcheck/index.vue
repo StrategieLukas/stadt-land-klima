@@ -75,6 +75,12 @@
           <p class="mx-auto max-w-2xl text-lg text-mid-gray">
             {{ $t("elections.wahlcheck.intro.description") }}
           </p>
+          <p
+            data-testid="wahlcheck-intro-disclaimer"
+            class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-mid-gray"
+          >
+            {{ $t("elections.wahlcheck.intro.disclaimer") }}
+          </p>
         </div>
 
         <!-- Elections Grid -->
