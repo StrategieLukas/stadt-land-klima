@@ -814,6 +814,30 @@ async function completePublicWahlcheck(
       sharepicSafeArea.ctaToBottomGap >= 60,
       `The generated sharepic must reserve space below the CTA for story UI. Got ${sharepicSafeArea.ctaToBottomGap}px.`,
     );
+    const sharepicDownloadPromise = page.waitForEvent('download');
+    await page.getByTestId('wahlcheck-sharepic-download').click();
+    const sharepicDownload = await sharepicDownloadPromise;
+    const sharepicStream = await sharepicDownload.createReadStream();
+    const sharepicChunks: Buffer[] = [];
+    for await (const chunk of sharepicStream) {
+      sharepicChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const sharepicPng = Buffer.concat(sharepicChunks);
+    assertEqual(
+      sharepicPng.subarray(1, 4).toString('ascii'),
+      'PNG',
+      'The personal sharepic download must be a PNG image',
+    );
+    assertEqual(
+      sharepicPng.readUInt32BE(16),
+      1080,
+      'The personal sharepic download must use Instagram Story width',
+    );
+    assertEqual(
+      sharepicPng.readUInt32BE(20),
+      1920,
+      'The personal sharepic download must use Instagram Story height',
+    );
     await waitFor(
       'public Wahlcheck share URL generated',
       async () => page.url().includes('share='),

@@ -36,12 +36,13 @@
       <!-- Story Frame Preview -->
       <div class="md:col-span-5 flex flex-col items-center">
         <div
-          class="w-full max-w-[270px] sm:max-w-[290px] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border-4 border-stats-dark/10 relative group transition-transform hover:scale-[1.01]"
+          class="group relative aspect-[9/16] w-full max-w-[270px] overflow-hidden rounded-2xl shadow-2xl ring-4 ring-stats-dark/10 transition-transform hover:scale-[1.01] sm:max-w-[290px]"
           :class="isDark ? 'bg-stats-dark' : 'bg-[#e8f4ec]'"
         >
           <!-- Dynamic generated sharepic preview (HTML/CSS Based -> No Canvas permission needed on load!) -->
           <div
             v-if="activeTab === 'personal'"
+            ref="personalSharepicRef"
             data-testid="wahlcheck-personal-sharepic"
             class="relative flex h-full w-full select-none flex-col overflow-hidden px-4 pb-32 pt-4"
             :class="isDark ? 'bg-gradient-to-b from-[#0a2731] via-[#0e3a47] to-[#164c5d] text-white' : 'bg-gradient-to-b from-[#ffffff] via-[#f1f8f4] to-[#dfeee4] text-stats-dark'"
@@ -275,6 +276,7 @@
           <!-- Download Image Button -->
           <button
             type="button"
+            data-testid="wahlcheck-sharepic-download"
             @click="downloadActiveSharepic"
             :disabled="isGenerating"
             class="btn btn-outline btn-secondary rounded-xl py-2.5 px-3 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2"
@@ -318,13 +320,12 @@
       </div>
     </div>
 
-    <!-- Hidden Canvas for high-res 1080x1920 Story export (Only generated when clicking Share/Download!) -->
-    <canvas ref="canvasRef" width="1080" height="1920" class="hidden"></canvas>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { toBlob } from 'html-to-image'
 import {
   candidateNameMatchesParty,
   getCandidateDisplayName,
@@ -332,8 +333,6 @@ import {
   getCandidatePartyLabel,
 } from '~/shared/candidateParties.js'
 import { useTheme } from '~/composables/useTheme'
-import logoDarkSvg from '~/assets/images/Stadt-Land-Klima-Logo-dark.svg'
-import logoLightSvg from '~/assets/images/Stadt-Land-Klima-Logo.svg'
 
 const props = defineProps({
   election: {
@@ -364,7 +363,7 @@ const { isDark } = useTheme()
 
 // State
 const activeTab = ref('personal')
-const canvasRef = ref(null)
+const personalSharepicRef = ref(null)
 const isGenerating = ref(false)
 const toastMessage = ref('')
 const linkCopied = ref(false)
@@ -454,323 +453,59 @@ onMounted(() => {
   }
 })
 
-// Helper: Rounded Rectangle
-function drawRoundedRect(ctx, x, y, width, height, radius) {
-  ctx.beginPath()
-  if (typeof ctx.roundRect === 'function') {
-    ctx.roundRect(x, y, width, height, radius)
-  } else {
-    ctx.moveTo(x + radius, y)
-    ctx.lineTo(x + width - radius, y)
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
-    ctx.lineTo(x + width, y + height - radius)
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
-    ctx.lineTo(x + radius, y + height)
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
-    ctx.lineTo(x, y + radius)
-    ctx.quadraticCurveTo(x, y, x + radius, y)
-    ctx.closePath()
+async function waitForSharepicAssets(element) {
+  if (document.fonts?.ready) {
+    await document.fonts.ready
   }
-}
 
-// Helper: Wrap Text
-function wrapText(ctx, text, maxWidth) {
-  const words = text.split(' ')
-  const lines = []
-  let currentLine = ''
-
-  for (let i = 0; i < words.length; i++) {
-    const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i]
-    const metrics = ctx.measureText(testLine)
-    if (metrics.width > maxWidth && currentLine) {
-      lines.push(currentLine)
-      currentLine = words[i]
-    } else {
-      currentLine = testLine
+  const images = Array.from(element.querySelectorAll('img'))
+  await Promise.all(images.map(async (image) => {
+    if (!image.complete) {
+      await new Promise((resolve) => {
+        image.addEventListener('load', resolve, { once: true })
+        image.addEventListener('error', resolve, { once: true })
+      })
     }
-  }
-  if (currentLine) {
-    lines.push(currentLine)
-  }
-  return lines
+
+    if (typeof image.decode === 'function') {
+      await image.decode().catch(() => undefined)
+    }
+  }))
 }
 
-// Helper: Load Image
-function loadImage(src) {
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = () => resolve(null)
-    img.src = src
-  })
-}
-
-// Generate the 1080x1920 dynamic sharepic only on demand
-async function generateDynamicCanvas() {
+// Export the actual preview DOM so the downloaded/shared image cannot drift
+// into a separately maintained canvas layout.
+async function generateDynamicSharepicBlob() {
   if (typeof window === 'undefined') return null
-  const canvas = canvasRef.value
-  if (!canvas) return null
-
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return null
+  const element = personalSharepicRef.value
+  if (!element) return null
 
   isGenerating.value = true
 
-  const width = 1080
-  const height = 1920
-  const dark = isDark.value
+  try {
+    await waitForSharepicAssets(element)
 
-  // 1. Background Gradient
-  const bgGradient = ctx.createLinearGradient(0, 0, 0, height)
-  if (dark) {
-    bgGradient.addColorStop(0, '#0a2731')
-    bgGradient.addColorStop(0.5, '#0e3a47')
-    bgGradient.addColorStop(1, '#164c5d')
-  } else {
-    bgGradient.addColorStop(0, '#ffffff')
-    bgGradient.addColorStop(0.5, '#f1f8f4')
-    bgGradient.addColorStop(1, '#dfeee4')
+    const { width, height } = element.getBoundingClientRect()
+    if (!width || !height) return null
+
+    return await toBlob(element, {
+      width,
+      height,
+      canvasWidth: 1080,
+      canvasHeight: 1920,
+      pixelRatio: 1,
+      cacheBust: true,
+      backgroundColor: isDark.value ? '#0a2731' : '#ffffff',
+    })
+  } catch (err) {
+    console.error('Error rendering Wahlcheck sharepic preview:', err)
+    return null
+  } finally {
+    isGenerating.value = false
   }
-  ctx.fillStyle = bgGradient
-  ctx.fillRect(0, 0, width, height)
-
-  // 2. Decorative Glowing Radial Orbs
-  const drawGlow = (x, y, r, color) => {
-    const radial = ctx.createRadialGradient(x, y, 0, x, y, r)
-    radial.addColorStop(0, color)
-    radial.addColorStop(1, 'rgba(0,0,0,0)')
-    ctx.fillStyle = radial
-    ctx.beginPath()
-    ctx.arc(x, y, r, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
-  if (dark) {
-    drawGlow(960, 200, 420, 'rgba(175, 202, 11, 0.22)')
-    drawGlow(100, 950, 500, 'rgba(35, 115, 80, 0.25)')
-    drawGlow(900, 1680, 460, 'rgba(243, 146, 0, 0.16)')
-  } else {
-    drawGlow(960, 200, 420, 'rgba(175, 202, 11, 0.16)')
-    drawGlow(100, 950, 500, 'rgba(164, 200, 56, 0.28)')
-    drawGlow(900, 1680, 460, 'rgba(243, 146, 0, 0.10)')
-  }
-
-  // 3. Header Area
-  // Top Pill Badge
-  const badgeX = 80
-  const badgeY = 100
-  const badgeW = 340
-  const badgeH = 56
-  ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(10, 39, 49, 0.06)'
-  drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 28)
-  ctx.fill()
-  ctx.strokeStyle = dark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(10, 39, 49, 0.15)'
-  ctx.lineWidth = 2
-  ctx.stroke()
-
-  // Green pulse dot inside badge
-  ctx.fillStyle = '#AFCA0B'
-  ctx.beginPath()
-  ctx.arc(badgeX + 32, badgeY + badgeH / 2, 8, 0, Math.PI * 2)
-  ctx.fill()
-
-  ctx.fillStyle = dark ? '#ffffff' : '#0a2731'
-  ctx.font = '700 24px system-ui, -apple-system, sans-serif'
-  ctx.textAlign = 'left'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('KLIMAWAHLCHECK', badgeX + 54, badgeY + badgeH / 2 + 1)
-
-  // Header Logo (Right side)
-  const logoUrl = dark ? logoDarkSvg : logoLightSvg
-  const logoImg = await loadImage(logoUrl)
-  if (logoImg) {
-    const logoW = 338
-    const logoH = (logoImg.height / logoImg.width) * logoW
-    ctx.drawImage(logoImg, width - 80 - logoW, badgeY + (badgeH - logoH) / 2, logoW, logoH)
-  } else {
-    // Fallback Logo text
-    ctx.fillStyle = dark ? '#ffffff' : '#0a2731'
-    ctx.font = '800 28px system-ui, -apple-system, sans-serif'
-    ctx.textAlign = 'right'
-    ctx.fillText('Stadt.Land.Klima!', width - 80, badgeY + badgeH / 2)
-  }
-
-  // Election Title
-  const electionTitle = props.election?.descriptor || 'Klimawahlcheck'
-  ctx.fillStyle = dark ? '#ffffff' : '#0a2731'
-  ctx.font = '800 52px system-ui, -apple-system, sans-serif'
-  ctx.textAlign = 'left'
-  ctx.textBaseline = 'top'
-
-  const titleLines = wrapText(ctx, electionTitle, width - 160)
-  let currentY = 174
-  titleLines.slice(0, 2).forEach((line) => {
-    ctx.fillText(line, 80, currentY)
-    currentY += 64
-  })
-
-  // Subtitle / Results Intro
-  currentY += 10
-  ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.75)' : '#4b5563'
-  ctx.font = '800 28px system-ui, -apple-system, sans-serif'
-  ctx.fillText($t('elections.wahlcheck.results.share.my_matches'), 80, currentY)
-
-  // 4. Candidate Match Cards (Top 5 Candidates)
-  let cardY = currentY + 60
-  const cardW = width - 160
-  const cardH = props.sortedResults.length > 3 ? 180 : 220
-  const cardRadius = 28
-  const cardGap = props.sortedResults.length > 3 ? 20 : 30
-
-  const top5 = props.sortedResults.slice(0, 5)
-
-  for (let i = 0; i < top5.length; i++) {
-    const item = top5[i]
-    const candidateName = getCandidateName(item.candidateId)
-    const partyKey = getCandidateParty(item.candidateId)
-    const partyLabel = partyKey ? getCandidatePartyLabel(partyKey) : ''
-    const partyOnly = isPartyCandidate(item.candidateId)
-    const percentage = item.percentage || 0
-
-    // Card Background
-    ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.95)' : '#ffffff'
-    drawRoundedRect(ctx, 80, cardY, cardW, cardH, cardRadius)
-    ctx.fill()
-    ctx.strokeStyle = dark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.08)'
-    ctx.lineWidth = dark ? 3 : 2
-    ctx.stroke()
-
-    // Rank Circle
-    const rankX = 130
-    const rankY = cardY + 60
-    ctx.fillStyle = '#0a2731'
-    ctx.beginPath()
-    ctx.arc(rankX, rankY, 32, 0, Math.PI * 2)
-    ctx.fill()
-
-    ctx.fillStyle = '#ffffff'
-    ctx.font = '800 28px system-ui, -apple-system, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(`${i + 1}`, rankX, rankY + 1)
-
-    if (!partyOnly) {
-      // Candidate Name
-      ctx.fillStyle = '#000000'
-      ctx.font = '800 36px system-ui, -apple-system, sans-serif'
-      ctx.textAlign = 'left'
-      ctx.textBaseline = 'middle'
-
-      // Truncate name if too long
-      let nameText = candidateName
-      while (ctx.measureText(nameText).width > 420 && nameText.length > 3) {
-        nameText = nameText.slice(0, -2) + '…'
-      }
-      ctx.fillText(nameText, rankX + 50, rankY - 10)
-    }
-
-    // Party Pill Tag
-    if (partyLabel) {
-      const partyConf = getCandidatePartyConfig(partyKey) || { color: '#cccccc', textColor: '#ffffff' }
-      const partyBg = partyConf.color
-      const partyText = partyConf.textColor
-
-      ctx.font = `${partyOnly ? '800 26px' : '700 20px'} system-ui, -apple-system, sans-serif`
-      let visiblePartyLabel = partyLabel
-      while (ctx.measureText(visiblePartyLabel).width > 420 && visiblePartyLabel.length > 3) {
-        visiblePartyLabel = visiblePartyLabel.slice(0, -2) + '…'
-      }
-      const partyMetrics = ctx.measureText(visiblePartyLabel)
-      const pillW = partyMetrics.width + 24
-      const pillH = partyOnly ? 42 : 34
-      const pillX = rankX + 50
-      const pillY = partyOnly ? rankY - pillH / 2 : rankY + 18
-
-      ctx.fillStyle = partyBg
-      drawRoundedRect(ctx, pillX, pillY, pillW, pillH, 17)
-      ctx.fill()
-
-      ctx.fillStyle = partyText
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(visiblePartyLabel, pillX + pillW / 2, pillY + pillH / 2 + 1)
-    }
-
-    // Match Percentage
-    ctx.fillStyle = '#1EA64A'
-    ctx.font = '900 48px system-ui, -apple-system, sans-serif'
-    ctx.textAlign = 'right'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(`${percentage.toFixed(1)}%`, 80 + cardW - 40, rankY)
-
-    // Full-width Progress Bar
-    const barX = 120
-    const barY = cardY + (props.sortedResults.length > 3 ? 115 : 135)
-    const barW = cardW - 80
-    const barH = 26
-    const barRadius = 13
-
-    // Progress bar track
-    ctx.fillStyle = '#e5e7eb'
-    drawRoundedRect(ctx, barX, barY, barW, barH, barRadius)
-    ctx.fill()
-
-    // Progress bar fill
-    const fillW = Math.max(barRadius * 2, (barW * percentage) / 100)
-    ctx.fillStyle = getProgressColorHex(percentage)
-    drawRoundedRect(ctx, barX, barY, fillW, barH, barRadius)
-    ctx.fill()
-
-    cardY += cardH + cardGap
-  }
-
-  // 5. Call To Action Button (Bottom Area)
-  const storyUiSafeAreaHeight = 300
-  const ctaBoxH = 240
-  const ctaBoxW = width - 160
-  const ctaBoxY = height - storyUiSafeAreaHeight - ctaBoxH
-
-  ctx.fillStyle = dark ? '#17212b' : 'rgba(10, 39, 49, 0.04)'
-  drawRoundedRect(ctx, 80, ctaBoxY, ctaBoxW, ctaBoxH, 32)
-  ctx.fill()
-  ctx.strokeStyle = dark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(10, 39, 49, 0.12)'
-  ctx.lineWidth = 2
-  ctx.stroke()
-
-  ctx.fillStyle = dark ? '#f7fbfd' : '#0a2731'
-  ctx.font = '800 38px system-ui, -apple-system, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'top'
-  ctx.fillText($t('elections.wahlcheck.results.share.cta_title'), width / 2, ctaBoxY + 35)
-
-  ctx.fillStyle = dark ? '#dce5ea' : '#4b5563'
-  ctx.font = '500 26px system-ui, -apple-system, sans-serif'
-  ctx.fillText($t('elections.wahlcheck.results.share.cta_text'), width / 2, ctaBoxY + 85)
-
-  // Action Button
-  const btnW = dark ? 720 : 620
-  const btnH = 88
-  const btnX = width / 2 - btnW / 2
-  const btnY = ctaBoxY + 127
-
-  ctx.fillStyle = dark ? '#AFCA0B' : '#0a2731'
-  drawRoundedRect(ctx, btnX, btnY, btnW, btnH, 34)
-  ctx.fill()
-
-  ctx.fillStyle = dark ? '#0a2731' : '#ffffff'
-  ctx.font = '800 26px system-ui, -apple-system, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(`👉 ${$t('elections.wahlcheck.results.share.cta_button')}`, width / 2, btnY + 28)
-  ctx.font = '700 23px system-ui, -apple-system, sans-serif'
-  ctx.fillText(sharepicCtaUrl, width / 2, btnY + 62)
-
-  isGenerating.value = false
-  return canvas
 }
 
-// Convert data URL or canvas to File/Blob
+// Build the file for the currently selected personal or official sharepic.
 async function getActiveSharepicFile() {
   if (activeTab.value === 'official') {
     if (!officialSharepicUrl.value) return null
@@ -785,17 +520,11 @@ async function getActiveSharepicFile() {
     }
   }
 
-  // Personal Tab: Generate on demand
-  const canvas = await generateDynamicCanvas()
-  if (!canvas) return null
+  const blob = await generateDynamicSharepicBlob()
+  if (!blob) return null
 
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (!blob) return resolve(null)
-      const filename = `klimawahlcheck-${props.election?.descriptor?.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'ergebnis'}.png`
-      resolve(new File([blob], filename, { type: 'image/png' }))
-    }, 'image/png')
-  })
+  const filename = `klimawahlcheck-${props.election?.descriptor?.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'ergebnis'}.png`
+  return new File([blob], filename, { type: 'image/png' })
 }
 
 // Download Active Sharepic
