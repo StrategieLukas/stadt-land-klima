@@ -17,7 +17,8 @@
 	          {{ $t("localteam.singular") }}: <span class="font-semibold text-stats-dark">{{ localteam.name }}</span>
         </p>
         <p v-if="candidate" class="text-lg text-mid-gray flex items-center justify-center gap-2">
-	          {{ $t("elections.candidate") }}: <span class="font-semibold text-stats-dark">{{ candidate.name }}</span>
+	          {{ $t(isPartyElection ? "elections.party" : "elections.candidate") }}:
+          <span v-if="!isPartyElection" class="font-semibold text-stats-dark">{{ candidate.name }}</span>
           <CandidatePartyLabel :party="candidate.party" :state="candidateState" />
         </p>
       </div>
@@ -231,6 +232,7 @@ const localteam = computed(() => data.value?.localteam)
 const candidate = computed(() => data.value?.candidate)
 const candidateState = computed(() => localteam.value?.municipality_id?.state || '')
 const questions = computed(() => data.value?.questions || [])
+const isPartyElection = computed(() => candidate.value?.election?.is_party_election === true)
 const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(candidate.value?.election))
 const ratingOptions = computed(() => {
   return getWahlcheckAnswerOptions(candidate.value?.election, $t).reverse()
@@ -315,7 +317,7 @@ async function submitAnswers() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (e) {
     console.error('Error submitting answers:', e)
-    alert('Fehler beim Übermitteln der Antworten. Bitte versuchen Sie es später erneut.')
+    alert($t('elections.theses.submission_error'))
   } finally {
     submitting.value = false
   }

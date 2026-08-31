@@ -15,7 +15,7 @@
         {{ $t("elections.wahlcheck.questions.title") }}
       </h2>
       <p class="text-mid-gray max-w-2xl mx-auto text-sm sm:text-base">
-        {{ $t("elections.wahlcheck.questions.description") }}
+        {{ $t(isPartyElection ? "elections.wahlcheck.questions.description_parties" : "elections.wahlcheck.questions.description") }}
       </p>
       <p v-if="localteam" class="text-sm text-mid-gray mt-4">
         <strong>{{ $t("localteam.singular") }}:</strong> {{ localteam.municipality_name || localteam.name }}
@@ -197,6 +197,7 @@ const emit = defineEmits(['next', 'prev'])
 const { $t } = useNuxtApp()
 
 const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(props.election))
+const isPartyElection = computed(() => props.election?.is_party_election === true)
 const ratingOptions = computed(() => {
   return getWahlcheckAnswerOptions(props.election, $t).reverse()
 })

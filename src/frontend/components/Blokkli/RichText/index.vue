@@ -66,7 +66,7 @@ const { options, isEditing, uuid } = defineBlokkli({
     editTitle: (el) => el.textContent,
     mockProps: (text) => {
       return {
-        content: text || '## Überschrift\n\nHier können Sie **Markdown** schreiben.',
+        content: text || '## Überschrift\n\nHier kannst du **Markdown** schreiben.',
       }
     },
   },

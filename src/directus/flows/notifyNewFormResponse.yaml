@@ -54,9 +54,9 @@ operations:
     options:
       to:
         - "{{$trigger.payload.sender_email}}"
-      subject: "Kopie Ihrer Formularantwort an Stadt.Land.Klima!: {{$trigger.payload.form_title}}"
-      body: <p>Vielen Dank für Ihre Nachricht. Dies ist die gewünschte
-        Kopie Ihrer Formularantwort.</p><p><strong>Formular:</strong>
+      subject: "Kopie deiner Formularantwort an Stadt.Land.Klima!: {{$trigger.payload.form_title}}"
+      body: <p>Vielen Dank für deine Nachricht. Dies ist die gewünschte
+        Kopie deiner Formularantwort.</p><p><strong>Formular:</strong>
         {{$trigger.payload.form_title}}</p><p><strong>Antwort:</strong></p><pre>{{$trigger.payload.response_summary}}</pre>
       type: wysiwyg
 operation_key: send_form_response_email

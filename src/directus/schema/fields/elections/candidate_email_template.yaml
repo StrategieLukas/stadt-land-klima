@@ -10,7 +10,8 @@ meta:
   group: candidate_invitation_email_settings
   hidden: false
   interface: input-code
-  note: "Vollständiges HTML-Dokument für die Einladung. Verfügbare Platzhalter: {{
+  note:
+    "Vollständiges HTML-Dokument für die Einladung. Verfügbare Platzhalter: {{
     candidate_name }}, {{ candidate_salutation }}, {{ municipality_name }}, {{
     election_descriptor }}, {{ cutoff_date }}, {{ personal_link }}, {{
     projectName }}, {{ stadt_land_klima_logo }} und {{ custom_logo }}. Die

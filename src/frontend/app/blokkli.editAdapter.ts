@@ -400,7 +400,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       case 'button':
         return { label: 'Button' }
       case 'richtext':
-        return { content: '## Überschrift\n\nHier können Sie **Markdown** schreiben.' }
+        return { content: '## Überschrift\n\nHier kannst du **Markdown** schreiben.' }
       case 'container':
         return { blocks: [] }
       case 'directus_page':

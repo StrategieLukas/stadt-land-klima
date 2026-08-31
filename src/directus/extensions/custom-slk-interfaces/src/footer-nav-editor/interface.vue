@@ -2,7 +2,7 @@
   <div class="footer-nav-editor">
     <!-- Empty state -->
     <p v-if="columns.length === 0" class="empty-hint">
-      Noch keine Spalten. Klicken Sie unten auf „Spalte hinzufügen".
+      Noch keine Spalten. Klicke unten auf „Spalte hinzufügen".
     </p>
 
     <!-- Columns list -->

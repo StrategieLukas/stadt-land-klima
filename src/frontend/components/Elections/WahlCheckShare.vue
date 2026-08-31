@@ -118,7 +118,7 @@
                       {{ idx + 1 }}
                     </span>
                     <span
-                      v-if="!isPartyCandidate(result.candidateId)"
+                      v-if="!isPartyElection"
                       class="font-bold text-xs truncate leading-tight"
                       :class="isDark ? 'text-white' : 'text-black'"
                     >
@@ -327,7 +327,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { toBlob } from 'html-to-image'
 import {
-  candidateNameMatchesParty,
   getCandidateDisplayName,
   getCandidatePartyConfig,
   getCandidatePartyLabel,
@@ -360,6 +359,7 @@ const props = defineProps({
 const { $t } = useNuxtApp()
 const config = useRuntimeConfig()
 const { isDark } = useTheme()
+const isPartyElection = computed(() => props.election?.is_party_election === true)
 
 // State
 const activeTab = ref('personal')
@@ -426,10 +426,6 @@ function getCandidateName(candidateId) {
 
 function getCandidateParty(candidateId) {
   return getCandidate(candidateId).party || ''
-}
-
-function isPartyCandidate(candidateId) {
-  return candidateNameMatchesParty(getCandidate(candidateId))
 }
 
 function getProgressColorHex(percentage) {
@@ -588,7 +584,12 @@ async function shareToStory() {
 function shareToWhatsApp() {
   const electionTitle = props.election?.descriptor || 'Klimawahlcheck'
   const shareUrl = getShareUrl()
-  let text = $t('elections.wahlcheck.results.share.whatsapp_text', { ':election': electionTitle })
+  let text = $t(
+    isPartyElection.value
+      ? 'elections.wahlcheck.results.share.whatsapp_text_parties'
+      : 'elections.wahlcheck.results.share.whatsapp_text',
+    { ':election': electionTitle }
+  )
   if (!text.includes(electionTitle)) {
     text = `${text} ${electionTitle}`
   }
@@ -619,7 +620,12 @@ async function shareViaWebShare() {
   const file = await getActiveSharepicFile()
   const shareUrl = getShareUrl()
   const title = props.election?.descriptor || 'Klimawahlcheck'
-  const text = $t('elections.wahlcheck.results.share.whatsapp_text', { ':election': title })
+  const text = $t(
+    isPartyElection.value
+      ? 'elections.wahlcheck.results.share.whatsapp_text_parties'
+      : 'elections.wahlcheck.results.share.whatsapp_text',
+    { ':election': title }
+  )
 
   try {
     if (file && navigator.canShare && navigator.canShare({ files: [file] })) {

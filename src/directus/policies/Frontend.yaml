@@ -247,6 +247,7 @@ permissions:
       - sharepic
       - sharepic_dark
       - localteam
+      - is_party_election
       - simple_answer_mode
       - response_cutoff_date
       - is_public

@@ -73,7 +73,7 @@
       <div class="card-header">
         <v-icon name="mail" class="card-icon" />
         <div class="card-title-group">
-          <h3 class="card-title">Kandidaten einladen</h3>
+          <h3 class="card-title">{{ participantPlural }} einladen</h3>
           <p class="card-subtitle">Personalisierte E-Mails mit Zugangslink versenden</p>
         </div>
         <v-chip v-if="alreadySent" x-small class="status-chip status-chip--success">
@@ -118,8 +118,8 @@
       <div class="card-header">
         <v-icon name="notifications_active" class="card-icon" />
         <div class="card-title-group">
-          <h3 class="card-title">Kandidat:innen erinnern</h3>
-          <p class="card-subtitle">Einmalig an Kandidat:innen ohne eingereichte Antworten senden</p>
+          <h3 class="card-title">{{ participantPlural }} erinnern</h3>
+          <p class="card-subtitle">Einmalig an {{ participantPlural }} ohne eingereichte Antworten senden</p>
         </div>
         <v-chip v-if="alreadySentReminder" x-small class="status-chip status-chip--success">
           <v-icon name="check_circle" x-small left />
@@ -154,7 +154,7 @@
         <v-icon name="volunteer_activism" class="card-icon" />
         <div class="card-title-group">
           <h3 class="card-title">Für Antworten bedanken</h3>
-          <p class="card-subtitle">Einmalig an Kandidat:innen mit eingereichten Antworten senden</p>
+          <p class="card-subtitle">Einmalig an {{ participantPlural }} mit eingereichten Antworten senden</p>
         </div>
         <v-chip v-if="alreadySentThankYou" x-small class="status-chip status-chip--success">
           <v-icon name="check_circle" x-small left />
@@ -235,7 +235,7 @@
             <section class="mail-summary-section">
               <h4>Erfolgreich benachrichtigt</h4>
               <p v-if="sentCandidates.length === 0" class="mail-summary-empty">
-                Keine Kandidat:innen.
+                Keine {{ participantPlural }}.
               </p>
               <ul v-else>
                 <li v-for="candidate in sentCandidates" :key="`sent-${candidate.id}`">
@@ -264,7 +264,7 @@
             <section class="mail-summary-section">
               <h4>Übersprungen</h4>
               <p v-if="skippedCandidates.length === 0" class="mail-summary-empty">
-                Keine Kandidat:innen ohne E-Mail-Adresse.
+                Keine {{ participantPlural }} ohne E-Mail-Adresse.
               </p>
               <ul v-else>
                 <li v-for="candidate in skippedCandidates" :key="`skipped-${candidate.id}`">
@@ -321,6 +321,7 @@ const remote = ref({
   alreadySentThankYou: false,
   isApproved: false,
   reviewRequested: false,
+  isPartyElection: false,
 });
 
 // Session-level optimistic flags — set immediately on success so the UI
@@ -372,6 +373,12 @@ const reviewRequested = computed(
 
 const isApproved = computed(
   () => remote.value.isApproved || !!props.values?.is_approved,
+);
+const isPartyElection = computed(
+  () => remote.value.isPartyElection || props.values?.is_party_election === true,
+);
+const participantPlural = computed(
+  () => isPartyElection.value ? 'Parteien' : 'Kandidat:innen',
 );
 
 // ---------------------------------------------------------------------------
@@ -475,6 +482,7 @@ async function fetchStatus() {
           'already_sent_reminder_mails',
           'already_sent_thank_you_mails',
           'is_approved',
+          'is_party_election',
           'review_requested',
         ],
       },
@@ -487,6 +495,7 @@ async function fetchStatus() {
         alreadySentReminder: !!data.data.already_sent_reminder_mails,
         alreadySentThankYou: !!data.data.already_sent_thank_you_mails,
         isApproved: !!data.data.is_approved,
+        isPartyElection: !!data.data.is_party_election,
         reviewRequested: !!data.data.review_requested,
       };
     }
@@ -562,7 +571,7 @@ async function handleRequestReview() {
 async function handleSendMails() {
   await handleBulkMail({
     endpoint: 'send-mails',
-    confirmation: 'E-Mails wirklich an alle Kandidat:innen mit hinterlegter E-Mail-Adresse versenden? Kandidat:innen ohne E-Mail werden übersprungen.',
+    confirmation: `E-Mails wirklich an alle ${participantPlural.value} mit hinterlegter E-Mail-Adresse versenden? ${participantPlural.value} ohne E-Mail werden übersprungen.`,
     loading: loadingMails,
     setSessionSent: () => { sessionSent.value = true; },
   });
@@ -571,7 +580,7 @@ async function handleSendMails() {
 async function handleSendReminders() {
   await handleBulkMail({
     endpoint: 'send-reminders',
-    confirmation: 'Reminder-E-Mails wirklich einmalig an alle Kandidat:innen ohne eingereichte Antworten versenden?',
+    confirmation: `Reminder-E-Mails wirklich einmalig an alle ${participantPlural.value} ohne eingereichte Antworten versenden?`,
     loading: loadingReminders,
     setSessionSent: () => { sessionSentReminder.value = true; },
   });
@@ -580,7 +589,7 @@ async function handleSendReminders() {
 async function handleSendThankYouMails() {
   await handleBulkMail({
     endpoint: 'send-thank-you-mails',
-    confirmation: 'Dankes-E-Mails wirklich einmalig an alle Kandidat:innen mit eingereichten Antworten versenden?',
+    confirmation: `Dankes-E-Mails wirklich einmalig an alle ${participantPlural.value} mit eingereichten Antworten versenden?`,
     loading: loadingThankYou,
     setSessionSent: () => { sessionSentThankYou.value = true; },
   });
@@ -625,7 +634,7 @@ async function handleBulkMail({
     } else {
       showFeedback(
         'danger',
-        `Keine E-Mails wurden versendet. ${skippedCount} Kandidat:innen ohne E-Mail wurden übersprungen.`,
+        `Keine E-Mails wurden versendet. ${skippedCount} ${participantPlural.value} ohne E-Mail wurden übersprungen.`,
         9000,
       );
     }

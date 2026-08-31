@@ -101,6 +101,7 @@ permissions:
       - already_sent_reminder_mails
       - already_sent_thank_you_mails
       - descriptor
+      - is_party_election
       - is_public
       - localteam
       - response_cutoff_date
@@ -156,6 +157,7 @@ permissions:
       - descriptor
       - id
       - is_approved
+      - is_party_election
       - is_public
       - localteam
       - response_cutoff_date
@@ -173,6 +175,7 @@ permissions:
       - already_sent_reminder_mails
       - already_sent_thank_you_mails
       - descriptor
+      - is_party_election
       - is_public
       - response_cutoff_date
       - simple_answer_mode

@@ -151,6 +151,7 @@ permissions:
       - descriptor
       - candidate_email_reply_to
       - custom_logo
+      - is_party_election
       - sharepic
       - sharepic_dark
       - response_cutoff_date
@@ -179,6 +180,7 @@ permissions:
     presets: null
     fields:
       - id
+      - is_party_election
       - response_cutoff_date
       - candidate_email_reply_to
       - date_created
@@ -209,6 +211,7 @@ permissions:
     presets: null
     fields:
       - descriptor
+      - is_party_election
       - response_cutoff_date
       - candidate_email_reply_to
       - custom_logo

@@ -164,6 +164,7 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 1. Ensure displayed text uses the proper symbols for the language, i.e. German uses proper Umlauts for ä ö ü ß and not ae/oe/ue/ss
 2. When gendered German text is used, prefer ":" over "*" as separator.
 3. Every Directus `string` or `text` field must set `meta.options.trim: true` whenever its interface exposes the trim option. The standard `input`, `input-multiline`, and custom `auto-slug` interfaces support it. Verify support before setting the option; do not add ignored options to interfaces that do not expose trimming.
+4. Address users consistently with the informal German `du` form in user-facing text and translations. Content sent to candidates or parties—including access-token pages and related emails—must use the formal `Sie` form instead.
 
 ## Checks
 1. Run ./test_dev.sh in the bin folder and wait for checks to complete.

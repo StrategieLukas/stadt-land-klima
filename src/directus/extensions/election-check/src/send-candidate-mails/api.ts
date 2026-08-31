@@ -26,6 +26,7 @@ type CandidateMailType = 'invitation' | 'reminder' | 'thank_you';
 interface Election {
   id: string | number;
   descriptor?: string;
+  is_party_election?: boolean | null;
   response_cutoff_date?: string | null;
   candidate_email_cc?: string | null;
   candidate_email_subject?: string | null;
@@ -47,6 +48,7 @@ interface Candidate {
   id: string | number;
   name?: string | null;
   salutation?: 'frau' | 'herr' | 'neutral' | null;
+  party?: string | null;
   email?: string | null;
   access_token?: string | null;
   has_answered?: boolean | null;
@@ -114,17 +116,43 @@ const SUBJECT_PLACEHOLDERS = new Set([
   'personal_link',
   'projectName',
 ]);
+const PARTY_LABELS: Record<string, string> = {
+  parteilos: 'parteilos',
+  Union: 'CDU/CSU',
+  AfD: 'AfD',
+  SPD: 'SPD',
+  Gruene: 'Grüne',
+  Linke: 'Die Linke',
+  BSW: 'BSW',
+  FDP: 'FDP',
+  Volt: 'Volt',
+  PARTEI: 'Die PARTEI',
+  FW: 'Freie Wähler',
+  Oedp: 'ÖDP',
+  Piraten: 'Piraten',
+  Klimaliste: 'Klimaliste',
+  Tierschutzpartei: 'Tierschutzpartei',
+  ParteiDesFortschritts: 'Partei des Fortschritts',
+  Tierschutzallianz: 'Tierschutzallianz',
+  Gartenpartei: 'Gartenpartei',
+  Humanisten: 'Humanisten',
+  Losdemokratie: 'Losdemokratie',
+  FBU: 'Freie Bürgerliche Union',
+  BuendnisC: 'Bündnis C',
+  Handwerkerpartei: 'Handwerkerpartei',
+  LobbyistenFuerKinder: 'Lobbyisten für Kinder',
+  Sonstige: 'Sonstige',
+};
+const LAST_NAME_PARTICLES = new Set([
+  'da', 'das', 'de', 'del', 'della', 'den', 'der', 'di', 'dos', 'du', 'la', 'le',
+  'ten', 'ter', 'van', 'von', 'zu', 'zum', 'zur',
+]);
 const htmlValidator = new HtmlValidate({
   rules: {
     'close-order': 'error',
     'no-dup-attr': 'error',
   },
 });
-const LAST_NAME_PARTICLES = new Set([
-  'da', 'das', 'de', 'del', 'della', 'den', 'der', 'di', 'dos', 'du', 'la', 'le',
-  'ten', 'ter', 'van', 'von', 'zu', 'zum', 'zur',
-]);
-
 function formatCutoffDate(isoDate: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
   if (!match) return isoDate;
@@ -170,12 +198,14 @@ function getMailConfiguration(
   election: Election,
   mailType: CandidateMailType,
 ): MailConfiguration {
+  const participantPlural = election.is_party_election ? 'Parteien' : 'Kandidat:innen';
+
   if (mailType === 'reminder') {
     return {
       subject: election.candidate_reminder_email_subject?.trim() ?? '',
       template: election.candidate_reminder_email_template?.trim() ?? '',
       sentFlag: 'already_sent_reminder_mails',
-      emptyRecipientsMessage: 'Alle Kandidat:innen haben bereits Antworten eingereicht.',
+      emptyRecipientsMessage: `Alle ${participantPlural} haben bereits Antworten eingereicht.`,
       label: 'Reminder-E-Mail',
     };
   }
@@ -185,7 +215,7 @@ function getMailConfiguration(
       subject: election.candidate_thank_you_email_subject?.trim() ?? '',
       template: election.candidate_thank_you_email_template?.trim() ?? '',
       sentFlag: 'already_sent_thank_you_mails',
-      emptyRecipientsMessage: 'Noch keine Kandidat:innen haben Antworten eingereicht.',
+      emptyRecipientsMessage: `Noch keine ${participantPlural} haben Antworten eingereicht.`,
       label: 'Dankes-E-Mail',
     };
   }
@@ -194,7 +224,7 @@ function getMailConfiguration(
     subject: election.candidate_email_subject?.trim() ?? '',
     template: election.candidate_email_template?.trim() ?? '',
     sentFlag: 'already_sent_mails',
-    emptyRecipientsMessage: 'Für diese Wahl sind keine Kandidat:innen vorhanden.',
+    emptyRecipientsMessage: `Für diese Wahl sind keine ${participantPlural} vorhanden.`,
     label: 'Einladungs-E-Mail',
   };
 }
@@ -257,6 +287,7 @@ function logoCell(contentId: string, alt: string): string {
 
 function templateVariables(
   candidate: Candidate,
+  isPartyElection: boolean,
   municipalityName: string,
   electionDescriptor: string,
   cutoffDate: string,
@@ -264,8 +295,10 @@ function templateVariables(
   customLogoAvailable: boolean,
 ): Record<string, string> {
   return {
-    candidate_name: candidate.name ?? '',
-    candidate_salutation: candidateFormalSalutation(candidate),
+    candidate_name: isPartyElection
+      ? candidatePartyLabel(candidate.party)
+      : candidate.name ?? '',
+    candidate_salutation: candidateSalutation(candidate, isPartyElection),
     municipality_name: municipalityName,
     election_descriptor: electionDescriptor,
     cutoff_date: cutoffDate,
@@ -315,7 +348,12 @@ async function validateCandidateEmailHtml(html: string): Promise<void> {
 }
 
 function candidateDisplayName(candidate: Candidate): string {
-  return candidate.name?.trim() || `Kandidat:in ${candidate.id}`;
+  return candidate.name?.trim() || candidatePartyLabel(candidate.party) || `Kandidat:in ${candidate.id}`;
+}
+
+function candidatePartyLabel(party?: string | null): string {
+  const value = party?.trim() ?? '';
+  return PARTY_LABELS[value] ?? value;
 }
 
 function candidateLastName(name?: string | null): string {
@@ -333,7 +371,12 @@ function candidateLastName(name?: string | null): string {
   return nameParts.slice(lastNameStart).join(' ');
 }
 
-function candidateFormalSalutation(candidate: Candidate): string {
+function candidateSalutation(candidate: Candidate, isPartyElection: boolean): string {
+  if (isPartyElection) {
+    const party = candidatePartyLabel(candidate.party);
+    return party ? `Sehr geehrte Mitglieder der ${party}` : 'Sehr geehrte Mitglieder der Partei';
+  }
+
   const fullName = candidate.name?.trim().replace(/\s+/g, ' ') ?? '';
   const lastName = candidateLastName(candidate.name);
 
@@ -515,7 +558,10 @@ export default {
       ? election.custom_logo
       : election.custom_logo?.id;
     const previewVariables = templateVariables(
-      { id: 'preview', name: 'Max Mustermann', salutation: 'herr' },
+      election.is_party_election
+        ? { id: 'preview', party: 'Gruene' }
+        : { id: 'preview', name: 'Max Mustermann', salutation: 'herr' },
+      election.is_party_election === true,
       municipality,
       election.descriptor?.trim() ?? '',
       cutoffFormatted,
@@ -565,7 +611,7 @@ export default {
       }) as Promise<Array<{ id: string | number }>>,
       candidateSvc.readByQuery({
         filter: { election: { _eq: election_id } },
-        fields: ['id', 'name', 'salutation', 'email', 'access_token', 'has_answered'],
+        fields: ['id', 'name', 'salutation', 'party', 'email', 'access_token', 'has_answered'],
         limit: -1,
       }) as Promise<Candidate[]>,
     ]);
@@ -674,6 +720,7 @@ export default {
       const personalLink = `${frontendBaseUrl}/elections/thesen/${candidate.access_token}`;
       const variables = templateVariables(
         candidate,
+        election.is_party_election === true,
         municipality,
         election.descriptor?.trim() ?? '',
         cutoffFormatted,

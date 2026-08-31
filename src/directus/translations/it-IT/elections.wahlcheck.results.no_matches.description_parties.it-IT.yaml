@@ -1,0 +1,3 @@
+language: it-IT
+key: elections.wahlcheck.results.no_matches.description_parties
+value: Non hai risposto ad alcuna domanda, quindi non è possibile calcolare una corrispondenza con i partiti.

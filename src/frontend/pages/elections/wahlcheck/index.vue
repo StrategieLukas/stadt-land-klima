@@ -134,7 +134,7 @@
                 </svg>
                 <span>
                   {{
-                    $t(election.hasPartyCandidate ? "elections.parties_count" : "elections.candidates_count", {
+                    $t(election.is_party_election ? "elections.parties_count" : "elections.candidates_count", {
                       ":count": election.candidateCount,
                     })
                   }}
@@ -210,7 +210,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { candidateNameMatchesParty } from "~/shared/candidateParties.js";
 
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 
@@ -295,7 +294,6 @@ async function loadElections() {
         electionsWithCounts.push({
           ...election,
           candidateCount: candidates?.length || 0,
-          hasPartyCandidate: candidates?.some((candidate) => candidateNameMatchesParty(candidate)) || false,
           questionCount: questions?.length || 0,
         });
       } catch (err) {
@@ -303,7 +301,6 @@ async function loadElections() {
         electionsWithCounts.push({
           ...election,
           candidateCount: 0,
-          hasPartyCandidate: false,
           questionCount: 0,
         });
       }

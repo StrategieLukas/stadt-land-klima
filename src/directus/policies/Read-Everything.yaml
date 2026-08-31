@@ -154,6 +154,7 @@ permissions:
       - descriptor
       - id
       - is_approved
+      - is_party_election
       - is_public
       - localteam
       - response_cutoff_date

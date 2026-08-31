@@ -23,10 +23,10 @@
         />
       </div>
       <h2 class="text-xl sm:text-2xl font-bold text-stats-dark mb-4">
-        {{ $t(hasPartyCandidate ? 'elections.wahlcheck.results.title_parties' : 'elections.wahlcheck.results.title') }}
+        {{ $t(isPartyElection ? 'elections.wahlcheck.results.title_parties' : 'elections.wahlcheck.results.title') }}
       </h2>
       <p class="text-mid-gray max-w-2xl mx-auto text-sm sm:text-base">
-        {{ $t('elections.wahlcheck.results.description') }}
+        {{ $t(isPartyElection ? 'elections.wahlcheck.results.description_parties' : 'elections.wahlcheck.results.description') }}
       </p>
       <p v-if="election" class="text-sm text-mid-gray mt-4">
         <strong>{{ $t('elections.election') }}:</strong> {{ election.descriptor }}
@@ -40,7 +40,7 @@
       <span class="font-semibold text-gray">{{ $t('elections.wahlcheck.results.no_response') }}:</span>
       <template v-for="(candidate, index) in nonRespondingCandidates" :key="candidate.id">
         <span v-if="index > 0" aria-hidden="true">,</span>
-        <span v-if="!candidateNameMatchesParty(candidate)">{{ getCandidateDisplayName(candidate) }}</span>
+        <span v-if="!isPartyElection">{{ getCandidateDisplayName(candidate) }}</span>
         <CandidatePartyLabel v-if="candidate.party" :party="candidate.party" :state="null" class="text-xs" />
       </template>
     </div>
@@ -52,7 +52,7 @@
       class="rounded-xl border border-solid-gray-10 bg-white p-4 shadow-list sm:p-6"
     >
       <h3 class="text-lg sm:text-xl font-bold text-center text-stats-dark mb-6">
-        {{ $t(hasPartyCandidate ? 'elections.wahlcheck.results.all_parties' : 'elections.wahlcheck.results.all_candidates') }}
+        {{ $t(isPartyElection ? 'elections.wahlcheck.results.all_parties' : 'elections.wahlcheck.results.all_candidates') }}
       </h3>
       <div data-testid="wahlcheck-progress-match-list" class="space-y-2 md:space-y-4">
         <div
@@ -72,7 +72,7 @@
             <div class="w-full md:w-64 md:flex-shrink-0">
               <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span class="font-bold text-stats-dark">{{ index + 1 }}.</span>
-                <span v-if="!isPartyCandidate(result.candidateId)" class="break-words text-sm font-bold text-black hyphens-auto sm:text-base">{{ getCandidateName(result.candidateId) }}</span>
+                <span v-if="!isPartyElection" class="break-words text-sm font-bold text-black hyphens-auto sm:text-base">{{ getCandidateName(result.candidateId) }}</span>
                 <CandidatePartyLabel
                   v-if="getCandidateParty(result.candidateId)"
                   :party="getCandidateParty(result.candidateId)"
@@ -162,7 +162,7 @@
               <div class="grid grid-cols-[1fr_48px_68px] gap-1 px-2.5 py-2 bg-solid-gray-10 rounded-t-lg font-semibold text-xs text-solid-gray-60 border-b border-solid-gray-20 items-center">
                 <div>{{ $t("elections.thesis") }}</div>
                 <div class="text-center">{{ $t("elections.wahlcheck.results.my_rating_short") }}</div>
-                <div class="text-center">{{ $t("elections.wahlcheck.results.candidate_rating_short") }}</div>
+                <div class="text-center">{{ $t(isPartyElection ? "elections.wahlcheck.results.party_rating_short" : "elections.wahlcheck.results.candidate_rating_short") }}</div>
               </div>
 
               <!-- Mobile Rows -->
@@ -198,7 +198,7 @@
                     v-if="getCandidateAnswer(result.candidateId, question.id)"
                     class="w-6 h-6 rounded-full shadow-sm flex-shrink-0"
                     :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
-                    :title="$t('elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
+                    :title="$t(isPartyElection ? 'elections.wahlcheck.results.party_rating_title' : 'elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
                   ></div>
                   <div v-else class="w-6 h-6 rounded-full bg-solid-gray-20 flex-shrink-0"></div>
                   
@@ -235,7 +235,7 @@
                   <div>{{ $t("elections.thesis") }}</div>
                   <div v-if="hasQuestionSectors" class="text-center">{{ $t("stats.chart.sector") }}</div>
                   <div class="text-center">{{ $t("elections.wahlcheck.results.my_rating_short") }}</div>
-                  <div class="text-center">{{ $t("elections.wahlcheck.results.candidate_rating_short") }}</div>
+                  <div class="text-center">{{ $t(isPartyElection ? "elections.wahlcheck.results.party_rating_short" : "elections.wahlcheck.results.candidate_rating_short") }}</div>
                 </div>
 
                 <!-- Table Rows -->
@@ -285,7 +285,7 @@
                       v-if="getCandidateAnswer(result.candidateId, question.id)"
                       class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-sm"
                       :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
-                      :title="$t('elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
+                      :title="$t(isPartyElection ? 'elections.wahlcheck.results.party_rating_title' : 'elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
                     ></div>
                     <div v-else class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-solid-gray-20">
                     </div>
@@ -329,7 +329,7 @@
       </div>
 	      <h3 class="text-xl font-bold mb-4">{{ $t("elections.wahlcheck.results.no_matches.title") }}</h3>
 	      <p class="text-mid-gray">
-	        {{ $t("elections.wahlcheck.results.no_matches.description") }}
+        {{ $t(isPartyElection ? "elections.wahlcheck.results.no_matches.description_parties" : "elections.wahlcheck.results.no_matches.description") }}
       </p>
       <button
         @click="$emit('restart')"
@@ -373,7 +373,7 @@
             </p>
             <div class="mt-1 flex min-w-0 items-start justify-between gap-3">
               <CandidatePartyLabel
-                v-if="activeReasoning && isPartyCandidate(activeReasoning.candidateId)"
+                v-if="activeReasoning && isPartyElection"
                 :party="getCandidateParty(activeReasoning.candidateId)"
                 :state="null"
                 class="flex-shrink-0 text-sm"
@@ -386,7 +386,7 @@
                 class="flex max-w-[8rem] flex-shrink-0 items-center gap-1.5 text-right"
               >
                 <span class="text-[10px] font-semibold leading-tight text-mid-gray">
-                  {{ $t('elections.wahlcheck.results.candidate_rating') }}
+                  {{ $t(isPartyElection ? 'elections.wahlcheck.results.party_rating' : 'elections.wahlcheck.results.candidate_rating') }}
                 </span>
                 <span
                   class="h-6 w-6 flex-shrink-0 rounded-full shadow-sm"
@@ -451,7 +451,7 @@
     <!-- Navigation Buttons (Requirement 1) -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-8 pt-6 border-t border-solid-gray-10 gap-4">
       <div class="text-xs sm:text-sm text-mid-gray text-center sm:text-left">
-        {{ $t(hasPartyCandidate ? "elections.wahlcheck.results.compared_parties" : "elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
+        {{ $t(isPartyElection ? "elections.wahlcheck.results.compared_parties" : "elections.wahlcheck.results.compared_count", { ":count": results.length }) }}
       </div>
       <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
         <button
@@ -477,10 +477,7 @@
 import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
-import {
-  candidateNameMatchesParty,
-  getCandidateDisplayName,
-} from '~/shared/candidateParties.js'
+import { getCandidateDisplayName } from '~/shared/candidateParties.js'
 import sectorImages from '~/shared/sectorImages.js'
 import {
   calculateWahlcheckQuestionScore,
@@ -530,11 +527,7 @@ const nonRespondingCandidates = computed(() => {
   return props.candidates.filter((candidate) => candidate.has_answered !== true)
 })
 
-const hasPartyCandidate = computed(() => {
-  return props.candidates.some(
-    (candidate) => candidate.has_answered === true && candidateNameMatchesParty(candidate)
-  )
-})
+const isPartyElection = computed(() => props.election?.is_party_election === true)
 
 // Toggle through sort modes
 function toggleSort() {
@@ -636,10 +629,6 @@ function getCandidateName(candidateId) {
 
 function getCandidateParty(candidateId) {
   return getCandidate(candidateId)?.party || null
-}
-
-function isPartyCandidate(candidateId) {
-  return candidateNameMatchesParty(getCandidate(candidateId))
 }
 
 function getCandidateAnswer(candidateId, questionId) {

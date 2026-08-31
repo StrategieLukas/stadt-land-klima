@@ -50,6 +50,7 @@ interface Election {
   already_sent_thank_you_mails?: boolean | null;
   review_requested?: boolean | null;
   is_approved?: boolean | null;
+  is_party_election?: boolean | null;
   is_public?: boolean | null;
   wahlcheck_completion_count?: number | null;
 }
@@ -875,6 +876,7 @@ async function completeWahlcheckForCounterRegression(
   electionId: string,
   electionDescriptor: string,
   questions: Question[],
+  partyExpectation?: { partyName: string; hiddenCandidateName: string },
 ): Promise<void> {
   await openFrontendPage(
     page,
@@ -882,6 +884,13 @@ async function completeWahlcheckForCounterRegression(
   );
   await page.getByText(electionDescriptor, { exact: true }).first()
     .waitFor({ state: 'visible', timeout: 30_000 });
+  if (partyExpectation) {
+    assertIncludes(
+      await visibleText(page),
+      'Antworten der Parteien verglichen',
+      'Party-election question step must use party wording',
+    );
+  }
 
   for (const question of questions) {
     const radio = page.locator(`input[name="question-${question.id}"]`).first();
@@ -912,6 +921,18 @@ async function completeWahlcheckForCounterRegression(
     electionId,
     `Completion request for ${electionDescriptor} must target its own election`,
   );
+
+  if (partyExpectation) {
+    await page.getByText('Deine Übereinstimmungen mit den Parteien', { exact: true })
+      .waitFor({ state: 'visible', timeout: 30_000 });
+    await page.getByText(partyExpectation.partyName, { exact: true }).first()
+      .waitFor({ state: 'visible', timeout: 30_000 });
+    assertEqual(
+      await page.getByText(partyExpectation.hiddenCandidateName, { exact: true }).count(),
+      0,
+      'Party-election results must hide the candidate name',
+    );
+  }
 
   await waitFor(
     `${electionDescriptor} completion counter`,
@@ -1143,6 +1164,7 @@ export async function runRatingWahlcheckFlow(
       localteam: fixture.localteam.id,
       custom_logo: customLogo.id,
       candidate_email_reply_to: fixture.localteamMember.email,
+      is_party_election: false,
     });
 
     const context = await newContext(browser);
@@ -1155,6 +1177,7 @@ export async function runRatingWahlcheckFlow(
         fixture.localteamMember.password,
       );
       let text = await gotoDirectusContent(page, fixture.config.backendUrl, 'elections', election.id);
+      assertIncludes(text, 'Parteiwahlcheck', 'Election editor must expose the party-election flag');
       assertIncludes(text, 'Thesen generieren', 'Election action interface must expose thesis generation');
       assertIncludes(text, 'Review der Thesen anfragen', 'Election action interface must expose review request');
       assertNotIncludes(text, 'E-Mails versenden', 'Candidate email action must be hidden before approval');
@@ -1630,10 +1653,10 @@ export async function runRatingWahlcheckFlow(
 
     const nonRespondingCandidate = await fixture.admin.createItem<Candidate>('candidate', {
       election: election.id,
-      name: `NonRespondingParty ${fixture.config.runId}`,
+      name: `NonRespondingCandidate ${fixture.config.runId}`,
       salutation: 'neutral',
       email: `non-responding-party-${fixture.config.runId}@stadt-land-klima.de`,
-      party: `NonRespondingParty ${fixture.config.runId}`,
+      party: 'Gruene',
       has_answered: false,
     });
 
@@ -1713,6 +1736,7 @@ export async function runRatingWahlcheckFlow(
     const secondElection = await fixture.admin.createItem<Election>('elections', {
       descriptor: `Automated Counter Election ${fixture.config.runId}`,
       localteam: secondLocalteam.id,
+      is_party_election: true,
       is_approved: true,
       is_public: true,
     });
@@ -1724,10 +1748,10 @@ export async function runRatingWahlcheckFlow(
     });
     const secondCandidate = await fixture.admin.createItem<Candidate>('candidate', {
       election: secondElection.id,
-      name: `Automated Counter Candidate ${fixture.config.runId}`,
+      name: `Hidden Party Candidate ${fixture.config.runId}`,
       salutation: 'neutral',
       email: `automated-counter-candidate-${fixture.config.runId}@stadt-land-klima.de`,
-      party: `Automated Counter Party ${fixture.config.runId}`,
+      party: 'SPD',
       has_answered: true,
     });
     await fixture.admin.createItem<Answer>('answers', {
@@ -1755,6 +1779,10 @@ export async function runRatingWahlcheckFlow(
         secondElection.id,
         secondElection.descriptor,
         [secondQuestion],
+        {
+          partyName: 'SPD',
+          hiddenCandidateName: secondCandidate.name,
+        },
       );
 
       const [firstMarker, secondMarker] = await page.evaluate(

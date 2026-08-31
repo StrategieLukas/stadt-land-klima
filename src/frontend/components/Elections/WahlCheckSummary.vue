@@ -106,7 +106,7 @@
         <span>{{ $t('elections.wahlcheck.summary.no_answers_warning_title') }}</span>
       </p>
       <p class="mt-2 text-sm">
-        {{ $t('elections.wahlcheck.summary.no_answers_warning_description') }}
+        {{ $t(isPartyElection ? 'elections.wahlcheck.summary.no_answers_warning_description_parties' : 'elections.wahlcheck.summary.no_answers_warning_description') }}
       </p>
     </div>
 
@@ -164,6 +164,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['next', 'prev', 'toggle-double-weight'])
+const isPartyElection = computed(() => props.election?.is_party_election === true)
 
 function handleCardClick(questionId, event) {
   if (event && event.target && (event.target.tagName === 'INPUT' || event.target.closest('input'))) {

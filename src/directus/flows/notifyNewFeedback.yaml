@@ -22,7 +22,8 @@ operations:
       to:
         - info@stadt-land-klima.de
       subject: "Neue Kontaktanfrage: {{$trigger.payload.title}}"
-      body: <p>Eine neue Kontaktanfrage ist eingegangen.</p><p><strong>Name:</strong>
+      body:
+        <p>Eine neue Kontaktanfrage ist eingegangen.</p><p><strong>Name:</strong>
         {{$trigger.payload.sender_name}}</p><p><strong>Kontakt:</strong>
         {{$trigger.payload.sender_contact}}</p><p><strong>Betreff:</strong>
         {{$trigger.payload.title}}</p><p><strong>Typ:</strong>
@@ -48,9 +49,9 @@ operations:
     options:
       to:
         - "{{$trigger.payload.sender_contact}}"
-      subject: "Kopie Ihrer Nachricht an Stadt.Land.Klima!: {{$trigger.payload.title}}"
-      body: <p>Vielen Dank für Ihre Nachricht. Dies ist die gewünschte Kopie
-        Ihres Feedbacks.</p><p><strong>Betreff:</strong>
+      subject: "Kopie deiner Nachricht an Stadt.Land.Klima!: {{$trigger.payload.title}}"
+      body: <p>Vielen Dank für deine Nachricht. Dies ist die gewünschte Kopie
+        deines Feedbacks.</p><p><strong>Betreff:</strong>
         {{$trigger.payload.title}}</p><p><strong>Typ:</strong>
         {{$trigger.payload.type}}</p><p><strong>Nachricht:</strong></p><p>{{$trigger.payload.content}}</p>
       type: wysiwyg
