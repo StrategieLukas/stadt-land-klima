@@ -1,0 +1,23 @@
+name: Fehlende ARS und Klimaraumtypen auflösen
+icon: routine
+color: null
+description: Ermittelt fehlende ARS und Klimaraumtypen für alle Kommunen über die Stadt-Land-Zahl-Dienste.
+status: active
+trigger: manual
+accountability: all
+options:
+  collections:
+    - municipalities
+  location: collection
+  requireSelection: false
+  requireConfirmation: true
+  confirmationDescription: Fehlende ARS und Klimaraumtypen jetzt auflösen?
+  async: true
+operations:
+  - name: Fehlende Daten auflösen
+    key: resolve_municipality_climate_regions
+    type: operation-resolve-municipality-climate-regions
+    position_x: 1
+    position_y: 1
+    options: {}
+operation_key: resolve_municipality_climate_regions
