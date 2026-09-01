@@ -84,6 +84,16 @@
                 </span>
             </div>
 
+            <div v-if="municipality?.climate_region_type" class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                <img src="~/assets/icons/icon_klimachecker.svg" alt="" class="h-5 w-5 opacity-60" />
+                <span class="text-sm text-gray-700">{{ $t("municipality.climate_region_type") }}</span>
+                </div>
+                <span class="text-sm font-bold text-right text-gray-900">
+                {{ municipality.climate_region_type }}
+                </span>
+            </div>
+
             <div v-if="municipalityScore?.score_total">
                 <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">

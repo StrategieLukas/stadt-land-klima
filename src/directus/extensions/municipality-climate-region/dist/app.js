@@ -1,0 +1,1 @@
+const e=[],i=[],n=[],o=[],t=[],r=[],a=[{id:"operation-resolve-municipality-climate-regions",name:"Klimaraumtypen auflösen",icon:"routine",description:"Ermittelt fehlende ARS und Klimaraumtypen für alle Kommunen.",overview:()=>[],options:[]}];export{i as displays,e as interfaces,n as layouts,o as modules,a as operations,t as panels,r as themes};
