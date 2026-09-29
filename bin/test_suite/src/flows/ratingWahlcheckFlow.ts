@@ -1582,6 +1582,24 @@ export async function runRatingWahlcheckFlow(
     }
   });
 
+  await runner.step('Wahlcheck: localteam member can filter candidate answers', async () => {
+    const filteredAnswers = await fixture.localteamMember.client.readItems<Answer>('answers', {
+      filter: { response: { _eq: 4 } },
+      fields: ['id', 'candidate', 'question', 'response', 'explanation'],
+      limit: -1,
+    });
+
+    assertEqual(
+      filteredAnswers.length,
+      generatedQuestions.length,
+      'Localteam member must be able to filter answers by response',
+    );
+    assert(
+      filteredAnswers.every((answer) => answer.response === 4),
+      'Filtered answers must contain only the requested response value',
+    );
+  });
+
   await runner.step('Wahlcheck: send one-time thank-you emails to candidates who answered', async () => {
     const context = await newContext(browser);
     const page = await context.newPage();
