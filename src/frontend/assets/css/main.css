@@ -1163,6 +1163,16 @@ html[data-theme="staedteChallengeDark"] .border-gray-300 {
   border-color: var(--slk-border) !important;
 }
 
+html[data-theme="staedteChallengeDark"] .slk-measure-row {
+  border-bottom-width: 1px;
+  border-bottom-color: var(--slk-border) !important;
+}
+
+html[data-theme="staedteChallengeDark"] .slk-measure-row :is(.border-t-2, .border-t-4) {
+  border-top-width: 1px;
+  border-top-color: var(--slk-border) !important;
+}
+
 html[data-theme="staedteChallengeDark"] .border-blue-100,
 html[data-theme="staedteChallengeDark"] .border-blue-200,
 html[data-theme="staedteChallengeDark"] .border-blue-600,

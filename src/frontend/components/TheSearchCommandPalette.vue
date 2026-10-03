@@ -26,7 +26,7 @@
             style="max-height: 76vh"
             role="dialog"
             aria-modal="true"
-            aria-label="Suche"
+            :aria-label="$t('generic.search')"
             @click.stop
           >
             <!-- Input row — hidden when the header's embedded input is active -->
@@ -38,7 +38,7 @@
                 ref="inputRef"
                 v-model="query"
                 class="flex-1 py-4 text-base outline-none placeholder-gray-400"
-                placeholder="Gemeinde oder Inhalt suchen…"
+                :placeholder="$t('search.palette.placeholder')"
                 @keydown.up.prevent="moveFocus(-1)"
                 @keydown.down.prevent="moveFocus(1)"
                 @keydown.enter.prevent="navigateToFocused"
@@ -48,7 +48,7 @@
               <button
                 type="button"
                 class="sm:hidden flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
-                aria-label="Schließen"
+                :aria-label="$t('generic.close')"
                 @click="close"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -58,21 +58,21 @@
             </div>
 
             <!-- Results -->
-            <div class="overflow-y-auto flex-1">
+            <div class="palette-results-scroll overflow-y-auto flex-1">
               <!-- Loading -->
               <div v-if="isLoading" class="flex items-center justify-center gap-2 py-10 text-gray-400 text-sm">
                 <SlkFlowerSpinner :size="20" />
-                Suche...
+                {{ $t('generic.search') }}
               </div>
 
               <!-- No query yet -->
               <div v-else-if="!query.trim()" class="py-10 text-center text-gray-400 text-sm">
-                Tippen Sie einen Suchbegriff ein.
+                {{ $t('search.prompt') }}
               </div>
 
               <!-- No results -->
               <div v-else-if="!flatResults.length" class="py-10 text-center text-gray-400 text-sm">
-                Keine Ergebnisse für „{{ query }}"
+                {{ $t('search.no_results_for', { ':query': query }) }}
               </div>
 
               <!-- Results list with group headers -->
@@ -111,7 +111,7 @@
                           <!-- eslint-disable-next-line vue/no-v-html -->
                           <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
                         </div>
-                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0 inline-flex items-center gap-1">
+                        <span class="palette-content-badge text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0 inline-flex items-center gap-1">
                           {{ contentTypeLabel(result.type) }}
                           <template v-if="result.meta">
                             <span class="text-gray-400">·</span>
@@ -119,7 +119,7 @@
                               v-if="sectorImages[result.meta]"
                               :src="sectorImages[result.meta]"
                               :title="sectorLabels[result.meta] ?? result.meta"
-                              class="h-8 w-8 flex-shrink-0 invert grayscale mix-blend-multiply"
+                              class="palette-sector-icon h-8 w-8 flex-shrink-0 invert grayscale mix-blend-multiply"
                               :alt="sectorLabels[result.meta] ?? result.meta"
                             />
                             <span v-else>{{ result.meta }}</span>
@@ -134,9 +134,9 @@
 
             <!-- Footer hint -->
             <div class="palette-footer flex items-center gap-4 border-t px-4 py-2 text-xs text-gray-400">
-              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> navigieren</span>
-              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> öffnen</span>
-              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> schließen</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↑↓</kbd> {{ $t('search.hint.navigate') }}</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">↵</kbd> {{ $t('search.hint.open') }}</span>
+              <span class="hidden sm:inline"><kbd class="bg-gray-100 px-1.5 py-0.5 rounded">ESC</kbd> {{ $t('search.hint.close') }}</span>
               <button
                 type="button"
                 class="sm:hidden ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200"
@@ -145,7 +145,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Schließen
+                {{ $t('generic.close') }}
               </button>
             </div>
           </div>
@@ -276,14 +276,10 @@ function contentTypeLabel(type) {
   return contentTypeKeys.includes(type) ? $t(`search.content_type.${type}`) : type
 }
 
-const sectorLabels = {
-  energy: 'Energie',
-  transport: 'Verkehr',
-  buildings: 'Gebäude & Wärme',
-  industry: 'Industrie, Wirtschaft & Konsum',
-  agriculture: 'Landwirtschaft, Natur & Ernährung',
-  management: 'Klimaschutzmanagement & Verwaltung',
-}
+const sectorLabels = Object.fromEntries(
+  ['energy', 'transport', 'buildings', 'industry', 'agriculture', 'management']
+    .map(sector => [sector, $t(`measure_sectors.${sector}.title`)]),
+)
 
 // Global Cmd+K / Ctrl+K shortcut — always route to the embedded header search
 // (falls back to opening standalone palette when no header input is registered, e.g. mobile)
@@ -337,6 +333,19 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 }
 .palette-result--focused {
   background-color: var(--slk-blue-tint);
-  box-shadow: inset 3px 0 0 var(--slk-blue);
+}
+:global(html[data-theme="staedteChallengeDark"] .palette-content-badge) {
+  background-color: var(--slk-surface-muted) !important;
+  color: var(--slk-text-strong) !important;
+}
+:global(html[data-theme="staedteChallengeDark"] .palette-sector-icon) {
+  filter: none;
+  mix-blend-mode: screen;
+}
+.palette-results-scroll {
+  scrollbar-width: none;
+}
+.palette-results-scroll::-webkit-scrollbar {
+  display: none;
 }
 </style>

@@ -824,27 +824,34 @@ function geomToPath(geom, project) {
 }
 
 function geomCentroid(geom, project) {
-  let ring;
-  if (geom.type === "Polygon") {
-    ring = geom.coordinates[0];
-  } else {
-    let max = 0;
-    for (const poly of geom.coordinates) {
-      if (poly[0].length > max) {
-        max = poly[0].length;
-        ring = poly[0];
-      }
+  const polygons = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+  let largest = null;
+
+  for (const polygon of polygons) {
+    const ring = polygon[0];
+    if (!ring?.length) continue;
+    let twiceArea = 0;
+    let weightedX = 0;
+    let weightedY = 0;
+    for (let i = 0; i < ring.length; i++) {
+      const [x1, y1] = project(...ring[i]);
+      const [x2, y2] = project(...ring[(i + 1) % ring.length]);
+      const cross = x1 * y2 - x2 * y1;
+      twiceArea += cross;
+      weightedX += (x1 + x2) * cross;
+      weightedY += (y1 + y2) * cross;
+    }
+    if (Math.abs(twiceArea) > Math.abs(largest?.twiceArea ?? 0)) {
+      largest = { twiceArea, weightedX, weightedY };
     }
   }
-  if (!ring?.length) return [SVG_W / 2, SVG_H / 2];
-  let sLon = 0,
-    sLat = 0;
-  for (const c of ring) {
-    sLon += c[0];
-    sLat += c[1];
-  }
-  return project(sLon / ring.length, sLat / ring.length);
+
+  if (!largest?.twiceArea) return [SVG_W / 2, SVG_H / 2];
+  return [largest.weightedX / (3 * largest.twiceArea), largest.weightedY / (3 * largest.twiceArea)];
 }
+
+// Brandenburg surrounds Berlin, so its area centroid would put both labels together.
+const STATE_LABEL_COORDINATES = { 12: [13.2, 52.9] };
 
 function geomProjectedBounds(geom, project) {
   let minX = Infinity;
@@ -888,7 +895,9 @@ const svgStatePaths = computed(() => {
     .map((s) => {
       const d = geomToPath(s.geometry, project);
       if (!d) return null;
-      const [cx, cy] = geomCentroid(s.geometry, project);
+      const [cx, cy] = STATE_LABEL_COORDINATES[s.ars]
+        ? project(...STATE_LABEL_COORDINATES[s.ars])
+        : geomCentroid(s.geometry, project);
       return {
         ars: s.ars,
         name: s.name,

@@ -43,7 +43,7 @@
       <ul class="mb-8">
         <li v-for="item in sectorRatings" :key="item.id">
           <div
-            class="collapse-plus collapse rounded-none"
+            class="slk-measure-row collapse-plus collapse rounded-none"
             :class="isUnrated(item) ? 'border-b border-dashed border-gray-300' : 'border-b-2 border-slate-300'"
             :name="`measure-${item.measure.measure_id}`"
           >

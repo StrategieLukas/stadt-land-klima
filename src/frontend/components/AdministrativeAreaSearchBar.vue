@@ -78,7 +78,7 @@
                   </div>
                   <!-- Localteam active, rating in progress -->
                   <div v-else-if="suggestion.ctaType === 'in-progress'" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap">
-                    Bewertung läuft
+                    {{ $t('rating.in_progress') }}
                   </div>
                   <!-- No localteam yet -->
                   <div v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 whitespace-nowrap">

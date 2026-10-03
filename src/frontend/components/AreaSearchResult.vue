@@ -37,13 +37,13 @@
         <span
           class="text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
           style="background-color: #fef3c7; color: #92400e;"
-        >{{ result.scoreDisplay }} (alte Bewertung)</span>
+        >{{ result.scoreDisplay }} ({{ $t('search.rating.old') }})</span>
         <button
           type="button"
           class="text-xs bg-olive-green/10 text-olive-green border border-olive-green/30 px-2 py-0.5 rounded-full whitespace-nowrap hover:bg-olive-green/20 transition-colors"
           @click.stop="$emit('chip-action', { action: 'update', ars: result.ars, result })"
         >
-          Bewertung aktualisieren
+          {{ $t('search.rating.update') }}
         </button>
       </template>
 

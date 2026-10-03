@@ -29,7 +29,7 @@ const { debounce } = lodash
 import { getScorePercentageColor, getStateFromArs } from '~/shared/utils.js'
 
 export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = null } = {}) {
-  const { $directus, $readItems } = useNuxtApp()
+  const { $directus, $readItems, $t } = useNuxtApp()
 
   const catalogRef = isRef(catalogVersionName) ? catalogVersionName : ref(catalogVersionName)
 
@@ -174,12 +174,12 @@ export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = n
     const raw = [
       {
         id:      'municipalities',
-        label:   'Gemeinden & Regionen',
+        label:   $t('search.group.areas'),
         results: municipalitiesResults.value,
       },
       {
         id:      'content',
-        label:   'Inhalte',
+        label:   $t('search.group.content'),
         results: rawContentResults.value,
       },
     ]
