@@ -9,7 +9,7 @@
   const directusData = ref(null)
 
   const route = useRoute()
-  const { $directus, $readItems } = useNuxtApp();
+  const { $directus, $readItems, $t } = useNuxtApp();
 
   const municipalityScores = await fetchMunicipalityScores($directus, $readItems, route.params.slug)
   const municipalityMissing = !municipalityScores || municipalityScores.length === 0
@@ -52,7 +52,7 @@
   });
 
 </script>
-    
+
 <template>
   <div v-if="directusData">
     <ElectionInfo
@@ -64,12 +64,11 @@
   </div>
   <!-- Municipality completely missing -->
   <div v-else-if="municipalityMissing">
-    <p>Diese Kommune wurde noch nicht bewertet, daher kann auch kein Kommunalwahl-Guide auf Basis der Bewertung erstellt werden. Bewerte die Kommune!</p>
+    <p>{{ $t("elections.guide.not_rated") }}</p>
   </div>
   <!-- Municipality exists, but not sufficiently rated to generate questions -->
   <div v-else>
-    <p>Diese Kommune wurde noch nicht vollständig bewertet, daher kann auch kein Kommunalwahl-Guide auf Basis der Bewertung erstellt werden. Hilf dem Team!</p>
+    <p>{{ $t("elections.guide.not_fully_rated") }}</p>
   </div>
   
 </template>
-    

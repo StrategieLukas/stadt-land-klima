@@ -1,8 +1,15 @@
 <template>
-  <div class="min-h-screen bg-mild-white py-12 px-4 sm:px-6 lg:px-8">
+  <div class="elections-flow min-h-screen bg-mild-white py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-3xl mx-auto">
       <!-- Header -->
       <div v-if="!submitted" class="text-center mb-12">
+        <ElectionsWahlCheckLogo
+          v-if="candidate?.election?.custom_logo"
+          :logo="candidate.election.custom_logo"
+          fallback="none"
+          :alt="$t('logo.alt')"
+          logo-class="mx-auto mb-6 h-20 max-w-full object-contain"
+        />
         <h1 class="text-h1 font-bold text-black mb-4">
 	          {{ $t("elections.theses.title") }}
         </h1>
@@ -10,7 +17,8 @@
 	          {{ $t("localteam.singular") }}: <span class="font-semibold text-stats-dark">{{ localteam.name }}</span>
         </p>
         <p v-if="candidate" class="text-lg text-mid-gray flex items-center justify-center gap-2">
-	          {{ $t("elections.candidate") }}: <span class="font-semibold text-stats-dark">{{ candidate.name }}</span>
+	          {{ $t(isPartyElection ? "elections.party" : "elections.candidate") }}:
+          <span v-if="!isPartyElection" class="font-semibold text-stats-dark">{{ candidate.name }}</span>
           <CandidatePartyLabel :party="candidate.party" :state="candidateState" />
         </p>
       </div>
@@ -28,6 +36,13 @@
 
       <!-- Success State -->
       <div v-else-if="submitted" class="bg-rating-4-very-light border border-rating-4 text-rating-4 p-10 rounded-2xl text-center shadow-lg my-12">
+        <ElectionsWahlCheckLogo
+          v-if="candidate?.election?.custom_logo"
+          :logo="candidate.election.custom_logo"
+          fallback="none"
+          :alt="$t('logo.alt')"
+          logo-class="mx-auto mb-8 h-20 max-w-full object-contain"
+        />
         <div class="mb-6">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-rating-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -40,7 +55,7 @@
       <!-- Survey Form -->
       <div v-else-if="questions && questions.length > 0" class="space-y-8">
         <div v-if="isPastCutoff" class="bg-solid-orange-10 border border-orange text-orange-700 p-6 rounded-lg text-center font-bold mb-8">
-	          {{ $t("elections.theses.cutoff_reached", { ":date": new Date(candidate.election.response_cutoff_date).toLocaleDateString($locale) }) }}
+	          {{ $t("elections.theses.cutoff_reached", { ":date": formatBerlinDate(candidate.election.response_cutoff_date, $locale) }) }}
         </div>
 
         <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
@@ -53,14 +68,18 @@
             </h3>
           </div>
 
-          <div v-if="question.title && question.thesis" class="mb-6 ml-12 text-gray italic">
-            {{ question.thesis }}
-          </div>
-
           <ElectionsQuestionBackgroundInfo
             :content="question.background_information"
-            class="mb-6 sm:ml-12"
+            appearance="italic"
+            class="mb-4 sm:ml-12"
           />
+
+          <div
+            v-if="question.title && question.thesis"
+            class="mb-6 sm:ml-12 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4 text-lg text-gray"
+          >
+            {{ question.thesis }}
+          </div>
 
           <!-- Rating Scale -->
           <div class="ml-0 sm:ml-12">
@@ -144,6 +163,7 @@ import {
   getWahlcheckAnswerOptions,
   usesSimpleWahlcheckAnswerMode,
 } from '~/shared/wahlcheckAnswerOptions.js'
+import { formatBerlinDate, getBerlinEndOfDay } from '~/shared/eventDateTime'
 
 const route = useRoute()
 const { $directus, $readItems, $readItem, $t, $locale } = useNuxtApp()
@@ -212,14 +232,42 @@ const localteam = computed(() => data.value?.localteam)
 const candidate = computed(() => data.value?.candidate)
 const candidateState = computed(() => localteam.value?.municipality_id?.state || '')
 const questions = computed(() => data.value?.questions || [])
+const isPartyElection = computed(() => candidate.value?.election?.is_party_election === true)
 const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(candidate.value?.election))
 const ratingOptions = computed(() => {
   return getWahlcheckAnswerOptions(candidate.value?.election, $t).reverse()
 })
 
+const currentTime = ref(Date.now())
+let cutoffTimer
+
+function refreshCutoffStatus() {
+  currentTime.value = Date.now()
+
+  const cutoff = getBerlinEndOfDay(candidate.value?.election?.response_cutoff_date)
+  if (!cutoff || cutoff.getTime() <= currentTime.value) {
+    cutoffTimer = undefined
+    return
+  }
+
+  const maxTimeout = 60 * 60 * 1000
+  const delay = Math.min(cutoff.getTime() - currentTime.value + 1, maxTimeout)
+  cutoffTimer = window.setTimeout(refreshCutoffStatus, delay)
+}
+
+watch(() => candidate.value?.election?.response_cutoff_date, () => {
+  if (!import.meta.client) return
+  if (cutoffTimer !== undefined) window.clearTimeout(cutoffTimer)
+  refreshCutoffStatus()
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (cutoffTimer !== undefined) window.clearTimeout(cutoffTimer)
+})
+
 const isPastCutoff = computed(() => {
-  if (!candidate.value?.election?.response_cutoff_date) return false
-  return new Date() > new Date(candidate.value.election.response_cutoff_date)
+  const cutoff = getBerlinEndOfDay(candidate.value?.election?.response_cutoff_date)
+  return cutoff ? currentTime.value > cutoff.getTime() : false
 })
 
 const isFormComplete = computed(() => {
@@ -269,7 +317,7 @@ async function submitAnswers() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (e) {
     console.error('Error submitting answers:', e)
-    alert('Fehler beim Übermitteln der Antworten. Bitte versuchen Sie es später erneut.')
+    alert($t('elections.theses.submission_error'))
   } finally {
     submitting.value = false
   }

@@ -8,29 +8,31 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 NO_DIRECTUS_BUILD=false
 NO_FRONTEND_BUILD=false
 NO_RESTART=false
+BUILD_OPTIONS=()
 
 for arg in "$@"; do
   case $arg in
     --no-directus-build)
       NO_DIRECTUS_BUILD=true
-      shift
+      BUILD_OPTIONS+=(--no-directus-build)
       ;;
     --no-frontend-build)
       NO_FRONTEND_BUILD=true
-      shift
+      BUILD_OPTIONS+=(--no-frontend-build)
       ;;
     --no-restart)
       NO_RESTART=true
-      shift
       ;;
     --help)
       echo "Options:
 --no-directus-build > prevents building directus
 --no-frontend-build > prevents building frontend
 --no-restart > prevents container restart"
-      exit
+      exit 0
       ;;
     *)
+      echo "Unknown option: $arg" >&2
+      exit 2
       ;;
   esac
 done
@@ -69,6 +71,6 @@ git submodule update --recursive
 
 if [[ $NO_RESTART != true ]]; then
   "$SCRIPT_DIR/stop.sh"
-  "$SCRIPT_DIR/build_production.sh"
+  "$SCRIPT_DIR/build_production.sh" "${BUILD_OPTIONS[@]}"
   "$SCRIPT_DIR/start_production.sh"
 fi

@@ -30,8 +30,8 @@ class ConsentNotAcceptedError extends Error {
 
   constructor() {
     super(
-      'Sie müssen die AGB und Datenschutzerklärung akzeptieren, um auf diese Inhalte zugreifen ' +
-      'zu können. Bitte akzeptieren Sie die Vereinbarungen im Consent Management Modul.'
+      'Du musst die AGB und Datenschutzerklärung akzeptieren, um auf diese Inhalte zugreifen ' +
+      'zu können. Bitte akzeptiere die Vereinbarungen im Consent Management Modul.'
     );
   }
 }
@@ -44,7 +44,7 @@ class ConsentConfigurationError extends Error {
   constructor() {
     super(
       'Die aktuellen AGB oder die aktuelle Datenschutzerklärung sind nicht konfiguriert. ' +
-      'Bitte veröffentlichen Sie beide Versionen im Consent Management Modul.'
+      'Bitte veröffentliche beide Versionen im Consent Management Modul.'
     );
   }
 }

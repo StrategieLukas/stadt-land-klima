@@ -15,12 +15,16 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 13
+  sort: 17
   special:
     - cast-boolean
   translations:
     - language: de-DE
       translation: Wurde die Wahl freigegeben?
+    - language: en-GB
+      translation: Has the election been approved?
+    - language: it-IT
+      translation: L'elezione è stata approvata?
   validation: null
   validation_message: null
   width: full

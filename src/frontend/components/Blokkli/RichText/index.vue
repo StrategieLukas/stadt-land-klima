@@ -1,6 +1,6 @@
 <template>
   <div
-    :id="'block-' + uuid"
+    :id="getBlokkliBlockId(options.anchor, uuid)"
     class="blokkli-block-richtext w-full overflow-x-auto"
     :class="[alignClass]"
   >
@@ -25,6 +25,7 @@
 <script setup lang="ts">
 // @ts-expect-error no types package needed at runtime
 import MarkdownIt from 'markdown-it'
+import { getBlokkliBlockId } from '~/utils/blokkliLinks'
 
 const md = new MarkdownIt({
   html: false,
@@ -35,6 +36,7 @@ const md = new MarkdownIt({
 
 const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'richtext',
+  globalOptions: ['anchor'],
   options: {
     size: {
       type: 'radios',
@@ -64,7 +66,7 @@ const { options, isEditing, uuid } = defineBlokkli({
     editTitle: (el) => el.textContent,
     mockProps: (text) => {
       return {
-        content: text || '## Überschrift\n\nHier können Sie **Markdown** schreiben.',
+        content: text || '## Überschrift\n\nHier kannst du **Markdown** schreiben.',
       }
     },
   },

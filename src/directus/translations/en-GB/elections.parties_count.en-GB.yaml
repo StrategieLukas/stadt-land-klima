@@ -1,0 +1,3 @@
+language: en-GB
+key: elections.parties_count
+value: :count parties

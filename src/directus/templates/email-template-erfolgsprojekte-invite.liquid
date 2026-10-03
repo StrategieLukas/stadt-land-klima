@@ -1,0 +1,38 @@
+{% layout "custom-base" %} {% block content %}
+
+<h1>Einladung zur Erfolgsprojekte-Redaktion</h1>
+
+<p>Hallo {{ firstName }},</p>
+
+<p style="padding-bottom: 24px">
+  {{ inviterName }} hat dich eingeladen, als Redakteur:in an den Erfolgsprojekten von
+  {{ projectName }} mitzuarbeiten. Über den folgenden Button kannst du die Einladung
+  annehmen, ein Passwort festlegen und anschließend Beiträge redaktionell bearbeiten.
+</p>
+
+<a
+  class="button"
+  rel="noopener"
+  target="_blank"
+  href="{{ url }}"
+  style="
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    text-decoration: none;
+    display: inline-block;
+    padding: 11px 24px;
+    border-radius: 8px;
+    background: #171717;
+    border: 1px solid #ffffff;
+  "
+>
+  <span>Einladung annehmen</span>
+</a>
+
+<p style="padding-top: 30px">
+  Bei Fragen erreichst du uns unter
+  <a href="mailto:info@stadt-land-klima.de">info@stadt-land-klima.de</a>.
+</p>
+
+{% endblock %}

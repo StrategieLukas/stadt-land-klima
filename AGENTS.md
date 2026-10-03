@@ -3,7 +3,7 @@
 ## Project overview
 
 Nuxt 3 frontend + Directus CMS backend, running in Docker Compose.
-
+Code language and variables always favour english language.
 ---
 
 ## Directus schema & permissions workflow
@@ -151,6 +151,10 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 15. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
 16. In German user-facing text and translations, use proper German characters (`ä`, `ö`, `ü`, `ß`) instead of ASCII transliterations (`ae`, `oe`, `ue`, `ss`). Keep ASCII transliterations only for stable identifiers, enum values, slugs, emails, URLs, or other machine-facing keys.
 
+## Feature inventory maintenance
+
+FEATURES.md is the canonical inventory of application functionality and its regression coverage. Review and update it in the same change for every code, configuration, schema, permission, route, endpoint, extension, integration, workflow, or user-facing behavior change. Add rows for new functionality, remove or mark retired functionality, and keep implementation paths and exact test-flow references current. Every row must state whether it has targeted automated coverage, manual-only coverage, partial coverage, or no dedicated automated test; do not claim coverage merely because a page loads incidentally.
+
 ## Project structure:
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
 2. src/directus - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
@@ -163,4 +167,8 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 ## Text
 1. Ensure displayed text uses the proper symbols for the language, i.e. German uses proper Umlauts for ä ö ü ß and not ae/oe/ue/ss
 2. When gendered German text is used, prefer ":" over "*" as separator.
+3. Every Directus `string` or `text` field must set `meta.options.trim: true` whenever its interface exposes the trim option. The standard `input`, `input-multiline`, and custom `auto-slug` interfaces support it. Verify support before setting the option; do not add ignored options to interfaces that do not expose trimming.
+4. Address users consistently with the informal German `du` form in user-facing text and translations. Content sent to candidates or parties—including access-token pages and related emails—must use the formal `Sie` form instead.
 
+## Checks
+1. Run ./test_dev.sh in the bin folder and wait for checks to complete.

@@ -1,10 +1,10 @@
 <template>
-<div class="px-4 py-8">
+<div class="municipalities-page px-4 py-8">
   <!-- Title -->
   <div class="mb-4">
-    <h1 class="text-4xl font-bold">
-      <span v-if="selectedCatalogVersion.name === 'beta'">{{ $t("municipalities.heading") }} 2025</span>
-      <span v-else>{{ $t("municipalities.heading") }} 2026</span>
+    <h1 class="text-4xl font-bold text-light-green">
+      <span v-if="selectedCatalogVersion.name === 'beta'">{{ $t("municipalities.heading") }} {{ $t("ranking.current_year", { ":year": 2025 }) }}</span>
+      <span v-else>{{ $t("municipalities.heading") }} {{ $t("ranking.current_year", { ":year": 2026 }) }}</span>
     </h1>
     <p class="text-xs text-gray-400 mt-1">
       <ClientOnly>{{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}</ClientOnly>
@@ -17,14 +17,14 @@
     <button @click="openCalMobile"
        class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3 text-left w-full"
        style="border-color: #339737;">
-      <img src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"
+      <img :src="onboardingAvatarUrl"
            alt="Otto" class="w-10 h-10 rounded-full flex-shrink-0 object-cover" />
       <div class="flex-1 min-w-0">
-        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #339737;">Werde Klimachecker!</h2>
-        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">Vereinbare einen Termin zu deinem individuellen online Onboarding</p>
+        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #339737;">{{ $t("municipalities.cta.onboarding.title") }}</h2>
+        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">{{ $t("municipalities.cta.onboarding.description") }}</p>
       </div>
       <span class="flex-shrink-0 px-3 py-1.5 text-white text-xs font-semibold rounded-md" style="background-color: #339737;">
-        Buchen →
+        {{ $t("municipalities.cta.onboarding.action") }}
       </span>
     </button>
     <!-- Lokalteam gründen -->
@@ -37,11 +37,11 @@
         </svg>
       </div>
       <div class="flex-1 min-w-0">
-        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #AFCA0B;">Jetzt Lokalteam gründen</h2>
-        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">und mit Bewerten anfangen</p>
+        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #AFCA0B;">{{ $t("localteam.create_now") }}</h2>
+        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">{{ $t("municipalities.cta.localteam.description") }}</p>
       </div>
       <span class="flex-shrink-0 px-3 py-1.5 text-white text-xs font-semibold rounded-md" style="background-color: #AFCA0B;">
-        Jetzt anfangen →
+        {{ $t("municipalities.cta.missing.action") }}
       </span>
     </NuxtLink>
     <!-- Dashboard Stats -->
@@ -54,11 +54,11 @@
         </svg>
       </div>
       <div class="flex-1 min-w-0">
-        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #006e94;">Dashboard Maßnahmen-Statistiken</h2>
-        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">Sektoren &amp; Maßnahmen-Analyse aller Kommunen</p>
+        <h2 class="text-sm font-bold font-heading leading-tight" style="color: #006e94;">{{ $t("stats.measures.title") }}</h2>
+        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">{{ $t("municipalities.cta.dashboard.description") }}</p>
       </div>
       <span class="flex-shrink-0 px-3 py-1.5 text-white text-xs font-semibold rounded-md" style="background-color: #006e94;">
-        Zum Dashboard →
+        {{ $t("municipalities.cta.dashboard.action") }}
       </span>
     </NuxtLink>
   </div>
@@ -72,7 +72,7 @@
         <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 01.707 1.707L14 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 018 17v-4.586L3.293 5.707A1 1 0 013 5V4z" />
         </svg>
-        <span>Filter &amp; Ansicht</span>
+        <span>{{ $t("generic.filter_and_view") }}</span>
         <span v-if="activeFilterCount > 0" class="slk-filter-count text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">{{ activeFilterCount }}</span>
       </span>
       <svg class="w-4 h-4 flex-shrink-0 transition-transform duration-200" :class="filterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -99,7 +99,7 @@
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
-            Ranking
+            {{ $t("municipalities.view.ranking") }}
           </button>
           <button
             class="slk-filter-pill"
@@ -109,7 +109,7 @@
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
-            Karte
+            {{ $t("municipalities.view.map") }}
           </button>
         </div>
       </div>
@@ -127,12 +127,12 @@
             :to="{ path: '/municipalities', query: { ...route.query, v: 'v1.0' } }"
             class="slk-filter-pill"
             :class="{ 'slk-filter-pill--active': selectedCatalogVersion.name !== 'beta' }"
-          >2026</NuxtLink>
+          >{{ $t("ranking.current_year", { ":year": 2026 }) }}</NuxtLink>
           <NuxtLink
             :to="{ path: '/municipalities', query: { ...route.query, v: 'beta' } }"
             class="slk-filter-pill"
             :class="{ 'slk-filter-pill--active': selectedCatalogVersion.name === 'beta' }"
-          >2025 (Archiv)</NuxtLink>
+          >{{ $t("ranking.archive_year", { ":year": 2025 }) }}</NuxtLink>
         </div>
       </div>
     </div>
@@ -207,7 +207,7 @@
       <div class="sticky">
         <!-- <h2 class="text-2xl font-bold max-w-md mb-6 mx-auto text-center">{{ $t("projects.title")}}</h2> -->
         <div class="space-y-4 max-w-md mx-auto">
-          <OnboardingBox name="Otto" avatar-src="https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96"/>
+          <OnboardingBox name="Otto" :avatar-src="onboardingAvatarUrl"/>
 
           <!-- Lokalteam gründen box -->
           <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #AFCA0B;">
@@ -218,8 +218,8 @@
                 </svg>
               </div>
               <div class="min-w-0">
-                <h2 class="text-base font-bold font-heading leading-tight" style="color: #AFCA0B;">Jetzt Lokalteam gründen</h2>
-                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">und mit Bewerten anfangen</p>
+                <h2 class="text-base font-bold font-heading leading-tight" style="color: #AFCA0B;">{{ $t("localteam.create_now") }}</h2>
+                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ $t("municipalities.cta.localteam.description") }}</p>
               </div>
             </div>
             <NuxtLink
@@ -227,11 +227,11 @@
               class="mt-2 inline-block w-full text-center px-3 py-2 text-white text-sm font-semibold rounded-md hover:opacity-90 transition-opacity"
               style="background-color: #AFCA0B;"
             >
-              Jetzt anfangen →
+              {{ $t("municipalities.cta.missing.action") }}
             </NuxtLink>
           </div>
 
-          <!-- Dashboard Maßnahmen-Statistiken box -->
+          <!-- {{ $t("stats.measures.title") }} box -->
           <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #006e94;">
             <div class="flex items-center gap-3 flex-1 min-h-0">
               <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #006e94;">
@@ -240,8 +240,8 @@
                 </svg>
               </div>
               <div class="min-w-0">
-                <h2 class="text-base font-bold font-heading leading-tight" style="color: #006e94;">Dashboard<br>Maßnahmen-Statistiken</h2>
-                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">Sektoren &amp; Maßnahmen-Analyse aller Kommunen</p>
+                <h2 class="text-base font-bold font-heading leading-tight" style="color: #006e94;">{{ $t("stats.measures.title") }}</h2>
+                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ $t("municipalities.cta.dashboard.description") }}</p>
               </div>
             </div>
             <NuxtLink
@@ -249,7 +249,7 @@
               class="mt-2 inline-block w-full text-center px-3 py-2 text-white text-sm font-semibold rounded-md hover:opacity-90 transition-opacity"
               style="background-color: #006e94;"
             >
-              Zum Dashboard →
+              {{ $t("municipalities.cta.dashboard.action") }}
             </NuxtLink>
           </div>
 
@@ -277,17 +277,16 @@
     <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto flex-shrink-0 opacity-80" />
     <div class="flex-1 text-center sm:text-left">
       <h2 class="font-heading text-h2 font-bold text-green mb-2">
-        Deine Kommune ist nicht dabei?
+        {{ $t("municipalities.cta.missing.title") }}
       </h2>
       <p class="text-gray-600 text-sm mb-4">
-        Starte selbst die Bewertung und bringe aktiven Klimaschutz in deine Gemeinde.
-        Gründe ein Lokalteam — wir begleiten dich durch den Prozess.
+        {{ $t("municipalities.cta.missing.body") }}
       </p>
       <NuxtLink
         to="/register_localteam"
         class="inline-block px-6 py-2.5 bg-green text-white font-semibold rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-colors"
       >
-        Jetzt anfangen →
+        {{ $t("municipalities.cta.missing.action") }}
       </NuxtLink>
     </div>
   </div>
@@ -302,7 +301,7 @@
           <div class="flex justify-end p-2 flex-shrink-0">
             <button @click="closeCalMobile"
                     class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                    aria-label="Close">✕</button>
+                    :aria-label="$t('generic.close')">✕</button>
           </div>
           <div id="my-cal-inline-onboarding-mobile"
                class="flex-1 overflow-y-auto min-h-[400px]"></div>
@@ -326,6 +325,8 @@ import { isRaster } from "~/shared/utils";
 
 const { sortBy, last, get } = lodash;
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const runtimeConfig = useRuntimeConfig();
+const onboardingAvatarUrl = computed(() => `${String(runtimeConfig.public.clientDirectusUrl || "").replace(/\/+$/, "")}/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96`);
 const rankingColumn = ref(null)
 const rankingColumnHeight = ref(0)
 
@@ -518,4 +519,3 @@ const activeFilterCount = computed(() => {
 .mun-cal-fade-enter-active, .mun-cal-fade-leave-active { transition: opacity .2s; }
 .mun-cal-fade-enter-from, .mun-cal-fade-leave-to { opacity: 0; }
 </style>
-

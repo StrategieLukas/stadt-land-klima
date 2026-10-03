@@ -15,11 +15,15 @@ meta:
   readonly: true
   required: false
   searchable: true
-  sort: 7
+  sort: 8
   special: null
   translations:
     - language: de-DE
       translation: Zuerst eingereicht
+    - language: en-GB
+      translation: First submitted
+    - language: it-IT
+      translation: Primo invio
   validation: null
   validation_message: null
   width: half

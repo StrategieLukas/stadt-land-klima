@@ -430,9 +430,17 @@ if (process.server && pageData.value?.notFound) {
   throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
 }
 
+if (process.server && pageData.value?.area && /^\d+$/.test(slug.value)) {
+  const resolved = pageData.value.area;
+  await navigateTo(`/data/${areaToSlug(resolved.prefix ?? "", resolved.name)}`, { redirectCode: 301, replace: true });
+}
+
 watch(pageData, (value) => {
   if (value?.requestedSlug === slug.value && value?.notFound) {
     throw createError({ statusCode: 404, statusMessage: "Gebiet nicht gefunden" });
+  }
+  if (value?.requestedSlug === slug.value && value?.area && /^\d+$/.test(slug.value)) {
+    navigateTo(`/data/${areaToSlug(value.area.prefix ?? "", value.area.name)}`, { replace: true });
   }
 });
 

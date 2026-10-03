@@ -30,7 +30,7 @@
         </div>
         <div class="flex flex-col lg:text-right space-y-3 flex-shrink-0">
           <div class="lg:text-right">
-            <p class="text-xs text-gray-500 font-semibold">ARS</p>
+            <p class="text-xs text-gray-500 font-semibold">{{ t('region.ars_label') }}</p>
             <p class="text-sm font-mono text-gray-700">{{ area?.ars || '-' }}</p>
           </div>
           <div class="lg:text-right">
@@ -89,7 +89,7 @@
           <div class="flex-shrink-0 flex items-center gap-2">
             <div v-if="muni.score !== null" class="text-right">
               <span class="text-sm font-bold text-green-700">{{ muni.score.toFixed(1) }}</span>
-              <span class="text-xs text-gray-400 ml-0.5">Pkt</span>
+              <span class="text-xs text-gray-400 ml-0.5">{{ t('stats.points_abbrev') }}</span>
             </div>
             <NuxtLink
               v-if="muni.slug"
@@ -103,7 +103,7 @@
             </NuxtLink>
             <NuxtLink
               v-else
-              :to="`/stats/${muni.ars}`"
+              :to="`/data/${muni.ars}`"
               class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors whitespace-nowrap"
             >
               {{ t('stats.view_stats') }}
@@ -140,7 +140,7 @@
               <p class="text-xs text-gray-400">{{ muni.prefix }}</p>
             </div>
             <NuxtLink
-              :to="`/stats/${muni.ars}`"
+              :to="`/data/${muni.ars}`"
               class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors whitespace-nowrap"
             >
               {{ t('stats.view_stats') }}
@@ -226,7 +226,7 @@ const pageTitle = computed(() => {
   if (area.value?.name) {
     return area.value.prefix ? `${area.value.prefix} ${area.value.name}` : area.value.name;
   }
-  return 'Region';
+  return t('region.title_fallback');
 });
 
 useHead({ title: pageTitle });
@@ -238,9 +238,9 @@ onMounted(async () => {
     const areaData = await $stadtlandzahlAPI.fetchStatsByARS(route.params.ars);
 
     if (areaData) {
-      // If someone navigates here directly with a level 4+ ARS, redirect to /stats/
+      // If someone navigates here directly with a level 4+ ARS, redirect to /data/
       if (areaData.level >= 4) {
-        await navigateTo(`/stats/${route.params.ars}`, { replace: true });
+        await navigateTo(`/data/${route.params.ars}`, { replace: true });
         return;
       }
       area.value = areaData;

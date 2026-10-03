@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: input
   note: Name of the user who owns this edit state
-  options: null
+  options:
+    trim: true
   readonly: false
   required: false
   searchable: true

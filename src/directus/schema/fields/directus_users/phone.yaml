@@ -1,0 +1,55 @@
+collection: directus_users
+field: phone
+type: string
+meta:
+  collection: directus_users
+  conditions: null
+  display: null
+  display_options: null
+  field: phone
+  group: null
+  hidden: false
+  interface: input
+  note: Internationales Format erforderlich, z. B. +49111… (nicht 0111…).
+  options:
+    placeholder: +49111…
+    trim: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 996
+  special: null
+  translations:
+    - language: de-DE
+      translation: Telefonnummer (international, z. B. +49111…)
+    - language: en-GB
+      translation: Phone number (international, e.g. +49111…)
+    - language: it-IT
+      translation: Numero di telefono (internazionale, es. +49111…)
+  validation:
+    _or:
+      - phone:
+          _null: true
+      - phone:
+          _eq: ""
+      - phone:
+          _regex: ^\+[1-9][0-9]{6,14}$
+  validation_message: Bitte eine gültige internationale Telefonnummer im Format +49111… eingeben.
+  width: half
+schema:
+  name: phone
+  table: directus_users
+  data_type: character varying
+  default_value: null
+  max_length: 16
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

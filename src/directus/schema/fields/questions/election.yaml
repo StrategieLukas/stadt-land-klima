@@ -24,6 +24,10 @@ meta:
   translations:
     - language: de-DE
       translation: Verknüpfte Wahl
+    - language: en-GB
+      translation: Linked election
+    - language: it-IT
+      translation: Elezione collegata
   validation: null
   validation_message: null
   width: half

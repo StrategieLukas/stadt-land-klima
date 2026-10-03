@@ -186,7 +186,7 @@
                   <td class="pr-1 text-right text-gray-600">{{ area.prefix }}</td>
                   <td class="pl-1">
                     <NuxtLink 
-                      :to="`/stats/${area.ars}`" 
+                      :to="`/data/${area.ars}`"
                       class="text-blue-600 hover:text-blue-800 hover:underline"
                       @click.stop
                     >

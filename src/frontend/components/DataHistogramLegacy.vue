@@ -48,7 +48,7 @@
                   <span class="font-mono text-sm badge badge-neutral">{{ formatValue(municipality.value) }}</span>
                 </td>
                 <td>
-                  <NuxtLink :to="`/stats/${municipality.ars}`" class="btn btn-xs btn-primary">
+                  <NuxtLink :to="`/data/${municipality.ars}`" class="btn btn-xs btn-primary">
                     {{ $t('stats.view_stats') }}
                   </NuxtLink>
                 </td>

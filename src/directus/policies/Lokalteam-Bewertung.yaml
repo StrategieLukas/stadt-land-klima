@@ -53,6 +53,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - recommended_search_queries
       - slug
       - measure_id
   - collection: municipalities
@@ -163,6 +164,7 @@ permissions:
       - applicable
       - why_not_applicable
       - measure_info_preview
+      - localteam_id
   - collection: ratings_measures
     action: update
     permissions:

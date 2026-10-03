@@ -16,8 +16,11 @@ meta:
   group: null
   hidden: false
   interface: boolean
-  note: Wurde der Account des Lokalteam-Admins durch einen Admin verifiziert? Wird
-    automatisch aus directus_users.verified synchronisiert.
+  note:
+    Der Account des Lokalteam-Admins wurde durch einen Admin verifiziert. Wird
+    automatisch aus directus_users.verified synchronisiert und steuert nur die
+    öffentliche Vorschau. Das Veröffentlichen wird anhand der persönlichen
+    Verifizierung geprüft.
   options: null
   readonly: true
   required: false

@@ -3,17 +3,17 @@
 
     <!-- Back link with chevron + sibling navigation -->
     <div class="flex items-center gap-2 flex-wrap">
-      <NuxtLink :to="`/measures?sector=${measure?.sector}&v=${currentCatalogVersion.name}`" class="inline-flex items-center gap-1 font-heading text-h4 text-light-blue">
+      <NuxtLink :to="measureIndexLocation" class="inline-flex items-center gap-1 font-heading text-h4 text-light-blue">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        {{ measure?.sector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${measure.sector}.title`) }) : '← Zurück zu Maßnahmen' }}
+        {{ detailSector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${detailSector}.title`) }) : $t("measures.back_label") }}
       </NuxtLink>
 
       <div v-if="prevMeasure || nextMeasure" class="flex items-center gap-1 ml-2">
         <NuxtLink
           v-if="prevMeasure"
-          :to="`/measures/${prevMeasure.slug}?v=${currentCatalogVersion.name}&sector=${prevMeasure.sector}`"
+          :to="measureDetailLocation(prevMeasure.slug)"
           class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray/30 text-xs text-gray hover:bg-gray/5 transition-colors"
           :title="`← ${prevMeasure.measure_id}: ${prevMeasure.name}`"
         >
@@ -23,7 +23,7 @@
         <span class="text-xs text-gray/40">{{ siblingIndex + 1 }} / {{ siblingMeasures.length }}</span>
         <NuxtLink
           v-if="nextMeasure"
-          :to="`/measures/${nextMeasure.slug}?v=${currentCatalogVersion.name}&sector=${nextMeasure.sector}`"
+          :to="measureDetailLocation(nextMeasure.slug)"
           class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray/30 text-xs text-gray hover:bg-gray/5 transition-colors"
           :title="`${nextMeasure.measure_id}: ${nextMeasure.name} →`"
         >
@@ -34,16 +34,14 @@
     </div>
 
     <!-- Version switcher (only if this measure exists in multiple catalog versions) -->
-    <div v-if="measureVersions && measureVersions.length > 1" class="mt-3 flex items-center gap-2 flex-wrap">
-      <span class="text-xs text-gray-500">Version:</span>
+    <div v-if="measureVersions && measureVersions.length > 1" class="slk-filter-theme-neutral mt-3 flex items-center gap-2 flex-wrap">
+      <span class="text-xs text-gray-500">{{ $t('measure.version_label') }}</span>
       <NuxtLink
         v-for="mv in measureVersions"
         :key="mv.catalog_version.id"
-        :to="`/measures/${route.params.slug}?v=${mv.catalog_version.name}`"
-        class="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold transition"
-        :class="currentCatalogVersion.id === mv.catalog_version.id
-          ? 'bg-gray text-white border-gray'
-          : 'bg-white text-gray border-gray hover:bg-[#f2f2f2]'"
+        :to="measureDetailLocation(route.params.slug, mv.catalog_version.name)"
+        class="slk-filter-pill px-2.5 py-1 transition"
+        :class="currentCatalogVersion.id === mv.catalog_version.id ? 'slk-filter-pill--active' : ''"
       >
         {{ mv.catalog_version.name }}
       </NuxtLink>
@@ -79,7 +77,7 @@
         class="hidden xl:block w-44 flex-shrink-0 sticky text-sm self-start"
         :style="`top: ${headerHeight + 12}px`"
       >
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Abschnitte</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{{ $t('measure.sections.title') }}</p>
         <ul class="space-y-1">
           <li v-for="item in navItems" :key="item.id">
             <a
@@ -104,14 +102,14 @@
             <h1 class="font-heading text-h1 font-bold text-gray">{{ measure.name }}</h1>
           </div>
 
-          <div v-if="measure.image" class="mb-2 rounded-xl overflow-hidden">
+          <div v-if="measureImageId" class="mb-2 rounded-xl overflow-hidden">
             <img
-              :src="`${directusUrl}/assets/${measure.image}?width=900&quality=80`"
+              :src="`${directusUrl}/assets/${encodeURIComponent(measureImageId)}?width=900&quality=80`"
               :alt="measure.name"
               class="w-full h-auto block"
             />
           </div>
-          <p v-if="measure.image_credits" class="text-xs text-gray-500 italic mb-6 text-center">{{ measure.image_credits }}</p>
+          <p v-if="measureImageCredits" class="text-xs text-gray-500 italic mb-6 text-center">{{ measureImageCredits }}</p>
 
           <div>
             <StaticMeasureDetails :measure="measure" />
@@ -146,15 +144,16 @@
         <!-- Feedback section -->
         <div class="border-t-2 border-light-blue py-6">
           <div class="flex items-start gap-3">
-            <img src="~/assets/icons/icon_hint.svg" alt="" class="w-6 h-6 opacity-50 flex-shrink-0 mt-0.5" />
+            <img src="~/assets/icons/icon_hint.svg" alt="" class="slk-theme-icon--light w-6 h-6 opacity-50 flex-shrink-0 mt-0.5" />
+            <img src="~/assets/icons/icon_hint-dark.svg" alt="" class="slk-theme-icon--dark w-6 h-6 opacity-50 flex-shrink-0 mt-0.5" />
             <div>
-              <h2 class="font-heading text-h3 font-bold text-gray mb-4">Haben Sie einen Hinweis zu dieser Maßnahme?</h2>
-              <p class="text-sm text-gray-500 mb-3">Fehler, Ungenauigkeiten oder Verbesserungsvorschläge – teilen Sie uns Ihr Feedback mit.</p>
+              <h2 class="font-heading text-h3 font-bold text-gray mb-4">{{ $t('measure.feedback.title') }}</h2>
+              <p class="text-sm text-gray-500 mb-3">{{ $t('measure.feedback.description') }}</p>
               <NuxtLink
-                :to="`/contact?title=${encodeURIComponent(measure?.measure_id + ': ' + measure?.name)}&type=suggestion&content=${encodeURIComponent('Maßnahme: ' + measure?.measure_id + '\nLink: /measures/' + route.params.slug + '?v=' + currentCatalogVersion.name + '\n\nMein Hinweis:\n')}`"
+                :to="feedbackLocation"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-bold bg-light-blue text-white hover:brightness-110 transition"
               >
-                Feedback geben ↗
+                {{ $t('feedback.give_external') }}
               </NuxtLink>
             </div>
           </div>
@@ -185,6 +184,27 @@ const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
 const directusUrl = config.public.clientDirectusUrl;
+const detailSector = computed(() => {
+  return typeof route.query.sector === 'string' && route.query.sector
+    ? route.query.sector
+    : measure.value?.sector ?? null;
+});
+const measureIndexLocation = computed(() => ({
+  path: '/measures',
+  query: {
+    v: currentCatalogVersion.value.name,
+    ...(detailSector.value ? { sector: detailSector.value } : {}),
+  },
+}));
+function measureDetailLocation(slug, versionName = currentCatalogVersion.value.name) {
+  return {
+    path: `/measures/${slug}`,
+    query: {
+      v: versionName,
+      ...(detailSector.value ? { sector: detailSector.value } : {}),
+    },
+  };
+}
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
 const isDesktop = useState('layout-isDesktop');
@@ -211,6 +231,7 @@ const { data: measuresRaw } = await useAsyncData(
   () => `measure-${route.params.slug}-${currentCatalogVersion.value.id}`,
   () => $directus.request(
     $readItems("measures", {
+      fields: ['*', { image: ['id', 'image_credits'] }],
       filter: {
         slug: { _eq: route.params.slug },
         catalog_version: { _eq: currentCatalogVersion.value.id },
@@ -233,6 +254,14 @@ const { data: measureVersions } = await useAsyncData(`measure-versions-${route.p
 });
 
 const measure = computed(() => measuresRaw.value?.[0] || null);
+const measureImageId = computed(() => {
+  const image = measure.value?.image;
+  return typeof image === 'string' ? image : image?.id ?? null;
+});
+const measureImageCredits = computed(() => {
+  const image = measure.value?.image;
+  return measure.value?.image_credits || (typeof image === 'object' && image ? image.image_credits : '') || '';
+});
 
 // Sections present on this measure (drives sidebar / pills nav)
 const hasDescriptions = computed(() => {
@@ -241,18 +270,36 @@ const hasDescriptions = computed(() => {
     'description_implementation', 'description_legal', 'description_funding', 'description_tutorial',
   ].some(k => measure.value[k]);
 });
+const feedbackLocation = computed(() => {
+  const measureTitle = measure.value
+    ? `${measure.value.measure_id}: ${measure.value.name}`
+    : '';
+  const measureLink = `/measures/${route.params.slug}?v=${currentCatalogVersion.value.name}`;
+
+  return {
+    path: '/contact',
+    query: {
+      title: measureTitle,
+      type: 'suggestion',
+      content: $t('measure.feedback.prefill_content', {
+        ':measure': measureTitle,
+        ':link': measureLink,
+      }),
+    },
+  };
+});
 
 const navItems = computed(() => {
   if (!measure.value) return [];
   return [
-    { id: 'section-about',        label: 'Überblick' },
+    { id: 'section-about',        label: $t('measure.sections.overview') },
     measure.value.description_evaluation_criteria
-      ? { id: 'section-criteria',     label: 'Kriterien' } : null,
-    { id: 'section-feasibility',  label: 'Umsetzbarkeit' },
+      ? { id: 'section-criteria',     label: $t('measure.evaluation_criteria_heading') } : null,
+    { id: 'section-feasibility',  label: $t('measure.feasibility_heading') },
     hasDescriptions.value
-      ? { id: 'section-descriptions', label: 'Beschreibungen' } : null,
-    { id: 'section-ratings',      label: 'Bewertungen' },
-    { id: 'section-history',      label: 'Verlauf' },
+      ? { id: 'section-descriptions', label: $t('measure.sections.descriptions') } : null,
+    { id: 'section-ratings',      label: $t('measure.sections.ratings') },
+    { id: 'section-history',      label: $t('measure_rating.history.title') },
   ].filter(Boolean);
 });
 
@@ -333,10 +380,10 @@ const nextMeasure = computed(() => siblingIndex.value < siblingMeasures.value.le
 function handleArrowKey(e) {
   if (e.key === 'ArrowLeft' && prevMeasure.value) {
     e.preventDefault();
-    router.push(`/measures/${prevMeasure.value.slug}?v=${currentCatalogVersion.value.name}&sector=${prevMeasure.value.sector}`);
+    router.push(measureDetailLocation(prevMeasure.value.slug));
   } else if (e.key === 'ArrowRight' && nextMeasure.value) {
     e.preventDefault();
-    router.push(`/measures/${nextMeasure.value.slug}?v=${currentCatalogVersion.value.name}&sector=${nextMeasure.value.sector}`);
+    router.push(measureDetailLocation(nextMeasure.value.slug));
   }
 }
 

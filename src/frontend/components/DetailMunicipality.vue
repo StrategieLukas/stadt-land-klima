@@ -48,6 +48,7 @@
             :ratings-by-sector="ratingsBySector"
             :name-municipality="municipality.name"
           />
+          <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
           <p
             v-if="activeTab === 'treemap'"
             class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
@@ -91,7 +92,7 @@
 
       <!-- Mobile: Statistics Section Link -->
       <NuxtLink
-        :to="`/stats/${municipality.ars}`"
+        :to="`/data/${municipality.ars}`"
         class="slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
       >
         <img
@@ -197,6 +198,7 @@
               :ratings-by-sector="ratingsBySector"
               :name-municipality="municipality.name"
             />
+            <MunicipalityTreemapLegend v-if="activeTab === 'treemap'" />
             <p
               v-if="activeTab === 'polar'"
               class="text-gray-500 mx-auto mt-3 text-center text-xs italic"
@@ -246,7 +248,7 @@
 
           <!-- Statistics Section Link -->
           <NuxtLink
-            :to="municipality.ars ? `/stats/${municipality.ars}` : '/stats'"
+            :to="municipality.ars ? `/data/${municipality.ars}` : '/data'"
             class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
           >
             <img

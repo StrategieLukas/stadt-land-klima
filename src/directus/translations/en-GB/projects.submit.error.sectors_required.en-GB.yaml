@@ -1,0 +1,3 @@
+language: en-GB
+key: projects.submit.error.sectors_required
+value: Please select at least one sector.

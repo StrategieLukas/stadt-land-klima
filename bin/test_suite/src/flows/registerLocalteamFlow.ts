@@ -1,0 +1,726 @@
+import type { Browser, Page } from 'playwright';
+import { assert, assertEqual, assertIncludes, assertNotIncludes } from '../lib/assert.js';
+import { gotoDirectusContent, loginDirectus, newContext, visibleText } from '../lib/browser.js';
+import type { DirectusClient } from '../lib/directus.js';
+import type { TestFixture } from '../lib/fixture.js';
+import type { TestRunner } from '../lib/runner.js';
+import { waitFor } from '../lib/wait.js';
+
+interface DirectusUser {
+  id: string;
+  email: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  title?: string | null;
+  description?: string | null;
+  status?: string | null;
+  verified?: boolean | null;
+  role?: string | { id: string; name?: string | null };
+}
+
+interface DirectusPresentationLink {
+  icon?: string | null;
+  label?: string | null;
+  url?: string | null;
+}
+
+interface DirectusMunicipalityCollection {
+  meta?: {
+    preview_url?: string | null;
+  } | null;
+}
+
+interface DirectusMunicipalityField {
+  meta?: {
+    options?: {
+      links?: DirectusPresentationLink[];
+    } | null;
+  } | null;
+}
+
+interface Localteam {
+  id: string;
+  name: string;
+  municipality_name: string;
+  admin_id?: string | { id: string } | null;
+  status?: string | null;
+  slug?: string | null;
+}
+
+interface Municipality {
+  id: string;
+  name: string;
+  slug?: string | null;
+  ars?: string | null;
+  creator_verified?: boolean | null;
+  preview_token?: string | null;
+  localteam_id?: string | { id: string } | null;
+}
+
+interface MunicipalityScore {
+  id: string;
+  municipality: string | { id: string };
+  catalog_version: string | { id: string; isCurrentBackend?: boolean | null };
+  percentage_rated?: string | number | null;
+  published?: boolean | null;
+}
+
+interface LocalteamUserJunction {
+  id: string;
+  directus_users_id: string | { id: string };
+  localteam_id: string | { id: string };
+}
+
+interface BrowserErrorCollector {
+  assertNoErrors: () => void;
+}
+
+const REGISTER_PAGE_ERROR_PATTERNS = [
+  /Es ist ein Fehler/i,
+  /Fehler beim Laden/i,
+  /Registration Failed/i,
+  /Registrierung ist momentan nicht verfügbar/i,
+  /CAPTCHA.*fehlgeschlagen/i,
+  /Account konnte nicht erstellt/i,
+  /Lokalteam konnte nicht angelegt/i,
+  /access denied/i,
+];
+
+function relationId(value: string | { id: string } | null | undefined): string | null {
+  if (!value) return null;
+  return typeof value === 'object' ? value.id : value;
+}
+
+function roleName(user: DirectusUser): string | undefined | null {
+  return typeof user.role === 'object' ? user.role.name : undefined;
+}
+
+function roleId(user: DirectusUser): string | null {
+  if (typeof user.role === 'string') return user.role;
+  return user.role?.id ?? null;
+}
+
+function configuredPreviewUrl(fixture: TestFixture): string {
+  const frontendBaseUrl = fixture.config.env.FRONTEND_BASE_URL?.trim().replace(/\/+$/, '');
+  assert(frontendBaseUrl, 'Backend env must define FRONTEND_BASE_URL for Directus previews');
+  return `${frontendBaseUrl}/municipalities/{{slug}}?preview={{preview_token}}`;
+}
+
+function validTestArs(runId: string, offset: number): string {
+  let hash = offset;
+  for (const char of runId) {
+    hash = (hash * 31 + char.charCodeAt(0)) % 10_000_000_000;
+  }
+  return `16${String(hash).padStart(10, '0')}`;
+}
+
+function watchPageErrors(page: Page, label: string): BrowserErrorCollector {
+  const errors: string[] = [];
+
+  page.on('pageerror', (error) => {
+    errors.push(`pageerror: ${error.message}`);
+  });
+  page.on('console', (message) => {
+    const text = message.text();
+    const isIgnoredDevtoolsSocketError =
+      text.includes('vite_devtools_auth_token') || text.includes('ws://localhost:7812/');
+    if (message.type() === 'error' && !isIgnoredDevtoolsSocketError) {
+      errors.push(`console.error: ${text}`);
+    }
+  });
+
+  return {
+    assertNoErrors: () => {
+      assert(errors.length === 0, `${label} must not emit browser errors:\n${errors.join('\n')}`);
+    },
+  };
+}
+
+function assertNoVisibleErrorMessages(text: string, label: string): void {
+  const match = REGISTER_PAGE_ERROR_PATTERNS.find((pattern) => pattern.test(text));
+  assert(!match, `${label} must not show an error message matching ${String(match)}`);
+}
+
+async function openRegisterPage(
+  page: Page,
+  frontendUrl: string,
+  ars?: string,
+  name?: string,
+  slug?: string,
+): Promise<string> {
+  const url = new URL('/register_localteam', frontendUrl);
+  if (ars) url.searchParams.set('ars', ars);
+  if (name) url.searchParams.set('name', name);
+  if (slug) url.searchParams.set('slug', slug);
+
+  await page.goto(url.toString(), { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle').catch(() => undefined);
+  await page.waitForTimeout(750);
+  return visibleText(page);
+}
+
+async function readCurrentBackendScore(
+  admin: DirectusClient,
+  municipalityId: string,
+): Promise<MunicipalityScore | undefined> {
+  const scores = await admin.readItems<MunicipalityScore>('municipality_scores', {
+    filter: {
+      municipality: { _eq: municipalityId },
+      catalog_version: { isCurrentBackend: { _eq: true } },
+    },
+    fields: [
+      'id',
+      'municipality',
+      'percentage_rated',
+      'published',
+      'catalog_version.id',
+      'catalog_version.isCurrentBackend',
+    ],
+    limit: 1,
+  });
+  return scores[0];
+}
+
+async function mockStadtlandzahlArea(page: Page, ars: string, name: string): Promise<void> {
+  await page.route(
+    (url) => url.pathname === `/api/areas/${ars}/` && url.searchParams.get('format') === 'json',
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          prefix: 'Gemeinde',
+          name,
+          ars,
+          contained_by: [{ level: 2, name: 'Schleswig-Holstein' }],
+          data_products: {
+            population_data: {
+              population: 12_345,
+            },
+          },
+        }),
+      });
+    },
+  );
+}
+
+async function solveAltcha(page: Page): Promise<void> {
+  await page.locator('altcha-widget').waitFor({ state: 'attached', timeout: 20_000 });
+  await page.waitForFunction(() => typeof (document.querySelector('altcha-widget') as any)?.verify === 'function', {
+    timeout: 20_000,
+  });
+
+  const result = await page.evaluate(async () => {
+    const widget = document.querySelector('altcha-widget') as any;
+    const verifyResult = await widget.verify();
+    return {
+      state: widget.getState?.(),
+      hasPayload: Boolean(verifyResult?.payload),
+    };
+  });
+
+  assert(result.hasPayload, `Altcha verification must return a payload. State: ${result.state ?? 'unknown'}`);
+  await page.waitForFunction(() => (document.querySelector('altcha-widget') as any)?.getState?.() === 'verified', {
+    timeout: 60_000,
+  });
+}
+
+async function readUserByEmail(admin: DirectusClient, email: string): Promise<DirectusUser | undefined> {
+  const users = await admin.readUsers<DirectusUser>({
+    filter: { email: { _eq: email } },
+    fields: [
+      'id',
+      'email',
+      'first_name',
+      'last_name',
+      'title',
+      'description',
+      'status',
+      'verified',
+      'role.id',
+      'role.name',
+    ],
+    limit: 1,
+  });
+  return users[0];
+}
+
+async function readLocalteamByName(admin: DirectusClient, name: string): Promise<Localteam | undefined> {
+  const localteams = await admin.readItems<Localteam>('localteams', {
+    filter: { name: { _eq: name } },
+    fields: ['id', 'name', 'municipality_name', 'admin_id', 'status', 'slug'],
+    limit: 1,
+  });
+  return localteams[0];
+}
+
+async function readMunicipalityByLocalteam(
+  admin: DirectusClient,
+  localteamId: string,
+): Promise<Municipality | undefined> {
+  const municipalities = await admin.readItems<Municipality>('municipalities', {
+    filter: { localteam_id: { _eq: localteamId } },
+    fields: ['id', 'name', 'slug', 'ars', 'creator_verified', 'preview_token', 'localteam_id'],
+    limit: 1,
+  });
+  return municipalities[0];
+}
+
+async function readLocalteamUserJunctions(
+  admin: DirectusClient,
+  userId: string,
+  localteamId: string,
+): Promise<LocalteamUserJunction[]> {
+  return admin.readItems<LocalteamUserJunction>('junction_directus_users_localteams', {
+    filter: {
+      directus_users_id: { _eq: userId },
+      localteam_id: { _eq: localteamId },
+    },
+    fields: ['id', 'directus_users_id', 'localteam_id'],
+    limit: -1,
+  });
+}
+
+async function createExistingLocalteamFixture(
+  fixture: TestFixture,
+  municipalityName: string,
+  ars: string,
+  scenario = 'default',
+): Promise<{ localteam: Localteam; municipality: Municipality }> {
+  const localteam = await fixture.admin.createItem<Localteam>('localteams', {
+    name: `Automated Existing Lokalteam ${scenario} ${fixture.config.runId}`,
+    municipality_name: municipalityName,
+    slug: `automated-existing-localteam-${scenario}-${fixture.config.runId}`,
+    status: 'published',
+  });
+
+  const generatedMunicipality = await waitFor(
+    'municipality created for existing register_localteam scenario',
+    async () => readMunicipalityByLocalteam(fixture.admin, localteam.id) ?? false,
+    { timeoutMs: 45_000 },
+  );
+
+  await fixture.admin.updateItem<Municipality>('municipalities', generatedMunicipality.id, {
+    ars,
+  });
+
+  const municipality = await waitFor(
+    'frontend-readable existing localteam municipality',
+    async () => {
+      const rows = await fixture.admin.readItems<Municipality>('municipalities', {
+        filter: {
+          ars: { _eq: ars },
+          localteam_id: { _nnull: true },
+        },
+        fields: ['id', 'slug', 'ars', 'localteam_id'],
+        limit: 1,
+      });
+      return rows[0] ?? false;
+    },
+    { timeoutMs: 15_000 },
+  );
+
+  return { localteam, municipality };
+}
+
+export async function runRegisterLocalteamFlow(
+  runner: TestRunner,
+  fixture: TestFixture,
+  browser: Browser,
+): Promise<void> {
+  const newArs = validTestArs(fixture.config.runId, 17);
+  const existingArs = validTestArs(fixture.config.runId, 31);
+  const inProgressArs = validTestArs(fixture.config.runId, 47);
+  const publishedArs = validTestArs(fixture.config.runId, 59);
+  const staleSlugArs = validTestArs(fixture.config.runId, 71);
+  const newMunicipalityName = `Automated Register New ${fixture.config.runId}`;
+  const existingMunicipalityName = `Automated Register Existing ${fixture.config.runId}`;
+  const inProgressMunicipalityName = `Automated Register In Progress ${fixture.config.runId}`;
+  const publishedMunicipalityName = `Automated Register Published ${fixture.config.runId}`;
+  const staleSlugMunicipalityName = `Automated Register No Team ${fixture.config.runId}`;
+  const newUserEmail = `automated-register-new-${fixture.config.runId}@stadt-land-klima.de`;
+  const newLocalteamName = `Stadt.Land.Klima! ${newMunicipalityName}`;
+  let newUserId: string | null = null;
+  let newLocalteamId: string | null = null;
+
+  await runner.step('Register localteam: municipality search excludes higher-level regions', async () => {
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    try {
+      await page.route(
+        (url) => url.pathname === '/api/area-search',
+        async (route) =>
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: '[]',
+          }),
+      );
+      await openRegisterPage(page, fixture.config.frontendUrl);
+      const requestPromise = page.waitForRequest((request) => request.url().includes('/api/area-search?'));
+      await page.locator('#municipality-search').pressSequentially('Bayern');
+      const request = await requestPromise;
+      const mode = new URL(request.url()).searchParams.get('mode');
+      assertEqual(mode, 'reasonable', 'Register search must request only reasonable municipalities');
+    } finally {
+      await context.close();
+    }
+  });
+
+  await runner.step('Register localteam: frontend page creates a new localteam request', async () => {
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    const browserErrors = watchPageErrors(page, 'Register new localteam page');
+
+    try {
+      await mockStadtlandzahlArea(page, newArs, newMunicipalityName);
+      const initialText = await openRegisterPage(page, fixture.config.frontendUrl);
+      assertIncludes(initialText, 'Lokalteam gründen', 'Register page must render the frontend entry point');
+      assertIncludes(initialText, 'Gemeinde / Stadt suchen', 'Register page must expose municipality search');
+
+      const text = await openRegisterPage(page, fixture.config.frontendUrl, newArs, newMunicipalityName);
+      assertIncludes(
+        text,
+        newMunicipalityName,
+        'Register page must show the selected municipality from the frontend URL',
+      );
+      assertIncludes(text, 'Deine Kontaktdaten', 'New municipality must show the registration form');
+      assertNotIncludes(
+        text,
+        'Lokalteam aktiv - Bewertung läuft',
+        'New municipality must not show the join-existing-team state',
+      );
+      assertNoVisibleErrorMessages(text, 'Register new localteam page');
+
+      await page.locator('#reg-firstname').fill('Automated');
+      await page.locator('#reg-lastname').fill('Register');
+      await page.locator('#reg-email').fill(newUserEmail);
+      await page.locator('#reg-org').fill(`Automated Organisation ${fixture.config.runId}`);
+      await solveAltcha(page);
+
+      const responsePromise = page.waitForResponse(
+        (response) => response.url().includes('/api/register-municipality') && response.request().method() === 'POST',
+        { timeout: 60_000 },
+      );
+      await page.getByRole('button', { name: /Lokalteam beantragen/i }).click();
+      const response = await responsePromise;
+      assert(response.ok(), `Registration submit must succeed. Got HTTP ${response.status()}.`);
+
+      await page.getByText('Durchstarten!').waitFor({ state: 'visible', timeout: 30_000 });
+      const successText = await visibleText(page);
+      assertIncludes(successText, 'Account erstellen', 'Success state must show the account creation step');
+      assertIncludes(successText, 'Lokalteam anlegen', 'Success state must show the localteam creation step');
+      assertIncludes(successText, 'Passwort-E-Mail versenden', 'Success state must show the password email step');
+      assertIncludes(successText, 'Aktivierungs-E-Mail', 'Success state must explain the activation email');
+      assertIncludes(successText, newUserEmail, 'Success state must mention the submitted email address');
+      assertIncludes(successText, newMunicipalityName, 'Success state must mention the requested municipality');
+      assertNoVisibleErrorMessages(successText, 'Register new localteam success state');
+      browserErrors.assertNoErrors();
+    } finally {
+      await context.close();
+    }
+
+    const user = await waitFor(
+      'Directus user created by register_localteam frontend submit',
+      async () => readUserByEmail(fixture.admin, newUserEmail) ?? false,
+      { timeoutMs: 45_000 },
+    );
+    newUserId = user.id;
+    assertEqual(user.status, 'active', 'Register localteam must create an active Directus user');
+    assertEqual(user.verified, false, 'Register localteam user must start unverified');
+    assertEqual(roleName(user), 'LokalteamAdmin', 'Register localteam user must be a LokalteamAdmin');
+    assert(user.role, 'Register localteam user must have a role assigned');
+    assertEqual(
+      roleId(user),
+      fixture.roles.get('LokalteamAdmin')?.id ?? null,
+      'Register localteam user must receive the current LokalteamAdmin role id',
+    );
+    assertEqual(user.first_name, 'Automated', 'Register localteam user must keep the first name');
+    assertEqual(user.last_name, 'Register', 'Register localteam user must keep the last name');
+    assertEqual(
+      user.title,
+      `Automated Organisation ${fixture.config.runId}`,
+      'Register localteam user must keep the organisation',
+    );
+    assertIncludes(user.description ?? '', newArs, 'Register localteam user description must contain the ARS');
+
+    const localteam = await waitFor(
+      'localteam created by register_localteam frontend submit',
+      async () => readLocalteamByName(fixture.admin, newLocalteamName) ?? false,
+      { timeoutMs: 45_000 },
+    );
+    newLocalteamId = localteam.id;
+    assertEqual(localteam.municipality_name, newMunicipalityName, 'Created localteam must keep the municipality name');
+    assertEqual(localteam.status, 'draft', 'Created localteam must start as draft');
+    assertEqual(relationId(localteam.admin_id), user.id, 'Created localteam must assign the registering user as admin');
+
+    const junctions = await readLocalteamUserJunctions(fixture.admin, user.id, localteam.id);
+    assertEqual(
+      junctions.length,
+      1,
+      'Register localteam must link the new admin user to the new localteam exactly once',
+    );
+
+    const municipality = await waitFor(
+      'municipality patched by register_localteam frontend submit',
+      async () => {
+        const row = await readMunicipalityByLocalteam(fixture.admin, localteam.id);
+        return row?.ars === newArs ? row : false;
+      },
+      { timeoutMs: 45_000 },
+    );
+    assertEqual(municipality.name, newMunicipalityName, 'Created municipality must keep the selected name');
+    assertEqual(municipality.creator_verified, false, 'Created municipality must start unverified');
+    assertEqual(
+      relationId(municipality.localteam_id),
+      localteam.id,
+      'Created municipality must link to the new localteam',
+    );
+    assert(municipality.preview_token, 'Created municipality must get a preview token');
+  });
+
+  await runner.step('Register localteam: Directus preview uses the configured frontend URL', async () => {
+    const expectedTemplate = configuredPreviewUrl(fixture);
+    const collection = await fixture.admin.request<DirectusMunicipalityCollection>(
+      'GET',
+      '/collections/municipalities',
+    );
+    assertEqual(
+      collection.meta?.preview_url ?? null,
+      expectedTemplate,
+      'Municipality collection preview must use FRONTEND_BASE_URL',
+    );
+
+    const field = await fixture.admin.request<DirectusMunicipalityField>(
+      'GET',
+      '/fields/municipalities/links-g1sxxi',
+    );
+    const previewLink = field.meta?.options?.links?.find(
+      (link) => link.icon === 'preview' || link.label === '$t:municipalities.preview',
+    );
+    assert(previewLink, 'Municipality presentation links must include the preview link');
+    assertEqual(
+      previewLink.url ?? null,
+      expectedTemplate,
+      'Municipality presentation preview must use FRONTEND_BASE_URL',
+    );
+
+    assert(fixture.municipality.slug, 'Fixture municipality must have a slug for preview link testing');
+    assert(fixture.municipality.preview_token, 'Fixture municipality must have a preview token for preview link testing');
+    const expectedOrigin = new URL(expectedTemplate).origin;
+    const expectedPath = `/municipalities/${fixture.municipality.slug}`;
+    const expectedToken = fixture.municipality.preview_token;
+
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    try {
+      await loginDirectus(
+        page,
+        fixture.config.backendUrl,
+        fixture.localteamMember.email,
+        fixture.localteamMember.password,
+      );
+      await gotoDirectusContent(page, fixture.config.backendUrl, 'municipalities', fixture.municipality.id);
+
+      const previewLinkElement = page.locator('a[href*="/municipalities/"][href*="preview="]').first();
+      await previewLinkElement.waitFor({ state: 'visible', timeout: 20_000 });
+      const href = await previewLinkElement.getAttribute('href');
+      assert(href, 'Directus municipality preview must render as a link');
+      const resolvedHref = new URL(href, fixture.config.backendUrl);
+      assertEqual(resolvedHref.origin, expectedOrigin, 'Directus preview link must use the configured frontend host');
+      assertEqual(resolvedHref.pathname, expectedPath, 'Directus preview link must use the municipality slug');
+      assertEqual(
+        resolvedHref.searchParams.get('preview'),
+        expectedToken,
+        'Directus preview link must preserve the municipality preview token',
+      );
+
+      if ((await previewLinkElement.getAttribute('target')) === '_blank') {
+        const popupPromise = context.waitForEvent('page', { timeout: 20_000 });
+        await previewLinkElement.click();
+        const previewPage = await popupPromise;
+        await previewPage.waitForLoadState('domcontentloaded');
+        assertEqual(new URL(previewPage.url()).origin, expectedOrigin, 'Preview click must open the configured frontend');
+        await previewPage.close();
+      } else {
+        await Promise.all([
+          page.waitForURL(
+            (url) => url.origin === expectedOrigin && url.pathname === expectedPath,
+            { timeout: 20_000 },
+          ),
+          previewLinkElement.click(),
+        ]);
+      }
+    } finally {
+      await context.close();
+    }
+  });
+
+  await runner.step('Register localteam: frontend page offers contact flow for an existing localteam', async () => {
+    const { municipality } = await createExistingLocalteamFixture(
+      fixture,
+      existingMunicipalityName,
+      existingArs,
+      'not-started',
+    );
+    assert(municipality.slug, 'Existing localteam fixture municipality must have a slug');
+
+    const context = await newContext(browser, {
+      viewport: { width: 390, height: 900 },
+    });
+    const page = await context.newPage();
+    const browserErrors = watchPageErrors(page, 'Join existing localteam page');
+
+    try {
+      await mockStadtlandzahlArea(page, existingArs, existingMunicipalityName);
+      const text = await openRegisterPage(page, fixture.config.frontendUrl, existingArs, existingMunicipalityName);
+      await page
+        .getByText('Lokalteam aktiv – Bewertung noch nicht begonnen')
+        .waitFor({ state: 'visible', timeout: 30_000 });
+      const visible = await visibleText(page);
+      assertIncludes(visible, existingMunicipalityName, 'Existing localteam page must show the selected municipality');
+      assertIncludes(
+        visible,
+        'Lokalteam aktiv – Bewertung noch nicht begonnen',
+        'A zero-percent rating must show the not-started state',
+      );
+      assertNotIncludes(
+        visible,
+        'Lokalteam aktiv - Bewertung läuft',
+        'A zero-percent rating must not show the in-progress state',
+      );
+      assertIncludes(visible, 'Kontakt aufnehmen', 'Existing localteam page must offer a contact action');
+      assertNotIncludes(
+        visible,
+        'Deine Kontaktdaten',
+        'Existing localteam page must not show the new-team registration form',
+      );
+      assertNotIncludes(visible, 'Lokalteam beantragen', 'Existing localteam page must not show the submit button');
+      assertNoVisibleErrorMessages(text, 'Join existing localteam initial page');
+      assertNoVisibleErrorMessages(visible, 'Join existing localteam visible page');
+
+      const contactHref = await page
+        .getByRole('link', { name: /Kontakt aufnehmen/i })
+        .first()
+        .getAttribute('href');
+      assert(contactHref, 'Existing localteam contact action must be a link');
+      assert(
+        contactHref.startsWith('/contact?'),
+        'Existing localteam contact action must point to the frontend contact page',
+      );
+      assertIncludes(
+        decodeURIComponent(contactHref),
+        existingMunicipalityName,
+        'Existing localteam contact link must include municipality context',
+      );
+      browserErrors.assertNoErrors();
+    } finally {
+      await context.close();
+    }
+  });
+
+  await runner.step('Register localteam: started current rating is shown as in progress', async () => {
+    const { municipality } = await createExistingLocalteamFixture(
+      fixture,
+      inProgressMunicipalityName,
+      inProgressArs,
+      'in-progress',
+    );
+    const score = await waitFor(
+      'current backend score for in-progress register_localteam scenario',
+      async () => readCurrentBackendScore(fixture.admin, municipality.id) ?? false,
+      { timeoutMs: 30_000 },
+    );
+    await fixture.admin.updateItem<MunicipalityScore>('municipality_scores', score.id, {
+      percentage_rated: 25,
+    });
+
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    try {
+      await mockStadtlandzahlArea(page, inProgressArs, inProgressMunicipalityName);
+      const text = await openRegisterPage(page, fixture.config.frontendUrl, inProgressArs, inProgressMunicipalityName);
+      assertIncludes(
+        text,
+        'Lokalteam aktiv - Bewertung läuft',
+        'A started unpublished current rating must be in progress',
+      );
+      assertNotIncludes(text, 'Bewertung abgeschlossen', 'An unpublished current rating must not be complete');
+      assertNotIncludes(text, 'Bewertung noch nicht begonnen', 'A started rating must not show the not-started state');
+    } finally {
+      await context.close();
+    }
+  });
+
+  await runner.step('Register localteam: published current rating is complete regardless of percentage', async () => {
+    const { localteam, municipality } = await createExistingLocalteamFixture(
+      fixture,
+      publishedMunicipalityName,
+      publishedArs,
+      'published',
+    );
+    const score = await waitFor(
+      'current backend score for published register_localteam scenario',
+      async () => readCurrentBackendScore(fixture.admin, municipality.id) ?? false,
+      { timeoutMs: 30_000 },
+    );
+    await fixture.admin.updateItem<MunicipalityScore>('municipality_scores', score.id, {
+      percentage_rated: 0,
+    });
+    await fixture.admin.createItem('junction_directus_users_localteams', {
+      directus_users_id: fixture.localteamMember.id,
+      localteam_id: localteam.id,
+    });
+    await fixture.localteamMember.client.updateItem<MunicipalityScore>('municipality_scores', score.id, {
+      published: true,
+    });
+
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    try {
+      await mockStadtlandzahlArea(page, publishedArs, publishedMunicipalityName);
+      const text = await openRegisterPage(page, fixture.config.frontendUrl, publishedArs, publishedMunicipalityName);
+      assertIncludes(
+        text,
+        'Bewertung abgeschlossen',
+        'A published current rating must be complete regardless of percentage',
+      );
+      assertNotIncludes(
+        text,
+        'Lokalteam aktiv - Bewertung läuft',
+        'A published current rating must not be in progress',
+      );
+      assertNotIncludes(text, 'Bewertung noch nicht begonnen', 'A published current rating must not be not-started');
+    } finally {
+      await context.close();
+    }
+  });
+
+  await runner.step('Register localteam: stale slug cannot impersonate an existing team', async () => {
+    const context = await newContext(browser);
+    const page = await context.newPage();
+    try {
+      await mockStadtlandzahlArea(page, staleSlugArs, staleSlugMunicipalityName);
+      const text = await openRegisterPage(
+        page,
+        fixture.config.frontendUrl,
+        staleSlugArs,
+        staleSlugMunicipalityName,
+        'berlin',
+      );
+      assertIncludes(text, 'Deine Kontaktdaten', 'A stale URL slug without a matching team must show registration');
+      assertNotIncludes(text, 'Lokalteam aktiv', 'A stale URL slug must not create an existing-team state');
+      assertNotIncludes(text, 'Bewertung abgeschlossen', 'A stale URL slug must not create a completed state');
+    } finally {
+      await context.close();
+    }
+  });
+
+  runner.addManualCheck(
+    'register_localteam_flow',
+    `Verify a welcome/activation email to ${newUserEmail} for the newly registered localteam ${newLocalteamName}.`,
+  );
+
+  assert(newUserId, 'Register new localteam scenario did not create a user id');
+  assert(newLocalteamId, 'Register new localteam scenario did not create a localteam id');
+}

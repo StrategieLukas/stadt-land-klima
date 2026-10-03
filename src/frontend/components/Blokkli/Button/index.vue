@@ -1,5 +1,9 @@
 <template>
-  <div class="blokkli-block-button flex self-start" :id="'block-' + uuid" :class="[alignClass]">
+  <div
+    class="blokkli-block-button flex w-full"
+    :id="'block-' + uuid"
+    :class="[alignClass, verticalAlignClass]"
+  >
     <!-- External link -->
     <a
       v-if="options.linkType === 'external'"
@@ -35,7 +39,7 @@
     <!-- Internal link -->
     <NuxtLink
       v-else
-      :to="'/' + (options.link || '').replace(/^\//, '')"
+      :to="resolveBlokkliInternalLink(options.link)"
       class="button-link inline-flex items-stretch rounded-md font-semibold transition-colors no-underline relative overflow-hidden"
       :class="[styleClass, textColorClass, hasIcon ? 'gap-0 px-0 py-0' : 'gap-2 px-6 py-3']"
       :data-hover="options.hoverEffect"
@@ -66,6 +70,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
+import { resolveBlokkliInternalLink } from '~/utils/blokkliLinks'
 
 const svgFiles = import.meta.glob('@/assets/icons/*.svg', { query: '?raw', import: 'default', eager: true })
 
@@ -147,6 +152,9 @@ const { options, isEditing, uuid } = defineBlokkli({
         orange: { label: 'Orange', hex: '#f39200' },
         red: { label: 'Rot', hex: '#e30613' },
         yellow: { label: 'Gelb', hex: '#ffc80c' },
+        black: { label: 'Schwarz', hex: '#000000' },
+        gray: { label: 'Grau', hex: '#505050' },
+        white: { label: 'Weiß', hex: '#fbfbfb' },
       },
     },
     textColor: {
@@ -202,6 +210,17 @@ const { options, isEditing, uuid } = defineBlokkli({
         left: 'Links',
         center: 'Zentriert',
         right: 'Rechts',
+      },
+    },
+    verticalAlign: {
+      type: 'radios',
+      label: 'Vertikale Ausrichtung',
+      default: 'top',
+      group: 'Stil',
+      options: {
+        top: 'Oben',
+        center: 'Mitte',
+        bottom: 'Unten',
       },
     },
   },
@@ -291,6 +310,24 @@ const colorConfig: Record<string, { filled: string; outline: string; autoTextFil
     autoTextFilled: 'text-gray',
     autoTextOutline: 'text-localzero-yellow hover:text-gray',
   },
+  black: {
+    filled: 'bg-black',
+    outline: 'border-2 border-black hover:bg-black',
+    autoTextFilled: 'text-white',
+    autoTextOutline: 'text-black hover:text-white',
+  },
+  gray: {
+    filled: 'bg-gray',
+    outline: 'border-2 border-gray hover:bg-gray',
+    autoTextFilled: 'text-white',
+    autoTextOutline: 'text-gray hover:text-white',
+  },
+  white: {
+    filled: 'bg-mild-white border border-gray-300',
+    outline: 'border-2 border-mild-white hover:bg-mild-white',
+    autoTextFilled: 'text-black',
+    autoTextOutline: 'text-mild-white hover:text-black',
+  },
 }
 
 const styleClass = computed(() => {
@@ -306,6 +343,15 @@ const alignClass = computed(() => {
     right: 'justify-end',
   }
   return map[options.value.align] || 'justify-start'
+})
+
+const verticalAlignClass = computed(() => {
+  const map: Record<string, string> = {
+    top: 'self-start',
+    center: 'self-center',
+    bottom: 'self-end',
+  }
+  return map[options.value.verticalAlign] || 'self-start'
 })
 
 const textColorClass = computed(() => {

@@ -24,6 +24,10 @@ meta:
   translations:
     - language: de-DE
       translation: Lokalteam
+    - language: en-GB
+      translation: Local team
+    - language: it-IT
+      translation: Team locale
   validation: null
   validation_message: null
   width: half

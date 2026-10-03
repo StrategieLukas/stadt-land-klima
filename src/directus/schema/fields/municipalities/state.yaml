@@ -13,37 +13,37 @@ meta:
   note: null
   options:
     choices:
-      - text: Bayern
+      - text: $t:states.bayern
         value: Bayern
-      - text: Niedersachsen
+      - text: $t:states.niedersachsen
         value: Niedersachsen
-      - text: Baden-Württemberg
+      - text: $t:states.baden_wuerttemberg
         value: Baden-Württemberg
-      - text: Nordrhein-Westfalen
+      - text: $t:states.nordrhein_westfalen
         value: Nordrhein-Westfalen
-      - text: Brandenburg
+      - text: $t:states.brandenburg
         value: Brandenburg
-      - text: Mecklenburg-Vorpommern
+      - text: $t:states.mecklenburg_vorpommern
         value: Mecklenburg-Vorpommern
-      - text: Hessen
+      - text: $t:states.hessen
         value: Hessen
-      - text: Sachsen-Anhalt
+      - text: $t:states.sachsen_anhalt
         value: Sachsen-Anhalt
-      - text: Rheinland-Pfalz
+      - text: $t:states.rheinland_pfalz
         value: Rheinland-Pfalz
-      - text: Sachsen
+      - text: $t:states.sachsen
         value: Sachsen
-      - text: Thüringen
+      - text: $t:states.thueringen
         value: Thüringen
-      - text: Schleswig-Holstein
+      - text: $t:states.schleswig_holstein
         value: Schleswig-Holstein
-      - text: Saarland
+      - text: $t:states.saarland
         value: Saarland
-      - text: Berlin
+      - text: $t:states.berlin
         value: Berlin
-      - text: Hamburg
+      - text: $t:states.hamburg
         value: Hamburg
-      - text: Bremen
+      - text: $t:states.bremen
         value: Bremen
   readonly: false
   required: true
@@ -53,6 +53,10 @@ meta:
   translations:
     - language: de-DE
       translation: Bundesland
+    - language: en-GB
+      translation: Federal state
+    - language: it-IT
+      translation: Stato federale
   validation: null
   validation_message: null
   width: half

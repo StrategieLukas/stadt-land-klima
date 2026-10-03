@@ -9,23 +9,23 @@ meta:
     choices:
       - background: "#e60000"
         foreground: "#ffffff"
-        text: dagegen
+        text: $t:elections.wahlcheck.answer.strongly_against
         value: 0
       - background: "#ff6666"
         foreground: "#ffffff"
-        text: eher dagegen
+        text: $t:elections.wahlcheck.answer.somewhat_against
         value: 1
       - background: "#cccccc"
         foreground: "#000000"
-        text: neutral
+        text: $t:elections.wahlcheck.answer.neutral
         value: 2
       - background: "#99cc99"
         foreground: "#ffffff"
-        text: eher dafür
+        text: $t:elections.wahlcheck.answer.somewhat_for
         value: 3
       - background: "#1da64a"
         foreground: "#ffffff"
-        text: dafür
+        text: $t:elections.wahlcheck.answer.strongly_for
         value: 4
   field: response
   group: null
@@ -35,15 +35,15 @@ meta:
   options:
     allowNone: true
     choices:
-      - text: dagegen
+      - text: $t:elections.wahlcheck.answer.strongly_against
         value: 0
-      - text: eher dagegen
+      - text: $t:elections.wahlcheck.answer.somewhat_against
         value: 1
-      - text: neutral
+      - text: $t:elections.wahlcheck.answer.neutral
         value: 2
-      - text: eher dafür
+      - text: $t:elections.wahlcheck.answer.somewhat_for
         value: 3
-      - text: dafür
+      - text: $t:elections.wahlcheck.answer.strongly_for
         value: 4
   readonly: false
   required: true
@@ -53,6 +53,10 @@ meta:
   translations:
     - language: de-DE
       translation: Antwort
+    - language: en-GB
+      translation: Answer
+    - language: it-IT
+      translation: Risposta
   validation: null
   validation_message: null
   width: half

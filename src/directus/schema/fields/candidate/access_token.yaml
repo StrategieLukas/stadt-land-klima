@@ -15,12 +15,16 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 9
+  sort: 10
   special:
     - uuid
   translations:
     - language: de-DE
       translation: Access Token
+    - language: en-GB
+      translation: Access token
+    - language: it-IT
+      translation: Token di accesso
   validation: null
   validation_message: null
   width: full

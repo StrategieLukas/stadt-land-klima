@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.wahlcheck.results.no_matches.description_parties
+value: Du hast keine Fragen beantwortet, daher kann keine Übereinstimmung mit den Parteien berechnet werden.

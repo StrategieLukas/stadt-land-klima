@@ -1,0 +1,28 @@
+collection: form_responses
+meta:
+  accountability: all
+  archive_app_filter: true
+  archive_field: status
+  archive_value: archived
+  collapse: open
+  collection: form_responses
+  color: null
+  display_template: "{{form_title}}"
+  group: admin_tools
+  hidden: false
+  icon: dynamic_form
+  item_duplication_fields: null
+  note: null
+  preview_url: null
+  singleton: false
+  sort: 7
+  sort_field: null
+  translations:
+    - language: de-DE
+      plural: Formularantworten
+      singular: Formularantwort
+      translation: Formularantworten
+  unarchive_value: received
+  versioning: false
+schema:
+  name: form_responses

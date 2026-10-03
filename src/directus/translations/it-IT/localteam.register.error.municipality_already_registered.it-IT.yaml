@@ -1,0 +1,4 @@
+language: it-IT
+key: localteam.register.error.municipality_already_registered
+value: Esiste già un team locale o una registrazione non ancora pubblicata per
+  questo comune.

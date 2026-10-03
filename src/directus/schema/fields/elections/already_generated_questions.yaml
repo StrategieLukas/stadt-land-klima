@@ -15,12 +15,16 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 11
+  sort: 13
   special:
     - cast-boolean
   translations:
     - language: de-DE
       translation: Thesen bereits generiert?
+    - language: en-GB
+      translation: Theses already generated?
+    - language: it-IT
+      translation: Tesi già generate?
   validation: null
   validation_message: null
   width: half

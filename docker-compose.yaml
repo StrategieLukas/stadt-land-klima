@@ -39,6 +39,11 @@ services:
     env_file:
       - ./src/directus/.env
       - ./docker/meilisearch/.env
+    environment:
+      # Date-only election cutoffs are compared against the Berlin calendar day.
+      DB_OPTIONS: "-c timezone=Europe/Berlin"
+      # Published Blökkli content must not remain stale until the cache TTL expires.
+      CACHE_AUTO_PURGE: "true"
     volumes:
       - ./src/directus/uploads:/directus/uploads
       - ./src/directus/dashboards/:/directus/dashboards

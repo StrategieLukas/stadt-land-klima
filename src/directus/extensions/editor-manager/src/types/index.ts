@@ -65,7 +65,7 @@ export interface ServiceOptions {
 
 export interface UsersServiceInstance {
   validateEmail: (email: string) => void;
-  inviteUrl: (email: string, role: string) => string;
+  inviteUrl: (email: string, url?: string) => string;
   getUserByEmail: (email: string) => Promise<DirectusUser | undefined>;
   readOne: (id: string, query?: { fields: string[] }) => Promise<DirectusUser>;
   createOne: (data: Partial<DirectusUser> & { localteams?: Array<{ localteam_id: string }> }) => Promise<string>;

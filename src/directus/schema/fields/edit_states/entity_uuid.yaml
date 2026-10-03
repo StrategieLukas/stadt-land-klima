@@ -10,8 +10,9 @@ meta:
   group: null
   hidden: false
   interface: input
-  note: Slug or identifier of the entity being edited
-  options: null
+  note: Immutable Directus UUID of the entity being edited
+  options:
+    trim: true
   readonly: false
   required: true
   searchable: true

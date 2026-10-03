@@ -1,0 +1,7 @@
+language: en-GB
+key: measure.feedback.prefill_content
+value: |-
+  Measure: :measure
+  Link: :link
+
+  My note:

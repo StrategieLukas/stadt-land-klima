@@ -50,6 +50,11 @@
         "type": "interface",
         "name": "unsplash-image",
         "source": "./src/unsplash-image/index.ts"
+      },
+      {
+        "type": "hook",
+        "name": "public-assets",
+        "source": "./src/public-assets/index.ts"
       }
     ]
   },
@@ -63,6 +68,7 @@
   },
   "devDependencies": {
     "@directus/extensions-sdk": "17.1.4",
+    "@directus/types": "^11.2.1",
     "esbuild": "^0.28.0",
     "sass": "^1.69.5",
     "typescript": "^5.3.0",

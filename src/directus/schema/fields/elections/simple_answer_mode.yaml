@@ -16,12 +16,16 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 12
+  sort: 14
   special:
     - cast-boolean
   translations:
     - language: de-DE
       translation: Einfacher Antwortmodus
+    - language: en-GB
+      translation: Simple answer mode
+    - language: it-IT
+      translation: Modalità di risposta semplice
   validation: null
   validation_message: null
   width: half

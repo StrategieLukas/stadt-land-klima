@@ -1,0 +1,677 @@
+<template>
+  <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 mt-8">
+    <div class="text-center max-w-2xl mx-auto mb-6">
+      <h3 class="text-xl sm:text-2xl font-bold text-stats-dark mb-2">
+        {{ $t('elections.wahlcheck.results.share.title') }}
+      </h3>
+      <p class="text-sm sm:text-base text-mid-gray">
+        {{ $t('elections.wahlcheck.results.share.description') }}
+      </p>
+    </div>
+
+    <!-- Tab switcher if official sharepic is configured in Directus -->
+    <div v-if="hasOfficialSharepic" class="flex justify-center mb-6">
+      <div class="inline-flex rounded-full bg-solid-gray-10 p-1 border border-solid-gray-20">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+          :class="activeTab === 'personal' ? 'bg-primary text-white shadow-sm' : 'text-mid-gray hover:text-black'"
+          @click="activeTab = 'personal'"
+        >
+          {{ $t('elections.wahlcheck.results.share.tab_personal') }}
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+          :class="activeTab === 'official' ? 'bg-primary text-white shadow-sm' : 'text-mid-gray hover:text-black'"
+          @click="activeTab = 'official'"
+        >
+          {{ $t('elections.wahlcheck.results.share.tab_official') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Container: Preview + Share Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-center max-w-4xl mx-auto">
+      <!-- Story Frame Preview -->
+      <div class="md:col-span-5 flex flex-col items-center">
+        <div
+          class="group relative aspect-[9/16] w-full max-w-[270px] overflow-hidden rounded-2xl shadow-2xl ring-4 ring-stats-dark/10 transition-transform hover:scale-[1.01] sm:max-w-[290px]"
+          :class="isDark ? 'bg-stats-dark' : 'bg-[#e8f4ec]'"
+        >
+          <!-- Dynamic generated sharepic preview (HTML/CSS Based -> No Canvas permission needed on load!) -->
+          <div
+            v-if="activeTab === 'personal'"
+            ref="personalSharepicRef"
+            data-testid="wahlcheck-personal-sharepic"
+            class="relative flex h-full w-full select-none flex-col overflow-hidden px-4 pb-32 pt-4"
+            :class="isDark ? 'bg-gradient-to-b from-[#0a2731] via-[#0e3a47] to-[#164c5d] text-white' : 'bg-gradient-to-b from-[#ffffff] via-[#f1f8f4] to-[#dfeee4] text-stats-dark'"
+          >
+            <!-- Background Glow Effects -->
+            <div
+              class="absolute -top-12 -right-12 w-36 h-36 rounded-full blur-2xl pointer-events-none"
+              :class="isDark ? 'bg-ff-green/20' : 'bg-ff-green/15'"
+            ></div>
+            <div
+              class="absolute top-1/2 -left-12 w-44 h-44 rounded-full blur-3xl pointer-events-none"
+              :class="isDark ? 'bg-stats-light/20' : 'bg-stats-light/35'"
+            ></div>
+            <div
+              class="absolute -bottom-10 -right-10 w-40 h-40 rounded-full blur-2xl pointer-events-none"
+              :class="isDark ? 'bg-orange/15' : 'bg-orange/10'"
+            ></div>
+
+            <!-- Top Header & Logo -->
+            <div class="relative z-10">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <div
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold"
+                  :class="isDark ? 'bg-white/10 backdrop-blur-md border border-white/15 text-white/90' : 'bg-stats-dark/5 backdrop-blur-md border border-stats-dark/15 text-stats-dark'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-ff-green animate-pulse"></span>
+                  <span>Klimawahlcheck</span>
+                </div>
+                <!-- SLK Header Logo -->
+                <div class="h-8 flex items-center">
+                  <img
+                    v-if="isDark"
+                    src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
+                    alt="Stadt.Land.Klima!"
+                    class="h-[26px] w-auto object-contain brightness-0 invert opacity-90"
+                  />
+                  <img
+                    v-else
+                    src="~/assets/images/Stadt-Land-Klima-Logo.svg"
+                    alt="Stadt.Land.Klima!"
+                    class="h-[26px] w-auto object-contain"
+                  />
+                </div>
+              </div>
+
+              <!-- Election Title -->
+              <h4
+                class="text-sm sm:text-base font-extrabold leading-tight line-clamp-2"
+                :class="isDark ? 'text-white' : 'text-stats-dark'"
+              >
+                {{ election?.descriptor || 'Klimawahlcheck' }}
+              </h4>
+              <p
+                class="text-[10px] mt-0.5 font-bold"
+                :class="isDark ? 'text-white/70' : 'text-mid-gray'"
+              >
+                {{ $t('elections.wahlcheck.results.share.my_matches') }}
+              </p>
+            </div>
+
+            <!-- Top 5 Candidates Cards (Mirrored from Candidates Overview) -->
+            <div data-testid="wahlcheck-sharepic-matches" class="relative z-10 my-auto space-y-1">
+              <div
+                v-for="(result, idx) in topCandidates"
+                :key="result.candidateId"
+                class="rounded-xl p-1.5 shadow-md text-stats-dark"
+                :class="isDark ? 'bg-[#17212b] backdrop-blur-md border border-white/20 text-white' : 'bg-white border border-solid-gray-20'"
+              >
+                <!-- Row 1: Rank Badge + Candidate Name + Party Tag -->
+                <div class="mb-1 flex items-center justify-between gap-1.5">
+                  <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span class="w-5 h-5 rounded-full bg-stats-dark text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                      {{ idx + 1 }}
+                    </span>
+                    <span
+                      v-if="!isPartyElection"
+                      class="font-bold text-xs truncate leading-tight"
+                      :class="isDark ? 'text-white' : 'text-black'"
+                    >
+                      {{ getCandidateName(result.candidateId) }}
+                    </span>
+                    <CandidatePartyLabel
+                      v-if="getCandidateParty(result.candidateId)"
+                      :party="getCandidateParty(result.candidateId)"
+                      :state="null"
+                      class="text-[9px] px-1.5 py-0 flex-shrink-0 max-w-[8rem] truncate"
+                    />
+                  </div>
+                  <!-- Percentage -->
+                  <span class="font-extrabold text-xs text-ff-green flex-shrink-0">
+                    {{ result.percentage.toFixed(1) }}%
+                  </span>
+                </div>
+
+                <!-- Row 2: Full width progress bar (Mirrored exactly from Candidate Overview) -->
+                <div class="w-full bg-solid-gray-20 rounded-full h-2 overflow-hidden border border-solid-gray-30">
+                  <div
+                    class="h-full rounded-full transition-all duration-700"
+                    :style="{
+                      width: `${result.percentage}%`,
+                      backgroundColor: getProgressColorHex(result.percentage)
+                    }"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Fallback if no results -->
+              <div
+                v-if="topCandidates.length === 0"
+                class="text-xs text-center py-4"
+                :class="isDark ? 'text-white/70' : 'text-mid-gray'"
+              >
+                Keine Ergebnisse vorhanden
+              </div>
+
+            </div>
+
+            <!-- Bottom CTA -->
+            <div data-testid="wahlcheck-sharepic-cta" class="absolute inset-x-4 bottom-20 z-10 pt-2 text-center">
+              <div
+                v-if="isDark"
+                class="rounded-xl border border-white/20 bg-[#17212b] p-2 text-white shadow-md font-bold text-[11px] leading-tight flex items-center justify-center gap-1"
+              >
+                <span>👉 {{ $t('elections.wahlcheck.results.share.cta_button') }}</span>
+                <span class="text-light-green underline">{{ sharepicCtaUrl }}</span>
+              </div>
+              <div
+                v-else
+                class="bg-stats-dark rounded-xl p-2 text-white shadow-md font-bold text-[11px] leading-tight flex items-center justify-center gap-1"
+              >
+                <span>👉 {{ $t('elections.wahlcheck.results.share.cta_button') }}</span>
+                <span class="underline text-stats-light">{{ sharepicCtaUrl }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Official Directus sharepic preview -->
+          <img
+            v-else-if="activeTab === 'official' && officialSharepicUrl"
+            :src="officialSharepicUrl"
+            :alt="$t('elections.wahlcheck.results.share.preview_alt')"
+            class="w-full h-full object-cover"
+          />
+
+          <!-- Loading Placeholder -->
+          <div v-else class="w-full h-full flex flex-col items-center justify-center text-white/80 p-4 text-center">
+            <span class="loading loading-spinner loading-lg text-primary mb-3"></span>
+            <span class="text-xs">Lade Sharepic...</span>
+          </div>
+
+          <!-- Story badge indicator -->
+          <div class="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-sm text-white text-[9px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1.5 pointer-events-none z-20">
+            <span class="w-1.5 h-1.5 rounded-full bg-ff-green animate-pulse"></span>
+            <span>9:16 Story</span>
+          </div>
+        </div>
+
+        <p class="text-xs text-solid-gray-50 mt-3 text-center">
+          Format optimal für Instagram, TikTok & WhatsApp Status
+        </p>
+      </div>
+
+      <!-- Action Buttons & Sharing Options -->
+      <div class="md:col-span-7 flex flex-col justify-center space-y-4">
+        <!-- Toast / Hint notification -->
+        <Transition name="fade">
+          <div
+            v-if="toastMessage"
+            class="p-3.5 rounded-xl bg-solid-ff-green-10 border border-solid-ff-green-30 text-stats-dark text-xs sm:text-sm font-medium flex items-center gap-2.5"
+          >
+            <svg class="w-5 h-5 text-ff-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>{{ toastMessage }}</span>
+          </div>
+        </Transition>
+
+        <!-- Compact social share buttons -->
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <button
+            type="button"
+            @click="shareToStory"
+            :disabled="isGenerating"
+            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            :aria-label="$t('elections.wahlcheck.results.share.button_insta')"
+            :title="$t('elections.wahlcheck.results.share.button_insta')"
+          >
+            <span v-if="isGenerating" class="loading loading-spinner loading-xs"></span>
+            <img v-else src="~/assets/icons/icon_instagram.svg" alt="" class="h-5 w-5" />
+            <span>{{ $t('elections.wahlcheck.results.share.button_insta') }}</span>
+          </button>
+
+          <button
+            type="button"
+            @click="shareToWhatsApp"
+            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            :aria-label="$t('elections.wahlcheck.results.share.button_whatsapp')"
+            :title="$t('elections.wahlcheck.results.share.button_whatsapp')"
+          >
+            <img src="~/assets/icons/icon_whatsapp.svg" alt="" class="h-5 w-5" />
+            <span>{{ $t('elections.wahlcheck.results.share.button_whatsapp') }}</span>
+          </button>
+
+          <button
+            type="button"
+            @click="shareToLinkedIn"
+            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            :aria-label="$t('elections.wahlcheck.results.share.button_linkedin')"
+            :title="$t('elections.wahlcheck.results.share.button_linkedin')"
+          >
+            <img src="~/assets/icons/icon_linkedin.svg" alt="" class="h-5 w-5" />
+            <span>{{ $t('elections.wahlcheck.results.share.button_linkedin') }}</span>
+          </button>
+
+          <button
+            type="button"
+            @click="shareToTikTok"
+            :disabled="isGenerating"
+            class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
+            :aria-label="$t('elections.wahlcheck.results.share.button_tiktok')"
+            :title="$t('elections.wahlcheck.results.share.button_tiktok')"
+          >
+            <img v-if="!isGenerating" src="~/assets/icons/icon_tiktok.svg" alt="" class="h-5 w-5" />
+            <span v-else class="loading loading-spinner loading-xs"></span>
+            <span>{{ $t('elections.wahlcheck.results.share.button_tiktok') }}</span>
+          </button>
+        </div>
+
+        <!-- Secondary Actions Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <!-- Download Image Button -->
+          <button
+            type="button"
+            data-testid="wahlcheck-sharepic-download"
+            @click="downloadActiveSharepic"
+            :disabled="isGenerating"
+            class="btn btn-outline btn-secondary rounded-xl py-2.5 px-3 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2"
+          >
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>{{ $t('elections.wahlcheck.results.share.button_download') }}</span>
+          </button>
+
+          <!-- Copy Link Button -->
+          <button
+            type="button"
+            @click="copyLink"
+            class="btn btn-outline rounded-xl py-2.5 px-3 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+            :class="linkCopied ? 'border-ff-green text-ff-green bg-solid-ff-green-10' : 'btn-secondary'"
+          >
+            <svg v-if="linkCopied" class="w-4 h-4 text-ff-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <svg v-else class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>{{ linkCopied ? $t('elections.wahlcheck.results.share.link_copied') : $t('elections.wahlcheck.results.share.button_copy_link') }}</span>
+          </button>
+        </div>
+
+        <!-- Native Web Share (if browser supports it) -->
+        <button
+          v-if="canUseWebShare"
+          type="button"
+          @click="shareViaWebShare"
+          :disabled="isGenerating"
+          class="btn btn-ghost btn-sm text-mid-gray hover:text-black font-semibold flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          <span>{{ $t('elections.wahlcheck.results.share.button_native') }}</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { toBlob } from 'html-to-image'
+import {
+  getCandidateDisplayName,
+  getCandidatePartyConfig,
+  getCandidatePartyLabel,
+} from '~/shared/candidateParties.js'
+import { useTheme } from '~/composables/useTheme'
+
+const props = defineProps({
+  election: {
+    type: Object,
+    required: true
+  },
+  sortedResults: {
+    type: Array,
+    required: true
+  },
+  candidates: {
+    type: Array,
+    required: true
+  },
+  userAnswers: {
+    type: Object,
+    default: () => ({})
+  },
+  doubleWeightedQuestions: {
+    type: [Set, Array],
+    default: () => new Set()
+  }
+})
+
+const { $t } = useNuxtApp()
+const config = useRuntimeConfig()
+const { isDark } = useTheme()
+const isPartyElection = computed(() => props.election?.is_party_election === true)
+
+// State
+const activeTab = ref('personal')
+const personalSharepicRef = ref(null)
+const isGenerating = ref(false)
+const toastMessage = ref('')
+const linkCopied = ref(false)
+const canUseWebShare = ref(false)
+let toastTimeout = null
+
+// Directus asset URL
+const directusUrl = computed(() => {
+  return config.public.clientDirectusUrl || 'http://127.0.0.1:8081'
+})
+
+// Top 5 Candidates
+const topCandidates = computed(() => {
+  return props.sortedResults.slice(0, 5)
+})
+
+const sharepicCtaUrl = 'stadt-land-klima.de/wahl'
+
+// Official Sharepic Fallback:
+// If dark mode -> check sharepic_dark, fallback to sharepic
+// If light mode -> check sharepic, fallback to sharepic_dark
+const officialLightSharepic = computed(() => {
+  const sp = props.election?.sharepic
+  if (!sp) return null
+  return typeof sp === 'string' ? sp : sp.id
+})
+
+const officialDarkSharepic = computed(() => {
+  const sp = props.election?.sharepic_dark
+  if (!sp) return null
+  return typeof sp === 'string' ? sp : sp.id
+})
+
+const activeOfficialSharepicId = computed(() => {
+  if (isDark.value) {
+    return officialDarkSharepic.value || officialLightSharepic.value
+  } else {
+    return officialLightSharepic.value || officialDarkSharepic.value
+  }
+})
+
+const hasOfficialSharepic = computed(() => {
+  return !!activeOfficialSharepicId.value
+})
+
+const officialSharepicUrl = computed(() => {
+  if (!activeOfficialSharepicId.value) return ''
+  return `${directusUrl.value}/assets/${activeOfficialSharepicId.value}`
+})
+
+// Candidate helpers
+function getCandidate(candidateId) {
+  return props.candidates.find((c) => c.id === candidateId) || {}
+}
+
+function getCandidateName(candidateId) {
+  const candidate = getCandidate(candidateId)
+  return getCandidateDisplayName(candidate) || $t('elections.unknown_candidate')
+}
+
+function getCandidateParty(candidateId) {
+  return getCandidate(candidateId).party || ''
+}
+
+function getProgressColorHex(percentage) {
+  if (percentage >= 80) return '#1EA64A'
+  if (percentage >= 60) return '#AFCA0B'
+  if (percentage >= 40) return '#FFD400'
+  if (percentage >= 20) return '#F39200'
+  return '#E30613'
+}
+
+// Generate share URL
+function getShareUrl() {
+  if (typeof window === 'undefined') return ''
+  return window.location.href
+}
+
+// Check native Web Share support on mount
+onMounted(() => {
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    canUseWebShare.value = true
+  }
+})
+
+async function waitForSharepicAssets(element) {
+  if (document.fonts?.ready) {
+    await document.fonts.ready
+  }
+
+  const images = Array.from(element.querySelectorAll('img'))
+  await Promise.all(images.map(async (image) => {
+    if (!image.complete) {
+      await new Promise((resolve) => {
+        image.addEventListener('load', resolve, { once: true })
+        image.addEventListener('error', resolve, { once: true })
+      })
+    }
+
+    if (typeof image.decode === 'function') {
+      await image.decode().catch(() => undefined)
+    }
+  }))
+}
+
+// Export the actual preview DOM so the downloaded/shared image cannot drift
+// into a separately maintained canvas layout.
+async function generateDynamicSharepicBlob() {
+  if (typeof window === 'undefined') return null
+  const element = personalSharepicRef.value
+  if (!element) return null
+
+  isGenerating.value = true
+
+  try {
+    await waitForSharepicAssets(element)
+
+    const { width, height } = element.getBoundingClientRect()
+    if (!width || !height) return null
+
+    return await toBlob(element, {
+      width,
+      height,
+      canvasWidth: 1080,
+      canvasHeight: 1920,
+      pixelRatio: 1,
+      cacheBust: true,
+      backgroundColor: isDark.value ? '#0a2731' : '#ffffff',
+    })
+  } catch (err) {
+    console.error('Error rendering Wahlcheck sharepic preview:', err)
+    return null
+  } finally {
+    isGenerating.value = false
+  }
+}
+
+// Build the file for the currently selected personal or official sharepic.
+async function getActiveSharepicFile() {
+  if (activeTab.value === 'official') {
+    if (!officialSharepicUrl.value) return null
+    try {
+      const response = await fetch(officialSharepicUrl.value)
+      const blob = await response.blob()
+      const filename = `klimawahlcheck-${props.election?.descriptor?.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'ergebnis'}.png`
+      return new File([blob], filename, { type: blob.type || 'image/png' })
+    } catch (err) {
+      console.error('Error creating official sharepic file:', err)
+      return null
+    }
+  }
+
+  const blob = await generateDynamicSharepicBlob()
+  if (!blob) return null
+
+  const filename = `klimawahlcheck-${props.election?.descriptor?.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'ergebnis'}.png`
+  return new File([blob], filename, { type: 'image/png' })
+}
+
+// Download Active Sharepic
+async function downloadActiveSharepic() {
+  const file = await getActiveSharepicFile()
+  if (!file) return
+
+  try {
+    const url = URL.createObjectURL(file)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = file.name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    showToast($t('elections.wahlcheck.results.share.insta_hint'))
+  } catch (err) {
+    console.error('Error downloading sharepic:', err)
+  }
+}
+
+// Share to Instagram / TikTok Story
+async function shareToStory() {
+  const file = await getActiveSharepicFile()
+
+  // If Web Share API supports file sharing (typically mobile phones), trigger native story share
+  if (file && typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        title: props.election?.descriptor || 'Klimawahlcheck',
+        text: `${$t('elections.wahlcheck.results.share.my_matches')}: ${props.election?.descriptor || 'Klimawahlcheck'}`,
+        files: [file]
+      })
+      return
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.warn('Native file share error, fallback to download:', err)
+      } else {
+        return
+      }
+    }
+  }
+
+  // Fallback on Desktop or unsupported browsers: Download the image and show helpful Instagram/TikTok instructions
+  if (file) {
+    const url = URL.createObjectURL(file)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = file.name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    showToast($t('elections.wahlcheck.results.share.insta_hint'))
+  }
+}
+
+// Share to WhatsApp
+function shareToWhatsApp() {
+  const electionTitle = props.election?.descriptor || 'Klimawahlcheck'
+  const shareUrl = getShareUrl()
+  let text = $t(
+    isPartyElection.value
+      ? 'elections.wahlcheck.results.share.whatsapp_text_parties'
+      : 'elections.wahlcheck.results.share.whatsapp_text',
+    { ':election': electionTitle }
+  )
+  if (!text.includes(electionTitle)) {
+    text = `${text} ${electionTitle}`
+  }
+  const fullText = `${text}\n\n${shareUrl}`
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`
+  window.open(whatsappUrl, '_blank')
+}
+
+// Share the result URL through LinkedIn's official share endpoint.
+function shareToLinkedIn() {
+  const shareUrl = getShareUrl()
+  if (!shareUrl) return
+
+  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
+  window.open(linkedinUrl, '_blank', 'noopener,noreferrer')
+}
+
+// TikTok does not provide a public web share endpoint for an image story.
+// Reuse the native file share on supported phones and the download fallback elsewhere.
+async function shareToTikTok() {
+  await shareToStory()
+}
+
+// Share via Native Web Share API
+async function shareViaWebShare() {
+  if (typeof navigator === 'undefined' || !navigator.share) return
+
+  const file = await getActiveSharepicFile()
+  const shareUrl = getShareUrl()
+  const title = props.election?.descriptor || 'Klimawahlcheck'
+  const text = $t(
+    isPartyElection.value
+      ? 'elections.wahlcheck.results.share.whatsapp_text_parties'
+      : 'elections.wahlcheck.results.share.whatsapp_text',
+    { ':election': title }
+  )
+
+  try {
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ title, text, url: shareUrl, files: [file] })
+    } else {
+      await navigator.share({ title, text, url: shareUrl })
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.error('Error sharing:', err)
+    }
+  }
+}
+
+// Copy link to clipboard
+function copyLink() {
+  const url = getShareUrl()
+  if (!url) return
+
+  navigator.clipboard.writeText(url).then(() => {
+    linkCopied.value = true
+    showToast($t('elections.wahlcheck.results.share.link_copied'))
+    setTimeout(() => {
+      linkCopied.value = false
+    }, 2500)
+  })
+}
+
+// Toast notification helper
+function showToast(message) {
+  if (toastTimeout) clearTimeout(toastTimeout)
+  toastMessage.value = message
+  toastTimeout = setTimeout(() => {
+    toastMessage.value = ''
+  }, 5000)
+}
+</script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

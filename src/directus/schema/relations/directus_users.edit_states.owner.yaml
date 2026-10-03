@@ -1,0 +1,21 @@
+collection: edit_states
+field: owner
+related_collection: directus_users
+meta:
+  junction_field: null
+  many_collection: edit_states
+  many_field: owner
+  one_allowed_collections: null
+  one_collection: directus_users
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: null
+  sort_field: null
+schema:
+  table: edit_states
+  column: owner
+  foreign_key_table: directus_users
+  foreign_key_column: id
+  constraint_name: edit_states_owner_foreign
+  on_update: NO ACTION
+  on_delete: CASCADE

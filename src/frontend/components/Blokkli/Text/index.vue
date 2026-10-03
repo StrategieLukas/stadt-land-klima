@@ -1,6 +1,6 @@
 <template>
   <div
-    :id="'block-' + uuid"
+    :id="getBlokkliBlockId(options.anchor, uuid)"
     class="blokkli-block-text prose max-w-none"
     :class="[sizeClass, alignClass, colorClass]"
   >
@@ -9,10 +9,12 @@
 </template>
 
 <script setup lang="ts">
-import { BRAND_COLORS, BRAND_COLOR_CLASSES } from '~/utils/blokkliColors'
+import { BRAND_COLOR_CLASSES } from '~/utils/blokkliColors'
+import { getBlokkliBlockId } from '~/utils/blokkliLinks'
 
 const { options, uuid } = defineBlokkli({
   bundle: 'text',
+  globalOptions: ['anchor'],
   options: {
     size: {
       type: 'radios',

@@ -23,6 +23,10 @@ meta:
   translations:
     - language: de-DE
       translation: Kandidat
+    - language: en-GB
+      translation: Candidate
+    - language: it-IT
+      translation: Candidato/a
   validation: null
   validation_message: null
   width: full

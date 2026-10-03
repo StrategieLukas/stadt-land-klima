@@ -2,6 +2,7 @@ import { MeiliSearch } from 'meilisearch';
 import type { Database, Logger } from '@directus/types';
 
 const SKIP_BUNDLES = ['container', 'carousel', 'directus_page', 'vega_chart', 'page_nav'];
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 // ── Text extraction helpers ──
 
@@ -92,15 +93,19 @@ interface SearchDoc {
   meta: string | null;
 }
 
-function buildBlockDoc(block: Block, pageName?: string): SearchDoc | null {
+function buildBlockDoc(
+  block: Block,
+  pageName?: string,
+  entitySlug = block.entity_uuid,
+): SearchDoc | null {
   const text = extractBlockText(block.bundle, block.props || {});
   if (!text) return null;
   return {
-    id: `block:${block.uuid}`,
+    id: `block_${block.uuid}`,
     type: 'block',
     title: pageName || block.entity_uuid || '',
     text,
-    url: `/${block.entity_uuid}#block-${block.uuid}`,
+    url: `/${entitySlug}#block-${block.uuid}`,
     meta: bundleLabel(block.bundle),
   };
 }
@@ -247,7 +252,23 @@ interface BlockRow {
   status: string;
 }
 
-export default ({ action }: HookContext, { logger, env }: { logger: Logger; env: Record<string, string> }) => {
+export default (
+  { action }: HookContext,
+  {
+    logger,
+    env,
+    emitter,
+  }: {
+    logger: Logger;
+    env: Record<string, string>;
+    emitter: {
+      onAction: (
+        event: string,
+        handler: (meta: any, context: ActionContext) => Promise<void>,
+      ) => void;
+    };
+  },
+) => {
   const ms = new MeiliSearch({
     host: env.MEILISEARCH_URL || 'http://meilisearch:7700',
     apiKey: env.MEILISEARCH_MASTER_KEY || env.MEILI_MASTER_KEY || '',
@@ -285,13 +306,26 @@ export default ({ action }: HookContext, { logger, env }: { logger: Logger; env:
     if (row.entity_type !== 'pages' || row.field_name !== 'content') return;
 
     if (row.status === 'archived') {
-      await remove(`block:${row.uuid}`);
+      await remove(`block_${row.uuid}`);
       return;
     }
 
-    const pageRows = await database('pages').where('slug', row.entity_uuid).select('name').limit(1);
+    const pageRows = await database('pages')
+      .where((builder) => {
+        if (UUID_PATTERN.test(row.entity_uuid)) {
+          builder.where('id', row.entity_uuid);
+        } else {
+          builder.where('slug', row.entity_uuid);
+        }
+      })
+      .select('name', 'slug')
+      .limit(1);
     const pageName = pageRows[0]?.name || row.entity_uuid;
-    const doc = buildBlockDoc(row as unknown as Block, pageName);
+    const doc = buildBlockDoc(
+      row as unknown as Block,
+      pageName,
+      pageRows[0]?.slug || row.entity_uuid,
+    );
     if (doc) await upsert(doc);
   }
 
@@ -301,13 +335,38 @@ export default ({ action }: HookContext, { logger, env }: { logger: Logger; env:
    */
   async function fetchBlockRow(key: string | number, database: Database): Promise<BlockRow | null> {
     const cols = ['uuid', 'bundle', 'props', 'entity_uuid', 'entity_type', 'field_name', 'status'] as const;
-    // Prefer UUID lookup (string keys); fall back to numeric ID.
-    const byUuid = await database('blocks').where('uuid', key).select(cols).limit(1);
-    if (byUuid[0]) return byUuid[0] as BlockRow;
+    if (typeof key === 'string' && UUID_PATTERN.test(key)) {
+      const byUuid = await database('blocks').where('uuid', key).select(cols).limit(1);
+      return byUuid[0] ? (byUuid[0] as BlockRow) : null;
+    }
 
-    const byId = await database('blocks').where('id', key).select(cols).limit(1);
+    const numericId = Number(key);
+    if (!Number.isInteger(numericId)) return null;
+    const byId = await database('blocks').where('id', numericId).select(cols).limit(1);
     return byId[0] ? (byId[0] as BlockRow) : null;
   }
+
+  emitter.onAction(
+    'blokkli.blocks.committed',
+    async (
+      {
+        createdUuids = [],
+        updatedIds = [],
+      }: { createdUuids?: string[]; updatedIds?: number[] },
+      { database }: ActionContext,
+    ) => {
+      for (const key of [...createdUuids, ...updatedIds]) {
+        try {
+          const row = await fetchBlockRow(key, database);
+          if (row) await syncBlock(row, database);
+        } catch (e: any) {
+          logger.error(
+            `[search-index] post-commit block sync failed: ${e?.message ?? String(e)}`,
+          );
+        }
+      }
+    },
+  );
 
   action('items.create', async ({ collection, payload, key }: ActionPayload, { database }: ActionContext) => {
     if (collection !== 'blocks') return;
@@ -321,7 +380,7 @@ export default ({ action }: HookContext, { logger, env }: { logger: Logger; env:
       const row = await fetchBlockRow(blockKey, database);
       if (row) await syncBlock(row, database);
     } catch (e: any) {
-      logger.error('[search-index] blocks create fetch failed:', e?.message ?? e);
+      logger.error(`[search-index] blocks create fetch failed: ${e?.message ?? String(e)}`);
     }
   });
 
@@ -332,7 +391,7 @@ export default ({ action }: HookContext, { logger, env }: { logger: Logger; env:
         const row = await fetchBlockRow(key, database);
         if (row) await syncBlock(row, database);
       } catch (e: any) {
-        logger.error('[search-index] blocks update fetch failed:', e?.message ?? e);
+        logger.error(`[search-index] blocks update fetch failed: ${e?.message ?? String(e)}`);
       }
     }
   });
@@ -340,17 +399,17 @@ export default ({ action }: HookContext, { logger, env }: { logger: Logger; env:
   action('items.delete', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
     if (collection !== 'blocks') return;
     // keys may be numeric IDs at this point since the rows are already gone.
-    // We stored documents as `block:<uuid>`, so we need to resolve uuid before
+    // We stored documents as `block_<uuid>`, so we need to resolve uuid before
     // deletion. If the row is already gone we fall back to treating the key as
     // a uuid (covers the case where a uuid string was passed as the key).
     for (const key of keys as (string | number)[]) {
       try {
         const rows = await database('blocks').where('id', key).select('uuid').limit(1);
         const uuid = rows[0]?.uuid ?? key;
-        await remove(`block:${uuid}`);
+        await remove(`block_${uuid}`);
       } catch {
         // Row already deleted — treat key as uuid as a best-effort fallback.
-        await remove(`block:${key}`);
+        await remove(`block_${key}`);
       }
     }
   });

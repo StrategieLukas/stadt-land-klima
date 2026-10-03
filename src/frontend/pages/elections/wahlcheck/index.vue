@@ -1,22 +1,22 @@
 <template>
-  <div class="min-h-screen bg-mild-white">
+  <div class="elections-flow min-h-screen bg-mild-white">
     <!-- Header -->
     <div class="border-b border-solid-gray-10 bg-white shadow-sm">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <NuxtLink to="/" class="flex items-center gap-3">
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-            alt="Stadt.Land.Klima! Logo"
+            :alt="$t('logo.alt')"
             class="h-10 w-auto dark:hidden"
           />
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
-            alt="Stadt.Land.Klima! Logo"
+            :alt="$t('logo.alt')"
             class="hidden h-10 w-auto dark:block"
           />
         </NuxtLink>
         <div class="flex-1 text-center">
-          <h1 class="text-xl font-bold text-stats-dark">Klimawahlcheck</h1>
+          <h1 class="text-xl font-bold text-stats-dark">{{ $t("elections.wahlcheck.header_title") }}</h1>
           <p class="text-sm text-mid-gray">{{ $t("elections.wahlcheck.subtitle") }}</p>
         </div>
         <div class="w-10"></div>
@@ -48,7 +48,7 @@
         <div class="mb-6">
           <img
             src="~/assets/images/Stadt-Land-Klima-Blume.svg"
-            alt="Klimablume"
+            :alt="$t('logo.alt')"
             class="mx-auto h-24 w-auto opacity-60"
           />
         </div>
@@ -64,9 +64,9 @@
         <div class="rounded-xl border border-solid-gray-10 bg-white p-8 text-center shadow-list">
           <div class="mb-6">
             <img
-              src="~/assets/images/Stadt-Land-Klima-Blume.svg"
-              :alt="$t('logo.alt')"
-              class="mx-auto h-24 w-auto opacity-80"
+              src="~/assets/images/Mach_den-Klima-Wahlcheck.svg"
+              :alt="$t('elections.wahlcheck.header_title')"
+              class="mx-auto h-24 w-auto object-contain"
             />
           </div>
           <h2 class="mb-4 text-2xl font-bold text-stats-dark">
@@ -74,6 +74,12 @@
           </h2>
           <p class="mx-auto max-w-2xl text-lg text-mid-gray">
             {{ $t("elections.wahlcheck.intro.description") }}
+          </p>
+          <p
+            data-testid="wahlcheck-intro-disclaimer"
+            class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-mid-gray"
+          >
+            {{ $t("elections.wahlcheck.intro.disclaimer") }}
           </p>
         </div>
 
@@ -126,7 +132,13 @@
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span>{{ $t("elections.candidates_count", { ":count": election.candidateCount }) }}</span>
+                <span>
+                  {{
+                    $t(election.is_party_election ? "elections.parties_count" : "elections.candidates_count", {
+                      ":count": election.candidateCount,
+                    })
+                  }}
+                </span>
               </div>
               <div class="flex items-center gap-1">
                 <svg
@@ -147,12 +159,9 @@
               </div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between border-t border-solid-gray-10 pt-4">
+            <div class="mt-4 border-t border-solid-gray-10 pt-4">
               <span class="text-sm text-mid-gray">
                 {{ $t("generic.created_at", { ":date": formatDate(election.date_created) }) }}
-              </span>
-              <span class="rounded-full bg-solid-ff-green-10 px-2 py-1 text-xs font-medium text-ff-green">
-                {{ $t("generic.public") }}
               </span>
             </div>
           </NuxtLink>
@@ -196,10 +205,6 @@
       </div>
     </div>
 
-    <!-- Footer -->
-    <div class="mt-20">
-      <TheFooterDesktop />
-    </div>
   </div>
 </template>
 
@@ -242,7 +247,15 @@ async function loadElections() {
           is_public: { _eq: true },
         },
         sort: ["-date_created"],
-        fields: ["*", "localteam.municipality_id.slug", "localteam.municipality_id.name", "localteam.id"],
+        fields: [
+          "*",
+          "localteam.id",
+          "localteam.name",
+          "localteam.slug",
+          "localteam.municipality_name",
+          "localteam.municipality_id.slug",
+          "localteam.municipality_id.name",
+        ],
       }),
     );
 

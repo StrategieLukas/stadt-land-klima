@@ -40,7 +40,7 @@ meta:
   readonly: false
   required: false
   searchable: true
-  sort: 11
+  sort: 12
   special: null
   translations:
     - language: de-DE

@@ -1,0 +1,3 @@
+language: de-DE
+key: elections.wahlcheck.results.party_rating_title
+value: "Antwort der Partei: :rating"

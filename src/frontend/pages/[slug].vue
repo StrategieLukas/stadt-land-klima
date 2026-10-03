@@ -1,9 +1,9 @@
 <template>
-  <BlokkliProvider
+  <BlokkliPageProvider
     v-if="page"
     entity-type="pages"
     entity-bundle="page"
-    :entity-uuid="page.slug"
+    :entity-uuid="page.id"
     :can-edit="canEdit"
     :entity="page"
     class="self-center"
@@ -29,7 +29,7 @@
         </template>
       </article>
     </template>
-  </BlokkliProvider>
+  </BlokkliPageProvider>
 
   <p v-else class="prose py-8">
     {{ $t("page_not_found") }}
@@ -40,7 +40,9 @@
 import { readItems } from '@directus/sdk'
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
+import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
 const { $directus, $readItems, $t } = useNuxtApp()
+const config = useRuntimeConfig()
 const { isAuthenticated, initialize } = useAuth()
 useBlockHashNavigation()
 const canEdit = ref(false)
@@ -66,9 +68,11 @@ if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: import.meta.client })
 }
 
-// Load blocks from Directus — always fresh (no client-side caching)
+const blocksKey = getBlokkliDataKey('pages', String(page.value?.id || 'missing'))
+
+// Load blocks by the immutable page ID. Slugs are routing labels and may change.
 const { data: blocksData } = await useAsyncData(
-  `blocks-${route.params.slug}`,
+  blocksKey,
   async () => {
     if (!page.value) return []
     try {
@@ -76,26 +80,26 @@ const { data: blocksData } = await useAsyncData(
         readItems('blocks', {
           filter: {
             entity_type: { _eq: 'pages' },
-            entity_uuid: { _eq: page.value.slug },
+            entity_uuid: { _eq: page.value.id },
             field_name: { _eq: 'content' },
             status: { _neq: 'archived' },
           },
           sort: ['sort_order'],
         })
       )
-      return (blocks || []).map(block => ({
-        uuid: block.uuid,
-        bundle: block.bundle,
-        options: block.options || {},
-        props: block.props || {},
-      }))
-    } catch {
-      return []
+      return mapBlokkliBlocks(blocks)
+    } catch (error) {
+      console.error('[blokkli] Failed to load page blocks:', error)
+      throw error
     }
   },
   { watch: [page] }
 )
 const pageBlocks = computed(() => blocksData.value || [])
+const onboardingAvatarUrl = computed(() => {
+  const directusUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081"
+  return `${directusUrl.replace(/\/+$/, "")}/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96`
+})
 
 // Dynamically render component for [[[ONBOARDING_BOX]]] block
 // Split content into blocks and inject Vue component(s)
@@ -113,8 +117,7 @@ const processedPageContent = computed(() => {
         component: OnboardingBox,
         props: {
           name: "Otto",
-          "avatar-src":
-            "https://stadt-land-klima.de/backend/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96",
+          "avatar-src": onboardingAvatarUrl.value,
         },
       })
     }

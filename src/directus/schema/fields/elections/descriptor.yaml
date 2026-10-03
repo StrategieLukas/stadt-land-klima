@@ -13,6 +13,7 @@ meta:
   note: null
   options:
     placeholder: $t:election.descriptor.placeholder
+    trim: true
   readonly: false
   required: true
   searchable: true
@@ -21,6 +22,10 @@ meta:
   translations:
     - language: de-DE
       translation: Wahl
+    - language: en-GB
+      translation: Election
+    - language: it-IT
+      translation: Elezione
   validation: null
   validation_message: null
   width: half

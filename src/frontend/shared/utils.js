@@ -132,4 +132,3 @@ export const ARS_STATE_MAP = {
 export function getStateFromArs(ars) {
   return ARS_STATE_MAP[String(ars).slice(0, 2)] ?? null
 }
-

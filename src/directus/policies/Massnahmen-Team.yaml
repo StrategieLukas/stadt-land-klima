@@ -7,7 +7,9 @@ app_access: false
 permissions:
   - collection: directus_dashboards
     action: read
-    permissions: {}
+    permissions:
+      name:
+        _eq: Maßnahmen
     validation: {}
     presets: null
     fields:
@@ -69,6 +71,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - recommended_search_queries
       - description
       - verification_description
       - notes

@@ -20,7 +20,7 @@ const spacerHeight = ref(146)
 
 // Exact bounding rect of the embedded search input / nav container.
 // Set by TheHeaderDesktop; used by TheSearchCommandPalette to align the panel.
-const navInputRect = ref({ left: null, width: 576, topInHeader: 0 })
+const navInputRect = ref({ left: null, width: 576, bottom: null })
 
 export function useHeaderHeight() {
   return height

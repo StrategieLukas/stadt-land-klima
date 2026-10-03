@@ -1,0 +1,43 @@
+collection: edit_states
+field: owner
+type: uuid
+meta:
+  collection: edit_states
+  conditions: null
+  display: user
+  display_options: null
+  field: owner
+  group: null
+  hidden: true
+  interface: select-dropdown-m2o
+  note: Directus user who owns the recoverable draft
+  options:
+    template: "{{avatar.$thumbnail}} {{first_name}} {{last_name}}"
+  readonly: false
+  required: false
+  searchable: true
+  sort: 5
+  special: null
+  translations:
+    - language: de-DE
+      translation: Besitzer:in
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: owner
+  table: edit_states
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: true
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: directus_users
+  foreign_key_column: id

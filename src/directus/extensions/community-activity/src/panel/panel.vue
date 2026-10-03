@@ -323,7 +323,7 @@
               <div class="detail-actions">
                 <a
                   class="icon-button"
-                  :href="`/admin/content/localteams/${selectedTeam.id}`"
+                  :href="directusContentUrl('localteams', selectedTeam.id)"
                   title="Datensatz öffnen"
                 >
                   <v-icon name="open_in_new" />
@@ -756,6 +756,13 @@ export default defineComponent({
       selectedTeamId.value = id;
     }
 
+    function directusContentUrl(collection: string, id: string) {
+      return new URL(
+        `content/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`,
+        document.baseURI,
+      ).toString();
+    }
+
     function setActiveTab(tab: TabKey) {
       activeTab.value = tab;
 
@@ -930,6 +937,7 @@ export default defineComponent({
       copyEmails,
       currentCatalogLabel,
       days,
+      directusContentUrl,
       error,
       fetchSummary,
       filteredTeams,

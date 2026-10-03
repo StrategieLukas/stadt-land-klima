@@ -1,0 +1,3 @@
+language: en-GB
+key: blokkli.editor.autosave_error
+value: Your draft could not be saved to the server. Please keep the editor open and try saving again.

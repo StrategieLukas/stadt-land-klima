@@ -1,7 +1,7 @@
 import type { Logger, Schema, Services } from '@directus/types';
 
 interface CalculateScoresParams {
-  municipalityIds?: number[] | null;
+  municipalityIds?: Array<number | string> | null;
   catalogVersionId: number | string;
 }
 
@@ -12,7 +12,7 @@ interface Context {
 }
 
 interface Measure {
-  id: number;
+  id: number | string;
   sector: string;
   weight?: number | string | null;
   status?: string;
@@ -21,19 +21,19 @@ interface Measure {
 interface RatingMeasure {
   applicable: boolean | null | undefined;
   rating: number | string | null | undefined;
-  measure_id: number | { id: number };
+  measure_id: number | string | { id: number | string };
 }
 
 interface Municipality {
-  id: number;
-  localteam_id: number;
+  id: number | string;
+  localteam_id: number | string;
   name: string;
 }
 
 interface MunicipalityScore {
-  id: number;
-  municipality: number;
-  catalog_version: number;
+  id: number | string;
+  municipality: number | string;
+  catalog_version: number | string;
   score_total?: number;
   score_points?: number;
   score_max?: number;
@@ -55,6 +55,15 @@ interface Totals {
   numerator_rated_sum: number;
   denominator_rated: number;
 }
+
+const scoreSectors = [
+  'agriculture',
+  'buildings',
+  'management',
+  'energy',
+  'industry',
+  'transport',
+] as const;
 
 function parseFiniteNumber(value: number | string | null | undefined): number {
   const number = typeof value === 'number' ? value : Number.parseFloat(String(value ?? ''));
@@ -108,13 +117,8 @@ export async function calculateScores(
       fields: ['id', 'sector', 'weight'],
     })) as Measure[];
 
-    if (!measures?.length) {
-      logger.info(`[calculateScores] No published measures for catalog ${catalogVersionId}.`);
-      return;
-    }
-
     // Map measures for O(1) lookup
-    const measureById = new Map<number, Measure>(measures.map((m) => [m.id, m]));
+    const measureById = new Map<number | string, Measure>(measures.map((m) => [m.id, m]));
     const totalCatalogWeight = measures.reduce((sum, measure) => {
       const weight = parseFiniteNumber(measure.weight);
       return weight > 0 ? sum + weight : sum;
@@ -167,14 +171,19 @@ export async function calculateScores(
       };
 
       // Per-sector accumulators
-      const sectors: Record<string, SectorScores> = {};
+      const sectors: Record<string, SectorScores> = Object.fromEntries(
+        scoreSectors.map((sector) => [
+          sector,
+          { numerator_rated: 0, denominator_rated: 0 },
+        ])
+      );
       for (const m of measures) {
         if (!sectors[m.sector]) {
           sectors[m.sector] = { numerator_rated: 0, denominator_rated: 0 };
         }
       }
 
-      const completedMeasureIds = new Set<number>();
+      const completedMeasureIds = new Set<number | string>();
 
       for (const r of allRatings) {
         const measureId = typeof r.measure_id === 'object' ? r.measure_id.id : r.measure_id;

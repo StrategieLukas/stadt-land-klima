@@ -1,6 +1,6 @@
 <template>
   <section
-    :id="'block-' + uuid"
+    :id="getBlokkliBlockId(options.anchor, uuid)"
     class="blokkli-block-container"
     :class="[bgClass, paddingClass, marginYClass, widthBreakout, bgNarrowClass, borderClass, roundedClass, shadowClass]"
     :style="customColumnsVar"
@@ -20,9 +20,11 @@
 
 <script setup lang="ts">
 import type { FieldListItem } from '#blokkli/types'
+import { getBlokkliBlockId } from '~/utils/blokkliLinks'
 
 const { options, uuid } = defineBlokkli({
   bundle: 'container',
+  globalOptions: ['anchor'],
   options: {
     layout: {
       type: 'radios',

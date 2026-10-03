@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
 import { resolveComponent } from 'vue'
+import { resolveBlokkliInternalLink } from '~/utils/blokkliLinks'
 
 const { options, isEditing, uuid } = defineBlokkli({
   bundle: 'image',
@@ -111,7 +112,7 @@ const linkAttrs = computed(() => {
   if (options.value.linkType === 'external') {
     return { href: lv, target: '_blank', rel: 'noopener noreferrer' }
   }
-  return { to: '/' + lv.replace(/^\//, '') }
+  return { to: resolveBlokkliInternalLink(lv) }
 })
 </script>
 

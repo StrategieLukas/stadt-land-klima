@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.state_invalid
+value: Bitte wähle ein gültiges Bundesland aus.

@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: input
   note: null
-  options: null
+  options:
+    trim: true
   readonly: false
   required: true
   searchable: true
@@ -20,6 +21,10 @@ meta:
   translations:
     - language: de-DE
       translation: Titel
+    - language: en-GB
+      translation: Title
+    - language: it-IT
+      translation: Titolo
   validation: null
   validation_message: null
   width: half

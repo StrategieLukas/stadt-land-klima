@@ -129,6 +129,16 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 
 - Must call ./import-all.sh *ON THE HOST MACHINE IN /bin* for directus changes to apply.
 Do not just use the ./cli/import-all.sh from inside the directus container, as the version in the /bin folder also cleans up permissions
+- To apply code-first Directus configuration followed by pending JavaScript
+  migrations, run this from the repository root while the production stack is
+  running:
+  ```
+  ./bin/run_directus_migrations.sh production
+  ```
+  The launcher creates a database backup first, imports the Directus YAML
+  configuration, and then runs `directus database migrate:latest` inside the
+  Directus container. Use `development` instead of `production` for the local
+  development stack.
 - If there's a docker permission issue, chmod 777 everything :(
   - This applies specifically to PDF generation as well. At least the typst directory under /directus/extensions (not to be confused with directus-extensions-not-build) must be 777 for PDF generation to create files.
 - Always back up the DB beforehand, obviously. This is done locally automatically when calling ./update_production.sh

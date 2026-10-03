@@ -1,0 +1,3 @@
+language: it-IT
+key: projects.submit.error.email_invalid
+value: Inserisci un indirizzo email valido.

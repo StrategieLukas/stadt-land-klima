@@ -20,6 +20,10 @@ meta:
   translations:
     - language: de-DE
       translation: Hintergrundinformationen
+    - language: en-GB
+      translation: Background information
+    - language: it-IT
+      translation: Informazioni di contesto
   validation: null
   validation_message: null
   width: full

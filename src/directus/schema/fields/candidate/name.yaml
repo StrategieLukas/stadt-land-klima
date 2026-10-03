@@ -3,7 +3,15 @@ field: name
 type: string
 meta:
   collection: candidate
-  conditions: null
+  conditions:
+    - hidden: true
+      name: Bei Parteiwahlchecks ausblenden
+      required: false
+      rule:
+        _and:
+          - election:
+              is_party_election:
+                _eq: true
   display: null
   display_options: null
   field: name
@@ -11,7 +19,8 @@ meta:
   hidden: false
   interface: input
   note: null
-  options: null
+  options:
+    trim: true
   readonly: false
   required: true
   searchable: true
@@ -20,6 +29,10 @@ meta:
   translations:
     - language: de-DE
       translation: Name
+    - language: en-GB
+      translation: Name
+    - language: it-IT
+      translation: Nome
   validation: null
   validation_message: null
   width: half

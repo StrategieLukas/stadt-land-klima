@@ -17,7 +17,8 @@ meta:
   hidden: false
   interface: input
   note: Zufälliges Token für die Vorschau-URL nicht-verifizierter Gemeinden.
-  options: null
+  options:
+    trim: true
   readonly: true
   required: false
   searchable: true

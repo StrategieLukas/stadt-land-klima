@@ -1,0 +1,3 @@
+language: en-GB
+key: projects.submit.error.image_format
+value: Please upload a JPG, PNG or WebP image.

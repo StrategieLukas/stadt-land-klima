@@ -36,8 +36,8 @@ operations:
             });
             if (!municipality || municipality.creator_verified === true || municipality.preview_token) continue;
 
-            // crypto.randomUUID is a global in Node.js 14.17+ — no require() needed
-            const token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, '');
+            const randomHex = () => Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+            const token = randomHex();
             await municipalityService.updateOne(key, {
               preview_token: token,
             });

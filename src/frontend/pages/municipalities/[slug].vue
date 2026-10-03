@@ -297,7 +297,7 @@
 
         <!-- Stats link -->
         <NuxtLink
-          :to="`/stats/${slzArea.ars}`"
+          :to="`/data/${slzArea.ars}`"
           class="slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
         >
           <img
@@ -447,7 +447,7 @@
 
             <!-- Stats link -->
             <NuxtLink
-              :to="`/stats/${slzArea.ars}`"
+              :to="`/data/${slzArea.ars}`"
               class="slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
             >
               <img

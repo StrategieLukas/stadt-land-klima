@@ -1,0 +1,52 @@
+collection: elections
+field: candidate_thank_you_email_subject
+type: string
+meta:
+  collection: elections
+  conditions: null
+  display: null
+  display_options: null
+  field: candidate_thank_you_email_subject
+  group: candidate_thank_you_email_settings
+  hidden: false
+  interface: input
+  note:
+    "Betreff der Dankesmail. Verfügbare Platzhalter: {{ candidate_name }}, {{
+    candidate_salutation }}, {{ municipality_name }}, {{ election_descriptor }},
+    {{ cutoff_date }}, {{ personal_link }} und {{ projectName }}. Ein leerer
+    Betreff verhindert den Versand."
+  options:
+    placeholder: Vielen Dank für Ihre Teilnahme am Klimawahl-Check
+    trim: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 1
+  special: null
+  translations:
+    - language: de-DE
+      translation: Betreff der Dankes-E-Mail
+    - language: en-GB
+      translation: Thank-you email subject
+    - language: it-IT
+      translation: Oggetto dell'email di ringraziamento
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: candidate_thank_you_email_subject
+  table: elections
+  data_type: character varying
+  default_value: Vielen Dank für Ihre Teilnahme am Klimawahl-Check
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

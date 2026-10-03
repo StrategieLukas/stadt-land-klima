@@ -1,3 +1,3 @@
 language: en-GB
 key: tools.results_count
-value: ":count tools"
+value: :count tools

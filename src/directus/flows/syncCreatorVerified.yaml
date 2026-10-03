@@ -1,9 +1,11 @@
 name: syncCreatorVerified
 icon: verified_user
 color: null
-description: When directus_users.verified changes, sync the value to
-  municipalities.creator_verified for municipalities managed by that user.
-status: active
+description: Legacy flow. Verification synchronization is handled by the
+  users.update hook in hook-calc-score-and-ranks. The municipality flag controls
+  unpublished previews; publishing is checked against the user's own
+  directus_users.verified value.
+status: inactive
 trigger: event
 accountability: all
 options:

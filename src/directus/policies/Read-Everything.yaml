@@ -130,7 +130,36 @@ permissions:
     validation: null
     presets: null
     fields:
-      - "*"
+      - action_buttons
+      - already_generated_questions
+      - already_sent_mails
+      - already_sent_reminder_mails
+      - already_sent_thank_you_mails
+      - candidate_email_cc
+      - candidate_email_reply_to
+      - candidate_email_subject
+      - candidate_email_template
+      - candidate_invitation_email_settings
+      - candidate_reminder_email_settings
+      - candidate_reminder_email_subject
+      - candidate_reminder_email_template
+      - candidate_thank_you_email_settings
+      - candidate_thank_you_email_subject
+      - candidate_thank_you_email_template
+      - custom_logo
+      - sharepic
+      - sharepic_dark
+      - date_created
+      - date_updated
+      - descriptor
+      - id
+      - is_approved
+      - is_party_election
+      - is_public
+      - localteam
+      - response_cutoff_date
+      - review_requested
+      - simple_answer_mode
   - collection: events
     action: read
     permissions: null
@@ -146,6 +175,13 @@ permissions:
     fields:
       - "*"
   - collection: feedback
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
+  - collection: form_responses
     action: read
     permissions: {}
     validation: {}

@@ -1,6 +1,6 @@
 <template>
-  <main class="mx-auto w-full max-w-7xl px-4 py-6">
-    <h1 class="mb-6 font-heading text-3xl font-bold" style="color: #1a4a6e">Dashboard Maßnahmen-Statistiken</h1>
+  <main class="stats-page mx-auto w-full max-w-7xl px-4 py-6">
+    <h1 class="mb-6 font-heading text-3xl font-bold text-stats-dark">{{ $t('stats.measures.title') }}</h1>
 
     <section id="massnahmenstatistiken" class="mb-8">
       <!-- Filter panel — full width -->

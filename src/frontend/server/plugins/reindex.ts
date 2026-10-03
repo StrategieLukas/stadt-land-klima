@@ -66,9 +66,15 @@ export default defineNitroPlugin(async () => {
     try {
       // --- Blocks ---
       const pages = await directus.request(
-        (readItems as Function)('pages', { limit: -1, fields: ['slug', 'name'] }),
+        (readItems as Function)('pages', { limit: -1, fields: ['id', 'slug', 'name', 'contents'] }),
       ) as any[]
-      const pageNameBySlug = Object.fromEntries((pages || []).map((p: any) => [p.slug, p.name]))
+      const pageByEntity = Object.fromEntries(
+        (pages || []).flatMap((page: any) => [
+          [page.id, page],
+          // Transitional fallback for deliberately unmigrated legacy blocks.
+          [page.slug, page],
+        ]),
+      )
 
       const blocks = await directus.request(
         (readItems as Function)('blocks', {
@@ -84,7 +90,15 @@ export default defineNitroPlugin(async () => {
       ) as any[]
 
       const blockDocs = (blocks || [])
-        .map((b: any) => buildBlockDoc(b, pageNameBySlug[b.entity_uuid] || b.entity_uuid))
+        .map((block: any) => {
+          const page = pageByEntity[block.entity_uuid]
+          return buildBlockDoc(
+            block,
+            page?.name || block.entity_uuid,
+            '',
+            page?.slug || block.entity_uuid,
+          )
+        })
         .filter((d): d is SiteContentDoc => d !== null)
       await upsertBatch(index, blockDocs)
       counts.blocks = blockDocs.length
@@ -94,10 +108,15 @@ export default defineNitroPlugin(async () => {
         (readItems as Function)('news_items', {
           limit: -1,
           filter: { status: { _eq: 'published' } },
-          fields: ['slug', 'title', 'teaser', 'status'],
+          fields: ['id', 'slug', 'title', 'teaser', 'status'],
         }),
       ) as any[]
-      const newsTitleBySlug = Object.fromEntries((newsItems || []).map((n: any) => [n.slug, n.title]))
+      const newsByEntity = Object.fromEntries(
+        (newsItems || []).flatMap((newsItem: any) => [
+          [newsItem.id, newsItem],
+          [newsItem.slug, newsItem],
+        ]),
+      )
 
       const newsBlocks = await directus.request(
         (readItems as Function)('blocks', {
@@ -112,7 +131,15 @@ export default defineNitroPlugin(async () => {
         }),
       ) as any[]
       const newsBlockDocs = (newsBlocks || [])
-        .map((b: any) => buildBlockDoc(b, newsTitleBySlug[b.entity_uuid] || b.entity_uuid, '/news'))
+        .map((block: any) => {
+          const newsItem = newsByEntity[block.entity_uuid]
+          return buildBlockDoc(
+            block,
+            newsItem?.title || block.entity_uuid,
+            '/news',
+            newsItem?.slug || block.entity_uuid,
+          )
+        })
         .filter((d): d is SiteContentDoc => d !== null)
       await upsertBatch(index, newsBlockDocs)
       counts.news_blocks = newsBlockDocs.length

@@ -11,7 +11,8 @@ meta:
   hidden: false
   interface: input-multiline
   note: Kurzzusammenfassung für die Kachelanzeige im Feed (optional)
-  options: null
+  options:
+    trim: true
   readonly: false
   required: false
   searchable: true

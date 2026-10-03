@@ -1,0 +1,7 @@
+language: de-DE
+key: measure.feedback.prefill_content
+value: |-
+  Maßnahme: :measure
+  Link: :link
+
+  Mein Hinweis:

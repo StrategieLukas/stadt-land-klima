@@ -1,0 +1,3 @@
+language: de-DE
+key: projects.submit.error.submission_too_large
+value: Die gesamte Einreichung ist zu groß. Bitte wähle ein kleineres Bild aus.

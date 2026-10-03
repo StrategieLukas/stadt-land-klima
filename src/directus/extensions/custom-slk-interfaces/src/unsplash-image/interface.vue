@@ -2,12 +2,12 @@
   <div class="unsplash-image-interface">
     <!-- Current image preview -->
     <div v-if="props.value" class="preview-wrapper" :class="{ letterbox: props.letterbox }">
-      <img :src="previewUrl" alt="" class="preview-img" />
+      <img :src="previewUrl ?? undefined" alt="" class="preview-img" />
       <div class="preview-actions">
         <button class="action-btn danger" :disabled="props.disabled" @click="removeImage">
           Remove
         </button>
-        <a :href="previewUrl" target="_blank" rel="noopener" class="action-btn secondary">
+        <a :href="previewUrl ?? undefined" target="_blank" rel="noopener" class="action-btn secondary">
           View
         </a>
       </div>
@@ -33,6 +33,12 @@
       />
     </div>
 
+    <div v-if="uploadError" class="error-msg">{{ uploadError }}</div>
+
+    <div v-if="pendingCredits" class="credits-pending-note">
+      <strong>Credits (werden nach dem ersten Speichern übernommen):</strong> {{ pendingCredits }}
+    </div>
+
     <!-- Directus library browser modal -->
     <div v-if="libraryOpen" class="modal-overlay" @click.self="closeLibrary">
       <div class="modal">
@@ -53,7 +59,7 @@
 
         <div v-if="libraryLoading" class="loading">Loading…</div>
 
-        <div v-else-if="!libraryLoading && libraryFiles.length === 0" class="empty">
+        <div v-else-if="libraryFiles.length === 0" class="empty">
           No files found.
         </div>
 
@@ -65,7 +71,7 @@
             @click="selectLibraryFile(file)"
           >
             <img
-              :src="`/assets/${file.id}?fit=cover&width=150&height=150`"
+              :src="assetUrl(file.id, 'fit=cover&width=150&height=150')"
               :alt="file.title || file.filename_download"
               class="photo-thumb"
               loading="lazy"
@@ -94,14 +100,7 @@
       </div>
     </div>
 
-    <div v-if="uploadError" class="error-msg">{{ uploadError }}</div>
-
-    <!-- Pending credits note: shown when a new item hasn't been saved yet -->
-    <div v-if="pendingCredits" class="credits-pending-note">
-      <strong>Credits (wird gespeichert nach dem ersten Speichern):</strong> {{ pendingCredits }}
-    </div>
-
-    <!-- Unsplash modal overlay -->
+    <!-- Unsplash modal -->
     <div v-if="modalOpen" class="modal-overlay" @click.self="closeUnsplash">
       <div class="modal">
         <div class="modal-header">
@@ -136,7 +135,7 @@
             :class="{ loading: importingId === photo.id }"
             @click="selectPhoto(photo)"
           >
-            <img :src="photo.urls.small" :alt="photo.description" class="photo-thumb" loading="lazy" />
+            <img :src="photo.urls.small" :alt="photo.description ?? undefined" class="photo-thumb" loading="lazy" />
             <div class="photo-attr">
               <a
                 :href="photo.user.link + '?utm_source=stadtlandklima&utm_medium=referral'"
@@ -178,176 +177,208 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, inject, watch } from 'vue';
+<script setup lang="ts">
+import { ref, computed, inject, watch, type Ref } from 'vue';
+import type { DirectusFile, UnsplashPhoto, UnsplashSearchResponse } from '../types';
+import { directusUrl } from '../directus-url';
 
-const props = defineProps({
-  value: { type: String, default: null },
-  disabled: { type: Boolean, default: false },
-  folder: { type: String, default: null },
-  letterbox: { type: Boolean, default: false },
-  creditsField: { type: String, default: 'image_credits' },
-  collection: { type: String, default: null },
-  primaryKey: { type: [String, Number], default: null },
-});
+const MAX_FILE_SIZE_MB = 10;
 
-const emit = defineEmits(['input']);
+const props = defineProps<{
+  value?: string | null;
+  disabled?: boolean;
+  folder?: string | null;
+  letterbox?: boolean;
+  creditsField?: string;
+  collection?: string | null;
+  primaryKey?: string | number | null;
+}>();
 
-const api = inject('api');
+const emit = defineEmits<{
+  (e: 'input', value: string | null): void;
+}>();
 
-// ─── Image credits ────────────────────────────────────────────────────────────
+const api = inject<{
+  defaults?: {
+    baseURL?: string;
+  };
+  get: (path: string, config?: { params?: Record<string, unknown> }) => Promise<{ data?: unknown }>;
+  post: (path: string, data?: unknown) => Promise<{ data?: { data?: { id?: string } } }>;
+  patch: (path: string, data?: unknown) => Promise<unknown>;
+}>('api');
 
-const pendingCredits = ref(null);
+const pendingCredits: Ref<string | null> = ref(null);
 
-async function writeCreditsToItem(pk, creditsText) {
-  if (!props.collection || !pk || pk === '+') return;
+async function writeCreditsToItem(primaryKey: string | number, credits: string): Promise<void> {
+  if (!api || !props.collection || primaryKey === '+') return;
   try {
-    await api.patch(`/items/${props.collection}/${pk}`, {
-      [props.creditsField]: creditsText,
+    await api.patch(`/items/${props.collection}/${primaryKey}`, {
+      [props.creditsField || 'image_credits']: credits,
     });
   } catch {
-    // Non-critical: credits may be filled manually by the editor
+    // Editors can still fill in credits manually if the item update fails.
   }
 }
 
-// When a new item is saved (primaryKey changes from '+' to a real ID),
-// apply any credits that couldn't be written during creation.
-watch(() => props.primaryKey, async (newKey) => {
-  if (newKey && newKey !== '+' && pendingCredits.value !== null) {
-    await writeCreditsToItem(newKey, pendingCredits.value);
+watch(() => props.primaryKey, async (primaryKey) => {
+  if (primaryKey && primaryKey !== '+' && pendingCredits.value) {
+    await writeCreditsToItem(primaryKey, pendingCredits.value);
     pendingCredits.value = null;
   }
 });
 
-// ─── Current image ───────────────────────────────────────────────────────────
+// ─── Current image ────────────────────────────────────────────────────────────
 
-const previewUrl = computed(() => {
+const previewUrl = computed((): string | null => {
   if (!props.value) return null;
-  return `/assets/${props.value}?fit=cover&width=400&height=300`;
+  return assetUrl(props.value);
 });
 
-function removeImage() {
+function assetUrl(fileId: string, query?: string): string {
+  const url = directusUrl(api, `assets/${encodeURIComponent(fileId)}`);
+  return query ? `${url}?${query}` : url;
+}
+
+function removeImage(): void {
   emit('input', null);
 }
 
 // ─── Local file upload ────────────────────────────────────────────────────────
 
-const fileInputRef = ref(null);
-const uploadError = ref(null);
+const fileInputRef: Ref<HTMLInputElement | null> = ref(null);
+const uploadError: Ref<string | null> = ref(null);
 
-function triggerFileUpload() {
+function triggerFileUpload(): void {
   uploadError.value = null;
   fileInputRef.value?.click();
 }
 
-async function onFileChosen(event) {
-  const file = event.target.files?.[0];
+async function onFileChosen(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
   if (!file) return;
 
-  // Reset input so re-selecting same file still fires change
-  event.target.value = '';
-
+  // Reset so re-selecting the same file still fires
+  input.value = '';
   uploadError.value = null;
+
+  // Client-side validation
+  if (!file.type.startsWith('image/')) {
+    uploadError.value = 'Only image files are supported.';
+    return;
+  }
+  if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+    uploadError.value = `File must be under ${MAX_FILE_SIZE_MB} MB.`;
+    return;
+  }
+
   try {
     const formData = new FormData();
     if (props.folder) formData.append('folder', props.folder);
     formData.append('file', file);
 
-    const response = await api.post('/files', formData);
-    emit('input', response.data?.data?.id ?? null);
+    const response = await api?.post('/files', formData);
+    const fileId = response?.data?.data?.id ?? null;
+    emit('input', fileId);
   } catch (err) {
-    uploadError.value = 'Upload failed: ' + (err.response?.data?.errors?.[0]?.message || err.message);
+    const apiMessage = (err as { response?: { data?: { errors?: { message?: string }[] } } })
+      ?.response?.data?.errors?.[0]?.message;
+    uploadError.value = 'Upload failed: ' + (apiMessage ?? (err as Error).message ?? 'Unknown error');
   }
 }
 
-// ─── Directus library browser ────────────────────────────────────────────────
+// ─── Directus library browser ─────────────────────────────────────────────────
 
-const libraryOpen = ref(false);
-const librarySearch = ref('');
-const libraryFiles = ref([]);
-const libraryLoading = ref(false);
-const libraryPage = ref(1);
-const libraryTotalPages = ref(1);
+const libraryOpen: Ref<boolean> = ref(false);
+const librarySearch: Ref<string> = ref('');
+const libraryFiles: Ref<DirectusFile[]> = ref([]);
+const libraryLoading: Ref<boolean> = ref(false);
+const libraryPage: Ref<number> = ref(1);
+const libraryTotalPages: Ref<number> = ref(1);
 const libraryPageSize = 24;
-let libraryDebounce = null;
+let libraryDebounce: ReturnType<typeof setTimeout> | null = null;
 
-function openLibrary() {
+function openLibrary(): void {
   libraryOpen.value = true;
   loadLibraryPage(1);
 }
 
-function closeLibrary() {
+function closeLibrary(): void {
   libraryOpen.value = false;
 }
 
-function onLibrarySearchInput() {
-  clearTimeout(libraryDebounce);
-  libraryDebounce = setTimeout(() => {
-    loadLibraryPage(1);
-  }, 400);
+function onLibrarySearchInput(): void {
+  if (libraryDebounce) clearTimeout(libraryDebounce);
+  libraryDebounce = setTimeout(() => loadLibraryPage(1), 400);
 }
 
-async function loadLibraryPage(page) {
+async function loadLibraryPage(page: number): Promise<void> {
   libraryLoading.value = true;
   libraryPage.value = page;
   try {
-    const params = {
+    const params: Record<string, unknown> = {
       limit: libraryPageSize,
       offset: (page - 1) * libraryPageSize,
       fields: ['id', 'title', 'filename_download', 'type'],
       sort: ['-uploaded_on'],
       'filter[type][_starts_with]': 'image/',
-      'meta': 'filter_count',
+      meta: 'filter_count',
     };
     if (librarySearch.value.trim()) {
       params['filter[title][_icontains]'] = librarySearch.value.trim();
     }
-    const response = await api.get('/files', { params });
-    libraryFiles.value = response.data?.data || [];
-    const total = response.data?.meta?.filter_count ?? libraryFiles.value.length;
-    libraryTotalPages.value = Math.max(1, Math.ceil(total / libraryPageSize));
-  } catch (err) {
+    const response = await api?.get('/files', { params });
+    const body = response?.data as { data?: DirectusFile[]; meta?: { filter_count?: number } } | undefined;
+    libraryFiles.value = body?.data ?? [];
+    // Use meta.filter_count for the true total across all pages.
+    // Fall back to page size only if the meta field is completely absent (shouldn't happen).
+    const total = body?.meta?.filter_count ?? null;
+    libraryTotalPages.value = total !== null
+      ? Math.max(1, Math.ceil(total / libraryPageSize))
+      : 1;
+  } catch {
     libraryFiles.value = [];
+    libraryTotalPages.value = 1;
   } finally {
     libraryLoading.value = false;
   }
 }
 
-function selectLibraryFile(file) {
+function selectLibraryFile(file: DirectusFile): void {
   emit('input', file.id);
   closeLibrary();
 }
 
-// ─── Unsplash modal ───────────────────────────────────────────────────────────
+// ─── Unsplash search ──────────────────────────────────────────────────────────
 
-const modalOpen = ref(false);
-const searchQuery = ref('');
-const photos = ref([]);
-const searching = ref(false);
-const searchError = ref(null);
-const hasSearched = ref(false);
-const currentPage = ref(1);
-const totalPages = ref(1);
-const importingId = ref(null);
+const modalOpen: Ref<boolean> = ref(false);
+const searchQuery: Ref<string> = ref('');
+const photos: Ref<UnsplashPhoto[]> = ref([]);
+const searching: Ref<boolean> = ref(false);
+const searchError: Ref<string | null> = ref(null);
+const hasSearched: Ref<boolean> = ref(false);
+const currentPage: Ref<number> = ref(1);
+const totalPages: Ref<number> = ref(1);
+const importingId: Ref<string | null> = ref(null);
 
-let debounceTimer = null;
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-function openUnsplash() {
+function openUnsplash(): void {
   modalOpen.value = true;
 }
 
-function closeUnsplash() {
+function closeUnsplash(): void {
   modalOpen.value = false;
 }
 
-function onSearchInput() {
-  clearTimeout(debounceTimer);
+function onSearchInput(): void {
+  if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     if (searchQuery.value.trim()) runSearch(1);
   }, 400);
 }
 
-async function runSearch(page) {
+async function runSearch(page: number): Promise<void> {
   const q = searchQuery.value.trim();
   if (!q) return;
 
@@ -356,58 +387,62 @@ async function runSearch(page) {
   hasSearched.value = true;
 
   try {
-    const response = await api.get('/unsplash/search', {
+    const response = await api?.get('/unsplash/search', {
       params: { q, page, per_page: 24 },
     });
-    const data = response.data;
-    photos.value = data.results || [];
+    const data = response?.data as UnsplashSearchResponse;
+    photos.value = data.results ?? [];
     currentPage.value = data.page;
     totalPages.value = data.total_pages || 1;
   } catch (err) {
-    searchError.value = 'Search failed: ' + (err.response?.data?.error || err.message);
+    const apiError = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+    searchError.value = 'Search failed: ' + (apiError ?? (err as Error).message ?? 'Unknown error');
     photos.value = [];
   } finally {
     searching.value = false;
   }
 }
 
-async function selectPhoto(photo) {
+async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
+  // Ignore clicks while another import is in-flight
   if (importingId.value) return;
+
   importingId.value = photo.id;
   uploadError.value = null;
 
   try {
-    const creditsText = `Photo by ${photo.user.name} on Unsplash`;
-
-    // Import the photo into Directus files
+    const credits = `Photo: ${photo.user.name} on Unsplash`;
     const importPayload = {
       url: photo.urls.regular,
       data: {
         title: photo.description || `Unsplash photo by ${photo.user.name}`,
-        description: creditsText,
+        description: credits,
+        image_credits: credits,
         ...(props.folder ? { folder: props.folder } : {}),
       },
     };
-    const response = await api.post('/files/import', importPayload);
-    const fileId = response.data?.data?.id;
+    const response = await api?.post('/files/import', importPayload);
+    const fileId = response?.data?.data?.id;
     if (fileId) {
       emit('input', fileId);
       closeUnsplash();
-    }
-
-    // Write credits to the sibling field
-    if (props.primaryKey && props.primaryKey !== '+') {
-      await writeCreditsToItem(props.primaryKey, creditsText);
+      if (props.primaryKey && props.primaryKey !== '+') {
+        await writeCreditsToItem(props.primaryKey, credits);
+      } else {
+        pendingCredits.value = credits;
+      }
     } else {
-      // New item not yet saved — store credits and apply once item is created
-      pendingCredits.value = creditsText;
+      uploadError.value = 'Import succeeded but no file ID was returned.';
     }
 
-    // Trigger attribution download (Unsplash API requirement — fire-and-forget)
-    api.post('/unsplash/trigger-download', { download_location: photo.download_location }).catch(() => {});
+    // Unsplash API requirement: trigger download attribution (fire-and-forget)
+    api?.post('/unsplash/trigger-download', { download_location: photo.download_location }).catch(() => {});
   } catch (err) {
-    uploadError.value = 'Import failed: ' + (err.response?.data?.errors?.[0]?.message || err.message);
+    const apiMessage = (err as { response?: { data?: { errors?: { message?: string }[] } } })
+      ?.response?.data?.errors?.[0]?.message;
+    uploadError.value = 'Import failed: ' + (apiMessage ?? (err as Error).message ?? 'Unknown error');
   } finally {
+    // Always clear the importing state, even on error, so the UI doesn't get stuck
     importingId.value = null;
   }
 }
@@ -419,7 +454,6 @@ async function selectPhoto(photo) {
   color: var(--theme--foreground);
 }
 
-/* ── Preview ─────────────────────────────────────────────────── */
 .preview-wrapper {
   position: relative;
   display: inline-block;
@@ -447,7 +481,6 @@ async function selectPhoto(photo) {
   background: var(--theme--background-subdued);
 }
 
-/* ── Buttons ─────────────────────────────────────────────────── */
 .button-row {
   display: flex;
   gap: 8px;
@@ -486,10 +519,18 @@ async function selectPhoto(photo) {
   border-color: transparent;
 }
 
-/* ── Error / loading ─────────────────────────────────────────── */
 .error-msg {
   margin-top: 8px;
   color: var(--theme--danger, #e35169);
+  font-size: 13px;
+}
+
+.credits-pending-note {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: var(--theme--border-radius);
+  background: var(--theme--background-subdued);
+  color: var(--theme--foreground-subdued);
   font-size: 13px;
 }
 
@@ -505,7 +546,6 @@ async function selectPhoto(photo) {
   color: var(--theme--foreground-subdued);
 }
 
-/* ── Modal overlay ───────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -554,7 +594,6 @@ async function selectPhoto(photo) {
   color: var(--theme--foreground);
 }
 
-/* ── Search bar ──────────────────────────────────────────────── */
 .search-bar {
   padding: 16px 20px 8px;
 }
@@ -576,7 +615,6 @@ async function selectPhoto(photo) {
   outline-offset: 1px;
 }
 
-/* ── Photo grid ──────────────────────────────────────────────── */
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -636,7 +674,6 @@ async function selectPhoto(photo) {
   font-size: 13px;
 }
 
-/* ── Pagination ──────────────────────────────────────────────── */
 .pagination {
   display: flex;
   align-items: center;
@@ -649,16 +686,5 @@ async function selectPhoto(photo) {
 .page-info {
   font-size: 13px;
   color: var(--theme--foreground-subdued);
-}
-
-/* ── Credits pending note ──────────────────────────────────── */
-.credits-pending-note {
-  margin-top: 8px;
-  padding: 8px 12px;
-  border-radius: var(--theme--border-radius);
-  background: var(--theme--primary-background);
-  color: var(--theme--foreground-subdued);
-  font-size: 12px;
-  border: 1px solid var(--theme--border-color);
 }
 </style>

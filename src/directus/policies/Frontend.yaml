@@ -16,14 +16,23 @@ permissions:
         - candidate:
             election:
               response_cutoff_date:
-                _gt: $NOW
+                _gt: $NOW(-24 hours)
     validation: {}
     presets: null
     fields:
       - "*"
   - collection: answers
     action: delete
-    permissions: {}
+    permissions:
+      _or:
+        - candidate:
+            election:
+              response_cutoff_date:
+                _null: true
+        - candidate:
+            election:
+              response_cutoff_date:
+                _gt: $NOW(-24 hours)
     validation: {}
     presets: null
     fields:
@@ -50,7 +59,7 @@ permissions:
         - candidate:
             election:
               response_cutoff_date:
-                _gt: $NOW
+                _gt: $NOW(-24 hours)
     validation: {}
     presets: null
     fields:
@@ -132,28 +141,7 @@ permissions:
     fields:
       - "*"
   - collection: blocks
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
     action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: update
     permissions: {}
     validation: {}
     presets: null
@@ -182,7 +170,7 @@ permissions:
               _null: true
         - election:
             response_cutoff_date:
-              _gt: $NOW
+              _gt: $NOW(-24 hours)
     validation: {}
     presets: null
     fields:
@@ -247,34 +235,6 @@ permissions:
       - bio
       - slk_team
       - show_on_team_page
-  - collection: edit_states
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
   - collection: elections
     action: read
     permissions: null
@@ -283,7 +243,11 @@ permissions:
     fields:
       - id
       - descriptor
+      - custom_logo
+      - sharepic
+      - sharepic_dark
       - localteam
+      - is_party_election
       - simple_answer_mode
       - response_cutoff_date
       - is_public
@@ -427,6 +391,7 @@ permissions:
       - description_legal
       - description_funding
       - description_tutorial
+      - recommended_search_queries
       - measure_id
       - catalog_version
       - must_be_rated_again
@@ -489,6 +454,7 @@ permissions:
       - slug
       - title
       - teaser
+      - author
       - image
       - image_credits
       - date_published

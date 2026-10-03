@@ -1,6 +1,11 @@
 <template>
   <div class="container mx-auto px-4 py-8">
-    <h1 class="center mb-6 text-4xl font-bold text-stats-dark">{{ $t("projects.title") }}</h1>
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h1 class="center text-4xl font-bold text-stats-dark">{{ $t("projects.title") }}</h1>
+      <NuxtLink to="/projects/submit" class="btn bg-green text-white hover:bg-green hover:opacity-90">
+        {{ $t("projects.submit.cta") }}
+      </NuxtLink>
+    </div>
 
     <!-- Filter + Sort bar -->
     <div class="slk-filter-panel slk-filter-theme-blue mb-6 flex flex-col gap-0 p-3 shadow-md">

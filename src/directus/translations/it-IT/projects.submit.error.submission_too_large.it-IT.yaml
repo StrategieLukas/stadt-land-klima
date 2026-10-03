@@ -1,0 +1,3 @@
+language: it-IT
+key: projects.submit.error.submission_too_large
+value: L'intero invio è troppo grande. Seleziona un'immagine più piccola.

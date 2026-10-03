@@ -134,7 +134,7 @@
               </NuxtLink>
               <!-- Statistiken (always shown) -->
               <NuxtLink
-                :to="`/stats/${area.ars}`"
+                :to="`/data/${area.ars}`"
                 class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 sm:text-sm"
               >
                 <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

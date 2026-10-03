@@ -1,0 +1,3 @@
+language: en-GB
+key: form_block.empty_fields
+value: This form does not have any fields yet.

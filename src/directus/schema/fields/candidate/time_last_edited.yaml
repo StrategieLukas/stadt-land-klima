@@ -15,11 +15,15 @@ meta:
   readonly: true
   required: false
   searchable: true
-  sort: 8
+  sort: 9
   special: null
   translations:
     - language: de-DE
       translation: Zuletzt bearbeitet
+    - language: en-GB
+      translation: Last edited
+    - language: it-IT
+      translation: Ultima modifica
   validation: null
   validation_message: null
   width: half

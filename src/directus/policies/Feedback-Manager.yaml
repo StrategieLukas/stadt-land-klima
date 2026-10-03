@@ -20,3 +20,18 @@ permissions:
     fields:
       - internal_response_summary
       - status
+  - collection: form_responses
+    action: read
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - "*"
+  - collection: form_responses
+    action: update
+    permissions: null
+    validation: null
+    presets: null
+    fields:
+      - internal_response_summary
+      - status

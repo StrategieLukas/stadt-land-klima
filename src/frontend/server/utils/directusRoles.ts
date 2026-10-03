@@ -1,9 +1,6 @@
-let lokalteamAdminRoleId: string | null = null
 const lokalteamAdminRoleNames = ['LokalteamAdmin', 'AdminLokalteam']
 
 export async function getLokalteamAdminRoleId(): Promise<string> {
-  if (lokalteamAdminRoleId) return lokalteamAdminRoleId
-
   const config = useRuntimeConfig()
   const directusUrl = (config.directusServerUrl as string) || 'http://directus:8055'
 
@@ -16,10 +13,7 @@ export async function getLokalteamAdminRoleId(): Promise<string> {
       },
     )
     const id = result.data?.[0]?.id
-    if (id) {
-      lokalteamAdminRoleId = id
-      return id
-    }
+    if (id) return id
   }
 
   throw new Error(`[directusRoles] Lokalteam admin role not found in Directus. Tried: ${lokalteamAdminRoleNames.join(', ')}`)
