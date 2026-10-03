@@ -342,7 +342,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useNuxtApp } from "#app";
 import { Icon } from "@iconify/vue";
 import { areaToSlug } from "~/composables/useAreaBySlug.js";
@@ -355,6 +355,7 @@ import statesLookupRaw from "~/assets/germany-states-lookup.json";
 const props = defineProps({
   area: { type: Object, required: true },
   containedBy: { type: Array, default: () => [] },
+  initialStateArs: { type: String, default: null },
 });
 
 const emit = defineEmits(["stateSelected", "stateExited"]);
@@ -1076,7 +1077,10 @@ function municipalityHoverObj(m) {
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────────
 onMounted(() => {
-  if (!isGermany.value) {
+  if (isGermany.value && props.initialStateArs) {
+    const state = states.value.find((item) => item.ars === props.initialStateArs);
+    if (state) enterStateView(state);
+  } else if (!isGermany.value) {
     // Bundesland detail page: pre-drill into this state
     selectedState.value = {
       ars: props.area.ars,
@@ -1086,6 +1090,16 @@ onMounted(() => {
     };
     loadMunicipalities(props.area.ars);
     loadDirectusMunicipalityStatus(props.area.ars);
+  }
+});
+
+watch(() => props.initialStateArs, (ars) => {
+  if (!isGermany.value) return;
+  if (!ars && selectedState.value) {
+    exitStateView();
+  } else if (ars && selectedState.value?.ars !== ars) {
+    const state = states.value.find((item) => item.ars === ars);
+    if (state) enterStateView(state);
   }
 });
 </script>

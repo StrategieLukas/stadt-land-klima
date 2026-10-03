@@ -1,6 +1,6 @@
 <template>
   <!-- Mobile version -->
-  <div class="project-page mt-4 block overflow-hidden rounded-md bg-[#E8F9FD] shadow-md lg:hidden">
+  <div class="project-page mb-8 mt-4 block overflow-hidden rounded-md bg-[#E8F9FD] shadow-md lg:hidden">
     <div class="p-6">
       <NuxtLink :to="backHref" class="text-sm text-blue-500">← {{ backLabel }}</NuxtLink>
 
@@ -136,7 +136,7 @@
   </div>
 
   <!-- Desktop version -->
-  <div class="project-page relative mt-8 hidden rounded-lg bg-[#E8F9FD] p-8 shadow-lg lg:block">
+  <div class="project-page relative mb-8 mt-8 hidden rounded-lg bg-[#E8F9FD] p-8 shadow-lg lg:block">
     <NuxtLink :to="backHref" class="text-sm text-blue-500">← {{ backLabel }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div

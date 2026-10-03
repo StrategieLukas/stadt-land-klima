@@ -78,7 +78,7 @@ The test column names the most specific automated flow and step where coverage e
 | Municipalities | Nearby municipality carousel and municipality comparisons | src/frontend/components/NearbyMunicipalitiesCarousel, src/frontend/shared/compareMunicipalities.js | Not covered by a dedicated automated test |
 | Regions | Administrative-region detail page by ARS code | src/frontend/pages/regions/[ars].vue, src/frontend/components/AdministrativeAreaMap | Not covered by a dedicated automated test |
 | Statistics | Measures meta-statistics dashboard at /stats | src/frontend/pages/stats/index.vue | Manual-only: inspect dashboard and filter behavior on localhost:8080; no dedicated automated test |
-| Data | Administrative-area data pages replace the retired area statistics detail page | src/frontend/pages/data/[slug]/index.vue, src/frontend/pages/data/[slug]/[collection].vue | Manual-only: check a canonical data slug and an ARS link on localhost:8080; no dedicated automated test |
+| Data | Administrative-area data pages replace the retired area statistics detail page; non-city-state URLs open the /data overview with the state selected | src/frontend/pages/data/index.vue, src/frontend/pages/data/[slug]/index.vue, src/frontend/components/AreaOverview.vue | Manual-only: check a state URL, its selected overview, a canonical data slug, and an ARS link on localhost:8080; no dedicated automated test |
 | Compatibility | Legacy /stats/[ars] links redirect to the matching /data area page | src/frontend/pages/stats/[ars].vue, src/frontend/server/api/area-by-slug.get.ts | Manual-only: check the redirect with curl on localhost:8080; no dedicated automated test |
 | Map | Interactive municipality and region map | src/frontend/pages/map/index.vue, src/frontend/components/TheMap | Not covered by a dedicated automated test |
 | Tools | Climate-tool directory and tool detail links | src/frontend/pages/tools/index.vue, src/directus/schema/collections/climate_tools.yaml | Not covered by a dedicated automated test |
@@ -86,7 +86,7 @@ The test column names the most specific automated flow and step where coverage e
 | Donations | Donation landing page and Betterplace donation widget | src/frontend/pages/spenden.vue, src/frontend/components/BetterplaceDonationWidget, src/frontend/shared/donation.ts | Not covered by a dedicated automated test |
 | Donations | Donation-instead-of-gifts page | src/frontend/pages/spenden-statt-schenken.vue | Not covered by a dedicated automated test |
 | Projects | Published Erfolgsprojekte listing | src/frontend/pages/projects/index.vue, src/frontend/components/ProjectCard | EPI — “Erfolgsprojekte: projects overview shows published articles and excludes drafts” |
-| Projects | Project detail page with article content and savings information | src/frontend/pages/projects/[slug].vue | EPI — “Erfolgsprojekte: article detail page renders the full published article on desktop and mobile” |
+| Projects | Project detail page with article content, savings information, and space below the article card | src/frontend/pages/projects/[slug].vue, src/frontend/components/ArticlePage.vue | Partial: EPI — “Erfolgsprojekte: article detail page renders the full published article on desktop and mobile”; bottom spacing requires manual visual inspection |
 | Projects | Project listing filter and savings sort | src/frontend/pages/projects/index.vue, src/frontend/shared/articleSubmission.ts | EPI — “Erfolgsprojekte: projects overview filters and savings sort work” |
 | Projects | Public project/article submission form | src/frontend/pages/projects/submit.vue, src/frontend/server/api/submit-article.post.ts | Not covered by a dedicated automated test |
 
@@ -208,7 +208,7 @@ The test column names the most specific automated flow and step where coverage e
 | Area | Functionality | Main implementation | Test coverage |
 | --- | --- | --- | --- |
 | Erfolgsprojekte | Published project/article overview | src/frontend/pages/projects/index.vue | EPI — “Erfolgsprojekte: projects overview shows published articles and excludes drafts” |
-| Erfolgsprojekte | Published article detail rendering on desktop and mobile | src/frontend/pages/projects/[slug].vue, src/frontend/components/ArticlePage | EPI — “Erfolgsprojekte: article detail page renders the full published article on desktop and mobile” |
+| Erfolgsprojekte | Published article detail rendering on desktop and mobile with space below the card | src/frontend/pages/projects/[slug].vue, src/frontend/components/ArticlePage.vue | Partial: EPI — “Erfolgsprojekte: article detail page renders the full published article on desktop and mobile”; bottom spacing requires manual visual inspection |
 | Erfolgsprojekte | Draft exclusion from the public overview | src/frontend/pages/projects/index.vue, src/directus/schema/collections/articles.yaml | EPI — “Erfolgsprojekte: projects overview shows published articles and excludes drafts” |
 | Erfolgsprojekte | Filter by project attributes | src/frontend/pages/projects/index.vue | EPI — “Erfolgsprojekte: projects overview filters and savings sort work” |
 | Erfolgsprojekte | Sort by savings or impact value | src/frontend/pages/projects/index.vue | EPI — “Erfolgsprojekte: projects overview filters and savings sort work” |

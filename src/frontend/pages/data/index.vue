@@ -52,8 +52,9 @@
     <AreaOverview
       :area="GERMANY_AREA"
       :contained-by="[]"
-      @state-selected="selectedState = $event"
-      @state-exited="selectedState = null"
+      :initial-state-ars="initialStateArs"
+      @state-selected="onStateSelected"
+      @state-exited="onStateExited"
     />
 
   </div>
@@ -63,6 +64,10 @@
 import { ref, computed } from 'vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
+import statesLookup from '~/assets/germany-states-lookup.json'
+
+const route = useRoute()
+const router = useRouter()
 
 const headerHeight = useHeaderHeight()
 const mobileHeaderHidden = useMobileHeaderHidden()
@@ -73,6 +78,24 @@ const pillTop = computed(() =>
 )
 
 const selectedState = ref(null)
+const initialStateArs = computed(() => {
+  const state = route.query.state
+  return typeof state === 'string' && statesLookup.some((item) => item.ars === state) ? state : null
+})
+
+function onStateSelected(state) {
+  selectedState.value = state
+  if (route.query.state !== state.ars) {
+    router.push({ query: { ...route.query, state: state.ars } })
+  }
+}
+
+function onStateExited() {
+  selectedState.value = null
+  if (route.query.state) {
+    router.push({ query: { ...route.query, state: undefined } })
+  }
+}
 
 const GERMANY_CENTER = {
   lat: 51.1657,

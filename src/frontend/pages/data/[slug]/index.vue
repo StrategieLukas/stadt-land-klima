@@ -335,6 +335,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
 import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug.js";
+import statesLookup from "~/assets/germany-states-lookup.json";
 import { normalizeCollection, sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
 
 const sectorSvgFiles = import.meta.glob("@/assets/icons/icon_category_*.svg", {
@@ -361,8 +362,13 @@ definePageMeta({
   key: (route) => route.fullPath,
   middleware: [
     (to) => {
-      if (String(to.params.slug ?? "") === "bundesrepublik-deutschland") {
+      const requestedSlug = String(to.params.slug ?? "");
+      if (requestedSlug === "bundesrepublik-deutschland") {
         return navigateTo("/data", { redirectCode: 301 });
+      }
+      const state = statesLookup.find((item) => item.slug === requestedSlug || item.ars === requestedSlug);
+      if (state && !["02", "11"].includes(state.ars)) {
+        return navigateTo({ path: "/data", query: { state: state.ars } }, { redirectCode: 301, replace: true });
       }
     },
   ],
