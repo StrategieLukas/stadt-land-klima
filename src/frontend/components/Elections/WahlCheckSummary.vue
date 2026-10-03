@@ -54,8 +54,8 @@
           <div class="flex-shrink-0 flex items-center gap-2 sm:gap-3">
             <!-- User's Answer - Color circle indicator -->
             <div class="flex-shrink-0">
-              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-md" 
-                   :class="getRatingColor(userAnswers[question.id])" 
+              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-md"
+                   :class="getRatingColor(userAnswers[question.id])"
                    :title="getRatingLabel(userAnswers[question.id])"></div>
             </div>
 

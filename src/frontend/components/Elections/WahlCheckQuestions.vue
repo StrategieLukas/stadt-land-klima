@@ -29,7 +29,7 @@
     <div v-if="props.questions.length > 0" class="space-y-6">
       <div class="overflow-hidden relative min-h-[320px] grid grid-cols-1 grid-rows-1 [&>*]:col-start-1 [&>*]:row-start-1">
         <Transition :name="transitionDirection">
-          <div 
+          <div
             :key="currentQuestion.id"
             class="bg-white p-4 sm:p-6 rounded-xl shadow-list border-2 border-ff-green transition-all w-full h-fit self-start"
           >
@@ -229,11 +229,11 @@ watch(() => props.initialQuestionIndex, (newIdx) => {
 function getOptionCircleClass(questionId, value) {
   const isSelected = userAnswers.value[questionId] === value
   const option = ratingOptions.value.find((item) => item.value === Number(value))
-  
+
   if (isSelected) {
     return `${option?.colorClass || 'bg-ff-green'} border-transparent text-white shadow-md scale-105`
   }
-  
+
   const borderClass = option?.radioClass?.split(' ')[0] || 'border-solid-gray-30'
   return `bg-white ${borderClass} hover:bg-solid-gray-05`
 }
@@ -268,7 +268,7 @@ function selectOption(questionId, value) {
 function markQuestionCompleted(questionId) {
   completedQuestions.value.add(questionId)
   delete skippedQuestions.value[questionId]
-  
+
   if (advanceTimeout) {
     clearTimeout(advanceTimeout)
     advanceTimeout = null
@@ -303,7 +303,7 @@ function handleSkipChange(questionId, event) {
     skippedQuestions.value[questionId] = true
     userAnswers.value[questionId] = undefined
     completedQuestions.value.delete(questionId)
-    
+
     advanceTimeout = setTimeout(() => {
       if (currentQuestionIndex.value < props.questions.length - 1) {
         transitionDirection.value = 'slide-left'
@@ -361,7 +361,7 @@ function handleNextQuestion() {
   }
 
   if (!canProceedToNext.value) return
-  
+
   if (currentQuestionIndex.value === props.questions.length - 1) {
     // On last question, proceed to summary
     handleNext()
@@ -393,7 +393,7 @@ function handleNext() {
   }
 
   if (!canProceed.value) return
-  
+
   // Build clean answers object (only include answered questions, not skipped ones)
   const answers = {}
   Object.keys(userAnswers.value).forEach(questionId => {
@@ -401,7 +401,7 @@ function handleNext() {
       answers[questionId] = userAnswers.value[questionId]
     }
   })
-  
+
   emit('next', answers)
 }
 
@@ -415,7 +415,7 @@ watch(() => props.userAnswers, (newUserAnswers) => {
   // Only update if we're not in the middle of answering questions
   if (Object.keys(newUserAnswers).length > 0 && completedQuestions.value.size === 0) {
     userAnswers.value = {...newUserAnswers}
-    
+
     // Update completed questions
     completedQuestions.value.clear()
     props.questions.forEach(question => {
