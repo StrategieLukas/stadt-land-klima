@@ -1,0 +1,53 @@
+{
+  "name": "municipality-climate-region",
+  "description": "Resolves municipality ARS and climate region types through Stadt-Land-Zahl services.",
+  "version": "1.0.0",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-extension-bundle"
+  ],
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "directus:extension": {
+    "type": "bundle",
+    "host": "^11.0.0",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.js"
+    },
+    "entries": [
+      {
+        "type": "hook",
+        "name": "hook-municipality-climate-region",
+        "source": "src/hook.ts"
+      },
+      {
+        "type": "operation",
+        "name": "operation-resolve-municipality-climate-regions",
+        "source": {
+          "app": "src/operation/app.ts",
+          "api": "src/operation/api.ts"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "validate": "directus-extension validate"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "17.1.4",
+    "@directus/types": "^11.0.0",
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.28.0",
+    "knex": "3.1.0",
+    "typescript": "^5.0.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0"
+  }
+}
