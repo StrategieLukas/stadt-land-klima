@@ -1,45 +1,35 @@
 collection: municipalities
-field: description
-type: text
+field: climate_region_type
+type: string
 meta:
   collection: municipalities
   conditions: null
   display: null
   display_options: null
-  field: description
+  field: climate_region_type
   group: details
   hidden: false
-  interface: input-rich-text-md
-  note: null
+  interface: input
+  note: Wird automatisch über die Stadt-Land-Zahl-API anhand des ARS ermittelt.
   options:
-    softLength: 1000
-    toolbar:
-      - heading
-      - bold
-      - italic
-      - strikethrough
-      - blockquote
-      - bullist
-      - numlist
-      - table
-      - empty
-  readonly: false
+    trim: true
+  readonly: true
   required: false
   searchable: true
-  sort: 7
+  sort: 6
   special: null
   translations:
     - language: de-DE
-      translation: Beschreibung
+      translation: Klimaraumtyp
   validation: null
   validation_message: null
   width: full
 schema:
-  name: description
+  name: climate_region_type
   table: municipalities
-  data_type: text
+  data_type: character varying
   default_value: null
-  max_length: null
+  max_length: 255
   numeric_precision: null
   numeric_scale: null
   is_nullable: true
