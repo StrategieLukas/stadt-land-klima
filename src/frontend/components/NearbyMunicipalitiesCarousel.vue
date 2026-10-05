@@ -75,7 +75,7 @@
               <div class="flex-shrink-0">
                 <!-- Complete or published: show numeric score -->
                 <span
-                  v-if="area.isPublished && area.scoreTotal != null"
+                  v-if="area.isComplete && area.scoreTotal != null"
                   class="inline-block rounded-full px-2 py-0.5 text-xs font-bold text-white"
                   :class="`bg-${scoreBgColor(area.scoreTotal)}`"
                 >
@@ -152,6 +152,7 @@
 
 <script setup>
 import { getScorePercentageColor } from "~/shared/utils.js";
+import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing.js";
 
 const { $directus, $readItems } = useNuxtApp();
 const config = useRuntimeConfig();
@@ -283,14 +284,13 @@ onMounted(async () => {
           const result = await fetchMunicipalityData(area.ars);
           const municipality = result?.municipality ?? null;
           const score = result?.score ?? null;
-          const isPublished = municipality?.status === "published" && !!municipality?.slug;
+          const isComplete = isMunicipalityScoreComplete(score) && !!municipality?.slug;
           const hasLocalteam = !!municipality?.localteam_id;
-          const percentageRated = score?.percentage_rated ?? null;
-          // 'complete'    → published + percentage_rated >= 98 → show rating
-          // 'in-progress' → has a localteam but not yet complete → support the team
+          // 'complete'    → published score with all catalog measures rated → show rating
+          // 'in-progress' → has a localteam but no complete published score → support the team
           // 'none'        → no localteam at all → found a team
           const ctaType =
-            isPublished && percentageRated != null && percentageRated >= 98
+            isComplete
               ? "complete"
               : hasLocalteam
                 ? "in-progress"
@@ -300,10 +300,9 @@ onMounted(async () => {
             name: area.name,
             prefix: area.prefix,
             ctaType,
-            isPublished,
-            slug: isPublished ? municipality.slug : null,
+            isComplete,
+            slug: isComplete ? municipality.slug : null,
             scoreTotal: score?.score_total ?? null,
-            percentageRated,
             geoCenter: area.geo_center ?? null,
             geoArea: area.geo_area ?? null,
           };

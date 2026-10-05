@@ -174,6 +174,15 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         assert(await page.locator('.tour-explorer__waypoint').count() === 10, 'Every published stop should have a scroll waypoint');
         assert(await page.locator('.leaflet-overlay-pane path[stroke-dasharray="4 9"]').count() === 1, 'Map should render the dotted spline route');
         assert(await page.locator('.tour-map-pin').count() === 10, 'Every mapped stop should have a numbered map pin');
+        await page.locator('.tour-explorer__map').scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => document.querySelector('.tour-explorer__nav a:first-child')?.getAttribute('aria-current') === 'location');
+        const mapBounds = await page.locator('.leaflet-container').boundingBox();
+        assert(mapBounds, 'Tour map should have a visible wheel target');
+        const scrollBeforeWheel = await page.evaluate(() => window.scrollY);
+        await page.mouse.move(mapBounds.x + mapBounds.width * .2, mapBounds.y + mapBounds.height * .5);
+        await page.mouse.wheel(0, 400);
+        await page.waitForFunction((previousScroll) => window.scrollY > previousScroll + 300, scrollBeforeWheel);
+        await page.waitForFunction(() => document.querySelector('.tour-explorer__nav a:nth-child(2)')?.getAttribute('aria-current') === 'location');
         await page.locator('.tour-explorer__nav a').first().click();
         assert(await page.locator('.tour-explorer__prints:visible figure').count() === 2, 'Published journey photos should appear as two postcards over the map');
         assert((await page.locator('.tour-explorer__prints:visible').innerText()).includes('Second fixture credit'), 'Map postcards should retain photo credits');

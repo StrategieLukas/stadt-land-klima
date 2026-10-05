@@ -341,11 +341,11 @@ async function fetchAll() {
     }
 
     async function fetchCoverageIds(versionId) {
-      // Returns the set of localteam_ids with a published score in this catalog version
+      // Returns localteam IDs with a complete published score in this catalog version.
       const rows = await $directus.request(
         $readItems("municipality_scores", {
           fields: [{ municipality: ["localteam_id"] }],
-          filter: { catalog_version: { _eq: versionId }, published: { _eq: true } },
+          filter: { catalog_version: { _eq: versionId }, published: { _eq: true }, percentage_rated: { _gte: 100 } },
           limit: -1,
         }),
       );

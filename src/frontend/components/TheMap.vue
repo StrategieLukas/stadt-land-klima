@@ -47,10 +47,10 @@
           <LPopup>
             <div class="space-y-1 text-sm">
               <div class="font-semibold">{{ s.municipality.name }}</div>
-              <template v-if="s.municipality.status === 'published' && s.percentage_rated > 98">
+              <template v-if="isMunicipalityScoreComplete(s)">
                 <div>Score: {{ Number(s.score_total).toFixed(2) }}</div>
                 <NuxtLink
-                  :to="`/municipalities/${s.municipality.slug}`"
+                  :to="{ path: `/municipalities/${s.municipality.slug}`, query: { v: props.catalogVersion.name } }"
                   class="text-blue-600 underline hover:text-blue-800"
                 >
                   {{ $t("map.icon.popup.goToRanking") }}
@@ -76,6 +76,7 @@ import { LMap, LTileLayer, LMarker, LPopup, LGeoJson, LRectangle } from "@vue-le
 import "leaflet/dist/leaflet.css";
 import germanyGeoJson from "~/assets/germany-polygon.json?raw";
 import germanyStatesGeoJson from "~/assets/germany-state-borders.json?raw";
+import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing.js";
 
 const { $t } = useNuxtApp();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
@@ -163,7 +164,7 @@ watch([showMunicipalitiesWithUnfinishedRating, filteredMunicipalityScores], () =
 function shouldShow(municipalityScore) {
   return showMunicipalitiesWithUnfinishedRating.value
     ? municipalityScore.percentage_rated > 0
-    : municipalityScore.municipality.status === "published" && municipalityScore.percentage_rated > 98;
+    : isMunicipalityScoreComplete(municipalityScore);
 }
 
 function onMapReady(map) {
@@ -203,7 +204,7 @@ function getCustomIcon(municipalityScore) {
   if (!DivIcon || !PinSvg.value) return null;
   const score_total = municipalityScore.score_total;
   let cssClass = "rating-na";
-  if (municipalityScore.municipality.status === "published" && municipalityScore.percentage_rated > 98) {
+  if (isMunicipalityScoreComplete(municipalityScore)) {
     if (score_total < 20) cssClass = "rating-0";
     else if (score_total < 40) cssClass = "rating-1";
     else if (score_total < 60) cssClass = "rating-2";

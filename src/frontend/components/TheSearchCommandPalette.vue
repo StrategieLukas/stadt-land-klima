@@ -178,10 +178,6 @@ const inputRef = ref(null)
 const isLoading = ref(false)
 const focusedIndex = ref(-1)
 
-// Published municipalities from the layout — used to gate slug-based navigation
-const { data: publishedMunicipalities } = useNuxtData('municipalities')
-const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map(m => m.slug)))
-
 // Current frontend catalog version — used to distinguish outdated vs current ratings
 const { $directus, $readItems } = useNuxtApp()
 const { data: currentCatalog } = useAsyncData(
@@ -191,7 +187,7 @@ const { data: currentCatalog } = useAsyncData(
 const catalogVersionName = computed(() => currentCatalog.value?.name ?? null)
 
 // Unified search: Directus municipalities + StadtLandZahl areas + Meilisearch content
-const unifiedSearch = useUnifiedSearch({ publishedSlugs, catalogVersionName })
+const unifiedSearch = useUnifiedSearch({ catalogVersionName })
 const { groupsWithIndex, flatResults } = unifiedSearch
 
 // Register keyboard nav functions with the bridge so the header can call them

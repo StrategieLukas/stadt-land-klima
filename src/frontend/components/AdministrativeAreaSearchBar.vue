@@ -127,10 +127,6 @@ try {
   selectedCatalogVersion = ref(null)
 }
 
-// Published municipalities from the layout \u2014 used to gate slug-based navigation
-const { data: publishedMunicipalities } = useNuxtData('municipalities')
-const publishedSlugs = computed(() => new Set((publishedMunicipalities.value ?? []).map(m => m.slug)))
-
 const props = defineProps({
   basePath: {
     type: String,
@@ -179,15 +175,16 @@ const catalogVersionName = computed(() => selectedCatalogVersion.value?.name ?? 
 
 const { results: rawResults, isLoading, search, clear } = useAreaSearch({
   mode: modeForSearch,
-  publishedSlugs,
   catalogVersionName,
+  statusCatalogVersionId: computed(() => selectedCatalogVersion.value?.id ?? null),
 })
 
 /** Compute navigation URL for a result based on linkMode and basePath */
 function getResultUrl(result) {
   if (result.isMunicipality) {
     if (props.linkMode === 'slug' && result.ctaType === 'complete' && result._slug) {
-      return `/municipalities/${result._slug}`
+      const catalogName = selectedCatalogVersion.value?.name
+      return `/municipalities/${result._slug}${catalogName ? `?v=${encodeURIComponent(catalogName)}` : ''}`
     }
     return `${props.basePath}/${result.ars}`
   }

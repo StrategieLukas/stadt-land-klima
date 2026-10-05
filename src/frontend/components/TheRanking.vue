@@ -2,7 +2,7 @@
   <div class="flex flex-col">
     <ul>
       <li
-        v-for="municipalityScore in publishedMunicipalityScores"
+        v-for="municipalityScore in completeMunicipalityScores"
         :key="municipalityScore.id"
       >
         <NuxtLink :to="`/municipalities/${municipalityScore.municipality.slug}?v=${catalogVersion.name}`">
@@ -14,7 +14,7 @@
       </li>
 
       <li
-        v-if="!publishedMunicipalityScores || publishedMunicipalityScores.length === 0"
+        v-if="completeMunicipalityScores.length === 0"
         class="text-gray-600 text-sm mt-4"
       >
         {{ $t('ranking.no_elements_yet') }}
@@ -23,7 +23,7 @@
   </div>
 </template>
 <script setup>
-import { isMunicipalityScorePublished } from '~/shared/municipality-score-publishing.js';
+import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js';
 
 const props = defineProps({
   municipalityScores: {
@@ -35,13 +35,13 @@ const props = defineProps({
   }
 });
 
-// Hide municipality scores that are not published for this catalog version.
-const publishedMunicipalityScores = computed(() => {
+// Show only published scores with every measure completed in this catalog version.
+const completeMunicipalityScores = computed(() => {
   if (!props.municipalityScores || !Array.isArray(props.municipalityScores)) {
     return []
   }
   return props.municipalityScores
-    .filter(isMunicipalityScorePublished)
+    .filter(isMunicipalityScoreComplete)
     // Recalculate indices
     .map((item, index) => ({
         ...item,

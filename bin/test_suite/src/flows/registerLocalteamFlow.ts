@@ -652,7 +652,7 @@ export async function runRegisterLocalteamFlow(
     }
   });
 
-  await runner.step('Register localteam: published current rating is complete regardless of percentage', async () => {
+  await runner.step('Register localteam: published current rating with missing measures remains in progress', async () => {
     const { localteam, municipality } = await createExistingLocalteamFixture(
       fixture,
       publishedMunicipalityName,
@@ -665,7 +665,7 @@ export async function runRegisterLocalteamFlow(
       { timeoutMs: 30_000 },
     );
     await fixture.admin.updateItem<MunicipalityScore>('municipality_scores', score.id, {
-      percentage_rated: 0,
+      percentage_rated: 25,
     });
     await fixture.admin.createItem('junction_directus_users_localteams', {
       directus_users_id: fixture.localteamMember.id,
@@ -682,13 +682,13 @@ export async function runRegisterLocalteamFlow(
       const text = await openRegisterPage(page, fixture.config.frontendUrl, publishedArs, publishedMunicipalityName);
       assertIncludes(
         text,
-        'Bewertung abgeschlossen',
-        'A published current rating must be complete regardless of percentage',
+        'Lokalteam aktiv - Bewertung läuft',
+        'A published current rating with missing measures must remain in progress',
       );
       assertNotIncludes(
         text,
-        'Lokalteam aktiv - Bewertung läuft',
-        'A published current rating must not be in progress',
+        'Bewertung abgeschlossen',
+        'An incomplete current rating must not be marked complete',
       );
       assertNotIncludes(text, 'Bewertung noch nicht begonnen', 'A published current rating must not be not-started');
     } finally {

@@ -272,13 +272,13 @@ onMounted(async () => {
     const catalogId = catalogs?.[0]?.id
     if (!catalogId) return
 
-    // Fetch municipalities with a published score in the current frontend catalog.
+    // Fetch complete published scores in the current frontend catalog.
     const data: any[] = await $directus.request(
       $readItems('municipality_scores', {
         limit: 2500,
         sort: ['-municipality.population'],
         fields: ['score_total', 'percentage_rated', { municipality: ['id', 'name', 'slug', 'population'] }],
-        filter: { catalog_version: { _eq: catalogId }, published: { _eq: true } },
+        filter: { catalog_version: { _eq: catalogId }, published: { _eq: true }, percentage_rated: { _gte: 100 } },
       }),
     )
 

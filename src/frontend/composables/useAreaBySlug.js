@@ -2,7 +2,8 @@
  * Convert a prefix + name pair to a URL-safe slug.
  * e.g. "Stadtkreis" + "Karlsruhe"  → "stadtkreis_karlsruhe"
  *      "Gemeinde"   + "Bühl"        → "gemeinde_buehl"
- *      "Verwaltungsgemeinschaft" + "Singen (Hohentwiel)" → "verwaltungsgemeinschaft_singen-(hohentwiel)"
+ *      "Einheitsgemeinde" + "Weingarten (Baden)" → "einheitsgemeinde_weingarten-baden"
+ *      "Verwaltungsgemeinschaft" + "Singen (Hohentwiel)" → "verwaltungsgemeinschaft_singen-hohentwiel"
  */
 export function areaToSlug(prefix, name) {
   return (prefix + '_' + name)
@@ -11,7 +12,7 @@ export function areaToSlug(prefix, name) {
     .replace(/ö/g, 'oe')
     .replace(/ü/g, 'ue')
     .replace(/ß/g, 'ss')
-    .replace(/[^a-z0-9_()]+/g, '-')
+    .replace(/[^a-z0-9_]+/g, '-')
     .replace(/^-|-$/g, '')
 }
 

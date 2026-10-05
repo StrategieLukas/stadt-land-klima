@@ -18,8 +18,6 @@
  *                   navigateToFocused in the palette).
  *
  * @param {object} options
- * @param {import('vue').Ref<Set<string>> | Set<string> | null} options.publishedSlugs
- *   Reactive set of published municipality slugs — used to determine ctaType.
  * @param {import('vue').Ref<string|null> | string | null} options.catalogVersionName
  *   Optional catalog version name to prefer when resolving stadtlandklimaDataAll.
  */
@@ -27,8 +25,9 @@ import { ref, computed, isRef } from 'vue'
 import lodash from 'lodash'
 const { debounce } = lodash
 import { getScorePercentageColor, getStateFromArs } from '~/shared/utils.js'
+import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js'
 
-export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = null } = {}) {
+export function useUnifiedSearch({ catalogVersionName = null } = {}) {
   const { $directus, $readItems, $t } = useNuxtApp()
 
   const catalogRef = isRef(catalogVersionName) ? catalogVersionName : ref(catalogVersionName)
@@ -41,15 +40,7 @@ export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = n
 
   // --- Area enrichment (mirrors the logic in useAreaSearch) ---
 
-  function getSlugSet() {
-    const s = isRef(publishedSlugs) ? publishedSlugs.value : publishedSlugs
-    if (s instanceof Set) return s
-    if (Array.isArray(s)) return new Set(s)
-    return new Set()
-  }
-
   function enrichArea(area) {
-    const slugs = getSlugSet()
     const level = area.level ?? 4
     const isMunicipality = level >= 4 || area.isReasonableForMunicipalRating === true
 
@@ -68,54 +59,48 @@ export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = n
       if (catalogRef.value) {
         // With catalog context: check current catalog first, then fall back to older published rating
         const currentRating = allData.find(d => d.measureCatalogName === catalogRef.value && d.slug)
-        const isCurrentPublished = !!(currentRating?.slug && slugs.has(currentRating.slug))
+        const directusStatus = area.directusCatalogStatus
+        const scores = directusStatus?.scores ?? []
+        const completeScores = scores.filter(isMunicipalityScoreComplete)
+        const currentScore = completeScores.find(score => score.catalog_version?.name === catalogRef.value)
+        const oldScore = completeScores.find(score => score.catalog_version?.name !== catalogRef.value)
 
-        if (isCurrentPublished) {
+        if (currentScore) {
           ctaType              = 'complete'
-          _slug                = currentRating.slug
-          scoreDisplay         = currentRating.scoreTotal != null
-            ? `${Math.round(Number(currentRating.scoreTotal))}%`
+          _slug                = directusStatus?.slug ?? currentRating?.slug ?? null
+          const scoreTotal = currentScore?.score_total ?? currentRating?.scoreTotal
+          scoreDisplay         = scoreTotal != null
+            ? `${Math.round(Number(scoreTotal))}%`
             : null
-          scoreTotalColorClass = currentRating.scoreTotal != null
-            ? getScorePercentageColor(parseFloat(currentRating.scoreTotal))
+          scoreTotalColorClass = scoreTotal != null
+            ? getScorePercentageColor(parseFloat(scoreTotal))
             : null
         } else {
           // Check for a published rating from any older catalog
-          const oldRating = allData.find(
-            d => d.slug && d.measureCatalogName !== catalogRef.value && slugs.has(d.slug)
-          )
-          if (oldRating) {
+          const oldRating = allData.find(d => d.measureCatalogName === oldScore?.catalog_version?.name)
+          if (oldScore) {
             ctaType              = 'outdated'
-            _slug                = oldRating.slug
-            _oldCatalogName      = oldRating.measureCatalogName
-            scoreDisplay         = oldRating.scoreTotal != null
-              ? `${Math.round(Number(oldRating.scoreTotal))}%`
+            _slug                = directusStatus?.slug ?? oldRating?.slug ?? null
+            _oldCatalogName      = oldScore.catalog_version?.name ?? null
+            const scoreTotal = oldScore.score_total ?? oldRating?.scoreTotal
+            scoreDisplay         = scoreTotal != null
+              ? `${Math.round(Number(scoreTotal))}%`
               : null
-            scoreTotalColorClass = oldRating.scoreTotal != null
-              ? getScorePercentageColor(parseFloat(oldRating.scoreTotal))
+            scoreTotalColorClass = scoreTotal != null
+              ? getScorePercentageColor(parseFloat(scoreTotal))
               : null
           } else if (currentRating?.slug || area.hasLocalteam) {
             ctaType = 'in-progress'
-            _slug   = currentRating?.slug ?? null
+            _slug   = directusStatus?.slug ?? currentRating?.slug ?? null
           } else if (area.isReasonableForMunicipalRating) {
             ctaType = 'none'
           }
         }
       } else {
-        // No catalog context: original behaviour
+        // Wait for the current catalog before claiming a rating is complete.
         const ratingData = allData.find(d => d.slug)
         _slug = ratingData?.slug ?? null
-        const isPublished = !!(ratingData?.slug && slugs.has(ratingData.slug))
-
-        if (isPublished) {
-          ctaType              = 'complete'
-          scoreDisplay         = ratingData.scoreTotal != null
-            ? `${Math.round(Number(ratingData.scoreTotal))}%`
-            : null
-          scoreTotalColorClass = ratingData.scoreTotal != null
-            ? getScorePercentageColor(parseFloat(ratingData.scoreTotal))
-            : null
-        } else if (ratingData?.slug || area.hasLocalteam) {
+        if (ratingData?.slug || area.hasLocalteam) {
           ctaType = 'in-progress'
         } else if (area.isReasonableForMunicipalRating) {
           ctaType = 'none'
@@ -146,23 +131,33 @@ export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = n
 
     const directusOnly = rawDirectusMunis.value
       .filter(m => m.ars && !areaArsCodes.has(m.ars))
-      .map(m => ({
-        ars:     m.ars,
-        name:    m.name,
-        prefix:  '',
-        level:   5,
-        population: null,
-        isReasonableForMunicipalRating: true,
-        stadtlandklimaDataAll: [],
-        hasLocalteam: !!(m.localteam_id),
-        isMunicipality: true,
-        stateLabel:           getStateFromArs(m.ars) ?? null,
-        typeLabel:            '',
-        ctaType:              'complete',
-        scoreDisplay:         null,
-        scoreTotalColorClass: null,
-        _slug:                m.slug,
-      }))
+      .map(m => {
+        const scores = (m.scores ?? []).filter(isMunicipalityScoreComplete)
+        const currentScore = catalogRef.value
+          ? scores.find(score => score.catalog_version?.name === catalogRef.value)
+          : null
+        const oldScore = catalogRef.value
+          ? scores.find(score => score.catalog_version?.name !== catalogRef.value)
+          : null
+        return {
+          ars: m.ars,
+          name: m.name,
+          prefix: '',
+          level: 5,
+          population: null,
+          isReasonableForMunicipalRating: true,
+          stadtlandklimaDataAll: [],
+          hasLocalteam: !!m.localteam_id,
+          isMunicipality: true,
+          stateLabel: getStateFromArs(m.ars) ?? null,
+          typeLabel: '',
+          ctaType: currentScore ? 'complete' : oldScore ? 'outdated' : m.localteam_id ? 'in-progress' : 'none',
+          scoreDisplay: null,
+          scoreTotalColorClass: null,
+          _slug: m.slug,
+          _oldCatalogName: oldScore?.catalog_version?.name ?? null,
+        }
+      })
 
     return [...directusOnly, ...enrichedAreas]
   })
@@ -219,7 +214,7 @@ export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = n
             status: { _eq: 'published' },
             name:   { _icontains: term.trim() },
           },
-          fields: ['slug', 'name', 'ars', 'localteam_id'],
+          fields: ['slug', 'name', 'ars', 'localteam_id', { scores: ['published', 'percentage_rated', 'score_total', { catalog_version: ['name'] }] }],
           sort:   'name',
           limit:  8,
         })),
@@ -232,8 +227,7 @@ export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = n
       const directusMunis = directusResult.status === 'fulfilled'
         ? (directusResult.value ?? [])
         : []
-      const localteamByArs = {}
-      directusMunis.forEach(m => { if (m.ars && m.localteam_id) localteamByArs[m.ars] = m.localteam_id })
+      const municipalityByArs = new Map(directusMunis.filter(m => m.ars).map(m => [m.ars, m]))
 
       // For municipality ARS codes from StadtLandZahl not covered by the name search,
       // do a secondary lookup so hasLocalteam stays accurate.
@@ -241,22 +235,23 @@ export function useUnifiedSearch({ publishedSlugs = null, catalogVersionName = n
         ? (Array.isArray(areasResult.value) ? areasResult.value : [])
         : []
       const uncoveredArs = nodes
-        .filter(n => (n.level ?? 4) >= 4 && n.ars && !localteamByArs[n.ars])
+        .filter(n => (n.level ?? 4) >= 4 && n.ars && !municipalityByArs.has(n.ars))
         .map(n => n.ars)
       if (uncoveredArs.length > 0) {
         try {
           const rows = await $directus.request($readItems('municipalities', {
             filter: { ars: { _in: uncoveredArs } },
-            fields: ['ars', 'localteam_id'],
+            fields: ['ars', 'slug', 'localteam_id', { scores: ['published', 'percentage_rated', 'score_total', { catalog_version: ['name'] }] }],
             limit:  uncoveredArs.length,
           }))
-          rows.forEach(r => { if (r.ars) localteamByArs[r.ars] = r.localteam_id })
+          rows.forEach(r => { if (r.ars) municipalityByArs.set(r.ars, r) })
         } catch { /* silently ignore — falls back to slug-only detection */ }
       }
 
       rawAreaResults.value = nodes.map(n => ({
         ...n,
-        hasLocalteam: !!(n.ars && localteamByArs[n.ars]),
+        hasLocalteam: !!municipalityByArs.get(n.ars)?.localteam_id,
+        directusCatalogStatus: municipalityByArs.get(n.ars) ?? null,
       }))
       rawDirectusMunis.value  = directusMunis
       rawContentResults.value = contentResult.status === 'fulfilled'

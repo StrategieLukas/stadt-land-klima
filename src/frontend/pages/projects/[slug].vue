@@ -47,6 +47,7 @@
   import { isRaster } from '~/shared/utils';
   import { relationId, visitDaysAway, visitHasEnded } from '~/shared/tour';
   import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
+  import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js';
   const { $directus, $readItems, $t } = useNuxtApp();
 
   const route = useRoute();
@@ -112,7 +113,7 @@
       if (!article.value.municipality_name) return false;
       const results = await $directus.request(
         $readItems("municipalities", {
-          fields: ["slug", "ars", { scores: ["catalog_version", "published"] }],
+          fields: ["slug", "ars", { scores: ["catalog_version", "published", "percentage_rated"] }],
           filter: { name: { _eq: article.value.municipality_name } },
           limit: 1,
         })
@@ -129,7 +130,7 @@
       const catalogVersion = typeof score.catalog_version === 'object'
         ? score.catalog_version?.id
         : score.catalog_version;
-      return catalogVersion === selectedCatalogVersion.id && score.published === true;
+      return catalogVersion === selectedCatalogVersion.id && isMunicipalityScoreComplete(score);
     });
     return publishedScore ? (m.slug ?? null) : (m.ars ?? null);
   });

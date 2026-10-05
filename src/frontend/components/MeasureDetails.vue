@@ -105,6 +105,7 @@
   import { defineProps } from "vue";
   import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils.js";
   import { calculateAndAddSimilarityScores } from "~/shared/compareMunicipalities.js";
+  import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing.js";
   import ratingIcons, { ratingIndex } from "~/shared/ratingIcons.js";
   import { onMounted, onBeforeUnmount, ref } from "vue";
 
@@ -192,7 +193,7 @@
       const scores = row?.localteam_id?.municipality_id?.[0]?.scores ?? [];
       return scores.some((s) => {
         const cv = typeof s.catalog_version === 'object' ? s.catalog_version?.id : s.catalog_version;
-        return cv === props.municipalityScore.catalog_version.id && s.published === true;
+        return cv === props.municipalityScore.catalog_version.id && isMunicipalityScoreComplete(s);
       });
     });
 

@@ -28,7 +28,7 @@
     </div>
   </div>
 
-  <!-- IN_PROGRESS_LOCKED: published but incomplete rating, requires ?preview=true -->
+  <!-- IN_PROGRESS_LOCKED: incomplete rating, requires ?preview=true -->
   <div v-else-if="pageView === PV.IN_PROGRESS_LOCKED" class="mt-10">
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
       &larr; {{ backLabel }}
@@ -121,7 +121,7 @@
 
     <!-- CTA block based on rating completeness -->
     <div class="mb-8">
-      <!-- RATED_COMPLETE (≥98%): contact / feedback -->
+      <!-- RATED_COMPLETE (all measures rated): contact / feedback -->
       <div v-if="pageView === PV.RATED_COMPLETE" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
         <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-80" />
         <h2 class="font-heading text-h2 font-bold text-green mb-2">Mitmachen beim Lokalteam</h2>

@@ -1010,7 +1010,7 @@ export async function runRatingWahlcheckFlow(
 
     const updated = await waitForCurrentScore(
       fixture,
-      (item) => numeric(item.percentage_rated) >= 95 && numeric(item.score_total) >= 99,
+      (item) => numeric(item.percentage_rated) >= 100 && numeric(item.score_total) >= 99,
       'score recalculated after rating updates',
     );
     assertNear(numeric(updated.score_total), 100, 1, 'All applicable automated green ratings should produce a full score');
@@ -1151,6 +1151,33 @@ export async function runRatingWahlcheckFlow(
         assertEqual(score.published, false, `Non-current catalog ${catalogName(score)} must remain unpublished`);
       }
     }
+  });
+
+  await runner.step('Ratings: published score with missing ratings stays in progress and off the ranking', async () => {
+    const score = await currentScore(fixture);
+    const originalPercentage = score.percentage_rated;
+    assertEqual(score.published, true, 'The score must be published before testing detail visibility');
+    assert(originalPercentage != null, 'The original completion percentage must be present');
+
+    try {
+      await fixture.admin.updateItem('municipality_scores', score.id, { percentage_rated: 99 });
+      await assertRankingVisibility(browser, fixture, currentCatalogName, false);
+      const context = await newContext(browser);
+      const page = await context.newPage();
+      try {
+        const url = `${fixture.config.frontendUrl}/municipalities/${fixture.municipality.slug}?v=${encodeURIComponent(currentCatalogName)}`;
+        const lockedText = await openFrontendPage(page, url);
+        assertIncludes(lockedText, 'Bewertung noch in Bearbeitung', 'Published incomplete score must show the locked view');
+        const previewText = await openFrontendPage(page, `${url}&preview=true`);
+        assertIncludes(previewText, 'Lokalteam unterstützen', 'Published incomplete score must keep its in-progress preview');
+        assertIncludes(previewText, fixture.municipalityName, 'In-progress preview must show the municipality');
+      } finally {
+        await context.close();
+      }
+    } finally {
+      await fixture.admin.updateItem('municipality_scores', score.id, { percentage_rated: originalPercentage });
+    }
+    await assertRankingVisibility(browser, fixture, currentCatalogName, true);
   });
 
   await runner.step('Ratings: municipality detail page sector cards and PDF work on desktop and mobile', async () => {

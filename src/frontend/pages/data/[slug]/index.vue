@@ -531,20 +531,20 @@ async function loadNearbyAreasForCurrentArea() {
         .map(async (nearbyArea) => {
           if (nearbyArea.geo_area ?? nearbyArea.geoArea) return nearbyArea;
           try {
-            const nearbySlug = areaToSlug(nearbyArea.prefix ?? "", nearbyArea.name ?? "");
             const withGeo = await $fetch("/api/area-by-slug", {
-              params: { slug: nearbySlug, includeGeo: true },
+              params: { slug: nearbyArea.ars, includeGeo: true, requireGeo: true },
               timeout: 8000,
             });
-            return withGeo ? { ...nearbyArea, ...withGeo } : nearbyArea;
-          } catch {
-            return nearbyArea;
+            return { ...nearbyArea, ...withGeo };
+          } catch (error) {
+            console.warn(`Could not load geometry for nearby area ${nearbyArea.ars}:`, error);
+            return null;
           }
         }),
     );
 
     if (requestId !== nearbyAreasRequestId || requestSlug !== slug.value) return;
-    nearbyAreas.value = enrichedNearbyAreas;
+    nearbyAreas.value = enrichedNearbyAreas.filter(Boolean);
   } catch {
     if (requestId === nearbyAreasRequestId && requestSlug === slug.value) nearbyAreas.value = [];
   } finally {

@@ -10,22 +10,20 @@
  *   'normal'     – level 1-3 regions + reasonable municipalities (used by command palette)
  *   'reasonable' – isReasonableForMunicipalRating only (hero block)
  *   'all'        – no filter (stats page)
- * @param {import('vue').Ref<Set<string>> | Set<string> | null} options.publishedSlugs
- *   Reactive set of published municipality slugs. Used to determine ctaType.
  * @param {import('vue').Ref<string|null> | string | null} options.catalogVersionName
  *   Optional catalog version name to prefer when resolving stadtlandklimaDataAll.
  * @param {import('vue').Ref<string|null> | string | null} options.statusCatalogVersionId
  *   Optional Directus catalog ID. When set, team and publication status are
- *   resolved from Directus for exactly this catalog instead of inferred from slugs.
+ *   resolved from Directus for exactly this catalog.
  */
 import { ref, computed, isRef } from 'vue'
 import lodash from 'lodash'
 const { debounce } = lodash
 import { getScorePercentageColor, getStateFromArs } from '~/shared/utils.js'
+import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js'
 
 export function useAreaSearch({
   mode = 'reasonable',
-  publishedSlugs = null,
   catalogVersionName = null,
   statusCatalogVersionId = null,
 } = {}) {
@@ -39,15 +37,7 @@ export function useAreaSearch({
   const rawResults = ref([])
   const isLoading = ref(false)
 
-  function getSlugSet() {
-    const s = isRef(publishedSlugs) ? publishedSlugs.value : publishedSlugs
-    if (s instanceof Set) return s
-    if (Array.isArray(s)) return new Set(s)
-    return new Set()
-  }
-
   function enrichOne(area) {
-    const slugs = getSlugSet()
     // level is returned by the new AREA_SEARCH_QUERY; fall back to 4 (municipality) for old data
     const level = area.level ?? 4
     // City-states (Hamburg, Berlin, Bremen) are level 2 but still rateable municipalities
@@ -69,14 +59,13 @@ export function useAreaSearch({
       if (catalogRef.value) {
         // With catalog context: check current catalog first, then fall back to older published rating
         const currentRating = allData.find(d => d.measureCatalogName === catalogRef.value && d.slug)
-        const isCurrentPublished = !!(currentRating?.slug && slugs.has(currentRating.slug))
-
         const exactStatus = area.directusCatalogStatus
         const oldRating = allData.find(
-          d => d.slug && d.measureCatalogName !== catalogRef.value && slugs.has(d.slug)
+          d => d.slug && d.measureCatalogName !== catalogRef.value &&
+            exactStatus?.completeCatalogNames?.includes(d.measureCatalogName)
         )
 
-        if (exactStatus?.published === true || (!exactStatus && isCurrentPublished)) {
+        if (exactStatus?.published === true && Number(exactStatus.percentageRated) >= 100) {
           ctaType              = 'complete'
           _slug                = exactStatus?.slug ?? currentRating?.slug ?? null
           const scoreTotal = exactStatus?.scoreTotal ?? currentRating?.scoreTotal
@@ -108,20 +97,10 @@ export function useAreaSearch({
           ctaType = 'none'
         }
       } else {
-        // No catalog context: original behaviour
+        // Wait for the catalog before claiming a rating is complete.
         const ratingData = allData.find(d => d.slug)
         _slug = ratingData?.slug ?? null
-        const isPublished = !!(ratingData?.slug && slugs.has(ratingData.slug))
-
-        if (isPublished) {
-          ctaType              = 'complete'
-          scoreDisplay         = ratingData.scoreTotal != null
-            ? `${Math.round(Number(ratingData.scoreTotal))}%`
-            : null
-          scoreTotalColorClass = ratingData.scoreTotal != null
-            ? getScorePercentageColor(parseFloat(ratingData.scoreTotal))
-            : null
-        } else if (ratingData?.slug || area.hasLocalteam) {
+        if (ratingData?.slug || area.hasLocalteam) {
           ctaType = 'in-progress'
         } else if (area.isReasonableForMunicipalRating) {
           ctaType = 'none'
@@ -142,7 +121,7 @@ export function useAreaSearch({
     }
   }
 
-  /** Computed so enrichment re-runs automatically when publishedSlugs changes asynchronously */
+  /** Computed so enrichment updates when the selected catalog changes. */
   const results = computed(() => rawResults.value.map(enrichOne))
 
   const _doSearch = debounce(async (term) => {
@@ -175,7 +154,7 @@ export function useAreaSearch({
                   'ars',
                   'slug',
                   'localteam_id',
-                  { scores: ['catalog_version', 'published', 'percentage_rated', 'score_total'] },
+                  { scores: ['published', 'percentage_rated', 'score_total', { catalog_version: ['id', 'name'] }] },
                 ],
                 limit: -1,
               }),
@@ -203,6 +182,10 @@ export function useAreaSearch({
               published: score?.published === true,
               percentageRated: score?.percentage_rated ?? null,
               scoreTotal: score?.score_total ?? null,
+              completeCatalogNames: (municipality?.scores ?? [])
+                .filter(isMunicipalityScoreComplete)
+                .map((item) => item.catalog_version?.name)
+                .filter(Boolean),
             },
           }
         })

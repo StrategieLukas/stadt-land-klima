@@ -859,7 +859,7 @@ const { $t, $directus, $readItems } = useNuxtApp();
 import { getCatalogVersion } from "~/composables/getCatalogVersion.js";
 import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions.js";
 import sectorImages from "~/shared/sectorImages.js";
-import { isMunicipalityScorePublished } from "~/shared/municipality-score-publishing.js";
+import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -1089,7 +1089,7 @@ function meanSectorScore(sectorKey) {
 }
 
 // ── Computed ─────────────────────────────────────────────────────────────────
-const visibleMunicipalityScores = computed(() => {
+const publishedMunicipalityScores = computed(() => {
   if (!statsData.value) return [];
   return statsData.value.municipalityScores.filter((ms) => {
     if (!ms.municipality || !isMunicipalityScorePublished(ms)) return false;
@@ -1098,6 +1098,8 @@ const visibleMunicipalityScores = computed(() => {
     return true;
   });
 });
+
+const visibleMunicipalityScores = computed(() => publishedMunicipalityScores.value.filter(isMunicipalityScoreComplete));
 
 const filteredMunScores = computed(() => visibleMunicipalityScores.value);
 
@@ -1122,9 +1124,9 @@ const kpi = computed(() => {
   }
   const { municipalities, measures, ratings } = statsData.value;
   const completed = filteredMunScores.value;
-  const halfRatedProgress = visibleMunicipalityScores.value.filter((ms) => {
+  const halfRatedProgress = publishedMunicipalityScores.value.filter((ms) => {
     const percentage = parseFloat(ms.percentage_rated);
-    return !isNaN(percentage) && percentage >= 1 && percentage < 98;
+    return !isNaN(percentage) && percentage >= 1 && percentage < 100;
   });
   // Count ratings that are filled (rating != null OR applicable == false) for completed municipalities
   const ltSet = new Set();

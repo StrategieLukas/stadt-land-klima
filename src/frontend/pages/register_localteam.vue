@@ -120,7 +120,7 @@
         </div>
 
         <!-- Already has a local team → contact prompt -->
-        <!-- Case 1: Current backend catalog rating is published -->
+        <!-- Case 1: Current backend catalog rating is published and complete -->
         <div v-if="ratingState === 'complete'" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
           <div class="flex items-start gap-3 sm:gap-4 mb-5">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
@@ -278,7 +278,7 @@ const geoLoading = ref(false)
 
 const ratingState = computed<'none' | 'not-started' | 'in-progress' | 'complete'>(() => {
   if (!hasExistingTeam.value) return 'none'
-  if (existingScorePublished.value) return 'complete'
+  if (existingScorePublished.value && Number(existingPercentageRated.value) >= 100) return 'complete'
   if (Number(existingPercentageRated.value ?? 0) > 0) return 'in-progress'
   return 'not-started'
 })

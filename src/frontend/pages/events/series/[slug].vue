@@ -347,7 +347,6 @@ function syncStopWithScroll() {
   }
   if (!hasEnteredMap) {
     hasEnteredMap = true;
-    tourMapRef.value?.focusStop(index);
     history.replaceState(null, "", `#stop-${stops.value[index].slug}`);
   }
   if (index === activeStop.value) return;
@@ -654,7 +653,7 @@ useHead({ title: series.value.title });
 .tour-explorer__map { width: 100%; height: var(--scene-height); }
 .tour-explorer__scene.is-ready .tour-explorer__map { height: 100%; }
 .tour-explorer__track { position: relative; z-index: 2; margin: calc(-1 * var(--scene-height)) 0 0; padding: 0; list-style: none; pointer-events: none; }
-.tour-explorer__waypoint { position: relative; height: max(34rem, 82svh); scroll-margin-top: calc(var(--tour-header) + var(--tour-local-header-height)); }
+.tour-explorer__waypoint { position: relative; height: max(30rem, 65svh); scroll-margin-top: calc(var(--tour-header) + var(--tour-local-header-height)); }
 .tour-explorer__scrolly.is-collapsed .tour-explorer__scene { position: relative; top: auto; height: auto; overflow: visible; }
 .tour-explorer__scrolly.is-collapsed .tour-collage { scroll-margin-top: calc(var(--tour-header) + var(--tour-local-header-height) + 1rem); }
 .tour-explorer__cards { position: relative; z-index: 500; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr)); gap: 2rem; padding: 2rem clamp(1rem, 4vw, 4rem); }
