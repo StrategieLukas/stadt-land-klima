@@ -35,6 +35,10 @@
 
     <div v-if="uploadError" class="error-msg">{{ uploadError }}</div>
 
+    <div v-if="pendingCredits" class="credits-pending-note">
+      <strong>Credits (werden nach dem ersten Speichern übernommen):</strong> {{ pendingCredits }}
+    </div>
+
     <!-- Directus library browser modal -->
     <div v-if="libraryOpen" class="modal-overlay" @click.self="closeLibrary">
       <div class="modal">
@@ -174,7 +178,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, type Ref } from 'vue';
+import { ref, computed, inject, watch, type Ref } from 'vue';
 import type { DirectusFile, UnsplashPhoto, UnsplashSearchResponse } from '../types';
 import { directusUrl } from '../directus-url';
 
@@ -185,6 +189,9 @@ const props = defineProps<{
   disabled?: boolean;
   folder?: string | null;
   letterbox?: boolean;
+  creditsField?: string;
+  collection?: string | null;
+  primaryKey?: string | number | null;
 }>();
 
 const emit = defineEmits<{
@@ -197,7 +204,28 @@ const api = inject<{
   };
   get: (path: string, config?: { params?: Record<string, unknown> }) => Promise<{ data?: unknown }>;
   post: (path: string, data?: unknown) => Promise<{ data?: { data?: { id?: string } } }>;
+  patch: (path: string, data?: unknown) => Promise<unknown>;
 }>('api');
+
+const pendingCredits: Ref<string | null> = ref(null);
+
+async function writeCreditsToItem(primaryKey: string | number, credits: string): Promise<void> {
+  if (!api || !props.collection || primaryKey === '+') return;
+  try {
+    await api.patch(`/items/${props.collection}/${primaryKey}`, {
+      [props.creditsField || 'image_credits']: credits,
+    });
+  } catch {
+    // Editors can still fill in credits manually if the item update fails.
+  }
+}
+
+watch(() => props.primaryKey, async (primaryKey) => {
+  if (primaryKey && primaryKey !== '+' && pendingCredits.value) {
+    await writeCreditsToItem(primaryKey, pendingCredits.value);
+    pendingCredits.value = null;
+  }
+});
 
 // ─── Current image ────────────────────────────────────────────────────────────
 
@@ -383,11 +411,13 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
   uploadError.value = null;
 
   try {
+    const credits = `Photo: ${photo.user.name} on Unsplash`;
     const importPayload = {
       url: photo.urls.regular,
       data: {
         title: photo.description || `Unsplash photo by ${photo.user.name}`,
-        image_credits: `Photo: ${photo.user.name} on Unsplash`,
+        description: credits,
+        image_credits: credits,
         ...(props.folder ? { folder: props.folder } : {}),
       },
     };
@@ -396,6 +426,11 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
     if (fileId) {
       emit('input', fileId);
       closeUnsplash();
+      if (props.primaryKey && props.primaryKey !== '+') {
+        await writeCreditsToItem(props.primaryKey, credits);
+      } else {
+        pendingCredits.value = credits;
+      }
     } else {
       uploadError.value = 'Import succeeded but no file ID was returned.';
     }
@@ -487,6 +522,15 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
 .error-msg {
   margin-top: 8px;
   color: var(--theme--danger, #e35169);
+  font-size: 13px;
+}
+
+.credits-pending-note {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: var(--theme--border-radius);
+  background: var(--theme--background-subdued);
+  color: var(--theme--foreground-subdued);
   font-size: 13px;
 }
 

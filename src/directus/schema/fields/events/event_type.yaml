@@ -13,6 +13,8 @@ meta:
         value: workshop
       - text: Webinar
         value: webinar
+      - text: Tourstation
+        value: tour_stop
       - text: Sonstiges
         value: other
   field: event_type
@@ -28,6 +30,8 @@ meta:
         value: workshop
       - text: Webinar
         value: webinar
+      - text: Tourstation
+        value: tour_stop
       - text: Sonstiges
         value: other
   readonly: false

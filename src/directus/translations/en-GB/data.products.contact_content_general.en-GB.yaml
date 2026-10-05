@@ -1,0 +1,6 @@
+language: en-GB
+key: data.products.contact_content_general
+value: |
+  Page: :url
+
+  My feedback:

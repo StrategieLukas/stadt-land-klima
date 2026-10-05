@@ -6,11 +6,14 @@
     >
       <!-- Background image (droppable zone) -->
       <div v-blokkli-droppable:imageId class="absolute inset-0 z-0">
-        <img
-          v-if="imageUrl"
-          :src="imageUrl"
+        <SmartImg
+          v-if="props.imageId"
+          :asset-id="props.imageId"
           alt=""
-          class="w-full h-full object-cover"
+          img-class="w-full h-full object-cover"
+          :width="1920"
+          :quality="80"
+          fit="cover"
         />
         <div
           v-else

@@ -40,9 +40,13 @@
           </div>
         </li>
       </ul>
-      <ul class="mb-8 divide-y-2 divide-slate-300">
+      <ul class="mb-8">
         <li v-for="item in sectorRatings" :key="item.id">
-          <div class="collapse-plus collapse rounded-none" :name="`measure-${item.measure.measure_id}`">
+          <div
+            class="slk-measure-row collapse-plus collapse rounded-none"
+            :class="isUnrated(item) ? 'border-b border-dashed border-gray-300' : 'border-b-2 border-slate-300'"
+            :name="`measure-${item.measure.measure_id}`"
+          >
             <input
               type="checkbox"
               :id="`rating-${item.id}-accordion`"
@@ -51,20 +55,30 @@
             />
 
             <!-- Header -->
+            <!-- isUnrated: rating not yet given but measure is not explicitly N/A (applicable!==false) -->
+            <!-- Not-applicable (applicable===false) keeps the rating-na-light gray for clear visual distinction -->
             <div
               :class="[
-                `bg-${getRatingDecimalColor(item.rating)}-light`,
+                isUnrated(item)
+                  ? 'bg-base-100'
+                  : `bg-${getRatingDecimalColor(item.rating)}-light`,
                 'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4'
               ]"
             >
               <div class="shrink-0">
                 <img
+                  v-if="isUnrated(item)"
+                  src="~/assets/icons/icon_location.svg"
+                  class="my-auto h-auto w-5 opacity-40"
+                />
+                <img
+                  v-else
                   :src="ratingIcons[ratingIndex(item.rating)]"
                   class="my-auto h-auto w-5"
                 />
               </div>
 
-              <h3 class="font-heading text-h3 text-black font-medium">
+              <h3 :class="['font-heading text-h3 font-medium', isUnrated(item) ? 'text-mid-gray italic' : 'text-black']">
                 {{ item.measure.name }}
               </h3>
             </div>
@@ -72,7 +86,7 @@
             <!-- Content (lazy loaded) -->
             <div
               :class="[
-                  `bg-${getRatingDecimalColor(item.rating)}-very-light`,
+                  isUnrated(item) ? 'bg-base-100' : `bg-${getRatingDecimalColor(item.rating)}-very-light`,
                   'collapse-content md:px-12 lg:px-12'
                 ]"
             >
@@ -100,6 +114,15 @@ import { getRatingDecimalColor } from "~/shared/utils.js";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
 import { reactive, computed, onMounted, nextTick, watch } from 'vue'
+
+/**
+ * True when a measure has not yet been rated AND is not explicitly marked as not-applicable.
+ * Contrast: applicable===false = "nicht anwendbar" (N/A, gray) — a deliberate decision.
+ * Unrated items get an inactive/faded look while remaining openable.
+ */
+function isUnrated(item) {
+  return item.rating === null && item.applicable !== false
+}
 
 // Track which collapses are open
 const openItems = reactive({})
@@ -252,6 +275,12 @@ onMounted(() => {
         openItems[measureID] = true
       }
     }
+
+    // Reset to the very top first so getBoundingClientRect() is calculated
+    // from a known baseline (scrollY = 0), then scroll to the element.
+    // Without this, a stale scrollY from the previous page can produce
+    // an incorrect target offset in scrollToElement.
+    window.scrollTo(0, 0)
 
     // Jump instantly after a short settle — avoids the jarring slow scroll
     // from the very top on initial page load.

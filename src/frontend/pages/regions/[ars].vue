@@ -103,7 +103,7 @@
             </NuxtLink>
             <NuxtLink
               v-else
-              :to="`/stats/${muni.ars}`"
+              :to="`/data/${muni.ars}`"
               class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors whitespace-nowrap"
             >
               {{ t('stats.view_stats') }}
@@ -140,7 +140,7 @@
               <p class="text-xs text-gray-400">{{ muni.prefix }}</p>
             </div>
             <NuxtLink
-              :to="`/stats/${muni.ars}`"
+              :to="`/data/${muni.ars}`"
               class="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors whitespace-nowrap"
             >
               {{ t('stats.view_stats') }}
@@ -238,9 +238,9 @@ onMounted(async () => {
     const areaData = await $stadtlandzahlAPI.fetchStatsByARS(route.params.ars);
 
     if (areaData) {
-      // If someone navigates here directly with a level 4+ ARS, redirect to /stats/
+      // If someone navigates here directly with a level 4+ ARS, redirect to /data/
       if (areaData.level >= 4) {
-        await navigateTo(`/stats/${route.params.ars}`, { replace: true });
+        await navigateTo(`/data/${route.params.ars}`, { replace: true });
         return;
       }
       area.value = areaData;

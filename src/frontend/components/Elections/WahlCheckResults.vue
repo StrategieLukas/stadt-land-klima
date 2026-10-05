@@ -201,7 +201,7 @@
                     :title="$t(isPartyElection ? 'elections.wahlcheck.results.party_rating_title' : 'elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
                   ></div>
                   <div v-else class="w-6 h-6 rounded-full bg-solid-gray-20 flex-shrink-0"></div>
-                  
+
                   <button
                     v-if="getCandidateAnswer(result.candidateId, question.id)"
                     type="button"

@@ -32,6 +32,21 @@
         </button>
       </template>
 
+      <!-- Outdated: old catalog score chip + update CTA -->
+      <template v-else-if="result.ctaType === 'outdated'">
+        <span
+          class="text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
+          style="background-color: #fef3c7; color: #92400e;"
+        >{{ result.scoreDisplay }} ({{ $t('search.rating.old') }})</span>
+        <button
+          type="button"
+          class="text-xs bg-olive-green/10 text-olive-green border border-olive-green/30 px-2 py-0.5 rounded-full whitespace-nowrap hover:bg-olive-green/20 transition-colors"
+          @click.stop="$emit('chip-action', { action: 'update', ars: result.ars, result })"
+        >
+          {{ $t('search.rating.update') }}
+        </button>
+      </template>
+
       <!-- Localteam exists, but the current catalog has not been started -->
       <template v-else-if="result.ctaType === 'not-started'">
         <span class="bg-gray-100 text-gray-700 whitespace-nowrap rounded-full px-2 py-0.5 text-xs">

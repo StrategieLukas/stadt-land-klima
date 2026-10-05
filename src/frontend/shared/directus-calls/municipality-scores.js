@@ -18,7 +18,7 @@ export async function fetchFullMunicipalityScores($directus, $readItems, slug, c
 
   return $directus.request(
       $readItems("municipality_scores", {
-        fields: ["*", { municipality: ["*"]}, { catalog_version: ["*"]}],
+        fields: ["*", { municipality: ["*", { localteam_id: ["id", "date_created"] }]}, { catalog_version: ["*"]}],
         filter: { catalog_version: { _eq: catalogVersionId }, municipality: { slug: { _eq: slug } }},
         limit: 1,
       }),

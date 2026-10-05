@@ -5,6 +5,7 @@ type DirectusEventResponse = {
 };
 
 type CalendarEvent = {
+  date_only: boolean;
   description: string | null;
   end_date: string | null;
   id: string;
@@ -14,7 +15,7 @@ type CalendarEvent = {
   title: string;
 };
 
-const EVENT_FIELDS = ["id", "title", "slug", "description", "start_date", "end_date", "location"] as const;
+const EVENT_FIELDS = ["id", "title", "slug", "description", "start_date", "end_date", "date_only", "location"] as const;
 const ICS_LINE_ENDING = "\r\n";
 
 function escapeIcsText(value: string): string {
@@ -55,6 +56,19 @@ function formatIcsDate(value: string | Date): string {
     .toISOString()
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}Z$/, "Z");
+}
+
+function formatIcsBerlinDay(value: Date): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(value);
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}${part("month")}${part("day")}`;
+}
+
+function nextIcsDay(value: string): string {
+  const date = new Date(Date.UTC(Number(value.slice(0, 4)), Number(value.slice(4, 6)) - 1, Number(value.slice(6, 8)) + 1));
+  return date.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
 function stripHtml(value: string | null): string {
@@ -153,10 +167,13 @@ function buildIcs(eventItem: CalendarEvent, eventUrl: string): string {
     "BEGIN:VEVENT",
     `UID:event-${eventItem.id}@stadt-land-klima.de`,
     `DTSTAMP:${formatIcsDate(now)}`,
-    `DTSTART:${formatIcsDate(start)}`,
+    eventItem.date_only ? `DTSTART;VALUE=DATE:${formatIcsBerlinDay(start)}` : `DTSTART:${formatIcsDate(start)}`,
   ];
 
-  if (end && !Number.isNaN(end.getTime()) && end.getTime() > start.getTime()) {
+  if (eventItem.date_only) {
+    const finalDay = end && !Number.isNaN(end.getTime()) && end > start ? formatIcsBerlinDay(end) : formatIcsBerlinDay(start);
+    lines.push(`DTEND;VALUE=DATE:${nextIcsDay(finalDay)}`);
+  } else if (end && !Number.isNaN(end.getTime()) && end.getTime() > start.getTime()) {
     lines.push(`DTEND:${formatIcsDate(end)}`);
   }
 

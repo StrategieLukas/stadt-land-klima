@@ -1,15 +1,14 @@
 <template>
   <div class="w-full px-4 sm:px-8 py-8 pb-16">
-    <h1 class="text-h1 font-bold text-center mb-4">{{ $t("organisation.title") }}</h1>
-
-    <!-- Intro text -->
-    <div class="max-w-2xl mx-auto text-center mb-10">
-      <h2 class="text-h2 font-bold mb-2">{{ $t("organisation.teams.title") }}</h2>
-      <p class="text-base text-gray">
+    <header class="mb-10">
+      <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("organisation.title") }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">
         {{ $t("organisation.teams.description") }}
       </p>
-      <p class="mt-2 text-sm italic text-gray-400">{{ $t("organisation.teams.bubble_hint") }}</p>
-    </div>
+    </header>
+
+    <h2 class="mb-2 font-heading text-3xl font-bold text-gray">{{ $t("organisation.teams.title") }}</h2>
+    <p class="mb-8 text-sm italic text-gray">{{ $t("organisation.teams.bubble_hint") }}</p>
 
     <div class="flex flex-col lg:flex-row gap-8 items-start">
       <!-- ── Bubble chart ─────────────────────────────────────────────────────── -->
@@ -107,7 +106,7 @@
               class="px-4 py-3"
               :style="{ background: teamTint(activeTeam.color, 0.13), borderBottom: '2px solid ' + activeTeam.color }"
             >
-              <h2 class="font-bold text-[15px]" :style="{ color: 'var(--slk-text-strong)' }">{{ activeTeam.label }}</h2>
+              <h2 class="font-bold text-[15px] text-gray">{{ activeTeam.label }}</h2>
               <a
                 v-if="activeTeam.email"
                 :href="'mailto:' + activeTeam.email"
@@ -183,7 +182,7 @@
 
     <!-- ── All members list (below chart) ─────────────────────────────────── -->
     <div v-if="members && members.length" class="mt-12">
-      <h2 class="text-h2 font-bold mb-6">{{ $t("organisation.all_members") }}</h2>
+      <h2 class="text-h2 font-bold mb-6 text-gray">{{ $t("organisation.all_members") }}</h2>
 
       <!-- Active-team members first (coloured border highlight) -->
       <template v-if="activeTeam && filteredMembers.length">

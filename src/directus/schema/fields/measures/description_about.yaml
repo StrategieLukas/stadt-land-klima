@@ -37,7 +37,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Was beinhaltet diese Maßnahme?  Um was geht es?
+      translation: Was beinhaltet diese Maßnahme? Um was geht es?
   validation: null
   validation_message: null
   width: full

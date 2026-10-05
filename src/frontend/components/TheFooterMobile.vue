@@ -1,6 +1,7 @@
 <template>
   <!-- Social Media & Onboarding Section -->
-  <div class="mx-auto mb-8 max-w-screen-xl text-center">
+  <div class="w-full bg-gray-100">
+  <div class="max-w-screen-xl mx-auto text-center py-8">
     <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
       <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
     </NuxtLink>
@@ -31,11 +32,19 @@
       </a>
     </div>
   </div>
+  </div>
 
   <!-- Main Footer -->
-  <footer class="footer-vertical footer bg-olive-green p-6 pb-[84px] text-white sm:pb-6">
+  <footer class="footer-vertical footer relative isolate overflow-hidden bg-olive-green p-6 pb-[84px] text-white sm:pb-6">
+    <img
+      src="~/assets/images/Stadt-Land-Klima-Blume.svg"
+      alt=""
+      aria-hidden="true"
+      class="pointer-events-none absolute left-1/2 top-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 select-none brightness-0 invert opacity-[0.08]"
+    />
+
     <!-- Newsletter Signup -->
-    <div class="mb-6 w-full border-b border-rating-4-light pb-6">
+    <div class="relative z-10 mb-8 w-full">
       <h3 class="mb-0.5 text-base font-bold">Newsletter</h3>
       <p class="mb-3 text-sm text-rating-4-very-light">{{ $t("newsletter.footer.description") }}</p>
       <div v-if="newsletterState === 'success'" class="flex items-center gap-2 text-sm font-medium">
@@ -70,7 +79,7 @@
     </div>
 
     <!-- Navigation Links: footer_columns -->
-    <div v-if="footerColumnsData.length > 0" class="mb-6 !block w-full">
+    <div v-if="footerColumnsData.length > 0" class="relative z-10 mb-8 !block w-full">
       <div class="grid grid-cols-1 gap-4 xs:grid-cols-2 xs:gap-6">
         <nav v-for="col in footerColumnsData" :key="col.id" class="flex flex-col gap-2">
           <h6 class="footer-title mb-2 text-sm font-bold text-white opacity-100">
@@ -93,26 +102,28 @@
       </div>
     </div>
 
+    <!-- Condensed organisation details -->
+    <div class="relative z-10 mb-8 w-full">
+      <FooterOrganizationDetails />
+    </div>
+
     <!-- Bottom Section: Logo, Buttons, Copyright -->
-    <div class="flex w-full flex-col gap-6">
-      <div
-        class="flex w-full flex-col items-center gap-4 border-t border-rating-4-light py-6 xs:flex-row xs:justify-between md:border-t-0"
-      >
+    <div class="relative z-10 flex w-full flex-col gap-6">
+      <div class="flex w-full flex-col items-center gap-4 pb-4 pt-2">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex w-full justify-center xs:w-auto xs:justify-start">
-          <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-12 w-auto dark:hidden" :alt="$t('logo.alt')" />
+        <NuxtLink to="/" class="flex justify-center">
+          <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-16 w-auto dark:hidden" :alt="$t('logo.alt')" />
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
-            class="hidden h-12 w-auto dark:block"
+            class="hidden h-16 w-auto dark:block"
             :alt="$t('logo.alt')"
           />
         </NuxtLink>
 
         <!-- Footer actions -->
-        <div class="flex flex-col items-center gap-3 xs:flex-row">
-          <LanguageSelector />
-          <DonateButton />
-          <LoginButton />
+        <div class="flex w-full max-w-[180px] flex-col gap-3">
+          <DonateButton class="w-full" />
+          <LoginButton class="w-full" />
         </div>
       </div>
 
@@ -143,7 +154,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import DonateButton from "~/components/DonateButton.vue";
-import LanguageSelector from "~/components/LanguageSelector.vue";
 import LoginButton from "~/components/LoginButton.vue";
 import AuthLoginModal from "~/components/AuthLoginModal.vue";
 import { useAuth } from "~/composables/useAuth";

@@ -6,50 +6,78 @@
       class="settings-trigger"
       :class="{ 'settings-trigger--open': isOpen }"
       :aria-expanded="isOpen"
+      aria-haspopup="dialog"
       :aria-label="$t('settings.label')"
       @click="toggle"
     >
-      <!-- Sun icon (light mode) -->
-      <svg
-        v-if="!isDark"
-        class="settings-trigger__icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="4" />
-        <path
-          d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
-        />
-      </svg>
-      <!-- Moon icon (dark mode) -->
-      <svg
-        v-else
-        class="settings-trigger__icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        aria-hidden="true"
-      >
-        <path d="M20.35 15.35A8 8 0 0 1 8.65 3.65A8.5 8.5 0 1 0 20.35 15.35Z" />
-      </svg>
+      <!-- Theme icon: ClientOnly to avoid SSR/client hydration mismatch
+           (server always renders light, client may have dark from localStorage) -->
+      <ClientOnly>
+        <!-- Sun icon (light mode) -->
+        <svg
+          v-if="!isDark"
+          class="settings-trigger__icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+          />
+        </svg>
+        <!-- Moon icon (dark mode) -->
+        <svg
+          v-else
+          class="settings-trigger__icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="M20.35 15.35A8 8 0 0 1 8.65 3.65A8.5 8.5 0 1 0 20.35 15.35Z" />
+        </svg>
+        <!-- Fallback: sun icon shown during SSR and initial hydration (matches server render) -->
+        <template #fallback>
+          <svg
+            class="settings-trigger__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+            />
+          </svg>
+        </template>
+      </ClientOnly>
       <!-- Divider line -->
       <span class="settings-trigger__divider" aria-hidden="true" />
       <!-- Current language code -->
       <span class="settings-trigger__lang" aria-hidden="true">{{ currentLocaleShort }}</span>
+      <svg
+        class="settings-trigger__chevron"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <path d="m4 6 4 4 4-4" />
+      </svg>
     </button>
 
     <!-- Dropdown panel -->
     <Transition name="settings-panel">
-      <div
-        v-if="isOpen"
-        class="settings-panel"
-        role="dialog"
-        :aria-label="$t('settings.label')"
-      >
+      <div v-if="isOpen" class="settings-panel" role="dialog" :aria-label="$t('settings.label')">
         <!-- Theme section -->
         <div class="settings-panel__section">
           <ThemeToggle />
@@ -154,17 +182,27 @@ onUnmounted(() => document.removeEventListener("click", handleOutside, true));
   line-height: 1;
 }
 
+.settings-trigger__chevron {
+  height: 0.75rem;
+  width: 0.75rem;
+  transition: transform 160ms ease;
+}
+
+.settings-trigger--open .settings-trigger__chevron {
+  transform: rotate(180deg);
+}
+
 /* Dropdown panel */
 .settings-panel {
   background: var(--slk-surface);
   border: 1.5px solid var(--slk-border);
   border-radius: 0.875rem;
-  box-shadow: 0 8px 24px var(--slk-shadow-color);
-  min-width: 13rem;
-  padding: 0.5rem;
+  box-shadow: 0 2px 6px rgba(16, 24, 32, 0.08);
+  padding: 0.375rem;
   position: absolute;
   right: 0;
   top: calc(100% + 0.5rem);
+  width: max-content;
   z-index: 10001;
 }
 
@@ -172,7 +210,7 @@ onUnmounted(() => document.removeEventListener("click", handleOutside, true));
   align-items: center;
   display: flex;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.25rem;
 }
 
 .settings-panel__divider {

@@ -47,7 +47,7 @@ export default defineNitroPlugin(async () => {
   }
 
   const directus = createDirectus(
-    (config.public.serverDirectusUrl as string) || 'http://directus:8055',
+    (config.directusServerUrl as string) || 'http://directus:8055',
   )
     .with(rest())
     .with(staticToken(config.public.directusToken as string))

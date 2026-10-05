@@ -1,16 +1,15 @@
 <template lang="">
   <div
-    class="slk-ranking-card relative mb-3 flex items-stretch gap-4 bg-opacity-10 py-5 pl-10 pr-4"
+    class="relative mb-3 flex items-stretch gap-4 bg-opacity-10 py-5 pl-10 pr-4"
     :class="[isRanking ? 'shadow-list' : '', colorClass.bg]"
   >
     <div class="relative h-full pt-6">
       <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
-      <div
-        class="absolute top-0 w-full whitespace-nowrap break-keep text-center font-heading text-3xl font-bold text-black"
-      >
-        {{ municipalityScore.rank || "?" }}
+      <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black break-keep whitespace-nowrap">
+        {{ municipalityScore.rank > 0 ? municipalityScore.rank : "?" }}
       </div>
+
     </div>
 
     <div class="grow">
@@ -23,13 +22,34 @@
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
 
+    
     <div v-if="isRanking" class="flex items-start">
-      <img src="~/assets/icons/icon_chevron_right.svg" class="h-auto w-4" />
+      <svg
+        class="h-6 w-4 text-black dark:text-white"
+        viewBox="0 0 14 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <path d="M1 1l12 11L1 23" />
+      </svg>
     </div>
-    <button v-else @click="fetchPDF()" class="flex h-10 items-center justify-end bg-gray p-4 text-white">PDF</button>
+    <button
+      v-else
+      type="button"
+      :disabled="isGeneratingPdf"
+      @click="fetchPDF"
+      class="flex h-10 w-16 items-center justify-center bg-gray text-white disabled:cursor-wait disabled:opacity-70"
+    >
+      <SlkFlowerSpinner v-if="isGeneratingPdf" :size="20" color="#fbfbfb" />
+      <span v-else>PDF</span>
+    </button>
+    
   </div>
 </template>
 <script setup>
+
 const props = defineProps({
   municipalityScore: {
     type: Object,
@@ -45,11 +65,11 @@ const municipality = props.municipalityScore.municipality;
 const scoreTotalRounded = Math.round(Number(props.municipalityScore.score_total) * 10) / 10;
 
 const colors = {
-  0: { bg: "bg-rating-0 slk-ranking-card--rating-0" },
-  20: { bg: "bg-rating-1 slk-ranking-card--rating-1" },
-  40: { bg: "bg-rating-2 slk-ranking-card--rating-2" },
-  60: { bg: "bg-rating-3 slk-ranking-card--rating-3" },
-  80: { bg: "bg-rating-4 slk-ranking-card--rating-4" },
+  0: { bg: "bg-rating-0" },
+  20: { bg: "bg-rating-1" },
+  40: { bg: "bg-rating-2" },
+  60: { bg: "bg-rating-3" },
+  80: { bg: "bg-rating-4" },
 };
 
 const colorClass = computed(() => {
@@ -67,35 +87,40 @@ const colorClass = computed(() => {
 });
 
 const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config
+const isGeneratingPdf = ref(false);
 
 async function fetchPDF() {
-  console.log("municipality: ", municipality);
+  if (isGeneratingPdf.value) return;
+  console.log("municipality: ", municipality)
   if (!municipality.slug) return;
 
+  isGeneratingPdf.value = true;
   try {
     const baseUrl = config.public.clientDirectusUrl;
     const token = config.public.directusToken;
 
-    const response = await fetch(
-      `${baseUrl}/pdf-service/municipality/${municipality.slug}/${props.municipalityScore.catalog_version.name}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ slug: municipality.slug }),
+    const response = await fetch(`${baseUrl}/pdf-service/municipality/${municipality.slug}/${props.municipalityScore.catalog_version.name}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({ slug: municipality.slug }),
+    });
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
+    window.open(url, '_blank');
+
   } catch (err) {
-    console.error("Error fetching PDF:", err);
+    console.error('Error fetching PDF:', err);
+  } finally {
+    isGeneratingPdf.value = false;
   }
 }
+
+
 </script>
 <style lang=""></style>

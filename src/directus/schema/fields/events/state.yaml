@@ -1,0 +1,75 @@
+collection: events
+field: state
+type: string
+meta:
+  collection: events
+  conditions: null
+  display: null
+  display_options: null
+  field: state
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: null
+  options:
+    choices:
+    - text: $t:states.bayern
+      value: Bayern
+    - text: $t:states.niedersachsen
+      value: Niedersachsen
+    - text: $t:states.baden_wuerttemberg
+      value: Baden-Württemberg
+    - text: $t:states.nordrhein_westfalen
+      value: Nordrhein-Westfalen
+    - text: $t:states.brandenburg
+      value: Brandenburg
+    - text: $t:states.mecklenburg_vorpommern
+      value: Mecklenburg-Vorpommern
+    - text: $t:states.hessen
+      value: Hessen
+    - text: $t:states.sachsen_anhalt
+      value: Sachsen-Anhalt
+    - text: $t:states.rheinland_pfalz
+      value: Rheinland-Pfalz
+    - text: $t:states.sachsen
+      value: Sachsen
+    - text: $t:states.thueringen
+      value: Thüringen
+    - text: $t:states.schleswig_holstein
+      value: Schleswig-Holstein
+    - text: $t:states.saarland
+      value: Saarland
+    - text: $t:states.berlin
+      value: Berlin
+    - text: $t:states.hamburg
+      value: Hamburg
+    - text: $t:states.bremen
+      value: Bremen
+  readonly: false
+  required: false
+  searchable: true
+  sort: 20
+  special: null
+  translations:
+  - language: de-DE
+    translation: Bundesland
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: state
+  table: events
+  data_type: character varying
+  default_value: null
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

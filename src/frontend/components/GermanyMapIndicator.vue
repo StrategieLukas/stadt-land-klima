@@ -3,16 +3,16 @@
     :viewBox="`0 0 ${SVG_W} ${SVG_H}`"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
-    class="block"
-    :style="{ width: size + 'px', height: 'auto' }"
+    class="germany-map-indicator block"
+    :style="indicatorStyle"
   >
     <!-- State shapes rendered from real GeoJSON -->
     <path
       v-for="(d, i) in statePaths"
       :key="i"
       :d="d"
-      :fill="fillColor"
-      :stroke="strokeColor"
+      fill="var(--germany-map-fill)"
+      stroke="var(--germany-map-stroke)"
       stroke-width="0.5"
       stroke-linejoin="round"
       stroke-linecap="round"
@@ -21,13 +21,13 @@
     <!-- Marker: only shown when lat/lon are valid and within Germany -->
     <template v-if="markerX !== null && markerY !== null">
       <!-- Outer glow ring -->
-      <circle :cx="markerX" :cy="markerY" r="4" :fill="markerColor" fill-opacity="0.2" />
+      <circle :cx="markerX" :cy="markerY" r="4" fill="var(--germany-map-marker)" fill-opacity="0.2" />
       <!-- Outer filled ring -->
-      <circle :cx="markerX" :cy="markerY" r="2.8" :fill="markerColor" />
-      <!-- White inner -->
-      <circle :cx="markerX" :cy="markerY" r="1.4" fill="white" />
+      <circle :cx="markerX" :cy="markerY" r="2.8" fill="var(--germany-map-marker)" />
+      <!-- Contrasting inner -->
+      <circle :cx="markerX" :cy="markerY" r="1.4" fill="var(--germany-map-marker-inner)" />
       <!-- Center dot -->
-      <circle :cx="markerX" :cy="markerY" r="0.6" :fill="markerColor" />
+      <circle :cx="markerX" :cy="markerY" r="0.6" fill="var(--germany-map-marker)" />
     </template>
   </svg>
 </template>
@@ -95,7 +95,24 @@ const props = defineProps({
   strokeColor: { type: String, default: '#93c5fd' },
   /** Marker color */
   markerColor: { type: String, default: '#006e94' },
+  /** State fill color in dark mode */
+  darkFillColor: { type: String, default: 'var(--slk-blue-tint)' },
+  /** State stroke color in dark mode */
+  darkStrokeColor: { type: String, default: 'var(--slk-blue)' },
+  /** Marker color in dark mode */
+  darkMarkerColor: { type: String, default: 'var(--slk-blue-bright)' },
 });
+
+const indicatorStyle = computed(() => ({
+  width: `${props.size}px`,
+  height: 'auto',
+  '--germany-map-fill-light': props.fillColor,
+  '--germany-map-stroke-light': props.strokeColor,
+  '--germany-map-marker-light': props.markerColor,
+  '--germany-map-fill-dark': props.darkFillColor,
+  '--germany-map-stroke-dark': props.darkStrokeColor,
+  '--germany-map-marker-dark': props.darkMarkerColor,
+}));
 
 const markerX = computed(() => {
   if (props.lon == null) return null;
@@ -109,3 +126,19 @@ const markerY = computed(() => {
   return y >= 0 && y <= 100 ? y : null;
 });
 </script>
+
+<style>
+.germany-map-indicator {
+  --germany-map-fill: var(--germany-map-fill-light);
+  --germany-map-stroke: var(--germany-map-stroke-light);
+  --germany-map-marker: var(--germany-map-marker-light);
+  --germany-map-marker-inner: #ffffff;
+}
+
+html[data-theme="staedteChallengeDark"] .germany-map-indicator {
+  --germany-map-fill: var(--germany-map-fill-dark);
+  --germany-map-stroke: var(--germany-map-stroke-dark);
+  --germany-map-marker: var(--germany-map-marker-dark);
+  --germany-map-marker-inner: var(--slk-surface);
+}
+</style>

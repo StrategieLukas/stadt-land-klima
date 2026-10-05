@@ -29,6 +29,7 @@
               img-class="w-full h-auto block"
             />
           </div>
+          <p v-if="item.image_credits" class="not-prose text-xs text-gray-500 italic mb-4 text-center">{{ item.image_credits }}</p>
           <time
             v-if="displayDate"
             class="not-prose block text-sm text-gray-500 mb-1"
@@ -43,6 +44,19 @@
 
           <!-- blokkli content blocks -->
           <BlokkliField name="content" :list="newsBlocks" />
+          <div v-if="item.report_event" class="not-prose mt-10 rounded-xl border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5">
+            <NuxtLink :to="`/events/${item.report_event.slug}`" class="block font-semibold text-stats-dark hover:underline">
+              {{ $t('tour.event_details') }}: {{ item.report_event.title }} →
+            </NuxtLink>
+            <NuxtLink v-if="item.report_event.series" :to="`/events/series/${item.report_event.series.slug}#stop-${item.report_event.slug}`" class="mt-2 block text-stats-dark hover:underline">
+              {{ $t('tour.back_to_series') }}: {{ item.report_event.series.title }} →
+            </NuxtLink>
+            <div v-if="reportProjects.length" class="mt-4 flex flex-wrap gap-2">
+              <NuxtLink v-for="project in reportProjects" :key="project.id" :to="`/projects/${project.slug}`" class="btn btn-sm btn-outline border-stats-dark text-stats-dark">
+                {{ project.title }}
+              </NuxtLink>
+            </div>
+          </div>
         </article>
 
         <!-- Metadata edit panel (visible to authenticated editors only) -->
@@ -163,7 +177,7 @@ const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-it
   const result = await $directus.request(
     $readItems('news_items', {
       filter: { slug: { _eq: route.params.slug } },
-      fields: ['id', 'slug', 'title', 'teaser', 'author', 'date_published', 'date_created', 'status', { image: ['id', 'type'] }],
+      fields: ['id', 'slug', 'title', 'teaser', 'author', 'date_published', 'date_created', 'status', { image: ['id', 'type'] }, { report_event: ['id', 'slug', 'title', { series: ['slug', 'title'] }] }],
       limit: 1,
     })
   )
@@ -188,6 +202,15 @@ const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-it
   return result
 })
 const item = computed(() => itemList.value?.[0] || null)
+
+const { data: reportProjectLinks } = await useAsyncData(`news-report-projects-${route.params.slug}`, () => item.value?.report_event?.id
+  ? $directus.request($readItems('events_articles', {
+    filter: { events_id: { _eq: item.value.report_event.id } },
+    fields: [{ articles_id: ['id', 'slug', 'title'] }],
+    limit: -1,
+  }))
+  : Promise.resolve([]), { watch: [item] })
+const reportProjects = computed(() => (reportProjectLinks.value ?? []).map((link) => link.articles_id).filter(Boolean))
 
 // Do not throw a fatal 404 on SSR — drafts are only visible to authenticated users
 // and auth state is only known client-side. onMounted will re-fetch if needed.

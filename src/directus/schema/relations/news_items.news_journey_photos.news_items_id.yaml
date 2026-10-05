@@ -1,0 +1,21 @@
+collection: news_journey_photos
+field: news_items_id
+related_collection: news_items
+meta:
+  junction_field: file
+  many_collection: news_journey_photos
+  many_field: news_items_id
+  one_allowed_collections: null
+  one_collection: news_items
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: journey_photos
+  sort_field: sort
+schema:
+  table: news_journey_photos
+  column: news_items_id
+  foreign_key_table: news_items
+  foreign_key_column: id
+  constraint_name: news_journey_photos_news_items_id_foreign
+  on_update: NO ACTION
+  on_delete: CASCADE

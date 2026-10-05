@@ -1,0 +1,30 @@
+collection: events
+field: image_credits
+type: string
+meta:
+  collection: events
+  conditions: null
+  display: null
+  display_options: null
+  field: image_credits
+  group: null
+  hidden: false
+  interface: input
+  note: null
+  options:
+    trim: true
+  readonly: false
+  required: false
+  sort: 16
+  special: null
+  translations:
+    - language: de-DE
+      translation: Bildunterschrift & Copyright
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: image_credits
+  table: events
+  data_type: character varying
+  default_value: null

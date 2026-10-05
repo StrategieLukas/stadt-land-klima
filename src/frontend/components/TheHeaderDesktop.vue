@@ -1,8 +1,8 @@
 <template>
   <header
     ref="headerEl"
-    class="border-gray-200 dark:border-[var(--slk-border)] fixed left-0 right-0 top-0 border-b bg-white dark:bg-[var(--slk-surface)] transition-[box-shadow,background] duration-300"
-    :class="[scrolled && !isOpen ? 'shadow-lg' : '', isOpen && embeddedInput ? 'z-[10003]' : 'z-50']"
+    class="slk-header-surface border-gray-200 dark:border-[var(--slk-border)] fixed left-0 right-0 top-0 border-b transition-[box-shadow,background] duration-300"
+    :class="[scrolled || (isOpen && embeddedInput) ? 'shadow-lg' : '', isOpen && embeddedInput ? 'z-[10005]' : 'z-50']"
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
     <div

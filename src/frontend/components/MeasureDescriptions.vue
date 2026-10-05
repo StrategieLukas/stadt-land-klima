@@ -1,6 +1,8 @@
 <template>
-  <!-- Accordion -->
-  <div class="grid grid-cols-1 gap-8 py-4 lg:grid-cols-2">
+  <div class="border-t-2 border-light-blue py-6">
+    <h2 class="font-heading text-h3 font-bold text-gray mb-4">Detailbeschreibungen</h2>
+    <!-- Accordion -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
     <!-- Description benefit -->
     <div v-if="measure.description_benefit" class="collapse-plus collapse">
       <input type="checkbox" :name="`measure-${measure.slug}-descriptions-accordion`" autocomplete="off" />
@@ -104,6 +106,7 @@
       <div class="collapse-content pl-0">
         <div class="has-long-links prose" v-html="sanitizeHtml(measure.description_tutorial)" />
       </div>
+    </div>
     </div>
   </div>
 </template>

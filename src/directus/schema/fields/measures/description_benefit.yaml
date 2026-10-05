@@ -38,7 +38,7 @@ meta:
   special: null
   translations:
     - language: de-DE
-      translation: Was bringt diese Maßnahme?  Wieso hilft sie?
+      translation: Was bringt diese Maßnahme? Wieso hilft sie?
   validation: null
   validation_message: null
   width: full

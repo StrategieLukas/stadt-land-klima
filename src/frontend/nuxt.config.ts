@@ -43,8 +43,16 @@ export default defineNuxtConfig({
     welcomeEmailTutorialUrl: process.env.WELCOME_EMAIL_TUTORIAL_URL,
     welcomeEmailCalendarUrl: process.env.WELCOME_EMAIL_CALENDAR_URL,
     welcomeEmailSignalUrl: process.env.WELCOME_EMAIL_SIGNAL_URL,
+    // Private Stadtlandzahl upstream configuration. Browser requests use the
+    // same-origin proxy exposed through public.stadtlandzahlBaseUrl below.
+    stadtlandzahlBaseUrl: process.env.STADTLANDZAHL_BASE_URL,
+    // Server-side base URL for stadtlandzahl backend (Docker container name/URL, no path).
+    stadtlandzahlServerBaseUrl: process.env.STADTLANDZAHL_SERVER_BASE_URL,
+    stadtlandzahlBasicAuthUser: process.env.STADTLANDZAHL_BASE_HTTP_BASIC_AUTH_USER,
+    stadtlandzahlBasicAuthPassword: process.env.STADTLANDZAHL_BASE_HTTP_BASIC_AUTH_PASSWORD,
     frontendBasicAuthUsername: process.env.FRONTEND_BASIC_AUTH_USERNAME,
     frontendBasicAuthPassword: process.env.FRONTEND_BASIC_AUTH_PASSWORD,
+    cartoBasemapApiKey: process.env.CARTO_BASEMAP_API_KEY,
     // Keys within public, will be also exposed to the client-side
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,
@@ -53,7 +61,8 @@ export default defineNuxtConfig({
       appEnv: process.env.APP_ENV,
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,
-      stadtlandzahlUrl: process.env.STADTLANDZAHL_URL,
+      // Same-origin browser proxy. The real upstream URL and credentials stay private.
+      stadtlandzahlBaseUrl: "/api/stadtlandzahl",
     },
   },
   devtools: { enabled: true },
@@ -65,12 +74,12 @@ export default defineNuxtConfig({
       meta: [{ name: "viewport", content: "width=device-width, initial-scale=1" }],
       script: [
         {
-          innerHTML: `(function(){try{var key='slk_theme_preference';var light='staedteChallemgeTheme';var dark='staedteChallengeDark';var pref=localStorage.getItem(key);var mode=pref==='light'||pref==='dark'?pref:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');var root=document.documentElement;root.dataset.theme=mode==='dark'?dark:light;root.classList.toggle('dark',mode==='dark');root.style.colorScheme=mode;}catch(e){}})();`,
+          innerHTML: `(function(){try{var key='slk_theme_preference';var light='staedteChallemgeTheme';var dark='staedteChallengeDark';var pref=localStorage.getItem(key);var mode=pref==='light'||pref==='dark'?pref:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');var root=document.documentElement;root.dataset.theme=mode==='dark'?dark:light;root.classList.remove('dark');root.style.colorScheme=mode;}catch(e){}})();`,
         },
       ],
     },
   },
-  css: ["~/assets/css/main.css"],
+  css: ["maplibre-gl/dist/maplibre-gl.css", "~/assets/css/main.css"],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -83,6 +92,7 @@ export default defineNuxtConfig({
       "/**": {
         headers: { "Referrer-Policy": "strict-origin-when-cross-origin" },
       },
+      "/api/area-children": { isr: 86400 },
     },
     rollupConfig: {
       plugins: [
@@ -100,6 +110,10 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    server: {
+      // Directus reaches the development proxy over the Docker service hostname.
+      allowedHosts: ["frontend"],
+    },
     define: {
       __VUE_OPTIONS_API__: false,
       __VUE_PROD_DEVTOOLS__: false,

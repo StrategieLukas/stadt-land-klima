@@ -61,44 +61,71 @@ export function useAreaSearch({
     let scoreDisplay      = null
     let scoreTotalColorClass = null
     let _slug             = null
+    let _oldCatalogName   = null
 
     if (isMunicipality) {
       const allData    = area.stadtlandklimaDataAll ?? []
-      // Prefer the entry that matches the requested catalog version; fall back to first with slug
-      const ratingData = catalogRef.value
-        ? (allData.find(d => d.measureCatalogName === catalogRef.value && d.slug) ?? allData.find(d => d.slug))
-        : allData.find(d => d.slug)
 
-      _slug = ratingData?.slug ?? null
+      if (catalogRef.value) {
+        // With catalog context: check current catalog first, then fall back to older published rating
+        const currentRating = allData.find(d => d.measureCatalogName === catalogRef.value && d.slug)
+        const isCurrentPublished = !!(currentRating?.slug && slugs.has(currentRating.slug))
 
-      const exactStatus = area.directusCatalogStatus
-      const isPublished = exactStatus
-        ? exactStatus.published === true
-        : !!(ratingData?.slug && slugs.has(ratingData.slug))
+        const exactStatus = area.directusCatalogStatus
+        const oldRating = allData.find(
+          d => d.slug && d.measureCatalogName !== catalogRef.value && slugs.has(d.slug)
+        )
 
-      if (exactStatus) {
-        _slug = exactStatus.slug ?? _slug
-        if (!exactStatus.hasLocalteam) {
-          ctaType = 'none'
-        } else if (isPublished) {
-          ctaType = 'complete'
-          scoreDisplay = exactStatus.scoreTotal != null ? `${Math.round(Number(exactStatus.scoreTotal))}%` : null
-          scoreTotalColorClass =
-            exactStatus.scoreTotal != null ? getScorePercentageColor(parseFloat(exactStatus.scoreTotal)) : null
-        } else if (Number(exactStatus.percentageRated ?? 0) > 0) {
+        if (exactStatus?.published === true || (!exactStatus && isCurrentPublished)) {
+          ctaType              = 'complete'
+          _slug                = exactStatus?.slug ?? currentRating?.slug ?? null
+          const scoreTotal = exactStatus?.scoreTotal ?? currentRating?.scoreTotal
+          scoreDisplay         = scoreTotal != null
+            ? `${Math.round(Number(scoreTotal))}%`
+            : null
+          scoreTotalColorClass = scoreTotal != null
+            ? getScorePercentageColor(parseFloat(scoreTotal))
+            : null
+        } else if (oldRating) {
+          ctaType              = 'outdated'
+          _slug                = oldRating.slug
+          _oldCatalogName      = oldRating.measureCatalogName
+          scoreDisplay         = oldRating.scoreTotal != null
+            ? `${Math.round(Number(oldRating.scoreTotal))}%`
+            : null
+          scoreTotalColorClass = oldRating.scoreTotal != null
+            ? getScorePercentageColor(parseFloat(oldRating.scoreTotal))
+            : null
+        } else if (exactStatus) {
+          _slug = exactStatus.slug ?? currentRating?.slug ?? null
+          if (!exactStatus.hasLocalteam) ctaType = 'none'
+          else if (Number(exactStatus.percentageRated ?? 0) > 0) ctaType = 'in-progress'
+          else ctaType = 'not-started'
+        } else if (currentRating?.slug || area.hasLocalteam) {
           ctaType = 'in-progress'
-        } else {
-          ctaType = 'not-started'
+          _slug   = currentRating?.slug ?? null
+        } else if (area.isReasonableForMunicipalRating) {
+          ctaType = 'none'
         }
-      } else if (isPublished) {
-        ctaType = 'complete'
-        scoreDisplay = ratingData.scoreTotal != null ? `${Math.round(Number(ratingData.scoreTotal))}%` : null
-        scoreTotalColorClass =
-          ratingData.scoreTotal != null ? getScorePercentageColor(parseFloat(ratingData.scoreTotal)) : null
-      } else if (ratingData?.slug || area.hasLocalteam) {
-        ctaType = 'in-progress'
-      } else if (area.isReasonableForMunicipalRating) {
-        ctaType = 'none'
+      } else {
+        // No catalog context: original behaviour
+        const ratingData = allData.find(d => d.slug)
+        _slug = ratingData?.slug ?? null
+        const isPublished = !!(ratingData?.slug && slugs.has(ratingData.slug))
+
+        if (isPublished) {
+          ctaType              = 'complete'
+          scoreDisplay         = ratingData.scoreTotal != null
+            ? `${Math.round(Number(ratingData.scoreTotal))}%`
+            : null
+          scoreTotalColorClass = ratingData.scoreTotal != null
+            ? getScorePercentageColor(parseFloat(ratingData.scoreTotal))
+            : null
+        } else if (ratingData?.slug || area.hasLocalteam) {
+          ctaType = 'in-progress'
+        } else if (area.isReasonableForMunicipalRating) {
+          ctaType = 'none'
+        }
       }
     }
 
@@ -111,6 +138,7 @@ export function useAreaSearch({
       scoreDisplay,
       scoreTotalColorClass,
       _slug,
+      _oldCatalogName,
     }
   }
 

@@ -1,6 +1,6 @@
 <template>
   <header
-    class="border-gray-300 fixed left-0 right-0 top-0 z-50 w-full border-b bg-white transition-transform duration-300 ease-in-out"
+    class="slk-header-surface border-gray-300 fixed left-0 right-0 top-0 z-50 w-full border-b transition-transform duration-300 ease-in-out"
     :style="[hidden ? 'transform: translateY(-100%)' : 'transform: translateY(0)']"
   >
     <div class="mx-auto flex w-full max-w-screen-xl items-center gap-3 px-3 py-2">

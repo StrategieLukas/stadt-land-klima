@@ -4,15 +4,12 @@ import gql from 'graphql-tag'
 
 export default defineNuxtPlugin(() => {
   const runtimeConfig = useRuntimeConfig();
-  const stadtlandzahlURL = runtimeConfig.public.stadtlandzahlUrl || 'http://localhost:8000/graphql/';
-
-  // The stadtlandzahl API returns `access-control-allow-origin: *`, so browser
-  // requests can go directly to the API without any proxy.
-  const resolvedGraphqlURL = stadtlandzahlURL;
+  const stadtlandzahlBaseURL = runtimeConfig.public.stadtlandzahlBaseUrl
+  const stadtlandzahlURL = `${stadtlandzahlBaseURL}/graphql/`
 
   // Create HTTP link
   const httpLink = new HttpLink({
-    uri: resolvedGraphqlURL,
+    uri: stadtlandzahlURL,
   })
 
   // Create Apollo client
@@ -63,9 +60,7 @@ export default defineNuxtPlugin(() => {
 
   const fetchStatsByARS = async (ars) => {
     try {
-      // The stadtlandzahl API allows CORS from all origins, so use the direct URL.
-      const baseUrl = stadtlandzahlURL.replace('/graphql/', '').replace('/graphql', '')
-      const url = `${baseUrl}/api/areas/${ars}/?format=json`
+      const url = `${stadtlandzahlBaseURL}/api/areas/${ars}/?format=json`
       console.log('Fetching from URL:', url)
       
       const response = await fetch(url)
@@ -243,8 +238,8 @@ export default defineNuxtPlugin(() => {
   /**
    * Unified area search used by useAreaSearch composable.
    * Delegates to the /api/area-search server route so the GraphQL request
-   * is made server-side — this avoids mobile network/CORS issues that arise
-   * when the browser fetches data.stadt-land-klima.de directly.
+   * is made server-side — this avoids mobile network/CORS issues and keeps
+   * Stadtlandzahl credentials out of the browser.
    *
    * mode: 'normal'     → level 1-3 areas + reasonable municipalities
    *       'reasonable' → isReasonableForMunicipalRating only
@@ -283,7 +278,7 @@ export default defineNuxtPlugin(() => {
     const prefix = len ? regionArs.slice(0, len) : regionArs.replace(/0+$/, '');
     if (!prefix) return [];
 
-    const PAGE_SIZE = 500;
+    const PAGE_SIZE = 1000;
     const nodes = [];
     let cursor = null;
     let hasNextPage = true;
@@ -294,7 +289,7 @@ export default defineNuxtPlugin(() => {
           query: gql`
             query municipalitiesInRegion($ars_Icontains: String!, $after: String) {
               allAdministrativeAreas(
-                first: 500
+                first: 1000
                 after: $after
                 isReasonableForMunicipalRating: true
                 ars_Icontains: $ars_Icontains
@@ -307,6 +302,7 @@ export default defineNuxtPlugin(() => {
                     name
                     prefix
                     population
+                    geoCenter
                     stadtlandklimaDataAll {
                       slug
                       scoreTotal
@@ -344,6 +340,22 @@ export default defineNuxtPlugin(() => {
     return nodes;
   };
 
+  const fetchCollectionRender = async (slug, areaArs, step = null) => {
+    const params = new URLSearchParams({ area: areaArs })
+    if (step !== null) params.set('step', String(step))
+    const res = await fetch(`${stadtlandzahlBaseURL}/api/collections/${slug}/render/?${params}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
+  }
+
+  const fetchRenderElement = async (slug, plotId, areaArs) => {
+    const res = await fetch(
+      `${stadtlandzahlBaseURL}/api/collections/${slug}/render/${plotId}/?area=${encodeURIComponent(areaArs)}`
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
+  }
+
   const stadtlandzahlAPI = {
     searchThroughAdministrativeAreasByName,
     searchAdministrativeAreas,
@@ -351,6 +363,8 @@ export default defineNuxtPlugin(() => {
     getNearbyAdministrativeAreas,
     fetchHistogramData,
     fetchMunicipalitiesInRegion,
+    fetchCollectionRender,
+    fetchRenderElement,
   };
 
   return {

@@ -1,7 +1,11 @@
 <template>
-  <div class="max-w-xl mx-auto px-4 py-12 sm:py-16">
-    <div class="bg-white rounded shadow p-6">
-      <h2 class="text-xl font-bold mb-4">{{ $t("feedback.nav_label") }}</h2>
+  <div class="container mx-auto px-4 py-8">
+    <header class="mb-10">
+      <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t('feedback.nav_label') }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('contact.hero.description') }}</p>
+    </header>
+    <div class="mx-auto w-full max-w-xl rounded bg-white p-6 shadow">
+      <h2 class="mb-4 font-heading text-2xl font-bold text-gray">{{ $t("feedback.give") }}</h2>
 
       <!-- Success state -->
       <div v-if="successMessage" class="py-4">
@@ -63,7 +67,11 @@
         <!-- Altcha CAPTCHA -->
         <div class="mb-4">
           <ClientOnly>
+            <div v-if="runtimeConfig.public.appEnv === 'development'" class="h-14 bg-yellow-50 border border-yellow-200 rounded flex items-center justify-center">
+              <span class="text-xs text-yellow-600">Dev-Modus: Sicherheitsabfrage übersprungen</span>
+            </div>
             <altcha-widget
+              v-else
               ref="altchaRef"
               challenge="/api/altcha"
               hidefooter
@@ -103,6 +111,7 @@ import { ref } from 'vue'
 
 const { $t, $locale } = useNuxtApp();
 const route = useRoute();
+const runtimeConfig = useRuntimeConfig();
 
 useHead({ title: ref($t("feedback.nav_label")) });
 
@@ -128,12 +137,20 @@ function onAltchaStateChange(e) {
   if (state === 'verified' && payload) {
     altchaPayload.value = payload
     captchaError.value = ''
-  } else {
+  } else if (state === 'unverified' || state === 'error' || state === 'expired') {
+    // Only clear on explicit reset states — not on 'verifying' (re-solving after
+    // background-tab resume), which would wipe a still-valid captured payload.
     altchaPayload.value = ''
   }
 }
 
 onMounted(async () => {
+  // In dev, the altcha widget refuses to work over plain HTTP (no isSecureContext).
+  // Pre-seed a static bypass payload; the server accepts it when appEnv=development.
+  if (runtimeConfig.public.appEnv === 'development') {
+    altchaPayload.value = btoa(JSON.stringify({ dev: true }))
+    return
+  }
   await nextTick()
   await nextTick()
   const el = document.querySelector('altcha-widget')

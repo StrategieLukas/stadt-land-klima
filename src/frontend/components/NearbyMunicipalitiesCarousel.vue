@@ -45,8 +45,11 @@
               @ready="() => onNearbyMapReady(area.ars, area.geoArea)"
             >
               <LTileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                :key="tileUrl"
+                :url="tileUrl"
+                :attribution="attribution"
+                :subdomains="subdomains"
+                :max-zoom="20"
               />
               <LGeoJson
                 v-if="area.geoArea"
@@ -73,7 +76,7 @@
                 <!-- Complete or published: show numeric score -->
                 <span
                   v-if="area.isPublished && area.scoreTotal != null"
-                  class="slk-rating-chip inline-block rounded-full px-2 py-0.5 text-xs font-bold text-white"
+                  class="inline-block rounded-full px-2 py-0.5 text-xs font-bold text-white"
                   :class="`bg-${scoreBgColor(area.scoreTotal)}`"
                 >
                   {{ Math.round(area.scoreTotal) }}%
@@ -83,14 +86,14 @@
                   v-else-if="area.ctaType === 'in-progress'"
                   class="inline-block rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700"
                 >
-                  {{ $t("rating.in_progress") }}
+                  Bewertung läuft
                 </span>
                 <!-- No localteam -->
                 <span
                   v-else
                   class="bg-gray-100 text-gray-400 inline-block rounded-full px-2 py-0.5 text-xs font-medium"
                 >
-                  {{ $t("administrative_areas.not_rated_yet") }}
+                  Nicht bewertet
                 </span>
               </div>
             </div>
@@ -105,7 +108,7 @@
                 <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span>{{ $t("rating.view") }}</span>
+                <span>Bewertung anzeigen</span>
               </NuxtLink>
               <!-- Case: localteam active, rating in progress → support them -->
               <NuxtLink
@@ -116,7 +119,7 @@
                 <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span>{{ $t("localteam.support") }}</span>
+                <span>Lokalteam unterstützen</span>
               </NuxtLink>
               <!-- Case: no localteam → found one -->
               <NuxtLink
@@ -127,17 +130,17 @@
                 <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span>{{ $t("localteam.create") }}</span>
+                <span>Lokalteam gründen</span>
               </NuxtLink>
               <!-- Statistiken (always shown) -->
               <NuxtLink
-                :to="`/stats/${area.ars}`"
+                :to="`/data/${area.ars}`"
                 class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 sm:text-sm"
               >
                 <svg class="mr-1 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span>{{ $t("stats.view_stats") }}</span>
+                <span>Statistiken anzeigen</span>
               </NuxtLink>
             </div>
           </div>
@@ -152,6 +155,7 @@ import { getScorePercentageColor } from "~/shared/utils.js";
 
 const { $directus, $readItems } = useNuxtApp();
 const config = useRuntimeConfig();
+const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
 const scoreBgColor = (scoreTotal) => getScorePercentageColor(scoreTotal);
 
@@ -240,7 +244,7 @@ const fetchMunicipalityData = async (ars) => {
   try {
     const municipalities = await $directus.request(
       $readItems("municipalities", {
-        fields: ["id", "slug", "name", "ars", "localteam_id"],
+        fields: ["id", "slug", "name", "ars", "status", "localteam_id"],
         filter: { ars: { _eq: ars } },
         limit: 1,
       }),
@@ -268,8 +272,7 @@ onMounted(async () => {
   if (!props.ars) return;
   loading.value = true;
   try {
-    const baseUrl =
-      config.public.stadtlandzahlUrl?.replace("/graphql/", "").replace("/graphql", "") || "http://localhost:8000";
+    const baseUrl = config.public.stadtlandzahlBaseUrl;
     const res = await fetch(`${baseUrl}/api/areas/${props.ars}/bordering-municipalities/`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -280,13 +283,18 @@ onMounted(async () => {
           const result = await fetchMunicipalityData(area.ars);
           const municipality = result?.municipality ?? null;
           const score = result?.score ?? null;
-          const isPublished = score?.published === true && !!municipality?.slug;
+          const isPublished = municipality?.status === "published" && !!municipality?.slug;
           const hasLocalteam = !!municipality?.localteam_id;
           const percentageRated = score?.percentage_rated ?? null;
-          // 'complete'    → published score for this catalog version → show rating
+          // 'complete'    → published + percentage_rated >= 98 → show rating
           // 'in-progress' → has a localteam but not yet complete → support the team
           // 'none'        → no localteam at all → found a team
-          const ctaType = isPublished ? "complete" : hasLocalteam ? "in-progress" : "none";
+          const ctaType =
+            isPublished && percentageRated != null && percentageRated >= 98
+              ? "complete"
+              : hasLocalteam
+                ? "in-progress"
+                : "none";
           return {
             ars: area.ars,
             name: area.name,

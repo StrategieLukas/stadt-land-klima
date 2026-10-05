@@ -23,6 +23,9 @@
                   fill-color="#dcfce7"
                   stroke-color="#86efac"
                   marker-color="#339737"
+                  dark-fill-color="var(--slk-green-tint)"
+                  dark-stroke-color="var(--slk-green)"
+                  dark-marker-color="var(--slk-green)"
                 />
             </div>
 
@@ -81,6 +84,16 @@
                 {{ municipality.municipality_type === 'big_city'
                     ? $t("municipality.municipality_type.major_city")
                     : $t("municipality.municipality_type.minor_city") }}
+                </span>
+            </div>
+
+            <div v-if="municipality?.localteam_id?.date_created" class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                <img src="~/assets/icons/icon_team.svg" class="h-5 w-5 opacity-60" />
+                <span class="text-sm text-gray-700">{{ $t("municipality.localteam_founded") }}</span>
+                </div>
+                <span class="text-sm font-bold text-right text-gray-900">
+                {{ new Date(municipality.localteam_id.date_created).toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' }) }}
                 </span>
             </div>
 

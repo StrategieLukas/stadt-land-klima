@@ -1,6 +1,9 @@
 <template>
-  <div class="py-8">
-    <h1 class="mb-8 text-3xl font-bold">{{ $t("events.title") }}</h1>
+  <div class="container mx-auto px-4 py-8">
+    <header class="mb-10">
+      <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t('events.title') }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('events.hero.description') }}</p>
+    </header>
 
     <!-- Mobile sticky scroll nav -->
     <nav
@@ -174,7 +177,7 @@
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
-import { formatEventMonth, getEventMonthKey } from "~/shared/eventDateTime";
+import { formatEventMonth, getEventMonthKey, getEventPhase } from "~/shared/eventDateTime";
 const { $directus, $readItems, $t, $locale } = useNuxtApp();
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
@@ -193,7 +196,7 @@ const { data: events } = await useAsyncData("events-list", async () => {
     const results = await $directus.request(
       $readItems("events", {
         filter: { status: { _eq: "published" } },
-        fields: ["id", "title", "slug", "start_date", "end_date", "location", "event_type", { image: ["id", "type"] }],
+        fields: ["id", "title", "slug", "start_date", "end_date", "date_only", "location", "event_type", { image: ["id", "type"] }],
         sort: ["start_date"],
         limit: -1,
       }),
@@ -207,29 +210,12 @@ const { data: events } = await useAsyncData("events-list", async () => {
 
 const now = new Date();
 
-// Events currently happening: started but not yet ended
-const currentEvents = computed(() =>
-  (events.value || []).filter((e) => {
-    if (!e.start_date) return false;
-    const start = new Date(e.start_date);
-    const end = e.end_date ? new Date(e.end_date) : null;
-    return start <= now && end && end >= now;
-  }),
-);
-
-// Strictly future events (start_date > now)
-const futureEvents = computed(() => (events.value || []).filter((e) => e.start_date && new Date(e.start_date) > now));
-
-// Past events (end_date < now, or no end_date and start_date < now)
-const pastEvents = computed(() =>
-  (events.value || []).filter((e) => {
-    if (!e.start_date) return false;
-    const start = new Date(e.start_date);
-    const end = e.end_date ? new Date(e.end_date) : null;
-    if (end) return end < now;
-    return start < now;
-  }),
-);
+const currentEvents = computed(() => (events.value || []).filter((event) =>
+  getEventPhase(event.start_date, event.end_date, event.date_only, now) === "current"));
+const futureEvents = computed(() => (events.value || []).filter((event) =>
+  getEventPhase(event.start_date, event.end_date, event.date_only, now) === "future"));
+const pastEvents = computed(() => (events.value || []).filter((event) =>
+  getEventPhase(event.start_date, event.end_date, event.date_only, now) === "past"));
 
 function groupByMonth(evList) {
   const map = new Map();

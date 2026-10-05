@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="to" class="card group bg-white shadow-xl rounded-none overflow-hidden block hover:shadow-2xl transition-shadow duration-200">
+  <NuxtLink :to="to" class="group card bg-white shadow-xl rounded-none overflow-hidden block hover:shadow-2xl transition-shadow duration-200">
     <div class="relative h-40 bg-gray-200 flex items-center justify-center">
       <SmartImg
         v-if="image_id"
@@ -13,18 +13,16 @@
         format="webp"
         img-class="object-cover w-full h-full"
       />
-      <div v-else class="w-full h-full flex items-center justify-center bg-solid-gray-05">
+      <div v-else class="w-full h-full flex items-center justify-center bg-gray/5">
         <img v-if="sector" :src="sectorImages[sector]" class="w-12 h-12 opacity-20" alt="" />
       </div>
       <!-- Sector badge top-left -->
-      <div v-if="sector" class="absolute top-2 left-2 flex items-center gap-1 bg-white backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold text-gray">
+      <div v-if="sector" class="absolute top-2 left-2 flex items-center gap-1 bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold text-gray">
         <img :src="sectorImages[sector]" class="w-4 h-4 opacity-60" alt="" />
         {{ $t(`measure_sectors.${sector}.title`) }}
       </div>
-      <div
-        v-if="image_credits"
-        class="absolute inset-x-0 bottom-0 bg-solid-gray-80 px-2 py-1 text-[10px] font-medium text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
-      >
+      <!-- Image credits overlay on hover -->
+      <div v-if="image_credits && image_id" class="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate">
         {{ image_credits }}
       </div>
     </div>
