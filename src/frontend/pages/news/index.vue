@@ -1,22 +1,19 @@
 <template>
-  <div class="py-8">
-    <!-- Header row: title + admin create button -->
-    <div class="flex items-start justify-between gap-4 mb-2">
-      <h1 class="text-3xl font-bold text-[#006e94]">News</h1>
-      <button
+  <div class="container mx-auto px-4 py-8">
+    <header class="mb-10 flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t('news.title') }}</h1>
+        <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('news.description') }}</p>
+      </div>
+      <CanonicalButton
         v-if="isAuthenticated"
-        type="button"
+        :label="creating ? $t('generic.loading') : $t('news.create')"
+        icon-slug="mdi:plus"
+        color="dark"
         :disabled="creating"
         @click="createNewsItem"
-        class="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 disabled:opacity-50 transition-colors"
-      >
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        {{ creating ? 'Erstelle…' : 'Neuigkeit erstellen' }}
-      </button>
-    </div>
-    <p class="text-gray-500 mb-8">Aktuelle Meldungen, Veranstaltungen, neue Kommunen und Projekte.</p>
+      />
+    </header>
 
     <!-- Type filter pills -->
     <div class="flex flex-wrap gap-2 mb-6">
@@ -147,7 +144,7 @@
           <!-- Thumbnail -->
           <div class="relative h-40 bg-gray-50 flex-shrink-0 overflow-hidden">
             <div
-              v-if="!ev.imageId"
+              v-if="!ev.image"
               class="absolute inset-0 bg-gradient-to-br from-[#1da64a]/20 via-[#1da64a]/10 to-[#1da64a]/30 flex items-center justify-center"
             >
               <svg class="w-16 h-16 text-[#1da64a] opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
@@ -159,8 +156,8 @@
             </div>
             <SmartImg
               v-else
-              :assetId="ev.imageId"
-              :isRaster="isRaster(ev.imageType)"
+              :assetId="ev.image?.id || ev.image"
+              :isRaster="ev.image?.type ? isRaster(ev.image.type) : true"
               :alt="ev.title"
               :width="480"
               :height="160"
@@ -169,7 +166,7 @@
             />
             <span class="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full bg-[#1da64a] text-white">Veranstaltung</span>
             <!-- Image credits overlay on hover -->
-            <div v-if="ev.image_credits && ev.image" class="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate">
+            <div v-if="ev.image_credits && ev.image" :title="ev.image_credits" class="pointer-events-none absolute inset-x-0 bottom-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 truncate">
               {{ ev.image_credits }}
             </div>
           </div>
@@ -279,7 +276,7 @@
             {{ typeLabel(item.type) }}
           </span>
           <!-- Image credits overlay on hover -->
-          <div v-if="item.imageCredits && item.imageId" class="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate">
+          <div v-if="item.imageCredits && item.imageId" :title="item.imageCredits" class="pointer-events-none absolute inset-x-0 bottom-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 truncate">
             {{ item.imageCredits }}
           </div>
           <!-- Status badge for non-published news items (editors only) -->

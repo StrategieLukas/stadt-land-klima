@@ -1,0 +1,214 @@
+{
+  "series": {
+    "id": "9199d388-a8d9-47c2-ae41-3f00abeb9a5c",
+    "slug": "erfolgsprojekte-tour-ost-2026",
+    "title": "Erfolgsprojekte-Tour Ost 2026",
+    "introduction": "Von Zwickau bis Erfurt: Im Oktober 2026 besuchen wir zehn Orte in Sachsen, Sachsen-Anhalt, Brandenburg und Thüringen und stellen dort Erfolgsprojekte vor. Begleite die Tour: Berichte und Fotos ergänzen wir nach den Besuchen.",
+    "format": "tour",
+    "status": "published",
+    "featured_on_projects": false,
+    "cover_image": "888b8280-7684-43d6-be89-4f2d0ff1d6f3"
+  },
+  "stops": [
+    {
+      "id": "4c4558e0-cddf-412e-abad-817b5520cac9",
+      "slug": "erfolgsprojekte-tour-ost-2026-zwickau",
+      "title": "Tourstopp in Zwickau",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 5. Oktober Halt in Zwickau. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-04T22:00:00.000Z",
+      "date_only": true,
+      "location": "Zwickau",
+      "series_order": 1,
+      "state": "Sachsen",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          12.4939267,
+          50.7185043
+        ]
+      }
+    },
+    {
+      "id": "cd14e0d5-7b6d-4af4-9069-8d0ceb673b7e",
+      "slug": "erfolgsprojekte-tour-ost-2026-osterburg-altmark",
+      "title": "Tourstopp in Osterburg (Altmark)",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 6. Oktober Halt in Osterburg (Altmark). Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-05T22:00:00.000Z",
+      "date_only": true,
+      "location": "Osterburg (Altmark)",
+      "series_order": 2,
+      "state": "Sachsen-Anhalt",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          11.7526038,
+          52.7899044
+        ]
+      }
+    },
+    {
+      "id": "f1e6a58a-0b5c-4dc5-999c-3aeaa76fde0b",
+      "slug": "erfolgsprojekte-tour-ost-2026-eichwalde",
+      "title": "Tourstopp in Eichwalde",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 7. Oktober Halt in Eichwalde. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-06T22:00:00.000Z",
+      "date_only": true,
+      "location": "Eichwalde",
+      "series_order": 3,
+      "state": "Brandenburg",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          13.6219208,
+          52.373076
+        ]
+      }
+    },
+    {
+      "id": "7b89fba1-1b99-4255-8253-35c04d12074f",
+      "slug": "erfolgsprojekte-tour-ost-2026-thalheim-erzgeb",
+      "title": "Tourstopp in Thalheim/Erzgeb.",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 8. Oktober Halt in Thalheim/Erzgeb. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-07T22:00:00.000Z",
+      "date_only": true,
+      "location": "Thalheim/Erzgeb.",
+      "series_order": 4,
+      "state": "Sachsen",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          12.8514034,
+          50.7024268
+        ]
+      }
+    },
+    {
+      "id": "d8d3ac32-60e3-46a8-abc2-8c2938dbf65e",
+      "slug": "erfolgsprojekte-tour-ost-2026-mittweida",
+      "title": "Tourstopp in Mittweida",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 9. Oktober Halt in Mittweida. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-08T22:00:00.000Z",
+      "date_only": true,
+      "location": "Mittweida",
+      "series_order": 5,
+      "state": "Sachsen",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          12.9810458,
+          50.9854597
+        ]
+      }
+    },
+    {
+      "id": "a9223001-8d5a-4b1f-a982-128463d13725",
+      "slug": "erfolgsprojekte-tour-ost-2026-jena",
+      "title": "Tourstopp in Jena",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 12. Oktober Halt in Jena. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-11T22:00:00.000Z",
+      "date_only": true,
+      "location": "Jena",
+      "series_order": 6,
+      "state": "Thüringen",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          11.5879359,
+          50.9281717
+        ]
+      }
+    },
+    {
+      "id": "e07472b4-1ed0-420b-9863-d05dc74faf80",
+      "slug": "erfolgsprojekte-tour-ost-2026-barleben",
+      "title": "Tourstopp in Barleben",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 13. Oktober Halt in Barleben. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-12T22:00:00.000Z",
+      "date_only": true,
+      "location": "Barleben",
+      "series_order": 7,
+      "state": "Sachsen-Anhalt",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          11.6203578,
+          52.2007378
+        ]
+      }
+    },
+    {
+      "id": "5112a794-e8e0-4132-bf7a-ded8d1ee5d1b",
+      "slug": "erfolgsprojekte-tour-ost-2026-dessau",
+      "title": "Tourstopp in Dessau",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 14. Oktober Halt in Dessau. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-13T22:00:00.000Z",
+      "date_only": true,
+      "location": "Dessau",
+      "series_order": 8,
+      "state": "Sachsen-Anhalt",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          12.2430723,
+          51.8309956
+        ]
+      }
+    },
+    {
+      "id": "a6a2d670-bb1c-4484-abdd-0f037c337be4",
+      "slug": "erfolgsprojekte-tour-ost-2026-liebenwalde",
+      "title": "Tourstopp in Liebenwalde",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 15. Oktober Halt in Liebenwalde. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-14T22:00:00.000Z",
+      "date_only": true,
+      "location": "Liebenwalde",
+      "series_order": 9,
+      "state": "Brandenburg",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          13.3902046,
+          52.866517
+        ]
+      }
+    },
+    {
+      "id": "d111af31-de8a-4140-84df-ae23d6b74e34",
+      "slug": "erfolgsprojekte-tour-ost-2026-erfurt",
+      "title": "Tourstopp in Erfurt",
+      "description": "<p>Die Erfolgsprojekte-Tour Ost 2026 macht am 16. Oktober Halt in Erfurt. Weitere Informationen zum Besuch folgen.</p>",
+      "event_type": "tour_stop",
+      "status": "published",
+      "start_date": "2026-10-15T22:00:00.000Z",
+      "date_only": true,
+      "location": "Erfurt",
+      "series_order": 10,
+      "state": "Thüringen",
+      "geolocation": {
+        "type": "Point",
+        "coordinates": [
+          11.0287364,
+          50.9777974
+        ]
+      }
+    }
+  ]
+}

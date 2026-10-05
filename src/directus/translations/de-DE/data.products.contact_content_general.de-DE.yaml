@@ -1,0 +1,6 @@
+language: de-DE
+key: data.products.contact_content_general
+value: |
+  Seite: :url
+
+  Mein Hinweis:

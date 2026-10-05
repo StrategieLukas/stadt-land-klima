@@ -152,4 +152,9 @@ const linkAttrs = computed(() => {
 .canonical-button:focus-visible {
   outline-color: var(--btn-color);
 }
+
+.canonical-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 </style>

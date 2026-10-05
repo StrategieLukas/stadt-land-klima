@@ -1,0 +1,45 @@
+collection: events
+field: series
+type: uuid
+meta:
+  collection: events
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{title}}'
+  field: series
+  group: null
+  hidden: false
+  interface: select-dropdown-m2o
+  note: Eine Veranstaltung gehört höchstens einer Reihe an
+  options:
+    template: '{{title}}'
+  readonly: false
+  required: false
+  searchable: true
+  sort: 17
+  special:
+  - m2o
+  translations:
+  - language: de-DE
+    translation: Veranstaltungsreihe
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: series
+  table: events
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: event_series
+  foreign_key_column: id

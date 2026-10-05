@@ -2,7 +2,10 @@
   <button
     ref="cardRef"
     type="button"
-    class="border-gray-200 group flex h-[250px] flex-col overflow-hidden rounded-lg border bg-white text-left shadow-sm transition-all hover:border-[#006e94]/30 hover:shadow-list focus:outline-none focus-visible:ring-2 focus-visible:ring-[#006e94] xl:h-[260px]"
+    class="border-gray-200 group flex h-[250px] flex-col overflow-hidden rounded-lg border bg-white text-left shadow-sm transition-all hover:border-stats-dark hover:shadow-list focus:outline-none focus-visible:ring-2 focus-visible:ring-stats-dark xl:h-[260px]"
+    :aria-expanded="showKpi ? undefined : expanded"
+    :aria-controls="!showKpi && expanded ? 'data-collection-detail' : undefined"
+    :class="{ 'ring-2 ring-stats-dark': expanded }"
     @click="$emit('select')"
   >
     <div class="bg-gray-100 relative min-h-0 flex-1 overflow-hidden">
@@ -18,7 +21,7 @@
       />
       <span
         v-if="coverImageUrl && coverImageAttribution"
-        class="pointer-events-none absolute right-1.5 top-1.5 z-[2] max-w-[45%] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+        class="pointer-events-none absolute right-1.5 top-1.5 z-[2] max-w-[45%] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity group-focus-visible:opacity-100 group-hover:opacity-100"
         :title="coverImageAttribution"
       >
         {{ coverImageAttribution }}
@@ -47,6 +50,7 @@
     </div>
 
     <div
+      v-if="showKpi"
       class="border-gray-100 flex-none border-t p-3 transition-colors"
       :style="{ backgroundColor: kpiTintBackground }"
     >
@@ -89,12 +93,14 @@ import {
   sectorLabel,
 } from "~/utils/dataProducts";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   collection: Collection;
   ars: string;
   baseUrl: string;
   population?: number | null;
-}>();
+  showKpi?: boolean;
+  expanded?: boolean;
+}>(), { showKpi: true, expanded: false });
 
 defineEmits<{
   (e: "select"): void;
@@ -107,11 +113,15 @@ const canonicalKpi = ref<{ value: number | null; precision?: number | null } | n
 const hasRequestedSummary = ref(false);
 const hasRequestedDetails = ref(false);
 const runtimeConfig = useRuntimeConfig();
-const { $t } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 let observer: IntersectionObserver | null = null;
 
 const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
-const title = computed(() => localizedText(effectiveCollection.value.title) || effectiveCollection.value.id);
+const title = computed(() => {
+  const titles = effectiveCollection.value.title;
+  const language = $locale.startsWith("de") ? "de-DE" : $locale.startsWith("it") ? "it-IT" : "en-US";
+  return titles?.[language] || titles?.["en-US"] || localizedText(titles) || effectiveCollection.value.id;
+});
 const sector = computed(() => {
   const key = sectorKey(effectiveCollection.value);
   const translationKey = `measure_sectors.${key}.title`;
@@ -201,6 +211,7 @@ async function loadCollectionDetails() {
 }
 
 onMounted(() => {
+  if (!props.showKpi) return;
   if (!cardRef.value || typeof IntersectionObserver === "undefined") {
     loadSummary();
     return;

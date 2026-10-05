@@ -21,18 +21,21 @@
         :population="population"
         @select="$emit('select', collection.id)"
       />
+      <DataProductsComingSoonTile :collection-count="collections.length" :area-name="areaName" />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import DataProductsComingSoonTile from "~/components/DataProductsComingSoonTile.vue";
 import type { Collection } from "~/types/slz-api";
 
-const props = defineProps<{
+defineProps<{
   collections: Collection[];
   ars: string;
   baseUrl: string;
   population?: number | null;
+  areaName: string;
   scrollMarginTop: number;
 }>();
 

@@ -1,0 +1,7 @@
+language: de-DE
+key: data.products.contact_content
+value: |
+  Gebiet: :area
+  Seite: :url
+
+  Mein Hinweis:

@@ -1,0 +1,30 @@
+collection: events
+field: reports
+type: alias
+meta:
+  collection: events
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{name}}'
+  field: reports
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: Der Bericht wird an der Neuigkeit mit dieser Veranstaltung verknüpft
+  options:
+    enableCreate: false
+    enableSelect: false
+    template: '{{title}}'
+  readonly: true
+  required: false
+  searchable: true
+  sort: 22
+  special:
+  - o2m
+  translations:
+  - language: de-DE
+    translation: Besuchsbericht
+  validation: null
+  validation_message: null
+  width: full

@@ -51,6 +51,7 @@
 import { Icon } from "@iconify/vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import slkLogoUrl from "~/assets/images/Stadt-Land-Klima-Logo.svg";
+import { cartoBasemapProxyUrl } from "~/composables/useCartoBasemap";
 import type { MapLibreRenderSpec, RenderElement } from "~/types/slz-api";
 
 const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection", features: [] };
@@ -132,6 +133,7 @@ async function renderMap() {
     map = new maplibregl.Map({
       container: containerRef.value,
       style: buildStyle(spec.value),
+      transformRequest: (url: string) => ({ url: cartoBasemapProxyUrl(url) }),
       attributionControl: true,
       cooperativeGestures: false,
       preserveDrawingBuffer: true,
@@ -263,11 +265,11 @@ function buildStyle(mapSpec: MapLibreRenderSpec) {
 
 function cartoRasterSource() {
   const tileTemplate = isDarkThemeActive()
-    ? "https://{subdomain}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-    : "https://{subdomain}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png";
+    ? "/api/carto-basemap?asset=/dark_all/{z}/{x}/{y}.png"
+    : "/api/carto-basemap?asset=/light_all/{z}/{x}/{y}.png";
   return {
     type: "raster",
-    tiles: ["a", "b", "c", "d"].map((subdomain) => tileTemplate.replace("{subdomain}", subdomain)),
+    tiles: [tileTemplate],
     tileSize: 256,
     attribution: CARTO_BASEMAP_ATTRIBUTION,
   };
@@ -286,7 +288,7 @@ function cartoRasterLayer() {
 
 function themeStyleUrls(value: unknown): unknown {
   if (typeof value === "string") {
-    return isDarkThemeActive()
+    const themedUrl = isDarkThemeActive()
       ? value
           .replace(/\/light_all\//g, "/dark_all/")
           .replace(/\/positron\//g, "/dark-matter/")
@@ -295,6 +297,7 @@ function themeStyleUrls(value: unknown): unknown {
           .replace(/\/dark_all\//g, "/light_all/")
           .replace(/\/dark-matter\//g, "/positron/")
           .replace(/\/dark-matter-gl-style\//g, "/positron-gl-style/");
+    return themedUrl;
   }
   if (Array.isArray(value)) return value.map(themeStyleUrls);
   if (!value || typeof value !== "object") return value;
@@ -828,7 +831,7 @@ async function drawCartoBasemap(
 
   for (let x = minX; x <= maxX; x += 1) {
     for (let y = minY; y <= maxY; y += 1) {
-      const url = `https://a.basemaps.cartocdn.com/light_all/${zoom}/${x}/${y}.png`;
+      const url = `/api/carto-basemap?asset=/light_all/${zoom}/${x}/${y}.png`;
       tiles.push(
         loadImage(url)
           .then((image) => ctx.drawImage(image, offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize))

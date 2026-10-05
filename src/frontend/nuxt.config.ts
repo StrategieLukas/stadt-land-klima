@@ -52,6 +52,7 @@ export default defineNuxtConfig({
     stadtlandzahlBasicAuthPassword: process.env.STADTLANDZAHL_BASE_HTTP_BASIC_AUTH_PASSWORD,
     frontendBasicAuthUsername: process.env.FRONTEND_BASIC_AUTH_USERNAME,
     frontendBasicAuthPassword: process.env.FRONTEND_BASIC_AUTH_PASSWORD,
+    cartoBasemapApiKey: process.env.CARTO_BASEMAP_API_KEY,
     // Keys within public, will be also exposed to the client-side
     public: {
       directusToken: process.env.DIRECTUS_TOKEN,
@@ -109,6 +110,10 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    server: {
+      // Directus reaches the development proxy over the Docker service hostname.
+      allowedHosts: ["frontend"],
+    },
     define: {
       __VUE_OPTIONS_API__: false,
       __VUE_PROD_DEVTOOLS__: false,

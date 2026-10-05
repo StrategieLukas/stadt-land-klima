@@ -1,0 +1,28 @@
+collection: data_page_config
+meta:
+  accountability: all
+  archive_app_filter: false
+  archive_field: null
+  archive_value: null
+  collapse: open
+  collection: data_page_config
+  color: null
+  display_template: Datenprodukte
+  group: admin_tools
+  hidden: false
+  icon: dataset
+  item_duplication_fields: null
+  note: Sichtbarkeit der Datenprodukte auf den Datenseiten
+  preview_url: null
+  singleton: true
+  sort: 2
+  sort_field: null
+  translations:
+    - language: de-DE
+      plural: Datenprodukte
+      singular: Datenprodukte
+      translation: Datenprodukte
+  unarchive_value: null
+  versioning: false
+schema:
+  name: data_page_config

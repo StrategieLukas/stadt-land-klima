@@ -1,0 +1,50 @@
+collection: events
+field: geolocation
+type: geometry.Point
+meta:
+  collection: events
+  conditions: null
+  display: null
+  display_options: null
+  field: geolocation
+  group: null
+  hidden: false
+  interface: map
+  note: Optionaler Ort auf der Tourkarte; kann aus Datenschutzgründen ungefähr sein
+  options:
+    defaultView:
+      bearing: 0
+      center:
+        lat: 51.58303605025637
+        lng: 11.849132624118965
+      pitch: 0
+      zoom: 3.6742147103385885
+    geometryType: Point
+  readonly: false
+  required: false
+  searchable: true
+  sort: 19
+  special: null
+  translations:
+  - language: de-DE
+    translation: Kartenpunkt
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: geolocation
+  table: events
+  data_type: POINT
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

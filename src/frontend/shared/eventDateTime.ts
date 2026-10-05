@@ -126,11 +126,17 @@ export function formatEventDateTimeRange(
   startIso?: string | null,
   endIso?: string | null,
   locale = "de-DE",
+  dateOnly = false,
 ) {
   const start = parseDate(startIso);
   if (!start) return "";
 
   const end = parseDate(endIso);
+  if (dateOnly) {
+    return end && getBerlinDayKey(end) !== getBerlinDayKey(start)
+      ? `${formatDate(start, locale)} - ${formatDate(end, locale)}`
+      : formatDate(start, locale);
+  }
   const startDateTime = formatEventDateTime(start, locale);
   let dateTime = startDateTime;
 
@@ -142,6 +148,26 @@ export function formatEventDateTimeRange(
   }
 
   return dateTime;
+}
+
+export function getEventPhase(
+  startIso: string | null | undefined,
+  endIso: string | null | undefined,
+  dateOnly: boolean,
+  now: Date,
+): "current" | "future" | "past" | null {
+  const start = parseDate(startIso);
+  if (!start) return null;
+  const end = parseDate(endIso);
+  if (dateOnly) {
+    const today = getBerlinDayKey(now);
+    if (today < getBerlinDayKey(start)) return "future";
+    if (today > getBerlinDayKey(end ?? start)) return "past";
+    return "current";
+  }
+  if (start > now) return "future";
+  if (end && end >= now) return "current";
+  return "past";
 }
 
 export function getEventMonthKey(startIso?: string | null) {

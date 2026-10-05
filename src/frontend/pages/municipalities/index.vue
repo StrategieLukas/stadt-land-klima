@@ -1,15 +1,20 @@
 <template>
 <div class="municipalities-page px-4 py-8">
-  <!-- Title -->
-  <div class="mb-4">
-    <h1 class="text-4xl font-bold text-light-green">
+  <header class="mb-8">
+    <h1 class="mb-4 font-heading text-4xl font-black text-light-green sm:text-6xl">
       <span v-if="selectedCatalogVersion.name === 'beta'">{{ $t("municipalities.heading") }} {{ $t("ranking.current_year", { ":year": 2025 }) }}</span>
       <span v-else>{{ $t("municipalities.heading") }} {{ $t("ranking.current_year", { ":year": 2026 }) }}</span>
     </h1>
-    <p class="text-xs text-gray-400 mt-1">
+    <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('municipalities.hero.description') }}</p>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <CanonicalButton :label="$t('municipalities.hero.catalog')" href="/measures" icon-slug="mdi:clipboard-list-outline" color="bright-green" text-color="white" />
+      <CanonicalButton :label="$t('stats.measures.title')" href="/stats#massnahmenstatistiken" icon-slug="mdi:chart-bar" color="bright-green" text-color="white" />
+      <CanonicalButton :label="$t('stats.participate')" href="/mitmachen" icon-slug="mdi:account-group-outline" color="bright-green" text-color="white" />
+    </div>
+    <p class="mt-4 text-xs text-gray-400">
       <ClientOnly>{{ $t("municipalities.last_updated_at") + lastUpdatedAtStr }}</ClientOnly>
     </p>
-  </div>
+  </header>
 
   <!-- Mobile CTA strip (lg:hidden) — above filter -->
   <div class="lg:hidden flex flex-col gap-2 mb-4">

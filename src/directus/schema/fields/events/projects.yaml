@@ -1,0 +1,29 @@
+collection: events
+field: projects
+type: alias
+meta:
+  collection: events
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{articles_id.title}}'
+  field: projects
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: null
+  options:
+    enableCreate: false
+    template: '{{articles_id.title}}'
+  readonly: false
+  required: false
+  searchable: true
+  sort: 21
+  special:
+  - m2m
+  translations:
+  - language: de-DE
+    translation: Besuchte Erfolgsprojekte
+  validation: null
+  validation_message: null
+  width: full

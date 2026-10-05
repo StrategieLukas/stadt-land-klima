@@ -150,6 +150,9 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 14. However, if in a git worktree where the project root dir folder contains the word "agent", always commit and squash commits + push when done.
 15. DO NOT write plain text into the frontend. Instead, create translation keys and corresponding translations for german, english and italian.
 16. In German user-facing text and translations, use proper German characters (`ä`, `ö`, `ü`, `ß`) instead of ASCII transliterations (`ae`, `oe`, `ue`, `ss`). Keep ASCII transliterations only for stable identifiers, enum values, slugs, emails, URLs, or other machine-facing keys.
+17. Use `CanonicalButton` for prominent action buttons and links in frontend pages. Keep native buttons or existing filter pills for form submission, tabs, filters, map controls, and other compact controls whose interaction needs a different shape. Do not create one-off decorative call-to-action button styles.
+18. The brand green is `#AFCA0B` (`light-green` in `src/frontend/tailwind.config.js`). Use this token when a design calls for the brand green; `ff-green` (`#1da64a`) is a different green.
+19. In hard-coded page heroes, use `CanonicalButton` for action links, give each button a relevant icon, and match its background color to the hero heading color.
 
 ## Feature inventory maintenance
 

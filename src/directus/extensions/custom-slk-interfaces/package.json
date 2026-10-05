@@ -17,9 +17,19 @@
     },
     "entries": [
       {
+        "type": "endpoint",
+        "name": "data-page-catalog",
+        "source": "./src/data-page-catalog/endpoint.ts"
+      },
+      {
         "type": "interface",
         "name": "auto-slug",
         "source": "./src/auto-slug/index.ts"
+      },
+      {
+        "type": "interface",
+        "name": "data-page-collections",
+        "source": "./src/data-page-collections/index.ts"
       },
       {
         "type": "interface",
@@ -53,6 +63,11 @@
       },
       {
         "type": "hook",
+        "name": "data-page-config-validation",
+        "source": "./src/data-page-config-validation/index.ts"
+      },
+      {
+        "type": "hook",
         "name": "public-assets",
         "source": "./src/public-assets/index.ts"
       }
@@ -64,6 +79,7 @@
     "link": "directus-extension link"
   },
   "dependencies": {
+    "@directus/errors": "^2.5.2",
     "slugify": "^1.6.6"
   },
   "devDependencies": {

@@ -1,0 +1,21 @@
+collection: events_articles
+field: events_id
+related_collection: events
+meta:
+  junction_field: articles_id
+  many_collection: events_articles
+  many_field: events_id
+  one_allowed_collections: null
+  one_collection: events
+  one_collection_field: null
+  one_deselect_action: nullify
+  one_field: projects
+  sort_field: null
+schema:
+  table: events_articles
+  column: events_id
+  foreign_key_table: events
+  foreign_key_column: id
+  constraint_name: events_articles_events_id_foreign
+  on_update: NO ACTION
+  on_delete: CASCADE

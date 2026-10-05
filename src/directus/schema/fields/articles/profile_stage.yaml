@@ -1,0 +1,52 @@
+collection: articles
+field: profile_stage
+type: string
+meta:
+  collection: articles
+  conditions: null
+  display: labels
+  display_options:
+    choices:
+    - text: Vorschau
+      value: preview
+    - text: Vollständiges Profil
+      value: complete
+  field: profile_stage
+  group: null
+  hidden: false
+  interface: select-dropdown
+  note: Vorschau ist bereits öffentlich; Veröffentlichungsstatus bleibt unabhängig
+  options:
+    choices:
+    - text: Vorschau
+      value: preview
+    - text: Vollständiges Profil
+      value: complete
+  readonly: false
+  required: true
+  searchable: true
+  sort: 36
+  special: null
+  translations:
+  - language: de-DE
+    translation: Profilstand
+  validation: null
+  validation_message: null
+  width: half
+schema:
+  name: profile_stage
+  table: articles
+  data_type: character varying
+  default_value: complete
+  max_length: 255
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

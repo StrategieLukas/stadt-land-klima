@@ -1,6 +1,13 @@
 <template>
-  <main class="stats-page mx-auto w-full max-w-7xl px-4 py-6">
-    <h1 class="mb-6 font-heading text-3xl font-bold text-stats-dark">{{ $t('stats.measures.title') }}</h1>
+  <main class="stats-page container mx-auto px-4 py-8">
+    <header class="mb-10">
+      <h1 class="mb-4 font-heading text-4xl font-black text-orange sm:text-6xl">{{ $t('stats.title') }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('stats.hero.description') }}</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <CanonicalButton :label="$t('stats.measures.title')" href="#massnahmenstatistiken" icon-slug="mdi:chart-box-outline" color="orange" text-color="white" />
+        <CanonicalButton :label="$t('stats.view_ranking')" href="/municipalities" icon-slug="mdi:format-list-bulleted" color="orange" text-color="white" />
+      </div>
+    </header>
 
     <section id="massnahmenstatistiken" class="mb-8">
       <!-- Filter panel — full width -->
@@ -690,9 +697,7 @@
                   <label class="whitespace-nowrap text-sm font-semibold">k =</label>
                   <input v-model.number="kClusters" type="range" min="2" max="10" class="range range-sm w-28" />
                   <span class="w-4 text-sm font-bold">{{ kClusters }}</span>
-                  <button class="btn btn-outline btn-sm ml-2" @click="computeClusteringAndRender">
-                    {{ $t("stats.analysis.start") }}
-                  </button>
+                  <CanonicalButton class="ml-2" :label="$t('stats.analysis.start')" color="orange" @click="computeClusteringAndRender" />
                 </div>
               </div>
               <!-- Methodology note -->
@@ -774,9 +779,7 @@
               <span v-html="$t('stats.dominance.description_2')"></span>
             </p>
             <p class="text-gray-400 mb-3 text-xs">{{ $t("stats.dominance.filter_note") }}</p>
-            <button class="btn btn-outline btn-sm" @click="computeDominanceAndRender">
-              {{ $t("stats.analysis.start") }}
-            </button>
+            <CanonicalButton :label="$t('stats.analysis.start')" color="orange" @click="computeDominanceAndRender" />
           </div>
 
           <!-- Win rate ranking chart -->

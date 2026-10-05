@@ -15,6 +15,7 @@ permissions:
       - slug
       - author
       - municipality_name
+      - municipality
       - state
       - content
       - subtitle
@@ -51,6 +52,7 @@ permissions:
       - additional_infos_segment
       - similar_projects_segment
       - measures
+      - profile_stage
   - collection: articles
     action: delete
     permissions:
@@ -97,6 +99,7 @@ permissions:
       - author
       - date_created
       - municipality_name
+      - municipality
       - state
       - content
       - subtitle
@@ -134,6 +137,8 @@ permissions:
       - other_benefits_block
       - similar_projects_segment
       - measures
+      - profile_stage
+      - tour_events
   - collection: articles
     action: update
     permissions:
@@ -157,6 +162,7 @@ permissions:
       - slug
       - author
       - municipality_name
+      - municipality
       - state
       - content
       - subtitle
@@ -193,6 +199,7 @@ permissions:
       - additional_infos_segment
       - similar_projects_segment
       - measures
+      - profile_stage
   - collection: articles_articles
     action: create
     permissions: {}
@@ -245,6 +252,40 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: event_series
+    action: read
+    permissions:
+      status:
+        _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - title
+      - slug
+      - format
+  - collection: events
+    action: read
+    permissions:
+      status:
+        _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - title
+      - slug
+      - start_date
+      - series
+  - collection: events_articles
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - events_id
+      - articles_id
   - collection: external_projects
     action: create
     permissions: null
@@ -341,6 +382,16 @@ permissions:
       - verification_description
       - notes
       - catalog_version
+  - collection: municipalities
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - name
+      - state
+      - geolocation
   - collection: organisations
     action: read
     permissions: null

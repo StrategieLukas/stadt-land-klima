@@ -234,7 +234,7 @@
           <div class="py-8">
             <div class="skeleton mb-4 h-10 w-72" />
             <div v-for="i in 2" :key="i" class="border-gray-100 overflow-visible border-t pb-6 pt-10">
-              <div class="grid h-[820px] gap-5 sm:h-[760px] xl:h-[430px] xl:grid-cols-12">
+              <div class="grid gap-5 xl:grid-cols-12">
                 <div class="space-y-4 xl:col-span-5">
                   <div class="skeleton h-[280px] rounded-lg" />
                   <div class="skeleton h-28 rounded-lg" />
@@ -254,6 +254,7 @@
             :ars="displayArea?.ars ?? ''"
             :base-url="baseUrl"
             :population="displayArea?.population ?? null"
+            :area-name="exportAreaName"
             :scroll-margin-top="productScrollMarginTop"
             @select="scrollToCollection"
           />
@@ -337,6 +338,7 @@ import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
 import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug.js";
 import statesLookup from "~/assets/germany-states-lookup.json";
 import { normalizeCollection, sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
+import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible, normalizeDataPageConfig } from "~/utils/dataPageVisibility";
 
 const sectorSvgFiles = import.meta.glob("@/assets/icons/icon_category_*.svg", {
   query: "?raw",
@@ -376,12 +378,17 @@ definePageMeta({
 
 // ── Route + config ───────────────────────────────────────────────────────────
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $directus, $readItems, $readSingleton, $t } = useNuxtApp();
 const route = useRoute();
 const slug = computed(() => String(route.params.slug ?? ""));
 
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl;
+const { data: dataPageConfig } = await useAsyncData("data-page-config", () =>
+  $directus.request($readSingleton("data_page_config", { fields: ["include_only", "collection_ids"] }))
+    .then(normalizeDataPageConfig)
+    .catch(() => DEFAULT_DATA_PAGE_CONFIG),
+);
 const { label: dataRouteLabel, seedArea, stop: stopDataRouteFeedback, clearSeedArea } = useDataRouteFeedback();
 
 // ── Layout helpers ───────────────────────────────────────────────────────────
@@ -584,7 +591,7 @@ async function loadCollectionsForCurrentArea() {
     // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded.
     const manifest = await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 });
     const slim = (manifest?.collections ?? [])
-      .filter((c) => c.id !== "administrative-areas")
+      .filter((c) => isCollectionVisible(c.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG))
       .map((c) => normalizeCollection(c));
 
     if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
@@ -607,7 +614,7 @@ async function loadCollectionsForCurrentArea() {
     if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
 
     collections.value = (data?.collections ?? [])
-      .filter((c) => c.id !== "administrative-areas")
+      .filter((c) => isCollectionVisible(c.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG))
       .map((c) => normalizeCollection(c));
     collectionsLoadedForSlug.value = requestSlug;
   } catch {

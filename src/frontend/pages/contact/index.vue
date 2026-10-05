@@ -1,7 +1,11 @@
 <template>
-  <div class="max-w-xl mx-auto px-4 py-12 sm:py-16">
-    <div class="bg-white rounded shadow p-6">
-      <h2 class="text-xl font-bold mb-4">{{ $t("feedback.nav_label") }}</h2>
+  <div class="container mx-auto px-4 py-8">
+    <header class="mb-10">
+      <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t('feedback.nav_label') }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('contact.hero.description') }}</p>
+    </header>
+    <div class="mx-auto w-full max-w-xl rounded bg-white p-6 shadow">
+      <h2 class="mb-4 font-heading text-2xl font-bold text-gray">{{ $t("feedback.give") }}</h2>
 
       <!-- Success state -->
       <div v-if="successMessage" class="py-4">

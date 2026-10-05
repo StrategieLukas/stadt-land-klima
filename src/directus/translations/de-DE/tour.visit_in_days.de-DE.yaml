@@ -1,0 +1,3 @@
+language: de-DE
+key: tour.visit_in_days
+value: Wir besuchen dieses Projekt in :days Tagen.

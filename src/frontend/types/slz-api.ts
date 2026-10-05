@@ -92,10 +92,21 @@ export interface CollectionCoverImage {
   attributionKey?: Record<string, string> | string | null;
 }
 
+export interface CollectionOverviewVisual {
+  plot_id: string;
+  type: "municipality_map" | "histogram";
+  image_url: string;
+  title?: Record<string, string>;
+  description?: Record<string, string>;
+  alt?: Record<string, string>;
+  attribution?: Record<string, string> | string | null;
+}
+
 export interface Collection {
   id: string;
   title: Record<string, string>;
   description: Record<string, string>;
+  overview_visuals?: CollectionOverviewVisual[];
   sector: string | null;
   sector_label?: Record<string, string> | string;
   sectorLabel?: Record<string, string> | string;

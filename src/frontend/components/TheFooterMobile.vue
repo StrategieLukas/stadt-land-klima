@@ -109,22 +109,21 @@
 
     <!-- Bottom Section: Logo, Buttons, Copyright -->
     <div class="relative z-10 flex w-full flex-col gap-6">
-      <div class="flex w-full flex-col items-center gap-4 pb-4 pt-2 xs:flex-row xs:justify-between">
+      <div class="flex w-full flex-col items-center gap-4 pb-4 pt-2">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex w-full justify-center xs:w-auto xs:justify-start">
-          <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-12 w-auto dark:hidden" :alt="$t('logo.alt')" />
+        <NuxtLink to="/" class="flex justify-center">
+          <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" class="h-16 w-auto dark:hidden" :alt="$t('logo.alt')" />
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
-            class="hidden h-12 w-auto dark:block"
+            class="hidden h-16 w-auto dark:block"
             :alt="$t('logo.alt')"
           />
         </NuxtLink>
 
         <!-- Footer actions -->
-        <div class="flex flex-col items-center gap-3 xs:flex-row">
-          <LanguageSelector />
-          <DonateButton />
-          <LoginButton />
+        <div class="flex w-full max-w-[180px] flex-col gap-3">
+          <DonateButton class="w-full" />
+          <LoginButton class="w-full" />
         </div>
       </div>
 
@@ -155,7 +154,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import DonateButton from "~/components/DonateButton.vue";
-import LanguageSelector from "~/components/LanguageSelector.vue";
 import LoginButton from "~/components/LoginButton.vue";
 import AuthLoginModal from "~/components/AuthLoginModal.vue";
 import { useAuth } from "~/composables/useAuth";

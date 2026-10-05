@@ -80,6 +80,7 @@ permissions:
       - author
       - date_created
       - municipality_name
+      - municipality
       - state
       - content
       - subtitle
@@ -108,6 +109,8 @@ permissions:
       - public_impact_effects
       - ghg_savings_level
       - content_segment
+      - profile_stage
+      - tour_events
       - social_media
       - instagram
       - linkedin
@@ -198,6 +201,13 @@ permissions:
       - date_created
       - date_updated
       - status
+  - collection: data_page_config
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - "*"
   - collection: directus_files
     action: read
     permissions: {}
@@ -269,6 +279,7 @@ permissions:
       - event_type
       - status
       - start_date
+      - date_only
       - end_date
       - location
       - registration_url
@@ -277,6 +288,48 @@ permissions:
       - image
       - image_credits
       - event_category
+      - series
+      - series_order
+      - state
+      - geolocation
+      - projects
+      - reports
+  - collection: event_series
+    action: read
+    permissions:
+      status:
+        _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - status
+      - slug
+      - title
+      - introduction
+      - closing_reflection
+      - format
+      - cover_image
+      - brand_logo
+      - cover_image_credits
+      - featured_on_projects
+      - events
+  - collection: events_articles
+    action: read
+    permissions:
+      _and:
+        - events_id:
+            status:
+              _eq: published
+        - articles_id:
+            status:
+              _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - events_id
+      - articles_id
   - collection: external_projects
     action: read
     permissions: null
@@ -460,6 +513,24 @@ permissions:
       - date_published
       - date_created
       - status
+      - report_event
+      - journey_photos
+  - collection: news_journey_photos
+    action: read
+    permissions:
+      news_items_id:
+        status:
+          _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - news_items_id
+      - file
+      - sort
+      - alt
+      - caption
+      - credit
   - collection: organisation_teams
     action: read
     permissions: {}
