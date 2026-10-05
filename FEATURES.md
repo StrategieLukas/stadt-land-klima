@@ -333,6 +333,7 @@ The test column names the most specific automated flow and step where coverage e
 | Interface | Unsplash image selector with upload validation and credits saved on the file and parent item | src/directus/extensions/custom-slk-interfaces/src/unsplash-image | Manual-only: import an image into an existing and a new item and inspect both credit fields; no dedicated automated test |
 | Interface | Public-assets hook or interface support | src/directus/extensions/custom-slk-interfaces/src/public-assets | Not covered by a dedicated automated test |
 | CMS | Directus schema, roles, policies, presets, settings, translations, flows, dashboards, and fixture content are imported code-first during production updates | src/directus/cli/import-all.sh, src/directus/cli/export-all.sh, bin/import-all.sh, bin/update_production.sh | Manual-only: run the production update/import sequence and verify collection content; no dedicated automated test |
+| Deployment | Production update can skip its pre-update database export with `--no-backup` while retaining the default backup behavior | bin/update_production.sh | Manual-only: inspect `--help` and run an update with and without `--no-backup`; no dedicated automated test |
 
 ### Directus flows and background automation
 

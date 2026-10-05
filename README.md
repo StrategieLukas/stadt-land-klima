@@ -140,5 +140,5 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
   development stack.
 - If there's a docker permission issue, chmod 777 everything :(
   - This applies specifically to PDF generation as well. At least the typst directory under /directus/extensions (not to be confused with directus-extensions-not-build) must be 777 for PDF generation to create files.
-- Always back up the DB beforehand, obviously. This is done locally automatically when calling ./update_production.sh
+- `./bin/update_production.sh` backs up the database by default. Use `--no-backup` when the database is unavailable and the update must proceed without that export.
 - Migrate ratings from one version to another using ./directus-cli migrate <old> <new>. Avoid using this when the "new" version is already in use, as it overwrites all ratings that do not need re-evaluation.

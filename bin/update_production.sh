@@ -8,6 +8,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 NO_DIRECTUS_BUILD=false
 NO_FRONTEND_BUILD=false
 NO_RESTART=false
+NO_BACKUP=false
 BUILD_OPTIONS=()
 
 for arg in "$@"; do
@@ -23,11 +24,15 @@ for arg in "$@"; do
     --no-restart)
       NO_RESTART=true
       ;;
+    --no-backup)
+      NO_BACKUP=true
+      ;;
     --help)
       echo "Options:
 --no-directus-build > prevents building directus
 --no-frontend-build > prevents building frontend
---no-restart > prevents container restart"
+--no-restart > prevents container restart
+--no-backup > skips the pre-update database backup"
       exit 0
       ;;
     *)
@@ -37,18 +42,20 @@ for arg in "$@"; do
   esac
 done
 
-# target backup directory
-BACKUP_DIR="$(cd "$REPO_ROOT/.." && pwd)/backups"
-# ensure directory exists
-mkdir -p "$BACKUP_DIR"
-# generate filename with current date
-DATE=$(date +"%d-%m-%Y")
-FILENAME="backupOnUpdate-$DATE.sql"
-# run the export and redirect to file
-echo "Performing backup... "
-"$SCRIPT_DIR/db_exports/export_db.sh" > "$BACKUP_DIR/$FILENAME"
+if [[ $NO_BACKUP != true ]]; then
+  # target backup directory
+  BACKUP_DIR="$(cd "$REPO_ROOT/.." && pwd)/backups"
+  # ensure directory exists
+  mkdir -p "$BACKUP_DIR"
+  # generate filename with current date
+  DATE=$(date +"%d-%m-%Y")
+  FILENAME="backupOnUpdate-$DATE.sql"
+  # run the export and redirect to file
+  echo "Performing backup... "
+  "$SCRIPT_DIR/db_exports/export_db.sh" > "$BACKUP_DIR/$FILENAME"
 
-echo "Backup saved to $BACKUP_DIR/$FILENAME"
+  echo "Backup saved to $BACKUP_DIR/$FILENAME"
+fi
 
 cd "$REPO_ROOT"
 # no stashing to prevent changes being removed
