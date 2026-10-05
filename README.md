@@ -127,8 +127,7 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 
 # Deployment Notes
 
-- Must call ./import-all.sh *ON THE HOST MACHINE IN /bin* for directus changes to apply.
-Do not just use the ./cli/import-all.sh from inside the directus container, as the version in the /bin folder also cleans up permissions
+- `./bin/update_production.sh` imports the Directus YAML configuration and fixture content after the services restart. To import without rebuilding, run `./bin/import-all.sh` from any directory.
 - To apply code-first Directus configuration followed by pending JavaScript
   migrations, run this from the repository root while the production stack is
   running:
