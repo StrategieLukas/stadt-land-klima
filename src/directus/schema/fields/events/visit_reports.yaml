@@ -1,0 +1,29 @@
+collection: events
+field: visit_reports
+type: alias
+meta:
+  collection: events
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{caption}}'
+  field: visit_reports
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: Besuchsbericht hier verwalten; Inhalte auf der Veranstaltungsseite mit Blökkli bearbeiten.
+  options:
+    enableCreate: true
+    template: '{{title}}'
+  readonly: false
+  required: false
+  searchable: true
+  sort: 24
+  special:
+  - o2m
+  translations:
+  - language: de-DE
+    translation: Besuchsbericht
+  validation: null
+  validation_message: null
+  width: full

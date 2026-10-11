@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { Request, Response, Router } from "express";
 import type { Accountability, Database, ItemsService, Schema } from "@directus/types";
 
-const ALLOWED_ENTITY_TYPES = new Set(["pages", "news_items"]);
+const ALLOWED_ENTITY_TYPES = new Set(["pages", "news_items", "event_reports"]);
 const BLOCK_FIELD_NAME = "content";
 const MAX_ROOT_BLOCKS = 500;
 const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024;
@@ -285,6 +285,13 @@ export default {
             `${scope.entityUuid}:${scope.fieldName}`,
           ]);
 
+          if (scope.entityType === "event_reports") {
+            const reportsService = new services.ItemsService("event_reports", {
+              schema, accountability: req.accountability, knex: trx,
+            });
+            await reportsService.readOne(scope.entityUuid, { fields: ["id"] });
+          }
+
           const allRows = (await trx("blocks")
             .select(
               "id",
@@ -344,6 +351,7 @@ export default {
               bundle: block.bundle,
               entity_type: scope.entityType,
               entity_uuid: scope.entityUuid,
+              event_report: scope.entityType === "event_reports" ? scope.entityUuid : null,
               field_name: scope.fieldName,
               sort_order: sortOrder,
               status: "published",

@@ -195,8 +195,8 @@ const { data: events } = await useAsyncData("events-list", async () => {
   try {
     const results = await $directus.request(
       $readItems("events", {
-        filter: { status: { _eq: "published" } },
-        fields: ["id", "title", "slug", "start_date", "end_date", "date_only", "location", "event_type", { image: ["id", "type"] }],
+        filter: { status: { _eq: "published" }, _or: [{ event_category: { _null: true } }, { event_category: { _neq: "internal" } }] },
+        fields: ["id", "title", "slug", "start_date", "end_date", "date_only", "location", "event_type", "event_category", { image: ["id", "type"] }],
         sort: ["start_date"],
         limit: -1,
       }),

@@ -342,6 +342,7 @@
 </template>
 
 <script setup>
+import { visitHasEnded } from '~/shared/tour'
 import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
@@ -416,6 +417,7 @@ onMounted(async () => {
     try {
       const client = getAuthenticatedClient()
       adminNewsItems.value = await client.request(readItems('news_items', {
+        filter: { is_event_redirect: { _eq: false } },
         fields: ['id', 'slug', 'title', 'teaser', { image: ['id', 'type'] }, 'image_credits', 'date_published', 'date_created', 'status'],
         sort: ['-date_published', '-date_created'],
         limit: 200,
@@ -436,10 +438,11 @@ const [
   { data: eventsData },
   { data: municipalitiesData },
   { data: catalogData },
+  { data: visitReports },
 ] = await Promise.all([
   useAsyncData('feed-news', () =>
     $directus.request($readItems('news_items', {
-      filter: { status: { _eq: 'published' } },
+      filter: { status: { _eq: 'published' }, is_event_redirect: { _eq: false } },
       fields: ['id', 'slug', 'title', 'teaser', { image: ['id', 'type'] }, 'image_credits', 'date_published', 'date_created'],
       sort: ['-date_published', '-date_created'],
       limit: 50,
@@ -456,7 +459,7 @@ const [
   useAsyncData('feed-events', () =>
     $directus.request($readItems('events', {
       filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'description', 'event_type', 'start_date', 'end_date', 'date_created', { image: ['id', 'type'] }, 'image_credits', 'location'],
+      fields: ['id', 'slug', 'title', 'description', 'event_type', 'event_category', 'date_only', 'start_date', 'end_date', 'date_created', { image: ['id', 'type'] }, 'image_credits', 'location'],
       sort: ['-start_date'],
       limit: 20,
     }))
@@ -476,6 +479,12 @@ const [
       limit: 10,
     }))
   ),
+  useAsyncData('feed-visit-reports', () => $directus.request($readItems('event_reports', {
+    filter: { status: { _eq: 'published' }, event: { status: { _eq: 'published' }, series: { format: { _eq: 'tour' } } } },
+    fields: ['id', 'title', 'teaser', 'date_published', 'image_credits', { image: ['id', 'type'] }, { event: ['id', 'slug', 'start_date', 'end_date', 'date_only', 'location'] }],
+    sort: ['-date_published'], limit: 50,
+  }))),
+
 ])
 
 // ── Map to unified feed items ──────────────────────────────────────────────────
@@ -514,6 +523,7 @@ const allItems = computed(() => {
 
   const now = new Date()
   for (const e of eventsData.value || []) {
+    if (e.event_category === 'internal' || (visitReports.value || []).some(report => report.event?.id === e.id)) continue
     if (e.start_date && new Date(e.start_date) >= now) continue // future events shown in "Zukünftig" section
     items.push({
       type: 'event',
@@ -529,6 +539,14 @@ const allItems = computed(() => {
       location: e.location || null,
       href: `/events/${e.slug}`,
     })
+  }
+
+  for (const report of visitReports.value || []) {
+    const visit = report.event;
+    if (!visit || !visitHasEnded(visit.start_date, visit.end_date, now)) continue;
+    items.push({ type: 'news', id: `visit-${report.id}`, title: report.title, teaser: report.teaser,
+      imageId: report.image?.id || null, imageType: report.image?.type || null, imageCredits: report.image_credits || null,
+      date: report.date_published || visit.start_date, href: `/events/${visit.slug}` });
   }
 
   for (const m of municipalitiesData.value || []) {
@@ -595,7 +613,7 @@ const groupedByMonth = computed(() => {
 const upcomingEvents = computed(() => {
   const upcoming = new Date()
   return (eventsData.value || [])
-    .filter(e => e.start_date && new Date(e.start_date) >= upcoming)
+    .filter(e => e.event_category !== 'internal' && e.start_date && new Date(e.start_date) >= upcoming)
     .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
     .slice(0, 2)
 })

@@ -1,0 +1,29 @@
+collection: event_reports
+field: media
+type: alias
+meta:
+  collection: event_reports
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{caption}}'
+  field: media
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: Geordnete Bilder und Videos mit Bildunterschrift und Nachweis
+  options:
+    enableCreate: true
+    template: '{{caption}}'
+  readonly: false
+  required: false
+  searchable: true
+  sort: 16
+  special:
+  - m2m
+  translations:
+  - language: de-DE
+    translation: Medien zum Tourstopp
+  validation: null
+  validation_message: null
+  width: full

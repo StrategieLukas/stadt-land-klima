@@ -42,10 +42,13 @@ export async function seedTourOst2026(query) {
     const eventId = eventRows[0]?.id ?? stop.id;
     if (!eventRows.length) {
       await query(
-        'INSERT INTO events (id, slug, title, description, event_type, status, start_date, date_only, location, series_order, state, geolocation, series) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?)',
-        [stop.id, stop.slug, stop.title, stop.description, stop.event_type, stop.status, stop.start_date, stop.date_only, stop.location, stop.series_order, stop.state, ...stop.geolocation.coordinates, seriesId],
+        'INSERT INTO events (id, slug, title, description, event_type, event_category, status, start_date, date_only, location, series_order, state, geolocation, series) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_SetSRID(ST_MakePoint(?, ?), 4326), ?)',
+        [stop.id, stop.slug, stop.title, stop.description, stop.event_type, stop.event_category, stop.status, stop.start_date, stop.date_only, stop.location, stop.series_order, stop.state, ...stop.geolocation.coordinates, seriesId],
       );
     }
+
+    // These ten campaign stops are non-public visits; other events keep their category.
+    await query('UPDATE events SET event_category = ? WHERE id = ?', [stop.event_category, eventId]);
 
     const articleSlug = stop.slug.replace(/^erfolgsprojekte-/, 'erfolgsprojekt-');
     const articleRows = await query('SELECT id FROM articles WHERE slug = ? LIMIT 1', [articleSlug]);

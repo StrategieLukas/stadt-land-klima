@@ -28,7 +28,8 @@
           12.4939267,
           50.7185043
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "cd14e0d5-7b6d-4af4-9069-8d0ceb673b7e",
@@ -48,7 +49,8 @@
           11.7526038,
           52.7899044
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "f1e6a58a-0b5c-4dc5-999c-3aeaa76fde0b",
@@ -68,7 +70,8 @@
           13.6219208,
           52.373076
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "7b89fba1-1b99-4255-8253-35c04d12074f",
@@ -88,7 +91,8 @@
           12.8514034,
           50.7024268
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "d8d3ac32-60e3-46a8-abc2-8c2938dbf65e",
@@ -108,7 +112,8 @@
           12.9810458,
           50.9854597
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "a9223001-8d5a-4b1f-a982-128463d13725",
@@ -128,7 +133,8 @@
           11.5879359,
           50.9281717
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "e07472b4-1ed0-420b-9863-d05dc74faf80",
@@ -148,7 +154,8 @@
           11.6203578,
           52.2007378
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "5112a794-e8e0-4132-bf7a-ded8d1ee5d1b",
@@ -168,7 +175,8 @@
           12.2430723,
           51.8309956
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "a6a2d670-bb1c-4484-abdd-0f037c337be4",
@@ -188,7 +196,8 @@
           13.3902046,
           52.866517
         ]
-      }
+      },
+      "event_category": "internal"
     },
     {
       "id": "d111af31-de8a-4140-84df-ae23d6b74e34",
@@ -208,7 +217,8 @@
           11.0287364,
           50.9777974
         ]
-      }
+      },
+      "event_category": "internal"
     }
   ]
 }

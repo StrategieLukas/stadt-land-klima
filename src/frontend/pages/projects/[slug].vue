@@ -10,7 +10,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
           <CanonicalButton :href="`/events/series/${visit.series.slug}#stop-${visit.event.slug}`" :label="$t('tour.discover')" color="dark" />
-          <CanonicalButton v-if="visit.report" :href="`/news/${visit.report.slug}`" :label="$t('tour.read_report')" color="green" />
+          <CanonicalButton :href="`/events/${visit.event.slug}`" :label="$t('tour.stop_details')" icon-slug="mdi:arrow-right" color="green" />
         </div>
       </div>
     </div>
@@ -84,16 +84,16 @@
   const linkedEvents = computed(() => (tourLinks.value ?? []).map((link) => link.events_id).filter((event) => event?.series?.format === 'tour'));
   const { data: tourReports } = await useAsyncData(`article-tour-reports-${article.value.id}`, () => {
     const ids = linkedEvents.value.map((event) => event.id);
-    return ids.length ? $directus.request($readItems('news_items', {
-      filter: { report_event: { _in: ids }, status: { _eq: 'published' } },
-      fields: ['slug', 'report_event'],
+    return ids.length ? $directus.request($readItems('event_reports', {
+      filter: { event: { _in: ids }, status: { _eq: 'published' } },
+      fields: ['id', 'event'],
       limit: -1,
     })) : Promise.resolve([]);
   });
   const tourVisits = computed(() => linkedEvents.value.map((event) => ({
     event,
     series: event.series,
-    report: (tourReports.value ?? []).find((report) => relationId(report.report_event) === event.id),
+    report: (tourReports.value ?? []).find((report) => relationId(report.event) === event.id),
   })).sort((a, b) => new Date(a.event.start_date) - new Date(b.event.start_date)));
   const tourNow = useState(`project-tour-now-${route.params.slug}`, () => new Date().toISOString());
   onMounted(() => { tourNow.value = new Date().toISOString(); });

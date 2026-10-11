@@ -6,7 +6,7 @@
         <h1>{{ series.title }}</h1>
         <p v-if="series.introduction" class="series-intro">{{ series.introduction }}</p>
         <p v-else-if="series.format === 'tour'" class="series-intro">{{ $t('tour.follow_journey') }}</p>
-        <CanonicalButton v-if="stops.length" href="#route" :label="$t('tour.discover')" color="dark" />
+        <CanonicalButton v-if="stops.length" href="#route" :label="$t('tour.discover')" icon-slug="mdi:map-marker-path" color="dark" />
       </div>
       <div class="series-hero__art" :style="series.format === 'tour' ? { '--route-stop-count': stops.length, '--route-mobile-rows': Math.ceil(stops.length / 2) } : undefined">
         <div v-if="series.format === 'tour'" class="series-hero__route" aria-hidden="true">
@@ -87,32 +87,27 @@
                     <span class="tour-chapter__date-pill"><b>{{ index + 1 }}</b> {{ formatShortDate(stop.start_date) }}</span>
                   </div>
                 </div>
-                <p v-if="stop.location" class="tour-collage__event-title">{{ stop.title }}</p>
+
                 <p v-if="stop.event_category === 'internal'" class="tour-chapter__attendance">{{ $t('tour.internal_visit') }}</p>
                 <p v-else-if="stop.event_category === 'own_public'" class="tour-chapter__attendance">{{ $t('tour.public_event') }}</p>
-                <template v-if="reportFor(stop.id)">
-                  <div v-if="(!isHydrated || isMobileTour || !mapOpen) && reportPhotos(stop.id).length" class="tour-photos" :class="{ 'tour-photos--pair': reportPhotos(stop.id).length > 1 }">
-                    <figure v-for="(photo, photoIndex) in reportPhotos(stop.id)" :key="photo.id" :class="`tour-photo--${photoIndex % 3}`">
-                      <SmartImg :asset-id="relationId(photo.file)" :is-raster="isRaster(photo.file?.type || 'image/jpeg')" :alt="photo.alt" :width="900" img-class="block h-auto w-full" />
-                      <figcaption><span v-if="photo.caption">{{ photo.caption }}</span><small>{{ photo.credit }}</small></figcaption>
-                    </figure>
-                  </div>
-                  <p v-if="reportFor(stop.id).teaser" class="tour-collage__excerpt">{{ reportFor(stop.id).teaser }}</p>
-                  <CanonicalButton :href="`/news/${reportFor(stop.id).slug}`" :label="$t('tour.read_report')" color="dark" />
-                </template>
-                <p v-else class="tour-collage__status">{{ visitHasEnded(stop.start_date, stop.end_date, now) ? $t('tour.report_pending') : $t('tour.upcoming') }}</p>
+                <figure v-if="(!isHydrated || isMobileTour || !mapOpen) && reportMedia(stop.id).length" class="tour-card-media">
+                  <button type="button" :aria-label="$t('tour.media_open')" @click="openMedia(stop.id, 0)"><TourMediaPreview :item="reportMedia(stop.id)[0]" /></button>
+                  <figcaption><span v-if="reportMedia(stop.id)[0].caption">{{ reportMedia(stop.id)[0].caption }}</span><small>{{ reportMedia(stop.id)[0].credit }}</small><small>{{ $t('tour.media_count', { ':count': reportMedia(stop.id).length }) }}</small></figcaption>
+                </figure>
+                <p v-if="reportFor(stop.id)?.teaser" class="tour-collage__excerpt">{{ reportFor(stop.id)?.teaser }}</p>
+                <p v-else-if="!reportFor(stop.id)" class="tour-collage__status">{{ visitHasEnded(stop.start_date, stop.end_date, now) ? $t('tour.report_pending') : $t('tour.upcoming') }}</p>
+                <CanonicalButton class="tour-collage__primary" :href="`/events/${stop.slug}`" :label="$t('tour.stop_details')" icon-slug="mdi:arrow-right" color="dark" />
                 <div class="tour-collage__links">
-                  <NuxtLink :to="`/events/${stop.slug}`">{{ $t('tour.event_details') }} ↗</NuxtLink>
                   <a v-if="stop.registration_url && stop.event_category !== 'internal'" :href="stop.registration_url" target="_blank" rel="noopener noreferrer">{{ $t('events.register') }} ↗</a>
                   <NuxtLink v-for="project in projectsFor(stop.id)" :key="project.id" :to="`/projects/${project.slug}`">{{ project.title }} <span v-if="project.profile_stage === 'preview'" class="tour-preview-label">{{ $t('tour.preview') }}</span></NuxtLink>
                 </div>
               </article>
             </div>
             <template v-if="isHydrated && mapOpen && !isMobileTour">
-              <div v-for="(stop, index) in stops" v-show="activeStop === index && reportPhotos(stop.id).length" :key="`prints-${stop.id}`" class="tour-photos tour-explorer__prints" :class="{ 'tour-photos--pair': reportPhotos(stop.id).length > 1 }" :style="printsPositionStyle">
-                <figure v-for="(photo, photoIndex) in reportPhotos(stop.id)" :key="photo.id" :class="`tour-photo--${photoIndex % 3}`">
-                  <SmartImg :asset-id="relationId(photo.file)" :is-raster="isRaster(photo.file?.type || 'image/jpeg')" :alt="photo.alt" :width="900" img-class="block aspect-[4/3] w-full object-cover" />
-                  <figcaption><span v-if="photo.caption">{{ photo.caption }}</span><small>{{ photo.credit }}</small></figcaption>
+              <div v-for="(stop, index) in stops" v-show="activeStop === index && reportMedia(stop.id).length" :key="`prints-${stop.id}`" class="tour-photos tour-explorer__prints" :class="{ 'tour-photos--pair': reportMedia(stop.id).length > 1 }" :style="printsPositionStyle">
+                <figure v-for="(photo, photoIndex) in reportMedia(stop.id).slice(0, 2)" :key="photo.id" :class="`tour-photo--${photoIndex % 3}`">
+                  <button type="button" :aria-label="`${$t('tour.media_open')}: ${photo.alt}`" @click="openMedia(stop.id, photoIndex)"><TourMediaPreview :item="photo" /></button>
+                  <figcaption><span v-if="photo.caption">{{ photo.caption }}</span><small>{{ photo.credit }}</small><small>{{ $t('tour.media_count', { ':count': reportMedia(stop.id).length }) }}</small></figcaption>
                 </figure>
               </div>
             </template>
@@ -136,19 +131,19 @@
           <div v-else class="series-brand__fallback"><span>{{ series.title }}</span><TourPin /><strong>Stadt.Land.Klima!</strong></div>
         </div>
         <p v-if="series.closing_reflection" class="series-outro__reflection">{{ series.closing_reflection }}</p>
-        <div v-if="allProjects.length || publishedReports.length" class="series-outro__references">
+        <div v-if="allProjects.length || stops.length" class="series-outro__references">
           <div v-if="allProjects.length">
             <h2>{{ $t('tour.all_projects') }}</h2>
             <NuxtLink v-for="project in allProjects" :key="project.id" :to="`/projects/${project.slug}`">{{ project.title }} →</NuxtLink>
           </div>
-          <div v-if="publishedReports.length">
-            <h2>{{ $t('tour.all_reports') }}</h2>
-            <NuxtLink v-for="report in publishedReports" :key="report.id" :to="`/news/${report.slug}`">{{ report.title }} →</NuxtLink>
+          <div v-if="stops.length">
+            <h2>{{ $t('tour.all_stops') }}</h2>
+            <NuxtLink v-for="stop in stops" :key="stop.id" :to="`/events/${stop.slug}`">{{ stop.location || stop.title }} →</NuxtLink>
           </div>
         </div>
         <div class="series-outro__links">
-          <CanonicalButton href="/projects" :label="$t('tour.all_projects')" color="dark" />
-          <CanonicalButton href="/news" :label="$t('tour.all_reports')" color="green" />
+          <CanonicalButton href="/projects" :label="$t('tour.all_projects')" icon-slug="mdi:leaf" color="dark" />
+          <CanonicalButton href="#route" :label="$t('tour.all_stops')" icon-slug="mdi:map-marker-path" color="dark" />
         </div>
       </footer>
     </template>
@@ -159,19 +154,20 @@
         <EventCard v-for="stop in stops" :key="stop.id" :event="stop" />
       </div>
     </section>
+    <TourMediaViewer ref="mediaViewer" />
   </main>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { berlinDayNumber, pinColor, relationId, visitHasEnded } from "~/shared/tour";
+import { REPORT_FIELDS, orderedMedia } from "~/shared/tourMedia";
+import type { EventReport, TourMedia } from "~/shared/tourMedia";
 import type { TourPoint } from "~/shared/tour";
 import { isRaster } from "~/shared/utils";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 
-type Photo = { id: number; file: { id: string; type?: string } | string; sort?: number | null; alt: string; caption?: string | null; credit: string };
-type Report = { id: string; slug: string; title: string; teaser?: string | null; report_event: string | { id: string }; journey_photos?: Photo[] };
 type Project = { id: number; slug: string; title: string; profile_stage?: string };
 type Stop = { id: string; slug: string; title: string; start_date: string; end_date?: string | null; location?: string | null; state?: string | null; series_order?: number | null; geolocation?: TourPoint | null; image?: { id: string; type?: string } | null; event_type?: string | null; event_category?: string | null; registration_url?: string | null };
 type Series = { id: string; slug: string; title: string; introduction?: string | null; closing_reflection?: string | null; cover_image?: { id: string; type?: string } | null; brand_logo?: { id: string; type?: string } | null; cover_image_credits?: string | null; format: "tour" | "standard" };
@@ -209,9 +205,9 @@ const [{ data: projectLinks }, { data: reportRows }] = await Promise.all([
     fields: ["events_id", { articles_id: ["id", "slug", "title", "profile_stage"] }],
     limit: -1,
   })) : Promise.resolve([])),
-  useAsyncData(`event-series-reports-${series.value.id}`, () => eventIds.length ? $directus.request($readItems("news_items", {
-    filter: { report_event: { _in: eventIds }, status: { _eq: "published" } },
-    fields: ["id", "slug", "title", "teaser", "report_event", { journey_photos: ["id", "sort", "alt", "caption", "credit", { file: ["id", "type"] }] }],
+  useAsyncData(`event-series-reports-${series.value.id}`, () => eventIds.length ? $directus.request($readItems("event_reports", {
+    filter: { event: { _in: eventIds }, status: { _eq: "published" } },
+    fields: REPORT_FIELDS,
     limit: -1,
   })) : Promise.resolve([])),
 ]);
@@ -228,14 +224,16 @@ const projectsByEvent = computed(() => {
   }
   return result;
 });
-const reportsByEvent = computed(() => new Map(((reportRows.value ?? []) as Report[]).map((report) => [relationId(report.report_event), report])));
+const reportsByEvent = computed(() => new Map(((reportRows.value ?? []) as EventReport[]).map((report) => [relationId(report.event), report])));
 const allProjects = computed(() => [...new Map([...projectsByEvent.value.values()].flat().map((project) => [project.id, project])).values()]);
-const publishedReports = computed(() => (reportRows.value ?? []) as Report[]);
-const reportFor = (eventId: string): Report | undefined => reportsByEvent.value.get(eventId);
+const reportFor = (eventId: string): EventReport | undefined => reportsByEvent.value.get(eventId);
 const projectsFor = (eventId: string): Project[] => projectsByEvent.value.get(eventId) ?? [];
-const reportPhotos = (eventId: string): Photo[] => [...(reportFor(eventId)?.journey_photos ?? [])]
-  .filter((photo) => relationId(photo.file))
-  .sort((a, b) => (a.sort ?? 999) - (b.sort ?? 999));
+const reportMedia = (eventId: string): TourMedia[] => orderedMedia(reportFor(eventId));
+const mediaViewer = ref<{ open: (media: TourMedia[], index: number, title: string) => void } | null>(null);
+function openMedia(eventId: string, index: number) {
+  const stop = stops.value.find(stop => stop.id === eventId);
+  mediaViewer.value?.open(reportMedia(eventId), index, stop?.location || stop?.title || '');
+}
 
 const stateCount = computed(() => new Set(stops.value.map((stop) => stop.state).filter(Boolean)).size);
 const dayCount = computed(() => {
@@ -653,19 +651,26 @@ useHead({ title: series.value.title });
 .tour-explorer__map { width: 100%; height: var(--scene-height); }
 .tour-explorer__scene.is-ready .tour-explorer__map { height: 100%; }
 .tour-explorer__track { position: relative; z-index: 2; margin: calc(-1 * var(--scene-height)) 0 0; padding: 0; list-style: none; pointer-events: none; }
-.tour-explorer__waypoint { position: relative; height: max(30rem, 65svh); scroll-margin-top: calc(var(--tour-header) + var(--tour-local-header-height)); }
+.tour-explorer__track::after { content: ""; display: block; height: var(--scene-height); }
+.tour-explorer__waypoint { position: relative; height: max(40rem, 120svh); scroll-margin-top: calc(var(--tour-header) + var(--tour-local-header-height)); }
 .tour-explorer__scrolly.is-collapsed .tour-explorer__scene { position: relative; top: auto; height: auto; overflow: visible; }
 .tour-explorer__scrolly.is-collapsed .tour-collage { scroll-margin-top: calc(var(--tour-header) + var(--tour-local-header-height) + 1rem); }
 .tour-explorer__cards { position: relative; z-index: 500; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr)); gap: 2rem; padding: 2rem clamp(1rem, 4vw, 4rem); }
 .tour-explorer__cards.is-ready { position: absolute; top: var(--card-top, 50%); left: var(--card-left, 52%); display: block; width: var(--card-width, min(38rem, 43vw)); max-height: calc(100% - 2rem); padding: 0; transform: translateY(-50%); overflow-y: auto; scrollbar-width: thin; }
-.tour-collage { min-width: 0; padding: clamp(1.1rem, 2.2vw, 2rem); border: 4px solid #182127; background: #fffefa; box-shadow: 10px 12px 0 #075b7950; color: #182127; scroll-margin-top: calc(var(--tour-header) + 1rem); }
+.tour-collage { display: flex; flex-direction: column; min-width: 0; padding: clamp(1.1rem, 2.2vw, 2rem); border: 4px solid #182127; background: #fffefa; box-shadow: 10px 12px 0 #075b7950; color: #182127; scroll-margin-top: calc(var(--tour-header) + 1rem); }
 .tour-collage__head { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); align-items: start; gap: .8rem; }
 .tour-collage__pin { position: relative; display: block; width: 4rem; height: 5.5rem; color: var(--pin-color); }
 .tour-collage__pin svg { display: block; width: 100%; height: 100%; }
 .tour-collage h3 { max-width: 100%; margin: 0 0 .65rem; color: #182127; font: 900 clamp(2.25rem, 3.5vw, 3.9rem)/1.05 RobotoCondensed, sans-serif; overflow-wrap: anywhere; }
 .tour-collage__event-title { margin: 1rem 0; font: 800 clamp(1.35rem, 2vw, 1.8rem)/1.2 RobotoCondensed, sans-serif; }
-.tour-collage__excerpt { margin: 1.2rem 0; font-size: 1.05rem; line-height: 1.5; }
+.tour-collage__excerpt { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; margin: 1.2rem 0; font-size: 1.05rem; line-height: 1.5; }
 .tour-collage__status { margin: 1rem 0; padding: .7rem 1rem; border-left: 4px solid var(--pin-color); background: #e6f8fb; color: #253941; }
+.tour-collage__primary { align-self: flex-start; margin-top: auto; }
+.tour-card-media { margin: 1rem 0; width: 100%; }
+.tour-card-media button, .tour-explorer__prints button { display: block; width: 100%; text-align: left; }
+.tour-card-media button:focus-visible, .tour-explorer__prints button:focus-visible { outline: 3px solid #16bae7; outline-offset: 3px; }
+.tour-card-media figcaption { display: flex; flex-direction: column; gap: .25rem; padding-top: .5rem; font-size: .75rem; }
+.tour-card-media figcaption > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .tour-collage__links { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.3rem 0; }
 .tour-collage__links a { padding: .45rem .65rem; border: 1px solid #182127; color: #182127; font-size: .85rem; font-weight: 700; }
 .tour-collage__links a:hover, .tour-collage__links a:focus-visible { background: #b9efff; }

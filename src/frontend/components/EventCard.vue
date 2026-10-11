@@ -59,7 +59,8 @@
       </div>
     </NuxtLink>
 
-    <div :class="actionWrapClasses">
+    <p v-if="event.event_category === 'internal'" class="px-5 pb-3 text-sm font-semibold">{{ $t('tour.internal_visit') }}</p>
+    <div v-if="event.event_category !== 'internal'" :class="actionWrapClasses">
       <a :href="calendarHref" :download="`${event.slug}.ics`" :class="calendarLinkClasses" @click.stop>
         <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path
@@ -89,6 +90,7 @@ type EventListItem = {
   end_date?: string | null;
   date_only?: boolean;
   event_type?: string | null;
+  event_category?: string | null;
   image?: EventImage | string | null;
   location?: string | null;
   slug: string;

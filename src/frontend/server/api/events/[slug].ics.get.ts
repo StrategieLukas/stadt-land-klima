@@ -6,6 +6,7 @@ type DirectusEventResponse = {
 
 type CalendarEvent = {
   date_only: boolean;
+  event_category?: string | null;
   description: string | null;
   end_date: string | null;
   id: string;
@@ -15,7 +16,7 @@ type CalendarEvent = {
   title: string;
 };
 
-const EVENT_FIELDS = ["id", "title", "slug", "description", "start_date", "end_date", "date_only", "location"] as const;
+const EVENT_FIELDS = ["id", "title", "slug", "description", "start_date", "end_date", "date_only", "location", "event_category"] as const;
 const ICS_LINE_ENDING = "\r\n";
 
 function escapeIcsText(value: string): string {
@@ -221,7 +222,7 @@ export default defineEventHandler(async (event) => {
 
   const eventItem = response.data?.[0];
 
-  if (!eventItem) {
+  if (!eventItem || eventItem.event_category === "internal") {
     throw createError({ statusCode: 404, statusMessage: "Event not found" });
   }
 

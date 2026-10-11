@@ -75,6 +75,62 @@ permissions:
     presets: null
     fields:
       - "*"
+  - collection: event_report_media
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - '*'
+  - collection: event_report_media
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - '*'
+  - collection: event_report_media
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - '*'
+  - collection: event_report_media
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - '*'
+  - collection: event_reports
+    action: create
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - '*'
+  - collection: event_reports
+    action: delete
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - '*'
+  - collection: event_reports
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - '*'
+  - collection: event_reports
+    action: update
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - '*'
   - collection: library_items
     action: create
     permissions: {}

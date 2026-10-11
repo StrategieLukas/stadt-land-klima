@@ -169,7 +169,7 @@ export class DirectusClient {
 }
 
 export async function createAdminClient(baseUrl: string, env: Record<string, string>): Promise<DirectusClient> {
-  const token = env.CLI_DIRECTUS_STATIC_TOKEN || env.DIRECTUS_ADMIN_TOKEN;
+  const token = process.env.DIRECTUS_ADMIN_TOKEN || env.CLI_DIRECTUS_STATIC_TOKEN || env.DIRECTUS_ADMIN_TOKEN;
   const client = new DirectusClient(baseUrl, token || undefined);
 
   if (!token) {

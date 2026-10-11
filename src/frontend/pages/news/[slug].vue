@@ -19,17 +19,6 @@
           </NuxtLink>
         </div>
         <article class="prose max-w-none">
-          <!-- Header: image, title, teaser -->
-          <div v-if="item.image" class="not-prose mb-6 rounded-xl overflow-hidden">
-            <SmartImg
-              :assetId="item.image.id"
-              :isRaster="isRaster(item.image.type)"
-              :alt="item.title"
-              :width="900"
-              img-class="w-full h-auto block"
-            />
-          </div>
-          <p v-if="item.image_credits" class="not-prose text-xs text-gray-500 italic mb-4 text-center">{{ item.image_credits }}</p>
           <time
             v-if="displayDate"
             class="not-prose block text-sm text-gray-500 mb-1"
@@ -41,6 +30,18 @@
           <p v-else-if="displayDate && !item.author" class="not-prose mb-3" />
           <h1>{{ item.title }}</h1>
           <p v-if="item.teaser" class="lead text-gray-600">{{ item.teaser }}</p>
+
+          <!-- Header: image, title, teaser -->
+          <div v-if="item.image" class="not-prose mb-6 rounded-xl overflow-hidden">
+            <SmartImg
+              :assetId="item.image.id"
+              :isRaster="isRaster(item.image.type)"
+              :alt="item.title"
+              :width="900"
+              img-class="w-full h-auto block"
+            />
+          </div>
+          <p v-if="item.image_credits" class="not-prose text-xs text-gray-500 italic mb-4 text-center">{{ item.image_credits }}</p>
 
           <!-- blokkli content blocks -->
           <BlokkliField name="content" :list="newsBlocks" />
@@ -177,7 +178,7 @@ const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-it
   const result = await $directus.request(
     $readItems('news_items', {
       filter: { slug: { _eq: route.params.slug } },
-      fields: ['id', 'slug', 'title', 'teaser', 'author', 'date_published', 'date_created', 'status', { image: ['id', 'type'] }, { report_event: ['id', 'slug', 'title', { series: ['slug', 'title'] }] }],
+      fields: ['id', 'slug', 'title', 'teaser', 'author', 'date_published', 'date_created', 'status', 'is_event_redirect', { image: ['id', 'type'] }, { report_event: ['id', 'slug', 'title', { series: ['slug', 'title', 'format'] }] }],
       limit: 1,
     })
   )
@@ -203,6 +204,10 @@ const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-it
 })
 const item = computed(() => itemList.value?.[0] || null)
 
+if (item.value?.is_event_redirect && item.value.report_event?.slug) {
+  await navigateTo(`/events/${item.value.report_event.slug}${import.meta.client ? window.location.hash : ''}`, { redirectCode: 301, replace: true });
+}
+
 const { data: reportProjectLinks } = await useAsyncData(`news-report-projects-${route.params.slug}`, () => item.value?.report_event?.id
   ? $directus.request($readItems('events_articles', {
     filter: { events_id: { _eq: item.value.report_event.id } },
@@ -223,6 +228,9 @@ onMounted(async () => {
   // If item was not returned by the public token, try again with the auth client
   if (!item.value && isAuthenticated.value) {
     await refreshItemList()
+  }
+  if (item.value?.is_event_redirect && item.value.report_event?.slug) {
+    await navigateTo(`/events/${item.value.report_event.slug}${window.location.hash}`, { replace: true });
   }
   authChecked.value = true
 })

@@ -145,11 +145,25 @@ permissions:
       - "*"
   - collection: blocks
     action: read
-    permissions: {}
+    permissions:
+      _or:
+        - entity_type:
+            _neq: event_reports
+        - _and:
+            - entity_type:
+                _eq: event_reports
+            - status:
+                _eq: published
+            - event_report:
+                status:
+                  _eq: published
+                event:
+                  status:
+                    _eq: published
     validation: {}
     presets: null
     fields:
-      - "*"
+      - '*'
   - collection: candidate
     action: read
     permissions: null
@@ -263,6 +277,31 @@ permissions:
       - is_public
       - date_created
       - date_updated
+  - collection: event_report_media
+    action: read
+    permissions:
+      report:
+        status:
+          _eq: published
+        event:
+          status:
+            _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - '*'
+  - collection: event_reports
+    action: read
+    permissions:
+      status:
+        _eq: published
+      event:
+        status:
+          _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - '*'
   - collection: events
     action: read
     permissions:
@@ -294,6 +333,7 @@ permissions:
       - geolocation
       - projects
       - reports
+      - visit_reports
   - collection: event_series
     action: read
     permissions:
@@ -515,6 +555,7 @@ permissions:
       - status
       - report_event
       - journey_photos
+      - is_event_redirect
   - collection: news_journey_photos
     action: read
     permissions:

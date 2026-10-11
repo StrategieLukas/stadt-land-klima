@@ -1,138 +1,141 @@
 <template>
-  <div v-if="event" class="flex flex-col items-center py-8 w-full">
-    <div class="max-w-2xl w-full">
-    <!-- Back link -->
-    <NuxtLink :to="backHref" class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 mb-6">
-      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-      {{ backLabel }}
-    </NuxtLink>
-
-    <!-- Teaser image -->
-    <div v-if="event.image" class="rounded-xl overflow-hidden mb-6">
-      <SmartImg
-        :assetId="event.image?.id || event.image"
-        :isRaster="event.image?.type ? isRaster(event.image.type) : true"
-        :alt="event.title"
-        :width="800"
-        img-class="w-full h-auto block"
-      />
-    </div>
-    <p v-if="event.image_credits" class="text-xs text-gray-500 italic mb-6 text-center">{{ event.image_credits }}</p>
-
-    <!-- Type badge -->
-    <span class="text-xs font-semibold uppercase tracking-wide px-3 py-1 rounded-full bg-light-green/10 text-olive-green mb-4 inline-block">
-      {{ eventTypeLabel(event.event_type) }}
-    </span>
-
-    <h1 class="text-3xl font-bold text-gray-900 mb-4 leading-tight">{{ event.title }}</h1>
-
-    <!-- Meta info -->
-    <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
-      <div class="flex items-center gap-1">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <span>{{ formatEventDateTimeRange(event.start_date, event.end_date, $locale, event.date_only) }}</span>
+  <main v-if="event" class="event-detail mx-auto w-full max-w-3xl px-4 py-8">
+    <NuxtLink :to="backHref" class="mb-6 inline-flex text-sm text-stats-dark hover:underline">← {{ backLabel }}</NuxtLink>
+    <header class="mb-6">
+      <span class="mb-3 inline-block text-xs font-bold uppercase text-olive-green">{{ eventTypeLabel(event.event_type) }}</span>
+      <h1 class="mb-4 font-heading text-3xl font-black leading-tight sm:text-5xl">{{ report?.title || event.title }}</h1>
+      <div class="mb-3 flex flex-wrap gap-4 text-sm">
+        <time :datetime="event.start_date">{{ formatEventDateTimeRange(event.start_date, event.end_date, $locale, event.date_only) }}</time>
+        <span v-if="event.location">{{ event.location }}</span>
       </div>
-      <div v-if="event.location" class="flex items-center gap-1">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        {{ event.location }}
+      <p v-if="event.event_category === 'internal'" class="event-detail__attendance">{{ $t('tour.internal_visit') }}</p>
+      <p v-if="report?.author" class="mt-3 text-sm">{{ $t('article.author_date', { ':author': report.author, ':date': formatBerlinDate(report.date_published, $locale) }) }}</p>
+      <p v-if="report?.teaser" class="mt-4 text-lg leading-relaxed">{{ report.teaser }}</p>
+    </header>
+    <figure v-if="cover" class="mb-8">
+      <SmartImg :asset-base-url="report?.image ? '/api/tour-media' : undefined" :asset-id="relationId(cover)" :is-raster="isRaster(typeof cover === 'string' ? 'image/jpeg' : cover.type || 'image/jpeg')" :alt="report?.title || event.title" :width="1100" img-class="block max-h-[50svh] w-full object-contain" />
+      <figcaption v-if="coverCredit" class="mt-2 text-xs">{{ coverCredit }}</figcaption>
+    </figure>
+    <p v-if="canEdit && report?.status !== 'published' && report" class="mb-4 bg-solid-orange-10 p-3">{{ $t('tour.report_draft') }}</p>
+    <section v-if="report" class="prose max-w-none">
+      <EventReportContent :key="report.id" :report="report" :can-edit="canEdit" />
+    </section>
+    <section v-if="media.length" class="my-8">
+      <h2 class="mb-4 font-heading text-2xl font-bold">{{ $t('tour.media') }}</h2>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <figure v-for="(item, index) in media" :key="item.id" class="event-detail__media">
+          <button type="button" class="block w-full text-left" :aria-label="`${$t('tour.media_open')}: ${item.alt}`" @click="viewer?.open(media, index, report?.title || event.title)"><TourMediaPreview :item="item" /></button>
+          <figcaption class="p-3 text-sm"><span v-if="item.caption" class="block">{{ item.caption }}</span><small>{{ item.credit }}</small></figcaption>
+        </figure>
       </div>
-    </div>
-
-    <!-- Description -->
-    <div
-      v-if="event.description"
-      class="prose prose-gray max-w-none mb-8"
-      v-html="event.description"
-    />
-
-    <!-- Registration button -->
-    <a
-      v-if="event.registration_url"
-      :href="event.registration_url"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="inline-flex items-center gap-2 px-6 py-3 bg-light-green text-white font-bold rounded hover:bg-olive-green transition-colors"
-    >
-      {{ event.cta_label || 'Zur Anmeldung' }}
-      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-      </svg>
-    </a>
-    <div v-if="event.series || eventProjects.length || report" class="mt-8 border-t border-gray-200 pt-6">
-      <NuxtLink v-if="event.series" :to="`/events/series/${event.series.slug}#stop-${event.slug}`" class="mb-4 block font-semibold text-stats-dark hover:underline">
-        {{ $t('tour.back_to_series') }}: {{ event.series.title }} →
-      </NuxtLink>
-      <div v-if="eventProjects.length" class="mb-4 flex flex-wrap gap-2">
-        <NuxtLink v-for="project in eventProjects" :key="project.id" :to="`/projects/${project.slug}`" class="btn btn-sm btn-outline border-stats-dark text-stats-dark">
-          {{ project.title }}
-        </NuxtLink>
-      </div>
-      <NuxtLink v-if="report" :to="`/news/${report.slug}`" class="font-semibold text-stats-dark hover:underline">
-        {{ $t('tour.read_report') }} →
-      </NuxtLink>
-    </div>
-    </div><!-- /.max-w-2xl -->
-  </div>
-
-  <div v-else class="py-8 text-gray-500">
-    Veranstaltung nicht gefunden.
-  </div>
+    </section>
+    <details v-if="report && event.description" class="my-8 border-y border-gray py-4">
+      <summary class="cursor-pointer font-bold">{{ $t('tour.visit_details') }}</summary>
+      <div class="prose mt-4 max-w-none" v-html="event.description" />
+    </details>
+    <div v-else-if="event.description" class="prose mb-8 max-w-none" v-html="event.description" />
+    <CanonicalButton v-if="event.registration_url && event.event_category !== 'internal'" :href="event.registration_url" :label="event.cta_label || $t('events.register')" icon-slug="mdi:calendar-check" color="green" external />
+    <CanonicalButton v-if="ordinaryReport" :href="`/news/${ordinaryReport.slug}`" :label="$t('tour.read_report')" color="dark" icon-slug="mdi:newspaper" />
+    <nav v-if="event.series || eventProjects.length" class="mt-8 flex flex-wrap gap-3 border-t border-gray pt-6">
+      <CanonicalButton v-if="event.series" :href="`/events/series/${event.series.slug}#stop-${event.slug}`" :label="$t('tour.back_to_series')" color="dark" icon-slug="mdi:map-marker-path" />
+      <NuxtLink v-for="project in eventProjects" :key="project.id" :to="`/projects/${project.slug}`" class="self-center font-semibold text-stats-dark hover:underline">{{ project.title }} →</NuxtLink>
+    </nav>
+    <section v-if="canEdit && isTour" class="mt-8 border-t border-gray pt-6">
+      <CanonicalButton v-if="!report" :label="$t('tour.report_create')" color="dark" icon-slug="mdi:pencil" :disabled="saving" @click="createReport" />
+      <template v-else>
+        <button type="button" class="mb-4 border border-gray px-3 py-2" @click="metadataOpen = !metadataOpen">{{ $t('tour.report_edit_metadata') }}</button>
+        <form v-if="metadataOpen" class="mb-4 grid gap-3" @submit.prevent="saveReport(false)">
+          <label>{{ $t('tour.report_title') }}<input v-model="metadata.title" required class="input input-bordered block w-full" /></label>
+          <label>{{ $t('tour.report_teaser') }}<textarea v-model="metadata.teaser" class="textarea textarea-bordered block w-full" /></label>
+          <label>{{ $t('tour.report_author') }}<input v-model="metadata.author" class="input input-bordered block w-full" /></label>
+          <button type="submit" class="btn" :disabled="saving">{{ $t('tour.report_save') }}</button>
+          <a :href="`${config.public.clientDirectusUrl}/admin/content/event_reports/${report.id}`" target="_blank" rel="noopener noreferrer" class="text-stats-dark underline">{{ $t('tour.media') }} ↗</a>
+        </form>
+        <CanonicalButton v-if="report.status !== 'published'" :label="$t('tour.report_publish')" color="green" icon-slug="mdi:publish" :disabled="saving" @click="saveReport(true)" />
+      </template>
+      <p v-if="saveError" role="alert" class="mt-3 text-red">{{ $t('tour.report_error') }}</p>
+    </section>
+    <TourMediaViewer ref="viewer" />
+  </main>
 </template>
-
-<script setup>
-import { useReferrer } from '~/composables/useReferrer'
-import { isRaster } from '~/shared/utils'
-import { formatEventDateTimeRange } from '~/shared/eventDateTime'
-const { $directus, $readItems, $t, $locale } = useNuxtApp()
-const config = useRuntimeConfig()
-const directusUrl = config.public.clientDirectusUrl
-const { backHref, backLabel } = useReferrer('/events', 'Alle Veranstaltungen')
-const route = useRoute()
-
-const { data: event } = await useAsyncData(`event-${route.params.slug}`, () =>
-  $directus.request($readItems('events', {
-    filter: {
-      slug: { _eq: route.params.slug },
-      status: { _eq: 'published' },
-    },
-    fields: ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'date_only', 'location', 'event_type', 'registration_url', 'cta_label', 'image_credits', { image: ['id', 'type'] }, { series: ['slug', 'title'] }],
-    limit: 1,
-  })).then(data => {
-    return data?.[0] ?? false
-  })
-)
-
-if (!event.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Veranstaltung nicht gefunden', fatal: true })
+<script setup lang="ts">
+import { createItem, readItems, updateItem } from '@directus/sdk';
+import { useAuth } from '~/composables/useAuth';
+import { useReferrer } from '~/composables/useReferrer';
+import { isRaster } from '~/shared/utils';
+import { relationId } from '~/shared/tour';
+import { formatBerlinDate, formatEventDateTimeRange } from '~/shared/eventDateTime';
+import { REPORT_FIELDS, orderedMedia } from '~/shared/tourMedia';
+import type { EventReport, MediaFile, TourMedia } from '~/shared/tourMedia';
+type Event = { id: string; slug: string; title: string; description?: string; event_category?: string; event_type?: string; start_date: string; end_date?: string; date_only?: boolean; location?: string; image?: MediaFile; image_credits?: string; registration_url?: string; cta_label?: string; series?: { slug: string; title: string; format: string } };
+const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const route = useRoute();
+const config = useRuntimeConfig();
+const { backHref, backLabel } = useReferrer('/events', $t('events.title'));
+const { initialize, isAuthenticated, getAuthenticatedClient } = useAuth();
+const { data: eventRows } = await useAsyncData(`event-${route.params.slug}`, () => $directus.request($readItems('events', {
+  filter: { slug: { _eq: route.params.slug }, status: { _eq: 'published' } },
+  fields: ['id', 'slug', 'title', 'description', 'event_category', 'event_type', 'start_date', 'end_date', 'date_only', 'location', 'registration_url', 'cta_label', 'image_credits', { image: ['id', 'type'] }, { series: ['slug', 'title', 'format'] }], limit: 1,
+})));
+const event = computed(() => eventRows.value?.[0] as Event | undefined);
+if (!event.value) throw createError({ statusCode: 404, statusMessage: $t('events.not_found'), fatal: true });
+const isTour = computed(() => event.value?.series?.format === 'tour');
+const { data: reports } = await useAsyncData(`event-report-${event.value.id}`, () => $directus.request($readItems('event_reports', {
+  filter: { event: { _eq: event.value!.id }, status: { _eq: 'published' } }, fields: REPORT_FIELDS, limit: 1,
+})));
+const { data: ordinaryReports } = await useAsyncData(`ordinary-event-report-${event.value.id}`, () => isTour.value ? Promise.resolve([]) : $directus.request($readItems('news_items', {
+  filter: { report_event: { _eq: event.value!.id }, status: { _eq: 'published' }, is_event_redirect: { _eq: false } }, fields: ['slug'], limit: 1,
+})));
+const ordinaryReport = computed(() => ordinaryReports.value?.[0]);
+const report = ref<EventReport | null>((reports.value?.[0] as EventReport) || null);
+const { data: projectLinks } = await useAsyncData(`event-projects-${event.value.id}`, () => $directus.request($readItems('events_articles', {
+  filter: { events_id: { _eq: event.value!.id } }, fields: [{ articles_id: ['id', 'slug', 'title'] }], limit: -1,
+})));
+const eventProjects = computed(() => (projectLinks.value ?? []).map(link => link.articles_id).filter(Boolean));
+const cover = computed(() => report.value?.image || event.value?.image);
+const coverCredit = computed(() => report.value?.image ? report.value.image_credits : event.value?.image_credits);
+const media = computed(() => orderedMedia(report.value));
+const viewer = ref<{ open: (media: TourMedia[], index: number, title: string) => void } | null>(null);
+const canEdit = ref(false);
+const saving = ref(false);
+const saveError = ref(false);
+const metadataOpen = ref(false);
+const metadata = reactive({ title: '', teaser: '', author: '' });
+watch(report, value => Object.assign(metadata, { title: value?.title || event.value?.title || '', teaser: value?.teaser || '', author: value?.author || '' }), { immediate: true });
+onMounted(async () => {
+  await initialize();
+  if (!isAuthenticated.value || !isTour.value) return;
+  try {
+    const rows = await getAuthenticatedClient().request(readItems('event_reports', { filter: { event: { _eq: event.value!.id } }, fields: REPORT_FIELDS, limit: 1 }));
+    report.value = (rows?.[0] as EventReport) || report.value;
+    canEdit.value = true;
+  } catch { /* Readers without report permissions retain the public view. */ }
+});
+async function createReport() {
+  saving.value = true; saveError.value = false;
+  try {
+    const row = await getAuthenticatedClient().request(createItem('event_reports', { event: event.value!.id, status: 'draft', title: event.value!.title }));
+    report.value = row as EventReport;
+    metadataOpen.value = true;
+  } catch { saveError.value = true; } finally { saving.value = false; }
 }
-
-const [{ data: projectLinks }, { data: reports }] = await Promise.all([
-  useAsyncData(`event-projects-${event.value.id}`, () => $directus.request($readItems('events_articles', {
-    filter: { events_id: { _eq: event.value.id } },
-    fields: [{ articles_id: ['id', 'slug', 'title'] }],
-    limit: -1,
-  }))),
-  useAsyncData(`event-report-${event.value.id}`, () => $directus.request($readItems('news_items', {
-    filter: { report_event: { _eq: event.value.id }, status: { _eq: 'published' } },
-    fields: ['slug', 'title'],
-    limit: 1,
-  }))),
-])
-const eventProjects = computed(() => (projectLinks.value ?? []).map((link) => link.articles_id).filter(Boolean))
-const report = computed(() => reports.value?.[0] ?? null)
-
-useHead({ title: event.value?.title ?? 'Veranstaltung' })
-
-function eventTypeLabel(type) {
-  if (!type) return ''
-  const translated = $t(`events.type.${type}`)
-  return translated === `events.type.${type}` ? type : translated
+async function saveReport(publish: boolean) {
+  if (!report.value || !metadata.title.trim()) return;
+  saving.value = true; saveError.value = false;
+  try {
+    await getAuthenticatedClient().request(updateItem('event_reports', report.value.id, {
+      title: metadata.title.trim(), teaser: metadata.teaser.trim(), author: metadata.author.trim(),
+      ...(publish ? { status: 'published', date_published: report.value.date_published || new Date().toISOString() } : {}),
+    }));
+    report.value = { ...report.value, ...metadata, ...(publish ? { status: 'published' } : {}) };
+  } catch { saveError.value = true; } finally { saving.value = false; }
 }
+function eventTypeLabel(type?: string) { return type ? $t(`events.type.${type}`) : ''; }
+useHead(() => ({ title: report.value?.title || event.value?.title }));
 </script>
+<style scoped>
+.event-detail { color: var(--slk-text, #505050); }
+.event-detail__attendance { display: inline-block; border-left: 4px solid #afca0b; padding: .5rem .75rem; background: var(--slk-surface-subtle, #e6f1f4); font-weight: 700; }
+.event-detail__media { min-width: 0; border: 3px solid #505050; background: var(--slk-surface, white); }
+.event-detail__media button:focus-visible { outline: 3px solid #16bae7; outline-offset: 3px; }
+</style>

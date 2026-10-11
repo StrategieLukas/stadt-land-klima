@@ -142,3 +142,20 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
   - This applies specifically to PDF generation as well. At least the typst directory under /directus/extensions (not to be confused with directus-extensions-not-build) must be 777 for PDF generation to create files.
 - `./bin/update_production.sh` backs up the database by default. Use `--no-backup` when the database is unavailable and the update must proceed without that export.
 - Migrate ratings from one version to another using ./directus-cli migrate <old> <new>. Avoid using this when the "new" version is already in use, as it overwrites all ratings that do not need re-evaluation.
+
+### Tour reports and legacy news links
+
+Tour visits use an event-owned `event_reports` record with Blökkli content and
+ordered `event_report_media` (uploaded images/videos, captions, credits, and an
+optional video poster). Manage the report from the event page or its Directus
+relation. A published stop can have a private draft report; only published
+reports and their media/blocks are readable by the frontend policy.
+
+`import-all.sh` runs `cli/migrateTourReports.ts` after importing the schema. The
+transactional migration transfers legacy tour news metadata, blocks (preserving
+UUIDs and nested content), and journey-photo selections. It preserves draft and
+archived states, skips existing destination reports, and is safe to repeat.
+Original news records remain as redirect/recovery metadata; migrated public news
+URLs redirect to the event page. Ordinary news and non-tour reports are retained.
+To preview transfers without writing data, run the migration in the Directus
+container with `--dry-run`. Back up the database before applying it in production.

@@ -21,6 +21,7 @@
     isRaster: { type: Boolean, required: false, default: true },
     alt: { type: String, default: '' },
     imgClass: { type: String, default: '' },
+    assetBaseUrl: { type: String, default: null },
 
     // Transform options
     width: { type: Number, default: null },
@@ -45,18 +46,13 @@
     srcset.value = null
     if (!props.assetId) return
 
-    const assetUrl = `${directusUrl}/assets/${props.assetId}`
-
-    if (!props.isRaster) {
-      src.value = assetUrl
-      return
-    }
+    const assetUrl = `${props.assetBaseUrl || `${directusUrl}/assets`}/${props.assetId}`
 
     const p = new URLSearchParams()
-    if (props.width) p.set('width', String(props.width))
-    if (props.height) p.set('height', String(props.height))
+    if (props.isRaster && props.width) p.set('width', String(props.width))
+    if (props.isRaster && props.height) p.set('height', String(props.height))
     if (props.quality && props.quality !== 100) p.set('quality', String(props.quality))
-    if (props.fit) p.set('fit', props.fit)
+    if (props.isRaster && props.fit) p.set('fit', props.fit)
 
     src.value = p.toString() ? `${assetUrl}?${p.toString()}` : assetUrl
   })

@@ -11,4 +11,6 @@ cd "$SCRIPT_DIR/.." || exit 1
 # Seed content after the schema import so fresh and existing databases both work.
 "$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/seedTourOst2026.ts"
 
+"$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/migrateTourReports.ts"
+
 echo "All imports completed"
