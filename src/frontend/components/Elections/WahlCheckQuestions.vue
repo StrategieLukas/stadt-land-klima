@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Introduction -->
-    <div class="slk-retro-card slk-retro-card--neutral bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
+    <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <ElectionsWahlCheckLogo
           :logo="election?.custom_logo"
@@ -31,7 +31,7 @@
         <Transition :name="transitionDirection">
           <div
             :key="currentQuestion.id"
-            class="slk-retro-card slk-retro-card--neutral bg-white p-4 sm:p-6 rounded-xl shadow-list border-2 border-ff-green transition-all w-full h-fit self-start"
+            class="bg-white p-4 sm:p-6 rounded-xl shadow-list border-2 border-ff-green transition-all w-full h-fit self-start"
           >
             <div class="flex items-start gap-3 sm:gap-4 mb-4">
               <span class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg">
@@ -48,7 +48,7 @@
                 />
                 <p
                   v-if="currentQuestion.thesis"
-                  class="slk-retro-card slk-retro-card--neutral mt-4 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-3 sm:p-4 text-base sm:text-lg text-gray break-words hyphens-auto"
+                  class="mt-4 rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-3 sm:p-4 text-base sm:text-lg text-gray break-words hyphens-auto"
                 >
                   {{ currentQuestion.thesis }}
                 </p>
@@ -443,8 +443,24 @@ defineExpose({
   border-radius: 9999px;
 }
 
-.sparkle-active { outline: 3px solid currentColor; outline-offset: 2px; }
+.sparkle-active {
+  animation: sparkleRing 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
 
+@keyframes sparkleRing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--sparkle-rgb), 0.85);
+    transform: scale(0.95);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(var(--sparkle-rgb), 0.4);
+    transform: scale(1.1);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(var(--sparkle-rgb), 0);
+    transform: scale(1);
+  }
+}
 
 /* Simultaneous Carousel Swipe Transitions */
 .slide-left-enter-active,

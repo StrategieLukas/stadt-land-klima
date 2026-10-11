@@ -1,6 +1,6 @@
 <template>
   <section v-if="tourVisits.length || article.profile_stage === 'preview'" class="container mx-auto px-4 pt-6">
-    <div class="slk-retro-card slk-retro-card--green rounded-xl border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5 text-stats-dark shadow-sm">
+    <div class="rounded-xl border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5 text-stats-dark shadow-sm">
       <p v-if="article.profile_stage === 'preview'" class="mb-3 text-sm font-semibold">{{ $t('tour.preview_hint') }}</p>
       <div v-for="visit in tourVisits" :key="visit.event.id" class="flex flex-wrap items-center justify-between gap-3 border-t border-solid-stats-dark-20 py-3 first:border-t-0">
         <div>

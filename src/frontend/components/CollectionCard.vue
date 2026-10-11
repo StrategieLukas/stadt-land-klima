@@ -1,7 +1,7 @@
 <template>
   <NuxtLink
     :to="`/data/${areaSlug}/${collection.id}`"
-    class="slk-retro-card slk-retro-card--blue border-gray-100 group flex w-64 flex-none snap-start flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-200 hover:border-[#006e94]/30 "
+    class="border-gray-100 group flex w-64 flex-none snap-start flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-200 hover:border-[#006e94]/30 hover:shadow-md"
     @click="startDataRouteFeedback(`${t(collection.title)} wird geladen...`)"
   >
     <!-- Cover image / placeholder -->
@@ -10,7 +10,7 @@
         v-if="coverImageUrl"
         :src="coverImageUrl"
         :alt="t(collection.title)"
-        class="h-full w-full object-cover  "
+        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
       />
       <span
         v-if="coverImageUrl && coverImageAttribution"
@@ -48,7 +48,7 @@
 
     <!-- Footer arrow -->
     <div class="flex items-center justify-end px-4 pb-3">
-      <span class="text-xs font-medium text-[#006e94] transition-colors">
+      <span class="text-xs font-medium text-[#006e94] transition-transform group-hover:translate-x-0.5">
         Erkunden →
       </span>
     </div>

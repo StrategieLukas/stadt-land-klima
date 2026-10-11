@@ -1,7 +1,7 @@
 <template>
   <NuxtLink
     :to="`/jobs/${job.slug}`"
-    class="slk-retro-card slk-retro-card--orange group block h-full rounded-lg border border-gray-100 bg-white p-5 shadow-sm transition-all  hover:border-light-green "
+    class="group block h-full rounded-lg border border-gray-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-light-green hover:shadow-md"
   >
     <div class="flex h-full flex-col gap-4">
       <div class="flex items-start justify-between gap-3">

@@ -1,7 +1,18 @@
 <template>
   <div class="space-y-8 relative">
+    <!-- Confetti Animation -->
+    <div v-if="showConfetti" class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      <div v-for="i in 100" :key="i" class="confetti" :style="{
+        '--left': `${Math.random() * 100}%`,
+        '--animation-duration': `${2 + Math.random() * 2}s`,
+        '--animation-delay': `${Math.random() * 2}s`,
+        '--color': getConfettiColor(i),
+        '--size': `${5 + Math.random() * 10}px`
+      }"></div>
+    </div>
+
     <!-- Header -->
-    <div class="slk-retro-card slk-retro-card--neutral bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
+    <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <ElectionsWahlCheckLogo
           :logo="election?.custom_logo"
@@ -24,7 +35,7 @@
 
     <div
       v-if="nonRespondingCandidates.length > 0"
-      class="slk-retro-card slk-retro-card--neutral flex flex-wrap items-center gap-x-1 gap-y-2 rounded-lg border border-solid-gray-20 bg-solid-gray-05 px-4 py-3 text-sm leading-relaxed text-mid-gray"
+      class="flex flex-wrap items-center gap-x-1 gap-y-2 rounded-lg border border-solid-gray-20 bg-solid-gray-05 px-4 py-3 text-sm leading-relaxed text-mid-gray"
     >
       <span class="font-semibold text-gray">{{ $t('elections.wahlcheck.results.no_response') }}:</span>
       <template v-for="(candidate, index) in nonRespondingCandidates" :key="candidate.id">
@@ -38,7 +49,7 @@
     <div
       v-if="results.length > 0"
       data-testid="wahlcheck-results-overview"
-      class="slk-retro-card slk-retro-card--neutral rounded-xl border border-solid-gray-10 bg-white p-4 shadow-list sm:p-6"
+      class="rounded-xl border border-solid-gray-10 bg-white p-4 shadow-list sm:p-6"
     >
       <h3 class="text-lg sm:text-xl font-bold text-center text-stats-dark mb-6">
         {{ $t(isPartyElection ? 'elections.wahlcheck.results.all_parties' : 'elections.wahlcheck.results.all_candidates') }}
@@ -77,7 +88,7 @@
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 flex-shrink-0 text-stats-dark  sm:h-6 sm:w-6"
+                class="h-5 w-5 flex-shrink-0 text-stats-dark transition-transform duration-300 sm:h-6 sm:w-6"
                 :class="{ 'rotate-180': expandedCandidate === result.candidateId }"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -104,7 +115,7 @@
               v-if="hasSectorAgreement(result.candidateId)"
               class="grid grid-cols-2 gap-2 sm:gap-6 mb-4 sm:mb-6"
             >
-              <div class="slk-retro-card slk-retro-card--semantic bg-solid-rating-4-10 min-w-0 rounded-xl p-2 text-center shadow-lg transition-colors  sm:rounded-2xl sm:p-6">
+              <div class="bg-solid-rating-4-10 min-w-0 rounded-xl p-2 text-center shadow-lg transition-shadow hover:shadow-xl sm:rounded-2xl sm:p-6">
                 <div class="mb-1 flex items-center justify-center sm:mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
@@ -117,7 +128,7 @@
                 <div class="mt-0.5 break-words text-xs font-bold leading-tight text-solid-rating-4-90 hyphens-auto sm:mt-2 sm:text-lg">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
                 <div class="mt-0.5 text-[9px] uppercase leading-tight tracking-wider text-solid-rating-4-60 sm:mt-1 sm:text-sm">{{ $t("elections.wahlcheck.results.best_match") }}</div>
               </div>
-              <div class="slk-retro-card slk-retro-card--neutral bg-solid-stats-light-50 min-w-0 rounded-xl p-2 text-center shadow-lg transition-colors  sm:rounded-2xl sm:p-6">
+              <div class="bg-solid-stats-light-50 min-w-0 rounded-xl p-2 text-center shadow-lg transition-shadow hover:shadow-xl sm:rounded-2xl sm:p-6">
                 <div class="mb-1 flex items-center justify-center sm:mb-4">
                   <img
                     v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
@@ -310,7 +321,7 @@
     </div>
 
     <!-- No Results / All Skipped -->
-    <div v-else class="slk-retro-card slk-retro-card--semantic bg-solid-orange-10 border border-orange text-orange-700 p-8 rounded-xl text-center">
+    <div v-else class="bg-solid-orange-10 border border-orange text-orange-700 p-8 rounded-xl text-center">
       <div class="mb-6">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto text-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -341,7 +352,7 @@
           v-if="activeReasoning && !activeReasoning.explanation"
           class="relative p-5"
         >
-          <p class="slk-retro-card slk-retro-card--semantic w-full rounded-lg border border-red/20 bg-red/5 p-4 pr-12 text-base font-medium leading-relaxed text-red">
+          <p class="w-full rounded-lg border border-red/20 bg-red/5 p-4 pr-12 text-base font-medium leading-relaxed text-red">
             {{ $t('elections.wahlcheck.results.no_reasoning') }}
           </p>
           <form method="dialog" class="absolute right-7 top-7">
@@ -416,7 +427,7 @@
             <p class="text-xs font-semibold uppercase tracking-wider text-mid-gray">
               {{ $t('elections.wahlcheck.results.reasoning') }}
             </p>
-            <p class="slk-retro-card slk-retro-card--neutral mt-2 whitespace-pre-line rounded-lg border border-gray/10 bg-white p-4 text-base leading-relaxed text-black">
+            <p class="mt-2 whitespace-pre-line rounded-lg border border-gray/10 bg-white p-4 text-base leading-relaxed text-black">
               {{ activeReasoning.explanation }}
             </p>
           </div>
@@ -507,6 +518,7 @@ const emit = defineEmits(['restart', 'prev'])
 
 // State
 const expandedCandidate = ref(null)
+const showConfetti = ref(false)
 const sortBy = ref('default') // 'default', 'agreement', 'disagreement'
 const reasoningDialog = ref(null)
 const activeReasoning = ref(null)
@@ -575,6 +587,27 @@ const sortedExpandedQuestions = computed(() => {
     return 0
   })
 })
+
+// Trigger confetti animation when component mounts
+onMounted(() => {
+  showConfetti.value = true
+  setTimeout(() => {
+    showConfetti.value = false
+  }, 3000)
+})
+
+// Confetti colors using logo colors
+const confettiColors = [
+  '#AFCA0B', // light-green
+  '#1da64a', // ff-green
+  '#ffc80c', // localzero-yellow
+  '#16bae7', // light-blue
+  '#f27c00', // slk-orange
+]
+
+function getConfettiColor(index) {
+  return confettiColors[index % confettiColors.length]
+}
 
 function getRatingColor(value) {
   return getWahlcheckRatingColor(value)
@@ -912,6 +945,29 @@ function decodeShareableData(encodedString) {
 </script>
 
 <style scoped>
+/* Confetti Animation */
+.confetti {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  background-color: var(--color);
+  border-radius: 50%;
+  left: var(--left);
+  top: -10px;
+  animation: confetti-fall var(--animation-duration) var(--animation-delay) ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
 /* Circular progress animation */
 svg path {
   transition: stroke-dashoffset 1s ease-out;

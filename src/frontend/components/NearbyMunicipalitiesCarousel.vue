@@ -28,7 +28,7 @@
         <div
           v-for="area in nearbyAreas"
           :key="area.ars"
-          class="slk-retro-card slk-retro-card--green border-gray-200 flex w-64 max-w-full flex-none flex-col overflow-hidden rounded-lg border bg-white shadow-md transition-colors  sm:w-72 lg:w-80"
+          class="border-gray-200 flex w-64 max-w-full flex-none flex-col overflow-hidden rounded-lg border bg-white shadow-md transition-shadow hover:shadow-lg sm:w-72 lg:w-80"
         >
           <!-- Mini map -->
           <div class="from-green-100 relative flex h-32 items-center justify-center bg-gradient-to-br to-blue-100">

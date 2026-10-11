@@ -1,7 +1,7 @@
 <template>
   <div
     :data-collection-id="collection.id"
-    class="slk-retro-card slk-retro-card--blue border-gray-100 overflow-hidden rounded-2xl border bg-white shadow-sm"
+    class="border-gray-100 overflow-hidden rounded-2xl border bg-white shadow-sm"
   >
     <!-- Card header: sector color strip + title -->
     <div class="flex items-start justify-between gap-3 px-5 pb-3 pt-4" :style="`border-left: 4px solid ${sectorColor}`">

@@ -123,7 +123,7 @@
             <div
               v-for="i in 5"
               :key="i"
-              class="slk-retro-card slk-retro-card--blue flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list"
+              class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list"
               :class="i === 5 ? 'col-span-2 sm:col-span-1' : ''"
             >
               <div class="bg-gray-200 mb-1 h-8 w-10 animate-pulse rounded"></div>
@@ -131,24 +131,24 @@
             </div>
           </template>
           <template v-else>
-            <div class="slk-retro-card slk-retro-card--blue flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
+            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
               <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalCompleted }}</span>
               <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.fully_rated") }}</span>
             </div>
-            <div class="slk-retro-card slk-retro-card--blue flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
+            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
               <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalHalfRatedProgress }}</span>
               <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.in_progress") }}</span>
             </div>
-            <div class="slk-retro-card slk-retro-card--blue flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
+            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
               <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalMunicipalities }}</span>
               <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.total_municipalities") }}</span>
             </div>
-            <div class="slk-retro-card slk-retro-card--blue flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
+            <div class="flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list">
               <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{ kpi.totalMeasures }}</span>
               <span class="text-gray-500 mt-1 text-xs leading-tight">{{ $t("stats.kpi.measures_in_catalog") }}</span>
             </div>
             <div
-              class="slk-retro-card slk-retro-card--blue col-span-2 flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list sm:col-span-1"
+              class="col-span-2 flex flex-col items-center rounded-sm bg-white p-3 text-center shadow-list sm:col-span-1"
             >
               <span class="text-2xl font-bold leading-none text-[#1a4a6e]">{{
                 kpi.totalFilledRatings.toLocaleString("de-DE")
@@ -251,7 +251,7 @@
           <!-- Main interactive panel: sunburst (left) + distribution chart (right) -->
           <div class="mb-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
             <!-- Skeleton: sunburst card -->
-            <div v-if="statsLoading" class="slk-retro-card slk-retro-card--blue flex flex-col rounded-sm bg-white p-5 shadow-list">
+            <div v-if="statsLoading" class="flex flex-col rounded-sm bg-white p-5 shadow-list">
               <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
                 <div class="bg-gray-200 mb-1 h-4 w-40 animate-pulse rounded"></div>
                 <div class="bg-gray-100 mt-1 h-3 w-56 animate-pulse rounded"></div>
@@ -262,7 +262,7 @@
             </div>
 
             <!-- Skeleton: distribution card -->
-            <div v-if="statsLoading" class="slk-retro-card slk-retro-card--blue flex flex-col rounded-sm bg-white p-5 shadow-list">
+            <div v-if="statsLoading" class="flex flex-col rounded-sm bg-white p-5 shadow-list">
               <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
                 <div class="bg-gray-200 mb-1 h-4 w-48 animate-pulse rounded"></div>
                 <div class="bg-gray-100 mt-1 h-3 w-60 animate-pulse rounded"></div>
@@ -281,7 +281,7 @@
             <!-- Sunburst / List view card -->
             <div
               v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'selection')"
-              class="slk-retro-card slk-retro-card--blue flex flex-col rounded-sm bg-white p-5 shadow-list"
+              class="flex flex-col rounded-sm bg-white p-5 shadow-list"
             >
               <!-- Card header with toggle -->
               <div
@@ -345,7 +345,7 @@
               <div
                 v-show="!isSmall && showListView"
                 style="height: 420px"
-                class="slk-retro-card slk-retro-card--blue border-gray-100 flex flex-col overflow-hidden rounded-lg border"
+                class="border-gray-100 flex flex-col overflow-hidden rounded-lg border"
               >
                 <button
                   class="border-gray-100 flex w-full flex-shrink-0 items-center gap-2 border-b px-3 py-2 text-left text-sm font-medium transition-colors"
@@ -434,7 +434,7 @@
               <div
                 v-show="isSmall"
                 style="height: 420px"
-                class="slk-retro-card slk-retro-card--blue border-gray-100 flex flex-col overflow-hidden rounded-lg border"
+                class="border-gray-100 flex flex-col overflow-hidden rounded-lg border"
               >
                 <button
                   class="border-gray-100 flex w-full flex-shrink-0 items-center gap-2 border-b px-3 py-2 text-left text-sm font-medium transition-colors"
@@ -568,7 +568,7 @@
             <!-- Distribution chart card -->
             <div
               v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'plot')"
-              class="slk-retro-card slk-retro-card--blue flex flex-col rounded-sm bg-white p-5 shadow-list"
+              class="flex flex-col rounded-sm bg-white p-5 shadow-list"
             >
               <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
                 <h2 class="text-base font-bold">
@@ -613,7 +613,7 @@
           <!-- /top row -->
 
           <!-- Skeleton: municipality list card -->
-          <div v-if="statsLoading" class="slk-retro-card slk-retro-card--blue mb-8 rounded-sm bg-white p-5 shadow-list">
+          <div v-if="statsLoading" class="mb-8 rounded-sm bg-white p-5 shadow-list">
             <div class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 rounded-t-sm border-b px-5 py-3">
               <div class="bg-gray-200 h-4 w-32 animate-pulse rounded"></div>
             </div>
@@ -629,7 +629,7 @@
           <!-- Municipality list card -->
           <div
             v-show="!statsLoading && (!isSmall || mobileMeasuresTab === 'list')"
-            class="slk-retro-card slk-retro-card--blue mb-8 rounded-sm bg-white p-5 shadow-list"
+            class="mb-8 rounded-sm bg-white p-5 shadow-list"
           >
             <div
               class="bg-gray-100 border-gray-200 -mx-5 -mt-5 mb-4 flex items-center justify-between rounded-t-sm border-b px-5 py-3"
@@ -687,7 +687,7 @@
         <div v-show="activeTab === 'clustering'">
           <div class="mb-8 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_320px]">
             <!-- Scatter plot -->
-            <div class="slk-retro-card slk-retro-card--blue rounded-xl bg-white p-6 shadow-lg">
+            <div class="rounded-xl bg-white p-6 shadow-lg">
               <div class="mb-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 class="text-xl font-bold">{{ $t("stats.clustering.title") }}</h2>
@@ -709,7 +709,7 @@
             </div>
 
             <!-- Cluster profile panel -->
-            <div class="slk-retro-card slk-retro-card--blue rounded-sm bg-white p-5 shadow-list">
+            <div class="rounded-sm bg-white p-5 shadow-list">
               <h3 class="mb-3 text-base font-bold">
                 <span v-if="!clusterProfile.clusterLabel">{{ $t("stats.clustering.profile") }}</span>
                 <span v-else>{{ clusterProfile.clusterLabel }}</span>
@@ -770,7 +770,7 @@
         <!-- TAB: Paarweiser Vergleich -->
         <div v-show="activeTab === 'dominance'">
           <!-- Method description -->
-          <div class="slk-retro-card slk-retro-card--blue mb-6 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-6 rounded-sm bg-white p-5 shadow-list">
             <h2 class="mb-2 text-base font-bold">{{ $t("stats.dominance.title") }}</h2>
             <p class="text-gray-600 mb-2 text-sm leading-relaxed">
               <span v-html="$t('stats.dominance.description_1')"></span>
@@ -783,7 +783,7 @@
           </div>
 
           <!-- Win rate ranking chart -->
-          <div class="slk-retro-card slk-retro-card--blue mb-6 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-6 rounded-sm bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.win_rate_ranking") }}</h3>
             <p class="text-gray-500 mb-3 text-xs">{{ $t("stats.dominance.win_rate_ranking.description") }}</p>
             <div ref="dominanceRankContainer" class="w-full" style="min-height: 60px"></div>
@@ -791,14 +791,14 @@
           </div>
 
           <!-- Dominance heatmap -->
-          <div class="slk-retro-card slk-retro-card--blue mb-8 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-8 rounded-sm bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.matrix_top_40") }}</h3>
             <p class="text-gray-500 mb-3 text-xs">{{ $t("stats.dominance.matrix.description") }}</p>
             <div ref="dominanceHeatmapContainer" class="w-full overflow-x-auto" style="min-height: 60px"></div>
           </div>
 
           <!-- Force-directed dominance network -->
-          <div class="slk-retro-card slk-retro-card--blue mb-8 rounded-sm bg-white p-5 shadow-list">
+          <div class="mb-8 rounded-sm bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.network") }}</h3>
             <p class="text-gray-500 mb-2 text-xs">{{ $t("stats.dominance.network.description") }}</p>
             <p class="text-gray-400 mb-3 text-xs"><span v-html="$t('stats.dominance.network.note')"></span></p>

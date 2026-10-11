@@ -75,7 +75,7 @@
                 v-show="!isHydrated || !mapOpen || isMobileTour || activeStop === index"
                 :id="`stop-${stop.slug}`"
                 :key="stop.id"
-                class="tour-collage slk-retro-card slk-retro-card--blue"
+                class="tour-collage"
                 :style="{ '--pin-color': pinColor(index) }"
                 :data-stop-index="index"
                 :aria-hidden="isHydrated && mapOpen && !isMobileTour && activeStop !== index ? 'true' : undefined"
@@ -90,7 +90,7 @@
 
                 <p v-if="stop.event_category === 'internal'" class="tour-chapter__attendance">{{ $t('tour.internal_visit') }}</p>
                 <p v-else-if="stop.event_category === 'own_public'" class="tour-chapter__attendance">{{ $t('tour.public_event') }}</p>
-                <figure v-if="(!isHydrated || isMobileTour || !mapOpen) && reportMedia(stop.id).length" class="tour-card-media slk-retro-card slk-retro-card--neutral">
+                <figure v-if="(!isHydrated || isMobileTour || !mapOpen) && reportMedia(stop.id).length" class="tour-card-media">
                   <button type="button" :aria-label="$t('tour.media_open')" @click="openMedia(stop.id, 0)"><TourMediaPreview :item="reportMedia(stop.id)[0]" /></button>
                   <figcaption><span v-if="reportMedia(stop.id)[0].caption">{{ reportMedia(stop.id)[0].caption }}</span><small>{{ reportMedia(stop.id)[0].credit }}</small><small>{{ $t('tour.media_count', { ':count': reportMedia(stop.id).length }) }}</small></figcaption>
                 </figure>
@@ -105,7 +105,7 @@
             </div>
             <template v-if="isHydrated && mapOpen && !isMobileTour">
               <div v-for="(stop, index) in stops" v-show="activeStop === index && reportMedia(stop.id).length" :key="`prints-${stop.id}`" class="tour-photos tour-explorer__prints" :class="{ 'tour-photos--pair': reportMedia(stop.id).length > 1 }" :style="printsPositionStyle">
-                <figure v-for="(photo, photoIndex) in reportMedia(stop.id).slice(0, 2)" :key="photo.id" class="slk-retro-card slk-retro-card--neutral">
+                <figure v-for="(photo, photoIndex) in reportMedia(stop.id).slice(0, 2)" :key="photo.id" :class="`tour-photo--${photoIndex % 3}`">
                   <button type="button" :aria-label="`${$t('tour.media_open')}: ${photo.alt}`" @click="openMedia(stop.id, photoIndex)"><TourMediaPreview :item="photo" /></button>
                   <figcaption><span v-if="photo.caption">{{ photo.caption }}</span><small>{{ photo.credit }}</small><small>{{ $t('tour.media_count', { ':count': reportMedia(stop.id).length }) }}</small></figcaption>
                 </figure>
@@ -469,9 +469,9 @@ useHead({ title: series.value.title });
 .tour-photos { display: grid; gap: 1rem; max-width: 42rem; margin: 2rem 0 3rem; }
 .tour-photos--pair { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 .tour-photos figure { min-width: 0; padding: .65rem .65rem 1rem; border: 1px solid #ece7dc; background: white; box-shadow: 0 12px 25px #263f4929; }
-.tour-photo--0 { transform: none; }
-.tour-photo--1 { transform: none; }
-.tour-photo--2 { transform: none; }
+.tour-photo--0 { transform: rotate(-2deg); }
+.tour-photo--1 { transform: translateY(1.5rem) rotate(2deg); }
+.tour-photo--2 { transform: rotate(1deg); }
 .tour-photos figcaption { display: flex; flex-direction: column; gap: .2rem; padding: .65rem .25rem 0; color: #505050; font-size: .8rem; }
 .tour-photos small { color: #707070; }
 .tour-chapter__links { display: flex; flex-wrap: wrap; gap: .6rem; margin: 2rem 0; }
@@ -781,9 +781,7 @@ html[data-theme="staedteChallengeDark"] .tour-chapter__attendance { background: 
 html[data-theme="staedteChallengeDark"] .tour-stop-strip a { background: #29434c; color: #b7e3ec; }
 html[data-theme="staedteChallengeDark"] .tour-stop-strip a.is-active { background: #f27c00; color: #18262c; }
 html[data-theme="staedteChallengeDark"] .series-outro { background: #1d343d; }
-html[data-theme="staedteChallengeDark"] .tour-photos figure { color: var(--slk-text); }
-html[data-theme="staedteChallengeDark"] .tour-photos figcaption,
-html[data-theme="staedteChallengeDark"] .tour-photos small { color: var(--slk-text-muted); }
+html[data-theme="staedteChallengeDark"] .tour-photos figure { color: #24343d; }
 html[data-theme="staedteChallengeDark"] .series-page--tour { --tour-ink: #edfaff; --tour-blue: #133845; background: #133845; color: #edfaff; }
 html[data-theme="staedteChallengeDark"] .series-page--tour .series-hero { background: #164c60; }
 html[data-theme="staedteChallengeDark"] .series-page--tour .series-hero__art,

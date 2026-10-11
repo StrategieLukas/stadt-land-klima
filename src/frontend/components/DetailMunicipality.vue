@@ -76,7 +76,7 @@
       <!-- Mobile: Participate Section -->
       <div
         v-if="municipality.public_contact"
-        class="slk-retro-card slk-retro-card--green collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+        class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
       >
         <input type="checkbox" name="sectors-accordion" autocomplete="off" />
         <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
@@ -93,7 +93,7 @@
       <!-- Mobile: Statistics Section Link -->
       <NuxtLink
         :to="`/data/${municipality.ars}`"
-        class="slk-retro-card slk-retro-card--green slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
+        class="slk-municipality-cta slk-municipality-cta--stats mb-4 flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
       >
         <img
           src="~/assets/icons/icon_evaluation_criteria.svg"
@@ -111,7 +111,7 @@
       <!-- Mobile: Kommunalwahl Question Generation Link -->
       <NuxtLink
         :to="`/elections/${municipality.slug}`"
-        class="slk-retro-card slk-retro-card--green slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
+        class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
       >
         <img
           src="~/assets/icons/icon_politics.svg"
@@ -139,7 +139,7 @@
       <NuxtLink
         v-if="municipalityProjects && municipalityProjects.length > 0"
         :to="{ path: '/projects', query: { municipality: municipality.name } }"
-        class="slk-retro-card slk-retro-card--green mt-4 flex items-center gap-3 rounded-sm bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
+        class="mt-4 flex items-center gap-3 rounded-sm bg-very-light-blue p-5 px-6 text-sm font-medium text-stats-dark shadow-list hover:bg-blue-100"
       >
         <img src="~/assets/icons/icon_approved.svg" class="h-auto w-12 opacity-50 md:w-14 lg:w-18" />
         <h3 class="font-heading text-h2">
@@ -222,7 +222,7 @@
         <!-- Notice about current developments, if it exists -->
         <div
           v-if="municipality.overall_status_comment"
-          class="slk-retro-card slk-retro-card--green collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
+          class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
         >
           <input type="checkbox" name="sectors-accordion" autocomplete="off" />
           <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
@@ -249,7 +249,7 @@
           <!-- Statistics Section Link -->
           <NuxtLink
             :to="municipality.ars ? `/data/${municipality.ars}` : '/data'"
-            class="slk-retro-card slk-retro-card--green slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
+            class="slk-municipality-cta slk-municipality-cta--stats flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 shadow-list hover:bg-blue-200"
           >
             <img
               src="~/assets/icons/icon_evaluation_criteria.svg"
@@ -267,7 +267,7 @@
           <!-- Kommunalwahl Question Generation Link -->
           <NuxtLink
             :to="`/elections/${municipality.slug}`"
-            class="slk-retro-card slk-retro-card--green slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
+            class="slk-municipality-cta slk-municipality-cta--elections flex items-center gap-3 rounded-sm bg-rating-3-light p-5 px-6 text-sm font-medium text-green shadow-list hover:bg-rating-3/50"
           >
             <img
               src="~/assets/icons/icon_politics.svg"
@@ -290,7 +290,7 @@
           </NuxtLink>
 
           <!-- Participate Section -->
-          <div v-if="municipality?.public_contact" class="slk-retro-card slk-retro-card--green collapse collapse-plus rounded-sm p-2 shadow-list md:px-2">
+          <div v-if="municipality?.public_contact" class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2">
             <input type="checkbox" name="contact-accordion" autocomplete="off" />
             <div class="collapse-title flex items-center gap-3 px-2 md:px-4">
               <img src="~/assets/icons/icon_team.svg" class="h-6 w-6 opacity-60" />
@@ -309,7 +309,7 @@
           <!-- Associated Projects -->
           <div
             v-if="municipalityProjects && municipalityProjects.length > 0"
-            class="slk-retro-card slk-retro-card--green collapse collapse-plus rounded-sm p-2 shadow-list md:px-2"
+            class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2"
           >
             <div class="mb-4 flex items-center gap-3 p-3">
               <img src="~/assets/icons/icon_invest.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60" />
@@ -334,7 +334,7 @@
           </div>
 
           <!-- Last Update Info -->
-          <div v-if="municipality?.date_updated" class="slk-retro-card slk-retro-card--green rounded-sm p-2 shadow-list md:px-4">
+          <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
             <div class="text-gray-600 flex items-center gap-2 text-sm">
               <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-4 w-4 opacity-60" />
               <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-4 w-4 opacity-60" />

@@ -1,5 +1,5 @@
 <template>
-    <div class="slk-retro-card slk-retro-card--green rounded-sm shadow-list">
+    <div class="rounded-sm shadow-list">
         <!-- Header with collapse toggle -->
         <div :class="municipality?.description ? 'collapse collapse-plus rounded-sm' : 'rounded-sm'">
             <input

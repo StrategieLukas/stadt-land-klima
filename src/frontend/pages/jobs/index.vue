@@ -51,7 +51,7 @@
       </section>
     </div>
 
-    <div v-else class="slk-retro-card slk-retro-card--orange rounded-lg border border-gray-100 bg-white p-6 text-gray-500 shadow-sm">
+    <div v-else class="rounded-lg border border-gray-100 bg-white p-6 text-gray-500 shadow-sm">
       {{ $t('jobs.empty') }}
     </div>
   </div>

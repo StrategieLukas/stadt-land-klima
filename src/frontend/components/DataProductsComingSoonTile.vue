@@ -1,6 +1,6 @@
 <template>
   <div
-    class="slk-retro-card slk-retro-card--blue flex min-h-[180px] flex-col justify-center gap-4 rounded-lg border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5"
+    class="flex min-h-[180px] flex-col justify-center gap-4 rounded-lg border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5"
     :class="tileLayout"
   >
     <div>

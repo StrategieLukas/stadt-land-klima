@@ -1,5 +1,5 @@
 <template>
-  <div class="slk-retro-card slk-retro-card--green flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #339737;">
+  <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #339737;">
     <div class="flex items-center gap-3 flex-1 min-h-0">
       <img v-if="avatarSrc" :src="avatarSrc" :alt="name"
            class="w-12 h-12 rounded-full flex-shrink-0 object-cover" />

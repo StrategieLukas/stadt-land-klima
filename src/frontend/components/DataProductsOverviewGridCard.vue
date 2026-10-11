@@ -2,7 +2,7 @@
   <button
     ref="cardRef"
     type="button"
-    class="slk-retro-card slk-retro-card--blue border-gray-200 group flex h-[250px] flex-col overflow-hidden rounded-lg border bg-white text-left shadow-sm transition-all hover:border-stats-dark  focus:outline-none focus-visible:ring-2 focus-visible:ring-stats-dark xl:h-[260px]"
+    class="border-gray-200 group flex h-[250px] flex-col overflow-hidden rounded-lg border bg-white text-left shadow-sm transition-all hover:border-stats-dark hover:shadow-list focus:outline-none focus-visible:ring-2 focus-visible:ring-stats-dark xl:h-[260px]"
     :aria-expanded="showKpi ? undefined : expanded"
     :aria-controls="!showKpi && expanded ? 'data-collection-detail' : undefined"
     :class="{ 'ring-2 ring-stats-dark': expanded }"
@@ -13,7 +13,7 @@
         v-if="coverImageUrl"
         :src="coverImageUrl"
         :alt="title"
-        class="h-full w-full object-cover  "
+        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         loading="lazy"
       />
       <div

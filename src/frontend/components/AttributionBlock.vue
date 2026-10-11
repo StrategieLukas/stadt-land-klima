@@ -2,7 +2,7 @@
   <div
     v-if="hasContent"
     class="text-gray-500 text-xs"
-    :class="embedded ? 'bg-transparent' : 'slk-retro-card slk-retro-card--neutral mt-4 px-4 py-3'"
+    :class="embedded ? 'bg-transparent' : 'bg-gray-50 border-gray-100 mt-4 rounded-lg border px-4 py-3'"
   >
     <div class="text-gray-400 mb-2 text-[10px] font-bold uppercase tracking-wide">Attribution / Quelle</div>
     <ul class="space-y-1.5">

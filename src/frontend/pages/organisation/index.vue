@@ -100,7 +100,7 @@
       <div class="org-detail-panel" :class="svgHeight > 0 ? 'lg:overflow-y-auto' : ''" :style="panelStyle">
         <template v-if="activeTeam">
           <!-- Popover card -->
-          <div id="team-detail-panel" class="slk-retro-card slk-retro-card--neutral rounded-lg overflow-hidden border border-[var(--slk-border)] shadow-md mb-6">
+          <div id="team-detail-panel" class="rounded-lg overflow-hidden border border-[var(--slk-border)] shadow-md mb-6">
             <!-- Header -->
             <div
               class="px-4 py-3"
@@ -134,7 +134,7 @@
                   :title="memberFullName(member)"
                 >
                   <div
-                    class="w-10 h-10 rounded-full overflow-hidden border-2  transition-transform"
+                    class="w-10 h-10 rounded-full overflow-hidden border-2 group-hover:scale-110 transition-transform"
                     :style="{ borderColor: activeTeam.color }"
                   >
                     <SmartImg
@@ -164,7 +164,7 @@
         <!-- No-selection placeholder — min-height matches SVG height to keep page height stable -->
         <div
           v-else
-          class="slk-retro-card slk-retro-card--neutral flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-[var(--slk-border)] text-[var(--slk-text-muted)] gap-3"
+          class="flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-[var(--slk-border)] text-[var(--slk-text-muted)] gap-3"
           :style="placeholderStyle"
         >
           <svg class="w-10 h-10 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -191,7 +191,7 @@
             v-for="member in filteredMembers"
             :key="'all-active-' + member.id"
             :id="'member-' + member.id"
-          class="slk-retro-card slk-retro-card--semantic flex flex-col bg-[var(--slk-surface)] rounded-xl overflow-hidden shadow-sm border-2"
+          class="flex flex-col bg-[var(--slk-surface)] rounded-xl overflow-hidden shadow-sm border-2"
             :style="{ borderColor: activeTeam.color }"
             style="transition: box-shadow 0.1s;"
           >
@@ -237,7 +237,7 @@
           v-for="member in otherMembers"
           :key="'all-other-' + member.id"
           :id="'member-' + member.id"
-          class="slk-retro-card slk-retro-card--semantic flex flex-col bg-[var(--slk-surface)] rounded-xl border border-[var(--slk-border)] shadow-sm overflow-hidden"
+          class="flex flex-col bg-[var(--slk-surface)] rounded-xl border border-[var(--slk-border)] shadow-sm overflow-hidden"
         >
           <div class="relative aspect-square bg-[var(--slk-surface-subdued)] overflow-hidden flex-shrink-0">
             <template v-if="member.avatar">
@@ -463,12 +463,14 @@ function memberPlaceholderGradient(color) {
 function scrollToMember(id, color) {
   const el = document.getElementById('member-' + id)
   if (!el) return
-  // A static outline identifies the member selected from the team chart.
+  // Set the ring color as a CSS custom property so the keyframe picks it up
   el.style.setProperty('--highlight-color-strong', blendHex(color ?? '#16bae7', 0.7))
-  el.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' })
-  document.querySelectorAll('.member-highlight').forEach(member => member.classList.remove('member-highlight'))
+  el.style.setProperty('--highlight-color-soft', blendHex(color ?? '#16bae7', 0.35))
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  el.classList.remove('member-highlight')
+  void el.offsetWidth
   el.classList.add('member-highlight')
-
+  el.addEventListener('animationend', () => el.classList.remove('member-highlight'), { once: true })
 }
 </script>
 
@@ -498,7 +500,14 @@ function scrollToMember(id, color) {
   .org-detail-panel { width: 45%; }
 }
 
-.member-highlight { outline: 3px solid var(--highlight-color-strong, #16bae7); outline-offset: 4px; }
+@keyframes memberHighlight {
+  0%   { box-shadow: 0 0 0 0 var(--highlight-color-strong, #16bae7); }
+  30%  { box-shadow: 0 0 0 8px var(--highlight-color-soft, #16bae7); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.member-highlight {
+  animation: memberHighlight 1.2s ease-out;
+}
 
 /* SVG chart theming */
 .org-bg-rect {

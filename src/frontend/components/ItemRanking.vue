@@ -1,6 +1,6 @@
 <template lang="">
   <div
-    class="slk-retro-card slk-retro-card--semantic relative mb-3 flex items-stretch gap-4 bg-opacity-10 py-5 pl-10 pr-4"
+    class="relative mb-3 flex items-stretch gap-4 bg-opacity-10 py-5 pl-10 pr-4"
     :class="[isRanking ? 'shadow-list' : '', colorClass.bg]"
   >
     <div class="relative h-full pt-6">

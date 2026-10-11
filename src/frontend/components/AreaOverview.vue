@@ -9,7 +9,7 @@
     <div class="flex min-h-0 flex-1 flex-col xl:grid xl:grid-cols-[1fr_320px]">
       <!-- ── SVG map ─────────────────────────────────────────────────────────── -->
       <div class="bg-gray-50 h-[42vh] min-h-0 p-4 xl:h-full xl:p-6">
-        <div class="slk-retro-card slk-retro-card--blue border-gray-200 relative h-full overflow-hidden rounded-lg border bg-white">
+        <div class="border-gray-200 relative h-full overflow-hidden rounded-lg border bg-white">
           <!-- Back button (Germany page when drilled into a state) -->
           <button
             v-if="selectedState && isGermany"

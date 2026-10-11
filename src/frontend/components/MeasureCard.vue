@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="to" class="slk-retro-card slk-retro-card--green group card bg-white shadow-xl rounded-none overflow-hidden block  transition-colors duration-200">
+  <NuxtLink :to="to" class="group card bg-white shadow-xl rounded-none overflow-hidden block hover:shadow-2xl transition-shadow duration-200">
     <div class="relative h-40 bg-gray-200 flex items-center justify-center">
       <SmartImg
         v-if="image_id"

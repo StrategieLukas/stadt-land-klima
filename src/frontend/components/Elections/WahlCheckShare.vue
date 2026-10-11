@@ -1,5 +1,5 @@
 <template>
-  <div class="slk-retro-card slk-retro-card--neutral bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 mt-8">
+  <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 mt-8">
     <div class="text-center max-w-2xl mx-auto mb-6">
       <h3 class="text-xl sm:text-2xl font-bold text-stats-dark mb-2">
         {{ $t('elections.wahlcheck.results.share.title') }}
@@ -36,7 +36,7 @@
       <!-- Story Frame Preview -->
       <div class="md:col-span-5 flex flex-col items-center">
         <div
-          class="group relative aspect-[9/16] w-full max-w-[270px] overflow-hidden rounded-2xl shadow-2xl ring-4 ring-stats-dark/10 transition-transform  sm:max-w-[290px]"
+          class="group relative aspect-[9/16] w-full max-w-[270px] overflow-hidden rounded-2xl shadow-2xl ring-4 ring-stats-dark/10 transition-transform hover:scale-[1.01] sm:max-w-[290px]"
           :class="isDark ? 'bg-stats-dark' : 'bg-[#e8f4ec]'"
         >
           <!-- Dynamic generated sharepic preview (HTML/CSS Based -> No Canvas permission needed on load!) -->

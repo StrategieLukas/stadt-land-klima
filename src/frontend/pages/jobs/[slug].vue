@@ -8,7 +8,7 @@
         {{ backLabel }}
       </NuxtLink>
 
-      <header class="slk-retro-card slk-retro-card--orange rounded-lg border border-gray-100 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+      <header class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
         <div class="max-w-3xl">
           <div class="mb-5 flex flex-wrap items-center gap-3">
             <span class="inline-flex rounded-full bg-rating-3-very-light px-3 py-1 text-xs font-bold uppercase tracking-wide text-olive-green ring-1 ring-solid-light-green-30">
@@ -64,7 +64,7 @@
         </div>
 
         <aside class="space-y-4 lg:sticky lg:top-24">
-          <div class="slk-retro-card slk-retro-card--orange rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+          <div class="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
             <div class="mb-5 flex items-center gap-3">
               <div
                 v-if="hasOrganisationIdentity"

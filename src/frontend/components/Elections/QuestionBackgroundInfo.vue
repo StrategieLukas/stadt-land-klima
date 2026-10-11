@@ -3,7 +3,7 @@
     v-if="html"
     class="question-background has-long-links prose prose-sm max-w-none text-gray break-words hyphens-auto"
     :class="{
-      'slk-retro-card slk-retro-card--blue p-4': appearance === 'box',
+      'rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4': appearance === 'box',
       'text-sm italic': appearance === 'italic',
     }"
     v-html="html"

@@ -3,7 +3,7 @@
     v-for="(sectorRatings, sector) in ratingsBySector"
     :key="sector"
     :name="`sector-${sector}`"
-    class="slk-retro-card slk-retro-card--green collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4"
+    class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4"
   >
     <input 
       type="checkbox" 

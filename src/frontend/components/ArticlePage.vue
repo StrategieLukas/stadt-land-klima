@@ -136,7 +136,7 @@
   </div>
 
   <!-- Desktop version -->
-  <div class="slk-retro-card slk-retro-card--green project-page relative mb-8 mt-8 hidden rounded-lg bg-[#E8F9FD] p-8 shadow-lg lg:block">
+  <div class="project-page relative mb-8 mt-8 hidden rounded-lg bg-[#E8F9FD] p-8 shadow-lg lg:block">
     <NuxtLink :to="backHref" class="text-sm text-blue-500">← {{ backLabel }}</NuxtLink>
     <!-- Top Right Logo with White Triangle Background -->
     <div
@@ -163,7 +163,7 @@
 
     <div class="prose grid max-w-none grid-cols-3 gap-6">
       <!-- Sidebar -->
-      <div class="slk-retro-card slk-retro-card--green text-gray-700 flex flex-col space-y-4 rounded-lg bg-white p-6 text-sm shadow-md">
+      <div class="text-gray-700 flex flex-col space-y-4 rounded-lg bg-white p-6 text-sm shadow-md">
         <!-- Image and Credits -->
         <div>
           <div class="bg-gray-200 flex h-48 w-full items-center justify-center rounded-lg">

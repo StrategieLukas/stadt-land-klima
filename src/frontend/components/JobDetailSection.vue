@@ -1,5 +1,5 @@
 <template>
-  <section class="slk-retro-card slk-retro-card--orange rounded-lg border border-gray-100 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+  <section class="rounded-lg border border-gray-100 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
     <h2 class="mb-4 flex items-center gap-3 text-xl font-bold text-gray-900">
       <span class="h-2 w-2 rounded-full bg-light-green" aria-hidden="true" />
       {{ title }}

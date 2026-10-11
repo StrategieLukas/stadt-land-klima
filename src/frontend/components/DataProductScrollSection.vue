@@ -7,7 +7,7 @@
     class="border-gray-100 overflow-visible border-t pb-6 pt-10"
     :style="`scroll-margin-top: ${scrollMarginTop}px`"
   >
-    <div class="slk-retro-card slk-retro-card--blue border-gray-200 overflow-hidden rounded-lg border bg-white shadow-sm">
+    <div class="border-gray-200 overflow-hidden rounded-lg border bg-white shadow-sm">
       <div
         class="grid min-h-[900px] overflow-hidden sm:min-h-[820px] xl:min-h-[540px] xl:grid-cols-12 xl:items-stretch"
       >
@@ -155,14 +155,14 @@
             </div>
           </div>
           <div class="grid gap-4 lg:grid-cols-2">
-            <div class="slk-retro-card slk-retro-card--blue border-gray-100 overflow-hidden rounded-lg border bg-white">
+            <div class="border-gray-100 overflow-hidden rounded-lg border bg-white">
               <div class="border-gray-100 border-b p-4">
                 <div class="bg-gray-100 h-4 w-2/3 animate-pulse rounded" />
                 <div class="bg-gray-100 mt-2 h-3 w-4/5 animate-pulse rounded" />
               </div>
               <div class="bg-gray-50 m-3 h-[220px] animate-pulse rounded" />
             </div>
-            <div class="slk-retro-card slk-retro-card--blue border-gray-100 hidden overflow-hidden rounded-lg border bg-white lg:block">
+            <div class="border-gray-100 hidden overflow-hidden rounded-lg border bg-white lg:block">
               <div class="border-gray-100 border-b p-4">
                 <div class="bg-gray-100 h-4 w-1/2 animate-pulse rounded" />
                 <div class="bg-gray-100 mt-2 h-3 w-3/4 animate-pulse rounded" />

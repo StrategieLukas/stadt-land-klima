@@ -34,7 +34,7 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="slk-retro-card slk-retro-card--neutral my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
+      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
         <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
         <button @click="loadElections" class="btn btn-primary">{{ $t("generic.try_again") }}</button>
@@ -43,7 +43,7 @@
       <!-- No Public Elections -->
       <div
         v-else-if="publicElections.length === 0"
-        class="slk-retro-card slk-retro-card--neutral text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
+        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
       >
         <div class="mb-6">
           <img
@@ -61,7 +61,7 @@
       <!-- Elections List -->
       <div v-else class="space-y-8">
         <!-- Hero Section -->
-        <div class="slk-retro-card slk-retro-card--neutral rounded-xl border border-solid-gray-10 bg-white p-8 text-center shadow-list">
+        <div class="rounded-xl border border-solid-gray-10 bg-white p-8 text-center shadow-list">
           <div class="mb-6">
             <img
               src="~/assets/images/Mach_den-Klima-Wahlcheck.svg"
@@ -92,7 +92,7 @@
             v-for="election in publicElections"
             :key="election.id"
             :to="`/elections/wahlcheck/${election.localteam?.municipality_id?.[0]?.slug || election.localteam?.municipality_id?.[0]?.name || election.id}`"
-            class="slk-retro-card slk-retro-card--neutral group rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-all duration-300 hover:border-solid-ff-green-30 "
+            class="group rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-all duration-300 hover:border-solid-ff-green-30 hover:shadow-xl"
           >
             <div class="mb-4 flex items-start justify-between">
               <div>
@@ -168,7 +168,7 @@
         </div>
 
         <!-- How it works section -->
-        <div class="slk-retro-card slk-retro-card--neutral mt-12 rounded-xl border border-solid-ff-green-20 bg-solid-ff-green-05 p-8">
+        <div class="mt-12 rounded-xl border border-solid-ff-green-20 bg-solid-ff-green-05 p-8">
           <h3 class="mb-6 text-center text-lg font-bold text-stats-dark">
             {{ $t("elections.wahlcheck.how_it_works.title") }}
           </h3>
@@ -338,3 +338,41 @@ useHead({
   ],
 });
 </script>
+
+<style scoped>
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Grid item animation */
+.grid > * {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.grid > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.grid > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.grid > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.grid > *:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.grid > *:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.grid > *:nth-child(6) {
+  animation-delay: 0.6s;
+}
+</style>
