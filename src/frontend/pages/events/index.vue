@@ -110,7 +110,7 @@
           <h2
             class="text-orange-600 border-orange-200 mb-4 flex items-center border-b pb-2 text-base font-semibold uppercase tracking-wide"
           >
-            <span class="bg-orange-500 inline-block h-2 w-2 animate-pulse rounded-full"></span>
+            <span class="bg-orange-500 inline-block h-2 w-2 rounded-full"></span>
             {{ $t("events.section.current") }}
           </h2>
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

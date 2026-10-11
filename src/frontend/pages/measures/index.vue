@@ -8,7 +8,7 @@
     </div>
 
     <!-- Filter + Sort bar -->
-    <div class="slk-filter-panel slk-filter-theme-neutral mb-6 flex flex-col gap-0 p-3 shadow-md">
+    <div class="slk-retro-card slk-retro-card--green slk-filter-panel slk-filter-theme-neutral mb-6 flex flex-col gap-0 p-3 shadow-md">
       <!-- Collapsible toggle (only shown below xs breakpoint) -->
       <button
         class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"
@@ -320,7 +320,7 @@
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
         :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
-        class="card rounded-md border border-gray/20 shadow hover:shadow-lg transition-shadow duration-200 block"
+        class="slk-retro-card slk-retro-card--green card rounded-md border border-gray/20 shadow  transition-colors duration-200 block"
       >
         <div class="card-body">
           <div class="flex items-start gap-3">

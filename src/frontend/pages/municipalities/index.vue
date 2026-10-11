@@ -20,7 +20,7 @@
   <div class="lg:hidden flex flex-col gap-2 mb-4">
     <!-- Werde Klimachecker -->
     <button @click="openCalMobile"
-       class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3 text-left w-full"
+       class="slk-retro-card slk-retro-card--green flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3 text-left w-full"
        style="border-color: #339737;">
       <img :src="onboardingAvatarUrl"
            alt="Otto" class="w-10 h-10 rounded-full flex-shrink-0 object-cover" />
@@ -34,7 +34,7 @@
     </button>
     <!-- Lokalteam gründen -->
     <NuxtLink to="/register_localteam"
-       class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3"
+       class="slk-retro-card slk-retro-card--green flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3"
        style="border-color: #AFCA0B;">
       <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #AFCA0B;">
         <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -51,7 +51,7 @@
     </NuxtLink>
     <!-- Dashboard Stats -->
     <NuxtLink to="/stats#massnahmenstatistiken"
-       class="flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3"
+       class="slk-retro-card slk-retro-card--green flex flex-row items-center gap-3 bg-white shadow-md border-2 p-3"
        style="border-color: #006e94;">
       <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #006e94;">
         <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -69,7 +69,7 @@
   </div>
 
   <!-- Filter panel -->
-  <div class="slk-filter-panel slk-filter-theme-lime flex flex-col gap-0 mb-6 shadow-md p-3">
+  <div class="slk-retro-card slk-retro-card--green slk-filter-panel slk-filter-theme-lime flex flex-col gap-0 mb-6 shadow-md p-3">
 
     <!-- Collapsible toggle (only shown below xs breakpoint) -->
     <button class="flex xs:hidden w-full items-center justify-between py-1 text-sm font-medium slk-filter-panel-icon" @click="filterOpen = !filterOpen">
@@ -215,7 +215,7 @@
           <OnboardingBox name="Otto" :avatar-src="onboardingAvatarUrl"/>
 
           <!-- Lokalteam gründen box -->
-          <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #AFCA0B;">
+          <div class="slk-retro-card slk-retro-card--green flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #AFCA0B;">
             <div class="flex items-center gap-3 flex-1 min-h-0">
               <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #AFCA0B;">
                 <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -237,7 +237,7 @@
           </div>
 
           <!-- {{ $t("stats.measures.title") }} box -->
-          <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #006e94;">
+          <div class="slk-retro-card slk-retro-card--green flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #006e94;">
             <div class="flex items-center gap-3 flex-1 min-h-0">
               <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #006e94;">
                 <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -278,7 +278,7 @@
   </div>
 
   <!-- CTA: Start a new municipality assessment -->
-  <div class="mt-12 mb-4 rounded-sm shadow-list p-8 bg-rating-3-light flex flex-col sm:flex-row items-center gap-6">
+  <div class="slk-retro-card slk-retro-card--semantic mt-12 mb-4 rounded-sm shadow-list p-8 bg-rating-3-light flex flex-col sm:flex-row items-center gap-6">
     <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto flex-shrink-0 opacity-80" />
     <div class="flex-1 text-center sm:text-left">
       <h2 class="font-heading text-h2 font-bold text-green mb-2">

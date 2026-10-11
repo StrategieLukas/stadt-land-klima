@@ -23,7 +23,7 @@
     <section v-if="media.length" class="my-8">
       <h2 class="mb-4 font-heading text-2xl font-bold">{{ $t('tour.media') }}</h2>
       <div class="grid gap-5 sm:grid-cols-2">
-        <figure v-for="(item, index) in media" :key="item.id" class="event-detail__media">
+        <figure v-for="(item, index) in media" :key="item.id" class="event-detail__media slk-retro-card slk-retro-card--blue">
           <button type="button" class="block w-full text-left" :aria-label="`${$t('tour.media_open')}: ${item.alt}`" @click="viewer?.open(media, index, report?.title || event.title)"><TourMediaPreview :item="item" /></button>
           <figcaption class="p-3 text-sm"><span v-if="item.caption" class="block">{{ item.caption }}</span><small>{{ item.credit }}</small></figcaption>
         </figure>

@@ -53,7 +53,7 @@
             <article
               v-for="item in page"
               :key="item.key"
-              class="border-gray-200 flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm"
+              class="slk-retro-card slk-retro-card--blue border-gray-200 flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm"
               :class="expanded ? 'h-[660px]' : 'h-[304px]'"
             >
               <div class="border-gray-100 border-b px-4 py-2.5">

@@ -158,7 +158,7 @@
       {{ selectedTour ? $t('tour.no_published_projects') : $t("projects.empty_placeholder") }}
     </div>
 
-    <div v-if="isMapView" class="h-[65vh] min-h-[28rem] overflow-hidden rounded-xl border border-solid-stats-dark-20">
+    <div v-if="isMapView" class="slk-retro-card slk-retro-card--green h-[65vh] min-h-[28rem] overflow-hidden rounded-xl border border-solid-stats-dark-20">
       <ClientOnly v-if="mapProjects.length">
         <ProjectsMap :projects="mapProjects" />
         <template #fallback><p class="p-6">{{ $t('tour.map_unavailable') }}</p></template>

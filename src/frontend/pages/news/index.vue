@@ -139,7 +139,7 @@
           v-for="ev in upcomingEvents"
           :key="ev.id"
           :to="`/events/${ev.slug}`"
-          class="group flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-[#16BAE7]/60 focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-none transition-all duration-150"
+          class="slk-retro-card slk-retro-card--orange group flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden cursor-pointer  hover:border-[#16BAE7]/60 focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-none transition-all duration-150"
         >
           <!-- Thumbnail -->
           <div class="relative h-40 bg-gray-50 flex-shrink-0 overflow-hidden">
@@ -162,7 +162,7 @@
               :width="480"
               :height="160"
               fit="cover"
-              imgClass="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              imgClass="w-full h-full object-cover  "
             />
             <span class="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full bg-[#1da64a] text-white">Veranstaltung</span>
             <!-- Image credits overlay on hover -->
@@ -211,10 +211,11 @@
         v-for="item in group.items"
         :is="item.href ? NuxtLinkComponent : 'div'"
         :key="`${item.type}-${item.id}`"
+        :data-card-type="item.type"
         :to="item.href || undefined"
         :class="item.href
-          ? 'group flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-[#16BAE7]/60 focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-none transition-all duration-150'
-          : 'flex flex-col bg-gray-50 rounded-lg border border-dashed border-gray-200 overflow-hidden opacity-80'
+          ? 'slk-retro-card slk-retro-card--blue group flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden cursor-pointer  hover:border-[#16BAE7]/60 focus-visible:ring-2 focus-visible:ring-[#16BAE7] focus-visible:outline-none transition-all duration-150'
+          : 'slk-retro-card slk-retro-card--neutral flex flex-col bg-gray-50 rounded-lg border border-dashed border-gray-200 overflow-hidden opacity-80'
         "
       >
         <!-- Thumbnail -->
@@ -248,7 +249,7 @@
             :width="480"
             :height="160"
             fit="cover"
-            imgClass="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            imgClass="w-full h-full object-cover  "
           />
           <!-- News: teal gradient + info icon -->
           <div
@@ -325,7 +326,7 @@
             <!-- Arrow indicator (clickable cards only) -->
             <svg
               v-if="item.href"
-              class="w-4 h-4 text-[#16BAE7] opacity-0 group-hover:opacity-100 translate-x-0 group-hover:translate-x-0.5 transition-all duration-150"
+              class="w-4 h-4 text-[#16BAE7] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
               fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
             >
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />

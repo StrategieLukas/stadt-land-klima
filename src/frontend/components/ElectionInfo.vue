@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 py-8">
     <!-- Header -->
-    <div class="bg-white rounded-2xl shadow-list border border-solid-gray-10 p-8 mb-8">
+    <div class="slk-retro-card slk-retro-card--neutral bg-white rounded-2xl shadow-list border border-solid-gray-10 p-8 mb-8">
       <h1 class="text-h2 font-bold text-stats-dark mb-4">
         {{ $t('election_info.title_for', { ':name': municipalityScore.municipality.name }) }}
       </h1>
@@ -27,7 +27,7 @@
       <div class="flex justify-center mt-6">
         <button
           @click="fetchPDF()"
-          class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg hover:scale-105 transition-transform"
+          class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg  transition-transform"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -42,7 +42,7 @@
       <div
         v-for="(measure, index) in sortedMeasures.slice(0, 10)"
         :key="measure.measure_id"
-        class="bg-white rounded-xl shadow-list border border-solid-gray-10 p-6 transition-shadow hover:shadow-xl"
+        class="slk-retro-card slk-retro-card--neutral bg-white rounded-xl shadow-list border border-solid-gray-10 p-6 transition-colors "
       >
         <!-- Measure Header -->
         <div class="flex items-start justify-between mb-4">
@@ -64,19 +64,19 @@
           <div v-if="measure.description_benefit" class="prose max-w-none text-mid-gray" v-html="md.render(measure.description_benefit)"></div>
 
           <!-- Current Progress -->
-          <div v-if="measure.currentProgress" class="p-4 bg-mild-white rounded-lg border border-solid-gray-10">
+          <div v-if="measure.currentProgress" class="slk-retro-card slk-retro-card--neutral p-4 bg-mild-white rounded-lg border border-solid-gray-10">
             <p class="font-semibold text-stats-dark mb-1">{{ $t('election_info.current_status') }}</p>
             <p class="text-mid-gray">{{ measure.currentProgress }}</p>
           </div>
 
           <!-- Political Demand -->
-          <div v-if="measure.politicalDemand" class="p-4 bg-mild-white rounded-lg border border-solid-gray-10">
+          <div v-if="measure.politicalDemand" class="slk-retro-card slk-retro-card--neutral p-4 bg-mild-white rounded-lg border border-solid-gray-10">
             <p class="font-semibold text-stats-dark mb-1">{{ $t('election_info.political_demand') }}</p>
             <p class="text-mid-gray">{{ measure.politicalDemand }}</p>
           </div>
 
           <!-- Contribution Description -->
-          <div v-if="measure.description_contribution" class="p-4 bg-solid-ff-green-05 rounded-lg border border-solid-ff-green-20">
+          <div v-if="measure.description_contribution" class="slk-retro-card slk-retro-card--neutral p-4 bg-solid-ff-green-05 rounded-lg border border-solid-ff-green-20">
             <p class="font-semibold text-ff-green mb-1">{{ $t('election_info.contribution') }}</p>
             <div class="prose max-w-none text-mid-gray" v-html="md.render(measure.description_contribution)"></div>
           </div>
@@ -101,7 +101,7 @@
     <div class="flex justify-center mt-8 py-4">
       <button
         @click="fetchPDF()"
-        class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg hover:scale-105 transition-transform"
+        class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg  transition-transform"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

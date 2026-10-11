@@ -5,16 +5,16 @@
       <p class="text-gray-600 mt-3 text-base leading-relaxed">{{ $t("tools.description") }}</p>
     </header>
 
-    <div v-if="pending" class="border-gray-100 text-gray-500 rounded-lg border bg-white p-6 shadow-sm">
+    <div v-if="pending" class="slk-retro-card slk-retro-card--blue border-gray-100 text-gray-500 rounded-lg border bg-white p-6 shadow-sm">
       {{ $t("generic.loading") }}
     </div>
 
-    <div v-else-if="hasLoadError" class="rounded-lg border border-red/20 bg-red/5 p-6 text-red shadow-sm">
+    <div v-else-if="hasLoadError" class="slk-retro-card slk-retro-card--semantic rounded-lg border border-red/20 bg-red/5 p-6 text-red shadow-sm">
       {{ $t("tools.loading_error") }}
     </div>
 
     <template v-else>
-      <div class="mb-6 rounded-lg border border-stats-light bg-stats-light/40 p-3 shadow-sm">
+      <div class="slk-retro-card slk-retro-card--blue mb-6 rounded-lg border border-stats-light bg-stats-light/40 p-3 shadow-sm">
         <div class="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -51,7 +51,7 @@
 
       <div
         v-if="filteredTools.length === 0"
-        class="border-gray-100 text-gray-500 rounded-lg border bg-white p-6 shadow-sm"
+        class="slk-retro-card slk-retro-card--blue border-gray-100 text-gray-500 rounded-lg border bg-white p-6 shadow-sm"
       >
         {{ $t("tools.empty") }}
       </div>
@@ -60,7 +60,7 @@
         <article
           v-for="tool in filteredTools"
           :key="tool.id"
-          class="border-gray-100 card overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md"
+          class="slk-retro-card slk-retro-card--blue border-gray-100 card overflow-hidden rounded-lg border bg-white shadow-sm transition-colors "
         >
           <a
             :href="tool.link"
@@ -78,7 +78,7 @@
                 :width="640"
                 :height="280"
                 fit="cover"
-                imgClass="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                imgClass="h-full w-full object-cover  "
               />
               <div
                 v-else

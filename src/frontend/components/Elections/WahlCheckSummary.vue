@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Header -->
-    <div class="bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
+    <div class="slk-retro-card slk-retro-card--neutral bg-white p-4 sm:p-8 rounded-xl shadow-list border border-solid-gray-10 text-center">
       <div class="mb-6">
         <ElectionsWahlCheckLogo
           :logo="election?.custom_logo"
@@ -28,7 +28,7 @@
         <!-- Answered Question: Full tile clickable for double weighting -->
         <div
           v-if="userAnswers[question.id] !== undefined"
-          class="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-solid-gray-10 transition-all select-none cursor-pointer hover:border-solid-gray-40 hover:shadow-md flex items-center justify-between gap-3 sm:gap-4"
+          class="slk-retro-card slk-retro-card--neutral bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-solid-gray-10 transition-all select-none cursor-pointer hover:border-solid-gray-40  flex items-center justify-between gap-3 sm:gap-4"
           :class="{
             'ring-2 ring-orange border-orange/40 bg-solid-orange-10/20': doubleWeightedQuestions.has(question.id),
           }"
@@ -76,7 +76,7 @@
         <!-- Skipped Question: Non-clickable tile -->
         <div
           v-else
-          class="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-solid-gray-10 opacity-60 flex items-center justify-between gap-3 sm:gap-4"
+          class="slk-retro-card slk-retro-card--neutral bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-solid-gray-10 opacity-60 flex items-center justify-between gap-3 sm:gap-4"
         >
           <div class="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
             <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm">
@@ -98,7 +98,7 @@
     </div>
 
     <!-- Warning if all questions are skipped -->
-    <div v-if="answeredCount === 0" class="bg-solid-orange-10 border border-orange text-orange-700 p-4 rounded-xl">
+    <div v-if="answeredCount === 0" class="slk-retro-card slk-retro-card--neutral bg-solid-orange-10 border border-orange text-orange-700 p-4 rounded-xl">
       <p class="font-bold flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />

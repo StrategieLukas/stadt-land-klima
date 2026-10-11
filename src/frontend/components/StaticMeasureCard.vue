@@ -1,5 +1,5 @@
 <template>
-  <article :id="`measure-${measure.measure_id}`" class="card card-compact shadow max-w-4xl mx-auto">
+  <article :id="`measure-${measure.measure_id}`" class="slk-retro-card slk-retro-card--green card card-compact shadow max-w-4xl mx-auto">
     <div class="card-body">
       <div 
         class="cursor-pointer flex items-center justify-between"

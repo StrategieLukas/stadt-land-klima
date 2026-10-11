@@ -83,7 +83,7 @@
               :style="{ order: index * 2 }"
               @select="selectCollection(collection.id)"
             />
-            <article v-if="selectedCollectionId === collection.id && expandedCollection" id="data-collection-detail" class="data-collection-detail col-span-full scroll-mt-24 rounded-lg border border-solid-stats-dark-20 bg-white p-5 shadow-sm sm:p-8" :style="detailOrder(index)">
+            <article v-if="selectedCollectionId === collection.id && expandedCollection" id="data-collection-detail" class="slk-retro-card slk-retro-card--blue data-collection-detail col-span-full scroll-mt-24 rounded-lg border border-solid-stats-dark-20 bg-white p-5 shadow-sm sm:p-8" :style="detailOrder(index)">
               <div class="mb-4 flex flex-wrap items-start justify-between gap-4">
                 <h3 class="font-heading text-3xl font-bold text-stats-dark">{{ collectionText(expandedCollection.title) || expandedCollection.id }}</h3>
                 <CanonicalButton :label="$t('generic.close')" color="dark" @click="selectedCollectionId = null" />
@@ -98,7 +98,7 @@
                 </section>
               </div>
               <div v-if="overviewVisuals.length" class="mt-8 grid gap-6 lg:grid-cols-2">
-                <figure v-for="visual in overviewVisuals" :key="visual.plot_id" class="overflow-hidden rounded-lg border border-solid-stats-dark-20">
+                <figure v-for="visual in overviewVisuals" :key="visual.plot_id" class="slk-retro-card slk-retro-card--blue overflow-hidden rounded-lg border border-solid-stats-dark-20">
                   <img :src="overviewImageUrl(visual.image_url)" :alt="collectionText(visual.alt) || overviewVisualTitle(visual)" class="h-auto w-full" loading="lazy" />
                   <figcaption class="space-y-1 p-4">
                     <h4 class="font-heading text-xl font-bold text-stats-dark">{{ overviewVisualTitle(visual) }}</h4>

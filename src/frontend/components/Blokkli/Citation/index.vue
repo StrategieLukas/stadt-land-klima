@@ -40,7 +40,7 @@
       :is="linkTag"
       v-bind="linkAttrs"
       v-else-if="options.style === 'card'"
-      class="block no-underline bg-white rounded-xl shadow-md p-6 border-t-4"
+      class="slk-retro-card slk-retro-card--neutral block no-underline p-6"
       :class="accentBorderTopClass"
     >
       <Icon icon="mdi:format-quote-open" class="w-8 h-8 mb-3 opacity-40" :class="accentTextClass" />

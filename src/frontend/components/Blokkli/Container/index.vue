@@ -2,7 +2,7 @@
   <section
     :id="getBlokkliBlockId(options.anchor, uuid)"
     class="blokkli-block-container"
-    :class="[bgClass, paddingClass, marginYClass, widthBreakout, bgNarrowClass, borderClass, roundedClass, shadowClass]"
+    :class="[bgClass, paddingClass, marginYClass, widthBreakout, bgNarrowClass, isBoxed ? 'slk-retro-card slk-retro-card--semantic' : '']"
     :style="customColumnsVar"
   >
     <div :class="[innerClass]">
@@ -151,21 +151,7 @@ const { options, uuid } = defineBlokkli({
         thick: 'Dick',
       },
     },
-    borderColor: {
-      type: 'radios',
-      label: 'Rahmenfarbe',
-      default: 'gray',
-      group: 'Rahmen & Schatten',
-      displayAs: 'colors',
-      options: {
-        gray: { label: 'Grau', hex: '#d1d5db' },
-        green: { label: 'Grün', hex: '#1da64a' },
-        blue: { label: 'Blau', hex: '#16bae7' },
-        dark: { label: 'Dunkelblau', hex: '#006e94' },
-        orange: { label: 'Orange', hex: '#f39200' },
-        black: { label: 'Schwarz', hex: '#000000' },
-      },
-    },
+    // Retain saved options so older boxed containers receive the shared frame.
     rounded: {
       type: 'radios',
       label: 'Abrundung',
@@ -352,46 +338,13 @@ const contentAlignClass = computed(() => {
   return map[align] || ''
 })
 
-const borderClass = computed(() => {
-  if (options.value.border === 'none') return ''
-  const widthMap: Record<string, string> = {
-    thin: 'border',
-    medium: 'border-2',
-    thick: 'border-4',
-  }
-  const colorMap: Record<string, string> = {
-    gray: 'border-gray-300',
-    green: 'border-ff-green',
-    blue: 'border-light-blue',
-    dark: 'border-stats-dark',
-    orange: 'border-orange',
-    black: 'border-black',
-  }
-  const w = widthMap[options.value.border] || 'border'
-  const c = colorMap[options.value.borderColor] || 'border-gray-300'
-  return `${w} ${c}`
+const isBoxed = computed(() => {
+  const legacy = options.value as typeof options.value & { rounded?: string; shadow?: string }
+  return options.value.border !== 'none'
+    || Boolean(legacy.rounded && legacy.rounded !== 'none')
+    || Boolean(legacy.shadow && legacy.shadow !== 'none')
 })
 
-const roundedClass = computed(() => {
-  const map: Record<string, string> = {
-    none: '',
-    small: 'rounded',
-    medium: 'rounded-lg',
-    large: 'rounded-2xl',
-    full: 'rounded-full',
-  }
-  return map[options.value.rounded] || ''
-})
-
-const shadowClass = computed(() => {
-  const map: Record<string, string> = {
-    none: '',
-    small: 'shadow-sm',
-    medium: 'shadow-md',
-    large: 'shadow-xl',
-  }
-  return map[options.value.shadow] || ''
-})
 </script>
 
 <style scoped>

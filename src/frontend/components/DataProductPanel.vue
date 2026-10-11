@@ -15,7 +15,7 @@
       <!-- Row 1: KPI + Histogram -->
       <div v-if="kpiElement || histogramElements.length" class="mb-6 grid grid-cols-2 gap-4">
         <!-- KPI card -->
-        <div v-if="kpiElement" class="bg-gray-50 flex flex-col justify-center rounded-xl p-4">
+        <div v-if="kpiElement" class="slk-retro-card slk-retro-card--blue bg-gray-50 flex flex-col justify-center rounded-xl p-4">
           <div class="text-4xl font-black tabular-nums leading-none" :style="{ color: kpiColor }">
             {{ kpiDisplayValue }}
           </div>

@@ -1537,3 +1537,45 @@ html[data-theme="staedteChallengeDark"] .canonical-button {
     inset 0 0 0 1px var(--slk-border-strong),
     0 1px 2px rgba(0, 0, 0, 0.3);
 }
+
+/* Explicit visitor-facing cards. Utility forms/dialogs and layout containers
+   opt out by simply not using this class. Semantic cards retain their colors. */
+.slk-retro-card {
+  --slk-retro-background: var(--slk-surface, #fbfbfb);
+  --slk-retro-shadow: #50505040;
+  transition-property: color, background-color;
+}
+.slk-retro-card,
+html[data-theme] .slk-retro-card,
+html[data-theme] .slk-retro-card:hover,
+html[data-theme] .slk-retro-card:focus-visible {
+  border: 3px solid #505050 !important;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0 var(--slk-retro-shadow) !important;
+}
+.slk-retro-card:not(.slk-retro-card--semantic),
+html[data-theme] .slk-retro-card:not(.slk-retro-card--semantic) {
+  background-color: var(--slk-retro-background) !important;
+  color: var(--slk-text, #505050);
+}
+.slk-retro-card--blue { --slk-retro-background: theme('colors.stats-light'); }
+.slk-retro-card--green { --slk-retro-background: theme('colors.solid-light-green-20'); }
+.slk-retro-card--orange { --slk-retro-background: theme('colors.solid-orange-10'); }
+.slk-retro-card--neutral { --slk-retro-background: theme('colors.mild-white'); }
+.slk-retro-card[data-card-type="project"],
+.slk-retro-card[data-card-type="municipality"] { --slk-retro-background: theme('colors.solid-light-green-20'); }
+.slk-retro-card[data-card-type="event"] { --slk-retro-background: theme('colors.solid-orange-10'); }
+.slk-retro-card[data-card-type="catalog"] { --slk-retro-background: theme('colors.mild-white'); }
+:is(a, button).slk-retro-card:focus-visible {
+  outline: 3px solid var(--slk-link, #006e94);
+  outline-offset: 4px;
+}
+html[data-theme="staedteChallengeDark"] .slk-retro-card { --slk-retro-shadow: #050b11; }
+html[data-theme="staedteChallengeDark"] .slk-retro-card--blue { --slk-retro-background: #123440; }
+html[data-theme="staedteChallengeDark"] .slk-retro-card--green { --slk-retro-background: #24300f; }
+html[data-theme="staedteChallengeDark"] .slk-retro-card--orange { --slk-retro-background: #3b2819; }
+html[data-theme="staedteChallengeDark"] .slk-retro-card--neutral { --slk-retro-background: #192733; }
+html[data-theme="staedteChallengeDark"] .slk-retro-card[data-card-type="project"],
+html[data-theme="staedteChallengeDark"] .slk-retro-card[data-card-type="municipality"] { --slk-retro-background: #24300f; }
+html[data-theme="staedteChallengeDark"] .slk-retro-card[data-card-type="event"] { --slk-retro-background: #3b2819; }
+html[data-theme="staedteChallengeDark"] .slk-retro-card[data-card-type="catalog"] { --slk-retro-background: #192733; }

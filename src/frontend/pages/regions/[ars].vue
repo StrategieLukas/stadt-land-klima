@@ -1,11 +1,11 @@
 <template>
   <main class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-4xl mx-auto w-full min-w-0">
-    <div class="flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 my-4 p-3 sm:p-4 justify-center">
+    <div class="slk-retro-card slk-retro-card--blue flex bg-blue-100 rounded-lg border-blue-600 drop-shadow-md border mx-0 my-4 p-3 sm:p-4 justify-center">
       <AdministrativeAreaSearchBar base-path="/stats" />
     </div>
 
     <!-- Main Info Container -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden mt-6 min-w-0 max-w-full">
+    <div class="slk-retro-card slk-retro-card--blue bg-white rounded-lg shadow-lg overflow-hidden mt-6 min-w-0 max-w-full">
       <!-- Breadcrumbs -->
       <div v-if="area?.contained_by?.length" class="breadcrumbs bg-gray-50 px-3 sm:px-4 lg:px-6 py-3 text-sm text-gray-600 overflow-x-auto">
         <ul class="flex flex-row flex-nowrap items-center min-w-0">
@@ -51,7 +51,7 @@
     </div>
 
     <!-- Ranking Section -->
-    <div class="mt-6 bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="slk-retro-card slk-retro-card--blue mt-6 bg-white rounded-lg shadow-md overflow-hidden">
       <div class="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-900">
           {{ t('region.ranking_title') }}

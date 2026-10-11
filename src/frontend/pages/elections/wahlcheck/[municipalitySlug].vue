@@ -53,7 +53,7 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
+      <div v-else-if="error" class="slk-retro-card slk-retro-card--neutral my-12 rounded-xl border border-red bg-solid-red-10 p-8 text-center text-red">
         <h2 class="mb-4 text-2xl font-bold">{{ $t("generic.loading_error") }}</h2>
         <p class="mb-4">{{ errorMessage }}</p>
         <NuxtLink to="/" class="btn btn-primary">{{ $t("generic.back_to_home") }}</NuxtLink>
@@ -62,7 +62,7 @@
       <!-- Not Found / Not Public -->
       <div
         v-else-if="!electionData?.election"
-        class="text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
+        class="slk-retro-card slk-retro-card--neutral text-orange-800 my-12 rounded-xl border border-orange bg-solid-orange-10 p-8 text-center"
       >
         <h2 class="mb-4 text-2xl font-bold">{{ $t("elections.no_public_election.title") }}</h2>
         <p class="mb-4">

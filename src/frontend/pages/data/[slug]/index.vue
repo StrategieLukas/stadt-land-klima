@@ -66,7 +66,7 @@
         <a
           v-if="areaReady && collections.length"
           href="#alle-datenprodukte"
-          class="border-gray-200 text-gray-700 inline-flex flex-none items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors hover:border-[#006e94]/30 hover:text-[#006e94]"
+          class="slk-retro-card slk-retro-card--blue border-gray-200 text-gray-700 inline-flex flex-none items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors hover:border-[#006e94]/30 hover:text-[#006e94]"
           @click.prevent="scrollToAllProducts"
         >
           <Icon icon="mdi:view-grid-outline" class="h-4 w-4" />
@@ -82,7 +82,7 @@
         <span>{{ dataRouteLabel }}</span>
       </div>
       <div class="grid gap-5 xl:grid-cols-12 xl:items-center">
-        <div class="border-gray-200 rounded-lg border p-5 xl:col-span-5">
+        <div class="slk-retro-card slk-retro-card--blue border-gray-200 rounded-lg border p-5 xl:col-span-5">
           <div class="skeleton mb-4 h-3 w-24" />
           <div class="skeleton mb-6 h-14 w-3/4" />
           <div class="grid grid-cols-2 gap-4">
@@ -109,7 +109,7 @@
         :style="`scroll-margin-top: ${headerHeight + 16}px`"
       >
         <div
-          class="group/hero border-gray-200 relative h-full overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
+          class="slk-retro-card slk-retro-card--blue group/hero border-gray-200 relative h-full overflow-hidden rounded-lg border p-5 shadow-sm xl:col-span-5"
           :class="areaReady && heroBackgroundImage ? 'bg-gray-900' : 'bg-white'"
           :style="areaReady ? heroBackgroundStyle : undefined"
         >
@@ -214,7 +214,7 @@
               <div
                 v-for="i in 10"
                 :key="i"
-                class="border-gray-200 h-[250px] overflow-hidden rounded-lg border bg-white xl:h-[260px]"
+                class="slk-retro-card slk-retro-card--blue border-gray-200 h-[250px] overflow-hidden rounded-lg border bg-white xl:h-[260px]"
               >
                 <div class="skeleton relative h-full rounded-none">
                   <div class="absolute left-3 top-3 h-5 w-20 rounded-full bg-white/35" />

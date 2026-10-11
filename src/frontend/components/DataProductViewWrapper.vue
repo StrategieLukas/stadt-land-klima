@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="flex border min-h-[100px] flex-col gap-6 lg:flex-row items-center p-4 bg-base-100 shadow-md mt-2 cursor-pointer"
+    class="slk-retro-card slk-retro-card--blue flex border min-h-[100px] flex-col gap-6 lg:flex-row items-center p-4 bg-base-100 shadow-md mt-2 cursor-pointer"
     @click="toggle"
   >
     <!-- Title + Unit -->
@@ -42,7 +42,7 @@
     <div v-if="dataSources.length">
       <p class="font-bold">{{ dataSources.length === 1 ? $t('stats.labels.data_source.singular') : $t('stats.labels.data_source.plural') }}</p>
       <div class="grid gap-3 mt-2">
-        <div v-for="dataSource in dataSources" :key="dataSource.id" class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div v-for="dataSource in dataSources" :key="dataSource.id" class="slk-retro-card slk-retro-card--blue bg-white border border-gray-200 rounded-lg p-4 shadow-sm  transition-colors">
           <!-- Date Badge -->
           <div v-if="dataSource.effectiveDt" class="flex justify-between items-start mb-3">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

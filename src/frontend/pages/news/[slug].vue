@@ -45,7 +45,7 @@
 
           <!-- blokkli content blocks -->
           <BlokkliField name="content" :list="newsBlocks" />
-          <div v-if="item.report_event" class="not-prose mt-10 rounded-xl border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5">
+          <div v-if="item.report_event" class="slk-retro-card slk-retro-card--blue not-prose mt-10 rounded-xl border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5">
             <NuxtLink :to="`/events/${item.report_event.slug}`" class="block font-semibold text-stats-dark hover:underline">
               {{ $t('tour.event_details') }}: {{ item.report_event.title }} →
             </NuxtLink>
@@ -71,7 +71,7 @@
             >{{ editOpen ? $t('generic.close') : $t('generic.edit') }}</button>
           </div>
 
-          <form v-if="editOpen" @submit.prevent="saveMetadata" class="flex flex-col gap-4 bg-[#f5fafb] rounded-lg p-5 border border-gray-100">
+          <form v-if="editOpen" @submit.prevent="saveMetadata" class="slk-retro-card slk-retro-card--semantic flex flex-col gap-4 bg-[#f5fafb] rounded-lg p-5 border border-gray-100">
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">{{ $t('news.editor.title_required') }}</label>
               <input

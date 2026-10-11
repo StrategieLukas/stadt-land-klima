@@ -116,17 +116,17 @@ const { $locale, $t } = useNuxtApp() as unknown as {
 const calendarHref = computed(() => `/api/events/${encodeURIComponent(props.event.slug)}.ics`);
 
 const cardClasses = computed(() => {
-  const base = "bg-white rounded-lg shadow-sm border overflow-hidden transition-all";
+  const base = "slk-retro-card slk-retro-card--orange overflow-hidden";
 
   if (props.variant === "current") {
-    return `${base} border-orange-200 hover:shadow-md hover:border-orange-400`;
+    return `${base} border-orange-200  hover:border-orange-400`;
   }
 
   if (props.variant === "past") {
-    return `${base} border-gray-100 hover:shadow-md hover:border-gray-300 opacity-70`;
+    return `${base} border-gray-100  hover:border-gray-300 opacity-70`;
   }
 
-  return `${base} border-gray-100 hover:shadow-md hover:border-light-green`;
+  return `${base} border-gray-100  hover:border-light-green`;
 });
 
 const badgeClasses = computed(() => {

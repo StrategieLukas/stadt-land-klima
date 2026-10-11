@@ -122,7 +122,7 @@
     <!-- CTA block based on rating completeness -->
     <div class="mb-8">
       <!-- RATED_COMPLETE (all measures rated): contact / feedback -->
-      <div v-if="pageView === PV.RATED_COMPLETE" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
+      <div v-if="pageView === PV.RATED_COMPLETE" class="slk-retro-card slk-retro-card--semantic flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-3-light">
         <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-80" />
         <h2 class="font-heading text-h2 font-bold text-green mb-2">Mitmachen beim Lokalteam</h2>
         <p class="text-gray-600 max-w-sm mb-6">
@@ -148,7 +148,7 @@
       <!-- RATED_IN_PROGRESS / RATED_DRAFT: help the team complete the rating -->
       <div
         v-else-if="pageView === PV.RATED_IN_PROGRESS || pageView === PV.RATED_DRAFT"
-        class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+        class="slk-retro-card slk-retro-card--semantic slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
       >
         <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
         <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
@@ -165,7 +165,7 @@
       </div>
 
       <!-- RATED_OUTDATED: encourage update to current catalog -->
-      <div v-else-if="pageView === PV.RATED_OUTDATED" class="flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-1-very-light">
+      <div v-else-if="pageView === PV.RATED_OUTDATED" class="slk-retro-card slk-retro-card--semantic flex flex-col items-center justify-center rounded-sm shadow-list p-10 text-center bg-rating-1-very-light">
         <img src="~/assets/icons/icon_hint.svg" class="h-14 w-auto mb-4 opacity-50" />
         <h2 class="font-heading text-h2 font-bold text-rating-1 mb-2">Bewertung aktualisieren</h2>
         <p class="text-mid-gray max-w-sm mb-6">
@@ -206,9 +206,9 @@
     </div>
     <div class="h-12 w-full bg-gray-200 rounded mb-6"></div>
     <div class="space-y-4 mt-6">
-      <div class="h-36 w-full bg-gray-100 rounded shadow-list"></div>
-      <div class="h-16 w-full bg-gray-100 rounded shadow-list"></div>
-      <div class="h-16 w-full bg-gray-100 rounded shadow-list"></div>
+      <div class="slk-retro-card slk-retro-card--green h-36 w-full bg-gray-100 rounded shadow-list"></div>
+      <div class="slk-retro-card slk-retro-card--green h-16 w-full bg-gray-100 rounded shadow-list"></div>
+      <div class="slk-retro-card slk-retro-card--green h-16 w-full bg-gray-100 rounded shadow-list"></div>
     </div>
   </div>
 
@@ -244,7 +244,7 @@
       <!-- Mobile layout -->
       <div class="block lg:hidden mt-6 space-y-4">
         <!-- Info box -->
-        <div class="slk-municipality-pending-card rounded-sm shadow-list">
+        <div class="slk-retro-card slk-retro-card--semantic slk-municipality-pending-card rounded-sm shadow-list">
           <div class="flex items-center gap-2 px-6 py-4">
             <img
               src="~/assets/icons/icon_info.svg"
@@ -298,7 +298,7 @@
         <!-- Stats link -->
         <NuxtLink
           :to="`/data/${slzArea.ars}`"
-          class="slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
+          class="slk-retro-card slk-retro-card--green slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-4 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
         >
           <img
             src="~/assets/icons/icon_evaluation_criteria.svg"
@@ -316,7 +316,7 @@
         <!-- CTA: support existing localteam or invite to found one -->
         <div
           v-if="hasLocalteam"
-          class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+          class="slk-retro-card slk-retro-card--semantic slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
         >
           <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
           <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
@@ -333,7 +333,7 @@
         </div>
         <div
           v-else
-          class="slk-municipality-pending-card slk-municipality-pending-card--found flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+          class="slk-retro-card slk-retro-card--semantic slk-municipality-pending-card slk-municipality-pending-card--found flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
         >
           <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
           <h2 class="font-heading text-h2 font-bold text-green mb-2">Lokalteam gründen</h2>
@@ -356,7 +356,7 @@
         <div class="lg:col-span-2">
           <div
             v-if="hasLocalteam"
-            class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+            class="slk-retro-card slk-retro-card--semantic slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
           >
             <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
             <h2 class="font-heading text-h2 font-bold text-gray-800 mb-2">Lokalteam unterstützen</h2>
@@ -373,7 +373,7 @@
           </div>
           <div
             v-else
-            class="slk-municipality-pending-card slk-municipality-pending-card--found flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
+            class="slk-retro-card slk-retro-card--semantic slk-municipality-pending-card slk-municipality-pending-card--found flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
           >
             <img src="~/assets/icons/icon_location_green_marker.svg" class="h-14 w-auto mb-4 opacity-80" />
             <h2 class="font-heading text-h2 font-bold text-green mb-2">Lokalteam gründen</h2>
@@ -394,7 +394,7 @@
         <div class="lg:col-span-1 pb-4">
           <div class="sticky top-24 space-y-6">
             <!-- Info box -->
-            <div class="slk-municipality-pending-card rounded-sm shadow-list">
+            <div class="slk-retro-card slk-retro-card--semantic slk-municipality-pending-card rounded-sm shadow-list">
               <div class="flex items-center gap-2 px-6 py-4">
                 <img
                   src="~/assets/icons/icon_info.svg"
@@ -448,7 +448,7 @@
             <!-- Stats link -->
             <NuxtLink
               :to="`/data/${slzArea.ars}`"
-              class="slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
+              class="slk-retro-card slk-retro-card--green slk-municipality-cta slk-municipality-cta--stats shadow-list flex items-center gap-3 rounded-sm bg-blue-100 p-5 px-6 text-sm font-medium text-blue-600 hover:bg-blue-200"
             >
               <img
                 src="~/assets/icons/icon_evaluation_criteria.svg"

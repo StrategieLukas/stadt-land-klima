@@ -9,6 +9,7 @@ import { runRatingWahlcheckFlow } from './flows/ratingWahlcheckFlow.js';
 import { runErfolgsprojekteArticlesFlow } from './flows/erfolgsprojekteArticlesFlow.js';
 import { runErfolgsprojekteInviteDashboardFlow } from './flows/erfolgsprojekteInviteDashboardFlow.js';
 import { runTourSeriesFlow } from './flows/tourSeriesFlow.js';
+import { runRetroCardsFlow } from './flows/retroCardsFlow.js';
 
 async function main(): Promise<void> {
   const config = loadConfig(process.argv.slice(2));
@@ -32,6 +33,7 @@ async function main(): Promise<void> {
     await runRatingWahlcheckFlow(runner, fixture, browser);
     await runRegisterLocalteamFlow(runner, fixture, browser);
     await runTourSeriesFlow(runner, fixture, browser);
+    await runRetroCardsFlow(runner, fixture, browser);
     await runErfolgsprojekteArticlesFlow(runner, fixture, browser);
   } catch {
     exitCode = 1;

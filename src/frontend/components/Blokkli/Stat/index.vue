@@ -3,7 +3,7 @@
     <!-- Card layout -->
     <div
       v-if="options.layout === 'card'"
-      class="rounded-xl p-6 text-center"
+      class="slk-retro-card slk-retro-card--semantic p-6 text-center"
       :class="bgClass"
     >
       <div class="flex items-baseline justify-center gap-1 mb-2">

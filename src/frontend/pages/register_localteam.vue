@@ -63,7 +63,7 @@
 
       <!-- Step 1: No municipality selected yet → show search -->
       <div v-if="!selectedArea">
-        <div class="rounded-sm shadow-list bg-white p-4 sm:p-8">
+        <div class="slk-retro-card slk-retro-card--green rounded-sm shadow-list bg-white p-4 sm:p-8">
           <h2 class="font-heading text-h2 font-bold text-green mb-1">{{ $t("localteam.register.select.title") }}</h2>
           <p class="text-sm text-gray-500 mb-5">
             {{ $t("localteam.register.select.description") }}
@@ -80,7 +80,7 @@
       <div v-else class="space-y-6">
 
         <!-- Mini-map for geolocation validation -->
-        <div class="rounded-sm shadow-list overflow-hidden">
+        <div class="slk-retro-card slk-retro-card--green rounded-sm shadow-list overflow-hidden">
           <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
             <svg class="w-4 h-4 text-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -121,7 +121,7 @@
 
         <!-- Already has a local team → contact prompt -->
         <!-- Case 1: Current backend catalog rating is published and complete -->
-        <div v-if="ratingState === 'complete'" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
+        <div v-if="ratingState === 'complete'" class="slk-retro-card slk-retro-card--green rounded-sm shadow-list p-4 sm:p-8 bg-white">
           <div class="flex items-start gap-3 sm:gap-4 mb-5">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,7 +163,7 @@
         </div>
 
         <!-- Case 2: Localteam exists and the current rating has been started -->
-        <div v-else-if="ratingState === 'in-progress'" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
+        <div v-else-if="ratingState === 'in-progress'" class="slk-retro-card slk-retro-card--green rounded-sm shadow-list p-4 sm:p-8 bg-white">
           <div class="flex items-start gap-3 sm:gap-4 mb-5">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,7 +197,7 @@
         </div>
 
         <!-- Case 3: Localteam exists, but the current rating has not been started -->
-        <div v-else-if="ratingState === 'not-started'" class="rounded-sm shadow-list p-4 sm:p-8 bg-white">
+        <div v-else-if="ratingState === 'not-started'" class="slk-retro-card slk-retro-card--green rounded-sm shadow-list p-4 sm:p-8 bg-white">
           <div class="flex items-start gap-3 sm:gap-4 mb-5">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

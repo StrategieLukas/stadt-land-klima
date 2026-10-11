@@ -1,7 +1,7 @@
 <template>
   <div
     class="border-gray-200 flex min-h-[140px] flex-col justify-center gap-1 bg-white"
-    :class="flush ? 'rounded-none border-0 p-4 shadow-none' : 'rounded-lg border p-4 shadow-sm'"
+    :class="flush ? 'rounded-none border-0 p-4 shadow-none' : 'slk-retro-card slk-retro-card--blue border p-4'"
   >
     <template v-if="loading">
       <div class="bg-gray-200 h-4 w-32 animate-pulse rounded" />

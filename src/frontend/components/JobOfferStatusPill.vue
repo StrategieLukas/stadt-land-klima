@@ -1,6 +1,6 @@
 <template>
   <span
-    class="inline-flex items-center justify-center rounded-full border font-semibold transition-transform duration-200 group-hover:scale-105"
+    class="inline-flex items-center justify-center rounded-full border font-semibold transition-colors"
     :class="[
       isPaid
         ? 'border-solid-stats-dark-20 bg-stats-light text-stats-dark'
