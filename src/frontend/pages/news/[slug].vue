@@ -50,7 +50,7 @@
               {{ $t('tour.event_details') }}: {{ item.report_event.title }} →
             </NuxtLink>
             <NuxtLink v-if="item.report_event.series" :to="`/events/series/${item.report_event.series.slug}#stop-${item.report_event.slug}`" class="mt-2 block text-stats-dark hover:underline">
-              {{ $t('tour.back_to_series') }}: {{ item.report_event.series.title }} →
+              {{ $t('tour.back_to_series', { ':title': item.report_event.series.title }) }} →
             </NuxtLink>
             <div v-if="reportProjects.length" class="mt-4 flex flex-wrap gap-2">
               <NuxtLink v-for="project in reportProjects" :key="project.id" :to="`/projects/${project.slug}`" class="btn btn-sm btn-outline border-stats-dark text-stats-dark">
@@ -178,7 +178,7 @@ const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-it
   const result = await $directus.request(
     $readItems('news_items', {
       filter: { slug: { _eq: route.params.slug } },
-      fields: ['id', 'slug', 'title', 'teaser', 'author', 'date_published', 'date_created', 'status', 'is_event_redirect', { image: ['id', 'type'] }, { report_event: ['id', 'slug', 'title', { series: ['slug', 'title', 'format'] }] }],
+      fields: ['id', 'slug', 'title', 'teaser', 'author', 'date_published', 'date_created', 'status', 'is_tour_redirect', { tour_stop: ['id','slug',{tour:['slug','title']}] }, { image: ['id', 'type'] }, { report_event: ['id', 'slug', 'title', { series: ['slug', 'title', 'format'] }] }],
       limit: 1,
     })
   )
@@ -204,8 +204,8 @@ const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-it
 })
 const item = computed(() => itemList.value?.[0] || null)
 
-if (item.value?.is_event_redirect && item.value.report_event?.slug) {
-  await navigateTo(`/events/${item.value.report_event.slug}${import.meta.client ? window.location.hash : ''}`, { redirectCode: 301, replace: true });
+if (item.value?.is_tour_redirect && item.value.tour_stop?.tour?.slug) {
+  await navigateTo(`/projects/tours/${item.value.tour_stop.tour.slug}/${item.value.tour_stop.slug}${route.fullPath.slice(route.path.length)}`, { redirectCode: 301, replace: true });
 }
 
 const { data: reportProjectLinks } = await useAsyncData(`news-report-projects-${route.params.slug}`, () => item.value?.report_event?.id
@@ -222,15 +222,15 @@ const reportProjects = computed(() => (reportProjectLinks.value ?? []).map((link
 const authChecked = ref(false)
 onMounted(async () => {
   await initialize()
-  canEdit.value = isAuthenticated.value
-  watchEffect(() => { canEdit.value = isAuthenticated.value })
+  canEdit.value = isAuthenticated.value && !item.value?.is_tour_redirect
+  watchEffect(() => { canEdit.value = isAuthenticated.value && !item.value?.is_tour_redirect })
 
   // If item was not returned by the public token, try again with the auth client
   if (!item.value && isAuthenticated.value) {
     await refreshItemList()
   }
-  if (item.value?.is_event_redirect && item.value.report_event?.slug) {
-    await navigateTo(`/events/${item.value.report_event.slug}${window.location.hash}`, { replace: true });
+  if (item.value?.is_tour_redirect && item.value.tour_stop?.tour?.slug) {
+    await navigateTo(`/projects/tours/${item.value.tour_stop.tour.slug}/${item.value.tour_stop.slug}${route.fullPath.slice(route.path.length)}`, { replace: true });
   }
   authChecked.value = true
 })

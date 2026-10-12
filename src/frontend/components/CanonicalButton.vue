@@ -3,13 +3,14 @@
     :is="href ? 'a' : 'button'"
     v-bind="linkAttrs"
     class="canonical-button inline-flex items-stretch rounded-md text-sm font-bold no-underline overflow-hidden whitespace-nowrap shadow-sm ring-1 ring-inset ring-white/20"
-    :class="[bgClass, textClass]"
+    :class="[textClass, { 'canonical-button--auto-text': !textColor || textColor === 'auto' }]"
     :style="{ '--btn-color': colorHex }"
   >
     <!-- Local SVG icon -->
     <span
       v-if="currentIconSvg"
-      :class="iconSize === 'lg' ? 'flex-shrink-0 w-12 self-stretch flex items-center justify-center border-r-2 border-current [&>svg]:h-7 [&>svg]:w-7' : 'flex-shrink-0 w-9 self-stretch flex items-center justify-center border-r-2 border-current [&>svg]:h-5 [&>svg]:w-5'"
+      class="canonical-button__icon"
+      :class="iconSize === 'lg' ? 'flex-shrink-0 w-12 self-stretch flex items-center justify-center border-r-2 [&>svg]:h-7 [&>svg]:w-7' : 'flex-shrink-0 w-9 self-stretch flex items-center justify-center border-r-2 [&>svg]:h-5 [&>svg]:w-5'"
     >
       <span
         :class="iconSize === 'lg' ? 'h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full' : 'h-5 w-5 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full'"
@@ -19,7 +20,8 @@
     <!-- Iconify icon (e.g. mdi:arrow-right) -->
     <span
       v-else-if="iconifySlug"
-      :class="iconSize === 'lg' ? 'flex-shrink-0 w-12 self-stretch flex items-center justify-center border-r-2 border-current' : 'flex-shrink-0 w-9 self-stretch flex items-center justify-center border-r-2 border-current'"
+      class="canonical-button__icon"
+      :class="iconSize === 'lg' ? 'flex-shrink-0 w-12 self-stretch flex items-center justify-center border-r-2' : 'flex-shrink-0 w-9 self-stretch flex items-center justify-center border-r-2'"
     >
       <Icon :icon="iconifySlug" :class="iconSize === 'lg' ? 'h-7 w-7' : 'h-5 w-5'" />
     </span>
@@ -94,36 +96,24 @@ const iconifySlug = computed(() => {
 
 const hasIcon = computed(() => !!(currentIconSvg.value || iconifySlug.value))
 
-const colorConfig: Record<string, { bg: string; autoText: string }> = {
-  'green':        { bg: 'bg-ff-green',        autoText: 'text-white' },
-  'dark-green':   { bg: 'bg-green',            autoText: 'text-white' },
-  'bright-green': { bg: 'bg-light-green',      autoText: 'text-black' },
-  'blue':         { bg: 'bg-light-blue',       autoText: 'text-white' },
-  'dark':         { bg: 'bg-stats-dark',       autoText: 'text-white' },
-  'orange':       { bg: 'bg-orange',           autoText: 'text-white' },
-  'red':          { bg: 'bg-red',              autoText: 'text-white' },
-  'yellow':       { bg: 'bg-localzero-yellow', autoText: 'text-gray' },
-}
-
 const hexMap: Record<string, string> = {
   'green':        '#1da64a',
   'dark-green':   '#339737',
   'bright-green': '#AFCA0B',
   'blue':         '#16bae7',
   'dark':         '#006e94',
+  'gray':         '#505050',
   'orange':       '#f39200',
   'red':          '#e30613',
   'yellow':       '#ffc80c',
 }
 
-const cfg = computed(() => colorConfig[props.color ?? 'green'] ?? colorConfig['green'])
 const colorHex = computed(() => hexMap[props.color ?? 'green'] ?? '#1da64a')
-const bgClass = computed(() => cfg.value.bg)
 const textClass = computed(() => {
   const tc = props.textColor ?? 'auto'
   if (tc === 'white') return 'text-white'
   if (tc === 'black') return 'text-black'
-  return cfg.value.autoText
+  return props.color === 'yellow' ? 'text-gray' : 'text-white'
 })
 
 const linkAttrs = computed(() => {
@@ -143,9 +133,29 @@ const linkAttrs = computed(() => {
 
 <style scoped>
 .canonical-button {
+  background-color: var(--btn-color);
   outline: 2px solid transparent;
   outline-offset: 2px;
   transition: outline-color 150ms ease;
+}
+
+.canonical-button__icon {
+  border-color: currentColor;
+}
+
+html[data-theme="staedteChallengeDark"] .canonical-button {
+  background-color: color-mix(in srgb, var(--btn-color) 55%, var(--slk-surface, #17212b));
+  box-shadow:
+    inset 0 0 0 1px var(--slk-border-strong),
+    0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="staedteChallengeDark"] .canonical-button--auto-text {
+  color: white;
+}
+
+html[data-theme="staedteChallengeDark"] .canonical-button__icon {
+  border-color: var(--slk-page, #101820);
 }
 
 .canonical-button:hover,

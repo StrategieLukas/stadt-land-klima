@@ -4,6 +4,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/.." || exit 1
 
+# Preserve legacy content before the final snapshot removes its collections.
+"$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/migrateSuccessProjectTours.ts" --prepare
+"$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/migrateSuccessProjectTours.ts"
+
 # Use the new import:all command which clears cache once and imports sequentially
 "$SCRIPT_DIR/index.mjs" -f -r import:all
 
@@ -11,6 +15,5 @@ cd "$SCRIPT_DIR/.." || exit 1
 # Seed content after the schema import so fresh and existing databases both work.
 "$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/seedTourOst2026.ts"
 
-"$SCRIPT_DIR/node_modules/.bin/tsx" "$SCRIPT_DIR/migrateTourReports.ts"
 
 echo "All imports completed"

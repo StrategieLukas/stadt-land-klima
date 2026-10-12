@@ -1,0 +1,47 @@
+collection: success_project_tour_stops
+field: teaser
+type: text
+meta:
+  collection: success_project_tour_stops
+  conditions: null
+  display: null
+  display_options: null
+  field: teaser
+  group: null
+  hidden: false
+  interface: input-multiline
+  note: Kurzzusammenfassung für die Kachelanzeige im Feed (optional)
+  options:
+    trim: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 6
+  special: null
+  translations:
+  - language: de-DE
+    translation: Kurzbeschreibung des Berichts
+  - language: en-GB
+    translation: Report teaser
+  - language: it-IT
+    translation: Anteprima del resoconto
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: teaser
+  table: success_project_tour_stops
+  data_type: text
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: null
+  foreign_key_column: null

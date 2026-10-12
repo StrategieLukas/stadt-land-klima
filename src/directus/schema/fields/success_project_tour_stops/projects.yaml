@@ -1,0 +1,33 @@
+collection: success_project_tour_stops
+field: projects
+type: alias
+meta:
+  collection: success_project_tour_stops
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{articles_id.title}}'
+  field: projects
+  group: null
+  hidden: false
+  interface: list-m2m
+  note: null
+  options:
+    enableCreate: false
+    template: '{{articles_id.title}}'
+  readonly: false
+  required: false
+  searchable: true
+  sort: 21
+  special:
+  - m2m
+  translations:
+  - language: de-DE
+    translation: Besuchte Erfolgsprojekte
+  - language: en-GB
+    translation: Visited projects
+  - language: it-IT
+    translation: Progetti visitati
+  validation: null
+  validation_message: null
+  width: full

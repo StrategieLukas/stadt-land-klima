@@ -1,0 +1,247 @@
+name: SuccessProjectTour-Editor
+icon: map
+description: Edit Erfolgsprojekte tours, stop reports and their content
+enforce_tfa: false
+admin_access: false
+app_access: true
+permissions:
+- collection: blocks
+  action: create
+  permissions:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  validation:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  presets: null
+  fields:
+  - '*'
+- collection: blocks
+  action: delete
+  permissions:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: blocks
+  action: read
+  permissions:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: blocks
+  action: update
+  permissions:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  validation:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  presets: null
+  fields:
+  - '*'
+- collection: directus_files
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: directus_files
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: directus_roles
+  action: read
+  permissions:
+    id:
+      _eq: $CURRENT_ROLE
+  validation: {}
+  presets: null
+  fields:
+  - id
+  - name
+- collection: edit_states
+  action: create
+  permissions:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  validation:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  presets: null
+  fields:
+  - '*'
+- collection: edit_states
+  action: delete
+  permissions:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: edit_states
+  action: read
+  permissions:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: edit_states
+  action: update
+  permissions:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  validation:
+    entity_type:
+      _in:
+      - success_project_tour_stops
+      - success_project_tours
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_media
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_media
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_media
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_media
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops_articles
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops_articles
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops_articles
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops_articles
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tours
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tours
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tours
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tours
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'

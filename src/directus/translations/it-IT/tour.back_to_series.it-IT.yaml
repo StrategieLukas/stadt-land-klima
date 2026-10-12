@@ -1,3 +1,3 @@
 language: it-IT
 key: tour.back_to_series
-value: Torna alla serie
+value: 'Torna a :title'

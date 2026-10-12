@@ -2,5 +2,6 @@ name: ErfolgsprojekteRedaktion
 icon: supervised_user_circle
 parent: MinimalUser
 policies:
-  - Erfolgsprojekte-Contributor
-  - Erfolgsprojekte-Redaktion
+- Erfolgsprojekte-Contributor
+- Erfolgsprojekte-Redaktion
+- SuccessProjectTour-Editor

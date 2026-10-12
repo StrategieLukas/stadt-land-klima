@@ -5,7 +5,7 @@
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("tour.about_projects") }}</p>
       <div class="mt-6 flex flex-wrap gap-3">
         <CanonicalButton :label="$t('projects.submit.cta')" href="/projects/submit" icon-slug="mdi:send-outline" color="blue" text-color="white" />
-        <CanonicalButton v-for="tour in allTours" :key="tour.id" :href="`/events/series/${tour.slug}`" :label="tour.title" icon-slug="mdi:map-marker-path" color="blue" text-color="white" />
+        <CanonicalButton v-for="tour in featuredTours" :key="tour.id" :href="`/projects/tours/${tour.slug}`" :label="tour.title" icon-slug="mdi:map-marker-path" color="blue" text-color="white" />
       </div>
     </header>
 
@@ -240,28 +240,28 @@ const { data: municipalityLocations } = await useAsyncData("project-municipality
 }, { default: () => [] });
 
 const { data: tourData } = await useAsyncData("project-tour-options", async () => {
-  const series = await $directus.request($readItems("event_series", {
-    filter: { status: { _eq: "published" }, format: { _eq: "tour" } },
-    fields: ["id", "slug", "title"],
+  const series = await $directus.request($readItems("success_project_tours", {
+    filter: { status: { _eq: "published" } },
+    fields: ["id", "slug", "title", "featured_on_projects"],
     limit: -1,
   }));
   if (!series.length) return { series, links: [] };
-  const events = await $directus.request($readItems("events", {
-    filter: { status: { _eq: "published" }, series: { _in: series.map((item) => item.id) } },
-    fields: ["id", "series"],
+  const events = await $directus.request($readItems("success_project_tour_stops", {
+    filter: { status: { _eq: "published" }, tour: { id: { _in: series.map((item) => item.id) }, status: { _eq: "published" } } },
+    fields: ["id", "tour"],
     limit: -1,
   }));
   if (!events.length) return { series, links: [] };
-  const links = await $directus.request($readItems("events_articles", {
-    filter: { events_id: { _in: events.map((item) => item.id) } },
-    fields: ["events_id", "articles_id"],
+  const links = await $directus.request($readItems("success_project_tour_stops_articles", {
+    filter: { stop: { id: { _in: events.map((item) => item.id) } } },
+    fields: ["stop", "articles_id"],
     limit: -1,
   }));
-  const seriesByEvent = Object.fromEntries(events.map((event) => [event.id, event.series]));
-  return { series, links: links.map((link) => ({ series: seriesByEvent[link.events_id], article: link.articles_id })) };
+  const seriesByEvent = Object.fromEntries(events.map((event) => [event.id, event.tour]));
+  return { series, links: links.map((link) => ({ series: seriesByEvent[link.stop], article: link.articles_id })) };
 });
 
-const allTours = computed(() => tourData.value?.series ?? []);
+const featuredTours = computed(() => (tourData.value?.series ?? []).filter(tour => tour.featured_on_projects));
 const tourProjectIds = computed(() => {
   const ids = new Map();
   for (const link of tourData.value?.links ?? []) {

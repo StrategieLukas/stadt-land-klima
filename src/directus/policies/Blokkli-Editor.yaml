@@ -5,164 +5,220 @@ enforce_tfa: false
 admin_access: false
 app_access: true
 permissions:
-  - collection: blocks
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: blocks
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: directus_files
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: edit_states
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: event_report_media
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: event_report_media
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: event_report_media
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: event_report_media
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: event_reports
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: event_reports
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: event_reports
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: event_reports
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: library_items
-    action: create
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: library_items
-    action: delete
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: library_items
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: library_items
-    action: update
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
-  - collection: pages
-    action: read
-    permissions: {}
-    validation: {}
-    presets: null
-    fields:
-      - "*"
+- collection: blocks
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: blocks
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: blocks
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: blocks
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: directus_files
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: directus_files
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: edit_states
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: edit_states
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: edit_states
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: edit_states
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: library_items
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: library_items
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: library_items
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: library_items
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: pages
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_media
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_media
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_media
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_media
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops_articles
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops_articles
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops_articles
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tour_stops_articles
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tours
+  action: create
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tours
+  action: delete
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tours
+  action: read
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'
+- collection: success_project_tours
+  action: update
+  permissions: {}
+  validation: {}
+  presets: null
+  fields:
+  - '*'

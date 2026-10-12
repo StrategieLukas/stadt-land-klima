@@ -1,0 +1,33 @@
+collection: success_project_tour_stops
+field: media
+type: alias
+meta:
+  collection: success_project_tour_stops
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{caption}}'
+  field: media
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: Geordnete Bilder und Videos mit Bildunterschrift und Nachweis
+  options:
+    enableCreate: true
+    template: '{{caption}}'
+  readonly: false
+  required: false
+  searchable: true
+  sort: 16
+  special:
+  - o2m
+  translations:
+  - language: de-DE
+    translation: Medien zum Tourstopp
+  - language: en-GB
+    translation: Tour stop media
+  - language: it-IT
+    translation: Media della tappa
+  validation: null
+  validation_message: null
+  width: full

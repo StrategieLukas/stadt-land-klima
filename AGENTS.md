@@ -153,6 +153,7 @@ Ensure you obey common coding standards and do not reinvent the wheel for every 
 17. Use `CanonicalButton` for prominent action buttons and links in frontend pages. Keep native buttons or existing filter pills for form submission, tabs, filters, map controls, and other compact controls whose interaction needs a different shape. Do not create one-off decorative call-to-action button styles.
 18. The brand green is `#AFCA0B` (`light-green` in `src/frontend/tailwind.config.js`). Use this token when a design calls for the brand green; `ff-green` (`#1da64a`) is a different green.
 19. In hard-coded page heroes, use `CanonicalButton` for action links, give each button a relevant icon, and match its background color to the hero heading color.
+20. Preserve the shared CSS styling of `CanonicalButton`. Do not override its corners, borders, shadows, colors, or interaction effects on individual instances or through container CSS. Use the component's supported props for customization; apply retro box styling to the surrounding container.
 
 ## Feature inventory maintenance
 

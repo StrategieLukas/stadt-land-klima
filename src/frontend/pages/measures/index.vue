@@ -1,11 +1,14 @@
 <template>
-  <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-5xl mx-auto w-full min-w-0 overflow-hidden">
+  <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto w-full min-w-0 overflow-hidden">
 
-    <!-- Title -->
-    <div class="mb-4 mt-4">
-      <h1 class="text-4xl font-bold text-gray">{{ $t("measures.heading") }}</h1>
-      <p class="mt-2 text-sm text-gray-600 max-w-2xl">{{ $t("measures.description") }}</p>
-    </div>
+    <header class="mb-8">
+      <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("measures.heading") }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("measures.description") }}</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <CanonicalButton :label="$t('municipalities.heading')" href="/municipalities" icon-slug="mdi:format-list-numbered" color="gray" text-color="white" />
+        <CanonicalButton :label="$t('stats.measures.title')" href="/stats#massnahmenstatistiken" icon-slug="mdi:chart-bar" color="gray" text-color="white" />
+      </div>
+    </header>
 
     <!-- Filter + Sort bar -->
     <div class="slk-filter-panel slk-filter-theme-neutral mb-6 flex flex-col gap-0 p-3 shadow-md">

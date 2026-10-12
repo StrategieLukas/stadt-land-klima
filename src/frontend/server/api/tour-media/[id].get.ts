@@ -1,4 +1,4 @@
-/** Stream only assets belonging to a published event report, including range requests. */
+/** Stream only assets belonging to a published tour-stop report, including range requests. */
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id') || '';
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
@@ -6,16 +6,22 @@ export default defineEventHandler(async (event) => {
   }
   const config = useRuntimeConfig(event);
   const base = config.public.serverDirectusUrl.replace(/\/$/, '');
-  const headers = { Authorization: `Bearer ${config.public.directusToken}` };
-  const reports = await $fetch<{ data: { id: string }[] }>(`${base}/items/event_reports`, {
+  const query = new URL(event.node.req.url || event.path || '/', 'http://media.local').searchParams;
+  const previewToken = query.get('access_token');
+  const headers = { Authorization: `Bearer ${typeof previewToken === 'string' ? previewToken : config.public.directusToken}` };
+  if (typeof previewToken === 'string') {
+    const permissions = await $fetch<{data:Record<string,Record<string,{access:string}>>}>(`${base}/permissions/me`,{headers});
+    const access=permissions.data.success_project_tour_stops?.update?.access;
+    if (!access || access === 'none') throw createError({statusCode:403,statusMessage:'Editor permission required'});
+  }
+  const reports = await $fetch<{ data: { id: string }[] }>(`${base}/items/success_project_tour_stops`, {
     headers,
     query: { fields: 'id', limit: 1, filter: JSON.stringify({
-      status: { _eq: 'published' }, event: { status: { _eq: 'published' } },
+      ...(typeof previewToken === 'string' ? {} : { status: { _eq: 'published' }, report_status: { _eq: 'published' }, tour: { status: { _eq: 'published' } } }),
       _or: [{ image: { _eq: id } }, { media: { file: { _eq: id } } }, { media: { poster: { _eq: id } } }],
     }) },
   });
   if (!reports.data.length) throw createError({ statusCode: 404, statusMessage: 'Media not found' });
-  const query = new URL(event.path || '/', 'http://media.local').searchParams;
   const transforms = new URLSearchParams();
   for (const name of ['width', 'height'] as const) {
     const value = query.get(name);

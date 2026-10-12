@@ -143,19 +143,58 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 - `./bin/update_production.sh` backs up the database by default. Use `--no-backup` when the database is unavailable and the update must proceed without that export.
 - Migrate ratings from one version to another using ./directus-cli migrate <old> <new>. Avoid using this when the "new" version is already in use, as it overwrites all ratings that do not need re-evaluation.
 
-### Tour reports and legacy news links
+### Erfolgsprojekte tours and legacy links
 
-Tour visits use an event-owned `event_reports` record with Blökkli content and
-ordered `event_report_media` (uploaded images/videos, captions, credits, and an
-optional video poster). Manage the report from the event page or its Directus
-relation. A published stop can have a private draft report; only published
-reports and their media/blocks are readable by the frontend policy.
+Tours use `success_project_tours` and `success_project_tour_stops`. Each stop owns
+its visit metadata, report fields, Blökkli content, ordered uploaded image/video
+gallery and related projects. Tour overview pages have their own Blökkli content
+area, scoped to the immutable tour ID. Published projects appear as canonical
+actions beside the stop report link and on the stop page. The canonical routes are
+`/projects/tours/:tourSlug` and `/projects/tours/:tourSlug/:stopSlug`.
 
-`import-all.sh` runs `cli/migrateTourReports.ts` after importing the schema. The
-transactional migration transfers legacy tour news metadata, blocks (preserving
-UUIDs and nested content), and journey-photo selections. It preserves draft and
-archived states, skips existing destination reports, and is safe to repeat.
-Original news records remain as redirect/recovery metadata; migrated public news
-URLs redirect to the event page. Ordinary news and non-tour reports are retained.
-To preview transfers without writing data, run the migration in the Directus
-container with `--dry-run`. Back up the database before applying it in production.
+A published stop is visible only under a published tour. Its separate
+`report_status` lets the itinerary remain visible while report text, cover,
+gallery and blocks are drafts. Published retrospective reports appear once in
+the news feed after the visit ends; tour stops do not appear in the events feed.
+Exclusively owned report uploads use the `tour-report-media` folder and Frontend
+publication permissions. Existing public assets shared with other content remain
+public. Authorized editors can preview drafts on the same stop page.
+
+Run `/directus/cli/import-all.sh` inside the Directus container from the repository
+root. Before the final YAML snapshot can remove legacy report collections, it
+runs `cli/migrateSuccessProjectTours.ts --prepare` to back up source records and
+import an additive schema, then transfers and verifies content in a transaction.
+Recovery backups include legacy news journey-photo selections with their order,
+captions and credits, alongside separate report media. They are written with
+restricted permissions under
+`/directus/uploads/migration-backups/`. Keep a full database/uploads backup for
+production rollback. Reruns preserve existing native records; conflicting
+sources/destinations abort instead of overwriting editorial changes.
+
+For an existing legacy deployment, preserve host-local configuration changes and
+take fresh database and uploads backups before updating the code. Keep maintenance
+enabled while Directus runs the staged import, then restart Directus and start
+the updated frontend. Verify native tour/stop pages, legacy redirects, ordinary
+events/news and editorial access before ending maintenance. The current
+`bin/update_production.sh` starts the frontend and ends maintenance before its
+import step, so that ordering needs special handling for this schema transition.
+Its startup health gate also prevents the import from running while
+`/server/health` returns HTTP 503; resolve the failing service first. Check disk
+headroom before the production workflow's uncached image rebuilds. Development
+mock reports/media must not be seeded on staging or production.
+
+Legacy tour event/report records and unmigrated tour news transfer directly into
+stops, preserving UUIDs, nested blocks, drafts, media credits/order and project
+links. Original news records remain as hidden redirect/recovery metadata. Old
+tour overview, event-stop and migrated news URLs permanently redirect, preserving
+query strings and fragments. Unpublished tours/stops remain unavailable through
+legacy URLs. Ordinary events, event series and news remain separate.
+
+The post-import seed creates native Tour Ost 2026 records; the development-only
+`cli/seedTourDemoContent.ts` adds clearly marked synthetic reports/media only to
+unreported stops. It never runs during production imports.
+
+Targeted regression: `bin/test_suite/src/runTourOnly.ts` uses the existing Tour
+Series flow; `npm run test:tour-migration` from `src/directus/cli` exercises data
+transfers and rollback in an isolated database schema. The complete development
+suite remains `./test_dev.sh` from `bin/`.

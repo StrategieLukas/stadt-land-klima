@@ -11,7 +11,7 @@
 
     <section id="massnahmenstatistiken" class="mb-8">
       <!-- Filter panel — full width -->
-      <div class="bg-gray-50 border-gray-200 mb-4 flex flex-col gap-0 rounded-sm border px-3 py-3">
+      <div class="slk-filter-panel slk-filter-theme-stats mb-4 flex flex-col gap-0 rounded-sm px-3 py-3">
         <!-- Collapsible toggle (only shown below xs breakpoint) -->
         <button
           class="slk-filter-panel-icon flex w-full items-center justify-between py-1 text-sm font-medium xs:hidden"

@@ -1,17 +1,22 @@
 <template>
   <section v-if="tourVisits.length || article.profile_stage === 'preview'" class="container mx-auto px-4 pt-6">
-    <div class="rounded-xl border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5 text-stats-dark shadow-sm">
-      <p v-if="article.profile_stage === 'preview'" class="mb-3 text-sm font-semibold">{{ $t('tour.preview_hint') }}</p>
-      <div v-for="visit in tourVisits" :key="visit.event.id" class="flex flex-wrap items-center justify-between gap-3 border-t border-solid-stats-dark-20 py-3 first:border-t-0">
-        <div>
-          <p class="text-xs font-bold uppercase tracking-wide text-olive-green">{{ $t('tour.on_tour') }}</p>
-          <p class="font-semibold">{{ visit.series.title }} · {{ visit.event.location || visit.event.title }}</p>
+    <div class="project-tour-banner p-5">
+      <p v-if="article.profile_stage === 'preview'" class="project-tour-banner__notice text-sm">{{ $t('tour.preview_hint') }}</p>
+      <div v-for="visit in tourVisits" :key="visit.stop.id" class="project-tour-banner__visit" :class="{ 'project-tour-banner__visit--with-image': visit.tour.cover_image }">
+        <div class="project-tour-banner__copy">
+          <p class="font-heading text-xl font-bold">{{ visit.tour.title }} · {{ visit.stop.location || visit.stop.title }}</p>
           <p class="text-sm">{{ visitMessage(visit) }}</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <CanonicalButton :href="`/projects/tours/${visit.tour.slug}#stop-${visit.stop.slug}`" :label="$t('tour.discover')" icon-slug="mdi:map-marker-path" color="dark" />
+            <CanonicalButton :href="`/projects/tours/${visit.tour.slug}/${visit.stop.slug}`" :label="$t('tour.stop_details')" icon-slug="mdi:arrow-right" color="bright-green" />
+          </div>
         </div>
-        <div class="flex flex-wrap gap-2">
-          <CanonicalButton :href="`/events/series/${visit.series.slug}#stop-${visit.event.slug}`" :label="$t('tour.discover')" color="dark" />
-          <CanonicalButton :href="`/events/${visit.event.slug}`" :label="$t('tour.stop_details')" icon-slug="mdi:arrow-right" color="green" />
-        </div>
+        <figure v-if="visit.tour.cover_image" class="project-tour-banner__media">
+          <NuxtLink :to="`/projects/tours/${visit.tour.slug}#stop-${visit.stop.slug}`" class="block">
+            <SmartImg :asset-id="relationId(visit.tour.cover_image)" :is-raster="isRaster(visit.tour.cover_image.type || 'image/jpeg')" :alt="visit.tour.title" :width="520" fit="contain" img-class="block max-h-40 w-full object-contain" />
+          </NuxtLink>
+          <figcaption v-if="visit.tour.cover_image_credits" class="mt-2 text-xs">{{ visit.tour.cover_image_credits }}</figcaption>
+        </figure>
       </div>
     </div>
   </section>
@@ -75,32 +80,18 @@
   const article = computed(() => articles.value?.[0] || {});
 
   const { data: tourLinks } = await useAsyncData(`article-tour-links-${article.value.id}`, () => $directus.request(
-    $readItems('events_articles', {
+    $readItems('success_project_tour_stops_articles', {
       filter: { articles_id: { _eq: article.value.id } },
-      fields: [{ events_id: ['id', 'slug', 'title', 'location', 'start_date', 'end_date', { series: ['id', 'slug', 'title', 'format'] }] }],
-      limit: -1,
+      fields: [{ stop: ['id','slug','title','location','start_date','end_date','report_status',{tour:['id','slug','title','cover_image_credits',{cover_image:['id','type']}]}] }], limit:-1,
     })
   ));
-  const linkedEvents = computed(() => (tourLinks.value ?? []).map((link) => link.events_id).filter((event) => event?.series?.format === 'tour'));
-  const { data: tourReports } = await useAsyncData(`article-tour-reports-${article.value.id}`, () => {
-    const ids = linkedEvents.value.map((event) => event.id);
-    return ids.length ? $directus.request($readItems('event_reports', {
-      filter: { event: { _in: ids }, status: { _eq: 'published' } },
-      fields: ['id', 'event'],
-      limit: -1,
-    })) : Promise.resolve([]);
-  });
-  const tourVisits = computed(() => linkedEvents.value.map((event) => ({
-    event,
-    series: event.series,
-    report: (tourReports.value ?? []).find((report) => relationId(report.event) === event.id),
-  })).sort((a, b) => new Date(a.event.start_date) - new Date(b.event.start_date)));
+  const tourVisits = computed(() => (tourLinks.value || []).filter(link => link.stop?.tour).map(link => ({stop:link.stop,tour:link.stop.tour,report:link.stop.report_status==='published'})).sort((a,b) => new Date(a.stop.start_date)-new Date(b.stop.start_date)));
   const tourNow = useState(`project-tour-now-${route.params.slug}`, () => new Date().toISOString());
   onMounted(() => { tourNow.value = new Date().toISOString(); });
   function visitMessage(visit) {
     if (visit.report) return $t('tour.visit_report');
-    if (visitHasEnded(visit.event.start_date, visit.event.end_date, new Date(tourNow.value))) return $t('tour.visit_past');
-    const days = visitDaysAway(visit.event.start_date, new Date(tourNow.value));
+    if (visitHasEnded(visit.stop.start_date, visit.stop.end_date, new Date(tourNow.value))) return $t('tour.visit_past');
+    const days = visitDaysAway(visit.stop.start_date, new Date(tourNow.value));
     if (days === 0) return $t('tour.visit_today');
     if (days === 1) return $t('tour.visit_tomorrow');
     if (days !== null && days > 1) return $t('tour.visit_in_days', { ':days': days });
@@ -159,6 +150,25 @@
 </script>
 
 <style scoped>
+  .project-tour-banner {
+    --banner-border: #b9b9b9;
+    --banner-shadow: #505050;
+    border: 3px solid var(--banner-border);
+    border-radius: 0;
+    background: var(--slk-surface, #fff);
+    color: var(--slk-text, #505050);
+    box-shadow: 3px 3px 0 var(--banner-shadow);
+  }
+  .project-tour-banner__notice { margin-bottom: 1rem; color: var(--slk-text-muted, #707070); }
+  .project-tour-banner__visit { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 1.25rem; padding: 1rem 0; border-top: 1px solid var(--banner-border); }
+  .project-tour-banner__visit:first-child { border-top: 0; }
+  .project-tour-banner__visit:last-child { padding-bottom: 0; }
+  .project-tour-banner__copy { display: grid; gap: .5rem; min-width: 0; }
+  .project-tour-banner__media { width: 100%; max-width: 22rem; }
+  @media (min-width: 768px) {
+    .project-tour-banner__visit--with-image { grid-template-columns: minmax(0, 1fr) minmax(15rem, 28%); gap: 2rem; }
+    .project-tour-banner__media { justify-self: end; }
+  }
   .project-page img {
     border-radius: 0.25rem;
   }

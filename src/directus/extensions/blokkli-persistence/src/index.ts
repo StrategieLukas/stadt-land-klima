@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import type { Request, Response, Router } from "express";
 import type { Accountability, Database, ItemsService, Schema } from "@directus/types";
 
-const ALLOWED_ENTITY_TYPES = new Set(["pages", "news_items", "event_reports"]);
+const TOUR_ENTITY_TYPES = new Set(["success_project_tours", "success_project_tour_stops"]);
+const ALLOWED_ENTITY_TYPES = new Set(["pages", "news_items", ...TOUR_ENTITY_TYPES]);
 const BLOCK_FIELD_NAME = "content";
 const MAX_ROOT_BLOCKS = 500;
 const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024;
@@ -194,6 +195,7 @@ function sendError(res: Response, error: unknown, logger: ExtensionContext["logg
 async function canPublish(
   database: Database,
   accountability?: Accountability,
+  entityType?: string,
 ): Promise<boolean> {
   if (accountability?.admin) return true;
   if (!accountability?.user) return false;
@@ -207,7 +209,7 @@ async function canPublish(
     })
     .select("policy.name");
 
-  return rows.some((row: { name?: string }) => row.name === EDITOR_POLICY);
+  return rows.some((row: { name?: string }) => row.name === EDITOR_POLICY || (entityType && TOUR_ENTITY_TYPES.has(entityType) && row.name === "SuccessProjectTour-Editor"));
 }
 
 export default {
@@ -258,7 +260,8 @@ export default {
 
     router.post("/publish", async (req: AuthenticatedRequest, res: Response) => {
       try {
-        if (!(await canPublish(database, req.accountability))) {
+        const scope = parseScope((req.body ?? {}) as Record<string, unknown>);
+        if (!(await canPublish(database, req.accountability, scope.entityType))) {
           throw new HttpError(403, "Blökkli editor permission is required.");
         }
 
@@ -267,7 +270,6 @@ export default {
           throw new HttpError(413, "The Blökkli publish payload is too large.");
         }
 
-        const scope = parseScope(req.body as Record<string, unknown>);
         const blocks = parseBlocks(req.body.blocks);
         if (typeof req.body.baseRevision !== "string") {
           throw new HttpError(400, 'The "baseRevision" field is required.');
@@ -285,8 +287,8 @@ export default {
             `${scope.entityUuid}:${scope.fieldName}`,
           ]);
 
-          if (scope.entityType === "event_reports") {
-            const reportsService = new services.ItemsService("event_reports", {
+          if (TOUR_ENTITY_TYPES.has(scope.entityType)) {
+            const reportsService = new services.ItemsService(scope.entityType, {
               schema, accountability: req.accountability, knex: trx,
             });
             await reportsService.readOne(scope.entityUuid, { fields: ["id"] });
@@ -351,7 +353,8 @@ export default {
               bundle: block.bundle,
               entity_type: scope.entityType,
               entity_uuid: scope.entityUuid,
-              event_report: scope.entityType === "event_reports" ? scope.entityUuid : null,
+              tour_stop: scope.entityType === "success_project_tour_stops" ? scope.entityUuid : null,
+              tour: scope.entityType === "success_project_tours" ? scope.entityUuid : null,
               field_name: scope.fieldName,
               sort_order: sortOrder,
               status: "published",

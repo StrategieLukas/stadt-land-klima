@@ -213,7 +213,7 @@ export class TestFixture {
     });
   }
 
-  private async acceptCurrentAgreements(): Promise<void> {
+  async acceptCurrentAgreements(userIds?: string[]): Promise<void> {
     const agreements = await this.admin.readItems<AgreementVersion>('agreement_versions', {
       filter: {
         isCurrentVersion: { _eq: true },
@@ -228,10 +228,10 @@ export class TestFixture {
       assert(agreementByType.has(type), `Current agreement version is missing: ${type}`);
     }
 
-    for (const user of [this.localteamAdmin, this.localteamMember, this.wahlcheckAdmin]) {
+    for (const userId of userIds ?? [this.localteamAdmin.id, this.localteamMember.id, this.wahlcheckAdmin.id]) {
       for (const agreement of agreementByType.values()) {
         await this.admin.createItem('user_consent', {
-          user_id: user.id,
+          user_id: userId,
           consent_target: agreement.id,
         });
       }

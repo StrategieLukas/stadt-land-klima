@@ -104,26 +104,22 @@ import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
 import { resolveSlugToArea } from "~/composables/useAreaBySlug.js";
 import { useCollectionRender } from "~/composables/useCollectionRender";
 import { useSlzLocale } from "~/composables/useSlzLocale";
-import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible, normalizeDataPageConfig } from "~/utils/dataPageVisibility";
+import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible } from "~/utils/dataPageVisibility";
 import type { Collection, CollectionSummary } from "~/types/slz-api";
 
 definePageMeta({
   key: (route) => route.fullPath,
+  middleware: ['data-availability'],
 });
 
 const route = useRoute();
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl as string;
-const { $directus, $readSingleton } = useNuxtApp();
 
 const areaSlug = computed(() => route.params.slug as string);
 const collectionSlug = computed(() => route.params.collection as string);
 
-const { data: dataPageConfig } = await useAsyncData("data-page-config", () =>
-  $directus.request($readSingleton("data_page_config", { fields: ["include_only", "collection_ids"] }))
-    .then(normalizeDataPageConfig)
-    .catch(() => DEFAULT_DATA_PAGE_CONFIG),
-);
+const { data: dataPageConfig } = await useDataPageConfig();
 if (!isCollectionVisible(collectionSlug.value, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG)) {
   throw createError({ statusCode: 404 });
 }

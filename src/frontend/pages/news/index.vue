@@ -243,6 +243,7 @@
           <SmartImg
             v-else-if="item.imageId && item.href"
             :assetId="item.imageId"
+            :asset-base-url="item.assetBaseUrl"
             :isRaster="isRaster(item.imageType)"
             :alt="item.title"
             :width="480"
@@ -417,7 +418,7 @@ onMounted(async () => {
     try {
       const client = getAuthenticatedClient()
       adminNewsItems.value = await client.request(readItems('news_items', {
-        filter: { is_event_redirect: { _eq: false } },
+        filter: { is_tour_redirect: { _eq: false } },
         fields: ['id', 'slug', 'title', 'teaser', { image: ['id', 'type'] }, 'image_credits', 'date_published', 'date_created', 'status'],
         sort: ['-date_published', '-date_created'],
         limit: 200,
@@ -442,7 +443,7 @@ const [
 ] = await Promise.all([
   useAsyncData('feed-news', () =>
     $directus.request($readItems('news_items', {
-      filter: { status: { _eq: 'published' }, is_event_redirect: { _eq: false } },
+      filter: { status: { _eq: 'published' }, is_tour_redirect: { _eq: false } },
       fields: ['id', 'slug', 'title', 'teaser', { image: ['id', 'type'] }, 'image_credits', 'date_published', 'date_created'],
       sort: ['-date_published', '-date_created'],
       limit: 50,
@@ -479,9 +480,9 @@ const [
       limit: 10,
     }))
   ),
-  useAsyncData('feed-visit-reports', () => $directus.request($readItems('event_reports', {
-    filter: { status: { _eq: 'published' }, event: { status: { _eq: 'published' }, series: { format: { _eq: 'tour' } } } },
-    fields: ['id', 'title', 'teaser', 'date_published', 'image_credits', { image: ['id', 'type'] }, { event: ['id', 'slug', 'start_date', 'end_date', 'date_only', 'location'] }],
+  useAsyncData('feed-tour-stops', () => $directus.request($readItems('success_project_tour_stops', {
+    filter: { status: { _eq: 'published' }, report_status: { _eq: 'published' }, tour: { status: { _eq: 'published' } } },
+    fields: ['id','slug','report_title','title','teaser','date_published','image_credits','start_date','end_date','date_only','location',{image:['id','type']},{tour:['slug']}],
     sort: ['-date_published'], limit: 50,
   }))),
 
@@ -523,7 +524,7 @@ const allItems = computed(() => {
 
   const now = new Date()
   for (const e of eventsData.value || []) {
-    if (e.event_category === 'internal' || (visitReports.value || []).some(report => report.event?.id === e.id)) continue
+    if (e.event_category === 'internal') continue
     if (e.start_date && new Date(e.start_date) >= now) continue // future events shown in "Zukünftig" section
     items.push({
       type: 'event',
@@ -542,11 +543,11 @@ const allItems = computed(() => {
   }
 
   for (const report of visitReports.value || []) {
-    const visit = report.event;
+    const visit = report;
     if (!visit || !visitHasEnded(visit.start_date, visit.end_date, now)) continue;
-    items.push({ type: 'news', id: `visit-${report.id}`, title: report.title, teaser: report.teaser,
+    items.push({ type: 'news', id: `visit-${report.id}`, title: report.report_title || report.title, teaser: report.teaser,
       imageId: report.image?.id || null, imageType: report.image?.type || null, imageCredits: report.image_credits || null,
-      date: report.date_published || visit.start_date, href: `/events/${visit.slug}` });
+      assetBaseUrl: '/api/tour-media', date: report.date_published || visit.start_date, href: `/projects/tours/${visit.tour.slug}/${visit.slug}` });
   }
 
   for (const m of municipalitiesData.value || []) {

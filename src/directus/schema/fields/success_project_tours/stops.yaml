@@ -1,0 +1,31 @@
+collection: success_project_tours
+field: stops
+type: alias
+meta:
+  collection: success_project_tours
+  conditions: null
+  display: related-values
+  display_options: null
+  field: stops
+  group: null
+  hidden: false
+  interface: list-o2m
+  note: null
+  options:
+    enableCreate: true
+  readonly: false
+  required: false
+  searchable: true
+  sort: 11
+  special:
+  - o2m
+  translations:
+  - language: de-DE
+    translation: Tourstopps
+  - language: en-GB
+    translation: Tour stops
+  - language: it-IT
+    translation: Tappe del tour
+  validation: null
+  validation_message: null
+  width: full

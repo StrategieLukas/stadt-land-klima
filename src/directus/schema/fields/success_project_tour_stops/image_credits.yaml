@@ -1,0 +1,34 @@
+collection: success_project_tour_stops
+field: image_credits
+type: string
+meta:
+  collection: success_project_tour_stops
+  conditions: null
+  display: null
+  display_options: null
+  field: image_credits
+  group: null
+  hidden: false
+  interface: input
+  note: null
+  options:
+    trim: true
+  readonly: false
+  required: false
+  sort: 8
+  special: null
+  translations:
+  - language: de-DE
+    translation: Bildnachweis des Berichts
+  - language: en-GB
+    translation: Report image credit
+  - language: it-IT
+    translation: Crediti immagine del resoconto
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: image_credits
+  table: success_project_tour_stops
+  data_type: character varying
+  default_value: null

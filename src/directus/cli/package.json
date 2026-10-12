@@ -17,5 +17,8 @@
     "tsx": "^4.22.4",
     "yaml": "^2.4.5",
     "yargs": "^17.7.2"
+  },
+  "scripts": {
+    "test:tour-migration": "tsx --test migrateSuccessProjectTours.test.ts"
   }
 }

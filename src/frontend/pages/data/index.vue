@@ -2,13 +2,21 @@
   <div>
     <header class="container mx-auto px-4 py-8">
       <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t('data.overview.title') }}</h1>
-      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('data.overview.intro') }}</p>
-      <div class="mt-6 flex flex-wrap gap-3">
+      <p v-if="!underConstruction" class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('data.overview.intro') }}</p>
+      <div v-if="!underConstruction" class="mt-6 flex flex-wrap gap-3">
         <CanonicalButton :label="$t('data.overview.explore_map')" href="#data-map" icon-slug="mdi:map-outline" color="dark" />
         <CanonicalButton :label="$t('data.overview.collections')" href="#data-collections" icon-slug="mdi:view-grid-outline" color="dark" />
       </div>
     </header>
 
+    <section v-if="underConstruction" class="container mx-auto px-4 pb-12" aria-labelledby="data-construction-title">
+      <div class="data-construction-notice p-6 sm:p-8">
+        <h2 id="data-construction-title" class="font-heading text-3xl font-bold">{{ $t('data.construction.title') }}</h2>
+        <p class="mt-4 max-w-3xl whitespace-pre-line text-lg leading-relaxed">{{ dataPageConfig.under_construction_explanation || $t('data.construction.explanation') }}</p>
+      </div>
+    </section>
+
+    <template v-else>
     <!-- ── Sticky breadcrumb nav ──────────────────────────────────────────── -->
     <nav
       ref="breadcrumbNav"
@@ -117,6 +125,7 @@
       </template>
       <p v-else class="text-gray">{{ $t('data.overview.unavailable') }}</p>
     </section>
+    </template>
 
   </div>
 </template>
@@ -126,23 +135,23 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import DataProductsComingSoonTile from '~/components/DataProductsComingSoonTile.vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
-import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible, normalizeDataPageConfig } from '~/utils/dataPageVisibility'
+import { isCollectionVisible } from '~/utils/dataPageVisibility'
 import { normalizeCollection } from '~/utils/dataProducts'
 import statesLookup from '~/assets/germany-states-lookup.json'
 
-const { $directus, $readSingleton, $t, $locale } = useNuxtApp()
+const { $t, $locale } = useNuxtApp()
 const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
+const { data: dataPageConfig } = await useDataPageConfig()
+const underConstruction = computed(() => dataPageConfig.value.under_construction)
 
 const { data: visibleCollections } = await useAsyncData('data-overview-collections', async () => {
-  const config = await $directus.request($readSingleton('data_page_config', { fields: ['include_only', 'collection_ids'] }))
-    .then(normalizeDataPageConfig)
-    .catch(() => DEFAULT_DATA_PAGE_CONFIG)
+  if (underConstruction.value) return []
   try {
     const manifest = await $fetch(`${runtimeConfig.public.stadtlandzahlBaseUrl}/api/manifests/collections-index`, { timeout: 8000 })
     return (manifest?.collections ?? [])
-      .filter((collection) => isCollectionVisible(collection.id, config))
+      .filter((collection) => isCollectionVisible(collection.id, dataPageConfig.value))
       .map(normalizeCollection)
   } catch {
     return []
@@ -284,18 +293,30 @@ const GERMANY_AREA = {
   stadtlandklima_data_all: [],
 }
 
-useHead({
+useHead(() => ({
   title: $t('data.overview.title'),
   meta: [
     {
       name: 'description',
-      content: $t('data.overview.intro'),
+      content: underConstruction.value
+        ? dataPageConfig.value.under_construction_explanation || $t('data.construction.explanation')
+        : $t('data.overview.intro'),
     },
   ],
-})
+}))
 </script>
 
 <style scoped>
+.data-construction-notice {
+  background: var(--slk-blue-tint, #e6f1f5);
+  border: 3px solid var(--slk-border-strong, #b9b9b9);
+  color: var(--slk-text, #505050);
+}
+
+.data-construction-notice h2 {
+  color: var(--slk-blue, #006e94);
+}
+
 .data-collection-detail {
   order: var(--detail-order-mobile);
 }

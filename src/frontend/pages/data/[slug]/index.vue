@@ -338,7 +338,7 @@ import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
 import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug.js";
 import statesLookup from "~/assets/germany-states-lookup.json";
 import { normalizeCollection, sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
-import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible, normalizeDataPageConfig } from "~/utils/dataPageVisibility";
+import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible } from "~/utils/dataPageVisibility";
 
 const sectorSvgFiles = import.meta.glob("@/assets/icons/icon_category_*.svg", {
   query: "?raw",
@@ -363,6 +363,7 @@ const sectorIconSvgs = Object.fromEntries(
 definePageMeta({
   key: (route) => route.fullPath,
   middleware: [
+    'data-availability',
     (to) => {
       const requestedSlug = String(to.params.slug ?? "");
       if (requestedSlug === "bundesrepublik-deutschland") {
@@ -378,17 +379,13 @@ definePageMeta({
 
 // ── Route + config ───────────────────────────────────────────────────────────
 
-const { $directus, $readItems, $readSingleton, $t } = useNuxtApp();
+const { $directus, $readItems, $t } = useNuxtApp();
 const route = useRoute();
 const slug = computed(() => String(route.params.slug ?? ""));
 
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl;
-const { data: dataPageConfig } = await useAsyncData("data-page-config", () =>
-  $directus.request($readSingleton("data_page_config", { fields: ["include_only", "collection_ids"] }))
-    .then(normalizeDataPageConfig)
-    .catch(() => DEFAULT_DATA_PAGE_CONFIG),
-);
+const { data: dataPageConfig } = await useDataPageConfig();
 const { label: dataRouteLabel, seedArea, stop: stopDataRouteFeedback, clearSeedArea } = useDataRouteFeedback();
 
 // ── Layout helpers ───────────────────────────────────────────────────────────

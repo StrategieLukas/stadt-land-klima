@@ -45,8 +45,8 @@
         >
         <span v-else>{{ location }}</span>
       </p>
-      <p class="text-gray-600 mb-1 text-sm">
-        <i>{{ $t("article.author_date", { ":author": author, ":date": date.toLocaleDateString($locale) }) }}</i>
+      <p v-if="byline" class="text-gray-600 mb-1 text-sm">
+        <i>{{ byline }}</i>
       </p>
 
       <!-- Image and Image Credits (Passing the expected maxwidth of 960 for mobile to avoid fetching excessively large images)-->
@@ -302,6 +302,7 @@
 <script setup>
 import { ref, watchEffect } from "vue";
 import { buildLocationString, toAssetUrl, isRaster } from "~/shared/utils";
+import { formatProjectDate } from "~/shared/projectDate";
 import MarkdownIt from "markdown-it";
 import { useReferrer } from "~/composables/useReferrer";
 import localZeroLogoDark from "~/assets/images/LocalZero-logo-small-dark.png";
@@ -343,6 +344,10 @@ const src = ref(null);
 // });
 
 const location = computed(() => buildLocationString(props.municipality_name, props.state));
+const formattedDate = computed(() => formatProjectDate(props.date, $locale));
+const byline = computed(() => props.author && formattedDate.value
+  ? $t('article.author_date', { ':author': props.author, ':date': formattedDate.value })
+  : [props.author, formattedDate.value].filter(Boolean).join(', '));
 
 function getAssetId(assetId) {
   return typeof assetId === "string" ? assetId : assetId?.id;

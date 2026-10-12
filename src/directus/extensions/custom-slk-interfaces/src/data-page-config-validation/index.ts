@@ -17,6 +17,8 @@ export default defineHook(({ filter }, { env }) => {
     { database }: { database: any },
   ) => {
     if (meta.collection !== "data_page_config") return payload;
+    // Availability/explanation edits must also work while the data API is down.
+    if (!("include_only" in payload) && !("collection_ids" in payload)) return payload;
 
     const current = (await database("data_page_config")
       .select("include_only", "collection_ids")

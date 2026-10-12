@@ -13,8 +13,9 @@
 <script setup>
   // Smarter version of an image, which checks if it is scalable and asks for fitting dimensions if possible to avoid sending very large files
 
-  import { ref, watchEffect } from 'vue'
+  import { inject, ref, watchEffect } from 'vue'
   import { toAssetUrl } from '~/shared/utils';
+  import { TOUR_REPORT_MEDIA } from '~/shared/successProjectTour';
 
   const props = defineProps({
     assetId: { type: String, required: false, default: null },
@@ -22,6 +23,7 @@
     alt: { type: String, default: '' },
     imgClass: { type: String, default: '' },
     assetBaseUrl: { type: String, default: null },
+    accessToken: { type: String, default: null },
 
     // Transform options
     width: { type: Number, default: null },
@@ -37,6 +39,7 @@
 
   const runtime = useRuntimeConfig()
   const directusUrl = runtime.public.clientDirectusUrl
+  const reportMedia = inject(TOUR_REPORT_MEDIA, null)
 
   const src = ref(null)
   const srcset = ref(null)
@@ -46,9 +49,12 @@
     srcset.value = null
     if (!props.assetId) return
 
-    const assetUrl = `${props.assetBaseUrl || `${directusUrl}/assets`}/${props.assetId}`
+    const ownedReportMedia = reportMedia?.value.fileIds.has(props.assetId)
+    const assetUrl = `${props.assetBaseUrl || (ownedReportMedia ? '/api/tour-media' : `${directusUrl}/assets`)}/${props.assetId}`
 
     const p = new URLSearchParams()
+    const accessToken = props.accessToken || (ownedReportMedia ? reportMedia?.value.accessToken : null)
+    if (accessToken) p.set('access_token', accessToken)
     if (props.isRaster && props.width) p.set('width', String(props.width))
     if (props.isRaster && props.height) p.set('height', String(props.height))
     if (props.quality && props.quality !== 100) p.set('quality', String(props.quality))

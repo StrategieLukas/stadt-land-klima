@@ -184,7 +184,7 @@ defineExpose({ fitRoute, refreshSize, focusStop });
 <style>
 .tour-map-pin { border: 0; background: none; filter: drop-shadow(1px 3px 1px #18212780); }
 .tour-map-pin svg { display: block; width: 48px; height: 66px; }
-.tour-map-pin--active { filter: drop-shadow(0 0 0 #182127) drop-shadow(0 0 7px #fff); transform: scale(1.14); transform-origin: 50% 100%; }
+.tour-map-pin--active { filter: drop-shadow(1px 3px 2px #18212780); transform: scale(1.14); transform-origin: 50% 100%; }
 .tour-map-pin__number { position: absolute; top: 14px; left: 0; display: grid; place-items: center; width: 48px; height: 19px; color: #182127; font: 900 11px RobotoCondensed, sans-serif; }
-.tour-map-pin:focus-visible { outline: 3px solid #182127; outline-offset: 3px; }
+.tour-map-pin:focus-visible { outline: 3px solid var(--slk-text, #182127); outline-offset: 3px; }
 </style>

@@ -1,0 +1,49 @@
+collection: blocks
+field: tour
+type: uuid
+meta:
+  collection: blocks
+  conditions: null
+  display: related-values
+  display_options:
+    template: '{{title}}'
+  field: tour
+  group: null
+  hidden: true
+  interface: select-dropdown-m2o
+  note: Owner of tour overview blocks
+  options:
+    template: '{{title}}'
+  readonly: true
+  required: false
+  searchable: true
+  sort: 16
+  special:
+  - m2o
+  translations:
+  - language: de-DE
+    translation: Erfolgsprojekte-Tour
+  - language: en-GB
+    translation: Success project tour
+  - language: it-IT
+    translation: Tour dei progetti di successo
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: tour
+  table: blocks
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: true
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: success_project_tours
+  foreign_key_column: id

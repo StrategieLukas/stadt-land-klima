@@ -7,16 +7,14 @@ meta:
   display: labels
   display_options:
     choices:
-      - text: Konferenz
-        value: conference
-      - text: Workshop
-        value: workshop
-      - text: Webinar
-        value: webinar
-      - text: Tourstation
-        value: tour_stop
-      - text: Sonstiges
-        value: other
+    - text: Konferenz
+      value: conference
+    - text: Workshop
+      value: workshop
+    - text: Webinar
+      value: webinar
+    - text: Sonstiges
+      value: other
   field: event_type
   group: null
   hidden: false
@@ -24,24 +22,22 @@ meta:
   note: null
   options:
     choices:
-      - text: Konferenz
-        value: conference
-      - text: Workshop
-        value: workshop
-      - text: Webinar
-        value: webinar
-      - text: Tourstation
-        value: tour_stop
-      - text: Sonstiges
-        value: other
+    - text: Konferenz
+      value: conference
+    - text: Workshop
+      value: workshop
+    - text: Webinar
+      value: webinar
+    - text: Sonstiges
+      value: other
   readonly: false
   required: true
   searchable: true
   sort: 9
   special: null
   translations:
-    - language: de-DE
-      translation: Veranstaltungstyp
+  - language: de-DE
+    translation: Veranstaltungstyp
   validation: null
   validation_message: null
   width: half

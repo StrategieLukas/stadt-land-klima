@@ -1,8 +1,12 @@
 <template>
   <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-    <header class="mb-8 max-w-3xl">
-      <h1 class="text-4xl font-bold text-stats-dark">{{ $t("tools.title") }}</h1>
-      <p class="text-gray-600 mt-3 text-base leading-relaxed">{{ $t("tools.description") }}</p>
+    <header class="mb-8">
+      <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t("tools.title") }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("tools.description") }}</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <CanonicalButton :label="$t('measures.heading')" href="/measures" icon-slug="mdi:clipboard-list-outline" color="dark" text-color="white" />
+        <CanonicalButton :label="$t('data.overview.title')" href="/data" icon-slug="mdi:chart-box-outline" color="dark" text-color="white" />
+      </div>
     </header>
 
     <div v-if="pending" class="border-gray-100 text-gray-500 rounded-lg border bg-white p-6 shadow-sm">

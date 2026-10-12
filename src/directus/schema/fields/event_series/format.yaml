@@ -7,8 +7,6 @@ meta:
   display: labels
   display_options:
     choices:
-    - text: Tour
-      value: tour
     - text: Standardreihe
       value: standard
   field: format
@@ -18,8 +16,6 @@ meta:
   note: Tour = Reisejournal mit Karte; Standard = Veranstaltungsliste
   options:
     choices:
-    - text: Tour
-      value: tour
     - text: Standardreihe
       value: standard
   readonly: false

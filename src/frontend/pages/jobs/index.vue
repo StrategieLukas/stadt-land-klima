@@ -1,8 +1,13 @@
 <template>
   <div class="py-8">
-    <div class="mb-8 max-w-3xl">
-      <h1 class="text-3xl font-bold text-gray-900">{{ $t('jobs.title') }}</h1>
-    </div>
+    <header class="mb-8">
+      <h1 class="mb-4 font-heading text-4xl font-black text-orange sm:text-6xl">{{ $t('jobs.title') }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('jobs.description') }}</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <CanonicalButton :label="$t('stats.participate')" href="/mitmachen" icon-slug="mdi:account-group-outline" color="orange" text-color="white" />
+        <CanonicalButton :label="$t('organisation.title')" href="/organisation" icon-slug="mdi:information-outline" color="orange" text-color="white" />
+      </div>
+    </header>
 
     <div v-if="hasJobs" class="space-y-12">
       <section v-if="employmentJobs.length" id="festanstellung">

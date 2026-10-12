@@ -53,8 +53,8 @@
                 </p>
 
                 <!-- Author and Date Section -->
-                <p class="text-gray-500 italic text-xs mb-2">
-                    {{ author }}, {{ date.toLocaleDateString($locale) }}
+                <p v-if="byline" class="text-gray-500 italic text-xs mb-2">
+                    {{ byline }}
                 </p>
 
                 <!-- Measures -->
@@ -78,6 +78,7 @@
 <script setup>
 import { computed } from 'vue'
 import { buildLocationString }from '~/shared/utils';
+import { formatProjectDate } from '~/shared/projectDate';
 const { $locale } = useNuxtApp();
 
 const props = defineProps({
@@ -98,6 +99,8 @@ const props = defineProps({
 
 const config = useRuntimeConfig();
 const location = computed(() => buildLocationString(props.municipality_name, props.state));
+const formattedDate = computed(() => formatProjectDate(props.date, $locale));
+const byline = computed(() => [props.author, formattedDate.value].filter(Boolean).join(', '));
 
 
 const truncatedAbstract = computed(() => {

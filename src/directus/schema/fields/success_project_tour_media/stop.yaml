@@ -1,0 +1,47 @@
+collection: success_project_tour_media
+field: stop
+type: uuid
+meta:
+  collection: success_project_tour_media
+  conditions: null
+  display: null
+  display_options: null
+  field: stop
+  group: null
+  hidden: true
+  interface: null
+  note: null
+  options: null
+  readonly: false
+  required: true
+  searchable: true
+  sort: 2
+  special:
+  - m2o
+  translations:
+  - language: de-DE
+    translation: Tourstopp
+  - language: en-GB
+    translation: Tour stop
+  - language: it-IT
+    translation: Tappa del tour
+  validation: null
+  validation_message: null
+  width: full
+schema:
+  name: stop
+  table: success_project_tour_media
+  data_type: uuid
+  default_value: null
+  max_length: null
+  numeric_precision: null
+  numeric_scale: null
+  is_nullable: false
+  is_unique: false
+  is_indexed: false
+  is_primary_key: false
+  is_generated: false
+  generation_expression: null
+  has_auto_increment: false
+  foreign_key_table: success_project_tour_stops
+  foreign_key_column: id
