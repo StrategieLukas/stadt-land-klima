@@ -1,11 +1,11 @@
 <template>
   <div
-    class="flex min-h-[180px] flex-col justify-center gap-4 rounded-lg border border-solid-stats-dark-20 bg-solid-stats-dark-05 p-5"
+    class="data-products-coming-soon flex min-h-[180px] flex-col justify-center gap-4 rounded-lg border p-5"
     :class="tileLayout"
   >
     <div>
-      <h3 class="font-heading text-xl font-bold text-stats-dark">{{ $t("data.products.coming_soon") }}</h3>
-      <p class="mt-1 text-sm leading-relaxed text-gray">{{ $t("data.products.feedback_invite") }}</p>
+      <h3 class="font-heading text-xl font-bold">{{ $t("data.products.coming_soon") }}</h3>
+      <p class="mt-1 text-sm leading-relaxed">{{ $t("data.products.feedback_invite") }}</p>
     </div>
     <CanonicalButton
       :href="contactHref"
@@ -48,3 +48,15 @@ const contactHref = computed(() => {
   return `/contact?${params.toString()}`;
 });
 </script>
+
+<style scoped>
+.data-products-coming-soon {
+  background-color: var(--slk-blue-tint, #e6f1f5);
+  border-color: var(--slk-border, #d9dfd3);
+  color: var(--slk-text, #505050);
+}
+
+.data-products-coming-soon h3 {
+  color: var(--slk-blue, #006e94);
+}
+</style>
