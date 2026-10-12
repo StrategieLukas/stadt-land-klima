@@ -8,7 +8,7 @@
           <p class="text-sm">{{ visitMessage(visit) }}</p>
           <div class="mt-2 flex flex-wrap gap-2">
             <CanonicalButton :href="`/projects/tours/${visit.tour.slug}#stop-${visit.stop.slug}`" :label="$t('tour.discover')" icon-slug="mdi:map-marker-path" color="dark" />
-            <CanonicalButton :href="`/projects/tours/${visit.tour.slug}/${visit.stop.slug}`" :label="$t('tour.stop_details')" icon-slug="mdi:arrow-right" color="bright-green" />
+            <CanonicalButton v-if="visit.report" :href="`/projects/tours/${visit.tour.slug}/${visit.stop.slug}`" :label="$t('tour.stop_details')" icon-slug="mdi:arrow-right" color="bright-green" />
           </div>
         </div>
         <figure v-if="visit.tour.cover_image" class="project-tour-banner__media">

@@ -87,16 +87,16 @@
                 </figure>
                 <p v-if="reportFor(stop.id)?.teaser" class="tour-collage__excerpt">{{ reportFor(stop.id)?.teaser }}</p>
                 <p v-else-if="!reportFor(stop.id)" class="tour-collage__status">{{ visitHasEnded(stop.start_date, stop.end_date, now) ? $t('tour.report_pending') : $t('tour.upcoming') }}</p>
-                <div class="tour-collage__actions">
-                  <CanonicalButton class="tour-collage__primary" :href="tourStopHref(stop)" :label="$t('tour.stop_details')" icon-slug="mdi:arrow-right" color="bright-green" />
+                <div v-if="reportFor(stop.id) || projectsFor(stop.id).length" class="tour-collage__actions">
+                  <CanonicalButton v-if="reportFor(stop.id)" class="tour-collage__primary" :href="tourStopHref(stop)" :label="$t('tour.stop_details')" icon-slug="mdi:arrow-right" color="bright-green" />
                   <CanonicalButton v-for="project in projectsFor(stop.id)" :key="project.id" class="tour-collage__project" :href="`/projects/${project.slug}`" :label="projectsFor(stop.id).length === 1 ? $t('tour.visit_project') : `${$t('tour.visit_project')} ${project.title}`" :title="project.title" icon-slug="mdi:leaf" color="blue" />
                 </div>
               </article>
             </div>
             <template v-if="isHydrated && mapOpen && !isMobileTour">
               <div v-for="(stop, index) in stops" v-show="activeStop === index && reportMedia(stop.id).length" :key="`prints-${stop.id}`" class="tour-photos tour-explorer__prints" :class="{ 'tour-photos--pair': reportMedia(stop.id).length > 1 }" :style="printsPositionStyle">
-                <figure v-for="(photo, photoIndex) in reportMedia(stop.id).slice(0, 2)" :key="photo.id" :style="postcardStyle(stop.id, photo.id, photoIndex)">
-                  <button type="button" :aria-label="`${$t('tour.media_open')}: ${photo.alt}`" @click="openMedia(stop.id, photoIndex)"><TourMediaPreview :item="photo" /></button>
+                <figure v-for="(photo, photoIndex) in reportMedia(stop.id).slice(0, 2)" :key="photo.id" :class="{ 'tour-postcard--natural': !isVideoMedia(photo) || relationId(photo.poster) }" :style="postcardStyle(stop.id, photo.id, photoIndex)">
+                  <button type="button" :aria-label="`${$t('tour.media_open')}: ${photo.alt}`" @click="openMedia(stop.id, photoIndex)"><TourMediaPreview :item="photo" preserve-aspect-ratio /></button>
                   <figcaption><span v-if="photo.caption">{{ photo.caption }}</span><small>{{ photo.credit }}</small><small>{{ $t('tour.media_count', { ':count': reportMedia(stop.id).length }) }}</small></figcaption>
                 </figure>
               </div>
@@ -145,7 +145,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { berlinDayNumber, pinColor, relationId, visitHasEnded } from "~/shared/tour";
-import { orderedMedia } from "~/shared/tourMedia";
+import { isVideoMedia, orderedMedia } from "~/shared/tourMedia";
 import { STOP_FIELDS, TOUR_FIELDS, publicStopFilter, tourStopHref } from "~/shared/successProjectTour";
 import type { SuccessProjectTour, SuccessProjectTourStop } from "~/shared/successProjectTour";
 import type { TourMedia } from "~/shared/tourMedia";
@@ -280,7 +280,6 @@ const printsPositionStyle = computed(() => {
   const preferredLeft = cardOnRight ? marker.x - width - 66 : marker.x + 66;
   return {
     '--prints-left': `${Math.max(20, Math.min(preferredLeft, marker.width - width - 20))}px`,
-    '--prints-top': `${Math.max(24, Math.min(marker.y + 65, marker.height - 410))}px`,
   };
 });
 let nowTimer: ReturnType<typeof setInterval> | null = null;
@@ -690,13 +689,13 @@ useHead({ title: series.value.title });
 .tour-collage__paging a:hover, .tour-collage__paging a:focus-visible { text-decoration: underline; }
 .tour-collage .tour-photos { max-width: 100%; margin: 1.2rem 0 1.7rem; }
 .tour-collage .tour-photos figure { border: 5px solid var(--slk-surface, white); box-shadow: 5px 7px 0 var(--slk-border-strong, #b9c2b0); }
-.tour-explorer__prints { position: absolute; z-index: 550; top: var(--prints-top, 10%); left: var(--prints-left, 3%); width: min(34rem, 44vw); max-width: none; margin: 0; padding: 1.5rem 1.5rem 2rem; overflow: visible; }
+.tour-explorer__prints { position: absolute; z-index: 550; bottom: 1rem; left: var(--prints-left, 3%); width: min(34rem, 44vw); max-width: none; margin: 0; padding: 1.5rem 1.5rem 2rem; overflow: visible; }
 .tour-explorer__prints.tour-photos--pair { column-gap: 4rem; }
-.tour-explorer__prints figure { position: relative; z-index: var(--photo-order, 1); border: 7px solid var(--slk-surface, white); background: var(--slk-surface, white); box-shadow: 7px 9px 0 var(--slk-border-strong, #b9c2b0); transform: translate(var(--photo-x, 0px), var(--photo-y, 0px)) rotate(var(--photo-angle, 0deg)); }
+.tour-explorer__prints figure { position: relative; z-index: var(--photo-order, 1); justify-self: start; width: 100%; max-width: 100%; border: 7px solid var(--slk-surface, white); background: var(--slk-surface, white); box-shadow: 7px 9px 0 var(--slk-border-strong, #b9c2b0); transform: translate(var(--photo-x, 0px), var(--photo-y, 0px)) rotate(var(--photo-angle, 0deg)); }
+.tour-explorer__prints .tour-postcard--natural { width: fit-content; }
 .tour-explorer__prints figure:focus-within { z-index: 10; }
 .tour-explorer__prints figure:hover { z-index: 20; }
-.tour-explorer__prints img { aspect-ratio: 4 / 3; object-fit: cover; }
-.tour-explorer__prints figcaption { font-size: .72rem; line-height: 1.3; }
+.tour-explorer__prints figcaption { contain: inline-size; font-size: .72rem; line-height: 1.3; }
 .tour-explorer__prints figcaption > span, .tour-explorer__prints figcaption > small { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .tour-explorer__stop-strip { position: relative; z-index: 3; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; background: #e0f8ff; }
 .tour-explorer__stop-step { display: grid; place-items: center; width: 3rem; border-right: 1px solid #9cc8d5; color: #182127; font: 800 1.5rem/1 Inter, sans-serif; }
@@ -721,8 +720,8 @@ useHead({ title: series.value.title });
   .series-hero__route-label, .series-hero__route-label:nth-child(even) { justify-self: center; max-width: 100%; margin-right: 0; font-size: clamp(.85rem, 1.5vw, 1.05rem); }
   .tour-explorer__scrolly { --scene-height: max(30rem, calc(100svh - var(--tour-header) - var(--tour-local-header-height))); }
   .tour-explorer__cards.is-ready { top: auto; bottom: 1.2rem; left: 1.2rem; width: min(29rem, calc(100% - 2.4rem)); max-height: 47%; transform: none; }
-  .tour-explorer__prints { top: 1.2rem; right: 1.2rem; left: auto; width: min(30rem, calc(100% - 2.4rem)); }
-  .tour-explorer__prints :deep(.tour-media-preview) { height: 9rem; }
+  .tour-explorer__prints { top: 1.2rem; bottom: auto; right: 1.2rem; left: auto; width: min(30rem, calc(100% - 2.4rem)); }
+  .tour-explorer__prints :deep(.tour-media-preview:not(.tour-media-preview--natural)) { height: 9rem; }
   .tour-collage { max-width: 48rem; margin: 0 auto; }
 }
 @media (max-width: 600px) {

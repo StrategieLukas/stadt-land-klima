@@ -132,6 +132,8 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
       await admin.updateItem('articles', project.id, { status: 'published' });
       assertIncludes(await pageHtml(`${config.frontendUrl}/projects/tours/${slug}/${past.slug}`), 'Zum Erfolgsprojekt-Eintrag …', 'Publishing a related project should add its action to the stop page');
       assertNotIncludes(journey, reportTitle, 'Draft report must not appear on the tour page');
+      assertNotIncludes(journey, 'Besuchsbericht lesen', 'Draft reports must not show report actions in server-rendered tour cards');
+      assertNotIncludes(await pageHtml(`${config.frontendUrl}/projects/${project.slug}`), 'Besuchsbericht lesen', 'Project banners must not advertise draft visit reports');
       assertNotIncludes(journey, 'A stop on the journey', 'Draft report photos must not appear on the tour page');
       assertNotIncludes(await pageHtml(`${config.frontendUrl}/projects/tours/${slug}/${past.slug}`), 'Preserved nested tour report', 'Published blocks of a draft report must remain private');
       assertNotIncludes(await pageHtml(`${config.frontendUrl}/projects/tours/${slug}/${past.slug}`), 'Obsolete visit information fixture.', 'Unreported stops should not render redundant visit details');
@@ -202,7 +204,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         await admin.updateItem('success_project_tours', ids.series.id, { cover_image: null });
         await filterPage.reload({ waitUntil: 'networkidle' });
         assert(await filterPage.locator('.project-tour-banner__media').count() === 0, 'Tours without a teaser should omit the image column');
-        assert(await filterPage.locator('.project-tour-banner .canonical-button').count() === 4, 'Missing tour images must preserve the visit actions');
+        assert(await filterPage.locator('.project-tour-banner .canonical-button').count() === 2, 'Missing tour images must preserve journey links while hiding draft report actions');
         await admin.updateItem('success_project_tours', ids.series.id, { cover_image: ids.file.id });
         await phonePage.goto(`${config.frontendUrl}/projects/${project.slug}`, { waitUntil: 'networkidle' });
         assert(await phonePage.locator('.project-tour-banner__visit').first().evaluate(visit => {
@@ -211,6 +213,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
           return media.top >= copy.bottom;
         }), 'Mobile banners should place the tour teaser below the copy');
         assert(await phonePage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'The project banner should not cause mobile overflow');
+        assert(await phonePage.getByRole('link', { name: 'Besuchsbericht lesen …', exact: true }).count() === 0, 'Mobile project banners must hide draft report actions');
       } finally {
         await filterContext.close();
       }
@@ -301,6 +304,16 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         assert(await page.getByRole('button', { name: 'Nächste Station' }).evaluate(button => button === document.activeElement), 'Tab should leave the stop strip after its single tab stop');
         assert(await page.locator('.tour-explorer__prints:visible figure').count() === 2, 'Published journey photos should appear as two postcards over the map');
         const postcards = page.locator('.tour-explorer__prints:visible figure');
+        const postcardImages = postcards.locator('img');
+        await postcardImages.evaluateAll(images => Promise.all(images.map(image => (image as HTMLImageElement).decode())));
+        assert(await postcardImages.first().evaluate((image: HTMLImageElement) => image.naturalHeight > image.naturalWidth), 'Portrait postcard downloads must retain their original portrait shape');
+        assert(await postcardImages.last().evaluate((image: HTMLImageElement) => image.naturalWidth > image.naturalHeight), 'Landscape postcard downloads must retain their original landscape shape');
+        assert(await postcardImages.evaluateAll(images => images.every(element => {
+          const image = element as HTMLImageElement;
+          return !new URL(image.src).searchParams.has('height')
+            && Math.abs(image.clientWidth / image.clientHeight - image.naturalWidth / image.naturalHeight) < .015
+            && getComputedStyle(image).objectFit === 'contain';
+        })), 'Map postcard images must use uncropped downloads and preserve their natural rendered aspect ratios');
         const firstPose = await postcards.first().evaluate(el => getComputedStyle(el).transform);
         assert(firstPose !== await postcards.last().evaluate(el => getComputedStyle(el).transform), 'Postcards should have different stable offsets and angles');
         assert(await page.locator('.tour-explorer__prints:visible').evaluate(el => getComputedStyle(el).overflowX === 'visible' && getComputedStyle(el).overflowY === 'visible'), 'Rotated postcards should not create scrollbar containers');
@@ -386,7 +399,10 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         assert(await page.locator('.tour-collage:visible').count() === 10, 'Desktop list view should show every stop');
         const unlinkedCard = page.locator(`#stop-${ids.events[2].slug}`);
         assert(await unlinkedCard.locator('.tour-collage__project').count() === 0, 'Stops without published related projects should not render project actions');
-        assertIncludes(await unlinkedCard.locator('.tour-collage__primary').innerText(), 'Besuchsbericht lesen …', 'Tour actions should use the translated visit-report label');
+        assert(await unlinkedCard.locator('.tour-collage__primary, .tour-collage__actions').count() === 0, 'Unreported stops without projects should have neither a report action nor an empty action footer');
+        assertIncludes(await page.locator(`#stop-${ids.events[0].slug} .tour-collage__primary`).innerText(), 'Besuchsbericht lesen …', 'Published reports should retain their translated visit-report action');
+        assert(await page.locator(`#stop-${ids.events[1].slug} .tour-collage__primary`).count() === 0, 'List cards must hide report actions for draft reports');
+        assert(await page.locator(`#stop-${ids.events[1].slug} .tour-collage__project`).count() === 1, 'Published project actions should remain available without a published report');
         assert(await page.locator('.tour-card-media .tour-media-preview').first().evaluate(el => Math.abs(el.getBoundingClientRect().height - 224) < 1), 'Card media should have a fixed 14rem height');
         await page.getByRole('button', { name: 'Karte', exact: true }).focus();
         await page.keyboard.press('Enter');
@@ -404,10 +420,12 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         await page.locator('.tour-map-pin').nth(1).dispatchEvent('click');
         await page.waitForURL(`**#stop-${ids.events[1].slug}`);
         assert(await page.locator('.tour-explorer__nav a').nth(1).getAttribute('aria-current') === 'location', 'Map pin should select its story and route position');
+        assert(await page.locator('.tour-collage:visible .tour-collage__primary').count() === 0, 'Map overlays must hide report actions for draft reports');
         await page.setViewportSize({ width: 390, height: 844 });
         await page.locator('.tour-explorer.is-mobile').waitFor();
         assert(await page.locator('.tour-explorer__waypoint').count() === 0, 'Mobile should not use scroll-driven waypoints');
         assert(await page.locator('.tour-collage:visible').count() === 10, 'Mobile should show every stop as a regular box');
+        assert(await page.locator('.tour-collage__primary').count() === 1, 'Mobile tour cards should offer a report action only for the published report');
         assert(await page.locator('.tour-explorer__prints').count() === 0, 'Mobile photos should stay with their stop box');
         assert(await page.locator(`#stop-${ids.events[0].slug} .tour-card-media`).count() === 1, 'Mobile should show one fixed-height media preview per stop');
         await page.getByRole('button', { name: 'Ganze Route zeigen' }).click();
@@ -439,6 +457,24 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         }
       } finally {
         await context.close();
+      }
+    });
+    await runner.step('Tour series: report actions follow publication status', async () => {
+      assert(ids.eventReport && ids.articles[0], 'Report-action fixtures must exist');
+      try {
+        for (const reportStatus of ['published', 'draft', 'archived']) {
+          await admin.updateItem('success_project_tour_stops', ids.eventReport.id, { report_status: reportStatus });
+          const journey = await pageHtml(`${config.frontendUrl}/projects/tours/${slug}`);
+          const project = await pageHtml(`${config.frontendUrl}/projects/${ids.articles[0].slug}`);
+          for (const html of [journey, project]) {
+            if (reportStatus === 'published') assertIncludes(html, 'Besuchsbericht lesen …', 'Published reports should have a read action');
+            else assertNotIncludes(html, 'Besuchsbericht lesen', `${reportStatus} reports must not have a read action`);
+          }
+          assertIncludes(journey, 'Zum Erfolgsprojekt-Eintrag …', 'Report status must not hide published related projects');
+          assertIncludes(project, 'Reise entdecken', 'Report status must not hide the tour discovery action');
+        }
+      } finally {
+        await admin.updateItem('success_project_tour_stops', ids.eventReport.id, { report_status: 'published' });
       }
     });
     await runner.step('Tour series: tour, stop and report publication permissions', async () => {
