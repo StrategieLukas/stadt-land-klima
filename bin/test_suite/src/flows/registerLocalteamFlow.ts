@@ -5,6 +5,7 @@ import type { DirectusClient } from '../lib/directus.js';
 import type { TestFixture } from '../lib/fixture.js';
 import type { TestRunner } from '../lib/runner.js';
 import { waitFor } from '../lib/wait.js';
+import { capturedMail } from '../lib/mail.js';
 
 interface DirectusUser {
   id: string;
@@ -183,7 +184,7 @@ async function readCurrentBackendScore(
 
 async function mockStadtlandzahlArea(page: Page, ars: string, name: string): Promise<void> {
   await page.route(
-    (url) => url.pathname === `/api/areas/${ars}/` && url.searchParams.get('format') === 'json',
+    (url) => url.pathname === `/api/stadtlandzahl/api/areas/${ars}/` && url.searchParams.get('format') === 'json',
     async (route) => {
       await route.fulfill({
         status: 200,
@@ -357,9 +358,10 @@ export async function runRegisterLocalteamFlow(
           }),
       );
       await openRegisterPage(page, fixture.config.frontendUrl);
-      const requestPromise = page.waitForRequest((request) => request.url().includes('/api/area-search?'));
-      await page.locator('#municipality-search').pressSequentially('Bayern');
-      const request = await requestPromise;
+      const [request] = await Promise.all([
+        page.waitForRequest((request) => request.url().includes('/api/area-search?')),
+        page.locator('#admin-search-input').pressSequentially('Bayern'),
+      ]);
       const mode = new URL(request.url()).searchParams.get('mode');
       assertEqual(mode, 'reasonable', 'Register search must request only reasonable municipalities');
     } finally {
@@ -376,7 +378,7 @@ export async function runRegisterLocalteamFlow(
       await mockStadtlandzahlArea(page, newArs, newMunicipalityName);
       const initialText = await openRegisterPage(page, fixture.config.frontendUrl);
       assertIncludes(initialText, 'Lokalteam gründen', 'Register page must render the frontend entry point');
-      assertIncludes(initialText, 'Gemeinde / Stadt suchen', 'Register page must expose municipality search');
+      assertIncludes(initialText, 'Suche nach einer Kommune', 'Register page must expose municipality search');
 
       const text = await openRegisterPage(page, fixture.config.frontendUrl, newArs, newMunicipalityName);
       assertIncludes(
@@ -405,6 +407,18 @@ export async function runRegisterLocalteamFlow(
       await page.getByRole('button', { name: /Lokalteam beantragen/i }).click();
       const response = await responsePromise;
       assert(response.ok(), `Registration submit must succeed. Got HTTP ${response.status()}.`);
+      if (process.env.TEST_MAILPIT_URL) {
+        const result = await response.json();
+        assert(result.steps?.notify === true, 'Registration must complete the authenticated administrator notification');
+        assert(result.steps?.welcome === true, 'Registration must complete the authenticated welcome email');
+        const welcome = await capturedMail(
+          `Willkommen bei Stadt.Land.Klima! – Dein Lokalteam für ${newMunicipalityName} ist eingerichtet`, newUserEmail,
+        );
+        assertIncludes(welcome.HTML, 'token=', 'Welcome email must retain the password activation link');
+        assertIncludes(welcome.HTML, 'Automated', 'Welcome email must retain the recipient name');
+        const notification = await capturedMail(`Neues Lokalteam registriert: ${newMunicipalityName}`);
+        assertIncludes(notification.HTML, newUserEmail, 'Administrator email must identify the registering user');
+      }
 
       await page.getByText('Durchstarten!').waitFor({ state: 'visible', timeout: 30_000 });
       const successText = await visibleText(page);

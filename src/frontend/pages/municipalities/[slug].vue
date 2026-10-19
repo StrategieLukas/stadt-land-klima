@@ -11,8 +11,7 @@
           Zugriff eingeschränkt: „{{ previewMuniName }}“
         </p>
         <p class="text-sm leading-snug mb-3 text-mid-gray">
-          Der Lokalteam-Administrator wurde noch nicht verifiziert. Der Zugang ist eingeschränkt und erfordert
-          einen gültigen Vorschau-Token. Melde dich, um verifiziert zu werden.
+          {{ $t("municipalities.preview_locked") }}
         </p>
         <div class="flex flex-wrap gap-2">
           <button

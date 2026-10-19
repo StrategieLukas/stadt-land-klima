@@ -190,7 +190,7 @@ async function canAccessDashboard(
     .leftJoin("directus_access as a", "a.role", "r.id")
     .leftJoin("directus_policies as p", "p.id", "a.policy")
     .where("r.id", accountability.role)
-    .select("r.name as role_name", "r.admin_access", "p.name as policy_name");
+    .select("r.name as role_name", "p.admin_access", "p.name as policy_name");
 
   return rows.some(
     (row: {

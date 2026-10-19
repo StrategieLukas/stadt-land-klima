@@ -46,11 +46,13 @@ export default defineNitroPlugin(async () => {
     return
   }
 
+  // Use the private server token; fall back to the shared token during migration.
+  const serverToken = (config.directusFrontendServerToken as string) || (config.public.directusToken as string)
   const directus = createDirectus(
     (config.directusServerUrl as string) || 'http://directus:8055',
   )
     .with(rest())
-    .with(staticToken(config.public.directusToken as string))
+    .with(staticToken(serverToken))
 
   const g = globalThis as ReindexGlobals
 
@@ -224,7 +226,7 @@ export default defineNitroPlugin(async () => {
           .filter((id: string) => !newIds.has(id))
         if (toDelete.length > 0) {
           const delTask = await index.deleteDocuments(toDelete)
-          await ms.waitForTask(delTask.taskUid)
+          await ms.tasks.waitForTask(delTask.taskUid)
         }
       } catch (e) {
         console.warn('[reindex] Failed to delete stale measure docs:', e)

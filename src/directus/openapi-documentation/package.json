@@ -7,6 +7,6 @@
     "generate": "node createApiSpec.js"
   },
   "dependencies": {
-    "@directus/sdk": "^21.3.0"
+    "@directus/sdk": "^27.0.0"
   }
 }

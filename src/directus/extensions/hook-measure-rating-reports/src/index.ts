@@ -1,7 +1,7 @@
 import path from "path";
 import os from "os";
 import fs from "fs";
-import csvjson from "csvjson";
+import { stringifyRatingReport } from "./reportCsv";
 import type { Accountability, Database, Schema, Services } from "@directus/types";
 
 interface RatingMeasure {
@@ -131,7 +131,7 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
 
       const rows = results.map(mapToRow);
 
-      const csv = csvjson.toCSV(rows, { delimiter: ",", wrap: true });
+      const csv = stringifyRatingReport(rows);
 
       const fileName = `rating_measures-${formatTimestamp(new Date())}.csv`;
       filePath = path.join(os.tmpdir(), fileName);

@@ -11,6 +11,7 @@ import { runErfolgsprojekteArticlesFlow } from './flows/erfolgsprojekteArticlesF
 import { runErfolgsprojekteInviteDashboardFlow } from './flows/erfolgsprojekteInviteDashboardFlow.js';
 import { runTourSeriesFlow } from './flows/tourSeriesFlow.js';
 import { runDataAvailabilityFlow } from './flows/dataAvailabilityFlow.js';
+import { runMailWebhookSecurityFlow } from './flows/mailWebhookSecurityFlow.js';
 
 async function main(): Promise<void> {
   const config = loadConfig(process.argv.slice(2));
@@ -29,6 +30,7 @@ async function main(): Promise<void> {
       await fixture.setup();
     });
 
+    await runMailWebhookSecurityFlow(runner, fixture);
     await runAddUserFlow(runner, fixture, browser);
     await runErfolgsprojekteInviteDashboardFlow(runner, fixture);
     await runRatingsImportExportFlow(runner, fixture);

@@ -11,6 +11,7 @@ import {
 } from "~/shared/articleSubmission";
 import { createSlug } from "~/shared/slugify.js";
 import { verifyAltcha } from "../utils/verifyAltcha";
+import { sendDirectusMailFlow } from "../utils/sendDirectusMailFlow";
 
 const ARTICLE_IMAGE_FOLDER_ID = "82d3f1c5-9a8d-4aeb-8335-ca9330a43b90";
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -488,39 +489,35 @@ async function submitArticle(event: H3Event) {
         "[submit-article] DIRECTUS_FLOW_NOTIFY_ADMIN not configured - skipping Erfolgsprojekte notification",
       );
     } else {
-      await $fetch(notifyAdminFlowUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: {
-          to: notificationEmail,
-          subject: `Neues Erfolgsprojekt eingereicht: ${title}`,
-          body: [
-            "<p>Über das öffentliche Formular wurde ein neues Erfolgsprojekt eingereicht.</p>",
-            `<p><a href="${escapeHtml(directusItemUrl)}">Entwurf in Directus öffnen</a></p>`,
-            "<table>",
-            formatNotificationRows([
-              { label: "id", value: article.data.id },
-              { label: "status", value: article.data.status },
-              { label: "slug", value: articlePayload.slug },
-              { label: "title", value: articlePayload.title },
-              { label: "subtitle", value: subtitle },
-              { label: "author", value: articlePayload.author },
-              { label: "submitter_email", value: articlePayload.submitter_email },
-              { label: "municipality_name", value: articlePayload.municipality_name },
-              { label: "state", value: state },
-              { label: "sectors", value: articlePayload.sectors },
-              { label: "abstract", value: articlePayload.abstract },
-              { label: "article_text", value: articlePayload.article_text },
-              { label: "image", value: articlePayload.image },
-              { label: "image_credits", value: articlePayload.image_credits },
-              { label: "image_rights_confirmed", value: "ja" },
-              { label: "link", value: link },
-              { label: "instagram", value: instagram },
-              { label: "linkedin", value: linkedin },
-            ]),
-            "</table>",
-          ].join("\n"),
-        },
+      await sendDirectusMailFlow(notifyAdminFlowUrl, directusUrl, adminToken, {
+        to: notificationEmail,
+        subject: `Neues Erfolgsprojekt eingereicht: ${title}`,
+        body: [
+          "<p>Über das öffentliche Formular wurde ein neues Erfolgsprojekt eingereicht.</p>",
+          `<p><a href="${escapeHtml(directusItemUrl)}">Entwurf in Directus öffnen</a></p>`,
+          "<table>",
+          formatNotificationRows([
+            { label: "id", value: article.data.id },
+            { label: "status", value: article.data.status },
+            { label: "slug", value: articlePayload.slug },
+            { label: "title", value: articlePayload.title },
+            { label: "subtitle", value: subtitle },
+            { label: "author", value: articlePayload.author },
+            { label: "submitter_email", value: articlePayload.submitter_email },
+            { label: "municipality_name", value: articlePayload.municipality_name },
+            { label: "state", value: state },
+            { label: "sectors", value: articlePayload.sectors },
+            { label: "abstract", value: articlePayload.abstract },
+            { label: "article_text", value: articlePayload.article_text },
+            { label: "image", value: articlePayload.image },
+            { label: "image_credits", value: articlePayload.image_credits },
+            { label: "image_rights_confirmed", value: "ja" },
+            { label: "link", value: link },
+            { label: "instagram", value: instagram },
+            { label: "linkedin", value: linkedin },
+          ]),
+          "</table>",
+        ].join("\n"),
       }).catch((err) => {
         console.warn("[submit-article] Erfolgsprojekte notification email failed (non-fatal):", err);
       });

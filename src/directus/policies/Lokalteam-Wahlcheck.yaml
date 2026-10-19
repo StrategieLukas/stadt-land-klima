@@ -30,8 +30,17 @@ permissions:
       localteam:
         _in:
           - $CURRENT_USER.localteams.localteam_id
-    validation: null
-    presets: null
+    validation:
+      _and:
+        - salutation:
+            _nnull: true
+        - salutation:
+            _in:
+              - frau
+              - herr
+              - neutral
+    presets:
+      salutation: null
     fields:
       - id
       - name

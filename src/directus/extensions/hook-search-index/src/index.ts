@@ -1,4 +1,4 @@
-import { MeiliSearch } from 'meilisearch';
+import { Meilisearch } from 'meilisearch';
 import type { Database, Logger } from '@directus/types';
 
 const SKIP_BUNDLES = ['container', 'carousel', 'directus_page', 'vega_chart', 'page_nav'];
@@ -269,7 +269,7 @@ export default (
     };
   },
 ) => {
-  const ms = new MeiliSearch({
+  const ms = new Meilisearch({
     host: env.MEILISEARCH_URL || 'http://meilisearch:7700',
     apiKey: env.MEILISEARCH_MASTER_KEY || env.MEILI_MASTER_KEY || '',
   });
@@ -285,14 +285,14 @@ export default (
 
   /**
    * Deletes a document from the index.
-   * MeiliSearch raises an error when the document does not exist; we suppress
+   * Meilisearch raises an error when the document does not exist; we suppress
    * only that specific case and re-log everything else.
    */
   async function remove(id: string): Promise<void> {
     try {
       await index.deleteDocument(id);
     } catch (e: any) {
-      // MeiliSearch returns "document_not_found" for missing docs — not a real error.
+      // Meilisearch returns "document_not_found" for missing docs — not a real error.
       if (e?.code !== 'document_not_found') {
         logger.error('[search-index] delete failed:', e?.message ?? e);
       }

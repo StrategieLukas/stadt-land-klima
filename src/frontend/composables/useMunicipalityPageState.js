@@ -69,6 +69,13 @@ export function useMunicipalityPageState({
 }) {
   const score = directusData?.municipalityScore
 
+  function hasValidPreviewToken(municipality) {
+    const token = municipality?.preview_token
+    if (typeof token !== 'string' || !token) return false
+    return route.query.preview === token ||
+      (route.query.preview === 'true' && route.query.preview_token === token)
+  }
+
   const pageView = computed(() => {
     // ── A: Directus score record exists ──────────────────────────────────────
     if (score) {
@@ -80,12 +87,11 @@ export function useMunicipalityPageState({
       }
 
       // A1: Preview-locked (unverified creator, no matching preview token)
-      // Requires both ?preview=true AND ?preview_token=<token> to bypass — only the
-      // Directus preview button should ever generate a URL with these parameters.
+      // Directus generates ?preview=<token>; also accept the explicit flag/token form.
       if (
         muni.status !== 'published' &&
         !muni.creator_verified &&
-        !(route.query.preview === 'true' && route.query.preview_token === muni.preview_token)
+        !hasValidPreviewToken(muni)
       ) return PAGE_VIEWS.PREVIEW_LOCKED
 
       // A2: Draft but unlocked (creator_verified or matching preview_token)
@@ -103,7 +109,7 @@ export function useMunicipalityPageState({
       muniBySlug &&
       muniBySlug.status !== 'published' &&
       !muniBySlug.creator_verified &&
-      !(route.query.preview === 'true' && route.query.preview_token === muniBySlug.preview_token)
+      !hasValidPreviewToken(muniBySlug)
     ) return PAGE_VIEWS.PREVIEW_LOCKED
 
     // ── C / D / E: SLZ look-up ────────────────────────────────────────────────

@@ -203,7 +203,7 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const directusUrl =
     (config.directusServerUrl as string) || (config.public.serverDirectusUrl as string) || "http://directus:8055";
-  const directusToken = config.public.directusToken as string | undefined;
+  const directusToken = (config.directusFrontendServerToken as string) || (config.public.directusToken as string);
   let response: DirectusEventResponse;
 
   try {

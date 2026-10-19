@@ -19,6 +19,28 @@ Or call the suite directly:
 
 `run_tests.sh` installs local npm dependencies on first run and launches the TypeScript runner with `tsx`.
 
+Mail webhook authorization is part of the full suite. It checks anonymous,
+Frontend, LokalteamMitglied and LokalteamAdmin rejection before any mail operation,
+and administrator access. Without an SMTP capture, the administrator probe uses
+empty recipients to avoid sending test messages and checks the flow's execution
+steps instead. `npm run test:mail-client` separately tests the Nuxt caller's
+credential handling, private destination routing (including public URL aliases),
+redirects and failures.
+
+For delivery checks, point a disposable development Directus deployment at a
+local Mailpit SMTP server, then run this from the repository root:
+
+```bash
+TEST_MAILPIT_URL=http://127.0.0.1:18025 ./bin/test_dev.sh
+```
+
+The capture API
+must belong to that same test SMTP server; keep it bound to loopback. The suite
+then verifies successful authorized webhook delivery and both registration mails,
+including the welcome activation link. Restore the development SMTP configuration
+and remove captured messages after testing. This does not test production mail
+delivery or inbox placement. Never direct these capture checks to production.
+
 The focused Blökkli browser regression runs separately against the development
 stack (`localhost:8080` and `localhost:8081`):
 

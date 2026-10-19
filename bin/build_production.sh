@@ -19,6 +19,7 @@ for arg in "$@"; do
       echo "Options:
 --no-directus-build  skip the Directus image
 --no-frontend-build  skip the frontend image"
+      echo "The maintenance image is rebuilt with any selected application image."
       exit 0
       ;;
     *)
@@ -41,6 +42,8 @@ if ((${#BUILD_SERVICES[@]} == 0)); then
   echo "No production images selected for rebuilding."
   exit 0
 fi
+
+BUILD_SERVICES+=(maintenance)
 
 echo "Rebuilding production images without Docker build cache..."
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml build \

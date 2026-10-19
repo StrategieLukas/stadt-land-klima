@@ -132,6 +132,7 @@ Its `$el` is a Vue comment node, not an HTMLElement. To get the rendered DOM:
 
 ----------
 Ensure you obey common coding standards and do not reinvent the wheel for every new task.
+DO NOT update Directus beyond 11.17.4
 
 ## Key rules before implementing
 1. See src/frontend/tailwind.config.js for common colors and "Styleguide mobil"

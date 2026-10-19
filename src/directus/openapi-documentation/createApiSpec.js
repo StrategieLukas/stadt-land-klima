@@ -3,6 +3,7 @@ import fs from "fs";
 import https from "https";
 import http from "http";
 import path from "path";
+import { fileURLToPath } from "node:url";
 import { createDirectus, staticToken, rest, schemaSnapshot } from "@directus/sdk";
 
 /**
@@ -10,7 +11,7 @@ import { createDirectus, staticToken, rest, schemaSnapshot } from "@directus/sdk
  */
 function readTokenFromEnv() {
   // Resolve .env path relative to the openapi-documentation directory
-  const envPath = path.resolve(__dirname, "../.env");
+  const envPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.env");
   const content = fs.readFileSync(envPath, "utf8");
   const match = content.match(/^CLI_DIRECTUS_STATIC_TOKEN\s*=\s*(.+)$/m);
   if (!match) {

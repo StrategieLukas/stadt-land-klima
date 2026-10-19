@@ -17,7 +17,8 @@ services:
       SLK_ENV: production
 
   maintenance:
-    image: nginx:1.27-alpine
+    build:
+      context: ./docker/maintenance
     restart: unless-stopped
     ports:
       - "9090:80"

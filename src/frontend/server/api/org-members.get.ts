@@ -1,7 +1,7 @@
 export default defineEventHandler(async () => {
   const config = useRuntimeConfig()
   const baseUrl: string = (config.directusServerUrl as string) || 'http://directus:8055'
-  const token: string = (config.public.directusToken as string) || ''
+  const token: string = (config.directusFrontendServerToken as string) || (config.public.directusToken as string) || ''
 
   const result = await $fetch<{ data: unknown[] }>(
     `${baseUrl}/users`,

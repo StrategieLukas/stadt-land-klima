@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { sendDirectusMailFlow } from '../utils/sendDirectusMailFlow';
 
 type RegistrationStepKey = 'user' | 'team' | 'email';
 type RegistrationSteps = Record<RegistrationStepKey, boolean> & {
@@ -452,24 +453,20 @@ export default defineEventHandler(async (event) => {
     console.warn('[register-municipality] DIRECTUS_FLOW_NOTIFY_ADMIN not configured — skipping admin notification');
   } else {
     try {
-      await $fetch(notifyAdminFlowUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: {
-          to: adminEmail,
-          subject: `Neues Lokalteam registriert: ${municipalityName.trim()}`,
-          body: [
-            `<p>Ein neues Lokalteam hat sich registriert:</p>`,
-            `<ul>`,
-            `<li><strong>Name:</strong> ${firstName.trim()} ${lastName.trim()}</li>`,
-            `<li><strong>E-Mail:</strong> ${email.trim()}</li>`,
-            `<li><strong>Organisation:</strong> ${organisation?.trim() ?? '—'}</li>`,
-            `<li><strong>Gemeinde:</strong> ${municipalityName.trim()} (ARS: ${ars.trim()})</li>`,
-            `</ul>`,
-            `<p><a href="${directusPublicUrl}/admin/users/${userId}">Account in Directus öffnen und verifizieren →</a></p>`,
-            previewUrl ? `<p><a href="${previewUrl}">Vorschau der Gemeinde-Seite →</a></p>` : '',
-          ].join('\n'),
-        },
+      await sendDirectusMailFlow(notifyAdminFlowUrl, directusUrl, adminToken, {
+        to: adminEmail,
+        subject: `Neues Lokalteam registriert: ${municipalityName.trim()}`,
+        body: [
+          `<p>Ein neues Lokalteam hat sich registriert:</p>`,
+          `<ul>`,
+          `<li><strong>Name:</strong> ${firstName.trim()} ${lastName.trim()}</li>`,
+          `<li><strong>E-Mail:</strong> ${email.trim()}</li>`,
+          `<li><strong>Organisation:</strong> ${organisation?.trim() ?? '—'}</li>`,
+          `<li><strong>Gemeinde:</strong> ${municipalityName.trim()} (ARS: ${ars.trim()})</li>`,
+          `</ul>`,
+          `<p><a href="${directusPublicUrl}/admin/users/${userId}">Account in Directus öffnen und verifizieren →</a></p>`,
+          previewUrl ? `<p><a href="${previewUrl}">Vorschau der Gemeinde-Seite →</a></p>` : '',
+        ].join('\n'),
       });
       steps.notify = true;
     } catch (err) {
@@ -485,22 +482,19 @@ export default defineEventHandler(async (event) => {
       const tutorialUrl = (config.welcomeEmailTutorialUrl as string) || '';
       const calendarUrl = (config.welcomeEmailCalendarUrl as string) || '';
       const signalUrl = (config.welcomeEmailSignalUrl as string) || '';
-      await $fetch(welcomeEmailFlowUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: {
-          to: email.trim(),
-          subject: `Willkommen bei Stadt.Land.Klima! – Dein Lokalteam für ${municipalityName.trim()} ist eingerichtet`,
-          template: 'email-template-welcome-new-localteam',
-          data: {
-            firstName: firstName.trim(),
-            municipalityName: municipalityName.trim(),
-            passwordResetUrl,
-            tutorialUrl,
-            calendarUrl,
-            signalUrl,
-            backendUrl: directusPublicUrl,
-          },
+      await sendDirectusMailFlow(welcomeEmailFlowUrl, directusUrl, adminToken, {
+        to: email.trim(),
+        subject: `Willkommen bei Stadt.Land.Klima! – Dein Lokalteam für ${municipalityName.trim()} ist eingerichtet`,
+        // Retained for deployments that update Nuxt before importing the protected flow.
+        template: 'email-template-welcome-new-localteam',
+        data: {
+          firstName: firstName.trim(),
+          municipalityName: municipalityName.trim(),
+          passwordResetUrl,
+          tutorialUrl,
+          calendarUrl,
+          signalUrl,
+          backendUrl: directusPublicUrl,
         },
       });
       steps.welcome = true;

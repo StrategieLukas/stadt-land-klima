@@ -169,7 +169,8 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         await filterPage.locator('.slk-filter-panel .slk-filter-pill:visible').filter({ hasText: emptyTitle }).waitFor();
         assert(await filterPage.locator('.slk-filter-panel .slk-filter-pill:visible').filter({ hasText: emptyTitle }).count() === 1, 'A published tour should remain selectable before any public stop or project is available');
         assertIncludes(await filterPage.locator('body').innerText(), 'Für diese Tour sind noch keine Erfolgsprojekte veröffentlicht.', 'Empty tour filter should explain the absence of published projects');
-        assert(await filterPage.locator(`a.canonical-button[href="/projects/tours/${slug}"]`).count() === 1, 'Tour hero link should use the canonical button');
+        const heroLinkCount = await filterPage.locator(`header a.canonical-button[href="/projects/tours/${slug}"]`).count();
+        assert(heroLinkCount === 1, `Tour hero link should use the canonical button; found ${heroLinkCount}`);
         assert(await filterPage.locator(`header a[href="/projects/tours/${emptySlug}"]`).count() === 1, 'A featured published tour should be promoted even before stops are published');
         await admin.updateItem('success_project_tours', ids.series.id, { featured_on_projects: false });
         await filterPage.reload({ waitUntil: 'networkidle' });

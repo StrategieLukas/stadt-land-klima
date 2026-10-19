@@ -127,6 +127,62 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 
 # Deployment Notes
 
+## Dependency maintenance and security review
+
+The dependency/security review and remaining remediation work are documented in
+[SECURITY_REVIEW.md](SECURITY_REVIEW.md). Directus stays on **11.17.4**. The
+frontend uses Node 24; the Directus image retains Node 22 with its current patch
+release. Production builds also rebuild the OS-updated maintenance nginx image. Use the Docker runtimes or a supported Node 24 release for local npm
+commands, and install from committed lockfiles with `npm ci`.
+
+[NUXT_SECURITY_ARCHITECTURE.md](NUXT_SECURITY_ARCHITECTURE.md) explains SSR,
+hydration, browser/server execution, Directus credential exposure, and the design
+for keeping privileged CMS access behind authorized Nuxt endpoints.
+
+[FRONTEND_ACCESS_SPLIT_PLAN.md](FRONTEND_ACCESS_SPLIT_PLAN.md) defines the planned
+private service/public access split, server-side migration, regression gates,
+credential retirement and safe response boundaries. The plan is not an
+implementation-complete status report.
+
+Rebuild each extension after changing its dependencies, then restart Directus so
+it loads the rebuilt `dist` bundles. Run `cd bin && ./test_dev.sh`, the Blökkli
+persistence test in `bin/test_suite`, the CLI tour-migration test inside Directus,
+and the CSV tests in `src/directus/extensions/hook-measure-rating-reports`.
+Verify a frontend production build as well as `curl http://localhost:8080`.
+
+The PostgreSQL/PostGIS and Meilisearch server upgrades require explicit,
+data-preserving migrations; do not change their image tags over existing data
+directories. Nuxt 4 and Tailwind 4/DaisyUI 5 also need coordinated editor/theme
+migrations. The review explains these compatibility exceptions and the security
+consequences of retaining them.
+
+## Authenticated registration mail flows
+
+`notifyAdminNewLocalteam` and `sendWelcomeNewLocalteam` require an authenticated
+Directus administrator before any mail operation. Nuxt sends its existing private
+`DIRECTUS_ADMIN_TOKEN`; never use the browser-visible `DIRECTUS_TOKEN` for this.
+The welcome flow uses a fixed template. Flow UUIDs and the emailed activation
+link stay unchanged. The article-submission notification uses the same protected
+admin flow and has also been updated.
+
+Deploy the updated Nuxt callers first, then import the protected YAML flows. The
+caller retains the fixed template field so it also works with the previous flow
+during that deployment sequence. Importing the protected flows first requires
+temporarily disabling registration until the callers are updated. Both
+`DIRECTUS_FLOW_NOTIFY_ADMIN` and `DIRECTUS_FLOW_WELCOME_EMAIL` can retain public
+Directus URL aliases. The server extracts only their flow UUIDs and sends all
+authenticated requests through `SERVER_DIRECTUS_URL`; redirects are rejected to
+protect the private credential. After importing, use each flow's actual UUID from the
+Directus Flows UI; the example `<flow-id>` placeholders cannot send mail.
+Existing SMTP settings continue to apply. These webhooks
+are called by the Nuxt registration workflow; manually creating a localteam in
+the CMS does not independently trigger them.
+
+Run `npm run test:mail-client` from `bin/test_suite` for the mail-client checks.
+The full suite tests both flows against public, Frontend, local-team and
+administrator identities. See `bin/test_suite/README.md` for optional SMTP capture
+that also verifies registration delivery and activation-link content.
+
 - `./bin/update_production.sh` imports the Directus YAML configuration and fixture content after the services restart. To import without rebuilding, run `./bin/import-all.sh` from any directory.
 - To apply code-first Directus configuration followed by pending JavaScript
   migrations, run this from the repository root while the production stack is

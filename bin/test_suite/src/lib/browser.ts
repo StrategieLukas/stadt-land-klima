@@ -10,6 +10,7 @@ export async function newContext(
   options: BrowserContextOptions = {},
 ): Promise<BrowserContext> {
   return browser.newContext({
+    locale: 'de-DE',
     viewport: { width: 1440, height: 1000 },
     ignoreHTTPSErrors: true,
     ...options,

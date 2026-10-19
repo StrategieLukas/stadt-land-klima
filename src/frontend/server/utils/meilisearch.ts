@@ -1,11 +1,11 @@
-import { MeiliSearch } from 'meilisearch'
+import { Meilisearch } from 'meilisearch'
 
-let client: MeiliSearch | null = null
+let client: Meilisearch | null = null
 
-export function getMeilisearch(): MeiliSearch {
+export function getMeilisearch(): Meilisearch {
   if (!client) {
     const config = useRuntimeConfig()
-    client = new MeiliSearch({
+    client = new Meilisearch({
       host: (config.meilisearchUrl as string) || 'http://meilisearch:7700',
       apiKey: config.meilisearchMasterKey as string,
     })

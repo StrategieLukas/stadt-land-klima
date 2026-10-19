@@ -12,7 +12,7 @@ services:
       retries: 10
 
   cache:
-    image: redis:6
+    image: redis:8.8.3-alpine
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
