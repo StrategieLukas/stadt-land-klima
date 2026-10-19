@@ -158,7 +158,6 @@
 </template>
 
 <script setup>
-import { createItem, updateItem } from '@directus/sdk'
 import {
   getWahlcheckAnswerOptions,
   usesSimpleWahlcheckAnswerMode,
@@ -166,71 +165,39 @@ import {
 import { formatBerlinDate, getBerlinEndOfDay } from '~/shared/eventDateTime'
 
 const route = useRoute()
-const { $directus, $readItems, $readItem, $t, $locale } = useNuxtApp()
+const { $t, $locale } = useNuxtApp()
 
-const accessToken = route.params.access_token
+const accessToken = String(route.params.access_token)
 
 const answers = ref({})
 const explanations = ref({}) // Store reasoning for each question
-const existingAnswerIds = ref({}) // Store existing answer IDs by question ID
 const submitting = ref(false)
 const submitted = ref(false)
 
-const { data, pending, error } = await useAsyncData(`thesen-${accessToken}`, async () => {
-  try {
-    const candidates = await $directus.request($readItems('candidate', {
-      filter: { access_token: { _eq: accessToken } },
-      fields: ['*', 'election.*', 'election.localteam.*', 'election.localteam.municipality_id.*']
-    })).catch(() => [])
-
-    const candidate = candidates?.[0] || null
-    if (!candidate) return { candidate: null, localteam: null, questions: [], existingAnswers: [] }
-
-    const localteam = candidate.election?.localteam
-
-    if (!localteam) return { candidate, localteam: null, questions: [], existingAnswers: [] }
-
-    const questions = await $directus.request($readItems('questions', {
-      filter: {
-        election: { _eq: candidate.election.id },
-        status: { _eq: 'published' }
-      },
-      sort: ['date_created']
-    }))
-
-    let existingAnswers = []
-    if (questions && questions.length > 0) {
-      existingAnswers = await $directus.request($readItems('answers', {
-        filter: {
-          candidate: { _eq: candidate.id },
-          question: { _in: questions.map(q => q.id) }
-        }
-      }))
-    }
-
-    return { localteam, candidate, questions, existingAnswers }
-  } catch (e) {
-    console.error('AsyncData error:', e)
-    throw e
+const { data, pending, error } = await useAsyncData(
+  `thesen-${accessToken}`,
+  async () => {
+    const result = await $fetch(`/api/candidate/${encodeURIComponent(accessToken)}`)
+    return result
+  },
+  {
+    transform: (result) => {
+      // Initialize answers from existing data
+      if (result?.existingAnswers) {
+        result.existingAnswers.forEach((ans) => {
+          const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
+          answers.value[questionId] = ans.response
+          explanations.value[questionId] = ans.explanation || ''
+        })
+      }
+      return result
+    },
   }
-})
+)
 
-// Initialize answers and existingAnswerIds from fetched data
-watchEffect(() => {
-  if (data.value?.existingAnswers) {
-    data.value.existingAnswers.forEach(ans => {
-      // Directus returns related items as objects or IDs depending on depth
-      const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
-      answers.value[questionId] = ans.response
-      explanations.value[questionId] = ans.explanation || ''
-      existingAnswerIds.value[questionId] = ans.id
-    })
-  }
-})
-
-const localteam = computed(() => data.value?.localteam)
 const candidate = computed(() => data.value?.candidate)
-const candidateState = computed(() => localteam.value?.municipality_id?.state || '')
+const candidateState = computed(() => candidate.value?.election?.localteam?.municipality_id?.state || '')
+const localteam = computed(() => candidate.value?.election?.localteam)
 const questions = computed(() => data.value?.questions || [])
 const isPartyElection = computed(() => candidate.value?.election?.is_party_election === true)
 const isSimpleAnswerMode = computed(() => usesSimpleWahlcheckAnswerMode(candidate.value?.election))
@@ -280,38 +247,16 @@ async function submitAnswers() {
 
   submitting.value = true
   try {
-    const candidateUuid = candidate.value.id
-    const now = new Date().toISOString()
+    const answerPayload = questions.value.map(q => ({
+      question: q.id,
+      response: answers.value[q.id],
+      explanation: explanations.value[q.id] || undefined,
+    }))
 
-    // Process answers sequentially to avoid connection pool exhaustion
-    for (const q of questions.value) {
-      const payload = {
-        question: q.id,
-        candidate: candidateUuid,
-        response: answers.value[q.id],
-        explanation: explanations.value[q.id]
-      }
-
-      const existingId = existingAnswerIds.value[q.id]
-      if (existingId) {
-        await $directus.request(updateItem('answers', existingId, payload))
-      } else {
-        await $directus.request(createItem('answers', payload))
-      }
-    }
-
-    // Update candidate indicator and timestamps
-    const candidateUpdate = {
-      has_answered: true,
-      time_last_edited: now
-    }
-
-    // Only set time_first_submitted if it's the first time
-    if (!candidate.value?.time_first_submitted) {
-      candidateUpdate.time_first_submitted = now
-    }
-
-    await $directus.request(updateItem('candidate', candidateUuid, candidateUpdate))
+    await $fetch(`/api/candidate/${encodeURIComponent(accessToken)}/answers`, {
+      method: 'POST',
+      body: { answers: answerPayload },
+    })
 
     submitted.value = true
     window.scrollTo({ top: 0, behavior: 'smooth' })

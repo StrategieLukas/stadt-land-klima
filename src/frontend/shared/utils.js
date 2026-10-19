@@ -12,6 +12,7 @@ export function buildLocationString(municipality_name, state) {
 }
 
 export function isRaster(type) {
+  if (!type) return false;
   return type.startsWith('image/') && !type.includes('svg');
 }
 

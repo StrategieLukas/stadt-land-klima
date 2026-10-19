@@ -60,19 +60,31 @@ export async function runMailWebhookSecurityFlow(
     },
   });
   assertEqual(flows.length, 2, 'Both registration mail flows must exist');
-  // Directus masks stored user tokens, even in administrator read responses.
-  // Exercise the credential actually supplied to visitors by Nuxt instead.
-  const homepage = await fetch(fixture.config.frontendUrl);
-  assert(homepage.ok, 'Frontend configuration must be reachable');
-  const match = (await homepage.text()).match(
-    /"?directusToken"?\s*:\s*("(?:[^"\\]|\\.)*")/,
-  );
+  // The browser no longer holds a Directus token — all content goes through
+  // Nuxt server routes. Use the Frontend-Public token from the env files
+  // to verify that the public identity cannot trigger mail webhooks.
+  const { readFileSync } = await import('node:fs');
+  const { resolve, dirname } = await import('node:path');
+  const frontendEnvPath = resolve(dirname(fixture.config.envPath), '..', 'frontend', '.env');
+  let frontendEnv: Record<string, string> = {};
+  try {
+    const content = readFileSync(frontendEnvPath, 'utf8');
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+      if (match) frontendEnv[match[1]] = match[2]?.replace(/^"|"$/g, '') ?? '';
+    }
+  } catch { /* frontend .env not found */ }
+  const frontendToken = fixture.config.env['DIRECTUS_FRONTEND_PUBLIC_TOKEN']
+    || frontendEnv['DIRECTUS_FRONTEND_PUBLIC_TOKEN']
+    || fixture.config.env['DIRECTUS_TOKEN']
+    || frontendEnv['DIRECTUS_TOKEN']
+    || '';
   assert(
-    match,
-    'A browser Frontend credential is required to test its webhook boundary',
+    frontendToken,
+    'A Frontend-Public credential is required to test the webhook boundary',
   );
-  const frontendToken: string = JSON.parse(match[1]);
-  assert(frontendToken, 'The browser Frontend credential must be nonempty');
 
   const callers = [
     ['anonymous', new DirectusClient(fixture.config.backendUrl)],

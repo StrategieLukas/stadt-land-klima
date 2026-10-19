@@ -33,6 +33,7 @@ export default defineNuxtConfig({
     directusServerUrl: process.env.SERVER_DIRECTUS_URL ?? "http://directus:8055",
     directusAdminToken: process.env.DIRECTUS_ADMIN_TOKEN,
     directusFrontendServerToken: process.env.DIRECTUS_FRONTEND_SERVER_TOKEN,
+    directusPreviewToken: process.env.DIRECTUS_PREVIEW_TOKEN,
     appPublicUrl: process.env.PUBLIC_URL,
     directusPublicUrl: process.env.CLIENT_DIRECTUS_URL,
     adminNotificationEmail: process.env.ADMIN_NOTIFICATION_EMAIL,
@@ -56,10 +57,8 @@ export default defineNuxtConfig({
     cartoBasemapApiKey: process.env.CARTO_BASEMAP_API_KEY,
     // Keys within public, will be also exposed to the client-side
     public: {
-      // Legacy shared token — kept temporarily as server-side fallback during migration.
-      // Browser clients should use directusFrontendPublicToken instead.
-      directusToken: process.env.DIRECTUS_TOKEN,
-      directusFrontendPublicToken: process.env.DIRECTUS_FRONTEND_PUBLIC_TOKEN,
+      // Browser Directus tokens removed — all content data is served through Nuxt server routes.
+      // The Frontend-Public policy is limited to directus_files/directus_folders read only.
       clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL,
       serverDirectusUrl: process.env.SERVER_DIRECTUS_URL,
       appEnv: process.env.APP_ENV,
@@ -97,6 +96,10 @@ export default defineNuxtConfig({
         headers: { "Referrer-Policy": "strict-origin-when-cross-origin" },
       },
       "/api/area-children": { isr: 86400 },
+      // The HTML hydration payload can contain an authorized draft too.
+      "/municipalities/**": {
+        headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" },
+      },
     },
     rollupConfig: {
       plugins: [

@@ -190,6 +190,8 @@ permissions:
       - has_answered
       - time_first_submitted
       - time_last_edited
+      - access_token
+      - email
   - collection: candidate
     action: update
     permissions:
@@ -310,6 +312,9 @@ permissions:
     fields:
       - id
       - descriptor
+      - name
+      - slug
+      - status
       - custom_logo
       - sharepic
       - sharepic_dark
@@ -491,6 +496,7 @@ permissions:
       - catalog_version
       - must_be_rated_again
       - choices_rating
+      - status
       - image
       - image_credits
   - collection: municipalities
@@ -663,6 +669,7 @@ permissions:
       - date_updated
       - why_not_applicable
       - status
+      - approved
       - measure_published
   - collection: success_project_tour_stops
     action: read

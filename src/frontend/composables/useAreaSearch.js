@@ -147,18 +147,14 @@ export function useAreaSearch({
         let municipalities = []
         if (identityFilters.length > 0) {
           try {
-            municipalities = await $directus.request(
-              $readItems('municipalities', {
-                filter: { _or: identityFilters },
-                fields: [
-                  'ars',
-                  'slug',
-                  'localteam_id',
-                  { scores: ['published', 'percentage_rated', 'score_total', { catalog_version: ['id', 'name'] }] },
-                ],
-                limit: -1,
-              }),
-            )
+            const arsCodes = identityFilters.find(f => f.ars)?.ars?._in || []
+            const candidateSlugs = identityFilters.find(f => f.slug)?.slug?._in || []
+            const query = {}
+            if (arsCodes.length) query.ars = arsCodes.join(',')
+            if (candidateSlugs.length) query.slugs = candidateSlugs.join(',')
+            if (requestedCatalogId) query.v = statusCatalogRef.value?.name || ''
+            const result = await $fetch('/api/public/area-municipalities', { query })
+            municipalities = result.municipalities || []
           } catch {
             municipalities = []
           }
@@ -203,14 +199,12 @@ export function useAreaSearch({
       let localteamByArs = {}
       if (muniArsCodes.length > 0) {
         try {
-          const rows = await $directus.request(
-            $readItems('municipalities', {
-              filter: { ars: { _in: muniArsCodes } },
-              fields: ['ars', 'localteam_id'],
-              limit: muniArsCodes.length,
-            })
-          )
-          rows.forEach(r => { if (r.ars) localteamByArs[r.ars] = r.localteam_id })
+          const result = await $fetch('/api/public/area-municipalities', {
+            query: { ars: muniArsCodes.join(',') },
+          })
+          ;(result.municipalities || []).forEach(r => {
+            if (r.ars) localteamByArs[r.ars] = r.localteam_id
+          })
         } catch {
           // Silently ignore — falls back to slug-only detection
         }

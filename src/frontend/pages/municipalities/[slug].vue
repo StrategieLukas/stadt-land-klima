@@ -491,11 +491,9 @@
 
 
 <script setup>
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const router = useRouter();
 
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
-import { fetchMunicipalityData } from '~/shared/directus-calls/complex-data-fetches.js';
 import { useMunicipalityPageState } from '~/composables/useMunicipalityPageState.js';
 import { getStateMunicipalElectionYear } from '~/shared/utils.js';
 import { useReferrer } from '~/composables/useReferrer';
@@ -507,7 +505,42 @@ if (typeof route.params.slug === 'string' && route.params.slug.includes('.')) {
   throw createError({ statusCode: 404, statusMessage: 'Not Found' })
 }
 
-const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+// Remount for catalog/preview changes so children that capture initial props
+// update too. This uses the caller's own URL, never a stored Directus credential.
+definePageMeta({ key: route => route.fullPath })
+const suppliedPreview = route.query.preview === 'true'
+  ? route.query.preview_token
+  : route.query.preview
+const previewToken = typeof suppliedPreview === 'string' ? suppliedPreview : ''
+const municipalityPath = encodeURIComponent(String(route.params.slug))
+const publicEndpoint = `/api/public/municipalities/${municipalityPath}`
+// useId is SSR/hydration-stable and changes with each page instance. Never use
+// the raw token as an async-data key or reuse a previous authorized navigation.
+const pageDataKey = `municipality-page-${useId()}`
+const { data: pageData, error: pageDataError } = await useFetch(
+  previewToken ? `/api/previews/municipality/${municipalityPath}` : publicEndpoint,
+  {
+    key: pageDataKey,
+    getCachedData: (key, app) => app.isHydrating ? app.payload.data[key] : undefined,
+    query: { v: typeof route.query.v === 'string' ? route.query.v : undefined },
+    headers: previewToken ? { 'x-preview-token': previewToken } : undefined,
+  },
+)
+onUnmounted(() => clearNuxtData(pageDataKey))
+// Invalid preview credentials show the ordinary locked page, while the API
+// itself rejects them. Upstream failures must not silently become public data.
+if (pageDataError.value?.statusCode === 404 && previewToken) {
+  pageData.value = await $fetch(publicEndpoint, {
+    query: { v: typeof route.query.v === 'string' ? route.query.v : undefined },
+  })
+} else if (pageDataError.value) {
+  throw createError({ statusCode: 502, statusMessage: 'Municipality data unavailable' })
+}
+const selectedCatalogVersion = pageData.value.selectedCatalogVersion
+const directusData = pageData.value.directusData
+const previewAuthorized = pageData.value.previewAuthorized
+const directusMuniBySlug = ref(pageData.value.municipality || false)
+const directusMuniByArs = ref(pageData.value.municipality?.localteam_id ? pageData.value.municipality : false)
 const { backHref, backLabel } = useReferrer(
   computed(() => `/municipalities?v=${selectedCatalogVersion.name}`),
   computed(() => $t('municipality.back_label')),
@@ -520,7 +553,6 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
   });
 }
 
-const directusData = await fetchMunicipalityData($directus, $readItems, route.params.slug, selectedCatalogVersion.id, route.query.preview === 'true');
 
 // If no Directus data, fetch the area through the Nuxt server endpoint so the
 // same lookup works during SSR and client-side navigation.
@@ -550,56 +582,7 @@ const slzAreaLookup = useAsyncData(
   }
 );
 
-// When there is no score data, directly fetch the municipality by slug to check
-// preview_token / creator_verified (gates locked preview for newly registered municipalities).
-const directusMuniBySlugLookup = useAsyncData(
-  `directus-muni-slug-${route.params.slug}`,
-  async () => {
-    if (directusData?.municipalityScore) return false;
-    try {
-      const results = await $directus.request(
-        $readItems('municipalities', {
-          filter: { slug: { _eq: route.params.slug } },
-          fields: ['id', 'name', 'slug', 'status', 'preview_token', 'creator_verified', 'localteam_id', 'ars'],
-          limit: 1,
-        })
-      );
-      return results?.[0] ?? false;
-    } catch (_) {
-      return false;
-    }
-  }
-);
-
-// When the slug is an ARS (unpublished municipality), check if Directus has
-// a municipality record with that ARS that already has a localteam.
-const directusMuniByArsLookup = useAsyncData(
-  `directus-muni-ars-${route.params.slug}`,
-  async () => {
-    if (directusData?.municipalityScore) return false;
-    try {
-      const results = await $directus.request(
-        $readItems('municipalities', {
-          filter: { ars: { _eq: route.params.slug }, localteam_id: { _nnull: true } },
-          fields: ['id', 'name', { localteam_id: ['id', 'date_created'] }],
-          limit: 1,
-        })
-      );
-      return results?.[0] ?? false;
-    } catch (_) {
-      return false;
-    }
-  }
-);
-
-// These lookups determine whether the route is valid. Waiting for all of them
-// prevents SSR from serialising an unresolved/false area result and prevents
-// the immediate 404 watcher from winning a race against Directus.
-const [
-  { data: slzArea, pending: slzPending },
-  { data: directusMuniBySlug },
-  { data: directusMuniByArs },
-] = await Promise.all([slzAreaLookup, directusMuniBySlugLookup, directusMuniByArsLookup]);
+const { data: slzArea, pending: slzPending } = await slzAreaLookup;
 
 // Centralised page-view state. All 9 cases are documented in useMunicipalityPageState.js.
 // Debug tip: console.log(pageView.value) to see which view is active.
@@ -611,6 +594,7 @@ const { pageView, isRatedView, hasLocalteam, PAGE_VIEWS: PV } = useMunicipalityP
   slzPending,
   directusMuniByArs,
   route,
+  previewAuthorized,
 });
 
 // Show 404 once all look-ups have settled and nothing was found.

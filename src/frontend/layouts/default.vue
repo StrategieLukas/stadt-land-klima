@@ -192,31 +192,15 @@ onUnmounted(() => {
 // re-fetching Directus on every page change. These datasets change rarely.
 const cachedPayload = (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
 
-const { data: pages } = await useAsyncData(
-  "pages",
-  () => $directus.request($readItems("pages", { sort: "sort_order", limit: -1 })),
-  { getCachedData: cachedPayload, default: () => [] },
+const { data: layoutData } = await useAsyncData(
+  "site-layout",
+  () => $fetch("/api/public/site-layout"),
+  { getCachedData: cachedPayload, default: () => ({ pages: [], municipalities: [], navigationConfig: null }) },
 );
 
-const { data: publishedMunicipalities } = await useAsyncData(
-  "municipalities",
-  () =>
-    $directus.request(
-      $readItems("municipalities", {
-        fields: ["slug", "name"],
-        sort: "name",
-        filter: { status: { _eq: "published" } },
-        limit: -1,
-      }),
-    ),
-  { getCachedData: cachedPayload },
-);
-
-const { data: navigationConfig } = await useAsyncData(
-  "navigation_config",
-  () => $directus.request($readSingleton("navigation_config")).catch(() => null),
-  { getCachedData: cachedPayload },
-);
+const pages = computed(() => layoutData.value?.pages || []);
+const publishedMunicipalities = computed(() => layoutData.value?.municipalities || []);
+const navigationConfig = computed(() => layoutData.value?.navigationConfig);
 
 //MetaTags
 const description = ref("Stadt.Land.Klima!  Description");

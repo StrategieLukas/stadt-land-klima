@@ -277,12 +277,13 @@ async function assertPdfButtonGeneratesValidPdf(
   page: Page,
   fixture: TestFixture,
   label: string,
+  catalogVersion: string,
 ): Promise<void> {
   assert(fixture.municipality.slug, 'Fixture municipality must have a slug before PDF generation');
   const responsePromise = page.waitForResponse(
     (response) => (
       response.request().method() === 'POST'
-      && response.url().includes(`/pdf-service/municipality/${fixture.municipality.slug}/`)
+      && response.url().includes(`/api/pdf/municipality/${fixture.municipality.slug}`)
     ),
     { timeout: 90_000 },
   );
@@ -304,12 +305,9 @@ async function assertPdfButtonGeneratesValidPdf(
     `${label} PDF button response must advertise a non-empty PDF. Got ${advertisedLength} byte(s).`,
   );
 
-  const requestHeaders = response.request().headers();
-  const authorization = requestHeaders.authorization ?? requestHeaders.Authorization;
-  assert(authorization, `${label} PDF button request must include an authorization header`);
+  // Re-fetch the PDF via the same server route to validate the binary content
   const pdfResponse = await page.request.post(response.url(), {
-    headers: { Authorization: authorization },
-    data: { slug: fixture.municipality.slug },
+    data: { slug: fixture.municipality.slug, catalogVersion },
   });
   const body = await pdfResponse.body();
   const apiContentType = pdfResponse.headers()['content-type'] ?? '';
@@ -352,7 +350,7 @@ async function assertMunicipalityDetailPageFeatures(
       );
     }
 
-    await assertPdfButtonGeneratesValidPdf(page, fixture, label);
+    await assertPdfButtonGeneratesValidPdf(page, fixture, label, versionName);
     await page.waitForTimeout(500);
     assertNoVisibleErrorMessages(await visibleText(page), label);
     assertNoBrowserErrors();
@@ -1045,7 +1043,7 @@ export async function runRatingWahlcheckFlow(
     }
   });
 
-  await runner.step('Ratings: municipality preview follows the localteam admin verification', async () => {
+  await runner.step('Ratings: administrator verification propagates without publishing the preview', async () => {
     await fixture.admin.updateUser(fixture.localteamAdmin.id, { verified: true });
     const verifiedMunicipality = await waitFor(
       'municipality creator_verified=true after localteam admin verification',
@@ -1062,7 +1060,7 @@ export async function runRatingWahlcheckFlow(
     assertEqual(
       verifiedMunicipality.creator_verified,
       true,
-      'Verifying the localteam admin must unlock the municipality preview state',
+      'Verifying the localteam admin must update the municipality verification flag',
     );
 
     await fixture.admin.updateUser(fixture.localteamAdmin.id, { verified: false });
@@ -1081,7 +1079,7 @@ export async function runRatingWahlcheckFlow(
     assertEqual(
       resetMunicipality.creator_verified,
       false,
-      'Removing the localteam admin verification must relock the municipality preview state',
+      'Removing the localteam admin verification must reset the municipality verification flag',
     );
   });
 

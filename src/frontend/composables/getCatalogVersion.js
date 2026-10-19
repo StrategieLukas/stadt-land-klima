@@ -1,11 +1,10 @@
-export async function getCatalogVersion($directus, $readItems, route, showCurrentBackend = false) {
-  const versions = await $directus.request(
-    $readItems("measure_catalog", {
-      fields: ["id", "name", "isCurrentFrontend", "isCurrentBackend"],
-      filter: { hidden: { _eq: false } },
-      limit: -1,
-    })
-  );
+async function fetchCatalogs() {
+  const result = await $fetch("/api/public/catalogs");
+  return Array.isArray(result) ? result : (result.catalogs || []);
+}
+
+export async function getCatalogVersion(route, showCurrentBackend = false) {
+  const versions = await fetchCatalogs();
 
   if (!versions?.length) throw new Error("No catalog versions available");
 
@@ -24,31 +23,18 @@ export async function getCatalogVersion($directus, $readItems, route, showCurren
   return defaults[0];
 }
 
-export async function getCurrentFrontendCatalogVersion($directus, $readItems) {
-  const response = await $directus.request(
-    $readItems("measure_catalog", {
-      fields: ["id", "name", "isCurrentFrontend", "isCurrentBackend"],
-      filter: { hidden: { _eq: false }, isCurrentFrontend: { _eq: true } },
-      limit: -1,
-    })
-  );
-  return response?.[0];
+export async function getCurrentFrontendCatalogVersion() {
+  const versions = await fetchCatalogs();
+  return versions.find(v => v.isCurrentFrontend === true);
 }
 
-export async function getCurrentBackendCatalogVersion($directus, $readItems) {
-  const response = await $directus.request(
-    $readItems("measure_catalog", {
-      fields: ["id", "name", "isCurrentFrontend", "isCurrentBackend"],
-      filter: { hidden: { _eq: false }, isCurrentBackend: { _eq: true } },
-      limit: -1,
-    })
-  );
-
-  if (response?.length !== 1) {
+export async function getCurrentBackendCatalogVersion() {
+  const versions = await fetchCatalogs();
+  const matched = versions.filter(v => v.isCurrentBackend === true);
+  if (matched.length !== 1) {
     throw new Error("Exactly one visible catalog version with isCurrentBackend===true is required.");
   }
-
-  return response[0];
+  return matched[0];
 }
 
 // Fetches the catalog version and updates the URL to match it

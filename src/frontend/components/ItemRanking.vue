@@ -86,31 +86,23 @@ const colorClass = computed(() => {
   return c;
 });
 
-const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config
 const isGeneratingPdf = ref(false);
 
 async function fetchPDF() {
   if (isGeneratingPdf.value) return;
-  console.log("municipality: ", municipality)
   if (!municipality.slug) return;
 
   isGeneratingPdf.value = true;
   try {
-    const baseUrl = config.public.clientDirectusUrl;
-    const token = config.public.directusFrontendPublicToken;
-
-    const response = await fetch(`${baseUrl}/pdf-service/municipality/${municipality.slug}/${props.municipalityScore.catalog_version.name}`, {
+    const response = await $fetch(`/api/pdf/municipality/${municipality.slug}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+      body: {
+        slug: municipality.slug,
+        catalogVersion: props.municipalityScore.catalog_version?.name,
       },
-      body: JSON.stringify({ slug: municipality.slug }),
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const blob = await response.blob();
+    const blob = new Blob([response], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
 

@@ -329,7 +329,7 @@ import lodash from "lodash";
 import { isRaster } from "~/shared/utils";
 
 const { sortBy, last, get } = lodash;
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
 const onboardingAvatarUrl = computed(() => `${String(runtimeConfig.public.clientDirectusUrl || "").replace(/\/+$/, "")}/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96`);
 const rankingColumn = ref(null)
@@ -375,48 +375,44 @@ const route = useRoute();
 const router = useRouter();
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
-let selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+let selectedCatalogVersion = await getCatalogVersion(route);
 onMounted(() => {
   setCatalogVersionUrl(route, router, selectedCatalogVersion);
 });
 
-// Fetch all relevant municipalityScores from directus
-async function fetchMunicipalityScores(catalogVersionId) {
-  return await useAsyncData(`municipalities_ranking_scores_${catalogVersionId}`, () => {
-  return $directus.request(
-    $readItems("municipality_scores", {
-      fields: ["id", "catalog_version", "published", "rank", "score_total", "percentage_rated", "municipality.name", 
-      { municipality: ["id", "slug", "state", "municipality_type", "status", "geolocation", "date_updated"] }],
-      filter: { catalog_version: { _eq: catalogVersionId }, percentage_rated: { _gt: 0} },
-      limit: -1,
-      sort: "-score_total",
-    })
-  )
+// Fetch all relevant municipalityScores from server route
+let { data: municipalityScores } = await useAsyncData(`municipalities_ranking_scores_${selectedCatalogVersion.id}`, async () => {
+  const result = await $fetch('/api/public/municipalities', {
+    query: { v: selectedCatalogVersion.value?.name || selectedCatalogVersion.name, limit: 500 },
+  });
+  return (result.municipalities || []).map((m) => ({
+    id: m.id,
+    catalog_version: result.catalogVersion ? result.catalogVersion.id : null,
+    published: m.score?.published ?? false,
+    rank: m.score?.rank ?? 0,
+    score_total: m.score?.score_total ?? 0,
+    percentage_rated: m.score?.percentage_rated ?? 0,
+    municipality: {
+      id: m.id,
+      slug: m.slug,
+      name: m.name,
+      state: m.state,
+      municipality_type: m.municipality_type,
+      status: m.status,
+      geolocation: null,
+      date_updated: m.date_updated,
+      image: m.image,
+      image_credits: m.image_credits,
+    },
+  })).filter((item) => item.percentage_rated > 0)
+    .sort((a, b) => b.score_total - a.score_total);
 });
-};
-
-let { data: municipalityScores } = await fetchMunicipalityScores(selectedCatalogVersion.id);
 
 
 
-const { data: projects } = await useAsyncData("articles_ranking", () => {
-  return $directus.request(
-    $readItems("articles", {
-      fields: [
-        "slug",
-        "title",
-        "abstract",
-        "author",
-        "date_created",
-        "municipality_name",
-        "state",
-        { image: ["id", "type"] },
-        { organisation: ["id", "name", "logo", "link"] }
-      ],
-      sort: "-date_created",
-      limit: -1,
-    })
-  );
+const { data: projects } = await useAsyncData("articles_ranking", async () => {
+  const result = await $fetch('/api/public/articles', { query: { limit: 100, sort: '-date_created' } });
+  return result.articles || [];
 });
 
 
@@ -425,17 +421,8 @@ watch(
   () => route.query.v,
   async (newV, oldV) => {
     if (newV === oldV) return;
-    // Ignore the initial URL fixup from onMounted (setCatalogVersionUrl adding ?v= when absent)
     if (!oldV) return;
-
-    // Fetch new catalog version info
-    selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
-
-    // Refresh municipality scores with new version
-    const { data: newData } = await fetchMunicipalityScores(selectedCatalogVersion.id);
-    municipalityScores.value = newData.value;
-
-    // Optionally refresh articles too
+    await refreshNuxtData(/municipalities_ranking_scores/);
     await refreshNuxtData("articles_ranking");
   }
 );

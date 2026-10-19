@@ -58,7 +58,7 @@ const CONSENT_COLLECTIONS = new Set(['user_consent', 'agreement_versions']);
 
 // Role names whose members are exempt from the consent gate. Keep in sync with
 // your Directus role configuration.
-const EXEMPT_ROLE_NAMES = ['Administrator', 'Frontend', 'Frontend-Public', 'frontend'] as const;
+const EXEMPT_ROLE_NAMES = ['Administrator', 'Frontend', 'Frontend-Public', 'Frontend-Server', 'Frontend-Preview', 'frontend'] as const;
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 

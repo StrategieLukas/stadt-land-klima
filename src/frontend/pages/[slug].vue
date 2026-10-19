@@ -37,11 +37,10 @@
 </template>
 
 <script setup>
-import { readItems } from '@directus/sdk'
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $t } = useNuxtApp()
 const config = useRuntimeConfig()
 const { isAuthenticated, initialize } = useAuth()
 useBlockHashNavigation()
@@ -53,15 +52,10 @@ onMounted(() => {
 const route = useRoute()
 
 // Fetch page by slug
-const { data: pagesWithSlug } = await useAsyncData(`page-${route.params.slug}`, () => {
-  return $directus.request(
-    $readItems("pages", {
-      filter: { slug: { _eq: route.params.slug } },
-      limit: 1,
-    })
-  )
+const { data: pageResult } = await useAsyncData(`page-${route.params.slug}`, () => {
+  return $fetch(`/api/public/pages/${encodeURIComponent(route.params.slug)}`)
 })
-const page = computed(() => pagesWithSlug.value?.[0] || null)
+const page = computed(() => pageResult.value?.page || null)
 
 // Throw a real 404 so error.vue is rendered instead of the layout fallback
 if (!page.value) {
@@ -76,18 +70,10 @@ const { data: blocksData } = await useAsyncData(
   async () => {
     if (!page.value) return []
     try {
-      const blocks = await $directus.request(
-        readItems('blocks', {
-          filter: {
-            entity_type: { _eq: 'pages' },
-            entity_uuid: { _eq: page.value.id },
-            field_name: { _eq: 'content' },
-            status: { _neq: 'archived' },
-          },
-          sort: ['sort_order'],
-        })
-      )
-      return mapBlokkliBlocks(blocks)
+      const result = await $fetch('/api/public/blocks', {
+        query: { entityUuid: page.value.id, entityType: 'pages', fieldName: 'content' },
+      })
+      return mapBlokkliBlocks(result.blocks || [])
     } catch (error) {
       console.error('[blokkli] Failed to load page blocks:', error)
       throw error

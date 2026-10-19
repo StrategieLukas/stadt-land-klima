@@ -12,6 +12,7 @@ import { runErfolgsprojekteInviteDashboardFlow } from './flows/erfolgsprojekteIn
 import { runTourSeriesFlow } from './flows/tourSeriesFlow.js';
 import { runDataAvailabilityFlow } from './flows/dataAvailabilityFlow.js';
 import { runMailWebhookSecurityFlow } from './flows/mailWebhookSecurityFlow.js';
+import { runMunicipalityDisclosureFlow } from './flows/municipalityDisclosureFlow.js';
 
 async function main(): Promise<void> {
   const config = loadConfig(process.argv.slice(2));
@@ -34,13 +35,15 @@ async function main(): Promise<void> {
     await runAddUserFlow(runner, fixture, browser);
     await runErfolgsprojekteInviteDashboardFlow(runner, fixture);
     await runRatingsImportExportFlow(runner, fixture);
+    await runMunicipalityDisclosureFlow(runner, fixture, browser);
     await runRatingWahlcheckFlow(runner, fixture, browser);
     await runRegisterLocalteamFlow(runner, fixture, browser);
     await runTourSeriesFlow(runner, fixture, browser);
     await runDataAvailabilityFlow(runner, fixture, browser);
     await runErfolgsprojekteArticlesFlow(runner, fixture, browser);
-  } catch {
+  } catch (err) {
     exitCode = 1;
+    process.stderr.write(`Test flow failed: ${err instanceof Error ? err.message : String(err)}\n`);
   } finally {
     await runner.step('Cleanup disposable Directus fixture', async () => {
       await fixture.cleanup();

@@ -208,16 +208,10 @@ export function useUnifiedSearch({ catalogVersionName = null } = {}) {
         // 1. StadtLandZahl (via the server-side proxy route that now uses REST)
         $fetch('/api/area-search', { query: { term: term.trim(), mode: 'normal' } }),
 
-        // 2. Directus published municipalities matched by name
-        $directus.request($readItems('municipalities', {
-          filter: {
-            status: { _eq: 'published' },
-            name:   { _icontains: term.trim() },
-          },
-          fields: ['slug', 'name', 'ars', 'localteam_id', { scores: ['published', 'percentage_rated', 'score_total', { catalog_version: ['name'] }] }],
-          sort:   'name',
-          limit:  8,
-        })),
+        // 2. Published municipalities matched by name via server route
+        $fetch('/api/public/municipalities', {
+          query: { search: term.trim(), limit: 8, sort: 'name' },
+        }).then(res => res.municipalities || []),
 
         // 3. Meilisearch content
         $fetch(`/api/content-search?q=${encodeURIComponent(term.trim())}`),
@@ -239,12 +233,12 @@ export function useUnifiedSearch({ catalogVersionName = null } = {}) {
         .map(n => n.ars)
       if (uncoveredArs.length > 0) {
         try {
-          const rows = await $directus.request($readItems('municipalities', {
-            filter: { ars: { _in: uncoveredArs } },
-            fields: ['ars', 'slug', 'localteam_id', { scores: ['published', 'percentage_rated', 'score_total', { catalog_version: ['name'] }] }],
-            limit:  uncoveredArs.length,
-          }))
-          rows.forEach(r => { if (r.ars) municipalityByArs.set(r.ars, r) })
+          const result = await $fetch('/api/public/area-municipalities', {
+            query: { ars: uncoveredArs.join(',') },
+          })
+          ;(result.municipalities || []).forEach(r => {
+            if (r.ars) municipalityByArs.set(r.ars, r)
+          })
         } catch { /* silently ignore — falls back to slug-only detection */ }
       }
 

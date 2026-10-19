@@ -369,7 +369,7 @@ const municipalElectionYear = computed(() => {
 });
 
 const { range } = lodash;
-const { $t, $locale, $directus, $readItems } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 
 const props = defineProps({
   municipalityScore: {
@@ -410,27 +410,9 @@ async function fetchMunicipalityProjects() {
 
   loadingProjects.value = true;
   try {
-    const articles = await $directus.request(
-      $readItems("articles", {
-        fields: [
-          "id",
-          "slug",
-          "title",
-          "image",
-          "abstract",
-          "author",
-          "date_created",
-          "municipality_name",
-          "state",
-          "organisation",
-        ],
-        filter: {
-          municipality_name: { _eq: municipality.name },
-        },
-        sort: "-date_created",
-        limit: 5, // Limit to 5 most recent projects
-      }),
-    );
+    const { articles } = await $fetch('/api/public/articles', {
+      query: { municipality: municipality.name, limit: 5, sort: '-date_created' },
+    });
 
     // Get organisation details if articles have organisations
     const orgIds = [
@@ -447,12 +429,8 @@ async function fetchMunicipalityProjects() {
 
     let organisations = [];
     if (orgIds.length > 0) {
-      organisations = await $directus.request(
-        $readItems("organisations", {
-          fields: ["id", "name", "logo", "link"],
-          filter: { id: { _in: orgIds } },
-        }),
-      );
+      const { organisations: orgs } = await $fetch('/api/public/organisations');
+      organisations = orgs.filter((org) => orgIds.includes(org.id));
     }
 
     const orgMap = new Map(organisations.map((org) => [org.id, org]));

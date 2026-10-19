@@ -31,10 +31,9 @@
   </div>
 </template>
 <script setup>
-import { readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const { isAuthenticated, initialize } = useAuth();
 useBlockHashNavigation()
 const canEdit = ref(false)
@@ -43,15 +42,10 @@ onMounted(() => {
   watchEffect(() => { canEdit.value = isAuthenticated.value })
 })
 
-const { data: indexPages } = await useAsyncData("indexPages", () => {
-  return $directus.request(
-    $readItems("pages", {
-      filter: { slug: { _eq: "index" } },
-      limit: 1,
-    }),
-  );
+const { data: indexPageResult } = await useAsyncData("indexPage", () => {
+  return $fetch("/api/public/pages/index");
 });
-const page = computed(() => indexPages.value?.[0] || null);
+const page = computed(() => indexPageResult.value?.page || null);
 
 const blocksKey = getBlokkliDataKey('pages', String(page.value?.id || 'missing'))
 
@@ -61,18 +55,10 @@ const { data: blocksData } = await useAsyncData(
   async () => {
     if (!page.value) return []
     try {
-      const blocks = await $directus.request(
-        readItems('blocks', {
-          filter: {
-            entity_type: { _eq: 'pages' },
-            entity_uuid: { _eq: page.value.id },
-            field_name: { _eq: 'content' },
-            status: { _neq: 'archived' },
-          },
-          sort: ['sort_order'],
-        })
-      )
-      return mapBlokkliBlocks(blocks)
+      const result = await $fetch('/api/public/blocks', {
+        query: { entityUuid: page.value.id, bundle: 'page' },
+      })
+      return mapBlokkliBlocks(result.blocks || [])
     } catch (error) {
       console.error('[blokkli] Failed to load page blocks:', error)
       throw error

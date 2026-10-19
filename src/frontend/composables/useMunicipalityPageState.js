@@ -8,20 +8,20 @@
  * Usage in [slug].vue:
  *   const { pageView, isRatedView, hasLocalteam, PAGE_VIEWS: PV } =
  *     useMunicipalityPageState({ directusData, selectedCatalogVersion,
- *       directusMuniBySlug, slzArea, slzPending, directusMuniByArs, route })
+ *       directusMuniBySlug, slzArea, slzPending, directusMuniByArs, previewAuthorized })
  *
  *   // Debug in browser devtools:
  *   //   console.log(pageView.value)
  */
 
-import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js'
+import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from '~/shared/municipality-score-publishing.js'
 
 /** All possible page-view states. */
 export const PAGE_VIEWS = Object.freeze({
-  /** Municipality exists in Directus but is locked — unverified creator, no matching preview token. */
+  /** Municipality exists but has no complete public score or authorized preview. */
   PREVIEW_LOCKED:    'preview-locked',
 
-  /** Score exists, status=draft, but unlocked (creator_verified or matching preview_token). */
+  /** Unpublished/incomplete score returned by the authorized server preview. */
   RATED_DRAFT:       'rated-draft',
 
   /** Score is complete, but the URL uses a non-current catalog version. */
@@ -30,13 +30,13 @@ export const PAGE_VIEWS = Object.freeze({
   /** Score is published and every measure in the current catalog has a rating. */
   RATED_COMPLETE:    'rated-complete',
 
-  /** Score is incomplete or unpublished and gated without ?preview=true. */
+  /** Legacy presentation state retained for existing templates. */
   IN_PROGRESS_LOCKED: 'in-progress-locked',
 
-  /** Score is incomplete or unpublished, has a localteam, and requires ?preview=true. */
+  /** Legacy presentation state retained for existing templates. */
   RATED_IN_PROGRESS: 'rated-in-progress',
 
-  /** Score is incomplete or unpublished, has no localteam, and requires ?preview=true. */
+  /** Legacy presentation state retained for existing templates. */
   RATED_PARTIAL:     'rated-partial',
 
   /** No score — waiting for the Stadt-Land-Zahl look-up to resolve. */
@@ -50,13 +50,13 @@ export const PAGE_VIEWS = Object.freeze({
 })
 
 /**
- * @param {object} directusData          Plain object from fetchMunicipalityData (not reactive).
+ * @param {object} directusData          Approved response from the municipality server route.
  * @param {object} selectedCatalogVersion Plain object — current catalog version (not reactive).
  * @param {Ref}    directusMuniBySlug     Directus municipality record by slug (reactive Ref).
  * @param {Ref}    slzArea                Area data from Stadt-Land-Zahl (reactive Ref).
  * @param {Ref}    slzPending             Loading flag for the SLZ fetch (reactive Ref).
  * @param {Ref}    directusMuniByArs      Directus municipality by ARS that has a localteam (Ref).
- * @param {object} route                  Nuxt route (read route.query.preview for token check).
+ * @param {boolean} previewAuthorized     Authorization result from the server route.
  */
 export function useMunicipalityPageState({
   directusData,
@@ -65,52 +65,31 @@ export function useMunicipalityPageState({
   slzArea,
   slzPending,
   directusMuniByArs,
-  route,
+  previewAuthorized,
 }) {
-  const score = directusData?.municipalityScore
-
-  function hasValidPreviewToken(municipality) {
-    const token = municipality?.preview_token
-    if (typeof token !== 'string' || !token) return false
-    return route.query.preview === token ||
-      (route.query.preview === 'true' && route.query.preview_token === token)
-  }
-
   const pageView = computed(() => {
+    const score = unref(directusData)?.municipalityScore
     // ── A: Directus score record exists ──────────────────────────────────────
     if (score) {
-      const muni = score.municipality
-
       // The selected catalog score decides whether the public detail matches the ranking.
       if (isMunicipalityScoreComplete(score)) {
-        return selectedCatalogVersion.isCurrentFrontend ? PAGE_VIEWS.RATED_COMPLETE : PAGE_VIEWS.RATED_OUTDATED
+        return unref(selectedCatalogVersion).isCurrentFrontend ? PAGE_VIEWS.RATED_COMPLETE : PAGE_VIEWS.RATED_OUTDATED
       }
 
-      // A1: Preview-locked (unverified creator, no matching preview token)
-      // Directus generates ?preview=<token>; also accept the explicit flag/token form.
-      if (
-        muni.status !== 'published' &&
-        !muni.creator_verified &&
-        !hasValidPreviewToken(muni)
-      ) return PAGE_VIEWS.PREVIEW_LOCKED
+      // Published but incomplete (percentage_rated < 100) — show the in-progress
+      // locked view so visitors know the rating is still being worked on.
+      if (isMunicipalityScorePublished(score)) {
+        return PAGE_VIEWS.IN_PROGRESS_LOCKED
+      }
 
-      // A2: Draft but unlocked (creator_verified or matching preview_token)
-      if (muni.status === 'draft') return PAGE_VIEWS.RATED_DRAFT
-
-      // A3–A5: Incomplete or unpublished — accessible with ?preview=true.
-      if (route.query.preview !== 'true') return PAGE_VIEWS.IN_PROGRESS_LOCKED
-      if (muni.localteam_id)             return PAGE_VIEWS.RATED_IN_PROGRESS
-      return PAGE_VIEWS.RATED_PARTIAL
+      // Only the server may authorize and return an unpublished score. Never
+      // compare stored credentials in browser state or trust creator_verified.
+      return unref(previewAuthorized) ? PAGE_VIEWS.RATED_DRAFT : PAGE_VIEWS.PREVIEW_LOCKED
     }
 
     // ── B: No score — check if the slug resolves to a locked draft municipality ──
     const muniBySlug = directusMuniBySlug.value
-    if (
-      muniBySlug &&
-      muniBySlug.status !== 'published' &&
-      !muniBySlug.creator_verified &&
-      !hasValidPreviewToken(muniBySlug)
-    ) return PAGE_VIEWS.PREVIEW_LOCKED
+    if (muniBySlug) return PAGE_VIEWS.PREVIEW_LOCKED
 
     // ── C / D / E: SLZ look-up ────────────────────────────────────────────────
     if (slzPending.value) return PAGE_VIEWS.LOADING
