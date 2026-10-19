@@ -106,6 +106,20 @@ export class DirectusClient {
     await this.request<null>('DELETE', `/items/${collection}/${id}`);
   }
 
+  async importJsonItems(collection: string, items: JsonRecord[]): Promise<void> {
+    const url = this.url(`/utils/import/${collection}`);
+    const formData = new FormData();
+    formData.set('file', new Blob([JSON.stringify(items)], { type: 'application/json' }), 'ratings.json');
+    const headers: Record<string, string> = {};
+    if (this.token) headers.Authorization = `Bearer ${this.token}`;
+
+    const response = await fetch(url, { method: 'POST', headers, body: formData });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`POST ${url.pathname} failed with ${response.status}: ${text}`);
+    }
+  }
+
   async readUsers<T>(options: ReadOptions = {}): Promise<T[]> {
     const query: Record<string, string | number | undefined> = { limit: options.limit };
     if (options.filter) query.filter = JSON.stringify(options.filter);

@@ -6,6 +6,7 @@ import { TestRunner } from './lib/runner.js';
 import { runAddUserFlow } from './flows/addUserFlow.js';
 import { runRegisterLocalteamFlow } from './flows/registerLocalteamFlow.js';
 import { runRatingWahlcheckFlow } from './flows/ratingWahlcheckFlow.js';
+import { runRatingsImportExportFlow } from './flows/ratingsImportExportFlow.js';
 import { runErfolgsprojekteArticlesFlow } from './flows/erfolgsprojekteArticlesFlow.js';
 import { runErfolgsprojekteInviteDashboardFlow } from './flows/erfolgsprojekteInviteDashboardFlow.js';
 import { runTourSeriesFlow } from './flows/tourSeriesFlow.js';
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
 
     await runAddUserFlow(runner, fixture, browser);
     await runErfolgsprojekteInviteDashboardFlow(runner, fixture);
+    await runRatingsImportExportFlow(runner, fixture);
     await runRatingWahlcheckFlow(runner, fixture, browser);
     await runRegisterLocalteamFlow(runner, fixture, browser);
     await runTourSeriesFlow(runner, fixture, browser);

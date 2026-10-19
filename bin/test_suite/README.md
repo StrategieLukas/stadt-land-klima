@@ -40,6 +40,7 @@ The current suite executes:
 2. `rating_wahlcheck_flow`: ratings completion, preview locking/unlocking, score publish/unpublish through the Directus checkbox interface, ranking visibility, published municipality detail checks on desktop and mobile, sector-card visibility, municipality PDF generation, Wahlcheck thesis generation, extra thesis creation, candidate setup, review request, WahlcheckAdmin approval, candidate mail token generation, public candidate answer forms, public Wahlcheck overview, and public Wahlcheck result wizard.
 3. `register_localteam_flow`: frontend registration page entry, new localteam request with real Altcha/browser submit, Directus user/localteam/municipality creation, localteam-admin junction, success-state copy, expected welcome email, and the existing-localteam contact path.
 4. `erfolgsprojekte_articles_flow`: LokalteamMitglied article contribution without publish access, ErfolgsprojekteRedaktion create/edit/delete/publish access, fully populated published article detail checks on desktop and mobile, projects overview visibility, all overview filters, and savings sort behavior.
+5. `ratings_import_export_flow`: global import/export bookmark fields and scope, native JSON export/import with scalar UUID relations, all five ratings as numbers and strings, null ratings, edited notes, and rejection of unsupported rating values. Uses disposable fixture ratings and restores their original values. The export dialog itself is checked manually.
 
 ## Test Rules
 
