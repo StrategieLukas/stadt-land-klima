@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
       localteam: { _eq: localteamId },
       is_public: { _eq: true },
     },
-    fields: ['id', 'slug', 'name', 'status', 'is_party_election', 'simple_answer_mode', 'descriptor', 'custom_logo', 'response_cutoff_date'],
+    fields: ['id', 'is_party_election', 'simple_answer_mode', 'descriptor', 'custom_logo', 'response_cutoff_date'],
     sort: ['-date_created'],
     limit: 1,
   }))
@@ -110,7 +110,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     municipality: { slug: municipality.slug, name: municipality.name },
-    election: pick(election, ['id', 'slug', 'name', 'status', 'is_party_election', 'simple_answer_mode', 'descriptor', 'custom_logo', 'response_cutoff_date']),
+    election: pick(election, ['id', 'is_party_election', 'simple_answer_mode', 'descriptor', 'custom_logo', 'response_cutoff_date']),
     questions: questions.map((q: any) => pick(q, questionPublicFields)),
     candidates: responseCandidates,
   }

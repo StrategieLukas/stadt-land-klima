@@ -4,7 +4,7 @@ import { verifyCandidateAccessToken, loadCandidateQuestions, loadCandidateAnswer
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'private, no-store')
 
-  const accessToken = getRouterParam(event, 'accessToken')
+  const accessToken = getRouterParam(event, 'token')
   if (!accessToken || !/^[a-zA-Z0-9_-]{1,100}$/.test(accessToken)) {
     throw createError({ statusCode: 404, statusMessage: 'Not found' })
   }

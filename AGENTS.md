@@ -155,6 +155,7 @@ DO NOT update Directus beyond 11.17.4
 18. The brand green is `#AFCA0B` (`light-green` in `src/frontend/tailwind.config.js`). Use this token when a design calls for the brand green; `ff-green` (`#1da64a`) is a different green.
 19. In hard-coded page heroes, use `CanonicalButton` for action links, give each button a relevant icon, and match its background color to the hero heading color.
 20. Preserve the shared CSS styling of `CanonicalButton`. Do not override its corners, borders, shadows, colors, or interaction effects on individual instances or through container CSS. Use the component's supported props for customization; apply retro box styling to the surrounding container.
+21. Security is key: Check for outdated/vulnerable dependencies, and check the current diff (review your own work) for potential security misconfigurations or technical attack surfaces. Inform the user when in doubt.
 
 ## Feature inventory maintenance
 

@@ -187,6 +187,22 @@ permissions:
       - name
       - party
       - election
+      - election.id
+      - election.descriptor
+      - election.is_public
+      - election.is_party_election
+      - election.simple_answer_mode
+      - election.custom_logo
+      - election.response_cutoff_date
+      - election.localteam
+      - election.localteam.id
+      - election.localteam.name
+      - election.localteam.slug
+      - election.localteam.municipality_id
+      - election.localteam.municipality_id.id
+      - election.localteam.municipality_id.name
+      - election.localteam.municipality_id.slug
+      - election.localteam.municipality_id.state
       - has_answered
       - time_first_submitted
       - time_last_edited
@@ -312,9 +328,6 @@ permissions:
     fields:
       - id
       - descriptor
-      - name
-      - slug
-      - status
       - custom_logo
       - sharepic
       - sharepic_dark

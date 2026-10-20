@@ -5,7 +5,7 @@ import { createDirectusServerClient } from './directusServerClient'
 type Row = Record<string, any>
 
 const candidatePublicFields = ['id', 'name', 'party', 'election', 'has_answered', 'time_first_submitted', 'time_last_edited']
-const electionPublicFields = ['id', 'slug', 'name', 'status', 'is_public', 'is_party_election', 'simple_answer_mode', 'custom_logo', 'response_cutoff_date', 'localteam']
+const electionPublicFields = ['id', 'descriptor', 'is_public', 'is_party_election', 'simple_answer_mode', 'custom_logo', 'response_cutoff_date', 'localteam']
 const questionPublicFields = ['id', 'title', 'thesis', 'background_information', 'status']
 const answerPublicFields = ['id', 'response', 'explanation', 'candidate', 'question']
 
@@ -22,9 +22,7 @@ export async function verifyCandidateAccessToken(accessToken: string) {
       'access_token',
       'email',
       'election.id',
-      'election.slug',
-      'election.name',
-      'election.status',
+      'election.descriptor',
       'election.is_public',
       'election.is_party_election',
       'election.simple_answer_mode',
@@ -56,9 +54,7 @@ export async function verifyCandidateAccessToken(accessToken: string) {
       time_last_edited: candidate.time_last_edited,
       election: {
         id: candidate.election?.id,
-        slug: candidate.election?.slug,
-        name: candidate.election?.name,
-        status: candidate.election?.status,
+        descriptor: candidate.election?.descriptor,
         is_public: candidate.election?.is_public,
         is_party_election: candidate.election?.is_party_election,
         simple_answer_mode: candidate.election?.simple_answer_mode,
