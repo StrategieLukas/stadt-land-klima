@@ -25,7 +25,6 @@ export class TestRunner {
       const error = err instanceof Error ? err : new Error(String(err));
       this.results.push({ name, status: 'failed', error });
       process.stdout.write(`[FAIL] ${name}\n${error.stack ?? error.message}\n`);
-      throw error;
     }
   }
 

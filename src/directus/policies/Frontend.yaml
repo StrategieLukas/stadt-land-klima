@@ -317,6 +317,15 @@ permissions:
   - sharepic
   - sharepic_dark
   - localteam
+  - localteam.id
+  - localteam.name
+  - localteam.slug
+  - localteam.municipality_name
+  - localteam.municipality_id
+  - localteam.municipality_id.id
+  - localteam.municipality_id.name
+  - localteam.municipality_id.slug
+  - localteam.municipality_id.state
   - is_party_election
   - simple_answer_mode
   - response_cutoff_date

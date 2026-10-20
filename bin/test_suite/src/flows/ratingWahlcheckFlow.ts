@@ -524,10 +524,12 @@ async function completePublicWahlcheck(
   const context = await newContext(browser);
   const page = await context.newPage();
   try {
-    const candidateAnswersResponsePromise = page.waitForResponse(
+    const wahlcheckDataResponsePromise = page.waitForResponse(
       (response) => {
         const url = new URL(response.url());
-        return response.request().method() === 'GET' && url.pathname.endsWith('/items/answers');
+        return response.request().method() === 'GET'
+          && url.pathname.startsWith('/api/public/wahlcheck/')
+          && !url.pathname.endsWith('.js');
       },
       { timeout: 30_000 },
     );
@@ -538,15 +540,18 @@ async function completePublicWahlcheck(
     await page.getByText('Klimawahlcheck').first().waitFor({ state: 'visible', timeout: 30_000 });
     await assertWahlcheckLogoLayout(page, 'Question step', customLogoId);
 
-    const candidateAnswersResponse = await candidateAnswersResponsePromise;
+    const wahlcheckDataResponse = await wahlcheckDataResponsePromise;
     assert(
-      candidateAnswersResponse.ok(),
-      `Candidate answers request must succeed. Got HTTP ${candidateAnswersResponse.status()}.`,
+      wahlcheckDataResponse.ok(),
+      `Wahlcheck data request must succeed. Got HTTP ${wahlcheckDataResponse.status()}.`,
     );
-    const candidateAnswersPayload = await candidateAnswersResponse.json() as { data?: unknown[] };
-    assert(Array.isArray(candidateAnswersPayload.data), 'Candidate answers response must contain a data array');
+    const wahlcheckDataPayload = await wahlcheckDataResponse.json();
+    const allAnswers = wahlcheckDataPayload.candidates?.flatMap(
+      (c) => c.answers,
+    ) || [];
+    assert(Array.isArray(allAnswers), 'Wahlcheck data response must contain candidate answers');
     assertEqual(
-      candidateAnswersPayload.data.length,
+      allAnswers.length,
       expectedCandidateAnswerCount,
       'Public Wahlcheck must load every candidate answer, including datasets above the Directus page limit',
     );

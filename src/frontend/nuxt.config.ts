@@ -61,6 +61,7 @@ export default defineNuxtConfig({
       // The Frontend-Public policy is limited to directus_files/directus_folders read only.
       clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL,
       serverDirectusUrl: process.env.SERVER_DIRECTUS_URL,
+      directusFrontendPublicToken: process.env.DIRECTUS_TOKEN,
       appEnv: process.env.APP_ENV,
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL,
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN,

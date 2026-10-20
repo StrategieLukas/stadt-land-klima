@@ -41,10 +41,12 @@ async function main(): Promise<void> {
     await runTourSeriesFlow(runner, fixture, browser);
     await runDataAvailabilityFlow(runner, fixture, browser);
     await runErfolgsprojekteArticlesFlow(runner, fixture, browser);
-  } catch (err) {
-    exitCode = 1;
-    process.stderr.write(`Test flow failed: ${err instanceof Error ? err.message : String(err)}\n`);
   } finally {
+    // Set exit code based on any failed tests
+    const hasFailures = runner.results.some((r) => r.status === 'failed');
+    if (hasFailures) {
+      exitCode = 1;
+    }
     await runner.step('Cleanup disposable Directus fixture', async () => {
       await fixture.cleanup();
     }).catch(() => {

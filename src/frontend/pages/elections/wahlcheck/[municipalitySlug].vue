@@ -126,7 +126,7 @@ import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
-const { $directus, $readItems, $readItem, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
 
 const municipalitySlug = route.params.municipalitySlug;
@@ -321,138 +321,28 @@ const pending = ref(true);
 const error = ref(false);
 const errorMessage = ref("");
 
-// Load election data
+// Load election data from server API
 async function loadElectionData() {
   pending.value = true;
   error.value = false;
   errorMessage.value = "";
 
   try {
-    // Try to find the municipality by slug first
-    let municipalities = await $directus.request(
-      $readItems("municipalities", {
-        filter: {
-          slug: { _eq: municipalitySlug },
-        },
-        fields: ["localteam_id"],
-      }),
-    );
-
-    let localteams = [];
-
-    // If municipality found by slug, get the localteam_id and find the localteam
-    if (municipalities && municipalities.length > 0 && municipalities[0].localteam_id) {
-      localteams = await $directus.request(
-        $readItems("localteams", {
-          filter: {
-            id: { _eq: municipalities[0].localteam_id },
-          },
-          fields: ["*", "municipality_id.*"],
-        }),
-      );
-    }
-
-    // If no localteam found by municipality slug, try to find by localteam slug
-    if (!localteams || localteams.length === 0) {
-      localteams = await $directus.request(
-        $readItems("localteams", {
-          filter: {
-            slug: { _eq: municipalitySlug },
-          },
-          fields: ["*", "municipality_id.*"],
-        }),
-      );
-    }
-
-    // If still no localteam found, try to find by ID (in case the parameter is an ID)
-    if (!localteams || localteams.length === 0) {
-      localteams = await $directus.request(
-        $readItems("localteams", {
-          filter: {
-            id: { _eq: municipalitySlug },
-          },
-          fields: ["*", "municipality_id.*"],
-        }),
-      );
-    }
-
-    if (!localteams || localteams.length === 0) {
-      electionData.value = null;
-      pending.value = false;
-      return;
-    }
-
-    const localteam = localteams[0];
-
-    // Find the most recent public election for this localteam
-    const elections = await $directus.request(
-      $readItems("elections", {
-        filter: {
-          localteam: { _eq: localteam.id },
-          is_public: { _eq: true },
-        },
-        sort: ["-date_created"],
-        limit: 1,
-        fields: ["*"],
-      }),
-    );
-
-    if (!elections || elections.length === 0) {
-      electionData.value = null;
-      pending.value = false;
-      return;
-    }
-
-    const election = elections[0];
-
-    // Load questions for this election
-    const questions = await $directus.request(
-      $readItems("questions", {
-        filter: {
-          election: { _eq: election.id },
-          status: { _eq: "published" },
-        },
-        sort: ["date_created"],
-        limit: -1,
-        fields: ["*"],
-      }),
-    );
-
-    // Load all candidates so the results can also identify non-responders.
-    const candidates = await $directus.request(
-      $readItems("candidate", {
-        filter: {
-          election: { _eq: election.id },
-        },
-        limit: -1,
-        fields: ["*"],
-      }),
-    );
-
-    // Only responding candidates can contribute answers to the comparison.
-    const respondingCandidates = (candidates || []).filter((candidate) => candidate.has_answered === true);
-
-    // Load all answers for these candidates
-    let allAnswers = [];
-    if (respondingCandidates.length > 0 && questions && questions.length > 0) {
-      allAnswers = await $directus.request(
-        $readItems("answers", {
-          filter: {
-            candidate: { _in: respondingCandidates.map((candidate) => candidate.id) },
-            question: { _in: questions.map((q) => q.id) },
-          },
-          limit: -1,
-          fields: ["*"],
-        }),
-      );
-    }
+    const data = await $fetch(`/api/public/wahlcheck/${municipalitySlug}`);
 
     electionData.value = {
-      election,
-      localteam,
-      questions: questions || [],
-      candidates: candidates || [],
-      answers: allAnswers || [],
+      election: data.election,
+      localteam: data.municipality,
+      questions: data.questions || [],
+      candidates: data.candidates || [],
+      answers: data.candidates?.flatMap((c) =>
+        c.answers?.map((a) => ({
+          candidate: c.id,
+          question: a.question,
+          response: a.response,
+          explanation: a.explanation,
+        })) || []
+      ) || [],
     };
   } catch (err) {
     console.error("Error loading election data:", err);

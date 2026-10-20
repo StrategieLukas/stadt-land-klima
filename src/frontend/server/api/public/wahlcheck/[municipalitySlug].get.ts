@@ -12,33 +12,11 @@ const candidatePublicFields = ['id', 'name', 'party', 'has_answered', 'time_firs
 const questionPublicFields = ['id', 'title', 'thesis', 'background_information']
 const answerPublicFields = ['response', 'explanation']
 
-export default defineEventHandler(async (event) => {
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
-  const client = createDirectusServerClient()
-  const municipalitySlug = getRouterParam(event, 'municipalitySlug')
-
-  if (!municipalitySlug || !/^[a-z0-9-]{1,160}$/.test(municipalitySlug)) {
-    throw createError({ statusCode: 404, statusMessage: 'Not found' })
-  }
-
-  // Find municipality by slug
-  const municipalities = await client.request(readItems('municipalities', {
-    filter: { slug: { _eq: municipalitySlug } },
-    fields: ['id', 'name', 'slug', 'localteam_id.id'],
-    limit: 1,
-  }))
-
-  if (!municipalities || municipalities.length === 0) {
-    throw createError({ statusCode: 404, statusMessage: 'Municipality not found' })
-  }
-
-  const municipality = municipalities[0]
-  const localteamId = municipality.localteam_id?.id
-
-  if (!localteamId) {
-    throw createError({ statusCode: 404, statusMessage: 'No local team found' })
-  }
-
+async function buildWahlcheckResponse(
+  client: ReturnType<typeof createDirectusServerClient>,
+  municipality: Row,
+  localteamId: string,
+) {
   // Find most recent public election for this localteam
   const elections = await client.request(readItems('elections', {
     filter: {
@@ -102,7 +80,7 @@ export default defineEventHandler(async (event) => {
   // Build response
   const responseCandidates = candidates.map((c: any) => ({
     ...pick(c, candidatePublicFields),
-    answers: Array.from((answerMap.get(c.id) || {}).entries()).map(([qId, ans]) => ({
+    answers: Array.from(answerMap.get(c.id) || new Map()).map(([qId, ans]) => ({
       question: qId,
       ...ans,
     })),
@@ -114,4 +92,51 @@ export default defineEventHandler(async (event) => {
     questions: questions.map((q: any) => pick(q, questionPublicFields)),
     candidates: responseCandidates,
   }
+}
+
+export default defineEventHandler(async (event) => {
+  setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
+  const client = createDirectusServerClient()
+  const municipalitySlug = getRouterParam(event, 'municipalitySlug')
+
+  if (!municipalitySlug || !/^[a-z0-9-]{1,160}$/.test(municipalitySlug)) {
+    throw createError({ statusCode: 404, statusMessage: 'Not found' })
+  }
+
+  let localteamId: string | undefined
+
+  // Find municipality by slug
+  let municipalities = await client.request(readItems('municipalities', {
+    filter: { slug: { _eq: municipalitySlug } },
+    fields: ['id', 'name', 'slug', 'localteam_id.id'],
+    limit: 1,
+  }))
+
+  // If no municipality found, try to find by localteam slug
+  if (!municipalities || municipalities.length === 0) {
+    const localteams = await client.request(readItems('localteams', {
+      filter: { slug: { _eq: municipalitySlug } },
+      fields: ['id', 'name', 'municipality_name'],
+      limit: 1,
+    }))
+
+    if (localteams && localteams.length > 0) {
+      localteamId = localteams[0].id
+      // Return a synthetic municipality object for the response
+      const m = localteams[0]
+      const municipality: Row = { slug: municipalitySlug, name: m.municipality_name || m.name }
+      return await buildWahlcheckResponse(client, municipality, localteamId)
+    } else {
+      throw createError({ statusCode: 404, statusMessage: 'Not found' })
+    }
+  }
+
+  const municipality = municipalities[0]
+  localteamId = municipality.localteam_id?.id
+
+  if (!localteamId) {
+    throw createError({ statusCode: 404, statusMessage: 'No local team found' })
+  }
+
+  return await buildWahlcheckResponse(client, municipality, localteamId)
 })

@@ -211,7 +211,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 
 const publicElections = ref([]);
 const pending = ref(true);
@@ -233,31 +233,14 @@ function formatDate(dateString) {
   }
 }
 
-// Load all public elections
+// Load all public elections from server API
 async function loadElections() {
   pending.value = true;
   error.value = false;
   errorMessage.value = "";
 
   try {
-    // Load elections that are public
-    const elections = await $directus.request(
-      $readItems("elections", {
-        filter: {
-          is_public: { _eq: true },
-        },
-        sort: ["-date_created"],
-        fields: [
-          "*",
-          "localteam.id",
-          "localteam.name",
-          "localteam.slug",
-          "localteam.municipality_name",
-          "localteam.municipality_id.slug",
-          "localteam.municipality_id.name",
-        ],
-      }),
-    );
+    const elections = await $fetch("/api/public/wahlcheck");
 
     if (!elections || elections.length === 0) {
       publicElections.value = [];
@@ -265,48 +248,7 @@ async function loadElections() {
       return;
     }
 
-    // For each election, count candidates and questions
-    const electionsWithCounts = [];
-    for (const election of elections) {
-      try {
-        // Count candidates who have answered
-        const candidates = await $directus.request(
-          $readItems("candidate", {
-            filter: {
-              election: { _eq: election.id },
-              has_answered: { _eq: true },
-            },
-            limit: -1,
-          }),
-        );
-
-        // Count published questions
-        const questions = await $directus.request(
-          $readItems("questions", {
-            filter: {
-              election: { _eq: election.id },
-              status: { _eq: "published" },
-            },
-            limit: -1,
-          }),
-        );
-
-        electionsWithCounts.push({
-          ...election,
-          candidateCount: candidates?.length || 0,
-          questionCount: questions?.length || 0,
-        });
-      } catch (err) {
-        // Still add the election with 0 counts
-        electionsWithCounts.push({
-          ...election,
-          candidateCount: 0,
-          questionCount: 0,
-        });
-      }
-    }
-
-    publicElections.value = electionsWithCounts.filter((e) => e.candidateCount > 0);
+    publicElections.value = elections;
   } catch (err) {
     error.value = true;
     errorMessage.value = $t("elections.loading_error.description");
