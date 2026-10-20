@@ -420,7 +420,14 @@ permissions:
   validation: {}
   presets: null
   fields:
-  - '*'
+  - id
+  - stop
+  - file
+  - poster
+  - sort
+  - alt
+  - caption
+  - credit
 - collection: success_project_tour_stops
   action: read
   permissions: &id003

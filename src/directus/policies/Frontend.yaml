@@ -528,9 +528,6 @@ permissions:
   - municipality_type
   - details
   - scores
-  - scores.catalog_version
-  - scores.percentage_rated
-  - scores.published
   - mayor
   - state
   - population

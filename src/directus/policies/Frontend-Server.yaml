@@ -522,11 +522,6 @@ permissions:
       - municipality_type
       - details
       - scores
-      - scores.catalog_version
-      - scores.catalog_version.id
-      - scores.catalog_version.isCurrentBackend
-      - scores.percentage_rated
-      - scores.published
       - mayor
       - state
       - population
@@ -734,21 +729,6 @@ permissions:
     action: read
     permissions:
       status:
-        _eq: published
-    validation: {}
-    presets: null
-    fields:
-      - '*'
-  - collection: success_project_tour_media
-    action: read
-    permissions:
-      stop:
-        status:
-          _eq: published
-      tour:
-        status:
-          _eq: published
-      report_status:
         _eq: published
     validation: {}
     presets: null

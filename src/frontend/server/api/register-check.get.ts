@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     return { hasTeam: false, slug: null, percentageRated: null, published: false };
   }
 
-  const serverToken = config.directusFrontendServerToken;
+  const serverToken = config.directusFrontendServerToken || config.directusAdminToken;
   if (!serverToken) {
     return { hasTeam: false, slug: null, percentageRated: null, published: false };
   }
@@ -18,6 +18,21 @@ export default defineEventHandler(async (event) => {
   const directusUrl = config.directusServerUrl || 'http://directus:8055';
 
   try {
+    // Get current backend catalog version
+    const catalogResponse: any = await $fetch(`${directusUrl}/items/catalog_versions`, {
+      headers: { Authorization: `Bearer ${serverToken}` },
+      query: {
+        filter: JSON.stringify({ isCurrentBackend: { _eq: true } }),
+        fields: 'id',
+        limit: 1,
+      },
+    });
+
+    const currentCatalogId = catalogResponse?.data?.[0]?.id;
+    if (!currentCatalogId) {
+      return { hasTeam: false, slug: null, percentageRated: null, published: false };
+    }
+
     // Check for existing localteam by ARS
     const response: any = await $fetch(`${directusUrl}/items/municipalities`, {
       headers: { Authorization: `Bearer ${serverToken}` },
@@ -28,7 +43,7 @@ export default defineEventHandler(async (event) => {
             { ars: { _eq: ars } },
           ],
         }),
-        fields: 'ars,slug,localteam_id,scores.catalog_version.id,scores.catalog_version.isCurrentBackend,scores.published,scores.percentage_rated',
+        fields: 'ars,slug,localteam_id,scores.catalog_version,scores.published,scores.percentage_rated',
         limit: 1,
       },
     });
@@ -40,7 +55,10 @@ export default defineEventHandler(async (event) => {
 
     // Find the score for the current backend catalog
     const score = (municipality.scores ?? []).find((item: any) => {
-      return item.catalog_version?.isCurrentBackend === true;
+      const catalogVersion = typeof item.catalog_version === 'object'
+        ? item.catalog_version?.id
+        : item.catalog_version;
+      return catalogVersion === currentCatalogId;
     });
 
     return {
@@ -53,4 +71,3 @@ export default defineEventHandler(async (event) => {
     return { hasTeam: false, slug: null, percentageRated: null, published: false };
   }
 });
-

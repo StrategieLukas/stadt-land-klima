@@ -249,9 +249,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { getCurrentBackendCatalogVersion } from '~/composables/getCatalogVersion.js'
 
 const route = useRoute()
-const { $stadtlandzahlAPI, $t } = useNuxtApp()
+const { $stadtlandzahlAPI, $directus, $readItems, $t } = useNuxtApp()
+const currentVersionBackend = await getCurrentBackendCatalogVersion($directus, $readItems)
 
 // --- Query-param pre-fill ---
 const hasQueryParams = computed(() => !!route.query.ars)
@@ -319,7 +321,7 @@ async function checkExistingLocalteam(
   slugs: string[] = [],
 ): Promise<{ hasTeam: boolean; slug: string | null; percentageRated: number | null; published: boolean }> {
   try {
-    // Use server route — client-side $directus is no longer available
+    // Use server route — $directus is only available during SSR, not on client
     const result = await $fetch('/api/register-check', {
       query: { ars },
     })

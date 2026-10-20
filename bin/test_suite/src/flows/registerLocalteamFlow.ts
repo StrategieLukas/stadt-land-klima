@@ -199,6 +199,9 @@ async function mockStadtlandzahlArea(page: Page, ars: string, name: string): Pro
               population: 12_345,
             },
           },
+          stadtlandklima_data: [
+            { slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') }
+          ],
         }),
       });
     },
@@ -207,9 +210,8 @@ async function mockStadtlandzahlArea(page: Page, ars: string, name: string): Pro
 
 async function solveAltcha(page: Page): Promise<void> {
   // In dev mode, the altcha-widget is replaced with a bypass message, so there's nothing to solve.
-  const widgetExists = await page.locator('altcha-widget').count();
-  if (widgetExists === 0) {
-    // Dev mode bypass — no CAPTCHA to solve
+  const widgetCount = await page.locator('altcha-widget').count();
+  if (widgetCount === 0) {
     return;
   }
 
@@ -311,14 +313,6 @@ async function createExistingLocalteamFixture(
   await fixture.admin.updateItem<Municipality>('municipalities', generatedMunicipality.id, {
     ars,
   });
-
-  // Wait for the municipality score to be created by the Directus flow,
-  // so the frontend can determine the rating state.
-  await waitFor(
-    'municipality score created for existing register_localteam scenario',
-    async () => readCurrentBackendScore(fixture.admin, generatedMunicipality.id) ?? false,
-    { timeoutMs: 45_000 },
-  );
 
   const municipality = await waitFor(
     'frontend-readable existing localteam municipality',

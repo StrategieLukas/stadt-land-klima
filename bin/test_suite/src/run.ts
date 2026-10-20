@@ -31,16 +31,17 @@ async function main(): Promise<void> {
       await fixture.setup();
     });
 
-    await runMailWebhookSecurityFlow(runner, fixture);
-    await runAddUserFlow(runner, fixture, browser);
-    await runErfolgsprojekteInviteDashboardFlow(runner, fixture);
-    await runRatingsImportExportFlow(runner, fixture);
-    await runMunicipalityDisclosureFlow(runner, fixture, browser);
-    await runRatingWahlcheckFlow(runner, fixture, browser);
-    await runRegisterLocalteamFlow(runner, fixture, browser);
-    await runTourSeriesFlow(runner, fixture, browser);
-    await runDataAvailabilityFlow(runner, fixture, browser);
-    await runErfolgsprojekteArticlesFlow(runner, fixture, browser);
+    // Wrap each flow in try-catch so one failing flow doesn't skip subsequent flows
+    try { await runMailWebhookSecurityFlow(runner, fixture); } catch (e) { runner.results.push({ name: 'Mail webhook security flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runAddUserFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Add user flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runErfolgsprojekteInviteDashboardFlow(runner, fixture); } catch (e) { runner.results.push({ name: 'Erfolgsprojekte invite dashboard flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runRatingsImportExportFlow(runner, fixture); } catch (e) { runner.results.push({ name: 'Ratings import/export flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runMunicipalityDisclosureFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Municipality disclosure flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runRatingWahlcheckFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Rating wahlcheck flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runRegisterLocalteamFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Register localteam flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runTourSeriesFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Tour series flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runDataAvailabilityFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Data availability flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runErfolgsprojekteArticlesFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Erfolgsprojekte articles flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
   } finally {
     // Set exit code based on any failed tests
     const hasFailures = runner.results.some((r) => r.status === 'failed');
