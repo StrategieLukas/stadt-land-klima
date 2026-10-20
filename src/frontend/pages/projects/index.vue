@@ -194,71 +194,31 @@
 import { computed, ref } from "vue";
 import { isRaster } from "~/shared/utils";
 import { pointLatLng } from "~/shared/tour";
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 const isMapView = computed(() => route.query.view === 'map');
 
-const { data: projectList } = await useAsyncData("articles-index", () => {
-  return $directus.request(
-    $readItems("articles", {
-      fields: [
-        "id",
-        "slug",
-        "title",
-        "abstract",
-        "author",
-        "date_created",
-        "municipality_name",
-        { municipality: ["id", "name", "state", "geolocation"] },
-        "state",
-        "sectors",
-        "can_do_autonomously",
-        "is_profitable",
-        "public_impact_effects",
-        "ghg_savings_level",
-        "profile_stage",
-        { image: ["id", "type"] },
-        "image_credits",
-        { organisation: ["id", "name", "logo"] },
-        { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] },
-      ],
-      sort: "-date_created",
-      limit: -1,
-    }),
-  );
+// Use server routes — $directus is only available during SSR, not on client
+const { data: projectList } = await useAsyncData("articles-index", async () => {
+  const result = await $fetch('/api/public/articles');
+  return result.articles ?? [];
 });
 
-const { data: municipalityLocations } = await useAsyncData("project-municipality-locations", async () => {
-  const names = [...new Set((projectList.value ?? []).map((project) => project.municipality_name).filter(Boolean))];
-  if (!names.length) return [];
-  return $directus.request($readItems("municipalities", {
-    filter: { name: { _in: names } },
-    fields: ["id", "name", "state", "geolocation"],
-    limit: -1,
-  }));
-}, { default: () => [] });
+// Municipality locations are already included in article data via the municipality relation
+const municipalityLocations = computed(() => {
+  const seen = new Map();
+  for (const project of projectList.value ?? []) {
+    const m = project.municipality;
+    if (m?.id && !seen.has(m.id)) {
+      seen.set(m.id, m);
+    }
+  }
+  return [...seen.values()];
+});
 
 const { data: tourData } = await useAsyncData("project-tour-options", async () => {
-  const series = await $directus.request($readItems("success_project_tours", {
-    filter: { status: { _eq: "published" } },
-    fields: ["id", "slug", "title", "featured_on_projects"],
-    limit: -1,
-  }));
-  if (!series.length) return { series, links: [] };
-  const events = await $directus.request($readItems("success_project_tour_stops", {
-    filter: { status: { _eq: "published" }, tour: { id: { _in: series.map((item) => item.id) }, status: { _eq: "published" } } },
-    fields: ["id", "tour"],
-    limit: -1,
-  }));
-  if (!events.length) return { series, links: [] };
-  const links = await $directus.request($readItems("success_project_tour_stops_articles", {
-    filter: { stop: { id: { _in: events.map((item) => item.id) } } },
-    fields: ["stop", "articles_id"],
-    limit: -1,
-  }));
-  const seriesByEvent = Object.fromEntries(events.map((event) => [event.id, event.tour]));
-  return { series, links: links.map((link) => ({ series: seriesByEvent[link.stop], article: link.articles_id })) };
+  return await $fetch('/api/public/projects-tours');
 });
 
 const featuredTours = computed(() => (tourData.value?.series ?? []).filter(tour => tour.featured_on_projects));

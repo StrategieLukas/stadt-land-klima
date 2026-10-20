@@ -144,6 +144,15 @@ permissions:
     presets: null
     fields:
       - '*'
+  - collection: measure_catalog
+    action: read
+    permissions: {}
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - name
+      - isCurrentBackend
   - collection: blocks
     action: read
     permissions:
@@ -272,20 +281,20 @@ permissions:
             stop:
               status:
                 _eq: published
-            tour:
-              status:
+              tour:
+                status:
+                  _eq: published
+              report_status:
                 _eq: published
-            report_status:
-              _eq: published
         - tour_media_posters:
             stop:
               status:
                 _eq: published
-            tour:
-              status:
+              tour:
+                status:
+                  _eq: published
+              report_status:
                 _eq: published
-            report_status:
-              _eq: published
     validation: {}
     presets: null
     fields:
@@ -514,8 +523,8 @@ permissions:
       - image_credits
   - collection: municipalities
     action: read
-    permissions: null
-    validation: null
+    permissions: {}
+    validation: {}
     presets: null
     fields:
       - slug
@@ -711,6 +720,13 @@ permissions:
       - itinerary_image_credits
       - visit_details
       - report_status
+      - report_title
+      - teaser
+      - author
+      - date_published
+      - image_credits
+      - image
+      - media
       - projects
   - collection: success_project_tour_stops_articles
     action: read

@@ -53,40 +53,28 @@
   import { relationId, visitDaysAway, visitHasEnded } from '~/shared/tour';
   import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
   import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js';
-  const { $directus, $readItems, $t } = useNuxtApp();
+  const { $t } = useNuxtApp();
 
   const route = useRoute();
-  const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
+  const slug = String(route.params.slug);
 
-  const { data: articles } = await useAsyncData(`article-${route.params.slug}`, () => {
-    return $directus.request(
-      $readItems("articles", {
-        fields: [
-          "id", "title", "subtitle", "municipality_name", "state", "author", "date_created", "image_credits", "abstract", "article_text", "link", "instagram", "linkedin", "profile_stage",
-          { image: ["id", "type"] },
-          { organisation: [{ logo: ["id", "type"] }, "name", "link"] },
-          { measures: [{ measures_id: ["id", "measure_id", "name", "slug"] }] }
-        ],
-        filter: { slug: { _eq: route.params.slug } },
-        limit: 1,
-      }),
-    )
-  });
+  // Use server routes — $directus is only available during SSR, not on client
+  const { data: articleResult } = await useAsyncData(`article-detail-${slug}`, async () =>
+    $fetch(`/api/public/articles/${slug}`)
+  );
+  const article = computed(() => articleResult.value?.article || {});
 
-  if (!articles.value?.length) {
-    throw createError({ statusCode: 404, statusMessage: 'Projekt nicht gefunden', fatal: import.meta.client })
+  if (!article.value.id) {
+    throw createError({ statusCode: 404, statusMessage: $t('page_not_found'), fatal: true })
   }
 
-  const article = computed(() => articles.value?.[0] || {});
+  // Tour visits for this article
+  const { data: tourVisitsResult } = await useAsyncData(`article-tour-visits-${article.value.id}`, async () =>
+    $fetch('/api/public/article-tour-visits', { query: { articleId: article.value.id } })
+  );
+  const tourVisits = computed(() => tourVisitsResult.value?.visits ?? []);
 
-  const { data: tourLinks } = await useAsyncData(`article-tour-links-${article.value.id}`, () => $directus.request(
-    $readItems('success_project_tour_stops_articles', {
-      filter: { articles_id: { _eq: article.value.id } },
-      fields: [{ stop: ['id','slug','title','location','start_date','end_date','report_status',{tour:['id','slug','title','cover_image_credits',{cover_image:['id','type']}]}] }], limit:-1,
-    })
-  ));
-  const tourVisits = computed(() => (tourLinks.value || []).filter(link => link.stop?.tour).map(link => ({stop:link.stop,tour:link.stop.tour,report:link.stop.report_status==='published'})).sort((a,b) => new Date(a.stop.start_date)-new Date(b.stop.start_date)));
-  const tourNow = useState(`project-tour-now-${route.params.slug}`, () => new Date().toISOString());
+  const tourNow = useState(`project-tour-now-${slug}`, () => new Date().toISOString());
   onMounted(() => { tourNow.value = new Date().toISOString(); });
   function visitMessage(visit) {
     if (visit.report) return $t('tour.visit_report');
@@ -98,24 +86,20 @@
     return $t('tour.upcoming');
   }
 
-  const { data: municipalityData } = await useAsyncData(
-    `municipality-slug-for-article-${route.params.slug}`,
+  // Municipality slug for the article
+  const { data: municipalityResult } = await useAsyncData(
+    `municipality-by-name-${article.value.municipality_name}`,
     async () => {
-      if (!article.value.municipality_name) return false;
-      const results = await $directus.request(
-        $readItems("municipalities", {
-          fields: ["slug", "ars", { scores: ["catalog_version", "published", "percentage_rated"] }],
-          filter: { name: { _eq: article.value.municipality_name } },
-          limit: 1,
-        })
-      );
-      return results?.[0] ?? false;
+      if (!article.value.municipality_name) return { municipality: null };
+      return $fetch('/api/public/municipality-by-name', { query: { name: article.value.municipality_name } });
     },
     { watch: [article] }
   );
 
+  // Get catalog version for municipality slug resolution
+  const selectedCatalogVersion = await getCatalogVersion(route);
   const municipalitySlug = computed(() => {
-    const m = municipalityData.value;
+    const m = municipalityResult.value?.municipality;
     if (!m) return null;
     const publishedScore = (m.scores ?? []).find((score) => {
       const catalogVersion = typeof score.catalog_version === 'object'
@@ -144,7 +128,7 @@
 
   //MetaTags
   const title = computed(() => article.value.title || '');
-    useHead({
+  useHead({
     title,
   });
 </script>

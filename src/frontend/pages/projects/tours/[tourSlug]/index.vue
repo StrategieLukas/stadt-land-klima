@@ -158,36 +158,34 @@ type Project = { id: number; slug: string; title: string; profile_stage?: string
 type Stop = SuccessProjectTourStop;
 type Series = SuccessProjectTour;
 
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 const route = useRoute();
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
 const isDesktop = useState<boolean>("layout-isDesktop");
 const slug = String(route.params.tourSlug);
 
-const { data: seriesRows } = await useAsyncData(`tour-${slug}`, () => $directus.request($readItems("success_project_tours", {
-  filter: { slug: { _eq: slug }, status: { _eq: "published" } },
-  fields: TOUR_FIELDS,
-  limit: 1,
-})));
-const series = computed<Series | null>(() => (seriesRows.value?.[0] as Series) ?? null);
+// Use server routes — $directus is only available during SSR, not on client
+const { data: seriesResult } = await useAsyncData(`tour-${slug}`, async () =>
+  $fetch('/api/public/tour-detail', { query: { slug } })
+);
+const series = computed<Series | null>(() => seriesResult.value?.series ?? null);
 if (!series.value) throw createError({ statusCode: 404, statusMessage: $t("page_not_found"), fatal: true });
 
-const { data: stopRows } = await useAsyncData(`tour-stops-${series.value.id}`, () => $directus.request($readItems("success_project_tour_stops", {
-  filter: { ...publicStopFilter, tour: { id: { _eq: series.value?.id }, status: { _eq: "published" } } },
-  fields: STOP_FIELDS,
-  limit: -1,
-})));
-const stops = computed<Stop[]>(() => [...((stopRows.value ?? []) as Stop[])].sort((a, b) =>
+const { data: stopsResult } = await useAsyncData(`tour-stops-${series.value.id}`, async () =>
+  $fetch('/api/public/tour-stops-by-tour', { query: { tourId: series.value!.id } })
+);
+const stops = computed<Stop[]>(() => [...((stopsResult.value?.stops ?? []) as Stop[])].sort((a, b) =>
   (a.sort ?? Number.MAX_SAFE_INTEGER) - (b.sort ?? Number.MAX_SAFE_INTEGER)
   || new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
   || a.slug.localeCompare(b.slug)
 ));
 const stopIds = stops.value.map((stop) => stop.id);
 
-const { data: projectLinks } = await useAsyncData(`tour-projects-${series.value.id}`, () => stopIds.length ? $directus.request($readItems("success_project_tour_stops_articles", {
-  filter: { stop: { id: { _in: stopIds } }, articles_id: { status: { _eq: 'published' } } }, fields: ["stop", { articles_id: ["id", "slug", "title", "profile_stage"] }], limit: -1,
-})) : Promise.resolve([]));
+const { data: projectLinks } = await useAsyncData(`tour-projects-${series.value.id}`, async () => {
+  if (!stopIds.length) return [];
+  return $fetch('/api/public/tour-stop-articles', { query: { stopIds: stopIds.join(',') } });
+});
 
 const projectsByStop = computed(() => {
   const result = new Map<string, Project[]>();
