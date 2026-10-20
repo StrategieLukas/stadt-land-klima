@@ -249,11 +249,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { getCurrentBackendCatalogVersion } from '~/composables/getCatalogVersion.js'
 
 const route = useRoute()
-const { $stadtlandzahlAPI, $directus, $readItems, $t } = useNuxtApp()
-const currentVersionBackend = await getCurrentBackendCatalogVersion($directus, $readItems)
+const { $stadtlandzahlAPI, $t } = useNuxtApp()
 
 // --- Query-param pre-fill ---
 const hasQueryParams = computed(() => !!route.query.ars)
@@ -321,39 +319,11 @@ async function checkExistingLocalteam(
   slugs: string[] = [],
 ): Promise<{ hasTeam: boolean; slug: string | null; percentageRated: number | null; published: boolean }> {
   try {
-    const identityFilters: any[] = [{ ars: { _eq: ars } }]
-    const uniqueSlugs = [...new Set(slugs.filter(Boolean))]
-    if (uniqueSlugs.length > 0) identityFilters.push({ slug: { _in: uniqueSlugs } })
-
-    const municipalities = await $directus.request(
-      $readItems('municipalities', {
-        filter: {
-          _and: [{ localteam_id: { _nnull: true } }, { _or: identityFilters }],
-        },
-        fields: ['ars', 'slug', 'localteam_id', { scores: ['catalog_version', 'published', 'percentage_rated'] }],
-        limit: -1,
-      }),
-    )
-
-    const municipality =
-      uniqueSlugs.map((slug) => municipalities.find((item: any) => item.slug === slug)).find(Boolean) ??
-      municipalities.find((item: any) => item.ars === ars)
-
-    if (!municipality?.localteam_id) {
-      return { hasTeam: false, slug: null, percentageRated: null, published: false }
-    }
-
-    const score = (municipality.scores ?? []).find((item: any) => {
-      const catalogId = typeof item.catalog_version === 'object' ? item.catalog_version?.id : item.catalog_version
-      return catalogId === currentVersionBackend.id
+    // Use server route — client-side $directus is no longer available
+    const result = await $fetch('/api/register-check', {
+      query: { ars },
     })
-
-    return {
-      hasTeam: true,
-      slug: municipality.slug ?? null,
-      percentageRated: score?.percentage_rated ?? null,
-      published: score?.published === true,
-    }
+    return result as { hasTeam: boolean; slug: string | null; percentageRated: number | null; published: boolean }
   } catch {
     return { hasTeam: false, slug: null, percentageRated: null, published: false }
   }

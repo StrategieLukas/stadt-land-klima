@@ -206,6 +206,13 @@ async function mockStadtlandzahlArea(page: Page, ars: string, name: string): Pro
 }
 
 async function solveAltcha(page: Page): Promise<void> {
+  // In dev mode, the altcha-widget is replaced with a bypass message, so there's nothing to solve.
+  const widgetExists = await page.locator('altcha-widget').count();
+  if (widgetExists === 0) {
+    // Dev mode bypass — no CAPTCHA to solve
+    return;
+  }
+
   await page.locator('altcha-widget').waitFor({ state: 'attached', timeout: 20_000 });
   await page.waitForFunction(() => typeof (document.querySelector('altcha-widget') as any)?.verify === 'function', {
     timeout: 20_000,
@@ -304,6 +311,14 @@ async function createExistingLocalteamFixture(
   await fixture.admin.updateItem<Municipality>('municipalities', generatedMunicipality.id, {
     ars,
   });
+
+  // Wait for the municipality score to be created by the Directus flow,
+  // so the frontend can determine the rating state.
+  await waitFor(
+    'municipality score created for existing register_localteam scenario',
+    async () => readCurrentBackendScore(fixture.admin, generatedMunicipality.id) ?? false,
+    { timeoutMs: 45_000 },
+  );
 
   const municipality = await waitFor(
     'frontend-readable existing localteam municipality',

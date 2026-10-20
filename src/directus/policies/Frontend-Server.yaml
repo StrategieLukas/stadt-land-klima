@@ -522,6 +522,11 @@ permissions:
       - municipality_type
       - details
       - scores
+      - scores.catalog_version
+      - scores.catalog_version.id
+      - scores.catalog_version.isCurrentBackend
+      - scores.percentage_rated
+      - scores.published
       - mayor
       - state
       - population
