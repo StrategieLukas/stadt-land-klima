@@ -60,11 +60,17 @@ export default defineEventHandler(async (event) => {
 
     // Only include elections that have at least one candidate who answered
     if ((candidates?.length || 0) > 0) {
-      const municipalityId = election.localteam?.municipality_id || {}
+      const localteam = election.localteam || {}
+      // municipality_id is a one-to-many alias, so it returns an array of municipalities.
+      // Use the first municipality's slug, falling back to the localteam's own slug.
+      const municipalities = Array.isArray(localteam.municipality_id)
+        ? localteam.municipality_id
+        : localteam.municipality_id ? [localteam.municipality_id] : []
+      const municipalitySlug = municipalities[0]?.slug || localteam.slug || null
       results.push({
         ...pick(election, ['id', 'descriptor', 'custom_logo', 'is_party_election', 'date_created']),
-        localteam: pick(election.localteam || {}, ['id', 'name', 'slug', 'municipality_name']),
-        municipalitySlug: municipalityId.slug || null,
+        localteam: pick(localteam, ['id', 'name', 'slug', 'municipality_name']),
+        municipalitySlug,
         candidateCount: candidates?.length || 0,
         questionCount: questions?.length || 0,
       })

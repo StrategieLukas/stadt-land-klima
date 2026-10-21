@@ -140,8 +140,7 @@ try {
   await step('MIG-03: copied legacy credentials are revoked, not only removed from HTML', async () => {
     const retired = process.env.TEST_RETIRED_DIRECTUS_TOKEN || legacyBrowserToken;
     if (!retired) {
-      // Legacy browser token has been fully removed; nothing to revoke.
-      return;
+      assert(false, 'Provide TEST_RETIRED_DIRECTUS_TOKEN at cutover to verify revocation of the previously exposed credential');
     }
     const response = await fetchBackend('/users/me?fields=id', retired);
     assert(response.status === 401, 'Retired credential must be rejected as invalid, not merely lack one permission');
