@@ -69,8 +69,16 @@ import type { FieldListItem } from '#blokkli/types'
 import { BRAND_COLOR_CLASSES } from '~/utils/blokkliColors'
 import { getBlokkliBlockId } from '~/utils/blokkliLinks'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'hero',
+  propsFieldMapping: {
+    blocks: { name: 'blocks', type: 'field' },
+    title: { name: 'title', type: 'editable' },
+    subtitle: { name: 'subtitle', type: 'editable' },
+    imageId: { name: 'imageId', type: 'droppable' },
+  },
   globalOptions: ['anchor'],
   options: {
     height: {

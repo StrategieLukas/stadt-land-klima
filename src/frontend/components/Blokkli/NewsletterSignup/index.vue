@@ -96,8 +96,14 @@ const props = defineProps<{
 
 const { $t } = useNuxtApp()
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'newsletter_signup',
+  propsFieldMapping: {
+    title: { name: 'title', type: 'editable' },
+    description: { name: 'description', type: 'editable' },
+  },
   options: {
     listIds: {
       type: 'text',
@@ -202,7 +208,7 @@ async function subscribe() {
     return
   }
   // Prevent form submission in editor mode
-  if (isEditing.value) return
+  if (isEditing) return
 
   const listIds = selectedIds.value.length > 0 ? selectedIds.value : undefined
   subscribeState.value = 'subscribing'

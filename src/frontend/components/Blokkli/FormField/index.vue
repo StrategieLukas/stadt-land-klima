@@ -85,8 +85,13 @@ const props = defineProps<{
 
 const { $t } = useNuxtApp();
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: "form_field",
+  propsFieldMapping: {
+    label: { name: 'label', type: 'field' },
+  },
   options: {
     fieldType: {
       type: "radios",

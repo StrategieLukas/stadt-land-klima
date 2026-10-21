@@ -103,8 +103,16 @@ const props = defineProps<{
 const { $t, $locale } = useNuxtApp();
 const route = useRoute();
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: "form",
+  propsFieldMapping: {
+    fields: { name: 'fields', type: 'field' },
+    title: { name: 'title', type: 'editable' },
+    description: { name: 'description', type: 'editable' },
+    successMessage: { name: 'successMessage', type: 'editable' },
+  },
   options: {
     formKey: {
       type: "text",
@@ -265,7 +273,7 @@ async function submitForm() {
   submitError.value = "";
   captchaError.value = "";
 
-  if (isEditing.value || submissionState.value === "submitting") return;
+  if (isEditing || submissionState.value === "submitting") return;
 
   const payload = altchaPayload.value || altchaRef.value?.value;
   if (!payload) {

@@ -19,6 +19,9 @@ import { getBlokkliBlockId } from '~/utils/blokkliLinks'
 
 const { options, uuid } = defineBlokkli({
   bundle: 'heading',
+  propsFieldMapping: {
+    text: { name: 'text', type: 'editable' },
+  },
   globalOptions: ['anchor'],
   options: {
     level: {

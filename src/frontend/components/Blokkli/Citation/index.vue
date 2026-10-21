@@ -132,8 +132,16 @@
 import { Icon } from '@iconify/vue'
 import { resolveComponent } from 'vue'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'citation',
+  propsFieldMapping: {
+    quote: { name: 'quote', type: 'editable' },
+    attribution: { name: 'attribution', type: 'editable' },
+    source: { name: 'source', type: 'editable' },
+    imageId: { name: 'imageId', type: 'droppable' },
+  },
   options: {
     style: {
       type: 'radios',
@@ -195,14 +203,14 @@ const props = defineProps<{
 }>()
 
 const linkTag = computed(() => {
-  if (isEditing.value) return 'div'
+  if (isEditing) return 'div'
   if (options.value.linkType === 'external') return 'a'
   if (options.value.linkType === 'internal') return resolveComponent('NuxtLink')
   return options.value.style === 'blockquote' ? 'blockquote' : 'div'
 })
 
 const linkAttrs = computed(() => {
-  if (isEditing.value || options.value.linkType === 'none') return {}
+  if (isEditing || options.value.linkType === 'none') return {}
   const lv = options.value.link || '#'
   if (options.value.linkType === 'external') {
     return { href: lv, target: '_blank', rel: 'noopener noreferrer' }

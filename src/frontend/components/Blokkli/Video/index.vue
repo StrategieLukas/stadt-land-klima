@@ -41,8 +41,13 @@
 </template>
 
 <script setup lang="ts">
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'video',
+  propsFieldMapping: {
+    caption: { name: 'caption', type: 'editable' },
+  },
   options: {
     videoUrl: {
       type: 'text',

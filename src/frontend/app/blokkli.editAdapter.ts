@@ -5,34 +5,38 @@
  * publish/discard, and only persists to Directus on publish.
  */
 
-import { defineBlokkliEditAdapter } from '#blokkli/adapter'
-import { emitMessage } from '#blokkli/helpers/eventBus'
+import { defineBlokkliEditAdapter } from '#blokkli/editor/adapter'
+import { emitMessage } from '#blokkli/editor/events'
+import type { FieldListItem } from '#blokkli/types'
+import type { MappedState, MutationItem, MutatedField } from '#blokkli/editor/types/state'
+import type { FieldConfig, BlockBundleDefinition, BlockPermission } from '#blokkli/editor/types/definitions'
+import type { UserPermissions } from '#blokkli/editor/types/permissions'
+import type { BlokkliUser } from '#blokkli/editor/types/user'
 import type {
-  MappedState,
-  MutationItem,
-  FieldListItem,
-  FieldConfig,
-  EditableFieldConfig,
-  DroppableFieldConfig,
-  BlockBundleDefinition,
   AddNewBlockEvent,
   MoveBlockEvent,
   MoveMultipleBlocksEvent,
+} from '#blokkli/editor/events'
+import type {
+  EditableFieldConfig,
+  DroppableFieldConfig,
   UpdateFieldValueEvent,
-  MutatedField,
+} from '#blokkli/editor/features/editable-field/types'
+import type {
   MakeReusableEvent,
   DetachReusableBlockEvent,
   AddReusableItemEvent,
   LibraryItem,
-} from '#blokkli/types'
+  BlokkliAdapterGetLibraryItemsData,
+  BlokkliAdapterGetLibraryItemsResult,
+} from '#blokkli/editor/features/library/types'
 import type {
   GetMediaLibraryFunction,
   MediaLibraryAddBlockEvent,
   MediaLibraryReplaceMediaEvent,
-  BlokkliAdapterGetLibraryItemsData,
-  BlokkliAdapterGetLibraryItemsResult,
-  BlokkliAdapterPublishOptions,
-} from '#blokkli/adapter'
+} from '#blokkli/editor/features/media-library/types'
+import type { BlokkliAdapterPublishOptions } from '#blokkli/editor/features/publish/types'
+import type { PluginConfigInput } from '#blokkli/editor/types/pluginConfig'
 import {
   readItems,
   readFiles,
@@ -67,10 +71,44 @@ type StoredDraft = {
   ownerId: string
 }
 
+type DirectusPermissions = Record<string, Partial<Record<
+  'create' | 'read' | 'update' | 'delete',
+  { access: 'full' | 'partial' | 'none' }
+>>>
+
 export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   const { $directus, $t } = useNuxtApp()
   const config = useRuntimeConfig()
   const { isAuthenticated, getAuthenticatedClient, user, initialize } = useAuth()
+  let permissions: DirectusPermissions = {}
+  let permissionsRequest: Promise<DirectusPermissions> | undefined
+
+  async function loadPermissions(): Promise<DirectusPermissions> {
+    await initialize()
+    if (!isAuthenticated.value) return {}
+    permissionsRequest ??= getClient().request(
+      customEndpoint<DirectusPermissions>({ path: '/permissions/me', method: 'GET' }),
+    ).then((result) => {
+      permissions = result
+      return result
+    })
+    return permissionsRequest
+  }
+
+  function hasAccess(collection: string, action: 'create' | 'read' | 'update' | 'delete'): boolean {
+    const access = permissions[collection]?.[action]?.access
+    return isAuthenticated.value && (access === 'full' || access === 'partial')
+  }
+
+  function searchFilters(): PluginConfigInput[] {
+    return [{
+      type: 'text',
+      name: 'search',
+      label: $t('blokkli.media.search_placeholder'),
+      placeholder: $t('blokkli.media.search_placeholder'),
+      required: false,
+    }]
+  }
   // Capture Nuxt context before asynchronous adapter callbacks run.
   const pageData = useNuxtData<FieldListItem[]>(
     getBlokkliDataKey(ctx.value.entityType, ctx.value.entityUuid),
@@ -396,6 +434,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     return {
       uuid: crypto.randomUUID(),
       bundle,
+      isVisible: true,
       props,
       options,
     }
@@ -535,7 +574,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   }
 
   /** Move a block within any list in the tree. */
-  function moveBlockInTree(uuid: string, afterUuid?: string, hostUuid?: string, hostFieldName?: string): boolean {
+  function moveBlockInTree(uuid: string, afterUuid?: string | null, hostUuid?: string, hostFieldName?: string): boolean {
     // Determine target container list
     let targetList: FieldListItem[]
     if (hostUuid && hostUuid !== ctx.value.entityUuid) {
@@ -556,6 +595,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     const sourceIdx = sourceList.findIndex((v) => v.uuid === uuid)
     if (sourceIdx === -1) return false
     const [block] = sourceList.splice(sourceIdx, 1)
+    if (!block) return false
 
     // Insert into target
     const afterIndex = afterUuid ? targetList.findIndex((v) => v.uuid === afterUuid) : -1
@@ -597,6 +637,27 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   // ==========================================
 
   return {
+    async getCurrentUser(): Promise<BlokkliUser> {
+      await initialize()
+      const id = getCurrentUserId()
+      if (!isAuthenticated.value || !id) {
+        throw new Error('Blökkli requires an authenticated Directus session')
+      }
+      return { id, name: getCurrentUserName() }
+    },
+
+    async getUserPermissions(): Promise<UserPermissions[]> {
+      await loadPermissions()
+      const result: UserPermissions[] = []
+      if (hasAccess('blocks', 'read') && hasAccess('blocks', 'update') &&
+          hasAccess('edit_states', 'read') && hasAccess('edit_states', 'create') &&
+          hasAccess('edit_states', 'update')) {
+        result.push('use_blokkli')
+        if (hasAccess('library_items', 'create')) result.push('create_library_item')
+      }
+      return result
+    },
+
     /**
      * Load state from Directus. Resets mutation tracking.
      */
@@ -630,12 +691,27 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       // blökkli compares the previous mapped fields to the next snapshot. Sharing
       // nested props mutates the previous snapshot too, hiding edits from Vue.
       const blocks = cloneBlocks(s.blocks)
+      const publishedUuids = new Set<string>()
+      function visit(list: FieldListItem[], callback: (block: FieldListItem) => void) {
+        for (const block of list) {
+          callback(block)
+          for (const nested of getNestedLists(block)) visit(nested, callback)
+        }
+      }
+      visit(initialBlocks, (block) => publishedUuids.add(block.uuid))
+      // V2's selection/actions require this context. Derive it on the mapped
+      // copy so runtime editor metadata never enters stored drafts or content.
+      visit(blocks, (block) => {
+        const isPublished = publishedUuids.has(block.uuid)
+        block.editContext = { isPublished, isNew: !isPublished }
+      })
       // Collect mutated options for all blocks (including all nested fields)
       function collectOptions(list: FieldListItem[], acc: Record<string, Record<string, any>>) {
         for (const block of list) {
-          acc[block.uuid] = {}
+          const blockOptions: Record<string, any> = {}
+          acc[block.uuid] = blockOptions
           Object.entries(block.options || {}).forEach(([key, value]) => {
-            acc[block.uuid][key] = value
+            blockOptions[key] = value
           })
           for (const fieldKey of NESTED_FIELD_KEYS) {
             const nested = (block.props as any)?.[fieldKey]
@@ -698,14 +774,29 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           status: true,
           bundleLabel: ctx.value.entityBundle,
         },
+        publishOptions: {
+          canPublish: hasAccess('blocks', 'update'),
+          isRevisionable: false,
+          hasRevisionLogMessage: false,
+          lastChanged: null,
+          canSchedule: false,
+          publishOn: null,
+          revisionLogMessage: null,
+        },
         translationState: {
           isTranslatable: false,
         },
       }
     },
 
-    getAllBundles(): Promise<BlockBundleDefinition[]> {
-      return Promise.resolve([
+    async getAllBundles(): Promise<BlockBundleDefinition[]> {
+      await loadPermissions()
+      const blockPermissions: BlockPermission[] = []
+      if (hasAccess('blocks', 'create')) blockPermissions.push('add')
+      // Removing a published block archives it through the atomic endpoint;
+      // it requires update access, rather than permission to hard-delete rows.
+      if (hasAccess('blocks', 'update')) blockPermissions.push('edit', 'delete')
+      return [
         { id: 'text', label: 'Text', description: 'Rich text content block', allowReusable: true },
         { id: 'richtext', label: 'Markdown', description: 'Rich text with Markdown editor', allowReusable: true },
         { id: 'heading', label: 'Überschrift', description: 'Heading block', allowReusable: true },
@@ -734,7 +825,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         { id: 'form_label', label: 'Formularbeschriftung', description: 'Beschriftung und Hilfetext für ein Formularfeld', allowReusable: false },
         { id: 'icon', label: 'Icon', description: 'Icon aus SLK-Bibliothek oder Iconify', allowReusable: true },
         { id: 'from_library', label: 'Aus Bibliothek', description: 'Wiederverwendbaren Block aus der Bibliothek einfügen' },
-      ])
+      ].map((bundle) => ({ ...bundle, permissions: [...blockPermissions] }))
     },
 
     getFieldConfig(): Promise<FieldConfig[]> {
@@ -828,8 +919,9 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
 
     addNewBlock(e: AddNewBlockEvent) {
       const newBlock: FieldListItem = {
-        uuid: crypto.randomUUID(),
+        uuid: e.blockUuid || crypto.randomUUID(),
         bundle: e.bundle,
+        isVisible: true,
         props: getPropsForNewBlock(e.bundle),
         options: {},
       }
@@ -869,15 +961,21 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     },
 
     moveBlock(e: MoveBlockEvent) {
-      const success = moveBlockInTree(e.item.uuid, e.afterUuid, e.host.uuid, (e.host as any).fieldName)
+      const success = moveBlockInTree(e.item.block.uuid, e.afterUuid, e.host.uuid, e.host.fieldName)
       if (success) {
-        trackMutation("Move '" + e.item.itemBundle + "' block", e.item.uuid)
+        trackMutation("Move '" + e.item.block.bundle + "' block", e.item.block.uuid)
       }
       return Promise.resolve({ success, state })
     },
 
     moveMultipleBlocks(e: MoveMultipleBlocksEvent) {
-      e.uuids.forEach((uuid) => moveBlockInTree(uuid, e.afterUuid, e.host.uuid))
+      let afterUuid = e.afterUuid
+      for (const uuid of e.uuids) {
+        if (!moveBlockInTree(uuid, afterUuid, e.host.uuid, e.host.fieldName)) {
+          return Promise.resolve({ success: false, state })
+        }
+        afterUuid = uuid
+      }
       trackMutation('Move ' + e.uuids.length + ' blocks')
       return ok()
     },
@@ -906,6 +1004,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
         const dup: FieldListItem = {
           uuid: crypto.randomUUID(),
           bundle: block.bundle,
+          isVisible: block.isVisible,
           props: JSON.parse(JSON.stringify(block.props || {})),
           options: JSON.parse(JSON.stringify(block.options || {})),
         }
@@ -993,7 +1092,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     /**
      * Publish: persist current in-memory state to Directus, then reset mutations.
      */
-    async publish(options: BlokkliAdapterPublishOptions = {}) {
+    async publish(options: Partial<BlokkliAdapterPublishOptions> = {}) {
       try {
         // Ensure the recoverable copy contains the exact state being published.
         await flushDraftSave()
@@ -1117,7 +1216,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       // changes when another tab saves. Read both recovery stores instead.
       const localDate = Date.parse(loadLocalDraft()?.updatedAt || '') || 0
       try {
-        const records = await getClient().request(
+        const records: any = await getClient().request(
           (readItems as Function)('edit_states', {
             filter: {
               entity_type: { _eq: ctx.value.entityType },
@@ -1473,8 +1572,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           label: 'Bild',
           entityType: 'block',
           entityBundle: 'image',
-          allowedEntityType: 'media',
-          allowedBundles: ['image'],
+          type: 'reference',
+          allowed: [{ type: 'media', bundles: ['image'] }],
           cardinality: 1,
           required: false,
         },
@@ -1483,8 +1582,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           label: 'Hintergrundbild',
           entityType: 'block',
           entityBundle: 'hero',
-          allowedEntityType: 'media',
-          allowedBundles: ['image'],
+          type: 'reference',
+          allowed: [{ type: 'media', bundles: ['image'] }],
           cardinality: 1,
           required: false,
         },
@@ -1493,8 +1592,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           label: 'Portraitbild',
           entityType: 'block',
           entityBundle: 'citation',
-          allowedEntityType: 'media',
-          allowedBundles: ['image'],
+          type: 'reference',
+          allowed: [{ type: 'media', bundles: ['image'] }],
           cardinality: 1,
           required: false,
         },
@@ -1503,8 +1602,8 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           label: 'Hintergrundbild',
           entityType: 'block',
           entityBundle: 'hex_item',
-          allowedEntityType: 'media',
-          allowedBundles: ['image'],
+          type: 'reference',
+          allowed: [{ type: 'media', bundles: ['image'] }],
           cardinality: 1,
           required: false,
         },
@@ -1530,33 +1629,36 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       if (data.bundles && data.bundles.length > 0) {
         filter.bundle = { _in: data.bundles }
       }
-      if (data.text) {
-        filter.label = { _contains: data.text }
+      const search = typeof data.filters?.search === 'string' ? data.filters.search.trim() : ''
+      if (search) {
+        filter.label = { _contains: search }
       }
 
       const items = await getClient().request(
         (readItems as Function)('library_items', {
           filter,
           sort: ['-date_created'],
-          limit: perPage,
-          page: data.page,
+          limit: perPage + 1,
+          offset: data.page * perPage,
           fields: ['id', 'uuid', 'label', 'bundle', 'props', 'options'],
         }),
       )
 
+      const results = Array.isArray(items) ? items : []
       return {
-        items: (Array.isArray(items) ? items : []).map((item: any): LibraryItem => ({
+        filters: searchFilters(),
+        items: results.slice(0, perPage).map((item: any): LibraryItem => ({
           uuid: item.uuid,
           label: item.label,
           bundle: item.bundle,
-          item: {
+          item: mapBlokkliBlocks([{
             uuid: item.uuid,
             bundle: item.bundle,
             props: item.props || {},
             options: item.options || {},
-          },
+          }])[0]!,
         })),
-        total: Array.isArray(items) ? items.length : 0,
+        total: data.page * perPage + results.length,
         perPage,
       }
     },
@@ -1604,6 +1706,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
             cloned[key] = cloned[key].map((nested: any) => ({
               ...nested,
               uuid: crypto.randomUUID(),
+              isVisible: nested.isVisible !== false,
               props: cloneWithNewUuids(nested.props || {}),
             }))
           }
@@ -1614,6 +1717,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       const newBlock: FieldListItem = {
         uuid: crypto.randomUUID(),
         bundle: libItem.bundle,
+        isVisible: true,
         props: cloneWithNewUuids(libItem.props || {}),
         options: JSON.parse(JSON.stringify(libItem.options || {})),
       }
@@ -1684,12 +1788,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       const tokenParam = token ? `&access_token=${encodeURIComponent(token)}` : ''
 
       return {
-        filters: {
-          search: {
-            type: 'text',
-            placeholder: $t('blokkli.media.search_placeholder'),
-          },
-        },
+        filters: searchFilters(),
         items: pageItems.map((file: any) => ({
           mediaId: file.id,
           label: file.title || file.filename_download,
@@ -1707,6 +1806,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       const newBlock: FieldListItem = {
         uuid: crypto.randomUUID(),
         bundle: 'image',
+        isVisible: true,
         props: { imageId: e.item.mediaId },
         options: {},
       }

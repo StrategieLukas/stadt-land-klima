@@ -39,8 +39,15 @@
 import type { FieldListItem } from '#blokkli/types'
 import { Icon } from '@iconify/vue'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'timeline_item',
+  propsFieldMapping: {
+    blocks: { name: 'blocks', type: 'field' },
+    date: { name: 'date', type: 'editable' },
+    title: { name: 'title', type: 'editable' },
+  },
   options: {
     color: {
       type: 'radios',

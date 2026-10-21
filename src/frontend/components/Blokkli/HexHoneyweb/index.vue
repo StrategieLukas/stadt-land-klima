@@ -16,8 +16,13 @@
 <script setup lang="ts">
 import type { FieldListItem } from '#blokkli/types'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'hex_grid',
+  propsFieldMapping: {
+    hexagons: { name: 'hexagons', type: 'field' },
+  },
   options: {
     size: {
       type: 'radios',

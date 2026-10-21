@@ -119,8 +119,15 @@
 import { Icon } from '@iconify/vue'
 import { isRaster } from '~/shared/utils'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'projects_carousel',
+  propsFieldMapping: {
+    label: { name: 'label', type: 'editable' },
+    heading: { name: 'heading', type: 'editable' },
+    linkText: { name: 'linkText', type: 'editable' },
+  },
   options: {
     limit: {
       type: 'radios',

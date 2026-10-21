@@ -43,8 +43,14 @@
 import { resolveComponent } from 'vue'
 import { resolveBlokkliInternalLink } from '~/utils/blokkliLinks'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'image',
+  propsFieldMapping: {
+    caption: { name: 'caption', type: 'editable' },
+    imageId: { name: 'imageId', type: 'droppable' },
+  },
   options: {
     size: {
       type: 'radios',
@@ -100,14 +106,14 @@ const sizeClass = computed(() => {
 })
 
 const linkTag = computed(() => {
-  if (isEditing.value) return 'div'
+  if (isEditing) return 'div'
   if (options.value.linkType === 'external') return 'a'
   if (options.value.linkType === 'internal') return resolveComponent('NuxtLink')
   return 'div'
 })
 
 const linkAttrs = computed(() => {
-  if (isEditing.value || options.value.linkType === 'none') return {}
+  if (isEditing || options.value.linkType === 'none') return {}
   const lv = options.value.link || '#'
   if (options.value.linkType === 'external') {
     return { href: lv, target: '_blank', rel: 'noopener noreferrer' }

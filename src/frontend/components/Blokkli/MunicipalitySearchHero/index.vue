@@ -79,7 +79,9 @@ function scoreToHex(scoreTotal: number | null | undefined): string {
 }
 
 // ─── Blokkli block definition ─────────────────────────────────────────────────
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'municipality_search_hero',
   options: {
     title: {

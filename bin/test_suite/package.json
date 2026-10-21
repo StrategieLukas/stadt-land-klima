@@ -5,6 +5,7 @@
   "scripts": {
     "test": "tsx src/run.ts",
     "test:blokkli": "tsx --test src/blokkliPersistence.test.ts",
+    "test:blokkli:adapter": "tsx --test src/blokkliAdapter.test.ts",
     "test:mail-client": "tsx --test src/mailFlowClient.test.ts",
     "test:security:preview": "tsx src/previewSecurity.ts",
     "test:security:migration": "tsx src/securityMigration.ts",

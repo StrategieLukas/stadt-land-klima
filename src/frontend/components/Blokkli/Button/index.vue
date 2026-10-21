@@ -109,8 +109,13 @@ const iconMap: Record<string, string> = Object.fromEntries(
   }),
 )
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'button',
+  propsFieldMapping: {
+    label: { name: 'label', type: 'editable' },
+  },
   options: {
     linkType: {
       type: 'radios',

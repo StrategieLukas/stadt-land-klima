@@ -24,6 +24,9 @@ import { getBlokkliBlockId } from '~/utils/blokkliLinks'
 
 const { options, uuid } = defineBlokkli({
   bundle: 'container',
+  propsFieldMapping: {
+    blocks: { name: 'blocks', type: 'field' },
+  },
   globalOptions: ['anchor'],
   options: {
     layout: {

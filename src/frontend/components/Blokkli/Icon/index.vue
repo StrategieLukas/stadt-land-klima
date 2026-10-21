@@ -57,7 +57,9 @@ const iconMap: Record<string, string> = Object.fromEntries(
   }),
 )
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'icon',
   options: {
     // ── Quelle ───────────────────────────────────────────────────────────────
@@ -75,7 +77,7 @@ const { options, isEditing, uuid } = defineBlokkli({
       type: 'radios',
       label: 'SLK Icon',
       default: '',
-      displayAs: 'grid',
+      displayAs: 'radios',
       group: 'Quelle',
       options: {
         '': 'Keines',
@@ -162,7 +164,7 @@ const { options, isEditing, uuid } = defineBlokkli({
         yellow:       { label: 'Gelb',        hex: '#ffc80c' },
         lime:         { label: 'Lime',        hex: '#afca0b' },
         red:          { label: 'Rot',         hex: '#e30613' },
-        transparent:  { label: 'Transparent', hex: 'transparent' },
+        transparent:  { label: 'Transparent', hex: '#00000000' },
       },
     },
     bgColor: {
@@ -172,7 +174,7 @@ const { options, isEditing, uuid } = defineBlokkli({
       displayAs: 'colors',
       group: 'Farben',
       options: {
-        transparent:  { label: 'Transparent', hex: 'transparent' },
+        transparent:  { label: 'Transparent', hex: '#00000000' },
         green:        { label: 'Grün',        hex: '#1da64a' },
         'dark-green': { label: 'Dunkelgrün',  hex: '#339737' },
         blue:         { label: 'Blau',        hex: '#16bae7' },

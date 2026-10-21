@@ -16,8 +16,14 @@ const props = defineProps<{
   description?: string;
 }>();
 
-const { isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { uuid } = defineBlokkli({
   bundle: "form_label",
+  propsFieldMapping: {
+    text: { name: 'text', type: 'editable' },
+    description: { name: 'description', type: 'editable' },
+  },
   editor: {
     addBehaviour: "editable:text",
     editTitle: (el) => {

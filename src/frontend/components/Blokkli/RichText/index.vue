@@ -34,8 +34,13 @@ const md = new MarkdownIt({
   breaks: true,
 })
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'richtext',
+  propsFieldMapping: {
+    content: { name: 'content', type: 'editable' },
+  },
   globalOptions: ['anchor'],
   options: {
     size: {

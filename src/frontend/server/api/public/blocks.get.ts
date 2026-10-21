@@ -8,7 +8,7 @@ function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
 }
 
-const blockFields = ['id', 'bundle', 'props', 'sort_order', 'entity_type', 'entity_uuid', 'field_name', 'status']
+const blockFields = ['id', 'uuid', 'bundle', 'props', 'options', 'sort_order', 'entity_type', 'entity_uuid', 'field_name', 'status']
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')

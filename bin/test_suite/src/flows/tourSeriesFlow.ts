@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import type { Browser } from 'playwright';
 import { assert, assertIncludes, assertNotIncludes } from '../lib/assert.js';
 import { newContext } from '../lib/browser.js';
+import { openBlokkliField, saveBlokkliField } from '../lib/blokkli.js';
 import { DirectusClient } from '../lib/directus.js';
 import type { TestFixture } from '../lib/fixture.js';
 import type { TestRunner } from '../lib/runner.js';
@@ -575,6 +576,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         await context.addCookies([{name:'slk_locale',value:'de-DE',url:config.frontendUrl}]);
         await context.addInitScript(({token,user,legacyId,revision})=>{
           localStorage.setItem('slk_auth',JSON.stringify({accessToken:token,refreshToken:null,user}));
+          localStorage.setItem('blokkli:popup:tour:closed','true');
           localStorage.setItem(`slk:blokkli-draft:event_reports:${legacyId}`,JSON.stringify({blocks:[],mutations:[],currentIndex:-1,baseRevision:revision,updatedAt:new Date().toISOString(),ownerId:user.id}));
         },{token,user,legacyId,revision:state.revision});
         const page=await context.newPage();
@@ -582,9 +584,9 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         await page.goto(`${overviewUrl}?blokkliEditing=${ids.series.id}`, { waitUntil: 'networkidle' });
         await page.addStyleTag({ content: 'vite-devtools-dock-embedded { display: none !important; }' });
         const editableHeading = page.locator('.tour-overview-content [data-blokkli-editable-field="text"]');
-        await editableHeading.dblclick();
+        await openBlokkliField(page, editableHeading);
         await page.locator('.bk-editable-field [contenteditable]').fill('Edited tour overview from Blökkli');
-        await page.locator('.bk-editable-field button[type="submit"]').click();
+        await saveBlokkliField(page);
         await page.locator('.bk-toolbar-menu-button').click();
         await page.locator('#bk-menu-list-button-publish').click();
         await page.waitForURL(overviewUrl);

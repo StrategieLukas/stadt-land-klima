@@ -56,8 +56,14 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'hex_item',
+  propsFieldMapping: {
+    label: { name: 'label', type: 'editable' },
+    imageId: { name: 'imageId', type: 'droppable' },
+  },
   options: {
     color: {
       type: 'radios',

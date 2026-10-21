@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   },
   modules: ["@nuxtjs/leaflet", "@blokkli/editor"],
 
-  // blökkli configuration
+  // Blökkli 2 uses the custom Directus adapter and the existing block bundles.
   blokkli: {
     itemEntityType: "block",
     defaultLanguage: "de",
@@ -21,7 +21,7 @@ export default defineNuxtConfig({
       },
     },
     // Block components location pattern
-    pattern: ["components/Blokkli/**/*.vue"],
+    pattern: ["~/components/Blokkli/**/*.vue"],
   },
   runtimeConfig: {
     // The private keys which are only available within server-side

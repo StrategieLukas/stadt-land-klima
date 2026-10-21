@@ -76,8 +76,13 @@
 import { Icon } from '@iconify/vue'
 import type { FieldListItem } from '#blokkli/types'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'carousel',
+  propsFieldMapping: {
+    slides: { name: 'slides', type: 'field' },
+  },
   options: {
     peek: {
       type: 'checkbox',

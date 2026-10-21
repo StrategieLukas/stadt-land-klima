@@ -22,7 +22,9 @@
 </template>
 
 <script setup lang="ts">
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'page_nav',
   options: {
     items: {
@@ -147,7 +149,7 @@ const paddingClass = computed(() => {
 })
 
 const stickyClass = computed(() => {
-  return options.value.sticky && !isEditing.value ? 'sticky top-0 z-40' : ''
+  return options.value.sticky && !isEditing ? 'sticky top-0 z-40' : ''
 })
 </script>
 

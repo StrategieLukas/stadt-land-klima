@@ -31,8 +31,14 @@
 <script setup lang="ts">
 import type { FieldListItem } from '#blokkli/types'
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'timeline',
+  propsFieldMapping: {
+    items: { name: 'items', type: 'field' },
+    title: { name: 'title', type: 'editable' },
+  },
   options: {
     accentColor: {
       type: 'radios',

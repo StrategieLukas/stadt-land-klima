@@ -41,8 +41,16 @@
 </template>
 
 <script setup lang="ts">
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'progress_bar',
+  propsFieldMapping: {
+    label: { name: 'label', type: 'editable' },
+    value: { name: 'value', type: 'editable' },
+    unit: { name: 'unit', type: 'editable' },
+    description: { name: 'description', type: 'editable' },
+  },
   options: {
     color: {
       type: 'radios',

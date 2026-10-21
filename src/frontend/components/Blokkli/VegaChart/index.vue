@@ -92,8 +92,14 @@ let renderTimer: ReturnType<typeof setTimeout> | null = null
 let rendering = false
 let lastRenderKey = ''
 
-const { options, isEditing, uuid } = defineBlokkli({
+const isEditing = import.meta.blokkliEditing
+
+const { options, uuid } = defineBlokkli({
   bundle: 'vega_chart',
+  propsFieldMapping: {
+    spec: { name: 'spec', type: 'editable' },
+    query: { name: 'query', type: 'editable' },
+  },
   options: {
     dataSource: {
       type: 'radios',
