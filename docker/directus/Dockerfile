@@ -22,12 +22,14 @@ RUN npm ci --prefix /opt/slk-directus-runtime-security --ignore-scripts --no-aud
     && node /opt/slk-directus-runtime-security/patch-undici.ts
 
 # install typst
-RUN wget https://github.com/typst/typst/releases/download/v0.14.1/typst-x86_64-unknown-linux-musl.tar.xz \
+RUN wget https://github.com/typst/typst/releases/download/v0.14.2/typst-x86_64-unknown-linux-musl.tar.xz \
+    && echo "a6044cbad2a954deb921167e257e120ac0a16b20339ec01121194ff9d394996d  typst-x86_64-unknown-linux-musl.tar.xz" | sha256sum -c - \
     && tar -xf typst-x86_64-unknown-linux-musl.tar.xz \
-    && mv typst-x86_64-unknown-linux-musl/typst /usr/local/bin/
+    && mv typst-x86_64-unknown-linux-musl/typst /usr/local/bin/ \
+    && rm -rf typst-x86_64-unknown-linux-musl typst-x86_64-unknown-linux-musl.tar.xz
 
 
-RUN apk add bash shadow
+RUN apk upgrade --no-cache && apk add --no-cache bash shadow
 
 RUN groupmod -g "${GID}" node && usermod -u "${UID}" -g "${GID}" node
 

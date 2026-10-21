@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgis/postgis:13-3.1-alpine
+    # Existing PostgreSQL 13 data requires bin/upgrade_core_services.sh first.
+    image: postgis/postgis:17-3.6@sha256:d7053f57b0d62c427ffbf412208b6625317124d62eebf40672e990fea81e9d53
     env_file: ./docker/db/.env
     volumes:
       - ./docker/data/db:/var/lib/postgresql/data
@@ -20,7 +21,8 @@ services:
       retries: 3
 
   meilisearch:
-    image: getmeili/meilisearch:v1.8
+    # Existing Meilisearch 1.8 data requires a dump/import migration first.
+    image: getmeili/meilisearch:v1.55.0
     env_file: ./docker/meilisearch/.env
     volumes:
       - ./docker/data/meilisearch:/meili_data
