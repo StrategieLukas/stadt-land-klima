@@ -73,7 +73,7 @@
             <altcha-widget
               v-else
               ref="altchaRef"
-              challenge="/api/altcha"
+              challenge="/api/altcha?purpose=contact"
               hidefooter
               :language="$locale.startsWith('en') ? 'en' : 'de'"
               style="--altcha-border-radius: 4px; width: 100%;"

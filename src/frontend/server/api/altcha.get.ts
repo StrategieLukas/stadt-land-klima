@@ -1,8 +1,14 @@
 import { createHash, createHmac, randomBytes } from 'node:crypto';
 
-export default defineEventHandler(async () => {
+// Challenges expire after 20 minutes
+const CHALLENGE_TTL_MS = 20 * 60 * 1000;
+
+export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
+
+  const query = getQuery(event);
+  const purpose = typeof query.purpose === 'string' ? query.purpose : undefined;
 
   const salt = randomBytes(12).toString('hex');
   const maxNumber = 100_000;
@@ -17,11 +23,19 @@ export default defineEventHandler(async () => {
     .update(challenge)
     .digest('hex');
 
-  return {
+  const expiresAt = Date.now() + CHALLENGE_TTL_MS;
+
+  const result: Record<string, unknown> = {
     algorithm: 'SHA-256',
     challenge,
     maxnumber: maxNumber,
     salt,
     signature,
+    expires_at: expiresAt,
   };
+  if (purpose) {
+    result.purpose = purpose;
+  }
+
+  return result;
 });

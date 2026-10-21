@@ -262,7 +262,7 @@
           <ClientOnly>
             <altcha-widget
               ref="altchaRef"
-              challenge="/api/altcha"
+              challenge="/api/altcha?purpose=article"
               hidefooter
               :language="$locale.startsWith('en') ? 'en' : 'de'"
               style="--altcha-border-radius: 6px; --altcha-color-border: #d1d5db; width: 100%"

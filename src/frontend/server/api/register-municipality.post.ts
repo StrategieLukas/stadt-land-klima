@@ -215,7 +215,7 @@ export default defineEventHandler(async (event) => {
 
   // Verify CAPTCHA
   const devMode = (config.public.appEnv as string) === 'development';
-  if (!altcha || !verifyAltcha(altcha, hmacKey, devMode)) {
+  if (!altcha || !await verifyAltcha(altcha, hmacKey, { devMode, purpose: 'register' })) {
     throw createRegistrationError(400, 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.');
   }
 

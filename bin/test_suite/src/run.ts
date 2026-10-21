@@ -12,6 +12,7 @@ import { runErfolgsprojekteInviteDashboardFlow } from './flows/erfolgsprojekteIn
 import { runTourSeriesFlow } from './flows/tourSeriesFlow.js';
 import { runDataAvailabilityFlow } from './flows/dataAvailabilityFlow.js';
 import { runMailWebhookSecurityFlow } from './flows/mailWebhookSecurityFlow.js';
+import { runContactSpamSecurityFlow } from './flows/contactSpamSecurityFlow.js';
 import { runMunicipalityDisclosureFlow } from './flows/municipalityDisclosureFlow.js';
 
 async function main(): Promise<void> {
@@ -33,6 +34,7 @@ async function main(): Promise<void> {
 
     // Wrap each flow in try-catch so one failing flow doesn't skip subsequent flows
     try { await runMailWebhookSecurityFlow(runner, fixture); } catch (e) { runner.results.push({ name: 'Mail webhook security flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runContactSpamSecurityFlow(runner, fixture); } catch (e) { runner.results.push({ name: 'Contact spam security flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
     try { await runAddUserFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Add user flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
     try { await runErfolgsprojekteInviteDashboardFlow(runner, fixture); } catch (e) { runner.results.push({ name: 'Erfolgsprojekte invite dashboard flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
     try { await runRatingsImportExportFlow(runner, fixture); } catch (e) { runner.results.push({ name: 'Ratings import/export flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }

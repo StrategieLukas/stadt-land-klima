@@ -167,7 +167,7 @@ export default defineEventHandler(async (event) => {
 
   const { formKey, formTitle, pagePath, notificationEmail, sendCopy, fields, values, altcha } = body ?? {};
 
-  if (!altcha || !verifyAltcha(String(altcha), hmacKey)) {
+  if (!altcha || !await verifyAltcha(String(altcha), hmacKey, { purpose: 'form' })) {
     throw submissionError(400, "CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.");
   }
 

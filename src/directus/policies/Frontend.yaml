@@ -409,19 +409,6 @@ permissions:
   - link
   - date_updated
   - date_created
-- collection: feedback
-  action: create
-  permissions: null
-  validation: null
-  presets: null
-  fields:
-  - title
-  - content
-  - type
-  - sender_name
-  - sender_contact
-  - date_created
-  - status
 - collection: job_offers
   action: read
   permissions:

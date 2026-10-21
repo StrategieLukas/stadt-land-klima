@@ -1,36 +1,7 @@
 import { createDirectus, rest, staticToken, createItem } from '@directus/sdk';
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { verifyAltcha } from '../utils/verifyAltcha';
 
 const ALLOWED_TYPES = ['legal', 'bug', 'inaccuracy', 'suggestion', 'cooperation', 'other'];
-
-interface AltchaPayload {
-  algorithm: string;
-  challenge: string;
-  number: number;
-  salt: string;
-  signature: string;
-}
-
-function verifyAltcha(payloadB64: string, hmacKey: string, devMode = false): boolean {
-  let payload: AltchaPayload & { dev?: boolean };
-  try {
-    payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
-  } catch {
-    return false;
-  }
-  if (devMode && payload.dev === true) {
-    return true;
-  }
-  const expectedChallenge = createHash('SHA-256')
-    .update(`${payload.salt}${payload.number}`)
-    .digest('hex');
-  if (expectedChallenge !== payload.challenge) return false;
-  const expectedSig = createHmac('SHA-256', hmacKey).update(payload.challenge).digest('hex');
-  const a = Buffer.from(expectedSig, 'hex');
-  const b = Buffer.from(payload.signature, 'hex');
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -56,7 +27,7 @@ export default defineEventHandler(async (event) => {
 
   // Verify CAPTCHA
   const devMode = (config.public.appEnv as string) === 'development';
-  if (!altcha || !verifyAltcha(altcha, hmacKey, devMode)) {
+  if (!altcha || !await verifyAltcha(altcha, hmacKey, { devMode, purpose: 'contact' })) {
     throw createError({ statusCode: 400, message: 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.' });
   }
 

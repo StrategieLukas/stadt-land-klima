@@ -377,7 +377,7 @@ async function submitArticle(event: H3Event) {
   const hmacKey = (config.altchaSecret as string) || "dev-secret-change-in-production";
   const altcha = getInternalTextField(parts, "altcha", 4096, true);
 
-  if (!verifyAltcha(altcha, hmacKey)) {
+  if (!await verifyAltcha(altcha, hmacKey, { purpose: 'article' })) {
     throw submissionError(
       400,
       "captcha_failed",
