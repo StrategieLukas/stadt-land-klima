@@ -210,7 +210,7 @@
   async function fetchPDF() {
     try {
       const baseUrl = config.public.clientDirectusUrl;
-      const token = config.public.directusFrontendPublicToken;
+      const token = config.public.directusToken;
 
       const response = await fetch(`${baseUrl}/pdf-service/elections/${municipality.slug}/${props.municipalityScore.catalog_version.name}`, {
         method: 'POST',

@@ -566,11 +566,8 @@ permissions:
   - collection: news_items
     action: read
     permissions:
-      _and:
-        - status:
-            _eq: published
-        - is_tour_redirect:
-            _eq: false
+      status:
+        _eq: published
     validation: {}
     presets: null
     fields:
@@ -728,6 +725,30 @@ permissions:
       - image
       - media
       - projects
+  - collection: success_project_tour_media
+    action: read
+    permissions:
+      _and:
+        - stop:
+            status:
+              _eq: published
+        - stop:
+            tour:
+              status:
+                _eq: published
+        - stop:
+            report_status:
+              _eq: published
+    validation: {}
+    presets: null
+    fields:
+      - id
+      - file
+      - sort
+      - alt
+      - caption
+      - credit
+      - poster
   - collection: success_project_tour_stops_articles
     action: read
     permissions:

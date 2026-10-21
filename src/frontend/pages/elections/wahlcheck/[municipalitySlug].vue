@@ -184,7 +184,7 @@ async function trackWahlcheckCompletion() {
   try {
     completionTrackingPending = true;
     const directusUrl = runtimeConfig.public.clientDirectusUrl || "http://127.0.0.1:8081";
-    const token = runtimeConfig.public.directusFrontendPublicToken;
+    const token = runtimeConfig.public.directusToken;
 
     await $fetch(`${directusUrl}/election-actions/complete`, {
       method: "POST",

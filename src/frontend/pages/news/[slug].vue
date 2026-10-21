@@ -156,79 +156,40 @@
 </template>
 
 <script setup>
-import { readItems, updateItem } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
 import { useReferrer } from '~/composables/useReferrer'
 import { formatBerlinDate } from '~/shared/eventDateTime'
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
 
 import { isRaster } from '~/shared/utils'
-const { $directus, $readItems, $t, $locale } = useNuxtApp()
+const { $t, $locale } = useNuxtApp()
 const { backHref, backLabel } = useReferrer('/news', $t('news.back_to_overview'))
-const config = useRuntimeConfig()
-const directusUrl = config.public.clientDirectusUrl
 
-const { isAuthenticated, initialize, getAuthenticatedClient } = useAuth()
+const { isAuthenticated, initialize } = useAuth()
 const canEdit = ref(false)
 
 const route = useRoute()
+const slug = String(route.params.slug)
 
-const { data: itemList, refresh: refreshItemList } = await useAsyncData(`news-item-${route.params.slug}`, async () => {
-  // Primary fetch via frontend (static) token — only returns published items
-  const result = await $directus.request(
-    $readItems('news_items', {
-      filter: { slug: { _eq: route.params.slug } },
-      fields: ['id', 'slug', 'title', 'teaser', 'author', 'date_published', 'date_created', 'status', 'is_tour_redirect', { tour_stop: ['id','slug',{tour:['slug','title']}] }, { image: ['id', 'type'] }, { report_event: ['id', 'slug', 'title', { series: ['slug', 'title', 'format'] }] }],
-      limit: 1,
-    })
-  )
-  if (result?.length) return result
-
-  // Client-side fallback: try the authenticated user client to load draft items
-  if (process.client) {
-    try {
-      const authClient = getAuthenticatedClient()
-      const authResult = await authClient.request(
-        readItems('news_items', {
-          filter: { slug: { _eq: route.params.slug } },
-          limit: 1,
-        })
-      )
-      if (authResult?.length) return authResult
-    } catch {
-      // not authenticated or request failed
-    }
-  }
-
-  return result
-})
-const item = computed(() => itemList.value?.[0] || null)
+// Use server route — $directus is only available during SSR, not on client
+const { data: newsResult } = await useAsyncData(`news-item-${slug}`, async () =>
+  $fetch(`/api/public/news/${slug}`)
+)
+const item = computed(() => newsResult.value?.item || null)
 
 if (item.value?.is_tour_redirect && item.value.tour_stop?.tour?.slug) {
   await navigateTo(`/projects/tours/${item.value.tour_stop.tour.slug}/${item.value.tour_stop.slug}${route.fullPath.slice(route.path.length)}`, { redirectCode: 301, replace: true });
 }
 
-const { data: reportProjectLinks } = await useAsyncData(`news-report-projects-${route.params.slug}`, () => item.value?.report_event?.id
-  ? $directus.request($readItems('events_articles', {
-    filter: { events_id: { _eq: item.value.report_event.id } },
-    fields: [{ articles_id: ['id', 'slug', 'title'] }],
-    limit: -1,
-  }))
-  : Promise.resolve([]), { watch: [item] })
-const reportProjects = computed(() => (reportProjectLinks.value ?? []).map((link) => link.articles_id).filter(Boolean))
+const reportProjects = computed(() => [])
 
 // Do not throw a fatal 404 on SSR — drafts are only visible to authenticated users
-// and auth state is only known client-side. onMounted will re-fetch if needed.
+// and auth state is only known client-side. onMounted will check auth.
 const authChecked = ref(false)
 onMounted(async () => {
   await initialize()
   canEdit.value = isAuthenticated.value && !item.value?.is_tour_redirect
   watchEffect(() => { canEdit.value = isAuthenticated.value && !item.value?.is_tour_redirect })
-
-  // If item was not returned by the public token, try again with the auth client
-  if (!item.value && isAuthenticated.value) {
-    await refreshItemList()
-  }
   if (item.value?.is_tour_redirect && item.value.tour_stop?.tour?.slug) {
     await navigateTo(`/projects/tours/${item.value.tour_stop.tour.slug}/${item.value.tour_stop.slug}${route.fullPath.slice(route.path.length)}`, { replace: true });
   }
@@ -245,21 +206,17 @@ const { data: blocksData } = await useAsyncData(
   async () => {
     if (!item.value) return []
     try {
-      const blocks = await $directus.request(
-        readItems('blocks', {
-          filter: {
-            entity_type: { _eq: 'news_items' },
-            entity_uuid: { _eq: item.value.id },
-            field_name: { _eq: 'content' },
-            status: { _neq: 'archived' },
-          },
-          sort: ['sort_order'],
-        })
-      )
-      return mapBlokkliBlocks(blocks)
+      const result = await $fetch('/api/public/blocks', {
+        query: {
+          entity_type: 'news_items',
+          entity_uuid: item.value.id,
+          field_name: 'content',
+        },
+      })
+      return mapBlokkliBlocks(result.blocks ?? [])
     } catch (error) {
       console.error('[blokkli] Failed to load news blocks:', error)
-      throw error
+      return []
     }
   },
   { watch: [item] }
@@ -313,16 +270,18 @@ async function saveMetadata() {
   saveSuccess.value = false
   saveError.value = null
   try {
-    const client = getAuthenticatedClient()
-    await client.request(updateItem('news_items', item.value.id, {
-      title: editForm.title,
-      teaser: editForm.teaser || null,
-      author: editForm.author || null,
-      date_published: editForm.date_published ? new Date(editForm.date_published).toISOString() : null,
-      status: editForm.status,
-      image: editForm.image || null,
-    }))
-    await refreshNuxtData(`news-item-${route.params.slug}`)
+    await $fetch(`/api/news/${item.value.id}/metadata`, {
+      method: 'PATCH',
+      body: {
+        title: editForm.title,
+        teaser: editForm.teaser || null,
+        author: editForm.author || null,
+        date_published: editForm.date_published ? new Date(editForm.date_published).toISOString() : null,
+        status: editForm.status,
+        image: editForm.image || null,
+      },
+    })
+    await refreshNuxtData(`news-item-${slug}`)
     saveSuccess.value = true
     setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (err) {
