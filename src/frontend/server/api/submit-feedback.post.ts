@@ -2,12 +2,16 @@ import { createDirectus, rest, staticToken, createItem } from '@directus/sdk';
 import { verifyAltcha } from '../utils/verifyAltcha';
 
 const ALLOWED_TYPES = ['legal', 'bug', 'inaccuracy', 'suggestion', 'cooperation', 'other'];
+const MAX_TITLE_LENGTH = 200;
+const MAX_CONTENT_LENGTH = 5000;
+const MAX_NAME_LENGTH = 200;
+const MAX_CONTACT_LENGTH = 255;
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
 
-  const body = await readRequestBody(event);
+  const body = await readBody(event);
   const { title, type, content, name, contact, sendCopy, altcha } = body ?? {};
 
   // Validate required fields
@@ -23,6 +27,20 @@ export default defineEventHandler(async (event) => {
   // Basic email check
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.trim())) {
     throw createError({ statusCode: 400, message: 'Ungültige E-Mail-Adresse.' });
+  }
+
+  // Enforce field length limits
+  if (title.trim().length > MAX_TITLE_LENGTH) {
+    throw createError({ statusCode: 400, message: 'Titel ist zu lang.' });
+  }
+  if (content.trim().length > MAX_CONTENT_LENGTH) {
+    throw createError({ statusCode: 400, message: 'Nachricht ist zu lang.' });
+  }
+  if (name.trim().length > MAX_NAME_LENGTH) {
+    throw createError({ statusCode: 400, message: 'Name ist zu lang.' });
+  }
+  if (contact.trim().length > MAX_CONTACT_LENGTH) {
+    throw createError({ statusCode: 400, message: 'E-Mail-Adresse ist zu lang.' });
   }
 
   // Verify CAPTCHA

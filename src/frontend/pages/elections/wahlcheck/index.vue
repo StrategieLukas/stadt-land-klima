@@ -91,7 +91,7 @@
           <NuxtLink
             v-for="election in publicElections"
             :key="election.id"
-            :to="`/elections/wahlcheck/${election.localteam?.municipality_id?.[0]?.slug || election.localteam?.municipality_id?.[0]?.name || election.id}`"
+            :to="`/elections/wahlcheck/${election.municipalitySlug || election.localteam?.slug || election.id}`"
             class="group rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-all duration-300 hover:border-solid-ff-green-30 hover:shadow-xl"
           >
             <div class="mb-4 flex items-start justify-between">

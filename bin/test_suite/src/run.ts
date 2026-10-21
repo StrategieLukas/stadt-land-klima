@@ -50,11 +50,13 @@ async function main(): Promise<void> {
     if (hasFailures) {
       exitCode = 1;
     }
-    await runner.step('Cleanup disposable Directus fixture', async () => {
-      await fixture.cleanup();
-    }).catch(() => {
+    try {
+      await runner.step('Cleanup disposable Directus fixture', async () => {
+        await fixture.cleanup();
+      });
+    } catch {
       exitCode = 1;
-    });
+    }
     await browser.close();
     runner.printSummary();
   }

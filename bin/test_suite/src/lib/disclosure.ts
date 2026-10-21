@@ -31,7 +31,7 @@ export function configuredSecrets(config: TestConfig): HiddenValue[] {
     || resolve(dirname(config.envPath), '../frontend/.env');
   const env = { ...config.env, ...(existsSync(frontendEnv) ? parseEnvFile(frontendEnv) : {}), ...process.env };
   const names = [
-    'CLI_DIRECTUS_STATIC_TOKEN', 'DIRECTUS_ADMIN_TOKEN', 'DIRECTUS_TOKEN',
+    'CLI_DIRECTUS_STATIC_TOKEN', 'DIRECTUS_ADMIN_TOKEN',
     'DIRECTUS_FRONTEND_SERVER_TOKEN', 'DIRECTUS_FRONTEND_PUBLIC_TOKEN',
     'DIRECTUS_PREVIEW_TOKEN', 'NUXT_DIRECTUS_PREVIEW_TOKEN',
     'NUXT_DIRECTUS_FRONTEND_SERVER_TOKEN', 'NUXT_DIRECTUS_ADMIN_TOKEN',

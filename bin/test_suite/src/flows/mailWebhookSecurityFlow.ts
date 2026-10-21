@@ -78,8 +78,6 @@ export async function runMailWebhookSecurityFlow(
   } catch { /* frontend .env not found */ }
   const frontendToken = fixture.config.env['DIRECTUS_FRONTEND_PUBLIC_TOKEN']
     || frontendEnv['DIRECTUS_FRONTEND_PUBLIC_TOKEN']
-    || fixture.config.env['DIRECTUS_TOKEN']
-    || frontendEnv['DIRECTUS_TOKEN']
     || '';
   assert(
     frontendToken,

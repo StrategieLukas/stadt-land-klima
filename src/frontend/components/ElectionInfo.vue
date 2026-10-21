@@ -203,27 +203,20 @@
         .replaceAll("[MUNICIPALITY]", props.municipalityScore.municipality.name)
   }
 
-  const config = useRuntimeConfig(); // Nuxt 3 way to access runtime config
-
   const municipality = props.municipalityScore.municipality;
 
   async function fetchPDF() {
     try {
-      const baseUrl = config.public.clientDirectusUrl;
-      const token = config.public.directusToken;
-
-      const response = await fetch(`${baseUrl}/pdf-service/elections/${municipality.slug}/${props.municipalityScore.catalog_version.name}`, {
+      const response = await $fetch('/api/election-pdf', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+        body: {
+          municipalitySlug: municipality.slug,
+          catalogVersion: props.municipalityScore.catalog_version.name,
+          measures: sortedMeasures.slice(0, 10),
         },
-        body: JSON.stringify({ measure_text: sortedMeasures.slice(0,10)}),
       });
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const blob = await response.blob();
+      const blob = new Blob([response], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
 

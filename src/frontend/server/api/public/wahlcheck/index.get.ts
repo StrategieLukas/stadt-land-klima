@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
       'id',
       'descriptor',
       'custom_logo',
+      'is_party_election',
       'localteam.id',
       'localteam.name',
       'localteam.slug',
@@ -59,9 +60,11 @@ export default defineEventHandler(async (event) => {
 
     // Only include elections that have at least one candidate who answered
     if ((candidates?.length || 0) > 0) {
+      const municipalityId = election.localteam?.municipality_id || {}
       results.push({
-        ...pick(election, ['id', 'descriptor', 'custom_logo', 'date_created']),
+        ...pick(election, ['id', 'descriptor', 'custom_logo', 'is_party_election', 'date_created']),
         localteam: pick(election.localteam || {}, ['id', 'name', 'slug', 'municipality_name']),
+        municipalitySlug: municipalityId.slug || null,
         candidateCount: candidates?.length || 0,
         questionCount: questions?.length || 0,
       })

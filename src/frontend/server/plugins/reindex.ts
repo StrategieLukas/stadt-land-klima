@@ -46,8 +46,7 @@ export default defineNitroPlugin(async () => {
     return
   }
 
-  // Use the private server token; fall back to the shared token during migration.
-  const serverToken = (config.directusFrontendServerToken as string) || (config.public.directusToken as string)
+  const serverToken = config.directusFrontendServerToken as string | undefined
   const directus = createDirectus(
     (config.directusServerUrl as string) || 'http://directus:8055',
   )

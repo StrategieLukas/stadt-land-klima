@@ -9,7 +9,7 @@ function pick(row: Row, fields: string[]): Row {
 }
 
 const candidatePublicFields = ['id', 'name', 'party', 'has_answered', 'time_first_submitted', 'time_last_edited']
-const questionPublicFields = ['id', 'title', 'thesis', 'background_information']
+const questionPublicFields = ['id', 'title', 'thesis', 'background_information', 'sector']
 const answerPublicFields = ['response', 'explanation']
 
 async function buildWahlcheckResponse(

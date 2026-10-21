@@ -6,7 +6,7 @@ export default defineEventHandler(async event => {
   if (!match) return;
   const config = useRuntimeConfig(event);
   const base = String(config.directusServerUrl || config.public.serverDirectusUrl).replace(/\/$/,'');
-  const token = (config.directusFrontendServerToken as string) || (config.public.directusToken as string)
+  const token = config.directusFrontendServerToken as string | undefined
   const headers = {Authorization:`Bearer ${token}`};
   const slug = decodeURIComponent(match[2]);
   let target: string | undefined;

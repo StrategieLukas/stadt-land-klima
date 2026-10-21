@@ -907,7 +907,7 @@ async function completeWahlcheckForCounterRegression(
     (response) => {
       const url = new URL(response.url());
       return response.request().method() === 'POST'
-        && url.pathname.endsWith('/election-actions/complete');
+        && url.pathname.endsWith('/api/wahlcheck-complete');
     },
     { timeout: 30_000 },
   );
@@ -918,9 +918,9 @@ async function completeWahlcheckForCounterRegression(
     completionResponse.ok(),
     `Completion request for ${electionDescriptor} must succeed. Got HTTP ${completionResponse.status()}.`,
   );
-  const completionRequestBody = completionResponse.request().postDataJSON() as { election_id?: string };
+  const completionRequestBody = completionResponse.request().postDataJSON() as { electionId?: string };
   assertEqual(
-    completionRequestBody.election_id,
+    completionRequestBody.electionId,
     electionId,
     `Completion request for ${electionDescriptor} must target its own election`,
   );

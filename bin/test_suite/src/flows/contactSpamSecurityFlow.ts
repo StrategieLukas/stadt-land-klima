@@ -34,8 +34,6 @@ export async function runContactSpamSecurityFlow(
 
   const frontendToken = fixture.config.env['DIRECTUS_FRONTEND_PUBLIC_TOKEN']
     || frontendEnv['DIRECTUS_FRONTEND_PUBLIC_TOKEN']
-    || fixture.config.env['DIRECTUS_TOKEN']
-    || frontendEnv['DIRECTUS_TOKEN']
     || '';
 
   // Step 1: Verify Frontend role cannot create feedback directly via Directus
@@ -340,6 +338,136 @@ export async function runContactSpamSecurityFlow(
       assert(
         response.status === 400,
         `Wrong-purpose CAPTCHA must be rejected with 400, got ${response.status}: ${await response.text()}`,
+      );
+    },
+  );
+
+  // Step 8: Invalid feedback type is rejected
+  await runner.step(
+    'Contact spam: Nuxt contact endpoint rejects invalid type',
+    async () => {
+      const response = await fetch(`${frontendUrl}/api/submit-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Test',
+          type: 'malicious-type',
+          content: 'Should be rejected',
+          name: 'Test User',
+          contact: 'test@example.invalid',
+          altcha: 'dGVzdA==',
+        }),
+      });
+      assert(
+        response.status === 400,
+        `Invalid type must be rejected with 400, got ${response.status}`,
+      );
+    },
+  );
+
+  // Step 9: Invalid email format is rejected
+  await runner.step(
+    'Contact spam: Nuxt contact endpoint rejects invalid email',
+    async () => {
+      const response = await fetch(`${frontendUrl}/api/submit-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Test',
+          type: 'suggestion',
+          content: 'Should be rejected',
+          name: 'Test User',
+          contact: 'not-an-email',
+          altcha: 'dGVzdA==',
+        }),
+      });
+      assert(
+        response.status === 400,
+        `Invalid email must be rejected with 400, got ${response.status}`,
+      );
+    },
+  );
+
+  // Step 10: Oversized title field is rejected
+  await runner.step(
+    'Contact spam: Nuxt contact endpoint rejects oversized title',
+    async () => {
+      const response = await fetch(`${frontendUrl}/api/submit-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'A'.repeat(300), // Exceeds MAX_TITLE_LENGTH (200)
+          type: 'suggestion',
+          content: 'Test',
+          name: 'Test User',
+          contact: 'test@example.invalid',
+          altcha: 'dGVzdA==',
+        }),
+      });
+      assert(
+        response.status === 400,
+        `Oversized title must be rejected with 400, got ${response.status}`,
+      );
+    },
+  );
+
+  // Step 11: Oversized content field is rejected
+  await runner.step(
+    'Contact spam: Nuxt contact endpoint rejects oversized content',
+    async () => {
+      const response = await fetch(`${frontendUrl}/api/submit-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Test',
+          type: 'suggestion',
+          content: 'X'.repeat(6000), // Exceeds MAX_CONTENT_LENGTH (5000)
+          name: 'Test User',
+          contact: 'test@example.invalid',
+          altcha: 'dGVzdA==',
+        }),
+      });
+      assert(
+        response.status === 400,
+        `Oversized content must be rejected with 400, got ${response.status}`,
+      );
+    },
+  );
+
+  // Step 12: Missing required fields are rejected
+  await runner.step(
+    'Contact spam: Nuxt contact endpoint rejects missing required fields',
+    async () => {
+      const response = await fetch(`${frontendUrl}/api/submit-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '',
+          type: '',
+          content: '',
+          name: '',
+          contact: '',
+        }),
+      });
+      assert(
+        response.status === 400,
+        `Missing required fields must be rejected with 400, got ${response.status}`,
+      );
+    },
+  );
+
+  // Step 13: JSON null payload is handled gracefully (not a crash)
+  await runner.step(
+    'Contact spam: Nuxt contact endpoint handles JSON null gracefully',
+    async () => {
+      const response = await fetch(`${frontendUrl}/api/submit-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(null),
+      });
+      assert(
+        response.status === 400,
+        `Null JSON payload must be rejected with 400, not crash, got ${response.status}`,
       );
     },
   );

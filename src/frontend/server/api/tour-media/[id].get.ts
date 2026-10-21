@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const base = config.public.serverDirectusUrl.replace(/\/$/, '');
   const query = new URL(event.node.req.url || event.path || '/', 'http://media.local').searchParams;
   const previewToken = query.get('access_token');
-  const headers = { Authorization: `Bearer ${typeof previewToken === 'string' ? previewToken : (config.directusFrontendServerToken || config.public.directusToken)}` };
+  const headers = { Authorization: `Bearer ${typeof previewToken === 'string' ? previewToken : (config.directusFrontendServerToken || '')}` };
   if (typeof previewToken === 'string') {
     const permissions = await $fetch<{data:Record<string,Record<string,{access:string}>>}>(`${base}/permissions/me`,{headers});
     const access=permissions.data.success_project_tour_stops?.update?.access;

@@ -7,8 +7,7 @@ const localeCookieName = "slk_locale";
 
 export default defineNuxtPlugin(async () => {
   const runtimeConfig = useRuntimeConfig();
-  // Prefer the private server token; fall back to the shared token during migration.
-  const token = runtimeConfig.directusFrontendServerToken || runtimeConfig.public.directusToken;
+  const token = runtimeConfig.directusFrontendServerToken;
   const directusUrl = runtimeConfig.directusServerUrl || "http://directus:8055";
   const appEnv = runtimeConfig.public.appEnv || "development";
   const localeCookie = useCookie(localeCookieName);

@@ -127,7 +127,6 @@ import { useRoute, useRouter } from "vue-router";
 const route = useRoute();
 const router = useRouter();
 const { $t } = useNuxtApp();
-const runtimeConfig = useRuntimeConfig();
 
 const municipalitySlug = route.params.municipalitySlug;
 
@@ -183,13 +182,9 @@ async function trackWahlcheckCompletion() {
 
   try {
     completionTrackingPending = true;
-    const directusUrl = runtimeConfig.public.clientDirectusUrl || "http://127.0.0.1:8081";
-    const token = runtimeConfig.public.directusToken;
-
-    await $fetch(`${directusUrl}/election-actions/complete`, {
+    await $fetch("/api/wahlcheck-complete", {
       method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      body: { election_id: electionId },
+      body: { electionId },
     });
 
     markCompletionTracked(electionId);

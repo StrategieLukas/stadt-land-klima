@@ -14,12 +14,20 @@ try {
   await runMunicipalityDisclosureFlow(runner, fixture, browser);
 } catch (error) {
   if (!runner.results.some(result => result.status === 'failed')) {
-    await runner.step('Prepare preview security fixture data', async () => { throw error; }).catch(() => undefined);
+    try {
+      await runner.step('Prepare preview security fixture data', async () => { throw error; });
+    } catch {
+      // Already recorded
+    }
   }
   process.exitCode = 1;
 }
 finally {
-  await runner.step('Cleanup disposable preview fixture', () => fixture.cleanup()).catch(() => { process.exitCode = 1; });
+  try {
+    await runner.step('Cleanup disposable preview fixture', () => fixture.cleanup());
+  } catch {
+    process.exitCode = 1;
+  }
   await browser.close();
   runner.printSummary();
 }

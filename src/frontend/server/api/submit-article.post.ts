@@ -425,8 +425,8 @@ async function submitArticle(event: H3Event) {
       "Einreichung kann momentan nicht gespeichert werden. Bitte versuche es später erneut.",
     );
   }
-  if (adminToken === config.public.directusToken) {
-    console.error("[submit-article] DIRECTUS_ADMIN_TOKEN must not be the public frontend token");
+  if (adminToken === (config.directusFrontendServerToken as string | undefined)) {
+    console.error("[submit-article] DIRECTUS_ADMIN_TOKEN must not be the frontend server token");
     throw submissionError(
       503,
       "service_unavailable",
