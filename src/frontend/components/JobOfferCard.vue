@@ -79,6 +79,7 @@ type Organisation = {
 }
 
 type JobOffer = {
+  id?: string
   role_title: string
   slug: string
   type: string

@@ -146,8 +146,9 @@ import sanitizeHtml from 'sanitize-html'
 import { computed } from 'vue'
 import { useReferrer } from '~/composables/useReferrer'
 import { isRaster } from '~/shared/utils'
+import type { PublicJobDetail, PublicOrganisation } from '~/shared/contracts/jobs'
 
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $t } = useNuxtApp()
 const route = useRoute()
 const { backHref, backLabel } = useReferrer('/jobs', $t('jobs.back_label'))
 
@@ -187,37 +188,21 @@ const markdownSanitizeOptions = {
   },
 }
 
-const { data: job } = await useAsyncData(`job-${route.params.slug}`, () =>
-  $directus.request($readItems('job_offers' as never, {
-    filter: {
-      slug: { _eq: route.params.slug },
-      status: { _eq: 'published' },
-    },
-    fields: [
-      'id',
-      'role_title',
-      'slug',
-      'type',
-      'status',
-      'start_date',
-      'end_date',
-      'weekly_hours',
-      'tasks',
-      'qualifications',
-      'benefits',
-      'salary',
-      'hourly_wage',
-      'application_url',
-      'contact_notes',
-      { organisation: ['id', 'name', 'link', { logo: ['id', 'type'] }] },
-    ],
-    limit: 1,
-  } as never)).then((data: any) => data?.[0] ?? false)
+const { data: jobData } = await useAsyncData(`job-${route.params.slug}`, () =>
+  $fetch<{ job: PublicJobDetail; organisation: PublicOrganisation | null }>(`/api/public/jobs/${route.params.slug}`)
+    .catch((err) => {
+      if (err?.statusCode === 404) {
+        throw createError({ statusCode: 404, statusMessage: $t('jobs.not_found'), fatal: import.meta.client })
+      }
+      return null
+    })
 )
 
-if (!job.value) {
+if (!jobData.value) {
   throw createError({ statusCode: 404, statusMessage: $t('jobs.not_found'), fatal: import.meta.client })
 }
+
+const job = computed<PublicJobDetail>(() => jobData.value!.job)
 
 useHead({ title: job.value?.role_title ?? $t('jobs.title') })
 

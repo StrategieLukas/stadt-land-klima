@@ -64,43 +64,24 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { PublicJobList } from '~/shared/contracts/jobs'
 
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $t } = useNuxtApp()
 
 useHead({ title: $t('jobs.title') })
 
-const { data: jobs } = await useAsyncData('jobs-list', async () => {
-  try {
-    return await $directus.request($readItems('job_offers' as never, {
-      filter: { status: { _eq: 'published' } },
-      fields: [
-        'id',
-        'role_title',
-        'slug',
-        'type',
-        'status',
-        'start_date',
-        'end_date',
-        'weekly_hours',
-        'salary',
-        'hourly_wage',
-        { organisation: ['id', 'name', 'link', { logo: ['id', 'type'] }] },
-      ],
-      sort: ['start_date', 'role_title'],
-      limit: -1,
-    } as never))
-  } catch (e: any) {
-    console.warn('[jobs] Failed to load job offers:', e?.message)
-    return []
-  }
-})
+const { data: jobsData } = await useAsyncData('jobs-list', () =>
+  $fetch('/api/public/jobs').catch(() => ({ jobs: [] as PublicJobList[] }))
+)
+
+const jobs = computed(() => jobsData.value?.jobs ?? [])
 
 function typeLabel(type: string) {
   return $t(`jobs.type.${type}`) || type || ''
 }
 
 function byType(types: string[]) {
-  return (jobs.value || []).filter((job: any) => types.includes(job.type))
+  return jobs.value.filter((job: PublicJobList) => types.includes(job.type))
 }
 
 const employmentJobs = computed(() => byType(['full_time', 'part_time']))
