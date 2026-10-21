@@ -1,0 +1,8 @@
+{
+  "name": "slk-directus-runtime-security",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "undici": "7.30.1"
+  }
+}

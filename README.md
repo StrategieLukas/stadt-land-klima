@@ -131,9 +131,11 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 
 The dependency/security review and remaining remediation work are documented in
 [SECURITY_REVIEW.md](SECURITY_REVIEW.md). Directus stays on **11.17.4**. The
-frontend uses Node 24; the Directus image retains Node 22 with its current patch
-release. Production builds also rebuild the OS-updated maintenance nginx image. Use the Docker runtimes or a supported Node 24 release for local npm
+frontend uses Node **24.22.1**; the Directus image retains Node **22.23.4**.
+The separate Undici copy in the optional Directus storage drivers is locked to **7.30.1**. Production builds also rebuild the OS-updated maintenance nginx image. Use the Docker runtimes or patched Node 24.22.1+ for local npm
 commands, and install from committed lockfiles with `npm ci`.
+Use `nvm install && nvm use` from the repository root (or the existing manager's `.node-version` support); frontend/test installs enforce the patched runtime minimum.
+See [NODE_SECURITY_2026_10.md](NODE_SECURITY_2026_10.md) for the vulnerability impact assessment, host restart requirements and exact manual server rebuild/recreation commands.
 
 [NUXT_SECURITY_ARCHITECTURE.md](NUXT_SECURITY_ARCHITECTURE.md) explains SSR,
 hydration, browser/server execution, Directus credential exposure, and the design

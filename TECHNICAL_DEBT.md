@@ -4,6 +4,18 @@ This file tracks known technical debt items, future upgrades, and items requirin
 
 ## Active Items
 
+### Node October 2026 runtime security follow-up
+
+**Status:** Branch images and local executable files patched; manual server deployment and existing IDE/host process restart still required.
+
+Frontend Node 24.22.1 and Directus Node 22.23.4 include the October 21 fixes. Directus remains 11.17.4. Its optional Cloudinary/Supabase drivers' separate Undici package is patched to 7.30.1 through a locked image layer; remove/re-evaluate that compatibility patch when the Directus pin changes. Local storage is configured today.
+
+Track actual running binaries after rebuild/recreation rather than relying on `npm audit` or a Dockerfile tag. Restart IDE/agent processes that still map an old executable. Distribution-owned `/usr/bin/node` and vendor-managed caches require their own update policy; project tools select patched Node 24.
+
+See [NODE_SECURITY_2026_10.md](NODE_SECURITY_2026_10.md) for the confirmed file-import Brotli decoder path, exploit prerequisites, limits of the assessment and deployment commands. Existing application authorization findings and unrelated dependency advisories remain separate work.
+
+---
+
 ### TypeScript 7 Tooling Compatibility
 
 **Priority:** Medium
