@@ -640,6 +640,7 @@ permissions:
       - page_category
       - is_dynamic
       - icon_svg
+      - status
   - collection: questions
     action: read
     permissions:

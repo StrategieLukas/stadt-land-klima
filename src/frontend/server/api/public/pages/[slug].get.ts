@@ -8,7 +8,7 @@ function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
 }
 
-const pageFields = ['id', 'slug', 'title', 'content', 'status']
+const pageFields = ['id', 'slug', 'name', 'contents', 'status']
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')

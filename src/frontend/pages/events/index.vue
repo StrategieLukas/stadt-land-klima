@@ -178,7 +178,7 @@ import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
 import { formatEventMonth, getEventMonthKey, getEventPhase } from "~/shared/eventDateTime";
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
 const isDesktop = useState("layout-isDesktop");
@@ -191,22 +191,18 @@ const pillTop = computed(() => {
 
 useHead({ title: computed(() => $t("events.title")) });
 
-const { data: events } = await useAsyncData("events-list", async () => {
+const { data: eventsResult } = await useAsyncData("events-list", async () => {
   try {
-    const results = await $directus.request(
-      $readItems("events", {
-        filter: { status: { _eq: "published" }, _or: [{ event_category: { _null: true } }, { event_category: { _neq: "internal" } }] },
-        fields: ["id", "title", "slug", "start_date", "end_date", "date_only", "location", "event_type", "event_category", { image: ["id", "type"] }],
-        sort: ["start_date"],
-        limit: -1,
-      }),
-    );
-    return results;
+    const result = await $fetch('/api/public/events', {
+      query: { excludeInternal: 'true', limit: '-1', sort: 'start_date' },
+    });
+    return result;
   } catch (e) {
     console.warn("[events] Failed to load events:", e?.message);
-    return [];
+    return { events: [] };
   }
 });
+const events = computed(() => eventsResult.value?.events ?? []);
 
 const now = new Date();
 

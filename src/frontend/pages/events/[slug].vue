@@ -23,32 +23,21 @@
   </main>
 </template>
 <script setup lang="ts">
-import { readItems } from '@directus/sdk';
 import { useReferrer } from '~/composables/useReferrer';
 import { isRaster } from '~/shared/utils';
 import { relationId } from '~/shared/tour';
 import { formatBerlinDate, formatEventDateTimeRange } from '~/shared/eventDateTime';
 import type { MediaFile } from '~/shared/tourMedia';
 type Event = { id: string; slug: string; title: string; description?: string; event_category?: string; event_type?: string; start_date: string; end_date?: string; date_only?: boolean; location?: string; image?: MediaFile; image_credits?: string; registration_url?: string; cta_label?: string; series?: { slug: string; title: string; format: string } };
-const { $directus, $readItems, $t, $locale } = useNuxtApp();
+const { $t, $locale } = useNuxtApp();
 const route = useRoute();
-const config = useRuntimeConfig();
 const { backHref, backLabel } = useReferrer('/events', $t('events.title'));
 const legacyRedirected = await useLegacyTourRedirect('stop', String(route.params.slug));
-const { data: eventRows } = await useAsyncData(`event-${route.params.slug}`, () => $directus.request($readItems('events', {
-  filter: { slug: { _eq: route.params.slug }, status: { _eq: 'published' } },
-  fields: ['id', 'slug', 'title', 'description', 'event_category', 'event_type', 'start_date', 'end_date', 'date_only', 'location', 'registration_url', 'cta_label', 'image_credits', { image: ['id', 'type'] }, { series: ['slug', 'title', 'format'] }], limit: 1,
-})));
-const event = computed(() => eventRows.value?.[0] as Event | undefined);
+const { data: eventData } = await useAsyncData(`event-${route.params.slug}`, () => $fetch(`/api/public/events/${encodeURIComponent(route.params.slug)}`));
+const event = computed(() => eventData.value?.event as Event | undefined);
 if (!event.value && !legacyRedirected) throw createError({ statusCode: 404, statusMessage: $t('events.not_found'), fatal: true });
-const { data: ordinaryReports } = await useAsyncData(`ordinary-event-report-${route.params.slug}`, () => event.value ? $directus.request($readItems('news_items', {
-  filter: { report_event: { _eq: event.value!.id }, status: { _eq: 'published' }, is_tour_redirect: { _eq: false } }, fields: ['slug'], limit: 1,
-})) : Promise.resolve([]));
-const ordinaryReport = computed(() => ordinaryReports.value?.[0]);
-const { data: projectLinks } = await useAsyncData(`event-projects-${route.params.slug}`, () => event.value ? $directus.request($readItems('events_articles', {
-  filter: { events_id: { _eq: event.value!.id } }, fields: [{ articles_id: ['id', 'slug', 'title'] }], limit: -1,
-})) : Promise.resolve([]));
-const eventProjects = computed(() => (projectLinks.value ?? []).map(link => link.articles_id).filter(Boolean));
+const ordinaryReport = computed(() => eventData.value?.ordinaryReport);
+const eventProjects = computed(() => eventData.value?.eventProjects ?? []);
 const cover = computed(() => event.value?.image);
 const coverCredit = computed(() => event.value?.image_credits);
 function eventTypeLabel(type?: string) { return type ? $t(`events.type.${type}`) : ''; }

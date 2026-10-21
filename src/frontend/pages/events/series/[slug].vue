@@ -6,12 +6,12 @@
   </main>
 </template>
 <script setup lang="ts">
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const route = useRoute();
 const legacyRedirected = await useLegacyTourRedirect('tour', String(route.params.slug));
-const { data: rows } = await useAsyncData(`ordinary-event-series-${route.params.slug}`, () => $directus.request($readItems('event_series', {filter:{slug:{_eq:route.params.slug},status:{_eq:'published'}},fields:['id','title','introduction'],limit:1})));
-const series = computed(() => rows.value?.[0]);
+const { data: seriesData } = await useAsyncData(`ordinary-event-series-${route.params.slug}`, () => $fetch(`/api/public/event-series/${encodeURIComponent(route.params.slug)}`));
+const series = computed(() => seriesData.value?.series);
 if (!series.value && !legacyRedirected) throw createError({statusCode:404,statusMessage:$t('page_not_found'),fatal:true});
-const { data: events } = await useAsyncData(`ordinary-series-events-${route.params.slug}`, () => series.value ? $directus.request($readItems('events', {filter:{series:{_eq:series.value.id},status:{_eq:'published'}},fields:['id','slug','title','start_date','end_date','date_only','location','event_type','event_category',{image:['id','type']}],sort:['series_order','start_date'],limit:-1})) : Promise.resolve([]));
+const events = computed(() => seriesData.value?.events ?? []);
 useHead(() => ({title:series.value?.title}));
 </script>

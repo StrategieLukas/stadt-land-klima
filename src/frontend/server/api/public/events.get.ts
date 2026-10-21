@@ -2,14 +2,6 @@ import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
 
-type Row = Record<string, any>
-
-function pick(row: Row, fields: string[]): Row {
-  return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
-}
-
-const eventListFields = ['id', 'slug', 'title', 'description', 'start_date', 'end_date', 'location', 'event_type', 'event_category', 'image', 'image_credits']
-
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
   const client = createDirectusServerClient()
@@ -19,16 +11,28 @@ export default defineEventHandler(async (event) => {
   if (typeof query.category === 'string' && query.category) {
     filter.event_category = { _eq: query.category }
   }
+  // Support excluding internal events
+  if (query.excludeInternal === 'true') {
+    filter._or = [
+      { event_category: { _null: true } },
+      { event_category: { _neq: 'internal' } },
+    ]
+  }
 
-  const limit = Math.min(Number(query.limit) || 20, 100)
+  const limitParam = query.limit
+  const limit = limitParam === '-1' ? -1 : Math.min(Number(limitParam) || 20, 200)
   const sort = typeof query.sort === 'string' ? query.sort : '-start_date'
 
   const events = await client.request(readItems('events', {
     filter,
-    fields: eventListFields,
+    fields: [
+      'id', 'slug', 'title', 'description', 'start_date', 'end_date', 'date_only',
+      'location', 'event_type', 'event_category', 'image_credits',
+      { image: ['id', 'type'] },
+    ],
     sort: [sort],
     limit,
   }))
 
-  return { events: events.map(e => pick(e, eventListFields)) }
+  return { events }
 })

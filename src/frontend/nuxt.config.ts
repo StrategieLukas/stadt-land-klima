@@ -1,5 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  // Preserve the existing source layout for Nuxt 4 compatibility
+  srcDir: ".",
+  dir: {
+    app: "app",
+  },
   modules: ["@nuxtjs/leaflet", "@blokkli/editor"],
 
   // blökkli configuration
