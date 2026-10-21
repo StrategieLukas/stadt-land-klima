@@ -9,12 +9,13 @@
     "test:mail-client": "tsx --test src/mailFlowClient.test.ts",
     "test:security:preview": "tsx src/previewSecurity.ts",
     "test:security:migration": "tsx src/securityMigration.ts",
-    "test:security:helpers": "tsx --test src/disclosure.test.ts"
+    "test:security:helpers": "tsx --test src/disclosure.test.ts",
+    "test:contracts": "tsx --test src/contracts.test.ts src/typecheckGate.test.ts"
   },
   "dependencies": {
     "@playwright/test": "^1.64.1",
     "tsx": "^4.23.15",
-    "typescript": "^5.9.3"
+    "typescript": "6.0.3"
   },
   "devDependencies": {
     "@types/node": "^26.6.5"

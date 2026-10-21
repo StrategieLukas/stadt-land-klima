@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Nuxt 3 frontend + Directus CMS backend, running in Docker Compose.
+Nuxt 4 frontend + Directus CMS backend, running in Docker Compose.
 Code language and variables always favour english language.
 ---
 
@@ -175,6 +175,14 @@ FEATURES.md is the canonical inventory of application functionality and its regr
 2. When gendered German text is used, prefer ":" over "*" as separator.
 3. Every Directus `string` or `text` field must set `meta.options.trim: true` whenever its interface exposes the trim option. The standard `input`, `input-multiline`, and custom `auto-slug` interfaces support it. Verify support before setting the option; do not add ignored options to interfaces that do not expose trimming.
 4. Address users consistently with the informal German `du` form in user-facing text and translations. Content sent to candidates or parties—including access-token pages and related emails—must use the formal `Sie` form instead.
+
+## Technical Debt
+
+See [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for tracked technical debt items, future upgrades, and items requiring follow-up. Key items:
+
+- **TypeScript 7 upgrade:** Currently on TypeScript 6.0.3, the newest stable compiler supported by typescript-eslint and Blökkli. Recheck their peer ranges and Vue tooling before upgrading to 7.x.
+- **Framework stack:** Nuxt 4.6.2 with Vite 8.3.5 and Blökkli 2.0.0-alpha.73. Keep platform bindings optional and preserve the Blökkli virtual-file Vite integration; see FRAMEWORK_UPGRADE_REVIEW.md.
+- **TypeScript diagnostic baseline:** 372 existing diagnostics (249 unique entries) tracked in `.ts-baseline.txt`; reducing via Phases 4–6 of the migration plan.
 
 ## Checks
 1. Run ./test_dev.sh in the bin folder and wait for checks to complete.

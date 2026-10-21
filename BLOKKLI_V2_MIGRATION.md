@@ -1,6 +1,6 @@
 # Blökkli 2 migration review
 
-Reviewed on 2026-10-21. The frontend now pins `@blokkli/editor` to **2.0.0-alpha.73** (published source revision `af4afcea9ee9c7667b1545b02de841ee09828463`). Nuxt remains pinned to **4.4.8** and Directus remains **11.17.4**. This is an alpha editor release, not a stable 2.0 release.
+Reviewed on 2026-10-21. The frontend now pins `@blokkli/editor` to **2.0.0-alpha.73** (published source revision `af4afcea9ee9c7667b1545b02de841ee09828463`). The follow-up toolchain upgrade pins Nuxt **4.6.2**, Vite **8.3.5** and TypeScript **6.0.3**; Directus remains **11.17.4**. See [FRAMEWORK_UPGRADE_REVIEW.md](FRAMEWORK_UPGRADE_REVIEW.md) for that upgrade and its current validation. This is an alpha editor release, not a stable 2.0 release.
 
 ## What changed
 
@@ -18,7 +18,7 @@ The old Blökkli 1.3.4 version-guard patch and `patch-package` dependency were r
 
 ## Verification
 
-The tests use disposable Directus records and clean them up. Browser tests interact through the V2 canvas with real pointer events rather than bypassing it with DOM clicks.
+The original migration checks below used Nuxt 4.4.8; current stack results are maintained in the linked framework review. The tests use disposable Directus records and clean them up. Browser tests interact through the V2 canvas with real pointer events rather than bypassing it with DOM clicks.
 
 | Check | Result / coverage |
 | --- | --- |
@@ -29,7 +29,7 @@ The tests use disposable Directus records and clean them up. Browser tests inter
 | Security migration checks | **21 passed, 0 failed**, including scanning the final production public artifacts for configured credentials. The existing MIG-03 test returns early without a retired credential; this run does not independently establish revocation of an old production token. |
 | Security preview checks | **9 passed, 0 failed**, including credential isolation, hydration/client navigation and rotated preview credentials. |
 | Security disclosure helpers | **3 passed, 0 failed**. |
-| Vue/TypeScript checking | Checked with `vue-tsc` 3.3.13 and TypeScript 5.9.3 against `.nuxt/tsconfig.app.json`. The adapter, shared mapper and provider have no diagnostics. The full application reports **267 diagnostics**, including other block components and server context configuration; this migration does not complete the broader TypeScript plan. |
+| Vue/TypeScript checking | The follow-up upgrade uses TypeScript 6.0.3 and vue-tsc 3.3.13 with Nuxt project references and a baseline-aware gate. 372 existing diagnostics remain; preparation/checker failures also fail the gate. See FRAMEWORK_UPGRADE_REVIEW.md. |
 | Development HTTP smoke | `curl http://localhost:8080` returns HTTP 200; public fixture pages are additionally checked for their actual rendered block content. |
 
 The test suite does not prove a complete visual/interaction review of every option on all 27 application blocks. In particular, mobile editor interactions, all Icon option combinations, paste variants, external widgets and every third-party chart/media integration still need manual review. Existing automated application flows provide additional targeted coverage, not a guarantee of zero regressions.
@@ -38,9 +38,9 @@ The production preview logged the environment's existing Stadtlandzahl upstream 
 
 ## Remaining work and risks
 
-1. **Nuxt security upgrade is still outstanding.** Pinning 4.4.8 isolates the editor migration; it does not resolve the seven Nuxt advisories reported by the current audit. Re-run the newer Nuxt investigation with this adapter, including SVG handling, aliases, SSR, route/security tests and editor interactions. Do not carry forward a conclusion that V2 is incompatible without reproducing it against this code.
+1. **Nuxt upgrade completed in the follow-up change.** Nuxt 4.6.2/Vite 8.3.5 build and run with the editor. The lockfile/native-dependency problem was corrected; no mandatory platform binding is needed. All seven direct Nuxt advisories from 4.4.8 are removed. The earlier blanket unreachability assessment was too broad, including a confirmed development disclosure that now returns 403.
 2. **Do not force Vite 7 into a newer Nuxt builder that requires Vite 8.** The investigated Nuxt 4.6.2 builder imports `transformWithOxc`, which Vite 7 does not export. Keeping mismatched Nuxt/builder versions is not a supported solution.
-3. **Dependency audit remains open.** The first migration audit reports 17 affected package entries (13 high, 4 moderate). They include the Nuxt chain, build-time `micromatch`/`braces`, `node-forge`, and the alpha's newly installed `mammoth` peer chain through `argparse`/`sprintf-js`. The normal production output does not contain that Mammoth chain, but the dependency finding remains; optional document-import features must be assessed before enabling them. Do not hide findings with broad overrides or downgrade the editor automatically to satisfy audit suggestions.
+3. **Dependency audit remains open.** The current framework audit reports 17 affected package entries (14 high, 3 moderate); the seven direct Nuxt advisories are gone but transitive chains still flag the framework. They include the Nuxt chain, build-time `micromatch`/`braces`, `node-forge`, and the alpha's newly installed `mammoth` peer chain through `argparse`/`sprintf-js`. The normal production output does not contain that Mammoth chain, but the dependency finding remains; optional document-import features must be assessed before enabling them. Do not hide findings with broad overrides or downgrade the editor automatically to satisfy audit suggestions.
 4. **Track the alpha.** Keep the exact version and lockfile together. Revalidate subsequent alphas/stable releases against the adapter and browser suites before updating.
 5. **TypeScript work remains.** Broad SDK casts and existing application diagnostics belong to the later migration phases; a successful production build is not a clean type check.
 6. **Existing public-block access needs a separate security fix.** `server/api/public/blocks.get.ts` filters out archived blocks but does not require published status or verify the parent record. `policies/Frontend-Server.yaml` restricts tour blocks but allows other entity types without those conditions. A disposable draft page containing a draft heading was anonymously retrievable through `/api/public/blocks` (HTTP 200 with its private marker); both test records were deleted afterwards. This predates this migration; adding UUIDs/options does not fix it. Add published-status and parent-visibility checks with negative tests across supported entity types. Current security suite passes must not be interpreted as covering this gap.

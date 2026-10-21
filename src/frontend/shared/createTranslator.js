@@ -7,6 +7,7 @@ export default function createTranslator(translations) {
     messages[translation.key] = translation.value;
   });
 
+  /** @returns {string} */
   function t(key, params = {}) {
     if (messages[key]) {
       let translation = messages[key];

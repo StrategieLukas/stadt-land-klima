@@ -31,6 +31,7 @@ let draftArticle: { id: number };
 let foreignTeam: { id: string };
 let foreignCandidate: { id: string };
 let foreignAnswer: { id: string };
+let foreignQuestion: { id: string };
 const foreignToken = randomUUID();
 const foreignEmail = `foreign-candidate-${config.runId}@stadt-land-klima.de`;
 const hiddenRecords = [
@@ -98,7 +99,7 @@ try {
       election: foreignElection.id, name: `Foreign Candidate ${config.runId}`, salutation: 'neutral',
       party: 'SPD', email: foreignEmail, access_token: foreignToken,
     });
-    const foreignQuestion = await fixture.admin.createItem<{ id: string }>('questions', {
+    foreignQuestion = await fixture.admin.createItem<{ id: string }>('questions', {
       election: foreignElection.id, status: 'draft', title: `Foreign thesis ${config.runId}`, thesis: 'Private synthetic thesis',
     });
     foreignAnswer = await fixture.admin.createItem('answers', {
@@ -133,11 +134,17 @@ try {
   });
 
   await step('MIG-03: copied legacy credentials are revoked, not only removed from HTML', async () => {
-    const retired = process.env.TEST_RETIRED_DIRECTUS_TOKEN || legacyBrowserToken;
+    let retired = process.env.TEST_RETIRED_DIRECTUS_TOKEN || legacyBrowserToken;
     if (!retired) {
-      // No legacy token exists — the browser-side credential was removed and the
-      // Directus user was disabled. This is the desired end state.
-      return;
+      // Verify the actual retired identity, never infer revocation from the
+      // absence of a token in today's HTML. Do not print the stored credential.
+      const id = process.env.TEST_RETIRED_DIRECTUS_USER_ID || '3d04987c-ccf8-48f2-aad7-68f894d8d4a7';
+      const user = await fixture.admin.request<{ status: string; token: string | null }>('GET', `/users/${id}`, {
+        query: { fields: 'status,token' },
+      });
+      assert(user.status !== 'active', 'Legacy browser identity must remain disabled');
+      retired = user.token || '';
+      assert(retired, 'Supply TEST_RETIRED_DIRECTUS_TOKEN when the retired credential is no longer stored');
     }
     const response = await fetchBackend('/users/me?fields=id', retired);
     assert(response.status === 401, 'Retired credential must be rejected as invalid, not merely lack one permission');
@@ -275,6 +282,40 @@ try {
     });
     assert([403, 409].includes(closed.status), 'Deadline must be enforced on the server');
     await fixture.admin.updateItem('elections', election.id, { response_cutoff_date: '2099-12-31' });
+  });
+
+  await step('MIG-11b: candidate write contract rejects malformed/foreign batches before persistence and supports clearing', async () => {
+    const post = (body: unknown, token = candidateAToken) => fetch(`${config.frontendUrl}/api/candidate/${token}/answers`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    const answer = { question: question.id, response: 1 };
+    for (const body of [
+      { answers: [{ ...answer, response: 1.5 }] },
+      { answers: [{ ...answer, response: '2' }] },
+      { answers: [answer], candidateId: candidateB.id },
+      { answers: [{ ...answer, candidate: candidateB.id }] },
+      { answers: [answer, answer] }, { answers: [] },
+      { answers: [{ ...answer, explanation: 'x'.repeat(501) }] },
+    ]) assert((await post(body)).status === 400, 'Invalid answer contract must return 400');
+    const before = await fixture.admin.readItems<{ id: string; response: number | null }>('answers', {
+      filter: { candidate: { _eq: candidateA.id }, question: { _eq: question.id } }, fields: ['id', 'response'],
+    });
+    assert(before.length === 1, 'Authorized fixture answer must exist');
+    const mixed = await post({ answers: [{ ...answer, response: 4 }, { question: foreignQuestion.id, response: 0 }] });
+    assert(mixed.status === 403, 'A foreign election question must reject the entire batch');
+    const unchanged = await fixture.admin.readItem<{ response: number }>('answers', before[0]!.id, ['response']);
+    assert(unchanged.response === before[0]!.response, 'No valid row may change before whole-batch authorization');
+    assert((await post({ answers: [answer] }, randomUUID())).status === 404, 'Unknown token cannot write');
+    assert((await post({ answers: [{ ...answer, explanation: 'x'.repeat(70000) }] })).status === 413, 'Request size must be bounded');
+    for (const response of [0, 4, null]) {
+      const saved = await post({ answers: [{ ...answer, response }] });
+      assert(saved.status === 200, 'Boundary scores and explicit null clearing must save');
+      assert(JSON.stringify(await saved.json()) === '{"success":true}', 'Write response must contain only the safe success contract');
+      const row = await fixture.admin.readItem<{ response: number | null }>('answers', before[0]!.id, ['response']);
+      assert(row.response === response, 'Validated response must reach persistence unchanged');
+    }
+    const other = await fixture.admin.readItem<{ response: number }>('answers', answerB.id, ['response']);
+    assert(other.response === 2, 'Candidate B remains untouched');
   });
 
   for (const user of [fixture.localteamMember, fixture.localteamAdmin]) {

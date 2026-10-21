@@ -14,19 +14,30 @@
     "lintExtensions:js": "cd ../directus/extensions && ../../frontend/node_modules/.bin/eslint --config ../../frontend/eslint.config.mjs --ext .js,.ts,.vue .",
     "lintExtensions:prettier": "prettier --check \"../directus/extensions/*/src/**/*.{js,ts,vue}\"",
     "lintExtensions": "npm run lintExtensions:js && npm run lintExtensions:prettier",
-    "lintfixExtensions": "prettier --write \"../directus/extensions/*/src/**/*.{js,ts,vue}\" && npm run lintExtensions:js -- --fix"
+    "lintfixExtensions": "prettier --write \"../directus/extensions/*/src/**/*.{js,ts,vue}\" && npm run lintExtensions:js -- --fix",
+    "typecheck": "bash typecheck.sh && npm run lint:migrated",
+    "typecheck:full": "nuxt prepare && vue-tsc -b --noEmit",
+    "typecheck:baseline": "bash typecheck.sh --update-baseline",
+    "lint:migrated": "eslint shared/contracts/*.ts server/types/directus.ts server/utils/candidateAnswers.ts server/api/public/jobs.get.ts \"server/api/public/jobs/[slug].get.ts\" \"server/api/candidate/[token]/answers.post.ts\" components/JobOfferCard.vue components/JobOfferStatusPill.vue pages/jobs/index.vue \"pages/jobs/[slug].vue\"",
+    "prebuild": "npm run typecheck",
+    "pregenerate": "npm run typecheck"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^3.4.4",
-    "@nuxt/eslint-config": "^1.17.0",
+    "@nuxt/devtools": "3.4.4",
+    "@nuxt/eslint-config": "1.17.0",
+    "@types/node": "24.19.2",
+    "@types/sanitize-html": "2.16.2",
     "baseline-browser-mapping": "^2.11.29",
-    "eslint": "^10.13.0",
+    "eslint": "10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "eslint-plugin-vue": "^10.11.1",
-    "nuxt": "4.4.8",
+    "nuxt": "4.6.2",
     "prettier": "^3.9.10",
-    "prettier-plugin-tailwindcss": "^0.8.1"
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vue-tsc": "3.3.13"
   },
   "dependencies": {
     "@apollo/client": "^4.3.4",

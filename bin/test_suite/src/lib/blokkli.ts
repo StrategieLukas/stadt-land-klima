@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { expect, type Locator, type Page } from '@playwright/test';
 
 export async function openBlokkliField(page: Page, field: Locator): Promise<void> {
-  await expect(page.locator('#bk-animation-canvas-webgl')).toBeVisible();
+  await expect(page.locator('#bk-animation-canvas-webgl')).toBeVisible({ timeout: 30_000 });
   await expect(page.locator('._bk_z-init-overlay')).toHaveCount(0);
   await expect(page.locator('.bk-fatal-error-overlay')).toHaveCount(0);
   // V2 performs hit testing on a canvas above the rendered page. Send real

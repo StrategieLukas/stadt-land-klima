@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { fileURLToPath } from "node:url";
+
 export default defineNuxtConfig({
   // Preserve the existing source layout for Nuxt 4 compatibility
   srcDir: ".",
@@ -122,6 +124,43 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    optimizeDeps: {
+      // These app libraries are also used inside virtual editor components,
+      // which the dependency scanner cannot read from disk.
+      include: [
+        "@apollo/client/core", "@directus/sdk", "@iconify/vue", "altcha",
+        "graphql-tag", "html-to-image", "leaflet", "linkify-string", "lodash",
+        "maplibre-gl", "markdown-it", "ml-pca", "sanitize-html", "vega-embed", "vue-chartjs",
+      ],
+    },
+    plugins: [{
+      name: "blokkli-editing-files",
+      enforce: "pre",
+      resolveId: {
+        order: "pre",
+        async handler(id, importer, options) {
+          // Vite 8's dependency scanner reads Vue files directly from disk.
+          // Blökkli's editing variants are virtual files served by its loader;
+          // skip them only during scanning, keeping normal dev/build loading.
+          const editing = id.includes("__blokkli_editing__") || /[?&]blokkliEditing=true(?:&|$)/.test(id);
+          if (!editing) return;
+          if ("scan" in options && options.scan === true) {
+            return { id, external: true };
+          }
+          // Vite's browser URLs are relative to the project root. Resolve
+          // virtual Vue files (including their script/style requests) before
+          // plugin-vue can mistake those URLs for absolute filesystem paths.
+          if (/^\/(?:components|node_modules)\//.test(id)) {
+            const url = new URL(`.${id}`, import.meta.url);
+            const filename = fileURLToPath(url);
+            const root = fileURLToPath(new URL(".", import.meta.url));
+            if (filename.startsWith(root)) {
+              return this.resolve(filename + url.search, importer, { ...options, skipSelf: true });
+            }
+          }
+        },
+      },
+    }],
     server: {
       // Directus reaches the development proxy over the Docker service hostname.
       allowedHosts: ["frontend"],

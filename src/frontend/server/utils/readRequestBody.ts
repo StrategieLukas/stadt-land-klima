@@ -1,5 +1,7 @@
+import type { IncomingMessage } from 'node:http';
+
 interface EventWithPossibleRequestShapes {
-  req?: { text?: () => Promise<string> };
+  req?: IncomingMessage | { text?: () => Promise<string> };
   request?: { text?: () => Promise<string> };
   node?: {
     req?: {
@@ -47,7 +49,7 @@ async function readNodeRequestBody(req: NonNullable<EventWithPossibleRequestShap
 }
 
 export async function readRequestBody<T = Record<string, unknown>>(event: EventWithPossibleRequestShapes, maxSize?: number): Promise<T> {
-  if (typeof event?.req?.text === 'function') {
+  if (event.req && 'text' in event.req && typeof event.req.text === 'function') {
     return parseJsonBody<T>(await event.req.text(), maxSize);
   }
 

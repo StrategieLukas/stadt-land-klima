@@ -148,6 +148,8 @@ test('Blökkli V2 preserves nested legacy content, formatting, media and reusabl
       nested('form', { title: 'Legacy form', fields: [nested('form_field', { label: [nested('form_label', { text: 'Legacy field label', description: '' })] }, { fieldType: 'text', fieldName: 'legacy', required: true })] }),
       nested('hero', { title: 'Legacy hero', subtitle: '', imageId: '', blocks: [nested('heading', { text: 'Hero nested heading' })] }),
       nested('image', { imageId: fileId, alt: 'Legacy fixture image', caption: 'Legacy image caption' }),
+      nested('icon', {}, { source: 'slk', slkIcon: 'icon_info' }),
+      nested('button', { label: 'Legacy button' }, { iconSlug: 'icon_info', iconPosition: 'left', linkType: 'internal', link: '/contact' }),
     ];
     for (const [index, block] of roots.entries()) await admin.createItem('blocks', {
       ...block, entity_type: 'pages', entity_uuid: entity.id, field_name: 'content', sort_order: index, status: 'published',
@@ -171,10 +173,17 @@ test('Blökkli V2 preserves nested legacy content, formatting, media and reusabl
       }
     }, { accessToken: token, user });
     const page = await context.newPage();
+    const moduleErrors: string[] = [];
+    page.on('pageerror', error => moduleErrors.push(error.message));
+    page.on('console', message => {
+      if (message.type() === 'error' && message.text().includes('[vite] Internal Server Error')) moduleErrors.push(message.text());
+    });
     await page.goto(`${frontend}/${entity.slug}?blokkliEditing=${entity.id}`);
     await page.addStyleTag({ content: 'vite-devtools-dock-embedded { display: none !important; }' });
     const heading = page.locator('.blokkli-block-heading').filter({ hasText: 'Legacy nested heading' });
     await expect(heading).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('.blokkli-block-icon svg')).toBeVisible();
+    await expect(page.locator('.blokkli-block-button .blokkli-button-icon svg').first()).toBeVisible();
     await expect(page.locator('.bk-dev-mode-banner')).toHaveCount(0);
     await openBlokkliField(page, heading.locator('[data-blokkli-editable-field="text"]'));
     const input = page.locator('.bk-editable-field [contenteditable]');
@@ -232,6 +241,7 @@ test('Blökkli V2 preserves nested legacy content, formatting, media and reusabl
     assert.ok(copy);
     assert.notEqual(copy.props.blocks[0].uuid, libraryHeading.uuid);
     assert.ok((await (await fetch(`${frontend}/${entity.slug}`)).text()).includes('Reusable nested heading'));
+    assert.deepEqual(moduleErrors, [], 'Editor components must load without Vite errors or browser exceptions');
   } finally {
     await browser.close();
     for (const collection of ['edit_states', 'blocks']) for (const record of await admin.readItems<{ id: string | number }>(collection, { filter: { entity_uuid: { _eq: entity.id } }, limit: -1 })) await admin.deleteItem(collection, record.id);

@@ -11,6 +11,9 @@ export function buildLocationString(municipality_name, state) {
     return '';
 }
 
+/** @param {string | null | undefined} type
+ * @returns {boolean}
+ */
 export function isRaster(type) {
   if (!type) return false;
   return type.startsWith('image/') && !type.includes('svg');
