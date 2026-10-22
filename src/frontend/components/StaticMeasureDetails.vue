@@ -77,7 +77,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Measure } from '~/types/components/municipality';
+
 import sanitizeHtml from "sanitize-html";
 const iconImpact = '/icons/icon_impact.svg'
 const iconImpactDark = '/icons/icon_impact-dark.svg'
@@ -86,9 +89,9 @@ const iconPoliticsDark = '/icons/icon_politics-dark.svg'
 const iconInvest = '/icons/icon_invest.svg'
 const iconInvestDark = '/icons/icon_invest-dark.svg'
 
-  const props = defineProps({
+  const _props = defineProps({
     measure: {
-      type: Object,
+      type: Object as PropType<Measure>,
       required: true,
     },
     hideAbout: {

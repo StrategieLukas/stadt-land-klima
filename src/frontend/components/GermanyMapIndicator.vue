@@ -32,8 +32,15 @@
   </svg>
 </template>
 
-<script>
+<script lang="ts">
+import { BoundaryGeometrySchema } from '~/shared/contracts/geometry';
 import stateBordersData from '~/assets/germany-state-borders.json';
+</script>
+
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
+import { computed } from 'vue';
 
 const LON_MIN = 5.87, LON_MAX = 15.04;
 const LAT_MAX = 55.06, LAT_MIN = 47.27;
@@ -42,21 +49,21 @@ const LAT_MAX = 55.06, LAT_MIN = 47.27;
 const SVG_W = 74;
 const SVG_H = 100;
 
-function project(lon, lat) {
+function project(lon: number, lat: number): [number, number] {
   return [
     (lon - LON_MIN) / (LON_MAX - LON_MIN) * SVG_W,
     (LAT_MAX - lat) / (LAT_MAX - LAT_MIN) * SVG_H,
   ];
 }
 
-function ringToPath(ring) {
+function ringToPath(ring: number[][]) {
   if (!ring || ring.length < 3) return '';
   const MIN_DIST = 0.4; // skip sub-pixel points for a tiny map
   let d = '';
-  let px = null, py = null;
+  let px: number | null = null, py: number | null = null;
   for (const coord of ring) {
-    const [x, y] = project(coord[0], coord[1]);
-    if (px === null) {
+    const [x, y] = project(coord[0]!, coord[1]!);
+    if (px === null || py === null) {
       d += `M${x.toFixed(1)},${y.toFixed(1)}`;
       px = x; py = y;
     } else if (Math.hypot(x - px, y - py) >= MIN_DIST) {
@@ -69,7 +76,7 @@ function ringToPath(ring) {
 
 // Computed once at module level (static GeoJSON data)
 const statePaths = stateBordersData.features.map((f) => {
-  const geom = f.geometry;
+  const geom = BoundaryGeometrySchema.parse(f.geometry);
   if (!geom) return '';
   if (geom.type === 'Polygon')
     return geom.coordinates.map(ringToPath).filter(Boolean).join('');
@@ -77,16 +84,12 @@ const statePaths = stateBordersData.features.map((f) => {
     return geom.coordinates.flatMap(p => p.map(ringToPath)).filter(Boolean).join('');
   return '';
 }).filter(Boolean);
-</script>
-
-<script setup>
-import { computed } from 'vue';
 
 const props = defineProps({
   /** WGS84 latitude */
-  lat: { type: Number, default: null },
+  lat: { type: Number as PropType<number | null>, default: null },
   /** WGS84 longitude */
-  lon: { type: Number, default: null },
+  lon: { type: Number as PropType<number | null>, default: null },
   /** Display width in pixels */
   size: { type: Number, default: 80 },
   /** State fill color */

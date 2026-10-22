@@ -26,7 +26,7 @@
     </div>
 
     <!-- Single Question Display with Carousel-like Swipe Animation -->
-    <div v-if="props.questions.length > 0" class="space-y-6">
+    <div v-if="currentQuestion" class="space-y-6">
       <div class="overflow-hidden relative min-h-[320px] grid grid-cols-1 grid-rows-1 [&>*]:col-start-1 [&>*]:row-start-1">
         <Transition :name="transitionDirection">
           <div
@@ -121,19 +121,19 @@
         <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
           <button
             type="button"
-            @click="handlePrevQuestion"
             :disabled="currentQuestionIndex === 0"
             class="flex-1 sm:flex-initial btn btn-outline btn-secondary px-4 sm:px-6 py-2 rounded-full font-semibold"
             :class="{ 'opacity-50 cursor-not-allowed': currentQuestionIndex === 0 }"
+            @click="handlePrevQuestion"
           >
             {{ $t("generic.back") }}
           </button>
           <button
             type="button"
-            @click="handleNextQuestion"
             :disabled="!canProceedToNext"
             class="flex-1 sm:flex-initial btn btn-primary px-4 sm:px-8 py-2 rounded-full font-semibold text-white whitespace-nowrap"
             :class="{ 'opacity-50 cursor-not-allowed': !canProceedToNext }"
+            @click="handleNextQuestion"
           >
             <span v-if="currentQuestionIndex === props.questions.length - 1">{{ $t("elections.wahlcheck.questions.to_weighting") }}</span>
             <span v-else>{{ $t("elections.wahlcheck.questions.next") }}</span>
@@ -146,7 +146,6 @@
         <button
           v-for="(q, idx) in props.questions"
           :key="q.id"
-          @click="selectQuestion(idx)"
           class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center text-xs sm:text-sm font-medium transition-all"
           :class="{
             'bg-ff-green text-white border-ff-green': currentQuestionIndex === idx,
@@ -154,6 +153,7 @@
             'bg-solid-ff-green-10 border-solid-ff-green-30': completedQuestions.has(q.id)
           }"
           :title="$t('elections.wahlcheck.questions.go_to', { ':number': idx + 1 })"
+          @click="selectQuestion(idx)"
         >
           {{ completedQuestions.has(q.id) ? '✓' : idx + 1 }}
         </button>
@@ -162,7 +162,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { AnswerValue } from '~/shared/domain';
+
+import type { PropType } from 'vue';
+import type { ElectionQuestion, Election, UserAnswers } from '~/types/components/elections';
+
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import {
   getWahlcheckAnswerOptions,
@@ -171,19 +176,19 @@ import {
 
 const props = defineProps({
   questions: {
-    type: Array,
+    type: Array as PropType<ElectionQuestion[]>,
     required: true
   },
   election: {
-    type: Object,
+    type: Object as PropType<Election | null>,
     default: null
   },
   localteam: {
-    type: Object,
+    type: Object as PropType<{ name?: string; municipality_name?: string } | null>,
     default: null
   },
   userAnswers: {
-    type: Object,
+    type: Object as PropType<UserAnswers>,
     default: () => ({})
   },
   initialQuestionIndex: {
@@ -192,7 +197,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['next', 'prev'])
+const emit = defineEmits<{next: [answers: UserAnswers]; prev: []}>()
 
 const { $t } = useNuxtApp()
 
@@ -203,14 +208,14 @@ const ratingOptions = computed(() => {
 })
 
 const userAnswers = ref({...props.userAnswers})
-const skippedQuestions = ref({})
+const skippedQuestions = ref<Record<string, boolean>>({})
 const currentQuestionIndex = ref(
   Math.min(Math.max(0, props.initialQuestionIndex || 0), Math.max(0, props.questions.length - 1))
 )
-const completedQuestions = ref(new Set())
+const completedQuestions = ref(new Set<string>())
 const transitionDirection = ref('slide-left')
-const sparklingOption = ref(null)
-let advanceTimeout = null
+const sparklingOption = ref<AnswerValue | null>(null)
+let advanceTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Initialize completed questions based on user answers
 props.questions.forEach(question => {
@@ -226,7 +231,7 @@ watch(() => props.initialQuestionIndex, (newIdx) => {
   }
 })
 
-function getOptionCircleClass(questionId, value) {
+function getOptionCircleClass(questionId: string, value: AnswerValue) {
   const isSelected = userAnswers.value[questionId] === value
   const option = ratingOptions.value.find((item) => item.value === Number(value))
 
@@ -238,7 +243,7 @@ function getOptionCircleClass(questionId, value) {
   return `bg-white ${borderClass} hover:bg-solid-gray-05`
 }
 
-function selectOption(questionId, value) {
+function selectOption(questionId: string, value: AnswerValue) {
   userAnswers.value[questionId] = value
   delete skippedQuestions.value[questionId]
   completedQuestions.value.add(questionId)
@@ -265,7 +270,7 @@ function selectOption(questionId, value) {
 }
 
 // Mark question as completed when answered
-function markQuestionCompleted(questionId) {
+function _markQuestionCompleted(questionId: string) {
   completedQuestions.value.add(questionId)
   delete skippedQuestions.value[questionId]
 
@@ -289,14 +294,14 @@ function markQuestionCompleted(questionId) {
 }
 
 // Handle skip checkbox change
-function handleSkipChange(questionId, event) {
+function handleSkipChange(questionId: string, event: Event) {
   if (advanceTimeout) {
     clearTimeout(advanceTimeout)
     advanceTimeout = null
   }
   sparklingOption.value = null
 
-  const isChecked = event?.target ? event.target.checked : skippedQuestions.value[questionId]
+  const isChecked = event?.target instanceof HTMLInputElement ? event.target.checked : skippedQuestions.value[questionId]
 
   if (isChecked) {
     // Skipping the question
@@ -344,7 +349,7 @@ const currentQuestion = computed(() => {
   return props.questions[currentQuestionIndex.value] || props.questions[0]
 })
 
-function selectQuestion(idx) {
+function selectQuestion(idx: number) {
   if (advanceTimeout) {
     clearTimeout(advanceTimeout)
     advanceTimeout = null
@@ -395,7 +400,7 @@ function handleNext() {
   if (!canProceed.value) return
 
   // Build clean answers object (only include answered questions, not skipped ones)
-  const answers = {}
+  const answers: UserAnswers = {}
   Object.keys(userAnswers.value).forEach(questionId => {
     if (userAnswers.value[questionId] !== undefined) {
       answers[questionId] = userAnswers.value[questionId]
@@ -406,7 +411,7 @@ function handleNext() {
 }
 
 // Handle form submission
-function handleSubmit() {
+function _handleSubmit() {
   handleNext()
 }
 

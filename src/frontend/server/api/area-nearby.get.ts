@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { AreaSchema } from "~/shared/contracts/search";
+import { parseCms } from "~/server/utils/parseCms";
 /**
  * GET /api/area-nearby?ars=<ars>&radius_km=40&levels=4,5,6
  *
@@ -16,9 +19,9 @@ export default defineEventHandler(async (event) => {
   if (!ars.trim()) return { areas: [] }
 
   try {
-    return await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/nearby/`, {
+    return parseCms(z.object({areas: z.array(AreaSchema)}), await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/nearby/`, {
       params: { radius_km: radiusKm, levels, limit },
-    })
+    }))
   } catch {
     return { areas: [] }
   }

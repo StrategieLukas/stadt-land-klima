@@ -40,6 +40,7 @@ import { computed, useAttrs } from 'vue'
 defineOptions({ inheritAttrs: false })
 
 const props = defineProps<{
+  disabled?: boolean
   label: string
   href?: string
   iconSlug?: string
@@ -118,6 +119,7 @@ const textClass = computed(() => {
 
 const linkAttrs = computed(() => {
   const base: Record<string, unknown> = { ...attrs }
+  if (props.disabled !== undefined) base.disabled = props.disabled
   if (props.href) {
     base.href = props.href
     if (props.external) {

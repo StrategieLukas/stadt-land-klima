@@ -3,14 +3,13 @@
     <div class="relative h-40 bg-gray-200 flex items-center justify-center">
       <SmartImg
         v-if="image_id"
-        :assetId="image_id"
-        :isRaster="true"
+        :asset-id="image_id"
+        :is-raster="true"
         :alt="name"
         :height="160"
         :width="400"
         fit="cover"
         sizes="(max-width: 768px) 312px, 400px"
-        format="webp"
         img-class="object-cover w-full h-full"
       />
       <div v-else class="w-full h-full flex items-center justify-center bg-gray/5">
@@ -37,18 +36,21 @@
   </NuxtLink>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Sector } from '~/shared/domain';
+
 import sectorImages from '~/shared/sectorImages';
 
 const { $t } = useNuxtApp();
 
-const props = defineProps({
+const _props = defineProps({
   to: { type: String, required: true },
   measure_id: { type: String, default: '' },
   name: { type: String, default: '' },
-  sector: { type: String, default: null },
-  description: { type: String, default: null },
-  image_id: { type: String, default: null },
-  image_credits: { type: String, default: null },
+  sector: { type: String as PropType<Sector | null>, default: null },
+  description: { type: String as PropType<string | null>, default: null },
+  image_id: { type: String as PropType<string | null>, default: null },
+  image_credits: { type: String as PropType<string | null>, default: null },
 });
 </script>

@@ -16,7 +16,7 @@ const config = createConfigForNuxt({
       'middleware/referrer.global.ts', 'types/editorCms.ts', 'server/types/directus.ts',
       'server/api/public/translations.get.ts', 'server/utils/candidateAnswers.ts', 'server/api/public/jobs*.ts',
       'server/api/public/jobs/**/*.ts', 'server/api/candidate/**/answers.post.ts',
-      'components/JobOfferCard.vue', 'components/JobOfferStatusPill.vue', 'pages/jobs/**/*.vue',
+      'components/**/*.vue', 'types/components/**/*.ts', 'types/components.d.ts', 'pages/jobs/**/*.vue',
     ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
@@ -31,6 +31,7 @@ const config = createConfigForNuxt({
       '@typescript-eslint/ban-ts-comment': ['error', { 'ts-expect-error': 'allow-with-description' }],
     },
   },
+  { name: 'migration/preserve-component-markup', files: ['components/**/*.vue'], rules: { 'prettier/prettier': 'off', '@typescript-eslint/no-unnecessary-condition': 'off', '@typescript-eslint/no-unnecessary-type-conversion': 'off', '@typescript-eslint/no-unnecessary-type-assertion': 'off', '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off' } },
 );
 
 // The factory ignores every directory named public, including our API handlers.

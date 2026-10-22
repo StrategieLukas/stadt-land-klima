@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-progress-bar" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-progress-bar">
     <!-- Label row -->
     <div class="flex items-center justify-between gap-2 mb-2">
       <span
@@ -110,7 +110,7 @@ const clampedValue = computed(() => {
   return Math.min(100, Math.max(0, isNaN(v) ? 0 : v))
 })
 
-const displayValue = computed(() => {
+const _displayValue = computed(() => {
   return `${props.value || '0'}${props.unit || '%'}`
 })
 
@@ -123,7 +123,7 @@ const colorMap: Record<string, { bar: string; text: string }> = {
   red: { bar: 'bg-red', text: 'text-red' },
 }
 
-const currentColor = computed(() => colorMap[options.value.color] || colorMap.green)
+const currentColor = computed(() => colorMap[options.value.color] || colorMap.green!)
 const barBgClass = computed(() => currentColor.value.bar)
 const accentTextClass = computed(() => currentColor.value.text)
 

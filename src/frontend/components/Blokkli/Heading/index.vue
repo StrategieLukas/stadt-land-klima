@@ -1,7 +1,7 @@
 <template>
   <div
-    class="blokkli-block-heading-wrapper"
     :id="getBlokkliBlockId(options.anchor, uuid)"
+    class="blokkli-block-heading-wrapper"
     :class="[alignClass]"
   >
     <component

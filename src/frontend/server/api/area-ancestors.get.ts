@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { AreaSchema } from "~/shared/contracts/search";
+import { parseCms } from "~/server/utils/parseCms";
 /**
  * GET /api/area-ancestors?ars=<ars>
  *
@@ -12,7 +15,7 @@ export default defineEventHandler(async (event) => {
   if (!ars.trim()) return { ancestors: [] }
 
   try {
-    return await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/ancestors/`)
+    return parseCms(z.object({ancestors: z.array(AreaSchema)}), await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/ancestors/`))
   } catch {
     return { ancestors: [] }
   }

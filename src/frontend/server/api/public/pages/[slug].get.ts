@@ -1,12 +1,8 @@
+import { ContentPageSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
-
-type Row = Record<string, any>
-
-function pick(row: Row, fields: string[]): Row {
-  return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
-}
 
 const pageFields = ['id', 'slug', 'name', 'contents', 'status']
 
@@ -25,9 +21,9 @@ export default defineEventHandler(async (event) => {
     limit: 1,
   }))
 
-  if (!pages || pages.length === 0) {
+  if (!pages[0]) {
     throw createError({ statusCode: 404, statusMessage: 'Page not found' })
   }
 
-  return { page: pick(pages[0], pageFields) }
+  return { page: parseCms(ContentPageSchema, pages[0]) }
 })

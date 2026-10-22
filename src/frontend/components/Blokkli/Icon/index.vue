@@ -8,9 +8,9 @@
       <!-- SLK local SVG -->
       <span
         v-if="options.source === 'slk' && currentSlkSvg"
-        v-html="currentSlkSvg"
         :class="[iconInnerClass, iconColorClass]"
         class="flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+        v-html="currentSlkSvg"
       />
       <!-- Iconify icon -->
       <Icon

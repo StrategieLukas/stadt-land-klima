@@ -168,7 +168,12 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { PropType } from 'vue';
+import type { Municipality } from '~/types/components/municipality';
+import type { NavigationPage, NavigationItem } from '~/types/components/navigation';
+
 import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { useSearchPalette } from "~/composables/useSearchPalette";
 import { useEmbeddedSearchBridge } from "~/composables/useEmbeddedSearchBridge";
@@ -176,21 +181,21 @@ import { useHeaderHeight, useHeaderSpacerHeight, useNavInputRect } from "~/compo
 import { DONATION_PAGE_PATH } from "~/shared/donation";
 
 const { $t } = useNuxtApp();
-const { isOpen, query, embeddedInput, close, open } = useSearchPalette();
+const { isOpen, query, embeddedInput, close, open: _open } = useSearchPalette();
 
 defineProps({
-  municipalities: { type: Array, default: () => [] },
-  pages: { type: Array, default: () => [] },
-  navItems: { type: Array, default: () => [] },
+  municipalities: { type: Array as PropType<Municipality[]>, default: () => [] },
+  pages: { type: Array as PropType<NavigationPage[]>, default: () => [] },
+  navItems: { type: Array as PropType<NavigationItem[]>, default: () => [] },
 });
 
 const scrolled = ref(false);
 const searchFocused = ref(false);
-const searchInputRef = ref(null);
-const searchBarRef = ref(null);
-const headerEl = ref(null);
-const navStripClipRef = ref(null);
-const navStripInnerRef = ref(null);
+const searchInputRef = ref<HTMLInputElement | null>(null);
+const searchBarRef = ref<HTMLElement | null>(null);
+const headerEl = ref<HTMLElement | null>(null);
+const navStripClipRef = ref<HTMLElement | null>(null);
+const navStripInnerRef = ref<HTMLElement | null>(null);
 // 41 = border-t (1px) + min-h-10 items (40px) — matches actual strip height on SSR
 // so the clip wrapper never clips content before ResizeObserver fires.
 const navStripHeight = ref(41);
@@ -222,7 +227,7 @@ function onSearchEscape() {
 
 function onClearSearch() {
   query.value = "";
-  nextTick(() => searchInputRef.value?.focus());
+  void nextTick(() => searchInputRef.value?.focus());
 }
 
 // Sync focus indicator when palette is closed externally (backdrop click)
@@ -230,10 +235,10 @@ watch(isOpen, (val) => {
   if (!val) searchFocused.value = false;
 });
 
-let removeScrollListener = null;
-let removeResizeListener = null;
-let resizeObserver = null;
-let navStripObserver = null;
+let removeScrollListener: (() => void) | null = null;
+let removeResizeListener: (() => void) | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let navStripObserver: ResizeObserver | null = null;
 let lastScrollY = 0;
 
 onMounted(() => {
@@ -243,7 +248,7 @@ onMounted(() => {
   // The inner div is not constrained by overflow/max-height, so ResizeObserver always sees
   // the true content height even while the clip wrapper is collapsed.
   if (navStripInnerRef.value) {
-    const updateNavHeight = (entries) => {
+    const updateNavHeight = (entries: ResizeObserverEntry[]) => {
       for (const entry of entries) {
         const h = Math.round(entry.contentRect.height);
         if (h > 0) navStripHeight.value = h;
@@ -257,7 +262,7 @@ onMounted(() => {
 
   // After the expand transition ends, switch overflow to visible so dropdowns aren't clipped.
   // On collapse start, switch back to hidden immediately so the closing animation clips correctly.
-  const onTransitionEnd = (e) => {
+  const onTransitionEnd = (e: TransitionEvent) => {
     if (e.propertyName === "max-height" && navStripClipRef.value) {
       navStripClipRef.value.style.overflow = scrollNavVisible.value ? "visible" : "hidden";
     }
@@ -269,7 +274,7 @@ onMounted(() => {
     }
   });
 
-  nextTick(() => {
+  void nextTick(() => {
     navStripClipRef.value?.addEventListener("transitionend", onTransitionEnd);
     // On fresh load the strip is already visible but no transition has run,
     // so transitionend never fires — set overflow explicitly here.
@@ -292,11 +297,11 @@ onMounted(() => {
     }
   };
   window.addEventListener("scroll", onScroll, { passive: true });
-  removeScrollListener = () => window.removeEventListener("scroll", onScroll);
+  removeScrollListener = () => { window.removeEventListener("scroll", onScroll); };
 
   if (headerEl.value) {
     const update = () => {
-      const h = headerEl.value.offsetHeight;
+      const h = headerEl.value?.offsetHeight ?? 146;
       // headerHeight tracks the live header height so that sticky children
       // (pill nav, sidebar tops) follow it precisely as the nav strip animates.
       headerHeight.value = h;
@@ -316,7 +321,7 @@ onMounted(() => {
     resizeObserver = new ResizeObserver(update);
     resizeObserver.observe(headerEl.value);
     window.addEventListener("resize", update, { passive: true });
-    removeResizeListener = () => window.removeEventListener("resize", update);
+    removeResizeListener = () => { window.removeEventListener("resize", update); };
   }
 });
 

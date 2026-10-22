@@ -26,13 +26,13 @@
       <Teleport to="body">
         <div
           v-if="(visibleSuggestions.length || isLoading || (searchFocused && q.trim() && !isLoading && !visibleSuggestions.length)) && searchFocused && dropdownPosition.show"
+          ref="dropdown"
           class="slk-area-search-dropdown fixed z-[99999] rounded-md border max-h-60 overflow-y-auto font-sans shadow-lg bg-white border-gray-200"
           :style="{
             top: dropdownPosition.top + 'px',
             left: dropdownPosition.left + 'px',
             width: dropdownPosition.width + 'px'
           }"
-          ref="dropdown"
         >
           <div v-if="isLoading">
             <div class="text-gray-500 italic text-sm px-4 py-3">
@@ -108,10 +108,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { AreaResult, AreaRouteBuilder  } from '~/types/components/navigation';
+import type { RouteLocationRaw } from 'vue-router';
+
+import type { PropType } from 'vue';
+
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter  } from 'vue-router'
 import { useAreaSearch } from '~/composables/useAreaSearch'
 import { getCatalogVersion } from '~/composables/getCatalogVersion'
 
@@ -120,7 +124,8 @@ const { $t } = useNuxtApp()
 // Get the current catalog version — wrapped in try/catch so a Directus failure
 // (e.g. CLIENT_DIRECTUS_URL unreachable from mobile) does not crash component setup.
 const route = useRoute()
-let selectedCatalogVersion
+defineExpose({ focus: () => inputRef.value?.focus() })
+let selectedCatalogVersion: import('vue').Ref<Awaited<ReturnType<typeof getCatalogVersion>> | null>
 try {
   selectedCatalogVersion = ref(await getCatalogVersion(route))
 } catch {
@@ -135,7 +140,7 @@ const props = defineProps({
   // 'ars'  (default) → navigates to `${basePath}/${area.ars}` (used by /stats pages)
   // 'slug' → navigates to `/municipalities/${slug}` for rated areas (used by hero search)
   linkMode: {
-    type: String,
+    type: String as PropType<"ars" | "slug">,
     default: 'ars',
   },
   // Controls whether the "reasonable municipalities to rate" filter is applied:
@@ -143,21 +148,21 @@ const props = defineProps({
   // 'exclude' → always use all-areas mode, hide toggle
   // 'switch'  → show toggle so user can switch (default)
   reasonableMunipsToRate: {
-    type: String,
+    type: String as PropType<"include" | "exclude" | "switch">,
     default: 'switch',
   },
   // Optional callback: (area) => route | null
   // When provided, called on selection. Return a route string/object to navigate,
   // or null/undefined to skip navigation (caller handles side effects in the callback).
   routeBuilder: {
-    type: Function,
+    type: Function as PropType<AreaRouteBuilder | null>,
     default: null,
   },
 })
 
-const dropdown = ref(null)
-const radioGroup = ref(null)
-const inputRef = ref(null)
+const dropdown = ref<HTMLElement | null>(null)
+const radioGroup = ref<HTMLElement | null>(null)
+const inputRef = ref<HTMLInputElement | null>(null)
 const q = ref('')
 const searchFocused = ref(false)
 const focusedIndex = ref(-1)
@@ -180,7 +185,7 @@ const { results: rawResults, isLoading, search, clear } = useAreaSearch({
 })
 
 /** Compute navigation URL for a result based on linkMode and basePath */
-function getResultUrl(result) {
+function getResultUrl(result: AreaResult) {
   if (result.isMunicipality) {
     if (props.linkMode === 'slug' && result.ctaType === 'complete' && result._slug) {
       const catalogName = selectedCatalogVersion.value?.name
@@ -237,20 +242,20 @@ function handleFocus() {
   calculateDropdownPosition()
 }
 
-function goTo(url, area = null) {
+function goTo(url: RouteLocationRaw | null | undefined, area: AreaResult | null = null) {
   q.value = ''
   focusedIndex.value = -1
   searchFocused.value = false
   dropdownPosition.value.show = false
   if (props.routeBuilder && area) {
     const target = props.routeBuilder(area)
-    if (target != null) router.push(target)
+    if (target != null) if (target) void router.push(target)
   } else {
-    router.push(url)
+    if (url) void router.push(url)
   }
 }
 
-function moveFocus(direction) {
+function moveFocus(direction: number) {
   const max = visibleSuggestions.value.length - 1
   focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + direction))
 }
@@ -290,7 +295,8 @@ function onVisualViewportResize() {
   calculateDropdownPosition()
 }
 
-function handleClickOutside(event) {
+function handleClickOutside(event: MouseEvent) {
+  if (!(event.target instanceof Element)) return
   // Only close dropdown if click is outside both dropdown and (optional) radio group
   if (
     dropdown.value &&
@@ -303,7 +309,7 @@ function handleClickOutside(event) {
   }
 }
 
-defineExpose({ focus: () => inputRef.value?.focus() })
+
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)

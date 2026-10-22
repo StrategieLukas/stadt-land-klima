@@ -74,7 +74,7 @@
   </svg>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineProps({
   size: { type: Number, default: 24 },
   color: { type: String, default: '#9ca3af' },

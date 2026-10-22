@@ -93,8 +93,8 @@
               :class="{ 'bg-solid-light-green-10': anyChildActive(item) }"
             >
               <component
-                v-if="item.link_type === 'page'"
                 :is="NuxtLink"
+                v-if="item.link_type === 'page'"
                 :to="resolveHref(item)"
                 class="flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold"
                 :class="
@@ -103,25 +103,25 @@
                 @click="closeDrawer"
               >
                 <img
-                  v-if="item.image_id && imageUrlMap[item.image_id]"
-                  :src="imageUrlMap[item.image_id]"
+                  v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+                  :src="imageUrlMap[item.image_id ?? '']"
                   class="h-4 w-auto flex-shrink-0 object-contain"
                   alt=""
                 />
                 <span>{{ navLabel(item) }}</span>
               </component>
               <component
-                v-else-if="item.link_type === 'external'"
                 :is="'a'"
-                :href="item.external_url"
+                v-else-if="item.link_type === 'external'"
+                :href="item.external_url ?? undefined"
                 :target="item.open_new_tab ? '_blank' : '_self'"
                 rel="noopener noreferrer"
                 class="text-gray-800 flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold"
                 @click="closeDrawer"
               >
                 <img
-                  v-if="item.image_id && imageUrlMap[item.image_id]"
-                  :src="imageUrlMap[item.image_id]"
+                  v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+                  :src="imageUrlMap[item.image_id ?? '']"
                   class="h-4 w-auto flex-shrink-0 object-contain"
                   alt=""
                 />
@@ -129,8 +129,8 @@
               </component>
               <span v-else class="text-gray-800 flex min-w-0 flex-1 items-center gap-2 px-5 py-3 text-sm font-semibold">
                 <img
-                  v-if="item.image_id && imageUrlMap[item.image_id]"
-                  :src="imageUrlMap[item.image_id]"
+                  v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+                  :src="imageUrlMap[item.image_id ?? '']"
                   class="h-4 w-auto flex-shrink-0 object-contain"
                   alt=""
                 />
@@ -160,9 +160,9 @@
               <!-- Image children: 2-column grid -->
               <div v-if="hasImageChildren(item)" class="grid grid-cols-2 gap-2 px-4 py-3">
                 <component
+                  :is="child.link_type === 'page' ? NuxtLink : 'a'"
                   v-for="child in childrenWithImages(item)"
                   :key="child.id"
-                  :is="child.link_type === 'page' ? NuxtLink : 'a'"
                   :to="child.link_type === 'page' ? resolveHref(child) : undefined"
                   :href="child.link_type === 'external' ? child.external_url : undefined"
                   :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
@@ -171,7 +171,7 @@
                   :class="{ 'ring-2 ring-olive-green': child.link_type === 'page' && isActive(child) }"
                   @click="closeDrawer"
                 >
-                  <img :src="imageUrlMap[child.image_id]" class="h-full w-full object-cover" alt="" />
+                  <img :src="imageUrlMap[child.image_id ?? '']" class="h-full w-full object-cover" alt="" />
                   <div
                     class="slk-nav-image-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4"
                   >
@@ -229,8 +229,8 @@
 
           <!-- Simple link -->
           <component
-            v-else-if="item.link_type !== 'none'"
             :is="item.link_type === 'page' ? NuxtLink : 'a'"
+            v-else-if="item.link_type !== 'none'"
             :to="item.link_type === 'page' ? resolveHref(item) : undefined"
             :href="item.link_type === 'external' ? item.external_url : undefined"
             :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
@@ -243,8 +243,8 @@
             @click="closeDrawer"
           >
             <img
-              v-if="item.image_id && imageUrlMap[item.image_id]"
-              :src="imageUrlMap[item.image_id]"
+              v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+              :src="imageUrlMap[item.image_id ?? '']"
               class="h-4 w-auto flex-shrink-0 object-contain"
               alt=""
             />
@@ -272,8 +272,8 @@
             class="text-gray-400 border-gray-100 flex w-full items-center gap-2 border-b px-5 py-3 text-sm font-semibold"
           >
             <img
-              v-if="item.image_id && imageUrlMap[item.image_id]"
-              :src="imageUrlMap[item.image_id]"
+              v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+              :src="imageUrlMap[item.image_id ?? '']"
               class="h-4 w-auto flex-shrink-0 object-contain"
               alt=""
             />
@@ -298,7 +298,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { PropType } from 'vue';
+import type { NavigationPage, NavigationItem } from '~/types/components/navigation';
+
 import { ref, computed, onMounted, onBeforeUnmount, resolveComponent } from "vue";
 import { useRuntimeConfig } from "#imports";
 import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
@@ -309,30 +313,30 @@ const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
 const config = useRuntimeConfig();
 const { closeDrawer } = useDrawer();
-const navLabel = (item, field = "label") => translatedNavigationLabel(item, $translateDynamic, field);
-const navDescription = (item) => translatedNavigationLabel(item, $translateDynamic, "description");
+const navLabel = (item: NavigationItem, field: "label" | "name" | "title" | "description" = "label") => translatedNavigationLabel(item, $translateDynamic, field);
+const navDescription = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "description");
 
 // Easter egg: pull-to-reveal SLK flower
 const eggHeight = ref(0);
 const eggStartY = ref(0);
 const isAnimatingBack = ref(false);
 let eggHapticFired = false;
-let eggResetTimer = null;
+let eggResetTimer: ReturnType<typeof setTimeout> | null = null;
 
 const flowerRotation = computed(() => eggHeight.value * 3);
 
-function onEggDragStart(e) {
+function onEggDragStart(e: TouchEvent) {
   if (eggResetTimer) {
     clearTimeout(eggResetTimer);
     eggResetTimer = null;
   }
   isAnimatingBack.value = false;
-  eggStartY.value = e.touches[0].clientY;
+  eggStartY.value = e.touches[0]!.clientY;
   eggHapticFired = false;
 }
 
-function onEggDragMove(e) {
-  const delta = e.touches[0].clientY - eggStartY.value;
+function onEggDragMove(e: TouchEvent) {
+  const delta = e.touches[0]!.clientY - eggStartY.value;
   if (delta <= 0) {
     eggHeight.value = 0;
     return;
@@ -358,20 +362,20 @@ onBeforeUnmount(() => {
 });
 
 const props = defineProps({
-  pages: { type: Array, default: () => [] },
-  navItems: { type: Array, default: () => [] },
+  pages: { type: Array as PropType<NavigationPage[]>, default: () => [] },
+  navItems: { type: Array as PropType<NavigationItem[]>, default: () => [] },
 });
 
 const safeNavItems = computed(() => (Array.isArray(props.navItems) ? props.navItems : []));
 
 // Accordion
-const expandedId = ref(null);
-function toggleExpanded(id) {
+const expandedId = ref<string | number | null>(null);
+function toggleExpanded(id: string | number) {
   expandedId.value = expandedId.value === id ? null : id;
 }
 
 // Image URL resolution
-const imageUrlMap = ref({});
+const imageUrlMap = ref<Record<string, string>>({});
 onMounted(() => {
   const baseUrl = config.public.clientDirectusUrl;
   safeNavItems.value.forEach((item) => {
@@ -382,7 +386,7 @@ onMounted(() => {
   });
 });
 
-function resolveHref(item) {
+function resolveHref(item: NavigationItem) {
   if (item.link_type === "page") {
     const slug = (item.page_slug ?? "").replace(/^\/+/, "");
     return slug === "" ? "/" : `/${slug}`;
@@ -390,30 +394,30 @@ function resolveHref(item) {
   return item.external_url || "#";
 }
 
-function isActive(item) {
+function isActive(item: NavigationItem) {
   if (item.link_type !== "page") return false;
   const slug = (item.page_slug ?? "").replace(/^\/+/, "").replace(/\/+$/, "");
   if (!slug) return false;
   return route.path === `/${slug}` || route.path.startsWith(`/${slug}/`);
 }
 
-function hasChildren(item) {
+function hasChildren(item: NavigationItem) {
   return Array.isArray(item.children) && item.children.length > 0;
 }
 
-function anyChildActive(item) {
-  return hasChildren(item) && item.children.some((child) => isActive(child));
+function anyChildActive(item: NavigationItem) {
+  return hasChildren(item) && (item.children ?? []).some((child) => isActive(child));
 }
 
-function hasImageChildren(item) {
+function hasImageChildren(item: NavigationItem) {
   return (item.children || []).some((c) => c.image_id);
 }
 
-function childrenWithImages(item) {
+function childrenWithImages(item: NavigationItem) {
   return (item.children || []).filter((c) => c.image_id);
 }
 
-function childrenWithoutImages(item) {
+function childrenWithoutImages(item: NavigationItem) {
   return (item.children || []).filter((c) => !c.image_id);
 }
 </script>

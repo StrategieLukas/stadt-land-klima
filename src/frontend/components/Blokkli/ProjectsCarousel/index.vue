@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-projects-carousel bg-localzero-yellow" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-projects-carousel bg-localzero-yellow">
     <!-- Section header -->
     <div class="px-6 pt-10 pb-6">
       <p
@@ -44,12 +44,12 @@
               <div class="bg-gray-300 overflow-hidden w-full" style="aspect-ratio: 4/3">
                 <SmartImg
                   v-if="project.image?.id"
-                  :assetId="project.image.id"
-                  :isRaster="isRasterImage(project.image.type)"
+                  :asset-id="project.image.id"
+                  :is-raster="isRasterImage(project.image.type)"
                   :width="600"
                   :height="450"
                   fit="cover"
-                  imgClass="object-cover w-full h-full"
+                  img-class="object-cover w-full h-full"
                 />
               </div>
               <p class="mt-2 text-sm font-semibold leading-snug">{{ project.title }}</p>
@@ -94,7 +94,7 @@
       <!-- Active project description + link -->
       <div class="px-6 pb-10 mt-4">
         <!-- Fixed-height description area so the block doesn't resize when switching slides -->
-        <div :style="{ minHeight: descriptionHeight + 'px' }" ref="descriptionRef">
+        <div ref="descriptionRef" :style="{ minHeight: descriptionHeight + 'px' }">
           <div v-if="activeProject">
             <p class="font-bold">{{ activeProject.title }}</p>
             <p class="text-sm mt-1 leading-relaxed">{{ truncatedAbstract }}</p>
@@ -105,11 +105,9 @@
           </div>
         </div>
         <NuxtLink
-          v-blokkli-editable:linkText
           to="/projects"
           class="flex-shrink-0 inline-flex items-center gap-1 font-semibold underline underline-offset-2 text-sm mt-3"
-          v-text="props.linkText || 'Alle Erfolgsprojekte ansehen'"
-        />
+        ><span v-blokkli-editable:linkText v-text="props.linkText || 'Alle Erfolgsprojekte ansehen'" /></NuxtLink>
       </div>
     </template>
   </div>
@@ -218,8 +216,8 @@ const centeringPaddingPx = computed(() => {
 })
 
 const trackStyle = computed(() => ({
-  paddingLeft: centeringPaddingPx.value + 'px',
-  paddingRight: centeringPaddingPx.value + 'px',
+  paddingLeft: `${centeringPaddingPx.value}px`,
+  paddingRight: `${centeringPaddingPx.value}px`,
   boxSizing: 'border-box' as const,
 }))
 
@@ -311,7 +309,7 @@ function measureMaxDescriptionHeight() {
   const probe = document.createElement('div')
   // Match the real container's width and styling but keep it invisible
   probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;width:' +
-    descriptionRef.value.offsetWidth + 'px'
+    String(descriptionRef.value.offsetWidth) + 'px'
   document.body.appendChild(probe)
 
   let maxH = 0
@@ -334,7 +332,7 @@ let resizeObserver: ResizeObserver | null = null
 
 onMounted(() => {
   updateContainerWidth()
-  nextTick(() => {
+  void nextTick(() => {
     initScroll()
     measureMaxDescriptionHeight()
     const el = scrollEl.value
@@ -344,7 +342,7 @@ onMounted(() => {
     if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(() => {
         updateContainerWidth()
-        nextTick(() => {
+        void nextTick(() => {
           // Re-seat scroll position to current logical index after resize
           const scrollElVal = scrollEl.value
           if (scrollElVal && realCount.value > 0) {

@@ -5,14 +5,14 @@
         <h2
           v-if="props.title || isEditing"
           v-blokkli-editable:title
-          v-text="props.title"
           class="font-heading text-2xl font-bold text-gray"
+          v-text="props.title"
         />
         <p
           v-if="props.description || isEditing"
           v-blokkli-editable:description
-          v-text="props.description"
           class="text-gray-500 mt-2"
+          v-text="props.description"
         />
       </div>
 
@@ -71,8 +71,8 @@
         <p
           v-if="isEditing"
           v-blokkli-editable:successMessage
-          v-text="props.successMessage"
           class="text-gray-400 min-h-4 text-xs"
+          v-text="props.successMessage"
         />
       </form>
     </div>
@@ -80,6 +80,9 @@
 </template>
 
 <script setup lang="ts">
+import { displayScalar } from '~/shared/visualization';
+import { captchaEventData } from '~/shared/requestError';
+
 import type { FieldListItem } from "#blokkli/types";
 
 type SubmittedFieldType = "text" | "email" | "textarea" | "select" | "checkbox";
@@ -168,7 +171,7 @@ const captchaError = ref("");
 const submitError = ref("");
 const submissionState = ref<"idle" | "submitting" | "success">("idle");
 
-const background = computed(() => String((options.value as any)?.background || "white"));
+const background = computed(() => String(options.value.background || "white"));
 
 const wrapperClass = computed(() => {
   const map: Record<string, string> = {
@@ -179,11 +182,11 @@ const wrapperClass = computed(() => {
   return map[background.value] || map.white;
 });
 
-const submitLabel = computed(() => String((options.value as any)?.submitLabel || "").trim() || $t("form_block.submit"));
+const submitLabel = computed(() => String(options.value.submitLabel || "").trim() || $t("form_block.submit"));
 const successText = computed(() => props.successMessage?.trim() || $t("form_block.submit.success"));
 
 const formKey = computed(() => {
-  const configured = String((options.value as any)?.formKey || "").trim();
+  const configured = String(options.value.formKey || "").trim();
   return configured || uuid;
 });
 
@@ -192,11 +195,11 @@ const fieldDefinitions = computed<SubmittedFieldDefinition[]>(() => {
     .filter((field) => field.bundle === "form_field")
     .map((field) => {
       const fieldOptions = (field.options || {}) as Record<string, unknown>;
-      const typeCandidate = String(fieldOptions.fieldType || "text") as SubmittedFieldType;
+      const typeCandidate = displayScalar(fieldOptions.fieldType, "text") as SubmittedFieldType;
       const type = FIELD_TYPES.has(typeCandidate) ? typeCandidate : "text";
       const label = getLabelText(field.props?.label);
       return {
-        name: normalizeFieldName(String(fieldOptions.fieldName || "")) || fallbackFieldName(field.uuid),
+        name: normalizeFieldName(displayScalar(fieldOptions.fieldName)) || fallbackFieldName(field.uuid),
         label: label || $t("form_block.field.default_label"),
         type,
         required: fieldOptions.required === true,
@@ -222,7 +225,7 @@ function getLabelText(labelBlocks: unknown) {
   return labelBlocks
     .filter((block): block is FieldListItem => Boolean(block && typeof block === "object"))
     .map((block) => {
-      const text = String((block.props as any)?.text || "").trim();
+      const text = displayScalar((block.props as Record<string, unknown>)?.text).trim();
       return text;
     })
     .filter(Boolean)
@@ -230,7 +233,7 @@ function getLabelText(labelBlocks: unknown) {
 }
 
 function onAltchaStateChange(e: Event) {
-  const { state, payload } = (e as CustomEvent).detail ?? {};
+  const { state, payload } = captchaEventData(e);
   if (state === "verified" && payload) {
     altchaPayload.value = payload;
     captchaError.value = "";
@@ -260,7 +263,7 @@ function collectValues(formData: FormData) {
 
     const allValues = formData
       .getAll(field.name)
-      .map((value) => String(value).trim())
+      .map((value) => typeof value === "string" ? value.trim() : "")
       .filter(Boolean);
 
     values[field.name] = allValues.length > 1 ? allValues : allValues[0] || "";
@@ -295,8 +298,8 @@ async function submitForm() {
         formKey: formKey.value,
         formTitle: props.title?.trim() || $t("form_block.default_title"),
         pagePath: route.fullPath,
-        notificationEmail: String((options.value as any)?.notificationEmail || "").trim(),
-        sendCopy: (options.value as any)?.sendCopy !== false,
+        notificationEmail: String(options.value.notificationEmail || "").trim(),
+        sendCopy: options.value.sendCopy !== false,
         fields: fieldDefinitions.value,
         values: collectValues(new FormData(formRef.value)),
         altcha: payload,

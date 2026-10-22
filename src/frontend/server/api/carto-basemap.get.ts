@@ -21,7 +21,7 @@ function cartoAsset(path: string): { host: string; contentType: string } | null 
   if (glyph) {
     let fontstack: string;
     try {
-      fontstack = decodeURIComponent(glyph[1]);
+      fontstack = decodeURIComponent(glyph[1] ?? "");
     } catch {
       return null;
     }

@@ -144,7 +144,7 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
           : null;
         const oldScore = catalogRef.value ? scores.find((score) => scoreCatalogName(score) !== catalogRef.value) : null;
         return {
-          ars: m.ars,
+          ars: m.ars!,
           name: m.name,
           prefix: "",
           level: 5,
@@ -155,7 +155,13 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
           isMunicipality: true,
           stateLabel: getStateFromArs(m.ars) ?? null,
           typeLabel: "",
-          ctaType: currentScore ? "complete" : oldScore ? "outdated" : m.localteam_id ? "in-progress" : "none",
+          ctaType: currentScore
+            ? ("complete" as const)
+            : oldScore
+              ? ("outdated" as const)
+              : m.localteam_id
+                ? ("in-progress" as const)
+                : ("none" as const),
           scoreDisplay: null,
           scoreTotalColorClass: null,
           _slug: m.slug,
@@ -170,30 +176,36 @@ export function useUnifiedSearch({ catalogVersionName = null }: { catalogVersion
   // can do simple equality checks for keyboard-navigation highlighting.
   const groupsWithIndex = computed(() => {
     let idx = 0;
-    const raw = [
+    return [
       {
         id: "municipalities" as const,
         label: $t("search.group.areas"),
-        results: municipalitiesResults.value,
+        results: municipalitiesResults.value.map((r) => ({
+          ...r,
+          _type: "area" as const,
+          _key: r.ars,
+          _flatIndex: idx++,
+        })),
       },
       {
         id: "content" as const,
         label: $t("search.group.content"),
-        results: rawContentResults.value,
+        results: rawContentResults.value.map((r) => ({
+          ...r,
+          _type: "content" as const,
+          _key: r.id,
+          _flatIndex: idx++,
+        })),
       },
     ];
-    return raw.map((g) => ({
-      ...g,
-      results: g.results.map((r) => ({
-        _type: g.id === "municipalities" ? ("area" as const) : ("content" as const),
-        _key: "ars" in r ? r.ars : r.id,
-        ...r,
-        _flatIndex: idx++,
-      })),
-    }));
   });
 
-  const flatResults = computed(() => groupsWithIndex.value.flatMap((g) => g.results));
+  const flatResults = computed(() =>
+    groupsWithIndex.value.reduce<(typeof groupsWithIndex.value)[number]["results"][number][]>(
+      (all, group) => [...all, ...group.results],
+      [],
+    ),
+  );
 
   // --- Search logic ---
 

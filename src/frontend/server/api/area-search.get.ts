@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { parseCms } from "~/server/utils/parseCms";
 /**
  * Server-side area search endpoint.
  *
@@ -11,7 +13,7 @@
  */
 
 type RestAreaData = {
-  slug: string
+  slug: string | null
   score_total: number | null
   percentage_rated: number | null
   measure_catalog_name: string
@@ -22,7 +24,7 @@ type RestArea = {
   name: string
   ars: string
   level: number
-  population: number
+  population: number | null
   is_reasonable_for_municipal_rating: boolean
   stadtlandklima_data_all: RestAreaData[]
 }
@@ -48,7 +50,7 @@ function normalise(area: RestArea) {
 }
 
 async function fetchFromRest(params: Record<string, string>) {
-  const json = await fetchStadtlandzahl<RestSearchResponse>('/api/search/areas/', { params })
+  const json = parseCms(z.object({results: z.array(z.object({prefix: z.string(), name: z.string(), ars: z.string(), level: z.number(), population: z.number().nullable(), is_reasonable_for_municipal_rating: z.boolean(), stadtlandklima_data_all: z.array(z.object({slug: z.string().nullable(), score_total: z.number().nullable(), percentage_rated: z.number().nullable(), measure_catalog_name: z.string()})).default([])})).default([])}), await fetchStadtlandzahl('/api/search/areas/', { params }))
   return (json.results ?? []).map(normalise)
 }
 

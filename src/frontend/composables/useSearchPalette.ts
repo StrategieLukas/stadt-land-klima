@@ -6,22 +6,22 @@ export function useSearchPalette() {
     isOpen,
     query,
     embeddedInput,
-    open() {
+    open(this: void) {
       query.value = "";
       embeddedInput.value = false;
       isOpen.value = true;
     },
-    openEmbedded() {
+    openEmbedded(this: void) {
       query.value = "";
       embeddedInput.value = true;
       isOpen.value = true;
     },
-    close() {
+    close(this: void) {
       isOpen.value = false;
       embeddedInput.value = false;
       query.value = "";
     },
-    toggle() {
+    toggle(this: void) {
       isOpen.value = !isOpen.value;
     },
   };

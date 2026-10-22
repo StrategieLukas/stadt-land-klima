@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { ProjectListSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
@@ -22,5 +25,5 @@ export default defineEventHandler(async (event) => {
     limit: -1,
   }))
 
-  return { articles }
+  return { articles: parseCms(z.array(ProjectListSchema), articles) }
 })

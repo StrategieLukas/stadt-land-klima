@@ -174,27 +174,27 @@
         <ProjectCard
         :slug="project.slug"
         :title="project.title"
-        :municipality_name="project.municipality_name"
-        :state="project.state"
-        :abstract="project.abstract"
-        :author="project.author"
+        :municipality_name="project.municipality_name ?? undefined"
+        :state="project.state ?? undefined"
+        :abstract="project.abstract ?? undefined"
+        :author="project.author ?? undefined"
         :date="project.date_created ? new Date(project.date_created) : null"
         :image_id="project.image?.id"
         :image_is_raster="project.image ? isRaster(project.image.type) : false"
         :image_credits="project.image_credits || null"
         :organisation="project.organisation"
-        :measures="(project.measures || []).map((m) => m.measures_id).filter(Boolean)"
+        :measures="(project.measures || []).flatMap(m => m.measures_id ? [m.measures_id] : [])"
         />
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from "vue";
 import { isRaster } from "~/shared/utils";
 import { pointLatLng } from "~/shared/tour";
-const { $t } = useNuxtApp();
+const { $t, $translateDynamic } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 const isMapView = computed(() => route.query.view === 'map');
@@ -207,7 +207,7 @@ const { data: projectList } = await useAsyncData("articles-index", async () => {
 
 // Municipality locations are already included in article data via the municipality relation
 const municipalityLocations = computed(() => {
-  const seen = new Map();
+  const seen = new Map<string, NonNullable<NonNullable<typeof projectList.value>[number]["municipality"]>>();
   for (const project of projectList.value ?? []) {
     const m = project.municipality;
     if (m?.id && !seen.has(m.id)) {
@@ -223,10 +223,10 @@ const { data: tourData } = await useAsyncData("project-tour-options", async () =
 
 const featuredTours = computed(() => (tourData.value?.series ?? []).filter(tour => tour.featured_on_projects));
 const tourProjectIds = computed(() => {
-  const ids = new Map();
+  const ids = new Map<string, Set<number>>();
   for (const link of tourData.value?.links ?? []) {
     if (!ids.has(link.series)) ids.set(link.series, new Set());
-    ids.get(link.series).add(link.article);
+    ids.get(link.series)?.add(link.article);
   }
   return ids;
 });
@@ -238,9 +238,9 @@ const selectedTour = computed({
 });
 
 // ── Filter state ────────────────────────────────────────────────────────────
-const selectedState = ref(null);
-const selectedSector = ref(null);
-const selectedOrgId = ref(null);
+const selectedState = ref<string | null>(null);
+const selectedSector = ref<string | null>(null);
+const selectedOrgId = ref<string | null>(null);
 const selectedMunicipality = computed(() => {
   const value = route.query.municipality;
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -306,7 +306,7 @@ const sectorValues = [
   "Wärme",
 ];
 
-const sectorKeyMap = {
+const sectorKeyMap: Record<string, string> = {
   Abfallwirtschaft: "waste_management",
   Finanzierung: "financing",
   Gebäude: "buildings",
@@ -323,7 +323,7 @@ const sectorKeyMap = {
 
 const sectorOptions = computed(() =>
   sectorValues.map((value) => ({
-    label: $t(`projects.sector.${sectorKeyMap[value]}`),
+    label: $translateDynamic(`projects.sector.${sectorKeyMap[value]}`),
     value,
   })),
 );
@@ -332,20 +332,20 @@ const sectorOptions = computed(() =>
 const orgOptions = computed(() => {
   if (!projectList.value) return [];
   const seen = new Set();
-  const opts = [];
+  const opts: {label: string; value: string}[] = [];
   for (const a of projectList.value) {
     if (a.organisation && !seen.has(a.organisation.id)) {
       seen.add(a.organisation.id);
-      opts.push({ label: a.organisation.name, value: a.organisation.id });
+      opts.push({ label: a.organisation.name, value: String(a.organisation.id) });
     }
   }
   return opts.sort((a, b) => a.label.localeCompare(b.label));
 });
 
 // ── Savings sort weight ──────────────────────────────────────────────────────
-const savingsWeight = { very_high: 2, high: 1 };
-function getSavingsWeight(level) {
-  return savingsWeight[level] ?? 0;
+const savingsWeight: Record<string, number> = { very_high: 2, high: 1 };
+function getSavingsWeight(level: string | null) {
+  return savingsWeight[level ?? ""] ?? 0;
 }
 
 // ── Filtered + sorted list ───────────────────────────────────────────────────
@@ -355,7 +355,7 @@ const filteredProjects = computed(() => {
   const filtered = projectList.value.filter((a) => {
     if (selectedState.value !== null && a.state !== selectedState.value) return false;
     if (selectedSector.value !== null && !(a.sectors ?? []).includes(selectedSector.value)) return false;
-    if (selectedOrgId.value !== null && a.organisation?.id !== selectedOrgId.value) return false;
+    if (selectedOrgId.value !== null && String(a.organisation?.id) !== selectedOrgId.value) return false;
     if (selectedMunicipality.value !== null && a.municipality_name !== selectedMunicipality.value) return false;
     if (selectedTour.value) {
       const series = tourData.value?.series.find((item) => item.slug === selectedTour.value);
@@ -372,7 +372,7 @@ const filteredProjects = computed(() => {
     filtered.sort((a, b) => {
       const diff = getSavingsWeight(b.ghg_savings_level) - getSavingsWeight(a.ghg_savings_level);
       if (diff !== 0) return diff;
-      return new Date(b.date_created) - new Date(a.date_created);
+      return new Date(b.date_created ?? 0).getTime() - new Date(a.date_created ?? 0).getTime();
     });
   }
   // 'date' order already comes from the server sort: "-date_created"
@@ -386,10 +386,10 @@ const mapProjects = computed(() => filteredProjects.value.flatMap((project) => {
   if (!municipality && project.municipality_name) {
     const matches = (municipalityLocations.value ?? []).filter((item) =>
       item.name === project.municipality_name && (!project.state || item.state === project.state));
-    if (matches.length === 1) municipality = matches[0];
+    if (matches.length === 1) municipality = matches[0] ?? null;
   }
   const point = pointLatLng(municipality?.geolocation);
-  return point ? [{ id: project.id, slug: project.slug, title: project.title, municipalityName: municipality.name, point }] : [];
+  return point ? [{ id: project.id, slug: project.slug, title: project.title, municipalityName: municipality?.name ?? "", point }] : [];
 }));
 
 // ── Meta ─────────────────────────────────────────────────────────────────────

@@ -22,8 +22,8 @@
 
       <div
         v-if="visibleSuggestions.length && searchFocused"
-        class="absolute left-0 right-0 top-24 w-full z-50"
         ref="dropdown"
+        class="absolute left-0 right-0 top-24 w-full z-50"
       >
         <ul class="menu dropdown-content rounded-box w-full bg-base-100 p-2 shadow">
           <NuxtLink
@@ -43,25 +43,35 @@
     <button
       :class="{'invisible': route.path !== '/municipalities'}"
       :aria-hidden="route.path !== '/municipalities'"
-      @click="toggleView"
       class="flex items-center justify-center w-12 h-12 rounded-md text-base-100 hover:bg-gray-100"
+      @click="toggleView"
     >
-      <span v-html="isMapView ? listViewIcon : mapViewIcon" class="w-12 h-12 flex-none"></span>
+      <span class="w-12 h-12 flex-none" v-html="isMapView ? listViewIcon : mapViewIcon"></span>
     </button>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { PropType } from 'vue';
+import type { Municipality } from '~/types/components/municipality';
+
 
 // Search bar logic
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router';
 
+
+
+// Map toggle logic
+import mapViewIcon from '~/assets/icons/icon_map_view.svg?raw';
+import listViewIcon from '~/assets/icons/icon_list_view.svg?raw';
+
 const { $t } = useNuxtApp();
 
 const props = defineProps({
   municipalities: {
-    type: Array,
+    type: Array as PropType<Municipality[]>,
     required: true,
   },
   label: {
@@ -75,7 +85,7 @@ const props = defineProps({
 });
 
 
-const dropdown = ref(null)
+const dropdown = ref<HTMLElement | null>(null)
 const q = ref('');
 const searchFocused = ref(false);
 const focusedIndex = ref(-1);
@@ -99,14 +109,14 @@ function onInput() {
 }
 
 
-function goTo(url) {
+function goTo(url: string) {
   q.value = '';
   focusedIndex.value = -1;
   searchFocused.value = false;
-  router.push(url);
+  void router.push(url);
 }
 
-function moveFocus(direction) {
+function moveFocus(direction: number) {
   const max = visibleSuggestions.value.length - 1;
   focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + direction));
 }
@@ -127,7 +137,8 @@ function handleSuggestionClick() {
   focusedIndex.value = -1;
 }
 
-function handleClickOutside(event) {
+function handleClickOutside(event: MouseEvent) {
+  if (!(event.target instanceof Element)) return
   if (
     dropdown.value &&
     !dropdown.value.contains(event.target) &&
@@ -146,12 +157,6 @@ onBeforeUnmount(() => {
 })
 
 
-
-// Map toggle logic
-import mapViewIcon from '~/assets/icons/icon_map_view.svg?raw';
-import listViewIcon from '~/assets/icons/icon_list_view.svg?raw';
-
-
 const isMapView = computed(() => route.query.view === 'map');
 
 const toggleView = () => {
@@ -159,10 +164,10 @@ const toggleView = () => {
 
   if (route.path !== '/municipalities') {
     // If not on the municipalities page, navigate there with the view query
-    router.push({ path: '/municipalities', query: { ...route.query, view: newView } });
+    void router.push({ path: '/municipalities', query: { ...route.query, view: newView } });
   } else {
     // If already on the municipalities page, just update the query param
-    router.push({ query: { ...route.query, view: newView } });
+    void router.push({ query: { ...route.query, view: newView } });
   }
 };
 </script>

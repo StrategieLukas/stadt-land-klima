@@ -13,25 +13,25 @@
       >
         <!-- Simple link (no children) -->
         <component
-          v-if="!hasChildren(item) && item.link_type !== 'none'"
           :is="item.link_type === 'page' ? NuxtLink : 'a'"
+          v-if="!hasChildren(item) && item.link_type !== 'none'"
           :to="item.link_type === 'page' ? resolveHref(item) : undefined"
           :href="item.link_type === 'external' ? item.external_url : undefined"
           :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
           :rel="item.link_type === 'external' ? 'noopener noreferrer' : undefined"
           class="flex items-center gap-1.5 whitespace-nowrap px-3 text-sm font-semibold transition-colors"
-          @click="closeMenu"
-          :title="item.label"
+          :title="item.label ?? undefined"
           :class="{
             'bg-olive-green text-white': item.link_type === 'page' && isActive(item),
             'text-gray-600 hover:text-gray-900 hover:bg-solid-light-green-10': !(item.link_type === 'page' && isActive(item)),
           }"
+          @click="closeMenu"
         >
           <img
-            v-if="item.image_id && imageUrlMap[item.image_id]"
-            :src="imageUrlMap[item.image_id]"
+            v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+            :src="imageUrlMap[item.image_id ?? '']"
             class="h-5 w-auto object-contain"
-            :alt="item.label"
+            :alt="item.label ?? undefined"
           />
           <template v-else>
             <svg
@@ -51,23 +51,23 @@
             </svg>
             <span class="text-xs font-semibold">{{ item.label }}</span>
           </template>
-          <span v-if="item.image_id && imageUrlMap[item.image_id]" class="sr-only">{{ item.label }}</span>
+          <span v-if="item.image_id && imageUrlMap[item.image_id ?? '']" class="sr-only">{{ item.label }}</span>
         </component>
 
         <!-- Text-only label (no link, no children) -->
         <span
           v-else-if="!hasChildren(item) && item.link_type === 'none'"
           class="text-gray-500 flex items-center gap-1.5 whitespace-nowrap px-3 text-sm font-semibold"
-          :title="item.label"
+          :title="item.label ?? undefined"
         >
           <img
-            v-if="item.image_id && imageUrlMap[item.image_id]"
-            :src="imageUrlMap[item.image_id]"
+            v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+            :src="imageUrlMap[item.image_id ?? '']"
             class="h-5 w-auto object-contain"
-            :alt="item.label"
+            :alt="item.label ?? undefined"
           />
           <span v-else class="text-xs">{{ item.label }}</span>
-          <span v-if="item.image_id && imageUrlMap[item.image_id]" class="sr-only">{{ item.label }}</span>
+          <span v-if="item.image_id && imageUrlMap[item.image_id ?? '']" class="sr-only">{{ item.label }}</span>
         </span>
 
         <!-- Trigger with children — also navigates if item has a page slug -->
@@ -86,21 +86,21 @@
             :to="item.link_type === 'page' && item.page_slug ? resolveHref(item) : undefined"
             :type="!(item.link_type === 'page' && item.page_slug) ? 'button' : undefined"
             class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap pl-3 pr-1 text-sm font-semibold transition-colors"
-            @click="item.link_type === 'page' && item.page_slug ? closeMenu() : toggleMenu(item.id)"
-            :title="item.label"
+            :title="item.label ?? undefined"
             :class="{
               'text-white': anyChildActive(item),
               'text-gray-600 group-hover/trigger:text-gray-900': !anyChildActive(item),
             }"
+            @click="item.link_type === 'page' && item.page_slug ? closeMenu() : toggleMenu(item.id)"
           >
             <img
-              v-if="item.image_id && imageUrlMap[item.image_id]"
-              :src="imageUrlMap[item.image_id]"
+              v-if="item.image_id && imageUrlMap[item.image_id ?? '']"
+              :src="imageUrlMap[item.image_id ?? '']"
               class="h-5 w-auto object-contain"
-              :alt="item.label"
+              :alt="item.label ?? undefined"
             />
             <span v-else class="text-xs font-semibold">{{ item.label }}</span>
-            <span v-if="item.image_id && imageUrlMap[item.image_id]" class="sr-only">{{ item.label }}</span>
+            <span v-if="item.image_id && imageUrlMap[item.image_id ?? '']" class="sr-only">{{ item.label }}</span>
           </component>
           <!-- Chevron button: toggles dropdown on click/touch -->
           <button
@@ -110,9 +110,9 @@
               'text-white hover:text-white': anyChildActive(item),
               'text-gray-600 group-hover/trigger:text-gray-900': !anyChildActive(item),
             }"
-            @click.stop="toggleMenu(item.id)"
             :aria-expanded="openMenuId === item.id"
             :aria-label="item.label + ' Untermenü'"
+            @click.stop="toggleMenu(item.id)"
           >
             <svg class="h-3 w-3 opacity-50" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5 5-5" />
@@ -132,21 +132,21 @@
             <!-- Image children: large cards side-by-side -->
             <div v-if="hasImageChildren(item)" class="grid grid-cols-[160px_160px] gap-2 p-3">
               <component
+                :is="child.link_type === 'page' ? NuxtLink : 'a'"
                 v-for="child in childrenWithImages(item)"
                 :key="child.id"
-                :is="child.link_type === 'page' ? NuxtLink : 'a'"
                 :to="child.link_type === 'page' ? resolveHref(child) : undefined"
                 :href="child.link_type === 'external' ? child.external_url : undefined"
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                 class="group/card relative block h-32 overflow-hidden rounded-lg"
-                @click="closeMenu"
                 :class="{
                   'ring-2 ring-olive-green': child.link_type === 'page' && isActive(child),
                 }"
+                @click="closeMenu"
               >
                 <img
-                  :src="imageUrlMap[child.image_id]"
+                  :src="imageUrlMap[child.image_id ?? '']"
                   class="h-full w-full object-cover transition-transform duration-200 group-hover/card:scale-105"
                   alt=""
                 />
@@ -178,21 +178,21 @@
               :class="{ 'border-gray-100 border-l': hasImageChildren(item) }"
             >
               <component
+                :is="child.link_type === 'page' ? NuxtLink : 'a'"
                 v-for="child in childrenWithoutImages(item)"
                 :key="child.id"
-                :is="child.link_type === 'page' ? NuxtLink : 'a'"
                 :to="child.link_type === 'page' ? resolveHref(child) : undefined"
                 :href="child.link_type === 'external' ? child.external_url : undefined"
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                 class="border-gray-50 flex items-start border-b px-4 py-3 text-sm font-semibold transition-colors last:border-b-0"
-                @click="closeMenu"
                 :class="{
                   'bg-solid-light-green-20 text-olive-green': child.link_type === 'page' && isActive(child),
                   'text-gray-600 hover:text-gray-900 hover:bg-solid-light-green-10': !(
                     child.link_type === 'page' && isActive(child)
                   ),
                 }"
+                @click="closeMenu"
               >
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 leading-snug">
@@ -228,7 +228,10 @@
   </nav>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { NavigationItem } from '~/types/components/navigation';
+
 import { ref, computed, onMounted, onUnmounted, resolveComponent } from "vue";
 import { useRoute, useRuntimeConfig } from "#imports";
 
@@ -238,7 +241,7 @@ const NuxtLink = resolveComponent("NuxtLink");
 
 const props = defineProps({
   items: {
-    type: Array,
+    type: Array as PropType<NavigationItem[]>,
     default: () => [],
   },
 });
@@ -252,11 +255,11 @@ const safeItems = computed(() => (Array.isArray(props.items) ? props.items : [])
 
 // Hover delay logic: 200ms grace period lets the mouse cross the small gap
 // between the pill bar and the dropdown panel without dismissing it.
-const navRef = ref(null);
-const openMenuId = ref(null);
-let menuCloseTimer = null;
+const navRef = ref<HTMLElement | null>(null);
+const openMenuId = ref<string | number | null>(null);
+let menuCloseTimer: ReturnType<typeof setTimeout> | undefined;
 
-function handleMenuEnter(id) {
+function handleMenuEnter(id: string | number) {
   clearTimeout(menuCloseTimer);
   openMenuId.value = id;
 }
@@ -272,18 +275,19 @@ function closeMenu() {
   openMenuId.value = null;
 }
 
-function toggleMenu(id) {
+function toggleMenu(id: string | number) {
   clearTimeout(menuCloseTimer);
   openMenuId.value = openMenuId.value === id ? null : id;
 }
 
-function handleOutsideClick(event) {
+function handleOutsideClick(event: MouseEvent) {
+  if (!(event.target instanceof Node)) return;
   if (navRef.value && !navRef.value.contains(event.target)) {
     closeMenu();
   }
 }
 
-function resolveHref(item) {
+function resolveHref(item: NavigationItem) {
   if (item.link_type === "page") {
     const slug = (item.page_slug ?? "").replace(/^\/+/, "");
     return slug === "" ? "/" : `/${slug}`;
@@ -291,7 +295,7 @@ function resolveHref(item) {
   return item.external_url || "#";
 }
 
-function isActive(item) {
+function isActive(item: NavigationItem) {
   if (item.link_type !== "page") return false;
   // Strip leading/trailing slashes; an empty slug means no page is defined → never active
   const slug = (item.page_slug ?? "").replace(/^\/+/, "").replace(/\/+$/, "");
@@ -299,28 +303,28 @@ function isActive(item) {
   return route.path === `/${slug}` || route.path.startsWith(`/${slug}/`);
 }
 
-function hasChildren(item) {
+function hasChildren(item: NavigationItem) {
   return Array.isArray(item.children) && item.children.length > 0;
 }
 
-function anyChildActive(item) {
-  return hasChildren(item) && item.children.some((child) => isActive(child));
+function anyChildActive(item: NavigationItem) {
+  return hasChildren(item) && (item.children ?? []).some((child) => isActive(child));
 }
 
-function hasImageChildren(item) {
+function hasImageChildren(item: NavigationItem) {
   return (item.children || []).some((c) => c.image_id);
 }
 
-function childrenWithImages(item) {
+function childrenWithImages(item: NavigationItem) {
   return (item.children || []).filter((c) => c.image_id);
 }
 
-function childrenWithoutImages(item) {
+function childrenWithoutImages(item: NavigationItem) {
   return (item.children || []).filter((c) => !c.image_id);
 }
 
 // Resolve image asset URLs for items that have image_id
-const imageUrlMap = ref({});
+const imageUrlMap = ref<Record<string, string>>({});
 
 onMounted(() => {
   const baseUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081";

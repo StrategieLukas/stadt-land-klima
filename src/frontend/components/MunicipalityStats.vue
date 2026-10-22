@@ -17,14 +17,16 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  stats: Object
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
+const props = defineProps({
+  stats: Object as PropType<Record<string, unknown>>
 });
 
 const displayStats = computed(() => {
   // Customize filtering/sorting if needed
-  const { name, slug, ...rest } = stats;
+  const { name, slug, ...rest } = props.stats ?? {};
   return rest;
 });
 </script>

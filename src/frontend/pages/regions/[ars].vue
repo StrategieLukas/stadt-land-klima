@@ -44,8 +44,8 @@
     <!-- Map Section -->
     <div v-if="area && (area.geo_center || area.geo_area)" class="mt-6 bg-base-100 shadow-md overflow-hidden max-w-full">
       <AdministrativeAreaMap
-        :geo-center="area.geo_center"
-        :geo-area="area.geo_area"
+        :geo-center="regionPoint"
+        :geo-area="parseGeoData(area.geo_area)"
         :administrative-area-name="area.name"
       />
     </div>
@@ -163,18 +163,24 @@
   </main>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRoute } from 'vue-router';
+import { parseGeoCenter, parseGeoData } from "~/shared/contracts/geometry";
 import { ref, computed, onMounted } from 'vue';
 import { getCatalogVersion } from '~/composables/getCatalogVersion';
 
+import { singleRouteValue } from "~/shared/routeValues";
+import type { Area } from "~/shared/contracts/search";
 const route = useRoute();
-const { $t, $stadtlandzahlAPI } = useNuxtApp();
+const ars = singleRouteValue(route.params.ars);
+if (!ars || !/^\d{2,12}$/.test(ars)) throw createError({statusCode: 404, statusMessage: "Region not found"});
+const { $t, $translateDynamic, $stadtlandzahlAPI } = useNuxtApp();
 
 const selectedCatalogVersion = ref(await getCatalogVersion(route));
 
-const area = ref(null);
-const municipalities = ref([]);
+const area = ref<Area | null>(null);
+const municipalities = ref<Area[]>([]);
+const regionPoint = computed(() => {const point = parseGeoCenter(area.value?.geo_center); return point ? {type: "Point" as const, coordinates: [point.lon, point.lat]} : null;});
 const loadingMunicipalities = ref(false);
 const showUnrated = ref(false);
 const municipalityNameCollator = new Intl.Collator('de-DE', {
@@ -182,14 +188,14 @@ const municipalityNameCollator = new Intl.Collator('de-DE', {
   sensitivity: 'base',
 });
 
-function compareByScoreThenName(a, b) {
+function compareByScoreThenName(a: {score: number | null; name: string}, b: {score: number | null; name: string}) {
   const scoreDifference = (b.score ?? 0) - (a.score ?? 0);
   if (scoreDifference !== 0) return scoreDifference;
   return municipalityNameCollator.compare(a.name ?? '', b.name ?? '');
 }
 
-const t = (key, fallback = key) => {
-  const translation = $t(key);
+const t = (key: string, fallback = key) => {
+  const translation = $translateDynamic(key);
   return translation === key ? fallback : translation;
 };
 
@@ -199,7 +205,7 @@ const rankedMunicipalities = computed(() => {
   return municipalities.value
     .map(m => {
       const entry = catalogName
-        ? m.stadtlandklimaDataAll?.find(d => d.measureCatalogName === catalogName && d.percentageRated >= 98)
+        ? m.stadtlandklimaDataAll?.find(d => d.measureCatalogName === catalogName && Number(d.percentageRated) >= 98)
         : null;
       return {
         ars: m.ars,
@@ -207,7 +213,7 @@ const rankedMunicipalities = computed(() => {
         prefix: m.prefix,
         population: m.population,
         slug: entry?.slug ?? null,
-        score: entry?.scoreTotal ?? null,
+        score: entry?.scoreTotal == null ? null : Number(entry.scoreTotal),
       };
     })
     .filter(m => m.score !== null)
@@ -234,11 +240,11 @@ onMounted(async () => {
   loadingMunicipalities.value = true;
   try {
     // Fetch area data first so we know the level before building the ARS prefix.
-    const areaData = await $stadtlandzahlAPI.fetchStatsByARS(route.params.ars);
+    const areaData = await $stadtlandzahlAPI.fetchStatsByARS(ars!);
 
     if (areaData) {
       // If someone navigates here directly with a level 4+ ARS, redirect to /data/
-      if (areaData.level >= 4) {
+      if ((areaData.level ?? 0) >= 4) {
         await navigateTo(`/data/${route.params.ars}`, { replace: true });
         return;
       }
@@ -246,8 +252,8 @@ onMounted(async () => {
     }
 
     municipalities.value = await $stadtlandzahlAPI.fetchMunicipalitiesInRegion(
-      route.params.ars,
-      areaData?.level,
+      ars!,
+      areaData?.level ?? 2,
     );
   } catch (e) {
     console.error('Error loading region:', e);

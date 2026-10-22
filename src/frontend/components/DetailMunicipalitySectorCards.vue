@@ -6,10 +6,10 @@
     class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4"
   >
     <input 
+      v-model="openSectors[sector]"
       type="checkbox" 
       name="sectors-accordion" 
-      autocomplete="off" 
-      v-model="openSectors[sector]"
+      autocomplete="off"
     />
     <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
       <img :src="sectorImages[sector]" alt="" class="slk-sector-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18" />
@@ -19,7 +19,7 @@
           {{ $t(`measure_sectors.${sector}.title`) }}
         </h2>
         <ProgressBar
-          :score-total="Math.round(Number(municipalityScore['score_' + sector]) * 10) / 10"
+          :score-total="Math.round(Number(municipalityScore[`score_${sector}`]) * 10) / 10"
           layout="compact"
         />
       </div>
@@ -30,11 +30,11 @@
       </h3>
       <ul class="my-4 flex flex-wrap items-end justify-center gap-3 sm:gap-4 text-center">
         <li
-          v-for="(rating, _) in [0, 1, 2, 3, 4, null]"
+          v-for="rating in [0, 1, 2, 3, 4, null]"
           :key="`rating-image-${rating}`"
           class="flex w-16 h-14 flex-col items-center sm:w-auto"
         >
-          <img :src="ratingIcons[rating]" class="h-[calc(1.25rem*1.595)] w-5 shrink-0 top-0" />
+          <img :src="ratingIcons[rating ?? 'null']" class="h-[calc(1.25rem*1.595)] w-5 shrink-0 top-0" />
           <div class="text-xs sm:text-sm leading-tight break-words">
             {{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}
           </div>
@@ -48,9 +48,9 @@
             :name="`measure-${item.measure.measure_id}`"
           >
             <input
-              type="checkbox"
               :id="`rating-${item.id}-accordion`"
               v-model="openItems[item.measure.measure_id]"
+              type="checkbox"
               autocomplete="off"
             />
 
@@ -73,7 +73,7 @@
                 />
                 <img
                   v-else
-                  :src="ratingIcons[ratingIndex(item.rating)]"
+                  :src="ratingIcons[ratingIndex(item.rating) ?? 'null']"
                   class="my-auto h-auto w-5"
                 />
               </div>
@@ -95,7 +95,7 @@
                 <MeasureDetails
                   v-if="openItems[item.measure.measure_id]"
                   :measure_rating="item"
-                  :municipalityScore="municipalityScore"
+                  :municipality-score="municipalityScore"
                 />
               </KeepAlive>
             </div>
@@ -106,7 +106,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { MeasureRating, MunicipalityScore, RatingsBySector  } from '~/types/components/municipality';
+
+import type { PropType } from 'vue';
+
 import sectorImages from "~/shared/sectorImages";
 import sectorImagesDark from "~/shared/sectorImagesDark";
 import ratingIcons, { ratingIndex } from "~/shared/ratingIcons";
@@ -120,39 +124,39 @@ import { reactive, computed, onMounted, nextTick, watch } from 'vue'
  * Contrast: applicable===false = "nicht anwendbar" (N/A, gray) — a deliberate decision.
  * Unrated items get an inactive/faded look while remaining openable.
  */
-function isUnrated(item) {
+function isUnrated(item: MeasureRating) {
   return item.rating === null && item.applicable !== false
 }
 
 // Track which collapses are open
-const openItems = reactive({})
-const openSectors = reactive({})
+const openItems = reactive<Record<string, boolean>>({})
+const openSectors = reactive<Record<string, boolean>>({})
 
 const props = defineProps({
   municipalityScore: {
-    type: Object,
+    type: Object as PropType<MunicipalityScore>,
     required: true,
   },
   ratingsBySector: {
-    type: Object,
+    type: Object as PropType<RatingsBySector>,
     required: true,
   },
 });
 
-const municipality = props.municipalityScore.municipality;
+const _municipality = props.municipalityScore.municipality;
 
 // Create mapping of sectors to measurement IDs
 const sectorToMeasureIDs = computed(() => {
-  const mapping = {}
+  const mapping: Record<string, string[]> = {}
   Object.entries(props.ratingsBySector).forEach(([sector, ratings]) => {
-    mapping[sector] = ratings.map(rating => rating.measure.measure_id)
+    mapping[sector] = (ratings ?? []).map(rating => rating.measure.measure_id)
   })
   return mapping
 })
 
 // Create mapping of measurement IDs to sectors
 const measureIDToSector = computed(() => {
-  const mapping = {}
+  const mapping: Record<string, string> = {}
   Object.entries(sectorToMeasureIDs.value).forEach(([sector, measureIDs]) => {
     measureIDs.forEach(measureID => {
       mapping[measureID] = sector
@@ -175,14 +179,16 @@ const getStickyHeaderHeight = () => {
 
 // Scroll an element into view while clearing the sticky header.
 // behavior: 'smooth' | 'instant'
-const scrollToElement = (element, behavior = 'smooth') => {
+const scrollToElement = (element: HTMLElement | null, behavior: ScrollBehavior = 'smooth') => {
+  if (!element) return
   const offset = getStickyHeaderHeight() + 8 // 8 px breathing room
   const top = window.scrollY + element.getBoundingClientRect().top - offset
   window.scrollTo({ top, behavior })
 }
 
 // Function to check if element is visible
-const isElementVisible = (element) => {
+const isElementVisible = (element: HTMLElement | null) => {
+  if (!element) return false
   const rect = element.getBoundingClientRect()
   return (
     rect.width > 0 &&
@@ -193,9 +199,9 @@ const isElementVisible = (element) => {
 }
 
 // Function to find visible element by name
-const findVisibleElementByName = (name) => {
+const findVisibleElementByName = (name: string) => {
   const elements = document.getElementsByName(name)
-  for (let element of elements) {
+  for (const element of elements) {
     if (isElementVisible(element)) {
       return element
     }
@@ -204,7 +210,7 @@ const findVisibleElementByName = (name) => {
 }
 
 // behavior: 'smooth' for in-page hash changes, 'instant' for initial page load
-const handleNavigation = async (behavior = 'smooth') => {
+const handleNavigation = async (behavior: ScrollBehavior = 'smooth') => {
   const hash = window.location.hash.substring(1)
   
   if (!hash) {
@@ -216,7 +222,7 @@ const handleNavigation = async (behavior = 'smooth') => {
 
   if (hash.startsWith('sector-')) {
     const sector = hash.replace('sector-', '')
-    if (props.ratingsBySector[sector]) {
+    if (props.ratingsBySector[sector as keyof RatingsBySector]) {
       openSectors[sector] = true
       await nextTick()
       
@@ -264,7 +270,7 @@ onMounted(() => {
     // separate async steps in sequence.
     if (hash.startsWith('sector-')) {
       const sector = hash.replace('sector-', '')
-      if (props.ratingsBySector[sector]) {
+      if (props.ratingsBySector[sector as keyof RatingsBySector]) {
         openSectors[sector] = true
       }
     } else if (hash.startsWith('measure-')) {
@@ -285,11 +291,11 @@ onMounted(() => {
     // Jump instantly after a short settle — avoids the jarring slow scroll
     // from the very top on initial page load.
     setTimeout(() => {
-      handleNavigation('instant')
+      void handleNavigation('instant')
     }, 300)
   }
   
   // Hash changes while already on the page use smooth scroll
-  window.addEventListener('hashchange', () => handleNavigation('smooth'))
+  window.addEventListener('hashchange', () => { void handleNavigation('smooth'); })
 })
 </script>

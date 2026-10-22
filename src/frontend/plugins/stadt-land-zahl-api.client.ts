@@ -123,7 +123,7 @@ export default defineNuxtPlugin(() => {
     latitude: number,
     longitude: number,
     radius_km: number,
-    level_In: number[],
+    level_In?: number[],
   ) => {
     try {
       const result: { data?: unknown } = await apolloClient.query({

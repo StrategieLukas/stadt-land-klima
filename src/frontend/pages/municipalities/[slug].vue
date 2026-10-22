@@ -28,7 +28,7 @@
   </div>
 
   <!-- IN_PROGRESS_LOCKED: incomplete rating, requires ?preview=true -->
-  <div v-else-if="pageView === PV.IN_PROGRESS_LOCKED" class="mt-10">
+  <div v-else-if="pageView === PV.IN_PROGRESS_LOCKED && directusData.municipalityScore" class="mt-10">
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
       &larr; {{ backLabel }}
     </NuxtLink>
@@ -52,6 +52,7 @@
       </div>
     </div>
     <NearbyMunicipalitiesCarousel
+      v-if="directusData.municipalityScore.municipality.ars"
       :ars="directusData.municipalityScore.municipality.ars"
       :catalog-version-id="selectedCatalogVersion.id"
       :catalog-version-name="selectedCatalogVersion.name"
@@ -63,7 +64,7 @@
   </div>
 
   <!-- RATED_*: all states that render <detail-municipality> -->
-  <div v-else-if="isRatedView">
+  <div v-else-if="isRatedView && directusData.municipalityScore">
     <!-- RATED_DRAFT: unlocked draft preview — share banner with copy button -->
     <div
       v-if="pageView === PV.RATED_DRAFT"
@@ -114,7 +115,7 @@
     <article class="mb-8 mt-10">
       <detail-municipality
         :municipalityScore="directusData.municipalityScore"
-        :ratings-by-sector="directusData.ratingsBySector"
+        :ratings-by-sector="directusData.ratingsBySector ?? {}"
       ></detail-municipality>
     </article>
 
@@ -146,7 +147,7 @@
 
       <!-- RATED_IN_PROGRESS / RATED_DRAFT: help the team complete the rating -->
       <div
-        v-else-if="pageView === PV.RATED_IN_PROGRESS || pageView === PV.RATED_DRAFT"
+        v-else-if="pageView === PV.RATED_DRAFT"
         class="slk-municipality-pending-card slk-municipality-pending-card--support flex flex-col items-center justify-center rounded-sm p-10 text-center shadow-list"
       >
         <img src="~/assets/icons/icon_team.svg" class="h-14 w-auto mb-4 opacity-60" />
@@ -183,7 +184,7 @@
 
     <NearbyMunicipalitiesCarousel
       v-if="directusData.municipalityScore.municipality.ars"
-      :ars="directusData.municipalityScore.municipality.ars"
+      :ars="directusData.municipalityScore.municipality.ars ?? undefined"
       :catalog-version-id="selectedCatalogVersion.id"
       :catalog-version-name="selectedCatalogVersion.name"
       class="my-8"
@@ -212,7 +213,7 @@
   </div>
 
   <!-- SLZ_FOUND: no score, area found in Stadt-Land-Zahl (ARS-based page) -->
-  <div v-else-if="pageView === PV.SLZ_FOUND" class="slk-municipality-pending">
+  <div v-else-if="pageView === PV.SLZ_FOUND && slzArea" class="slk-municipality-pending">
     <NuxtLink :to="backHref" class="font-heading text-h4 text-light-blue">
       ← {{ backLabel }}
     </NuxtLink>
@@ -233,8 +234,8 @@
         </div>
         <div v-if="slzArea.geo_center" class="flex items-center flex-shrink-0">
           <GermanyMapIndicator
-            :lat="slzArea.geo_center.coordinates[1]"
-            :lon="slzArea.geo_center.coordinates[0]"
+            :lat="slzArea.geo_center.lat"
+            :lon="slzArea.geo_center.lon"
             :size="80"
           />
         </div>
@@ -490,14 +491,19 @@
 </template>
 
 
-<script setup>
+<script setup lang="ts">
 const { $t } = useNuxtApp();
 const router = useRouter();
 
 import { useMunicipalityPageState } from '~/composables/useMunicipalityPageState';
 import { getStateMunicipalElectionYear } from '~/shared/utils';
 import { useReferrer } from '~/composables/useReferrer';
+import { MunicipalityPageSchema } from '~/shared/contracts/municipality';
+import { parseGeoCenter } from '~/shared/contracts/geometry';
+import { routeSlug, singleRouteValue } from "~/shared/routeValues";
 const route = useRoute();
+const slug = routeSlug(route.params.slug);
+if (!slug) throw createError({statusCode: 404, statusMessage: "Municipality not found"});
 
 // Guard against browser devtools / extension source-map requests like "installHook.js.map"
 // Municipality slugs are always lowercase alphanumeric + hyphens and never contain dots.
@@ -512,35 +518,39 @@ const suppliedPreview = route.query.preview === 'true'
   ? route.query.preview_token
   : route.query.preview
 const previewToken = typeof suppliedPreview === 'string' ? suppliedPreview : ''
-const municipalityPath = encodeURIComponent(String(route.params.slug))
+const municipalityPath = encodeURIComponent(slug)
 const publicEndpoint = `/api/public/municipalities/${municipalityPath}`
 // useId is SSR/hydration-stable and changes with each page instance. Never use
 // the raw token as an async-data key or reuse a previous authorized navigation.
 const pageDataKey = `municipality-page-${useId()}`
-const { data: pageData, error: pageDataError } = await useFetch(
-  previewToken ? `/api/previews/municipality/${municipalityPath}` : publicEndpoint,
+const loadPage = async (preview: boolean) => MunicipalityPageSchema.parse(await $fetch(
+  preview ? `/api/previews/municipality/${municipalityPath}` : `/api/public/municipalities/${municipalityPath}`,
+  {query: {v: singleRouteValue(route.query.v)}, headers: preview ? {'x-preview-token': previewToken} : undefined},
+));
+const { data: pageData, error: pageDataError } = await useAsyncData(
+  pageDataKey, () => loadPage(!!previewToken),
   {
-    key: pageDataKey,
-    getCachedData: (key, app) => app.isHydrating ? app.payload.data[key] : undefined,
-    query: { v: typeof route.query.v === 'string' ? route.query.v : undefined },
-    headers: previewToken ? { 'x-preview-token': previewToken } : undefined,
+    getCachedData: (key, app) => {
+      if (!app.isHydrating) return undefined;
+      const result = MunicipalityPageSchema.safeParse(app.payload.data[key]);
+      return result.success ? result.data : undefined;
+    },
   },
 )
 onUnmounted(() => clearNuxtData(pageDataKey))
 // Invalid preview credentials show the ordinary locked page, while the API
 // itself rejects them. Upstream failures must not silently become public data.
 if (pageDataError.value?.statusCode === 404 && previewToken) {
-  pageData.value = await $fetch(publicEndpoint, {
-    query: { v: typeof route.query.v === 'string' ? route.query.v : undefined },
-  })
+  pageData.value = await loadPage(false)
 } else if (pageDataError.value) {
   throw createError({ statusCode: 502, statusMessage: 'Municipality data unavailable' })
 }
+if (!pageData.value) throw createError({statusCode: 502, statusMessage: "Municipality data unavailable"});
 const selectedCatalogVersion = pageData.value.selectedCatalogVersion
 const directusData = pageData.value.directusData
 const previewAuthorized = pageData.value.previewAuthorized
-const directusMuniBySlug = ref(pageData.value.municipality || false)
-const directusMuniByArs = ref(pageData.value.municipality?.localteam_id ? pageData.value.municipality : false)
+const directusMuniBySlug = ref(pageData.value.municipality)
+const directusMuniByArs = ref(pageData.value.municipality?.localteam_id ? pageData.value.municipality : null)
 const { backHref, backLabel } = useReferrer(
   computed(() => `/municipalities?v=${selectedCatalogVersion.name}`),
   computed(() => $t('municipality.back_label')),
@@ -559,10 +569,10 @@ if (process.client && route.query.v != selectedCatalogVersion.name) {
 const slzAreaLookup = useAsyncData(
   `slz-area-${route.params.slug}`,
   async () => {
-    if (directusData?.municipalityScore) return false;
+    if (directusData?.municipalityScore) return null;
     try {
       const data = await $fetch('/api/area-by-slug', {
-        query: { slug: route.params.slug },
+        query: { slug },
       });
       if (data?.name) {
         const stateArea = data.contained_by?.find((area) => area.level === 2);
@@ -570,14 +580,14 @@ const slzAreaLookup = useAsyncData(
           name: data.name,
           prefix: data.prefix ?? '',
           state: stateArea?.name ?? data.state ?? null,
-          ars: data.ars ?? route.params.slug,
+          ars: data.ars ?? slug!,
           population: data.data_products?.population_data?.population ?? null,
-          geo_center: data.geo_center ?? null,
+          geo_center: parseGeoCenter(data.geo_center),
         };
       }
-      return false;
+      return null;
     } catch (_) {
-      return false;
+      return null;
     }
   }
 );
@@ -593,7 +603,6 @@ const { pageView, isRatedView, hasLocalteam, PAGE_VIEWS: PV } = useMunicipalityP
   slzArea,
   slzPending,
   directusMuniByArs,
-  route,
   previewAuthorized,
 });
 
@@ -611,7 +620,7 @@ watch(
 
 // Copy-to-clipboard state for share buttons
 const copiedState = reactive({ preview: false, draft: false })
-function copyShareLink(key) {
+function copyShareLink(key: "preview" | "draft") {
   if (process.client) {
     navigator.clipboard.writeText(window.location.href).then(() => {
       copiedState[key] = true
@@ -623,14 +632,14 @@ function copyShareLink(key) {
 // Display name for the municipality on locked/preview pages (score may not always exist)
 const previewMuniName = computed(() =>
   directusData?.municipalityScore?.municipality?.name
-  ?? directusMuniBySlug.value?.name
+  ?? (directusMuniBySlug.value && directusMuniBySlug.value.name)
   ?? String(route.params.slug)
 )
 
 // MetaTags
 const pageTitle = directusData?.municipalityScore?.municipality?.name
   ?? slzArea.value?.name
-  ?? route.params.slug;
+  ?? slug;
 const title = ref(pageTitle);
 useHead({ title });
 </script>

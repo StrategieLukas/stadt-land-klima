@@ -1,7 +1,7 @@
 <template>
   <section
-    ref="sectionRef"
     :id="collection.id"
+    ref="sectionRef"
     :data-collection-id="collection.id"
     :data-sector-key="sectorKeyValue"
     class="border-gray-100 overflow-visible border-t pb-6 pt-10"
@@ -301,7 +301,7 @@ async function loadSectionData() {
       collectionDetails.value = await $fetch<Collection>(`${props.baseUrl}/api/collections/${props.collection.id}/`, {
         timeout: 8000,
       }).then((data) => normalizeCollection(data));
-    } catch (_) {
+    } catch {
       collectionDetails.value = null;
     }
   } finally {
@@ -314,20 +314,20 @@ async function loadSectionData() {
       `${props.baseUrl}/api/collections/${props.collection.id}/summary/`,
       { params: { area: props.ars } },
     );
-  } catch (_) {
+  } catch {
     collectionSummary.value = null;
   }
 }
 
 onMounted(() => {
   if (!sectionRef.value || typeof IntersectionObserver === "undefined") {
-    loadSectionData();
+    void loadSectionData();
     return;
   }
   observer = new IntersectionObserver(
     (entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
-        loadSectionData();
+        void loadSectionData();
         observer?.disconnect();
         observer = null;
       }

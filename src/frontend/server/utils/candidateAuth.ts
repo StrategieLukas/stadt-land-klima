@@ -1,17 +1,14 @@
+import { z } from "zod";
+import { CandidateReadSchema, ElectionCandidateSchema, ElectionSchema, ElectionQuestionSchema, ElectionAnswerSchema } from "~/shared/contracts/elections";
+import { parseCms } from "./parseCms";
 import { readItems } from '@directus/sdk'
 import { createError, getHeader, getQuery, getRouterParam, setCookie, setResponseHeader, type H3Event } from 'h3'
 import { createDirectusServerClient } from './directusServerClient'
-
-type Row = Record<string, any>
 
 const candidatePublicFields = ['id', 'name', 'party', 'election', 'has_answered', 'time_first_submitted', 'time_last_edited']
 const electionPublicFields = ['id', 'descriptor', 'is_public', 'is_party_election', 'simple_answer_mode', 'custom_logo', 'response_cutoff_date', 'localteam']
 const questionPublicFields = ['id', 'title', 'thesis', 'background_information', 'status']
 const answerPublicFields = ['id', 'response', 'explanation', 'candidate', 'question']
-
-function pick(row: Row, fields: string[]): Row {
-  return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
-}
 
 export async function verifyCandidateAccessToken(accessToken: string) {
   const client = createDirectusServerClient()
@@ -19,8 +16,6 @@ export async function verifyCandidateAccessToken(accessToken: string) {
     filter: { access_token: { _eq: accessToken } },
     fields: [
       ...candidatePublicFields,
-      'access_token',
-      'email',
       'election.id',
       'election.descriptor',
       'election.is_public',
@@ -43,37 +38,8 @@ export async function verifyCandidateAccessToken(accessToken: string) {
     return null
   }
 
-  const candidate = candidates[0]
-  return {
-    candidate: {
-      id: candidate.id,
-      name: candidate.name,
-      party: candidate.party,
-      has_answered: candidate.has_answered,
-      time_first_submitted: candidate.time_first_submitted,
-      time_last_edited: candidate.time_last_edited,
-      election: {
-        id: candidate.election?.id,
-        descriptor: candidate.election?.descriptor,
-        is_public: candidate.election?.is_public,
-        is_party_election: candidate.election?.is_party_election,
-        simple_answer_mode: candidate.election?.simple_answer_mode,
-        custom_logo: candidate.election?.custom_logo,
-        response_cutoff_date: candidate.election?.response_cutoff_date,
-        localteam: candidate.election?.localteam ? {
-          id: candidate.election.localteam.id,
-          name: candidate.election.localteam.name,
-          slug: candidate.election.localteam.slug,
-          municipality_id: candidate.election.localteam.municipality_id ? {
-            id: candidate.election.localteam.municipality_id.id,
-            name: candidate.election.localteam.municipality_id.name,
-            slug: candidate.election.localteam.municipality_id.slug,
-            state: candidate.election.localteam.municipality_id.state,
-          } : null,
-        } : null,
-      },
-    },
-  }
+  return {candidate: parseCms(ElectionCandidateSchema.extend({election: ElectionSchema}), candidates[0])}
+
 }
 
 export async function loadCandidateQuestions(electionId: string) {
@@ -92,7 +58,7 @@ export async function loadCandidateQuestions(electionId: string) {
     throw createError({ statusCode: 502, statusMessage: 'Questions limit exceeded' })
   }
 
-  return questions.map(q => pick(q, questionPublicFields))
+  return parseCms(z.array(ElectionQuestionSchema), questions)
 }
 
 export async function loadCandidateAnswers(candidateId: string, questionIds: string[]) {
@@ -112,8 +78,5 @@ export async function loadCandidateAnswers(candidateId: string, questionIds: str
     throw createError({ statusCode: 502, statusMessage: 'Answers limit exceeded' })
   }
 
-  return answers.map(a => ({
-    ...pick(a, answerPublicFields),
-    question: typeof a.question === 'object' ? a.question.id : a.question,
-  }))
+  return parseCms(z.array(ElectionAnswerSchema.extend({id: z.string(), question: z.union([z.string(), z.object({id: z.string()})]).transform(value => typeof value === "string" ? value : value.id)})), answers)
 }

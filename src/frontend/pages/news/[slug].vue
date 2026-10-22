@@ -155,41 +155,56 @@
   <div v-else class="py-8" />
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { routeSlug } from "~/shared/routeValues";
 import { useAuth } from '~/composables/useAuth'
 import { useReferrer } from '~/composables/useReferrer'
 import { formatBerlinDate } from '~/shared/eventDateTime'
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
 
+import { requestErrorMessage } from "~/shared/requestError"
+import type { z } from "zod"
+import { NewsDetailSchema } from "~/shared/contracts/content"
 import { isRaster } from '~/shared/utils'
 const { $t, $locale } = useNuxtApp()
 const { backHref, backLabel } = useReferrer('/news', $t('news.back_to_overview'))
 
 const { isAuthenticated, initialize } = useAuth()
+const editor = useNewsEditor()
 const canEdit = ref(false)
 
+const directusUrl = useRuntimeConfig().public.clientDirectusUrl
 const route = useRoute()
-const slug = String(route.params.slug)
+const slug = routeSlug(route.params.slug)
+if (!slug) throw createError({statusCode: 404, statusMessage: "Not found"})
 
 // Use server route — $directus is only available during SSR, not on client
 const { data: newsResult } = await useAsyncData(`news-item-${slug}`, async () =>
   $fetch(`/api/public/news/${slug}`)
 )
-const item = computed(() => newsResult.value?.item || null)
+// Draft metadata stays in a browser-local ref, outside serialized/cached Nuxt data.
+const editorItem = shallowRef<z.output<typeof NewsDetailSchema> | null>(null)
+const item = computed(() => editorItem.value ?? newsResult.value?.item ?? null)
 
 if (item.value?.is_tour_redirect && item.value.tour_stop?.tour?.slug) {
   await navigateTo(`/projects/tours/${item.value.tour_stop.tour.slug}/${item.value.tour_stop.slug}${route.fullPath.slice(route.path.length)}`, { redirectCode: 301, replace: true });
 }
 
-const reportProjects = computed(() => [])
+const reportProjects = computed<{id: string; slug: string; title: string}[]>(() => [])
 
 // Do not throw a fatal 404 on SSR — drafts are only visible to authenticated users
 // and auth state is only known client-side. onMounted will check auth.
 const authChecked = ref(false)
 onMounted(async () => {
   await initialize()
+  if (isAuthenticated.value) {
+    try { editorItem.value = await editor.detail(slug!) } catch { /* Keep the public view if access is denied. */ }
+  }
   canEdit.value = isAuthenticated.value && !item.value?.is_tour_redirect
-  watchEffect(() => { canEdit.value = isAuthenticated.value && !item.value?.is_tour_redirect })
+  watchEffect(() => {
+    canEdit.value = isAuthenticated.value && !item.value?.is_tour_redirect
+    if (!isAuthenticated.value) editorItem.value = null
+  })
   if (item.value?.is_tour_redirect && item.value.tour_stop?.tour?.slug) {
     await navigateTo(`/projects/tours/${item.value.tour_stop.tour.slug}/${item.value.tour_stop.slug}${route.fullPath.slice(route.path.length)}`, { replace: true });
   }
@@ -225,7 +240,7 @@ const newsBlocks = computed(() => blocksData.value || [])
 
 const displayDate = computed(() => item.value?.date_published || item.value?.date_created)
 
-function formatDate(iso) {
+function formatDate(iso?: string | null) {
   return formatBerlinDate(iso, $locale)
 }
 
@@ -234,13 +249,13 @@ function formatDate(iso) {
 const editOpen = ref(false)
 const saving = ref(false)
 const saveSuccess = ref(false)
-const saveError = ref(null)
+const saveError = ref<string | null>(null)
 
 // Convert ISO datetime to datetime-local input format (strips seconds + timezone)
-function toDatetimeLocal(iso) {
+function toDatetimeLocal(iso?: string | null) {
   if (!iso) return ''
   const d = new Date(iso)
-  const pad = (n) => String(n).padStart(2, '0')
+  const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
@@ -261,7 +276,7 @@ watch([() => item.value, editOpen], () => {
   editForm.author = item.value.author || ''
   editForm.date_published = toDatetimeLocal(item.value.date_published)
   editForm.status = item.value.status || 'draft'
-  editForm.image = item.value.image?.id || item.value.image || ''
+  editForm.image = item.value.image?.id || ''
 }, { immediate: true })
 
 async function saveMetadata() {
@@ -270,22 +285,17 @@ async function saveMetadata() {
   saveSuccess.value = false
   saveError.value = null
   try {
-    await $fetch(`/api/news/${item.value.id}/metadata`, {
-      method: 'PATCH',
-      body: {
-        title: editForm.title,
-        teaser: editForm.teaser || null,
-        author: editForm.author || null,
-        date_published: editForm.date_published ? new Date(editForm.date_published).toISOString() : null,
-        status: editForm.status,
-        image: editForm.image || null,
-      },
+    await editor.save(item.value.id, {
+      title: editForm.title, teaser: editForm.teaser || null, author: editForm.author || null,
+      date_published: editForm.date_published ? new Date(editForm.date_published).toISOString() : null,
+      status: editForm.status, image: editForm.image || null,
     })
+    editorItem.value = await editor.detail(slug!)
     await refreshNuxtData(`news-item-${slug}`)
     saveSuccess.value = true
     setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (err) {
-    saveError.value = err?.errors?.[0]?.message || err?.message || $t('news.editor.save_error')
+    saveError.value = requestErrorMessage(err, $t('news.editor.save_error'))
   } finally {
     saving.value = false
   }

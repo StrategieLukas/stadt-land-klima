@@ -1,7 +1,7 @@
 <template>
   <div
-    class="blokkli-block-hex-item"
     :id="'block-' + uuid"
+    class="blokkli-block-hex-item"
   >
     <!--
       hex-outer: contains the border pseudo-element (::before) and is the
@@ -21,9 +21,9 @@
         Background image (if set) is blended with the solid color via multiply.
       -->
       <div
+        v-blokkli-droppable:imageId
         class="hex-tile"
         :style="tileStyle"
-        v-blokkli-droppable:imageId
       >
         <!-- Solid blend overlay when a background image is active -->
         <div v-if="imageUrl" class="hex-overlay" :style="{ backgroundColor: hexColor }" />
@@ -39,7 +39,7 @@
             v-else-if="iconSlug"
             :icon="iconSlug"
             class="hex-icon"
-            aria-hidden="true"
+            ariaHidden="true"
           />
           <div v-else-if="!imageUrl" class="hex-icon-placeholder" />
           <span

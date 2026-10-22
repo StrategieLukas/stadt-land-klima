@@ -158,7 +158,7 @@
                 :class="selectedSector === sector ? 'opacity-100' : 'opacity-40'"
                 alt=""
               />
-              {{ $t(`measure_sectors.${sector}.title`) }}
+              {{ $translateDynamic(`measure_sectors.${sector}.title`) }}
             </button>
           </div>
         </div>
@@ -285,8 +285,8 @@
 
     <!-- Sector description (shown when a sector is selected) -->
     <div v-if="selectedSector" class="mb-4 bg-gray/5 border-l-4 border-gray/30 px-4 py-3 text-sm text-gray-700 max-w-2xl">
-      <p class="font-bold mb-1">{{ $t(`measure_sectors.${selectedSector}.title`) }}</p>
-      <p>{{ $t(`measure_sectors.${selectedSector}.description`) }}</p>
+      <p class="font-bold mb-1">{{ $translateDynamic(`measure_sectors.${selectedSector}.title`) }}</p>
+      <p>{{ $translateDynamic(`measure_sectors.${selectedSector}.description`) }}</p>
     </div>
 
     <!-- Result count (list / cards only) -->
@@ -361,17 +361,19 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import sectorImages from "~/shared/sectorImages";
 
-const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'];
+const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'] as const;
 
-const { $t } = useNuxtApp();
+import { sectors, type Sector } from "~/shared/domain";
+import { singleRouteValue } from "~/shared/routeValues";
+const { $t, $translateDynamic } = useNuxtApp();
 const config = useRuntimeConfig();
 const route = useRoute();
 const router = useRouter();
-const measureCatalogDownloadUrl = (fileName) => {
+const measureCatalogDownloadUrl = (fileName: string) => {
   const directusUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081";
   return `${directusUrl.replace(/\/+$/, "")}/assets/${encodeURIComponent(fileName)}`;
 };
@@ -398,8 +400,8 @@ watch(() => route.query.v, async (newV, oldV) => {
 });
 
 // ── Filter state ────────────────────────────────────────────────────────────
-const selectedSector = ref(route.query.sector || null);
-watch(() => route.query.sector, sector => { selectedSector.value = sector || null; });
+const selectedSector = ref(singleRouteValue(route.query.sector) ?? null);
+watch(() => route.query.sector, sector => { selectedSector.value = singleRouteValue(sector) ?? null; });
 const viewMode = ref(route.query.view === 'treemap' ? 'treemap' : route.query.view === 'cards' ? 'cards' : 'list');
 const filterHighImpact = ref(false);
 const filterLowCost = ref(false);
@@ -416,13 +418,13 @@ const activeFilterCount = computed(() => {
   return count;
 });
 
-function setSector(sector) {
+function setSector(sector: string | null) {
   selectedSector.value = sector;
   router.replace({ query: { ...route.query, sector: sector || undefined } });
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function stripHtml(html) {
+function stripHtml(html: string | null) {
   if (!html) return '';
   // Use the same text projection on the server and client to avoid hydration mismatches
   return html
@@ -438,7 +440,7 @@ function stripHtml(html) {
     .replace(/\s+/g, ' ').trim();
 }
 
-function truncateHtml(html, maxLen = 130) {
+function truncateHtml(html: string | null, maxLen = 130) {
   const text = stripHtml(html);
   return text.length > maxLen ? text.slice(0, maxLen) + '…' : text;
 }

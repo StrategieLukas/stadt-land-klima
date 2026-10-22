@@ -53,12 +53,11 @@
       <div class="relative mb-4">
         <SmartImg
           v-if="image_id"
-          :assetId="image_id"
-          :isRaster="image_is_raster"
+          :asset-id="image_id"
+          :is-raster="image_is_raster"
           :alt="title"
           :width="960"
           fit="cover"
-          format="webp"
           img-class="object-cover w-full h-full"
         />
         <div
@@ -66,9 +65,9 @@
           class="clip-triangle absolute right-0 top-0 flex h-32 w-32 items-center justify-center bg-white"
         >
           <SmartImg
-            :assetId="organisation.logo?.id || organisation.logo"
-            :isRaster="organisation.logo?.type ? isRaster(organisation.logo.type) : true"
-            :alt="organisation.name"
+            :asset-id="getAssetId(organisation.logo)"
+            :is-raster="typeof organisation.logo === 'object' && organisation.logo?.type ? isRaster(organisation.logo.type) : true"
+            :alt="organisation.name ?? ''"
             :height="56"
             :width="56"
             fit="cover"
@@ -78,7 +77,7 @@
             v-if="hasDarkOrganisationLogo(organisation.logo)"
             class="absolute right-2 top-2 hidden h-14 w-14 object-cover dark:block"
             :src="getDarkOrganisationLogoUrl(organisation.logo)"
-            :alt="organisation.name"
+            :alt="organisation.name ?? ''"
             loading="lazy"
           />
         </div>
@@ -86,11 +85,11 @@
       </div>
 
       <!-- Abstract -->
-      <div v-if="abstract" v-html="md.render(abstract)" class="text-gray-700 mb-4 font-semibold" />
+      <div v-if="abstract" class="text-gray-700 mb-4 font-semibold" v-html="md.render(abstract)" />
 
       <!-- Main Text -->
       <div class="text-gray-700 mb-4">
-        <div v-html="md.render(article_text)"></div>
+        <div v-html="md.render(article_text ?? '')"></div>
       </div>
 
       <!-- Measures -->
@@ -144,9 +143,9 @@
       class="clip-triangle absolute right-0 top-0 flex h-32 w-32 items-center justify-center bg-white"
     >
       <SmartImg
-        :assetId="organisation.logo.id"
-        :isRaster="isRaster(organisation.logo.type)"
-        :alt="organisation.name"
+        :asset-id="getAssetId(organisation.logo)"
+        :is-raster="typeof organisation.logo === 'object' ? isRaster(organisation.logo?.type) : true"
+        :alt="organisation.name ?? ''"
         :height="56"
         :width="56"
         fit="cover"
@@ -156,7 +155,7 @@
         v-if="hasDarkOrganisationLogo(organisation.logo)"
         class="absolute right-2 top-2 hidden h-14 w-14 object-cover dark:block"
         :src="getDarkOrganisationLogoUrl(organisation.logo)"
-        :alt="organisation.name"
+        :alt="organisation.name ?? ''"
         loading="lazy"
       />
     </div>
@@ -170,11 +169,10 @@
             <span v-if="!image_id" class="text-gray-500">{{ $t("generic.loading") }}</span>
             <SmartImg
               v-if="image_id"
-              :assetId="image_id"
-              :isRaster="image_is_raster"
+              :asset-id="image_id"
+              :is-raster="image_is_raster"
               :alt="title"
               fit="cover"
-              format="webp"
               img-class="w-full h-full object-cover rounded-lg"
             />
           </div>
@@ -197,13 +195,13 @@
         </p>
         <!-- <p v-if="date" class="pb-2 border-b border-gray-300 flex justify-between">
           <strong>{{ $t("date") }}</strong>
-          <span class="text-right">{{ date.toLocaleDateString($locale) }}</span>
+          <span class="text-right">{{ formatProjectDate(date, $locale) }}</span>
         </p> -->
         <p v-if="organisation" class="border-gray-300 flex justify-between border-b pb-2">
           <strong>{{ $t("organisation") }}</strong>
           <span class="text-right">
             <a
-              :href="organisation.link"
+              :href="organisation.link ?? undefined"
               target="_blank"
               rel="noopener noreferrer"
               class="text-blue-500 hover:underline"
@@ -275,8 +273,8 @@
         <p v-if="subtitle" class="text-gray-500 mb-6 text-lg">{{ subtitle }}</p>
 
         <div class="text-gray-700 flex-grow leading-relaxed">
-          <div v-if="abstract" v-html="md.render(abstract)" class="prose mb-8 max-w-none" />
-          <div v-html="md.render(article_text)"></div>
+          <div v-if="abstract" class="prose mb-8 max-w-none" v-html="md.render(abstract)" />
+          <div v-html="md.render(article_text ?? '')"></div>
         </div>
       </div>
     </div>
@@ -293,14 +291,13 @@
   </div>
 </template>
 
-<style>
-.clip-triangle {
-  clip-path: polygon(100% 0, 0 0, 100% 100%);
-}
-</style>
+<script setup lang="ts">
+import type { Asset, Organisation  } from '~/types/components/content';
 
-<script setup>
-import { ref, watchEffect } from "vue";
+import type { PropType } from 'vue';
+import type { Measure } from '~/types/components/municipality';
+
+import { ref } from "vue";
 import { buildLocationString, isRaster } from "~/shared/utils";
 import { formatProjectDate } from "~/shared/projectDate";
 import MarkdownIt from "markdown-it";
@@ -319,23 +316,23 @@ const props = defineProps({
   municipality_slug: String,
   state: String,
   author: String,
-  date: Date,
+  date: [String, Date] as PropType<string | Date | null>,
   image_id: String,
   image_is_raster: Boolean,
   image_credits: String,
   abstract: String,
   article_text: String,
-  link: URL,
+  link: URL as PropType<URL | null>,
   article_instagram: String,
   article_linkedin: String,
-  organisation: Object, // can be null
-  measures: Array, // can be null/empty
+  organisation: Object as PropType<Organisation | null>, // can be null
+  measures: Array as PropType<Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null>, // can be null/empty
 });
 
 const articleHasSocialMedia = props.article_instagram || props.article_linkedin;
 // const organisationHasSocialMedia = props.organisation && (props.organisation.instagram || props.organisation.linkedin);
 
-const src = ref(null);
+const _src = ref(null);
 
 // does nothing?
 // watchEffect(async () => {
@@ -349,19 +346,25 @@ const byline = computed(() => props.author && formattedDate.value
   ? $t('article.author_date', { ':author': props.author, ':date': formattedDate.value })
   : [props.author, formattedDate.value].filter(Boolean).join(', '));
 
-function getAssetId(assetId) {
+function getAssetId(assetId: Asset | undefined) {
   return typeof assetId === "string" ? assetId : assetId?.id;
 }
 
-function hasDarkOrganisationLogo(assetId) {
+function hasDarkOrganisationLogo(assetId: Asset | undefined) {
   return getAssetId(assetId) === localZeroLogoId;
 }
 
-function getDarkOrganisationLogoUrl(assetId) {
+function getDarkOrganisationLogoUrl(assetId: Asset | undefined) {
   return hasDarkOrganisationLogo(assetId) ? localZeroLogoDark : "";
 }
 
-function organisationLogoImgClass(assetId) {
+function organisationLogoImgClass(assetId: Asset | undefined) {
   return `absolute top-2 right-2 w-14 h-14 ${hasDarkOrganisationLogo(assetId) ? "dark:hidden" : ""}`;
 }
 </script>
+
+<style>
+.clip-triangle {
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+}
+</style>

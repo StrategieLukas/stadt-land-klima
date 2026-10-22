@@ -14,9 +14,9 @@
         >
           <!-- Close Button -->
           <button
-            @click="close"
             class="text-gray-400 hover:text-gray-600 absolute right-4 top-4 transition-colors"
             :aria-label="$t('generic.close')"
+            @click="close"
           >
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -31,7 +31,7 @@
           </div>
 
           <!-- Login Form -->
-          <form @submit.prevent="handleSubmit" class="space-y-4">
+          <form class="space-y-4" @submit.prevent="handleSubmit">
             <!-- Email Field -->
             <div>
               <label for="login-email" class="text-gray-700 mb-1 block text-sm font-medium">
@@ -67,9 +67,9 @@
                 />
                 <button
                   type="button"
-                  @click="showPassword = !showPassword"
                   class="text-gray-400 hover:text-gray-600 absolute inset-y-0 right-0 flex items-center pr-3"
                   :aria-label="showPassword ? $t('auth.password.hide') : $t('auth.password.show')"
+                  @click="showPassword = !showPassword"
                 >
                   <svg v-if="!showPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -130,7 +130,8 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { AuthUser } from '~/shared/contracts/auth';
 import { ref, computed, watch } from "vue";
 import { useAuth } from "~/composables/useAuth";
 
@@ -141,7 +142,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["close", "success"]);
+const emit = defineEmits<{ close: []; success: [user: AuthUser] }>();
 
 const { login, isLoading } = useAuth();
 const { $t } = useNuxtApp();
@@ -183,7 +184,7 @@ async function handleSubmit() {
       password.value = "";
     }
   } catch (err) {
-    errorMessage.value = err.message || $t("auth.login_failed");
+    errorMessage.value = (err instanceof Error ? err.message : "") || $t("auth.login_failed");
   }
 }
 

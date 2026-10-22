@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-stat" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-stat">
     <!-- Card layout -->
     <div
       v-if="options.layout === 'card'"
@@ -172,7 +172,7 @@ const colorMap: Record<string, { bg: string; text: string; border: string; accen
   red: { bg: 'bg-red', text: 'text-white', border: 'border-red', accent: 'text-red' },
 }
 
-const currentColor = computed(() => colorMap[options.value.color] || colorMap.green)
+const currentColor = computed(() => colorMap[options.value.color] || colorMap.green!)
 
 const bgClass = computed(() => currentColor.value.bg)
 const textClass = computed(() => currentColor.value.text)

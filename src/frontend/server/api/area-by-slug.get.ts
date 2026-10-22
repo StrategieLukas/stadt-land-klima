@@ -1,3 +1,6 @@
+import { AreaSchema } from "~/shared/contracts/search";
+import { parseCms } from "~/server/utils/parseCms";
+import { queryText, queryChoice } from "~/server/utils/publicQuery";
 /**
  * Resolves a URL slug like "stadtkreis-karlsruhe" to a full area object
  * via the REST areas endpoint.
@@ -13,24 +16,22 @@
  */
 
 export default defineEventHandler(async (event) => {
-  // event.url is h3 v2 only; at runtime nitropack uses h3 v1 where event.path is the path+query string
-  const sp = new URLSearchParams((event.path ?? '').split('?')[1] ?? '')
-  const slug = sp.get('slug') ?? ''
-  const requireGeo = sp.get('requireGeo') === 'true'
-  const includeGeo = requireGeo || sp.get('includeGeo') === 'true'
+  const query = getQuery(event)
+  const slug = queryText(query.slug) ?? ''
+  const requireGeo = queryChoice(query.requireGeo, ['true', 'false']) === 'true'
+  const includeGeo = requireGeo || queryChoice(query.includeGeo, ['true', 'false']) === 'true'
   if (!slug.trim()) {
     if (requireGeo) throw createError({ statusCode: 400, statusMessage: 'Area identifier is required' })
     return null
   }
 
   try {
-    const data = await fetchStadtlandzahl<Record<string, unknown>>(`/api/areas/${encodeURIComponent(slug)}/`)
+    const data = parseCms(AreaSchema, await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(slug)}/`))
     if (requireGeo && !data?.geo_area && !data?.geoArea) {
       throw createError({ statusCode: 502, statusMessage: `Geometry missing for area ${slug}` })
     }
     if (!includeGeo && data && typeof data === 'object') {
-      const { geo_area: _geo, ...rest } = data
-      return rest
+      return {...data, geo_area: undefined, geoArea: undefined}
     }
     return data
   } catch (error) {

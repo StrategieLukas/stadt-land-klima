@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-municipality-search-hero" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-municipality-search-hero">
     <section
       class="relative overflow-hidden flex items-center justify-center"
       :class="bgClass"
@@ -269,15 +269,15 @@ onMounted(async () => {
       .sort((a, b) => Number(b.municipality?.population ?? 0) - Number(a.municipality?.population ?? 0)).slice(0, 2500)
 
     // Flatten: each municipality → { id, name, slug, population, score_total, percentage_rated }
-    const flat = data.map((score: any) => ({
+    const flat = data.map((score) => ({
       id: score.municipality?.id as string,
       name: score.municipality?.name as string,
       slug: (score.municipality?.slug as string) || null,
       population: Number(score.municipality?.population) || 0,
-      score_total: score.score_total ?? null,
-      percentage_rated: score.percentage_rated ?? null,
+      score_total: score.score_total == null ? null : Number(score.score_total),
+      percentage_rated: score.percentage_rated == null ? null : Number(score.percentage_rated),
     }))
-      .filter((m: any) => m.id && m.name)
+      .filter((m) => m.id && m.name)
 
     wordItems.value = buildCloudLayout(flat)
   } catch (e) {

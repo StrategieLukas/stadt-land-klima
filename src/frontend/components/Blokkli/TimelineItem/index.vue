@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-timeline-item relative pl-12 pb-10" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-timeline-item relative pl-12 pb-10">
     <!-- Dot on the line -->
     <div
       class="timeline-item-dot absolute left-0 top-1.5 w-8 h-8 rounded-full flex items-center justify-center z-10"
@@ -90,7 +90,7 @@ const colorMap: Record<string, { bg: string; text: string }> = {
   lime: { bg: 'bg-light-green', text: 'text-light-green' },
 }
 
-const currentColor = computed(() => colorMap[options.value.color] || colorMap.green)
+const currentColor = computed(() => colorMap[options.value.color] || colorMap.green!)
 const dotBgClass = computed(() => currentColor.value.bg)
 const accentTextClass = computed(() => currentColor.value.text)
 </script>

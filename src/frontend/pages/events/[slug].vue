@@ -23,24 +23,26 @@
   </main>
 </template>
 <script setup lang="ts">
+import { routeSlug } from "~/shared/routeValues";
 import { useReferrer } from '~/composables/useReferrer';
 import { isRaster } from '~/shared/utils';
 import { relationId } from '~/shared/tour';
 import { formatBerlinDate, formatEventDateTimeRange } from '~/shared/eventDateTime';
 import type { MediaFile } from '~/shared/tourMedia';
-type Event = { id: string; slug: string; title: string; description?: string; event_category?: string; event_type?: string; start_date: string; end_date?: string; date_only?: boolean; location?: string; image?: MediaFile; image_credits?: string; registration_url?: string; cta_label?: string; series?: { slug: string; title: string; format: string } };
 const { $t, $translateDynamic, $locale } = useNuxtApp();
 const route = useRoute();
+const slug = routeSlug(route.params.slug);
+if (!slug) throw createError({statusCode: 404, statusMessage: "Not found"});
 const { backHref, backLabel } = useReferrer('/events', $t('events.title'));
-const legacyRedirected = await useLegacyTourRedirect('stop', String(route.params.slug));
-const { data: eventData } = await useAsyncData(`event-${route.params.slug}`, () => $fetch(`/api/public/events/${encodeURIComponent(route.params.slug)}`));
-const event = computed(() => eventData.value?.event as Event | undefined);
+const legacyRedirected = await useLegacyTourRedirect('stop', slug);
+const { data: eventData } = await useAsyncData(`event-${route.params.slug}`, () => $fetch(`/api/public/events/${encodeURIComponent(slug)}`));
+const event = computed(() => eventData.value?.event);
 if (!event.value && !legacyRedirected) throw createError({ statusCode: 404, statusMessage: $t('events.not_found'), fatal: true });
 const ordinaryReport = computed(() => eventData.value?.ordinaryReport);
 const eventProjects = computed(() => eventData.value?.eventProjects ?? []);
 const cover = computed(() => event.value?.image);
 const coverCredit = computed(() => event.value?.image_credits);
-function eventTypeLabel(type?: string) { return type ? $translateDynamic(`events.type.${type}`) : ''; }
+function eventTypeLabel(type?: string | null) { return type ? $translateDynamic(`events.type.${type}`) : ''; }
 useHead(() => ({ title: event.value?.title }));
 </script>
 <style scoped>

@@ -61,7 +61,7 @@
         <div v-for="(question, index) in questions" :key="question.id" class="bg-white p-6 rounded-xl shadow-list border border-solid-gray-10">
           <div class="flex items-start mb-6">
             <span class="flex-shrink-0 w-8 h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold mr-4">
-              {{ index + 1 }}
+              {{ Number(index) + 1 }}
             </span>
             <h3 class="text-h3 font-semibold text-black leading-tight pt-1">
               {{ question.title || question.thesis }}
@@ -157,7 +157,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   getWahlcheckAnswerOptions,
   usesSimpleWahlcheckAnswerMode,
@@ -167,30 +167,42 @@ import { formatBerlinDate, getBerlinEndOfDay } from '~/shared/eventDateTime'
 const route = useRoute()
 const { $t, $locale } = useNuxtApp()
 
-const accessToken = String(route.params.access_token)
+import { CandidateReadSchema } from "~/shared/contracts/elections"
+import { singleRouteValue } from "~/shared/routeValues"
+import type { AnswerValue } from "~/shared/domain"
+import { CandidateAnswersRequestSchema } from "~/shared/contracts/candidateAnswers"
+const accessToken = singleRouteValue(route.params.access_token)
+if (!accessToken || !/^[A-Za-z0-9_-]{1,100}$/.test(accessToken)) throw createError({statusCode: 404, statusMessage: "Not found"})
+const candidateKey = `candidate-page-${useId()}`
+onUnmounted(() => clearNuxtData(candidateKey))
 
-const answers = ref({})
-const explanations = ref({}) // Store reasoning for each question
+const answers = ref<Record<string, AnswerValue | null | undefined>>({})
+const explanations = ref<Record<string, string>>({}) // Store reasoning for each question
 const submitting = ref(false)
 const submitted = ref(false)
 
 const { data, pending, error } = await useAsyncData(
-  `thesen-${accessToken}`,
+  candidateKey,
   async () => {
-    const result = await $fetch(`/api/candidate/${encodeURIComponent(accessToken)}`)
-    return result
+    const result = await $fetch(`/api/candidate/${encodeURIComponent(accessToken!)}`)
+    return CandidateReadSchema.parse(result)
   },
   {
-    transform: (result) => {
+    getCachedData: (key, app) => {
+      if (!app.isHydrating) return undefined;
+      const result = CandidateReadSchema.safeParse(app.payload.data[key]);
+      return result.success ? result.data : undefined;
+    },
+    transform: (result: import("zod").z.output<typeof import("~/shared/contracts/elections").CandidateReadSchema>) => {
       // Initialize answers from existing data
       if (result?.existingAnswers) {
         result.existingAnswers.forEach((ans) => {
-          const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
+          const questionId = ans.question
           answers.value[questionId] = ans.response
           explanations.value[questionId] = ans.explanation || ''
         })
       }
-      return result
+      return CandidateReadSchema.parse(result)
     },
   }
 )
@@ -206,7 +218,7 @@ const ratingOptions = computed(() => {
 })
 
 const currentTime = ref(Date.now())
-let cutoffTimer
+let cutoffTimer: number | undefined
 
 function refreshCutoffStatus() {
   currentTime.value = Date.now()
@@ -239,7 +251,7 @@ const isPastCutoff = computed(() => {
 
 const isFormComplete = computed(() => {
   if (!questions.value || !questions.value.length) return false
-  return questions.value.every(q => answers.value[q.id] !== undefined)
+  return questions.value.every(q => answers.value[q.id] !== undefined && answers.value[q.id] !== null)
 })
 
 async function submitAnswers() {
@@ -253,9 +265,9 @@ async function submitAnswers() {
       explanation: explanations.value[q.id] || undefined,
     }))
 
-    await $fetch(`/api/candidate/${encodeURIComponent(accessToken)}/answers`, {
+    await $fetch(`/api/candidate/${encodeURIComponent(accessToken!)}/answers`, {
       method: 'POST',
-      body: { answers: answerPayload },
+      body: CandidateAnswersRequestSchema.parse({ answers: answerPayload }),
     })
 
     submitted.value = true

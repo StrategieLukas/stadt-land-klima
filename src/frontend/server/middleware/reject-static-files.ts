@@ -10,7 +10,7 @@ const STATIC_EXTENSIONS = /\.(map|js|css|wasm|ts|jsx|tsx|mjs|cjs|ico|png|jpg|jpe
 export default defineEventHandler((event) => {
   const url = event.node.req.url ?? ''
   // Strip query string before checking extension
-  const path = url.split('?')[0]
+  const path = url.split('?')[0] ?? ''
   if (STATIC_EXTENSIONS.test(path)) {
     setResponseStatus(event, 404)
     return null

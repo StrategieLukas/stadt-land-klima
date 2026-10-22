@@ -1,3 +1,4 @@
+import { cloneVisualization, asRecord } from "~/shared/visualization";
 import type {
   Collection,
   CollectionCoverImage,
@@ -78,9 +79,7 @@ export function firstKpiElement(collection: Pick<Collection, "render_elements">)
   if (renderElementKpi) return renderElementKpi;
 
   const renderConfig = ((collection as Collection).render_config ?? camelCollection.renderConfig) as
-    | Record<string, any>
-    | null
-    | undefined;
+    Record<string, any> | null | undefined;
   const configKpi =
     renderConfig?.kpi ??
     renderConfig?.primary_kpi ??
@@ -219,19 +218,22 @@ export function formatKpiValue(kpi: RenderElement | null, value: number | null, 
   return value.toLocaleString("de-DE", { maximumFractionDigits: Number.isInteger(value) ? 0 : 1 });
 }
 
-export function injectAreaIntoSpec(spec: object | null | undefined, ars: string) {
-  if (!spec || !ars) return spec ?? null;
-  const cloned = JSON.parse(JSON.stringify(spec));
+export function injectAreaIntoSpec(spec: unknown, ars: string): import("~/shared/visualization").EditableSpec | null {
+  if (!spec) return null;
+  if (!ars) return cloneVisualization(spec);
+  const cloned = cloneVisualization(spec);
 
-  function patchNode(node: any) {
-    if (node?.data?.url) {
+  function patchNode(input: unknown) {
+    const node = asRecord(input);
+    const data = asRecord(node?.data);
+    if (typeof data?.url === "string") {
       try {
-        const url = new URL(node.data.url);
+        const url = new URL(data.url);
         url.searchParams.set("area", ars);
-        node.data.url = url.toString();
+        data.url = url.toString();
       } catch {
-        const separator = String(node.data.url).includes("?") ? "&" : "?";
-        node.data.url = `${node.data.url}${separator}area=${encodeURIComponent(ars)}`;
+        const separator = String(data.url).includes("?") ? "&" : "?";
+        data.url = `${data.url}${separator}area=${encodeURIComponent(ars)}`;
       }
     }
     if (Array.isArray(node?.layer)) node.layer.forEach(patchNode);

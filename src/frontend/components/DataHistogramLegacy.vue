@@ -9,9 +9,9 @@
     <!-- Chart -->
     <div v-else-if="chartData && chartData.datasets.length > 0" class="w-full h-64">
       <Bar
+        ref="chartRef"
         :data="chartData"
         :options="chartOptions"
-        ref="chartRef"
       />
     </div>
     
@@ -64,7 +64,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type {  ChartOptions, ChartEvent, ActiveElement } from 'chart.js';
+import {  legacyHistogramValue, type Histogram, type HistogramBin, type HistogramMunicipality } from '~/shared/contracts/histogram';
+import type { Area } from '~/shared/contracts/search';
+import type { PropType } from 'vue';
+
 import { ref, computed, onMounted, watch } from 'vue';
 
 import { Bar } from 'vue-chartjs';
@@ -83,7 +88,7 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
 const props = defineProps({
   histogramUrl: {
-    type: String,
+    type: String as PropType<string | null>,
     default: null
   },
   dataType: {
@@ -95,7 +100,7 @@ const props = defineProps({
     required: false
   },
   currentValue: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   unit: {
@@ -107,19 +112,19 @@ const props = defineProps({
     default: false
   },
   orangeThreshold: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   yellowThreshold: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   lightGreenThreshold: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   darkGreenThreshold: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   }
 });
@@ -127,13 +132,13 @@ const props = defineProps({
 const { $t, $stadtlandzahlAPI } = useNuxtApp();
 
 const loading = ref(false);
-const histogramData = ref([]);
-const histogramApiData = ref(null); // For new API format
-const modalRef = ref(null);
-const selectedBinMunicipalities = ref([]);
+const histogramData = ref<Area[]>([]);
+const histogramApiData = ref<Histogram | null>(null); // For new API format
+const modalRef = ref<HTMLDialogElement | null>(null);
+const selectedBinMunicipalities = ref<HistogramMunicipality[]>([]);
 
 // Map dataType to GraphQL field names (used for legacy histogram data access)
-const dataTypeToGraphQLField = {
+const dataTypeToGraphQLField: Record<string, string> = {
   'population_data': 'populationData',
   'ev_charging_data': 'evChargingData',
   'wind_power_data': 'windPowerData',
@@ -143,7 +148,7 @@ const dataTypeToGraphQLField = {
 };
 
 // Helper function to determine bar color based on bin value and thresholds
-const getBarColor = (binMidpoint) => {
+const getBarColor = (binMidpoint: number) => {
   // If no thresholds are provided, use gray
   if (props.orangeThreshold === null && props.yellowThreshold === null && 
       props.lightGreenThreshold === null && props.darkGreenThreshold === null) {
@@ -164,8 +169,8 @@ const getBarColor = (binMidpoint) => {
   }
 }
 
-const getDarkerColor = (color) => {
-  const colorMap = {
+const getDarkerColor = (color: string) => {
+  const colorMap: Record<string, string> = {
     '#9ca3af': '#6b7280', // gray
     '#22c55e': '#16a34a', // dark green
     '#84cc16': '#65a30d', // light green
@@ -202,13 +207,13 @@ const chartData = computed(() => {
     const bins = [];
     
     for (let i = 0; i < histogram.length; i++) {
-      const binStart = binEdges[i];
-      const binEnd = binEdges[i + 1];
+      const binStart = binEdges[i]!;
+      const binEnd = binEdges[i + 1]!;
       const binMidpoint = (binStart + binEnd) / 2;
       
       labels.push(`${formatValue(binStart)}-${formatValue(binEnd)}`);
       bins.push({
-        count: histogram[i],
+        count: histogram[i]!,
         midpoint: binMidpoint,
         start: binStart,
         end: binEnd
@@ -219,7 +224,7 @@ const chartData = computed(() => {
     let currentValueBinIndex = -1;
     if (props.currentValue !== null && !isNaN(Number(props.currentValue))) {
       currentValueBinIndex = bins.findIndex(bin => 
-        props.currentValue >= bin.start && props.currentValue < bin.end
+        props.currentValue! >= bin.start && props.currentValue! < bin.end
       );
     }
     
@@ -252,11 +257,11 @@ const chartData = computed(() => {
   // Legacy format fallback
   if (!histogramData.value.length) return null;
 
-  const dataField = dataTypeToGraphQLField[props.dataType] || `${props.dataType}Data`;
+  const dataField = dataTypeToGraphQLField[props.dataType ?? ''] || `${props.dataType}Data`;
   
   // Convert snake_case attribute names to camelCase for accessing GraphQL data
-  const snakeToCamel = (str) => {
-    return str.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+  const snakeToCamel = (str: string | undefined) => {
+    return (str ?? '').replace(/_([a-z])/g, (_match: string, letter: string) => letter.toUpperCase());
   };
   const attributeFieldName = snakeToCamel(props.attributeName);
 
@@ -264,15 +269,15 @@ const chartData = computed(() => {
     let value;
 
     // Access data using mapped GraphQL field name and camelCase attribute
-    value = item[dataField]?.[attributeFieldName];
+    value = legacyHistogramValue(item, dataField, attributeFieldName);
     
-    if (props.populationNormalized && item.populationData?.population) {
-      value = (value / item.populationData.population) * 1000; // per 1000 inhabitants
-    } else if (props.unit === '%' && attributeFieldName === 'bicycleInfrastructureRatio' && value < 1) {
+    if (value != null && props.populationNormalized && legacyHistogramValue(item, 'populationData', 'population')) {
+      value = (value / legacyHistogramValue(item, 'populationData', 'population')! ) * 1000; // per 1000 inhabitants
+    } else if (props.unit === '%' && attributeFieldName === 'bicycleInfrastructureRatio' && value != null && value < 1) {
       value = value * 100; // Convert ratio to percentage
     }
     return value;
-  }).filter(v => v !== null && v !== undefined && !isNaN(Number(v)));
+  }).filter((v): v is number => v != null && Number.isFinite(v));
 
   console.log('Processed values:', values.slice(0, 10)); // Log first 10 values
   console.log('Values length:', values.length);
@@ -289,10 +294,10 @@ const chartData = computed(() => {
   const p95Index = Math.floor(totalCount * 0.95);
   
   // Get percentile values
-  const p5Value = sortedValues[p5Index];
-  const p95Value = sortedValues[p95Index];
-  const absoluteMin = sortedValues[0];
-  const absoluteMax = sortedValues[totalCount - 1];
+  const p5Value = sortedValues[p5Index]!;
+  const p95Value = sortedValues[p95Index]!;
+  const absoluteMin = sortedValues[0]!;
+  const absoluteMax = sortedValues[totalCount - 1]!;
 
   console.log('Percentiles - 5%:', p5Value, '95%:', p95Value, 'Absolute min/max:', absoluteMin, absoluteMax);
 
@@ -306,7 +311,7 @@ const chartData = computed(() => {
     mainBinWidth = 1; // nominal width
   }
   
-  const bins = [];
+  const bins: HistogramBin[] = [];
   
   // Lower extreme bin (< 5th percentile)
   if (p5Index > 0) {
@@ -344,17 +349,17 @@ const chartData = computed(() => {
   }
 
   // Fill bins
-  const binDataField = dataTypeToGraphQLField[props.dataType] || `${props.dataType}Data`;
+  const binDataField = dataTypeToGraphQLField[props.dataType ?? ''] || `${props.dataType}Data`;
   const binAttributeFieldName = snakeToCamel(props.attributeName);
   
   histogramData.value.forEach(item => {
     let value;
     // Access data using mapped GraphQL field name and camelCase attribute
-    value = item[binDataField]?.[binAttributeFieldName];
+    value = legacyHistogramValue(item, binDataField, binAttributeFieldName);
     
-    if (props.populationNormalized && item.populationData?.population) {
-      value = (value / item.populationData.population) * 1000;
-    } else if (props.unit === '%' && binAttributeFieldName === 'bicycleInfrastructureRatio' && value < 1) {
+    if (value != null && props.populationNormalized && legacyHistogramValue(item, 'populationData', 'population')) {
+      value = (value / legacyHistogramValue(item, 'populationData', 'population')! ) * 1000;
+    } else if (props.unit === '%' && binAttributeFieldName === 'bicycleInfrastructureRatio' && value != null && value < 1) {
       value = value * 100; // Convert ratio to percentage
     }
     if (value !== null && value !== undefined && !isNaN(Number(value))) {
@@ -382,8 +387,8 @@ const chartData = computed(() => {
       }
       
       if (binIndex >= 0 && binIndex < bins.length && bins[binIndex]) {
-        bins[binIndex].count++;
-        bins[binIndex].municipalities.push({
+        bins[binIndex]!.count++;
+        bins[binIndex]!.municipalities.push({
           ...item,
           value
         });
@@ -459,24 +464,24 @@ const chartData = computed(() => {
 });
 
 // Event handlers
-const handleHover = (event, elements) => {
-  if (event.native && event.native.target) {
+const handleHover = (event: ChartEvent, elements: ActiveElement[]) => {
+  if (event.native?.target instanceof HTMLElement) {
     event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
   }
 };
 
-const handleClick = (event, elements) => {
+const handleClick = (event: ChartEvent, elements: ActiveElement[]) => {
   if (elements.length > 0) {
-    const index = elements[0].index;
+    const index = elements[0]!.index;
     const bins = chartData.value?.datasets?.[0]?.bins;
-    if (bins && bins[index]) {
+    if (bins && bins[index] && 'municipalities' in bins[index]) {
       selectedBinMunicipalities.value = bins[index].municipalities;
       openModal();
     }
   }
 };
 
-const chartOptions = computed(() => ({
+const chartOptions = computed<ChartOptions<'bar'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -511,12 +516,12 @@ const chartOptions = computed(() => ({
 }));
 
 // Helper function to get nested object values
-function getNestedValue(obj, path) {
-  return path.split('.').reduce((current, key) => current?.[key], obj);
+function getNestedValue(obj: unknown, path: string | undefined): unknown {
+  return (path ?? '').split('.').reduce<unknown>((current, key) => current && typeof current === 'object' ? (current as Record<string, unknown>)[key] : undefined, obj);
 }
 
 // Format values for display
-function formatValue(value) {
+function formatValue(value: number | null | undefined) {
   if (value === null || value === undefined) return '-';
   if (value < 1) return value.toFixed(2);
   if (value < 10) return value.toFixed(1);
@@ -531,7 +536,7 @@ function openModal() {
   }
 }
 
-function closeModal() {
+function _closeModal() {
   if (modalRef.value) {
     modalRef.value.close();
   }
@@ -544,31 +549,31 @@ async function fetchData() {
   loading.value = true;
   try {
     console.log('Fetching histogram data for:', props.dataType, props.attributeName);
-    const data = await $stadtlandzahlAPI.fetchHistogramData(props.dataType, props.attributeName);
+    const data = await $stadtlandzahlAPI.fetchHistogramData(props.dataType ?? '', props.attributeName ?? '');
     console.log('Raw histogram data:', data);
     console.log('Data length:', data?.length);
     
     // Log sample values
     if (data?.length > 0) {
-      const sampleItem = data[0];
+      const sampleItem = data[0]!;
       console.log('Sample item:', sampleItem);
       
       let sampleValue;
       switch (props.dataType) {
         case 'solar_power_data':
-          sampleValue = sampleItem.solarPowerData?.[props.attributeName];
+          sampleValue = legacyHistogramValue(sampleItem, 'solarPowerData', props.attributeName ?? '');
           break;
         case 'wind_power_data':
-          sampleValue = sampleItem.windPowerData?.[props.attributeName];
+          sampleValue = legacyHistogramValue(sampleItem, 'windPowerData', props.attributeName ?? '');
           break;
         case 'ev_charging_data':
-          sampleValue = sampleItem.evChargingData?.[props.attributeName];
+          sampleValue = legacyHistogramValue(sampleItem, 'evChargingData', props.attributeName ?? '');
           break;
         case 'cycleway_infrastructure_data':
-          sampleValue = sampleItem.cyclewayInfrastructureData?.[props.attributeName];
+          sampleValue = legacyHistogramValue(sampleItem, 'cyclewayInfrastructureData', props.attributeName ?? '');
           break;
         case 'public_transport_score_data':
-          sampleValue = sampleItem.publicTransportScoreData?.[props.attributeName];
+          sampleValue = legacyHistogramValue(sampleItem, 'publicTransportScoreData', props.attributeName ?? '');
           break;
         default:
           sampleValue = getNestedValue(sampleItem, props.attributeName);

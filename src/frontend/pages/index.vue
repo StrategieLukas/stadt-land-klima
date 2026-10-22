@@ -30,7 +30,7 @@
     </p>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
 import { useAuth } from '~/composables/useAuth'
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
 const { $t } = useNuxtApp();

@@ -1,3 +1,4 @@
+import { RegistrationRequestSchema } from "~/shared/contracts/submissions";
 import { randomBytes } from 'node:crypto';
 import { sendDirectusMailFlow } from '../utils/sendDirectusMailFlow';
 
@@ -199,7 +200,9 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
 
-  const body = await readRequestBody(event);
+  const parsedBody = RegistrationRequestSchema.safeParse(await readRequestBody<unknown>(event));
+  if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
+  const body = parsedBody.data;
   const { firstName, lastName, email, organisation, ars, municipalityName, population, state, geolocation, altcha } = body ?? {};
   const steps: RegistrationSteps = { user: false, team: false, email: false, notify: false, welcome: false };
 

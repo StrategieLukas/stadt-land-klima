@@ -1,3 +1,7 @@
+import { queryText, queryIds } from "~/server/utils/publicQuery";
+import { z } from "zod";
+import { TourStopSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
@@ -20,7 +24,7 @@ export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
   const client = createDirectusServerClient()
   const query = getQuery(event)
-  const tourId = query.tourId as string | undefined
+  const tourId = queryText(query.tourId, 100)
 
   if (!tourId) {
     return { stops: [] }
@@ -35,5 +39,5 @@ export default defineEventHandler(async (event) => {
     limit: -1,
   }))
 
-  return { stops }
+  return { stops: parseCms(z.array(TourStopSchema), stops) }
 })

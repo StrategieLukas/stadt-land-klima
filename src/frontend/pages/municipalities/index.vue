@@ -263,13 +263,13 @@
             :key="project.id"
             :slug="project.slug"
             :title="project.title"
-            :municipality_name="project.municipality_name"
-            :state="project.state"
-            :abstract="project.abstract"
-            :author="project.author"
-            :date="new Date(project.date_created)"
-            :image_id="project.image.id"
-            :image_is_raster="isRaster(project.image.type)"
+            :municipality_name="project.municipality_name ?? undefined"
+            :state="project.state ?? undefined"
+            :abstract="project.abstract ?? undefined"
+            :author="project.author ?? undefined"
+            :date="new Date(project.date_created ?? 0)"
+            :image_id="project.image?.id"
+            :image_is_raster="isRaster(project.image?.type)"
             :organisation="project.organisation"
           />
         </div>
@@ -318,7 +318,7 @@
 </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const majorCitySelected = '/icons/major-city-light.svg'
 const majorCityNotSelected = '/icons/major-city-dark.svg'
 const minorCitySelected = '/icons/minor-city-light.svg'
@@ -332,7 +332,7 @@ const { sortBy, last, get } = lodash;
 const { $t, $locale } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
 const onboardingAvatarUrl = computed(() => `${String(runtimeConfig.public.clientDirectusUrl || "").replace(/\/+$/, "")}/assets/56a814bb-fac4-4b80-88d7-a6fc8bd71580?width=96&height=96`);
-const rankingColumn = ref(null)
+const rankingColumn = ref<HTMLElement | null>(null)
 const rankingColumnHeight = ref(0)
 
 function updateRankingColumnHeight() {
@@ -401,15 +401,15 @@ watch(() => route.query.v, async (newV, oldV) => {
   selectedCatalogVersion.value = await getCatalogVersion(route);
 });
 
-const majorCityScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'big_city'));
-const minorCitiesScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'small_city'));
+const majorCityScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality?.municipality_type === 'big_city'));
+const minorCitiesScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality?.municipality_type === 'small_city'));
 const filteredMunicipalityScores = computed(() => {
   if (selected.value === 'major_city') return majorCityScores.value;
   if (selected.value === 'minor_city') return minorCitiesScores.value;
   return municipalityScores.value ?? [];
 });
 
-function getSublist(condition) {
+function getSublist(condition: (score: NonNullable<typeof municipalityScores.value>[number]) => boolean) {
   return (municipalityScores.value?.filter(condition) || [])
     .map((item, index) => ({
       ...item,

@@ -1,3 +1,4 @@
+import { FeedbackRequestSchema } from "~/shared/contracts/submissions";
 import { createDirectus, rest, staticToken, createItem } from '@directus/sdk';
 import { verifyAltcha } from '../utils/verifyAltcha';
 
@@ -11,7 +12,9 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey: string = (config.altchaSecret as string) || 'dev-secret-change-in-production';
 
-  const body = await readBody(event);
+  const parsedBody = FeedbackRequestSchema.safeParse(await readRequestBody<unknown>(event));
+  if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
+  const body = parsedBody.data;
   const { title, type, content, name, contact, sendCopy, altcha } = body ?? {};
 
   // Validate required fields

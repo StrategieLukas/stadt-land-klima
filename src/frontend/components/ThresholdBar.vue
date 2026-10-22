@@ -100,13 +100,13 @@ const zones = computed(() => {
 
   const raw: { start: number; end: number; color: string }[] = []
   // Red zone: 0 to first break
-  raw.push({ start: 0, end: breaks[0].val, color: 'red' })
+  raw.push({ start: 0, end: breaks[0]!.val, color: 'red' })
   // Zones between breaks
   for (let i = 0; i < breaks.length - 1; i++) {
-    raw.push({ start: breaks[i].val, end: breaks[i + 1].val, color: breaks[i].color })
+    raw.push({ start: breaks[i]!.val, end: breaks[i + 1]!.val, color: breaks[i]!.color })
   }
   // Final zone: last break to axisMax
-  raw.push({ start: breaks[breaks.length - 1].val, end: max, color: breaks[breaks.length - 1].color })
+  raw.push({ start: breaks[breaks.length - 1]!.val, end: max, color: breaks[breaks.length - 1]!.color })
 
   return raw
     .filter(z => z.end > z.start)

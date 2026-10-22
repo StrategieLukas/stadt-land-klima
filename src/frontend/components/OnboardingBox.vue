@@ -1,7 +1,8 @@
 <template>
   <div class="flex flex-col bg-white shadow-xl border-2 p-4 h-36" style="border-color: #339737;">
     <div class="flex items-center gap-3 flex-1 min-h-0">
-      <img v-if="avatarSrc" :src="avatarSrc" :alt="name"
+      <img
+v-if="avatarSrc" :src="avatarSrc" :alt="name"
            class="w-12 h-12 rounded-full flex-shrink-0 object-cover" />
       <div v-else class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #339737;">
         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -14,9 +15,9 @@
       </div>
     </div>
     <button
-      @click="openCal"
       class="mt-2 inline-block w-full text-center px-3 py-2 text-white text-sm font-semibold rounded-md hover:opacity-90 transition-opacity"
       style="background-color: #339737;"
+      @click="openCal"
     >
       {{ $t("onboarding.book_appointment.short") }} →
     </button>
@@ -33,9 +34,9 @@
         <div id="my-cal-inline-onboarding" class="w-[90vw] h-[90vh]"></div>
 
         <button
-          @click="closeCal"
           class="absolute top-3 right-3 text-white text-2xl"
           aria-label="Close"
+          @click="closeCal"
         >
           ✕
         </button>
@@ -45,7 +46,7 @@
 
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, nextTick, watch } from 'vue'
 const { $t } = useNuxtApp()
 
@@ -55,7 +56,7 @@ defineProps({
 })
 
 const showCal = ref(false)
-let renderedOnce = false
+const _renderedOnce = false
 
 async function openCal() {
   showCal.value = true

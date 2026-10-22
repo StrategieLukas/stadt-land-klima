@@ -1,3 +1,5 @@
+import { ProjectDetailSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
@@ -14,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const articles = await client.request(readItems('articles', {
     filter: { slug: { _eq: slug }, status: { _eq: 'published' } },
     fields: [
-      'id', 'slug', 'title', 'subtitle', 'abstract', 'article_text',
+      'id', 'slug', 'title', 'date_created', 'subtitle', 'abstract', 'article_text',
       'image_credits', 'author', 'municipality_name', 'state',
       'link', 'instagram', 'linkedin', 'profile_stage',
       { image: ['id', 'type'] },
@@ -28,5 +30,5 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Article not found' })
   }
 
-  return { article: articles[0] }
+  return { article: parseCms(ProjectDetailSchema, articles[0]) }
 })

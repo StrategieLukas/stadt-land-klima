@@ -1,3 +1,7 @@
+import { queryChoice, queryLimit } from "~/server/utils/publicQuery";
+import { z } from "zod";
+import { EventSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
@@ -7,21 +11,13 @@ export default defineEventHandler(async (event) => {
   const client = createDirectusServerClient()
   const query = getQuery(event)
 
-  const filter: Record<string, any> = { status: { _eq: 'published' } }
-  if (typeof query.category === 'string' && query.category) {
-    filter.event_category = { _eq: query.category }
-  }
-  // Support excluding internal events
-  if (query.excludeInternal === 'true') {
-    filter._or = [
-      { event_category: { _null: true } },
-      { event_category: { _neq: 'internal' } },
-    ]
-  }
-
-  const limitParam = query.limit
-  const limit = limitParam === '-1' ? -1 : Math.min(Number(limitParam) || 20, 200)
-  const sort = typeof query.sort === 'string' ? query.sort : '-start_date'
+  const filter: Record<string, unknown> = { status: { _eq: 'published' } }
+  const category = queryChoice(query.category, ['internal', 'own_public', 'external', 'active_participation']);
+  if (category) filter.event_category = {_eq: category};
+  const excludeInternal = queryChoice(query.excludeInternal, ['true', 'false']);
+  if (excludeInternal === 'true') filter._or = [{event_category: {_null: true}}, {event_category: {_neq: 'internal'}}];
+  const limit = queryLimit(query.limit, 20, 200, true);
+  const sort = queryChoice(query.sort, ['start_date', '-start_date', 'title', '-title'], '-start_date');
 
   const events = await client.request(readItems('events', {
     filter,
@@ -30,9 +26,9 @@ export default defineEventHandler(async (event) => {
       'location', 'event_type', 'event_category', 'image_credits',
       { image: ['id', 'type'] },
     ],
-    sort: [sort],
+    sort: [sort ?? '-start_date'],
     limit,
   }))
 
-  return { events }
+  return { events: parseCms(z.array(EventSchema), events) }
 })

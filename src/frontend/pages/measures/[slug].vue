@@ -7,7 +7,7 @@
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        {{ detailSector ? $t("measure.back_label", { ":sector": $t(`measure_sectors.${detailSector}.title`) }) : $t("measures.back_label") }}
+        {{ detailSector ? $t("measure.back_label", { ":sector": $translateDynamic(`measure_sectors.${detailSector}.title`) }) : $t("measures.back_label") }}
       </NuxtLink>
 
       <div v-if="prevMeasure || nextMeasure" class="flex items-center gap-1 ml-2">
@@ -39,7 +39,7 @@
       <NuxtLink
         v-for="mv in measureVersions"
         :key="mv.catalog_version.id"
-        :to="measureDetailLocation(route.params.slug, mv.catalog_version.name)"
+        :to="measureDetailLocation(slug!, mv.catalog_version.name)"
         class="slk-filter-pill px-2.5 py-1 transition"
         :class="currentCatalogVersion.id === mv.catalog_version.id ? 'slk-filter-pill--active' : ''"
       >
@@ -164,7 +164,7 @@
           <ClientOnly>
             <MeasureRatingSankey
               v-if="measure?.id"
-              :measure-slug="route.params.slug"
+              :measure-slug="slug!"
               :measure-versions="measureVersions || []"
             />
           </ClientOnly>
@@ -175,12 +175,15 @@
 
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useHeaderHeight } from '~/composables/useHeaderHeight';
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden';
-const { $t } = useNuxtApp();
+import { routeSlug } from "~/shared/routeValues";
+const { $t, $translateDynamic } = useNuxtApp();
 const route = useRoute();
+const slug = routeSlug(route.params.slug);
+if (!slug) throw createError({statusCode: 404, statusMessage: "Measure not found"});
 const router = useRouter();
 const config = useRuntimeConfig();
 const directusUrl = config.public.clientDirectusUrl;
@@ -196,7 +199,7 @@ const measureIndexLocation = computed(() => ({
     ...(detailSector.value ? { sector: detailSector.value } : {}),
   },
 }));
-function measureDetailLocation(slug, versionName = currentCatalogVersion.value.name) {
+function measureDetailLocation(slug: string, versionName = currentCatalogVersion.value.name) {
   return {
     path: `/measures/${slug}`,
     query: {
@@ -209,8 +212,8 @@ const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
 const isDesktop = useState('layout-isDesktop');
 const pillTop = computed(() => isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64));
-const mobilePillStrip = ref(null);
-let sectionObserver = null;
+const mobilePillStrip = ref<HTMLElement | null>(null);
+let sectionObserver: IntersectionObserver | null = null;
 
 // Use a ref so the reactive key below re-fetches automatically when the version changes.
 const currentCatalogVersion = ref(await getCatalogVersion(route, false));
@@ -230,7 +233,7 @@ onUnmounted(() => {
 // version. The watch option triggers an automatic re-fetch when currentCatalogVersion changes.
 const { data: measureData } = await useAsyncData(
   () => `measure-${route.params.slug}-${currentCatalogVersion.value.id}`,
-  () => $fetch(`/api/public/measures/${encodeURIComponent(route.params.slug)}`, {
+  () => $fetch(`/api/public/measures/${encodeURIComponent(slug!)}`, {
     query: { v: currentCatalogVersion.value.name },
   }),
 );
@@ -238,19 +241,20 @@ const measure = computed(() => measureData.value?.measure ?? null);
 const measureVersions = computed(() => measureData.value?.versions ?? []);
 const measureImageId = computed(() => {
   const image = measure.value?.image;
-  return typeof image === 'string' ? image : image?.id ?? null;
+  return image ?? null;
 });
 const measureImageCredits = computed(() => {
   const image = measure.value?.image;
-  return measure.value?.image_credits || (typeof image === 'object' && image ? image.image_credits : '') || '';
+  return measure.value?.image_credits || "" || '';
 });
 
 // Sections present on this measure (drives sidebar / pills nav)
 const hasDescriptions = computed(() => {
   if (!measure.value) return false;
+  const currentMeasure = measure.value;
   return ['description_benefit', 'description_verification', 'description_contribution',
     'description_implementation', 'description_legal', 'description_funding', 'description_tutorial',
-  ].some(k => measure.value[k]);
+  ].some(k => currentMeasure[k as keyof typeof currentMeasure]);
 });
 const feedbackLocation = computed(() => {
   const measureTitle = measure.value
@@ -282,10 +286,10 @@ const navItems = computed(() => {
       ? { id: 'section-descriptions', label: $t('measure.sections.descriptions') } : null,
     { id: 'section-ratings',      label: $t('measure.sections.ratings') },
     { id: 'section-history',      label: $t('measure_rating.history.title') },
-  ].filter(Boolean);
+  ].filter((item): item is NonNullable<typeof item> => item !== null);
 });
 
-const activeSection = ref(null);
+const activeSection = ref<string | null>(null);
 
 watch(activeSection, (id) => {
   if (!id || !mobilePillStrip.value) return;
@@ -310,7 +314,7 @@ function initSectionObserver() {
     },
     { rootMargin: '-20% 0px -70% 0px', threshold: 0 },
   );
-  sections.forEach(s => sectionObserver.observe(s));
+  sections.forEach(s => sectionObserver?.observe(s));
 }
 
 watch(navItems, () => {
@@ -321,7 +325,7 @@ watch(navItems, () => {
 const { data: measureRatings } = await useAsyncData(
   () => `measure-ratings-${measure.value?.id ?? 'none'}`,
   () => {
-    if (!measure.value?.id) return []
+    if (!measure.value?.id) return Promise.resolve([])
     return $fetch('/api/public/measure-ratings', { query: { measureId: measure.value.id } }).then(result => result.ratings)
   },
   { watch: [measure] }
@@ -340,7 +344,7 @@ const siblingMeasures = computed(() => siblingMeasuresRaw.value?.measures ?? [])
 const siblingIndex = computed(() => siblingMeasures.value.findIndex(m => m.slug === route.params.slug));
 const prevMeasure = computed(() => siblingIndex.value > 0 ? siblingMeasures.value[siblingIndex.value - 1] : null);
 const nextMeasure = computed(() => siblingIndex.value < siblingMeasures.value.length - 1 ? siblingMeasures.value[siblingIndex.value + 1] : null);
-function handleArrowKey(e) {
+function handleArrowKey(e: KeyboardEvent) {
   if (e.key === 'ArrowLeft' && prevMeasure.value) {
     e.preventDefault();
     router.push(measureDetailLocation(prevMeasure.value.slug));

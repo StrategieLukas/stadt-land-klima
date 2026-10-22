@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-directus-page prose max-w-none" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-directus-page prose max-w-none">
     <div v-if="pageHtml" v-html="pageHtml" />
     <p v-else class="text-gray italic">Kein Seiteninhalt verfügbar.</p>
   </div>

@@ -16,6 +16,7 @@
       <div class="flex h-10 flex-row items-end gap-x-1">
         <div
           v-for="index in range(0, max)"
+          :key="index"
           :class="value >= index + 1 ? 'bg-light-blue' : 'bg-black bg-opacity-20'"
           :style="{ height: valuePercent(index + 1) + '%', width: 100 / max + '%' }"
         ></div>
@@ -26,9 +27,10 @@
     </figcaption>
   </figure>
 </template>
-<script setup>
+<script setup lang="ts">
+
 import lodash from "lodash";
-const { range } = lodash;
+const range = lodash.range.bind(lodash);
 
 const props = defineProps({
   icon: {
@@ -53,7 +55,7 @@ const props = defineProps({
   },
 });
 
-function valuePercent(index) {
+function valuePercent(index: number) {
   return (index / props.max) * 100;
 }
 </script>

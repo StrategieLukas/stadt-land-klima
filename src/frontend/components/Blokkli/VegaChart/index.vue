@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-vega-chart" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-vega-chart">
     <!-- Edit mode: show editable JSON fields -->
     <div v-if="isEditing" class="space-y-3">
       <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Vega-Lite Spec</div>
@@ -69,7 +69,20 @@
 </template>
 
 <script setup lang="ts">
+import { z } from 'zod';
+import type { EmbedOptions, VisualizationSpec } from 'vega-embed';
+import { asRecord, cloneVisualization, displayScalar, attachVisualizationData, type VisualizationData } from '~/shared/visualization';
+
 import { ref, computed, watch, onMounted, nextTick, unref } from 'vue'
+
+import { INJECT_PROVIDER_CONTEXT } from '#blokkli/helpers/injections'
+import { defaultVegaQuery as defaultQuery } from '~/shared/vegaQuery'
+const querySchema = z.object({collection: z.string().optional(), method: z.string().optional(), args: z.array(z.unknown()).optional(), query: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(), variables: z.record(z.string(), z.unknown()).optional(), url: z.string().optional(), dataPath: z.string().optional()});
+function errorText(error: unknown): string { return error instanceof Error ? error.message : String(error); }
+function selectData(input: unknown, path?: string): VisualizationData | null {
+  const value = path ? path.split('.').reduce<unknown>((value, key) => Array.isArray(value) ? value[Number(key)] : asRecord(value)?.[key], input) : input;
+  return Array.isArray(value) ? value as unknown[] : asRecord(value);
+}
 
 const { isDark } = useTheme()
 
@@ -91,9 +104,6 @@ const darkVegaConfig = {
 let renderTimer: ReturnType<typeof setTimeout> | null = null
 let rendering = false
 let lastRenderKey = ''
-
-import { INJECT_PROVIDER_CONTEXT } from '#blokkli/helpers/injections'
-import { defaultVegaQuery as defaultQuery } from '~/shared/vegaQuery'
 
 const publicContext = inject(INJECT_PROVIDER_CONTEXT)
 const isDraftPreview = Boolean(useRoute().query.blokkliPreview)
@@ -133,7 +143,7 @@ const { options, uuid } = defineBlokkli({
   },
   editor: {
     addBehaviour: 'editable:spec',
-    editTitle: (el) => 'Vega-Lite Chart',
+    editTitle: (_el) => 'Vega-Lite Chart',
     mockProps: () => {
       return {
         spec: JSON.stringify(
@@ -228,15 +238,15 @@ const chartContainer = ref<HTMLElement | null>(null)
 const editChartContainer = ref<HTMLElement | null>(null)
 const errorMessage = ref('')
 const loading = ref(false)
-const debugData = ref<any[] | null>(null)
+const debugData = ref<VisualizationData | null>(null)
 
 const { $stadtlandzahlAPI, $apollo } = useNuxtApp()
 const { getAuthenticatedClient } = useAuth()
 const config = useRuntimeConfig()
 
-function parseJsonSafe(text: string | object | undefined): any | null {
+function parseJsonSafe(text: unknown): unknown {
   if (!text) return null
-  if (typeof text !== 'string') return text as any
+  if (typeof text !== 'string') return text
   try {
     return JSON.parse(text)
   } catch {
@@ -255,13 +265,13 @@ const tableColumns = computed(() => {
   return Array.from(keys)
 })
 
-function flattenRow(obj: any, prefix = ''): Record<string, any> {
-  const result: Record<string, any> = {}
+function flattenRow(obj: Record<string, unknown>, prefix = ''): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
   for (const key of Object.keys(obj)) {
     const path = prefix ? `${prefix}.${key}` : key
     const val = obj[key]
     if (val && typeof val === 'object' && !Array.isArray(val)) {
-      Object.assign(result, flattenRow(val, path))
+      Object.assign(result, flattenRow(asRecord(val) ?? {}, path))
     } else {
       result[path] = val
     }
@@ -270,20 +280,19 @@ function flattenRow(obj: any, prefix = ''): Record<string, any> {
 }
 
 const flatData = computed(() => {
-  if (!debugData.value) return null
-  return debugData.value.map((row) =>
-    row && typeof row === 'object' ? flattenRow(row) : row,
-  )
+  if (!Array.isArray(debugData.value)) return null
+  return debugData.value.flatMap((row: unknown) => {const record = asRecord(row); return record ? [flattenRow(record)] : []})
 })
 
-function formatCell(value: any): string {
+function formatCell(value: unknown): string {
   if (value === null || value === undefined) return '–'
   if (typeof value === 'object') return JSON.stringify(value)
-  return String(value)
+  return displayScalar(value)
 }
 
-async function fetchQueryData(queryConfig: any, source: string): Promise<any[] | null> {
-  if (!queryConfig) return null
+async function fetchQueryData(input: unknown, source: string): Promise<VisualizationData | null> {
+  if (!input) return null
+  const queryConfig = querySchema.parse(input)
 
   try {
     // ── Directus backend ──
@@ -292,38 +301,42 @@ async function fetchQueryData(queryConfig: any, source: string): Promise<any[] |
       if (!queryConfig.collection) {
         throw new Error('Directus query requires a "collection" field')
       }
-      const result = isEditing || isDraftPreview
-        ? await getAuthenticatedClient().request((await import('@directus/sdk')).readItems(queryConfig.collection, queryConfig.query || {}))
+      const result: unknown = isEditing || isDraftPreview
+        ? await getAuthenticatedClient().request((await import('@directus/sdk')).readItems<Record<string, Record<string, unknown>[]>, string, import('@directus/sdk').Query<Record<string, Record<string, unknown>[]>, Record<string, unknown>>>(queryConfig.collection, (typeof queryConfig.query === 'object' ? queryConfig.query : {})))
         : await $fetch(`/api/public/chart-data/${encodeURIComponent(uuid)}`, { query: { entityType: publicContext?.value.type, entityUuid: publicContext?.value.uuid } })
       const data = Array.isArray(result) ? result : [result]
-      if (queryConfig.dataPath) {
-        return queryConfig.dataPath.split('.').reduce((obj: any, key: string) => obj?.[key], data)
-      }
-      return data
+      return selectData(data, queryConfig.dataPath)
     }
 
     // ── Stadt-Land-Zahl backend ──
     // 1. { "method": "fetchHistogramData", "args": [...] }
     if (queryConfig.method) {
-      const api = $stadtlandzahlAPI as any
-      if (typeof api[queryConfig.method] !== 'function') {
-        throw new Error(`Unknown stadtlandzahl method: ${queryConfig.method}`)
+      const args = queryConfig.args ?? [];
+      const stringAt = (i: number) => z.string().parse(args[i]);
+      const numberAt = (i: number) => z.number().parse(args[i]);
+      let result: unknown;
+      switch (queryConfig.method) {
+        case 'fetchHistogramData': result = await $stadtlandzahlAPI.fetchHistogramData(stringAt(0), stringAt(1)); break;
+        case 'fetchStatsByARS': result = await $stadtlandzahlAPI.fetchStatsByARS(stringAt(0)); break;
+        case 'fetchMunicipalitiesInRegion': result = await $stadtlandzahlAPI.fetchMunicipalitiesInRegion(stringAt(0), numberAt(1)); break;
+        case 'getNearbyAdministrativeAreas': result = await $stadtlandzahlAPI.getNearbyAdministrativeAreas(numberAt(0), numberAt(1), numberAt(2), z.array(z.number()).optional().parse(args[3])); break;
+        case 'searchAdministrativeAreas': result = await $stadtlandzahlAPI.searchAdministrativeAreas(stringAt(0), z.enum(['normal', 'reasonable', 'all']).default('reasonable').parse(args[1])); break;
+        case 'searchThroughAdministrativeAreasByName': result = await $stadtlandzahlAPI.searchThroughAdministrativeAreasByName(stringAt(0), z.object({isReasonableForMunicipalRating: z.boolean().optional()}).default({}).parse(args[1])); break;
+        case 'fetchCollectionRender': result = await $stadtlandzahlAPI.fetchCollectionRender(stringAt(0), stringAt(1), z.number().nullable().default(null).parse(args[2])); break;
+        case 'fetchRenderElement': result = await $stadtlandzahlAPI.fetchRenderElement(stringAt(0), stringAt(1), stringAt(2)); break;
+        default: throw new Error(`Unknown stadtlandzahl method: ${queryConfig.method}`);
       }
-      const args = Array.isArray(queryConfig.args) ? queryConfig.args : []
-      return await api[queryConfig.method](...args)
+      return selectData(result, queryConfig.dataPath);
     }
 
     // 2. { "query": "query { ... }", "variables": {...}, "dataPath": "..." }
-    if (queryConfig.query) {
+    if (typeof queryConfig.query === 'string') {
       const { default: gql } = await import('graphql-tag')
-      const result = await ($apollo as any).query({
+      const result = await $apollo.query({
         query: gql(queryConfig.query),
         variables: queryConfig.variables || {},
       })
-      if (queryConfig.dataPath) {
-        return queryConfig.dataPath.split('.').reduce((obj: any, key: string) => obj?.[key], result.data)
-      }
-      return result.data
+      return selectData(result.data, queryConfig.dataPath)
     }
 
     // 3. { "url": "/api/areas/...", "dataPath": "..." }
@@ -337,16 +350,13 @@ async function fetchQueryData(queryConfig: any, source: string): Promise<any[] |
 
       const response = await fetch(url)
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      const data = await response.json()
-      if (queryConfig.dataPath) {
-        return queryConfig.dataPath.split('.').reduce((obj: any, key: string) => obj?.[key], data)
-      }
-      return data
+      const data: unknown = await response.json()
+      return selectData(data, queryConfig.dataPath)
     }
 
     return null
-  } catch (err: any) {
-    throw new Error(`Query error: ${err.message}`)
+  } catch (err: unknown) {
+    throw new Error(`Query error: ${errorText(err)}`, {cause: err})
   }
 }
 
@@ -369,7 +379,8 @@ async function renderChart() {
     loading.value = false
     debugData.value = null
 
-    const specObj = parseJsonSafe(props.spec || defaultSpec)
+    const parsedSpec = parseJsonSafe(props.spec || defaultSpec)
+    const specObj = parsedSpec ? cloneVisualization(parsedSpec) : null
     if (!specObj) {
       errorMessage.value = 'Ungültige Vega-Lite Spezifikation (kein gültiges JSON).'
       return
@@ -383,14 +394,10 @@ async function renderChart() {
         const data = await fetchQueryData(queryConfig, options.value.dataSource)
         if (data) {
           debugData.value = data
-          if (specObj.data?.name) {
-            specObj._fetchedDatasets = { [specObj.data.name]: data }
-          } else {
-            specObj.data = { values: data }
-          }
+          attachVisualizationData(specObj, data)
         }
-      } catch (err: any) {
-        errorMessage.value = err.message
+      } catch (err: unknown) {
+        errorMessage.value = errorText(err)
         loading.value = false
         return
       }
@@ -411,20 +418,15 @@ async function renderChart() {
 
     const { default: vegaEmbed } = await import('vega-embed')
 
-    const embedOpts: any = {
+    const embedOpts: EmbedOptions = {
       actions: false,
       renderer: 'svg',
       ...(isDark.value ? { config: darkVegaConfig } : {}),
     }
 
-    if (specObj._fetchedDatasets) {
-      embedOpts.datasets = specObj._fetchedDatasets
-      delete specObj._fetchedDatasets
-    }
-
-    await vegaEmbed(container, specObj, embedOpts)
-  } catch (err: any) {
-    errorMessage.value = `Render-Fehler: ${err.message}`
+    await vegaEmbed(container, specObj as VisualizationSpec, embedOpts)
+  } catch (err: unknown) {
+    errorMessage.value = `Render-Fehler: ${errorText(err)}`
   } finally {
     rendering = false
   }
@@ -434,7 +436,7 @@ function scheduleRender() {
   if (renderTimer) clearTimeout(renderTimer)
   renderTimer = setTimeout(() => {
     renderTimer = null
-    renderChart()
+    void renderChart()
   }, 300)
 }
 
@@ -445,7 +447,7 @@ watch(
 )
 
 onMounted(() => {
-  nextTick(renderChart)
+  void nextTick(renderChart)
 })
 </script>
 

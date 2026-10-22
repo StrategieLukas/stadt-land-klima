@@ -17,7 +17,7 @@
         <LGeoJson
           v-for="neighbor in visibleNeighbors"
           :key="neighbor.ars"
-          :geojson="parseGeo(neighbor.geo_area ?? neighbor.geoArea)"
+          :geojson="parseGeo(neighbor.geo_area ?? neighbor.geoArea) ?? undefined"
           :options="areaOptions(neighbor, false)"
         />
 
@@ -42,23 +42,28 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from 'leaflet';
+import { parseGeoData, parseGeoCenter } from '~/shared/contracts/geometry';
+import type { PropType } from 'vue';
+import type { Area } from '~/shared/contracts/search';
+
 import { computed, ref } from "vue";
 import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
-  area: { type: Object, required: true },
-  nearbyAreas: { type: Array, default: () => [] },
+  area: { type: Object as PropType<Area>, required: true },
+  nearbyAreas: { type: Array as PropType<Area[]>, default: () => [] },
   nearbyAreasLoading: { type: Boolean, default: false },
 });
 
 const router = useRouter();
 const { start: startDataRouteFeedback } = useDataRouteFeedback();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
-const mapRef = ref(null);
+const mapRef = shallowRef<{leafletObject: LeafletMap} | null>(null);
 const mapReady = ref(false);
 const zoom = ref(10);
-let pendingBounds = null;
+let pendingBounds: LatLngBounds | null = null;
 
 const fitMaxZoom = 12;
 const minZoomStepBack = 2;
@@ -90,42 +95,30 @@ const visibleNeighbors = computed(() =>
   }),
 );
 
-const mapCenter = computed(() => centerFor(props.area) ?? [51.1657, 10.4515]);
+const mapCenter = computed<[number, number]>(() => centerFor(props.area) ?? [51.1657, 10.4515]);
 
-function parseGeo(geoArea) {
-  if (!geoArea) return null;
-  if (typeof geoArea === "object") return geoArea;
-  try {
-    return JSON.parse(geoArea);
-  } catch {
-    return null;
-  }
+function parseGeo(input: unknown) { return parseGeoData(input); }
+
+function centerFor(area: Area): [number, number] | null {
+  const center = parseGeoCenter(area.geo_center ?? area.geoCenter);
+  return center ? [center.lat, center.lon] : null;
 }
 
-function centerFor(area) {
-  const center = area?.geo_center ?? area?.geoCenter;
-  if (!center) return null;
-  if (Array.isArray(center) && center.length >= 2) return [center[1], center[0]];
-  if (center.coordinates?.length >= 2) return [center.coordinates[1], center.coordinates[0]];
-  if (typeof center.lat === "number" && typeof center.lon === "number") return [center.lat, center.lon];
-  return null;
-}
-
-function areaLabel(area) {
+function areaLabel(area: Area) {
   return `${area?.prefix ?? ""} ${area?.name ?? ""}`.trim();
 }
 
-function isReasonableArea(area) {
+function isReasonableArea(area: Area) {
   return (area?.is_reasonable_for_municipal_rating ?? area?.isReasonableForMunicipalRating ?? true) === true;
 }
 
-function navigateToArea(area) {
+function navigateToArea(area: Area) {
   if (!area?.prefix || !area?.name) return;
   startDataRouteFeedback(`${area.name} wird geladen...`, area);
-  router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
+  void router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
 }
 
-function areaOptions(area, selected) {
+function areaOptions(area: Area, selected: boolean): GeoJSONOptions {
   const base = selected
     ? { color: "#f27c00", fillColor: "#f27c00", fillOpacity: 0.24, opacity: 0.95, weight: 2.6 }
     : { color: "#6b7280", fillColor: "#9ca3af", fillOpacity: 0.08, opacity: 0.65, weight: 1 };
@@ -139,22 +132,22 @@ function areaOptions(area, selected) {
         direction: "center",
         permanent: true,
       });
-      layer.on("click", () => navigateToArea(area));
+      layer.on("click", () => { navigateToArea(area); });
 
       const hoverStyle = { ...base, fillOpacity: selected ? 0.32 : 0.16, opacity: 1 };
       layer.on("mouseenter", () => {
-        layer.setStyle(hoverStyle);
-        if (!selected) layer.bringToFront();
+        (layer as Path).setStyle(hoverStyle);
+        if (!selected) (layer as Path).bringToFront();
       });
       layer.on("mouseleave", () => {
-        layer.setStyle(base);
-        if (!selected) layer.bringToBack();
+        (layer as Path).setStyle(base);
+        if (!selected) (layer as Path).bringToBack();
       });
     },
   };
 }
 
-function fitBounds(layer) {
+function fitBounds(layer: LeafletGeoJSON) {
   try {
     const bounds = layer.getBounds();
     if (!bounds.isValid()) return;
@@ -165,16 +158,16 @@ function fitBounds(layer) {
     } else {
       pendingBounds = bounds;
     }
-  } catch (_) {}
+  } catch { /* Invalid or unavailable map data is optional. */ }
 }
 
-function applyZoomSteps(leafletMap) {
+function applyZoomSteps(leafletMap: LeafletMap) {
   const currentZoom = leafletMap.getZoom();
   leafletMap.setMinZoom(Math.max(mapMinZoom, currentZoom - minZoomStepBack));
   leafletMap.setMaxZoom(Math.min(mapMaxZoom, currentZoom + maxZoomStepForward));
 }
 
-function onMapReady(mapInstance) {
+function onMapReady(mapInstance: LeafletMap) {
   mapReady.value = true;
   if (pendingBounds) {
     mapInstance.fitBounds(pendingBounds, { padding: [26, 26], maxZoom: fitMaxZoom });
@@ -186,7 +179,7 @@ function onMapReady(mapInstance) {
   }, 150);
 }
 
-function onBoundaryReady(layer) {
+function onBoundaryReady(layer: LeafletGeoJSON) {
   fitBounds(layer);
 }
 </script>

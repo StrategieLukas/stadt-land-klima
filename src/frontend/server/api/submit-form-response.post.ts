@@ -1,3 +1,4 @@
+import { GenericFormRequestSchema } from "~/shared/contracts/submissions";
 import { readRequestBody } from "../utils/readRequestBody";
 import { verifyAltcha } from "../utils/verifyAltcha";
 
@@ -163,7 +164,9 @@ function findSenderName(fields: NormalizedField[]) {
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const hmacKey = (config.altchaSecret as string) || "dev-secret-change-in-production";
-  const body = await readRequestBody(event);
+  const parsedBody = GenericFormRequestSchema.safeParse(await readRequestBody<unknown>(event));
+  if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
+  const body = parsedBody.data;
 
   const { formKey, formTitle, pagePath, notificationEmail, sendCopy, fields, values, altcha } = body ?? {};
 

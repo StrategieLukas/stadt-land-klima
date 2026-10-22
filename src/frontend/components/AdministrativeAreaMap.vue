@@ -9,16 +9,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Map as LeafletMap } from 'leaflet';
+import type { PropType } from 'vue';
+import type { Point, GeoJsonObject } from 'geojson';
+
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 
 const props = defineProps({
   geoCenter: {
-    type: Object,
+    type: Object as PropType<Point | null>,
     default: null,
   },
   geoArea: {
-    type: Object,
+    type: Object as PropType<GeoJsonObject | null>,
     default: null,
   },
   administrativeAreaName: {
@@ -27,14 +31,14 @@ const props = defineProps({
   },
 });
 
-const map = ref(null);
+const map = shallowRef<{leafletObject: LeafletMap} | null>(null);
 const zoom = ref(10);
 const mapReady = ref(false);
 
 // Default center (Germany)
-const defaultCenter = [51.1657, 10.4515];
+const defaultCenter: [number, number] = [51.1657, 10.4515];
 
-const geoCenterLatLng = computed(() => {
+const geoCenterLatLng = computed<[number, number] | null>(() => {
   const coordinates = props.geoCenter?.coordinates;
   if (!Array.isArray(coordinates) || coordinates.length < 2) {
     return null;
@@ -73,14 +77,15 @@ const geoJsonOptions = {
   },
 };
 
-const fitBoundsToGeoArea = () => {
+const fitBoundsToGeoArea = async () => {
   if (!props.geoArea || !map.value?.leafletObject || !mapReady.value) {
     return;
   }
 
   try {
     const leafletMap = map.value.leafletObject;
-    const geoJsonLayer = L.geoJSON(props.geoArea);
+    const { geoJSON } = await import('leaflet');
+    const geoJsonLayer = geoJSON(props.geoArea);
     const bounds = geoJsonLayer.getBounds();
 
     if (bounds.isValid()) {
@@ -104,7 +109,7 @@ const onMapReady = () => {
       // Force map to recalculate its size
       leafletMap.invalidateSize();
     }
-    fitBoundsToGeoArea();
+    void fitBoundsToGeoArea();
   }, 100);
 
   // Additional invalidation after a longer delay for large polygons
@@ -112,20 +117,20 @@ const onMapReady = () => {
     const leafletMap = map.value?.leafletObject;
     if (leafletMap) {
       leafletMap.invalidateSize();
-      fitBoundsToGeoArea();
+      void fitBoundsToGeoArea();
     }
   }, 500);
 };
 
 const onGeoJsonReady = () => {
   // Fit bounds when GeoJSON is ready
-  nextTick(() => {
+  void nextTick(() => {
     const leafletMap = map.value?.leafletObject;
     if (leafletMap) {
       // Force map to recalculate its size
       leafletMap.invalidateSize();
     }
-    fitBoundsToGeoArea();
+    void fitBoundsToGeoArea();
   });
 
   // Additional invalidation for large multipolygons
@@ -133,7 +138,7 @@ const onGeoJsonReady = () => {
     const leafletMap = map.value?.leafletObject;
     if (leafletMap) {
       leafletMap.invalidateSize();
-      fitBoundsToGeoArea();
+      void fitBoundsToGeoArea();
     }
   }, 300);
 };
@@ -144,7 +149,7 @@ watch(
   () => {
     if (mapReady.value) {
       setTimeout(() => {
-        fitBoundsToGeoArea();
+        void fitBoundsToGeoArea();
       }, 100);
     }
   },
@@ -177,12 +182,12 @@ onMounted(() => {
   }
 
   // Force map to recalculate after mount for large polygons
-  nextTick(() => {
+  void nextTick(() => {
     setTimeout(() => {
       const leafletMap = map.value?.leafletObject;
       if (leafletMap) {
         leafletMap.invalidateSize();
-        fitBoundsToGeoArea();
+        void fitBoundsToGeoArea();
       }
     }, 200);
   });

@@ -17,8 +17,8 @@
       <!-- Search bar fills remaining space -->
       <button
         class="border-gray-200 dark:border-[var(--slk-border)] flex h-10 min-w-0 flex-1 cursor-text items-center gap-2.5 rounded-full border-2 bg-white dark:bg-[var(--slk-surface-subdued)] px-4 text-left transition-colors hover:border-gray-300 dark:hover:border-[var(--slk-border-strong)]"
-        @click="open()"
         :aria-label="$t('generic.search')"
+        @click="open()"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +36,7 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useSearchPalette } from "~/composables/useSearchPalette";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
@@ -82,5 +82,5 @@ onMounted(() => {
   lastY = window.scrollY;
   window.addEventListener("scroll", onScroll, { passive: true });
 });
-onUnmounted(() => window.removeEventListener("scroll", onScroll));
+onUnmounted(() => { window.removeEventListener("scroll", onScroll); });
 </script>

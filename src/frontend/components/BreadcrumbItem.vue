@@ -62,26 +62,32 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { AreaSchema } from '~/shared/contracts/search';
+import { z } from 'zod';
+import type { Area } from '~/shared/contracts/search';
+
+import type { PropType } from 'vue';
+
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
   label: { type: String, required: true },
-  href: { type: String, default: null },
+  href: { type: String as PropType<string | null>, default: null },
   isCurrent: { type: Boolean, default: false },
-  siblingLevel: { type: Number, default: null },
+  siblingLevel: { type: Number as PropType<number | null>, default: null },
   arsPrefix: { type: String, default: "" },
-  currentArs: { type: String, default: null },
+  currentArs: { type: String as PropType<string | null>, default: null },
 });
 
 const toSlug = areaToSlug;
 const { start: startDataRouteFeedback } = useDataRouteFeedback();
 
-const container = ref(null);
+const container = ref<HTMLElement | null>(null);
 const open = ref(false);
 const loading = ref(false);
-const siblings = ref([]);
+const siblings = ref<Area[]>([]);
 
 async function fetchSiblings() {
   if (siblings.value.length || !props.siblingLevel) return;
@@ -90,7 +96,7 @@ async function fetchSiblings() {
     const params = new URLSearchParams({ level: String(props.siblingLevel) });
     if (props.arsPrefix) params.set("arsPrefix", props.arsPrefix);
     const data = await $fetch(`/api/area-children?${params}`);
-    siblings.value = data ?? [];
+    siblings.value = z.array(AreaSchema).parse(data ?? []);
   } catch {
     siblings.value = [];
   } finally {
@@ -108,21 +114,22 @@ async function toggle() {
   }
 }
 
-function startNavigation(nextLabel) {
+function startNavigation(nextLabel: string) {
   startDataRouteFeedback(`${nextLabel} wird geladen...`);
 }
 
-function selectSibling(sibling) {
+function selectSibling(sibling: Area) {
   open.value = false;
   startNavigation(sibling.name);
 }
 
 // Close on outside click
-function onOutside(e) {
+function onOutside(e: MouseEvent) {
+  if (!(e.target instanceof Node)) return;
   if (container.value && !container.value.contains(e.target)) {
     open.value = false;
   }
 }
-onMounted(() => document.addEventListener("click", onOutside, { passive: true }));
-onBeforeUnmount(() => document.removeEventListener("click", onOutside));
+onMounted(() => { document.addEventListener("click", onOutside, { passive: true }); });
+onBeforeUnmount(() => { document.removeEventListener("click", onOutside); });
 </script>

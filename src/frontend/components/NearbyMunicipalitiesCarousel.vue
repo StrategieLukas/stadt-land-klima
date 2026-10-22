@@ -20,10 +20,10 @@
     <!-- Carousel -->
     <div v-else-if="nearbyAreas.length > 0">
       <div
-        class="scrollbar-hide flex space-x-4 overflow-x-auto pb-4"
         ref="scrollContainer"
-        @scroll="updateShadows"
+        class="scrollbar-hide flex space-x-4 overflow-x-auto pb-4"
         :style="scrollMaskStyle"
+        @scroll="updateShadows"
       >
         <div
           v-for="area in nearbyAreas"
@@ -35,7 +35,7 @@
             <LMap
               :ref="
                 (el) => {
-                  if (el) nearbyMapRefs[area.ars] = el;
+                  if (el && 'leafletObject' in el) nearbyMapRefs[area.ars] = el as ComponentPublicInstance & {leafletObject: LeafletMap};
                 }
               "
               :zoom="10"
@@ -150,14 +150,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { z } from 'zod';
+import type { Map as LeafletMap } from 'leaflet';
+import type { ComponentPublicInstance } from 'vue';
+import {  parseGeoData, parseGeoCenter, type GeoData } from '~/shared/contracts/geometry';
+import { MunicipalitiesResponseSchema, scoreCatalogName } from '~/shared/contracts/search';
+import type { NumericValue } from '~/shared/domain';
+
 import { getScorePercentageColor } from "~/shared/utils";
 import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 
 const config = useRuntimeConfig();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
-const scoreBgColor = (scoreTotal) => getScorePercentageColor(scoreTotal);
+const scoreBgColor = (scoreTotal: NumericValue) => getScorePercentageColor(scoreTotal);
 
 const props = defineProps({
   ars: { type: String, required: true },
@@ -165,12 +172,13 @@ const props = defineProps({
   catalogVersionName: { type: String, required: true },
 });
 
-const nearbyAreas = ref([]);
+type NearbyArea = {ars: string; name: string; prefix: string; ctaType: string; isComplete: boolean; slug: string | null; scoreTotal: number | null; geoCenter: {coordinates: [number, number]} | null; geoArea: GeoData | null};
+const nearbyAreas = ref<NearbyArea[]>([]);
 const loading = ref(false);
 const loaded = ref(false);
-const nearbyMapRefs = ref({});
+const nearbyMapRefs = ref<Record<string, {leafletObject: LeafletMap}>>({});
 
-const scrollContainer = ref(null);
+const scrollContainer = ref<HTMLElement | null>(null);
 const showLeftShadow = ref(false);
 const showRightShadow = ref(true);
 
@@ -191,12 +199,13 @@ const updateShadows = () => {
   showRightShadow.value = scrollLeft < scrollWidth - clientWidth - 1;
 };
 
-const fitBoundsToGeoArea = (ars, geoArea) => {
+const fitBoundsToGeoArea = async (ars: string, geoArea: GeoData | null) => {
   const mapRef = nearbyMapRefs.value[ars];
   if (!geoArea || !mapRef?.leafletObject) return;
   try {
     const leafletMap = mapRef.leafletObject;
-    const geoJsonLayer = L.geoJSON(geoArea);
+    const { geoJSON } = await import('leaflet');
+    const geoJsonLayer = geoJSON(geoArea);
     const bounds = geoJsonLayer.getBounds();
     if (bounds.isValid()) {
       leafletMap.fitBounds(bounds, { padding: [20, 20], maxZoom: 12 });
@@ -206,48 +215,48 @@ const fitBoundsToGeoArea = (ars, geoArea) => {
   }
 };
 
-const onNearbyMapReady = (ars, geoArea) => {
+const onNearbyMapReady = (ars: string, geoArea: GeoData | null) => {
   setTimeout(() => {
     const mapRef = nearbyMapRefs.value[ars];
     if (mapRef?.leafletObject) {
       mapRef.leafletObject.invalidateSize();
-      fitBoundsToGeoArea(ars, geoArea);
+      void fitBoundsToGeoArea(ars, geoArea);
     }
   }, 100);
   setTimeout(() => {
     const mapRef = nearbyMapRefs.value[ars];
     if (mapRef?.leafletObject) {
       mapRef.leafletObject.invalidateSize();
-      fitBoundsToGeoArea(ars, geoArea);
+      void fitBoundsToGeoArea(ars, geoArea);
     }
   }, 500);
 };
 
-const onNearbyGeoJsonReady = (ars, geoArea) => {
-  nextTick(() => {
+const onNearbyGeoJsonReady = (ars: string, geoArea: GeoData | null) => {
+  void nextTick(() => {
     const mapRef = nearbyMapRefs.value[ars];
     if (mapRef?.leafletObject) {
       mapRef.leafletObject.invalidateSize();
-      fitBoundsToGeoArea(ars, geoArea);
+      void fitBoundsToGeoArea(ars, geoArea);
     }
   });
   setTimeout(() => {
     const mapRef = nearbyMapRefs.value[ars];
     if (mapRef?.leafletObject) {
       mapRef.leafletObject.invalidateSize();
-      fitBoundsToGeoArea(ars, geoArea);
+      void fitBoundsToGeoArea(ars, geoArea);
     }
   }, 300);
 };
 
-const fetchMunicipalityData = async (ars) => {
+const fetchMunicipalityData = async (ars: string) => {
   try {
     const catalogs = await getAllCatalogVersions();
     const version = catalogs.find(catalog => catalog.id === props.catalogVersionId);
     if (!version) return null;
-    const { municipalities } = await $fetch('/api/public/area-municipalities', { query: { ars, v: version.name } });
+    const { municipalities } = MunicipalitiesResponseSchema.parse(await $fetch('/api/public/area-municipalities', { query: { ars, v: version.name } }));
     const municipality = municipalities[0];
-    return municipality ? { municipality, score: municipality.scores.find(score => score.catalog_version?.id === props.catalogVersionId) ?? null } : null;
+    return municipality ? { municipality, score: municipality.scores.find(score => scoreCatalogName(score) === version.name) ?? null } : null;
   } catch {
     return null;
   }
@@ -260,7 +269,7 @@ onMounted(async () => {
     const baseUrl = config.public.stadtlandzahlBaseUrl;
     const res = await fetch(`${baseUrl}/api/areas/${props.ars}/bordering-municipalities/`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const data = z.object({bordering_municipalities: z.array(z.object({ars: z.string(), name: z.string(), prefix: z.string(), geo_center: z.unknown().optional(), geo_area: z.unknown().optional()}))}).parse(await res.json());
 
     if (data?.bordering_municipalities?.length) {
       const areas = await Promise.all(
@@ -285,10 +294,10 @@ onMounted(async () => {
             prefix: area.prefix,
             ctaType,
             isComplete,
-            slug: isComplete ? municipality.slug : null,
-            scoreTotal: score?.score_total ?? null,
-            geoCenter: area.geo_center ?? null,
-            geoArea: area.geo_area ?? null,
+            slug: isComplete ? municipality?.slug ?? null : null,
+            scoreTotal: score?.score_total == null ? null : Number(score.score_total),
+            geoCenter: (() => { const c = parseGeoCenter(area.geo_center); return c ? {coordinates: [c.lon, c.lat] as [number, number]} : null; })(),
+            geoArea: parseGeoData(area.geo_area),
           };
         }),
       );

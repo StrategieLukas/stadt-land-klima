@@ -246,6 +246,8 @@ const marginYClass = computed(() => {
   return map[options.value.marginY] || ''
 })
 
+const legacyWidth = computed(() => { const value: unknown = options.value; return value && typeof value === "object" && "width" in value && typeof value.width === "string" ? value.width : ""; });
+
 const innerClass = computed(() => {
   const map: Record<string, string> = {
     full: 'w-full',
@@ -254,13 +256,13 @@ const innerClass = computed(() => {
     // legacy fallbacks
     content: 'max-w-4xl mx-auto',
   }
-  return map[options.value.contentWidth] || map[options.value.width] || 'w-full'
+  return map[options.value.contentWidth] || map[legacyWidth.value] || 'w-full'
 })
 
 const widthBreakout = computed(() => {
   // bgWidth 'full' = 100vw breakout; legacy 'full' or 'page' keys also trigger breakout
-  const v = options.value.bgWidth || options.value.width
-  return v === 'full' || v === 'page' ? 'blokkli-block-container--page-width' : ''
+  const v = options.value.bgWidth || legacyWidth.value
+  return v === 'full' || String(v) === 'page' ? 'blokkli-block-container--page-width' : ''
 })
 
 // When bgWidth='narrow' the background strip is narrower than the content.
@@ -275,7 +277,7 @@ const isHorizontal = computed(() => options.value.orientation === 'horizontal')
 
 const isMultiColumn = computed(() => {
   const l = options.value.layout
-  return l !== 'single' && l !== ''
+  return l !== 'single' && String(l) !== ''
 })
 
 /** Parse "a-b-c-..." into fr-unit values. Returns null on invalid input. */
@@ -337,7 +339,7 @@ const layoutClass = computed(() => {
 const contentAlignClass = computed(() => {
   const align = options.value.contentAlign || 'start'
   const layout = options.value.layout
-  if (layout === 'single' || layout === '') {
+  if (layout === 'single' || String(layout) === '') {
     // flex container: align children
     const map: Record<string, string> = {
       start: 'items-start',

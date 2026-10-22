@@ -7,7 +7,7 @@
                 type="checkbox"
                 name="municipality-description"
                 autocomplete="off"
-                checked="checked"
+                :checked="true"
             />
             <div class="collapse-title flex items-center justify-between px-6 py-4">
                 <div class="flex items-center gap-2">
@@ -77,7 +77,7 @@
 
             <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                <div v-html="MunicipalitySvg" class="h-5 w-5 opacity-60"/>
+                <div class="h-5 w-5 opacity-60" v-html="MunicipalitySvg"/>
                 <span class="text-sm text-gray-700">{{ $t("municipality.municipality_type") }}</span>
                 </div>
                 <span class="text-sm font-bold text-right text-gray-900">
@@ -113,7 +113,11 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { PropType } from 'vue';
+import type { MunicipalityScore } from '~/types/components/municipality';
+
 import majorCity from '~/assets/images/major-city-dark.svg?raw';
 import minorCity from '~/assets/images/minor-city-dark.svg?raw';
 import MarkdownIt from "markdown-it";
@@ -133,8 +137,8 @@ md.linkify.set({ fuzzyLink: false });
 
 const defaultLinkOpenRenderer = md.renderer.rules.link_open || ((tokens, idx, options, env, self) => self.renderToken(tokens, idx, options));
 md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
-  tokens[idx].attrSet("target", "_blank");
-  tokens[idx].attrSet("rel", "noopener noreferrer");
+  tokens[idx]?.attrSet("target", "_blank");
+  tokens[idx]?.attrSet("rel", "noopener noreferrer");
   return defaultLinkOpenRenderer(tokens, idx, options, env, self);
 };
 
@@ -143,7 +147,7 @@ const markdownAllowedAttributes = {
   a: [...(sanitizeHtml.defaults.allowedAttributes.a || []), "target", "rel"],
 };
 
-function renderMarkdown(value) {
+function renderMarkdown(value: string | null | undefined) {
   return sanitizeHtml(md.render(value || ""), {
     allowedAttributes: markdownAllowedAttributes,
   });
@@ -152,7 +156,7 @@ function renderMarkdown(value) {
 
 const props = defineProps({
   municipalityScore: {
-    type: Object,
+    type: Object as PropType<MunicipalityScore>,
     required: true,
   },
 });

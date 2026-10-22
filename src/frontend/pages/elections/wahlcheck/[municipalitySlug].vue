@@ -120,7 +120,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -128,7 +128,14 @@ const route = useRoute();
 const router = useRouter();
 const { $t } = useNuxtApp();
 
-const municipalitySlug = route.params.municipalitySlug;
+import { routeSlug } from "~/shared/routeValues";
+import { checkedWahlcheckState } from "~/shared/contracts/elections";
+import type { z } from "zod";
+import type { WahlcheckSchema } from "~/shared/contracts/elections";
+import type { UserAnswers } from "~/types/components/elections";
+const municipalitySlug = routeSlug(route.params.municipalitySlug);
+if (!municipalitySlug) throw createError({statusCode: 404, statusMessage: "Not found"});
+definePageMeta({key: route => route.path});
 
 // Step management
 const currentStep = ref(1);
@@ -140,19 +147,19 @@ const steps = [
 ];
 
 // User data
-const userAnswers = ref({}); // { questionId: responseValue (0-4) }
-const doubleWeightedQuestions = ref(new Set()); // Set of questionIds
+const userAnswers = ref<UserAnswers>({}); // { questionId: responseValue (0-4) }
+const doubleWeightedQuestions = ref(new Set<string>()); // Set of questionIds
 
 // Session storage key
 const sessionStorageKey = `wahlcheck_${municipalitySlug}`;
-const trackedCompletionIds = new Set();
+const trackedCompletionIds = new Set<string>();
 let completionTrackingPending = false;
 
-function completionStorageKey(electionId) {
+function completionStorageKey(electionId: string) {
   return `wahlcheck_completion_tracked_${electionId}`;
 }
 
-function wasCompletionTracked(electionId) {
+function wasCompletionTracked(electionId: string) {
   if (trackedCompletionIds.has(electionId)) {
     return true;
   }
@@ -164,7 +171,7 @@ function wasCompletionTracked(electionId) {
   }
 }
 
-function markCompletionTracked(electionId) {
+function markCompletionTracked(electionId: string) {
   trackedCompletionIds.add(electionId);
 
   try {
@@ -200,9 +207,8 @@ function loadFromSessionStorage() {
   try {
     const savedData = sessionStorage.getItem(sessionStorageKey);
     if (savedData) {
-      const parsed = JSON.parse(savedData);
-      userAnswers.value = parsed.userAnswers || {};
-      doubleWeightedQuestions.value = new Set(parsed.doubleWeightedQuestions || []);
+      const parsed = checkedWahlcheckState(JSON.parse(savedData), electionData.value?.election.id ?? "", electionData.value?.questions.map(q => q.id) ?? []);
+      if (parsed) {userAnswers.value = parsed.answers; doubleWeightedQuestions.value = new Set(parsed.doubleWeighted);}
     }
   } catch (err) {
     console.error("Error loading from session storage:", err);
@@ -260,10 +266,11 @@ function checkForSharedResults() {
     const urlParams = new URLSearchParams(window.location.search);
     const shareParam = urlParams.get("share");
 
-    if (shareParam) {
+    if (shareParam && shareParam.length <= 20000 && urlParams.getAll("share").length === 1) {
       try {
         const decoded = decodeURIComponent(atob(shareParam));
-        const shareData = JSON.parse(decoded);
+        const shareData = checkedWahlcheckState(JSON.parse(decoded), electionData.value?.election.id ?? "", electionData.value?.questions.map(q => q.id) ?? []);
+        if (!shareData) return;
 
         if (shareData.answers) {
           userAnswers.value = shareData.answers;
@@ -292,8 +299,9 @@ function checkForSharedResults() {
 function saveToSessionStorage() {
   try {
     const dataToSave = {
-      userAnswers: userAnswers.value,
-      doubleWeightedQuestions: Array.from(doubleWeightedQuestions.value),
+      electionId: electionData.value?.election.id,
+      answers: userAnswers.value,
+      doubleWeighted: Array.from(doubleWeightedQuestions.value),
     };
     sessionStorage.setItem(sessionStorageKey, JSON.stringify(dataToSave));
   } catch (err) {
@@ -311,7 +319,8 @@ function clearSessionStorage() {
 }
 
 // Election data
-const electionData = ref(null);
+type PublicWahlcheck = z.output<typeof WahlcheckSchema>;
+const electionData = ref<(PublicWahlcheck & {localteam: PublicWahlcheck["municipality"]; answers: {candidate: string; question: string; response: 0 | 1 | 2 | 3 | 4 | null; explanation: string | null}[]}) | null>(null);
 const pending = ref(true);
 const error = ref(false);
 const errorMessage = ref("");
@@ -326,6 +335,7 @@ async function loadElectionData() {
     const data = await $fetch(`/api/public/wahlcheck/${municipalitySlug}`);
 
     electionData.value = {
+      ...data,
       election: data.election,
       localteam: data.municipality,
       questions: data.questions || [],
@@ -362,7 +372,7 @@ function scrollToProgress() {
 }
 
 // Handle step navigation
-function handleQuestionsNext(answers) {
+function handleQuestionsNext(answers: UserAnswers) {
   userAnswers.value = { ...answers };
   currentStep.value = 2;
   scrollToProgress();
@@ -400,7 +410,7 @@ function handleRestart() {
   scrollToProgress();
 }
 
-function toggleDoubleWeight(questionId) {
+function toggleDoubleWeight(questionId: string) {
   const newSet = new Set(doubleWeightedQuestions.value);
   if (newSet.has(questionId)) {
     newSet.delete(questionId);
@@ -411,8 +421,8 @@ function toggleDoubleWeight(questionId) {
 }
 
 // Load data on mount
-onMounted(() => {
-  loadElectionData();
+onMounted(async () => {
+  await loadElectionData();
   loadFromSessionStorage();
   checkForSharedResults();
   // Update shareable URL if we're already at step 3 (e.g., page refresh)

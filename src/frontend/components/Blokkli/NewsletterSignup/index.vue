@@ -6,16 +6,16 @@
         <div class="mb-6">
           <h2
             v-blokkli-editable:title
-            v-text="props.title"
             class="font-heading text-2xl font-bold mb-2"
             :class="headingClass"
+            v-text="props.title"
           />
           <p
             v-if="props.description || isEditing"
             v-blokkli-editable:description
-            v-text="props.description"
             class="text-base"
             :class="subtextClass"
+            v-text="props.description"
           />
         </div>
 
@@ -30,9 +30,9 @@
             class="flex items-center gap-2 cursor-pointer text-left"
           >
             <input
+              v-model="selectedIds"
               type="checkbox"
               :value="list.id"
-              v-model="selectedIds"
               class="rounded border-gray-300 text-green focus:ring-green"
             />
             <span class="text-sm">{{ list.name }}</span>
@@ -83,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import {  requestErrorMessage } from '~/shared/requestError';
 interface NewsletterList {
   id: number
   name: string
@@ -138,7 +139,7 @@ const allLists = computed<NewsletterList[]>(() => listsData.value?.lists ?? [])
 
 // Parse configured list IDs from the editor option
 const configuredIds = computed<number[]>(() => {
-  const raw = (options.value as any)?.listIds ?? ''
+  const raw = options.value.listIds ?? ''
   if (!raw.trim()) return []
   return raw
     .split(',')
@@ -168,7 +169,7 @@ const alreadySubscribed = ref(false)
 const subscribeError = ref('')
 
 // Dynamic style classes based on background option
-const bg = computed(() => (options.value as any)?.background ?? 'light')
+const bg = computed(() => options.value.background ?? 'light')
 
 const wrapperClass = computed(() => {
   const map: Record<string, string> = {
@@ -219,9 +220,9 @@ async function subscribe() {
     )
     alreadySubscribed.value = result.alreadySubscribed
     subscribeState.value = 'success'
-  } catch (err: any) {
+  } catch (err) {
     subscribeState.value = 'idle'
-    subscribeError.value = err?.data?.message ?? $t('newsletter.subscribe_failed')
+    subscribeError.value = requestErrorMessage(err, $t('newsletter.subscribe_failed'))
   }
 }
 </script>

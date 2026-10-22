@@ -72,16 +72,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
 import { computed, ref, onMounted } from 'vue'
 
 const props = defineProps({
-  progress: Number,
+  progress: { type: Number, default: 0 },
   unit: String,
-  orangeThreshold: Number,
-  yellowThreshold: Number,
-  lightGreenThreshold: Number,
-  darkGreenThreshold: Number,
+  orangeThreshold: { type: Number, default: 0 },
+  yellowThreshold: { type: Number, default: 0 },
+  lightGreenThreshold: { type: Number, default: 0 },
+  darkGreenThreshold: { type: Number, default: 0 },
 })
 
 // Determine max range for scaling
@@ -90,7 +91,7 @@ const maxValue = computed(() =>
 )
 
 const progressRatio = computed(() =>
-  Math.min((props.progress / maxValue.value) * 100, 100)
+  Math.min((props.progress / (maxValue.value || 1)) * 100, 100)
 )
 
 // Start animation from 0 → target width
@@ -105,7 +106,7 @@ const hideMobileLabels = computed(() => props.progress > 3 * props.darkGreenThre
 const hideDesktopLabels = computed(() => props.progress > 5 * props.darkGreenThreshold)
 
 const thresholds = computed(() => {
-  const scale = (value) => (value / maxValue.value) * 100
+  const scale = (value: number) => (value / (maxValue.value || 1)) * 100
 
   return [
     {

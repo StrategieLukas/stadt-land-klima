@@ -1,8 +1,8 @@
 <template>
   <div
+    :id="'block-' + uuid"
     ref="fieldEl"
     class="blokkli-block-hex-honeyweb overflow-x-auto"
-    :id="'block-' + uuid"
   >
     <BlokkliField
       name="hexagons"

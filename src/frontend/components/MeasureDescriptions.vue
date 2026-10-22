@@ -110,12 +110,15 @@
     </div>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Measure } from '~/types/components/municipality';
+
 import sanitizeHtml from "sanitize-html";
-const { $t, $locale } = useNuxtApp();
-const props = defineProps({
+const { $t, $locale: _$locale } = useNuxtApp();
+const _props = defineProps({
   measure: {
-    type: Object,
+    type: Object as PropType<Measure>,
     required: true,
   },
 });

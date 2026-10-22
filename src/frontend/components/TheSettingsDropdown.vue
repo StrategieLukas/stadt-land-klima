@@ -1,5 +1,5 @@
 <template>
-  <div class="relative" ref="containerRef">
+  <div ref="containerRef" class="relative">
     <!-- Trigger button: styled like ThemeToggle -->
     <button
       type="button"
@@ -130,8 +130,8 @@ function handleOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => document.addEventListener("click", handleOutside, true));
-onUnmounted(() => document.removeEventListener("click", handleOutside, true));
+onMounted(() => { document.addEventListener("click", handleOutside, true); });
+onUnmounted(() => { document.removeEventListener("click", handleOutside, true); });
 </script>
 
 <style scoped>

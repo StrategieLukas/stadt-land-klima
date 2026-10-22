@@ -96,7 +96,7 @@
             }}</NuxtLink>
             <a
               v-else
-              :href="link.external_url"
+              :href="link.external_url ?? undefined"
               :target="link.open_new_tab ? '_blank' : undefined"
               rel="noopener noreferrer"
               class="link-hover link text-base"
@@ -159,10 +159,14 @@
     </div>
   </footer>
 
-  <AuthLoginModal :isOpen="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
+  <AuthLoginModal :is-open="showLoginModal" @close="showLoginModal = false" @success="showLoginModal = false" />
 </template>
 
-<script setup>
+<script setup lang="ts">
+import {  requestErrorMessage } from '~/shared/requestError';
+import type { PropType } from 'vue';
+import type { NavigationItem } from '~/types/components/navigation';
+
 import { ref, computed, onMounted } from "vue";
 import DonateButton from "~/components/DonateButton.vue";
 import LoginButton from "~/components/LoginButton.vue";
@@ -173,12 +177,12 @@ import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 const { $translateDynamic, $t } = useNuxtApp();
 const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
-const navLabel = (item) => translatedNavigationLabel(item, $translateDynamic);
-const navTitle = (item) => translatedNavigationLabel(item, $translateDynamic, "title");
+const navLabel = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic);
+const navTitle = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "title");
 
 const props = defineProps({
   navItems: {
-    type: Array,
+    type: Array as PropType<NavigationItem[]>,
     default: () => [],
   },
 });
@@ -205,7 +209,7 @@ async function subscribeNewsletter() {
     newsletterState.value = "success";
   } catch (err) {
     newsletterState.value = "idle";
-    newsletterError.value = err?.data?.message ?? $t("newsletter.subscribe_failed");
+    newsletterError.value = requestErrorMessage(err, $t("newsletter.subscribe_failed"));
   }
 }
 
@@ -225,7 +229,7 @@ async function handleLogout() {
 }
 
 onMounted(() => {
-  initialize();
+  void initialize();
 });
 </script>
 

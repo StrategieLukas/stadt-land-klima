@@ -12,20 +12,20 @@ export function useEmbeddedSearchBridge() {
     get placeholder() {
       return $t("search.input_placeholder");
     },
-    register(moveFn: (direction: number) => void, navigateFn: () => void | Promise<void>) {
+    register(this: void, moveFn: (direction: number) => void, navigateFn: () => void | Promise<void>) {
       bridge.move = moveFn;
       bridge.navigate = navigateFn;
     },
-    registerFocusInput(fn: () => void) {
+    registerFocusInput(this: void, fn: () => void) {
       bridge.focus = fn;
     },
-    moveFocusEmbedded(direction: number) {
+    moveFocusEmbedded(this: void, direction: number) {
       bridge.move?.(direction);
     },
-    navigateFocusedEmbedded() {
+    navigateFocusedEmbedded(this: void) {
       return bridge.navigate?.();
     },
-    focusHeaderInput() {
+    focusHeaderInput(this: void) {
       bridge.focus?.();
     },
     get hasHeaderInput() {

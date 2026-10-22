@@ -152,30 +152,30 @@ const { options, uuid } = defineBlokkli({
 });
 
 const fieldType = computed(() => {
-  const value = String((options.value as any)?.fieldType || "text");
+  const value = String(options.value.fieldType || "text");
   return ["text", "email", "textarea", "select", "checkbox"].includes(value) ? value : "text";
 });
 
-const isRequired = computed(() => (options.value as any)?.required === true);
-const placeholder = computed(() => String((options.value as any)?.placeholder || ""));
-const autocomplete = computed(() => String((options.value as any)?.autocomplete || "").trim());
+const isRequired = computed(() => options.value.required === true);
+const placeholder = computed(() => String(options.value.placeholder || ""));
+const autocomplete = computed(() => String(options.value.autocomplete || "").trim());
 const hasLabelBlocks = computed(() => Array.isArray(props.label) && props.label.length > 0);
 
 const choices = computed(() => {
-  return String((options.value as any)?.choices || "")
+  return String(options.value.choices || "")
     .split(/\r?\n/)
     .map((choice) => choice.trim())
     .filter(Boolean);
 });
 
 const inputName = computed(() => {
-  const configured = normalizeFieldName(String((options.value as any)?.fieldName || ""));
+  const configured = normalizeFieldName(String(options.value.fieldName || ""));
   return configured || `field_${uuid.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12)}`;
 });
 
 const inputId = computed(() => `form-field-${inputName.value}-${uuid}`);
 
-const widthClass = computed(() => ((options.value as any)?.width === "half" ? "sm:col-span-6" : "sm:col-span-12"));
+const widthClass = computed(() => (options.value.width === "half" ? "sm:col-span-6" : "sm:col-span-12"));
 
 function normalizeFieldName(value: string) {
   return value

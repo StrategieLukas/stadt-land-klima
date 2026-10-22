@@ -65,7 +65,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { View } from 'vega';
+import { cloneVisualization, asRecord, displayScalar } from '~/shared/visualization';
+import type { PropType } from 'vue';
+import type { VisualizationSpec } from 'vega-embed';
+
 import { Icon } from "@iconify/vue";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import slkLogoUrl from "~/assets/images/Stadt-Land-Klima-Logo.svg";
@@ -94,11 +99,11 @@ const darkVegaConfig = {
 
 const props = defineProps({
   spec: {
-    type: Object,
+    type: Object as PropType<VisualizationSpec | import("~/shared/visualization").EditableSpec | null>,
     required: true,
   },
   height: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null,
   },
   exportAreaName: {
@@ -131,8 +136,8 @@ const props = defineProps({
   },
 });
 
-const containerRef = ref(null);
-const vegaRef = ref(null);
+const containerRef = ref<HTMLElement | null>(null);
+const vegaRef = ref<HTMLElement | null>(null);
 const loading = ref(false);
 const renderError = ref(false);
 const exportReady = ref(false);
@@ -144,9 +149,9 @@ const resolvedDataApiUrl = computed(() => {
   const url = findDataUrl(props.spec);
   return url ? resolveUrl(url) : "";
 });
-let vegaView = null;
-let resizeObserver = null;
-let resizeTimer = null;
+let vegaView: View | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 let renderedSize = { width: 0, height: 0 };
 
 async function render() {
@@ -169,7 +174,7 @@ async function render() {
     const { spec: embeddableSpec, enabled: hasNativeZoom } = withNativeScaleZoom(responsiveSpec);
     nativeZoomEnabled.value = hasNativeZoom;
 
-    const result = await vegaEmbed(vegaRef.value, embeddableSpec, {
+    const result = await vegaEmbed(vegaRef.value, embeddableSpec as VisualizationSpec, {
       renderer: "canvas",
       actions: false,
       config: vegaConfig.value,
@@ -191,22 +196,22 @@ const vegaConfig = computed(() => ({
   font: EXPORT_FONT,
 }));
 
-function withTheme(spec) {
-  const themed = JSON.parse(JSON.stringify(spec));
+function withTheme(spec: unknown) {
+  const themed = cloneVisualization(spec);
   themed.background = isDark.value ? DARK_VEGA_BACKGROUND : LIGHT_VEGA_BACKGROUND;
   themed.config = {
-    ...(themed.config ?? {}),
+    ...(asRecord(themed.config) ?? {}),
     ...vegaConfig.value,
     view: {
-      ...(themed.config?.view ?? {}),
+      ...(asRecord(asRecord(themed.config)?.view) ?? {}),
       ...(vegaConfig.value.view ?? {}),
     },
   };
   return themed;
 }
 
-function withResponsiveSize(spec) {
-  const cloned = JSON.parse(JSON.stringify(spec));
+function withResponsiveSize(spec: unknown) {
+  const cloned = cloneVisualization(spec);
   if (isMultiViewSpec(cloned)) return cloned;
 
   const { width, height } = measureChartSize();
@@ -233,13 +238,13 @@ function observeContainerSize() {
   resizeObserver?.disconnect();
   if (!containerRef.value || typeof ResizeObserver === "undefined") return;
 
-  resizeObserver = new ResizeObserver(() => scheduleResize());
+  resizeObserver = new ResizeObserver(() => { scheduleResize(); });
   resizeObserver.observe(containerRef.value);
 }
 
 function scheduleResize() {
   if (resizeTimer) clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => resizeVegaView(), 80);
+  resizeTimer = setTimeout(() => { void resizeVegaView(); }, 80);
 }
 
 async function resizeVegaView() {
@@ -255,7 +260,7 @@ async function resizeVegaView() {
     await vegaView.width(nextSize.width).height(nextSize.height).resize().runAsync();
   } catch (e) {
     console.warn("[VegaChart] resize error, re-rendering:", e);
-    render();
+    void render();
   }
 }
 
@@ -263,7 +268,7 @@ async function downloadPng() {
   if (!vegaView) return;
 
   try {
-    if (typeof document !== "undefined" && document.fonts?.ready) {
+    if (typeof document !== "undefined" && document.fonts) {
       await document.fonts.ready;
     }
     const canvas = await vegaView.toCanvas(2);
@@ -324,15 +329,15 @@ async function copyApiCall() {
 }
 
 function resetNativeZoom() {
-  render();
+  void render();
 }
 
-function withNativeScaleZoom(spec) {
+function withNativeScaleZoom(spec: unknown) {
   if (!supportsNativeScaleZoom(spec)) return { spec, enabled: false };
 
-  const cloned = JSON.parse(JSON.stringify(spec));
-  const params = Array.isArray(cloned.params) ? cloned.params : [];
-  const hasScaleBoundParam = params.some((param) => param?.select?.bind === "scales");
+  const cloned = cloneVisualization(spec);
+  const params: unknown[] = Array.isArray(cloned.params) ? cloned.params : [];
+  const hasScaleBoundParam = params.some((param) => asRecord(asRecord(param)?.select)?.bind === "scales");
 
   if (!hasScaleBoundParam) {
     cloned.params = [
@@ -352,7 +357,7 @@ function withNativeScaleZoom(spec) {
   return { spec: cloned, enabled: true };
 }
 
-function supportsNativeScaleZoom(spec) {
+function supportsNativeScaleZoom(spec: unknown) {
   if (!spec || typeof spec !== "object") return false;
   if (!isVegaLiteSpec(spec)) return false;
   if (isMultiViewSpec(spec)) return false;
@@ -360,18 +365,23 @@ function supportsNativeScaleZoom(spec) {
   return hasFieldBackedCartesianEncoding(spec);
 }
 
-function isVegaLiteSpec(spec) {
-  const schema = String(spec.$schema ?? "");
+function isVegaLiteSpec(input: unknown) {
+  const spec = asRecord(input);
+  if (!spec) return false;
+  const schema = displayScalar(spec.$schema);
   return schema.includes("vega-lite") || "mark" in spec || "encoding" in spec || "layer" in spec;
 }
 
-function isMultiViewSpec(spec) {
+function isMultiViewSpec(input: unknown) {
+  const spec = asRecord(input);
+  if (!spec) return false;
   return !!(spec.hconcat || spec.vconcat || spec.concat || spec.facet || spec.repeat);
 }
 
-function hasFieldBackedCartesianEncoding(value) {
-  if (!value || typeof value !== "object") return false;
-  const encoding = value.encoding;
+function hasFieldBackedCartesianEncoding(input: unknown): boolean {
+  const value = asRecord(input);
+  if (!value) return false;
+  const encoding = asRecord(value.encoding);
   if (isFieldDef(encoding?.x) || isFieldDef(encoding?.y)) return true;
   for (const key of ["layer"]) {
     if (Array.isArray(value[key]) && value[key].some(hasFieldBackedCartesianEncoding)) return true;
@@ -380,21 +390,23 @@ function hasFieldBackedCartesianEncoding(value) {
   return false;
 }
 
-function hasNonFieldCartesianEncoding(value) {
-  if (!value || typeof value !== "object") return false;
-  const encoding = value.encoding;
+function hasNonFieldCartesianEncoding(input: unknown): boolean {
+  const value = asRecord(input);
+  if (!value) return false;
+  const encoding = asRecord(value.encoding);
   if (isNonFieldPositionDef(encoding?.x) || isNonFieldPositionDef(encoding?.y)) return true;
   if (Array.isArray(value.layer) && value.layer.some(hasNonFieldCartesianEncoding)) return true;
   if (value.spec && hasNonFieldCartesianEncoding(value.spec)) return true;
   return false;
 }
 
-function isFieldDef(channel) {
-  if (!channel || typeof channel !== "object" || Array.isArray(channel)) return false;
+function isFieldDef(input: unknown) {
+  const channel = asRecord(input);
+  if (!channel) return false;
   return typeof channel.field === "string";
 }
 
-function isNonFieldPositionDef(channel) {
+function isNonFieldPositionDef(channel: unknown) {
   if (!channel || typeof channel !== "object" || Array.isArray(channel)) return false;
   return !isFieldDef(channel);
 }
@@ -412,7 +424,9 @@ const baseFilename = computed(() => {
 
 const normalizedExportDate = computed(() => normalizeDate(props.exportUpdatedAt));
 const exportTitle = computed(() => {
-  const specTitle = typeof props.spec?.title === "string" ? props.spec.title : props.spec?.title?.text;
+  const title = asRecord(props.spec)?.title;
+  const rawTitle = typeof title === "string" || Array.isArray(title) ? title : asRecord(title)?.text;
+  const specTitle = Array.isArray(rawTitle) ? rawTitle.filter((line): line is string => typeof line === "string").join(" ") : typeof rawTitle === "string" ? rawTitle : "";
   return props.exportTitle || specTitle || props.exportCollectionName || "Vega-Diagramm";
 });
 const exportSubtitle = computed(() => props.exportSubtitle || props.exportCollectionName || "");
@@ -453,11 +467,11 @@ const pngFooterLines = computed(() => {
   return [meta.join("  ·  "), `Quelle: Stadt.Land.Klima! e.V.  ·  ${DATA_WEB_URL}`].filter(Boolean);
 });
 
-function exportCsv(rows) {
+function exportCsv(rows: Record<string, unknown>[]) {
   return `${csvCommentBlock.value}${rowsToCsv(rows)}`;
 }
 
-async function drawExportCanvas(chartCanvas) {
+async function drawExportCanvas(chartCanvas: HTMLCanvasElement) {
   const scale = 2;
   const footerFontPx = 9 * scale;
   const footerLineHeight = 14 * scale;
@@ -477,6 +491,7 @@ async function drawExportCanvas(chartCanvas) {
   canvas.height = headerHeight + chartCanvas.height + footerHeight;
 
   const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas rendering is unavailable");
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   await drawHeader(ctx, canvas.width, headerHeight, scale, titleLines, subtitleLines);
@@ -502,7 +517,7 @@ async function drawExportCanvas(chartCanvas) {
   return canvas;
 }
 
-async function drawHeader(ctx, width, headerHeight, scale, titleLines, subtitleLines) {
+async function drawHeader(ctx: CanvasRenderingContext2D, width: number, headerHeight: number, scale: number, titleLines: string[], subtitleLines: string[]) {
   const logo = await loadImage(slkLogoUrl).catch(() => null);
   if (logo) {
     const logoWidth = 112 * scale;
@@ -537,16 +552,16 @@ async function drawHeader(ctx, width, headerHeight, scale, titleLines, subtitleL
   ctx.stroke();
 }
 
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
-    image.onload = () => resolve(image);
+    image.onload = () => { resolve(image); };
     image.onerror = reject;
     image.src = src;
   });
 }
 
-function wrapText(text, maxChars) {
+function wrapText(text: string, maxChars: number) {
   if (!text || text.length <= maxChars) return [text];
   const words = String(text).split(/\s+/);
   const lines = [];
@@ -566,8 +581,8 @@ function wrapText(text, maxChars) {
   return lines;
 }
 
-function canvasToBlob(canvas) {
-  return new Promise((resolve, reject) => {
+function canvasToBlob(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
       else reject(new Error("PNG export failed"));
@@ -580,7 +595,7 @@ function findViewRows() {
 
   try {
     const state = vegaView.getState({ data: () => true, recurse: true });
-    const data = state?.data ?? {};
+    const data = asRecord(state?.data as unknown) ?? {};
     const candidates = Object.entries(data)
       .map(([name, rows]) => ({ name, rows: Array.isArray(rows) ? sanitizeRows(rows) : [] }))
       .filter((entry) => entry.rows.length)
@@ -592,7 +607,7 @@ function findViewRows() {
   }
 }
 
-function datasetScore(entry) {
+function datasetScore(entry: {name: string; rows: Record<string, unknown>[]}) {
   let score = Math.min(entry.rows.length, 1000) / 1000;
   const name = String(entry.name);
   if (name === "source_0" || name === "source") score += 100;
@@ -602,11 +617,11 @@ function datasetScore(entry) {
   return score;
 }
 
-function sanitizeRows(rows) {
+function sanitizeRows(rows: unknown[]) {
   return rows
-    .filter((row) => row && typeof row === "object" && !Array.isArray(row))
+    .filter((row): row is Record<string, unknown> => row !== null && typeof row === "object" && !Array.isArray(row))
     .map((row) => {
-      const sanitized = {};
+      const sanitized: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(row)) {
         if (key.startsWith("_")) continue;
         if (typeof value === "function") continue;
@@ -617,7 +632,7 @@ function sanitizeRows(rows) {
     .filter((row) => Object.keys(row).length);
 }
 
-function rowsToCsv(rows) {
+function rowsToCsv(rows: Record<string, unknown>[]) {
   const headers = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
   const lines = [headers.map(csvCell).join(",")];
 
@@ -628,20 +643,20 @@ function rowsToCsv(rows) {
   return lines.join("\n");
 }
 
-function normalizeCell(value) {
+function normalizeCell(value: unknown) {
   if (value === null || value === undefined) return "";
   if (value instanceof Date) return value.toISOString();
   if (typeof value === "object") return JSON.stringify(value);
   return value;
 }
 
-function csvCell(value) {
-  const text = String(value ?? "");
+function csvCell(value: unknown) {
+  const text = displayScalar(value);
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-function findInlineRows(spec) {
-  let rows = [];
+function findInlineRows(spec: unknown) {
+  let rows: unknown[] = [];
   walkSpec(spec, (node) => {
     if (rows.length) return;
     if (Array.isArray(node?.values)) rows = node.values;
@@ -649,19 +664,19 @@ function findInlineRows(spec) {
   return sanitizeRows(rows);
 }
 
-function rowsFromApiText(text, contentType) {
+function rowsFromApiText(text: string, contentType: string) {
   if (!contentType?.includes("json")) return [];
   try {
-    const parsed = JSON.parse(text);
+    const parsed: unknown = JSON.parse(text);
     if (Array.isArray(parsed)) return sanitizeRows(parsed);
-    const firstArray = Object.values(parsed ?? {}).find((value) => Array.isArray(value));
+    const firstArray = Object.values(asRecord(parsed) ?? {}).find((value) => Array.isArray(value));
     return sanitizeRows(firstArray ?? []);
   } catch {
     return [];
   }
 }
 
-function findDataUrl(spec) {
+function findDataUrl(spec: unknown) {
   let url = "";
   walkSpec(spec, (node) => {
     if (!url && typeof node?.url === "string") url = node.url;
@@ -669,37 +684,37 @@ function findDataUrl(spec) {
   return url;
 }
 
-function walkSpec(value, visitor) {
+function walkSpec(value: unknown, visitor: (node: Record<string, unknown>) => void) {
   if (!value || typeof value !== "object") return;
-  visitor(value);
+  const record = asRecord(value);
+  if (record) visitor(record);
   for (const child of Object.values(value)) {
     if (child && typeof child === "object") walkSpec(child, visitor);
   }
 }
 
-function resolveUrl(url) {
+function resolveUrl(url: string) {
   if (/^https?:\/\//i.test(url)) return url;
   if (typeof window === "undefined") return url;
   return new URL(url, window.location.origin).toString();
 }
 
-function inferExtension(contentType, url) {
+function inferExtension(contentType: string, url: string) {
   if (contentType?.includes("csv")) return "csv";
   if (contentType?.includes("json")) return "json";
   const extension = String(url)
-    .split("?")[0]
-    .match(/\.([a-z0-9]+)$/i)?.[1];
+    .split("?")[0]?.match(/\.([a-z0-9]+)$/i)?.[1];
   return extension || "dat";
 }
 
-function downloadBlob(content, type, filename) {
+function downloadBlob(content: BlobPart | Blob, type: string, filename: string) {
   const blob = content instanceof Blob ? content : new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   triggerDownload(url, filename);
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  window.setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
 }
 
-function triggerDownload(url, filename) {
+function triggerDownload(url: string, filename: string) {
   if (typeof document === "undefined") return;
   const link = document.createElement("a");
   link.href = url;
@@ -709,7 +724,7 @@ function triggerDownload(url, filename) {
   link.remove();
 }
 
-function copyTextFallback(text) {
+function copyTextFallback(text: string) {
   if (typeof document === "undefined") return;
   const textarea = document.createElement("textarea");
   textarea.value = text;
@@ -718,12 +733,14 @@ function copyTextFallback(text) {
   textarea.style.opacity = "0";
   document.body.appendChild(textarea);
   textarea.select();
-  document.execCommand("copy");
+  // Legacy clipboard fallback is needed on insecure/local origins without navigator.clipboard.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    document.execCommand("copy");
   textarea.remove();
 }
 
-function slugify(value) {
-  return String(value)
+function slugify(value: string) {
+  return displayScalar(value)
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -732,11 +749,11 @@ function slugify(value) {
     .slice(0, 80);
 }
 
-function normalizeDate(value) {
+function normalizeDate(value: string) {
   if (!value) return "";
   const date = new Date(value);
   if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
-  return String(value).slice(0, 10);
+  return displayScalar(value).slice(0, 10);
 }
 
 watch(
@@ -747,7 +764,7 @@ watch(
 
 onMounted(() => {
   observeContainerSize();
-  render();
+  void render();
 });
 
 onUnmounted(() => {

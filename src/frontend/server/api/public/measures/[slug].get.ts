@@ -1,3 +1,7 @@
+import { z } from "zod";
+import { MeasureSchema } from "~/shared/contracts/municipality";
+import { CatalogSchema } from "~/shared/contracts/search";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getRouterParam, getQuery, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
@@ -44,7 +48,7 @@ export default defineEventHandler(async (event) => {
   }))
   if (versions.length > 100) throw createError({ statusCode: 502, statusMessage: 'Measure version limit exceeded' })
   return {
-    measure: pick(measures[0], measureDetailFields), catalogVersion: selectedCatalog,
-    versions: versions.map(row => ({ id: row.id, measure_id: row.measure_id, catalog_version: pick(row.catalog_version, ['id', 'name']) })),
+    measure: parseCms(MeasureSchema, measures[0]), catalogVersion: selectedCatalog,
+    versions: parseCms(z.array(z.object({id: z.string(), measure_id: z.string(), catalog_version: CatalogSchema.pick({id: true, name: true})})), versions),
   }
 })

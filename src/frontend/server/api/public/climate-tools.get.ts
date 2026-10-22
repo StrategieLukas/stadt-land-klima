@@ -1,11 +1,8 @@
+import { z } from "zod";
+import { ClimateToolSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { defineEventHandler, setResponseHeader } from 'h3'
 import { readPublicItems } from '../../utils/publicItems'
-
-type Row = Record<string, any>
-
-function pick(row: Row, fields: string[]): Row {
-  return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
-}
 
 const toolFields = ['id', 'title', 'description', 'category', 'link', 'image', 'image_credits', 'vendor', 'sort']
 
@@ -18,5 +15,5 @@ export default defineEventHandler(async (event) => {
     sort: ['sort'],
   })
 
-  return { tools: tools.map(t => pick(t, toolFields)) }
+  return { tools: parseCms(z.array(ClimateToolSchema), tools) }
 })

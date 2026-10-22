@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-citation" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-citation">
     <!-- Blockquote style -->
     <component
       :is="linkTag"

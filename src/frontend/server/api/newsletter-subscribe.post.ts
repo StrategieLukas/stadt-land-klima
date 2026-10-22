@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { NewsletterRequestSchema } from "~/shared/contracts/submissions";
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const endpoint = config.listmonkEndpoint as string | undefined;
@@ -9,7 +11,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 503, message: 'Newsletter-Dienst nicht konfiguriert.' });
   }
 
-  const body = await readRequestBody(event);
+  const parsedBody = NewsletterRequestSchema.safeParse(await readRequestBody<unknown>(event));
+  if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
+  const body = parsedBody.data;
   const { email, name, listIds } = body ?? {};
 
   if (!email?.trim()) {
@@ -37,13 +41,12 @@ export default defineEventHandler(async (event) => {
   const credentials = Buffer.from(`${username}:${token}`).toString('base64');
   let listUuids: string[];
   try {
-    const listsResult = await $fetch<{
-      data: { results: Array<{ id: number; uuid: string }> }
-    }>(`${endpoint}/api/lists`, {
+    const listsResult = z.object({data: z.object({results: z.array(z.object({id: z.number().int(), uuid: z.string(), type: z.string()}))})}).parse(await $fetch<unknown>(`${endpoint}/api/lists`, {
       headers: { Authorization: `Basic ${credentials}` },
       query: { page: 1, per_page: 100 },
-    });
-    const allLists = listsResult?.data?.results ?? [];
+    }));
+    const allLists = listsResult.data.results.filter(list => list.type === "public" || list.id === Number(defaultListId));
+    if (targetIds.some(id => !allLists.some(list => list.id === id))) throw createError({statusCode: 400, message: "Ungültige Listen-IDs."});
     listUuids = targetIds
       .map((id) => allLists.find((l) => l.id === id)?.uuid)
       .filter((u): u is string => !!u);
@@ -52,7 +55,7 @@ export default defineEventHandler(async (event) => {
     }
   } catch (err: any) {
     if (err?.statusCode) throw err;
-    console.error('[newsletter-subscribe] Failed to fetch lists:', err);
+    console.error('[newsletter-subscribe] Failed to fetch lists');
     throw createError({ statusCode: 502, message: 'Anmeldung fehlgeschlagen. Bitte versuche es später erneut.' });
   }
 
@@ -72,7 +75,7 @@ export default defineEventHandler(async (event) => {
     if (err?.status === 409 || err?.response?.status === 409) {
       return { success: true, alreadySubscribed: true };
     }
-    console.error('[newsletter-subscribe] Listmonk error:', err?.data ?? err);
+    console.error('[newsletter-subscribe] Subscription failed');
     throw createError({ statusCode: 502, message: 'Anmeldung fehlgeschlagen. Bitte versuche es später erneut.' });
   }
 

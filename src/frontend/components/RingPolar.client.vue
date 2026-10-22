@@ -1160,7 +1160,7 @@
     </svg>
   </div>
 </template>
-<script setup></script>
+<script setup lang="ts"></script>
 <style>
 .slk-polar-ring .st0 {
   fill: var(--slk-surface-muted);

@@ -444,7 +444,7 @@ async function submitArticle(event: H3Event) {
     imageForm.append("image_credits", imageCredits);
     imageForm.append(
       "file",
-      new Blob([image.data], { type: image.type }),
+      new Blob([Uint8Array.from(image.data)], { type: image.type }),
       sanitizeFilename(image.filename ?? "erfolgsprojekt-bild"),
     );
 

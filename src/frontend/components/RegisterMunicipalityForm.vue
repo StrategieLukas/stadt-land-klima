@@ -277,12 +277,15 @@
 </template>
 
 <script setup lang="ts">
+import { captchaEventData, requestErrorData, requestErrorMessage  } from '~/shared/requestError';
+
+import { z } from 'zod';
 const props = defineProps<{
   municipalityName: string;
   ars: string;
   population?: number | null;
   state?: string | null;
-  geolocation?: object | null;
+  geolocation?: import('geojson').Point | null;
   canChange?: boolean;
 }>();
 
@@ -312,11 +315,12 @@ const newsletterError = ref('');
 // Processing step state
 type StepKey = 'user' | 'team' | 'email';
 type StepStatus = 'pending' | 'loading' | 'success' | 'error';
-type RegistrationErrorData = {
-  steps?: Partial<Record<StepKey, boolean>>;
-  failedStep?: StepKey;
-  errorKey?: string;
-};
+const RegistrationErrorSchema = z.object({
+  steps: z.object({user: z.boolean().optional(), team: z.boolean().optional(), email: z.boolean().optional()}).optional().catch(undefined),
+  failedStep: z.enum(['user', 'team', 'email']).optional().catch(undefined),
+  errorKey: z.string().optional().catch(undefined),
+});
+type RegistrationErrorData = z.infer<typeof RegistrationErrorSchema>;
 
 const stepStatuses = reactive<Record<StepKey, StepStatus>>({ user: 'pending', team: 'pending', email: 'pending' });
 const stepErrorLabels = reactive<Record<StepKey, string>>({ user: '', team: '', email: '' });
@@ -369,7 +373,7 @@ function getFailedStepStatus(
 }
 
 function onAltchaStateChange(e: Event) {
-  const { state, payload } = (e as CustomEvent).detail ?? {};
+  const { state, payload } = captchaEventData(e);
   if (state === 'verified' && payload) {
     altchaPayload.value = payload;
     captchaError.value = '';
@@ -405,7 +409,7 @@ onUnmounted(() => {
 async function submit() {
   captchaError.value = '';
 
-  const widgetEl = document.querySelector('altcha-widget') as any;
+  const widgetEl = document.querySelector<HTMLElement & {value?: string}>('altcha-widget');
   const payload = altchaPayload.value || widgetEl?.value;
   if (!payload) {
     captchaError.value = $t('captcha.required');
@@ -449,8 +453,9 @@ async function submit() {
     processingDone.value = true;
     formState.value = 'success';
     emit('success');
-  } catch (err: any) {
-    const errData = err?.data?.data as RegistrationErrorData | undefined;
+  } catch (err) {
+    const data = requestErrorData(err);
+    const errData = RegistrationErrorSchema.parse(data.data ?? {});
     const errSteps = errData?.steps;
     const failedStep = errData?.failedStep;
     if (failedStep && errData?.errorKey) {
@@ -466,7 +471,7 @@ async function submit() {
     processingDone.value = true;
     processingError.value = errData?.errorKey
       ? $translateDynamic(errData.errorKey)
-      : err?.data?.message ?? $t('generic.error_try_again');
+      : requestErrorMessage(err, $t('generic.error_try_again'));
   }
 }
 
@@ -480,13 +485,13 @@ async function subscribeNewsletter() {
   try {
     const result = await $fetch<{ success: boolean; alreadySubscribed: boolean }>('/api/newsletter-subscribe', {
       method: 'POST',
-      body: { email: newsletterEmail.value.trim(), name: form.name || undefined },
+      body: { email: newsletterEmail.value.trim(), name: [form.firstName, form.lastName].filter(Boolean).join(' ') || undefined },
     });
     newsletterAlreadySubscribed.value = result.alreadySubscribed;
     newsletterState.value = 'success';
-  } catch (err: any) {
+  } catch (err) {
     newsletterState.value = 'idle';
-    newsletterError.value = err?.data?.message ?? $t('newsletter.subscribe_failed');
+    newsletterError.value = requestErrorMessage(err, $t('newsletter.subscribe_failed'));
   }
 }
 </script>

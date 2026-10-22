@@ -47,6 +47,7 @@ export default defineNitroPlugin(async () => {
   }
 
   const serverToken = config.directusFrontendServerToken as string | undefined
+  if (!serverToken) throw new Error("Reindexing requires the private server token");
   const directus = createDirectus(
     (config.directusServerUrl as string) || 'http://directus:8055',
   )

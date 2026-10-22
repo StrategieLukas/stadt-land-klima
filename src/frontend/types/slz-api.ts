@@ -3,16 +3,7 @@ export type LayoutHint = "default" | "full_width" | "split" | "kpi_map" | "image
 export interface RenderElement {
   plot_id: string;
   type:
-    | "map"
-    | "kpi"
-    | "histogram"
-    | "bar_chart"
-    | "pie_chart"
-    | "time_series"
-    | "image"
-    | "table"
-    | "graph"
-    | "altair";
+    "map" | "kpi" | "histogram" | "bar_chart" | "pie_chart" | "time_series" | "image" | "table" | "graph" | "altair";
   step?: number;
   title?: Record<string, string>;
   description?: Record<string, string>;
@@ -44,9 +35,9 @@ export interface MapLibreRenderSpec {
       urlTemplate?: string;
       [key: string]: unknown;
     };
-    [key: string]: any;
+    [key: string]: Record<string, unknown> | undefined;
   };
-  layers?: Array<Record<string, any>>;
+  layers?: Array<Record<string, unknown>>;
   tooltip_fields?: Array<
     string | { field?: string; label?: string | Record<string, string>; title?: string | Record<string, string> }
   >;

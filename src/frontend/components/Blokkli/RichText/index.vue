@@ -23,7 +23,6 @@
 </template>
 
 <script setup lang="ts">
-// @ts-expect-error no types package needed at runtime
 import MarkdownIt from 'markdown-it'
 import { getBlokkliBlockId } from '~/utils/blokkliLinks'
 

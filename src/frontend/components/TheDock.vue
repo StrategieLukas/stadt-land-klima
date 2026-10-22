@@ -4,11 +4,11 @@
       v-for="page in pages"
       :key="page.id"
       :class="{ 'dock-active': isPageActive(page.slug) }"
+      class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
       @click="
         followLink(page.slug);
         closeDrawer();
       "
-      class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
     >
       <div class="size-[3em]">
         <div v-html="page.icon_svg"></div>
@@ -18,9 +18,9 @@
 
     <button
       id="page-drawer-toggle"
-      @click="toggleDrawer"
       :class="{ 'dock-active': isDrawerOpen }"
       class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
+      @click="toggleDrawer"
     >
       <svg class="size-[3em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path
@@ -34,27 +34,28 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { NavigationPage } from '~/types/components/navigation';
 import { defineProps } from "vue";
 import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
-const props = defineProps(["pages"]);
-const navLabel = (item, field = "label") => translatedNavigationLabel(item, $translateDynamic, field);
+const _props = defineProps<{ pages?: NavigationPage[] }>();
+const navLabel = (item: NavigationPage, field: "name" | "label" = "label") => translatedNavigationLabel(item, $translateDynamic, field);
 
 // Use the shared drawer state
 const { isDrawerOpen, toggleDrawer, closeDrawer } = useDrawer();
 
-const isPageActive = (slug) => {
+const isPageActive = (slug: string) => {
   const normalized = slug === "index" ? "" : slug;
   const path = normalized === "" ? "/" : `/${normalized}`;
   return route.path === path || route.path.startsWith(`${path}/`);
 };
 
-const followLink = (pageSlug) => {
+const followLink = (pageSlug: string) => {
   const nuxtApp = useNuxtApp();
   const path = !pageSlug || pageSlug === "index" ? "/" : "/" + pageSlug;
-  nuxtApp.$router.push(path);
+  void nuxtApp.$router.push(path);
 };
 </script>
 

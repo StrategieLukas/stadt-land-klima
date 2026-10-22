@@ -59,7 +59,8 @@
                   <td class="font-semibold text-gray-600 uppercase tracking-wide w-32">License</td>
                   <td>
                     <div class="flex flex-wrap items-center gap-2">
-                      <a v-if="dataSource.license.url" 
+                      <a
+v-if="dataSource.license.url"
                          :href="dataSource.license.url" 
                          target="_blank" 
                          rel="noopener noreferrer" 
@@ -89,7 +90,8 @@
                 <tr v-if="dataSource.attributionUrl">
                   <td class="font-semibold text-gray-600 uppercase tracking-wide w-32">Source</td>
                   <td>
-                    <a :href="dataSource.attributionUrl" 
+                    <a
+:href="dataSource.attributionUrl"
                        target="_blank" 
                        rel="noopener noreferrer" 
                        class="inline-flex items-center text-sm text-primary hover:text-solid-light-green-70 underline break-all">
@@ -114,12 +116,12 @@
         <!-- Use simple histogram if precomputed data is available -->
         <DataHistogram
           v-if="hasPrecomputedHistogram"
-          :histogram-url="histogramConfig.histogramUrl"
+          :histogram-url="histogramConfig.histogramUrl ?? ''"
           :current-value="histogramConfig.currentValue"
           :municipality-name="histogramConfig.municipalityName"
-          :unit="histogramConfig.unit || unit"
-          :data-product-name="histogramConfig.title || name"
-          :populationNormalized="histogramConfig.populationNormalized"
+          :unit="histogramConfig.unit || unit || undefined"
+          :data-product-name="histogramConfig.title || title"
+          :population-normalized="histogramConfig.populationNormalized"
           :population="histogramConfig.population"
           :is-percentage="histogramConfig.isPercentage"
           :orange-threshold="histogramConfig.orangeThreshold"
@@ -131,10 +133,10 @@
         <!-- Fallback to legacy histogram component -->
         <DataHistogramLegacy
           v-else
-          :data-type="histogramConfig.dataType"
-          :attribute-name="histogramConfig.attributeName"
+          :data-type="histogramConfig.dataType ?? undefined"
+          :attribute-name="histogramConfig.attributeName ?? undefined"
           :current-value="histogramConfig.currentValue"
-          :unit="unit"
+          :unit="unit ?? undefined"
           :population-normalized="histogramConfig.populationNormalized"
           :orange-threshold="histogramConfig.orangeThreshold"
           :yellow-threshold="histogramConfig.yellowThreshold"
@@ -147,12 +149,12 @@
           <div class="flex justify-between items-center mb-2">
             <h4 class="font-semibold text-base">
               {{ $t('stats.histogram.municipalities_in_range') }} 
-              ({{ selectedBinData.bin_range.start.toFixed(0) }} - {{ selectedBinData.bin_range.end.toFixed(0) }} {{ histogramConfig.unit || unit }})
+              ({{ selectedBinData.bin_range?.start.toFixed(0) ?? '—' }} - {{ selectedBinData.bin_range?.end.toFixed(0) ?? '—' }} {{ histogramConfig.unit || unit }})
             </h4>
             <button 
-              @click.stop="selectedBinData = null" 
               class="text-gray-500 hover:text-gray-700"
               :title="$t('generic.close')"
+              @click.stop="selectedBinData = null"
             >
               ✕
             </button>
@@ -168,8 +170,8 @@
                   <th class="text-left pl-1">{{ $t('administrative_areas.name') }}</th>
                   <th class="text-right">
                     <button 
-                      @click.stop="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'"
                       class="hover:text-blue-600 flex items-center gap-1 ml-auto"
+                      @click.stop="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'"
                     >
                       {{ $t('stats.value') }}
                       <span class="text-xs">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
@@ -180,7 +182,7 @@
               <tbody>
                 <tr 
                   v-for="area in sortedAreas" 
-                  :key="area.id"
+                  :key="area.ars"
                   class="hover"
                 >
                   <td class="pr-1 text-right text-gray-600">{{ area.prefix }}</td>
@@ -220,7 +222,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import {  HistogramResponseSchema, type BinAreas } from '~/shared/contracts/histogram';
+import type { PropType } from 'vue';
+import type { HistogramConfig } from '~/types/components/data';
+import type { GeoJsonObject } from 'geojson';
+
 import { ref, computed, onMounted, watch } from 'vue'
 import DataHistogram from '~/components/DataHistogram.vue'
 import DataHistogramLegacy from '~/components/DataHistogramLegacy.vue'
@@ -232,23 +239,23 @@ const props = defineProps({
     required: true
   },
   unit: {
-    type: String,
+    type: String as PropType<string | null>,
     default: null
   },
   code: {
-    type: String,
+    type: String as PropType<string | null>,
     default: null
   },
   description: {
-    type: String,
+    type: String as PropType<string | null>,
     default: null
   },
   calculation: {
-    type: String,
+    type: String as PropType<string | null>,
     default: null
   },
   dataSources: {
-    type: Array,
+    type: Array as PropType<{ id?: string | number; name?: string; url?: string; effectiveDt?: string | null; license?: {url?: string; name?: string; text?: string} | null; attribution?: string | null; attributionUrl?: string | null }[]>,
     default: () => []
   },
   showMeasureLink: {
@@ -260,7 +267,7 @@ const props = defineProps({
     default: false
   },
   histogramConfig: {
-    type: Object,
+    type: Object as PropType<HistogramConfig | null>,
     default: null
   },
   mapEnabled: {
@@ -268,15 +275,15 @@ const props = defineProps({
     default: false
   },
   ars: {
-    type: String,
+    type: String as PropType<string | null>,
     default: null
   },
   dataProductType: {
-    type: String,
+    type: String as PropType<string | null>,
     default: null
   },
   areaBounds: {
-    type: Object,
+    type: Object as PropType<GeoJsonObject | null>,
     default: null
   }
 })
@@ -285,7 +292,7 @@ const { $t } = useNuxtApp()
 
 const expanded = ref(props.defaultExpanded)
 const hasPrecomputedHistogram = ref(false)
-const selectedBinData = ref(null)
+const selectedBinData = ref<BinAreas | null>(null)
 const sortOrder = ref('asc') // 'asc' or 'desc'
 
 const sortedAreas = computed(() => {
@@ -293,11 +300,11 @@ const sortedAreas = computed(() => {
   
   // Transform values if population normalized
   const areas = selectedBinData.value.areas.map(area => {
-    let displayValue = area.value
+    let displayValue = area.value ?? 0
     
     // Apply population normalization if needed
     if (props.histogramConfig?.populationNormalized && props.histogramConfig?.population) {
-      displayValue = (area.value / props.histogramConfig?.population) * 1000
+      displayValue = ((area.value ?? 0) / props.histogramConfig.population) * 1000
     }
     
     return {
@@ -332,7 +339,7 @@ async function checkHistogramAvailability() {
       return
     }
     
-    const data = await response.json()
+    const data = HistogramResponseSchema.parse(await response.json())
     const result = data?.results?.[0]
     
     // Check if we have valid histogram data
@@ -346,13 +353,13 @@ async function checkHistogramAvailability() {
 // Check on mount and when histogramConfig changes
 onMounted(() => {
   if (props.histogramConfig) {
-    checkHistogramAvailability()
+    void checkHistogramAvailability()
   }
 })
 
 watch(() => props.histogramConfig, () => {
   if (props.histogramConfig) {
-    checkHistogramAvailability()
+    void checkHistogramAvailability()
   }
 }, { deep: true })
 
@@ -365,7 +372,7 @@ function toggle() {
   expanded.value = !expanded.value
 }
 
-function handleBinClick(binData) {
+function handleBinClick(binData: BinAreas) {
   selectedBinData.value = binData
   sortOrder.value = 'asc' // Reset sort order on new selection
   console.log('Bin clicked:', binData)

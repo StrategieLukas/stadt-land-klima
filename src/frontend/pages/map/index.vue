@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import TheMap from '~/components/TheMap.vue';
 import { getCatalogVersion } from '~/composables/getCatalogVersion';
 const { $t } = useNuxtApp();

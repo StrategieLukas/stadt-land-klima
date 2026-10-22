@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { EventDetailSchema, ProjectIdentitySchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
@@ -33,7 +36,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Event not found' })
   }
 
-  const eventRow = events[0]
+  const eventRow = parseCms(EventDetailSchema, events[0])
 
   // Fetch ordinary reports (non-tour-redirect news items linked to this event)
   const reports = await client.request(readItems('news_items', {
@@ -44,15 +47,15 @@ export default defineEventHandler(async (event) => {
 
   // Fetch project links via events_articles junction table
   const links = await client.request(readItems('events_articles', {
-    filter: { events_id: { _eq: eventRow.id } },
+    filter: { events_id: { _eq: eventRow.id }, articles_id: { status: { _eq: 'published' } } },
     fields: [{ articles_id: ['id', 'slug', 'title'] }],
     limit: -1,
   }))
-  const projects = links.map(link => link.articles_id).filter(Boolean)
+  const projects = parseCms(z.array(z.object({articles_id: ProjectIdentitySchema.nullable()})), links).flatMap(link => link.articles_id ? [link.articles_id] : [])
 
   return {
     event: eventRow,
-    ordinaryReport: reports[0] || null,
+    ordinaryReport: parseCms(z.array(ProjectIdentitySchema.pick({slug: true})), reports)[0] ?? null,
     eventProjects: projects,
   }
 })

@@ -234,13 +234,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { ComparisonRating, Municipality  } from '~/types/components/municipality';
+import type { Catalog } from '~/shared/contracts/search';
+import type { ScorePublication } from '~/shared/domain';
+import type { PropType } from 'vue';
+
 import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing';
 import { ref, computed, watch } from "vue";
+type SankeyMunicipality = { key: string; name: string; slug: string; leftRating: string | null; rightRating: string | null };
+type CoverageMunicipality = Pick<Municipality, 'id' | 'name' | 'slug'> & { localteam_id: string | { id: string } | null };
+type MeasureVersion = { id: string; measure_id?: string; catalog_version: Catalog };
 
 const props = defineProps({
   measureSlug: { type: String, required: true },
-  measureVersions: { type: Array, default: () => [] }, // [{ catalog_version: { id, name } }]
+  measureVersions: { type: Array as PropType<MeasureVersion[]>, default: () => [] }, // [{ catalog_version: { id, name } }]
 });
 
 const { $t } = useNuxtApp();
@@ -256,7 +264,7 @@ const PAD_TOP = 28; // space at top for version headers
 const BUCKET_GAP = 8; // vertical gap between rating buckets
 
 // ── Rating config ─────────────────────────────────────────────────────────────
-const RATING_KEYS = ["1", "0.75", "0.5", "0.25", "0", "na", "unrated"];
+const RATING_KEYS = ["1", "0.75", "0.5", "0.25", "0", "na", "unrated"] as const;
 const RATING_CFG = {
   1: { label: $t("rating.fullfilled"), shortLabel: $t("rating.fullfilled"), color: "#1da64a" },
   0.75: { label: $t("rating.well_fullfilled"), shortLabel: $t("rating.well_fullfilled"), color: "#8bc34a" },
@@ -274,11 +282,11 @@ const ratingColorMap = Object.fromEntries(Object.entries(RATING_CFG).map(([k, v]
 const ratingLabelMap = Object.fromEntries(Object.entries(RATING_CFG).map(([k, v]) => [k, v.label]));
 const ratingIdxMap = Object.fromEntries(RATING_KEYS.map((k, i) => [k, i]));
 
-function ratingChipTextColor(ratingKey) {
+function ratingChipTextColor(ratingKey: string | null) {
   return ratingKey === "0" ? "#ffffff" : "#000000";
 }
 
-function getVersionColor(name) {
+function getVersionColor(name: string) {
   if (name === "v1.0") return "#AFCA0B";
   if (name === "beta") return "#16BAE7";
   return "#9e9e9e";
@@ -287,11 +295,11 @@ function getVersionColor(name) {
 // ── State ─────────────────────────────────────────────────────────────────────
 const loading = ref(true);
 // munis: [{ key: localteamId, name, slug, leftRating, rightRating }]
-const munis = ref([]);
-const hoveredKey = ref(null);
-const measureShortId = ref(null); // e.g. 'EN-1', used for hash navigation
-// { side: 'left'|'right', ratingKey: string } | null
-const selectedNode = ref(null);
+const munis = ref<SankeyMunicipality[]>([]);
+const hoveredKey = ref<string | null>(null);
+const measureShortId = ref<string | null>(null); // e.g. 'EN-1', used for hash navigation
+// { side: 'left'|'right', ratingKey: `${keyof typeof RATING_CFG}` } | null
+const selectedNode = ref<{ side: "left" | "right"; ratingKey: `${keyof typeof RATING_CFG}` } | null>(null);
 
 // ── Versions ──────────────────────────────────────────────────────────────────
 const orderedVersions = computed(() => {
@@ -315,31 +323,31 @@ async function fetchAll() {
     // 1. Resolve measure UUID for each catalog version
     const measureRows = props.measureVersions;
     // Store the short measure_id (e.g. 'EN-1') for hash navigation
-    if (measureRows?.length) measureShortId.value = measureRows[0].measure_id ?? null;
-    const vIdToMeasureId = {};
+    if (measureRows?.length) measureShortId.value = measureRows[0]?.measure_id ?? null;
+    const vIdToMeasureId: Record<string, string> = {};
     for (const row of measureRows || []) {
       const vId = typeof row.catalog_version === "string" ? row.catalog_version : row.catalog_version?.id;
       if (vId) vIdToMeasureId[vId] = row.id;
     }
 
     // 2. Fetch ratings AND coverage (all municipalities in the catalog version) in parallel
-    async function fetchRatings(versionId) {
+    async function fetchRatings(versionId: string) {
       const measureId = vIdToMeasureId[versionId];
       if (!measureId) return [];
-      const result = await $fetch('/api/public/measure-ratings', { query: { measureId } });
+      const result = await $fetch<{ ratings: ComparisonRating[] }>('/api/public/measure-ratings', { query: { measureId } });
       return result.ratings;
     }
 
-    const coverageMunicipalities = new Map();
-    async function fetchCoverageIds(versionId) {
+    const coverageMunicipalities = new Map<string, CoverageMunicipality>();
+    async function fetchCoverageIds(versionId: string) {
       const version = orderedVersions.value.find(version => version.id === versionId);
-      const { scores } = await $fetch(`/api/public/stats/${encodeURIComponent(version.label)}`);
-      const ids = new Set();
+      const { scores } = await $fetch<{ scores: (ScorePublication & { municipality: CoverageMunicipality })[] }>(`/api/public/stats/${encodeURIComponent(version?.label ?? "")}`);
+      const ids = new Set<string>();
       for (const score of scores.filter(isMunicipalityScoreComplete)) {
         const municipality = score.municipality;
         if (municipality?.localteam_id) {
-          ids.add(municipality.localteam_id);
-          coverageMunicipalities.set(municipality.localteam_id, municipality);
+          ids.add(typeof municipality.localteam_id === "string" ? municipality.localteam_id : municipality.localteam_id.id);
+          coverageMunicipalities.set(typeof municipality.localteam_id === "string" ? municipality.localteam_id : municipality.localteam_id.id, municipality);
         }
       }
       return ids;
@@ -351,18 +359,18 @@ async function fetchAll() {
     const [leftRaw, rightRaw, leftCoverage, rightCoverage] = await Promise.all([
       leftId ? fetchRatings(leftId) : Promise.resolve([]),
       rightId ? fetchRatings(rightId) : Promise.resolve([]),
-      leftId ? fetchCoverageIds(leftId) : Promise.resolve(new Set()),
-      rightId ? fetchCoverageIds(rightId) : Promise.resolve(new Set()),
+      leftId ? fetchCoverageIds(leftId) : Promise.resolve(new Set<string>()),
+      rightId ? fetchCoverageIds(rightId) : Promise.resolve(new Set<string>()),
     ]);
 
     // 3. Build per-localteam rating maps (dedup: first published entry wins)
-    function toRatingMap(rows) {
-      const map = {};
+    function toRatingMap(rows: ComparisonRating[]) {
+      const map: Record<string, string> = {};
       for (const r of rows || []) {
         const ltId = typeof r.localteam_id === "string" ? r.localteam_id : r.localteam_id?.id;
         if (!ltId || map[ltId] !== undefined) continue;
         const rk = r.applicable === false ? "na" : (r.rating ?? null);
-        if (rk !== null) map[ltId] = rk;
+        if (rk !== null) map[ltId] = String(rk);
       }
       return map;
     }
@@ -384,8 +392,8 @@ async function fetchAll() {
     );
 
     // 5. Batch-fetch municipality slugs + names
-    const muniRows = allLtIds.map(id => coverageMunicipalities.get(id)).filter(Boolean);
-    const ltToMuni = {};
+    const muniRows = allLtIds.map(id => coverageMunicipalities.get(id)).filter((item) => item != null);
+    const ltToMuni: Record<string, { slug: string; name: string }> = {};
     for (const m of muniRows || []) {
       const ltId = typeof m.localteam_id === "string" ? m.localteam_id : m.localteam_id?.id;
       if (ltId) ltToMuni[ltId] = { slug: m.slug, name: m.name };
@@ -396,8 +404,8 @@ async function fetchAll() {
       .filter((ltId) => ltToMuni[ltId])
       .map((ltId) => ({
         key: ltId,
-        name: ltToMuni[ltId].name,
-        slug: ltToMuni[ltId].slug,
+        name: ltToMuni[ltId]!.name,
+        slug: ltToMuni[ltId]!.slug,
         leftRating: leftMap[ltId] ?? null,
         rightRating: rightMap[ltId] ?? null,
       }))
@@ -411,7 +419,7 @@ async function fetchAll() {
 watch(() => props.measureSlug + "|" + orderedVersions.value.map((v) => v.id).join(","), fetchAll, { immediate: true });
 
 // ── Change helpers ─────────────────────────────────────────────────────────────
-function changeType(m) {
+function changeType(m: SankeyMunicipality) {
   if (m.leftRating === null || m.rightRating === null) return "single";
   if ((m.leftRating === "na" || m.leftRating === "unrated") && (m.rightRating === "na" || m.rightRating === "unrated"))
     return "same";
@@ -423,7 +431,7 @@ function changeType(m) {
   if (ri > li) return "degraded";
   return "same";
 }
-function changeColorOf(m) {
+function changeColorOf(m: SankeyMunicipality) {
   switch (changeType(m)) {
     case "improved":
       return "#4caf50";
@@ -435,7 +443,7 @@ function changeColorOf(m) {
       return "#9e9e9e";
   }
 }
-function changeArrow(m) {
+function changeArrow(m: SankeyMunicipality) {
   const t = changeType(m);
   if (t === "improved") return "↑";
   if (t === "degraded") return "↓";
@@ -458,8 +466,8 @@ const svgLayout = computed(() => {
   const MU_H = Math.max(3, Math.min(8, 380 / Math.max(totalLeft, totalRight, 1)));
 
   // Group municipalities into left/right buckets
-  const leftBuckets = {};
-  const rightBuckets = {};
+  const leftBuckets: Record<string, SankeyMunicipality[]> = {};
+  const rightBuckets: Record<string, SankeyMunicipality[]> = {};
   for (const m of munis.value) {
     if (m.leftRating !== null) {
       (leftBuckets[m.leftRating] ||= []).push(m);
@@ -473,12 +481,12 @@ const svgLayout = computed(() => {
   // Left: sort by destination (right) rating index, then name
   for (const k of RATING_KEYS) {
     leftBuckets[k]?.sort((a, b) => {
-      const d = (ratingIdxMap[a.rightRating] ?? 99) - (ratingIdxMap[b.rightRating] ?? 99);
+      const d = (ratingIdxMap[a.rightRating ?? ""] ?? 99) - (ratingIdxMap[b.rightRating ?? ""] ?? 99);
       return d !== 0 ? d : a.name.localeCompare(b.name, "de");
     });
     // Right: sort by source (left) rating index, then name
     rightBuckets[k]?.sort((a, b) => {
-      const d = (ratingIdxMap[a.leftRating] ?? 99) - (ratingIdxMap[b.leftRating] ?? 99);
+      const d = (ratingIdxMap[a.leftRating ?? ""] ?? 99) - (ratingIdxMap[b.leftRating ?? ""] ?? 99);
       return d !== 0 ? d : a.name.localeCompare(b.name, "de");
     });
   }
@@ -486,7 +494,7 @@ const svgLayout = computed(() => {
   // Compute left bucket y positions + per-municipality y on left side
   let ly = PAD_TOP;
   const leftNodes = [];
-  const leftMuniY = {};
+  const leftMuniY: Record<string, number> = {};
   for (const k of RATING_KEYS) {
     const bucket = leftBuckets[k] || [];
     if (!bucket.length) continue;
@@ -508,7 +516,7 @@ const svgLayout = computed(() => {
   // Compute right bucket y positions + per-municipality y on right side
   let ry = PAD_TOP;
   const rightNodes = [];
-  const rightMuniY = {};
+  const rightMuniY: Record<string, number> = {};
   for (const k of RATING_KEYS) {
     const bucket = rightBuckets[k] || [];
     if (!bucket.length) continue;
@@ -570,7 +578,7 @@ const hoveredMuniData = computed(() => {
 });
 
 // ── Node interaction ─────────────────────────────────────────────────────────
-function toggleNode(side, ratingKey) {
+function toggleNode(side: "left" | "right", ratingKey: `${keyof typeof RATING_CFG}`) {
   if (selectedNode.value?.side === side && selectedNode.value?.ratingKey === ratingKey) {
     selectedNode.value = null;
   } else {
@@ -586,20 +594,20 @@ const selectedNodeMunis = computed(() => {
     .sort((a, b) => a.name.localeCompare(b.name, "de"));
 });
 
-function muniLink(m, side) {
+function muniLink(m: SankeyMunicipality, side: "left" | "right") {
   const version = side === "left" ? leftVersion.value : rightVersion.value;
-  const vParam = version?.label ? `?v=${encodeURIComponent(version.label)}` : "";
+  const vParam = version?.label ? `?v=${encodeURIComponent(version?.label ?? "")}` : "";
   const hash = measureShortId.value ? `#measure-${measureShortId.value}` : "";
   return `/municipalities/${m.slug}${vParam}${hash}`;
 }
 
-function navigateToMuni(ribbon) {
+function navigateToMuni(ribbon: SankeyMunicipality) {
   if (!ribbon.slug) return;
   // Use the right (newer) version when available, otherwise the left version
   const versionLabel = (twoVersions.value ? rightVersion.value?.label : leftVersion.value?.label) ?? "";
   const vParam = versionLabel ? `?v=${encodeURIComponent(versionLabel)}` : "";
   const hash = measureShortId.value ? `#measure-${measureShortId.value}` : "";
-  router.push(`/municipalities/${ribbon.slug}${vParam}${hash}`);
+  void router.push(`/municipalities/${ribbon.slug}${vParam}${hash}`);
 }
 </script>
 

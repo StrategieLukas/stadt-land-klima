@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { PublicMunicipalitySchema } from "~/shared/contracts/search";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { createError, defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
@@ -26,5 +29,5 @@ export default defineEventHandler(async event => {
   })) : []
   if (scores.length > 10000) throw createError({ statusCode: 502, statusMessage: 'Score limit exceeded' })
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
-  return { municipalities: municipalities.map(row => ({ ...row, scores: scores.filter(score => score.municipality === row.id).sort((a, b) => Number(b.catalog_version === selectedCatalog.id) - Number(a.catalog_version === selectedCatalog.id)).map(({ municipality: _municipality, ...score }) => ({ ...score, catalog_version: { id: score.catalog_version, name: catalogs.find(catalog => catalog.id === score.catalog_version)?.name } })) })) }
+  return { municipalities: parseCms(z.array(PublicMunicipalitySchema), municipalities.map(row => ({ ...row, scores: scores.filter(score => score.municipality === row.id).sort((a, b) => Number(b.catalog_version === selectedCatalog.id) - Number(a.catalog_version === selectedCatalog.id)).map(({ municipality: _municipality, ...score }) => ({ ...score, catalog_version: { id: score.catalog_version, name: catalogs.find(catalog => catalog.id === score.catalog_version)?.name } })) }))) }
 })

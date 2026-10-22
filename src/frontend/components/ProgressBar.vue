@@ -24,7 +24,8 @@
     <div v-if="showScaleMaximum" data-testid="progress-scale-maximum" class="ml-auto text-sm">100</div>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
+
 import { computed, ref, onMounted } from "vue";
 const props = defineProps({
   scoreTotal: {
@@ -33,8 +34,8 @@ const props = defineProps({
   },
   layout: {
     type: String,
-    validator(value) {
-      return ["default", "compact"];
+    validator(value: string) {
+      return ["default", "compact"].includes(value);
     },
     default: "default",
   },
@@ -81,29 +82,29 @@ const durationClass = computed(() => {
   return getDurationClass(props.scoreTotal);
 });
 
-function getDurationClass(scoreTotal) {
+function getDurationClass(scoreTotal: number) {
   let d = durations[0];
 
-  for (const score in durations) {
-    if (scoreTotal < score) {
+  for (const [score, duration] of Object.entries(durations)) {
+    if (scoreTotal < Number(score)) {
       return d;
     }
 
-    d = durations[score];
+    d = duration;
   }
 
   return d;
 }
 
-function getColorClass(scoreTotal) {
+function getColorClass(scoreTotal: number) {
   let c = colors[0];
 
-  for (const score in colors) {
-    if (scoreTotal < score) {
+  for (const [score, color] of Object.entries(colors)) {
+    if (scoreTotal < Number(score)) {
       return c;
     }
 
-    c = colors[score];
+    c = color;
   }
 
   return c;

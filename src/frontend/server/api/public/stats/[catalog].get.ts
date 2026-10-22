@@ -1,3 +1,5 @@
+import { StatisticsSchema } from "~/shared/contracts/municipality";
+import { parseCms } from "~/server/utils/parseCms";
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
 import { readPublicItems } from '../../../utils/publicItems'
@@ -61,14 +63,14 @@ export default defineEventHandler(async (event) => {
       fields: ratingFields,
     }) : []
 
-  return {
+  return parseCms(StatisticsSchema, {
     catalogVersion: selectedCatalog,
     municipalities: municipalities.map((m: any) => pick(m, municipalityFields)),
     scores: scores.map((s: any) => ({
-      ...pick(s, scoreFields),
+      ...pick(s, scoreFields), catalog_version: selectedCatalog,
       municipality: s.municipality ? pick(s.municipality, municipalityFields) : null,
     })),
     measures: measures.map((m: any) => pick(m, measureFields)),
     ratings: ratings.map((r: any) => pick(r, ratingFields)),
-  }
+  })
 })

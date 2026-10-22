@@ -149,7 +149,7 @@ interface CarouselItem {
   title: string;
   description: string;
   element: RenderElement;
-  spec: object | null;
+  spec: import("~/shared/visualization").EditableSpec | null;
   maplibre: boolean;
 }
 
@@ -190,14 +190,14 @@ const pages = computed(() => {
 
 function goTo(index: number) {
   activePage.value = Math.min(Math.max(index, 0), pages.value.length - 1);
-  nextTick(() => {
+  void nextTick(() => {
     const track = trackRef.value;
     if (!track) return;
     track.scrollTo({ left: activePage.value * track.clientWidth, behavior: "smooth" });
   });
 }
 
-watch(expanded, () => goTo(0));
+watch(expanded, () => { goTo(0); });
 watch(
   () => pages.value.length,
   () => {

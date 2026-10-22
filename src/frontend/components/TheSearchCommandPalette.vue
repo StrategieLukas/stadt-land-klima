@@ -114,8 +114,8 @@
                           <template v-if="result.meta">
                             <span class="text-gray-400">·</span>
                             <img
-                              v-if="sectorImages[result.meta]"
-                              :src="sectorImages[result.meta]"
+                              v-if="sectorImages[result.meta as keyof typeof sectorImages]"
+                              :src="sectorImages[result.meta as keyof typeof sectorImages]"
                               :title="sectorLabels[result.meta] ?? result.meta"
                               class="palette-sector-icon h-8 w-8 flex-shrink-0 invert grayscale mix-blend-multiply"
                               :alt="sectorLabels[result.meta] ?? result.meta"
@@ -153,18 +153,19 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { AreaChipAction } from '~/types/components/navigation';
+
 import { ref, watch, watchEffect, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#imports'
 import { useSearchPalette } from '~/composables/useSearchPalette'
 import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge'
 import { useUnifiedSearch } from '~/composables/useUnifiedSearch'
 import { getCurrentFrontendCatalogVersion } from '~/composables/getCatalogVersion'
-import { useHeaderHeight } from '~/composables/useHeaderHeight'
-import { useNavInputRect } from '~/composables/useHeaderHeight'
+import { useHeaderHeight, useNavInputRect  } from '~/composables/useHeaderHeight'
 import sectorImages from '~/shared/sectorImages'
 import lodash from 'lodash'
-const { debounce } = lodash
+const debounce = lodash.debounce.bind(lodash)
 
 const { $t } = useNuxtApp()
 const { isOpen, query, embeddedInput, open, close } = useSearchPalette()
@@ -174,7 +175,7 @@ const { closeDrawer } = useDrawer()
 const headerHeight = useHeaderHeight()
 const navInputRect = useNavInputRect()
 
-const inputRef = ref(null)
+const inputRef = ref<HTMLInputElement | null>(null)
 const isLoading = ref(false)
 const focusedIndex = ref(-1)
 
@@ -211,13 +212,13 @@ watch(isOpen, async (val) => {
 })
 
 // Drive search from the shared query ref (works for both embedded and palette inputs)
-const debouncedSearch = debounce((q) => runSearch(q), 300)
+const debouncedSearch = debounce((q: string) => { runSearch(q); }, 300)
 watch(query, (q) => {
   focusedIndex.value = -1
   debouncedSearch(q)
 })
 
-function runSearch(q) {
+function runSearch(q: string) {
   if (!q.trim()) {
     unifiedSearch.clear()
     return
@@ -225,7 +226,8 @@ function runSearch(q) {
   unifiedSearch.search(q)
 }
 
-function navigate(result) {
+function navigate(result: (typeof flatResults.value)[number] | undefined) {
+  if (!result) return
   close()
   closeDrawer()
   if (result._type === 'area') {
@@ -233,26 +235,26 @@ function navigate(result) {
       if ((result.ctaType === 'complete' || result.ctaType === 'outdated') && result._slug) {
         const query = result.ctaType === 'outdated' && result._oldCatalogName
           ? `?v=${encodeURIComponent(result._oldCatalogName)}` : ''
-        router.push(`/municipalities/${result._slug}${query}`)
+        void router.push(`/municipalities/${result._slug}${query}`)
       } else {
-        router.push(`/municipalities/${result.ars}`)
+        void router.push(`/municipalities/${result.ars}`)
       }
     } else {
-      router.push(`/regions/${result.ars}`)
+      void router.push(`/regions/${result.ars}`)
     }
   } else if (result._type === 'content') {
-    router.push(result.url)
+    void router.push(result.url)
   }
 }
 
 /** Called when a CTA chip inside AreaSearchResult is clicked */
-function onChipAction({ ars }) {
+function onChipAction({ ars }: AreaChipAction) {
   close()
   closeDrawer()
-  router.push(`/register_localteam?ars=${ars}`)
+  void router.push(`/register_localteam?ars=${ars}`)
 }
 
-function moveFocus(dir) {
+function moveFocus(dir: number) {
   const max = flatResults.value.length - 1
   if (max < 0) return
   focusedIndex.value = Math.min(max, Math.max(0, focusedIndex.value + dir))
@@ -264,20 +266,21 @@ function navigateToFocused() {
   }
 }
 
-const contentTypeKeys = ['block', 'page', 'event', 'article', 'measure', 'static_page', 'news_item', 'member', 'team']
-function contentTypeLabel(type) {
+const contentTypeKeys = ['block', 'page', 'event', 'article', 'measure', 'static_page', 'news_item', 'member', 'team'] as const
+function contentTypeLabel(type: string) {
   if (!type) return ''
-  return contentTypeKeys.includes(type) ? $t(`search.content_type.${type}`) : type
+  const key = contentTypeKeys.find(key => key === type)
+  return key ? $t(`search.content_type.${key}`) : type
 }
 
 const sectorLabels = Object.fromEntries(
-  ['energy', 'transport', 'buildings', 'industry', 'agriculture', 'management']
+  (['energy', 'transport', 'buildings', 'industry', 'agriculture', 'management'] as const)
     .map(sector => [sector, $t(`measure_sectors.${sector}.title`)]),
 )
 
 // Global Cmd+K / Ctrl+K shortcut — always route to the embedded header search
 // (falls back to opening standalone palette when no header input is registered, e.g. mobile)
-function handleKeydown(e) {
+function handleKeydown(e: KeyboardEvent) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault()
     if (isOpen.value && !embeddedInput.value) {
@@ -294,8 +297,8 @@ function handleKeydown(e) {
   }
 }
 
-onMounted(() => document.addEventListener('keydown', handleKeydown))
-onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
+onMounted(() => { document.addEventListener('keydown', handleKeydown); })
+onBeforeUnmount(() => { document.removeEventListener('keydown', handleKeydown); })
 </script>
 
 <style scoped>

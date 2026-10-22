@@ -21,7 +21,7 @@
       <LMarker
         v-if="markerIcons.get(stop.index)"
         :lat-lng="stop.point"
-        :icon="markerIcons.get(stop.index)"
+        :icon="leafletMarkerIcon(markerIcons.get(stop.index))"
         :z-index-offset="stop.index === activeIndex ? 1000 : 0"
         :options="{ title: `${stop.index + 1}. ${stop.name}`, alt: `${stop.index + 1}. ${stop.name}` }"
         @click="emit('select', stop.index)"
@@ -31,25 +31,15 @@
 </template>
 
 <script setup lang="ts">
+import { leafletMarkerIcon } from '~/shared/leafletMarker';
 import { computed, markRaw, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
-import type { DivIcon } from "leaflet";
+import type { DivIcon, Map as LeafletMap } from "leaflet";
 import type { TourPoint } from "~/shared/tour";
 import { pinColor, pointLatLng } from "~/shared/tour";
 
 type LatLng = [number, number];
 type MapPosition = { x: number; y: number; width: number; height: number };
-type LeafletMap = {
-  fitBounds: (bounds: LatLng[], options: object) => void;
-  flyTo: (center: LatLng, zoom: number, options: object) => void;
-  setView: (center: LatLng, zoom: number) => void;
-  project: (point: LatLng, zoom: number) => { x: number; y: number };
-  unproject: (point: [number, number], zoom: number) => LatLng;
-  latLngToContainerPoint: (point: LatLng) => { x: number; y: number };
-  getSize: () => { x: number; y: number };
-  invalidateSize: () => void;
-  on: (event: string, callback: () => void) => void;
-  off: (event: string, callback: () => void) => void;
-};
+
 
 const props = defineProps<{
   stops: { id: string; slug?: string; title?: string; location?: string | null; geolocation?: TourPoint | null }[];
@@ -77,12 +67,12 @@ const mapOptions = { zoomControl: true, scrollWheelZoom: false, doubleClickZoom:
 const curvedRoute = computed<LatLng[]>(() => {
   const points = routePoints.value;
   if (points.length < 2) return points;
-  const curve: LatLng[] = [points[0]];
+  const curve: LatLng[] = [points[0]!];
   for (let index = 0; index < points.length - 1; index += 1) {
-    const previous = points[Math.max(0, index - 1)];
-    const current = points[index];
-    const next = points[index + 1];
-    const following = points[Math.min(points.length - 1, index + 2)];
+    const previous = points[Math.max(0, index - 1)]!;
+    const current = points[index]!;
+    const next = points[index + 1]!;
+    const following = points[Math.min(points.length - 1, index + 2)]!;
     const startTangent: LatLng = [(next[0] - previous[0]) * .18, (next[1] - previous[1]) * .18];
     const endTangent: LatLng = [(following[0] - current[0]) * .18, (following[1] - current[1]) * .18];
     for (let step = 1; step <= 12; step += 1) {
@@ -118,7 +108,7 @@ const markerIcons = computed(() => {
 function reportActivePosition() {
   const map = mapRef.value?.leafletObject;
   const stop = mappedStops.value.find((item) => item.index === props.activeIndex);
-  if (!map || !stop) return emit("position", null);
+  if (!map || !stop) { emit("position", null); return; }
   const point = map.latLngToContainerPoint(stop.point);
   const size = map.getSize();
   emit("position", { x: point.x, y: point.y, width: size.x, height: size.y });
@@ -128,7 +118,7 @@ function fitRoute() {
   const map = mapRef.value?.leafletObject;
   if (!map) return;
   if (routePoints.value.length > 1) map.fitBounds(routePoints.value, { padding: [70, 70], maxZoom: 9 });
-  else if (routePoints.value.length === 1) map.setView(routePoints.value[0], 9);
+  else if (routePoints.value.length === 1) map.setView(routePoints.value[0]!, 9);
   reportActivePosition();
 }
 
@@ -139,7 +129,7 @@ function refreshSize() {
 
 function focusStop(index: number) {
   const stop = mappedStops.value.find((item) => item.index === index);
-  if (!stop) return reportActivePosition();
+  if (!stop) { reportActivePosition(); return; }
   const map = mapRef.value?.leafletObject;
   if (!map) return;
   const zoom = 10;

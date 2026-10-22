@@ -251,6 +251,10 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { getCurrentBackendCatalogVersion } from '~/composables/getCatalogVersion'
 
+import { AreaSchema, type Area } from "~/shared/contracts/search"
+import { parseGeoCenter, parseGeoData } from "~/shared/contracts/geometry"
+import type { AreaResult } from "~/types/components/navigation"
+import { singleRouteValue } from "~/shared/routeValues"
 const route = useRoute()
 const { $stadtlandzahlAPI, $t } = useNuxtApp()
 const currentVersionBackend = await getCurrentBackendCatalogVersion()
@@ -273,7 +277,7 @@ const existingSlug = ref<string | null>(null)
 const existingPercentageRated = ref<number | null>(null)
 const existingScorePublished = ref(false)
 const hasExistingTeam = ref(false)
-const areaGeoData = ref<{ geo_center: any; geo_area: any } | null>(null)
+const areaGeoData = ref<{geo_center: import("geojson").Point | null; geo_area: import("geojson").GeoJsonObject | null} | null>(null)
 const geoLoading = ref(false)
 
 const ratingState = computed<'none' | 'not-started' | 'in-progress' | 'complete'>(() => {
@@ -285,12 +289,12 @@ const ratingState = computed<'none' | 'not-started' | 'in-progress' | 'complete'
 
 const searchBarRef = ref<{ focus: () => void } | null>(null)
 
-function handleAreaSelect(area: any): null {
-  selectArea(area)
+function handleAreaSelect(area: AreaResult): null {
+  void selectArea(AreaSchema.parse(area))
   return null
 }
 
-async function selectArea(area: any) {
+async function selectArea(area: Area) {
   selectedArea.value = {
     name: area.name,
     ars: area.ars,
@@ -300,7 +304,7 @@ async function selectArea(area: any) {
   }
   // Collect slugs from the stadtlandzahl search result — these are Directus municipality slugs
   // associated to this ARS. We must still check whether each one has a localteam_id.
-  const existingSlugs: string[] = (area.stadtlandklimaDataAll ?? []).map((d: any) => d.slug).filter(Boolean)
+  const existingSlugs: string[] = (area.stadtlandklimaDataAll ?? []).flatMap(d => d.slug ? [d.slug] : [])
   const teamInfo = await checkExistingLocalteam(area.ars, existingSlugs)
   applyTeamInfo(teamInfo)
   await fetchGeoData(area.ars)
@@ -350,8 +354,8 @@ async function fetchGeoData(ars: string) {
     const data = await $stadtlandzahlAPI.fetchStatsByARS(ars)
     if (data?.geo_center || data?.geo_area) {
       areaGeoData.value = {
-        geo_center: data.geo_center ?? null,
-        geo_area: data.geo_area ?? null,
+        geo_center: data.geo_center ? {type: "Point", coordinates: [data.geo_center.lon, data.geo_center.lat]} : null,
+        geo_area: parseGeoData(data.geo_area),
       }
     }
     // Enrich selectedArea with state/population from the full API response.
@@ -395,21 +399,21 @@ async function initFromQueryParams(ars: string, name?: string) {
       prefix: data.prefix ?? undefined,
     }
   }
-  const trustedSlugs = (data?.stadtlandklima_data ?? []).map((item: any) => item.slug).filter(Boolean)
+  const trustedSlugs = (data?.stadtlandklima_data ?? []).flatMap(item => item.slug ? [item.slug] : [])
   const teamInfo = await checkExistingLocalteam(ars, trustedSlugs)
   applyTeamInfo(teamInfo)
 }
 
 onMounted(() => {
-  const ars = route.query.ars as string | undefined
-  if (ars) initFromQueryParams(ars, route.query.name as string | undefined)
+  const ars = singleRouteValue(route.query.ars)
+  if (ars) initFromQueryParams(ars, singleRouteValue(route.query.name))
 })
 
 watch(
   () => route.query.ars,
   (ars) => {
-    if (ars) {
-      initFromQueryParams(ars as string, route.query.name as string | undefined)
+    if (singleRouteValue(ars)) {
+      void initFromQueryParams(singleRouteValue(ars)!, singleRouteValue(route.query.name))
     } else {
       resetSelection()
     }

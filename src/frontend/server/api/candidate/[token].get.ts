@@ -1,3 +1,5 @@
+import { CandidateReadSchema } from "~/shared/contracts/elections";
+import { parseCms } from "~/server/utils/parseCms";
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
 import { verifyCandidateAccessToken, loadCandidateQuestions, loadCandidateAnswers } from '../../utils/candidateAuth'
 
@@ -23,9 +25,9 @@ export default defineEventHandler(async (event) => {
   const questionIds = questions.map(q => q.id)
   const existingAnswers = await loadCandidateAnswers(data.candidate.id, questionIds)
 
-  return {
+  return parseCms(CandidateReadSchema, {
     candidate: data.candidate,
     questions,
     existingAnswers,
-  }
+  })
 })

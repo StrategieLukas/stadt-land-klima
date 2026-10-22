@@ -1,8 +1,8 @@
 <template>
   <div
+    :id="'block-' + uuid"
     ref="rootEl"
     class="blokkli-block-carousel"
-    :id="'block-' + uuid"
   >
     <!--
       Always full-bleed (breaks out of article max-width like the projects carousel).
@@ -208,7 +208,7 @@ const peekPx = computed(() =>
 //             scrollPaddingLeft so the browser's snap port matches our 1.5rem padding.
 const trackStyle = computed(() => {
   if (isEditing || !scrollContainerWidth.value) return {}
-  const slideW = slideWidthPx.value + 'px'
+  const slideW = `${slideWidthPx.value}px`
   if (!options.value.peek) {
     return {
       '--slide-w': slideW,
@@ -219,7 +219,7 @@ const trackStyle = computed(() => {
       boxSizing: 'border-box' as const,
     }
   }
-  const p = peekPx.value + 'px'
+  const p = `${peekPx.value}px`
   return {
     '--slide-w': slideW,
     '--snap-align': 'center',

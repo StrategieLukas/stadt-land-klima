@@ -76,7 +76,7 @@ onMounted(async () => {
       // Fallback: treat src as a static URL
       imageSrc.value = src
     }
-  } catch (_) {
+  } catch {
     error.value = true
   } finally {
     loading.value = false

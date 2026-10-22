@@ -173,7 +173,8 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PublicEvent } from "~/shared/contracts/content";
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
@@ -198,7 +199,7 @@ const { data: eventsResult } = await useAsyncData("events-list", async () => {
     });
     return result;
   } catch (e) {
-    console.warn("[events] Failed to load events:", e?.message);
+    console.warn("[events] Failed to load events:", e instanceof Error ? e.message : "Request failed");
     return { events: [] };
   }
 });
@@ -213,28 +214,28 @@ const futureEvents = computed(() => (events.value || []).filter((event) =>
 const pastEvents = computed(() => (events.value || []).filter((event) =>
   getEventPhase(event.start_date, event.end_date, event.date_only, now) === "past"));
 
-function groupByMonth(evList) {
-  const map = new Map();
+function groupByMonth(evList: PublicEvent[]) {
+  const map = new Map<string, {monthKey: string; label: string; events: PublicEvent[]}>();
   for (const ev of evList) {
     const key = getEventMonthKey(ev.start_date);
     const label = formatEventMonth(ev.start_date, $locale);
     if (!key) continue;
     if (!map.has(key)) map.set(key, { monthKey: key, label, events: [] });
-    map.get(key).events.push(ev);
+    map.get(key)?.events.push(ev);
   }
   return [...map.values()];
 }
 
 const futureGroups = computed(() => groupByMonth(futureEvents.value));
 const pastGroups = computed(() => {
-  const sorted = [...pastEvents.value].sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+  const sorted = [...pastEvents.value].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
   return groupByMonth(sorted);
 });
 
 // ── Section nav active tracking ────────────────────────────────────────────────
-const activeSection = ref(null);
-const mobilePillStrip = ref(null);
-let sectionObserver = null;
+const activeSection = ref<string | null>(null);
+const mobilePillStrip = ref<HTMLElement | null>(null);
+let sectionObserver: IntersectionObserver | null = null;
 
 watch(activeSection, (id) => {
   if (!id || !mobilePillStrip.value) return;
@@ -254,7 +255,7 @@ onMounted(() => {
       },
       { rootMargin: "-20% 0px -70% 0px", threshold: 0 },
     );
-    sections.forEach((s) => sectionObserver.observe(s));
+    sections.forEach((s) => sectionObserver?.observe(s));
   };
   setTimeout(observe, 100);
 });

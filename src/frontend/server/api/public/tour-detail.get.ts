@@ -1,3 +1,6 @@
+import { queryText, queryIds } from "~/server/utils/publicQuery";
+import { TourSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
@@ -13,7 +16,7 @@ export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
   const client = createDirectusServerClient()
   const query = getQuery(event)
-  const slug = query.slug as string | undefined
+  const slug = queryText(query.slug)
 
   if (!slug) {
     return { series: null }
@@ -25,5 +28,5 @@ export default defineEventHandler(async (event) => {
     limit: 1,
   }))
 
-  return { series: series[0] || null }
+  return { series: series[0] ? parseCms(TourSchema, series[0]) : null }
 })

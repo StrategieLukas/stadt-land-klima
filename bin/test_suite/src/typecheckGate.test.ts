@@ -30,6 +30,8 @@ exit "$CHECKER_STATUS"
     assert.equal(run('Error: compiler crashed\n', 1, ['--update-baseline']).status, 1);
     assert.equal(readFileSync(join(directory, '.ts-baseline.txt'), 'utf8'), baseline);
     assert.equal(run(oldError, 2, ['--update-baseline']).status, 0);
+    assert.equal(run('components/Invalid.vue(1,1): error TS2322: Invalid prop\n', 2, ['--update-baseline']).status, 1);
+    assert.equal(readFileSync(join(directory, '.ts-baseline.txt'), 'utf8'), baseline);
     assert.equal(run('', 0, ['--bad-option']).status, 64);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });

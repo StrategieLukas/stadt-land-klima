@@ -98,6 +98,8 @@
 </template>
 
 <script setup lang="ts">
+import { CollectionSchema, SummarySchema } from "~/shared/contracts/slz";
+import { singleRouteValue } from "~/shared/routeValues";
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
@@ -116,8 +118,8 @@ const route = useRoute();
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl as string;
 
-const areaSlug = computed(() => route.params.slug as string);
-const collectionSlug = computed(() => route.params.collection as string);
+const areaSlug = computed(() => singleRouteValue(route.params.slug) ?? "");
+const collectionSlug = computed(() => singleRouteValue(route.params.collection) ?? "");
 
 const { data: dataPageConfig } = await useDataPageConfig();
 if (!isCollectionVisible(collectionSlug.value, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG)) {
@@ -199,7 +201,7 @@ onMounted(() => {
 
 onMounted(async () => {
   try {
-    const data = await $fetch<Collection>(`${baseUrl}/api/collections/${collectionSlug.value}/`);
+    const data = CollectionSchema.parse(await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`));
     collection.value = data;
     if (area.value?.ars) {
       await loadFromRender(collectionSlug.value, area.value.ars);
@@ -216,9 +218,9 @@ onMounted(async () => {
   // Fetch summary for attribution block (best-effort)
   if (area.value?.ars) {
     try {
-      const s = await $fetch<CollectionSummary>(`${baseUrl}/api/collections/${collectionSlug.value}/summary/`, {
+      const s = SummarySchema.parse(await $fetch(`${baseUrl}/api/collections/${collectionSlug.value}/summary/`, {
         params: { area: area.value.ars },
-      });
+      }));
       collectionSummary.value = s;
     } catch (_) {}
   }

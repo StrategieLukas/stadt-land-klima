@@ -18,7 +18,7 @@
     "typecheck": "npm run translations:check && bash typecheck.sh && npm run lint:migrated && npm run typecheck:scripts",
     "typecheck:full": "nuxt prepare && vue-tsc -b --noEmit",
     "typecheck:baseline": "bash typecheck.sh --update-baseline",
-    "lint:migrated": "eslint \"shared/**/*.ts\" \"composables/**/*.ts\" \"plugins/**/*.ts\" \"stores/**/*.ts\" middleware/referrer.global.ts types/editorCms.ts server/api/public/translations.get.ts server/types/directus.ts server/utils/candidateAnswers.ts server/api/public/jobs.get.ts \"server/api/public/jobs/[slug].get.ts\" \"server/api/candidate/[token]/answers.post.ts\" components/JobOfferCard.vue components/JobOfferStatusPill.vue pages/jobs/index.vue \"pages/jobs/[slug].vue\"",
+    "lint:migrated": "eslint \"shared/**/*.ts\" \"composables/**/*.ts\" \"plugins/**/*.ts\" \"stores/**/*.ts\" middleware/referrer.global.ts types/editorCms.ts server/api/public/translations.get.ts server/types/directus.ts server/utils/candidateAnswers.ts server/api/public/jobs.get.ts \"server/api/public/jobs/[slug].get.ts\" \"server/api/candidate/[token]/answers.post.ts\" \"components/**/*.vue\" \"types/components/**/*.ts\" types/components.d.ts pages/jobs/index.vue \"pages/jobs/[slug].vue\"",
     "prebuild": "npm run typecheck",
     "pregenerate": "npm run typecheck",
     "translations:generate": "node scripts/generate-translations.mts",
@@ -28,6 +28,7 @@
   "devDependencies": {
     "@nuxt/devtools": "3.4.4",
     "@nuxt/eslint-config": "1.17.0",
+    "@types/d3-force": "3.0.10",
     "@types/lodash": "4.17.27",
     "@types/node": "24.19.2",
     "@types/sanitize-html": "2.16.2",

@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { WahlcheckSchema } from "~/shared/contracts/elections";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
@@ -14,7 +17,7 @@ const answerPublicFields = ['response', 'explanation']
 
 async function buildWahlcheckResponse(
   client: ReturnType<typeof createDirectusServerClient>,
-  municipality: Row,
+  municipality: {slug: string; name: string},
   localteamId: string,
 ) {
   // Find most recent public election for this localteam
@@ -32,7 +35,7 @@ async function buildWahlcheckResponse(
     throw createError({ statusCode: 404, statusMessage: 'No public election found' })
   }
 
-  const election = elections[0]
+  const election = elections[0]!
 
   // Load questions
   const questions = await client.request(readItems('questions', {
@@ -60,7 +63,7 @@ async function buildWahlcheckResponse(
     const loadedAnswers = await client.request(readItems('answers', {
       filter: {
         candidate: { _in: candidateIds },
-        question: { status: { _eq: 'published' } },
+        question: { id: { _in: questions.map(q => q.id) }, election: { _eq: election.id }, status: { _eq: 'published' } },
       },
       fields: ['candidate', 'question', 'response', 'explanation'],
       limit: 10000,
@@ -86,12 +89,12 @@ async function buildWahlcheckResponse(
     })),
   }))
 
-  return {
+  return parseCms(WahlcheckSchema, {
     municipality: { slug: municipality.slug, name: municipality.name },
     election: pick(election, ['id', 'is_party_election', 'simple_answer_mode', 'descriptor', 'custom_logo', 'response_cutoff_date']),
     questions: questions.map((q: any) => pick(q, questionPublicFields)),
     candidates: responseCandidates,
-  }
+  })
 }
 
 export default defineEventHandler(async (event) => {
@@ -121,22 +124,22 @@ export default defineEventHandler(async (event) => {
     }))
 
     if (localteams && localteams.length > 0) {
-      localteamId = localteams[0].id
+      localteamId = localteams[0]!.id
       // Return a synthetic municipality object for the response
-      const m = localteams[0]
-      const municipality: Row = { slug: municipalitySlug, name: m.municipality_name || m.name }
-      return await buildWahlcheckResponse(client, municipality, localteamId)
+      const m = localteams[0]!
+      const municipality = { slug: municipalitySlug, name: m.municipality_name || m.name }
+      return await buildWahlcheckResponse(client, {slug: String(municipality.slug), name: String(municipality.name)}, localteamId!)
     } else {
       throw createError({ statusCode: 404, statusMessage: 'Not found' })
     }
   }
 
-  const municipality = municipalities[0]
+  const municipality = municipalities[0]!
   localteamId = municipality.localteam_id?.id
 
   if (!localteamId) {
     throw createError({ statusCode: 404, statusMessage: 'No local team found' })
   }
 
-  return await buildWahlcheckResponse(client, municipality, localteamId)
+  return await buildWahlcheckResponse(client, {slug: String(municipality.slug), name: String(municipality.name)}, localteamId!)
 })

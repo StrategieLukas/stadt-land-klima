@@ -26,8 +26,8 @@
 
       <div class="flex justify-center mt-6">
         <button
-          @click="fetchPDF()"
           class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg hover:scale-105 transition-transform"
+          @click="fetchPDF()"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -100,8 +100,8 @@
     <!-- Bottom PDF Button -->
     <div class="flex justify-center mt-8 py-4">
       <button
-        @click="fetchPDF()"
         class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg hover:scale-105 transition-transform"
+        @click="fetchPDF()"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -112,7 +112,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { NumericValue } from '~/shared/domain';
+
+import type { PropType } from 'vue';
+import type { MunicipalityScore, MeasureRating } from '~/types/components/municipality';
+import type { Catalog } from '~/shared/contracts/search';
+
   import MarkdownIt from 'markdown-it'
   import measureCurrentProgressStrings from "~/assets/measure-current-progress-strings.json"
   import measurePoliticalDemandStrings from "~/assets/measure-political-demand-strings.json"
@@ -122,11 +128,11 @@
 
   const props = defineProps({
     municipalityScore: {
-      type: Object,
+      type: Object as PropType<MunicipalityScore>,
       required: true,
     },
     ratingsMeasures: {
-      type: Object,
+      type: Object as PropType<MeasureRating[]>,
       required: true,
     },
     usingFallbackCatalog: {
@@ -134,7 +140,7 @@
       default: false,
     },
     currentCatalogVersion: {
-      type: Object,
+      type: Object as PropType<Catalog>,
       required: true,
     },
   });
@@ -146,10 +152,10 @@
     item.rating !== null
   )
   .map(item => {
-      const rating = parseFloat(item.rating) || 0
-      const weight = item.measure?.weight || 0
-      const feasibilityPolitical = parseFloat(item.measure?.feasibility_political) || 0
-      const feasibilityEconomical = parseFloat(item.measure?.feasibility_economical) || 0
+      const rating = parseFloat(String(item.rating)) || 0
+      const weight = Number(item.measure?.weight) || 0
+      const feasibilityPolitical = parseFloat(String(item.measure?.feasibility_political)) || 0
+      const feasibilityEconomical = parseFloat(String(item.measure?.feasibility_economical)) || 0
 
       const potential = (1 - rating) * weight
       const difficulty = (feasibilityPolitical + feasibilityEconomical) / 2
@@ -185,18 +191,18 @@
       return a.measure_id.localeCompare(b.measure_id)
   })
 
-  function fetchCurrentProgressString(measureId, rating) {
+  function fetchCurrentProgressString(measureId: string, rating: NumericValue) {
       // Fetch base String from map
-      let rawString = (measureCurrentProgressStrings[measureId] || {})[rating] || ""
+      const rawString = (measureCurrentProgressStrings as Record<string, Record<string, string>>)[measureId]?.[String(rating)] || ""
 
       // Replace dynamic labels with their values
       return rawString
         .replaceAll("[MUNICIPALITY]", props.municipalityScore.municipality.name)
   }
 
-  function fetchPoliticalDemandString(measureId, rating) {
+  function fetchPoliticalDemandString(measureId: string, rating: NumericValue) {
       // Fetch base String from map
-      let rawString = (measurePoliticalDemandStrings[measureId] || {})[rating] || ""
+      const rawString = (measurePoliticalDemandStrings as Record<string, Record<string, string>>)[measureId]?.[String(rating)] || ""
 
       // Replace dynamic labels with their values
       return rawString
@@ -207,7 +213,8 @@
 
   async function fetchPDF() {
     try {
-      const response = await $fetch('/api/election-pdf', {
+      const response = await $fetch<Blob>('/api/election-pdf', {
+        responseType: 'blob',
         method: 'POST',
         body: {
           municipalitySlug: municipality.slug,

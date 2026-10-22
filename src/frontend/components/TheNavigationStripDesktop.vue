@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-gray-50 dark:bg-[var(--slk-surface-subdued)] border-gray-200 dark:border-[var(--slk-border)] border-t" ref="navRef">
+  <nav ref="navRef" class="bg-gray-50 dark:bg-[var(--slk-surface-subdued)] border-gray-200 dark:border-[var(--slk-border)] border-t">
     <ul class="mx-auto flex w-full max-w-screen-xl flex-wrap items-stretch justify-center px-2">
       <li
         v-for="item in safeItems"
@@ -10,8 +10,8 @@
       >
         <!-- Simple link (no children) -->
         <component
-          v-if="!hasChildren(item) && item.link_type !== 'none'"
           :is="item.link_type === 'page' ? NuxtLink : 'a'"
+          v-if="!hasChildren(item) && item.link_type !== 'none'"
           :to="item.link_type === 'page' ? resolveHref(item) : undefined"
           :href="item.link_type === 'external' ? item.external_url : undefined"
           :target="item.link_type === 'external' ? (item.open_new_tab ? '_blank' : '_self') : undefined"
@@ -52,9 +52,9 @@
           <button
             type="button"
             class="nav-pr text-gray-600 dark:text-[var(--slk-text)] flex cursor-pointer items-center pl-1 group-hover/trigger:text-olive-green dark:group-hover/trigger:text-[var(--slk-olive-green)]"
-            @click.stop="toggleMenu(item.id)"
             :aria-expanded="openMenuId === item.id"
             :aria-label="$t('navigation.submenu_for', { ':label': navLabel(item) })"
+            @click.stop="toggleMenu(item.id)"
           >
             <svg
               class="h-3 w-3 flex-shrink-0 opacity-60"
@@ -80,9 +80,9 @@
             <!-- Image children: large cards side-by-side -->
             <div v-if="hasImageChildren(item)" class="grid grid-cols-[160px_160px] gap-2 p-3">
               <component
+                :is="child.link_type === 'page' ? NuxtLink : 'a'"
                 v-for="child in childrenWithImages(item)"
                 :key="child.id"
-                :is="child.link_type === 'page' ? NuxtLink : 'a'"
                 :to="child.link_type === 'page' ? resolveHref(child) : undefined"
                 :href="child.link_type === 'external' ? child.external_url : undefined"
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
@@ -91,7 +91,7 @@
                 @click="closeMenu"
               >
                 <img
-                  :src="imageUrlMap[child.image_id]"
+                  :src="imageUrlMap[child.image_id ?? '']"
                   class="h-full w-full object-cover transition-transform duration-200 group-hover/card:scale-105"
                   alt=""
                 />
@@ -122,21 +122,21 @@
               :class="{ 'border-gray-100 dark:border-[var(--slk-border)] border-l': hasImageChildren(item) }"
             >
               <component
+                :is="child.link_type === 'page' ? NuxtLink : 'a'"
                 v-for="child in childrenWithoutImages(item)"
                 :key="child.id"
-                :is="child.link_type === 'page' ? NuxtLink : 'a'"
                 :to="child.link_type === 'page' ? resolveHref(child) : undefined"
                 :href="child.link_type === 'external' ? child.external_url : undefined"
                 :target="child.link_type === 'external' ? (child.open_new_tab ? '_blank' : '_self') : undefined"
                 :rel="child.link_type === 'external' ? 'noopener noreferrer' : undefined"
                 class="border-gray-50 dark:border-[var(--slk-border)] flex items-start border-b px-4 py-3 text-sm font-semibold transition-colors last:border-b-0"
-                @click="closeMenu"
                 :class="{
                   'bg-solid-light-green-20 dark:bg-[var(--slk-green-tint)] text-olive-green dark:text-[var(--slk-olive-green)]': child.link_type === 'page' && isActive(child),
                   'text-gray-700 dark:text-[var(--slk-text-muted)] hover:text-gray-900 dark:hover:text-[var(--slk-text-strong)] hover:bg-solid-light-green-10 dark:hover:bg-[var(--slk-surface-muted)]': !(
                     child.link_type === 'page' && isActive(child)
                   ),
                 }"
+                @click="closeMenu"
               >
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 leading-snug">
@@ -170,7 +170,10 @@
   </nav>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { NavigationItem } from '~/types/components/navigation';
+
 import { ref, computed, onMounted, onUnmounted, resolveComponent } from "vue";
 import { useRoute, useRuntimeConfig } from "#imports";
 import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
@@ -180,23 +183,23 @@ const { $translateDynamic, $t } = useNuxtApp();
 
 const props = defineProps({
   items: {
-    type: Array,
+    type: Array as PropType<NavigationItem[]>,
     default: () => [],
   },
 });
 
 const route = useRoute();
 const config = useRuntimeConfig();
-const navLabel = (item) => translatedNavigationLabel(item, $translateDynamic);
-const navDescription = (item) => translatedNavigationLabel(item, $translateDynamic, "description");
+const navLabel = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic);
+const navDescription = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "description");
 
 const safeItems = computed(() => (Array.isArray(props.items) ? props.items : []));
 
-const navRef = ref(null);
-const openMenuId = ref(null);
-let menuCloseTimer = null;
+const navRef = ref<HTMLElement | null>(null);
+const openMenuId = ref<string | number | null>(null);
+let menuCloseTimer: ReturnType<typeof setTimeout> | undefined;
 
-function handleMenuEnter(id) {
+function handleMenuEnter(id: string | number) {
   clearTimeout(menuCloseTimer);
   openMenuId.value = id;
 }
@@ -212,18 +215,19 @@ function closeMenu() {
   openMenuId.value = null;
 }
 
-function toggleMenu(id) {
+function toggleMenu(id: string | number) {
   clearTimeout(menuCloseTimer);
   openMenuId.value = openMenuId.value === id ? null : id;
 }
 
-function handleOutsideClick(event) {
+function handleOutsideClick(event: MouseEvent) {
+  if (!(event.target instanceof Node)) return;
   if (navRef.value && !navRef.value.contains(event.target)) {
     closeMenu();
   }
 }
 
-function resolveHref(item) {
+function resolveHref(item: NavigationItem) {
   if (item.link_type === "page") {
     const slug = (item.page_slug ?? "").replace(/^\/+/, "");
     return slug === "" ? "/" : `/${slug}`;
@@ -231,34 +235,34 @@ function resolveHref(item) {
   return item.external_url || "#";
 }
 
-function isActive(item) {
+function isActive(item: NavigationItem) {
   if (item.link_type !== "page") return false;
   const slug = (item.page_slug ?? "").replace(/^\/+/, "").replace(/\/+$/, "");
   if (!slug) return false;
   return route.path === `/${slug}` || route.path.startsWith(`/${slug}/`);
 }
 
-function hasChildren(item) {
+function hasChildren(item: NavigationItem) {
   return Array.isArray(item.children) && item.children.length > 0;
 }
 
-function anyChildActive(item) {
-  return hasChildren(item) && item.children.some((child) => isActive(child));
+function anyChildActive(item: NavigationItem) {
+  return hasChildren(item) && (item.children ?? []).some((child) => isActive(child));
 }
 
-function hasImageChildren(item) {
+function hasImageChildren(item: NavigationItem) {
   return (item.children || []).some((c) => c.image_id);
 }
 
-function childrenWithImages(item) {
+function childrenWithImages(item: NavigationItem) {
   return (item.children || []).filter((c) => c.image_id);
 }
 
-function childrenWithoutImages(item) {
+function childrenWithoutImages(item: NavigationItem) {
   return (item.children || []).filter((c) => !c.image_id);
 }
 
-const imageUrlMap = ref({});
+const imageUrlMap = ref<Record<string, string>>({});
 
 onMounted(() => {
   const baseUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081";

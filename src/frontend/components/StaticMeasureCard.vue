@@ -45,19 +45,22 @@
     </div>
   </article>
 </template>
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { Measure } from '~/types/components/municipality';
+
 import { defineProps, ref, onMounted, onBeforeUnmount } from "vue";
 const { $t, $locale } = useNuxtApp();
 
 const props = defineProps({
   measure: {
-    type: Object,
+    type: Object as PropType<Measure>,
     required: true,
   },
 });
 
 const isExpanded = ref(false);
-let lastUpdatedAtStr = ref("");
+const lastUpdatedAtStr = ref("");
 
 const toggleExpanded = () => {
   isExpanded.value = !isExpanded.value;

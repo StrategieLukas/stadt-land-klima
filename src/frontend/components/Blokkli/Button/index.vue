@@ -1,7 +1,7 @@
 <template>
   <div
-    class="blokkli-block-button flex w-full"
     :id="'block-' + uuid"
+    class="blokkli-block-button flex w-full"
     :class="[alignClass, verticalAlignClass]"
   >
     <!-- External link -->
@@ -109,7 +109,7 @@ const iconMap: Record<string, string> = Object.fromEntries(
   }),
 )
 
-const isEditing = import.meta.blokkliEditing
+const _isEditing = import.meta.blokkliEditing
 
 const { options, uuid } = defineBlokkli({
   bundle: 'button',
@@ -336,7 +336,7 @@ const colorConfig: Record<string, { filled: string; outline: string; autoTextFil
 }
 
 const styleClass = computed(() => {
-  const c = colorConfig[options.value.color] || colorConfig.green
+  const c = colorConfig[options.value.color] || colorConfig.green!
   return options.value.variant === 'outline' ? c.outline : c.filled
 })
 
@@ -361,7 +361,7 @@ const verticalAlignClass = computed(() => {
 
 const textColorClass = computed(() => {
   const tc = options.value.textColor
-  const c = colorConfig[options.value.color] || colorConfig.green
+  const c = colorConfig[options.value.color] || colorConfig.green!
   const isOutline = options.value.variant === 'outline'
 
   if (tc !== 'auto') {

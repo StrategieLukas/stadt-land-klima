@@ -8,7 +8,7 @@ export default defineEventHandler(async event => {
   const base = String(config.directusServerUrl || config.public.serverDirectusUrl).replace(/\/$/,'');
   const token = config.directusFrontendServerToken as string | undefined
   const headers = {Authorization:`Bearer ${token}`};
-  const slug = decodeURIComponent(match[2]);
+  const slug = decodeURIComponent(match[2] ?? "");
   let target: string | undefined;
   if (match[1] === 'events/series') {
     // A matching published native tour is enough; the legacy series may be gone.

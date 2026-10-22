@@ -113,7 +113,7 @@ const canonicalKpi = ref<{ value: number | null; precision?: number | null } | n
 const hasRequestedSummary = ref(false);
 const hasRequestedDetails = ref(false);
 const runtimeConfig = useRuntimeConfig();
-const { $translateDynamic, $t, $locale } = useNuxtApp();
+const { $translateDynamic, $t: _$t, $locale } = useNuxtApp();
 let observer: IntersectionObserver | null = null;
 
 const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
@@ -156,7 +156,7 @@ const kpiCategoryColor = computed(() => {
   if (thresholds.orange != null && v >= thresholds.orange) return "#F36633";
   return "#E30613";
 });
-const kpiTintBackground = computed(() => hexToRgba(kpiCategoryColor.value, 0.11));
+const kpiTintBackground = computed(() => hexToRgba(kpiCategoryColor.value ?? color.value ?? "#006e94", 0.11));
 const kpiTooltip = computed(() => {
   const parts = [kpiLabel.value, kpiDisplay.value, unitLabel.value].filter(Boolean);
   return parts.join(" · ");
@@ -191,7 +191,7 @@ async function loadSummary() {
     const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {};
     canonicalKpi.value =
       (kpiValues?.[kpi.value.plot_id] as { value: number | null; precision?: number | null } | undefined) ?? null;
-  } catch (_) {
+  } catch {
     aggregate.value = null;
     canonicalKpi.value = null;
   }
@@ -205,7 +205,7 @@ async function loadCollectionDetails() {
       timeout: 8000,
     });
     collectionDetails.value = normalizeCollection(data);
-  } catch (_) {
+  } catch {
     collectionDetails.value = null;
   }
 }
@@ -213,13 +213,13 @@ async function loadCollectionDetails() {
 onMounted(() => {
   if (!props.showKpi) return;
   if (!cardRef.value || typeof IntersectionObserver === "undefined") {
-    loadSummary();
+    void loadSummary();
     return;
   }
   observer = new IntersectionObserver(
     (entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
-        loadSummary();
+        void loadSummary();
         observer?.disconnect();
         observer = null;
       }

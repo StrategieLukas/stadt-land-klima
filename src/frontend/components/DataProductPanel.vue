@@ -32,7 +32,7 @@
         <template v-if="histogramElements.length">
           <div
             v-for="hist in histogramElements"
-            :key="hist.field ?? hist.label ?? hist.vegalite_spec"
+            :key="hist.plot_id"
             class="min-h-[180px]"
           >
             <h4 class="text-gray-500 mb-2 text-xs font-semibold uppercase tracking-wide">Verteilung (alle Kommunen)</h4>
@@ -119,7 +119,7 @@
           <div class="space-y-3 px-4 pb-4 pt-2">
             <div
               v-for="(step, idx) in pipeline.pipeline_steps"
-              :key="step.asset_key || idx"
+              :key="typeof step.asset_key === 'string' ? step.asset_key : idx"
               class="flex items-start gap-3"
             >
               <div
@@ -149,13 +149,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { z } from 'zod';
+import { SummarySchema, PipelineSchema } from '~/shared/contracts/slz';
+import { cloneVisualization, asRecord } from '~/shared/visualization';
+import type { PropType } from 'vue';
+import type { Collection } from '~/types/slz-api';
+import type { GeoJsonObject } from 'geojson';
+import type { Area } from '~/shared/contracts/search';
+
 import { ref, computed, watch } from "vue";
 import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
 const props = defineProps({
   collection: {
-    type: Object,
+    type: Object as PropType<Collection>,
     required: true,
   },
   ars: {
@@ -171,7 +179,7 @@ const props = defineProps({
     required: true,
   },
   population: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null,
   },
   exportUpdatedAt: {
@@ -183,23 +191,23 @@ const props = defineProps({
     default: "",
   },
   // Legacy props kept for compatibility with existing call sites
-  areaBoundary: { type: Object, default: null },
-  nearbyAreas: { type: Array, default: () => [] },
+  areaBoundary: { type: Object as PropType<GeoJsonObject | null>, default: null },
+  nearbyAreas: { type: Array as PropType<Area[]>, default: () => [] },
   hideMap: { type: Boolean, default: false },
 });
 
 // State
 const loading = ref(false);
 const error = ref(false);
-const summary = ref(null);
-const pipeline = ref(null);
+const summary = ref<z.infer<typeof SummarySchema> | null>(null);
+const pipeline = ref<z.infer<typeof PipelineSchema> | null>(null);
 
 // Render element grouping
 const renderElements = computed(() => props.collection?.render_elements ?? []);
 
 const kpiElement = computed(() => renderElements.value.find((e) => e.type === "kpi") ?? null);
 
-function localizedStr(obj) {
+function localizedStr(obj: Record<string, string> | null | undefined) {
   if (!obj) return "";
   return obj["de-DE"] || obj["en-US"] || "";
 }
@@ -220,7 +228,7 @@ const timeSeriesElements = computed(() =>
 );
 
 // Map spec composition
-function injectAreaParam(url, ars) {
+function injectAreaParam(url: string, ars: string) {
   try {
     const u = new URL(url);
     u.searchParams.set("area", ars);
@@ -232,9 +240,10 @@ function injectAreaParam(url, ars) {
   }
 }
 
-function cloneWithArea(spec, ars) {
-  const s = JSON.parse(JSON.stringify(spec));
-  if (s.data?.url) s.data.url = injectAreaParam(s.data.url, ars);
+function cloneWithArea(spec: unknown, ars: string) {
+  const s = cloneVisualization(spec);
+  const data = asRecord(s.data);
+  if (typeof data?.url === "string") data.url = injectAreaParam(data.url, ars);
   return s;
 }
 
@@ -250,7 +259,7 @@ const combinedMapSpec = computed(() => {
   if (aggCount !== null && aggCount <= 1) return null;
 
   if (els.length === 1) {
-    return cloneWithArea(els[0].vegalite_spec, props.ars);
+    return cloneWithArea(els[0]!.vegalite_spec, props.ars);
   }
 
   const layers = els.map((el) => {
@@ -263,7 +272,7 @@ const combinedMapSpec = computed(() => {
     };
   });
 
-  const base = els[0].vegalite_spec;
+  const base = cloneVisualization(els[0]!.vegalite_spec);
   return {
     $schema: base.$schema ?? "https://vega.github.io/schema/vega-lite/v5.json",
     width: "container",
@@ -278,13 +287,13 @@ const kpiRawValue = computed(() => {
   if (!kpiElement.value || !summary.value?.aggregate) return null;
   const field = kpiElement.value.field;
   const agg = summary.value.aggregate;
-  return typeof agg[field] === "number" ? agg[field] : null;
+  return field && typeof agg[field] === "number" ? agg[field] : null;
 });
 
 const kpiValue = computed(() => {
   const raw = kpiRawValue.value;
   if (raw === null) return null;
-  if (kpiElement.value.population_normalized && props.population) {
+  if (kpiElement.value?.population_normalized && props.population) {
     return (raw / props.population) * 1000;
   }
   return raw;
@@ -335,16 +344,16 @@ async function loadData() {
     ]);
 
     if (summaryResult.status === "fulfilled") {
-      summary.value = summaryResult.value;
+      summary.value = SummarySchema.parse(summaryResult.value);
     }
     if (pipelineResult.status === "fulfilled") {
-      pipeline.value = pipelineResult.value;
+      pipeline.value = PipelineSchema.parse(pipelineResult.value);
     }
 
     if (renderElements.value.length > 0 && !summary.value) {
       error.value = true;
     }
-  } catch (_) {
+  } catch {
     error.value = true;
   } finally {
     loading.value = false;
@@ -362,7 +371,7 @@ watch(
 );
 
 // Formatting
-function formatDate(iso) {
+function formatDate(iso: string | undefined) {
   if (!iso) return "";
   try {
     return new Date(iso).toLocaleDateString("de-DE", {
@@ -370,7 +379,7 @@ function formatDate(iso) {
       month: "2-digit",
       year: "numeric",
     });
-  } catch (_) {
+  } catch {
     return iso;
   }
 }

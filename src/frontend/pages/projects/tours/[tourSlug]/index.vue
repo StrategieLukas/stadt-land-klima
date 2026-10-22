@@ -34,7 +34,7 @@
         <div ref="explorerHeaderRef" class="tour-explorer__header">
         <div class="tour-explorer__toolbar">
           <div class="tour-explorer__heading"><strong>{{ $t('tour.road_diary') }}</strong><small>{{ $t('tour.scroll_journey') }}</small></div>
-          <span v-if="nextStopIndex >= 0" class="tour-explorer__next">{{ $t('tour.next_stop') }} · {{ formatShortDate(stops[nextStopIndex].start_date) }} {{ stops[nextStopIndex].location || stops[nextStopIndex].title }}</span>
+          <span v-if="nextStopIndex >= 0" class="tour-explorer__next">{{ $t('tour.next_stop') }} · {{ formatShortDate(stops[nextStopIndex]!.start_date) }} {{ stops[nextStopIndex]!.location || stops[nextStopIndex]!.title }}</span>
           <div class="tour-explorer__actions">
             <button v-if="mapOpen" type="button" class="tour-explorer__reset" @click="showWholeRoute">{{ $t('tour.whole_route') }}</button>
             <div class="join tour-view-toggle" role="group" :aria-label="`${$t('tour.list_view')} / ${$t('tour.map_view')}`" aria-controls="tour-explorer-content">
@@ -82,8 +82,8 @@
                 </div>
 
                 <figure v-if="(!isHydrated || isMobileTour || !mapOpen) && reportMedia(stop.id).length" class="tour-card-media">
-                  <button type="button" :aria-label="$t('tour.media_open')" @click="openMedia(stop.id, 0)"><TourMediaPreview :item="reportMedia(stop.id)[0]" /></button>
-                  <figcaption><span v-if="reportMedia(stop.id)[0].caption">{{ reportMedia(stop.id)[0].caption }}</span><small>{{ reportMedia(stop.id)[0].credit }}</small><small>{{ $t('tour.media_count', { ':count': reportMedia(stop.id).length }) }}</small></figcaption>
+                  <button type="button" :aria-label="$t('tour.media_open')" @click="openMedia(stop.id, 0)"><TourMediaPreview :item="reportMedia(stop.id)[0]!" /></button>
+                  <figcaption><span v-if="reportMedia(stop.id)[0]!.caption">{{ reportMedia(stop.id)[0]!.caption }}</span><small>{{ reportMedia(stop.id)[0]!.credit }}</small><small>{{ $t('tour.media_count', { ':count': reportMedia(stop.id).length }) }}</small></figcaption>
                 </figure>
                 <p v-if="reportFor(stop.id)?.teaser" class="tour-collage__excerpt">{{ reportFor(stop.id)?.teaser }}</p>
                 <p v-else-if="!reportFor(stop.id)" class="tour-collage__status">{{ visitHasEnded(stop.start_date, stop.end_date, now) ? $t('tour.report_pending') : $t('tour.upcoming') }}</p>
@@ -111,12 +111,12 @@
 
       <footer class="series-outro">
         <figure v-if="series.cover_image" class="series-outro__keyvisual">
-          <SmartImg :asset-id="relationId(series.cover_image)" :is-raster="isRaster(series.cover_image?.type || 'image/jpeg')" alt="" :width="1200" img-class="block h-auto w-full object-contain" />
+          <SmartImg :asset-id="relationId(series.cover_image)" :is-raster="isRaster((typeof series.cover_image === 'object' ? series.cover_image?.type : null) || 'image/jpeg')" alt="" :width="1200" img-class="block h-auto w-full object-contain" />
           <figcaption v-if="series.cover_image_credits">{{ series.cover_image_credits }}</figcaption>
         </figure>
         <div class="series-brand">
           <div v-if="series.brand_logo" class="series-brand__logo">
-            <SmartImg :asset-id="relationId(series.brand_logo)" :is-raster="isRaster(series.brand_logo?.type || 'image/png')" :alt="series.title" :width="420" img-class="block h-auto max-w-full object-contain" />
+            <SmartImg :asset-id="relationId(series.brand_logo)" :is-raster="isRaster((typeof series.brand_logo === 'object' ? series.brand_logo?.type : null) || 'image/png')" :alt="series.title" :width="420" img-class="block h-auto max-w-full object-contain" />
           </div>
           <div v-else class="series-brand__fallback"><span>{{ series.title }}</span><TourPin /><strong>Stadt.Land.Klima!</strong></div>
         </div>
@@ -143,6 +143,7 @@
 </template>
 
 <script setup lang="ts">
+import { routeSlug } from "~/shared/routeValues";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { berlinDayNumber, pinColor, relationId, visitHasEnded } from "~/shared/tour";
 import { isVideoMedia, orderedMedia } from "~/shared/tourMedia";
@@ -154,16 +155,18 @@ import { isRaster } from "~/shared/utils";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 
-type Project = { id: number; slug: string; title: string; profile_stage?: string };
+type Project = { id: number; slug: string; title: string; profile_stage?: string | null };
 type Stop = SuccessProjectTourStop;
 type Series = SuccessProjectTour;
 
 const { $t, $locale } = useNuxtApp();
 const route = useRoute();
+const slug = routeSlug(route.params.tourSlug);
+if (!slug) throw createError({statusCode: 404, statusMessage: "Not found"});
 const headerHeight = useHeaderHeight();
 const mobileHeaderHidden = useMobileHeaderHidden();
 const isDesktop = useState<boolean>("layout-isDesktop");
-const slug = String(route.params.tourSlug);
+
 
 // Use server routes — $directus is only available during SSR, not on client
 const { data: seriesResult } = await useAsyncData(`tour-${slug}`, async () =>
@@ -175,7 +178,7 @@ if (!series.value) throw createError({ statusCode: 404, statusMessage: $t("page_
 const { data: stopsResult } = await useAsyncData(`tour-stops-${series.value.id}`, async () =>
   $fetch('/api/public/tour-stops-by-tour', { query: { tourId: series.value!.id } })
 );
-const stops = computed<Stop[]>(() => [...((stopsResult.value?.stops ?? []) as Stop[])].sort((a, b) =>
+const stops = computed<Stop[]>(() => [...(stopsResult.value?.stops ?? [])].sort((a, b) =>
   (a.sort ?? Number.MAX_SAFE_INTEGER) - (b.sort ?? Number.MAX_SAFE_INTEGER)
   || new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
   || a.slug.localeCompare(b.slug)
@@ -189,7 +192,7 @@ const { data: projectLinks } = await useAsyncData(`tour-projects-${series.value.
 
 const projectsByStop = computed(() => {
   const result = new Map<string, Project[]>();
-  for (const link of (projectLinks.value ?? []) as { stop: string; articles_id: Project | null }[]) {
+  for (const link of projectLinks.value ?? []) {
     const id = relationId(link.stop);
     if (!id || !link.articles_id) continue;
     const projects = result.get(id) ?? [];
@@ -346,16 +349,16 @@ function syncStopWithScroll() {
   const waypoints = Array.from(track.children) as HTMLElement[];
   let index = 0;
   for (let position = 0; position < waypoints.length; position += 1) {
-    if (waypoints[position].getBoundingClientRect().top <= activationY) index = position;
+    if (waypoints[position]?.getBoundingClientRect().top! <= activationY) index = position;
     else break;
   }
   if (!hasEnteredMap) {
     hasEnteredMap = true;
-    history.replaceState(null, "", `#stop-${stops.value[index].slug}`);
+    history.replaceState(null, "", `#stop-${stops.value[index]?.slug}`);
   }
   if (index === activeStop.value) return;
   activeStop.value = index;
-  history.replaceState(null, "", `#stop-${stops.value[index].slug}`);
+  history.replaceState(null, "", `#stop-${stops.value[index]?.slug}`);
 }
 
 function onJourneyScroll() {
@@ -367,7 +370,7 @@ async function setMapView(showMap: boolean) {
   mapOpen.value = showMap;
   await nextTick();
   if (!mapOpen.value) {
-    if (!isMobileTour.value) document.getElementById(`stop-${stops.value[activeStop.value].slug}`)?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    if (!isMobileTour.value) document.getElementById(`stop-${stops.value[activeStop.value]?.slug}`)?.scrollIntoView({ behavior: 'instant', block: 'start' });
     return;
   }
   tourMapRef.value?.refreshSize();

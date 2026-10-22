@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const route = useRoute();
 const sector = route.params.sector;
 const v = route.query.v;

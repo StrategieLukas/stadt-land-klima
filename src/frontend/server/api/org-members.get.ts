@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { TeamMemberSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 export default defineEventHandler(async () => {
   const config = useRuntimeConfig()
   const baseUrl: string = (config.directusServerUrl as string) || 'http://directus:8055'
@@ -15,5 +18,5 @@ export default defineEventHandler(async () => {
     },
   )
 
-  return result.data ?? []
+  return parseCms(z.array(TeamMemberSchema), result.data ?? [])
 })

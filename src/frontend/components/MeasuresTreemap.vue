@@ -4,52 +4,58 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { ChartData, ChartOptions, ScriptableContext } from 'chart.js';
+import { treemapDatum } from '~/shared/treemap';
+import type { PropType } from 'vue';
+import type { Measure } from '~/types/components/municipality';
+
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { Chart, LinearScale, Tooltip, Legend } from 'chart.js';
 import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
 Chart.register(TreemapController, TreemapElement, LinearScale, Tooltip, Legend);
-const { $t } = useNuxtApp();
+const { $t, $translateDynamic } = useNuxtApp();
 
 const props = defineProps({
   measures: {
-    type: Array,
+    type: Array as PropType<Measure[]>,
     required: true,
   },
   onNavigate: {
-    type: Function,
+    type: Function as PropType<((slug: string) => void) | null>,
     default: null,
   },
 });
 
-function sectorName(sector) {
-  const translated = $t(`measure_sectors.${sector}.title`);
+function sectorName(sector: string) {
+  const translated = $translateDynamic(`measure_sectors.${sector}.title`);
   return translated === `measure_sectors.${sector}.title` ? sector : translated;
 }
 
-const chartCanvas = ref(null);
-let chartInstance = null;
+const chartCanvas = ref<HTMLCanvasElement | null>(null);
+let chartInstance: Chart<'treemap'> | null = null;
 
 const treeData = computed(() => {
   return props.measures
-    .filter(m => (m.weight ?? 0) > 0)
+    .filter(m => Number(m.weight ?? 0) > 0)
     .map(m => ({
       sector: m.sector,
       sectorName: sectorName(m.sector),
       measure_id: m.measure_id,
       measure_name: m.name,
       slug: m.slug,
-      value: m.weight ?? 1,
+      value: Number(m.weight ?? 1),
     }));
 });
 
-function colorFromRaw(ctx) {
+function colorFromRaw(ctx: ScriptableContext<'treemap'>) {
   if (ctx.type !== 'data') return 'transparent';
-  const children = ctx.raw._data?.children ?? [];
+  const children = treemapDatum(ctx.raw).children ?? [];
   if (children.length > 1) return '#ebebeb';
   const item = children[0];
   if (!item) return '#9D9D9C';
-  const sectorColors = {
+  const sectorColors: Record<string, string> = {
     energy: '#F39200',
     transport: '#16BAE7',
     agriculture: '#1EA64A',
@@ -60,8 +66,9 @@ function colorFromRaw(ctx) {
   return sectorColors[item.sector] ?? '#9D9D9C';
 }
 
-const chartData = computed(() => ({
+const chartData = computed<ChartData<'treemap'>>(() => ({
   datasets: [{
+    data: [],
     label: $t('stats.measures.title'),
     tree: treeData.value,
     key: 'value',
@@ -74,8 +81,8 @@ const chartData = computed(() => ({
       display: true,
       formatter: (ctx) => {
         if (!ctx.raw) return '';
-        const children = ctx.raw._data?.children ?? [];
-        if (children.length > 1) return ctx.raw._data?.sectorName ?? '';
+        const children = treemapDatum(ctx.raw).children ?? [];
+        if (children.length > 1) return treemapDatum(ctx.raw).sectorName ?? '';
         const item = children[0];
         if (!item) return '';
         return item.measure_name ?? '';
@@ -87,12 +94,12 @@ const chartData = computed(() => ({
   }],
 }));
 
-const chartOptions = computed(() => ({
+const chartOptions = computed<ChartOptions<'treemap'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   onClick: (_event, elements) => {
     if (elements.length >= 2) {
-      const item = elements[1].element.$context.raw._data?.children?.[0];
+      const item = treemapDatum(chartInstance?.data.datasets[elements[1]!.datasetIndex]?.data[elements[1]!.index]).children[0];
       if (item?.slug && props.onNavigate) props.onNavigate(item.slug);
     }
   },
@@ -101,12 +108,12 @@ const chartOptions = computed(() => ({
     tooltip: {
       callbacks: {
         title(context) {
-          if (context.length === 1) return context[0].raw._data?.sectorName ?? '';
-          const item = context[1]?.raw._data?.children?.[0];
+          if (context.length === 1) return treemapDatum(context[0]?.raw).sectorName ?? '';
+          const item = treemapDatum(context[1]?.raw).children?.[0];
           return item?.measure_name ?? '';
         },
         label(context) {
-          const children = context.raw._data?.children ?? [];
+          const children = treemapDatum(context.raw).children ?? [];
           if (children.length > 1) return '';
           const item = children[0];
           if (!item) return '';
@@ -122,6 +129,7 @@ function buildChart() {
   if (!chartCanvas.value || treeData.value.length === 0) return;
   chartInstance?.destroy();
   const ctx = chartCanvas.value.getContext('2d');
+    if (!ctx) return;
   chartInstance = new Chart(ctx, {
     type: 'treemap',
     data: chartData.value,

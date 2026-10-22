@@ -67,7 +67,7 @@
   </div>
 
   <!-- Examples of other Municipalities, that have implemented this measure better (if not best rating) -->
-  <div v-if="measure_rating.rating < 1" class="mt-4 border-t-4 border-gray-300 p-4">
+  <div v-if="Number(measure_rating.rating) < 1" class="mt-4 border-t-4 border-gray-300 p-4">
     <h3 class="mb-3 text-h3 font-bold text-black">
       {{ $t("measure_rating.better_examples.title") }}:
     </h3>
@@ -81,7 +81,7 @@
         class="flex items-center space-x-2"
       >
         <img
-          :src="ratingIcons[ratingIndex(example.rating)]"
+          :src="ratingIcons[ratingIndex(example.rating) ?? 'null']"
           alt="rating icon"
           class="w-4 h-4"
         />
@@ -100,46 +100,51 @@
 
 
 </template>
-<script setup>
-  import sanitizeHtml from "sanitize-html";
-  import { defineProps } from "vue";
+<script setup lang="ts">
+import type { ComparisonRating, Municipality, MeasureRating, MunicipalityScore  } from '~/types/components/municipality';
+import { parseGeoCenter } from '~/shared/contracts/geometry';
+import type { NumericValue } from '~/shared/domain';
+
+import type { PropType } from 'vue';
+
+  import { defineProps, onMounted, onBeforeUnmount, ref  } from "vue";
   import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils";
   import { calculateAndAddSimilarityScores } from "~/shared/compareMunicipalities";
   import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
   import ratingIcons, { ratingIndex } from "~/shared/ratingIcons";
-  import { onMounted, onBeforeUnmount, ref } from "vue";
+  type SimilarExample = { rating: string | number | null; municipality: Omit<Municipality, 'geolocation'> & { lat: number | null; lon: number | null }; similarityScore: number };
 
   const { $t, $locale } = useNuxtApp();
   const props = defineProps({
     measure_rating: {
-      type: Object,
+      type: Object as PropType<MeasureRating>,
       required: true,
     },
     municipalityScore: {
-      type: Object,
+      type: Object as PropType<MunicipalityScore>,
       required: true,
     },
   });
 
   const municipality = props.municipalityScore.municipality;
-  const measureDetailsSection = ref(null);
+  const measureDetailsSection = ref<HTMLElement | null>(null);
   const hasFetched = ref(false);
-  let observer = null;
+  let observer: IntersectionObserver | null = null;
 
   // Register an observer that triggers the fetch for the similar municipalities when this MeasureDetails-object is expanded/uncollapsed
   // However, if this MeasureDetails has a perfect rating, skip all this (no need to provide better examples when already at max rating)
   onMounted(async () => {
     await nextTick();
 
-    if (!measureDetailsSection.value || props.measure_rating.rating >= 1) return;
+    if (!measureDetailsSection.value || Number(props.measure_rating.rating) >= 1) return;
 
     observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (entry.isIntersecting && !hasFetched.value) {
+        if (entry?.isIntersecting && !hasFetched.value) {
           hasFetched.value = true;
-          fetchSimilarExamples(props.measure_rating.measure.id, props.measure_rating.rating);
-          observer.disconnect();
+          void fetchSimilarExamples(props.measure_rating.measure.id, props.measure_rating.rating);
+          observer?.disconnect();
         }
       },
       {
@@ -151,16 +156,16 @@
   });
 
   onBeforeUnmount(() => {
-    if (observer) observer.disconnect();
+    if (observer) observer?.disconnect();
   });
 
 
   // Load the similar municipalities when the element comes into view
   // But only once and cache the result in case user collapses/uncollapses the content again
-  const similarExamples = ref([])
+  const similarExamples = ref<SimilarExample[]>([])
   const loadingExamples = ref(false)
 
-  async function fetchSimilarExamples(measureId, currentRating) {
+  async function fetchSimilarExamples(measureId: string, currentRating: NumericValue) {
     console.log("Fetching similar examples...");
     loadingExamples.value = true;
 
@@ -173,7 +178,7 @@
 
 
     // Step 2: Fetch better ratings
-    const { ratings: rawRatingResultsBeforeFilter } = await $fetch('/api/public/measure-ratings', {
+    const { ratings: rawRatingResultsBeforeFilter } = await $fetch<{ ratings: ComparisonRating[] }>('/api/public/measure-ratings', {
       query: { measureId },
     });
 
@@ -188,29 +193,30 @@
     });
 
     // Step 3: Transform better ratings to have the hierarchy we expect
-    const betterMunicipalities = rawRatingResults.map(r => {
-      const m = r.localteam_id.municipality_id[0];
+    const betterMunicipalities = rawRatingResults.flatMap(r => {
+      const m = r.localteam_id?.municipality_id?.[0];
+      if (!m) return [];
 
       const { geolocation, ...rest } = m; // drop geolocation
-      return {
+      return [{
         rating: r.rating,
         municipality: {
           ...rest,
-          lat: geolocation ? geolocation.coordinates[1] : null,
-          lon: geolocation ? geolocation.coordinates[0] : null
+          lat: geolocation?.coordinates[1] ?? null,
+          lon: geolocation?.coordinates[0] ?? null
         }
-      };
+      }];
     });
 
 
     // Step 4: Calculate similarity to current municipality
-    const betterMunicipalitiesWithSimiliarityScore = calculateAndAddSimilarityScores(props.municipalityScore.municipality, betterMunicipalities);
+    const betterMunicipalitiesWithSimiliarityScore = calculateAndAddSimilarityScores({ ...props.municipalityScore.municipality, geolocation: parseGeoCenter(props.municipalityScore.municipality.geolocation) }, betterMunicipalities);
 
     // Step 5: Sort by "best rating for this measure", and then for highest similarity among those.
     const finalSorted = betterMunicipalitiesWithSimiliarityScore
       .sort((a, b) => {
-        const r1 = parseFloat(a.rating ?? 0);
-        const r2 = parseFloat(b.rating ?? 0);
+        const r1 = parseFloat(String(a.rating ?? 0));
+        const r2 = parseFloat(String(b.rating ?? 0));
         if (r2 !== r1) return r2 - r1;
         return (b.similarityScore ?? 0) - (a.similarityScore ?? 0);
       })
@@ -224,7 +230,7 @@
 
 
   // Tragically, rating is a string and not a number, so can't filter with a "gt_"-clause :(
-  function getHigherRatings(currentRating) {
+  function getHigherRatings(currentRating: NumericValue) {
     const knownRatings = [0, 0.25, 0.5, 0.75, 1]; // ordered list
     const current = Number(currentRating);
 

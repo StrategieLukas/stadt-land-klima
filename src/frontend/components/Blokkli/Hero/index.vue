@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-hero" :id="getBlokkliBlockId(options.anchor, uuid)">
+  <div :id="getBlokkliBlockId(options.anchor, uuid)" class="blokkli-block-hero">
     <section
       class="relative overflow-hidden flex items-center"
       :class="[heightClass, textAlignClass]"

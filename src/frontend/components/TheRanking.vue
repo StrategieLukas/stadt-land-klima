@@ -22,15 +22,19 @@
     </ul>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { MunicipalityScore } from '~/types/components/municipality';
+import type { Catalog } from '~/shared/contracts/search';
+
 import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing';
 
 const props = defineProps({
   municipalityScores: {
-    type: Array,
+    type: Array as PropType<MunicipalityScore[]>,
     default: () => [],
   },
-  catalogVersion: {
+  catalogVersion: { type: null as unknown as PropType<Catalog | null>,
     required: true,
   }
 });

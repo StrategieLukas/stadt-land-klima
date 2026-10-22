@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { ComparisonRatingSchema } from "~/shared/contracts/municipality";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from "@directus/sdk";
 import { createError, defineEventHandler, getQuery, setResponseHeader } from "h3";
 import { createDirectusServerClient } from "../../utils/directusServerClient";
@@ -81,7 +84,7 @@ export default defineEventHandler(async (event) => {
   if (ratings.length > 10000) throw createError({ statusCode: 502, statusMessage: "Comparison limit exceeded" });
   setResponseHeader(event, "Cache-Control", "public, max-age=60");
   return {
-    ratings: ratings.map((row) => {
+    ratings: parseCms(z.array(ComparisonRatingSchema), ratings.map((row) => {
       const municipality = municipalities.get(row.localteam_id);
       return {
         rating: row.rating,
@@ -92,6 +95,6 @@ export default defineEventHandler(async (event) => {
           municipality_id: [municipality],
         },
       };
-    }),
+    })),
   };
 });

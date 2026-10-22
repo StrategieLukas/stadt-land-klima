@@ -5,28 +5,30 @@
       :alt="alt || ''"
       loading="lazy"
       :class="imgClass"
-      :width="width || null"
-      :height="height || null"
+      :width="width || undefined"
+      :height="height || undefined"
     />
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+
   // Smarter version of an image, which checks if it is scalable and asks for fitting dimensions if possible to avoid sending very large files
 
   import { inject, ref, watchEffect } from 'vue'
   import { TOUR_REPORT_MEDIA } from '~/shared/successProjectTour';
 
   const props = defineProps({
-    assetId: { type: String, required: false, default: null },
+    assetId: { type: String as PropType<string | null>, required: false, default: null },
     isRaster: { type: Boolean, required: false, default: true },
     alt: { type: String, default: '' },
     imgClass: { type: String, default: '' },
-    assetBaseUrl: { type: String, default: null },
-    accessToken: { type: String, default: null },
+    assetBaseUrl: { type: String as PropType<string | null>, default: null },
+    accessToken: { type: String as PropType<string | null>, default: null },
 
     // Transform options
-    width: { type: Number, default: null },
-    height: { type: Number, default: null },
+    width: { type: Number as PropType<number | null>, default: null },
+    height: { type: Number as PropType<number | null>, default: null },
     // Quality for uploads is already reduced to 70 on upload, this would further decrease it
     quality: { type: Number, default: 100 },
     fit: { type: String, default: 'cover' },
@@ -40,10 +42,10 @@
   const directusUrl = runtime.public.clientDirectusUrl
   const reportMedia = inject(TOUR_REPORT_MEDIA, null)
 
-  const src = ref(null)
-  const srcset = ref(null)
+  const src = ref<string | null>(null)
+  const srcset = ref<string | null>(null)
 
-  watchEffect(async () => {
+  watchEffect(() => {
     src.value = null
     srcset.value = null
     if (!props.assetId) return

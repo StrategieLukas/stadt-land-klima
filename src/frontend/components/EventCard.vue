@@ -3,8 +3,8 @@
     <NuxtLink :to="`/events/${event.slug}`" class="block">
       <div v-if="event.image" class="bg-gray-100 relative h-40 overflow-hidden">
         <SmartImg
-          :assetId="event.image?.id || event.image"
-          :isRaster="event.image?.type ? isRaster(event.image.type) : true"
+          :asset-id="typeof event.image === 'string' ? event.image : event.image?.id"
+          :is-raster="typeof event.image === 'object' && event.image?.type ? isRaster(event.image.type) : true"
           :alt="event.title"
           :width="600"
           :height="160"
@@ -82,7 +82,7 @@ import { isRaster } from "~/shared/utils";
 
 type EventImage = {
   id?: string;
-  type?: string;
+  type?: string | null;
 };
 
 type EventListItem = {

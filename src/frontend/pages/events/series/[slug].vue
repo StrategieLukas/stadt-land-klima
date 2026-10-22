@@ -6,10 +6,13 @@
   </main>
 </template>
 <script setup lang="ts">
+import { routeSlug } from "~/shared/routeValues";
 const { $t } = useNuxtApp();
 const route = useRoute();
-const legacyRedirected = await useLegacyTourRedirect('tour', String(route.params.slug));
-const { data: seriesData } = await useAsyncData(`ordinary-event-series-${route.params.slug}`, () => $fetch(`/api/public/event-series/${encodeURIComponent(route.params.slug)}`));
+const slug = routeSlug(route.params.slug);
+if (!slug) throw createError({statusCode: 404, statusMessage: "Not found"});
+const legacyRedirected = await useLegacyTourRedirect('tour', slug);
+const { data: seriesData } = await useAsyncData(`ordinary-event-series-${route.params.slug}`, () => $fetch(`/api/public/event-series/${encodeURIComponent(slug)}`));
 const series = computed(() => seriesData.value?.series);
 if (!series.value && !legacyRedirected) throw createError({statusCode:404,statusMessage:$t('page_not_found'),fatal:true});
 const events = computed(() => seriesData.value?.events ?? []);

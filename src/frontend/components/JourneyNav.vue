@@ -25,7 +25,7 @@
 import type { ResolvedStep } from '~/composables/useCollectionRender'
 import { useSlzLocale } from '~/composables/useSlzLocale'
 
-const props = defineProps<{
+const _props = defineProps<{
   steps: ResolvedStep[]
   activeIndex: number
   top?: number

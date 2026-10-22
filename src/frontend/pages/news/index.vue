@@ -156,7 +156,7 @@
             </div>
             <SmartImg
               v-else
-              :assetId="ev.image?.id || ev.image"
+              :assetId="ev.image?.id"
               :isRaster="ev.image?.type ? isRaster(ev.image.type) : true"
               :alt="ev.title"
               :width="480"
@@ -321,7 +321,7 @@
           </div>
           <p v-if="item.teaser" :class="item.href ? 'text-sm text-gray-500 line-clamp-3' : 'text-sm text-gray-400 line-clamp-3'">{{ item.teaser }}</p>
           <div class="flex items-center justify-between mt-auto pt-2">
-            <time v-if="item.type !== 'event'" class="text-xs text-gray-400" :datetime="item.date">{{ formatDate(item.date) }}</time>
+            <time v-if="item.type !== 'event'" class="text-xs text-gray-400" :datetime="item.date ?? undefined">{{ formatDate(item.date) }}</time>
             <span v-else />
             <!-- Arrow indicator (clickable cards only) -->
             <svg
@@ -342,28 +342,32 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+type FeedItem = {type: string; id: string | number; title: string; teaser?: string | null; imageId: string | null; imageType: string | null; imageCredits?: string | null; date: string | null; href: string; status?: string; endDate?: string | null; eventType?: string | null; location?: string | null; assetBaseUrl?: string};
 import { parseBerlinDateTime, formatBerlinDate as formatDate, formatBerlinDateRange as formatDateRange, getEventMonthKey, formatEventMonth } from '~/shared/eventDateTime'
 import { visitHasEnded } from '~/shared/tour'
 import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from 'vue'
-import { createItem, readItems } from '@directus/sdk'
+import type { z } from "zod"
+import { NewsListSchema } from "~/shared/contracts/content"
+import { requestErrorMessage } from "~/shared/requestError"
 import { useAuth } from '~/composables/useAuth'
 import { useHeaderHeight } from '~/composables/useHeaderHeight'
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden'
 import sectorImages from '~/shared/sectorImages'
 
 import { isRaster } from '~/shared/utils'
-function stripHtml(html) {
+function stripHtml(html: string | null) {
   if (!html) return null
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || null
 }
 
 const NuxtLinkComponent = resolveComponent('NuxtLink')
 
+const { $t } = useNuxtApp()
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
 
-const { isAuthenticated, initialize, getAuthenticatedClient } = useAuth()
+const { isAuthenticated, initialize } = useAuth()
 const headerHeight = useHeaderHeight()
 const mobileHeaderHidden = useMobileHeaderHidden()
 const isDesktop = useState('layout-isDesktop')
@@ -375,9 +379,9 @@ const pillTop = computed(() => {
 })
 
 // ── Section nav active tracking ────────────────────────────────────────────────
-const activeSection = ref(null)
-const mobilePillStrip = ref(null)
-let sectionObserver = null
+const activeSection = ref<string | null>(null)
+const mobilePillStrip = ref<HTMLElement | null>(null)
+let sectionObserver: IntersectionObserver | null = null
 
 watch(activeSection, (id) => {
   if (!id || !mobilePillStrip.value) return
@@ -399,7 +403,7 @@ onMounted(() => {
       },
       { rootMargin: '-20% 0px -70% 0px', threshold: 0 },
     )
-    sections.forEach(s => sectionObserver.observe(s))
+    sections.forEach(s => sectionObserver?.observe(s))
   }
   // Wait one tick for v-for sections to be rendered
   setTimeout(observe, 100)
@@ -410,19 +414,14 @@ onUnmounted(() => {
 })
 
 // Null until the admin re-fetch completes; when set, overrides the SSR news list
-const adminNewsItems = ref(null)
+const editor = useNewsEditor()
+const adminNewsItems = shallowRef<Awaited<ReturnType<typeof editor.list>> | null>(null)
 
 onMounted(async () => {
   await initialize()
   if (isAuthenticated.value) {
     try {
-      const client = getAuthenticatedClient()
-      adminNewsItems.value = await client.request(readItems('news_items', {
-        filter: { is_tour_redirect: { _eq: false } },
-        fields: ['id', 'slug', 'title', 'teaser', { image: ['id', 'type'] }, 'image_credits', 'date_published', 'date_created', 'status'],
-        sort: ['-date_published', '-date_created'],
-        limit: 200,
-      }))
+      adminNewsItems.value = await editor.list()
     } catch (e) {
       console.warn('[news] admin fetch failed', e)
     }
@@ -444,7 +443,7 @@ const visitReports = computed(() => feedData.value?.visitReports ?? [])
 // ── Map to unified feed items ──────────────────────────────────────────────────
 
 const allItems = computed(() => {
-  const items = []
+  const items: FeedItem[] = []
 
   for (const n of (adminNewsItems.value ?? newsData.value ?? [])) {
     items.push({
@@ -456,7 +455,7 @@ const allItems = computed(() => {
       imageType: n.image?.type || null,
       imageCredits: n.image_credits || null,
       date: n.date_published || n.date_created,
-      status: n.status || 'published',
+      status: 'status' in n && typeof n.status === 'string' ? n.status : 'published',
       href: `/news/${n.slug}`,
     })
   }
@@ -478,7 +477,7 @@ const allItems = computed(() => {
   const now = new Date()
   for (const e of eventsData.value || []) {
     if (e.event_category === 'internal') continue
-    if (e.start_date && parseBerlinDateTime(e.start_date) >= now) continue // future events shown in "Zukünftig" section
+    if (e.start_date && (parseBerlinDateTime(e.start_date)?.getTime() ?? 0) >= now.getTime()) continue // future events shown in "Zukünftig" section
     items.push({
       type: 'event',
       id: e.id,
@@ -536,7 +535,7 @@ const allItems = computed(() => {
 
 // ── Filtering ──────────────────────────────────────────────────────────────────
 
-const activeFilter = ref(null)
+const activeFilter = ref<string | null>(null)
 
 const filterOptions = [
   { value: 'news', label: 'Neuigkeiten', activeClass: 'bg-teal-600 text-white border-teal-600' },
@@ -553,12 +552,12 @@ const visibleItems = computed(() =>
 )
 
 const groupedByMonth = computed(() => {
-  const map = new Map()
+  const map = new Map<string, {monthKey: string; label: string; items: FeedItem[]}>()
   for (const item of visibleItems.value) {
     const key = getEventMonthKey(item.date)
     const label = formatEventMonth(item.date)
     if (!map.has(key)) map.set(key, { monthKey: key, label, items: [] })
-    map.get(key).items.push(item)
+    map.get(key)?.items.push(item)
   }
   return [...map.values()]
 })
@@ -566,35 +565,35 @@ const groupedByMonth = computed(() => {
 const upcomingEvents = computed(() => {
   const upcoming = new Date()
   return (eventsData.value || [])
-    .filter(e => e.event_category !== 'internal' && e.start_date && parseBerlinDateTime(e.start_date) >= upcoming)
+    .filter(e => e.event_category !== 'internal' && e.start_date && (parseBerlinDateTime(e.start_date)?.getTime() ?? 0) >= upcoming.getTime())
     .sort((a, b) => (parseBerlinDateTime(a.start_date)?.getTime() ?? 0) - (parseBerlinDateTime(b.start_date)?.getTime() ?? 0))
     .slice(0, 2)
 })
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function typeLabel(type) {
+function typeLabel(type: string) {
   return {
     news: 'Neuigkeit',
     project: 'Erfolgsprojekt',
     event: 'Veranstaltung',
     municipality: 'Bewertung geupdated',
     catalog: 'Maßnahmenkatalog',
-  }[type] ?? type
+  }[type as "news" | "project" | "event" | "municipality" | "catalog"] ?? type
 }
 
-function typeBadgeClass(type) {
+function typeBadgeClass(type: string) {
   return {
     news: 'bg-teal-600 text-white',
     project: 'bg-[#006e94] text-white',
     event: 'bg-[#1da64a] text-white',
     municipality: 'bg-[#afca0b] text-white',
     catalog: 'bg-[#6b7280] text-white',
-  }[type] ?? 'bg-gray-200 text-gray-700'
+  }[type as "news" | "project" | "event" | "municipality" | "catalog"] ?? 'bg-gray-200 text-gray-700'
 }
 
-function typeEmoji(type) {
-  return { news: '📰', project: '🏆', event: '📅', municipality: '🏙️', catalog: '📋' }[type] ?? '•'
+function typeEmoji(type: string) {
+  return { news: '📰', project: '🏆', event: '📅', municipality: '🏙️', catalog: '📋' }[type as "news" | "project" | "event" | "municipality" | "catalog"] ?? '•'
 }
 
 // ── Admin: create new news item ────────────────────────────────────────────────
@@ -614,15 +613,10 @@ async function createNewsItem() {
 
   creating.value = true
   try {
-    const client = getAuthenticatedClient()
-    const result = await client.request(createItem('news_items', {
-      title: title.trim(),
-      slug,
-      status: 'draft',
-    }))
+    const result = await editor.create(title.trim(), slug)
     await navigateTo(`/news/${result.slug}`)
   } catch (err) {
-    alert('Fehler beim Erstellen: ' + (err?.errors?.[0]?.message || err?.message || err))
+    alert('Fehler beim Erstellen: ' + (requestErrorMessage(err, $t('generic.technical_error'))))
   } finally {
     creating.value = false
   }

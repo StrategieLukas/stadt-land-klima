@@ -65,11 +65,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { PropType } from 'vue';
+import type { ComparisonRating } from '~/types/components/municipality';
+
 import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
-  ratings: { type: Array, default: () => [] },
+  ratings: { type: Array as PropType<ComparisonRating[]>, default: () => [] },
   measureIdStr: { type: String, required: true },
   catalogVersionName: { type: String, required: true },
 })
@@ -84,21 +88,21 @@ const RATING_CFG = [
   { key: 'unrated', label: 'Nicht bewertet',      color: '#b0bec5' },
 ]
 
-const openKey = ref(null)
+const openKey = ref<string | null>(null)
 
 watch(() => props.measureIdStr, () => { openKey.value = null })
 
-function toggleGroup(key) {
+function toggleGroup(key: string) {
   openKey.value = openKey.value === key ? null : key
 }
 
-function getMunicipalityName(row) {
+function getMunicipalityName(row: ComparisonRating) {
   return row.localteam_id?.municipality_name
     || row.localteam_id?.municipality_id?.[0]?.name
     || '–'
 }
 
-function getMunicipalityHref(row) {
+function getMunicipalityHref(row: ComparisonRating) {
   const mun = row.localteam_id?.municipality_id?.[0]
   if (!mun?.slug || mun?.status !== 'published') return null
   return `/municipalities/${mun.slug}?v=${props.catalogVersionName}#measure-${props.measureIdStr}`
@@ -116,7 +120,7 @@ const ratingGroups = computed(() => RATING_CFG.map(cfg => {
 
   const municipalities = rows
     .map(r => ({ name: getMunicipalityName(r), href: getMunicipalityHref(r) }))
-    .filter(m => m.href)
+    .filter((m): m is { name: string; href: string } => Boolean(m.href))
     .sort((a, b) => a.name.localeCompare(b.name, 'de'))
 
   return { ...cfg, count: municipalities.length, municipalities }

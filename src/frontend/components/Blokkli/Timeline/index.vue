@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-timeline" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-timeline">
     <h2
       v-if="props.title || isEditing"
       v-blokkli-editable:title

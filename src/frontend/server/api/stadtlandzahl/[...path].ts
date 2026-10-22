@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
       upstreamResponse = await fetch(target, {
         method,
         headers: requestHeaders,
-        body,
+        body: body ? Uint8Array.from(body) : undefined,
         redirect: "manual",
       });
       break;

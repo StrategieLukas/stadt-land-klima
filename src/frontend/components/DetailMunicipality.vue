@@ -4,7 +4,7 @@
     <!-- Mobile: Single column layout -->
     <div class="block w-full flex-col justify-center lg:hidden">
       <div class="mb-8">
-        <ItemRanking :municipalityScore="municipalityScore" />
+        <ItemRanking :municipality-score="municipalityScore" />
       </div>
       <div class="mb-4">
         <div role="tablist" class="slk-chart-tabs tabs-boxed tabs w-fit">
@@ -70,7 +70,7 @@
 
       <!-- Mobile: Infos zur Kommune -->
       <div class="mb-4">
-        <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore" />
+        <DetailMunicipalityQuickInfoDesktop :municipality-score="municipalityScore" />
       </div>
 
       <!-- Mobile: Participate Section -->
@@ -133,7 +133,7 @@
         </h3>
       </NuxtLink>
 
-      <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector" />
+      <DetailMunicipalitySectorCards :municipality-score="municipalityScore" :ratings-by-sector="ratingsBySector" />
 
       <!-- Mobile: Associated Projects Link -->
       <NuxtLink
@@ -154,7 +154,7 @@
       <!-- Left Column: Main content (2/3 width) -->
       <div class="lg:col-span-2">
         <div class="mb-8">
-          <item-ranking :municipalityScore="municipalityScore" />
+          <item-ranking :municipality-score="municipalityScore" />
         </div>
         <div class="mb-4">
           <div role="tablist" class="slk-chart-tabs tabs-boxed tabs w-fit">
@@ -237,14 +237,14 @@
           </div>
         </div>
 
-        <DetailMunicipalitySectorCards :municipalityScore="municipalityScore" :ratings-by-sector="ratingsBySector" />
+        <DetailMunicipalitySectorCards :municipality-score="municipalityScore" :ratings-by-sector="ratingsBySector" />
       </div>
 
       <!-- Right Column: Info and Projects (1/3 width) -->
       <div class="pb-4 lg:col-span-1">
         <div class="sticky top-24 space-y-6">
           <!-- Municipality Quick Info -->
-          <DetailMunicipalityQuickInfoDesktop :municipalityScore="municipalityScore" />
+          <DetailMunicipalityQuickInfoDesktop :municipality-score="municipalityScore" />
 
           <!-- Statistics Section Link -->
           <NuxtLink
@@ -351,10 +351,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Project, Organisation } from '~/types/components/content';
+import type {  MunicipalityScore, RatingsBySector  } from '~/types/components/municipality';
+
+import type { PropType } from 'vue';
+
 import { ref, onMounted, computed } from "vue";
 import lodash from "lodash";
 import MarkdownIt from "markdown-it";
+
+import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
 
 const md = new MarkdownIt({
   html: false, // XSS safety
@@ -362,22 +369,20 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
-
 const municipalElectionYear = computed(() => {
   return getStateMunicipalElectionYear(municipality?.state);
 });
 
-const { range } = lodash;
+const _range = lodash.range.bind(lodash);
 const { $t, $locale } = useNuxtApp();
 
 const props = defineProps({
   municipalityScore: {
-    type: Object,
+    type: Object as PropType<MunicipalityScore>,
     required: true,
   },
   ratingsBySector: {
-    type: Object,
+    type: Object as PropType<RatingsBySector>,
     required: true,
   },
 });
@@ -390,7 +395,7 @@ const subScores = createSubScoreObject(municipalityScore);
 const activeTab = ref("polar");
 
 // Fetch projects associated with this municipality
-const municipalityProjects = ref([]);
+const municipalityProjects = ref<Project[]>([]);
 const loadingProjects = ref(false);
 
 // Defensive check for municipality data
@@ -410,7 +415,7 @@ async function fetchMunicipalityProjects() {
 
   loadingProjects.value = true;
   try {
-    const { articles } = await $fetch('/api/public/articles', {
+    const { articles } = await $fetch<{ articles: (Omit<Project, 'organisation'> & { organisation?: string | null })[] }>('/api/public/articles', {
       query: { municipality: municipality.name, limit: 5, sort: '-date_created' },
     });
 
@@ -421,16 +426,16 @@ async function fetchMunicipalityProjects() {
           .map((article) => {
             const org = article.organisation;
             if (org == null) return null;
-            return typeof org === "object" ? org.key : org;
+            return org;
           })
           .filter((id) => id != null),
       ),
     ];
 
-    let organisations = [];
+    let organisations: Organisation[] = [];
     if (orgIds.length > 0) {
-      const { organisations: orgs } = await $fetch('/api/public/organisations');
-      organisations = orgs.filter((org) => orgIds.includes(org.id));
+      const { organisations: orgs } = await $fetch<{ organisations: Organisation[] }>('/api/public/organisations');
+      organisations = orgs.filter((org) => org.id != null && orgIds.includes(String(org.id)));
     }
 
     const orgMap = new Map(organisations.map((org) => [org.id, org]));
@@ -438,7 +443,7 @@ async function fetchMunicipalityProjects() {
     municipalityProjects.value = articles.map((article) => {
       const orgRaw = article.organisation;
       if (orgRaw == null) return { ...article, organisation: null };
-      const orgId = typeof orgRaw === "object" ? orgRaw.key : orgRaw;
+      const orgId = orgRaw;
       return {
         ...article,
         organisation: orgMap.get(orgId) || null,
@@ -452,8 +457,8 @@ async function fetchMunicipalityProjects() {
   }
 }
 
-function createSubScoreObject(municipalityScore) {
-  const temp = {};
+function createSubScoreObject(municipalityScore: MunicipalityScore) {
+  const temp: Record<string, number> = {};
   for (const [key, value] of Object.entries(municipalityScore)) {
     if (key.includes("score")) {
       temp[key] = Number(value);

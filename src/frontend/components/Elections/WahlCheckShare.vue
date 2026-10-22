@@ -224,11 +224,11 @@
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <button
             type="button"
-            @click="shareToStory"
             :disabled="isGenerating"
             class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
             :aria-label="$t('elections.wahlcheck.results.share.button_insta')"
             :title="$t('elections.wahlcheck.results.share.button_insta')"
+            @click="shareToStory"
           >
             <span v-if="isGenerating" class="loading loading-spinner loading-xs"></span>
             <img v-else src="~/assets/icons/icon_instagram.svg" alt="" class="h-5 w-5" />
@@ -237,10 +237,10 @@
 
           <button
             type="button"
-            @click="shareToWhatsApp"
             class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
             :aria-label="$t('elections.wahlcheck.results.share.button_whatsapp')"
             :title="$t('elections.wahlcheck.results.share.button_whatsapp')"
+            @click="shareToWhatsApp"
           >
             <img src="~/assets/icons/icon_whatsapp.svg" alt="" class="h-5 w-5" />
             <span>{{ $t('elections.wahlcheck.results.share.button_whatsapp') }}</span>
@@ -248,10 +248,10 @@
 
           <button
             type="button"
-            @click="shareToLinkedIn"
             class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
             :aria-label="$t('elections.wahlcheck.results.share.button_linkedin')"
             :title="$t('elections.wahlcheck.results.share.button_linkedin')"
+            @click="shareToLinkedIn"
           >
             <img src="~/assets/icons/icon_linkedin.svg" alt="" class="h-5 w-5" />
             <span>{{ $t('elections.wahlcheck.results.share.button_linkedin') }}</span>
@@ -259,11 +259,11 @@
 
           <button
             type="button"
-            @click="shareToTikTok"
             :disabled="isGenerating"
             class="btn btn-outline flex h-10 min-h-0 items-center justify-center gap-2 rounded-lg border-solid-gray-30 bg-white px-2 text-xs font-semibold text-stats-dark transition-all hover:border-ff-green hover:bg-solid-ff-green-05"
             :aria-label="$t('elections.wahlcheck.results.share.button_tiktok')"
             :title="$t('elections.wahlcheck.results.share.button_tiktok')"
+            @click="shareToTikTok"
           >
             <img v-if="!isGenerating" src="~/assets/icons/icon_tiktok.svg" alt="" class="h-5 w-5" />
             <span v-else class="loading loading-spinner loading-xs"></span>
@@ -277,9 +277,9 @@
           <button
             type="button"
             data-testid="wahlcheck-sharepic-download"
-            @click="downloadActiveSharepic"
             :disabled="isGenerating"
             class="btn btn-outline btn-secondary rounded-xl py-2.5 px-3 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2"
+            @click="downloadActiveSharepic"
           >
             <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -290,9 +290,9 @@
           <!-- Copy Link Button -->
           <button
             type="button"
-            @click="copyLink"
             class="btn btn-outline rounded-xl py-2.5 px-3 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
             :class="linkCopied ? 'border-ff-green text-ff-green bg-solid-ff-green-10' : 'btn-secondary'"
+            @click="copyLink"
           >
             <svg v-if="linkCopied" class="w-4 h-4 text-ff-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -308,9 +308,9 @@
         <button
           v-if="canUseWebShare"
           type="button"
-          @click="shareViaWebShare"
           :disabled="isGenerating"
           class="btn btn-ghost btn-sm text-mid-gray hover:text-black font-semibold flex items-center justify-center gap-2"
+          @click="shareViaWebShare"
         >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -323,35 +323,39 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { PropType } from 'vue';
+import type { Election, WahlcheckResult, ElectionCandidate, UserAnswers } from '~/types/components/elections';
+
 import { ref, computed, onMounted } from 'vue'
 import { toBlob } from 'html-to-image'
 import {
   getCandidateDisplayName,
-  getCandidatePartyConfig,
-  getCandidatePartyLabel,
+  getCandidatePartyConfig as _getCandidatePartyConfig,
+
 } from '~/shared/candidateParties'
 import { useTheme } from '~/composables/useTheme'
 
 const props = defineProps({
   election: {
-    type: Object,
+    type: Object as PropType<Election>,
     required: true
   },
   sortedResults: {
-    type: Array,
+    type: Array as PropType<WahlcheckResult[]>,
     required: true
   },
   candidates: {
-    type: Array,
+    type: Array as PropType<ElectionCandidate[]>,
     required: true
   },
   userAnswers: {
-    type: Object,
+    type: Object as PropType<UserAnswers>,
     default: () => ({})
   },
   doubleWeightedQuestions: {
-    type: [Set, Array],
+    type: [Set, Array] as PropType<Set<string> | string[]>,
     default: () => new Set()
   }
 })
@@ -363,12 +367,12 @@ const isPartyElection = computed(() => props.election?.is_party_election === tru
 
 // State
 const activeTab = ref('personal')
-const personalSharepicRef = ref(null)
+const personalSharepicRef = ref<HTMLElement | null>(null)
 const isGenerating = ref(false)
 const toastMessage = ref('')
 const linkCopied = ref(false)
 const canUseWebShare = ref(false)
-let toastTimeout = null
+let toastTimeout: ReturnType<typeof setTimeout> | null = null
 
 // Directus asset URL
 const directusUrl = computed(() => {
@@ -415,20 +419,20 @@ const officialSharepicUrl = computed(() => {
 })
 
 // Candidate helpers
-function getCandidate(candidateId) {
-  return props.candidates.find((c) => c.id === candidateId) || {}
+function getCandidate(candidateId: string) {
+  return props.candidates.find((c) => c.id === candidateId) || { id: candidateId }
 }
 
-function getCandidateName(candidateId) {
+function getCandidateName(candidateId: string) {
   const candidate = getCandidate(candidateId)
   return getCandidateDisplayName(candidate) || $t('elections.unknown_candidate')
 }
 
-function getCandidateParty(candidateId) {
+function getCandidateParty(candidateId: string) {
   return getCandidate(candidateId).party || ''
 }
 
-function getProgressColorHex(percentage) {
+function getProgressColorHex(percentage: number) {
   if (percentage >= 80) return '#1EA64A'
   if (percentage >= 60) return '#AFCA0B'
   if (percentage >= 40) return '#FFD400'
@@ -444,13 +448,13 @@ function getShareUrl() {
 
 // Check native Web Share support on mount
 onMounted(() => {
-  if (typeof navigator !== 'undefined' && navigator.share) {
+  if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
     canUseWebShare.value = true
   }
 })
 
-async function waitForSharepicAssets(element) {
-  if (document.fonts?.ready) {
+async function waitForSharepicAssets(element: HTMLElement) {
+  if (document.fonts) {
     await document.fonts.ready
   }
 
@@ -549,7 +553,7 @@ async function shareToStory() {
   const file = await getActiveSharepicFile()
 
   // If Web Share API supports file sharing (typically mobile phones), trigger native story share
-  if (file && typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+  if (file && typeof navigator !== 'undefined' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({
         title: props.election?.descriptor || 'Klimawahlcheck',
@@ -558,7 +562,7 @@ async function shareToStory() {
       })
       return
     } catch (err) {
-      if (err.name !== 'AbortError') {
+      if ((err instanceof Error ? err.name : undefined) !== 'AbortError') {
         console.warn('Native file share error, fallback to download:', err)
       } else {
         return
@@ -615,7 +619,7 @@ async function shareToTikTok() {
 
 // Share via Native Web Share API
 async function shareViaWebShare() {
-  if (typeof navigator === 'undefined' || !navigator.share) return
+  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') return
 
   const file = await getActiveSharepicFile()
   const shareUrl = getShareUrl()
@@ -628,13 +632,13 @@ async function shareViaWebShare() {
   )
 
   try {
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    if (file && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
       await navigator.share({ title, text, url: shareUrl, files: [file] })
     } else {
       await navigator.share({ title, text, url: shareUrl })
     }
   } catch (err) {
-    if (err.name !== 'AbortError') {
+    if ((err instanceof Error ? err.name : undefined) !== 'AbortError') {
       console.error('Error sharing:', err)
     }
   }
@@ -645,7 +649,7 @@ function copyLink() {
   const url = getShareUrl()
   if (!url) return
 
-  navigator.clipboard.writeText(url).then(() => {
+  void navigator.clipboard.writeText(url).then(() => {
     linkCopied.value = true
     showToast($t('elections.wahlcheck.results.share.link_copied'))
     setTimeout(() => {
@@ -655,7 +659,7 @@ function copyLink() {
 }
 
 // Toast notification helper
-function showToast(message) {
+function showToast(message: string) {
   if (toastTimeout) clearTimeout(toastTimeout)
   toastMessage.value = message
   toastTimeout = setTimeout(() => {

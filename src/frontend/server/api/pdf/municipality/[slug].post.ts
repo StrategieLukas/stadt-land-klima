@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
 
   setResponseHeader(event, 'Content-Type', 'application/pdf')
   setResponseHeader(event, 'Content-Disposition', 'inline; filename="municipality.pdf"')
-  setResponseHeader(event, 'Content-Length', String(buffer.length))
+  setResponseHeader(event, 'Content-Length', buffer.length)
 
   return buffer
 })

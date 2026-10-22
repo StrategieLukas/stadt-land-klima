@@ -108,7 +108,7 @@ export async function verifyAltcha(
       cmd += `$${Buffer.byteLength(arg)}${CRLF}${arg}${CRLF}`;
     }
     const { connect } = await import('node:net');
-    const result = await new Promise<string>((resolve, reject) => {
+    const result = await new Promise<string | null>((resolve, reject) => {
       const socket = connect(port, host);
       socket.setTimeout(3000);
       const chunks: Buffer[] = [];

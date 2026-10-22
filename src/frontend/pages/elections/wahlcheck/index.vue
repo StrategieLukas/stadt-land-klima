@@ -208,18 +208,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 
 const { $t, $locale } = useNuxtApp();
 
-const publicElections = ref([]);
+import type { z } from "zod";
+import type { PublicElectionListSchema } from "~/shared/contracts/elections";
+const publicElections = ref<z.output<typeof PublicElectionListSchema>[]>([]);
 const pending = ref(true);
 const error = ref(false);
 const errorMessage = ref("");
 
 // Format date
-function formatDate(dateString) {
+function formatDate(dateString: string | null) {
   if (!dateString) return $t("generic.unknown");
   try {
     const date = new Date(dateString);
@@ -266,7 +268,7 @@ onMounted(() => {
 const sortedElections = computed(() => {
   return [...publicElections.value].sort((a, b) => {
     // Sort by date_created descending (newest first)
-    return new Date(b.date_created) - new Date(a.date_created);
+    return new Date(b.date_created).getTime() - new Date(a.date_created).getTime();
   });
 });
 

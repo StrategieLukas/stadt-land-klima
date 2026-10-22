@@ -1,6 +1,6 @@
 <template>
   <div class="w-full px-2">
-    <div class="banner mb-3 w-full rounded border-2 border-double border-rating-0 text-center" ref="banner">
+    <div ref="banner" class="banner mb-3 w-full rounded border-2 border-double border-rating-0 text-center">
       <h1 class="text-rating-0">
         <slot></slot>
       </h1>
@@ -8,8 +8,8 @@
   </div>
 </template>
 
-<script setup>
-const banner = ref(null);
+<script setup lang="ts">
+const banner = ref<HTMLElement | null>(null);
 onMounted(() => {
   //waveBanner(banner.value);
 });

@@ -150,22 +150,7 @@
 import { computed, ref } from "vue";
 import { isRaster } from "~/shared/utils";
 
-type DirectusFile = {
-  id: string;
-  type?: string | null;
-};
-
-type ClimateTool = {
-  id: string;
-  title: string;
-  description: string;
-  category?: string | null;
-  vendor?: string | null;
-  link: string;
-  image?: DirectusFile | string | null;
-  image_credits?: string | null;
-  sort?: number | null;
-};
+import type { ClimateTool } from "~/shared/contracts/content";
 
 const { $t } = useNuxtApp();
 
@@ -173,7 +158,7 @@ useHead({ title: $t("tools.title") });
 
 const selectedCategory = ref<string | null>(null);
 
-const { data: toolData, pending, error } = await useAsyncData('climate-tools-list', () => $fetch<{ tools: ClimateTool[] }>('/api/public/climate-tools'));
+const { data: toolData, pending, error } = await useAsyncData('climate-tools-list', () => $fetch('/api/public/climate-tools'));
 const tools = computed(() => toolData.value?.tools ?? []);
 
 const hasLoadError = computed(() => Boolean(error.value));

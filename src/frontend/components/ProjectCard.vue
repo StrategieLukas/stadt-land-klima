@@ -4,14 +4,13 @@
 
             <NuxtLink :to="`/projects/${slug}`" class="group h-40 bg-gray-200 flex items-center justify-center relative">
                 <SmartImg
-                    :assetId="image_id"
-                    :isRaster="image_is_raster"
+                    :asset-id="image_id"
+                    :is-raster="image_is_raster"
                     :alt="title"
                     :height="160"
                     :width="400"
                     fit="cover"
                     sizes="(max-width: 768px) 312px, 400px"
-                    format="webp"
                     img-class="object-cover w-full h-full"
                     />
                 <div v-if="tag" class="absolute top-2 left-2 bg-yellow-400 text-xs px-2 py-1 rounded">
@@ -24,7 +23,8 @@
                         class="absolute top-0 right-0 w-0 h-0 border-t-[7rem] border-t-white border-l-[7rem] border-l-transparent">
                     </div>
                     <!-- Using raw image url (no width parameter) for easier request caching as organisation logos should be small -->
-                    <img fit="cover" class="absolute top-2 right-2" height="48" width="48" :alt="organisation.name" loading="lazy"
+                    <img
+class="absolute top-2 right-2" height="48" width="48" :alt="organisation.name ?? ''" loading="lazy"
                     :src="getRawUrl(organisation.logo)"/>
                 </div>
 
@@ -75,7 +75,12 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Asset, Organisation  } from '~/types/components/content';
+
+import type { PropType } from 'vue';
+import type { Measure } from '~/types/components/municipality';
+
 import { computed } from 'vue'
 import { buildLocationString }from '~/shared/utils';
 import { formatProjectDate } from '~/shared/projectDate';
@@ -88,13 +93,13 @@ const props = defineProps({
     state: String,
     abstract: String,
     author: String,
-    date: Date,
+    date: [String, Date] as PropType<string | Date | null>,
     tag: String,
     image_id: String,
     image_is_raster: Boolean,
-    image_credits: { type: String, default: null },
-    organisation: Object, // can be null
-    measures: Array, // can be null/empty
+    image_credits: { type: String as PropType<string | null>, default: null },
+    organisation: Object as PropType<Organisation | null>, // can be null
+    measures: Array as PropType<Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null>, // can be null/empty
 })
 
 const config = useRuntimeConfig();
@@ -110,8 +115,8 @@ const truncatedAbstract = computed(() => {
     return props.abstract;
 });
 
-function getRawUrl(assetId) {
-    return `${config.public.clientDirectusUrl}/assets/${assetId}`;
+function getRawUrl(assetId: Asset | undefined) {
+    return `${config.public.clientDirectusUrl}/assets/${typeof assetId === "object" ? assetId?.id ?? "" : assetId ?? ""}`;
 }
 
 

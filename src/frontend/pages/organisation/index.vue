@@ -276,7 +276,8 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { TeamMember } from "~/shared/contracts/content"
 const { $t } = useNuxtApp()
 const { isDark } = useTheme()
 
@@ -292,7 +293,7 @@ const TEAM_LAYOUT = [
   { id: 'kommunikation', lineKeys: ['organisation.team.kommunikation.line1', 'organisation.team.kommunikation.line2', 'organisation.team.kommunikation.line3'], cx: 531.6, cy: 276.2, r: 72, fontSize: 16, lineHeight: 19 },
   { id: 'vorstand', lineKeys: ['organisation.team.vorstand.line1', 'organisation.team.vorstand.line2'], cx: 458.8, cy: 447.3, r: 72, fontSize: 20, lineHeight: 24 },
   { id: 'kassenwart', lineKeys: ['organisation.team.kassenwart.line1'], cx: 548, cy: 468, r: 52, fontSize: 17, lineHeight: 22 },
-]
+] as const
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
 const { data: members } = await useAsyncData('org-members', () =>
@@ -321,16 +322,16 @@ const TEAMS = computed(() =>
 
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const activeTeamId = ref(null)
+const activeTeamId = ref<string | null>(null)
 
-function selectTeam(id) {
+function selectTeam(id: string) {
   activeTeamId.value = activeTeamId.value === id ? null : id
 }
 
 // ── Hash-based navigation (from search results) ────────────────────────────
 const route = useRoute()
 
-function handleHash(hash) {
+function handleHash(hash: string) {
   if (!hash) return
   if (hash.startsWith('#team-')) {
     const teamId = hash.slice('#team-'.length)
@@ -352,7 +353,7 @@ const activeTeam = computed(() =>
   activeTeamId.value ? TEAMS.value.find(t => t.id === activeTeamId.value) ?? null : null
 )
 
-const byLastName = (a, b) => (a.last_name ?? '').localeCompare(b.last_name ?? '', 'de')
+const byLastName = (a: TeamMember, b: TeamMember) => (a.last_name ?? '').localeCompare(b.last_name ?? '', 'de')
 
 // Members in the active team
 const filteredMembers = computed(() => {
@@ -360,7 +361,7 @@ const filteredMembers = computed(() => {
   const seen = new Set()
   return members.value
     .filter(m => {
-      if (!Array.isArray(m.slk_team) || !m.slk_team.includes(activeTeamId.value)) return false
+      if (!Array.isArray(m.slk_team) || !m.slk_team.some(team => team === activeTeamId.value)) return false
       if (seen.has(m.id)) return false
       seen.add(m.id)
       return true
@@ -375,7 +376,7 @@ const otherMembers = computed(() => {
   return members.value.filter(m => !activeIds.has(m.id)).sort(byLastName)
 })
 
-function memberFullName(member) {
+function memberFullName(member: TeamMember) {
   return [member.first_name, member.last_name].filter(Boolean).join(' ')
 }
 
@@ -385,13 +386,13 @@ function memberFullName(member) {
 // → SVG resizes → visible jitter. We track the SVG wrapper height with a
 // ResizeObserver and use it as the panel's max-height (and placeholder's
 // min-height) so the row height is always exactly equal to the SVG height.
-const svgWrapperRef = ref(null)
+const svgWrapperRef = ref<HTMLElement | null>(null)
 const svgHeight = ref(0)
 const isLg = ref(false)
 
-let _resizeObs = null
-let _mq = null
-const _onMqChange = (e) => { isLg.value = e.matches }
+let _resizeObs: ResizeObserver | null = null
+let _mq: MediaQueryList | null = null
+const _onMqChange = (e: MediaQueryListEvent) => { isLg.value = e.matches }
 
 onMounted(() => {
   _mq = window.matchMedia('(min-width: 1024px)')
@@ -400,7 +401,7 @@ onMounted(() => {
 
   if (svgWrapperRef.value) {
     _resizeObs = new ResizeObserver(([entry]) => {
-      svgHeight.value = entry.contentRect.height
+      svgHeight.value = entry?.contentRect.height ?? 0
     })
     _resizeObs.observe(svgWrapperRef.value)
   }
@@ -429,38 +430,38 @@ const placeholderStyle = computed(() =>
 )
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function initials(first, last) {
+function initials(first: string | null, last: string | null) {
   return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase()
 }
 
 // Picks the colour of the member's first team, falls back to a neutral teal
-function memberColor(member) {
+function memberColor(member: TeamMember) {
   const firstTeamId = Array.isArray(member.slk_team) ? member.slk_team[0] : null
   return TEAMS.value.find(t => t.id === firstTeamId)?.color ?? '#16bae7'
 }
 
-function normalizeHex(hex) {
-  return /^#[0-9a-f]{6}$/i.test(hex ?? '') ? hex : '#16bae7'
+function normalizeHex(hex: string | null | undefined) {
+  return /^#[0-9a-f]{6}$/i.test(hex ?? '') ? (hex ?? '#16bae7') : '#16bae7'
 }
 
-function blendHex(hex, alpha, background) {
+function blendHex(hex: string, alpha: number, background?: string) {
   const bg = background ?? (isDark.value ? '#17212b' : '#ffffff')
-  const fg = normalizeHex(hex).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
-  const bgArr = normalizeHex(bg).slice(1).match(/.{2}/g).map(value => parseInt(value, 16))
+  const fg = normalizeHex(hex).slice(1).match(/.{2}/g)!.map(value => parseInt(value, 16))
+  const bgArr = normalizeHex(bg).slice(1).match(/.{2}/g)!.map(value => parseInt(value, 16))
   return `#${fg
-    .map((value, index) => Math.round(value * alpha + bgArr[index] * (1 - alpha)).toString(16).padStart(2, '0'))
+    .map((value, index) => Math.round(value * alpha + (bgArr[index] ?? 0) * (1 - alpha)).toString(16).padStart(2, '0'))
     .join('')}`
 }
 
-function teamTint(color, alpha) {
+function teamTint(color: string, alpha: number) {
   return blendHex(color, alpha)
 }
 
-function memberPlaceholderGradient(color) {
+function memberPlaceholderGradient(color: string) {
   return `linear-gradient(135deg, ${blendHex(color, 0.33)} 0%, ${blendHex(color, 0.13)} 50%, ${blendHex(color, 0.27)} 100%)`
 }
 
-function scrollToMember(id, color) {
+function scrollToMember(id: string, color: string) {
   const el = document.getElementById('member-' + id)
   if (!el) return
   // Set the ring color as a CSS custom property so the keyframe picks it up

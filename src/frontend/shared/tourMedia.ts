@@ -1,6 +1,6 @@
 import { relationId } from "./tour";
 
-export type MediaFile = { id: string; type?: string } | string;
+export type MediaFile = { id: string; type?: string | null } | string;
 export type TourMedia = {
   id: number;
   file: MediaFile;

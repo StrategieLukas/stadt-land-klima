@@ -8,23 +8,24 @@
   </span>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue'
 import { computed } from 'vue'
 import { getCandidatePartyConfig, getCandidatePartyLabel } from '~/shared/candidateParties'
 
 const props = defineProps({
   party: {
-    type: String,
+    type: String as PropType<string | null>,
     required: true
   },
   state: {
-    type: String,
+    type: String as PropType<string | null>,
     default: ''
   }
 })
 
 const partyName = computed(() => {
-  return getCandidatePartyLabel(props.party, props.state)
+  return getCandidatePartyLabel(props.party, props.state ?? undefined)
 })
 
 const partyConfig = computed(() => getCandidatePartyConfig(props.party))

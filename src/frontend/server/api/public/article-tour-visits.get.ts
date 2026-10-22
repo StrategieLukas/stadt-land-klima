@@ -1,3 +1,7 @@
+import { queryText, queryIds } from "~/server/utils/publicQuery";
+import { z } from "zod";
+import { ContentIdentitySchema, FileSchema, NullableTextSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
@@ -6,13 +10,13 @@ export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
   const client = createDirectusServerClient()
   const query = getQuery(event)
-  const articleId = query.articleId as string | undefined
+  const articleId = queryText(query.articleId, 100)
 
   if (!articleId) {
     return { visits: [] }
   }
 
-  const links = await client.request(readItems('success_project_tour_stops_articles', {
+  const links = parseCms(z.array(z.object({stop: ContentIdentitySchema.extend({location: NullableTextSchema, start_date: z.string(), end_date: NullableTextSchema, report_status: z.string(), tour: ContentIdentitySchema.extend({cover_image_credits: NullableTextSchema, cover_image: FileSchema.nullable()})}).nullable()})), await client.request(readItems('success_project_tour_stops_articles', {
     filter: {
       articles_id: { _eq: articleId },
       stop: {
@@ -34,17 +38,17 @@ export default defineEventHandler(async (event) => {
       },
     ],
     limit: -1,
-  }))
+  })))
 
   const visits = links
-    .filter((link: any) => link.stop?.tour)
-    .map((link: any) => ({
-      stop: link.stop,
-      tour: link.stop.tour,
-      report: link.stop.report_status === 'published',
+    .flatMap(link => link.stop?.tour ? [link.stop] : [])
+    .map((stop) => ({
+      stop,
+      tour: stop.tour,
+      report: stop.report_status === 'published',
     }))
     .sort(
-      (a: any, b: any) => new Date(a.stop.start_date).getTime() - new Date(b.stop.start_date).getTime(),
+      (a, b) => new Date(a.stop.start_date).getTime() - new Date(b.stop.start_date).getTime(),
     )
 
   return { visits }

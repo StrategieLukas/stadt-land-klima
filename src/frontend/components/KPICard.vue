@@ -123,7 +123,7 @@ onMounted(async () => {
     const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {};
     canonicalKpi.value =
       (kpiValues?.[props.element.plot_id] as { value: number | null; precision?: number | null } | undefined) ?? null;
-  } catch (_) {
+  } catch {
     // Silently fail — display '—'
   } finally {
     loading.value = false;

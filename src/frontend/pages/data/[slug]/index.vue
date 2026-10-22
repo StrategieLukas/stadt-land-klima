@@ -34,7 +34,7 @@
             <li class="text-gray-800 font-semibold">{{ `${displayArea?.prefix} ${displayArea?.name}`.trim() }}</li>
           </template>
           <template v-else>
-            <template v-if="displayArea?.level > 1">
+            <template v-if="(displayArea?.level ?? 0) > 1">
               <li>
                 <BreadcrumbItem label="Deutschland" href="/data" :sibling-level="null" />
               </li>
@@ -97,7 +97,7 @@
 
     <!-- ── Overview layout (Germany / non-rateable Bundesland) ───────────── -->
     <template v-else-if="areaReady && usesOverviewLayout">
-      <AreaOverview :area="area" :contained-by="containedBy" />
+      <AreaOverview :area="area!" :contained-by="containedBy" />
     </template>
 
     <!-- ── Scrollytelling layout (Kreis / Gemeinde) ───────────────────────── -->
@@ -186,7 +186,7 @@
         <div class="xl:col-span-7">
           <DataAreaHeroMap
             v-if="areaReady"
-            :area="area"
+            :area="area!"
             :nearby-areas="nearbyAreas"
             :nearby-areas-loading="nearbyAreasLoading"
           />
@@ -285,7 +285,7 @@
                     :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-60'"
                     v-html="sectorIconSvg(sector.key)"
                   />
-                  {{ $t(`measure_sectors.${sector.key}.title`) }}
+                  {{ $translateDynamic(`measure_sectors.${sector.key}.title`) }}
                 </button>
               </div>
             </div>
@@ -330,7 +330,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { parseGeoCenter } from "~/shared/contracts/geometry";
+import { asRecord } from "~/shared/visualization";
+import { CollectionSchema, CollectionsResponseSchema } from "~/shared/contracts/slz";
+import type { Collection, CollectionOverviewVisual } from "~/types/slz-api";
+import { AreaSchema, type Area } from "~/shared/contracts/search";
 import { Icon } from "@iconify/vue";
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
@@ -340,12 +345,12 @@ import statesLookup from "~/assets/germany-states-lookup.json";
 import { normalizeCollection, sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
 import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible } from "~/utils/dataPageVisibility";
 
-const sectorSvgFiles = import.meta.glob("@/assets/icons/icon_category_*.svg", {
+const sectorSvgFiles = import.meta.glob<string>("@/assets/icons/icon_category_*.svg", {
   query: "?raw",
   import: "default",
   eager: true,
 });
-const sectorIconNames = {
+const sectorIconNames: Record<string, string> = {
   energy: "icon_category_energy",
   buildings: "icon_category_buildings",
   industry: "icon_category_industry",
@@ -379,7 +384,7 @@ definePageMeta({
 
 // ── Route + config ───────────────────────────────────────────────────────────
 
-const { $t } = useNuxtApp();
+const { $t, $translateDynamic } = useNuxtApp();
 const route = useRoute();
 const slug = computed(() => String(route.params.slug ?? ""));
 
@@ -410,15 +415,15 @@ const { data: pageData, pending: areaPending } = useAsyncData(
     const resolvedArea = await $fetch("/api/area-by-slug", {
       params: { slug: slug.value, includeGeo: true },
     });
-    if (!resolvedArea) return { requestedSlug: slug.value, notFound: true };
+    if (!resolvedArea) return { requestedSlug: slug.value, notFound: true, area: null, containedBy: [], municipalityImageId: null, municipalityImageCredits: null };
     const ars = resolvedArea.ars;
     const [containedByChain, muniResult] = await Promise.all([
-      fetchContainedBy(ars, resolvedArea.level).catch(() => []),
+      fetchContainedBy(ars, resolvedArea.level ?? 6).catch(() => []),
       $fetch('/api/public/area-municipalities', { query: { ars } }).then(result => result.municipalities).catch(() => []),
     ]);
 
     return {
-      requestedSlug: slug.value,
+      requestedSlug: slug.value, notFound: false,
       area: resolvedArea,
       containedBy: containedByChain ?? [],
       municipalityImageId: muniResult?.[0]?.image ?? null,
@@ -453,7 +458,12 @@ const resolvedArea = computed(() => {
   const pageSlug = areaToSlug(areaValue?.prefix ?? "", areaValue.name);
   return pageSlug === slug.value ? areaValue : null;
 });
-const area = computed(() => resolvedArea.value ?? matchingSeedArea.value ?? {});
+const area = computed(() => {
+  const value = resolvedArea.value ?? matchingSeedArea.value;
+  if (!value) return null;
+  const parsed = AreaSchema.safeParse({...value, population: value.population == null ? null : Number(value.population)});
+  return parsed.success ? parsed.data : null;
+});
 const displayArea = computed(() => area.value);
 const hasDisplayArea = computed(() => !!displayArea.value?.name);
 const exportAreaName = computed(
@@ -465,21 +475,9 @@ const municipalityImageId = computed(() => (areaReady.value ? (pageData.value?.m
 const municipalityImageCredits = computed(() =>
   areaReady.value ? (pageData.value?.municipalityImageCredits ?? null) : null,
 );
-const displayGeoCenter = computed(() => displayArea.value?.geo_center ?? displayArea.value?.geoCenter ?? null);
-const displayLat = computed(() => {
-  const center = displayGeoCenter.value;
-  if (!center) return null;
-  if (Array.isArray(center)) return center[1];
-  if (center.coordinates) return center.coordinates[1];
-  return center.lat ?? null;
-});
-const displayLon = computed(() => {
-  const center = displayGeoCenter.value;
-  if (!center) return null;
-  if (Array.isArray(center)) return center[0];
-  if (center.coordinates) return center.coordinates[0];
-  return center.lon ?? center.lng ?? null;
-});
+const displayGeoCenter = computed(() => parseGeoCenter(displayArea.value?.geo_center ?? displayArea.value?.geoCenter));
+const displayLat = computed(() => displayGeoCenter.value?.lat ?? null);
+const displayLon = computed(() => displayGeoCenter.value?.lon ?? null);
 const isAreaLoading = computed(() => !areaReady.value);
 const usesOverviewLayout = computed(
   () => areaReady.value && (area.value?.level ?? 99) <= 2 && !area.value?.is_reasonable_for_municipal_rating,
@@ -487,7 +485,7 @@ const usesOverviewLayout = computed(
 
 // ── Nearby/bordering areas (CSR, intentionally decoupled) ────────────────────
 
-const nearbyAreas = ref([]);
+const nearbyAreas = ref<Area[]>([]);
 const nearbyAreasLoading = ref(false);
 let nearbyAreasRequestId = 0;
 
@@ -501,7 +499,7 @@ async function loadNearbyAreasForCurrentArea() {
   nearbyAreas.value = [];
   nearbyAreasLoading.value = false;
 
-  if (!areaReady.value || !currentArea?.ars || currentArea.level <= 2) {
+  if (!areaReady.value || !currentArea?.ars || (currentArea.level ?? 6) <= 2) {
     return;
   }
 
@@ -533,7 +531,7 @@ async function loadNearbyAreasForCurrentArea() {
     );
 
     if (requestId !== nearbyAreasRequestId || requestSlug !== slug.value) return;
-    nearbyAreas.value = enrichedNearbyAreas.filter(Boolean);
+    nearbyAreas.value = enrichedNearbyAreas.filter((area): area is NonNullable<typeof area> => area !== null);
   } catch {
     if (requestId === nearbyAreasRequestId && requestSlug === slug.value) nearbyAreas.value = [];
   } finally {
@@ -551,7 +549,7 @@ watch(
 
 // ── Collections (CSR, area-injected) ────────────────────────────────────────
 
-const collections = ref([]);
+const collections = ref<Collection[]>([]);
 const collectionsLoading = ref(false);
 const collectionsLoadedForSlug = ref("");
 const collectionsReady = computed(
@@ -578,7 +576,7 @@ async function loadCollectionsForCurrentArea() {
   try {
     // Try slim manifest first: much smaller (no vegalite_specs), CDN-cached.
     // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded.
-    const manifest = await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 });
+    const manifest = CollectionsResponseSchema.parse(await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 }));
     const slim = (manifest?.collections ?? [])
       .filter((c) => isCollectionVisible(c.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG))
       .map((c) => normalizeCollection(c));
@@ -598,7 +596,7 @@ async function loadCollectionsForCurrentArea() {
   try {
     // Fall back to full area-specific API.
     const params = area.value?.ars ? { area: area.value.ars } : {};
-    const data = await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 });
+    const data = CollectionsResponseSchema.parse(await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 }));
 
     if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
 
@@ -628,42 +626,42 @@ watch(
 
 // ── Product scroll navigation ────────────────────────────────────────────────
 
-const exploreSection = ref(null);
+const exploreSection = ref<HTMLElement | {$el: HTMLElement} | null>(null);
 const activeSectorKey = ref("");
-let productSectionScrollFrame = null;
-let removeProductSectionListeners = null;
+let productSectionScrollFrame: number | null = null;
+let removeProductSectionListeners: (() => void) | null = null;
 
 const sectorBarTop = computed(() => pillTop.value + 52);
 const productScrollMarginTop = computed(() => sectorBarTop.value + 58);
 
 const groupedCollections = computed(() => {
-  const groups = [];
-  const byKey = new Map();
+  const groups: {key: string; label: string; color: string | undefined; collections: Collection[]}[] = [];
+  const byKey = new Map<string, typeof groups[number]>();
   for (const collection of collections.value) {
     const key = sectorKey(collection);
     if (!byKey.has(key)) {
       const group = {
         key,
-        label: $t(`measure_sectors.${key}.title`) || sectorLabel(collection),
+        label: $translateDynamic(`measure_sectors.${key}.title`) || sectorLabel(collection),
         color: sectorColor(collection),
-        collections: [],
+        collections: [] as Collection[],
       };
       byKey.set(key, group);
       groups.push(group);
     }
-    byKey.get(key).collections.push(collection);
+    byKey.get(key)?.collections.push(collection);
   }
   return groups;
 });
 
 const productSectors = computed(() => groupedCollections.value.map(({ key, label, color }) => ({ key, label, color })));
 
-function sectorIconSvg(key) {
+function sectorIconSvg(key: string) {
   const iconName = sectorIconNames[key];
   return iconName ? (sectorIconSvgs[iconName] ?? "") : "";
 }
 
-function prepareIconSvg(raw) {
+function prepareIconSvg(raw: string) {
   return String(raw)
     .replace(/<\?xml[^?]*\?>/g, "")
     .replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1")
@@ -700,7 +698,7 @@ const heroBackgroundStyle = computed(() =>
 watch(
   productSectors,
   (sectors) => {
-    if (!activeSectorKey.value && sectors.length) activeSectorKey.value = sectors[0].key;
+    if (!activeSectorKey.value && sectors.length) activeSectorKey.value = sectors[0]!.key;
   },
   { immediate: true },
 );
@@ -713,19 +711,20 @@ watch(isAreaLoading, (loading) => {
 });
 
 function scrollToExplore() {
-  const el = exploreSection.value?.$el ?? exploreSection.value;
+  const current = exploreSection.value;
+  const el = current && "$el" in current ? current.$el : current;
   if (!el) return;
   const top = el.getBoundingClientRect().top + window.scrollY - productScrollMarginTop.value;
   window.scrollTo({ top, behavior: "smooth" });
 }
 
-function normalizeAssetUrl(url) {
+function normalizeAssetUrl(url: unknown) {
   if (!url || typeof url !== "string") return "";
   if (url.startsWith("http://web:8070")) return url.replace("http://web:8070", baseUrl);
   return url;
 }
 
-function findAreaImageUrl(areaValue) {
+function findAreaImageUrl(areaValue: Partial<Area> | null) {
   const candidates = [
     areaValue?.teaser_image_url,
     areaValue?.teaserImageUrl,
@@ -746,14 +745,15 @@ function findAreaImageUrl(areaValue) {
     if (!candidate) continue;
     if (typeof candidate === "string") return normalizeAssetUrl(candidate);
     if (typeof candidate === "object") {
-      const nested = candidate.url ?? candidate.src ?? candidate.href ?? candidate.id;
+      const image = asRecord(candidate) ?? {};
+      const nested = image.url ?? image.src ?? image.href ?? image.id;
       if (typeof nested === "string") return normalizeAssetUrl(nested);
     }
   }
   return "";
 }
 
-function findAreaImageAttribution(areaValue) {
+function findAreaImageAttribution(areaValue: Partial<Area> | null) {
   const candidates = [
     areaValue?.teaser_image,
     areaValue?.teaserImage,
@@ -765,7 +765,7 @@ function findAreaImageAttribution(areaValue) {
   for (const candidate of candidates) {
     if (!candidate || typeof candidate !== "object") continue;
     const attribution =
-      candidate.attribution_key ?? candidate.attributionKey ?? candidate.attribution ?? candidate.credits;
+      (asRecord(candidate) ?? {}).attribution_key ?? (asRecord(candidate) ?? {}).attributionKey ?? (asRecord(candidate) ?? {}).attribution ?? (asRecord(candidate) ?? {}).credits;
     if (typeof attribution === "string" && attribution.trim()) return attribution.trim();
   }
   return "";
@@ -779,7 +779,7 @@ function scrollToAllProducts() {
   window.scrollTo({ top, behavior: "smooth" });
 }
 
-function scrollToCollection(collectionId) {
+function scrollToCollection(collectionId: string) {
   const el = document.getElementById(collectionId) ?? document.querySelector(`[data-collection-id="${collectionId}"]`);
   if (!el) return;
   const top = el.getBoundingClientRect().top + window.scrollY - productScrollMarginTop.value;
@@ -787,7 +787,7 @@ function scrollToCollection(collectionId) {
   window.scrollTo({ top, behavior: "smooth" });
 }
 
-function scrollToSector(key) {
+function scrollToSector(key: string) {
   const el = document.getElementById(`sector-${key}`);
   if (!el) return;
   activeSectorKey.value = key;
@@ -852,8 +852,8 @@ onMounted(() => {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function levelLabel(level) {
-  const map = {
+function levelLabel(level: number | null | undefined) {
+  const map: Record<number, string> = {
     1: "Bundesrepublik",
     2: "Bundesland",
     3: "Regierungsbezirk",
@@ -861,10 +861,10 @@ function levelLabel(level) {
     5: "Verbandsgemeinde",
     6: "Gemeinde",
   };
-  return map[level] ?? `Ebene ${level}`;
+  return map[level ?? 0] ?? `Ebene ${level}`;
 }
 
-function isReasonableArea(areaValue) {
+function isReasonableArea(areaValue: Area) {
   return (areaValue?.is_reasonable_for_municipal_rating ?? areaValue?.isReasonableForMunicipalRating ?? true) === true;
 }
 

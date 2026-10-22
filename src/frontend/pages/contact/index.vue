@@ -106,8 +106,12 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref } from "vue"
+import type { FeedbackRequest } from "~/shared/contracts/submissions"
+import { FeedbackRequestSchema } from "~/shared/contracts/submissions"
+import { routeText } from "~/shared/routeValues"
+import { captchaEventData, captchaWidgetValue, requestErrorMessage } from "~/shared/requestError"
 
 const { $t, $locale } = useNuxtApp();
 const route = useRoute();
@@ -119,9 +123,9 @@ const ALLOWED_TYPES = ['legal', 'bug', 'inaccuracy', 'suggestion', 'cooperation'
 
 // Form state — pre-fill from query params when arriving from a content page
 const form = ref({
-  title:   route.query.title   ? String(route.query.title)   : '',
-  type:    route.query.type && ALLOWED_TYPES.includes(String(route.query.type)) ? String(route.query.type) : '',
-  content: route.query.content ? String(route.query.content) : '',
+  title:   routeText(route.query.title, 200),
+  type:    ALLOWED_TYPES.includes(routeText(route.query.type, 40)) ? routeText(route.query.type, 40) : '',
+  content: routeText(route.query.content, 5000),
   name:    '',
   contact: '',
   sendCopy: false,
@@ -132,8 +136,8 @@ const altchaRef = ref(null)
 const altchaPayload = ref('')
 const captchaError = ref('')
 
-function onAltchaStateChange(e) {
-  const { state, payload } = e.detail || {}
+function onAltchaStateChange(e: Event) {
+  const { state, payload } = captchaEventData(e)
   if (state === 'verified' && payload) {
     altchaPayload.value = payload
     captchaError.value = ''
@@ -171,7 +175,7 @@ async function submitFeedback() {
   errorMessage.value = ''
   captchaError.value = ''
 
-  const payload = altchaPayload.value || document.querySelector('altcha-widget')?.value
+  const payload = altchaPayload.value || captchaWidgetValue(document.querySelector('altcha-widget'))
   if (!payload) {
     captchaError.value = $t('captcha.required')
     return
@@ -179,23 +183,17 @@ async function submitFeedback() {
 
   loading.value = true
   try {
+    const request = FeedbackRequestSchema.safeParse({...form.value, altcha: payload})
+    if (!request.success) { errorMessage.value = $t("generic.technical_error"); return }
     await $fetch('/api/submit-feedback', {
       method: 'POST',
-      body: {
-        title:   form.value.title,
-        type:    form.value.type,
-        content: form.value.content,
-        name:    form.value.name,
-        contact: form.value.contact,
-        sendCopy: form.value.sendCopy,
-        altcha:  payload,
-      },
+      body: request.data,
     })
     successMessage.value = form.value.sendCopy
       ? $t('feedback.form.submit.success_with_copy')
       : $t('feedback.form.submit.success')
   } catch (err) {
-    errorMessage.value = err?.data?.message ?? $t('generic.technical_error')
+    errorMessage.value = requestErrorMessage(err, $t('generic.technical_error'))
   } finally {
     loading.value = false
   }

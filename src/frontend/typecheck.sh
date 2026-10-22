@@ -15,16 +15,28 @@ report=$(mktemp)
 diagnostics=$(mktemp)
 trap 'rm -f "$report" "$diagnostics"' EXIT
 
-checker_status=0
-npm exec --no -- vue-tsc -b --noEmit --pretty false > "$report" 2>&1 || checker_status=$?
-# Preserve the complete output, including compiler/tool failures.
-cat "$report"
-awk -F: '/error TS/ { print $1 ":" $2 }' "$report" | LC_ALL=C sort -u > "$diagnostics"
-if { [ "$checker_status" -ne 0 ] && [ "$checker_status" -ne 1 ] && [ "$checker_status" -ne 2 ]; } ||
-   { [ "$checker_status" -ne 0 ] && { [ ! -s "$diagnostics" ] || grep -Eq 'Error:|ERR_|Exception|Segmentation fault|[Ff]atal' "$report"; }; }; then
-  echo "Type checker failed; the diagnostic baseline cannot accept a tool failure." >&2
-  exit "$checker_status"
+# Compile both the application and component templates. Only existing non-component
+# debt may use the shared baseline; strict component templates add no exemptions.
+check_report() {
+  local chunk checker_status=0
+  chunk=$(mktemp)
+  npm exec --no -- vue-tsc "$@" > "$chunk" 2>&1 || checker_status=$?
+  cat "$chunk" | tee -a "$report"
+  if { [ "$checker_status" -ne 0 ] && [ "$checker_status" -ne 1 ] && [ "$checker_status" -ne 2 ]; } ||
+     { [ "$checker_status" -ne 0 ] && { ! grep -q 'error TS' "$chunk" || grep -Eq 'Error:|ERR_|Exception|Segmentation fault|[Ff]atal' "$chunk"; }; }; then
+    rm -f "$chunk"
+    echo 'Type checker failed; the diagnostic baseline cannot accept a tool failure.'
+    exit "$checker_status"
+  fi
+  rm -f "$chunk"
+}
+check_report -b --noEmit --pretty false
+check_report --noEmit -p tsconfig.components.json --pretty false
+if grep -q '^components/.*error TS' "$report"; then
+  echo 'Component diagnostics cannot be added to the migration baseline.'
+  exit 1
 fi
+awk -F: '/error TS/ { print $1 ":" $2 }' "$report" | LC_ALL=C sort -u > "$diagnostics"
 
 if [ "${1:-}" = '--update-baseline' ]; then
   # Replace only after successful preparation and a valid checker report.

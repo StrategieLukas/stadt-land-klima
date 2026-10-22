@@ -297,6 +297,8 @@
 </template>
 
 <script setup lang="ts">
+import { requestErrorData } from "~/shared/requestError";
+import { ArticleSubmissionErrorSchema } from "~/shared/articleSubmission";
 import {
   ARTICLE_SUBMISSION_LIMITS,
   ARTICLE_SUBMISSION_MAX_IMAGE_BYTES,
@@ -511,13 +513,15 @@ function translateSubmissionError(data: ArticleSubmissionErrorData) {
   });
 }
 
-function getSubmissionErrorMessage(err: any) {
-  const data = (err?.data?.error ?? err?.data?.data) as ArticleSubmissionErrorData | undefined;
+function getSubmissionErrorMessage(err: unknown) {
+  const errorData = requestErrorData(err);
+  const parsed = ArticleSubmissionErrorSchema.safeParse(errorData.error ?? errorData.data);
+  const data = parsed.success ? parsed.data : undefined;
   if (data?.errorCode && errorTranslationKeys[data.errorCode]) {
     return translateSubmissionError(data);
   }
-  const publicMessage = err?.data?.message;
-  if (publicMessage && publicMessage !== "Server Error") {
+  const publicMessage = requestErrorData(err).message;
+  if (typeof publicMessage === "string" && publicMessage && publicMessage !== "Server Error") {
     return publicMessage;
   }
   return $t("generic.technical_error");
@@ -586,7 +590,7 @@ async function submitArticle() {
 
   loading.value = true;
   try {
-    const result = await $fetch<{ success: boolean; status: string }>("/api/submit-article", {
+    const result = await $fetch("/api/submit-article", {
       method: "POST",
       body: submitData,
     });
@@ -594,7 +598,7 @@ async function submitArticle() {
       successMessage.value = $t("projects.submit.success.body");
       resetForm();
     }
-  } catch (err: any) {
+  } catch (err) {
     errorMessage.value = getSubmissionErrorMessage(err);
   } finally {
     loading.value = false;

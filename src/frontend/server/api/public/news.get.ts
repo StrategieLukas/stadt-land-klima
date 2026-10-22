@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { NewsListSchema, EventSchema, ContentIdentitySchema, ProjectIdentitySchema, FileSchema, NullableTextSchema } from "~/shared/contracts/content";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from "@directus/sdk";
 import { defineEventHandler, setResponseHeader } from "h3";
 import { createDirectusServerClient } from "../../utils/directusServerClient";
@@ -96,5 +99,12 @@ export default defineEventHandler(async (event) => {
     ),
   ]);
   setResponseHeader(event, "Cache-Control", "public, max-age=60");
-  return { news, articles, events, municipalities, catalogs, visitReports };
+  return {
+    news: parseCms(z.array(NewsListSchema), news),
+    articles: parseCms(z.array(ProjectIdentitySchema.extend({abstract: NullableTextSchema, image: FileSchema.nullish().transform(value => value ?? null), image_credits: NullableTextSchema, date_created: NullableTextSchema})), articles),
+    events: parseCms(z.array(EventSchema.extend({date_created: NullableTextSchema})), events),
+    municipalities: parseCms(z.array(z.object({id: z.string(), slug: z.string(), name: z.string(), description: NullableTextSchema, date_updated: NullableTextSchema, image: FileSchema.nullish().transform(value => value ?? null), image_credits: NullableTextSchema})), municipalities),
+    catalogs: parseCms(z.array(z.object({id: z.string(), name: z.string(), date_created: NullableTextSchema})), catalogs),
+    visitReports: parseCms(z.array(ContentIdentitySchema.extend({report_title: NullableTextSchema, teaser: NullableTextSchema, date_published: NullableTextSchema, image_credits: NullableTextSchema, start_date: z.string(), end_date: NullableTextSchema, date_only: z.boolean(), location: NullableTextSchema, image: FileSchema.nullish().transform(value => value ?? null), tour: z.object({slug: z.string()})})), visitReports),
+  };
 });

@@ -182,6 +182,7 @@ export function buildMemberDoc(user: Record<string, any>): SiteContentDoc | null
     title: name,
     text: [name, stripHtml(user.bio || '')].filter(Boolean).join(' '),
     url: `/organisation#member-${user.id}`,
+    meta: null,
   }
 }
 

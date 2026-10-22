@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     }
     if (safePrefix) params.ars = safePrefix
 
-    const res = await fetchStadtlandzahl<unknown>('/api/areas/', { params })
+    const res = await fetchStadtlandzahl('/api/areas/', { params })
 
     // Handle both plain array and paginated { results: [...] } responses
     const raw: Record<string, unknown>[] = Array.isArray(res)

@@ -1,5 +1,5 @@
 <template>
-  <div class="blokkli-block-video" :id="'block-' + uuid">
+  <div :id="'block-' + uuid" class="blokkli-block-video">
     <figure>
       <div class="relative" :class="aspectClass">
         <!-- YouTube / Vimeo embed -->
@@ -97,14 +97,14 @@ function getYouTubeId(url: string): string | null {
   ]
   for (const p of patterns) {
     const m = url.match(p)
-    if (m) return m[1]
+    if (m?.[1]) return m[1]
   }
   return null
 }
 
 function getVimeoId(url: string): string | null {
   const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)
-  return m ? m[1] : null
+  return m?.[1] ?? null
 }
 
 const embedUrl = computed(() => {

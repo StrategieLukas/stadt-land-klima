@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { PublicElectionListSchema } from "~/shared/contracts/elections";
+import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
@@ -77,5 +80,5 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  return results
+  return parseCms(z.array(PublicElectionListSchema), results)
 })

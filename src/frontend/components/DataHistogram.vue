@@ -7,7 +7,7 @@
     </div>
     
     <!-- Chart -->
-    <div v-else-if="chartData" class="w-full h-64 relative" ref="chartContainerRef">
+    <div v-else-if="chartData" ref="chartContainerRef" class="w-full h-64 relative">
       <Bar ref="chartRef" :data="chartData" :options="chartOptions" :plugins="[municipalityLinePlugin]" />
       
       <!-- Value Marker -->
@@ -42,8 +42,12 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+<script setup lang="ts">
+import type { ChartData, ChartOptions, Plugin } from 'chart.js';
+import { HistogramResponseSchema, BinAreasSchema, type Histogram, type BinAreas } from '~/shared/contracts/histogram';
+import type { PropType } from 'vue';
+
+import { ref, computed, onMounted } from 'vue';
 import { Bar } from 'vue-chartjs';
 import {
   Chart as ChartJS,
@@ -61,7 +65,7 @@ const stadtlandzahlBaseURL = runtimeConfig.public.stadtlandzahlBaseUrl
 // Register Chart.js components
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
-const emit = defineEmits(['bin-click']);
+const emit = defineEmits<{"bin-click": [data: BinAreas]}>();
 
 const props = defineProps({
   histogramUrl: {
@@ -69,11 +73,11 @@ const props = defineProps({
     required: true
   },
   currentValue: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   municipalityName: {
-    type: String,
+    type: String as PropType<string | null>,
     default: null
   },
   unit: {
@@ -85,19 +89,19 @@ const props = defineProps({
     default: ''
   },
   orangeThreshold: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   yellowThreshold: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   lightGreenThreshold: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   darkGreenThreshold: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   populationNormalized: {
@@ -105,7 +109,7 @@ const props = defineProps({
     default: false
   },
   population: {
-    type: Number,
+    type: Number as PropType<number | null>,
     default: null
   },
   isPercentage: {
@@ -116,10 +120,10 @@ const props = defineProps({
 
 const { $t } = useNuxtApp();
 const loading = ref(false);
-const histogramApiData = ref(null);
-const binDetailsData = ref(null); // Stores threshold breakdown for all bins
-const chartRef = ref(null);
-const chartContainerRef = ref(null);
+const histogramApiData = ref<Histogram | null>(null);
+const binDetailsData = ref<{bin_details: {bin_index: number; threshold_counts: Record<string, number>; areas_fetched?: boolean}[]} | null>(null); // Stores threshold breakdown for all bins
+const chartRef = ref<{chart?: ChartJS<'bar'>} | null>(null);
+const chartContainerRef = ref<HTMLElement | null>(null);
 
 const displayUnit = computed(() => {
   let unit = props.unit || '';
@@ -131,8 +135,8 @@ const displayUnit = computed(() => {
   return unit;
 });
 const loadingBinData = ref(false);
-const histogramId = ref(null);
-const clickedBinIndex = ref(null);
+const histogramId = ref<string | number | null>(null);
+const clickedBinIndex = ref<number | null>(null);
 
 const markerPosition = computed(() => {
   if (props.currentValue === null || !histogramApiData.value?.bin_edges || !histogramApiData.value?.bin_counts) {
@@ -147,7 +151,7 @@ const markerPosition = computed(() => {
   // Transform both value and bin edges if population normalization is enabled
   if (props.populationNormalized && props.population) {
     valueToCompare = valueToCompare / props.population * 1000;
-    binEdges = binEdges.map(edge => edge / props.population * 1000);
+    binEdges = binEdges.map(edge => edge / props.population! * 1000);
   }
   
   const numBins = binCounts.length;
@@ -158,8 +162,8 @@ const markerPosition = computed(() => {
   let binEnd = 0;
   
   for (let i = 0; i < numBins; i++) {
-    binStart = binEdges[i];
-    binEnd = binEdges[i + 1];
+    binStart = binEdges[i]!;
+    binEnd = binEdges[i + 1]!;
     
     if (valueToCompare >= binStart && valueToCompare < binEnd) {
       currentValueBinIndex = i;
@@ -170,8 +174,8 @@ const markerPosition = computed(() => {
   // If value is exactly at the max edge, put it in the last bin
   if (currentValueBinIndex === -1 && valueToCompare === binEdges[binEdges.length - 1]) {
     currentValueBinIndex = numBins - 1;
-    binStart = binEdges[currentValueBinIndex];
-    binEnd = binEdges[currentValueBinIndex + 1];
+    binStart = binEdges[currentValueBinIndex]!;
+    binEnd = binEdges[currentValueBinIndex + 1]!;
   }
   
   if (currentValueBinIndex === -1) {
@@ -217,7 +221,7 @@ const markerPosition = computed(() => {
   return exactPosition;
 });
 
-const getBarColor = (binMidpoint) => {
+const getBarColor = (binMidpoint: number) => {
   if (props.orangeThreshold === null && props.yellowThreshold === null && 
       props.lightGreenThreshold === null && props.darkGreenThreshold === null) {
     return '#9ca3af';
@@ -238,8 +242,8 @@ const getBarColor = (binMidpoint) => {
   }
 };
 
-const getDarkerColor = (color) => {
-  const colorMap = {
+const getDarkerColor = (color: string) => {
+  const colorMap: Record<string, string> = {
     '#9ca3af': '#6b7280',
     '#22c55e': '#16a34a',
     '#84cc16': '#65a30d',
@@ -254,10 +258,10 @@ const getThresholdRanges = () => {
   const ranges = [];
   
   // Get normalized thresholds for display if needed
-  let orangeThreshold = props.orangeThreshold;
-  let yellowThreshold = props.yellowThreshold; 
-  let lightGreenThreshold = props.lightGreenThreshold;
-  let darkGreenThreshold = props.darkGreenThreshold;
+  const orangeThreshold = props.orangeThreshold;
+  const yellowThreshold = props.yellowThreshold;
+  const lightGreenThreshold = props.lightGreenThreshold;
+  const darkGreenThreshold = props.darkGreenThreshold;
   
   // Note: Thresholds are already in the correct format (normalized if needed)
   // so we don't need to transform them here
@@ -295,7 +299,7 @@ const getThresholdRanges = () => {
   return ranges;
 };
 
-const formatValue = (value) => {
+const formatValue = (value: number | null | undefined) => {
   if (value === null || value === undefined) return '-';
   
   // Convert to percentage if needed (histogram values are in decimal form 0-1)
@@ -311,7 +315,7 @@ const formatValue = (value) => {
   return Math.round(displayValue).toString();
 };
 
-const chartData = computed(() => {
+const chartData = computed<ChartData<'bar'> | null>(() => {
   if (!histogramApiData.value?.bin_edges || !histogramApiData.value?.bin_counts) {
     return null;
   }
@@ -323,15 +327,15 @@ const chartData = computed(() => {
   // API returns raw values, we need to normalize them for display to match currentValue format
   
   if (props.populationNormalized && props.population) {
-    binEdges = binEdges.map(edge => edge / props.population * 1000);
+    binEdges = binEdges.map(edge => edge / props.population! * 1000);
   }
   
   const labels = [];
-  const bins = [];
+  const bins: {count: number; midpoint: number; start: number; end: number}[] = [];
   
   for (let i = 0; i < binCounts.length; i++) {
-    const binStart = binEdges[i];
-    const binEnd = binEdges[i + 1];
+    const binStart = binEdges[i]!;
+    const binEnd = binEdges[i + 1]!;
     
     const binMidpoint = (binStart + binEnd) / 2;
     
@@ -343,14 +347,14 @@ const chartData = computed(() => {
     
     labels.push(label);
     bins.push({
-      count: binCounts[i],
+      count: binCounts[i]!,
       midpoint: binMidpoint,
       start: binStart,
       end: binEnd
     });
   }
   
-  let currentValueBinIndex = -1;
+  let _currentValueBinIndex = -1;
   if (props.currentValue !== null && !isNaN(Number(props.currentValue))) {
     // Normalize the current value the same way as bin edges if needed
     let normalizedCurrentValue = props.currentValue;
@@ -358,7 +362,7 @@ const chartData = computed(() => {
       normalizedCurrentValue = normalizedCurrentValue / props.population * 1000;
     }
     
-    currentValueBinIndex = bins.findIndex(bin => 
+    _currentValueBinIndex = bins.findIndex(bin =>
       normalizedCurrentValue >= bin.start && normalizedCurrentValue < bin.end
     );
   }
@@ -373,7 +377,7 @@ const chartData = computed(() => {
     const datasets = thresholdRanges.map(range => ({
       label: range.label,
       data: bins.map((bin, index) => {
-        const binDetail = binDetailsData.value.bin_details.find(bd => bd.bin_index === index);
+        const binDetail = binDetailsData.value!.bin_details.find(bd => bd.bin_index === index);
         return binDetail?.threshold_counts?.[range.key] || 0;
       }),
       backgroundColor: range.color,
@@ -399,7 +403,7 @@ const chartData = computed(() => {
     datasets: [{
       label: $t('stats.histogram.frequency'),
       data: bins.map(bin => bin.count),
-      backgroundColor: bins.map((bin, index) => {
+      backgroundColor: bins.map((bin, _index) => {
         return getBarColor(bin.midpoint);
       }),
       borderColor: bins.map((bin, index) => {
@@ -419,7 +423,7 @@ const chartData = computed(() => {
 });
 
 // Chart.js plugin to draw a dashed line at the municipality value
-const municipalityLinePlugin = {
+const municipalityLinePlugin: Plugin<'bar'> = {
   id: 'municipalityLine',
   afterDatasetsDraw: (chart) => {
     if (props.currentValue === null || !histogramApiData.value?.bin_edges) {
@@ -434,7 +438,7 @@ const municipalityLinePlugin = {
     // Transform both value and bin edges if population normalization is enabled
     if (props.populationNormalized && props.population) {
       valueToCompare = valueToCompare / props.population * 1000;
-      binEdges = binEdges.map(edge => edge / props.population * 1000);
+      binEdges = binEdges.map(edge => edge / props.population! * 1000);
     }
     
     const numBins = binCounts.length;
@@ -445,8 +449,8 @@ const municipalityLinePlugin = {
     let binEnd = 0;
     
     for (let i = 0; i < numBins; i++) {
-      binStart = binEdges[i];
-      binEnd = binEdges[i + 1];
+      binStart = binEdges[i]!;
+      binEnd = binEdges[i + 1]!;
       
       if (valueToCompare >= binStart && valueToCompare < binEnd) {
         currentValueBinIndex = i;
@@ -457,8 +461,8 @@ const municipalityLinePlugin = {
     // If value is exactly at the max edge, put it in the last bin
     if (currentValueBinIndex === -1 && valueToCompare === binEdges[binEdges.length - 1]) {
       currentValueBinIndex = numBins - 1;
-      binStart = binEdges[currentValueBinIndex];
-      binEnd = binEdges[currentValueBinIndex + 1];
+      binStart = binEdges[currentValueBinIndex]!;
+      binEnd = binEdges[currentValueBinIndex + 1]!;
     }
 
     if (currentValueBinIndex === -1) {
@@ -468,6 +472,7 @@ const municipalityLinePlugin = {
     const ctx = chart.ctx;
     const xScale = chart.scales.x;
     const yScale = chart.scales.y;
+    if (!xScale || !yScale) return;
 
     // Calculate the exact position within the bin
     // Get the pixel positions for the start and end of the bin
@@ -496,7 +501,7 @@ const municipalityLinePlugin = {
   }
 };
 
-const chartOptions = computed(() => ({
+const chartOptions = computed<ChartOptions<'bar'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -504,7 +509,6 @@ const chartOptions = computed(() => ({
       display: binDetailsData.value?.bin_details ? true : false,
       position: 'bottom'
     },
-    municipalityLine: {},
     tooltip: {
       mode: 'x',
       intersect: false,
@@ -512,14 +516,14 @@ const chartOptions = computed(() => ({
         title: (tooltipItems) => {
           // Show the bin range as the title
           if (tooltipItems.length > 0) {
-            return tooltipItems[0].label;
+            return tooltipItems[0]!.label;
           }
           return '';
         },
         label: (context) => {
           const label = context.dataset.label || '';
           // For stacked bars, use the raw data value, not the parsed y value
-          const value = context.dataset.data[context.dataIndex] || 0;
+          const value = Number(context.dataset.data[context.dataIndex] || 0);
           return `${label}: ${value} ${$t('stats.histogram.municipalities')}`;
         },
         footer: (tooltipItems) => {
@@ -527,7 +531,7 @@ const chartOptions = computed(() => ({
             // Sum the actual data values, not the parsed y values
             const total = tooltipItems.reduce((sum, item) => {
               const value = item.dataset.data[item.dataIndex] || 0;
-              return sum + value;
+              return sum + Number(value);
             }, 0);
             return `Total: ${total} ${$t('stats.histogram.municipalities')}`;
           }
@@ -553,15 +557,15 @@ const chartOptions = computed(() => ({
       beginAtZero: true
     }
   },
-  onClick: async (event, elements) => {
+  onClick: (event, elements) => {
     if (elements.length > 0 && histogramId.value !== null) {
-      const clickedIndex = elements[0].index;
-      await fetchBinData(clickedIndex);
+      const clickedIndex = elements[0]!.index;
+      void fetchBinData(clickedIndex);
     }
   }
 }));
 
-async function fetchBinData(binIndex) {
+async function fetchBinData(binIndex: number) {
   if (!histogramId.value || loadingBinData.value) return;
   
   loadingBinData.value = true;
@@ -574,11 +578,11 @@ async function fetchBinData(binIndex) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const binData = await response.json();
+    const binData = BinAreasSchema.parse(await response.json());
     
     // Calculate threshold breakdown for this bin
     if (binDetailsData.value && binData.areas) {
-      const binDetail = binDetailsData.value.bin_details.find(bd => bd.bin_index === binIndex);
+      const binDetail = binDetailsData.value!.bin_details.find(bd => bd.bin_index === binIndex);
       if (binDetail) {
         binDetail.areas_fetched = true;
       }
@@ -604,12 +608,12 @@ async function fetchData() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const data = await response.json();
+    const data = HistogramResponseSchema.parse(await response.json());
     const result = data?.results?.[0];
     
     if (result?.bin_edges && result?.bin_counts) {
       histogramApiData.value = result;
-      histogramId.value = result.id;
+      histogramId.value = result.id ?? null;
       
       // Calculate threshold breakdown by fetching all bin data
       await calculateThresholdBreakdown();
@@ -627,7 +631,7 @@ async function fetchData() {
   }
 }
 
-function categorizeValueByThreshold(value) {
+function categorizeValueByThreshold(value: number | null | undefined) {
   if (value === null || value === undefined) return null;
   
   // The value from the API is in raw format, but thresholds might be in normalized format
@@ -668,9 +672,9 @@ async function calculateThresholdBreakdown() {
       const url = `${stadtlandzahlBaseURL}/api/histograms/${histogramId.value}/bins/${binIndex}/areas/?format=json`;
       fetchPromises.push(
         fetch(url)
-          .then(response => response.ok ? response.json() : null)
+          .then(async response => response.ok ? BinAreasSchema.parse(await response.json()) : null)
           .then(binData => ({ binIndex, binData }))
-          .catch(error => {
+          .catch((error: unknown) => {
             console.warn(`Could not fetch data for bin ${binIndex}:`, error);
             return { binIndex, binData: null };
           })
@@ -692,9 +696,9 @@ async function calculateThresholdBreakdown() {
           above_darkgreen: 0
         };
         
-        result.binData.areas.forEach(area => {
+        result.binData!.areas.forEach(area => {
           const category = categorizeValueByThreshold(area.value);
-          if (category && thresholdCounts.hasOwnProperty(category)) {
+          if (category && Object.hasOwn(thresholdCounts, category)) {
             thresholdCounts[category]++;
           }
         });
@@ -714,18 +718,7 @@ async function calculateThresholdBreakdown() {
   }
 }
 
-// Force re-computation of marker position when chart is ready
-watch([chartRef, () => chartData.value], async () => {
-  if (chartRef.value && chartData.value) {
-    // Wait for next tick to ensure chart is rendered
-    await nextTick();
-    // Trigger a re-compute by accessing the computed property
-    // This ensures markerPosition recalculates after chart is fully rendered
-    markerPosition.value;
-  }
-}, { flush: 'post' });
-
 onMounted(() => {
-  fetchData();
+  void fetchData();
 });
 </script>

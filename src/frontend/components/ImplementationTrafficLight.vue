@@ -9,13 +9,13 @@
     </div>
   </div>
 </template>
-<script setup>
-const props = defineProps({
+<script setup lang="ts">
+const _props = defineProps({
   small: {
     type: Boolean,
     default: false
   }
 })
 
-const { $t } = useNuxtApp();
+const { $t: _$t } = useNuxtApp();
 </script>

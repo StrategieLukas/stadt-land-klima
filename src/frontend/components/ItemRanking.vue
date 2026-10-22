@@ -39,8 +39,8 @@
       v-else
       type="button"
       :disabled="isGeneratingPdf"
-      @click="fetchPDF"
       class="flex h-10 w-16 items-center justify-center bg-gray text-white disabled:cursor-wait disabled:opacity-70"
+      @click="fetchPDF"
     >
       <SlkFlowerSpinner v-if="isGeneratingPdf" :size="20" color="#fbfbfb" />
       <span v-else>PDF</span>
@@ -48,11 +48,14 @@
     
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
+import type { MunicipalityScore } from '~/types/components/municipality';
+
 
 const props = defineProps({
   municipalityScore: {
-    type: Object,
+    type: Object as PropType<MunicipalityScore>,
     required: true,
   },
   isRanking: {
@@ -75,12 +78,12 @@ const colors = {
 const colorClass = computed(() => {
   let c = colors[0];
 
-  for (const score in colors) {
-    if (Number(props.municipalityScore.score_total) < score) {
+  for (const [score, color] of Object.entries(colors)) {
+    if (Number(props.municipalityScore.score_total) < Number(score)) {
       return c;
     }
 
-    c = colors[score];
+    c = color;
   }
 
   return c;
@@ -94,8 +97,9 @@ async function fetchPDF() {
 
   isGeneratingPdf.value = true;
   try {
-    const response = await $fetch(`/api/pdf/municipality/${municipality.slug}`, {
+    const response = await $fetch<Blob>(`/api/pdf/municipality/${municipality.slug}`, {
       method: 'POST',
+      responseType: 'blob',
       body: {
         slug: municipality.slug,
         catalogVersion: props.municipalityScore.catalog_version?.name,

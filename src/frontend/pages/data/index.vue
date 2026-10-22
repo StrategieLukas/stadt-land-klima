@@ -130,7 +130,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { CollectionSchema, CollectionsResponseSchema } from "~/shared/contracts/slz";
+import type { Collection, CollectionOverviewVisual } from "~/types/slz-api";
+import type { Area } from "~/shared/contracts/search";
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import DataProductsComingSoonTile from '~/components/DataProductsComingSoonTile.vue'
 import { useHeaderHeight } from '~/composables/useHeaderHeight'
@@ -149,7 +152,7 @@ const underConstruction = computed(() => dataPageConfig.value.under_construction
 const { data: visibleCollections } = await useAsyncData('data-overview-collections', async () => {
   if (underConstruction.value) return []
   try {
-    const manifest = await $fetch(`${runtimeConfig.public.stadtlandzahlBaseUrl}/api/manifests/collections-index`, { timeout: 8000 })
+    const manifest = CollectionsResponseSchema.parse(await $fetch(`${runtimeConfig.public.stadtlandzahlBaseUrl}/api/manifests/collections-index`, { timeout: 8000 }))
     return (manifest?.collections ?? [])
       .filter((collection) => isCollectionVisible(collection.id, dataPageConfig.value))
       .map(normalizeCollection)
@@ -158,18 +161,18 @@ const { data: visibleCollections } = await useAsyncData('data-overview-collectio
   }
 }, { default: () => [] })
 
-function collectionText(value) {
+function collectionText(value?: string | Record<string, string> | null) {
   if (!value) return ''
   if (typeof value === 'string') return value
   const language = $locale.startsWith('de') ? 'de-DE' : $locale.startsWith('it') ? 'it-IT' : 'en-US'
   return value[language] || value['en-US'] || value['de-DE'] || ''
 }
 
-const selectedCollectionId = ref(null)
-const selectedCollectionDetail = ref(null)
+const selectedCollectionId = ref<string | null>(null)
+const selectedCollectionDetail = ref<Collection | null>(null)
 const detailLoading = ref(false)
 const detailError = ref(false)
-const collectionDetailCache = new Map()
+const collectionDetailCache = new Map<string, Collection>()
 const selectedCollection = computed(() => visibleCollections.value.find((collection) => collection.id === selectedCollectionId.value) ?? null)
 const expandedCollection = computed(() => selectedCollectionDetail.value?.id === selectedCollectionId.value
   ? selectedCollectionDetail.value
@@ -178,8 +181,8 @@ const narrativeDescriptions = computed(() => (expandedCollection.value?.narrativ
   .filter((step) => collectionText(step.description)))
 const overviewVisuals = computed(() => (expandedCollection.value?.overview_visuals ?? []).filter((visual) => visual.image_url))
 
-function detailOrder(index) {
-  const afterRow = (columns) => Math.min(visibleCollections.value.length - 1, Math.floor(index / columns) * columns + columns - 1) * 2 + 1
+function detailOrder(index: number) {
+  const afterRow = (columns: number) => Math.min(visibleCollections.value.length - 1, Math.floor(index / columns) * columns + columns - 1) * 2 + 1
   return {
     '--detail-order-mobile': afterRow(1),
     '--detail-order-tablet': afterRow(2),
@@ -187,24 +190,24 @@ function detailOrder(index) {
   }
 }
 
-function overviewVisualElement(visual) {
+function overviewVisualElement(visual: CollectionOverviewVisual) {
   return expandedCollection.value?.render_elements?.find((element) => element.plot_id === visual.plot_id)
 }
 
-function overviewVisualTitle(visual) {
+function overviewVisualTitle(visual: CollectionOverviewVisual) {
   return collectionText(visual.title) || collectionText(overviewVisualElement(visual)?.title)
 }
 
-function overviewVisualDescription(visual) {
+function overviewVisualDescription(visual: CollectionOverviewVisual) {
   return collectionText(visual.description) || collectionText(overviewVisualElement(visual)?.description)
 }
 
-function overviewImageUrl(path) {
+function overviewImageUrl(path: string) {
   if (/^https?:\/\//.test(path)) return path
   return `${runtimeConfig.public.stadtlandzahlBaseUrl}/${path.replace(/^\/+/, '')}`
 }
 
-async function selectCollection(id) {
+async function selectCollection(id: string) {
   if (selectedCollectionId.value === id) {
     selectedCollectionId.value = null
     return
@@ -216,7 +219,7 @@ async function selectCollection(id) {
   if (selectedCollectionDetail.value) return
   detailLoading.value = true
   try {
-    const detail = normalizeCollection(await $fetch(`${runtimeConfig.public.stadtlandzahlBaseUrl}/api/collections/${encodeURIComponent(id)}/`, { timeout: 8000 }))
+    const detail = normalizeCollection(CollectionSchema.parse(await $fetch(`${runtimeConfig.public.stadtlandzahlBaseUrl}/api/collections/${encodeURIComponent(id)}/`, { timeout: 8000 })))
     collectionDetailCache.set(id, detail)
     if (selectedCollectionId.value === id) selectedCollectionDetail.value = detail
   } catch {
@@ -233,7 +236,7 @@ const isDesktop = useState('layout-isDesktop')
 const pillTop = computed(() =>
   isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64)
 )
-const breadcrumbNav = ref(null)
+const breadcrumbNav = ref<HTMLElement | null>(null)
 const breadcrumbStuck = ref(false)
 
 function updateBreadcrumbStuck() {
@@ -255,13 +258,13 @@ onUnmounted(() => {
 
 watch(pillTop, updateBreadcrumbStuck, { flush: 'post' })
 
-const selectedState = ref(null)
+const selectedState = ref<{ars: string; name: string; prefix?: string; geoCenter?: {lat: number; lon: number} | null; lat?: number; lon?: number} | null>(null)
 const initialStateArs = computed(() => {
   const state = route.query.state
   return typeof state === 'string' && statesLookup.some((item) => item.ars === state) ? state : null
 })
 
-function onStateSelected(state) {
+function onStateSelected(state: {ars: string; name: string; prefix?: string; geoCenter?: {lat: number; lon: number} | null; lat?: number; lon?: number}) {
   selectedState.value = state
   if (route.query.state !== state.ars) {
     router.push({ query: { ...route.query, state: state.ars } })
@@ -290,7 +293,7 @@ const GERMANY_AREA = {
   population: null,
   geo_center: null,
   is_reasonable_for_municipal_rating: false,
-  stadtlandklima_data_all: [],
+  stadtlandklima_data_all: [], stadtlandklimaDataAll: [],
 }
 
 useHead(() => ({

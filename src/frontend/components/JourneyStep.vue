@@ -176,7 +176,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { ResolvedStep } from "~/composables/useCollectionRender";
-import type { Collection } from "~/types/slz-api";
+import { cloneVisualization, asRecord, type EditableSpec } from '~/shared/visualization';
+import type { RenderElement, Collection } from "~/types/slz-api";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
@@ -196,25 +197,28 @@ const collectionTitle = computed(() => t(props.collection.title) || props.collec
 const stepTitle = computed(() => t(props.step.title) || collectionTitle.value);
 const stepDescription = computed(() => t(props.step.description));
 
-function localizedElementTitle(element: any) {
+function localizedElementTitle(element: RenderElement | null | undefined) {
   return t(element?.title);
 }
 
-function localizedElementDescription(element: any) {
+function localizedElementDescription(element: RenderElement | null | undefined) {
   return t(element?.description);
 }
 
 // Inject ?area=ARS into every data.url in a Vega-Lite spec (handles layer specs too)
-function injectArea(spec: object | null | undefined, ars: string): object | null {
-  if (!spec || !ars) return spec ?? null;
-  const s = JSON.parse(JSON.stringify(spec));
-  function patchUrl(node: any) {
-    if (node?.data?.url) {
+function injectArea(spec: unknown, ars: string): EditableSpec | null {
+  if (!spec) return null;
+  if (!ars) return cloneVisualization(spec);
+  const s = cloneVisualization(spec);
+  function patchUrl(input: unknown) {
+    const node = asRecord(input);
+    const data = asRecord(node?.data);
+    if (typeof data?.url === "string") {
       try {
-        const u = new URL(node.data.url);
+        const u = new URL(data.url);
         u.searchParams.set("area", ars);
-        node.data.url = u.toString();
-      } catch {}
+        data.url = u.toString();
+      } catch { /* Optional data or URL parsing may fail; retain the existing fallback. */ }
     }
     if (Array.isArray(node?.layer)) node.layer.forEach(patchUrl);
   }

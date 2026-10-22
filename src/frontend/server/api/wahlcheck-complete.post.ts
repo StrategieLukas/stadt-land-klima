@@ -1,3 +1,4 @@
+import { WahlcheckCompletionRequestSchema } from "~/shared/contracts/submissions";
 import { createError, defineEventHandler, readBody } from 'h3'
 import { useRuntimeConfig } from '#imports'
 
@@ -6,8 +7,8 @@ import { useRuntimeConfig } from '#imports'
  * The browser cannot call Directus directly, so this route uses the server token.
  */
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-  const electionId = body?.electionId
+  const body = WahlcheckCompletionRequestSchema.safeParse(await readRequestBody<unknown>(event))
+  const electionId = body.success ? body.data.electionId : undefined
 
   if (!electionId || typeof electionId !== 'string' || !/^[a-z0-9-]{1,64}$/.test(electionId)) {
     throw createError({ statusCode: 400, statusMessage: 'Missing or invalid election ID' })
@@ -31,8 +32,7 @@ export default defineEventHandler(async (event) => {
   })
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => '')
-    throw createError({ statusCode: response.status, statusMessage: `Completion tracking failed: ${errorText}` })
+    throw createError({ statusCode: 502, statusMessage: 'Completion tracking failed' })
   }
 
   return { success: true }

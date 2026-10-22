@@ -79,10 +79,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { AreaChipAction, AreaResult  } from '~/types/components/navigation';
+import type { PropType } from 'vue';
+
 defineProps({
-  result: { type: Object, required: true },
+  result: { type: Object as PropType<AreaResult>, required: true },
   showPopulation: { type: Boolean, default: false },
 });
-defineEmits(["chip-action"]);
+defineEmits<{ "chip-action": [payload: AreaChipAction] }>();
 </script>

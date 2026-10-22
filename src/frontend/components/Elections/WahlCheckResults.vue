@@ -2,7 +2,8 @@
   <div class="space-y-8 relative">
     <!-- Confetti Animation -->
     <div v-if="showConfetti" class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      <div v-for="i in 100" :key="i" class="confetti" :style="{
+      <div
+v-for="i in 100" :key="i" class="confetti" :style="{
         '--left': `${Math.random() * 100}%`,
         '--animation-duration': `${2 + Math.random() * 2}s`,
         '--animation-delay': `${Math.random() * 2}s`,
@@ -84,7 +85,7 @@
             </div>
             <div class="flex w-full min-w-0 flex-1 items-center gap-2">
               <div class="min-w-0 flex-1">
-                <ProgressBar :scoreTotal="result.percentage" layout="default" :showScaleMaximum="false" />
+                <ProgressBar :score-total="result.percentage" layout="default" :show-scale-maximum="false" />
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -118,27 +119,27 @@
               <div class="bg-solid-rating-4-10 min-w-0 rounded-xl p-2 text-center shadow-lg transition-shadow hover:shadow-xl sm:rounded-2xl sm:p-6">
                 <div class="mb-1 flex items-center justify-center sm:mb-4">
                   <img
-                    v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
-                    :src="getSectorIcon(getSectorAgreement(result.candidateId, 'highest').sectorRaw)"
+                    v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'highest')?.sectorRaw)"
+                    :src="getSectorIcon(getSectorAgreement(result.candidateId, 'highest')?.sectorRaw)"
                     class="slk-sector-icon h-6 w-6 opacity-90 sm:h-12 sm:w-12"
-                    :alt="getSectorAgreement(result.candidateId, 'highest').sector"
+                    :alt="getSectorAgreement(result.candidateId, 'highest')?.sector"
                   />
                 </div>
-                <div class="text-xl font-bold text-rating-4 sm:text-4xl">{{ getSectorAgreement(result.candidateId, 'highest').percentage }}%</div>
-                <div class="mt-0.5 break-words text-xs font-bold leading-tight text-solid-rating-4-90 hyphens-auto sm:mt-2 sm:text-lg">{{ getSectorAgreement(result.candidateId, 'highest').sector }}</div>
+                <div class="text-xl font-bold text-rating-4 sm:text-4xl">{{ getSectorAgreement(result.candidateId, 'highest')?.percentage }}%</div>
+                <div class="mt-0.5 break-words text-xs font-bold leading-tight text-solid-rating-4-90 hyphens-auto sm:mt-2 sm:text-lg">{{ getSectorAgreement(result.candidateId, 'highest')?.sector }}</div>
                 <div class="mt-0.5 text-[9px] uppercase leading-tight tracking-wider text-solid-rating-4-60 sm:mt-1 sm:text-sm">{{ $t("elections.wahlcheck.results.best_match") }}</div>
               </div>
               <div class="bg-solid-stats-light-50 min-w-0 rounded-xl p-2 text-center shadow-lg transition-shadow hover:shadow-xl sm:rounded-2xl sm:p-6">
                 <div class="mb-1 flex items-center justify-center sm:mb-4">
                   <img
-                    v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
-                    :src="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest').sectorRaw)"
+                    v-if="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest')?.sectorRaw)"
+                    :src="getSectorIcon(getSectorAgreement(result.candidateId, 'lowest')?.sectorRaw)"
                     class="slk-sector-icon h-6 w-6 opacity-90 sm:h-12 sm:w-12"
-                    :alt="getSectorAgreement(result.candidateId, 'lowest').sector"
+                    :alt="getSectorAgreement(result.candidateId, 'lowest')?.sector"
                   />
                 </div>
-                <div class="text-xl font-bold text-stats-dark sm:text-4xl">{{ getSectorAgreement(result.candidateId, 'lowest').percentage }}%</div>
-                <div class="mt-0.5 break-words text-xs font-bold leading-tight text-solid-stats-dark-80 hyphens-auto sm:mt-2 sm:text-lg">{{ getSectorAgreement(result.candidateId, 'lowest').sector }}</div>
+                <div class="text-xl font-bold text-stats-dark sm:text-4xl">{{ getSectorAgreement(result.candidateId, 'lowest')?.percentage }}%</div>
+                <div class="mt-0.5 break-words text-xs font-bold leading-tight text-solid-stats-dark-80 hyphens-auto sm:mt-2 sm:text-lg">{{ getSectorAgreement(result.candidateId, 'lowest')?.sector }}</div>
                 <div class="mt-0.5 text-[9px] uppercase leading-tight tracking-wider text-solid-stats-dark-60 sm:mt-1 sm:text-sm">{{ $t("elections.wahlcheck.results.lowest_match") }}</div>
               </div>
             </div>
@@ -146,8 +147,8 @@
             <!-- Sort Toggle Button -->
             <div class="mb-4">
               <button
-                @click="toggleSort"
                 class="btn btn-sm px-4 py-1.5 rounded-full text-sm font-medium border border-solid-gray-20 hover:border-solid-ff-green-30 hover:bg-solid-ff-green-05 bg-white transition-all flex items-center gap-2"
+                @click="toggleSort"
               >
                 <span>{{ sortLabel }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-stats-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,7 +168,7 @@
 
               <!-- Mobile Rows -->
               <div
-                v-for="(question, qIndex) in sortedExpandedQuestions"
+                v-for="question in sortedExpandedQuestions"
                 :key="'mobile-' + question.id"
                 class="grid grid-cols-[1fr_48px_68px] gap-1 px-2.5 py-2.5 bg-white rounded-lg border-b border-solid-gray-10 last:border-0 hover:bg-mild-white items-center"
               >
@@ -197,8 +198,8 @@
                   <div
                     v-if="getCandidateAnswer(result.candidateId, question.id)"
                     class="w-6 h-6 rounded-full shadow-sm flex-shrink-0"
-                    :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
-                    :title="$t(isPartyElection ? 'elections.wahlcheck.results.party_rating_title' : 'elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
+                    :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id)?.response)"
+                    :title="$t(isPartyElection ? 'elections.wahlcheck.results.party_rating_title' : 'elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id)?.response) })"
                   ></div>
                   <div v-else class="w-6 h-6 rounded-full bg-solid-gray-20 flex-shrink-0"></div>
 
@@ -240,7 +241,7 @@
 
                 <!-- Table Rows -->
                 <div
-                  v-for="(question, qIndex) in sortedExpandedQuestions"
+                  v-for="question in sortedExpandedQuestions"
                   :key="question.id"
                   class="grid gap-2 px-3 py-2.5 bg-white rounded-lg border-b border-solid-gray-10 last:border-0 hover:bg-mild-white transition-all items-center"
                   :class="hasQuestionSectors ? 'grid-cols-[36px_1fr_60px_100px_100px] sm:grid-cols-[40px_1fr_80px_120px_120px]' : 'grid-cols-[36px_1fr_100px_100px] sm:grid-cols-[40px_1fr_120px_120px]'"
@@ -284,8 +285,8 @@
                     <div
                       v-if="getCandidateAnswer(result.candidateId, question.id)"
                       class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-sm"
-                      :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id).response)"
-                      :title="$t(isPartyElection ? 'elections.wahlcheck.results.party_rating_title' : 'elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id).response) })"
+                      :class="getRatingColor(getCandidateAnswer(result.candidateId, question.id)?.response)"
+                      :title="$t(isPartyElection ? 'elections.wahlcheck.results.party_rating_title' : 'elections.wahlcheck.results.candidate_rating_title', { ':rating': getRatingLabel(getCandidateAnswer(result.candidateId, question.id)?.response) })"
                     ></div>
                     <div v-else class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-solid-gray-20">
                     </div>
@@ -332,8 +333,8 @@
         {{ $t(isPartyElection ? "elections.wahlcheck.results.no_matches.description_parties" : "elections.wahlcheck.results.no_matches.description") }}
       </p>
       <button
-        @click="$emit('restart')"
         class="btn btn-primary px-8 py-3 rounded-full font-semibold text-white mt-6"
+        @click="$emit('restart')"
       >
         {{ $t("generic.try_again") }}
       </button>
@@ -456,15 +457,15 @@
       <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
         <button
           type="button"
-          @click="$emit('prev')"
           class="flex-1 sm:flex-initial btn btn-outline btn-secondary px-4 sm:px-6 py-2 rounded-full font-semibold"
+          @click="$emit('prev')"
         >
           {{ $t("generic.back") }}
         </button>
         <button
           type="button"
-          @click="$emit('restart')"
           class="flex-1 sm:flex-initial btn btn-outline px-4 sm:px-6 py-2 rounded-full font-semibold border-ff-green text-ff-green hover:bg-solid-ff-green-10 whitespace-nowrap"
+          @click="$emit('restart')"
         >
           {{ $t("generic.restart") }}
         </button>
@@ -473,7 +474,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { PropType } from 'vue';
+import type { Election, ElectionCandidate, ElectionQuestion, UserAnswers, CandidateAnswer, WahlcheckResult } from '~/types/components/elections';
+
 import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
@@ -485,43 +490,43 @@ import {
   getWahlcheckRatingColor,
 } from '~/shared/wahlcheckAnswerOptions'
 
-const { $t } = useNuxtApp()
+const { $t, $translateDynamic } = useNuxtApp()
 
 const props = defineProps({
   election: {
-    type: Object,
+    type: Object as PropType<Election>,
     required: true
   },
   candidates: {
-    type: Array,
+    type: Array as PropType<ElectionCandidate[]>,
     required: true
   },
   questions: {
-    type: Array,
+    type: Array as PropType<ElectionQuestion[]>,
     required: true
   },
   userAnswers: {
-    type: Object,
+    type: Object as PropType<UserAnswers>,
     required: true
   },
   doubleWeightedQuestions: {
-    type: Set,
+    type: Set as PropType<Set<string>>,
     required: true
   },
   candidateAnswers: {
-    type: Array,
+    type: Array as PropType<CandidateAnswer[]>,
     required: true
   }
 })
 
-const emit = defineEmits(['restart', 'prev'])
+const _emit = defineEmits<{restart: []; prev: []}>()
 
 // State
-const expandedCandidate = ref(null)
+const expandedCandidate = ref<string | null>(null)
 const showConfetti = ref(false)
 const sortBy = ref('default') // 'default', 'agreement', 'disagreement'
-const reasoningDialog = ref(null)
-const activeReasoning = ref(null)
+const reasoningDialog = ref<HTMLDialogElement | null>(null)
+const activeReasoning = ref<{candidateId: string; question: ElectionQuestion; answer: CandidateAnswer; explanation: string | null} | null>(null)
 
 const nonRespondingCandidates = computed(() => {
   return props.candidates.filter((candidate) => candidate.has_answered !== true)
@@ -533,7 +538,7 @@ const isPartyElection = computed(() => props.election?.is_party_election === tru
 function toggleSort() {
   const modes = ['default', 'agreement', 'disagreement']
   const currentIndex = modes.indexOf(sortBy.value)
-  sortBy.value = modes[(currentIndex + 1) % modes.length]
+  sortBy.value = modes[(currentIndex + 1) % modes.length] ?? 'default'
 }
 
 // Sort label text
@@ -551,7 +556,7 @@ const sortedExpandedQuestions = computed(() => {
   if (!expandedCandidate.value) return []
 
   const candidateId = expandedCandidate.value
-  const candidateAnswersByQuestion = {}
+  const candidateAnswersByQuestion: Record<string, CandidateAnswer['response']> = {}
   props.candidateAnswers.forEach(ans => {
     const cId = typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate
     const qId = typeof ans.question === 'object' ? ans.question.id : ans.question
@@ -605,55 +610,55 @@ const confettiColors = [
   '#f27c00', // slk-orange
 ]
 
-function getConfettiColor(index) {
+function getConfettiColor(index: number) {
   return confettiColors[index % confettiColors.length]
 }
 
-function getRatingColor(value) {
+function getRatingColor(value: unknown) {
   return getWahlcheckRatingColor(value)
 }
 
-function getRatingLabel(value) {
+function getRatingLabel(value: unknown) {
   return getWahlcheckAnswerLabel(value, props.election, $t)
 }
 
 // Helper functions for candidate data
-function getCandidate(candidateId) {
+function getCandidate(candidateId: string) {
   return props.candidates.find(candidate => String(candidate.id) === String(candidateId))
 }
 
-function getCandidateName(candidateId) {
+function getCandidateName(candidateId: string) {
   const candidate = getCandidate(candidateId)
   return candidate ? getCandidateDisplayName(candidate) : $t('elections.unknown_candidate')
 }
 
-function getCandidateParty(candidateId) {
+function getCandidateParty(candidateId: string) {
   return getCandidate(candidateId)?.party || null
 }
 
-function getCandidateAnswer(candidateId, questionId) {
+function getCandidateAnswer(candidateId: string, questionId: string) {
   return props.candidateAnswers.find(ans =>
     (typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate) === candidateId &&
     (typeof ans.question === 'object' ? ans.question.id : ans.question) === questionId
   )
 }
 
-function getCandidateExplanation(answer) {
+function getCandidateExplanation(answer: CandidateAnswer | undefined) {
   const explanation = String(answer?.explanation ?? '').trim()
   return explanation || null
 }
 
-function getQuestionTitle(question) {
+function getQuestionTitle(question: ElectionQuestion) {
   return question?.title || question?.thesis || $t('elections.thesis')
 }
 
-function showQuestionThesis(question) {
+function showQuestionThesis(question: ElectionQuestion) {
   const title = String(question?.title ?? '').trim()
   const thesis = String(question?.thesis ?? '').trim()
   return Boolean(thesis && thesis !== title)
 }
 
-function openReasoning(candidateId, question) {
+function openReasoning(candidateId: string, question: ElectionQuestion) {
   const answer = getCandidateAnswer(candidateId, question.id)
   const explanation = getCandidateExplanation(answer)
 
@@ -670,7 +675,7 @@ function openReasoning(candidateId, question) {
   reasoningDialog.value?.showModal()
 }
 
-function normalizeSector(sector) {
+function normalizeSector(sector: string | null | undefined) {
   const normalized = String(sector ?? '').toLowerCase().trim()
   return normalized || null
 }
@@ -684,18 +689,18 @@ const hasMultipleQuestionSectors = computed(() => questionSectors.value.size > 1
 
 // Calculate similarity scores
 const results = computed(() => {
-  const scores = {}
-  const maxScores = {}
+  const scores: Record<string, number> = {}
+  const maxScores: Record<string, number> = {}
 
   // Group candidate answers by candidate
-  const candidateAnswersByCandidate = {}
+  const candidateAnswersByCandidate: Record<string, Record<string, Pick<CandidateAnswer, 'response' | 'explanation'>>> = {}
   props.candidateAnswers.forEach(ans => {
     const candidateId = typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate
     if (!candidateAnswersByCandidate[candidateId]) {
       candidateAnswersByCandidate[candidateId] = {}
     }
     const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
-    candidateAnswersByCandidate[candidateId][questionId] = {
+    candidateAnswersByCandidate[candidateId]![questionId] = {
       response: ans.response,
       explanation: ans.explanation
     }
@@ -713,7 +718,7 @@ const results = computed(() => {
     const weight = isDoubleWeighted ? 2 : 1
 
     Object.keys(candidateAnswersByCandidate).forEach(candidateId => {
-      const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
+      const candidateAnswer = candidateAnswersByCandidate[candidateId]![questionId]
 
       if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
         const score = calculateWahlcheckQuestionScore(userResponse, candidateAnswer.response, weight)
@@ -726,15 +731,15 @@ const results = computed(() => {
   })
 
   // Convert to percentages
-  const results = []
+  const results: WahlcheckResult[] = []
   Object.keys(scores).forEach(candidateId => {
-    const percentage = maxScores[candidateId] > 0
-      ? Math.round((scores[candidateId] / maxScores[candidateId]) * 100)
+    const percentage = (maxScores[candidateId] ?? 0) > 0
+      ? Math.round(((scores[candidateId] ?? 0) / maxScores[candidateId]!) * 100)
       : 0
     results.push({
       candidateId,
-      score: scores[candidateId],
-      maxScore: maxScores[candidateId],
+      score: scores[candidateId] ?? 0,
+      maxScore: maxScores[candidateId] ?? 0,
       percentage
     })
   })
@@ -742,46 +747,46 @@ const results = computed(() => {
   return results
 })
 
-function sectorLabel(sector) {
+function sectorLabel(sector: string | null | undefined) {
   const key = normalizeSector(sector)
   if (!key) return ''
-  const translated = $t(`measure_sectors.${key}.title`)
+  const translated = $translateDynamic(`measure_sectors.${key}.title`)
   return translated === `measure_sectors.${key}.title` ? key : translated
 }
 
 // Get sector icon from imported images
-function getSectorIcon(sectorKey) {
+function getSectorIcon(sectorKey: string | null | undefined) {
   const key = normalizeSector(sectorKey)
-  return key ? sectorImages[key] || null : null
+  return key ? sectorImages[key as keyof typeof sectorImages] || undefined : undefined
 }
 
 // Calculate sector agreement scores for each candidate
 const sectorAgreements = computed(() => {
-  const sectorScores = {}
+  const sectorScores: Record<string, Record<string, {score: number; maxScore: number; percentage: number; sector: string}>> = {}
 
   // Group candidate answers by candidate
-  const candidateAnswersByCandidate = {}
+  const candidateAnswersByCandidate: Record<string, Record<string, Pick<CandidateAnswer, 'response' | 'explanation'>>> = {}
   props.candidateAnswers.forEach(ans => {
     const candidateId = typeof ans.candidate === 'object' ? ans.candidate.id : ans.candidate
     if (!candidateAnswersByCandidate[candidateId]) {
       candidateAnswersByCandidate[candidateId] = {}
     }
     const questionId = typeof ans.question === 'object' ? ans.question.id : ans.question
-    candidateAnswersByCandidate[candidateId][questionId] = {
+    candidateAnswersByCandidate[candidateId]![questionId] = {
       response: ans.response,
       explanation: ans.explanation
     }
   })
 
   // Group questions by sector
-  const questionsBySector = {}
+  const questionsBySector: Record<string, ElectionQuestion[]> = {}
   props.questions.forEach(q => {
     const sector = normalizeSector(q.sector)
     if (!sector) return
     if (!questionsBySector[sector]) {
       questionsBySector[sector] = []
     }
-    questionsBySector[sector].push(q)
+    questionsBySector[sector]!.push(q)
   })
 
   // Calculate sector scores for each candidate
@@ -792,7 +797,7 @@ const sectorAgreements = computed(() => {
       let sectorScore = 0
       let sectorMaxScore = 0
 
-      questionsBySector[sector].forEach(q => {
+      questionsBySector[sector]!.forEach(q => {
         const questionId = q.id
         const userResponse = props.userAnswers[questionId]
 
@@ -802,7 +807,7 @@ const sectorAgreements = computed(() => {
         const isDoubleWeighted = props.doubleWeightedQuestions.has(questionId)
         const weight = isDoubleWeighted ? 2 : 1
 
-        const candidateAnswer = candidateAnswersByCandidate[candidateId][questionId]
+        const candidateAnswer = candidateAnswersByCandidate[candidateId]![questionId]
 
         if (candidateAnswer && candidateAnswer.response !== null && candidateAnswer.response !== undefined) {
           const score = calculateWahlcheckQuestionScore(userResponse, candidateAnswer.response, weight)
@@ -814,7 +819,7 @@ const sectorAgreements = computed(() => {
       })
 
       const percentage = sectorMaxScore > 0 ? Math.round((sectorScore / sectorMaxScore) * 100) : 0
-      sectorScores[candidateId][sector] = {
+      sectorScores[candidateId]![sector] = {
         score: sectorScore,
         maxScore: sectorMaxScore,
         percentage,
@@ -827,7 +832,7 @@ const sectorAgreements = computed(() => {
 })
 
 // Get sector with highest or lowest agreement for a candidate
-function getSectorAgreement(candidateId, type = 'highest') {
+function getSectorAgreement(candidateId: string, type: "highest" | "lowest" = 'highest') {
   const candidateSectors = sectorAgreements.value[candidateId]
 
   if (!candidateSectors || Object.keys(candidateSectors).length === 0) {
@@ -850,7 +855,7 @@ function getSectorAgreement(candidateId, type = 'highest') {
     return type === 'highest' ? b.percentage - a.percentage : a.percentage - b.percentage
   })
 
-  const selected = validSectors[0]
+  const selected = validSectors[0]!
   const sectorKey = normalizeSector(selected.sector)
   if (!sectorKey) return null
   const label = sectorLabel(sectorKey)
@@ -863,7 +868,7 @@ function getSectorAgreement(candidateId, type = 'highest') {
   }
 }
 
-function hasSectorAgreement(candidateId) {
+function hasSectorAgreement(candidateId: string) {
   return Boolean(
     hasMultipleQuestionSectors.value &&
     getSectorAgreement(candidateId, 'highest') &&
@@ -877,7 +882,7 @@ const sortedResults = computed(() => {
 })
 
 // Toggle expand
-function toggleExpand(candidateId) {
+function toggleExpand(candidateId: string) {
   expandedCandidate.value = expandedCandidate.value === candidateId ? null : candidateId
 }
 
@@ -916,7 +921,7 @@ function generateShareableUrl() {
 }
 
 // Copy shareable link to clipboard
-function copyShareableLink() {
+function _copyShareableLink() {
   const url = generateShareableUrl()
   if (!url) {
     alert($t('elections.wahlcheck.results.share.create_error'))
@@ -926,17 +931,17 @@ function copyShareableLink() {
   // Copy to clipboard
   navigator.clipboard.writeText(url).then(() => {
     alert($t('elections.wahlcheck.results.share.copied'))
-  }).catch(err => {
+  }).catch((err: unknown) => {
     console.error('Error copying share link:', err)
     alert($t('elections.wahlcheck.results.share.copy_error'))
   })
 }
 
 // Decode shareable data from URL (for future use)
-function decodeShareableData(encodedString) {
+function _decodeShareableData(encodedString: string) {
   try {
     const decoded = decodeURIComponent(atob(encodedString))
-    return JSON.parse(decoded)
+    return JSON.parse(decoded) as unknown
   } catch (error) {
     console.error('Error decoding shareable data:', error)
     return null

@@ -36,7 +36,7 @@
   </p>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import OnboardingBox from "@/components/OnboardingBox.vue"
 import { useAuth } from '~/composables/useAuth'
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
@@ -49,11 +49,14 @@ onMounted(() => {
   initialize()
   watchEffect(() => { canEdit.value = isAuthenticated.value })
 })
+import { routeSlug } from "~/shared/routeValues"
 const route = useRoute()
+const slug = routeSlug(route.params.slug)
+if (!slug) throw createError({ statusCode: 404, statusMessage: "Page not found" })
 
 // Fetch page by slug
-const { data: pageResult } = await useAsyncData(`page-${route.params.slug}`, () => {
-  return $fetch(`/api/public/pages/${encodeURIComponent(route.params.slug)}`)
+const { data: pageResult } = await useAsyncData(`page-${slug}`, () => {
+  return $fetch(`/api/public/pages/${encodeURIComponent(slug)}`)
 })
 const page = computed(() => pageResult.value?.page || null)
 
@@ -93,7 +96,7 @@ const processedPageContent = computed(() => {
   if (!page.value?.contents) return []
 
   const parts = page.value.contents.split("[[[ONBOARDING_BOX]]]")
-  const blocks = []
+  const blocks: ({ type: "html"; html: string } | { type: "component"; component: typeof OnboardingBox; props: { name: string; "avatar-src": string } })[] = []
 
   parts.forEach((html, idx) => {
     if (html) blocks.push({ type: "html", html })

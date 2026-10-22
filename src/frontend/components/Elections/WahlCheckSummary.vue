@@ -54,7 +54,8 @@
           <div class="flex-shrink-0 flex items-center gap-2 sm:gap-3">
             <!-- User's Answer - Color circle indicator -->
             <div class="flex-shrink-0">
-              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-md"
+              <div
+class="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-md"
                    :class="getRatingColor(userAnswers[question.id])"
                    :title="getRatingLabel(userAnswers[question.id])"></div>
             </div>
@@ -118,15 +119,15 @@
       <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
         <button
           type="button"
-          @click="$emit('prev')"
           class="flex-1 sm:flex-initial btn btn-outline btn-secondary px-4 sm:px-6 py-2 rounded-full font-semibold"
+          @click="$emit('prev')"
         >
           {{ $t('generic.back') }}
         </button>
         <button
           type="button"
-          @click="$emit('next')"
           class="flex-1 sm:flex-initial btn btn-primary px-4 sm:px-8 py-2 rounded-full font-semibold text-white whitespace-nowrap"
+          @click="$emit('next')"
         >
           {{ $t('elections.wahlcheck.summary.show_results') }}
         </button>
@@ -135,7 +136,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+import type { PropType } from 'vue';
+import type { ElectionQuestion, UserAnswers, Election } from '~/types/components/elections';
+
 import { computed } from 'vue'
 import {
   getWahlcheckAnswerLabel,
@@ -146,28 +151,28 @@ const { $t } = useNuxtApp()
 
 const props = defineProps({
   questions: {
-    type: Array,
+    type: Array as PropType<ElectionQuestion[]>,
     required: true
   },
   userAnswers: {
-    type: Object,
+    type: Object as PropType<UserAnswers>,
     required: true
   },
   doubleWeightedQuestions: {
-    type: Set,
+    type: Set as PropType<Set<string>>,
     required: true
   },
   election: {
-    type: Object,
+    type: Object as PropType<Election | null>,
     default: null
   }
 })
 
-const emit = defineEmits(['next', 'prev', 'toggle-double-weight'])
+const emit = defineEmits<{next: []; prev: []; "toggle-double-weight": [questionId: string]}>()
 const isPartyElection = computed(() => props.election?.is_party_election === true)
 
-function handleCardClick(questionId, event) {
-  if (event && event.target && (event.target.tagName === 'INPUT' || event.target.closest('input'))) {
+function handleCardClick(questionId: string, event: MouseEvent | KeyboardEvent) {
+  if (event && event.target instanceof Element && (event.target.tagName === 'INPUT' || event.target.closest('input'))) {
     return
   }
   if (props.userAnswers[questionId] !== undefined) {
@@ -175,15 +180,15 @@ function handleCardClick(questionId, event) {
   }
 }
 
-function onCheckboxChange(questionId, event) {
+function onCheckboxChange(questionId: string, _event: Event) {
   emit('toggle-double-weight', questionId)
 }
 
-function getRatingColor(value) {
+function getRatingColor(value: unknown) {
   return getWahlcheckRatingColor(value)
 }
 
-function getRatingLabel(value) {
+function getRatingLabel(value: unknown) {
   return getWahlcheckAnswerLabel(value, props.election, $t)
 }
 
@@ -198,7 +203,7 @@ const doubleWeightedCount = computed(() => {
   return props.doubleWeightedQuestions.size
 })
 
-const skippedCount = computed(() => {
+const _skippedCount = computed(() => {
   return props.questions.length - answeredCount.value
 })
 </script>

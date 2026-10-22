@@ -389,7 +389,7 @@
                           background: ratingToColor(sectorMeanScores.get(sector.sectorKey)),
                           color: ratingTextColor(sectorMeanScores.get(sector.sectorKey)),
                         }"
-                        >{{ (sectorMeanScores.get(sector.sectorKey) * 100).toFixed(0) }}%</span
+                        >{{ ((sectorMeanScores.get(sector.sectorKey) ?? 0) * 100).toFixed(0) }}%</span
                       >
                       <svg
                         class="text-gray-400 h-4 w-4 flex-shrink-0 transition-transform duration-150"
@@ -421,7 +421,7 @@
                             background: ratingToColor(meanMeasureRatings.get(measure.id)),
                             color: ratingTextColor(meanMeasureRatings.get(measure.id)),
                           }"
-                          >{{ (meanMeasureRatings.get(measure.id) * 100).toFixed(0) }}%</span
+                          >{{ ((meanMeasureRatings.get(measure.id) ?? 0) * 100).toFixed(0) }}%</span
                         >
                         <span v-else class="text-gray-300 ml-1 flex-shrink-0 text-xs">–</span>
                       </button>
@@ -478,7 +478,7 @@
                           background: ratingToColor(sectorMeanScores.get(sector.sectorKey)),
                           color: ratingTextColor(sectorMeanScores.get(sector.sectorKey)),
                         }"
-                        >{{ (sectorMeanScores.get(sector.sectorKey) * 100).toFixed(0) }}%</span
+                        >{{ ((sectorMeanScores.get(sector.sectorKey) ?? 0) * 100).toFixed(0) }}%</span
                       >
                       <svg
                         class="text-gray-400 h-4 w-4 flex-shrink-0 transition-transform duration-150"
@@ -510,7 +510,7 @@
                             background: ratingToColor(meanMeasureRatings.get(measure.id)),
                             color: ratingTextColor(meanMeasureRatings.get(measure.id)),
                           }"
-                          >{{ (meanMeasureRatings.get(measure.id) * 100).toFixed(0) }}%</span
+                          >{{ ((meanMeasureRatings.get(measure.id) ?? 0) * 100).toFixed(0) }}%</span
                         >
                         <span v-else class="text-gray-300 ml-1 flex-shrink-0 text-xs">–</span>
                       </button>
@@ -669,10 +669,10 @@
                   v-if="ms.score_total != null"
                   class="slk-rating-chip flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-white"
                   :style="{
-                    background: ratingToColor(parseFloat(ms.score_total) / 100),
-                    color: ratingTextColor(parseFloat(ms.score_total) / 100),
+                    background: ratingToColor(parseNumber(ms.score_total) / 100),
+                    color: ratingTextColor(parseNumber(ms.score_total) / 100),
                   }"
-                  >{{ parseFloat(ms.score_total).toFixed(1) }}</span
+                  >{{ parseNumber(ms.score_total).toFixed(1) }}</span
                 >
               </div>
               <p v-if="!panelMunicipalities.length" class="text-gray-400 col-span-full py-2 text-xs">
@@ -813,7 +813,22 @@
   </main>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { LayerSpec, UnitSpec } from "vega-lite/types_unstable/spec/index.d.ts";
+import type { View } from "vega";
+import type { VisualizationSpec, EmbedOptions } from "vega-embed";
+import type { SimulationNodeDatum, SimulationLinkDatum } from "d3-force";
+import type { Statistics } from "~/shared/contracts/municipality";
+import type { Sector } from "~/shared/domain";
+import { kMeans, statisticsDatum, pairwiseDominance, matrixValue } from "~/shared/statistics";
+type Measure = Statistics["measures"][number];
+type MunicipalitySummary = {id: string; name: string; slug: string; score_total?: number | null};
+type SectorStats = {sectorKey: Sector; sectorName: string; measures: Record<string, Pick<Measure, "id" | "measure_id" | "name" | "slug"> & {ratings: Record<string, MunicipalitySummary[]>}>};
+type Selection = {type: null; sectorKey: null; measureId: null; label: string} | {type: "sector"; sectorKey: Sector; measureId: null; label: string} | {type: "measure"; sectorKey: Sector; measureId: string; label: string};
+type PanelFilter = {active: boolean; label: string; type: "measure-rating" | "sector-bin" | "global-bin" | null; measureId: string | null; ratingKey: string | null; sectorKey: Sector | null; binRange: [number, number] | null};
+type ClusterRow = {name: string; slug: string; x: number; y: number; scoreTotal: string; cluster: string};
+type ForceNode = SimulationNodeDatum & {id: string; rank: number; name: string; winRate: number};
+type ForceLink = SimulationLinkDatum<ForceNode> & {dominance: number; rate: number};
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { Chart, BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from "chart.js";
 
@@ -839,7 +854,7 @@ const darkVegaConfig = {
   header: { labelColor: "#8aa4b8", titleColor: "#8aa4b8" },
 };
 
-function vegaEmbedOpts(extra = {}) {
+function vegaEmbedOpts(extra: EmbedOptions = {}): EmbedOptions {
   return {
     renderer: "svg",
     actions: false,
@@ -848,7 +863,7 @@ function vegaEmbedOpts(extra = {}) {
   };
 }
 
-function themedVegaSpec(spec) {
+function themedVegaSpec(spec: VisualizationSpec): VisualizationSpec {
   return {
     ...spec,
     background: isDark.value ? VEGA_DARK_BACKGROUND : VEGA_LIGHT_BACKGROUND,
@@ -868,13 +883,13 @@ const municipalityNameCollator = new Intl.Collator("de-DE", {
   sensitivity: "base",
 });
 
-function compareByScoreThenName(a, b) {
+function compareByScoreThenName(a: {score_total?: number | null; name?: string}, b: {score_total?: number | null; name?: string}) {
   const scoreDifference = (b.score_total ?? 0) - (a.score_total ?? 0);
   if (scoreDifference !== 0) return scoreDifference;
   return municipalityNameCollator.compare(a.name ?? "", b.name ?? "");
 }
 
-function scrollToSection(id) {
+function scrollToSection(id: string) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -885,8 +900,8 @@ const catalogVersions = ref(await getAllCatalogVersions());
 useHead({ title: ref($t("stats.title")) });
 
 // ── Filter state ─────────────────────────────────────────────────────────────
-const filterState = ref(null);
-const filterType = ref(null);
+const filterState = ref<string | null>(null);
+const filterType = ref<string | null>(null);
 const filterOpen = ref(false);
 const activeFilterCount = computed(() => {
   let count = 0;
@@ -916,13 +931,13 @@ const sectorStats = computed(() => {
   const { measures, ratings } = statsData.value;
 
   // Build localteam → municipality map from FILTERED completed scores only
-  const localteamToMunicipality = {};
+  const localteamToMunicipality: Record<string, MunicipalitySummary> = {};
   filteredMunScores.value.forEach((ms) => {
     const mun = ms.municipality;
-    if (mun?.localteam_id) localteamToMunicipality[mun.localteam_id] = { id: mun.id, name: mun.name, slug: mun.slug };
+    if (mun?.localteam_id) localteamToMunicipality[mun.localteam_id?.id] = { id: mun.id, name: mun.name, slug: mun.slug };
   });
 
-  const sectorData = {};
+  const sectorData: Partial<Record<Sector, SectorStats>> = {};
   measures.forEach((measure) => {
     if (!sectorData[measure.sector]) {
       sectorData[measure.sector] = {
@@ -931,7 +946,7 @@ const sectorStats = computed(() => {
         measures: {},
       };
     }
-    sectorData[measure.sector].measures[measure.id] = {
+    sectorData[measure.sector]!.measures[measure.id] = {
       id: measure.id,
       measure_id: measure.measure_id,
       name: measure.name,
@@ -948,26 +963,26 @@ const sectorStats = computed(() => {
     const rk = !r.applicable ? "-1" : r.rating !== null ? String(r.rating) : null;
     if (rk === null) return;
     const mun = localteamToMunicipality[r.localteam_id];
-    if (mun) sector.measures[measure.id].ratings[rk].push(mun);
+    if (mun) (sector.measures[measure.id]!.ratings[rk] ??= []).push(mun);
   });
 
   return Object.values(sectorData);
 });
 
-const sunburstContainer = ref(null);
-const distPanelContainer = ref(null);
-let vegaViewSunburst = null;
-let vegaViewDist = null;
-const clusterContainer = ref(null);
-let vegaViewCluster = null;
+const sunburstContainer = ref<HTMLElement | null>(null);
+const distPanelContainer = ref<HTMLElement | null>(null);
+let vegaViewSunburst: View | null = null;
+let vegaViewDist: View | null = null;
+const clusterContainer = ref<HTMLElement | null>(null);
+let vegaViewCluster: View | null = null;
 
-const dominanceRankContainer = ref(null);
-const dominanceHeatmapContainer = ref(null);
+const dominanceRankContainer = ref<HTMLElement | null>(null);
+const dominanceHeatmapContainer = ref<HTMLElement | null>(null);
 const dominanceError = ref("");
-let vegaViewDominance = null;
-let vegaViewDominanceHeatmap = null;
-const dominanceForceContainer = ref(null);
-let vegaViewDominanceForce = null;
+let vegaViewDominance: View | null = null;
+let vegaViewDominanceHeatmap: View | null = null;
+const dominanceForceContainer = ref<HTMLElement | null>(null);
+let vegaViewDominanceForce: View | null = null;
 
 const kClusters = ref(4);
 const clusteringError = ref("");
@@ -975,11 +990,11 @@ const activeSectorFilter = ref("all");
 const activeTab = ref("measures");
 
 // Sunburst selection state
-const sunburstSelection = ref({ type: null, sectorKey: null, measureId: null, label: "" });
+const sunburstSelection = ref<Selection>({ type: null, sectorKey: null, measureId: null, label: "" });
 // Mobile sub-tab for the measures panel (only active when isSmall)
 const mobileMeasuresTab = ref("selection"); // 'selection' | 'plot' | 'list'
 // Municipality panel filter (set when user clicks a bar in the distribution)
-const panelMunFilter = ref({
+const panelMunFilter = ref<PanelFilter>({
   active: false,
   label: "",
   type: null,
@@ -989,14 +1004,14 @@ const panelMunFilter = ref({
   binRange: null,
 });
 // Cluster profile panel
-const clusterProfile = ref({ clusterLabel: null, count: 0, avgTotal: "–", sectorMeans: {}, municipalities: [] });
+const clusterProfile = ref<{clusterLabel: string | null; count: number; avgTotal: string; sectorMeans: Partial<Record<Sector, number>>; municipalities: {name: string; slug: string}[]}>({ clusterLabel: null, count: 0, avgTotal: "–", sectorMeans: {}, municipalities: [] });
 // Raw cluster data for profile lookup (populated after computeClusteringAndRender)
-const clusterData = ref([]);
+const clusterData = ref<ClusterRow[]>([]);
 
 // ── Constants ────────────────────────────────────────────────────────────────
-const sectorOrder = ["energy", "transport", "agriculture", "industry", "buildings", "management"];
+const sectorOrder = ["energy", "transport", "agriculture", "industry", "buildings", "management"] as const;
 
-const sectorNames = {
+const sectorNames: Record<Sector, string> = {
   energy: $t("measure_sectors.energy.title"),
   transport: $t("measure_sectors.transport.title"),
   agriculture: $t("measure_sectors.agriculture.title"),
@@ -1005,7 +1020,7 @@ const sectorNames = {
   management: $t("measure_sectors.management.title"),
 };
 
-const shortSectorNames = {
+const shortSectorNames: Record<Sector, string> = {
   energy: $t("measure_sectors.energy.title"),
   transport: $t("measure_sectors.transport.title"),
   agriculture: $t("stats.sector_short.agriculture"),
@@ -1014,7 +1029,7 @@ const shortSectorNames = {
   management: $t("stats.sector_short.management"),
 };
 
-const sectorColors = {
+const sectorColors: Record<Sector, string> = {
   energy: "#F39200",
   transport: "#16BAE7",
   agriculture: "#1EA64A",
@@ -1023,7 +1038,7 @@ const sectorColors = {
   management: "#AFCA0B",
 };
 
-const ratingColors = {
+const ratingColors: Record<string, string> = {
   "-1": "#9CA3AF",
   0: "#D9000D",
   0.25: "#F27C00",
@@ -1032,7 +1047,7 @@ const ratingColors = {
   1: "#1DA64A",
 };
 
-const ratingLabelsMap = {
+const ratingLabelsMap: Record<string, string> = {
   "-1": $t("rating.not_applicable"),
   0: $t("rating.hardly_or_not"),
   0.25: $t("rating.initial_steps"),
@@ -1041,13 +1056,14 @@ const ratingLabelsMap = {
   1: $t("rating.fullfilled"),
 };
 
+function parseNumber(value: number | string | null | undefined) { return value == null ? NaN : Number.parseFloat(String(value)); }
 function getRatingKeys() {
   return selectedCatalogVersion.value.name === "beta"
     ? ["-1", "0", "0.25", "0.75", "1"]
     : ["-1", "0", "0.25", "0.5", "0.75", "1"];
 }
 
-function getRatingLabel(rating) {
+function getRatingLabel(rating: string) {
   return ratingLabelsMap[rating] ?? rating;
 }
 
@@ -1056,9 +1072,9 @@ const vegaColorScale = {
   range: ["#9CA3AF", "#D9000D", "#F27C00", "#FFD400", "#AFCA0B", "#1DA64A"],
 };
 
-function ratingToColor(r) {
+function ratingToColor(r: number | null | undefined) {
   if (r == null || isNaN(r)) return "#9CA3AF";
-  const stops = [
+  const stops: [number, [number, number, number]][] = [
     [0, [217, 0, 13]],
     [0.25, [242, 124, 0]],
     [0.5, [255, 212, 0]],
@@ -1067,8 +1083,8 @@ function ratingToColor(r) {
   ];
   const clamped = Math.max(0, Math.min(1, r));
   for (let i = 0; i < stops.length - 1; i++) {
-    const [t0, c0] = stops[i];
-    const [t1, c1] = stops[i + 1];
+    const [t0, c0] = stops[i]!;
+    const [t1, c1] = stops[i + 1]!;
     if (clamped <= t1) {
       const t = (clamped - t0) / (t1 - t0);
       return `rgb(${Math.round(c0[0] + t * (c1[0] - c0[0]))},${Math.round(c0[1] + t * (c1[1] - c0[1]))},${Math.round(c0[2] + t * (c1[2] - c0[2]))})`;
@@ -1077,13 +1093,13 @@ function ratingToColor(r) {
   return "#1DA64A";
 }
 
-function ratingTextColor(r) {
+function ratingTextColor(r: number | null | undefined) {
   if (r == null || isNaN(r)) return "#000000";
   return Math.max(0, Math.min(1, r)) < 0.095 ? "#ffffff" : "#000000";
 }
 
-function meanSectorScore(sectorKey) {
-  const scores = filteredMunScores.value.map((ms) => parseFloat(ms[`score_${sectorKey}`])).filter((v) => !isNaN(v));
+function meanSectorScore(sectorKey: Sector) {
+  const scores = filteredMunScores.value.map((ms) => parseNumber(ms[`score_${sectorKey}`])).filter((v) => !isNaN(v));
   if (!scores.length) return null;
   return scores.reduce((a, b) => a + b, 0) / scores.length;
 }
@@ -1105,7 +1121,7 @@ const filteredMunScores = computed(() => visibleMunicipalityScores.value);
 
 const availableStates = computed(() => {
   if (!statsData.value) return [];
-  const states = new Set();
+  const states = new Set<string>();
   statsData.value.municipalityScores.forEach((ms) => {
     if (ms.municipality?.state) states.add(ms.municipality.state);
   });
@@ -1125,13 +1141,13 @@ const kpi = computed(() => {
   const { municipalities, measures, ratings } = statsData.value;
   const completed = filteredMunScores.value;
   const halfRatedProgress = publishedMunicipalityScores.value.filter((ms) => {
-    const percentage = parseFloat(ms.percentage_rated);
+    const percentage = parseNumber(ms.percentage_rated);
     return !isNaN(percentage) && percentage >= 1 && percentage < 100;
   });
   // Count ratings that are filled (rating != null OR applicable == false) for completed municipalities
   const ltSet = new Set();
   completed.forEach((ms) => {
-    if (ms.municipality?.localteam_id) ltSet.add(ms.municipality.localteam_id);
+    if (ms.municipality?.localteam_id) ltSet.add(ms.municipality.localteam_id?.id);
   });
   const filledRatings = ratings.filter(
     (r) => ltSet.has(r.localteam_id) && (r.rating != null || r.applicable === false),
@@ -1148,10 +1164,10 @@ const kpi = computed(() => {
 const top10 = computed(() => {
   const sel = sunburstSelection.value;
   if (sel.type === "sector" && sel.sectorKey) {
-    const scoreField = `score_${sel.sectorKey}`;
+    const scoreField = `score_${sel.sectorKey}` as const;
     return [...filteredMunScores.value]
       .map((ms) => {
-        const v = parseFloat(ms[scoreField]);
+        const v = parseNumber(ms[scoreField]);
         return {
           id: ms.municipality?.id,
           name: ms.municipality?.name,
@@ -1164,15 +1180,15 @@ const top10 = computed(() => {
       .slice(0, 10);
   }
   if (sel.type === "measure" && sel.measureId) {
-    const ratingByLtId = new Map();
+    const ratingByLtId = new Map<string, number>();
     statsData.value?.ratings?.forEach((r) => {
       if (r.measure_id === sel.measureId && r.applicable !== false && r.rating != null)
-        ratingByLtId.set(r.localteam_id, parseFloat(r.rating));
+        ratingByLtId.set(r.localteam_id, parseNumber(r.rating));
     });
     return [...filteredMunScores.value]
-      .filter((ms) => ms.municipality?.localteam_id && ratingByLtId.has(ms.municipality.localteam_id))
+      .filter((ms) => ms.municipality?.localteam_id && ratingByLtId.has(ms.municipality.localteam_id?.id))
       .map((ms) => {
-        const v = ratingByLtId.get(ms.municipality.localteam_id);
+        const v = ratingByLtId.get(ms.municipality.localteam_id?.id ?? "") ?? 0;
         return {
           id: ms.municipality?.id,
           name: ms.municipality?.name,
@@ -1189,7 +1205,7 @@ const top10 = computed(() => {
       id: ms.municipality?.id,
       name: ms.municipality?.name,
       slug: ms.municipality?.slug,
-      score_total: parseFloat(ms.score_total),
+      score_total: parseNumber(ms.score_total),
     }))
     .filter((ms) => !isNaN(ms.score_total))
     .sort(compareByScoreThenName)
@@ -1214,28 +1230,28 @@ const panelMunicipalities = computed(() => {
     const [bin0, bin1] = binRange;
     return filteredMunScores.value
       .filter((ms) => {
-        const s = parseFloat(ms[`score_${sectorKey}`]);
+        const s = parseNumber(ms[`score_${sectorKey}`]);
         return !isNaN(s) && s >= bin0 && s < bin1 + 0.0001;
       })
       .map((ms) => ({
         id: ms.municipality?.id,
         name: ms.municipality?.name,
         slug: ms.municipality?.slug,
-        score_total: parseFloat(ms[`score_${sectorKey}`]),
+        score_total: parseNumber(ms[`score_${sectorKey}`]),
       }));
   }
   if (type === "global-bin" && binRange) {
     const [bin0, bin1] = binRange;
     return filteredMunScores.value
       .filter((ms) => {
-        const s = parseFloat(ms.score_total);
+        const s = parseNumber(ms.score_total);
         return !isNaN(s) && s >= bin0 && s < bin1 + 0.0001;
       })
       .map((ms) => ({
         id: ms.municipality?.id,
         name: ms.municipality?.name,
         slug: ms.municipality?.slug,
-        score_total: parseFloat(ms.score_total),
+        score_total: parseNumber(ms.score_total),
       }))
       .sort(compareByScoreThenName);
   }
@@ -1243,29 +1259,29 @@ const panelMunicipalities = computed(() => {
 });
 
 const meanMeasureRatings = computed(() => {
-  if (!statsData.value) return new Map();
+  if (!statsData.value) return new Map<string, number | null>();
   const { ratings, measures } = statsData.value;
   const completed = filteredMunScores.value;
-  if (!completed.length) return new Map();
+  if (!completed.length) return new Map<string, number | null>();
   const ltSet = new Set();
   completed.forEach((ms) => {
-    if (ms.municipality?.localteam_id) ltSet.add(ms.municipality.localteam_id);
+    if (ms.municipality?.localteam_id) ltSet.add(ms.municipality.localteam_id?.id);
   });
-  const sums = new Map();
-  const counts = new Map();
+  const sums = new Map<string, number>();
+  const counts = new Map<string, number>();
   ratings.forEach((r) => {
     if (!ltSet.has(r.localteam_id)) return;
     if (!r.applicable) return;
     if (r.rating == null) return;
-    const val = parseFloat(r.rating);
+    const val = parseNumber(r.rating);
     if (isNaN(val)) return;
     const mid = r.measure_id;
     sums.set(mid, (sums.get(mid) ?? 0) + val);
     counts.set(mid, (counts.get(mid) ?? 0) + 1);
   });
-  const result = new Map();
+  const result = new Map<string, number | null>();
   measures.forEach((m) => {
-    const s = sums.get(m.id);
+    const s = sums.get(m.id) ?? 0;
     const c = counts.get(m.id);
     result.set(m.id, c ? s / c : null);
   });
@@ -1273,20 +1289,20 @@ const meanMeasureRatings = computed(() => {
 });
 
 const filteredSectorStats = computed(() => {
-  const ordered = sectorOrder.map((k) => sectorStats.value.find((s) => s.sectorKey === k)).filter(Boolean);
+  const ordered = sectorOrder.flatMap(k => {const sector = sectorStats.value.find(s => s.sectorKey === k); return sector ? [sector] : [];});
   if (activeSectorFilter.value === "all") return ordered;
   return ordered.filter((s) => s.sectorKey === activeSectorFilter.value);
 });
 
 // ── Data fetching ────────────────────────────────────────────────────────────
-async function fetchStatsForCatalog(catalogVersionId) {
+async function fetchStatsForCatalog(catalogVersionId: string) {
   const catalog = catalogVersions.value.find(version => version.id === catalogVersionId);
   if (!catalog) throw new Error('Catalog not found');
   const result = await $fetch(`/api/public/stats/${encodeURIComponent(catalog.name)}`);
   return { ...result, municipalityScores: result.scores };
 }
 
-const statsData = ref(null);
+const statsData = ref<(Statistics & {municipalityScores: Statistics["scores"]}) | null>(null);
 const statsLoading = ref(true);
 
 // ── Sunburst (Vega-Lite two-layer arc) ───────────────────────────────────────
@@ -1303,8 +1319,8 @@ async function renderSunburst() {
     if (!statsData.value?.measures?.length) return;
     const { measures } = statsData.value;
     const mmr = meanMeasureRatings.value;
-    const innerRows = [];
-    const outerRows = [];
+    const innerRows: {name: string; theta: number; meanRating: number; order: number; sectorKey: Sector}[] = [];
+    const outerRows: {name: string; sectorName: string; theta: number; meanRatingDisplay: number; meanRating: number | null | undefined; order: number; measureId: string; sectorKey: Sector}[] = [];
     sectorOrder.forEach((sKey, si) => {
       const sector = sectorStats.value.find((s) => s.sectorKey === sKey);
       if (!sector) return;
@@ -1315,7 +1331,7 @@ async function renderSunburst() {
         ? measureMeans.reduce((a, b) => a + b, 0) / measureMeans.length
         : null;
       // inner ring theta = sum of weights for this sector (proportional to total weight)
-      const sectorWeight = sectorMeasures.reduce((s, m) => s + parseFloat(m.weight ?? 1), 0);
+      const sectorWeight = sectorMeasures.reduce((s, m) => s + parseNumber(m.weight ?? 1), 0);
       innerRows.push({
         name: shortSectorNames[sKey] ?? sKey,
         theta: sectorWeight,
@@ -1328,7 +1344,7 @@ async function renderSunburst() {
         outerRows.push({
           name: m.name,
           sectorName: sectorNames[sKey] ?? sKey,
-          theta: parseFloat(m.weight ?? 1),
+          theta: parseNumber(m.weight ?? 1),
           meanRatingDisplay: mr ?? -0.05,
           meanRating: mr,
           order: si * 1000 + mi,
@@ -1340,7 +1356,7 @@ async function renderSunburst() {
     const sel = sunburstSelection.value;
     const omScore = overallMeanScore.value;
     // Center circle — clickable (clears selection), no text label
-    const centerLayers =
+    const centerLayers: (LayerSpec<string> | UnitSpec<string>)[] =
       omScore != null
         ? [
             {
@@ -1373,7 +1389,7 @@ async function renderSunburst() {
       sel.type === "measure"
         ? [...outerRows].sort((a, b) => (a.measureId === sel.measureId ? 1 : b.measureId === sel.measureId ? -1 : 0))
         : outerRows;
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 360,
@@ -1437,13 +1453,13 @@ async function renderSunburst() {
 
     // Click handler: update selection, re-render sunburst with highlight + dist panel
     result.view.addEventListener("click", (_event, item) => {
-      if (!item?.datum) return;
-      const d = item.datum;
+      const d = statisticsDatum(item);
+      if (!d) return;
       if (d.isCenter) {
         clearSunburstSelection();
         return;
       }
-      if (d.measureId) {
+      if (d.measureId && d.sectorKey) {
         sunburstSelection.value = { type: "measure", sectorKey: d.sectorKey, measureId: d.measureId, label: d.name };
       } else if (d.sectorKey) {
         sunburstSelection.value = { type: "sector", sectorKey: d.sectorKey, measureId: null, label: d.name };
@@ -1499,7 +1515,7 @@ async function renderDistPanel() {
     const scores = filteredMunScores.value
       .filter((ms) => ms.score_total != null)
       .map((ms) => {
-        const s = parseFloat(ms.score_total);
+        const s = parseNumber(ms.score_total);
         if (isNaN(s)) return null;
         const bin_start = Math.floor(s / BIN_STEP) * BIN_STEP;
         return { score: s, bin_start, bin_end: bin_start + BIN_STEP };
@@ -1507,7 +1523,7 @@ async function renderDistPanel() {
       .filter(Boolean);
     if (!scores.length) return;
     const selectedBin0Global = panelMunFilter.value.type === "global-bin" ? panelMunFilter.value.binRange?.[0] : null;
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 360,
@@ -1554,8 +1570,10 @@ async function renderDistPanel() {
     vegaViewDist = res.view;
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
-      const bin0 = item.datum.bin_start;
-      const bin1 = item.datum.bin_end;
+      const datum = statisticsDatum(item);
+      const bin0 = datum?.bin_start;
+      const bin1 = datum?.bin_end;
+      if (bin0 === undefined || bin1 === undefined) return;
       if (bin0 == null) return;
       panelMunFilter.value = {
         active: true,
@@ -1578,7 +1596,7 @@ async function renderDistPanel() {
     const BIN_STEP = 5;
     const scores = filteredMunScores.value
       .map((ms) => {
-        const s = parseFloat(ms[`score_${sKey}`]);
+        const s = parseNumber(ms[`score_${sKey}`]);
         if (isNaN(s)) return null;
         const bin_start = Math.floor(s / BIN_STEP) * BIN_STEP;
         return {
@@ -1595,7 +1613,7 @@ async function renderDistPanel() {
       panelMunFilter.value.type === "sector-bin" && panelMunFilter.value.sectorKey === sKey
         ? panelMunFilter.value.binRange?.[0]
         : null;
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 360,
@@ -1643,8 +1661,10 @@ async function renderDistPanel() {
     // Click on a bin: filter municipality list to that bin
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
-      const bin0 = item.datum.bin_start;
-      const bin1 = item.datum.bin_end;
+      const datum = statisticsDatum(item);
+      const bin0 = datum?.bin_start;
+      const bin1 = datum?.bin_end;
+      if (bin0 === undefined || bin1 === undefined) return;
       if (bin0 == null) return;
       panelMunFilter.value = {
         active: true,
@@ -1680,7 +1700,7 @@ async function renderDistPanel() {
       panelMunFilter.value.type === "measure-rating" && panelMunFilter.value.measureId === measureId
         ? panelMunFilter.value.ratingKey
         : null;
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 360,
@@ -1711,7 +1731,7 @@ async function renderDistPanel() {
     // Click on a bar: filter municipality list to that rating
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
-      const rk = item.datum.ratingKey;
+      const rk = statisticsDatum(item)?.ratingKey;
       if (!rk) return;
       panelMunFilter.value = {
         active: true,
@@ -1731,21 +1751,21 @@ async function renderDistPanel() {
 // ── Arrow-key / button navigation through sectors & measures ─────────────────
 const orderedMeasures = computed(() => {
   if (!statsData.value?.measures) return [];
-  const result = [];
+  const result: Measure[] = [];
   sectorOrder.forEach((sKey) => {
-    statsData.value.measures.filter((m) => m.sector === sKey).forEach((m) => result.push(m));
+    statsData.value!.measures.filter((m) => m.sector === sKey).forEach((m) => result.push(m));
   });
   return result;
 });
 
-function navigateSunburstSelection(dir) {
+function navigateSunburstSelection(dir: number) {
   const sel = sunburstSelection.value;
   if (!sel.type) return;
   if (sel.type === "sector") {
     const idx = sectorOrder.indexOf(sel.sectorKey);
     if (idx === -1) return;
     const newIdx = (idx + dir + sectorOrder.length) % sectorOrder.length;
-    const newKey = sectorOrder[newIdx];
+    const newKey = sectorOrder[newIdx]!;
     sunburstSelection.value = {
       type: "sector",
       sectorKey: newKey,
@@ -1758,6 +1778,7 @@ function navigateSunburstSelection(dir) {
     if (idx === -1) return;
     const newIdx = (idx + dir + measures.length) % measures.length;
     const m = measures[newIdx];
+    if (!m) return;
     sunburstSelection.value = { type: "measure", sectorKey: m.sector, measureId: m.id, label: m.name };
   }
   clearPanelMunFilter();
@@ -1767,7 +1788,7 @@ function navigateSunburstSelection(dir) {
   });
 }
 
-function handleArrowKey(e) {
+function handleArrowKey(e: KeyboardEvent) {
   if (activeTab.value !== "measures") return;
   if (!sunburstSelection.value.type) return;
   if (e.key === "ArrowLeft") {
@@ -1786,7 +1807,7 @@ async function renderDistributionChart() {}
 
 // ── (renderHistogram removed — distribution is now inline in the detail panel) ──
 
-function setSectorFilter(key) {
+function setSectorFilter(key: string) {
   activeSectorFilter.value = key;
 }
 // ── Reactive re-render on filter change ──────────────────────────────────────
@@ -1852,83 +1873,70 @@ async function computeDominanceAndRender() {
       return;
     }
 
+    if (!statsData.value) return;
     const { ratings: allRatings, measures: allMeasures } = statsData.value;
 
     const munData = data.filter((ms) => ms.municipality?.localteam_id);
     const N = munData.length;
-    const ltIds = munData.map((ms) => ms.municipality.localteam_id);
+    const ltIds = munData.map((ms) => ms.municipality.localteam_id?.id);
     const names = munData.map((ms) => ms.municipality.name);
 
     // Build rating map per localteam: lt -> { measureId -> numeric 0-1 } (exclude N/A and null)
     const ltSet = new Set(ltIds);
-    const ratingMap = {};
+    const ratingMap: Record<string, Record<string, number>> = {};
     allRatings.forEach((r) => {
       if (!ltSet.has(r.localteam_id)) return;
       if (r.applicable === false || r.rating == null) return;
-      const v = parseFloat(r.rating);
+      const v = parseNumber(r.rating);
       if (isNaN(v)) return;
       if (!ratingMap[r.localteam_id]) ratingMap[r.localteam_id] = {};
-      ratingMap[r.localteam_id][r.measure_id] = v;
+      ratingMap[r.localteam_id]![r.measure_id] = v;
     });
 
     // Per-measure rating arrays indexed by municipality
     const measureIds = allMeasures.map((m) => m.id);
-    const ratingArrays = measureIds.map((mid) => ltIds.map((lt) => ratingMap[lt]?.[mid] ?? null));
+    const ratingArrays = measureIds.map((mid) => ltIds.map((lt) => ratingMap[lt ?? ""]?.[mid] ?? null));
 
-    // wins[i][j] = #measures where municipality i beat j
-    // compared[i][j] = #measures where both had a valid rating
-    const wins = Array.from({ length: N }, () => new Float32Array(N));
-    const compared = Array.from({ length: N }, () => new Float32Array(N));
-
-    for (const ratings of ratingArrays) {
-      for (let i = 0; i < N; i++) {
-        if (ratings[i] == null) continue;
-        for (let j = i + 1; j < N; j++) {
-          if (ratings[j] == null) continue;
-          compared[i][j]++;
-          compared[j][i]++;
-          if (ratings[i] > ratings[j]) wins[i][j]++;
-          else if (ratings[j] > ratings[i]) wins[j][i]++;
-        }
-      }
-    }
+    // matrixValue(wins, i, j) = #measures where municipality i beat j
+    // matrixValue(compared, i, j) = #measures where both had a valid rating
+    const {wins, compared} = pairwiseDominance(ratingArrays, N);
 
     // Win rate per municipality
     const winRates = Array.from({ length: N }, (_, i) => {
       let totalW = 0,
         totalC = 0;
       for (let j = 0; j < N; j++) {
-        totalW += wins[i][j];
-        totalC += compared[i][j];
+        totalW += matrixValue(wins, i, j);
+        totalC += matrixValue(compared, i, j);
       }
       return totalC > 0 ? totalW / totalC : 0;
     });
 
     // Sort indices by win rate descending
-    const sortedIdx = Array.from({ length: N }, (_, i) => i).sort((a, b) => winRates[b] - winRates[a]);
+    const sortedIdx = Array.from({ length: N }, (_, i) => i).sort((a, b) => (winRates[b] ?? 0) - (winRates[a] ?? 0));
 
     // Ranking data for bar chart
     const rankingData = sortedIdx.map((i, rank) => ({
-      name: names[i],
-      winRate: winRates[i],
-      wins: Array.from(wins[i]).reduce((s, v) => s + v, 0),
-      losses: Array.from({ length: N }, (_, j) => wins[j][i]).reduce((s, v) => s + v, 0),
+      name: names[i] ?? "",
+      winRate: winRates[i] ?? 0,
+      wins: Array.from(wins[i] ?? []).reduce((s, v) => s + v, 0),
+      losses: Array.from({ length: N }, (_, j) => matrixValue(wins, j, i)).reduce((s, v) => s + v, 0),
       rank: rank + 1,
     }));
 
     // Top 40 for heatmap, sorted by win rate → topNames defines display order
     const topN = Math.min(40, N);
     const topIdx = sortedIdx.slice(0, topN);
-    const topNames = topIdx.map((i) => names[i]);
+    const topNames = topIdx.map(i => names[i] ?? "");
 
     const heatmapData = [];
     for (let ii = 0; ii < topN; ii++) {
       for (let jj = 0; jj < topN; jj++) {
         if (ii === jj) continue;
-        const i = topIdx[ii],
-          j = topIdx[jj];
-        const rate = compared[i][j] > 0 ? wins[i][j] / compared[i][j] : 0.5;
-        heatmapData.push({ row: names[i], col: names[j], rate });
+        const i = topIdx[ii]!,
+          j = topIdx[jj]!;
+        const rate = matrixValue(compared, i, j) > 0 ? matrixValue(wins, i, j) / matrixValue(compared, i, j) : 0.5;
+        heatmapData.push({ row: names[i] ?? "", col: names[j], rate });
       }
     }
 
@@ -1942,7 +1950,7 @@ async function computeDominanceAndRender() {
     if (!dominanceRankContainer.value) return;
     dominanceRankContainer.value.innerHTML = "";
 
-    const rankSpec = {
+    const rankSpec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: { step: 18 },
@@ -1992,7 +2000,7 @@ async function computeDominanceAndRender() {
     dominanceHeatmapContainer.value.innerHTML = "";
 
     const step = Math.max(10, Math.floor(500 / topN));
-    const heatSpec = {
+    const heatSpec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: { step },
       height: { step },
@@ -2042,21 +2050,21 @@ async function computeDominanceAndRender() {
     const { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide } = await import("d3-force");
     if (!dominanceForceContainer.value) return;
 
-    const forceNodes = sortedIdx.map((i, pos) => ({
+    const forceNodes: ForceNode[] = sortedIdx.map((i, pos) => ({
       id: String(pos),
       rank: pos + 1,
-      name: names[i],
-      winRate: winRates[i],
+      name: names[i] ?? "",
+      winRate: winRates[i] ?? 0,
     }));
 
-    const forceLinks = [];
+    const forceLinks: ForceLink[] = [];
     for (let ii = 0; ii < N; ii++) {
       for (let jj = ii + 1; jj < N; jj++) {
-        const i = sortedIdx[ii];
-        const j = sortedIdx[jj];
-        if (compared[i][j] === 0) continue;
+        const i = sortedIdx[ii]!;
+        const j = sortedIdx[jj]!;
+        if (matrixValue(compared, i, j) === 0) continue;
 
-        const rateIJ = wins[i][j] / compared[i][j];
+        const rateIJ = matrixValue(wins, i, j) / matrixValue(compared, i, j);
         const dominance = Math.abs(rateIJ - 0.5) * 2;
         if (dominance < 0.08) continue;
 
@@ -2083,13 +2091,13 @@ async function computeDominanceAndRender() {
       .force("center", forceCenter(width / 2, height / 2))
       .force(
         "collide",
-        forceCollide()
+        forceCollide<ForceNode>()
           .radius((d) => 7 + d.winRate * 7)
           .iterations(2),
       )
       .force(
         "link",
-        forceLink(forceLinks)
+        forceLink<ForceNode, ForceLink>(forceLinks)
           .id((d) => d.id)
           .distance((d) => 140 - d.dominance * 95)
           .strength((d) => 0.08 + d.dominance * 0.35),
@@ -2141,7 +2149,7 @@ async function computeDominanceAndRender() {
       linksGroup.appendChild(line);
     });
 
-    const colorForWinRate = (r) => {
+    const colorForWinRate = (r: number) => {
       if (r < 0.38) return "#ef4444";
       if (r < 0.5) return "#f59e0b";
       if (r < 0.62) return "#60a5fa";
@@ -2165,8 +2173,8 @@ async function computeDominanceAndRender() {
 
       if (idx < forceNodes.length) {
         const label = document.createElementNS(ns, "text");
-        label.setAttribute("x", String(node.x + 7));
-        label.setAttribute("y", String(node.y - 7));
+        label.setAttribute("x", String((node.x ?? 0) + 7));
+        label.setAttribute("y", String((node.y ?? 0) - 7));
         label.setAttribute("font-size", "10");
         label.setAttribute("fill", "#374151");
         label.textContent = node.name;
@@ -2181,52 +2189,9 @@ async function computeDominanceAndRender() {
     vegaViewDominanceForce = null;
   } catch (e) {
     console.error("Dominance analysis error", e);
-    dominanceError.value = `Fehler beim Rendern: ${e?.message || e}`;
+    dominanceError.value = `Fehler beim Rendern: ${e instanceof Error ? e.message : "Unknown error"}`;
   }
 }
-function kMeans(points, k, iters = 100) {
-  // k-means++ init
-  const centroids = [points[Math.floor(Math.random() * points.length)]];
-  while (centroids.length < k) {
-    const dists = points.map((p) => Math.min(...centroids.map((c) => (p.x - c.x) ** 2 + (p.y - c.y) ** 2)));
-    const sum = dists.reduce((a, b) => a + b, 0);
-    if (sum === 0) {
-      centroids.push(points[Math.floor(Math.random() * points.length)]);
-      continue;
-    }
-    let r = Math.random() * sum;
-    let idx = 0;
-    while (r > 0 && idx < dists.length - 1) {
-      r -= dists[idx];
-      idx++;
-    }
-    centroids.push(points[idx]);
-  }
-  let labels = points.map(() => 0);
-  for (let iter = 0; iter < iters; iter++) {
-    labels = points.map(
-      (p) =>
-        centroids.reduce(
-          (best, c, ci) => {
-            const d = (p.x - c.x) ** 2 + (p.y - c.y) ** 2;
-            return d < best.d ? { ci, d } : best;
-          },
-          { ci: 0, d: Infinity },
-        ).ci,
-    );
-    for (let ci = 0; ci < k; ci++) {
-      const pts = points.filter((_, i) => labels[i] === ci);
-      if (pts.length) {
-        centroids[ci] = {
-          x: pts.reduce((s, p) => s + p.x, 0) / pts.length,
-          y: pts.reduce((s, p) => s + p.y, 0) / pts.length,
-        };
-      }
-    }
-  }
-  return labels;
-}
-
 async function computeClusteringAndRender() {
   clusteringError.value = "";
   if (!clusterContainer.value) return;
@@ -2241,24 +2206,25 @@ async function computeClusteringAndRender() {
   }
 
   // Build feature matrix: individual measure ratings + log(population)
+  if (!statsData.value) return;
   const { measures: allMeasures, ratings: allRatings } = statsData.value;
 
   // Ordered list of measure IDs used as feature columns
   const measureIds = allMeasures.map((m) => m.id);
 
   // Build lookup: localteam_id -> { measureId -> numeric score (0..1, -1 = N/A, null = missing) }
-  const ltRatingMap = {};
+  const ltRatingMap: Record<string, Record<string, number | null>> = {};
   allRatings.forEach((r) => {
     if (!ltRatingMap[r.localteam_id]) ltRatingMap[r.localteam_id] = {};
-    ltRatingMap[r.localteam_id][r.measure_id] =
-      r.applicable === false ? -1 : r.rating != null ? parseFloat(r.rating) : null;
+    ltRatingMap[r.localteam_id]![r.measure_id] =
+      r.applicable === false ? -1 : r.rating != null ? parseNumber(r.rating) : null;
   });
 
   const munItems = data
     .filter((ms) => ms.municipality?.localteam_id)
     .map((ms) => {
-      const lt = ms.municipality.localteam_id;
-      const munRatings = ltRatingMap[lt] ?? {};
+      const lt = ms.municipality.localteam_id?.id;
+      const munRatings = ltRatingMap[lt ?? ""] ?? {};
       // Measure scores: use actual rating (0..1), 0 for N/A or missing
       const measureVec = measureIds.map((mid) => {
         const v = munRatings[mid];
@@ -2268,7 +2234,7 @@ async function computeClusteringAndRender() {
       return {
         name: ms.municipality.name,
         slug: ms.municipality.slug,
-        scoreTotal: parseFloat(ms.score_total) || 0,
+        scoreTotal: parseNumber(ms.score_total) || 0,
         vec: measureVec,
       };
     });
@@ -2284,7 +2250,8 @@ async function computeClusteringAndRender() {
     const pca = new PCA(matrix, { center: true, scale: false });
     const projected = pca.predict(matrix, { nComponents: 2 }).to2DArray();
 
-    const points = projected.map((row) => ({ x: row[0], y: row[1] }));
+    const points = projected.map(row => ({x: row[0] ?? NaN, y: row[1] ?? NaN}));
+    if (points.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) throw new Error("Invalid PCA projection");
     const clusterLabels = kMeans(points, kClusters.value);
 
     const palette = [
@@ -2302,16 +2269,16 @@ async function computeClusteringAndRender() {
     const rows = munItems.map((m, i) => ({
       name: m.name,
       slug: m.slug,
-      x: points[i].x,
-      y: points[i].y,
+      x: points[i]!.x,
+      y: points[i]!.y,
       scoreTotal: m.scoreTotal.toFixed(1),
-      cluster: `Cluster ${clusterLabels[i] + 1}`,
+      cluster: `Cluster ${clusterLabels[i]! + 1}`,
     }));
 
     const clusterDomain = Array.from({ length: kClusters.value }, (_, i) => `Cluster ${i + 1}`);
-    const clusterRange = clusterDomain.map((_, i) => palette[i % palette.length]);
+    const clusterRange = clusterDomain.map((_, i) => palette[i % palette.length]!);
 
-    const spec = {
+    const spec: VisualizationSpec = {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
       width: "container",
       height: 460,
@@ -2350,13 +2317,13 @@ async function computeClusteringAndRender() {
     // Store rows for profile lookup — keep slug for sector-score lookup
     clusterData.value = rows.map((r, i) => ({
       ...r,
-      slug: munItems[i].slug,
+      slug: munItems[i]!.slug,
     }));
 
     // Click on a point: show cluster profile
     result.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
-      const clickedCluster = item.datum.cluster;
+      const clickedCluster = statisticsDatum(item)?.cluster;
       if (!clickedCluster) return;
       const members = clusterData.value.filter((r) => r.cluster === clickedCluster);
       if (!members.length) return;
@@ -2364,13 +2331,13 @@ async function computeClusteringAndRender() {
       // Look up sector scores from the original filtered data (0-100 scale)
       const slugSet = new Set(members.map((m) => m.slug));
       const memberScores = filteredMunScores.value.filter((ms) => slugSet.has(ms.municipality?.slug));
-      const sectorMeans = {};
+      const sectorMeans: Partial<Record<Sector, number>> = {};
       sectorOrder.forEach((sk) => {
-        const vals = memberScores.map((ms) => parseFloat(ms[`score_${sk}`])).filter((v) => !isNaN(v));
+        const vals = memberScores.map((ms) => parseNumber(ms[`score_${sk}`])).filter((v) => !isNaN(v));
         sectorMeans[sk] = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
       });
 
-      const totals = members.map((m) => parseFloat(m.scoreTotal)).filter((v) => !isNaN(v));
+      const totals = members.map((m) => parseNumber(m.scoreTotal)).filter((v) => !isNaN(v));
       const avgTotal = totals.length ? (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(1) : "–";
       clusterProfile.value = {
         clusterLabel: clickedCluster,
@@ -2382,7 +2349,7 @@ async function computeClusteringAndRender() {
     });
   } catch (e) {
     console.error("Cluster error", e);
-    clusteringError.value = `Fehler: ${e.message}`;
+    clusteringError.value = `Fehler: ${e instanceof Error ? e.message : "Unknown error"}`;
   }
 }
 
@@ -2391,11 +2358,11 @@ const isSmall = ref(false);
 function updateIsSmall() {
   isSmall.value = window.innerWidth < 640;
 }
-const expandedSectorKey = ref(null);
+const expandedSectorKey = ref<Sector | null>(null);
 const showListView = ref(false);
 
 const allSectorsOrdered = computed(() =>
-  sectorOrder.map((k) => sectorStats.value.find((s) => s.sectorKey === k)).filter(Boolean),
+  sectorOrder.flatMap(k => {const sector = sectorStats.value.find(s => s.sectorKey === k); return sector ? [sector] : [];}),
 );
 
 const sunburstSelectionLink = computed(() => {
@@ -2415,7 +2382,7 @@ const sunburstSelectionLink = computed(() => {
 
 const sectorMeanScores = computed(() => {
   const mmr = meanMeasureRatings.value;
-  const result = new Map();
+  const result = new Map<string, number | null>();
   for (const sector of sectorStats.value) {
     const vals = Object.keys(sector.measures)
       .map((id) => mmr.get(id))
@@ -2460,7 +2427,7 @@ watch(mobileMeasuresTab, (tab) => {
   if (tab === "selection") nextTick(() => renderSunburst());
 });
 
-function onChooserSectorClick(sector) {
+function onChooserSectorClick(sector: SectorStats) {
   const key = sector.sectorKey;
   // Toggle expand; always update selection
   expandedSectorKey.value = expandedSectorKey.value === key ? null : key;
@@ -2475,7 +2442,7 @@ function onChooserSectorClick(sector) {
   });
 }
 
-function onChooserMeasureClick(measure, sectorKey) {
+function onChooserMeasureClick(measure: Pick<Measure, "id" | "name">, sectorKey: Sector) {
   sunburstSelection.value = { type: "measure", sectorKey, measureId: measure.id, label: measure.name };
   clearPanelMunFilter();
   if (isSmall.value) {
@@ -2514,7 +2481,7 @@ onBeforeUnmount(() => {
 });
 
 // ── Catalog version change ───────────────────────────────────────────────────
-async function onCatalogVersionChange(newId) {
+async function onCatalogVersionChange(newId: string) {
   const newVersion = catalogVersions.value.find((v) => v.id === newId);
   if (!newVersion) return;
   selectedCatalogVersionId.value = newId;

@@ -1,7 +1,7 @@
 <template>
-  <section v-if="tourVisits.length || article.profile_stage === 'preview'" class="container mx-auto px-4 pt-6">
+  <section v-if="tourVisits.length || article?.profile_stage === 'preview'" class="container mx-auto px-4 pt-6">
     <div class="project-tour-banner p-5">
-      <p v-if="article.profile_stage === 'preview'" class="project-tour-banner__notice text-sm">{{ $t('tour.preview_hint') }}</p>
+      <p v-if="article?.profile_stage === 'preview'" class="project-tour-banner__notice text-sm">{{ $t('tour.preview_hint') }}</p>
       <div v-for="visit in tourVisits" :key="visit.stop.id" class="project-tour-banner__visit" :class="{ 'project-tour-banner__visit--with-image': visit.tour.cover_image }">
         <div class="project-tour-banner__copy">
           <p class="font-heading text-xl font-bold">{{ visit.tour.title }} · {{ visit.stop.location || visit.stop.title }}</p>
@@ -21,22 +21,22 @@
     </div>
   </section>
   <ArticlePage
-    v-if="article.title"
+    v-if="article"
     :title="article.title"
-    :subtitle="article.subtitle"
-    :municipality_name="article.municipality_name"
-    :municipality_slug="municipalitySlug"
-    :state="article.state"
-    :author="article.author"
-    :date="article.date_created ? new Date(article.date_created) : null"
+    :subtitle="article.subtitle ?? undefined"
+    :municipality_name="article.municipality_name ?? undefined"
+    :municipality_slug="municipalitySlug ?? undefined"
+    :state="article.state ?? undefined"
+    :author="article.author ?? undefined"
+    :date="article.date_created"
     :image_id="article.image?.id"
     :image_is_raster="article.image ? isRaster(article.image.type) : false"
-    :image_credits="article.image_credits"
-    :abstract="article.abstract"
-    :article_text="article.article_text"
+    :image_credits="article.image_credits ?? undefined"
+    :abstract="article.abstract ?? undefined"
+    :article_text="article.article_text ?? undefined"
     :link="articleLink"
-    :article_instagram="article.instagram"
-    :article_linkedin="article.linkedin"
+    :article_instagram="article.instagram ?? undefined"
+    :article_linkedin="article.linkedin ?? undefined"
     :organisation="article.organisation"
     :measures="articleMeasures"
   />
@@ -47,7 +47,8 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { routeSlug } from "~/shared/routeValues";
   import ArticlePage from '~/components/ArticlePage.vue';
   import { isRaster } from '~/shared/utils';
   import { relationId, visitDaysAway, visitHasEnded } from '~/shared/tour';
@@ -56,27 +57,29 @@
   const { $t } = useNuxtApp();
 
   const route = useRoute();
-  const slug = String(route.params.slug);
+const slug = routeSlug(route.params.slug);
+if (!slug) throw createError({statusCode: 404, statusMessage: "Not found"});
+  
 
   // Use server routes — $directus is only available during SSR, not on client
   const { data: articleResult } = await useAsyncData(`article-detail-${slug}`, async () =>
     $fetch(`/api/public/articles/${slug}`)
   );
-  const article = computed(() => articleResult.value?.article || {});
+  const article = computed(() => articleResult.value?.article ?? null);
 
-  if (!article.value.id) {
+  if (!article.value) {
     throw createError({ statusCode: 404, statusMessage: $t('page_not_found'), fatal: true })
   }
 
   // Tour visits for this article
-  const { data: tourVisitsResult } = await useAsyncData(`article-tour-visits-${article.value.id}`, async () =>
-    $fetch('/api/public/article-tour-visits', { query: { articleId: article.value.id } })
+  const { data: tourVisitsResult } = await useAsyncData(`article-tour-visits-${article.value!.id}`, async () =>
+    $fetch('/api/public/article-tour-visits', { query: { articleId: article.value!.id } })
   );
   const tourVisits = computed(() => tourVisitsResult.value?.visits ?? []);
 
   const tourNow = useState(`project-tour-now-${slug}`, () => new Date().toISOString());
   onMounted(() => { tourNow.value = new Date().toISOString(); });
-  function visitMessage(visit) {
+  function visitMessage(visit: NonNullable<typeof tourVisits.value>[number]) {
     if (visit.report) return $t('tour.visit_report');
     if (visitHasEnded(visit.stop.start_date, visit.stop.end_date, new Date(tourNow.value))) return $t('tour.visit_past');
     const days = visitDaysAway(visit.stop.start_date, new Date(tourNow.value));
@@ -88,10 +91,10 @@
 
   // Municipality slug for the article
   const { data: municipalityResult } = await useAsyncData(
-    `municipality-by-name-${article.value.municipality_name}`,
+    `municipality-by-name-${article.value!.municipality_name}`,
     async () => {
-      if (!article.value.municipality_name) return { municipality: null };
-      return $fetch('/api/public/municipality-by-name', { query: { name: article.value.municipality_name } });
+      if (!article.value!.municipality_name) return { municipality: null };
+      return $fetch('/api/public/municipality-by-name', { query: { name: article.value!.municipality_name } });
     },
     { watch: [article] }
   );
@@ -111,23 +114,22 @@
   });
 
   const articleMeasures = computed(() => {
-    return (article.value.measures || [])
-      .map(m => m.measures_id)
-      .filter(Boolean);
+    return (article.value!.measures || [])
+      .flatMap(m => m.measures_id ? [m.measures_id] : []);
   });
 
   const articleLink = computed(() => {
-    if (!article.value.link) return null;
+    if (!article.value!.link) return null;
     try {
-      return new URL(article.value.link);
+      return new URL(article.value!.link);
     } catch {
-      console.error("Invalid URL: " + article.value.link)
+      console.error("Invalid URL: " + article.value!.link)
       return null;
     }
   })
 
   //MetaTags
-  const title = computed(() => article.value.title || '');
+  const title = computed(() => article.value!.title || '');
   useHead({
     title,
   });

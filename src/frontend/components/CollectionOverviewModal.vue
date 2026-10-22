@@ -56,14 +56,14 @@
                 <div class="bg-gray-100 relative h-24 overflow-hidden">
                   <img
                     v-if="coverImageUrl(col)"
-                    :src="coverImageUrl(col)"
+                    :src="coverImageUrl(col) ?? undefined"
                     :alt="t(col.title)"
                     class="h-full w-full object-cover"
                   />
                   <span
                     v-if="coverImageUrl(col) && coverImageAttribution(col)"
                     class="pointer-events-none absolute bottom-1.5 right-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
-                    :title="coverImageAttribution(col)"
+                    :title="coverImageAttribution(col) ?? undefined"
                   >
                     {{ coverImageAttribution(col) }}
                   </span>
@@ -154,7 +154,7 @@ const availableSectors = computed(() => {
       seen.set(key, {
         key,
         label: sectorLabel(col),
-        color: SECTOR_COLORS[key] ?? SECTOR_COLORS.other,
+        color: SECTOR_COLORS[key] ?? SECTOR_COLORS.other!,
         count: 0,
       });
     }

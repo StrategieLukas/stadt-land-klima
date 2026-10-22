@@ -98,9 +98,9 @@ const parsedItems = computed<NavItem[]>(() => {
   const raw = options.value.items?.trim()
   if (!raw) return []
   try {
-    const parsed = JSON.parse(raw)
+    const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed.filter((item) => item && typeof item.label === 'string' && typeof item.href === 'string')
+    return parsed.filter((item: unknown): item is NavItem => !!item && typeof item === 'object' && 'label' in item && typeof item.label === 'string' && 'href' in item && typeof item.href === 'string')
   } catch {
     return []
   }
@@ -113,7 +113,7 @@ const colorTokens: Record<string, { active: string; hover: string; border: strin
   orange: { active: 'bg-orange text-white', hover: 'hover:bg-orange hover:text-white', border: 'border-orange', text: 'text-orange' },
 }
 
-const colorToken = computed(() => colorTokens[options.value.color] || colorTokens.green)
+const colorToken = computed(() => colorTokens[options.value.color] || colorTokens.green!)
 
 const linkClass = computed(() => {
   const { hover, border, text } = colorToken.value

@@ -48,6 +48,8 @@
 </template>
 
 <script setup lang="ts">
+import { asRecord } from '~/shared/visualization';
+import { parseGeoData } from '~/shared/contracts/geometry';
 import { Icon } from "@iconify/vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import slkLogoUrl from "~/assets/images/Stadt-Land-Klima-Logo.svg";
@@ -82,9 +84,9 @@ const error = ref(false);
 const mapReady = ref(false);
 const { isDark } = useTheme();
 
-let map: any = null;
-let popup: any = null;
-let maplibregl: any = null;
+let map: import('maplibre-gl').Map | null = null;
+let popup: import('maplibre-gl').Popup | null = null;
+let maplibregl: typeof import('maplibre-gl') | null = null;
 let densityAbortController: AbortController | null = null;
 let featureBoundsAbortController: AbortController | null = null;
 let densityTimer: ReturnType<typeof setTimeout> | null = null;
@@ -103,14 +105,14 @@ const spec = computed<MapLibreRenderSpec | null>(() => {
 watch(
   [spec, isDark],
   () => {
-    if (process.client) renderMap();
+    if (import.meta.client) void renderMap();
   },
   { deep: true },
 );
 
 onMounted(() => {
   observeTheme();
-  renderMap();
+  void renderMap();
 });
 
 onBeforeUnmount(() => {
@@ -127,16 +129,17 @@ async function renderMap() {
 
   try {
     const module = await import("maplibre-gl");
-    maplibregl = module.default ?? module;
+    maplibregl = module;
     didFitInitialBounds = false;
 
     map = new maplibregl.Map({
       container: containerRef.value,
-      style: buildStyle(spec.value),
+      // MapLibre validates the complete style; component transformations retain opaque expression fields.
+      style: buildStyle(spec.value) as import('maplibre-gl').StyleSpecification,
       transformRequest: (url: string) => ({ url: cartoBasemapProxyUrl(url) }),
-      attributionControl: true,
+      attributionControl: {},
       cooperativeGestures: false,
-      preserveDrawingBuffer: true,
+      canvasContextAttributes: { preserveDrawingBuffer: true },
       center: [10.4, 51.2],
       zoom: 4.8,
     });
@@ -145,20 +148,22 @@ async function renderMap() {
     popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, maxWidth: "320px" });
     observeContainerSize();
 
-    requestAnimationFrame(() => resizeMapAndRefreshHeatmaps());
+    requestAnimationFrame(() => { resizeMapAndRefreshHeatmaps(); });
 
-    map.once("load", async () => {
+    map.once("load", () => {
+      void (async () => {
       resizeMapAndRefreshHeatmaps();
       attachTooltipHandlers();
       await fitToFeatureData();
       await loadDensitySource();
-      map.on("moveend", scheduleDensityLoad);
+      map?.on("moveend", scheduleDensityLoad);
       resizeMapAndRefreshHeatmaps();
       mapReady.value = true;
       loading.value = false;
+      })();
     });
 
-    map.on("error", (event: any) => {
+    map.on("error", (event) => {
       console.warn("[MapLibreRenderElement] map error:", event?.error ?? event);
     });
   } catch (err) {
@@ -180,7 +185,7 @@ function destroyMap() {
   densityAbortController = null;
   featureBoundsAbortController?.abort();
   featureBoundsAbortController = null;
-  cleanupLayerListeners.forEach((cleanup) => cleanup());
+  cleanupLayerListeners.forEach((cleanup) => { cleanup(); });
   cleanupLayerListeners = [];
   popup?.remove?.();
   popup = null;
@@ -193,7 +198,7 @@ function observeTheme() {
 
   themeObserver?.disconnect();
   themeObserver = new MutationObserver(() => {
-    renderMap();
+    void renderMap();
   });
   themeObserver.observe(document.documentElement, {
     attributes: true,
@@ -204,7 +209,7 @@ function observeTheme() {
 async function downloadPng() {
   if (!map) return;
   try {
-    if (typeof document !== "undefined" && document.fonts?.ready) {
+    if (typeof document !== "undefined" && document.fonts) {
       await document.fonts.ready;
     }
     resizeMapAndRefreshHeatmaps();
@@ -243,9 +248,9 @@ async function copyApiCall() {
 function buildStyle(mapSpec: MapLibreRenderSpec) {
   const baseStyle =
     mapSpec.style && typeof mapSpec.style === "object"
-      ? (themeStyleUrls(structuredCloneSafe(mapSpec.style)) as Record<string, any>)
+      ? (themeStyleUrls(structuredCloneSafe(mapSpec.style)) as Record<string, unknown>)
       : null;
-  const baseLayers = Array.isArray(baseStyle?.layers) ? baseStyle.layers : [];
+  const baseLayers = Array.isArray(baseStyle?.layers) ? baseStyle.layers.flatMap((item: unknown) => {const record = asRecord(item); return record ? [record] : []}) : [];
   const externalBasemapSourceIds = basemapSourceIds(mapSpec.sources ?? {});
   return {
     version: 8,
@@ -306,13 +311,13 @@ function themeStyleUrls(value: unknown): unknown {
 
 function buildSources(mapSpec: MapLibreRenderSpec, externalBasemapSourceIds: Set<string>) {
   const sourceEntries = Object.entries(mapSpec.sources ?? {});
-  const sources: Record<string, any> = {};
+  const sources: Record<string, unknown> = {};
 
   for (const [sourceId, source] of sourceEntries) {
     if (!source || typeof source !== "object") continue;
     if (externalBasemapSourceIds.has(sourceId)) continue;
 
-    const cleanSource = themeStyleUrls(omitSourcePrivateFields(source)) as Record<string, any>;
+    const cleanSource = themeStyleUrls(omitSourcePrivateFields(source)) as Record<string, unknown>;
 
     if (sourceId === "features") {
       sources[sourceId] = {
@@ -357,7 +362,7 @@ function buildLayers(mapSpec: MapLibreRenderSpec, externalBasemapSourceIds: Set<
     .filter(Boolean);
 }
 
-function basemapSourceIds(sources: Record<string, any>) {
+function basemapSourceIds(sources: Record<string, unknown>) {
   const ids = new Set<string>();
 
   for (const [sourceId, source] of Object.entries(sources)) {
@@ -369,7 +374,7 @@ function basemapSourceIds(sources: Record<string, any>) {
   return ids;
 }
 
-function isExternalBasemapLayer(layer: Record<string, any> | null, externalBasemapSourceIds: Set<string>) {
+function isExternalBasemapLayer(layer: Record<string, unknown> | null, externalBasemapSourceIds: Set<string>) {
   if (!layer || !layer.source || typeof layer.source !== "string") return false;
   if (layer.id === CARTO_BASEMAP_LAYER_ID || layer.source === CARTO_BASEMAP_SOURCE_ID) return true;
   return externalBasemapSourceIds.has(layer.source);
@@ -389,7 +394,7 @@ function isExternalBasemapSource(sourceId: string, source: unknown) {
   );
 }
 
-function ensureThemedBackgroundLayer(layers: Array<Record<string, any>>) {
+function ensureThemedBackgroundLayer(layers: Array<Record<string, unknown>>) {
   const backgroundLayer = layers.find((layer) => layer?.type === "background");
   const fallback = {
     id: "slk-background",
@@ -399,23 +404,23 @@ function ensureThemedBackgroundLayer(layers: Array<Record<string, any>>) {
   return themeLayer(backgroundLayer ?? fallback);
 }
 
-function themeLayer(layer: Record<string, any> | null) {
+function themeLayer(layer: Record<string, unknown> | null) {
   if (!layer) return layer;
   const cloned = structuredCloneSafe(layer);
   cloned.paint = themePaint(
-    cloned.type === "background" ? themeBackgroundPaint(cloned.paint ?? {}) : (cloned.paint ?? {}),
+    cloned.type === "background" ? themeBackgroundPaint(asRecord(cloned.paint) ?? {}) : (asRecord(cloned.paint) ?? {}),
   );
   return cloned;
 }
 
-function themeBackgroundPaint(paint: Record<string, any>) {
+function themeBackgroundPaint(paint: Record<string, unknown>) {
   return {
     ...paint,
     "background-color": paint["background-color"] ?? (isDarkThemeActive() ? DARK_MAP_BACKGROUND : LIGHT_MAP_BACKGROUND),
   };
 }
 
-function themePaint(paint: Record<string, any>) {
+function themePaint(paint: Record<string, unknown>) {
   if (!isDarkThemeActive()) return paint;
 
   const next = { ...paint };
@@ -472,10 +477,10 @@ function isDarkThemeActive() {
   return isDark.value;
 }
 
-function normalizeLayer(layer: Record<string, any> | null) {
+function normalizeLayer(layer: Record<string, unknown> | null) {
   if (!layer || layer.type !== "heatmap") return layer;
 
-  const paint = { ...(layer.paint ?? {}) };
+  const paint = { ...(asRecord(layer.paint) ?? {}) };
 
   if (typeof paint["heatmap-radius"] === "number") {
     paint["heatmap-radius"] = Math.min(Math.max(paint["heatmap-radius"], 4), 40);
@@ -494,7 +499,7 @@ function normalizeLayer(layer: Record<string, any> | null) {
   };
 }
 
-function omitSourcePrivateFields(source: Record<string, any>) {
+function omitSourcePrivateFields(source: Record<string, unknown>) {
   const copy = { ...source };
   delete copy.id;
   delete copy.url_template;
@@ -513,7 +518,8 @@ function attachTooltipHandlers() {
   for (const layerId of layerIds) {
     if (!map.getLayer(layerId)) continue;
 
-    const mouseMove = (event: any) => {
+    const mouseMove = (event: import("maplibre-gl").MapLayerMouseEvent) => {
+      if (!map || !popup) return;
       const feature = event.features?.[0];
       if (!feature) return;
       map.getCanvas().style.cursor = "pointer";
@@ -523,13 +529,15 @@ function attachTooltipHandlers() {
         .addTo(map);
     };
     const mouseLeave = () => {
+      if (!map || !popup) return;
       map.getCanvas().style.cursor = "";
       popup.remove();
     };
-    const click = (event: any) => {
+    const click = (event: import("maplibre-gl").MapLayerMouseEvent) => {
+      if (!map || !maplibregl) return;
       const feature = event.features?.[0];
       if (!feature) return;
-      new maplibregl.Popup({ maxWidth: "320px" })
+      new maplibregl!.Popup({ maxWidth: "320px" })
         .setLngLat(event.lngLat)
         .setHTML(renderTooltipHtml(feature.properties ?? {}, fields))
         .addTo(map);
@@ -621,9 +629,9 @@ async function featureDataForBounds() {
 
   try {
     const response = await fetch(data, { signal: featureBoundsAbortController.signal });
-    return await response.json();
-  } catch (err: any) {
-    if (err?.name !== "AbortError") console.warn("[MapLibreRenderElement] feature bounds fetch error:", err);
+    return await response.json() as unknown;
+  } catch (err: unknown) {
+    if ((err instanceof Error ? err.name : undefined) !== "AbortError") console.warn("[MapLibreRenderElement] feature bounds fetch error:", err);
     return null;
   }
 }
@@ -631,7 +639,7 @@ async function featureDataForBounds() {
 function scheduleDensityLoad() {
   if (densityTimer) clearTimeout(densityTimer);
   densityTimer = setTimeout(() => {
-    loadDensitySource();
+    void loadDensitySource();
   }, 250);
 }
 
@@ -645,19 +653,21 @@ async function loadDensitySource() {
 
   try {
     const response = await fetch(resolveDensityUrl(template), { signal: densityAbortController.signal });
-    const data = await response.json();
-    map.getSource("density")?.setData(data ?? EMPTY_FEATURE_COLLECTION);
-  } catch (err: any) {
-    if (err?.name !== "AbortError") console.warn("[MapLibreRenderElement] density fetch error:", err);
+    const data = parseGeoData(await response.json());
+    const source = map?.getSource("density");
+    if (source instanceof maplibregl!.GeoJSONSource) void source.setData({type: 'FeatureCollection', features: !data ? [] : data.type === 'FeatureCollection' ? data.features.flatMap(f => f.geometry ? [{...f, geometry: f.geometry}] : []) : data.type === 'Feature' ? data.geometry ? [{...data, geometry: data.geometry}] : [] : [{type: 'Feature', properties: null, geometry: data}]});
+  } catch (err: unknown) {
+    if ((err instanceof Error ? err.name : undefined) !== "AbortError") console.warn("[MapLibreRenderElement] density fetch error:", err);
   }
 }
 
 function resolveDensityUrl(template: string) {
-  const bounds = map.getBounds();
+  const bounds = map?.getBounds();
+  if (!bounds) return template;
   const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
     .map((value) => value.toFixed(6))
     .join(",");
-  return template.replace("{bbox}", bbox).replace("{zoom}", String(Math.round(map.getZoom())));
+  return template.replace("{bbox}", bbox).replace("{zoom}", String(Math.round(map!.getZoom())));
 }
 
 function observeContainerSize() {
@@ -674,7 +684,7 @@ function observeContainerSize() {
 
 function scheduleMapResize() {
   if (resizeTimer) clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => resizeMapAndRefreshHeatmaps(), 80);
+  resizeTimer = setTimeout(() => { resizeMapAndRefreshHeatmaps(); }, 80);
 }
 
 function resizeMapAndRefreshHeatmaps() {
@@ -693,7 +703,7 @@ function waitForMapIdle() {
       if (settled) return;
       settled = true;
       window.clearTimeout(timeout);
-      nextAnimationFrames(2).then(resolve);
+      void nextAnimationFrames(2).then(resolve);
     };
     const timeout = window.setTimeout(finish, 5000);
 
@@ -702,8 +712,8 @@ function waitForMapIdle() {
     // the repaint triggered by resize is still pending, resulting in a blank
     // PNG. A repaint followed by idle guarantees a rendered frame is available
     // to copy from the canvas.
-    map.once("idle", finish);
-    map.triggerRepaint?.();
+    map?.once("idle", finish);
+    map?.triggerRepaint?.();
   });
 }
 
@@ -714,13 +724,14 @@ function nextAnimationFrames(count: number) {
         resolve();
         return;
       }
-      requestAnimationFrame(() => step(remaining - 1));
+      requestAnimationFrame(() => { step(remaining - 1); });
     };
     step(count);
   });
 }
 
 async function captureMapCanvas() {
+  if (!map) throw new Error("Map is unavailable");
   const sourceCanvas = map.getCanvas() as HTMLCanvasElement;
   const featureCanvas = await renderFeatureScatterCanvas(sourceCanvas.width, sourceCanvas.height);
   if (featureCanvas) return featureCanvas;
@@ -770,7 +781,7 @@ async function renderFeatureScatterCanvas(width: number, height: number) {
   const scale = Math.min(drawWidth / mapWidth, drawHeight / mapHeight);
   const offsetX = (width - mapWidth * scale) / 2 - westMercator * scale;
   const offsetY = (height - mapHeight * scale) / 2 - northMercator * scale;
-  const project = ([lng, lat]: [number, number]) => [
+  const project = ([lng, lat]: [number, number]): [number, number] => [
     offsetX + mercatorX(lng) * scale,
     offsetY + mercatorY(lat) * scale,
   ];
@@ -805,7 +816,7 @@ async function featureDataForExport() {
   try {
     const response = await fetch(resolvedFeatureApiUrl.value);
     if (!response.ok) return null;
-    return await response.json();
+    return await response.json() as unknown;
   } catch (err) {
     console.warn("[MapLibreRenderElement] feature export fetch error:", err);
     return null;
@@ -834,7 +845,7 @@ async function drawCartoBasemap(
       const url = `/api/carto-basemap?asset=/light_all/${zoom}/${x}/${y}.png`;
       tiles.push(
         loadImage(url)
-          .then((image) => ctx.drawImage(image, offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize))
+          .then((image) => { ctx.drawImage(image, offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize); })
           .catch(() => undefined),
       );
     }
@@ -959,7 +970,7 @@ function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.crossOrigin = "anonymous";
-    image.onload = () => resolve(image);
+    image.onload = () => { resolve(image); };
     image.onerror = reject;
     image.src = src;
   });
@@ -986,6 +997,7 @@ function wrapText(text: string, maxChars: number) {
 }
 
 function refreshHeatmapLayers() {
+  if (!map) return;
   for (const layer of spec.value?.layers ?? []) {
     if (layer.type !== "heatmap" || typeof layer.id !== "string" || !map.getLayer(layer.id)) continue;
     const opacity = map.getPaintProperty(layer.id, "heatmap-opacity");
@@ -993,7 +1005,7 @@ function refreshHeatmapLayers() {
   }
 }
 
-function geoJsonBounds(data: any): [[number, number], [number, number]] | null {
+function geoJsonBounds(data: unknown): [[number, number], [number, number]] | null {
   const coordinates: Array<[number, number]> = [];
   collectCoordinates(data, coordinates);
   if (!coordinates.length) return null;
@@ -1015,10 +1027,11 @@ function geoJsonBounds(data: any): [[number, number], [number, number]] | null {
   ];
 }
 
-function collectCoordinates(value: any, coordinates: Array<[number, number]>) {
+function collectCoordinates(input: unknown, coordinates: Array<[number, number]>) {
+  const value = asRecord(input);
   if (!value) return;
   if (value.type === "FeatureCollection") {
-    value.features?.forEach((feature: any) => collectCoordinates(feature, coordinates));
+    if (Array.isArray(value.features)) value.features.forEach((feature: unknown) => { collectCoordinates(feature, coordinates); });
     return;
   }
   if (value.type === "Feature") {
@@ -1030,17 +1043,17 @@ function collectCoordinates(value: any, coordinates: Array<[number, number]>) {
   }
 }
 
-function collectCoordinateArray(value: any, coordinates: Array<[number, number]>) {
+function collectCoordinateArray(value: unknown, coordinates: Array<[number, number]>) {
   if (!Array.isArray(value)) return;
   if (typeof value[0] === "number" && typeof value[1] === "number") {
     coordinates.push([value[0], value[1]]);
     return;
   }
-  value.forEach((child) => collectCoordinateArray(child, coordinates));
+  value.forEach((child) => { collectCoordinateArray(child, coordinates); });
 }
 
 function structuredCloneSafe<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function withAreaInSourceUrls(mapSpec: MapLibreRenderSpec, ars?: string | null): MapLibreRenderSpec {
@@ -1081,7 +1094,7 @@ function downloadBlob(content: Blob | string, type: string, filename: string) {
   const blob = content instanceof Blob ? content : new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   triggerDownload(url, filename);
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  window.setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
 }
 
 function triggerDownload(url: string, filename: string) {
@@ -1103,7 +1116,9 @@ function copyTextFallback(text: string) {
   textarea.style.opacity = "0";
   document.body.appendChild(textarea);
   textarea.select();
-  document.execCommand("copy");
+  // Legacy clipboard fallback is needed on insecure/local origins without navigator.clipboard.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    document.execCommand("copy");
   textarea.remove();
 }
 
