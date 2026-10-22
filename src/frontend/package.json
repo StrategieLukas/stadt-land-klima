@@ -15,16 +15,20 @@
     "lintExtensions:prettier": "prettier --check \"../directus/extensions/*/src/**/*.{js,ts,vue}\"",
     "lintExtensions": "npm run lintExtensions:js && npm run lintExtensions:prettier",
     "lintfixExtensions": "prettier --write \"../directus/extensions/*/src/**/*.{js,ts,vue}\" && npm run lintExtensions:js -- --fix",
-    "typecheck": "bash typecheck.sh && npm run lint:migrated",
+    "typecheck": "npm run translations:check && bash typecheck.sh && npm run lint:migrated && npm run typecheck:scripts",
     "typecheck:full": "nuxt prepare && vue-tsc -b --noEmit",
     "typecheck:baseline": "bash typecheck.sh --update-baseline",
-    "lint:migrated": "eslint shared/contracts/*.ts server/types/directus.ts server/utils/candidateAnswers.ts server/api/public/jobs.get.ts \"server/api/public/jobs/[slug].get.ts\" \"server/api/candidate/[token]/answers.post.ts\" components/JobOfferCard.vue components/JobOfferStatusPill.vue pages/jobs/index.vue \"pages/jobs/[slug].vue\"",
+    "lint:migrated": "eslint \"shared/**/*.ts\" \"composables/**/*.ts\" \"plugins/**/*.ts\" \"stores/**/*.ts\" middleware/referrer.global.ts types/editorCms.ts server/api/public/translations.get.ts server/types/directus.ts server/utils/candidateAnswers.ts server/api/public/jobs.get.ts \"server/api/public/jobs/[slug].get.ts\" \"server/api/candidate/[token]/answers.post.ts\" components/JobOfferCard.vue components/JobOfferStatusPill.vue pages/jobs/index.vue \"pages/jobs/[slug].vue\"",
     "prebuild": "npm run typecheck",
-    "pregenerate": "npm run typecheck"
+    "pregenerate": "npm run typecheck",
+    "translations:generate": "node scripts/generate-translations.mts",
+    "translations:check": "node scripts/generate-translations.mts --check",
+    "typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.json"
   },
   "devDependencies": {
     "@nuxt/devtools": "3.4.4",
     "@nuxt/eslint-config": "1.17.0",
+    "@types/lodash": "4.17.27",
     "@types/node": "24.19.2",
     "@types/sanitize-html": "2.16.2",
     "baseline-browser-mapping": "^2.11.29",
@@ -37,7 +41,8 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "typescript": "6.0.3",
     "vite": "8.3.5",
-    "vue-tsc": "3.3.13"
+    "vue-tsc": "3.3.13",
+    "yaml": "2.9.1"
   },
   "dependencies": {
     "@apollo/client": "^4.3.4",

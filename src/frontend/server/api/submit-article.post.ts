@@ -9,7 +9,7 @@ import {
   type ArticleSubmissionErrorData,
   type ArticleSubmissionTextField,
 } from "~/shared/articleSubmission";
-import { createSlug } from "~/shared/slugify.js";
+import { createSlug } from "~/shared/slugify";
 import { verifyAltcha } from "../utils/verifyAltcha";
 import { sendDirectusMailFlow } from "../utils/sendDirectusMailFlow";
 

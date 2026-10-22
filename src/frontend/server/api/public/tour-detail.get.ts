@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
   const series = await client.request(readItems('success_project_tours', {
     filter: { slug: { _eq: slug }, status: { _eq: 'published' } },
-    fields: TOUR_FIELDS,
+    fields: [...TOUR_FIELDS],
     limit: 1,
   }))
 

@@ -161,7 +161,7 @@
 import {
   getWahlcheckAnswerOptions,
   usesSimpleWahlcheckAnswerMode,
-} from '~/shared/wahlcheckAnswerOptions.js'
+} from '~/shared/wahlcheckAnswerOptions'
 import { formatBerlinDate, getBerlinEndOfDay } from '~/shared/eventDateTime'
 
 const route = useRoute()

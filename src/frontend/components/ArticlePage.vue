@@ -301,7 +301,7 @@
 
 <script setup>
 import { ref, watchEffect } from "vue";
-import { buildLocationString, toAssetUrl, isRaster } from "~/shared/utils";
+import { buildLocationString, isRaster } from "~/shared/utils";
 import { formatProjectDate } from "~/shared/projectDate";
 import MarkdownIt from "markdown-it";
 import { useReferrer } from "~/composables/useReferrer";

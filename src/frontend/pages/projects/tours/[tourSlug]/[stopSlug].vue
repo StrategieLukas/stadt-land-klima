@@ -45,8 +45,8 @@
         <label>{{ $t('tour.report_title') }}<input v-model="metadata.report_title" class="input input-bordered block w-full" /></label>
         <label>{{ $t('tour.report_teaser') }}<textarea v-model="metadata.teaser" class="textarea textarea-bordered block w-full" /></label>
         <label>{{ $t('tour.report_author') }}<input v-model="metadata.author" class="input input-bordered block w-full" /></label>
-        <label>{{ $t('tour.stop_status') }}<select v-model="metadata.status" class="select select-bordered block w-full"><option v-for="value in statuses" :key="value" :value="value">{{ $t(`status.${value}`) }}</option></select></label>
-        <label>{{ $t('tour.report_status') }}<select v-model="metadata.report_status" class="select select-bordered block w-full"><option v-for="value in statuses" :key="value" :value="value">{{ $t(`status.${value}`) }}</option></select></label>
+        <label>{{ $t('tour.stop_status') }}<select v-model="metadata.status" class="select select-bordered block w-full"><option v-for="value in statuses" :key="value" :value="value">{{ $translateDynamic(`status.${value}`) }}</option></select></label>
+        <label>{{ $t('tour.report_status') }}<select v-model="metadata.report_status" class="select select-bordered block w-full"><option v-for="value in statuses" :key="value" :value="value">{{ $translateDynamic(`status.${value}`) }}</option></select></label>
         <button type="submit" class="btn" :disabled="saving">{{ $t('tour.report_save') }}</button>
         <a :href="`${config.public.clientDirectusUrl}/admin/content/success_project_tour_stops/${stop.id}`" target="_blank" rel="noopener noreferrer" class="text-stats-dark underline">{{ $t('tour.media') }} ↗</a>
       </form>
@@ -68,11 +68,11 @@ import { orderedMedia } from '~/shared/tourMedia';
 import type { TourMedia } from '~/shared/tourMedia';
 import { STOP_FIELDS, publicStopFilter, tourHref } from '~/shared/successProjectTour';
 import type { SuccessProjectTourStop, SuccessProjectTour } from '~/shared/successProjectTour';
-const { $t, $locale } = useNuxtApp();
+const { $t, $translateDynamic, $locale } = useNuxtApp();
 const route = useRoute();
 const config = useRuntimeConfig();
 const { initialize, isAuthenticated, getAuthenticatedClient } = useAuth();
-const filter = { slug: { _eq: route.params.stopSlug }, tour: { slug: { _eq: route.params.tourSlug } } };
+const filter = { slug: { _eq: String(route.params.stopSlug) }, tour: { slug: { _eq: String(route.params.tourSlug) } } };
 const { data: rows } = await useAsyncData(`tour-stop-${route.params.tourSlug}-${route.params.stopSlug}`, async () => {
   const { series } = await $fetch<{ series: SuccessProjectTour | null }>('/api/public/tour-detail', { query: { slug: String(route.params.tourSlug) } });
   if (!series) return [];

@@ -477,13 +477,13 @@
 import { ref, computed, onMounted } from 'vue'
 import ProgressBar from '~/components/ProgressBar.vue'
 import CandidatePartyLabel from '~/components/CandidatePartyLabel.vue'
-import { getCandidateDisplayName } from '~/shared/candidateParties.js'
-import sectorImages from '~/shared/sectorImages.js'
+import { getCandidateDisplayName } from '~/shared/candidateParties'
+import sectorImages from '~/shared/sectorImages'
 import {
   calculateWahlcheckQuestionScore,
   getWahlcheckAnswerLabel,
   getWahlcheckRatingColor,
-} from '~/shared/wahlcheckAnswerOptions.js'
+} from '~/shared/wahlcheckAnswerOptions'
 
 const { $t } = useNuxtApp()
 

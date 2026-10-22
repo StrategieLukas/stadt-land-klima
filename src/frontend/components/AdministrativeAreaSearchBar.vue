@@ -112,8 +112,8 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
-import { useAreaSearch } from '~/composables/useAreaSearch.js'
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
+import { useAreaSearch } from '~/composables/useAreaSearch'
+import { getCatalogVersion } from '~/composables/getCatalogVersion'
 
 const { $t } = useNuxtApp()
 

@@ -345,10 +345,10 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useNuxtApp } from "#app";
 import { Icon } from "@iconify/vue";
-import { areaToSlug } from "~/composables/useAreaBySlug.js";
-import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
-import { fetchMunicipalitiesManifest } from "~/composables/useMunicipalitiesManifest.js";
+import { areaToSlug } from "~/composables/useAreaBySlug";
+import { useHeaderHeight } from "~/composables/useHeaderHeight";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
+import { fetchMunicipalitiesManifest } from "~/composables/useMunicipalitiesManifest";
 import germanyBorders from "~/assets/germany-state-borders.json";
 import statesLookupRaw from "~/assets/germany-states-lookup.json";
 

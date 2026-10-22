@@ -103,10 +103,10 @@
 <script setup>
   import sanitizeHtml from "sanitize-html";
   import { defineProps } from "vue";
-  import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils.js";
-  import { calculateAndAddSimilarityScores } from "~/shared/compareMunicipalities.js";
-  import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing.js";
-  import ratingIcons, { ratingIndex } from "~/shared/ratingIcons.js";
+  import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils";
+  import { calculateAndAddSimilarityScores } from "~/shared/compareMunicipalities";
+  import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
+  import ratingIcons, { ratingIndex } from "~/shared/ratingIcons";
   import { onMounted, onBeforeUnmount, ref } from "vue";
 
   const { $t, $locale } = useNuxtApp();

@@ -140,7 +140,7 @@ import { computed } from 'vue'
 import {
   getWahlcheckAnswerLabel,
   getWahlcheckRatingColor,
-} from '~/shared/wahlcheckAnswerOptions.js'
+} from '~/shared/wahlcheckAnswerOptions'
 
 const { $t } = useNuxtApp()
 

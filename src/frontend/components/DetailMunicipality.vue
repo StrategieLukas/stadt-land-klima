@@ -362,7 +362,7 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils.js";
+import { formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
 
 const municipalElectionYear = computed(() => {
   return getStateMunicipalElectionYear(municipality?.state);

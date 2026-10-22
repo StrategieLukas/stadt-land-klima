@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
+import * as searchContracts from '../../../src/frontend/shared/contracts/search.js';
 
 type Row = Record<string, any>;
 type Command = { collection: string; query: Row };
@@ -210,14 +211,15 @@ function areaSearchHarness(scores: Row[], upstreamFails = false) {
   const area = { name: 'Berlin', ars: '110000000001', level: 2, isReasonableForMunicipalRating: true, stadtlandklimaDataAll: [
     { measureCatalogName: 'v1.0', slug: 'berlin', scoreTotal: 75 }, { measureCatalogName: 'beta', slug: 'berlin', scoreTotal: 40 },
   ] };
-  const { useAreaSearch } = load('composables/useAreaSearch.js', {
+  const { useAreaSearch } = load('composables/useAreaSearch.ts', {
+    '~/shared/contracts/search': searchContracts,
     vue, lodash: { debounce: (callback: (...args: unknown[]) => Promise<void>) => Object.assign((...args: unknown[]) => { pending = callback(...args); }, { cancel() {} }) },
-    '~/shared/utils.js': { getScorePercentageColor: () => 'rating-3', getStateFromArs: () => 'Berlin' },
-    '~/shared/municipality-score-publishing.js': { isMunicipalityScoreComplete: (score: Row) => score.published === true && Number(score.percentage_rated) >= 100 },
+    '~/shared/utils': { getScorePercentageColor: () => 'rating-3', getStateFromArs: () => 'Berlin' },
+    '~/shared/municipality-score-publishing': { isMunicipalityScoreComplete: (score: Row) => score.published === true && Number(score.percentage_rated) >= 100 },
   }, {
     useNuxtApp: () => ({ $stadtlandzahlAPI: { searchAdministrativeAreas: async () => { if (upstreamFails) throw new Error('SLZ unavailable'); return [area]; } } }),
     getAllCatalogVersions: async () => catalogs,
-    $fetch: async (path: string, options: Row) => { requests.push({ path, ...plain(options) }); return { municipalities: [{ ars: area.ars, slug: 'berlin', localteam_id: 'team', scores }] }; },
+    $fetch: async (path: string, options: Row) => { requests.push({ path, ...plain(options) }); return { municipalities: [{ id: 'city', name: 'Berlin', ars: area.ars, slug: 'berlin', localteam_id: 'team', scores }] }; },
   });
   const catalogId = vue.ref('current-id');
   const catalogName = vue.ref('v1.0');
@@ -235,6 +237,7 @@ test('area search resolves catalog IDs to names and classifies current and older
   assert.equal(harness.search.results.value[0].ctaType, 'complete');
   assert.equal(harness.search.results.value[0].scoreDisplay, '75%');
   harness.catalogId.value = 'old-id'; harness.catalogName.value = 'beta';
+  assert.equal(harness.search.results.value[0].scoreDisplay, '40%', 'Catalog changes reclassify the cached public scores without a second search');
   await harness.run();
   assert.equal(harness.requests[1]?.query.v, 'beta');
   assert.equal(harness.search.results.value[0].scoreDisplay, '40%');

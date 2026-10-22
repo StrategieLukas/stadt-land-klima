@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js';
+import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing';
 import { onMounted, ref, computed } from 'vue'
 
 // ─── Rating → hex colour map (inline so they work in dynamic inline styles) ───

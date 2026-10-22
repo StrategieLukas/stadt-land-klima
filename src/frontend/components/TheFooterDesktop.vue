@@ -168,13 +168,13 @@ import DonateButton from "~/components/DonateButton.vue";
 import LoginButton from "~/components/LoginButton.vue";
 import AuthLoginModal from "~/components/AuthLoginModal.vue";
 import { useAuth } from "~/composables/useAuth";
-import translatedNavigationLabel from "~/shared/translatedNavigationLabel.js";
+import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 
-const { $t } = useNuxtApp();
+const { $translateDynamic, $t } = useNuxtApp();
 const { isAuthenticated, user, logout, initialize } = useAuth();
 const showLoginModal = ref(false);
-const navLabel = (item) => translatedNavigationLabel(item, $t);
-const navTitle = (item) => translatedNavigationLabel(item, $t, "title");
+const navLabel = (item) => translatedNavigationLabel(item, $translateDynamic);
+const navTitle = (item) => translatedNavigationLabel(item, $translateDynamic, "title");
 
 const props = defineProps({
   navItems: {

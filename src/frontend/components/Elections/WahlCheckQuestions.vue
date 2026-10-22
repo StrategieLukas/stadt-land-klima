@@ -167,7 +167,7 @@ import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import {
   getWahlcheckAnswerOptions,
   usesSimpleWahlcheckAnswerMode,
-} from '~/shared/wahlcheckAnswerOptions.js'
+} from '~/shared/wahlcheckAnswerOptions'
 
 const props = defineProps({
   questions: {

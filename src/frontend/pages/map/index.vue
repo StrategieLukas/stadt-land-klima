@@ -6,7 +6,7 @@
 
 <script setup>
 import TheMap from '~/components/TheMap.vue';
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
+import { getCatalogVersion } from '~/composables/getCatalogVersion';
 const { $t } = useNuxtApp();
 const route = useRoute();
 const selectedCatalogVersion = ref(await getCatalogVersion(route));

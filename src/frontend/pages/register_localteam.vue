@@ -249,7 +249,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { getCurrentBackendCatalogVersion } from '~/composables/getCatalogVersion.js'
+import { getCurrentBackendCatalogVersion } from '~/composables/getCatalogVersion'
 
 const route = useRoute()
 const { $stadtlandzahlAPI, $t } = useNuxtApp()

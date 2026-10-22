@@ -323,7 +323,7 @@ type ArticleSubmissionForm = {
   submitterEmail: string;
 };
 
-const { $t, $locale } = useNuxtApp();
+const { $translateDynamic, $t, $locale } = useNuxtApp();
 
 useHead({ title: $t("projects.submit.title") });
 
@@ -418,7 +418,7 @@ const sectorKeyMap: Record<string, string> = {
 
 const sectorOptions = computed(() =>
   sectorValues.map((value) => ({
-    label: $t(`projects.sector.${sectorKeyMap[value]}`),
+    label: $translateDynamic(`projects.sector.${sectorKeyMap[value]}`),
     value,
   })),
 );
@@ -504,8 +504,8 @@ function resetForm() {
 
 function translateSubmissionError(data: ArticleSubmissionErrorData) {
   const translationKey = errorTranslationKeys[data.errorCode];
-  const field = data.field ? $t(fieldTranslationKeys[data.field]) : "";
-  return $t(translationKey, {
+  const field = data.field ? $translateDynamic(fieldTranslationKeys[data.field]) : "";
+  return $translateDynamic(translationKey, {
     ":field": field,
     ":max": data.maxLength ?? data.maxSectors ?? data.maxSizeMb ?? "",
   });

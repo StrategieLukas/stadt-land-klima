@@ -99,9 +99,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
-import { resolveSlugToArea } from "~/composables/useAreaBySlug.js";
+import { useHeaderHeight } from "~/composables/useHeaderHeight";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
+import { resolveSlugToArea } from "~/composables/useAreaBySlug";
 import { useCollectionRender } from "~/composables/useCollectionRender";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible } from "~/utils/dataPageVisibility";

@@ -2,8 +2,21 @@ export type RelationId = string | { id: string } | null | undefined;
 
 export type TourPoint = { type: "Point"; coordinates: [number, number] };
 
-export const TOUR_PIN_COLORS = ["#16bae7", "#19a750", "#16bae7", "#f39200", "#afca0b", "#16bae7", "#afca0b", "#ffd400", "#16bae7", "#f39200"] as const;
-export const pinColor = (index: number): string => TOUR_PIN_COLORS[index % TOUR_PIN_COLORS.length];
+export const TOUR_PIN_COLORS = [
+  "#16bae7",
+  "#19a750",
+  "#16bae7",
+  "#f39200",
+  "#afca0b",
+  "#16bae7",
+  "#afca0b",
+  "#ffd400",
+  "#16bae7",
+  "#f39200",
+] as const;
+export const pinColor = (index: number): string =>
+  TOUR_PIN_COLORS[((index % TOUR_PIN_COLORS.length) + TOUR_PIN_COLORS.length) % TOUR_PIN_COLORS.length] ??
+  TOUR_PIN_COLORS[0];
 
 export function relationId(value: RelationId): string | null {
   if (typeof value === "string") return value;
@@ -12,7 +25,8 @@ export function relationId(value: RelationId): string | null {
 
 export function pointLatLng(point: TourPoint | null | undefined): [number, number] | null {
   if (point?.type !== "Point" || !Array.isArray(point.coordinates)) return null;
-  const [longitude, latitude] = point.coordinates.map(Number);
+  const longitude = point.coordinates[0];
+  const latitude = point.coordinates[1];
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
   if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
   return [latitude, longitude];
@@ -38,11 +52,7 @@ export function visitDaysAway(start: string | null | undefined, now: Date): numb
   return eventDay === null || currentDay === null ? null : eventDay - currentDay;
 }
 
-export function visitHasEnded(
-  start: string | null | undefined,
-  end: string | null | undefined,
-  now: Date,
-): boolean {
+export function visitHasEnded(start: string | null | undefined, end: string | null | undefined, now: Date): boolean {
   if (end) {
     const endTime = new Date(end).getTime();
     return Number.isFinite(endTime) && endTime < now.getTime();

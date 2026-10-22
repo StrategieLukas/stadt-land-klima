@@ -3,7 +3,7 @@ const CARTO_ATTRIBUTION =
 
 export function cartoBasemapProxyUrl(url: string) {
   const match = /^https:\/\/(?:[a-d]\.|tiles\.)?basemaps\.cartocdn\.com(\/[^?#]+)(?:\?[^#]*)?$/.exec(url);
-  return match ? `/api/carto-basemap?asset=${encodeURIComponent(match[1])}` : url;
+  return match?.[1] ? `/api/carto-basemap?asset=${encodeURIComponent(match[1])}` : url;
 }
 
 export function useCartoBasemap() {

@@ -93,7 +93,7 @@
 <script setup>
 import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from "vue";
-import { useHeaderHeight, useHeaderSpacerHeight } from "~/composables/useHeaderHeight.js";
+import { useHeaderHeight, useHeaderSpacerHeight } from "~/composables/useHeaderHeight";
 const { includes } = lodash;
 const { $locale } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;

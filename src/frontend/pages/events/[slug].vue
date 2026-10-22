@@ -29,7 +29,7 @@ import { relationId } from '~/shared/tour';
 import { formatBerlinDate, formatEventDateTimeRange } from '~/shared/eventDateTime';
 import type { MediaFile } from '~/shared/tourMedia';
 type Event = { id: string; slug: string; title: string; description?: string; event_category?: string; event_type?: string; start_date: string; end_date?: string; date_only?: boolean; location?: string; image?: MediaFile; image_credits?: string; registration_url?: string; cta_label?: string; series?: { slug: string; title: string; format: string } };
-const { $t, $locale } = useNuxtApp();
+const { $t, $translateDynamic, $locale } = useNuxtApp();
 const route = useRoute();
 const { backHref, backLabel } = useReferrer('/events', $t('events.title'));
 const legacyRedirected = await useLegacyTourRedirect('stop', String(route.params.slug));
@@ -40,7 +40,7 @@ const ordinaryReport = computed(() => eventData.value?.ordinaryReport);
 const eventProjects = computed(() => eventData.value?.eventProjects ?? []);
 const cover = computed(() => event.value?.image);
 const coverCredit = computed(() => event.value?.image_credits);
-function eventTypeLabel(type?: string) { return type ? $t(`events.type.${type}`) : ''; }
+function eventTypeLabel(type?: string) { return type ? $translateDynamic(`events.type.${type}`) : ''; }
 useHead(() => ({ title: event.value?.title }));
 </script>
 <style scoped>

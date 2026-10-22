@@ -14,7 +14,6 @@
   // Smarter version of an image, which checks if it is scalable and asks for fitting dimensions if possible to avoid sending very large files
 
   import { inject, ref, watchEffect } from 'vue'
-  import { toAssetUrl } from '~/shared/utils';
   import { TOUR_REPORT_MEDIA } from '~/shared/successProjectTour';
 
   const props = defineProps({

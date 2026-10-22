@@ -118,7 +118,7 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import { areaToSlug } from "~/composables/useAreaBySlug.js";
+import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
   areaBoundary: { type: Object, default: null },

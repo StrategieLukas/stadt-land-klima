@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { areaToSlug } from '~/composables/useAreaBySlug.js'
+import { areaToSlug } from '~/composables/useAreaBySlug'
 
 const route = useRoute()
 const ars = String(route.params.ars ?? '')

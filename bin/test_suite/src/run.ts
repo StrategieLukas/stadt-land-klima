@@ -15,6 +15,7 @@ import { runMailWebhookSecurityFlow } from './flows/mailWebhookSecurityFlow.js';
 import { runContactSpamSecurityFlow } from './flows/contactSpamSecurityFlow.js';
 import { runMunicipalityDisclosureFlow } from './flows/municipalityDisclosureFlow.js';
 import { runPublicNavigationFlow } from './flows/publicNavigationFlow.js';
+import { runSharedStateFlow } from './flows/sharedStateFlow.js';
 import { runJobsFlow } from './flows/jobsFlow.js';
 
 async function main(): Promise<void> {
@@ -53,6 +54,7 @@ async function main(): Promise<void> {
       try { await runDataAvailabilityFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Data availability flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
       try { await runErfolgsprojekteArticlesFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Erfolgsprojekte articles flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
     }
+    try { await runSharedStateFlow(runner, config.frontendUrl, browser); } catch (e) { runner.results.push({ name: 'Shared state flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
     try { await runJobsFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Jobs flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
     try { await runPublicNavigationFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Public navigation flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
   } finally {

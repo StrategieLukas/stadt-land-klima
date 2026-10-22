@@ -19,13 +19,13 @@ Or call the suite directly:
 
 `run_tests.sh` installs local npm dependencies on first run and launches the TypeScript runner with `tsx`.
 
-Measured on the reviewed local stack: **37 isolated tests in about 1 second**;
-**25.6 seconds total** for the fast wrapper (37 isolated + 10 integration steps);
-**88 full workflow steps in about 6 minutes**. These are observed timings, not
+Measured on the reviewed local stack: **55 isolated tests in about 2 seconds**;
+**about 30 seconds total** for the fast wrapper (55 isolated + 11 integration steps);
+**89 full workflow steps in about 5 minutes**. These are observed timings, not
 hardcoded time budgets; cold dependency/browser installs are separate.
 
 The default **fast** profile runs all isolated tests, then the real CMS/API/browser
-jobs and public-navigation regressions. The **full** profile additionally retains
+jobs and public-navigation regressions, plus the three-language shared-state flow (SSR/hydration, theme persistence and search controls). The **full** profile additionally retains
 all existing registration, editorial, candidate, PDF, import/export, contact,
 mail-authorization, tour and data workflows. It takes several minutes; it remains
 the release check. Both profiles print their names, per-step durations and totals. Run CMS fixture
@@ -43,7 +43,7 @@ npm run test:unit
 npm run test:public -- https://staging.stadt-land-klima.de
 ```
 
-`test:unit` needs no running services. It runs actual handlers, helpers, the adapter,
+`test:unit` needs no running services. Phase 4 cases in `src/phase4.test.ts` check translation generation and real compiler key rejection, session validation/SSR isolation/auth races, malformed external replies, pagination cycles, cache retries and late search responses. It runs actual handlers, helpers, the adapter,
 and Vue search reactivity with transport boundaries replaced. Stadt.Land.Zahl
 fixtures cover current/older/incomplete/unpublished assessments and upstream
 failure without live credentials. `test:public` needs no environment file or CMS

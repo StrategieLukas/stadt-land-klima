@@ -333,9 +333,9 @@
 <script setup>
 import { Icon } from "@iconify/vue";
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
-import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
-import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug.js";
+import { useHeaderHeight } from "~/composables/useHeaderHeight";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
+import { fetchContainedBy, areaToSlug } from "~/composables/useAreaBySlug";
 import statesLookup from "~/assets/germany-states-lookup.json";
 import { normalizeCollection, sectorColor, sectorKey, sectorLabel } from "~/utils/dataProducts";
 import { DEFAULT_DATA_PAGE_CONFIG, isCollectionVisible } from "~/utils/dataPageVisibility";

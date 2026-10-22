@@ -151,8 +151,8 @@
 </template>
 
 <script setup>
-import { getScorePercentageColor } from "~/shared/utils.js";
-import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing.js";
+import { getScorePercentageColor } from "~/shared/utils";
+import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 
 const config = useRuntimeConfig();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();

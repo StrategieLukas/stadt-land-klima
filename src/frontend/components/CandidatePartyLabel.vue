@@ -10,7 +10,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { getCandidatePartyConfig, getCandidatePartyLabel } from '~/shared/candidateParties.js'
+import { getCandidatePartyConfig, getCandidatePartyLabel } from '~/shared/candidateParties'
 
 const props = defineProps({
   party: {

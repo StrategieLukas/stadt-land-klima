@@ -264,18 +264,18 @@
 <script setup>
 import { ref, computed, onMounted, resolveComponent } from "vue";
 import { useRuntimeConfig } from "#imports";
-import { useSearchPalette } from "~/composables/useSearchPalette.js";
-import translatedNavigationLabel from "~/shared/translatedNavigationLabel.js";
+import { useSearchPalette } from "~/composables/useSearchPalette";
+import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 
 const NuxtLink = resolveComponent("NuxtLink");
 
-const { $t } = useNuxtApp();
+const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
 const config = useRuntimeConfig();
 const { closeDrawer } = useDrawer();
 const { open: openSearch } = useSearchPalette();
-const navLabel = (item, field = "label") => translatedNavigationLabel(item, $t, field);
-const navDescription = (item) => translatedNavigationLabel(item, $t, "description");
+const navLabel = (item, field = "label") => translatedNavigationLabel(item, $translateDynamic, field);
+const navDescription = (item) => translatedNavigationLabel(item, $translateDynamic, "description");
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },

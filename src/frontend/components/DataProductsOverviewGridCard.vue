@@ -113,7 +113,7 @@ const canonicalKpi = ref<{ value: number | null; precision?: number | null } | n
 const hasRequestedSummary = ref(false);
 const hasRequestedDetails = ref(false);
 const runtimeConfig = useRuntimeConfig();
-const { $t, $locale } = useNuxtApp();
+const { $translateDynamic, $t, $locale } = useNuxtApp();
 let observer: IntersectionObserver | null = null;
 
 const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
@@ -125,7 +125,7 @@ const title = computed(() => {
 const sector = computed(() => {
   const key = sectorKey(effectiveCollection.value);
   const translationKey = `measure_sectors.${key}.title`;
-  const translated = $t(translationKey);
+  const translated = $translateDynamic(translationKey);
   return translated && translated !== translationKey ? translated : sectorLabel(effectiveCollection.value);
 });
 const color = computed(() => sectorColor(effectiveCollection.value));

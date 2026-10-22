@@ -170,9 +170,9 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
-import { useSearchPalette } from "~/composables/useSearchPalette.js";
-import { useEmbeddedSearchBridge } from "~/composables/useEmbeddedSearchBridge.js";
-import { useHeaderHeight, useHeaderSpacerHeight, useNavInputRect } from "~/composables/useHeaderHeight.js";
+import { useSearchPalette } from "~/composables/useSearchPalette";
+import { useEmbeddedSearchBridge } from "~/composables/useEmbeddedSearchBridge";
+import { useHeaderHeight, useHeaderSpacerHeight, useNavInputRect } from "~/composables/useHeaderHeight";
 import { DONATION_PAGE_PATH } from "~/shared/donation";
 
 const { $t } = useNuxtApp();

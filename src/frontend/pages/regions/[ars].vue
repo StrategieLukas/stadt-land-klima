@@ -166,7 +166,7 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { ref, computed, onMounted } from 'vue';
-import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
+import { getCatalogVersion } from '~/composables/getCatalogVersion';
 
 const route = useRoute();
 const { $t, $stadtlandzahlAPI } = useNuxtApp();

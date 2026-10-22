@@ -51,8 +51,8 @@
   import ArticlePage from '~/components/ArticlePage.vue';
   import { isRaster } from '~/shared/utils';
   import { relationId, visitDaysAway, visitHasEnded } from '~/shared/tour';
-  import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
-  import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js';
+  import { getCatalogVersion } from '~/composables/getCatalogVersion';
+  import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing';
   const { $t } = useNuxtApp();
 
   const route = useRoute();

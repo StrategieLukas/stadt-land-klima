@@ -291,7 +291,7 @@ const emit = defineEmits<{
   (e: 'success'): void
 }>()
 
-const { $t, $locale } = useNuxtApp()
+const { $translateDynamic, $t, $locale } = useNuxtApp()
 
 const formState = ref<'idle' | 'processing' | 'success'>('idle');
 const captchaError = ref('');
@@ -454,7 +454,7 @@ async function submit() {
     const errSteps = errData?.steps;
     const failedStep = errData?.failedStep;
     if (failedStep && errData?.errorKey) {
-      stepErrorLabels[failedStep] = $t(errData.errorKey);
+      stepErrorLabels[failedStep] = $translateDynamic(errData.errorKey);
     }
 
     stepStatuses.user = getFailedStepStatus('user', errSteps, failedStep);
@@ -465,7 +465,7 @@ async function submit() {
     await delay(400);
     processingDone.value = true;
     processingError.value = errData?.errorKey
-      ? $t(errData.errorKey)
+      ? $translateDynamic(errData.errorKey)
       : err?.data?.message ?? $t('generic.error_try_again');
   }
 }

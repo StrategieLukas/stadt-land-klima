@@ -494,8 +494,8 @@
 const { $t } = useNuxtApp();
 const router = useRouter();
 
-import { useMunicipalityPageState } from '~/composables/useMunicipalityPageState.js';
-import { getStateMunicipalElectionYear } from '~/shared/utils.js';
+import { useMunicipalityPageState } from '~/composables/useMunicipalityPageState';
+import { getStateMunicipalElectionYear } from '~/shared/utils';
 import { useReferrer } from '~/composables/useReferrer';
 const route = useRoute();
 

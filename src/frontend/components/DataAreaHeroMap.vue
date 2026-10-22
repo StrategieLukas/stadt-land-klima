@@ -44,7 +44,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
-import { areaToSlug } from "~/composables/useAreaBySlug.js";
+import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
   area: { type: Object, required: true },

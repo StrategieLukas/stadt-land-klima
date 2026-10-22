@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import sectorImages from '~/shared/sectorImages.js';
+import sectorImages from '~/shared/sectorImages';
 
 const { $t } = useNuxtApp();
 

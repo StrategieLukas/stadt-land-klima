@@ -77,7 +77,7 @@ type DirectusPermissions = Record<string, Partial<Record<
 >>>
 
 export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
-  const { $directus, $t } = useNuxtApp()
+  const { $t } = useNuxtApp()
   const config = useRuntimeConfig()
   const { isAuthenticated, getAuthenticatedClient, user, initialize } = useAuth()
   let permissions: DirectusPermissions = {}
@@ -118,7 +118,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
     if (isAuthenticated.value) {
       return getAuthenticatedClient()
     }
-    return $directus
+    throw new Error("An authenticated editor session is required")
   }
 
   // --- Typed Directus SDK wrappers ---

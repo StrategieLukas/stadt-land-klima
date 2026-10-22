@@ -107,10 +107,10 @@
 </template>
 
 <script setup>
-import sectorImages from "~/shared/sectorImages.js";
-import sectorImagesDark from "~/shared/sectorImagesDark.js";
-import ratingIcons, { ratingIndex } from "~/shared/ratingIcons.js";
-import { getRatingDecimalColor } from "~/shared/utils.js";
+import sectorImages from "~/shared/sectorImages";
+import sectorImagesDark from "~/shared/sectorImagesDark";
+import ratingIcons, { ratingIndex } from "~/shared/ratingIcons";
+import { getRatingDecimalColor } from "~/shared/utils";
 import ProgressBar from '~/components/ProgressBar.vue'
 import MeasureDetails from '~/components/MeasureDetails.vue'
 import { reactive, computed, onMounted, nextTick, watch } from 'vue'

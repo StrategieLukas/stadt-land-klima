@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
       status: { _eq: 'published' },
       tour: { id: { _eq: tourId }, status: { _eq: 'published' } },
     },
-    fields: STOP_FIELDS,
+    fields: [...STOP_FIELDS],
     limit: -1,
   }))
 

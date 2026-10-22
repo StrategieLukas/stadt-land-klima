@@ -5,6 +5,7 @@ import {
   loginDirectus,
   newContext,
   visibleText,
+  waitForHydration,
 } from '../lib/browser.js';
 import type { JsonRecord } from '../lib/directus.js';
 import type { TestFixture } from '../lib/fixture.js';
@@ -188,8 +189,8 @@ async function waitForCurrentScore(
 
 async function openFrontendPage(page: Page, url: string): Promise<string> {
   await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await waitForHydration(page);
   await page.waitForLoadState('networkidle').catch(() => undefined);
-  await page.waitForTimeout(1_000);
   return visibleText(page);
 }
 

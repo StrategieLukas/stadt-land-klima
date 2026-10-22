@@ -193,7 +193,7 @@ async function mockStadtlandzahlArea(page: Page, ars: string, name: string): Pro
           prefix: 'Gemeinde',
           name,
           ars,
-          contained_by: [{ level: 2, name: 'Schleswig-Holstein' }],
+          contained_by: [{ ars: '010000000000', prefix: 'Land', level: 2, name: 'Schleswig-Holstein' }],
           data_products: {
             population_data: {
               population: 12_345,

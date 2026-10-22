@@ -348,9 +348,9 @@ import { visitHasEnded } from '~/shared/tour'
 import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
 import { useAuth } from '~/composables/useAuth'
-import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
-import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
-import sectorImages from '~/shared/sectorImages.js'
+import { useHeaderHeight } from '~/composables/useHeaderHeight'
+import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden'
+import sectorImages from '~/shared/sectorImages'
 
 import { isRaster } from '~/shared/utils'
 function stripHtml(html) {

@@ -177,8 +177,8 @@
 </template>
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { useHeaderHeight } from '~/composables/useHeaderHeight.js';
-import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js';
+import { useHeaderHeight } from '~/composables/useHeaderHeight';
+import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden';
 const { $t } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();

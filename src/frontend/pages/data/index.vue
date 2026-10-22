@@ -133,8 +133,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import DataProductsComingSoonTile from '~/components/DataProductsComingSoonTile.vue'
-import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
-import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js'
+import { useHeaderHeight } from '~/composables/useHeaderHeight'
+import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden'
 import { isCollectionVisible } from '~/utils/dataPageVisibility'
 import { normalizeCollection } from '~/utils/dataProducts'
 import statesLookup from '~/assets/germany-states-lookup.json'

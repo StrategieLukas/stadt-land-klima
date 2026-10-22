@@ -235,7 +235,7 @@
 </template>
 
 <script setup>
-import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js';
+import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing';
 import { ref, computed, watch } from "vue";
 
 const props = defineProps({

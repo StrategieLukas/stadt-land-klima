@@ -12,13 +12,16 @@ const config = createConfigForNuxt({
   {
     name: 'migration/checked-contracts',
     files: [
-      'shared/contracts/**/*.ts', 'server/types/directus.ts',
-      'server/utils/candidateAnswers.ts', 'server/api/public/jobs*.ts',
+      'shared/**/*.ts', 'composables/**/*.ts', 'plugins/**/*.ts', 'stores/**/*.ts',
+      'middleware/referrer.global.ts', 'types/editorCms.ts', 'server/types/directus.ts',
+      'server/api/public/translations.get.ts', 'server/utils/candidateAnswers.ts', 'server/api/public/jobs*.ts',
       'server/api/public/jobs/**/*.ts', 'server/api/candidate/**/answers.post.ts',
       'components/JobOfferCard.vue', 'components/JobOfferStatusPill.vue', 'pages/jobs/**/*.vue',
     ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+      '@typescript-eslint/no-namespace': ['error', { allowDeclarations: true }],
       '@typescript-eslint/no-unsafe-assignment': 'error',
       '@typescript-eslint/no-unsafe-call': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'error',

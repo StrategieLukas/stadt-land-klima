@@ -87,9 +87,19 @@ export function captureBrowserBodies(page: Page, hidden: HiddenValue[]) {
       await waitForHydration(page);
       // Drain every potentially disclosing response, including post-mount reads,
       // without waiting for unrelated fonts, images or map tiles.
-      await waitFor('public document/API/script responses to finish', async () =>
-        inFlight.size === 0 && performance.now() - lastActivity >= 100,
-      { timeoutMs: 10_000, intervalMs: 25 });
+      try {
+        await waitFor('public document/API/script responses to finish', async () =>
+          inFlight.size === 0 && performance.now() - lastActivity >= 100,
+        { timeoutMs: 10_000, intervalMs: 25 });
+      } catch (error) {
+        // Exclude query strings/headers: preview URLs may contain credentials.
+        const waiting = [...inFlight].slice(0, 8).map(request => {
+          const url = new URL(request.url());
+          const category = url.pathname.startsWith('/api/') ? url.pathname.split('/').slice(0, 3).join('/') : '[resource]';
+          return `${request.resourceType()} ${url.origin}${category}`;
+        });
+        throw new Error(`Public response capture did not settle (${waiting.join('; ') || 'continuous response activity'})`, { cause: error });
+      }
       await Promise.all(pending);
     } finally {
       page.off('response', listener);

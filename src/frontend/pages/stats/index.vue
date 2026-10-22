@@ -856,10 +856,10 @@ function themedVegaSpec(spec) {
 }
 
 const { $t } = useNuxtApp();
-import { getCatalogVersion } from "~/composables/getCatalogVersion.js";
-import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions.js";
-import sectorImages from "~/shared/sectorImages.js";
-import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing.js";
+import { getCatalogVersion } from "~/composables/getCatalogVersion";
+import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions";
+import sectorImages from "~/shared/sectorImages";
+import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";
 
 const route = useRoute();
 const router = useRouter();

@@ -9,11 +9,7 @@ function parseDateOnly(value?: string | null) {
   const day = Number(match[3]);
   const date = new Date(Date.UTC(year, month - 1, day));
 
-  if (
-    date.getUTCFullYear() !== year ||
-    date.getUTCMonth() !== month - 1 ||
-    date.getUTCDate() !== day
-  ) {
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
     return null;
   }
 
@@ -57,11 +53,7 @@ export function getBerlinEndOfDay(isoDate?: string | null) {
   if (!parsed) return null;
 
   const nextDay = new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day + 1));
-  const nextDayMidnight = getBerlinMidnight(
-    nextDay.getUTCFullYear(),
-    nextDay.getUTCMonth(),
-    nextDay.getUTCDate(),
-  );
+  const nextDayMidnight = getBerlinMidnight(nextDay.getUTCFullYear(), nextDay.getUTCMonth(), nextDay.getUTCDate());
 
   return new Date(nextDayMidnight.getTime() - 1);
 }
@@ -130,11 +122,7 @@ export function formatBerlinDate(iso?: string | null, locale = "de-DE") {
   return date ? formatDate(date, locale) : "";
 }
 
-export function formatBerlinDateRange(
-  startIso?: string | null,
-  endIso?: string | null,
-  locale = "de-DE",
-) {
+export function formatBerlinDateRange(startIso?: string | null, endIso?: string | null, locale = "de-DE") {
   const start = parseBerlinDateTime(startIso);
   if (!start) return "";
   const end = parseBerlinDateTime(endIso);
@@ -146,7 +134,9 @@ export function formatBerlinDateRange(
   }
   if (startParts.year === endParts.year) {
     const startLabel = new Intl.DateTimeFormat(locale, {
-      day: "2-digit", month: "long", timeZone: EVENT_TIME_ZONE,
+      day: "2-digit",
+      month: "long",
+      timeZone: EVENT_TIME_ZONE,
     }).format(start);
     return `${startLabel} – ${formatDate(end, locale)}`;
   }

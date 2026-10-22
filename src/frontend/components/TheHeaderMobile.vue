@@ -38,8 +38,8 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from "vue";
-import { useSearchPalette } from "~/composables/useSearchPalette.js";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
+import { useSearchPalette } from "~/composables/useSearchPalette";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 
 const { $t } = useNuxtApp();
 const { open } = useSearchPalette();

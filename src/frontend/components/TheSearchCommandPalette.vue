@@ -156,13 +156,13 @@
 <script setup>
 import { ref, watch, watchEffect, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#imports'
-import { useSearchPalette } from '~/composables/useSearchPalette.js'
-import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge.js'
-import { useUnifiedSearch } from '~/composables/useUnifiedSearch.js'
-import { getCurrentFrontendCatalogVersion } from '~/composables/getCatalogVersion.js'
-import { useHeaderHeight } from '~/composables/useHeaderHeight.js'
-import { useNavInputRect } from '~/composables/useHeaderHeight.js'
-import sectorImages from '~/shared/sectorImages.js'
+import { useSearchPalette } from '~/composables/useSearchPalette'
+import { useEmbeddedSearchBridge } from '~/composables/useEmbeddedSearchBridge'
+import { useUnifiedSearch } from '~/composables/useUnifiedSearch'
+import { getCurrentFrontendCatalogVersion } from '~/composables/getCatalogVersion'
+import { useHeaderHeight } from '~/composables/useHeaderHeight'
+import { useNavInputRect } from '~/composables/useHeaderHeight'
+import sectorImages from '~/shared/sectorImages'
 import lodash from 'lodash'
 const { debounce } = lodash
 

@@ -1,0 +1,10 @@
+import { z } from "zod";
+import type { TranslationKey } from "./translationKeys";
+export const locales = ["de-DE", "en-GB", "it-IT"] as const;
+export type Locale = (typeof locales)[number];
+export type TranslationParams = Readonly<Record<string, string | number | boolean | null | undefined>>;
+export type Translator = (key: TranslationKey, params?: TranslationParams) => string;
+export type DynamicTranslator = (key: string, params?: TranslationParams) => string;
+export const TranslationEntrySchema = z.object({ key: z.string(), value: z.string(), language: z.string().optional() });
+export const TranslationsSchema = z.array(TranslationEntrySchema);
+export type TranslationEntry = z.infer<typeof TranslationEntrySchema>;

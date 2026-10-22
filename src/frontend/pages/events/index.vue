@@ -175,8 +175,8 @@
 
 <script setup>
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
-import { useHeaderHeight } from "~/composables/useHeaderHeight.js";
-import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden.js";
+import { useHeaderHeight } from "~/composables/useHeaderHeight";
+import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
 import { formatEventMonth, getEventMonthKey, getEventPhase } from "~/shared/eventDateTime";
 const { $t, $locale } = useNuxtApp();
 const headerHeight = useHeaderHeight();

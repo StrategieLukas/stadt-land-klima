@@ -34,15 +34,15 @@ The registry's stable TypeScript release is 7.0.2 and a 7.1 beta exists. Neither
 ### TypeScript Diagnostic Baseline Reduction
 
 **Priority:** Low (incremental)
-**Status:** In progress via Phases 4–6 of TypeScript migration plan
-**Current count:** 282 diagnostics (193 unique file:line/error-code entries)
+**Status:** In progress via Phases 5–8 of TypeScript migration plan
+**Current count:** 258 diagnostics (174 unique file:line/error-code entries)
 
 The build gate uses `.ts-baseline.txt` to allow existing type errors while failing on new ones. Nuxt preparation and checker crashes also fail; raw checker output is preserved in command output. The goal is to reduce the baseline to zero over time.
 
-The framework upgrade and Phase 3 repairs removed 40 previously recorded diagnostic locations; the October 22 compatibility repairs removed another 18 existing locations (301 → 282 diagnostics) without adding baseline exemptions; the jobs pilot itself has no baseline exemptions. The remaining diagnostics are not a clean full type check.
+The framework upgrade and Phase 3 repairs removed 40 previously recorded diagnostic locations; the October 22 compatibility repairs removed another 18 existing locations (301 → 282 diagnostics) without adding baseline exemptions; the jobs pilot itself has no baseline exemptions. Phase 4 removes another 24 diagnostics and 19 unique entries (282 → 258 diagnostics; 193 → 174 entries), without adding exemptions. Migrated shared scripts, composables, plugins, auth state and translation tooling pass scoped checking and unsafe-value lint. The unmounted historical tour component is archived under `docs/legacy/`; maintained components/pages and deeper editor/visualization contracts remain phases 5–8. The remaining diagnostics are not a clean full type check. See [PHASE_4_REVIEW.md](PHASE_4_REVIEW.md).
 
 **What to do:**
-- Reduce errors incrementally as part of related code changes (Phases 4–6 of `TYPESCRIPT_MIGRATION_PLAN.md`).
+- Reduce errors incrementally as part of related code changes (Phases 5–8 of `TYPESCRIPT_MIGRATION_PLAN.md`).
 - Remove resolved entries after each reduction. `npm run typecheck:baseline` is an explicit refresh command, checks tool failures, and still requires reviewing the resulting diff; never accept new debt automatically.
 
 **References:** `src/frontend/.ts-baseline.txt`, `TYPESCRIPT_MIGRATION_PLAN.md`

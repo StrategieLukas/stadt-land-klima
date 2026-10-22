@@ -119,7 +119,7 @@ import { ref, computed } from "vue";
 import type { Collection } from "~/types/slz-api";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import { useCollectionRender } from "~/composables/useCollectionRender";
-import sectorImages from "~/shared/sectorImages.js";
+import sectorImages from "~/shared/sectorImages";
 import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
 
 const SECTOR_COLORS: Record<string, string> = {

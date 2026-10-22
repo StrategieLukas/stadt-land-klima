@@ -330,7 +330,7 @@ import {
   getCandidateDisplayName,
   getCandidatePartyConfig,
   getCandidatePartyLabel,
-} from '~/shared/candidateParties.js'
+} from '~/shared/candidateParties'
 import { useTheme } from '~/composables/useTheme'
 
 const props = defineProps({

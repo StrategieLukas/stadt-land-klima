@@ -173,10 +173,10 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, resolveComponent } from "vue";
 import { useRoute, useRuntimeConfig } from "#imports";
-import translatedNavigationLabel from "~/shared/translatedNavigationLabel.js";
+import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
 
 const NuxtLink = resolveComponent("NuxtLink");
-const { $t } = useNuxtApp();
+const { $translateDynamic, $t } = useNuxtApp();
 
 const props = defineProps({
   items: {
@@ -187,8 +187,8 @@ const props = defineProps({
 
 const route = useRoute();
 const config = useRuntimeConfig();
-const navLabel = (item) => translatedNavigationLabel(item, $t);
-const navDescription = (item) => translatedNavigationLabel(item, $t, "description");
+const navLabel = (item) => translatedNavigationLabel(item, $translateDynamic);
+const navDescription = (item) => translatedNavigationLabel(item, $translateDynamic, "description");
 
 const safeItems = computed(() => (Array.isArray(props.items) ? props.items : []));
 

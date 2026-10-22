@@ -1,34 +1,38 @@
-import { readItems } from '@directus/sdk'
-import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
-import { createDirectusServerClient } from '../../utils/directusServerClient'
-
-type Row = Record<string, any>
-
-function pick(row: Row, fields: string[]): Row {
-  return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
-}
-
-const translationFields = ['id', 'language', 'key', 'value']
+import { readTranslations, type CoreSchema } from "@directus/sdk";
+import { createError, defineEventHandler, getQuery, setResponseHeader } from "h3";
+import { createTypedDirectusServerClient } from "../../utils/directusServerClient";
+import { locales, TranslationsSchema } from "~/shared/i18n";
 
 export default defineEventHandler(async (event) => {
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=300')
-  const client = createDirectusServerClient()
-  const query = getQuery(event)
-
-  const filter: Record<string, any> = {}
-  if (typeof query.language === 'string' && query.language) {
-    filter.language = { _eq: query.language }
+  const query = getQuery(event);
+  const language = query.language;
+  if (language !== undefined && (typeof language !== "string" || !locales.some((locale) => locale === language))) {
+    throw createError({ statusCode: 400, statusMessage: "Unsupported translation language" });
   }
-  if (typeof query.keys === 'string' && query.keys) {
-    const keys = query.keys.split(',').map(k => k.trim()).filter(Boolean)
-    if (keys.length > 0) filter.key = { _in: keys }
+  if (query.keys !== undefined && (typeof query.keys !== "string" || query.keys.length > 16000)) {
+    throw createError({ statusCode: 400, statusMessage: "Invalid translation keys" });
   }
-
-  const translations = await client.request(readItems('directus_translations', {
-    filter: Object.keys(filter).length > 0 ? filter : undefined,
-    fields: translationFields,
-    limit: 1000,
-  }))
-
-  return { translations: translations.map(t => pick(t, translationFields)) }
-})
+  const keys =
+    typeof query.keys === "string"
+      ? query.keys
+          .split(",")
+          .map((key) => key.trim())
+          .filter(Boolean)
+      : [];
+  const client = createTypedDirectusServerClient<CoreSchema<object>>();
+  const rows = await client.request(
+    readTranslations({
+      fields: ["language", "key", "value"],
+      filter: {
+        ...(typeof language === "string" ? { language: { _eq: language } } : {}),
+        ...(keys.length ? { key: { _in: keys } } : {}),
+      },
+      // Each supported language already exceeds Directus's default page size.
+      limit: -1,
+    }),
+  );
+  const parsed = TranslationsSchema.safeParse(rows);
+  if (!parsed.success) throw createError({ statusCode: 502, statusMessage: "Invalid translations response" });
+  setResponseHeader(event, "Cache-Control", "public, max-age=300");
+  return { translations: parsed.data };
+});

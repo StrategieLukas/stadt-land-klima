@@ -363,7 +363,7 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import sectorImages from "~/shared/sectorImages.js";
+import sectorImages from "~/shared/sectorImages";
 
 const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'];
 

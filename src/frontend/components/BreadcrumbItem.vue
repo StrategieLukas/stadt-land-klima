@@ -64,7 +64,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { areaToSlug } from "~/composables/useAreaBySlug.js";
+import { areaToSlug } from "~/composables/useAreaBySlug";
 
 const props = defineProps({
   label: { type: String, required: true },

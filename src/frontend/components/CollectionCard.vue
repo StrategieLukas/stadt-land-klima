@@ -59,7 +59,7 @@
 import { computed } from "vue";
 import type { Collection } from "~/types/slz-api";
 import { useSlzLocale } from "~/composables/useSlzLocale";
-import sectorImages from "~/shared/sectorImages.js";
+import sectorImages from "~/shared/sectorImages";
 import { collectionCoverImage } from "~/utils/dataProducts";
 
 const SECTOR_COLORS: Record<string, string> = {

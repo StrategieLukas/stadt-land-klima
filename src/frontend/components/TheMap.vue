@@ -76,7 +76,7 @@ import { LMap, LTileLayer, LMarker, LPopup, LGeoJson, LRectangle } from "@vue-le
 import "leaflet/dist/leaflet.css";
 import germanyGeoJson from "~/assets/germany-polygon.json?raw";
 import germanyStatesGeoJson from "~/assets/germany-state-borders.json?raw";
-import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing.js";
+import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 
 const { $t } = useNuxtApp();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();

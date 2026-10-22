@@ -233,7 +233,7 @@ function isPaid(type: string) {
   return paidTypes.has(type);
 }
 
-function typeLabel(type: string) {
+function typeLabel(type: import("~/shared/contracts/jobs").JobType) {
   return $t(`jobs.type.${type}`) || type || "";
 }
 
