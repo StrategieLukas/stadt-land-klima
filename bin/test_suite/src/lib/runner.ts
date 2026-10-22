@@ -12,15 +12,17 @@ export interface StepResult {
 }
 
 export class TestRunner {
+  private readonly started = performance.now();
   readonly results: StepResult[] = [];
   readonly manualChecks: ManualCheck[] = [];
 
   async step(name: string, callback: () => Promise<void>): Promise<void> {
+    const started = performance.now();
     process.stdout.write(`\n[RUN] ${name}\n`);
     try {
       await callback();
       this.results.push({ name, status: 'passed' });
-      process.stdout.write(`[PASS] ${name}\n`);
+      process.stdout.write(`[PASS] ${name} (${((performance.now() - started) / 1000).toFixed(2)}s)\n`);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       this.results.push({ name, status: 'failed', error });
@@ -40,6 +42,7 @@ export class TestRunner {
     process.stdout.write('\n================ Test Summary ================\n');
     process.stdout.write(`Passed: ${passed.length}\n`);
     process.stdout.write(`Failed: ${failed.length}\n`);
+    process.stdout.write(`Elapsed: ${((performance.now() - this.started) / 1000).toFixed(2)}s\n`);
 
     if (failed.length > 0) {
       process.stdout.write('\nFailures:\n');

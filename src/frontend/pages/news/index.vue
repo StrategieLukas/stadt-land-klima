@@ -343,6 +343,7 @@
 </template>
 
 <script setup>
+import { parseBerlinDateTime, formatBerlinDate as formatDate, formatBerlinDateRange as formatDateRange, getEventMonthKey, formatEventMonth } from '~/shared/eventDateTime'
 import { visitHasEnded } from '~/shared/tour'
 import { computed, ref, watch, resolveComponent, onMounted, onUnmounted } from 'vue'
 import { createItem, readItems } from '@directus/sdk'
@@ -477,7 +478,7 @@ const allItems = computed(() => {
   const now = new Date()
   for (const e of eventsData.value || []) {
     if (e.event_category === 'internal') continue
-    if (e.start_date && new Date(e.start_date) >= now) continue // future events shown in "Zukünftig" section
+    if (e.start_date && parseBerlinDateTime(e.start_date) >= now) continue // future events shown in "Zukünftig" section
     items.push({
       type: 'event',
       id: e.id,
@@ -530,7 +531,7 @@ const allItems = computed(() => {
   }
 
   // Sort all items by date descending
-  return items.sort((a, b) => new Date(b.date) - new Date(a.date))
+  return items.sort((a, b) => (parseBerlinDateTime(b.date)?.getTime() ?? 0) - (parseBerlinDateTime(a.date)?.getTime() ?? 0))
 })
 
 // ── Filtering ──────────────────────────────────────────────────────────────────
@@ -554,9 +555,8 @@ const visibleItems = computed(() =>
 const groupedByMonth = computed(() => {
   const map = new Map()
   for (const item of visibleItems.value) {
-    const d = new Date(item.date)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+    const key = getEventMonthKey(item.date)
+    const label = formatEventMonth(item.date)
     if (!map.has(key)) map.set(key, { monthKey: key, label, items: [] })
     map.get(key).items.push(item)
   }
@@ -566,33 +566,12 @@ const groupedByMonth = computed(() => {
 const upcomingEvents = computed(() => {
   const upcoming = new Date()
   return (eventsData.value || [])
-    .filter(e => e.event_category !== 'internal' && e.start_date && new Date(e.start_date) >= upcoming)
-    .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
+    .filter(e => e.event_category !== 'internal' && e.start_date && parseBerlinDateTime(e.start_date) >= upcoming)
+    .sort((a, b) => (parseBerlinDateTime(a.start_date)?.getTime() ?? 0) - (parseBerlinDateTime(b.start_date)?.getTime() ?? 0))
     .slice(0, 2)
 })
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-
-function formatDate(iso) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
-}
-
-function formatDateRange(startIso, endIso) {
-  if (!startIso) return ''
-  const start = new Date(startIso)
-  const end = endIso ? new Date(endIso) : null
-  if (!end || end.toDateString() === start.toDateString()) {
-    return start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
-  }
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${start.getDate()}. – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
-  }
-  if (start.getFullYear() === end.getFullYear()) {
-    return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
-  }
-  return `${start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
-}
 
 function typeLabel(type) {
   return {

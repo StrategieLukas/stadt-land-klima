@@ -1,8 +1,10 @@
 import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import type { Page, Response as BrowserResponse } from 'playwright';
+import type { Page, Request as BrowserRequest, Response as BrowserResponse } from 'playwright';
 import { assert } from './assert.js';
 import { parseEnvFile, type TestConfig } from './config.js';
+import { waitForHydration } from './browser.js';
+import { waitFor } from './wait.js';
 
 export interface HiddenValue { label: string; value: string }
 
@@ -49,6 +51,15 @@ export function captureBrowserBodies(page: Page, hidden: HiddenValue[]) {
   const pending: Promise<void>[] = [];
   const failures: string[] = [];
   let bodies = 0;
+  const inFlight = new Set<BrowserRequest>();
+  let lastActivity = performance.now();
+  const relevant = (request: BrowserRequest) => ['document', 'fetch', 'xhr', 'script'].includes(request.resourceType());
+  const started = (request: BrowserRequest) => {
+    if (relevant(request)) { inFlight.add(request); lastActivity = performance.now(); }
+  };
+  const completed = (request: BrowserRequest) => {
+    if (inFlight.delete(request)) lastActivity = performance.now();
+  };
   const listener = (response: BrowserResponse) => {
     if (!['document', 'fetch', 'xhr', 'script'].includes(response.request().resourceType())) return;
     if (response.status() >= 300 && response.status() < 400 || response.status() === 204) return;
@@ -56,25 +67,36 @@ export function captureBrowserBodies(page: Page, hidden: HiddenValue[]) {
     if (!/text|json|javascript/.test(type)) return;
     pending.push((async () => {
       try {
-        const body = await response.text().catch(() => null);
-        if (body !== null) {
-          bodies++;
-          assertNoDisclosure(body, hidden, `Browser ${response.request().resourceType()} response`);
-        }
+        const body = await response.text();
+        bodies++;
+        assertNoDisclosure(body, hidden, `Browser ${response.request().resourceType()} response`);
         assertNoDisclosure(response.headers(), hidden, 'Browser response headers');
       } catch (error) {
         if (error instanceof Error && error.name === 'TestFailure') {
           failures.push(error.message);
-        }
-        // Non-disclosure errors (empty body, network issues) are ignored
+        } else failures.push('Browser response body could not be inspected');
       }
     })());
   };
   page.on('response', listener);
+  page.on('request', started);
+  page.on('requestfinished', completed);
+  page.on('requestfailed', completed);
   return async () => {
-    await page.waitForLoadState('networkidle');
-    page.off('response', listener);
-    await Promise.all(pending);
+    try {
+      await waitForHydration(page);
+      // Drain every potentially disclosing response, including post-mount reads,
+      // without waiting for unrelated fonts, images or map tiles.
+      await waitFor('public document/API/script responses to finish', async () =>
+        inFlight.size === 0 && performance.now() - lastActivity >= 100,
+      { timeoutMs: 10_000, intervalMs: 25 });
+      await Promise.all(pending);
+    } finally {
+      page.off('response', listener);
+      page.off('request', started);
+      page.off('requestfinished', completed);
+      page.off('requestfailed', completed);
+    }
     assert(bodies > 0, 'Disclosure check must inspect actual browser responses');
     assert(failures.length === 0, failures.join('; '));
     return bodies;

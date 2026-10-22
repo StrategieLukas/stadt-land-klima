@@ -6,7 +6,7 @@ import { loadConfig } from './lib/config.js';
 import { createAdminClient } from './lib/directus.js';
 import { TestFixture } from './lib/fixture.js';
 import { TestRunner } from './lib/runner.js';
-import { launchBrowser, newContext } from './lib/browser.js';
+import { launchBrowser, newContext, waitForHydration } from './lib/browser.js';
 import { assert } from './lib/assert.js';
 import { assertNoCredentialFields, assertNoDisclosure, captureBrowserBodies, configuredSecrets } from './lib/disclosure.js';
 
@@ -119,7 +119,8 @@ try {
     const page = await context.newPage();
     const finish = captureBrowserBodies(page, [...secretValues, ...hiddenRecords]);
     try {
-      await page.goto(config.frontendUrl, { waitUntil: 'networkidle' });
+      await page.goto(config.frontendUrl, { waitUntil: 'domcontentloaded' });
+      await waitForHydration(page);
       // Read the SSR HTML to check for credential disclosure in the public config.
       // __NUXT__.config.public is set by an inline script in the HTML.
       const html = await page.content();

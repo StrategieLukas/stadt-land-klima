@@ -4,20 +4,57 @@ The suite is a TypeScript runner under `bin/test_suite`. It creates disposable D
 
 ## Running
 
-Use the wrapper scripts from `bin/`:
+Use the development wrapper from the repository root (or `./test_dev.sh` from `bin/`):
 
 ```bash
 ./bin/test_dev.sh
-./bin/test_staging.sh
+./bin/test_dev.sh --full
 ```
 
 Or call the suite directly:
 
 ```bash
-./bin/test_suite/run_tests.sh <backend-url> <frontend-url> <absolute-path-to-src/directus/.env>
+./bin/test_suite/run_tests.sh <backend-url> <frontend-url> <absolute-path-to-src/directus/.env> [--full]
 ```
 
 `run_tests.sh` installs local npm dependencies on first run and launches the TypeScript runner with `tsx`.
+
+Measured on the reviewed local stack: **37 isolated tests in about 1 second**;
+**25.6 seconds total** for the fast wrapper (37 isolated + 10 integration steps);
+**88 full workflow steps in about 6 minutes**. These are observed timings, not
+hardcoded time budgets; cold dependency/browser installs are separate.
+
+The default **fast** profile runs all isolated tests, then the real CMS/API/browser
+jobs and public-navigation regressions. The **full** profile additionally retains
+all existing registration, editorial, candidate, PDF, import/export, contact,
+mail-authorization, tour and data workflows. It takes several minutes; it remains
+the release check. Both profiles print their names, per-step durations and totals. Run CMS fixture
+profiles/security/editor suites serially: catalog and municipality hooks fan out
+across the shared database. Isolated unit tests need no such serialization.
+Browser checks wait for Nuxt hydration and specific content rather than waiting
+for all map tiles/analytics requests to become idle. Do not describe the fast
+profile as the complete workflow suite.
+
+For a quick public sanity check against an existing deployment:
+
+```bash
+cd bin/test_suite
+npm run test:unit
+npm run test:public -- https://staging.stadt-land-klima.de
+```
+
+`test:unit` needs no running services. It runs actual handlers, helpers, the adapter,
+and Vue search reactivity with transport boundaries replaced. Stadt.Land.Zahl
+fixtures cover current/older/incomplete/unpublished assessments and upstream
+failure without live credentials. `test:public` needs no environment file or CMS
+login. It opens eight public pages with two browser workers and blocks every
+non-GET/HEAD request. It checks HTTP errors, hydrated content, measure links and
+Vue hydration mismatches. It works with the earlier staging deployment as well
+as the branch's same-origin public APIs; passing pages do not prove API parity
+between versions. It never runs the writable CMS fixture suite on staging.
+
+`./bin/test_staging.sh` preserves the previous **full, writable** staging workflow;
+it creates and removes CMS fixtures and must not be used as a read-only smoke test.
 
 Mail webhook authorization is part of the full suite. It checks anonymous,
 Frontend, LokalteamMitglied and LokalteamAdmin rejection before any mail operation,
@@ -31,7 +68,7 @@ For delivery checks, point a disposable development Directus deployment at a
 local Mailpit SMTP server, then run this from the repository root:
 
 ```bash
-TEST_MAILPIT_URL=http://127.0.0.1:18025 ./bin/test_dev.sh
+TEST_MAILPIT_URL=http://127.0.0.1:18025 ./bin/test_dev.sh --full
 ```
 
 The capture API
@@ -56,7 +93,7 @@ state are removed afterwards. It uses the admin credentials in `src/directus/.en
 
 ## What It Covers
 
-The current suite executes:
+The full profile executes:
 
 1. `add_user_flows`: localteam-admin visibility, editor invite screen, editor creation, invited user creation, role assignment, localteam junction, Directus list visibility, and expected invitation email.
 2. `rating_wahlcheck_flow`: ratings completion, preview locking/unlocking, score publish/unpublish through the Directus checkbox interface, ranking visibility, published municipality detail checks on desktop and mobile, sector-card visibility, municipality PDF generation, Wahlcheck thesis generation, extra thesis creation, candidate setup, review request, WahlcheckAdmin approval, candidate mail token generation, public candidate answer forms, public Wahlcheck overview, and public Wahlcheck result wizard.
@@ -84,7 +121,7 @@ The current suite executes:
 
 ## Public reads and navigation
 
-The full runner also executes `src/flows/publicNavigationFlow.ts`. Disposable CMS
+Both profiles execute `src/flows/publicNavigationFlow.ts`. Disposable CMS
 fixtures exercise every visible catalog (including dotted version names), published
 measures, descriptions and version switching, sector filters, comparison ratings,
 map/statistics data, public tools, organisation teams, the combined news feed,
@@ -94,6 +131,16 @@ The browser uses real Nuxt links for catalog/detail/filter interactions; the rem
 page transitions use the hydrated router and assert that the document is retained.
 External map tiles, Stadt.Land.Zahl datasets, exhaustive chart controls and visual
 layout still require manual review; these are not implied by a passing HTTP status.
+
+Mounted checks explicitly verify rendered statistics/history charts, organisation
+team tasks, carousel project cards, a search cloud's publication filtering, and
+rapid chart/detail unmounts. Team and cloud browser cases supply deterministic
+public response fixtures; separate real API assertions verify CMS projections.
+`publicReads.test.ts` additionally covers pagination boundaries, dotted catalog
+names/map coordinates, actual score joins, interface aliases, private parent/tour
+report scope, chart collection/field allowlists, same-catalog publication coverage,
+and catalog-ID-to-name search enrichment. These checks catch empty fallback widgets
+that a heading/HTTP-200-only smoke test would miss.
 
 Check the TypeScript test harness separately with `npm run typecheck`. The other
 standalone checks are `test:contracts`, `test:blokkli:adapter`, `test:blokkli`,

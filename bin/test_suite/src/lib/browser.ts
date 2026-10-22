@@ -21,6 +21,28 @@ export async function visibleText(page: Page): Promise<string> {
   return page.locator('body').innerText({ timeout: 20_000 });
 }
 
+/** Wait for Nuxt interaction readiness without waiting for tiles or analytics. */
+export async function waitForHydration(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    type Root = Element & { __vue_app__?: { config: { globalProperties: { $nuxt?: { isHydrating: boolean } } } } };
+    return [...document.querySelectorAll<Root>('#nuxt-root, #__nuxt')]
+      .some(root => root.__vue_app__?.config.globalProperties.$nuxt?.isHydrating === false);
+  }, undefined, { timeout: 15_000 });
+}
+
+export function collectPublicPageErrors(page: Page): string[] {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => {
+    if (/hydration.*mismatch|mismatch.*hydration/i.test(message.text())) errors.push('Vue hydration mismatch');
+  });
+  page.on('response', response => {
+    const url = new URL(response.url());
+    if (url.pathname.startsWith('/api/public/') && response.status() >= 400) errors.push(`HTTP ${response.status()} ${url.pathname}`);
+  });
+  return errors;
+}
+
 export async function loginDirectus(
   page: Page,
   backendUrl: string,

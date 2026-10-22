@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Browser, Page } from 'playwright';
 import { assert, assertIncludes, assertNotIncludes } from '../lib/assert.js';
 import { waitFor } from '../lib/wait.js';
-import { newContext } from '../lib/browser.js';
+import { newContext, waitForHydration, collectPublicPageErrors } from '../lib/browser.js';
 import { assertNoCredentialFields } from '../lib/disclosure.js';
 import type { TestFixture } from '../lib/fixture.js';
 import type { TestRunner } from '../lib/runner.js';
@@ -21,7 +21,7 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
   }
   async function json(path: string) {
     const response = await fetch(`${config.frontendUrl}${path}`);
-    assert(response.ok, `${path} must succeed, got ${response.status}: ${(await response.clone().text()).slice(0, 300)}`);
+    assert(response.ok, `${path} must succeed, got ${response.status}`);
     const result = await response.json();
     assertNoCredentialFields(result, path);
     return result;
@@ -40,6 +40,7 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
   const firstTitle = `Public energy ${config.runId}`;
   const secondTitle = `Public buildings ${config.runId}`;
   const newsTitle = `Public news ${config.runId}`;
+  const timelineDay = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10);
   const hidden = `PRIVATE-CONTENT-${config.runId}`;
   const context = await newContext(browser);
   try {
@@ -63,8 +64,11 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
     });
     await fixture.localteamAdmin.client.updateItem('municipality_scores', score.id, { published: true });
     await create('climate_tools', { title: `Public tool ${config.runId}`, description: 'Public climate tool description', category: 'Regression', link: 'https://example.org/tool', status: 'published' });
+    const projectImage = await admin.uploadFile<{ id: string }>(`${slug}.svg`, 'image/svg+xml', new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="green"/></svg>'), `Public project ${config.runId}`);
+    await create('articles', { title: `Public project ${config.runId}`, slug, status: 'published', abstract: 'Public carousel project abstract', author: 'Public regression', municipality_name: fixture.municipalityName, image: projectImage.id, image_credits: 'Public regression image', sectors: ['energy'], article_text: 'Public regression project content' });
     await create('organisation_teams', { team_key: slug, label: `Public team ${config.runId}`, email: 'public@example.org', tasks: [], color: '#505050' });
-    const news = await create('news_items', { title: newsTitle, slug, status: 'published', is_tour_redirect: false, date_published: new Date().toISOString() });
+    const news = await create('news_items', { title: newsTitle, slug, status: 'published', is_tour_redirect: false, date_published: `${timelineDay}T12:00:00` });
+    await create('events', { title: `Public timeline event ${config.runId}`, slug: `${slug}-timeline`, status: 'published', event_category: 'own_public', event_type: 'other', start_date: `${timelineDay}T11:30:00.000Z` });
     const draft = await create('news_items', { title: hidden, slug: `${slug}-draft`, status: 'draft', is_tour_redirect: false });
     const pageRecord = await create('pages', { name: `Public blocks ${config.runId}`, slug, status: 'published', contents: '' });
     const privatePage = await create('pages', { name: `Private page ${config.runId}`, slug: `${slug}-private`, status: 'draft', contents: hidden });
@@ -147,19 +151,38 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       assertIncludes(await embedded.text(), 'Embedded public page content', 'Directus-page block must include its public HTML on SSR');
     });
 
+    await runner.step('Public news: SSR hydration preserves feed order across browser time zones', async () => {
+      for (const timezoneId of ['UTC', 'America/Los_Angeles']) {
+        const newsContext = await newContext(browser, { timezoneId });
+        try {
+          const page = await newsContext.newPage();
+          const errors = collectPublicPageErrors(page);
+          await page.goto(`${config.frontendUrl}/news`, { waitUntil: 'domcontentloaded' });
+          await waitForHydration(page);
+          await page.getByText(newsTitle, { exact: true }).first().waitFor();
+          const order = await page.locator(`a[href="/news/${slug}"], a[href="/events/${slug}-timeline"]`).evaluateAll(links => links.map(link => link.getAttribute('href')));
+          assert(order.length === 2 && order[0] === `/events/${slug}-timeline`, `Event must sort after Berlin noon news in reverse chronology (${timezoneId}): ${order.join(', ')}`);
+          assert(errors.length === 0, `News hydration must be consistent in ${timezoneId}: ${errors.join('; ')}`);
+        } finally { await newsContext.close(); }
+      }
+    });
+
     await runner.step('Public navigation: measures, catalog switching, sector filters and detail hydration', async () => {
       const page = await context.newPage();
-      const errors: string[] = [];
-      page.on('pageerror', error => errors.push(error.message));
-      await page.goto(`${config.frontendUrl}/tools`, { waitUntil: 'networkidle' });
+      const errors = collectPublicPageErrors(page);
+      await page.goto(`${config.frontendUrl}/tools`, { waitUntil: 'domcontentloaded' });
+      await waitForHydration(page);
+      await page.getByText(`Public tool ${config.runId}`, { exact: true }).first().waitFor();
       assertIncludes(await page.locator('body').innerText(), `Public tool ${config.runId}`, 'Tool list must render published CMS tools');
       await page.evaluate(() => { (window as unknown as Record<string, unknown>).publicNavigationMarker = true; });
       await page.locator('a[href="/measures"]').first().click();
-      await page.waitForURL(url => url.pathname === '/measures');
+      await page.waitForURL(url => url.pathname === '/measures' && Boolean(url.searchParams.get('v')));
+      await waitForHydration(page);
+      await page.evaluate(() => { (window as unknown as Record<string, unknown>).publicNavigationMarker = true; });
       await page.locator(`a[href="/measures?v=${slug}"]`).first().click();
+      await page.waitForURL(url => url.searchParams.get('v') === slug);
       await page.getByText(firstTitle, { exact: true }).first().waitFor();
       await page.getByText(secondTitle, { exact: true }).first().waitFor();
-      await page.waitForLoadState('networkidle');
       await page.locator('button').filter({ has: page.locator('img[src="/icons/icon_category_energy.svg"]') }).click();
       await page.waitForURL(url => url.searchParams.get('sector') === 'energy').catch(error => { throw new Error(`${error.message}; browser errors: ${errors.join('; ')}`); });
       await page.getByText(firstTitle, { exact: true }).first().waitFor();
@@ -167,37 +190,73 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
       await page.locator(`a[href^="/measures/${slug}?"]`).first().click();
       await page.getByRole('heading', { name: firstTitle, exact: true }).waitFor();
       await page.getByText('Public regression measure description', { exact: false }).first().waitFor();
+      await page.locator('#section-history svg rect').first().waitFor();
       await page.locator(`a[href*="v=${slug}-second"]`).first().click();
       await page.getByRole('heading', { name: `Second version ${config.runId}`, exact: true }).waitFor();
+      // Interrupt chart/detail work with rapid navigation to exercise unmount cleanup.
+      await clientNavigate(page, `/stats?v=${slug}`);
+      await clientNavigate(page, `/measures/${slug}?v=${slug}`);
+      await page.getByRole('heading', { name: firstTitle, exact: true }).waitFor();
       assert(errors.length === 0, `Catalog navigation must not throw browser errors: ${errors.join('; ')}`);
       await page.close();
     });
 
     await runner.step('Public navigation: map, statistics, organisation, news and CMS blocks', async () => {
       const page = await context.newPage();
-      const errors: string[] = [];
+      const errors = collectPublicPageErrors(page);
       const browserCmsReads: string[] = [];
-      page.on('pageerror', error => errors.push(error.message));
       page.on('request', request => { if (/\/items\//.test(request.url())) browserCmsReads.push(request.url()); });
-      await page.goto(`${config.frontendUrl}/organisation`, { waitUntil: 'networkidle' });
       const teams = await json('/api/public/organisation-teams');
       assert(teams.some((team: { team_key: string }) => team.team_key === slug), 'Organisation teams endpoint must return CMS teams');
+      // Exercise mounted CMS team labels/tasks without overwriting a shared real team.
+      await page.route('**/api/public/organisation-teams', route => route.fulfill({ json: [
+        ...teams.filter((team: { team_key: string }) => team.team_key !== 'lokalteams'),
+        { team_key: 'lokalteams', label: `Public team ${config.runId}`, email: 'public@example.org', tasks: ['Public team regression task'], color: '#505050' },
+      ] }));
+      await page.goto(`${config.frontendUrl}/tools`, { waitUntil: 'domcontentloaded' });
+      await waitForHydration(page);
+      await page.evaluate(() => { (window as unknown as Record<string, unknown>).publicNavigationMarker = true; });
+      await clientNavigate(page, '/organisation');
+      await page.locator('.org-svg-wrapper svg circle').first().waitFor();
+      await page.locator('.org-svg-wrapper circle[style*="pointer-events: all"]').first().click();
+      await page.locator('#team-detail-panel').getByText(`Public team ${config.runId}`, { exact: true }).waitFor();
+      await page.locator('#team-detail-panel').getByText('Public team regression task', { exact: true }).waitFor();
       await page.route('**/api/area-search?*', route => route.fulfill({ json: [] }));
       await page.keyboard.press('Control+k');
       await page.keyboard.insertText(fixture.municipalityName);
       await page.getByRole('dialog').getByText(fixture.municipalityName, { exact: true }).first().waitFor();
       await page.keyboard.press('Escape');
       await page.unroute('**/api/area-search?*');
+      const current = (await json('/api/public/catalogs')).find((item: { isCurrentFrontend: boolean }) => item.isCurrentFrontend);
+      // The cloud reads the global frontend catalog. Supply a deterministic public
+      // contract without changing global CMS catalog flags or depending on seed data.
+      await page.route(`**/api/public/stats/${encodeURIComponent(current.name)}`, route => route.fulfill({ json: { scores: [
+        ...Array.from({ length: 12 }, (_, index) => ({ published: true, percentage_rated: 100, score_total: 75, municipality: { id: `cloud-${index}`, name: `Public cloud ${index}`, slug: fixture.municipality.slug, population: 100000 } })),
+        { published: false, percentage_rated: 100, municipality: { id: 'private', name: hidden, slug: 'private' } },
+        { published: true, percentage_rated: 50, municipality: { id: 'incomplete', name: hidden, slug: 'incomplete' } },
+      ] } }));
       await page.evaluate(() => { (window as unknown as Record<string, unknown>).publicNavigationMarker = true; });
       for (const path of [`/municipalities?v=${slug}`, `/municipalities?v=${slug}&view=map`, `/stats?v=${slug}`, `/map?v=${slug}`, '/news', `/${slug}`]) {
         await clientNavigate(page, path);
-        await page.waitForLoadState('networkidle');
         if (path.includes('view=map') || path.startsWith('/map?')) await page.locator('.leaflet-marker-icon').filter({ visible: true }).first().waitFor();
-        if (path === `/municipalities?v=${slug}`) await page.getByText(fixture.municipalityName, { exact: true }).filter({ visible: true }).first().waitFor();
+        if (path === `/municipalities?v=${slug}`) {
+          // Scope to the actual ranking card, not lingering command-palette results.
+          const city = page.locator(`a[href^="/municipalities/${fixture.municipality.slug}?v="]`).filter({ visible: true }).first();
+          await city.waitFor();
+          await clientNavigate(page, `/municipalities?v=${slug}-second`);
+          await city.waitFor({ state: 'hidden', timeout: 5_000 }).catch(error => { throw new Error(`${error.message}; current URL: ${page.url()}; public errors: ${errors.join('; ')}`); });
+          await clientNavigate(page, path);
+          await city.waitFor();
+        }
+        if (path === `/stats?v=${slug}`) await page.locator('.stats-page .vega-embed svg, .stats-page .vega-embed canvas').first().waitFor();
         assert(await page.locator('h1,h2').count() > 0, `${path} must render content after client navigation`);
       }
       await page.getByText('Embedded public page content', { exact: true }).waitFor().catch(error => { throw new Error(`${error.message}; URL: ${page.url()}; browser errors: ${errors.join('; ')}`); });
       await page.locator(`#block-${chartUuid} canvas, #block-${chartUuid} svg`).first().waitFor();
+      await page.locator('.blokkli-block-projects-carousel').getByText(`Public project ${config.runId}`, { exact: true }).first().waitFor();
+      const cloud = page.locator('.blokkli-block-municipality-search-hero');
+      await cloud.locator(`a[href="/municipalities/${fixture.municipality.slug}"]`).first().waitFor();
+      assertNotIncludes(await cloud.innerText(), hidden, 'Word cloud excludes incomplete and unpublished scores');
       assert(errors.length === 0, `Public client navigation must not throw: ${errors.join('; ')}`);
       assert(browserCmsReads.length === 0, 'Public widgets must use scoped APIs rather than browser Directus reads');
       const feed = await json('/api/public/news');

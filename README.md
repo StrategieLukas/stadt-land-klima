@@ -255,4 +255,8 @@ unreported stops. It never runs during production imports.
 Targeted regression: `bin/test_suite/src/runTourOnly.ts` uses the existing Tour
 Series flow; `npm run test:tour-migration` from `src/directus/cli` exercises data
 transfers and rollback in an isolated database schema. The complete development
-suite remains `./test_dev.sh` from `bin/`.
+suite is `./test_dev.sh --full` from `bin/`. `./test_dev.sh` runs the fast isolated
+and public CMS/browser regression profile. For an anonymous, read-only deployment
+check, run `npm run test:public -- https://staging.stadt-land-klima.de` from
+`bin/test_suite`; this blocks all non-GET/HEAD browser requests. See
+`bin/test_suite/README.md` for profile scope and commands.

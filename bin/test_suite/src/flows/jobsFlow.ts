@@ -1,7 +1,7 @@
 import { JobsListResponseSchema, JobsDetailResponseSchema } from '../../../../src/frontend/shared/contracts/jobs.js';
 import type { Browser } from 'playwright';
 import { assert, assertIncludes, assertNotIncludes } from '../lib/assert.js';
-import { newContext } from '../lib/browser.js';
+import { newContext, waitForHydration, collectPublicPageErrors } from '../lib/browser.js';
 import type { TestFixture } from '../lib/fixture.js';
 import type { TestRunner } from '../lib/runner.js';
 
@@ -104,14 +104,14 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
       const context = await newContext(browser);
       try {
         const page = await context.newPage();
-        await page.goto(`${config.frontendUrl}/jobs`, { waitUntil: 'networkidle' });
+        await page.goto(`${config.frontendUrl}/jobs`, { waitUntil: 'domcontentloaded' });
+        await waitForHydration(page);
         const bodyText = await page.locator('body').innerText();
         assertIncludes(bodyText, `Automated role ${config.runId}`, 'Browser should render job title');
 
         // Click through to detail and wait for content
         await page.getByRole('link', { name: new RegExp(`Automated role ${config.runId}`, 'i') }).click();
         await page.waitForURL(`**/jobs/${slug}`);
-        await page.waitForLoadState('networkidle');
         // Wait for the detail content to appear
         await page.waitForFunction(
           (text) => document.body.innerText.includes(text),
@@ -137,19 +137,19 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
       const context = await newContext(browser);
       try {
         const page = await context.newPage();
-        const errors: string[] = [];
-        page.on('pageerror', error => errors.push(error.message));
-        await page.goto(`${config.frontendUrl}/jobs/${slug}-sparse`, { waitUntil: 'networkidle' });
+        const errors = collectPublicPageErrors(page);
+        await page.goto(`${config.frontendUrl}/jobs/${slug}-sparse`, { waitUntil: 'domcontentloaded' });
+        await waitForHydration(page);
         assertIncludes(await page.locator('body').innerText(), `Sparse role ${config.runId}`, 'Direct entry hydrates with nullable fields');
         // The CMS requires organisation on writes; simulate an unavailable
         // relation through the public contract without changing that constraint.
-        await page.goto(`${config.frontendUrl}/jobs`, { waitUntil: 'networkidle' });
+        await page.goto(`${config.frontendUrl}/jobs`, { waitUntil: 'domcontentloaded' });
+        await waitForHydration(page);
         await page.route(`**/api/public/jobs/${slug}-sparse`, route => route.fulfill({
           json: { job: { ...data.job, organisation: null }, organisation: null },
         }));
         await page.getByRole('link', { name: new RegExp(`Sparse role ${config.runId}`, 'i') }).click();
         await page.waitForURL(`**/jobs/${slug}-sparse`);
-        await page.waitForLoadState('networkidle');
         assertIncludes(await page.locator('body').innerText(), `Sparse role ${config.runId}`, 'Missing organisation must work through client navigation');
         assert(errors.length === 0, `Jobs hydration must have no page errors: ${errors.join(', ')}`);
       } finally { await context.close(); }
@@ -159,7 +159,8 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
       const context = await newContext(browser);
       try {
         const page = await context.newPage();
-        await page.goto(`${config.frontendUrl}/jobs/${slug}`, { waitUntil: 'networkidle' });
+        await page.goto(`${config.frontendUrl}/jobs/${slug}`, { waitUntil: 'domcontentloaded' });
+        await waitForHydration(page);
         // The back link is a real NuxtLink: keep the same document to prove this
         // executes the browser data path rather than another SSR request.
         await page.evaluate(() => { (window as Window & { jobsDocument?: boolean }).jobsDocument = true; });
@@ -168,8 +169,8 @@ export async function runJobsFlow(runner: TestRunner, fixture: TestFixture, brow
         await page.locator('a[href="/jobs"]').first().click();
         await response;
         await page.waitForURL('**/jobs');
-        await page.waitForLoadState('networkidle');
         assert(await page.evaluate(() => (window as Window & { jobsDocument?: boolean }).jobsDocument === true), 'Jobs navigation must stay in the hydrated app');
+        await page.getByText(`Automated role ${config.runId}`, { exact: false }).first().waitFor({ state: 'detached' });
         assert(await page.locator('a[href^="/jobs/"]').count() === 0, 'Empty list must not render stale job cards');
         assertNotIncludes(await page.locator('body').innerText(), `Automated role ${config.runId}`, 'Empty-state navigation clears previous jobs');
       } finally { await context.close(); }
