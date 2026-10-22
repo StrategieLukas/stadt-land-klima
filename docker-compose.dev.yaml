@@ -17,9 +17,6 @@ services:
     command: ["sh", "/start_dev.sh"]
     environment:
       SLK_ENV: development
-    networks:
-      - default
-      - stadt-land-zahl_default
 
   #pgadmin:
     #image: dpage/pgadmin4
@@ -32,8 +29,3 @@ services:
     #  PGADMIN_DEFAULT_PASSWORD: password
     #volumes:
     #  - ./pgadmin:/pgadmin
-
-networks:
-  stadt-land-zahl_default: 
-    external: true
-    driver: bridge

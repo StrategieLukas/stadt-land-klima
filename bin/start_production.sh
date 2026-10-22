@@ -47,6 +47,8 @@ wait_for_url() {
 cd "$REPO_ROOT"
 mkdir -p src/directus/uploads
 
+"$SCRIPT_DIR/check_core_service_data.sh" production
+
 echo "[stack] Starting production services"
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d db cache meilisearch
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --force-recreate directus frontend

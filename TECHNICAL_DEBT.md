@@ -83,20 +83,20 @@ The Nuxt 4.6.2 upgrade removes all seven direct Nuxt advisories recorded for 4.4
 
 ---
 
-### Database Migrations — PostgreSQL and Search Server
+### Core-Service Migration Rollout
 
 **Priority:** Medium
-**Status:** Pending
-**Last checked:** 2026-10-21
+**Status:** Implemented on main and merged into the hardening branch; staging and production deployment reported successful by the user
+**Last checked:** 2026-10-22
 
-PostgreSQL and search server migrations are listed as explicit follow-up work. Current Docker images use older versions.
+Compose targets PostgreSQL 17.11/PostGIS 3.6.4 and Meilisearch 1.55.0. The explicit migration exports and restores into separate directories, verifies database row counts/hashes and search settings/key permissions, and preserves old data for recovery. Redis is pinned to 8.10.2. Startup scripts reject incompatible old data before container recreation.
 
 **What to do:**
-- Plan and test PostgreSQL version upgrade in a controlled environment.
-- Plan and test search server (if applicable) version upgrade.
-- Ensure backup and rollback procedures are in place.
+- Add dedicated automated migration/startup-guard coverage; the completed migration and rollback review are currently manual-only.
+- Named-volume/macOS and custom storage layouts still need a separate logical migration; the automated directory cutover supports the standard Linux bind mounts.
+- Budget disk space for old and restored data, dumps and images before migration. Keep verified off-server backups; do not prune stopped source containers during the upgrade.
 
-**References:** `docker-compose.yaml`, `docker-compose.prod.yaml`
+**References:** `docker-compose.yaml`, `bin/upgrade_core_services.sh`, `bin/check_core_service_data.sh`, `CORE_SERVICE_SECURITY_REVIEW.md`
 
 ---
 
