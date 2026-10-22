@@ -154,20 +154,13 @@ const props = defineProps<{
   linkText?: string
 }>()
 
-const { $directus, $readItems } = useNuxtApp()
 
 const { data: projects } = await useAsyncData(
   `projects-carousel-${uuid}`,
   async () => {
     try {
-      return await $directus.request(
-        $readItems('articles' as any, {
-          filter: { status: { _eq: 'published' } },
-          fields: ['id', 'slug', 'title', 'abstract', { image: ['id', 'type'] }],
-          sort: ['-date_created'],
-          limit: parseInt(options.value.limit) || 10,
-        }),
-      ) as any[]
+      const result = await $fetch<{ articles: { id: string; slug: string; title: string; abstract: string | null; image: { id: string; type: string } | null }[] }>('/api/public/articles')
+      return result.articles.slice(0, parseInt(options.value.limit) || 10)
     } catch {
       return []
     }

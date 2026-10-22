@@ -5,47 +5,16 @@
 </template>
 
 <script setup>
-import TheMap from '~/components/TheMap.vue'
-import { ref, onMounted } from 'vue'
-
-const municipality_scores = ref([])
-
-const { $directus, $readItems, $t } = useNuxtApp()
-
+import TheMap from '~/components/TheMap.vue';
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
+const { $t } = useNuxtApp();
 const route = useRoute();
-const selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route);
-
-// // Fetch all relevant municipalityScores from directus
-// const { data: municipalityScores } = await useAsyncData(`municipalities_ranking_scores_${selectedCatalogVersion.id}`, () => {
-//   return $directus.request(
-//     $readItems("municipality_scores", {
-//       fields: ["id", "catalog_version", "rank", "score_total", "percentage_rated", "municipality.name", 
-//       { municipality: ["id", "slug", "state", "municipality_type", "geolocation", "date_updated"] }],
-//       filter: { catalog_version: { _eq: selectedCatalogVersion.id }, percentage_rated: { _gt: 0} },
-//       limit: -1,
-//       sort: ["-score_total", "municipality.name"],
-//     })
-//   )
-// });
-
-
-async function fetchMunicipalities(catalogVersionId) {
-  municipality_scores.value = await $directus.request(
-    $readItems("municipality_scores", {
-      fields: ["id", "catalog_version", "published", "rank", "score_total", "percentage_rated", "municipality.name", 
-      { municipality: ["id", "slug", "state", "municipality_type", "geolocation", "date_updated"] }],
-      filter: { catalog_version: { _eq: catalogVersionId }, percentage_rated: { _gt: 0} },
-      limit: -1,
-      sort: ["-score_total", "municipality.name"],
-    })
-  )
-}
-
-onMounted(() => {
-  fetchMunicipalities(selectedCatalogVersion.id)
-})
-
-const title = ref($t('map.title'))
-useHead({ title })
+const selectedCatalogVersion = ref(await getCatalogVersion(route));
+const { data } = await useAsyncData(
+  () => `map-scores-${selectedCatalogVersion.value.name}`,
+  () => $fetch(`/api/public/stats/${encodeURIComponent(selectedCatalogVersion.value.name)}`),
+);
+const municipality_scores = computed(() => data.value?.scores ?? []);
+watch(() => route.query.v, async () => { selectedCatalogVersion.value = await getCatalogVersion(route); });
+useHead({ title: () => $t('map.title') });
 </script>

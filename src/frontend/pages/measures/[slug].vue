@@ -179,7 +179,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useHeaderHeight } from '~/composables/useHeaderHeight.js';
 import { useMobileHeaderHidden } from '~/composables/useMobileHeaderHidden.js';
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
@@ -210,9 +210,10 @@ const mobileHeaderHidden = useMobileHeaderHidden();
 const isDesktop = useState('layout-isDesktop');
 const pillTop = computed(() => isDesktop.value ? headerHeight.value : (mobileHeaderHidden.value ? 0 : 64));
 const mobilePillStrip = ref(null);
+let sectionObserver = null;
 
 // Use a ref so the reactive key below re-fetches automatically when the version changes.
-const currentCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route, false));
+const currentCatalogVersion = ref(await getCatalogVersion(route, false));
 
 onMounted(() => {
   setCatalogVersionUrl(route, router, currentCatalogVersion.value);
@@ -227,33 +228,14 @@ onUnmounted(() => {
 
 // Function key includes the version ID, so Nuxt never serves stale data from a different
 // version. The watch option triggers an automatic re-fetch when currentCatalogVersion changes.
-const { data: measuresRaw } = await useAsyncData(
+const { data: measureData } = await useAsyncData(
   () => `measure-${route.params.slug}-${currentCatalogVersion.value.id}`,
-  () => $directus.request(
-    $readItems("measures", {
-      fields: ['*', { image: ['id', 'image_credits'] }],
-      filter: {
-        slug: { _eq: route.params.slug },
-        catalog_version: { _eq: currentCatalogVersion.value.id },
-      },
-      limit: 1,
-    }),
-  ),
-  { watch: [currentCatalogVersion] },
+  () => $fetch(`/api/public/measures/${encodeURIComponent(route.params.slug)}`, {
+    query: { v: currentCatalogVersion.value.name },
+  }),
 );
-
-// Fetch all catalog versions this measure appears in (for version switcher)
-const { data: measureVersions } = await useAsyncData(`measure-versions-${route.params.slug}`, () => {
-  return $directus.request(
-    $readItems("measures", {
-      fields: [{ catalog_version: ["id", "name"] }],
-      filter: { slug: { _eq: route.params.slug } },
-      limit: -1,
-    }),
-  );
-});
-
-const measure = computed(() => measuresRaw.value?.[0] || null);
+const measure = computed(() => measureData.value?.measure ?? null);
+const measureVersions = computed(() => measureData.value?.versions ?? []);
 const measureImageId = computed(() => {
   const image = measure.value?.image;
   return typeof image === 'string' ? image : image?.id ?? null;
@@ -304,7 +286,6 @@ const navItems = computed(() => {
 });
 
 const activeSection = ref(null);
-let sectionObserver = null;
 
 watch(activeSection, (id) => {
   if (!id || !mobilePillStrip.value) return;
@@ -341,17 +322,7 @@ const { data: measureRatings } = await useAsyncData(
   () => `measure-ratings-${measure.value?.id ?? 'none'}`,
   () => {
     if (!measure.value?.id) return []
-    return $directus.request(
-      $readItems('ratings_measures', {
-        fields: [
-          'rating',
-          'applicable',
-          { localteam_id: ['municipality_name', { municipality_id: ['slug', 'status'] }] },
-        ],
-        filter: { measure_id: { _eq: measure.value.id } },
-        limit: -1,
-      })
-    )
+    return $fetch('/api/public/measure-ratings', { query: { measureId: measure.value.id } }).then(result => result.ratings)
   },
   { watch: [measure] }
 );
@@ -359,21 +330,13 @@ const { data: measureRatings } = await useAsyncData(
 // Fetch all measures in the same sector + version for prev/next navigation
 const { data: siblingMeasuresRaw } = await useAsyncData(
   () => `measure-siblings-${route.params.slug}-${currentCatalogVersion.value.id}`,
-  () => $directus.request(
-    $readItems('measures', {
-      fields: ['id', 'slug', 'name', 'measure_id', 'sector'],
-      filter: {
-        catalog_version: { _eq: currentCatalogVersion.value.id },
-        sector: { _eq: measure.value?.sector ?? '' },
-      },
-      sort: ['measure_id'],
-      limit: -1,
-    }),
-  ),
+  () => $fetch('/api/public/measures', {
+    query: { v: currentCatalogVersion.value.name, sector: measure.value?.sector ?? '' },
+  }),
   { watch: [currentCatalogVersion, measure] },
 );
 
-const siblingMeasures = computed(() => siblingMeasuresRaw.value ?? []);
+const siblingMeasures = computed(() => siblingMeasuresRaw.value?.measures ?? []);
 const siblingIndex = computed(() => siblingMeasures.value.findIndex(m => m.slug === route.params.slug));
 const prevMeasure = computed(() => siblingIndex.value > 0 ? siblingMeasures.value[siblingIndex.value - 1] : null);
 const nextMeasure = computed(() => siblingIndex.value < siblingMeasures.value.length - 1 ? siblingMeasures.value[siblingIndex.value + 1] : null);
@@ -393,7 +356,7 @@ watch(
   () => route.query.v,
   async (newV, oldV) => {
     if (newV === oldV) return;
-    const newVersion = await getCatalogVersion($directus, $readItems, route, true);
+    const newVersion = await getCatalogVersion(route, true);
     currentCatalogVersion.value = newVersion;
   }
 );

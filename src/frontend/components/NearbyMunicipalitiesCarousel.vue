@@ -154,7 +154,6 @@
 import { getScorePercentageColor } from "~/shared/utils.js";
 import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing.js";
 
-const { $directus, $readItems } = useNuxtApp();
 const config = useRuntimeConfig();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
@@ -243,27 +242,12 @@ const onNearbyGeoJsonReady = (ars, geoArea) => {
 
 const fetchMunicipalityData = async (ars) => {
   try {
-    const municipalities = await $directus.request(
-      $readItems("municipalities", {
-        fields: ["id", "slug", "name", "ars", "status", "localteam_id"],
-        filter: { ars: { _eq: ars } },
-        limit: 1,
-      }),
-    );
-    if (!municipalities?.length) return null;
+    const catalogs = await getAllCatalogVersions();
+    const version = catalogs.find(catalog => catalog.id === props.catalogVersionId);
+    if (!version) return null;
+    const { municipalities } = await $fetch('/api/public/area-municipalities', { query: { ars, v: version.name } });
     const municipality = municipalities[0];
-
-    const scores = await $directus.request(
-      $readItems("municipality_scores", {
-        fields: ["*"],
-        filter: {
-          municipality: { _eq: municipality.id },
-          catalog_version: { _eq: props.catalogVersionId },
-        },
-        limit: 1,
-      }),
-    );
-    return { municipality, score: scores?.[0] ?? null };
+    return municipality ? { municipality, score: municipality.scores.find(score => score.catalog_version?.id === props.catalogVersionId) ?? null } : null;
   } catch {
     return null;
   }

@@ -208,9 +208,9 @@ const { data: blocksData } = await useAsyncData(
     try {
       const result = await $fetch('/api/public/blocks', {
         query: {
-          entity_type: 'news_items',
-          entity_uuid: item.value.id,
-          field_name: 'content',
+          entityType: 'news_items',
+          entityUuid: item.value.id,
+          fieldName: 'content',
         },
       })
       return mapBlokkliBlocks(result.blocks ?? [])

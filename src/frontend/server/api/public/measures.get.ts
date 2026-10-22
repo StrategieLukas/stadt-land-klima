@@ -1,7 +1,7 @@
 import { readItems } from '@directus/sdk'
-import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
+import { createError, defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
-import { readMunicipalityCatalogs, catalogForRequest } from '../../utils/municipalityPageData'
+import { readMunicipalityCatalogs, catalogForRequest, publicMeasureFields } from '../../utils/municipalityPageData'
 
 type Row = Record<string, any>
 
@@ -9,7 +9,7 @@ function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
 }
 
-const measureFields = ['id', 'measure_id', 'name', 'slug', 'sector', 'description', 'image', 'impact', 'feasibility', 'weight']
+const measureFields = publicMeasureFields
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
@@ -33,14 +33,15 @@ export default defineEventHandler(async (event) => {
     ]
   }
 
-  const limit = Math.min(Number(query.limit) || 50, 200)
+  const limit = 501
 
   const measures = await client.request(readItems('measures', {
     filter,
     fields: measureFields,
-    sort: ['name'],
+    sort: ['measure_id'],
     limit,
   }))
 
+  if (measures.length > 500) throw createError({ statusCode: 502, statusMessage: 'Measure limit exceeded' })
   return { measures: measures.map(m => pick(m, measureFields)), catalogVersion: selectedCatalog }
 })

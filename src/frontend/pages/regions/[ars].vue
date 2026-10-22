@@ -170,9 +170,8 @@ import { getCatalogVersion } from '~/composables/getCatalogVersion.js';
 
 const route = useRoute();
 const { $t, $stadtlandzahlAPI } = useNuxtApp();
-const { $directus, $readItems } = useNuxtApp();
 
-const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route));
+const selectedCatalogVersion = ref(await getCatalogVersion(route));
 
 const area = ref(null);
 const municipalities = ref([]);

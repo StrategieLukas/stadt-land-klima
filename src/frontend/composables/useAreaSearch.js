@@ -27,7 +27,7 @@ export function useAreaSearch({
   catalogVersionName = null,
   statusCatalogVersionId = null,
 } = {}) {
-  const { $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp()
+  const { $stadtlandzahlAPI } = useNuxtApp()
 
   // Allow mode and catalogVersionName to be passed as plain strings or reactive refs
   const modeRef = isRef(mode) ? mode : ref(mode)
@@ -152,7 +152,9 @@ export function useAreaSearch({
             const query = {}
             if (arsCodes.length) query.ars = arsCodes.join(',')
             if (candidateSlugs.length) query.slugs = candidateSlugs.join(',')
-            if (requestedCatalogId) query.v = statusCatalogRef.value?.name || ''
+            const catalogs = await getAllCatalogVersions()
+            const selectedCatalog = catalogs.find(catalog => catalog.id === requestedCatalogId)
+            if (selectedCatalog) query.v = selectedCatalog.name
             const result = await $fetch('/api/public/area-municipalities', { query })
             municipalities = result.municipalities || []
           } catch {

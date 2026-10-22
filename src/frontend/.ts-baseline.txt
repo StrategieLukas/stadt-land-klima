@@ -8,20 +8,6 @@ components/Blokkli/Container/index.vue(262,52): error TS2551
 components/Blokkli/Container/index.vue(263,26): error TS2367
 components/Blokkli/Container/index.vue(278,28): error TS2367
 components/Blokkli/Container/index.vue(340,30): error TS2367
-components/Blokkli/MunicipalitySearchHero/index.vue(196,26): error TS18048
-components/Blokkli/MunicipalitySearchHero/index.vue(222,20): error TS18048
-components/Blokkli/MunicipalitySearchHero/index.vue(240,20): error TS18048
-components/Blokkli/MunicipalitySearchHero/index.vue(240,56): error TS18048
-components/Blokkli/MunicipalitySearchHero/index.vue(243,11): error TS18048
-components/Blokkli/MunicipalitySearchHero/index.vue(244,13): error TS18048
-components/Blokkli/MunicipalitySearchHero/index.vue(245,13): error TS18048
-components/Blokkli/MunicipalitySearchHero/index.vue(71,27): error TS2322
-components/Blokkli/MunicipalitySearchHero/index.vue(73,16): error TS2322
-components/Blokkli/MunicipalitySearchHero/index.vue(74,16): error TS2322
-components/Blokkli/MunicipalitySearchHero/index.vue(75,16): error TS2322
-components/Blokkli/MunicipalitySearchHero/index.vue(76,16): error TS2322
-components/Blokkli/MunicipalitySearchHero/index.vue(77,16): error TS2322
-components/Blokkli/MunicipalitySearchHero/index.vue(78,3): error TS2322
 components/Blokkli/PageNav/index.vue(119,11): error TS2339
 components/Blokkli/PageNav/index.vue(119,18): error TS2339
 components/Blokkli/PageNav/index.vue(119,26): error TS2339
@@ -48,8 +34,6 @@ components/MapLibreRenderElement.vue(790,13): error TS2769
 components/ProjectsMap.client.vue(13,93): error TS2322
 components/ProjectsMap.client.vue(71,70): error TS2345
 components/RegisterMunicipalityForm.vue(483,63): error TS2339
-components/SuccessProjectTourContent.vue(33,33): error TS2532
-components/SuccessProjectTourContent.vue(34,29): error TS2532
 components/ThresholdBar.vue(103,29): error TS2532
 components/ThresholdBar.vue(106,23): error TS2532
 components/ThresholdBar.vue(106,43): error TS2532
@@ -114,7 +98,6 @@ pages/projects/tours/[tourSlug]/index.vue(370,62): error TS2532
 pages/projects/tours/[tourSlug]/index.vue(85,127): error TS2322
 pages/projects/tours/[tourSlug]/index.vue(86,130): error TS2532
 pages/projects/tours/[tourSlug]/index.vue(86,79): error TS2532
-pages/register_localteam.vue(256,69): error TS2554
 pages/tools/index.vue(79,18): error TS2322
 server/api/carto-basemap.get.ts(24,38): error TS2345
 server/api/election-pdf.post.ts(51,46): error TS2345
@@ -128,7 +111,6 @@ server/api/public/event-series/[slug].get.ts(34,19): error TS18048
 server/api/public/event-series/[slug].get.ts(37,18): error TS2345
 server/api/public/events/[slug].get.ts(40,36): error TS18048
 server/api/public/events/[slug].get.ts(47,33): error TS18048
-server/api/public/measures/[slug].get.ts(47,26): error TS2345
 server/api/public/pages/[slug].get.ts(32,23): error TS2345
 server/api/public/tours/[slug].get.ts(34,18): error TS18048
 server/api/public/tours/[slug].get.ts(37,16): error TS2345

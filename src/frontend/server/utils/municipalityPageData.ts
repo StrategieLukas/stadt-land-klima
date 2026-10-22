@@ -6,7 +6,7 @@ import { verifyMunicipalityPreview } from './municipalityPreview'
 type Row = Record<string, any>
 type Client = ReturnType<typeof createDirectusServerClient>
 
-const catalogFields = ['id', 'name', 'isCurrentFrontend', 'isCurrentBackend']
+const catalogFields = ['id', 'name', 'isCurrentFrontend', 'isCurrentBackend', 'date_created']
 const municipalityFields = [
   'id', 'name', 'slug', 'ars', 'status', 'state', 'population', 'municipality_type',
   'description', 'image', 'image_credits', 'mayor', 'party_mayor', 'public_contact',
@@ -17,7 +17,7 @@ const scoreFields = [
   'score_agriculture', 'score_buildings', 'score_energy', 'score_industry',
   'score_management', 'score_transport', 'date_created', 'date_updated',
 ]
-const measureFields = [
+export const publicMeasureFields = [
   'id', 'measure_id', 'name', 'slug', 'sector', 'weight', 'image', 'image_credits',
   'description', 'description_about', 'description_benefit', 'description_contribution',
   'description_implementation', 'description_funding', 'description_legal',
@@ -96,7 +96,7 @@ export async function loadMunicipalityPageData(
     })),
     client.request(readItems('measures', {
       filter: { catalog_version: { _eq: selectedCatalogVersion.id }, status: { _eq: 'published' } },
-      fields: measureFields, limit: 501,
+      fields: publicMeasureFields, limit: 501,
     })),
     municipality.localteam_id?.id ? client.request(readItems('ratings_measures', {
       filter: {
@@ -110,7 +110,7 @@ export async function loadMunicipalityPageData(
   if (measures.length > 500 || ratings.length > 500) {
     throw createError({ statusCode: 502, statusMessage: 'Municipality data limit exceeded' })
   }
-  const safeMeasures = measures.map(measure => pick(measure, measureFields))
+  const safeMeasures = measures.map(measure => pick(measure, publicMeasureFields))
   const measureById = new Map(safeMeasures.map(measure => [measure.id, measure]))
   const ratingsBySector: Record<string, Row[]> = {}
   const ratedIds = new Set<string>()

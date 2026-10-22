@@ -367,7 +367,7 @@ import sectorImages from "~/shared/sectorImages.js";
 
 const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'];
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const config = useRuntimeConfig();
 const route = useRoute();
 const router = useRouter();
@@ -375,7 +375,7 @@ const measureCatalogDownloadUrl = (fileName) => {
   const directusUrl = config.public.clientDirectusUrl || "http://127.0.0.1:8081";
   return `${directusUrl.replace(/\/+$/, "")}/assets/${encodeURIComponent(fileName)}`;
 };
-let selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
+let selectedCatalogVersion = await getCatalogVersion(route, true);
 const currentCatalogVersion = ref(selectedCatalogVersion);
 
 onMounted(() => {
@@ -385,47 +385,21 @@ onMounted(() => {
 const title = ref($t("measures.nav_label"));
 useHead({ title });
 
-// Fetch all non-hidden catalog versions for the version filter row
-const { data: allVersions } = await useAsyncData('measure-catalog-versions', () => {
-  return $directus.request(
-    $readItems("measure_catalog", {
-      fields: ["id", "name", "isCurrentFrontend"],
-      filter: { hidden: { _eq: false } },
-      sort: "-name",
-      limit: -1,
-    })
-  );
-});
-
-async function fetchMeasures(catalogVersionId) {
-  return useAsyncData(`measures-index-${catalogVersionId}`, () => {
-    return $directus.request(
-      $readItems("measures", {
-        fields: ["measure_id", "name", "slug", "sector", "description_about", "impact", "feasibility_economical", "feasibility_political", "weight", "image", "image_credits"],
-        filter: { catalog_version: { _eq: catalogVersionId } },
-        sort: "measure_id",
-        limit: -1,
-      }),
-    );
-  });
-}
-
-let { data: measureList } = await fetchMeasures(selectedCatalogVersion.id);
-
-// ── Re-fetch when catalog version changes ────────────────────────────────────
-watch(
-  () => route.query.v,
-  async (newV, oldV) => {
-    if (newV === oldV) return;
-    selectedCatalogVersion = await getCatalogVersion($directus, $readItems, route, true);
-    currentCatalogVersion.value = selectedCatalogVersion;
-    const { data: newData } = await fetchMeasures(selectedCatalogVersion.id);
-    measureList.value = newData.value;
-  }
+// Public contracts work during SSR and subsequent client navigation.
+const { data: allVersions } = await useAsyncData('measure-catalog-versions', async () => (await $fetch('/api/public/catalogs')).slice().sort((a, b) => b.name.localeCompare(a.name)));
+const { data: measuresData } = await useAsyncData(
+  () => `measures-index-${currentCatalogVersion.value.name}`,
+  () => $fetch('/api/public/measures', { query: { v: currentCatalogVersion.value.name } }),
 );
+const measureList = computed(() => measuresData.value?.measures ?? []);
+watch(() => route.query.v, async (newV, oldV) => {
+  if (newV === oldV) return;
+  currentCatalogVersion.value = await getCatalogVersion(route, true);
+});
 
 // ── Filter state ────────────────────────────────────────────────────────────
 const selectedSector = ref(route.query.sector || null);
+watch(() => route.query.sector, sector => { selectedSector.value = sector || null; });
 const viewMode = ref(route.query.view === 'treemap' ? 'treemap' : route.query.view === 'cards' ? 'cards' : 'list');
 const filterHighImpact = ref(false);
 const filterLowCost = ref(false);
@@ -450,12 +424,7 @@ function setSector(sector) {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function stripHtml(html) {
   if (!html) return '';
-  if (process.client) {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.textContent || '';
-  }
-  // SSR: decode common HTML entities then strip tags
+  // Use the same text projection on the server and client to avoid hydration mismatches
   return html
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')

@@ -252,8 +252,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { getCurrentBackendCatalogVersion } from '~/composables/getCatalogVersion.js'
 
 const route = useRoute()
-const { $stadtlandzahlAPI, $directus, $readItems, $t } = useNuxtApp()
-const currentVersionBackend = await getCurrentBackendCatalogVersion($directus, $readItems)
+const { $stadtlandzahlAPI, $t } = useNuxtApp()
+const currentVersionBackend = await getCurrentBackendCatalogVersion()
 
 // --- Query-param pre-fill ---
 const hasQueryParams = computed(() => !!route.query.ars)

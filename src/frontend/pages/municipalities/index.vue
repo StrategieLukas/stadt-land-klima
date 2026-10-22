@@ -375,40 +375,19 @@ const route = useRoute();
 const router = useRouter();
 const isMapView = computed(() => route.query.view === 'map'); // Default to map view if no query param or 'map'
 
-let selectedCatalogVersion = await getCatalogVersion(route);
+const selectedCatalogVersion = ref(await getCatalogVersion(route));
 onMounted(() => {
-  setCatalogVersionUrl(route, router, selectedCatalogVersion);
+  setCatalogVersionUrl(route, router, selectedCatalogVersion.value);
 });
 
-// Fetch all relevant municipalityScores from server route
-let { data: municipalityScores } = await useAsyncData(`municipalities_ranking_scores_${selectedCatalogVersion.id}`, async () => {
-  const result = await $fetch('/api/public/municipalities', {
-    query: { v: selectedCatalogVersion.value?.name || selectedCatalogVersion.name, limit: 500 },
-  });
-  return (result.municipalities || []).map((m) => ({
-    id: m.id,
-    catalog_version: result.catalogVersion ? result.catalogVersion.id : null,
-    published: m.score?.published ?? false,
-    rank: m.score?.rank ?? 0,
-    score_total: m.score?.score_total ?? 0,
-    percentage_rated: m.score?.percentage_rated ?? 0,
-    municipality: {
-      id: m.id,
-      slug: m.slug,
-      name: m.name,
-      state: m.state,
-      municipality_type: m.municipality_type,
-      status: m.status,
-      geolocation: null,
-      date_updated: m.date_updated,
-      image: m.image,
-      image_credits: m.image_credits,
-    },
-  })).filter((item) => item.percentage_rated > 0)
-    .sort((a, b) => b.score_total - a.score_total);
-});
-
-
+// Share the complete public score projection with the map and statistics pages.
+const { data: rankingData } = await useAsyncData(
+  () => `municipalities_ranking_scores_${selectedCatalogVersion.value.name}`,
+  () => $fetch(`/api/public/stats/${encodeURIComponent(selectedCatalogVersion.value.name)}`),
+);
+const municipalityScores = computed(() => (rankingData.value?.scores ?? [])
+  .filter(score => Number(score.percentage_rated) > 0)
+  .slice().sort((a, b) => Number(b.score_total) - Number(a.score_total)));
 
 const { data: projects } = await useAsyncData("articles_ranking", async () => {
   const result = await $fetch('/api/public/articles', { query: { limit: 100, sort: '-date_created' } });
@@ -417,16 +396,10 @@ const { data: projects } = await useAsyncData("articles_ranking", async () => {
 
 
 
-watch(
-  () => route.query.v,
-  async (newV, oldV) => {
-    if (newV === oldV) return;
-    if (!oldV) return;
-    await refreshNuxtData(/municipalities_ranking_scores/);
-    await refreshNuxtData("articles_ranking");
-  }
-);
-
+watch(() => route.query.v, async (newV, oldV) => {
+  if (newV === oldV) return;
+  selectedCatalogVersion.value = await getCatalogVersion(route);
+});
 
 const majorCityScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'big_city'));
 const minorCitiesScores = computed(() => getSublist((municipalityScore) => municipalityScore.municipality.municipality_type === 'small_city'));

@@ -360,7 +360,7 @@ const props = defineProps({
 
 const emit = defineEmits(["stateSelected", "stateExited"]);
 
-const { $stadtlandzahlAPI, $directus, $readItems } = useNuxtApp();
+const { $stadtlandzahlAPI } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
 const baseUrl = runtimeConfig.public.stadtlandzahlBaseUrl;
 const isGermany = computed(() => props.area?.level === 1);
@@ -482,13 +482,7 @@ function numericPopulation(value) {
 async function loadDirectusMunicipalityStatus(stateArs) {
   directusStatusByArs.value = {};
   try {
-    const items = await $directus.request(
-      $readItems("municipalities", {
-        fields: ["ars", "status"],
-        filter: { ars: { _starts_with: stateArs.slice(0, 2) } },
-        limit: 500,
-      }),
-    );
+    const { municipalities: items } = await $fetch('/api/public/area-municipalities', { query: { arsPrefix: stateArs.slice(0, 2) } });
     const map = {};
     for (const item of items ?? []) map[item.ars] = item.status;
     directusStatusByArs.value = map;

@@ -1,37 +1,13 @@
-import { readItems } from '@directus/sdk'
-import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
-import { createDirectusServerClient } from '../../utils/directusServerClient'
+import { createError, defineEventHandler, getQuery, setResponseHeader } from 'h3'
+import { readPublicBlocks } from '../../utils/publicBlocks'
 
-type Row = Record<string, any>
-
-function pick(row: Row, fields: string[]): Row {
-  return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
-}
-
-const blockFields = ['id', 'uuid', 'bundle', 'props', 'options', 'sort_order', 'entity_type', 'entity_uuid', 'field_name', 'status']
-
-export default defineEventHandler(async (event) => {
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
-  const client = createDirectusServerClient()
+export default defineEventHandler(async event => {
   const query = getQuery(event)
-
-  const filter: Record<string, any> = { status: { _neq: 'archived' } }
-  if (typeof query.entityUuid === 'string' && query.entityUuid) {
-    filter.entity_uuid = { _eq: query.entityUuid }
+  const entityType = query.entityType ?? (query.bundle === 'page' ? 'pages' : undefined)
+  if (typeof entityType !== 'string' || typeof query.entityUuid !== 'string' || (query.fieldName !== undefined && typeof query.fieldName !== 'string')) {
+    throw createError({ statusCode: 400, statusMessage: 'A parent content scope is required' })
   }
-  if (typeof query.entityType === 'string' && query.entityType) {
-    filter.entity_type = { _eq: query.entityType }
-  }
-  if (typeof query.fieldName === 'string' && query.fieldName) {
-    filter.field_name = { _eq: query.fieldName }
-  }
-
-  const blocks = await client.request(readItems('blocks', {
-    filter,
-    fields: blockFields,
-    sort: ['sort_order'],
-    limit: 500,
-  }))
-
-  return { blocks: blocks.map(b => pick(b, blockFields)) }
+  const blocks = await readPublicBlocks(entityType, query.entityUuid, query.fieldName)
+  setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
+  return { blocks }
 })

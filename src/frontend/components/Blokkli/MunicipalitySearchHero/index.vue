@@ -55,17 +55,18 @@
 </template>
 
 <script setup lang="ts">
+import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js';
 import { onMounted, ref, computed } from 'vue'
 
 // ─── Rating → hex colour map (inline so they work in dynamic inline styles) ───
-const RATING_HEX: Record<string, string> = {
+const RATING_HEX = {
   'rating-4': '#1EA64A',
   'rating-3': '#AFCA0B',
   'rating-2': '#FFD400',
   'rating-1': '#F39200',
   'rating-0': '#E30613',
   'rating-na': '#9D9D9C',
-}
+} as const
 
 function scoreToHex(scoreTotal: number | null | undefined): string {
   if (scoreTotal == null) return RATING_HEX['rating-na']
@@ -189,8 +190,7 @@ function buildCloudLayout(
   const items: WordItem[] = []
   let spiralIndex = 0
 
-  for (let i = 0; i < municipalities.length; i++) {
-    const m = municipalities[i]
+  for (const m of municipalities) {
 
     // Font size: log-scale of population, clamped to [0.55rem, 2.2rem]
     const pop = Math.max(m.population || 1000, 1000)
@@ -262,27 +262,11 @@ function buildCloudLayout(
 
 onMounted(async () => {
   try {
-    const { $directus, $readItems } = useNuxtApp() as any
-
-    const catalogs: any[] = await $directus.request(
-      $readItems('measure_catalog', {
-        fields: ['id'],
-        filter: { isCurrentFrontend: { _eq: true } },
-        limit: 1,
-      }),
-    )
-    const catalogId = catalogs?.[0]?.id
-    if (!catalogId) return
-
-    // Fetch complete published scores in the current frontend catalog.
-    const data: any[] = await $directus.request(
-      $readItems('municipality_scores', {
-        limit: 2500,
-        sort: ['-municipality.population'],
-        fields: ['score_total', 'percentage_rated', { municipality: ['id', 'name', 'slug', 'population'] }],
-        filter: { catalog_version: { _eq: catalogId }, published: { _eq: true }, percentage_rated: { _gte: 100 } },
-      }),
-    )
+    const catalog = await getCurrentFrontendCatalogVersion()
+    if (!catalog) return
+    const result = await $fetch<{ scores: { published: boolean; percentage_rated: number | string | null; score_total: number | string | null; municipality: { id: string; name: string; slug: string; population: number | null } | null }[] }>(`/api/public/stats/${encodeURIComponent(catalog.name)}`)
+    const data = result.scores.filter(isMunicipalityScoreComplete)
+      .sort((a, b) => Number(b.municipality?.population ?? 0) - Number(a.municipality?.population ?? 0)).slice(0, 2500)
 
     // Flatten: each municipality → { id, name, slug, population, score_total, percentage_rated }
     const flat = data.map((score: any) => ({

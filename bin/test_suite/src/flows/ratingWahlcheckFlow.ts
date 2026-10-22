@@ -547,7 +547,7 @@ async function completePublicWahlcheck(
     );
     const wahlcheckDataPayload = await wahlcheckDataResponse.json();
     const allAnswers = wahlcheckDataPayload.candidates?.flatMap(
-      (c) => c.answers,
+      (c: { answers: unknown[] }) => c.answers,
     ) || [];
     assert(Array.isArray(allAnswers), 'Wahlcheck data response must contain candidate answers');
     assertEqual(

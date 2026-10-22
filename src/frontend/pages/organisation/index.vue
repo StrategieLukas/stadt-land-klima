@@ -277,7 +277,7 @@
 </template>
 
 <script setup>
-const { $directus, $readItems, $t } = useNuxtApp()
+const { $t } = useNuxtApp()
 const { isDark } = useTheme()
 
 useHead({ title: $t('organisation') })
@@ -300,7 +300,7 @@ const { data: members } = await useAsyncData('org-members', () =>
 )
 
 const { data: cmsTeams } = await useAsyncData('org-teams', () =>
-  $directus.request($readItems('organisation_teams', { sort: ['sort'], limit: -1 }))
+  $fetch('/api/public/organisation-teams')
 )
 
 // Merge SVG layout with CMS data; fall back to sensible defaults when CMS is unavailable

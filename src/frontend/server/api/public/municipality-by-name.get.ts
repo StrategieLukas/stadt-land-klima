@@ -1,5 +1,6 @@
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
+import { readMunicipalityCatalogs } from '../../utils/municipalityPageData'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
 
 export default defineEventHandler(async (event) => {
@@ -21,5 +22,9 @@ export default defineEventHandler(async (event) => {
     limit: 1,
   }))
 
-  return { municipality: results[0] || null }
+  const municipality = results[0]
+  if (!municipality) return { municipality: null }
+  const catalogs = await readMunicipalityCatalogs(client)
+  const visibleCatalogs = new Set(catalogs.map(catalog => catalog.id))
+  return { municipality: { slug: municipality.slug, ars: municipality.ars, scores: (municipality.scores ?? []).filter((score: { published: boolean; catalog_version: string }) => score.published === true && visibleCatalogs.has(score.catalog_version)) } }
 })

@@ -92,6 +92,11 @@ let renderTimer: ReturnType<typeof setTimeout> | null = null
 let rendering = false
 let lastRenderKey = ''
 
+import { INJECT_PROVIDER_CONTEXT } from '#blokkli/helpers/injections'
+import { defaultVegaQuery as defaultQuery } from '~/shared/vegaQuery'
+
+const publicContext = inject(INJECT_PROVIDER_CONTEXT)
+const isDraftPreview = Boolean(useRoute().query.blokkliPreview)
 const isEditing = import.meta.blokkliEditing
 
 const { options, uuid } = defineBlokkli({
@@ -218,18 +223,6 @@ const defaultSpec = JSON.stringify(
   2,
 )
 
-const defaultQuery = JSON.stringify(
-  {
-    collection: 'ratings_measures',
-    query: {
-      filter: { measure_id: { catalog_version: { name: { _eq: 'v1.0' } } }, status: { _eq: 'published' }, applicable: { _eq: true } },
-      fields: ['id', 'rating', 'measure_id.sector', 'measure_id.name', 'measure_id.measure_id'],
-      limit: -1,
-    },
-  },
-  null,
-  2,
-)
 
 const chartContainer = ref<HTMLElement | null>(null)
 const editChartContainer = ref<HTMLElement | null>(null)
@@ -237,7 +230,8 @@ const errorMessage = ref('')
 const loading = ref(false)
 const debugData = ref<any[] | null>(null)
 
-const { $stadtlandzahlAPI, $apollo, $directus, $readItems } = useNuxtApp()
+const { $stadtlandzahlAPI, $apollo } = useNuxtApp()
+const { getAuthenticatedClient } = useAuth()
 const config = useRuntimeConfig()
 
 function parseJsonSafe(text: string | object | undefined): any | null {
@@ -298,8 +292,9 @@ async function fetchQueryData(queryConfig: any, source: string): Promise<any[] |
       if (!queryConfig.collection) {
         throw new Error('Directus query requires a "collection" field')
       }
-      const cmd = ($readItems as Function)(queryConfig.collection, queryConfig.query || {})
-      const result = await ($directus as any).request(cmd)
+      const result = isEditing || isDraftPreview
+        ? await getAuthenticatedClient().request((await import('@directus/sdk')).readItems(queryConfig.collection, queryConfig.query || {}))
+        : await $fetch(`/api/public/chart-data/${encodeURIComponent(uuid)}`, { query: { entityType: publicContext?.value.type, entityUuid: publicContext?.value.uuid } })
       const data = Array.isArray(result) ? result : [result]
       if (queryConfig.dataPath) {
         return queryConfig.dataPath.split('.').reduce((obj: any, key: string) => obj?.[key], data)

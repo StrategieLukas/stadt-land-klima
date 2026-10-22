@@ -359,7 +359,6 @@ function stripHtml(html) {
 
 const NuxtLinkComponent = resolveComponent('NuxtLink')
 
-const { $directus, $readItems } = useNuxtApp()
 const config = useRuntimeConfig()
 const directusUrl = config.public.clientDirectusUrl
 
@@ -433,60 +432,13 @@ useHead({ title: 'Neuigkeiten' })
 
 // ── Data fetching ──────────────────────────────────────────────────────────────
 
-const [
-  { data: newsData },
-  { data: articlesData },
-  { data: eventsData },
-  { data: municipalitiesData },
-  { data: catalogData },
-  { data: visitReports },
-] = await Promise.all([
-  useAsyncData('feed-news', () =>
-    $directus.request($readItems('news_items', {
-      filter: { status: { _eq: 'published' }, is_tour_redirect: { _eq: false } },
-      fields: ['id', 'slug', 'title', 'teaser', { image: ['id', 'type'] }, 'image_credits', 'date_published', 'date_created'],
-      sort: ['-date_published', '-date_created'],
-      limit: 50,
-    }))
-  ),
-  useAsyncData('feed-articles', () =>
-    $directus.request($readItems('articles', {
-      filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'abstract', { image: ['id', 'type'] }, 'image_credits', 'date_created'],
-      sort: ['-date_created'],
-      limit: 20,
-    }))
-  ),
-  useAsyncData('feed-events', () =>
-    $directus.request($readItems('events', {
-      filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'title', 'description', 'event_type', 'event_category', 'date_only', 'start_date', 'end_date', 'date_created', { image: ['id', 'type'] }, 'image_credits', 'location'],
-      sort: ['-start_date'],
-      limit: 20,
-    }))
-  ),
-  useAsyncData('feed-municipalities', () =>
-    $directus.request($readItems('municipalities', {
-      filter: { status: { _eq: 'published' } },
-      fields: ['id', 'slug', 'name', 'description', 'date_updated', {'image': ['id', 'type']}, 'image_credits'],
-      sort: ['-date_updated'],
-      limit: 20,
-    }))
-  ),
-  useAsyncData('feed-catalogs', () =>
-    $directus.request($readItems('measure_catalog', {
-      fields: ['id', 'name', 'date_created'],
-      sort: ['-date_created'],
-      limit: 10,
-    }))
-  ),
-  useAsyncData('feed-tour-stops', () => $directus.request($readItems('success_project_tour_stops', {
-    filter: { status: { _eq: 'published' }, report_status: { _eq: 'published' }, tour: { status: { _eq: 'published' } } },
-    fields: ['id','slug','report_title','title','teaser','date_published','image_credits','start_date','end_date','date_only','location',{image:['id','type']},{tour:['slug']}],
-    sort: ['-date_published'], limit: 50,
-  }))),
-
-])
+const { data: feedData } = await useAsyncData('public-news-feed', () => $fetch('/api/public/news'))
+const newsData = computed(() => feedData.value?.news ?? [])
+const articlesData = computed(() => feedData.value?.articles ?? [])
+const eventsData = computed(() => feedData.value?.events ?? [])
+const municipalitiesData = computed(() => feedData.value?.municipalities ?? [])
+const catalogData = computed(() => feedData.value?.catalogs ?? [])
+const visitReports = computed(() => feedData.value?.visitReports ?? [])
 
 // ── Map to unified feed items ──────────────────────────────────────────────────
 

@@ -182,7 +182,7 @@ See [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for tracked technical debt items, fut
 
 - **TypeScript 7 upgrade:** Currently on TypeScript 6.0.3, the newest stable compiler supported by typescript-eslint and Blökkli. Recheck their peer ranges and Vue tooling before upgrading to 7.x.
 - **Framework stack:** Nuxt 4.6.2 with Vite 8.3.5 and Blökkli 2.0.0-alpha.73. Keep platform bindings optional and preserve the Blökkli virtual-file Vite integration; see FRAMEWORK_UPGRADE_REVIEW.md.
-- **TypeScript diagnostic baseline:** 372 existing diagnostics (249 unique entries) tracked in `.ts-baseline.txt`; reducing via Phases 4–6 of the migration plan.
+- **TypeScript diagnostic baseline:** 282 existing diagnostics (193 unique entries) tracked in `.ts-baseline.txt`; reducing via Phases 4–6 of the migration plan.
 
 ## Checks
 1. Run ./test_dev.sh in the bin folder and wait for checks to complete.

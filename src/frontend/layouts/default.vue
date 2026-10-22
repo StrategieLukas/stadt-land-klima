@@ -95,7 +95,7 @@ import lodash from "lodash";
 import { ref, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useHeaderHeight, useHeaderSpacerHeight } from "~/composables/useHeaderHeight.js";
 const { includes } = lodash;
-const { $directus, $locale, $readItems, $readSingleton } = useNuxtApp();
+const { $locale } = useNuxtApp();
 const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
 const route = useRoute();
 const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();

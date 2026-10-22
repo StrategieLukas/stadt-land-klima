@@ -167,38 +167,14 @@ type ClimateTool = {
   sort?: number | null;
 };
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 
 useHead({ title: $t("tools.title") });
 
 const selectedCategory = ref<string | null>(null);
 
-const {
-  data: tools,
-  pending,
-  error,
-} = await useAsyncData("climate-tools-list", async () => {
-  return (await $directus.request(
-    $readItems(
-      "climate_tools" as never,
-      {
-        fields: [
-          "id",
-          "title",
-          "description",
-          "category",
-          "vendor",
-          "link",
-          "image_credits",
-          "sort",
-          { image: ["id", "type"] },
-        ],
-        sort: ["sort", "title"],
-        limit: -1,
-      } as never,
-    ),
-  )) as ClimateTool[];
-});
+const { data: toolData, pending, error } = await useAsyncData('climate-tools-list', () => $fetch<{ tools: ClimateTool[] }>('/api/public/climate-tools'));
+const tools = computed(() => toolData.value?.tools ?? []);
 
 const hasLoadError = computed(() => Boolean(error.value));
 

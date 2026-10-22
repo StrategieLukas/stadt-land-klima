@@ -77,7 +77,7 @@ function createHarness(options: { blocks?: Block[]; authenticated?: boolean; per
   const adapterModule = loadModule('../../../src/frontend/app/blokkli.editAdapter.ts', {
     '#blokkli/editor/adapter': { defineBlokkliEditAdapter: (factory: unknown) => factory },
     '#blokkli/editor/events': { emitMessage() {} },
-    '@directus/sdk': { ...sdk, customEndpoint: (command: Command) => ({ operation: 'custom', ...command }) },
+    '@directus/sdk': { ...sdk, customEndpoint: (command: Command) => ({ ...command, operation: 'custom' }) },
     '~/composables/useAuth': { useAuth: () => ({
       isAuthenticated: { value: authenticated },
       user: { value: authenticated ? { id: 'editor-id', first_name: 'Test', last_name: 'Editor' } : null },
@@ -175,7 +175,7 @@ test('failed and conflicting publication retain drafts and revision; success upd
     const result = await h.adapter.publish({ closeAfterPublish: true });
     assert.equal(result.success, false);
     assert.equal(h.liveBlocks()[0].props!.text, 'Live');
-    assert.equal(h.draft().draft_blocks[0].props.text, 'Draft');
+    assert.equal(h.draft()?.draft_blocks[0].props.text, 'Draft');
     assert.equal(state.blocks[0].props.text, 'Draft');
     assert.equal(h.storage.size, 1);
   }
@@ -183,8 +183,8 @@ test('failed and conflicting publication retain drafts and revision; success upd
   assert.equal((await h.adapter.publish({ closeAfterPublish: false })).success, true);
   assert.equal(h.pageData.data.value[0].props!.text, 'Draft');
   assert.equal(h.storage.size, 0);
-  assert.equal(h.draft().base_revision, 'published-revision');
-  assert.equal(h.draft().draft_blocks, null);
+  assert.equal(h.draft()?.base_revision, 'published-revision');
+  assert.equal(h.draft()?.draft_blocks, null);
   const publications = h.requests.filter((request) => request.path === '/blokkli-persistence/publish');
   assert.ok(publications.every((request) => JSON.parse(request.body!).baseRevision === 'initial-revision'));
 });

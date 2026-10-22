@@ -28,7 +28,7 @@ import { getScorePercentageColor, getStateFromArs } from '~/shared/utils.js'
 import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js'
 
 export function useUnifiedSearch({ catalogVersionName = null } = {}) {
-  const { $directus, $readItems, $t } = useNuxtApp()
+  const { $t } = useNuxtApp()
 
   const catalogRef = isRef(catalogVersionName) ? catalogVersionName : ref(catalogVersionName)
 

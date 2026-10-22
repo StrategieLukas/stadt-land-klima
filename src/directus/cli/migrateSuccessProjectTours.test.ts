@@ -115,8 +115,10 @@ test('Native tour migration preserves content, media, drafts and reruns; collisi
       if(index<5){
         assert.equal(visit.image,reportImages[index]);assert.equal(visit.image_credits,`Report credit ${index+1}`);assert.equal(visit.itinerary_image_credits,`Itinerary credit ${index+1}`);
         assert.equal(visit.report_title,`Report ${index+1}`);assert.equal(visit.teaser,`Report teaser ${index+1}`);assert.equal(visit.author,'Report author');
-        assert.equal(visit.date_published.toISOString(),`2026-10-${String(5+index).padStart(2,'0')}T12:00:00.000Z`);
         const original=(await q('SELECT * FROM news_items WHERE id=$1',[productionNews[index]])).rows[0];
+        // pg interprets timestamp-without-time-zone in the host timezone. Compare
+        // the actual source and destination values so preservation is checked in every TZ.
+        assert.equal(visit.date_published.getTime(),original.date_published.getTime());
         assert.equal(original.status,'published');assert.equal(original.is_tour_redirect,true);assert.equal(original.tour_stop,visit.id);assert.equal(original.report_event,null);
       }
       const gallery=(await q('SELECT * FROM success_project_tour_media WHERE stop=$1',[visit.id])).rows;

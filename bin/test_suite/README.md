@@ -81,3 +81,23 @@ The current suite executes:
 - Overall Wahlcheck page: `/elections/wahlcheck`.
 - Municipality Wahlcheck page: `/elections/wahlcheck/<slug>`.
 - Candidate thesis form: `/elections/thesen/<access_token>`.
+
+## Public reads and navigation
+
+The full runner also executes `src/flows/publicNavigationFlow.ts`. Disposable CMS
+fixtures exercise every visible catalog (including dotted version names), published
+measures, descriptions and version switching, sector filters, comparison ratings,
+map/statistics data, public tools, organisation teams, the combined news feed,
+parent-scoped CMS blocks, embedded pages and root/nested Vega charts. It checks
+unpublished-score and draft-parent exclusions and browser errors during navigation.
+The browser uses real Nuxt links for catalog/detail/filter interactions; the remaining
+page transitions use the hydrated router and assert that the document is retained.
+External map tiles, Stadt.Land.Zahl datasets, exhaustive chart controls and visual
+layout still require manual review; these are not implied by a passing HTTP status.
+
+Check the TypeScript test harness separately with `npm run typecheck`. The other
+standalone checks are `test:contracts`, `test:blokkli:adapter`, `test:blokkli`,
+`test:mail-client`, `test:security:helpers`, `test:security:preview`, and
+`test:security:migration`; security commands requiring service URLs also need the
+backend, frontend and `.env` arguments shown above. Migration asset scanning must
+use the **freshly built** public directory via `TEST_FRONTEND_BUILD_DIR`.

@@ -115,14 +115,14 @@ import { useRouter } from 'vue-router'
 import { useAreaSearch } from '~/composables/useAreaSearch.js'
 import { getCatalogVersion } from '~/composables/getCatalogVersion.js'
 
-const { $t, $directus, $readItems } = useNuxtApp()
+const { $t } = useNuxtApp()
 
 // Get the current catalog version — wrapped in try/catch so a Directus failure
 // (e.g. CLIENT_DIRECTUS_URL unreachable from mobile) does not crash component setup.
 const route = useRoute()
 let selectedCatalogVersion
 try {
-  selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route))
+  selectedCatalogVersion = ref(await getCatalogVersion(route))
 } catch {
   selectedCatalogVersion = ref(null)
 }

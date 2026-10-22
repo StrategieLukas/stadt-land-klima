@@ -1,48 +1,21 @@
 <script setup>
-  import { useRoute } from "vue-router"
-  import { fetchMunicipalityData } from '~/shared/directus-calls/complex-data-fetches.js';
-  import { fetchMunicipalityScores } from '~/shared/directus-calls/municipality-scores.js';
-  import { getCurrentFrontendCatalogVersion } from '~/composables/getCatalogVersion.js';
-  import { ref } from "vue"
-
+  import { ref } from 'vue'
+  const route = useRoute()
+  const { $t } = useNuxtApp()
+  const catalogs = await getAllCatalogVersions()
+  const currentCatalogVersion = await getCurrentFrontendCatalogVersion()
   const usingFallbackCatalog = ref(false)
   const directusData = ref(null)
-
-  const route = useRoute()
-  const { $directus, $readItems, $t } = useNuxtApp();
-
-  const municipalityScores = await fetchMunicipalityScores($directus, $readItems, route.params.slug)
-  const municipalityMissing = !municipalityScores || municipalityScores.length === 0
-  const currentCatalogVersion = await getCurrentFrontendCatalogVersion($directus, $readItems)
-
-  const sufficientlyRatedMunicipalities = municipalityScores.filter(
-    item => item.percentage_rated > 80
-  )
-
-  if (sufficientlyRatedMunicipalities.length !== 0) {
-    let selectedEntry = sufficientlyRatedMunicipalities.find(
-      item => item.catalog_version?.id === currentCatalogVersion.id
-    )
-
-    if (!selectedEntry) {
-      usingFallbackCatalog.value = true
-
-      selectedEntry = sufficientlyRatedMunicipalities
-        .slice()
-        .sort((a, b) =>
-          new Date(b.catalog_version.date_created) -
-          new Date(a.catalog_version.date_created)
-        )[0]
+  const results = await Promise.all(catalogs.map(catalog => $fetch(`/api/public/municipalities/${encodeURIComponent(route.params.slug)}`, { query: { v: catalog.name } })))
+  const municipalityMissing = results.every(result => !result.municipality)
+  const eligible = results.filter(result => Number(result.directusData?.municipalityScore?.percentage_rated) > 80)
+  const selected = eligible.find(result => result.selectedCatalogVersion.id === currentCatalogVersion.id) ?? eligible.slice().sort((a, b) => new Date(b.selectedCatalogVersion.date_created) - new Date(a.selectedCatalogVersion.date_created))[0]
+  if (selected?.directusData) {
+    usingFallbackCatalog.value = selected.selectedCatalogVersion.id !== currentCatalogVersion.id
+    directusData.value = {
+      ...selected.directusData,
+      ratingsMeasures: Object.values(selected.directusData.ratingsBySector).flat(),
     }
-
-    const result = await fetchMunicipalityData(
-      $directus,
-      $readItems,
-      route.params.slug,
-      selectedEntry.catalog_version.id
-    )
-
-    directusData.value = result
   }
 
   // Set title

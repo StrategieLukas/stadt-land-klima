@@ -109,7 +109,7 @@
   import ratingIcons, { ratingIndex } from "~/shared/ratingIcons.js";
   import { onMounted, onBeforeUnmount, ref } from "vue";
 
-  const { $t, $directus, $readItems, $locale } = useNuxtApp();
+  const { $t, $locale } = useNuxtApp();
   const props = defineProps({
     measure_rating: {
       type: Object,
@@ -173,23 +173,13 @@
 
 
     // Step 2: Fetch better ratings
-    const rawRatingResultsBeforeFilter = await $directus.request(
-      $readItems('ratings_measures', {
-        filter: {
-          // Using the uuid of the measure here, so only returns results for that measure and not from the same "Measure-ID" (as in EN_2).
-          // This ensure that we only look for better examples in the same catalog version
-          measure_id: { _eq: measureId },
-          status: { _eq: 'published' },
-          rating: { _in: higherRatings },
-        },
-        fields: ['rating', { localteam_id: ["municipality_name", { municipality_id: ['id', 'name', 'slug', 'state', 'party_mayor', 'population', 'geolocation', { scores: ['catalog_version', 'published', 'percentage_rated']}]}]}],
-        limit: -1,
-      })
-    );
+    const { ratings: rawRatingResultsBeforeFilter } = await $fetch('/api/public/measure-ratings', {
+      query: { measureId },
+    });
 
     // Client-side filter: published score for this catalog version.
     // this is a workaround because adding the filters with _some does not work for some reason...
-    const rawRatingResults = (rawRatingResultsBeforeFilter ?? []).filter((row) => {
+    const rawRatingResults = (rawRatingResultsBeforeFilter ?? []).filter(row => higherRatings.includes(String(row.rating))).filter((row) => {
       const scores = row?.localteam_id?.municipality_id?.[0]?.scores ?? [];
       return scores.some((s) => {
         const cv = typeof s.catalog_version === 'object' ? s.catalog_version?.id : s.catalog_version;

@@ -8,7 +8,7 @@ function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
 }
 
-const electionFields = ['id', 'slug', 'name', 'status', 'is_public', 'is_party_election', 'descriptor', 'action_buttons', 'custom_logo', 'sharepic', 'response_cutoff_date', 'localteam']
+const electionFields = ['id', 'is_public', 'is_party_election', 'descriptor', 'custom_logo', 'sharepic', 'response_cutoff_date', 'localteam']
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')

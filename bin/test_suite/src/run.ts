@@ -14,6 +14,7 @@ import { runDataAvailabilityFlow } from './flows/dataAvailabilityFlow.js';
 import { runMailWebhookSecurityFlow } from './flows/mailWebhookSecurityFlow.js';
 import { runContactSpamSecurityFlow } from './flows/contactSpamSecurityFlow.js';
 import { runMunicipalityDisclosureFlow } from './flows/municipalityDisclosureFlow.js';
+import { runPublicNavigationFlow } from './flows/publicNavigationFlow.js';
 import { runJobsFlow } from './flows/jobsFlow.js';
 
 async function main(): Promise<void> {
@@ -46,6 +47,7 @@ async function main(): Promise<void> {
     try { await runDataAvailabilityFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Data availability flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
     try { await runErfolgsprojekteArticlesFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Erfolgsprojekte articles flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
     try { await runJobsFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Jobs flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
+    try { await runPublicNavigationFlow(runner, fixture, browser); } catch (e) { runner.results.push({ name: 'Public navigation flow', status: 'failed', error: e instanceof Error ? e : new Error(String(e)) }); }
   } finally {
     // Set exit code based on any failed tests
     const hasFailures = runner.results.some((r) => r.status === 'failed');

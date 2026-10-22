@@ -42,6 +42,12 @@ export default defineEventHandler(async (event) => {
     return { ratings: [] }
   }
 
+  const publishedScores = await client.request(readItems('municipality_scores', {
+    filter: { municipality: { localteam_id: { _eq: localteamId }, status: { _eq: 'published' } }, catalog_version: { _eq: selectedCatalog.id }, published: { _eq: true } },
+    fields: ['id'], limit: 1,
+  }))
+  if (!publishedScores.length) return { ratings: [] }
+
   const filter: Record<string, any> = {
     localteam_id: { _eq: localteamId },
     measure_id: { catalog_version: { _eq: selectedCatalog.id }, status: { _eq: 'published' } },

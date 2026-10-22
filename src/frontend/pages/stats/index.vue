@@ -855,7 +855,7 @@ function themedVegaSpec(spec) {
   };
 }
 
-const { $t, $directus, $readItems } = useNuxtApp();
+const { $t } = useNuxtApp();
 import { getCatalogVersion } from "~/composables/getCatalogVersion.js";
 import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions.js";
 import sectorImages from "~/shared/sectorImages.js";
@@ -878,9 +878,9 @@ function scrollToSection(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-const selectedCatalogVersion = ref(await getCatalogVersion($directus, $readItems, route));
+const selectedCatalogVersion = ref(await getCatalogVersion(route));
 const selectedCatalogVersionId = ref(selectedCatalogVersion.value.id);
-const catalogVersions = ref(await getAllCatalogVersions($directus, $readItems));
+const catalogVersions = ref(await getAllCatalogVersions());
 
 useHead({ title: ref($t("stats.title")) });
 
@@ -1280,35 +1280,10 @@ const filteredSectorStats = computed(() => {
 
 // ── Data fetching ────────────────────────────────────────────────────────────
 async function fetchStatsForCatalog(catalogVersionId) {
-  const [municipalities, municipalityScores, measures, ratings] = await Promise.all([
-    $directus.request(
-      $readItems("municipalities", { fields: ["id", "name", "slug", "localteam_id", "population"], limit: -1 }),
-    ),
-    $directus.request(
-      $readItems("municipality_scores", {
-        fields: [
-          "*",
-          { municipality: ["id", "name", "slug", "localteam_id", "state", "municipality_type", "population"] },
-        ],
-        filter: { catalog_version: { _eq: catalogVersionId } },
-        limit: -1,
-      }),
-    ),
-    $directus.request(
-      $readItems("measures", {
-        filter: { catalog_version: { _eq: catalogVersionId } },
-        limit: -1,
-      }),
-    ),
-    $directus.request(
-      $readItems("ratings_measures", {
-        fields: ["measure_id", "rating", "applicable", "localteam_id"],
-        filter: { measure_id: { catalog_version: { _eq: catalogVersionId } } },
-        limit: -1,
-      }),
-    ),
-  ]);
-  return { municipalities, municipalityScores, measures, ratings };
+  const catalog = catalogVersions.value.find(version => version.id === catalogVersionId);
+  if (!catalog) throw new Error('Catalog not found');
+  const result = await $fetch(`/api/public/stats/${encodeURIComponent(catalog.name)}`);
+  return { ...result, municipalityScores: result.scores };
 }
 
 const statsData = ref(null);
@@ -1323,6 +1298,7 @@ async function renderSunburst() {
       vegaViewSunburst.finalize();
       vegaViewSunburst = null;
     }
+    if (!sunburstContainer.value) return;
     sunburstContainer.value.innerHTML = "";
     if (!statsData.value?.measures?.length) return;
     const { measures } = statsData.value;
@@ -1456,6 +1432,7 @@ async function renderSunburst() {
       resolve: { scale: { theta: "independent", color: "independent" } },
     };
     const result = await vegaEmbed(sunburstContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!sunburstContainer.value) { result.view.finalize(); return; }
     vegaViewSunburst = result.view;
 
     // Click handler: update selection, re-render sunburst with highlight + dist panel
@@ -1511,6 +1488,7 @@ async function renderDistPanel() {
     vegaViewDist.finalize();
     vegaViewDist = null;
   }
+  if (!distPanelContainer.value) return;
   distPanelContainer.value.innerHTML = "";
 
   const sel = sunburstSelection.value;
@@ -1572,6 +1550,7 @@ async function renderDistPanel() {
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!distPanelContainer.value) { res.view.finalize(); return; }
     vegaViewDist = res.view;
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
@@ -1659,6 +1638,7 @@ async function renderDistPanel() {
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!distPanelContainer.value) { res.view.finalize(); return; }
     vegaViewDist = res.view;
     // Click on a bin: filter municipality list to that bin
     res.view.addEventListener("click", (_e, item) => {
@@ -1726,6 +1706,7 @@ async function renderDistPanel() {
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!distPanelContainer.value) { res.view.finalize(); return; }
     vegaViewDist = res.view;
     // Click on a bar: filter municipality list to that rating
     res.view.addEventListener("click", (_e, item) => {
@@ -1958,6 +1939,7 @@ async function computeDominanceAndRender() {
       vegaViewDominance.finalize();
       vegaViewDominance = null;
     }
+    if (!dominanceRankContainer.value) return;
     dominanceRankContainer.value.innerHTML = "";
 
     const rankSpec = {
@@ -1998,6 +1980,7 @@ async function computeDominanceAndRender() {
     };
 
     const r1 = await vegaEmbed(dominanceRankContainer.value, themedVegaSpec(rankSpec), vegaEmbedOpts());
+    if (!dominanceRankContainer.value) { r1.view.finalize(); return; }
     vegaViewDominance = r1.view;
 
     // ── Dominance heatmap ──────────────────────────────────────────────────────
@@ -2005,6 +1988,7 @@ async function computeDominanceAndRender() {
       vegaViewDominanceHeatmap.finalize();
       vegaViewDominanceHeatmap = null;
     }
+    if (!dominanceHeatmapContainer.value) return;
     dominanceHeatmapContainer.value.innerHTML = "";
 
     const step = Math.max(10, Math.floor(500 / topN));
@@ -2044,6 +2028,7 @@ async function computeDominanceAndRender() {
     };
 
     const r2 = await vegaEmbed(dominanceHeatmapContainer.value, themedVegaSpec(heatSpec), vegaEmbedOpts());
+    if (!dominanceHeatmapContainer.value) { r2.view.finalize(); return; }
     vegaViewDominanceHeatmap = r2.view;
 
     // ── Force-directed graph ──────────────────────────────────────────────────
@@ -2051,9 +2036,11 @@ async function computeDominanceAndRender() {
       vegaViewDominanceForce.finalize();
       vegaViewDominanceForce = null;
     }
+    if (!dominanceForceContainer.value) return;
     dominanceForceContainer.value.innerHTML = "";
 
     const { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide } = await import("d3-force");
+    if (!dominanceForceContainer.value) return;
 
     const forceNodes = sortedIdx.map((i, pos) => ({
       id: String(pos),
@@ -2354,8 +2341,10 @@ async function computeClusteringAndRender() {
       vegaViewCluster.finalize();
       vegaViewCluster = null;
     }
+    if (!clusterContainer.value) return;
     clusterContainer.value.innerHTML = "";
     const result = await vegaEmbed(clusterContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
+    if (!clusterContainer.value) { result.view.finalize(); return; }
     vegaViewCluster = result.view;
 
     // Store rows for profile lookup — keep slug for sector-score lookup

@@ -379,7 +379,7 @@ definePageMeta({
 
 // ── Route + config ───────────────────────────────────────────────────────────
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const route = useRoute();
 const slug = computed(() => String(route.params.slug ?? ""));
 
@@ -414,15 +414,7 @@ const { data: pageData, pending: areaPending } = useAsyncData(
     const ars = resolvedArea.ars;
     const [containedByChain, muniResult] = await Promise.all([
       fetchContainedBy(ars, resolvedArea.level).catch(() => []),
-      $directus
-        .request(
-          $readItems("municipalities", {
-            filter: { ars: { _eq: ars } },
-            fields: ["image", "image_credits"],
-            limit: 1,
-          }),
-        )
-        .catch(() => []),
+      $fetch('/api/public/area-municipalities', { query: { ars } }).then(result => result.municipalities).catch(() => []),
     ]);
 
     return {

@@ -179,10 +179,10 @@ const isLoading = ref(false)
 const focusedIndex = ref(-1)
 
 // Current frontend catalog version — used to distinguish outdated vs current ratings
-const { $directus, $readItems } = useNuxtApp()
+
 const { data: currentCatalog } = useAsyncData(
   'current-frontend-catalog',
-  () => getCurrentFrontendCatalogVersion($directus, $readItems).catch(() => null),
+  () => getCurrentFrontendCatalogVersion().catch(() => null),
 )
 const catalogVersionName = computed(() => currentCatalog.value?.name ?? null)
 

@@ -235,6 +235,7 @@
 </template>
 
 <script setup>
+import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing.js';
 import { ref, computed, watch } from "vue";
 
 const props = defineProps({
@@ -242,7 +243,7 @@ const props = defineProps({
   measureVersions: { type: Array, default: () => [] }, // [{ catalog_version: { id, name } }]
 });
 
-const { $directus, $readItems, $t } = useNuxtApp();
+const { $t } = useNuxtApp();
 const router = useRouter();
 
 // ── Layout constants ──────────────────────────────────────────────────────────
@@ -312,13 +313,7 @@ async function fetchAll() {
   loading.value = true;
   try {
     // 1. Resolve measure UUID for each catalog version
-    const measureRows = await $directus.request(
-      $readItems("measures", {
-        fields: ["id", "measure_id", "catalog_version"],
-        filter: { slug: { _eq: props.measureSlug } },
-        limit: -1,
-      }),
-    );
+    const measureRows = props.measureVersions;
     // Store the short measure_id (e.g. 'EN-1') for hash navigation
     if (measureRows?.length) measureShortId.value = measureRows[0].measure_id ?? null;
     const vIdToMeasureId = {};
@@ -331,28 +326,21 @@ async function fetchAll() {
     async function fetchRatings(versionId) {
       const measureId = vIdToMeasureId[versionId];
       if (!measureId) return [];
-      return $directus.request(
-        $readItems("ratings_measures", {
-          fields: ["rating", "applicable", "localteam_id"],
-          filter: { measure_id: { _eq: measureId } },
-          limit: -1,
-        }),
-      );
+      const result = await $fetch('/api/public/measure-ratings', { query: { measureId } });
+      return result.ratings;
     }
 
+    const coverageMunicipalities = new Map();
     async function fetchCoverageIds(versionId) {
-      // Returns localteam IDs with a complete published score in this catalog version.
-      const rows = await $directus.request(
-        $readItems("municipality_scores", {
-          fields: [{ municipality: ["localteam_id"] }],
-          filter: { catalog_version: { _eq: versionId }, published: { _eq: true }, percentage_rated: { _gte: 100 } },
-          limit: -1,
-        }),
-      );
+      const version = orderedVersions.value.find(version => version.id === versionId);
+      const { scores } = await $fetch(`/api/public/stats/${encodeURIComponent(version.label)}`);
       const ids = new Set();
-      for (const r of rows || []) {
-        const ltId = r.municipality?.localteam_id;
-        if (ltId) ids.add(ltId);
+      for (const score of scores.filter(isMunicipalityScoreComplete)) {
+        const municipality = score.municipality;
+        if (municipality?.localteam_id) {
+          ids.add(municipality.localteam_id);
+          coverageMunicipalities.set(municipality.localteam_id, municipality);
+        }
       }
       return ids;
     }
@@ -396,15 +384,7 @@ async function fetchAll() {
     );
 
     // 5. Batch-fetch municipality slugs + names
-    const muniRows = allLtIds.length
-      ? await $directus.request(
-          $readItems("municipalities", {
-            fields: ["localteam_id", "slug", "name"],
-            filter: { localteam_id: { _in: allLtIds } },
-            limit: -1,
-          }),
-        )
-      : [];
+    const muniRows = allLtIds.map(id => coverageMunicipalities.get(id)).filter(Boolean);
     const ltToMuni = {};
     for (const m of muniRows || []) {
       const ltId = typeof m.localteam_id === "string" ? m.localteam_id : m.localteam_id?.id;

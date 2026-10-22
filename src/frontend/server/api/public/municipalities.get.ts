@@ -1,6 +1,7 @@
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getQuery, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../utils/directusServerClient'
+import { readPublicItems } from '../../utils/publicItems'
 import { readMunicipalityCatalogs, catalogForRequest } from '../../utils/municipalityPageData'
 
 type Row = Record<string, any>
@@ -9,8 +10,8 @@ function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
 }
 
-const municipalityFields = ['id', 'slug', 'name', 'state', 'population', 'municipality_type', 'image', 'image_credits', 'date_updated']
-const scoreFields = ['score_total', 'score_max', 'percentage_rated', 'rank', 'published']
+const municipalityFields = ['id', 'slug', 'name', 'ars', 'status', 'localteam_id', 'state', 'population', 'municipality_type', 'image', 'image_credits', 'date_updated']
+const scoreFields = ['score_total', 'score_max', 'percentage_rated', 'rank', 'published', 'catalog_version']
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
@@ -45,29 +46,25 @@ export default defineEventHandler(async (event) => {
   const municipalityIds = municipalities.map(m => m.id).filter(Boolean)
 
   const scores = municipalityIds.length > 0
-    ? await client.request(readItems('municipality_scores', {
+    ? await readPublicItems('municipality_scores', {
         filter: {
           municipality: { _in: municipalityIds },
-          catalog_version: { _eq: selectedCatalog.id },
+          catalog_version: { _in: catalogs.map(catalog => catalog.id) },
           published: { _eq: true },
         },
         fields: [...scoreFields, 'municipality.id'],
-        limit: 500,
-      }))
+      })
     : []
 
-  const scoreByMunicipality = new Map<string, Row>()
-  for (const score of scores) {
-    const mId = typeof score.municipality === 'object' ? score.municipality.id : score.municipality
-    scoreByMunicipality.set(String(mId), pick(score, scoreFields))
-  }
-
   const result = municipalities.map(m => {
-    const mId = m.id
-    const score = mId ? scoreByMunicipality.get(String(mId)) : null
+    const matchingScores = scores.filter(score => score.municipality?.id === m.id).map(score => ({
+      ...pick(score, scoreFields),
+      catalog_version: { id: score.catalog_version, name: catalogs.find(catalog => catalog.id === score.catalog_version)?.name },
+    }))
     return {
       ...pick(m, municipalityFields),
-      score: score || null,
+      scores: matchingScores,
+      score: matchingScores.find(score => score.catalog_version.id === selectedCatalog.id) ?? null,
     }
   })
 

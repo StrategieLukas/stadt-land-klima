@@ -12,13 +12,16 @@ import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence
 import type { SuccessProjectTour } from '~/shared/successProjectTour';
 
 const props = defineProps<{ tour: SuccessProjectTour }>();
-const { $directus } = useNuxtApp();
 const { initialize, isAuthenticated, getAuthenticatedClient } = useAuth();
 const canEdit = ref(false);
 useBlockHashNavigation();
 
 const { data } = await useAsyncData(getBlokkliDataKey('success_project_tours', props.tour.id), async () => {
-  const client = import.meta.client && canEdit.value ? getAuthenticatedClient() : $directus;
+  if (!import.meta.client || !canEdit.value) {
+    const result = await $fetch('/api/public/blocks', { query: { entityType: 'success_project_tours', entityUuid: props.tour.id, fieldName: 'content' } });
+    return mapBlokkliBlocks(result.blocks);
+  }
+  const client = getAuthenticatedClient();
   return mapBlokkliBlocks(await client.request(readItems('blocks', {
     filter: { entity_type: { _eq: 'success_project_tours' }, entity_uuid: { _eq: props.tour.id }, field_name: { _eq: 'content' }, status: canEdit.value ? { _neq: 'archived' } : { _eq: 'published' } },
     sort: ['sort_order'], limit: -1,

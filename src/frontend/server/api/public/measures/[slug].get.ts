@@ -1,7 +1,7 @@
 import { readItems } from '@directus/sdk'
 import { defineEventHandler, getRouterParam, getQuery, createError, setResponseHeader } from 'h3'
 import { createDirectusServerClient } from '../../../utils/directusServerClient'
-import { readMunicipalityCatalogs, catalogForRequest } from '../../../utils/municipalityPageData'
+import { readMunicipalityCatalogs, catalogForRequest, publicMeasureFields } from '../../../utils/municipalityPageData'
 
 type Row = Record<string, any>
 
@@ -9,13 +9,7 @@ function pick(row: Row, fields: string[]): Row {
   return Object.fromEntries(fields.map(field => [field, row[field] ?? null]))
 }
 
-const measureDetailFields = [
-  'id', 'measure_id', 'name', 'slug', 'sector', 'weight', 'image', 'image_credits',
-  'description', 'description_about', 'description_benefit', 'description_contribution',
-  'description_implementation', 'description_funding', 'description_legal',
-  'description_evaluation_criteria', 'description_verification', 'description_tutorial',
-  'impact', 'feasibility', 'feasibility_economical', 'feasibility_political',
-]
+const measureDetailFields = publicMeasureFields
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
@@ -36,13 +30,21 @@ export default defineEventHandler(async (event) => {
       catalog_version: { _eq: selectedCatalog.id },
       status: { _eq: 'published' },
     },
-    fields: measureDetailFields,
+    fields: [...measureDetailFields.filter(field => field !== 'image'), 'image.id', 'image.image_credits'],
     limit: 1,
   }))
 
-  if (!measures || measures.length === 0) {
+  if (!measures[0]) {
     throw createError({ statusCode: 404, statusMessage: 'Measure not found' })
   }
 
-  return { measure: pick(measures[0], measureDetailFields), catalogVersion: selectedCatalog }
+  const versions = await client.request(readItems('measures', {
+    filter: { slug: { _eq: slug }, status: { _eq: 'published' }, catalog_version: { id: { _in: catalogs.map(catalog => catalog.id) } } },
+    fields: ['id', 'measure_id', 'catalog_version.id', 'catalog_version.name'], limit: 101,
+  }))
+  if (versions.length > 100) throw createError({ statusCode: 502, statusMessage: 'Measure version limit exceeded' })
+  return {
+    measure: pick(measures[0], measureDetailFields), catalogVersion: selectedCatalog,
+    versions: versions.map(row => ({ id: row.id, measure_id: row.measure_id, catalog_version: pick(row.catalog_version, ['id', 'name']) })),
+  }
 })
