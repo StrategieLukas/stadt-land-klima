@@ -1,4 +1,8 @@
-# Core service security update — 21 October 2026
+# Core service security update — reviewed 22 October 2026
+
+The core-service changes below are in commit `b62515fb`. Local migration and
+application checks ran on 21 October. The project containers are currently
+stopped; this follow-up review has not redeployed them or changed production.
 
 ## Declared images versus running containers
 
@@ -17,7 +21,7 @@ containers. Redis is now explicitly pinned to 8.10.2 on main.
 | Optional macOS pgAdmin | Unpinned image, publicly bound port | 9.18, loopback port only |
 | Typst | 0.14.1 | 0.14.2, verified archive checksum |
 | Directus OS | Base-image package versions | Alpine security package updates during build |
-| Directus application | 11.17.4 | 11.17.4, per the supplied version cap |
+| Directus application | 11.17.4 | Still 11.17.4; security upgrade pending the licensing decision below |
 
 PostgreSQL 13 lost upstream support on 13 November 2025. PostgreSQL 17 is supported
 until November 2029 and retains this project's existing data mount layout.
@@ -131,8 +135,11 @@ working local database.
 
 ## Unresolved Directus application advisories
 
-The supplied instructions prohibit moving Directus beyond 11.17.4. Updating Node,
-PostgreSQL, Redis or Alpine does not fix Directus application code vulnerabilities.
+The revised project instructions no longer cap Directus at 11.17.4. On 22 October,
+the official npm registry lists 11.17.4 as the newest stable 11.x release and
+12.5.0 as the current stable release. There is no newer published 11.x patch to
+select instead. Updating Node, PostgreSQL, Redis or Alpine does not fix Directus
+application code vulnerabilities.
 In particular, upstream lists an unauthenticated persistent denial of service in
 the `deep` query parser for versions below 12.2.0. Permission restrictions do not
 prevent that middleware from being reached. No destructive exploit was run.
@@ -142,7 +149,51 @@ Other published affected ranges include public-mode WebSocket authorization bypa
 (fixed in 12.1.0), PostGIS geometry collection-creation SQL injection (12.1.0), and
 image-transform dimension denial of service (12.2.0). Their prerequisites differ;
 do not treat every published advisory as a demonstrated exploit on this deployment.
-These need reviewed backports or an explicit relaxation of the Directus version cap.
+These still need reviewed security backports or an upgrade to a fixed release.
 [WebSockets](https://github.com/directus/directus/security/advisories/GHSA-97xr-jchp-xm3c),
 [geometry SQL injection](https://github.com/directus/directus/security/advisories/GHSA-chfm-g7r3-vv42),
 [image dimensions](https://github.com/directus/directus/security/advisories/GHSA-7vcx-mhxq-9j96).
+
+### Directus 12 upgrade prerequisites
+
+Directus 12 introduces active licensing. Upstream states that custom access-policy
+rules are ignored without a license enabling them, following a 30-day grace
+period for upgraded installations. Over-limit installations can also enter an
+API/login lockdown. This application depends on custom rules for private and
+team-scoped content. A successful upgrade or a passing test during the grace
+period would not establish that those boundaries remain enforced afterward.
+No license key or token was found in the local Directus/DB environment files;
+that does not establish the licensing status of staging or production.
+[Directus 12 licensing and breaking changes](https://directus.com/docs/releases/breaking-changes/version-12).
+
+The user has been asked whether a license covering these rules is available or
+whether to retain 11.x and backport the security fixes. No Directus 12 bootstrap,
+license registration or application security backport has been performed while
+that decision is pending. Backporting must cover the applicable advisory set and
+include focused regression checks; it is not an upstream-supported 11.x update.
+
+The licensed-upgrade path also requires concrete compatibility work:
+
+- The hardened Directus 12 image removes runtime `npm`/`npx`. Both current startup
+  scripts install CLI dependencies at startup, and production invokes `npx tsx`.
+  Dependency installation and the TypeScript runner must move into the image or
+  be supplied explicitly before using that image.
+- Production readiness and the test helper call `/server/health` without
+  authentication. Directus 12 requires authentication there. Public
+  `/server/ping` checks liveness only; dependency readiness needs an authenticated
+  health check.
+- Fourteen custom extensions declare host compatibility with `^11.0.0`.
+  Their compatibility ranges must change only after build/runtime verification,
+  including the custom interfaces, Blökkli persistence and search hooks.
+- Review reverse-proxy trust explicitly: the default changes to false. Do not
+  replace it with unrestricted trust without checking the deployment's proxy path.
+- Recheck the separately installed Undici patch against the new image. Its pnpm
+  layout and dependency versions are implementation-specific; a fixed upstream
+  dependency can replace the workaround after resolution checks.
+- Validate the code-first importer, scoped permission tests, content versioning,
+  rich-text editor behavior and custom interface styling against a restored copy
+  of the database before production migration.
+
+These prerequisites are findings, not implemented changes. The commands earlier
+in this document deploy the current Directus 11.17.4 configuration and therefore
+leave its application advisories unresolved.

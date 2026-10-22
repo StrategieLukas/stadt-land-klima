@@ -21,7 +21,6 @@ services:
       retries: 3
 
   meilisearch:
-    # Existing Meilisearch 1.8 data requires a dump/import migration first.
     image: getmeili/meilisearch:v1.55.0
     env_file: ./docker/meilisearch/.env
     volumes:
@@ -83,10 +82,5 @@ services:
       - ./docker/meilisearch/.env
     networks:
       - default
-      - stadt-land-zahl_default
     depends_on:
     - directus
-
-networks:
-  stadt-land-zahl_default:
-    external: true
