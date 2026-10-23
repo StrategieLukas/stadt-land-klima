@@ -77,14 +77,15 @@ test('boolean filter emits exactly the inverse model value on click', () => {
   }
 });
 
-test('smart images retain raster transforms, SVG behavior, token scoping and empty state', async () => {
+test('smart images retain raster transforms, SVG behavior, cookie preview scoping and empty state', async () => {
   const deps = {'~/shared/successProjectTour': {TOUR_REPORT_MEDIA: Symbol('report')}};
   const raster = await render('SmartImg.vue', {assetId: 'photo', width: 640, height: 480}, {}, deps);
   assert.match(raster, /assets\/photo\?width=640&amp;height=480&amp;fit=cover/);
   const svg = await render('SmartImg.vue', {assetId: 'logo', width: 640, isRaster: false}, {}, deps);
   assert.match(svg, /src="https:\/\/cms.example.org\/assets\/logo"/); assert.doesNotMatch(svg, /[?&](?:fit|width)=/);
-  const report = await render('SmartImg.vue', {assetId: 'private', assetBaseUrl: '/api/tour-media', accessToken: 'limited token'}, {}, deps);
-  assert.match(report, /api\/tour-media\/private\?access_token=limited\+token/);
+  const report = await render('SmartImg.vue', {assetId: 'private', assetBaseUrl: '/api/tour-media', editorPreview: true}, {}, deps);
+  assert.match(report, /api\/editor\/cms\/assets\/private/);
+  assert.doesNotMatch(report, /access_token|limited/);
   assert.doesNotMatch(await render('SmartImg.vue', {}, {}, deps), /<img/);
 });
 

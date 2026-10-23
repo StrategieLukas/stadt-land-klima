@@ -23,7 +23,7 @@
 import { isVideoMedia } from '~/shared/tourMedia';
 import type { MediaFile, TourMedia } from '~/shared/tourMedia';
 import { relationId } from '~/shared/tour';
-const props = defineProps<{ previewToken?: string | null | undefined }>();
+const props = defineProps<{ editorPreview?: boolean | undefined }>();
 const emit = defineEmits<{ change: [open: boolean] }>();
 const { $t } = useNuxtApp();
 const dialog = ref<HTMLDialogElement | null>(null);
@@ -36,7 +36,7 @@ const current = computed(() => items.value[activeIndex.value]);
 let opener: HTMLElement | null = null;
 let previousOverflow: string | null = null;
 let previousScroll = { x: 0, y: 0 };
-const assetUrl = (file: MediaFile) => `/api/tour-media/${relationId(file)}${props.previewToken ? `?access_token=${encodeURIComponent(props.previewToken)}` : ''}`;
+const assetUrl = (file: MediaFile) => `${props.editorPreview ? '/api/editor/cms/assets' : '/api/tour-media'}/${relationId(file)}`;
 function select(index: number) {
   if (index < 0 || index >= items.value.length) return;
   video.value?.pause();

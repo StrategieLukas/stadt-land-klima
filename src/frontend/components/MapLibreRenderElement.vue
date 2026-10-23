@@ -1148,7 +1148,7 @@ function formatValue(value: unknown) {
 function localizedLabel(value: string | Record<string, string> | null | undefined, fallback: string) {
   if (!value) return fallback;
   if (typeof value === "string") return value;
-  return value["de-DE"] || value["en-US"] || fallback;
+  return value["de-DE"] || fallback;
 }
 
 function escapeHtml(value: string) {

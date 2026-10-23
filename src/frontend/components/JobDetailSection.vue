@@ -4,7 +4,7 @@
       <span class="h-2 w-2 rounded-full bg-light-green" aria-hidden="true" />
       {{ title }}
     </h2>
-    <div class="prose prose-gray max-w-none" v-html="sanitizedHtml" />
+    <div class="prose prose-gray max-w-none" v-html="sanitizeHtml(sanitizedHtml)" />
   </section>
 </template>
 

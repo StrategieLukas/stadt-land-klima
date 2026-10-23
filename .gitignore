@@ -149,3 +149,6 @@ out
 
 # Private local dependency-audit reports
 /.reports/
+
+# Host-specific, verified core-service storage cutovers.
+/docker/core-storage/

@@ -19,7 +19,9 @@
         v-if="hasIcon && (options.iconPosition === 'left' || options.iconPosition === 'both')"
         class="blokkli-button-icon flex-shrink-0 w-12 [&>svg]:h-7 [&>svg]:w-7 self-stretch flex items-center justify-center px-2 border-r-2 border-current"
       >
+        <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
         <span v-if="currentIconSvg" class="h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" v-html="currentIconSvg" />
+        <!-- eslint-enable vue/no-v-html -->
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
       <!-- Label -->
@@ -32,7 +34,9 @@
         v-if="hasIcon && (options.iconPosition === 'right' || options.iconPosition === 'both')"
         class="blokkli-button-icon flex-shrink-0 w-12 [&>svg]:h-7 [&>svg]:w-7 self-stretch flex items-center justify-center px-2 border-l-2 border-current"
       >
+        <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
         <span v-if="currentIconSvg" class="h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" v-html="currentIconSvg" />
+        <!-- eslint-enable vue/no-v-html -->
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
     </a>
@@ -49,7 +53,9 @@
         v-if="hasIcon && (options.iconPosition === 'left' || options.iconPosition === 'both')"
         class="blokkli-button-icon flex-shrink-0 w-12 [&>svg]:h-7 [&>svg]:w-7 self-stretch flex items-center justify-center px-2 border-r-2 border-current"
       >
+        <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
         <span v-if="currentIconSvg" class="h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" v-html="currentIconSvg" />
+        <!-- eslint-enable vue/no-v-html -->
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
       <!-- Label -->
@@ -61,7 +67,9 @@
         v-if="hasIcon && (options.iconPosition === 'right' || options.iconPosition === 'both')"
         class="blokkli-button-icon flex-shrink-0 w-12 [&>svg]:h-7 [&>svg]:w-7 self-stretch flex items-center justify-center px-2 border-l-2 border-current"
       >
+        <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
         <span v-if="currentIconSvg" class="h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" v-html="currentIconSvg" />
+        <!-- eslint-enable vue/no-v-html -->
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
     </NuxtLink>

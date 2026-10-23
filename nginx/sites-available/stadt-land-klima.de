@@ -96,6 +96,8 @@ server {
   server_name www.stadt-land-klima.de;
   server_tokens off;
 
+  # The frontend supplies its per-response nonce policy. This fallback also protects CMS responses.
+  proxy_buffer_size 16k;
   # Security headers
   add_header X-Permitted-Cross-Domain-Policies "none" always;
   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -104,7 +106,11 @@ server {
   add_header Permissions-Policy "camera=(), microphone=(), geolocation=(self)" always;
   add_header Referrer-Policy $slk_referrer_policy always;
   add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" always;
-  add_header Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://analytics.stadt-land-klima.de; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.unsplash.com https://unpkg.com; font-src 'self' data:; connect-src 'self' https://data2.stadt-land-klima.de https://analytics.stadt-land-klima.de; frame-ancestors 'self'; report-uri /api/security/csp" always;
+
+  # The site uses REST; StadtLandZahl's separate GraphQL proxy is unaffected.
+  location ~ ^/backend/(?:graphql|utils/hash)(?:/|$) {
+    return 403;
+  }
 
   location /backend/ {
     if ($slk_opaque_deep) { return 400; }
@@ -160,6 +166,10 @@ server {
     # restrict access
     # auth_basic  "stage";
     # auth_basic_user_file  /var/www/stadt-land-klima.de/.htpasswd;
+
+    # Strip upstream headers that reveal the application stack
+    proxy_hide_header X-Powered-By;
+    proxy_hide_header Server;
 
     proxy_pass http://127.0.0.1:9000;
     proxy_intercept_errors on;

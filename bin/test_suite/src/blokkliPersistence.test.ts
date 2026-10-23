@@ -1,3 +1,4 @@
+import {loginWebsite} from './lib/browser.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -12,8 +13,7 @@ test('Blökkli edits survive preview, failed publish, successful publish and rel
   const frontend = process.env.TEST_FRONTEND_URL || 'http://localhost:8080';
   const env = parseEnvFile('../../src/directus/.env');
   const admin = await createAdminClient(backend, env);
-  const token = await admin.login(env.ADMIN_EMAIL, env.ADMIN_PASSWORD);
-  const user = await admin.request('GET', '/users/me');
+  await admin.login(env.ADMIN_EMAIL, env.ADMIN_PASSWORD);
   const fixtureName = `blokkli-regression-${randomUUID()}`;
   const entity = await admin.createItem<{ id: string; slug: string }>('pages', {
     name: fixtureName, slug: fixtureName, status: 'published',
@@ -27,12 +27,8 @@ test('Blökkli edits survive preview, failed publish, successful publish and rel
       status: 'published', props: { text: 'Original regression heading' }, options: {},
     });
     const context = await browser.newContext();
-    await context.addInitScript((auth) => {
-      if (location.protocol === 'http:') {
-        localStorage.setItem('slk_auth', JSON.stringify(auth));
-        localStorage.setItem('blokkli:popup:tour:closed', 'true');
-      }
-    }, { accessToken: token, user });
+    await loginWebsite(context, frontend, env.ADMIN_EMAIL!, env.ADMIN_PASSWORD!);
+    await context.addInitScript(() => {localStorage.setItem('blokkli:popup:tour:closed', 'true');});
     const page = await context.newPage();
     page.on('pageerror', (error) => console.error('Browser error:', error.message));
     await page.goto(`${frontend}/${slug}?blokkliEditing=${entity.id}`);
@@ -117,7 +113,6 @@ test('Blökkli V2 preserves nested legacy content, formatting, media and reusabl
   const env = parseEnvFile('../../src/directus/.env');
   const admin = await createAdminClient(backend, env);
   const token = await admin.login(env.ADMIN_EMAIL, env.ADMIN_PASSWORD);
-  const user = await admin.request('GET', '/users/me');
   const name = `blokkli-v2-${randomUUID()}`;
   const entity = await admin.createItem<{ id: string; slug: string }>('pages', { name, slug: name, status: 'published' });
   const browser = await chromium.launch({ headless: true });
@@ -166,12 +161,8 @@ test('Blökkli V2 preserves nested legacy content, formatting, media and reusabl
     assert.equal(publicData.blocks[0].options.layout, 'columns-2');
 
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-    await context.addInitScript((auth) => {
-      if (location.protocol === 'http:') {
-        localStorage.setItem('slk_auth', JSON.stringify(auth));
-        localStorage.setItem('blokkli:popup:tour:closed', 'true');
-      }
-    }, { accessToken: token, user });
+    await loginWebsite(context, frontend, env.ADMIN_EMAIL!, env.ADMIN_PASSWORD!);
+    await context.addInitScript(() => {localStorage.setItem('blokkli:popup:tour:closed', 'true');});
     const page = await context.newPage();
     const moduleErrors: string[] = [];
     page.on('pageerror', error => moduleErrors.push(error.message));

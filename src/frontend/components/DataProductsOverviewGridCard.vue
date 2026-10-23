@@ -119,8 +119,8 @@ let observer: IntersectionObserver | null = null;
 const effectiveCollection = computed(() => collectionDetails.value ?? normalizeCollection(props.collection));
 const title = computed(() => {
   const titles = effectiveCollection.value.title;
-  const language = $locale.startsWith("de") ? "de-DE" : $locale.startsWith("it") ? "it-IT" : "en-US";
-  return titles?.[language] || titles?.["en-US"] || localizedText(titles) || effectiveCollection.value.id;
+  const language = $locale.startsWith("de") ? "de-DE" : $locale.startsWith("it") ? "it-IT" : "de-DE";
+  return titles?.[language] || titles?.["de-DE"] || localizedText(titles) || effectiveCollection.value.id;
 });
 const sector = computed(() => {
   const key = sectorKey(effectiveCollection.value);

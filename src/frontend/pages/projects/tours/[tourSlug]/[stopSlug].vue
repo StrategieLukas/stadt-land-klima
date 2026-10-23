@@ -12,19 +12,19 @@
       <p v-if="reportVisible && stop.teaser" class="mt-4 text-lg leading-relaxed">{{ stop.teaser }}</p>
     </header>
     <figure v-if="cover" class="event-detail__cover mb-8">
-      <SmartImg :access-token="previewToken" :asset-base-url="reportVisible && stop.image ? '/api/tour-media' : undefined" :asset-id="relationId(cover)" :is-raster="isRaster(typeof cover === 'string' ? 'image/jpeg' : cover.type || 'image/jpeg')" :alt="stop.report_title || stop.title" :width="1100" img-class="block max-h-[50svh] w-full object-contain" />
+      <SmartImg :editor-preview="editorPreview" :asset-base-url="reportVisible && stop.image ? '/api/tour-media' : undefined" :asset-id="relationId(cover)" :is-raster="isRaster(typeof cover === 'string' ? 'image/jpeg' : cover.type || 'image/jpeg')" :alt="stop.report_title || stop.title" :width="1100" img-class="block max-h-[50svh] w-full object-contain" />
       <figcaption v-if="coverCredit" class="mt-2 text-xs">{{ coverCredit }}</figcaption>
     </figure>
     <p v-if="canEdit && stop.report_status !== 'published'" class="mb-4 bg-solid-orange-10 p-3">{{ $t('tour.report_draft') }}</p>
     <section v-if="reportVisible" class="prose max-w-none">
-      <SuccessProjectTourContent :key="stop.id" :stop="stop" :can-edit="canEdit" :preview-token="previewToken" />
+      <SuccessProjectTourContent :key="stop.id" :stop="stop" :can-edit="canEdit" :editor-preview="editorPreview" />
     </section>
     <p v-else class="mb-6">{{ $t('tour.report_pending') }}</p>
     <section v-if="media.length" class="my-8">
       <h2 class="mb-4 font-heading text-2xl font-bold">{{ $t('tour.media') }}</h2>
       <div class="grid gap-5 sm:grid-cols-2">
         <figure v-for="(item, index) in media" :key="item.id" class="event-detail__media">
-          <button type="button" class="block w-full text-left" :aria-label="`${$t('tour.media_open')}: ${item.alt}`" @click="viewer?.open(media, index, stop.report_title || stop.title)"><TourMediaPreview :item="item" :preview-token="previewToken" /></button>
+          <button type="button" class="block w-full text-left" :aria-label="`${$t('tour.media_open')}: ${item.alt}`" @click="viewer?.open(media, index, stop.report_title || stop.title)"><TourMediaPreview :item="item" :editor-preview="editorPreview" /></button>
           <figcaption class="p-3 text-sm"><span v-if="item.caption" class="block">{{ item.caption }}</span><small>{{ item.credit }}</small></figcaption>
         </figure>
       </div>
@@ -53,14 +53,13 @@
       <CanonicalButton v-if="stop.report_status !== 'published'" :label="$t('tour.report_publish')" color="green" icon-slug="mdi:publish" :disabled="saving" @click="saveStop(true)" />
       <p v-if="saveError" role="alert" class="mt-3 text-red">{{ $t('tour.report_error') }}</p>
     </section>
-    <TourMediaViewer ref="viewer" :preview-token="previewToken" />
+    <TourMediaViewer ref="viewer" :editor-preview="editorPreview" />
   </main>
   <p v-else-if="authChecked" class="container mx-auto py-8">{{ $t('page_not_found') }}</p>
 </template>
 <script setup lang="ts">
 import { customEndpoint, readItems, updateItem } from '@directus/sdk';
 import { useAuth } from '~/composables/useAuth';
-import { useAuthStore } from '~/stores/auth';
 import { isRaster } from '~/shared/utils';
 import { relationId } from '~/shared/tour';
 import { formatBerlinDate, formatEventDateTimeRange } from '~/shared/eventDateTime';
@@ -87,7 +86,7 @@ const stop = ref<SuccessProjectTourStop | null>((rows.value?.[0] as SuccessProje
 if (!stop.value && import.meta.server) useRequestEvent()!.node.res.statusCode = 404;
 const authChecked = ref(false);
 const canEdit = ref(false);
-const previewToken = computed(() => canEdit.value ? useAuthStore()._accessToken.value : null);
+const editorPreview = computed(() => canEdit.value);
 const reportVisible = computed(() => Boolean(stop.value && (canEdit.value || stop.value.report_status === 'published')));
 const cover = computed(() => (reportVisible.value ? stop.value?.image : null) || stop.value?.itinerary_image);
 const coverCredit = computed(() => reportVisible.value && stop.value?.image ? stop.value.image_credits : stop.value?.itinerary_image_credits);

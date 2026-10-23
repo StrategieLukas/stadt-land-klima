@@ -1,89 +1,36 @@
-import { ref, computed, readonly } from "vue";
-import { AuthSessionSchema, type AuthUser } from "~/shared/contracts/auth";
+import {ref, computed, readonly} from 'vue';
+import {AuthUserSchema, type AuthUser} from '~/shared/contracts/auth';
 
-/** Credentials are browser-only. Server calls always get a fresh anonymous store. */
+/** Browser state contains identity and CSRF metadata only. Credentials stay server-side. */
 function createStore() {
-  const user = ref<AuthUser | null>(null);
-  const accessToken = ref<string | null>(null);
-  const refreshToken = ref<string | null>(null);
-  const isLoading = ref(false);
-  const error = ref<string | null>(null);
-  const isInitialized = ref(false);
-  const isAuthenticated = computed(() => !!user.value && !!accessToken.value);
+  const user = ref<AuthUser | null>(null), csrf = ref('');
+  const isLoading = ref(false), error = ref<string | null>(null), isInitialized = ref(false);
+  const generation = ref(0);
+  const isAuthenticated = computed(() => Boolean(user.value && csrf.value));
+  function retireLegacyStorage() {
+    if (import.meta.client) try {localStorage.removeItem('slk_auth');} catch { /* Storage may be disabled. */ }
+  }
   function clearAuth() {
-    accessToken.value = null;
-    refreshToken.value = null;
-    user.value = null;
-    error.value = null;
-    if (import.meta.client) {
-      try {
-        localStorage.removeItem("slk_auth");
-      } catch {
-        /* Storage may be disabled. */
-      }
-    }
+    generation.value++;
+    user.value = null; csrf.value = ''; error.value = null;
+    retireLegacyStorage();
   }
-  function setAuth(token: string, refresh: string | null | undefined, nextUser: AuthUser | null) {
-    if (!import.meta.client) throw new Error("Authentication sessions are browser-only");
-    const session = AuthSessionSchema.parse({ accessToken: token, refreshToken: refresh, user: nextUser });
-    accessToken.value = session.accessToken;
-    refreshToken.value = session.refreshToken ?? null;
-    user.value = session.user;
-    error.value = null;
-    try {
-      localStorage.setItem("slk_auth", JSON.stringify(session));
-    } catch {
-      /* In-memory login still works. */
-    }
+  function setSession(nextUser: AuthUser, token: string) {
+    if (!import.meta.client) throw new Error('Authentication sessions are browser-only');
+    user.value = AuthUserSchema.parse(nextUser); csrf.value = token;
+    generation.value++; error.value = null; retireLegacyStorage();
   }
-  function hydrateFromStorage(): boolean {
-    if (!import.meta.client) return false;
-    try {
-      const stored = localStorage.getItem("slk_auth");
-      if (!stored) return false;
-      if (stored.length > 65536) {
-        clearAuth();
-        return false;
-      }
-      const parsed = AuthSessionSchema.safeParse(JSON.parse(stored) as unknown);
-      if (!parsed.success) {
-        clearAuth();
-        return false;
-      }
-      accessToken.value = parsed.data.accessToken;
-      refreshToken.value = parsed.data.refreshToken ?? null;
-      user.value = parsed.data.user;
-      return true;
-    } catch {
-      clearAuth();
-      return false;
-    }
-  }
-  return {
-    user: readonly(user),
-    isLoading: readonly(isLoading),
-    error: readonly(error),
-    isInitialized: readonly(isInitialized),
-    isAuthenticated,
-    setAuth,
-    clearAuth,
-    hydrateFromStorage,
-    setError: (value: string | null) => {
-      error.value = value;
-    },
-    setLoading: (value: boolean) => {
-      isLoading.value = value;
-    },
-    setInitialized: (value: boolean) => {
-      isInitialized.value = value;
-    },
-    _accessToken: accessToken,
-    _refreshToken: refreshToken,
+  return {user: readonly(user), csrf: readonly(csrf), generation: readonly(generation),
+    isLoading: readonly(isLoading), error: readonly(error), isInitialized: readonly(isInitialized), isAuthenticated,
+    clearAuth, setSession, retireLegacyStorage,
+    setError: (value: string | null) => {error.value = value;},
+    setLoading: (value: boolean) => {isLoading.value = value;},
+    setInitialized: (value: boolean) => {isInitialized.value = value;},
   };
 }
 let browserStore: ReturnType<typeof createStore> | undefined;
 export function useAuthStore() {
   if (import.meta.server) return createStore();
-  return (browserStore ??= createStore());
+  return browserStore ??= createStore();
 }
 export default useAuthStore;

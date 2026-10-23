@@ -9,7 +9,7 @@
       class="blokkli-block-heading whitespace-pre-line"
       :class="[colorClass, sizeClass, weightClass]"
     >
-      <span v-blokkli-editable:text v-html="sanitizedText" />
+      <span v-blokkli-editable:text v-html="sanitizeHtml(sanitizedText)" />
     </component>
   </div>
 </template>

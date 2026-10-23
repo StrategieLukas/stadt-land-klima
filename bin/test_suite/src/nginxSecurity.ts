@@ -47,7 +47,7 @@ try {
   ] as const) {
     const response = await fetch(path, headers);
     assert.equal(response.status, expected, path);
-    assert.ok(response.headers['content-security-policy']); assert.ok(response.headers['content-security-policy-report-only']);
+    assert.ok(response.headers['content-security-policy']); assert.equal(response.headers['content-security-policy-report-only'], undefined);
     assert.equal(response.headers['x-permitted-cross-domain-policies'], 'none');
     assert.doesNotMatch(response.body, /203\.0\.113\.55/);
   }

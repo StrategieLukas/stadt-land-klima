@@ -86,7 +86,7 @@
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="sanitizedPublicContact"></div>
+          <div class="has-long-links prose" v-html="sanitizeHtml(sanitizedPublicContact)"></div>
         </div>
       </div>
 
@@ -233,7 +233,7 @@
             </h2>
           </div>
           <div class="collapse-content px-2 md:px-4">
-            <div class="has-long-links prose" v-html="sanitizedOverallStatusComment"></div>
+            <div class="has-long-links prose" v-html="sanitizeHtml(sanitizedOverallStatusComment)"></div>
           </div>
         </div>
 
@@ -301,7 +301,7 @@
             <div class="collapse-content px-2 md:px-4">
               <div
                 class="has-long-links prose prose-sm max-w-none"
-                v-html="sanitizedPublicContact"
+                v-html="sanitizeHtml(sanitizedPublicContact)"
               ></div>
             </div>
           </div>

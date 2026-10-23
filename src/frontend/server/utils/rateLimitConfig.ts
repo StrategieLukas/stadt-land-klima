@@ -16,6 +16,11 @@ export interface RateLimitPreset {
 }
 
 export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
+  'editor-login': {max: 10, windowSeconds: 60},
+  'editor-session': {max: 120, windowSeconds: 60},
+  'editor-logout': {max: 30, windowSeconds: 60},
+  'editor-upload': {max: 10, windowSeconds: 60},
+  'editor-cms': {max: 600, windowSeconds: 60},
 
   // ========================================================================
   // WRITE ENDPOINTS (POST/PUT/PATCH/DELETE)
@@ -73,6 +78,8 @@ export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
   'event-ics': { max: 120, windowSeconds: 60 },
   /** Carto basemap tile proxy */
   'carto-basemap': { max: 1200, windowSeconds: 60 },
+  /** AI agent registration endpoint */
+  'ai-register': { max: 30, windowSeconds: 60 },
 };
 
 /**

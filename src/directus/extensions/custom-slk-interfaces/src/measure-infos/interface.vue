@@ -344,7 +344,6 @@ function getFieldLabel(fieldKey: string): string {
   const translationKey = `ratings_measures.fields.${fieldKey}`;
   // $t is injected globally by Directus — not available in script setup directly,
   // so we use getCurrentInstance as a fallback-safe approach.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const $t = (getCurrentInstance() as any)?.appContext?.config?.globalProperties?.$t;
   if (typeof $t === 'function') {
     const translation = $t(translationKey);

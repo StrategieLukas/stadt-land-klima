@@ -17,7 +17,7 @@
       v-else
       class="prose max-w-none"
       :class="[sizeClass, alignClass]"
-      v-html="renderedContent"
+      v-html="sanitizeHtml(renderedContent)"
     />
   </div>
 </template>

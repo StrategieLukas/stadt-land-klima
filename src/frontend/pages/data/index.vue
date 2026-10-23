@@ -163,8 +163,8 @@ const { data: visibleCollections } = await useAsyncData('data-overview-collectio
 function collectionText(value?: string | Record<string, string> | null) {
   if (!value) return ''
   if (typeof value === 'string') return value
-  const language = $locale.startsWith('de') ? 'de-DE' : $locale.startsWith('it') ? 'it-IT' : 'en-US'
-  return value[language] || value['en-US'] || value['de-DE'] || ''
+  const language = $locale.startsWith('de') ? 'de-DE' : $locale.startsWith('it') ? 'it-IT' : 'de-DE'
+  return value[language] || value['de-DE'] || ''
 }
 
 const selectedCollectionId = ref<string | null>(null)

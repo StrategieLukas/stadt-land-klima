@@ -7,8 +7,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 source "$SCRIPT_DIR/lib/core-service-data.sh"
 
-if [[ "${1:-}" == --help || $# -lt 1 || $# -gt 2 ]]; then
-  echo "Usage: $0 production|development [--apply]
+if [[ "${1:-}" == --help || $# -lt 1 || $# -gt 3 ]]; then
+  echo "Usage: $0 production|development|mac [--logical] [--apply]
 Without --apply, only inspect the existing containers and target versions.
 --apply stops application writers, exports ALL non-template PostgreSQL databases
 and roles, restores into a separate cluster, imports a Meilisearch dump into a
@@ -17,13 +17,19 @@ Only after verification are the data directories swapped. Old directories and
 private backups are retained. Applications remain stopped: run start_production.sh
 or start_development.sh afterward. PostgreSQL 17 keeps the existing mount layout.
 The automated cutover requires the repository's Linux bind-mounted data layout.
-Named-volume/macOS installations must use a separate dump/restore migration.
+Use --logical for named volumes, custom paths or macOS (fresh named target volumes).
+The verified storage overlay is saved in docker/core-storage/<environment>.compose.json;
+normal start/stop scripts load it automatically. Retain that directory with host backups.
 Do not allow external database/search writers during this maintenance window."
   exit 0
 fi
 environment="$1"
-[[ "$environment" == production || "$environment" == development ]] || { echo "Use production or development" >&2; exit 2; }
-[[ -z "${2:-}" || "$2" == --apply ]] || { echo "Unknown option: $2" >&2; exit 2; }
+[[ "$environment" == production || "$environment" == development || "$environment" == mac ]] || { echo "Use production, development or mac" >&2; exit 2; }
+apply=false; logical=false
+for option in "${@:2}"; do
+  case "$option" in --apply) apply=true ;; --logical) logical=true ;; *) echo "Unknown option: $option" >&2; exit 2 ;; esac
+done
+[[ "$environment" != mac || "$logical" == true ]] || { echo 'mac requires --logical' >&2; exit 2; }
 core_compose "$environment"
 upgrade_timeout="${CORE_UPGRADE_TIMEOUT_SECONDS:-3600}"
 [[ "$upgrade_timeout" =~ ^[1-9][0-9]*$ ]] || { echo "CORE_UPGRADE_TIMEOUT_SECONDS must be a positive integer." >&2; exit 2; }
@@ -34,16 +40,20 @@ db_version="$(docker inspect "$db_container" --format '{{.Config.Image}}')"
 meili_version="$(docker inspect "$meili_container" --format '{{.Config.Image}}')"
 echo "PostgreSQL: $db_version -> $CORE_DB_IMAGE"
 echo "Meilisearch: $meili_version -> $CORE_MEILI_IMAGE"
-[[ "${2:-}" == --apply ]] || exit 0
+[[ "$apply" == true ]] || exit 0
 
-[[ "${BASH_VERSINFO[0]}" -ge 4 ]] || { echo "Bash 4 or newer is required." >&2; exit 1; }
-db_type=""; db_source=""; meili_type=""; meili_source=""
-IFS='|' read -r db_type db_source _ <<< "$(core_mount "$db_container" /var/lib/postgresql/data)"
-IFS='|' read -r meili_type meili_source _ <<< "$(core_mount "$meili_container" /meili_data)"
-[[ "$db_type" == bind && "$meili_type" == bind ]] || { echo "Automatic cutover requires bind mounts; existing data was not changed." >&2; exit 1; }
-[[ "$db_source" == "$REPO_ROOT/docker/data/db" && "$meili_source" == "$REPO_ROOT/docker/data/meilisearch" ]] || {
-  echo "Custom data directories require an explicit migration; existing data was not changed." >&2; exit 1;
-}
+db_type=""; db_source=""; db_volume=""; meili_type=""; meili_source=""; meili_volume=""
+IFS='|' read -r db_type db_source db_volume <<< "$(core_mount "$db_container" /var/lib/postgresql/data)"
+IFS='|' read -r meili_type meili_source meili_volume <<< "$(core_mount "$meili_container" /meili_data)"
+for source_type in "$db_type" "$meili_type"; do
+  [[ "$source_type" == bind || "$source_type" == volume ]] || { echo 'Unsupported data mount; existing data was not changed.' >&2; exit 1; }
+done
+if [[ "$logical" == false ]]; then
+  [[ "$db_type" == bind && "$meili_type" == bind ]] || { echo "Automatic cutover requires bind mounts; use --logical. Existing data was not changed." >&2; exit 1; }
+  [[ "$db_source" == "$REPO_ROOT/docker/data/db" && "$meili_source" == "$REPO_ROOT/docker/data/meilisearch" ]] || {
+    echo "Custom data directories require --logical; existing data was not changed." >&2; exit 1;
+  }
+fi
 # Use the patched build base, not a still-running container's old Node binary.
 node_image="$(awk '$1 == "FROM" && $2 ~ /^node:/ {print $2; exit}' docker/frontend/Dockerfile)"
 [[ "$node_image" == node:* ]] || exit 1
@@ -56,7 +66,7 @@ docker pull "$CORE_DB_IMAGE"
 docker pull "$CORE_MEILI_IMAGE"
 current_db_major="$(core_read_version "$db_container" /var/lib/postgresql/data PG_VERSION)"
 current_meili_version="$(core_read_version "$meili_container" /meili_data data.ms/VERSION)"
-if [[ "$current_db_major" == "$CORE_DB_MAJOR" && "$current_meili_version" == "$CORE_MEILI_VERSION" ]]; then
+if [[ "$logical" == false && "$current_db_major" == "$CORE_DB_MAJOR" && "$current_meili_version" == "$CORE_MEILI_VERSION" ]]; then
   echo "Data formats already match the configured targets. No migration needed."
   exit 0
 fi
@@ -82,6 +92,9 @@ db_target="slk-upgrade-db-$run_id"
 meili_target="slk-upgrade-meili-$run_id"
 db_new="$db_source.upgrade-$run_id"
 meili_new="$meili_source.upgrade-$run_id"
+db_target_mount="type=bind,source=$db_new,target=/var/lib/postgresql/data"
+meili_target_mount="type=bind,source=$meili_new,target=/meili_data"
+
 swapped=false
 cleanup() {
   local status=$?
@@ -97,6 +110,16 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+if [[ "$logical" == true ]]; then
+  db_new="slk-db-$run_id"; meili_new="slk-meili-$run_id"
+  db_target_mount="type=volume,source=$db_new,target=/var/lib/postgresql/data"
+  meili_target_mount="type=volume,source=$meili_new,target=/meili_data"
+  # Create before stopping sources, never reuse an existing target.
+  for volume in "$db_new" "$meili_new"; do
+    if docker volume inspect "$volume" >/dev/null 2>&1; then echo "Target volume already exists: $volume" >&2; exit 1; fi
+    docker volume create "$volume" >/dev/null
+  done
+fi
 echo "Private migration backup: $backup"
 printf 'services:\n  db:\n    image: "%s"\n  meilisearch:\n    image: "%s"\n' \
   "$(docker inspect "$db_container" --format '{{.Image}}')" \
@@ -146,7 +169,8 @@ tablespaces="$(printf '%s\n' "SELECT count(*) FROM pg_tablespace WHERE spcname N
 [[ "$tablespaces" == 0 ]] || { echo "Custom tablespaces require manual migration." >&2; exit 1; }
 legacy_logins="$(printf '%s\n' "SELECT count(*) FROM pg_authid WHERE rolcanlogin AND (rolpassword LIKE 'md5%' OR rolpassword IS NULL) AND rolname <> current_user;" | source_db postgres)"
 [[ "$legacy_logins" == 0 ]] || { echo "Other login roles need SCRAM password rotation before migrating to the new authentication defaults." >&2; exit 1; }
-mapfile -t databases < <(printf '%s\n' 'SELECT datname FROM pg_database WHERE NOT datistemplate ORDER BY datname;' | source_db postgres)
+databases=()
+while IFS= read -r database; do databases+=("$database"); done < <(printf '%s\n' 'SELECT datname FROM pg_database WHERE NOT datistemplate ORDER BY datname;' | source_db postgres)
 [[ ${#databases[@]} -gt 0 ]] || exit 1
 docker exec "$db_container" sh -ec 'exec pg_dumpall -U "$POSTGRES_USER" --globals-only --quote-all-identifiers' > "$backup/globals.sql"
 # initdb has already created this one role. All its ALTER ROLE statements and
@@ -181,13 +205,15 @@ chmod 600 "$backup/meilisearch.dump"
 
 # New data lives alongside the old paths, on the same filesystem. Old data is
 # never mounted writable by the new versions during validation.
+if [[ "$logical" == false ]]; then
 docker run --rm --network none --entrypoint sh \
   --mount "type=bind,source=$REPO_ROOT/docker/data,target=/storage" "$CORE_DB_IMAGE" \
   -ec 'test ! -e "/storage/$1"; test ! -e "/storage/$2"; mkdir "/storage/$1" "/storage/$2"' \
   sh "$(basename "$db_new")" "$(basename "$meili_new")"
+fi
 docker run -d --name "$db_target" --network none --env-file "$backup/db-runtime.env" \
   --env POSTGRES_DB=postgres --env POSTGRES_HOST_AUTH_METHOD=scram-sha-256 \
-  --mount "type=bind,source=$db_new,target=/var/lib/postgresql/data" "$CORE_DB_IMAGE" >/dev/null
+  --mount "$db_target_mount" "$CORE_DB_IMAGE" >/dev/null
 wait_db "$db_target"
 target_db template1 < "$backup/globals-restore.sql" > "$backup/globals-restore.log" 2>&1
 # Imported PostgreSQL 13 MD5 password hashes cannot authenticate against the
@@ -212,7 +238,7 @@ for database in "${databases[@]}"; do
 done
 echo "Verified all $index PostgreSQL databases: application table counts and row hashes match."
 docker run -d --name "$meili_target" --env-file "$backup/meilisearch-runtime.env" \
-  --mount "type=bind,source=$meili_new,target=/meili_data" \
+  --mount "$meili_target_mount" \
   --mount "type=bind,source=$backup/meilisearch.dump,target=/migration.dump,readonly" \
   "$CORE_MEILI_IMAGE" meilisearch --import-dump /migration.dump >/dev/null
 # The temporary Meilisearch has no published ports; its helper shares its network.
@@ -228,13 +254,38 @@ docker logs "$meili_target" > "$backup/meilisearch-import.log" 2>&1
 meili_helper "$meili_target" validate
 docker stop "$db_target" "$meili_target" >/dev/null
 "${CORE_COMPOSE[@]}" stop db meilisearch
+if [[ "$logical" == true ]]; then
+  docker run --rm --network none --user "$(id -u):$(id -g)" --entrypoint node \
+    --mount "type=bind,source=$SCRIPT_DIR/lib/core-storage-overlay.ts,target=/overlay.ts,readonly" \
+    --mount "type=bind,source=$backup,target=/backup" "$node_image" /overlay.ts \
+    "$environment" "$db_new" "$meili_new" "$db_type" "$db_source" "$db_volume" \
+    "$meili_type" "$meili_source" "$meili_volume" \
+    "$(docker inspect "$db_container" --format '{{.Image}}')" "$(docker inspect "$meili_container" --format '{{.Image}}')"
+  mkdir -p docker/core-storage
+  if [[ -f "$CORE_STORAGE_FILE" ]]; then
+    cp "$CORE_STORAGE_FILE" "$backup/previous.compose.json"
+    cp "docker/core-storage/$environment.volumes" "$backup/previous.volumes"
+  fi
+  cp "$backup/target.volumes" "docker/core-storage/$environment.volumes"
+  # Atomic activation: startup never sees half-written JSON.
+  cp "$backup/target.compose.json" "$CORE_STORAGE_FILE.new"
+  mv "$CORE_STORAGE_FILE.new" "$CORE_STORAGE_FILE"
+  swapped=true
+  core_compose "$environment"
+else
 docker run --rm --network none --entrypoint sh \
   --mount "type=bind,source=$REPO_ROOT/docker/data,target=/storage" \
   --mount "type=bind,source=$SCRIPT_DIR/lib/core-data-cutover.sh,target=/cutover.sh,readonly" \
   "$CORE_DB_IMAGE" /cutover.sh "$run_id"
+fi
 swapped=true
 "${CORE_COMPOSE[@]}" up -d --no-deps --force-recreate db meilisearch
 "$SCRIPT_DIR/check_core_service_data.sh" "$environment"
 echo "Core data upgrade complete. Backups: $backup"
-echo "Old data: docker/data/db.before-$run_id and docker/data/meilisearch.before-$run_id"
+if [[ "$logical" == true ]]; then
+  echo "Original mounts were retained untouched. Rollback storage/image override: $backup/rollback.compose.json"
+  echo "Use the generated overlay for ad-hoc Compose commands: -f $CORE_STORAGE_FILE"
+else
+  echo "Old data: docker/data/db.before-$run_id and docker/data/meilisearch.before-$run_id"
+fi
 echo "Application services remain stopped. Start them using the normal $environment script."

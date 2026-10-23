@@ -6,12 +6,14 @@
       class="inline-flex items-center justify-center overflow-hidden"
     >
       <!-- SLK local SVG -->
+      <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
       <span
         v-if="options.source === 'slk' && currentSlkSvg"
         :class="[iconInnerClass, iconColorClass]"
         class="flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
         v-html="currentSlkSvg"
       />
+      <!-- eslint-enable vue/no-v-html -->
       <!-- Iconify icon -->
       <Icon
         v-else-if="options.source === 'iconify' && options.iconifySlug"

@@ -275,3 +275,125 @@ test('translated rich text keeps markup while rejecting executable CMS text and 
   const result = sanitizeHtml(t('localteam.register.onboarding.body', {':name': '<svg onload="evil()">City</svg>'}));
   assert.match(result, /<strong>City<\/strong>/); assert.doesNotMatch(result, /onerror|onload|<svg/);
 });
+
+test('editor cookie holds only an opaque identity and CSRF; tokens live in revocable Redis sessions', async () => {
+  const values = new Map<string, string>(); let down = false; let options: Row = {};
+  const cookie = {data: {} as Row, update: async (data: Row) => {cookie.data = data;}};
+  const exports = utility('editorSession.ts', {
+    '~/shared/contracts/auth': frontend('./shared/contracts/auth.ts'),
+    h3: {...h3, useSession: async (_event: unknown, config: Row) => {options = config; return cookie;}},
+    './abuseProtection': {abuseProtection: () => ({hmacKey: 'a'.repeat(64), devMode: false})},
+    './protectionRedis': {withProtectionRedis: async (fn: Function) => {
+      if (down) throw Error('Redis offline');
+      return fn({set: async (key: string, value: string, flags: Row) => {if (flags.XX && !values.has(key)) return null; values.set(key, value); return 'OK';}, get: async (key: string) => values.get(key) ?? null, del: async (key: string) => values.delete(key)});
+    }},
+  }, {useRuntimeConfig: () => ({appPublicUrl: 'https://example.org', editorSessionSecret: ''})});
+  const session = {accessToken: 'access-private', refreshToken: 'refresh-private', expiresAt: Date.now() + 100000, user: {id: 'personal'}};
+  const response = await exports.openEditorSession({}, session);
+  assert.deepEqual(Object.keys(response).sort(), ['csrf', 'user']);
+  assert.deepEqual(Object.keys(cookie.data).sort(), ['csrf', 'sid']);
+  assert.equal(options.sessionHeader, false); assert.equal(options.cookie.httpOnly, true); assert.equal(options.cookie.secure, true); assert.equal(options.cookie.sameSite, 'strict');
+  const event = {headers: {'x-slk-editor': '1', 'x-csrf-token': response.csrf, origin: 'https://example.org', 'sec-fetch-site': 'same-origin'}};
+  assert.equal((await exports.readEditorSession(event, true)).session.accessToken, 'access-private');
+  for (const change of [{'x-csrf-token': ''}, {'x-csrf-token': 'b'.repeat(64)}, {'x-slk-editor': ''}, {origin: 'https://evil.org'}, {'sec-fetch-site': 'cross-site'}]) await assert.rejects(exports.readEditorSession({headers: {...event.headers, ...change}}, true), {statusCode: 403});
+  down = true; await assert.rejects(exports.readEditorSession(event), {statusCode: 503}); down = false;
+  const sid = cookie.data.sid;
+  await exports.revokeEditorSession(sid);
+  await assert.rejects(exports.readEditorSession(event), {statusCode: 401});
+  await assert.rejects(exports.saveEditorSession(sid, session, true), {statusCode: 401}, 'Refresh may not resurrect a logged-out session');
+});
+
+test('editor refresh rotates exactly once across concurrent requests and revocation wins an in-flight refresh', async () => {
+  let session: Row | null = {accessToken: 'old', refreshToken: 'old-refresh', expiresAt: 0, user: {id: 'personal'}};
+  let lock = false, refreshes = 0, logouts = 0, revoke = false;
+  const {editorAccess} = utility('editorUpstream.ts', {
+    '~/shared/contracts/auth': frontend('./shared/contracts/auth.ts'),
+    './editorSession': {
+      readEditorSession: async () => {if (!session) throw Object.assign(new Error(), {statusCode: 401}); return {sid: 'a'.repeat(64), session};},
+      saveEditorSession: async (_sid: string, next: Row) => {if (revoke) {session = null; throw Object.assign(new Error(), {statusCode: 401});} session = next;},
+    },
+    './protectionRedis': {withProtectionRedis: async (fn: Function) => fn({set: async () => {if (lock) return null; lock = true; return 'OK';}, eval: async () => {lock = false;}})},
+  }, {useRuntimeConfig: () => ({directusServerUrl: 'http://cms'}), $fetch: async (url: string) => {
+    if (url.endsWith('/logout')) {logouts++; return;}
+    refreshes++; await new Promise(resolve => setTimeout(resolve, 5));
+    return {data: {access_token: 'fresh', refresh_token: 'fresh-refresh', expires: 600000}};
+  }});
+  const results = await Promise.all(Array.from({length: 8}, () => editorAccess({}, true)));
+  assert.equal(refreshes, 1); assert.ok(results.every(result => result.session.accessToken === 'fresh'));
+  session!.expiresAt = 0; revoke = true;
+  await assert.rejects(editorAccess({}, true), {statusCode: 401}); assert.equal(logouts, 1); assert.equal(session, null);
+});
+
+test('CMS transport strips nested credentials, rejects inherited deep paths and bounds transforms', () => {
+  const {publicEditorJson, validateEditorQuery} = utility('editorTransport.ts');
+  const result = publicEditorJson({data: [{id: 1, owner: {name: 'Editor', token: 'secret', password: 'secret', access_token: 'secret', refresh_token: 'secret', api_key: 'secret'}}]});
+  assert.equal(JSON.stringify(result), JSON.stringify({data: [{id: 1, owner: {name: 'Editor'}}]}));
+  validateEditorQuery(new URLSearchParams({deep: JSON.stringify({translations: {_filter: {language: {_eq: 'de'}}}})}));
+  for (const key of ['__proto__', 'constructor', 'toString', 'valueOf', 'map', 'call', 'safe.toString']) assert.throws(() => validateEditorQuery(new URLSearchParams({deep: `{"${key}":{"_limit":1}}`})), {statusCode: 400});
+  for (const value of ['{', JSON.stringify(Array(1001).fill(null)), JSON.stringify('a'.repeat(33000))]) assert.throws(() => validateEditorQuery(new URLSearchParams({deep: value})), {statusCode: 400});
+  assert.throws(() => validateEditorQuery(new URLSearchParams({access_token: 'forged'})), {statusCode: 400});
+  const {validateEditorAssetQuery} = utility('editorAssets.ts');
+  validateEditorAssetQuery(new URLSearchParams('width=1200&height=900&quality=75&format=webp&fit=cover'));
+  for (const query of ['width=20000', 'width=-1', 'width=1&width=2', 'height=NaN', 'quality=101', 'transforms=[]', 'format=html', 'key=../private', 'download=%0a']) assert.throws(() => validateEditorAssetQuery(new URLSearchParams(query)), {statusCode: 400});
+});
+
+test('editor CMS proxy preserves the personal ACL, strips credentials and headers, restricts routes and protects uploads', async () => {
+  const calls: Row[] = []; let response: Response; let mutation: boolean | undefined;
+  const transport = utility('editorTransport.ts'); const assets = utility('editorAssets.ts');
+  const {default: handler, allowedEditorPath} = load('src/frontend/server/api/editor/cms/[...path].ts', {
+    h3: {...h3, getRouterParam: (event: Row) => event.route},
+    '../../../utils/editorTransport': transport, '../../../utils/editorAssets': assets,
+    '../../../utils/editorUpstream': {editorAccess: async (_event: Row, mutates: boolean) => {mutation = mutates; return {session: {accessToken: 'personal-only', user: {id: 'editor'}}};}},
+    '../../../utils/rateLimit': {rateLimit: async () => true},
+  }, {Headers, Response, AbortSignal, Uint8Array, useRuntimeConfig: () => ({directusServerUrl: 'http://cms'}), fetch: async (url: string, init: Row) => {calls.push({url, init}); return response;}});
+  for (const path of ['users', 'auth/login', 'settings', 'items/directus_users', 'items/pages/../users', 'assets/%2e', 'https://evil.org', 'graphql']) assert.equal(allowedEditorPath(path, 'GET'), false, path);
+  const event = (method: string, route = 'items/pages', body = '') => ({method, route, path: `/api/editor/cms/${route}`, headers: {}, node: {req: {headers: {authorization: 'Bearer forged', cookie: 'browser=private', 'content-type': 'application/json'}, async *[Symbol.asyncIterator]() {yield Buffer.from(body);}}}});
+  response = new Response(JSON.stringify({data: {id: 1, owner: {token: 'private'}}}), {headers: {'content-type': 'application/json', 'set-cookie': 'cms-private', location: 'http://cms/secret'}});
+  const result = await handler(event('PATCH', 'items/pages/id', '{"name":"Updated"}'));
+  assert.equal(mutation, true); assert.equal(calls[0].init.headers.get('authorization'), 'Bearer personal-only'); assert.equal(calls[0].init.headers.get('cookie'), null); assert.equal(calls[0].init.redirect, 'error');
+  assert.equal(Buffer.from(calls[0].init.body).toString(), '{"name":"Updated"}');
+  assert.equal(result.headers.get('set-cookie'), null); assert.equal(result.headers.get('location'), null); assert.equal(result.headers.get('cache-control'), 'private, no-store');
+  assert.deepEqual(await result.json(), {data: {id: 1, owner: {}}});
+  const conflict = event('GET'); conflict.headers = {'x-slk-editor-user': 'other'}; await assert.rejects(handler(conflict), {statusCode: 409});
+  await assert.rejects(handler(event('PATCH', 'items/pages/id', 'a'.repeat(5 * 1024 * 1024 + 1))), {statusCode: 413});
+  response = new Response(null, {status: 204}); assert.equal((await handler(event('DELETE', 'items/pages/id'))).status, 204);
+  response = new Response('<svg/>', {headers: {'content-type': 'image/svg+xml'}});
+  const image = await handler(event('GET', 'assets/12345678-1234-4234-8234-123456789abc'));
+  assert.match(image.headers.get('content-security-policy'), /sandbox/);
+});
+
+test('pinned analytics retains normal delivery and drops candidate/preview events across SPA transitions', async () => {
+  const {createHash} = await import('node:crypto');
+  const {plausibleManifest} = load('src/frontend/shared/plausibleManifest.ts');
+  const script = readFileSync(new URL('src/frontend/public' + plausibleManifest.src, root), 'utf8');
+  assert.equal(plausibleManifest.integrity, 'sha384-' + createHash('sha384').update(script).digest('base64'));
+  const calls: Row[] = [];
+  const location = new URL('https://example.org/public');
+  const window: Row = {fetch: true, localStorage: {}, navigator: {}, history: {}, addEventListener() {}, innerHeight: 100};
+  runInNewContext(script, {window, location, URL, URLSearchParams, Date, console, setInterval, clearInterval,
+    fetch: async (url: string, options: Row) => {calls.push({url, body: JSON.parse(options.body)}); return {status: 202};},
+    document: {currentScript: {src: 'https://example.org' + plausibleManifest.src, getAttribute: (name: string) => name === 'data-api' ? 'https://analytics.example.org/api/event' : 'example.org'}, visibilityState: 'visible', referrer: '', documentElement: {}, addEventListener() {}, hasFocus: () => true},
+  });
+  assert.equal(calls.length, 1); assert.equal(calls[0].url, 'https://analytics.example.org/api/event');
+  for (const path of ['/elections/thesen/private', '/elections/thesen#token=secret', '/municipalities/test?preview=secret', '/public?blokkliPreview=1', '/public#access_token=secret']) {
+    location.href = 'https://example.org' + path; window.plausible('pageview');
+  }
+  assert.equal(calls.length, 1); location.href = 'https://example.org/public-again'; window.plausible('pageview'); assert.equal(calls.length, 2);
+});
+
+test('pinned Directus runtime guards reject inherited deep paths, SQL geometry and oversized transforms without running a CMS', async () => {
+  const guards = await import('../../../docker/directus/security-patches/patch-api.js');
+  const validateDeep = new Function('deep', 'InvalidQueryError', guards.deepGuard);
+  validateDeep({translations: {_filter: {language: {_eq: 'de'}}}}, Error);
+  for (const key of ['__proto__', 'toString', 'valueOf', 'constructor.prototype', 'safe.toString', 'map', 'call']) assert.throws(() => validateDeep(JSON.parse(`{"${key}":{"_limit":1}}`), Error));
+  const geometry = new Function('field', guards.geometryGuard);
+  for (const type of ['geometry', 'geometry.Point', 'geometry.MultiPolygon']) geometry({type});
+  for (const type of ['geometry.bad', 'geometry.Point);SELECT pg_sleep(1);--', 'geometry.Point.extra']) assert.throws(() => geometry({type}));
+  const asset = new Function('transforms', 'IllegalAssetTransformationError', guards.assetGuard);
+  for (const args of [[1200, 900], [{width: 4096, height: null}], [null, 900]]) asset([['resize', ...args]], Error);
+  for (const args of [[20000, 900], [{height: 20000}], ['999999', 1], [NaN, 1], [-1, 1]]) assert.throws(() => asset([['resize', ...args]], Error));
+  assert.throws(() => asset([['extend', {left: 999999}]], Error));
+  const {mkdtempSync, mkdirSync, writeFileSync, rmSync} = await import('node:fs'); const {tmpdir} = await import('node:os'); const {join} = await import('node:path');
+  const dir = mkdtempSync(join(tmpdir(), 'slk-unreviewed-api-'));
+  try {mkdirSync(join(dir, 'dist/utils'), {recursive: true}); writeFileSync(join(dir, 'dist/utils/sanitize-query.js'), 'unreviewed'); assert.throws(() => guards.patchDirectusApi(dir), /Unreviewed Directus source/);} finally {rmSync(dir, {recursive: true, force: true});}
+});

@@ -38,7 +38,7 @@ const SECTOR_ALIASES: { key: string; pattern: RegExp; label: string }[] = [
 export function localizedText(value?: Record<string, string> | string | null) {
   if (!value) return "";
   if (typeof value === "string") return value;
-  return value["de-DE"] || value["en-US"] || "";
+  return value["de-DE"] || "";
 }
 
 export function sectorKey(collection: Pick<Collection, "sector">) {

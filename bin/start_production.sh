@@ -38,23 +38,25 @@ wait_for_url() {
 
 	echo "[error] $name did not become reachable within ${timeout_seconds}s (last HTTP status: ${http_code:-000}, $url)" >&2
 	echo "[diagnostics] Container status for $name:" >&2
-	docker compose -f docker-compose.yaml -f docker-compose.prod.yaml ps "$name" >&2 || true
+	"${CORE_COMPOSE[@]}" ps "$name" >&2 || true
 	echo "[diagnostics] Last $name logs:" >&2
-	docker compose -f docker-compose.yaml -f docker-compose.prod.yaml logs --tail=100 "$name" >&2 || true
+	"${CORE_COMPOSE[@]}" logs --tail=100 "$name" >&2 || true
 	return 1
 }
 
 cd "$REPO_ROOT"
+source "$SCRIPT_DIR/lib/core-service-data.sh"
+core_compose production
 mkdir -p src/directus/uploads
 
 "$SCRIPT_DIR/check_core_service_data.sh" production
 
 echo "[stack] Starting production services"
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d db cache meilisearch
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --force-recreate directus frontend
+"${CORE_COMPOSE[@]}" up -d db cache meilisearch
+"${CORE_COMPOSE[@]}" up -d --force-recreate directus frontend
 
 wait_for_url "http://127.0.0.1:9001/server/health" "directus" 360
 wait_for_url "http://127.0.0.1:9000" "frontend" 180
 
 echo "[maintenance] Deactivating maintenance container"
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml stop maintenance >/dev/null 2>&1 || true
+"${CORE_COMPOSE[@]}" stop maintenance >/dev/null 2>&1 || true

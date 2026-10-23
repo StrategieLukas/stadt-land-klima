@@ -12,10 +12,12 @@
       class="canonical-button__icon"
       :class="iconSize === 'lg' ? 'flex-shrink-0 w-12 self-stretch flex items-center justify-center border-r-2 [&>svg]:h-7 [&>svg]:w-7' : 'flex-shrink-0 w-9 self-stretch flex items-center justify-center border-r-2 [&>svg]:h-5 [&>svg]:w-5'"
     >
+      <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
       <span
         :class="iconSize === 'lg' ? 'h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full' : 'h-5 w-5 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full'"
         v-html="currentIconSvg"
       />
+      <!-- eslint-enable vue/no-v-html -->
     </span>
     <!-- Iconify icon (e.g. mdi:arrow-right) -->
     <span

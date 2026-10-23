@@ -104,10 +104,8 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                         </svg>
                         <div class="flex-1 min-w-0">
-                          <!-- eslint-disable-next-line vue/no-v-html -->
-                          <div class="font-semibold text-gray-900 leading-tight" v-html="result.title" />
-                          <!-- eslint-disable-next-line vue/no-v-html -->
-                          <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="result.excerpt" />
+                          <div class="font-semibold text-gray-900 leading-tight" v-html="sanitizeHtml(result.title)" />
+                          <div v-if="result.excerpt" class="text-xs text-gray-500 mt-0.5 line-clamp-2" v-html="sanitizeHtml(result.excerpt)" />
                         </div>
                         <span class="palette-content-badge text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full self-center whitespace-nowrap ml-2 flex-shrink-0 inline-flex items-center gap-1">
                           {{ contentTypeLabel(result.type) }}
@@ -154,6 +152,7 @@
 </template>
 
 <script setup lang="ts">
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import type { AreaChipAction } from '~/types/components/navigation';
 
 import { ref, watch, watchEffect, nextTick, onMounted, onBeforeUnmount } from 'vue'

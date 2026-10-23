@@ -57,7 +57,6 @@ import type { BlokkliAdapterPublishOptions } from "#blokkli/editor/features/publ
 import type { PluginConfigInput } from "#blokkli/editor/types/pluginConfig";
 import { readItems, readFiles, createItem, updateItem, deleteItem, customEndpoint } from "@directus/sdk";
 import { useAuth } from "~/composables/useAuth";
-import { useAuthStore } from "~/stores/auth";
 import { BLOKKLI_CONTENT_FIELD, getBlokkliDataKey, mapBlokkliBlocks } from "~/shared/blokkliPersistence";
 
 type AdapterState = {
@@ -71,7 +70,6 @@ type DirectusPermissions = Record<
 
 export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
   const { $t } = useNuxtApp();
-  const config = useRuntimeConfig();
   const { isAuthenticated, getAuthenticatedClient, user, initialize } = useAuth();
   let permissions: DirectusPermissions = {};
   let permissionsOwner = "";
@@ -1839,10 +1837,6 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       // total must be large enough so blökkli shows a next-page button when hasMore
       const total = hasMore ? offset + PER_PAGE + 1 : offset + fileList.length;
 
-      // Append access_token so Directus serves protected assets without 403
-      const authStore = useAuthStore();
-      const token = authStore._accessToken.value;
-      const tokenParam = token ? `&access_token=${encodeURIComponent(token)}` : "";
 
       return {
         filters: searchFilters(),
@@ -1852,7 +1846,7 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
           context: "directus",
           targetBundles: ["image"],
           mediaBundle: "image",
-          thumbnail: `${config.public.clientDirectusUrl}/assets/${file.id}?width=200&quality=70${tokenParam}`,
+          thumbnail: `/api/editor/cms/assets/${file.id}?width=200&quality=70`,
         })),
         total,
         perPage: PER_PAGE,

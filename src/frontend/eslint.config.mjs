@@ -1,5 +1,5 @@
+import prettier from "eslint-config-prettier";
 import { createConfigForNuxt } from "@nuxt/eslint-config/flat";
-import prettier from "eslint-plugin-prettier/recommended";
 
 const config = createConfigForNuxt({
   features: {
@@ -7,8 +7,8 @@ const config = createConfigForNuxt({
     typescript: { tsconfigPath: "./tsconfig.json" },
   },
 }).append(
-  { ignores: ["**/dist/**", "**/.output/**", "**/node_modules/**", "**/.nuxt/**"] },
   prettier,
+  { ignores: ["**/dist/**", "**/.output/**", "**/node_modules/**", "**/.nuxt/**"] },
   {
     name: "migration/checked-contracts",
     files: ["**/*.ts", "**/*.mts", "**/*.vue"],
@@ -28,9 +28,22 @@ const config = createConfigForNuxt({
     },
   },
   {
-    name: "migration/vue3-pages",
+    name: "application/vue-typescript",
     files: ["**/*.vue"],
-    rules: { "vue/no-multiple-template-root": "off", "vue/valid-template-root": "off" },
+    rules: {
+      "vue/no-multiple-template-root": "off", "vue/valid-template-root": "off",
+      // Optional TS props deliberately use Vue's native absent-value behavior.
+      // Meaningful defaults belong in withDefaults; strict templates check consumers.
+      "vue/require-default-prop": "off",
+      "vue/no-v-html": ["error", {ignorePattern: "^sanitize(?:Html|Svg)\\("}],
+      "vue/prop-name-casing": "error",
+      "vue/attribute-hyphenation": ["error", "always", {ignore: ["ariaHidden"]}],
+    },
+  },
+  {
+    // These public prop contracts mirror persisted CMS snake_case fields.
+    files: ["components/ArticlePage.vue", "components/MeasureCard.vue", "components/MeasureDetails.vue", "components/ProjectCard.vue"],
+    rules: {"vue/prop-name-casing": "off"},
   },
   // Policy owned by the application maintainers: keep defensive guards at I/O
   // boundaries, including APIs whose third-party declarations overstate their guarantees.

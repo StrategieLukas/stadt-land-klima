@@ -42,7 +42,7 @@
           v-blokkli-editable:title
           class="leading-tight mb-4 text-4xl md:text-5xl lg:text-6xl whitespace-pre-line"
           :class="[titleColorClass, titleWeightClass]"
-          v-html="sanitizedTitle"
+          v-html="sanitizeHtml(sanitizedTitle)"
         />
         <p
           v-if="props.subtitle || isEditing"

@@ -279,12 +279,14 @@
                   :style="sector.key === activeSectorKey ? { backgroundColor: sector.color } : undefined"
                   @click="scrollToSector(sector.key)"
                 >
+                  <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
                   <span
                     v-if="sectorIconSvg(sector.key)"
                     class="flex h-5 w-5 flex-shrink-0 items-center justify-center text-current [&>svg]:h-full [&>svg]:w-full"
                     :class="sector.key === activeSectorKey ? 'opacity-100' : 'opacity-60'"
                     v-html="sectorIconSvg(sector.key)"
                   />
+                  <!-- eslint-enable vue/no-v-html -->
                   {{ $translateDynamic(`measure_sectors.${sector.key}.title`) }}
                 </button>
               </div>
@@ -299,12 +301,14 @@
                 class="border-gray-100 flex items-center gap-2 border-t pb-2 pt-8"
                 :style="`scroll-margin-top: ${productScrollMarginTop}px`"
               >
+                <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
                 <span
                   v-if="sectorIconSvg(group.key)"
                   class="flex h-10 w-10 flex-shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
                   :style="{ color: group.color }"
                   v-html="sectorIconSvg(group.key)"
                 />
+                <!-- eslint-enable vue/no-v-html -->
                 <h2 class="text-gray-900 text-4xl font-black">{{ group.label }}</h2>
                 <span class="text-gray-400 justify-self-end text-xs">{{ group.collections.length }} Datenprodukte</span>
               </div>

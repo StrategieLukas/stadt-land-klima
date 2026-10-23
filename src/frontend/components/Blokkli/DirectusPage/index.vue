@@ -1,6 +1,6 @@
 <template>
   <div :id="'block-' + uuid" class="blokkli-block-directus-page prose max-w-none">
-    <div v-if="pageHtml" v-html="pageHtml" />
+    <div v-if="pageHtml" v-html="sanitizeHtml(pageHtml)" />
     <p v-else class="text-gray italic">Kein Seiteninhalt verfügbar.</p>
   </div>
 </template>

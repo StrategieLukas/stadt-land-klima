@@ -46,7 +46,9 @@
       class="flex items-center justify-center w-12 h-12 rounded-md text-base-100 hover:bg-gray-100"
       @click="toggleView"
     >
+      <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
       <span class="w-12 h-12 flex-none" v-html="isMapView ? listViewIcon : mapViewIcon"></span>
+      <!-- eslint-enable vue/no-v-html -->
     </button>
   </div>
 </template>

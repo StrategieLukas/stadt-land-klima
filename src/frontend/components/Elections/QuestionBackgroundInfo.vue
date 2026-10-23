@@ -6,7 +6,7 @@
       'rounded-lg border border-solid-light-blue-30 bg-solid-very-light-blue-60 p-4': appearance === 'box',
       'text-sm italic': appearance === 'italic',
     }"
-    v-html="html"
+    v-html="sanitizeHtml(html)"
   />
 </template>
 

@@ -92,7 +92,7 @@
         <!-- Collection info + feature count -->
         <div class="flex min-w-0 flex-1 flex-col justify-center gap-1 px-5 py-4">
           <div class="text-gray-900 line-clamp-2 text-sm font-semibold leading-snug">
-            {{ activeCollection.title?.["de-DE"] || activeCollection.title?.["en-US"] }}
+            {{ activeCollection.title?.["de-DE"] }}
           </div>
           <div v-if="loadingFeatures" class="text-gray-400 animate-pulse text-xs">Daten werden geladen…</div>
           <div v-else-if="dataFeatures.length" class="text-gray-400 text-xs">

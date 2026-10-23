@@ -3,7 +3,7 @@
     <header class="series-hero">
       <div class="series-hero__copy">
         <h1>{{ series.title }}</h1>
-        <div v-if="series.introduction" class="series-intro prose" v-html="sanitizedIntroduction" />
+        <div v-if="series.introduction" class="series-intro prose" v-html="sanitizeHtml(sanitizedIntroduction)" />
         <p v-else class="series-intro">{{ $t('tour.follow_journey') }}</p>
         <CanonicalButton v-if="stops.length" href="#route" :label="$t('tour.discover')" icon-slug="mdi:map-marker-path" color="dark" />
       </div>
@@ -120,7 +120,7 @@
           </div>
           <div v-else class="series-brand__fallback"><span>{{ series.title }}</span><TourPin /><strong>Stadt.Land.Klima!</strong></div>
         </div>
-        <div v-if="series.closing_reflection" class="series-outro__reflection prose" v-html="sanitizedClosingReflection" />
+        <div v-if="series.closing_reflection" class="series-outro__reflection prose" v-html="sanitizeHtml(sanitizedClosingReflection)" />
         <div v-if="allProjects.length || stops.length" class="series-outro__references">
           <div v-if="allProjects.length">
             <h2>{{ $t('tour.all_projects') }}</h2>

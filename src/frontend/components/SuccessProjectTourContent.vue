@@ -9,10 +9,10 @@ import { useAuth } from '~/composables/useAuth';
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence';
 import { TOUR_REPORT_MEDIA, type SuccessProjectTourStop } from '~/shared/successProjectTour';
 import { relationId } from '~/shared/tour';
-const props = defineProps<{ stop: SuccessProjectTourStop; canEdit: boolean; previewToken?: string | null | undefined }>();
+const props = defineProps<{ stop: SuccessProjectTourStop; canEdit: boolean; editorPreview?: boolean | undefined }>();
 provide(TOUR_REPORT_MEDIA, computed(() => ({
   fileIds: new Set([props.stop.image, ...(props.stop.media || []).flatMap(item => [item.file, item.poster])].map(relationId).filter((id): id is string => Boolean(id))),
-  accessToken: props.previewToken,
+  editorPreview: props.editorPreview,
 })));
 const { getAuthenticatedClient } = useAuth();
 const { data } = await useAsyncData(getBlokkliDataKey('success_project_tour_stops', props.stop.id), async () => {

@@ -11,12 +11,7 @@ export const AuthUserSchema = z.object({
     .optional(),
 });
 export type AuthUser = z.infer<typeof AuthUserSchema>;
-export const AuthSessionSchema = z.object({
-  accessToken: z.string().min(1).max(16384),
-  refreshToken: z.string().min(1).max(16384).nullable().optional(),
-  user: AuthUserSchema,
-});
-export type AuthSession = z.infer<typeof AuthSessionSchema>;
+export const EditorSessionResponseSchema = z.object({user: AuthUserSchema, csrf: z.string().regex(/^[a-f0-9]{64}$/)});
 export function authErrorMessage(error: unknown): string {
   let message: string | undefined;
   if (error && typeof error === "object") {

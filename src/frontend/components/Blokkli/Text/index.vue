@@ -4,7 +4,7 @@
     class="blokkli-block-text prose max-w-none"
     :class="[sizeClass, alignClass, colorClass]"
   >
-    <div v-blokkli-editable:content v-html="sanitizedContent" />
+    <div v-blokkli-editable:content v-html="sanitizeHtml(sanitizedContent)" />
   </div>
 </template>
 

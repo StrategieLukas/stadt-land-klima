@@ -19,7 +19,7 @@
         <!-- Fallback: render legacy HTML content when not editing and no blocks exist -->
         <template v-if="!isEditing && pageBlocks.length === 0 && page.contents">
           <template v-for="(block, index) in processedPageContent" :key="index">
-            <div v-if="block.type === 'html'" v-html="block.html" />
+            <div v-if="block.type === 'html'" v-html="sanitizeHtml(block.html)" />
             <OnboardingBox v-else-if="block.type === 'component'" name="Otto" :avatar-src="onboardingAvatarUrl" />
           </template>
         </template>

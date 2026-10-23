@@ -1,3 +1,4 @@
+import {loginWebsite} from '../lib/browser.js';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import type { Browser } from 'playwright';
@@ -559,7 +560,8 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
       const legacyId=randomUUID();
       try {
         await fixture.acceptCurrentAgreements([user.id]);
-        const token=await editor.login(email,password);
+        await editor.login(email,password);
+        await loginWebsite(context, config.frontendUrl, email, password);
         const overviewScope = { entity_type: 'success_project_tours', entity_uuid: ids.series.id, field_name: 'content' };
         const overviewState = await editor.request<{blocks:unknown[];revision:string}>('GET', '/blokkli-persistence/state', { query: overviewScope });
         assert(overviewState.blocks.length === 1, 'Authorized tour editors should load draft overview blocks');
@@ -574,11 +576,10 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         try {await editor.request('POST','/blokkli-persistence/publish',{body:{entity_type:'news_items',entity_uuid:ids.report!.id,field_name:'content',blocks:[],baseRevision:''}});}catch(error){ordinaryRejected=String(error).includes('403');}
         assert(ordinaryRejected,'The scoped tour editor policy must not grant unrelated Blokkli publishing');
         await context.addCookies([{name:'slk_locale',value:'de-DE',url:config.frontendUrl}]);
-        await context.addInitScript(({token,user,legacyId,revision})=>{
-          localStorage.setItem('slk_auth',JSON.stringify({accessToken:token,refreshToken:null,user}));
+        await context.addInitScript(({user,legacyId,revision})=>{
           localStorage.setItem('blokkli:popup:tour:closed','true');
           localStorage.setItem(`slk:blokkli-draft:event_reports:${legacyId}`,JSON.stringify({blocks:[],mutations:[],currentIndex:-1,baseRevision:revision,updatedAt:new Date().toISOString(),ownerId:user.id}));
-        },{token,user,legacyId,revision:state.revision});
+        },{user,legacyId,revision:state.revision});
         const page=await context.newPage();
         const overviewUrl = `${config.frontendUrl}/projects/tours/${slug}`;
         await page.goto(`${overviewUrl}?blokkliEditing=${ids.series.id}`, { waitUntil: 'networkidle' });

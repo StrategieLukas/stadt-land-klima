@@ -159,7 +159,7 @@ const sectorDisplay = computed(() => {
 });
 
 const collectionDescription = computed(
-  () => props.collection.description?.["de-DE"] || props.collection.description?.["en-US"] || "",
+  () => props.collection.description?.["de-DE"] || "",
 );
 const collectionTitle = computed(() => t(props.collection.title) || props.collection.id);
 

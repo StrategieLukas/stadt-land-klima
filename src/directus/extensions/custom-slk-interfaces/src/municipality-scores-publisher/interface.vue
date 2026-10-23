@@ -1,5 +1,5 @@
 <template>
-  <div class="municipality-scores-publisher" @keydown.esc.window="closeUnverifiedDialog">
+  <div class="municipality-scores-publisher">
     <div v-if="!primaryKey || primaryKey === '+'" class="notice">
       {{ $t('directus.interfaces.municipality_scores_publisher.save_municipality_first') }}
     </div>
@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, watch, type Ref } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref, watch, type Ref } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
@@ -158,7 +158,12 @@ const sortedScores = computed(() => {
 watch(() => props.primaryKey, () => loadScores(), { immediate: true });
 onMounted(() => {
   void ensureCurrentUserIsVerified();
+  window.addEventListener('keydown', onEscape);
 });
+onUnmounted(() => window.removeEventListener('keydown', onEscape));
+function onEscape(event: KeyboardEvent): void {
+  if (event.key === 'Escape') closeUnverifiedDialog();
+}
 
 async function loadScores(): Promise<void> {
   if (!api || !props.primaryKey || props.primaryKey === '+') {

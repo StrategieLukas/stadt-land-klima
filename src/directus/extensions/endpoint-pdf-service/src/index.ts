@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
 import { convert } from "html-to-text";
 import type { Request, Response, Router } from "express";
-import type { ApiExtensionContext, SchemaOverview, AbstractService } from '@directus/types';
+import type { SchemaOverview, AbstractService } from '@directus/types';
 
 type ItemsService = AbstractService;
 type Schema = SchemaOverview;

@@ -1,6 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from "node:url";
+import {staticIconStyleHashes} from "./scripts/securityStyles.mts";
 
+const publicCmsOrigins = (() => {
+  try {const url = new URL(process.env.CLIENT_DIRECTUS_URL || ''); return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password ? [url.origin] : [];}
+  catch {return [];}
+})();
 export default defineNuxtConfig({
   typescript: {
     strict: true,
@@ -26,7 +31,33 @@ export default defineNuxtConfig({
   dir: {
     app: "app",
   },
-  modules: ["@nuxtjs/leaflet", "@blokkli/editor"],
+  modules: ["@nuxtjs/leaflet", "@blokkli/editor", "nuxt-security"],
+  security: {
+    enabled: process.env.NODE_ENV === 'production' || process.env.SLK_ENV === 'production',
+    nonce: true, sri: true, removeLoggers: false,
+    // API routes enforce their own bounded bodies (including 50 MB editor uploads).
+    rateLimiter: false, requestSizeLimiter: false, xssValidator: false,
+    corsHandler: false, allowedMethodsRestricter: false, csrf: false, hidePoweredBy: false,
+    headers: {
+      crossOriginResourcePolicy: false, crossOriginOpenerPolicy: false, crossOriginEmbedderPolicy: false,
+      originAgentCluster: false, referrerPolicy: false, strictTransportSecurity: false,
+      xContentTypeOptions: false, xDNSPrefetchControl: false, xDownloadOptions: false,
+      xFrameOptions: false, xPermittedCrossDomainPolicies: false, xXSSProtection: false, permissionsPolicy: false,
+      contentSecurityPolicy: {
+        'default-src': ["'self'"],
+        'base-uri': ["'self'"], 'object-src': ["'none'"], 'form-action': ["'self'"], 'frame-ancestors': ["'self'"],
+        'script-src': ["'self'", "'strict-dynamic'", "'nonce-{{nonce}}'"], 'script-src-attr': ["'none'"],
+        'style-src': ["'self'", "'nonce-{{nonce}}'", ...staticIconStyleHashes()],
+        // Vue/map/chart sizing uses style attributes, not executable scripts.
+        'style-src-attr': ["'unsafe-inline'"],
+        'img-src': ["'self'", 'https:', 'data:', 'blob:', ...publicCmsOrigins],
+        'font-src': ["'self'", 'https:', 'data:'], 'media-src': ["'self'", 'https:', 'blob:', ...publicCmsOrigins],
+        'connect-src': ["'self'", 'https:', 'wss:'], 'worker-src': ["'self'", 'blob:'],
+        'frame-src': ["'self'", 'https://www.betterplace-widget.org', 'https://www.youtube-nocookie.com', 'https://www.youtube.com', 'https://player.vimeo.com'],
+        'report-uri': ['/api/security/csp'], 'upgrade-insecure-requests': false,
+      },
+    },
+  },
 
   // Blökkli 2 uses the custom Directus adapter and the existing block bundles.
   blokkli: {
@@ -48,6 +79,7 @@ export default defineNuxtConfig({
     // The private keys which are only available within server-side
     meilisearchUrl: process.env.MEILISEARCH_URL ?? "",
     meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY ?? process.env.MEILI_MASTER_KEY ?? "",
+    editorSessionSecret: process.env.EDITOR_SESSION_SECRET ?? "",
     candidateSessionSecret: process.env.CANDIDATE_SESSION_SECRET ?? "",
     altchaSecret: process.env.ALTCHA_SECRET ?? "",
     directusFlowRegisterMunicipality: process.env.DIRECTUS_FLOW_REGISTER_MUNICIPALITY ?? "",
@@ -92,7 +124,6 @@ export default defineNuxtConfig({
       captchaDevBypass: process.env.NODE_ENV !== 'production' && process.env.SLK_ENV !== 'production'
         && (process.env.SLK_ENV === 'development' || process.env.APP_ENV === 'development')
         && (!process.env.ALTCHA_SECRET || process.env.ALTCHA_SECRET === 'dev-secret-change-in-production'),
-      plausibleScriptIntegrity: process.env.PLAUSIBLE_SCRIPT_INTEGRITY ?? "",
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL ?? "",
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN ?? "",
       // Same-origin browser proxy. The real upstream URL and credentials stay private.
@@ -113,7 +144,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-  css: ["maplibre-gl/dist/maplibre-gl.css", "~/assets/css/main.css"],
+  css: ["maplibre-gl/dist/maplibre-gl.css", "~/assets/css/vega-embed.css", "~/assets/css/main.css"],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -121,6 +152,7 @@ export default defineNuxtConfig({
     },
   },
   routeRules: {
+    "/api/**": {security: {enabled: false}},
     "/**": {
       headers: { "Referrer-Policy": "strict-origin-when-cross-origin" },
     },

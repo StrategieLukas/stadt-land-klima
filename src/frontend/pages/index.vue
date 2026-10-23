@@ -20,7 +20,7 @@
           <div
             v-if="!isEditing && pageBlocks.length === 0 && page.contents"
             class="prose"
-            v-html="sanitizedContents"
+            v-html="sanitizeHtml(sanitizedContents)"
           />
         </article>
       </template>

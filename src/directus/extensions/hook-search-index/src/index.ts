@@ -652,7 +652,7 @@ export default (
     if (doc) await upsert(doc);
   });
 
-  action('users.update', async ({ keys, payload }: ActionPayload, { database }: ActionContext) => {
+  action('users.update', async ({ keys }: ActionPayload, { database }: ActionContext) => {
     for (const key of keys as (string | number)[]) {
       try {
         const rows = await database('directus_users')

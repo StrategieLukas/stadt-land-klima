@@ -10,6 +10,14 @@ core_compose() {
     mac) CORE_COMPOSE=(docker compose -f docker-compose.yaml -f docker-compose.dev-mac.yaml) ;;
     *) echo "Expected production, development or mac" >&2; return 2 ;;
   esac
+  # Logical migrations select fresh named volumes only after verified restores.
+  CORE_STORAGE_FILE="docker/core-storage/$environment.compose.json"
+  CORE_DB_VOLUME=""; CORE_MEILI_VOLUME=""
+  if [[ -f "$CORE_STORAGE_FILE" ]]; then
+    read -r CORE_DB_VOLUME CORE_MEILI_VOLUME < "docker/core-storage/$environment.volumes"
+    [[ "$CORE_DB_VOLUME" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]+$ && "$CORE_MEILI_VOLUME" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]+$ ]] || { echo 'Invalid migrated volume metadata' >&2; return 1; }
+    CORE_COMPOSE+=(-f "$CORE_STORAGE_FILE")
+  fi
   CORE_DB_IMAGE="$("${CORE_COMPOSE[@]}" config --images | awk '/^postgis\/postgis:/ { print; exit }')"
   CORE_MEILI_IMAGE="$("${CORE_COMPOSE[@]}" config --images | awk '/^getmeili\/meilisearch:/ { print; exit }')"
   [[ "$CORE_DB_IMAGE" =~ :([0-9]+)- ]] || return 1
@@ -17,6 +25,12 @@ core_compose() {
   CORE_DB_MAJOR="${BASH_REMATCH[1]}"
   # shellcheck disable=SC2034 # Public outputs consumed by the sourcing scripts.
   CORE_MEILI_VERSION="${CORE_MEILI_IMAGE##*:v}"
+}
+
+core_volume_version() {
+  docker volume inspect "$1" >/dev/null # Never create an empty replacement silently.
+  docker run --rm --network none --entrypoint sh --mount "type=volume,source=$1,target=/storage,readonly" "$CORE_DB_IMAGE" \
+    -ec 'if [ -f "/storage/$1" ]; then cat "/storage/$1"; fi' sh "$2"
 }
 
 core_mount() {

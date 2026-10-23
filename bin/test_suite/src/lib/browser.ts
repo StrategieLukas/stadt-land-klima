@@ -100,3 +100,13 @@ export async function assertCheckboxCount(page: Page, min: number, message: stri
   const count = await page.locator('input[type="checkbox"]').count();
   assert(count >= min, `${message}. Expected at least ${min} checkbox input(s), found ${count}.`);
 }
+
+/** Establish the same HttpOnly website session as the login modal, without storing JWTs. */
+export async function loginWebsite(context: BrowserContext, origin: string, email: string, password: string) {
+  const response = await context.request.post(`${origin}/api/editor/session/login`, {
+    headers: {Origin: new URL(origin).origin, 'x-slk-editor': '1'}, data: {email, password},
+  });
+  assert(response.ok(), `Website login must succeed (HTTP ${response.status()})`);
+  const body: unknown = await response.json();
+  assert(!JSON.stringify(body).includes('access_token') && !JSON.stringify(body).includes('refresh_token'), 'Website login must not return CMS credentials');
+}

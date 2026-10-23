@@ -421,6 +421,7 @@ async function renderChart() {
 
     const embedOpts: EmbedOptions = {
       ast: true,
+      defaultStyle: false,
       loader: safeVisualizationLoader(vega.loader({http: {credentials: 'omit', redirect: 'error'}}), window.location.origin),
       actions: false,
       renderer: 'svg',

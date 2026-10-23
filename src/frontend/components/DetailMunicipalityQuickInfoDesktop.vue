@@ -36,7 +36,7 @@
             >
                 <div
                 class="has-long-links prose prose-sm max-w-none"
-                v-html="renderMarkdown(municipality.description)"
+                v-html="sanitizeHtml(renderMarkdown(municipality.description))"
                 ></div>
             </div>
             </div>
@@ -77,7 +77,9 @@
 
             <div v-if="municipality?.municipality_type" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
+                <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
                 <div class="h-5 w-5 opacity-60" v-html="MunicipalitySvg"/>
+                <!-- eslint-enable vue/no-v-html -->
                 <span class="text-sm text-gray-700">{{ $t("municipality.municipality_type") }}</span>
                 </div>
                 <span class="text-sm font-bold text-right text-gray-900">

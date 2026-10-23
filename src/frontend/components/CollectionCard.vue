@@ -82,7 +82,7 @@ const { start: startDataRouteFeedback } = useDataRouteFeedback();
 const runtimeConfig = useRuntimeConfig();
 
 const description = computed(
-  () => props.collection.description?.["de-DE"] || props.collection.description?.["en-US"] || "",
+  () => props.collection.description?.["de-DE"] || "",
 );
 
 const coverImage = computed(() => collectionCoverImage(props.collection, runtimeConfig.public.clientDirectusUrl));

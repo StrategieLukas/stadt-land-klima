@@ -6,7 +6,6 @@ export function useSlzLocale() {
     return (
       requested.map((locale) => dict[locale]).find(Boolean) ||
       dict["de-DE"] ||
-      dict["en-US"] ||
       Object.values(dict).find(Boolean) ||
       ""
     );

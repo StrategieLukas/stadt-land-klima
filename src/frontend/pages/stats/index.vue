@@ -862,6 +862,8 @@ const darkVegaConfig = {
 
 function vegaEmbedOpts(extra: EmbedOptions = {}): EmbedOptions {
   return {
+    ast: true,
+    defaultStyle: false,
     renderer: "svg",
     actions: false,
     ...extra,

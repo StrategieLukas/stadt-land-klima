@@ -12,7 +12,7 @@
     "test:security:helpers": "tsx --test src/disclosure.test.ts",
     "test:contracts": "tsx --test src/contracts.test.ts src/typecheckGate.test.ts",
     "typecheck": "tsc --noEmit",
-    "test:unit": "tsx --test src/contracts.test.ts src/typecheckGate.test.ts src/blokkliAdapter.test.ts src/mailFlowClient.test.ts src/disclosure.test.ts src/publicReads.test.ts src/newsDates.test.ts src/phase4.test.ts src/phase5.test.ts src/phase6.test.ts src/phase7.test.ts src/phase8.test.ts src/directusExtensions.test.ts src/securityHardening.test.ts && npm run test:cli",
+    "test:unit": "tsx --test src/contracts.test.ts src/typecheckGate.test.ts src/blokkliAdapter.test.ts src/mailFlowClient.test.ts src/disclosure.test.ts src/publicReads.test.ts src/newsDates.test.ts src/phase4.test.ts src/phase5.test.ts src/phase6.test.ts src/phase7.test.ts src/phase8.test.ts src/directusExtensions.test.ts src/securityHardening.test.ts src/lintGate.test.ts && npm run test:cli",
     "test:public": "tsx src/publicSmoke.ts",
     "test:components": "tsx --test src/phase5.test.ts",
     "test:boundaries": "tsx --test src/phase7.test.ts src/blokkliAdapter.test.ts",
@@ -21,6 +21,7 @@
     "test:extensions": "tsx --test src/directusExtensions.test.ts",
     "test:cli": "npm --prefix ../../src/directus/cli run test:unit",
     "audit:dependencies": "tsx src/dependencyAudit.ts",
+    "test:core:logical": "tsx src/coreLogicalMigration.ts",
     "test:security:redis": "tsx src/securityRedis.ts",
     "test:security:nginx": "tsx src/nginxSecurity.ts"
   },

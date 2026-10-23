@@ -209,7 +209,7 @@ const kpiElement = computed(() => renderElements.value.find((e) => e.type === "k
 
 function localizedStr(obj: Record<string, string> | null | undefined) {
   if (!obj) return "";
-  return obj["de-DE"] || obj["en-US"] || "";
+  return obj["de-DE"] || "";
 }
 
 const kpiUnit = computed(() => localizedStr(kpiElement.value?.unit));

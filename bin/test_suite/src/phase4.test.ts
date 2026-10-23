@@ -93,64 +93,65 @@ test('party identities, simple/differentiated answers, nullable scores and compa
   assert.ok(Number.isFinite(calculateAndAddSimilarityScores({ population: 0, geolocation: { lat: 52, lon: 13 } }, [{ municipality: { population: 0, geolocation: { lat: 52, lon: 13 } } }])[0]?.similarityScore));
 });
 
-test('browser session persistence validates cached data, strips unexpected fields and supports legacy role IDs', () => {
+test('browser editor state retains identity/CSRF only and retires legacy credential storage', () => {
   const harness = storeHarness(); const store = harness.useStore();
-  store.setAuth('access', 'refresh', { ...identity, token: 'must-not-persist' });
-  assert.equal(harness.useStore(), store, 'Browser components share one session');
-  assert.ok(!harness.storage.get('slk_auth')?.includes('must-not-persist'));
-  for (const value of ['null', '{bad', '{"accessToken":123,"user":{"id":"editor"}}', 'x'.repeat(65537)]) {
-    harness.storage.set('slk_auth', value); assert.equal(store.hydrateFromStorage(), false); assert.equal(store.isAuthenticated.value, false);
-  }
-  harness.storage.set('slk_auth', JSON.stringify({ accessToken: 'legacy-access', user: { ...identity, role: 'role' } }));
-  assert.equal(store.hydrateFromStorage(), true);
-  assert.equal(store.user.value.role, 'role');
-  store.clearAuth(); assert.equal(harness.storage.has('slk_auth'), false);
+  harness.storage.set('slk_auth', JSON.stringify({accessToken: 'legacy-secret'}));
+  store.setSession({...identity, token: 'must-not-persist'}, 'a'.repeat(64));
+  assert.equal(harness.useStore(), store);
+  assert.equal(harness.storage.size, 0);
+  assert.equal('_accessToken' in store, false); assert.equal('_refreshToken' in store, false);
+  assert.equal('token' in store.user.value, false);
+  store.setSession({...identity, role: 'role'}, 'a'.repeat(64)); assert.equal(store.user.value.role, 'role');
+  store.clearAuth(); assert.equal(store.isAuthenticated.value, false);
 });
 
-test('server authentication state is isolated and cannot create or hydrate browser sessions', () => {
+test('server authentication state is isolated and cannot establish a browser session', () => {
   const harness = storeHarness(false); const first = harness.useStore(); const second = harness.useStore();
   assert.notEqual(first, second);
   first.setLoading(true); assert.equal(second.isLoading.value, false);
-  assert.throws(() => first.setAuth('access', 'refresh', identity), /browser-only/);
-  assert.equal(first.hydrateFromStorage(), false);
+  assert.throws(() => first.setSession(identity, 'a'.repeat(64)), /browser-only/);
   assert.equal(second.user.value, null);
 });
 
 function authHarness() {
   const harness = storeHarness(); const store = harness.useStore(); const commands: Row[] = [];
-  let me: () => Promise<unknown> = async () => identity;
-  const client: Row = { with: () => client, setToken: async () => {}, login: async () => ({ access_token: 'login-access', refresh_token: 'login-refresh' }), request: async (command: Row) => {
-    commands.push(command);
-    if (command.operation === 'readMe') return me();
-    if (command.operation === 'refresh') return { access_token: 'refreshed-access', refresh_token: 'refreshed-refresh' };
-    if (command.operation === 'logout') return {};
-    throw new Error('Unexpected auth operation');
-  } };
-  const sdk = { createDirectus: () => client, rest() {}, authentication() {}, readMe: () => ({ operation: 'readMe' }), refresh: (data: Row) => ({ operation: 'refresh', data }), logout: (data: Row) => ({ operation: 'logout', data }) };
-  const module = load('composables/useAuth.ts', { '@directus/sdk': sdk, '~/stores/auth': { useAuthStore: () => store }, '~/shared/contracts/auth': authContracts, '~/shared/serviceUrl': urlHelpers }, { useRuntimeConfig: () => ({ public: { clientDirectusUrl: 'http://cms.test' }, directusServerUrl: 'http://cms.test' }) });
-  return { ...harness, store, commands, auth: module.useAuth(), secondAuth: () => module.useAuth(), setMe: (fn: typeof me) => { me = fn; } };
+  let me: () => Promise<unknown> = async () => ({user: identity, csrf: 'a'.repeat(64)});
+  const client: Row = {with: () => client};
+  const sdk = {createDirectus: (url: string) => {commands.push({operation: 'createClient', url}); return client;}, rest: (options: Row) => {commands.push({operation: 'rest', options});}};
+  const module = load('composables/useAuth.ts', {'@directus/sdk': sdk, '~/stores/auth': {useAuthStore: () => store}, '~/shared/contracts/auth': authContracts}, {
+    window: {location: {origin: 'https://website.test'}}, URL, Headers,
+    $fetch: async (path: string, options: Row = {}) => {
+      commands.push({operation: path, options});
+      if (path === '/api/editor/session/logout') return {success: true};
+      return me();
+    },
+  });
+  return {...harness, store, commands, auth: module.useAuth(), secondAuth: () => module.useAuth(), setMe: (fn: typeof me) => {me = fn;}};
 }
 
-test('login, refresh and logout invoke SDK operations rather than shadowing their own methods', async () => {
+test('login, refresh, SDK requests and logout use cookie endpoints and CSRF without exposing JWTs', async () => {
   const harness = authHarness();
-  const result = await harness.auth.login({ email: 'editor@example.org', password: 'password' });
+  const result = await harness.auth.login({email: 'editor@example.org', password: 'password'});
   assert.equal(result.user.id, 'editor');
-  assert.equal(await harness.auth.refresh(), 'refreshed-access');
-  assert.equal(harness.commands.find(command => command.operation === 'refresh')?.data.refresh_token, 'login-refresh');
+  assert.equal((await harness.auth.refresh()).id, 'editor');
+  harness.auth.getAuthenticatedClient();
+  assert.equal(harness.commands.find(command => command.operation === 'createClient')?.url, 'https://website.test/api/editor/cms');
+  const rest = harness.commands.find(command => command.operation === 'rest')!;
+  const request = rest.options.onRequest({headers: {'content-type': 'application/json'}});
+  assert.equal(request.headers.get('authorization'), null); assert.equal(request.headers.get('x-csrf-token'), 'a'.repeat(64));
   await harness.auth.logout();
-  assert.equal(harness.commands.find(command => command.operation === 'logout')?.data.refresh_token, 'refreshed-refresh');
-  assert.equal(harness.store.isAuthenticated.value, false);
+  assert.equal(harness.commands.find(command => command.operation.endsWith('/logout'))?.options.headers['x-csrf-token'], 'a'.repeat(64));
+  assert.equal(harness.store.isAuthenticated.value, false); assert.equal(harness.storage.size, 0);
 });
 
-test('initialization is coalesced and an in-flight identity lookup cannot restore a logged-out session', async () => {
+test('cookie-session initialization is coalesced and an in-flight lookup cannot restore logout', async () => {
   const harness = authHarness();
-  harness.storage.set('slk_auth', JSON.stringify({ accessToken: 'access', refreshToken: 'refresh', user: identity }));
   let resolve!: (user: unknown) => void;
-  harness.setMe(() => new Promise(done => { resolve = done; }));
+  harness.setMe(() => new Promise(done => {resolve = done;}));
   const first = harness.auth.initialize(); const second = harness.secondAuth().initialize();
   await new Promise(done => setImmediate(done));
-  assert.equal(harness.commands.filter(command => command.operation === 'readMe').length, 1);
-  await harness.auth.logout(); resolve(identity); await Promise.all([first, second]);
+  assert.equal(harness.commands.filter(command => command.operation === '/api/editor/session').length, 1);
+  await harness.auth.logout(); resolve({user: identity, csrf: 'a'.repeat(64)}); await Promise.all([first, second]);
   assert.equal(harness.store.isAuthenticated.value, false);
 });
 

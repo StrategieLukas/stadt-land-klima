@@ -85,11 +85,11 @@
       </div>
 
       <!-- Abstract -->
-      <div v-if="abstract" class="text-gray-700 mb-4 font-semibold" v-html="sanitizedAbstract" />
+      <div v-if="abstract" class="text-gray-700 mb-4 font-semibold" v-html="sanitizeHtml(sanitizedAbstract)" />
 
       <!-- Main Text -->
       <div class="text-gray-700 mb-4">
-        <div v-html="sanitizedArticleText"></div>
+        <div v-html="sanitizeHtml(sanitizedArticleText)"></div>
       </div>
 
       <!-- Measures -->
@@ -273,8 +273,8 @@
         <p v-if="subtitle" class="text-gray-500 mb-6 text-lg">{{ subtitle }}</p>
 
         <div class="text-gray-700 flex-grow leading-relaxed">
-          <div v-if="abstract" class="prose mb-8 max-w-none" v-html="sanitizedAbstract" />
-          <div v-html="sanitizedArticleText"></div>
+          <div v-if="abstract" class="prose mb-8 max-w-none" v-html="sanitizeHtml(sanitizedAbstract)" />
+          <div v-html="sanitizeHtml(sanitizedArticleText)"></div>
         </div>
       </div>
     </div>

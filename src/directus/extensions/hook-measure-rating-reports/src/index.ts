@@ -2,7 +2,7 @@ import path from "path";
 import os from "os";
 import fs from "fs";
 import { stringifyRatingReport } from "./reportCsv";
-import type { Accountability, ApiExtensionContext, SchemaOverview } from '@directus/types';
+import type { ApiExtensionContext, SchemaOverview } from '@directus/types';
 
 type Database = ApiExtensionContext['database'];
 type Schema = SchemaOverview;

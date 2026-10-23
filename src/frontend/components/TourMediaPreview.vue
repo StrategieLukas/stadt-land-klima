@@ -1,6 +1,6 @@
 <template>
   <span class="tour-media-preview" :class="{ 'tour-media-preview--natural': preserveAspectRatio && previewFile }">
-    <SmartImg v-if="previewFile" asset-base-url="/api/tour-media" :access-token="previewToken" :asset-id="relationId(previewFile)" :is-raster="isRaster(typeof previewFile === 'string' ? 'image/jpeg' : previewFile.type || 'image/jpeg')" :alt="item.alt" :width="900" :height="preserveAspectRatio ? undefined : 448" :fit="preserveAspectRatio ? 'contain' : 'cover'" img-class="tour-media-preview__image" />
+    <SmartImg v-if="previewFile" asset-base-url="/api/tour-media" :editor-preview="editorPreview" :asset-id="relationId(previewFile)" :is-raster="isRaster(typeof previewFile === 'string' ? 'image/jpeg' : previewFile.type || 'image/jpeg')" :alt="item.alt" :width="900" :height="preserveAspectRatio ? undefined : 448" :fit="preserveAspectRatio ? 'contain' : 'cover'" img-class="tour-media-preview__image" />
     <span v-else class="tour-media-preview__placeholder">{{ $t('tour.video') }}</span>
     <span v-if="isVideoMedia(item)" class="tour-media-preview__play" aria-hidden="true">▶</span>
   </span>
@@ -10,7 +10,7 @@ import { isVideoMedia } from '~/shared/tourMedia';
 import type { TourMedia } from '~/shared/tourMedia';
 import { relationId } from '~/shared/tour';
 import { isRaster } from '~/shared/utils';
-const props = defineProps<{ item: TourMedia; previewToken?: string | null | undefined; preserveAspectRatio?: boolean | undefined }>();
+const props = defineProps<{ item: TourMedia; editorPreview?: boolean | undefined; preserveAspectRatio?: boolean | undefined }>();
 const { $t } = useNuxtApp();
 const previewFile = computed(() => isVideoMedia(props.item) ? props.item.poster : props.item.file);
 </script>

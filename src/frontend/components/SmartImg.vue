@@ -24,7 +24,7 @@ import type { PropType } from 'vue';
     alt: { type: String as PropType<string | undefined>, default: '' },
     imgClass: { type: String as PropType<string | undefined>, default: '' },
     assetBaseUrl: { type: String as PropType<string | null | undefined>, default: null },
-    accessToken: { type: String as PropType<string | null | undefined>, default: null },
+    editorPreview: { type: Boolean as PropType<boolean | undefined>, default: false },
 
     // Transform options
     width: { type: Number as PropType<number | null | undefined>, default: null },
@@ -51,11 +51,10 @@ import type { PropType } from 'vue';
     if (!props.assetId) return
 
     const ownedReportMedia = reportMedia?.value.fileIds.has(props.assetId)
-    const assetUrl = `${props.assetBaseUrl || (ownedReportMedia ? '/api/tour-media' : `${directusUrl}/assets`)}/${props.assetId}`
+    const editorPreview = props.editorPreview || (ownedReportMedia && reportMedia?.value.editorPreview)
+    const assetUrl = `${editorPreview ? '/api/editor/cms/assets' : props.assetBaseUrl || (ownedReportMedia ? '/api/tour-media' : `${directusUrl}/assets`)}/${props.assetId}`
 
     const p = new URLSearchParams()
-    const accessToken = props.accessToken || (ownedReportMedia ? reportMedia?.value.accessToken : null)
-    if (accessToken) p.set('access_token', accessToken)
     if (props.isRaster && props.width) p.set('width', String(props.width))
     if (props.isRaster && props.height) p.set('height', String(props.height))
     if (props.quality && props.quality !== 100) p.set('quality', String(props.quality))

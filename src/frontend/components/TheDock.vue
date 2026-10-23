@@ -11,7 +11,7 @@
       "
     >
       <div class="size-[3em]">
-        <div v-html="page.icon_svg"></div>
+        <div v-html="sanitizeSvg(page.icon_svg)"></div>
       </div>
       <span class="dock-label max-w-full truncate text-center font-heading text-sm">{{ navLabel(page, "name") }}</span>
     </button>
