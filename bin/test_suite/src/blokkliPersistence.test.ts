@@ -1,4 +1,4 @@
-import {loginWebsite} from './lib/browser.js';
+import {loginWebsite, newContext} from './lib/browser.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -26,14 +26,14 @@ test('Blökkli edits survive preview, failed publish, successful publish and rel
       entity_uuid: entity.id, field_name: 'content', sort_order: 0,
       status: 'published', props: { text: 'Original regression heading' }, options: {},
     });
-    const context = await browser.newContext();
+    const context = await newContext(browser);
     await loginWebsite(context, frontend, env.ADMIN_EMAIL!, env.ADMIN_PASSWORD!);
     await context.addInitScript(() => {localStorage.setItem('blokkli:popup:tour:closed', 'true');});
     const page = await context.newPage();
     page.on('pageerror', (error) => console.error('Browser error:', error.message));
     await page.goto(`${frontend}/${slug}?blokkliEditing=${entity.id}`);
     // The development-only Vite dock overlaps blökkli's menu button.
-    await page.addStyleTag({ content: 'vite-devtools-dock-embedded { display: none !important; }' });
+    await page.locator('vite-devtools-dock-embedded').evaluateAll(elements => elements.forEach(element => element.remove()));
     const heading = page.locator('.blokkli-block-heading');
     await expect(heading).toHaveText('Original regression heading', { timeout: 30_000 });
     await page.route('**/items/edit_states/*', (route) => route.request().method() === 'PATCH'
@@ -79,7 +79,7 @@ test('Blökkli edits survive preview, failed publish, successful publish and rel
       }
     });
     await page.reload();
-    await page.addStyleTag({ content: 'vite-devtools-dock-embedded { display: none !important; }' });
+    await page.locator('vite-devtools-dock-embedded').evaluateAll(elements => elements.forEach(element => element.remove()));
     await expect(heading).toHaveText('Final regression heading');
     await page.locator('.bk-toolbar-menu-button').click();
     await publish.click();
@@ -160,7 +160,7 @@ test('Blökkli V2 preserves nested legacy content, formatting, media and reusabl
     assert.equal(publicData.blocks[0].uuid, roots[0].uuid);
     assert.equal(publicData.blocks[0].options.layout, 'columns-2');
 
-    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const context = await newContext(browser, { viewport: { width: 1440, height: 1000 } });
     await loginWebsite(context, frontend, env.ADMIN_EMAIL!, env.ADMIN_PASSWORD!);
     await context.addInitScript(() => {localStorage.setItem('blokkli:popup:tour:closed', 'true');});
     const page = await context.newPage();
@@ -170,7 +170,7 @@ test('Blökkli V2 preserves nested legacy content, formatting, media and reusabl
       if (message.type() === 'error' && message.text().includes('[vite] Internal Server Error')) moduleErrors.push(message.text());
     });
     await page.goto(`${frontend}/${entity.slug}?blokkliEditing=${entity.id}`);
-    await page.addStyleTag({ content: 'vite-devtools-dock-embedded { display: none !important; }' });
+    await page.locator('vite-devtools-dock-embedded').evaluateAll(elements => elements.forEach(element => element.remove()));
     const heading = page.locator('.blokkli-block-heading').filter({ hasText: 'Legacy nested heading' });
     await expect(heading).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('.blokkli-block-icon svg')).toBeVisible();

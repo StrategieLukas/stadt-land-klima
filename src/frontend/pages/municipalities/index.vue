@@ -314,9 +314,7 @@ class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
                     :aria-label="$t('generic.close')"
                     @click="closeCalMobile">✕</button>
           </div>
-          <div
-id="my-cal-inline-onboarding-mobile"
-               class="flex-1 overflow-y-auto min-h-[400px]"></div>
+          <div class="flex-1 overflow-y-auto min-h-[400px]"><CalBookingFrame /></div>
         </div>
       </div>
     </transition>
@@ -460,19 +458,7 @@ const filterOpen = ref(false)
 
 // Mobile cal.com overlay
 const showCalMobile = ref(false)
-async function openCalMobile() {
-  showCalMobile.value = true
-  await nextTick()
-  const container = document.getElementById('my-cal-inline-onboarding-mobile')
-  if (container) container.innerHTML = ''
-  if (window?.Cal?.ns?.onboarding) {
-    window.Cal.ns.onboarding('inline', {
-      elementOrSelector: '#my-cal-inline-onboarding-mobile',
-      config: { layout: 'month_view' },
-      calLink: 'stadt-land-klima/onboarding',
-    })
-  }
-}
+function openCalMobile() { showCalMobile.value = true }
 function closeCalMobile() { showCalMobile.value = false }
 watch(showCalMobile, (open) => { if (import.meta.client) document.body.style.overflow = open ? 'hidden' : '' })
 const activeFilterCount = computed(() => {

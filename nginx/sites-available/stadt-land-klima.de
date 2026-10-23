@@ -1,4 +1,10 @@
 # Opaque JSON deep input bypasses the upstream query parser's prototype protection.
+# Query credentials and incoming Referer values must never enter access logs.
+# Legacy path invitations are additionally excluded in their location below.
+log_format slk_safe '$remote_addr - $remote_user [$time_local] '
+  '"$request_method $uri $server_protocol" $status $body_bytes_sent '
+  '"$http_user_agent"';
+
 map $args $slk_opaque_deep {
   default 0;
   ~*(^|&)(d|%64)(e|%65)(e|%65)(p|%70)= 1;
@@ -9,7 +15,7 @@ map $args $slk_opaque_deep {
 map $request_uri $slk_referrer_policy {
   default "strict-origin-when-cross-origin";
   ~^/(?:elections/thesen|api/candidate)(?:/|\?|$) "no-referrer";
-  ~[?&](?:preview|preview_token|blokkliPreview)= "no-referrer";
+  ~[?&](?:preview|preview_token|blokkliPreview|access_token|token)= "no-referrer";
 }
 
 # Rate limiting zones — protect public endpoints from abuse
@@ -29,7 +35,7 @@ server {
   return 301 https://www.$http_host$request_uri;
 
 
-  access_log  /var/log/nginx/stadt-land-klima.de_access.log;
+  access_log  /var/log/nginx/stadt-land-klima.de_access.log slk_safe;
   error_log   /var/log/nginx/stadt-land-klima.de_error.log;
 }
 
@@ -45,7 +51,7 @@ server {
   return 301 https://$http_host$request_uri;
 
 
-  access_log  /var/log/nginx/stadt-land-klima.de_access.log;
+  access_log  /var/log/nginx/stadt-land-klima.de_access.log slk_safe;
   error_log   /var/log/nginx/stadt-land-klima.de_error.log;
 }
 
@@ -71,7 +77,7 @@ server {
   server_tokens off;
   return 301 https://www.$http_host$request_uri;
 
-  access_log  /var/log/nginx/stadt-land-klima.de_access.log;
+  access_log  /var/log/nginx/stadt-land-klima.de_access.log slk_safe;
   error_log   /var/log/nginx/stadt-land-klima.de_error.log;
 }
 
@@ -98,6 +104,10 @@ server {
 
   # The frontend supplies its per-response nonce policy. This fallback also protects CMS responses.
   proxy_buffer_size 16k;
+  proxy_buffers 8 16k;
+  proxy_busy_buffers_size 32k;
+  proxy_hide_header X-Powered-By;
+  proxy_hide_header Server;
   # Security headers
   add_header X-Permitted-Cross-Domain-Policies "none" always;
   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -108,7 +118,7 @@ server {
   add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" always;
 
   # The site uses REST; StadtLandZahl's separate GraphQL proxy is unaffected.
-  location ~ ^/backend/(?:graphql|utils/hash)(?:/|$) {
+  location ~* ^/backend/(?:graphql|utils/hash)(?:/|$) {
     return 403;
   }
 
@@ -167,10 +177,6 @@ server {
     # auth_basic  "stage";
     # auth_basic_user_file  /var/www/stadt-land-klima.de/.htpasswd;
 
-    # Strip upstream headers that reveal the application stack
-    proxy_hide_header X-Powered-By;
-    proxy_hide_header Server;
-
     proxy_pass http://127.0.0.1:9000;
     proxy_intercept_errors on;
     error_page 502 503 504 = @maintenance_page;
@@ -194,6 +200,6 @@ server {
     proxy_set_header X-Forwarded-Proto $scheme;
   }
 
-  access_log  /var/log/nginx/stadt-land-klima.de_access.log;
+  access_log  /var/log/nginx/stadt-land-klima.de_access.log slk_safe;
   error_log   /var/log/nginx/stadt-land-klima.de_error.log;
 }

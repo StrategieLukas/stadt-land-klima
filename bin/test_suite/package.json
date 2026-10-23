@@ -21,6 +21,7 @@
     "test:extensions": "tsx --test src/directusExtensions.test.ts",
     "test:cli": "npm --prefix ../../src/directus/cli run test:unit",
     "audit:dependencies": "tsx src/dependencyAudit.ts",
+    "test:security:csp": "tsx src/cspProduction.ts",
     "test:core:logical": "tsx src/coreLogicalMigration.ts",
     "test:security:redis": "tsx src/securityRedis.ts",
     "test:security:nginx": "tsx src/nginxSecurity.ts"

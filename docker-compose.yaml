@@ -49,7 +49,7 @@ services:
       # Redis remains enabled for sessions, rate limits and synchronization.
       CACHE_ENABLED: "false"
       TUS_ENABLED: "false"
-      ASSETS_TRANSFORM_MAX_CONCURRENT: "2"
+      ASSETS_TRANSFORM_MAX_CONCURRENT: "${SLK_ASSET_TRANSFORM_CONCURRENCY:-8}"
     volumes:
       - ./src/directus/uploads:/directus/uploads
       - ./src/directus/dashboards/:/directus/dashboards

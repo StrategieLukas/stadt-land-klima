@@ -53,7 +53,7 @@ export default defineNuxtConfig({
         'img-src': ["'self'", 'https:', 'data:', 'blob:', ...publicCmsOrigins],
         'font-src': ["'self'", 'https:', 'data:'], 'media-src': ["'self'", 'https:', 'blob:', ...publicCmsOrigins],
         'connect-src': ["'self'", 'https:', 'wss:'], 'worker-src': ["'self'", 'blob:'],
-        'frame-src': ["'self'", 'https://www.betterplace-widget.org', 'https://www.youtube-nocookie.com', 'https://www.youtube.com', 'https://player.vimeo.com'],
+        'frame-src': ["'self'", 'https://www.betterplace-widget.org', 'https://www.youtube-nocookie.com', 'https://www.youtube.com', 'https://player.vimeo.com', 'https://app.cal.com', 'https://cal.com'],
         'report-uri': ['/api/security/csp'], 'upgrade-insecure-requests': false,
       },
     },
@@ -144,7 +144,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-  css: ["maplibre-gl/dist/maplibre-gl.css", "~/assets/css/vega-embed.css", "~/assets/css/main.css"],
+  css: ["maplibre-gl/dist/maplibre-gl.css", "~/assets/css/vega-embed.css", "~/assets/css/vega-tooltip.css", "~/assets/css/main.css"],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -181,6 +181,7 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    resolve: {alias: [{find: /^zod$/, replacement: fileURLToPath(new URL('./shared/zod.ts', import.meta.url))}]},
     optimizeDeps: {
       // These app libraries are also used inside virtual editor components,
       // which the dependency scanner cannot read from disk.

@@ -42,4 +42,24 @@ export async function runSharedStateFlow(runner: TestRunner, frontendUrl: string
       } finally { await context.close(); }
     }));
   });
+  await runner.step('Onboarding calendar: lazy native iframe, translated title and closing on mobile', async () => {
+    const context = await newContext(browser, {viewport: {width: 390, height: 844}});
+    try {
+      const page = await context.newPage();
+      await page.route('https://app.cal.com/**', route => route.fulfill({contentType: 'text/html', body: '<html><body>Calendar fixture</body></html>'}));
+      await page.goto(frontendUrl + '/municipalities', {waitUntil: 'domcontentloaded'});
+      await waitForHydration(page);
+      const frame = page.locator('iframe[src*="app.cal.com/stadt-land-klima/onboarding"]');
+      assert(await frame.count() === 0, 'Calendar is not loaded before an explicit click');
+      await page.locator('button:visible').filter({hasText: 'Termin buchen'}).first().click();
+      await frame.waitFor({state: 'visible'});
+      assert(!!await frame.getAttribute('title'), 'Calendar has a translated accessible title');
+      assert(await frame.getAttribute('referrerpolicy') === 'no-referrer', 'Calendar does not receive invitation/preview referrers');
+      assert(!await page.locator('script[src*="cal.com"]').count(), 'No third-party script runs in the parent origin');
+      await page.locator('button:visible').filter({hasText: '✕'}).last().click();
+      await frame.waitFor({state: 'detached'});
+      assert(await page.evaluate(() => document.body.style.overflow) !== 'hidden', 'Closing restores scrolling');
+    } finally {await context.close();}
+  });
+
 }

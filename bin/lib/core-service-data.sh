@@ -38,14 +38,36 @@ core_mount() {
   docker inspect "$container" --format '{{range .Mounts}}{{if eq .Destination "'"$destination"'"}}{{.Type}}|{{.Source}}|{{.Name}}{{end}}{{end}}'
 }
 
+core_configured_mount() {
+  local node_image
+  node_image="$(awk '$1 == "FROM" && $2 ~ /^node:/ {print $2; exit}' docker/frontend/Dockerfile)"
+  [[ "$node_image" == node:* ]] || return 1
+  # Pipe resolved secrets directly to the helper; print only mount metadata.
+  "${CORE_COMPOSE[@]}" config --format json | docker run --rm -i --network none --entrypoint node "$node_image" -e '
+    const config = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
+    const mount = config.services[process.argv[1]].volumes.find(mount => mount.target === process.argv[2]);
+    if (!mount) throw Error("Missing configured service storage");
+    if (mount.type === "bind") process.stdout.write(`bind|${mount.source}|`);
+    else if (mount.type === "volume") process.stdout.write(`volume||${config.volumes[mount.source].name}`);
+    else throw Error("Unsupported storage type");
+  ' "$1" "$2"
+}
+
 core_read_version() {
-  local container="$1" destination="$2" filename="$3" mount_type source volume
-  IFS='|' read -r mount_type source volume <<< "$(core_mount "$container" "$destination")"
+  core_storage_version "$(core_mount "$1" "$2")" "$3"
+}
+
+core_storage_version() {
+  local filename="$2" mount_type source volume
+  IFS='|' read -r mount_type source volume <<< "$1"
   local mount
   case "$mount_type" in
     bind) mount="type=bind,source=$source,target=/storage,readonly" ;;
-    volume) mount="type=volume,source=$volume,target=/storage,readonly" ;;
-    *) echo "Unsupported data mount for $container" >&2; return 1 ;;
+    volume)
+      # A missing external volume must never become an empty replacement.
+      if ! docker volume inspect "$volume" >/dev/null 2>&1; then return 0; fi
+      mount="type=volume,source=$volume,target=/storage,readonly" ;;
+    *) echo "Unsupported data mount" >&2; return 1 ;;
   esac
   docker run --rm --network none --entrypoint sh --mount "$mount" "$CORE_DB_IMAGE" \
     -ec 'if [ -f "/storage/$1" ]; then cat "/storage/$1"; fi' sh "$filename"

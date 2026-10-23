@@ -19,7 +19,7 @@ try {
   execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-subj', '/CN=localhost', '-days', '1', '-keyout', join(first, 'privkey.pem'), '-out', join(first, 'fullchain.pem')], {stdio: 'ignore'});
   for (const file of ['privkey.pem', 'fullchain.pem']) copyFileSync(join(first, file), join(cert, 'live', 'www.stadt-land-klima.de', file));
   const fixture = join(directory, 'upstream.conf');
-  writeFileSync(fixture, 'server { listen 9001; location / { return 200 "$http_x_real_ip $http_x_forwarded_for"; } }\nserver { listen 9000; location / { return 200 "frontend"; } }\n');
+  writeFileSync(fixture, 'server { listen 9001; location / { return 200 "$http_x_real_ip $http_x_forwarded_for"; } }\nserver { listen 9000; add_header X-Powered-By synthetic-upstream always; location / { return 200 "frontend"; } }\n');
   const image = /^FROM\s+(nginx:\S+)/m.exec(readFileSync(join(root, 'docker/maintenance/Dockerfile'), 'utf8'))?.[1];
   assert.ok(image, 'Use the maintained, pinned nginx image');
   docker('run', '-d', '--name', name, '--publish', '127.0.0.1::443', '--memory', '128m', '--pids-limit', '64',
@@ -34,16 +34,25 @@ try {
       response.on('end', () => resolve({status: response.statusCode!, headers: response.headers, body}));
     }); req.setTimeout(3000, () => req.destroy(new Error('Local nginx timeout'))); req.on('error', reject); req.end();
   });
-  let ready = false;
+  let ready = false; let lastFailure = '';
   for (let attempt = 0; attempt < 40 && !ready; attempt++) {
-    try {ready = (await fetch('/')).status === 200;} catch {await new Promise(resolve => setTimeout(resolve, 100));}
+    try {const response = await fetch('/'); ready = response.status === 200; lastFailure = 'HTTP ' + response.status; if (!ready) await new Promise(resolve => setTimeout(resolve, 100));} catch (error) {lastFailure = String(error); await new Promise(resolve => setTimeout(resolve, 100));}
   }
-  assert.ok(ready, 'Disposable nginx must start');
+  if (!ready) {
+    for (const file of ['stadt-land-klima.de_error.log', 'nginx-error.log']) {
+      try {docker('cp', name + ':/var/log/nginx/' + file, join(directory, file)); lastFailure += readFileSync(join(directory, file), 'utf8');} catch { /* No log at this path. */ }
+    }
+  }
+  assert.ok(ready, 'Disposable nginx must start: ' + lastFailure + (ready ? '' : docker('logs', name)));
   for (const [path, expected, headers] of [
     ['/backend/items/pages?deep=%7B%7D', 400, {}],
     ['/backend/items/pages?%64%65%65%70=%7B%7D', 400, {}],
     ['/backend/items/pages?deep[page][_limit]=1', 200, {'X-Real-IP': '203.0.113.55', 'X-Forwarded-For': '203.0.113.55'}],
     ['/backend/server/health', 403, {Upgrade: 'websocket'}],
+    ['/backend/graphql', 403, {}],
+    ['/backend/utils/hash/generate', 403, {}],
+    ['/backend/GraphQL', 403, {}],
+    ['/backend/%75tils/%68ash/generate', 403, {}],
   ] as const) {
     const response = await fetch(path, headers);
     assert.equal(response.status, expected, path);
@@ -52,11 +61,22 @@ try {
     assert.doesNotMatch(response.body, /203\.0\.113\.55/);
   }
   for (const path of ['/elections/thesen/synthetic-token', '/api/candidate/synthetic-token', '/municipalities/example?preview=synthetic-token']) {
-    assert.equal((await fetch(path)).headers['referrer-policy'], 'no-referrer', path);
+    const response = await fetch(path);
+    assert.equal(response.headers['referrer-policy'], 'no-referrer', path);
+    assert.equal(response.headers['x-powered-by'], undefined, 'Private routes suppress upstream identification too');
   }
-  assert.equal((await fetch('/')).headers['referrer-policy'], 'strict-origin-when-cross-origin');
+  const publicResponse = await fetch('/');
+  assert.equal(publicResponse.headers['referrer-policy'], 'strict-origin-when-cross-origin');
+  assert.equal(publicResponse.headers['x-powered-by'], undefined);
+  await fetch('/municipalities/example?preview=synthetic-private-query', {Referer: 'https://www.stadt-land-klima.de/elections/thesen/synthetic-private-referrer'});
+  const access = join(directory, 'access.log');
+  docker('cp', name + ':/var/log/nginx/stadt-land-klima.de_access.log', access);
+  const log = readFileSync(access, 'utf8');
+  assert.match(log, /GET \/municipalities\/example HTTP/);
+  assert.doesNotMatch(log, /synthetic-private-query|synthetic-private-referrer|synthetic-token|deep=/);
+
   console.log('Nginx: opaque/encoded deep blocked, bracket queries preserved, WebSocket rejected, forged proxy headers replaced, security headers and private referrer policies verified.');
 } finally {
-  if (created) docker('rm', '-f', name);
-  rmSync(directory, {recursive: true, force: true});
+  if (process.env.TEST_KEEP_NGINX_FIXTURE === '1') {console.log('Retained nginx fixture: ' + name + ' ' + directory);} else if (created) docker('rm', '-f', name);
+  if (process.env.TEST_KEEP_NGINX_FIXTURE !== '1') rmSync(directory, {recursive: true, force: true});
 }

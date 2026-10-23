@@ -1121,6 +1121,10 @@ export async function runRatingWahlcheckFlow(
       await gotoDirectusContent(page, fixture.config.backendUrl, 'municipalities', fixture.municipality.id);
       await clickScoreCheckbox(page, currentCatalogName);
       await page.getByText('Account nicht verifiziert').waitFor({ state: 'visible', timeout: 20_000 });
+      // Escape must work even when focus has left the interface root.
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      await page.keyboard.press('Escape');
+      await page.getByText('Account nicht verifiziert').waitFor({state: 'hidden'});
       const score = await currentScore(fixture);
       assertEqual(score.published, false, 'Unverified checkbox click must not publish score');
     } finally {

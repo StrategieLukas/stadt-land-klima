@@ -265,3 +265,46 @@ and public CMS/browser regression profile. For an anonymous, read-only deploymen
 check, run `npm run test:public -- https://staging.stadt-land-klima.de` from
 `bin/test_suite`; this blocks all non-GET/HEAD browser requests. See
 `bin/test_suite/README.md` for profile scope and commands.
+
+## Lint and security follow-up
+
+From `src/frontend`, `npm run lint` and `npm run lintExtensions` enforce zero ESLint warnings. Frontend unsafe TypeScript operations, unhandled promises and unsanitized HTML remain errors. Extension lint uses its own configuration alongside `./bin/check_extensions.sh --build`; it does not load the frontend tsconfig. Formatting is separate: `npm run format:check` / `npm run format`. Avoid formatting pinned files under `public/vendor`.
+
+Website editor login uses an HttpOnly cookie and server-side Redis credentials. Existing website users must sign in once after upgrading from localStorage sessions. Keep Redis available; sessions and mutations fail closed during an outage. Set a strong private `ALTCHA_SECRET` and canonical `PUBLIC_URL`; optionally set independent `EDITOR_SESSION_SECRET` and `CANDIDATE_SESSION_SECRET` values of at least 32 characters. Data Studio has a separate browser session; deploy it on a separate origin if isolating that session is required.
+
+Directus stays at **11.17.4**. The image build verifies exact vendor source before applying the checked deep/geometry/asset guards; unexpected bytes fail the build. Rebuild/recreate Directus to install these guards. Compose disables response caching and TUS and limits transform concurrency. Reload the host nginx configuration as well: it blocks unused Directus GraphQL/hash routes and supplies the fallback security headers. Nuxt supplies the enforced per-response nonce policy. See SECURITY_DIFF_REVIEW.md for remaining advisory limits and deployment checks.
+
+### Logical core storage migration
+
+The default migration keeps the existing Linux bind-directory cutover. For named volumes, custom bind paths or macOS, explicitly select logical migration:
+
+```bash
+./bin/upgrade_core_services.sh development --logical          # inspect only
+./bin/upgrade_core_services.sh development --logical --apply  # maintenance and verified restore
+# Use production or mac instead of development for those installations.
+```
+
+First keep an off-host backup and stop external database/search writers. This exports all non-template databases and roles, verifies restored row hashes, and imports/checks a Meilisearch dump. It activates fresh named volumes only after validation; original mounts and private backups remain intact. Normal start/stop/build scripts load the generated `docker/core-storage/<environment>.compose.json` automatically. **Back up that host-specific directory.** For ad-hoc Compose commands that create containers, include this file after the normal environment files; `docker compose down -v` must not be used as an upgrade step.
+
+Before cutover, failures retain original mounts. After cutover, keep writers stopped if recovery is needed. The private backup includes `rollback.compose.json` with original image IDs and mounts. For inspection/recovery, append that file after the generated storage overlay in the Compose command. Restore the previous host overlay from `previous.compose.json` / `previous.volumes` if present; otherwise remove only the generated host overlay after saving a copy. A rollback to older images also requires restoring the corresponding image configuration before using normal startup again. Never mount a newer database's data into an older image. Do not delete source volumes or the verified backup until the rollout has been accepted.
+
+`npm run test:core:logical` in `bin/test_suite` exercises the real script using disposable databases, spatial rows, roles, named/custom storage and search data. It is explicit and separate from the fast default suite; macOS host execution still needs platform verification.
+
+### Planned credential retirement
+
+Production rotation remains a deliberate operator action after the access split is deployed. The new CLI supports a read-only plan and resumable apply. Run inside Directus with its configured private administrator `CLI_DIRECTUS_STATIC_TOKEN`:
+
+```bash
+# From the repository root; select the appropriate Compose files on your host.
+docker compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
+  -e PUBLIC_URL=https://www.stadt-land-klima.de directus \
+  node /directus/cli/tasks/retireCredentials.ts plan /directus/.tmp/credential-retirement.json
+
+# Copy the plan and .links.json to a private off-container backup, review both,
+# coordinate replacement invitations, and pause credential-issuing writers first.
+docker compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
+  -e PUBLIC_URL=https://www.stadt-land-klima.de directus \
+  node /directus/cli/tasks/retireCredentials.ts apply /directus/.tmp/credential-retirement.json
+```
+
+The plan is mode 0600 and contains new bearer credentials; do not commit, publish or attach it to logs. Applying checks the instance and full credential inventory before writing, rotates candidate UUIDs/64-character municipality preview credentials, suspends only legacy Frontend-role accounts and clears the CMS cache. Re-running the same plan resumes a partial failure. It does not change Frontend-Server/Public accounts or send email. Coordinate fresh candidate invitations and search reindexing separately.

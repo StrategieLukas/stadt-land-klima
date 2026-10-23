@@ -178,6 +178,7 @@ async function render() {
     const result = await vegaEmbed(vegaRef.value, checkedVisualizationSpec(embeddableSpec), {
       ast: true,
       defaultStyle: false,
+      tooltip: {disableDefaultStyle: true},
       loader: safeVisualizationLoader(vega.loader({http: {credentials: "omit", redirect: "error"}}), window.location.origin),
       renderer: "canvas",
       actions: false,

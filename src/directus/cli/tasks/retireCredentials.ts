@@ -1,12 +1,15 @@
 /** Explicit operator-only credential retirement. Planning never writes to Directus. */
-import {createHash, randomBytes} from 'node:crypto';
+import {createHash, randomBytes, randomUUID} from 'node:crypto';
 import {readFileSync, statSync, writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {z} from 'zod';
 
 const Id = z.union([z.string().min(1), z.number().int()]);
-const Credential = z.object({id: Id, collection: z.enum(['candidate', 'municipalities', 'users']), field: z.enum(['access_token', 'preview_token', 'token']), previousHash: z.string().regex(/^[a-f0-9]{64}$/), replacement: z.string().regex(/^[a-f0-9]{64}$/).nullable(), role: z.string().nullable(), status: z.string().nullable(), slug: z.string().nullable()});
+const Credential = z.object({id: Id, collection: z.enum(['candidate', 'municipalities', 'users']), field: z.enum(['access_token', 'preview_token', 'token']), previousHash: z.string().regex(/^[a-f0-9]{64}$/), replacement: z.string().nullable(), role: z.string().nullable(), status: z.string().nullable(), slug: z.string().nullable()})
+  .refine(row => row.collection === 'candidate' ? row.field === 'access_token' && z.uuid().safeParse(row.replacement).success
+    : row.collection === 'municipalities' ? row.field === 'preview_token' && /^[a-f0-9]{64}$/.test(row.replacement || '')
+    : row.field === 'token' && row.replacement === null, 'Invalid replacement credential for collection');
 const Plan = z.strictObject({version: z.literal(1), directusUrl: z.url(), websiteOrigin: z.url(), credentials: z.array(Credential)});
 export type RetirementPlan = z.output<typeof Plan>;
 export type RetirementRequest = (path: string, method?: string, body?: unknown) => Promise<unknown>;
@@ -29,7 +32,7 @@ async function inventory(request: RetirementRequest) {
   const records: z.output<typeof Credential>[] = [];
   for (const [collection, field] of [['candidate', 'access_token'], ['municipalities', 'preview_token']] as const) {
     const rows = await all(request, `/items/${collection}?fields=id,${field}${collection === 'municipalities' ? ',slug' : ''}`);
-    for (const row of rows) if (typeof row[field] === 'string' && row[field]) records.push({id: Id.parse(row.id), collection, field, previousHash: hash(row[field]), replacement: randomBytes(32).toString('hex'), role: null, status: null, slug: typeof row.slug === 'string' ? row.slug : null});
+    for (const row of rows) if (typeof row[field] === 'string' && row[field]) records.push({id: Id.parse(row.id), collection, field, previousHash: hash(row[field]), replacement: collection === 'candidate' ? randomUUID() : randomBytes(32).toString('hex'), role: null, status: null, slug: typeof row.slug === 'string' ? row.slug : null});
   }
   const users = await all(request, '/users?fields=id,role,status,token&filter=' + encodeURIComponent(JSON.stringify({role: {_eq: role}})));
   for (const row of users) {
@@ -43,9 +46,10 @@ export async function planRetirement(request: RetirementRequest, directusUrl: st
   if (!['http:', 'https:'].includes(website.protocol) || website.username || website.password) throw Error('Invalid website origin');
   return Plan.parse({version: 1, directusUrl: new URL(directusUrl).href, websiteOrigin: website.origin, credentials: await inventory(request)});
 }
-export async function applyRetirement(request: RetirementRequest, input: unknown, directusUrl: string) {
+export async function applyRetirement(request: RetirementRequest, input: unknown, directusUrl: string, websiteOrigin: string) {
   const plan = Plan.parse(input);
   if (new URL(directusUrl).href !== plan.directusUrl) throw Error('Plan belongs to a different Directus instance');
+  if (new URL(websiteOrigin).origin !== plan.websiteOrigin) throw Error('Plan belongs to a different website');
   const current = await inventory(request);
   if (current.length !== plan.credentials.length) throw Error('Credential inventory changed; generate a new plan');
   const pending: z.output<typeof Credential>[] = [];
@@ -90,6 +94,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     console.info(`Private plan created: ${plan.credentials.length} credentials. No server writes. Review before apply.`);
   } else {
     if (statSync(file).mode & 0o077) throw Error('Plan permissions must be 0600');
-    console.info(await applyRetirement(request, JSON.parse(readFileSync(file, 'utf8')) as unknown, base));
+    console.info(await applyRetirement(request, JSON.parse(readFileSync(file, 'utf8')) as unknown, base, process.env.PUBLIC_URL || ''));
   }
 }

@@ -8,12 +8,14 @@ import {pathToFileURL} from 'node:url';
 export const deepGuard = `
   // SLK pinned-runtime guard: reject inherited path segments before any setter.
   let slkNodes = 0;
-  function slkCheck(value, depth = 0) {
+  function slkCheck(value, depth = 0, relationPath = true) {
     if (++slkNodes > 10000 || depth > 20) throw new InvalidQueryError({reason: 'Deep query exceeds safety limits'});
-    if (Array.isArray(value)) { for (const child of value) slkCheck(child, depth + 1); return; }
+    if (Array.isArray(value)) { for (const child of value) slkCheck(child, depth + 1, relationPath); return; }
     if (value && typeof value === 'object') for (const [name, child] of Object.entries(value)) {
-      if (name.split(/[.[\\]]/).some(segment => segment === 'prototype' || segment in Object.prototype || segment in Array.prototype || segment in Function.prototype)) throw new InvalidQueryError({reason: 'Invalid deep path'});
-      slkCheck(child, depth + 1);
+      if (['__proto__', 'constructor', 'prototype'].includes(name)) throw new InvalidQueryError({reason: 'Invalid deep path'});
+      const parameter = name.startsWith('_');
+      if (relationPath && !parameter && name.split(/[.[\\]]/).some(segment => segment === 'prototype' || segment in Object.prototype || segment in Array.prototype || (segment !== 'name' && segment in Function.prototype))) throw new InvalidQueryError({reason: 'Invalid deep path'});
+      slkCheck(child, depth + 1, relationPath && (!parameter || name === '_deep'));
     }
   }
   slkCheck(deep);

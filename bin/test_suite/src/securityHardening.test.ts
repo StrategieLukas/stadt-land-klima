@@ -328,7 +328,14 @@ test('CMS transport strips nested credentials, rejects inherited deep paths and 
   const {publicEditorJson, validateEditorQuery} = utility('editorTransport.ts');
   const result = publicEditorJson({data: [{id: 1, owner: {name: 'Editor', token: 'secret', password: 'secret', access_token: 'secret', refresh_token: 'secret', api_key: 'secret'}}]});
   assert.equal(JSON.stringify(result), JSON.stringify({data: [{id: 1, owner: {name: 'Editor'}}]}));
+  let blocks: Row[] = [{uuid: 'leaf', bundle: 'heading', props: {text: 'Nested content'}}];
+  for (let level = 0; level < 16; level++) blocks = [{uuid: `container-${level}`, bundle: 'container', props: {blocks}}];
+  frontend('./shared/editorBlocks.ts').parseEditorBlocks(blocks);
+  const draft = {data: {draft_blocks: blocks}};
+  assert.equal(JSON.stringify(publicEditorJson(draft)), JSON.stringify(draft), 'All valid persisted nesting survives the CMS envelope');
   validateEditorQuery(new URLSearchParams({deep: JSON.stringify({translations: {_filter: {language: {_eq: 'de'}}}})}));
+  validateEditorQuery(new URLSearchParams({deep: JSON.stringify({name: {_limit: 1}, translations: {_filter: {name: {_eq: 'de'}, length: {_gt: 1}}}})}));
+  assert.throws(() => validateEditorQuery(new URLSearchParams({deep: JSON.stringify({translations: {_deep: '{"toString":{"_limit":1}}'}})})), {statusCode: 400});
   for (const key of ['__proto__', 'constructor', 'toString', 'valueOf', 'map', 'call', 'safe.toString']) assert.throws(() => validateEditorQuery(new URLSearchParams({deep: `{"${key}":{"_limit":1}}`})), {statusCode: 400});
   for (const value of ['{', JSON.stringify(Array(1001).fill(null)), JSON.stringify('a'.repeat(33000))]) assert.throws(() => validateEditorQuery(new URLSearchParams({deep: value})), {statusCode: 400});
   assert.throws(() => validateEditorQuery(new URLSearchParams({access_token: 'forged'})), {statusCode: 400});
@@ -385,6 +392,7 @@ test('pinned Directus runtime guards reject inherited deep paths, SQL geometry a
   const guards = await import('../../../docker/directus/security-patches/patch-api.js');
   const validateDeep = new Function('deep', 'InvalidQueryError', guards.deepGuard);
   validateDeep({translations: {_filter: {language: {_eq: 'de'}}}}, Error);
+  validateDeep({name: {_limit: 1}, translations: {_filter: {name: {_eq: 'de'}, length: {_gt: 1}}}}, Error);
   for (const key of ['__proto__', 'toString', 'valueOf', 'constructor.prototype', 'safe.toString', 'map', 'call']) assert.throws(() => validateDeep(JSON.parse(`{"${key}":{"_limit":1}}`), Error));
   const geometry = new Function('field', guards.geometryGuard);
   for (const type of ['geometry', 'geometry.Point', 'geometry.MultiPolygon']) geometry({type});
@@ -396,4 +404,25 @@ test('pinned Directus runtime guards reject inherited deep paths, SQL geometry a
   const {mkdtempSync, mkdirSync, writeFileSync, rmSync} = await import('node:fs'); const {tmpdir} = await import('node:os'); const {join} = await import('node:path');
   const dir = mkdtempSync(join(tmpdir(), 'slk-unreviewed-api-'));
   try {mkdirSync(join(dir, 'dist/utils'), {recursive: true}); writeFileSync(join(dir, 'dist/utils/sanitize-query.js'), 'unreviewed'); assert.throws(() => guards.patchDirectusApi(dir), /Unreviewed Directus source/);} finally {rmSync(dir, {recursive: true, force: true});}
+});
+
+test('tour media uses private runtime CMS configuration, checks publication and preserves streaming/ranges without build-time env', async () => {
+  let reports = true; const reads: Row[] = []; const requests: Row[] = [];
+  const handler = load('src/frontend/server/api/tour-media/[id].get.ts', {
+    '../../utils/rateLimit': {rateLimit: async () => true},
+  }, {...h3, Response, Headers,
+    getRouterParam: () => '12345678-1234-4234-8234-123456789abc',
+    useRuntimeConfig: () => ({directusServerUrl: 'http://private-cms/', directusFrontendServerToken: 'server-only', public: {serverDirectusUrl: ''}}),
+    $fetch: async (url: string, options: Row) => {reads.push({url, options}); return {data: reports ? [{id: 'published-report'}] : []};},
+    fetch: async (url: string, options: Row) => {requests.push({url, options}); return new Response('image-bytes', {status: 206, headers: {'content-type': 'image/png', 'content-range': 'bytes 0-10/11', 'accept-ranges': 'bytes', 'set-cookie': 'private-upstream'}});},
+  }).default;
+  const event = {path: '/api/tour-media/12345678-1234-4234-8234-123456789abc?width=900', node: {req: {headers: {range: 'bytes=0-10'}}}};
+  const response = await handler(event);
+  assert.equal(reads[0].url, 'http://private-cms/items/success_project_tour_stops');
+  assert.match(reads[0].options.query.filter, /"report_status":\{"_eq":"published"\}/);
+  assert.equal(requests[0].url, 'http://private-cms/assets/12345678-1234-4234-8234-123456789abc?width=900');
+  assert.equal(requests[0].options.headers.Authorization, 'Bearer server-only'); assert.equal(requests[0].options.headers.Range, 'bytes=0-10');
+  assert.equal(response.status, 206); assert.equal(response.headers.get('content-range'), 'bytes 0-10/11'); assert.equal(response.headers.get('set-cookie'), null);
+  assert.equal(await response.text(), 'image-bytes');
+  reports = false; await assert.rejects(handler(event), {statusCode: 404}); assert.equal(requests.length, 1, 'Unpublished media must never be fetched');
 });

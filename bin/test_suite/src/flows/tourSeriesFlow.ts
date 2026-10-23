@@ -308,7 +308,15 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         assert(await page.locator('.tour-explorer__prints:visible figure').count() === 2, 'Published journey photos should appear as two postcards over the map');
         const postcards = page.locator('.tour-explorer__prints:visible figure');
         const postcardImages = postcards.locator('img');
-        await postcardImages.evaluateAll(images => Promise.all(images.map(image => (image as HTMLImageElement).decode())));
+        try {
+          await postcardImages.evaluateAll(images => Promise.all(images.map(image => (image as HTMLImageElement).decode())));
+        } catch (cause) {
+          const images = await postcardImages.evaluateAll(elements => elements.map(element => {
+            const image = element as HTMLImageElement;
+            return {path: new URL(image.currentSrc || image.src).pathname, complete: image.complete, width: image.naturalWidth, height: image.naturalHeight};
+          }));
+          throw new Error('Postcard media did not decode: ' + JSON.stringify(images), {cause});
+        }
         assert(await postcardImages.first().evaluate((image: HTMLImageElement) => image.naturalHeight > image.naturalWidth), 'Portrait postcard downloads must retain their original portrait shape');
         assert(await postcardImages.last().evaluate((image: HTMLImageElement) => image.naturalWidth > image.naturalHeight), 'Landscape postcard downloads must retain their original landscape shape');
         assert(await postcardImages.evaluateAll(images => images.every(element => {
@@ -583,7 +591,7 @@ export async function runTourSeriesFlow(runner: TestRunner, fixture: TestFixture
         const page=await context.newPage();
         const overviewUrl = `${config.frontendUrl}/projects/tours/${slug}`;
         await page.goto(`${overviewUrl}?blokkliEditing=${ids.series.id}`, { waitUntil: 'networkidle' });
-        await page.addStyleTag({ content: 'vite-devtools-dock-embedded { display: none !important; }' });
+        await page.locator('vite-devtools-dock-embedded').evaluateAll(elements => elements.forEach(element => element.remove()));
         const editableHeading = page.locator('.tour-overview-content [data-blokkli-editable-field="text"]');
         await openBlokkliField(page, editableHeading);
         await page.locator('.bk-editable-field [contenteditable]').fill('Edited tour overview from Blökkli');

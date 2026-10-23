@@ -40,9 +40,9 @@ try {
   const port = compose('port', 'meilisearch', '7700').split(':').at(-1);
   const request = async (path: string, method = 'GET', body?: unknown) => {
     const response = await fetch(`http://127.0.0.1:${port}${path}`, {method, headers: {Authorization: `Bearer ${project}`, 'Content-Type': 'application/json'}, ...(body === undefined ? {} : {body: JSON.stringify(body)})});
-    assert.ok(response.ok(), `Fixture search ${path}: ${response.status}`); return response.json();
+    assert.ok(response.ok, `Fixture search ${path}: ${response.status}`); return response.json();
   };
-  for (let attempt = 0; ; attempt++) {try {await request('/health'); break;} catch {if (attempt === 100) throw Error('Fixture search did not start'); await new Promise(resolve => setTimeout(resolve, 100));}}
+  for (let attempt = 0; ; attempt++) {try {await request('/health'); break;} catch {if (attempt === 100) throw Error('Fixture search did not start on port ' + port + ': ' + docker('inspect', meili, '--format', '{{json .State}}') + docker('logs', meili)); await new Promise(resolve => setTimeout(resolve, 100));}}
   await request('/indexes', 'POST', {uid: 'fixture', primaryKey: 'id'});
   await request('/indexes/fixture/documents', 'POST', [{id: 'one', title: 'search fixture'}]);
   console.log('Running the real logical migration against disposable named/custom mounts…');
@@ -65,7 +65,7 @@ try {
 } catch (error) {
   console.error(error); throw error;
 } finally {
-  try {
+  if (process.env.TEST_KEEP_CORE_FIXTURE === '1') {console.log('Retained disposable fixture: ' + directory); process.exitCode = 1;} else try {
     const overlayFile = join(checkout, 'docker/core-storage/development.compose.json');
     try {const overlay = JSON.parse(readFileSync(overlayFile, 'utf8')); targetVolumes = Object.values(overlay.volumes as Record<string, {name: string}>).map(volume => volume.name); compose('-f', overlayFile, 'down', '--volumes', '--remove-orphans');} catch { /* Pre-cutover failure. */ }
     compose('down', '--volumes', '--remove-orphans');

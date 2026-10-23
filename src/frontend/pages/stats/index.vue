@@ -864,6 +864,7 @@ function vegaEmbedOpts(extra: EmbedOptions = {}): EmbedOptions {
   return {
     ast: true,
     defaultStyle: false,
+      tooltip: {disableDefaultStyle: true},
     renderer: "svg",
     actions: false,
     ...extra,

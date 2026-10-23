@@ -31,6 +31,7 @@ services:
     environment:
       SLK_ENV: production
       WEBSOCKETS_ENABLED: "false"
+      MCP_ENABLED: "false"
       CORS_ORIGIN: "${SLK_ALLOWED_ORIGINS:-https://www.stadt-land-klima.de,https://stadt-land-klima.de}"
 
   frontend:

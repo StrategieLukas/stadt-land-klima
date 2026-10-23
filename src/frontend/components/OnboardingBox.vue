@@ -31,11 +31,11 @@ v-if="avatarSrc" :src="avatarSrc" :alt="name"
         @click.self="closeCal"
       >
         <!-- Now sized to viewport -->
-        <div id="my-cal-inline-onboarding" class="w-[90vw] h-[90vh]"></div>
+        <div class="w-[90vw] h-[90vh]"><CalBookingFrame /></div>
 
         <button
           class="absolute top-3 right-3 text-white text-2xl"
-          aria-label="Close"
+          :aria-label="$t('generic.close')"
           @click="closeCal"
         >
           ✕
@@ -47,7 +47,7 @@ v-if="avatarSrc" :src="avatarSrc" :alt="name"
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue'
+import { ref, watch } from 'vue'
 const { $t } = useNuxtApp()
 
 defineProps({
@@ -58,20 +58,8 @@ defineProps({
 const showCal = ref(false)
 const _renderedOnce = false
 
-async function openCal() {
+function openCal() {
   showCal.value = true
-  await nextTick()
-
-  const container = document.getElementById("my-cal-inline-onboarding")
-  if (container) container.innerHTML = "" // clear old iframe
-
-  if (window?.Cal?.ns?.onboarding) {
-    window.Cal.ns.onboarding("inline", {
-      elementOrSelector: "#my-cal-inline-onboarding",
-      config: { layout: "month_view" },
-      calLink: "stadt-land-klima/onboarding",
-    })
-  }
 }
 
 function closeCal() {

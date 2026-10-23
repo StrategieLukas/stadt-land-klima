@@ -8,7 +8,7 @@ import { rateLimit } from '../utils/rateLimit'
  */
 function sanitizeForLog(value: string, maxLength = 500): string {
   return value
-    .replace(/[\r\n\t\x00-\x1f\x7f]/g, ' ')
+    .replace(/\p{Cc}/gu, ' ')
     .replace(/ +/g, ' ')
     .trim()
     .slice(0, maxLength)
@@ -367,12 +367,14 @@ export default defineEventHandler(async (event) => {
 
   // Log the registration for monitoring purposes
   // Sanitize all user-controlled input to prevent log/CRLF injection
+  const ip: unknown = event.context.ip
+  const userAgent: unknown = event.context.userAgent
   console.info('[AI-REGISTER] Agent registration received:', {
     model: sanitizeForLog((model as string).trim()),
     caller: sanitizeForLog((caller as string).trim()),
     mission: sanitizeForLog((mission as string).trim()),
-    ip: event.context.ip || 'unknown',
-    userAgent: event.context.userAgent || 'unknown',
+    ip: typeof ip === 'string' ? sanitizeForLog(ip) : 'unknown',
+    userAgent: typeof userAgent === 'string' ? sanitizeForLog(userAgent) : 'unknown',
     timestamp: new Date().toISOString()
   })
 

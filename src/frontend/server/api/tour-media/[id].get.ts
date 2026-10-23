@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Media not found' });
   }
   const config = useRuntimeConfig(event);
-  const base = config.public.serverDirectusUrl.replace(/\/$/, '');
+  const base = config.directusServerUrl.replace(/\/$/, '');
   const query = new URL(event.node.req.url || event.path || '/', 'http://media.local').searchParams;
   const previewToken = query.get('access_token');
   const headers = { Authorization: `Bearer ${typeof previewToken === 'string' ? previewToken : (config.directusFrontendServerToken || '')}` };
