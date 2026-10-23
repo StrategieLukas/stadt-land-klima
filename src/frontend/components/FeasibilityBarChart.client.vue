@@ -28,7 +28,6 @@
   </figure>
 </template>
 <script setup lang="ts">
-
 import lodash from "lodash";
 const range = lodash.range.bind(lodash);
 

@@ -1,6 +1,6 @@
-import includes from 'lodash/includes.js';
-import fse from 'node:fs';
-import path from 'path';
+import includes from "lodash/includes.js";
+import fse from "node:fs";
+import path from "path";
 
 function clearDir(dir: string, options: { extensions?: string[] | null } = {}) {
   if (!fse.existsSync(dir) || !fse.statSync(dir).isDirectory()) {
@@ -8,7 +8,7 @@ function clearDir(dir: string, options: { extensions?: string[] | null } = {}) {
   }
 
   fse.readdirSync(dir).forEach((filename) => {
-    if (filename !== '.' && filename !== '..') {
+    if (filename !== "." && filename !== "..") {
       const fullPath = path.join(dir, filename);
       if (fse.statSync(fullPath).isDirectory()) {
         clearDir(fullPath, options);

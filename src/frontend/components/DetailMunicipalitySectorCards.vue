@@ -3,17 +3,20 @@
     v-for="(sectorRatings, sector) in ratingsBySector"
     :key="sector"
     :name="`sector-${sector}`"
-    class="collapse-plus collapse rounded-sm p-2 px-0 shadow-list md:px-2 mb-4"
+    class="collapse collapse-plus mb-4 rounded-sm p-2 px-0 shadow-list md:px-2"
   >
-    <input 
-      v-model="openSectors[sector]"
-      type="checkbox" 
-      name="sectors-accordion" 
-      autocomplete="off"
-    />
+    <input v-model="openSectors[sector]" type="checkbox" name="sectors-accordion" autocomplete="off" />
     <div class="collapse-title flex items-start gap-4 px-2 md:px-4">
-      <img :src="sectorImages[sector]" alt="" class="slk-sector-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-      <img :src="sectorImagesDark[sector]" alt="" class="slk-sector-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+      <img
+        :src="sectorImages[sector]"
+        alt=""
+        class="slk-sector-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18"
+      />
+      <img
+        :src="sectorImagesDark[sector]"
+        alt=""
+        class="slk-sector-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
+      />
       <div class="grow">
         <h2 class="mb-2 font-heading text-h2 leading-none text-green">
           {{ $t(`measure_sectors.${sector}.title`) }}
@@ -28,23 +31,23 @@
       <h3 class="mb-2 font-heading text-h2 text-black">
         {{ $t("measure_sector.measures_in_detail") }}
       </h3>
-      <ul class="my-4 flex flex-wrap items-end justify-center gap-3 sm:gap-4 text-center">
+      <ul class="my-4 flex flex-wrap items-end justify-center gap-3 text-center sm:gap-4">
         <li
           v-for="rating in [0, 1, 2, 3, 4, null]"
           :key="`rating-image-${rating}`"
-          class="flex w-16 h-14 flex-col items-center sm:w-auto"
+          class="flex h-14 w-16 flex-col items-center sm:w-auto"
         >
-          <img :src="ratingIcons[rating ?? 'null']" class="h-[calc(1.25rem*1.595)] w-5 shrink-0 top-0" />
-          <div class="text-xs sm:text-sm leading-tight break-words">
-            {{ $t(rating === null ? 'measure_rating.not_applicable_caption' : `measure_rating.${rating}_caption`) }}
+          <img :src="ratingIcons[rating ?? 'null']" class="top-0 h-[calc(1.25rem*1.595)] w-5 shrink-0" />
+          <div class="break-words text-xs leading-tight sm:text-sm">
+            {{ $t(rating === null ? "measure_rating.not_applicable_caption" : `measure_rating.${rating}_caption`) }}
           </div>
         </li>
       </ul>
       <ul class="mb-8">
         <li v-for="item in sectorRatings" :key="item.id">
           <div
-            class="slk-measure-row collapse-plus collapse rounded-none"
-            :class="isUnrated(item) ? 'border-b border-dashed border-gray-300' : 'border-b-2 border-slate-300'"
+            class="slk-measure-row collapse collapse-plus rounded-none"
+            :class="isUnrated(item) ? 'border-gray-300 border-b border-dashed' : 'border-b-2 border-slate-300'"
             :name="`measure-${item.measure.measure_id}`"
           >
             <input
@@ -59,10 +62,8 @@
             <!-- Not-applicable (applicable===false) keeps the rating-na-light gray for clear visual distinction -->
             <div
               :class="[
-                isUnrated(item)
-                  ? 'bg-base-100'
-                  : `bg-${getRatingDecimalColor(item.rating)}-light`,
-                'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4'
+                isUnrated(item) ? 'bg-base-100' : `bg-${getRatingDecimalColor(item.rating)}-light`,
+                'collapse-title flex items-center justify-stretch gap-3 p-3 px-2 pr-6 md:px-4',
               ]"
             >
               <div class="shrink-0">
@@ -71,14 +72,12 @@
                   src="~/assets/icons/icon_location.svg"
                   class="my-auto h-auto w-5 opacity-40"
                 />
-                <img
-                  v-else
-                  :src="ratingIcons[ratingIndex(item.rating) ?? 'null']"
-                  class="my-auto h-auto w-5"
-                />
+                <img v-else :src="ratingIcons[ratingIndex(item.rating) ?? 'null']" class="my-auto h-auto w-5" />
               </div>
 
-              <h3 :class="['font-heading text-h3 font-medium', isUnrated(item) ? 'text-mid-gray italic' : 'text-black']">
+              <h3
+                :class="['font-heading text-h3 font-medium', isUnrated(item) ? 'italic text-mid-gray' : 'text-black']"
+              >
                 {{ item.measure.name }}
               </h3>
             </div>
@@ -86,9 +85,9 @@
             <!-- Content (lazy loaded) -->
             <div
               :class="[
-                  isUnrated(item) ? 'bg-base-100' : `bg-${getRatingDecimalColor(item.rating)}-very-light`,
-                  'collapse-content md:px-12 lg:px-12'
-                ]"
+                isUnrated(item) ? 'bg-base-100' : `bg-${getRatingDecimalColor(item.rating)}-very-light`,
+                'collapse-content md:px-12 lg:px-12',
+              ]"
             >
               <!-- Mount only when collapse is opened -->
               <KeepAlive>
@@ -107,17 +106,17 @@
 </template>
 
 <script setup lang="ts">
-import type { MeasureRating, MunicipalityScore, RatingsBySector  } from '~/types/components/municipality';
+import type { MeasureRating, MunicipalityScore, RatingsBySector } from "~/types/components/municipality";
 
-import type { PropType } from 'vue';
+import type { PropType } from "vue";
 
 import sectorImages from "~/shared/sectorImages";
 import sectorImagesDark from "~/shared/sectorImagesDark";
 import ratingIcons, { ratingIndex } from "~/shared/ratingIcons";
 import { getRatingDecimalColor } from "~/shared/utils";
-import ProgressBar from '~/components/ProgressBar.vue'
-import MeasureDetails from '~/components/MeasureDetails.vue'
-import { reactive, computed, onMounted, nextTick, watch } from 'vue'
+import ProgressBar from "~/components/ProgressBar.vue";
+import MeasureDetails from "~/components/MeasureDetails.vue";
+import { reactive, computed, onMounted, nextTick, watch } from "vue";
 
 /**
  * True when a measure has not yet been rated AND is not explicitly marked as not-applicable.
@@ -125,12 +124,12 @@ import { reactive, computed, onMounted, nextTick, watch } from 'vue'
  * Unrated items get an inactive/faded look while remaining openable.
  */
 function isUnrated(item: MeasureRating) {
-  return item.rating === null && item.applicable !== false
+  return item.rating === null && item.applicable !== false;
 }
 
 // Track which collapses are open
-const openItems = reactive<Record<string, boolean>>({})
-const openSectors = reactive<Record<string, boolean>>({})
+const openItems = reactive<Record<string, boolean>>({});
+const openSectors = reactive<Record<string, boolean>>({});
 
 const props = defineProps({
   municipalityScore: {
@@ -147,138 +146,142 @@ const _municipality = props.municipalityScore.municipality;
 
 // Create mapping of sectors to measurement IDs
 const sectorToMeasureIDs = computed(() => {
-  const mapping: Record<string, string[]> = {}
+  const mapping: Record<string, string[]> = {};
   Object.entries(props.ratingsBySector).forEach(([sector, ratings]) => {
-    mapping[sector] = (ratings ?? []).map(rating => rating.measure.measure_id)
-  })
-  return mapping
-})
+    mapping[sector] = (ratings ?? []).map((rating) => rating.measure.measure_id);
+  });
+  return mapping;
+});
 
 // Create mapping of measurement IDs to sectors
 const measureIDToSector = computed(() => {
-  const mapping: Record<string, string> = {}
+  const mapping: Record<string, string> = {};
   Object.entries(sectorToMeasureIDs.value).forEach(([sector, measureIDs]) => {
-    measureIDs.forEach(measureID => {
-      mapping[measureID] = sector
-    })
-  })
-  return mapping
-})
+    measureIDs.forEach((measureID) => {
+      mapping[measureID] = sector;
+    });
+  });
+  return mapping;
+});
 
 // Returns the height (px) of any fixed/sticky header so we can offset scrolling.
 const getStickyHeaderHeight = () => {
-  if (typeof document === 'undefined') return 0
-  const header = document.querySelector('header')
-  if (!header) return 0
-  const pos = window.getComputedStyle(header).position
-  if (pos === 'fixed' || pos === 'sticky') {
-    return header.getBoundingClientRect().height
+  if (typeof document === "undefined") return 0;
+  const header = document.querySelector("header");
+  if (!header) return 0;
+  const pos = window.getComputedStyle(header).position;
+  if (pos === "fixed" || pos === "sticky") {
+    return header.getBoundingClientRect().height;
   }
-  return 0
-}
+  return 0;
+};
 
 // Scroll an element into view while clearing the sticky header.
 // behavior: 'smooth' | 'instant'
-const scrollToElement = (element: HTMLElement | null, behavior: ScrollBehavior = 'smooth') => {
-  if (!element) return
-  const offset = getStickyHeaderHeight() + 8 // 8 px breathing room
-  const top = window.scrollY + element.getBoundingClientRect().top - offset
-  window.scrollTo({ top, behavior })
-}
+const scrollToElement = (element: HTMLElement | null, behavior: ScrollBehavior = "smooth") => {
+  if (!element) return;
+  const offset = getStickyHeaderHeight() + 8; // 8 px breathing room
+  const top = window.scrollY + element.getBoundingClientRect().top - offset;
+  window.scrollTo({ top, behavior });
+};
 
 // Function to check if element is visible
 const isElementVisible = (element: HTMLElement | null) => {
-  if (!element) return false
-  const rect = element.getBoundingClientRect()
-  return (
-    rect.width > 0 &&
-    rect.height > 0 &&
-    rect.top >= 0 &&
-    rect.left >= 0
-  )
-}
+  if (!element) return false;
+  const rect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0 && rect.top >= 0 && rect.left >= 0;
+};
 
 // Function to find visible element by name
 const findVisibleElementByName = (name: string) => {
-  const elements = document.getElementsByName(name)
+  const elements = document.getElementsByName(name);
   for (const element of elements) {
     if (isElementVisible(element)) {
-      return element
+      return element;
     }
   }
-  return elements[0] // fallback to first element if none are clearly visible
-}
+  return elements[0]; // fallback to first element if none are clearly visible
+};
 
 // behavior: 'smooth' for in-page hash changes, 'instant' for initial page load
-const handleNavigation = async (behavior: ScrollBehavior = 'smooth') => {
-  const hash = window.location.hash.substring(1)
-  
+const handleNavigation = async (behavior: ScrollBehavior = "smooth") => {
+  const hash = window.location.hash.substring(1);
+
   if (!hash) {
-    if (behavior === 'smooth') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (behavior === "smooth") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    return
+    return;
   }
 
-  if (hash.startsWith('sector-')) {
-    const sector = hash.replace('sector-', '')
+  if (hash.startsWith("sector-")) {
+    const sector = hash.replace("sector-", "");
     if (props.ratingsBySector[sector as keyof RatingsBySector]) {
-      openSectors[sector] = true
-      await nextTick()
-      
-      setTimeout(() => {
-        const element = findVisibleElementByName(`sector-${sector}`)
-        if (element) {
-          scrollToElement(element, behavior)
-        }
-      }, behavior === 'instant' ? 50 : 150)
+      openSectors[sector] = true;
+      await nextTick();
+
+      setTimeout(
+        () => {
+          const element = findVisibleElementByName(`sector-${sector}`);
+          if (element) {
+            scrollToElement(element, behavior);
+          }
+        },
+        behavior === "instant" ? 50 : 150,
+      );
     }
-  } else if (hash.startsWith('measure-')) {
-    const measureID = hash.replace('measure-', '')
-    const sector = measureIDToSector.value[measureID]
+  } else if (hash.startsWith("measure-")) {
+    const measureID = hash.replace("measure-", "");
+    const sector = measureIDToSector.value[measureID];
 
     if (sector) {
-      openSectors[sector] = true
-      openItems[measureID] = true
+      openSectors[sector] = true;
+      openItems[measureID] = true;
 
-      await nextTick()
-      setTimeout(() => {
-        const element = findVisibleElementByName(`measure-${measureID}`)
-        if (element) {
-          scrollToElement(element, behavior)
-        }
-      }, behavior === 'instant' ? 100 : 400)
+      await nextTick();
+      setTimeout(
+        () => {
+          const element = findVisibleElementByName(`measure-${measureID}`);
+          if (element) {
+            scrollToElement(element, behavior);
+          }
+        },
+        behavior === "instant" ? 100 : 400,
+      );
     }
   }
-}
+};
 
 // Reset scroll position on route change (if using Vue Router)
-watch(() => window.location.pathname, () => {
-  window.scrollTo(0, 0)
-  Object.keys(openItems).forEach(key => openItems[key] = false)
-  Object.keys(openSectors).forEach(key => openSectors[key] = false)
-})
+watch(
+  () => window.location.pathname,
+  () => {
+    window.scrollTo(0, 0);
+    Object.keys(openItems).forEach((key) => (openItems[key] = false));
+    Object.keys(openSectors).forEach((key) => (openSectors[key] = false));
+  },
+);
 
 onMounted(() => {
-  const hash = window.location.hash.substring(1)
+  const hash = window.location.hash.substring(1);
 
   if (!hash) {
-    window.scrollTo(0, 0)
+    window.scrollTo(0, 0);
   } else {
     // Pre-open the accordion immediately so the DOM starts expanding
     // before the scroll timeout fires — this avoids waiting for two
     // separate async steps in sequence.
-    if (hash.startsWith('sector-')) {
-      const sector = hash.replace('sector-', '')
+    if (hash.startsWith("sector-")) {
+      const sector = hash.replace("sector-", "");
       if (props.ratingsBySector[sector as keyof RatingsBySector]) {
-        openSectors[sector] = true
+        openSectors[sector] = true;
       }
-    } else if (hash.startsWith('measure-')) {
-      const measureID = hash.replace('measure-', '')
-      const sector = measureIDToSector.value[measureID]
+    } else if (hash.startsWith("measure-")) {
+      const measureID = hash.replace("measure-", "");
+      const sector = measureIDToSector.value[measureID];
       if (sector) {
-        openSectors[sector] = true
-        openItems[measureID] = true
+        openSectors[sector] = true;
+        openItems[measureID] = true;
       }
     }
 
@@ -286,16 +289,18 @@ onMounted(() => {
     // from a known baseline (scrollY = 0), then scroll to the element.
     // Without this, a stale scrollY from the previous page can produce
     // an incorrect target offset in scrollToElement.
-    window.scrollTo(0, 0)
+    window.scrollTo(0, 0);
 
     // Jump instantly after a short settle — avoids the jarring slow scroll
     // from the very top on initial page load.
     setTimeout(() => {
-      void handleNavigation('instant')
-    }, 300)
+      void handleNavigation("instant");
+    }, 300);
   }
-  
+
   // Hash changes while already on the page use smooth scroll
-  window.addEventListener('hashchange', () => { void handleNavigation('smooth'); })
-})
+  window.addEventListener("hashchange", () => {
+    void handleNavigation("smooth");
+  });
+});
 </script>

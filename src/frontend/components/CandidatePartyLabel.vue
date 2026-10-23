@@ -1,7 +1,7 @@
 <template>
   <span
     v-if="partyName"
-    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white shadow-sm"
+    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white shadow-sm"
     :style="{ backgroundColor: partyColor, color: textColor }"
   >
     {{ partyName }}
@@ -9,32 +9,32 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue'
-import { computed } from 'vue'
-import { getCandidatePartyConfig, getCandidatePartyLabel } from '~/shared/candidateParties'
+import type { PropType } from "vue";
+import { computed } from "vue";
+import { getCandidatePartyConfig, getCandidatePartyLabel } from "~/shared/candidateParties";
 
 const props = defineProps({
   party: {
     type: String as PropType<string | null>,
-    required: true
+    required: true,
   },
   state: {
     type: String as PropType<string | null | undefined>,
-    default: ''
-  }
-})
+    default: "",
+  },
+});
 
 const partyName = computed(() => {
-  return getCandidatePartyLabel(props.party, props.state ?? undefined)
-})
+  return getCandidatePartyLabel(props.party, props.state ?? undefined);
+});
 
-const partyConfig = computed(() => getCandidatePartyConfig(props.party))
+const partyConfig = computed(() => getCandidatePartyConfig(props.party));
 
 const partyColor = computed(() => {
-  return partyConfig.value?.color || '#cccccc' // Default for unknown/custom
-})
+  return partyConfig.value?.color || "#cccccc"; // Default for unknown/custom
+});
 
 const textColor = computed(() => {
-  return partyConfig.value?.textColor || '#ffffff'
-})
+  return partyConfig.value?.textColor || "#ffffff";
+});
 </script>

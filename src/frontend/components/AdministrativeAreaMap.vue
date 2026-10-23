@@ -11,9 +11,9 @@
 
 <script setup lang="ts">
 // vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
-import type { Map as LeafletMap } from 'leaflet';
-import type { PropType } from 'vue';
-import type { Point, GeoJsonObject } from 'geojson';
+import type { Map as LeafletMap } from "leaflet";
+import type { PropType } from "vue";
+import type { Point, GeoJsonObject } from "geojson";
 
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 
@@ -32,7 +32,7 @@ const props = defineProps({
   },
 });
 
-const map = shallowRef<{leafletObject: LeafletMap} | null>(null);
+const map = shallowRef<{ leafletObject: LeafletMap } | null>(null);
 const zoom = ref(10);
 const mapReady = ref(false);
 
@@ -85,7 +85,7 @@ const fitBoundsToGeoArea = async () => {
 
   try {
     const leafletMap = map.value.leafletObject;
-    const { geoJSON } = await import('leaflet');
+    const { geoJSON } = await import("leaflet");
     const geoJsonLayer = geoJSON(props.geoArea);
     const bounds = geoJsonLayer.getBounds();
 

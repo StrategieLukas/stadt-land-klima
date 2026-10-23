@@ -8,13 +8,9 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "bundler",
     "allowJs": false,
-    "types": [
-      "vite/client"
-    ],
+    "types": ["vite/client"],
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }

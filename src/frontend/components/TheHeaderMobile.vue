@@ -16,7 +16,7 @@
 
       <!-- Search bar fills remaining space -->
       <button
-        class="border-gray-200 dark:border-[var(--slk-border)] flex h-10 min-w-0 flex-1 cursor-text items-center gap-2.5 rounded-full border-2 bg-white dark:bg-[var(--slk-surface-subdued)] px-4 text-left transition-colors hover:border-gray-300 dark:hover:border-[var(--slk-border-strong)]"
+        class="border-gray-200 hover:border-gray-300 flex h-10 min-w-0 flex-1 cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-4 text-left transition-colors dark:border-[var(--slk-border)] dark:bg-[var(--slk-surface-subdued)] dark:hover:border-[var(--slk-border-strong)]"
         :aria-label="$t('generic.search')"
         @click="open()"
       >
@@ -28,9 +28,15 @@
           stroke="currentColor"
           stroke-width="2"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
+          />
         </svg>
-        <span class="text-gray-400 dark:text-[var(--slk-text-subtle)] min-w-0 flex-1 truncate text-sm">{{ $t('search.header.placeholder') }}</span>
+        <span class="text-gray-400 min-w-0 flex-1 truncate text-sm dark:text-[var(--slk-text-subtle)]">{{
+          $t("search.header.placeholder")
+        }}</span>
       </button>
     </div>
   </header>
@@ -82,5 +88,7 @@ onMounted(() => {
   lastY = window.scrollY;
   window.addEventListener("scroll", onScroll, { passive: true });
 });
-onUnmounted(() => { window.removeEventListener("scroll", onScroll); });
+onUnmounted(() => {
+  window.removeEventListener("scroll", onScroll);
+});
 </script>

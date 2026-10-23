@@ -1,3 +1,3 @@
-import { municipalityPageHandler } from '../../../utils/municipalityPageData'
+import { municipalityPageHandler } from "../../../utils/municipalityPageData";
 
-export default defineEventHandler(event => municipalityPageHandler(event, false))
+export default defineEventHandler((event) => municipalityPageHandler(event, false));

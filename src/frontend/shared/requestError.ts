@@ -48,17 +48,19 @@ export function requestErrorStatus(error: unknown): number | undefined {
 }
 
 export function errorRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 export function directusErrorDetails(error: unknown) {
   const record = errorRecord(error);
   const response = errorRecord(record.response);
   const payloads = [errorRecord(record.data), errorRecord(response._data), errorRecord(response.data)];
-  const errors = payloads.flatMap(payload => Array.isArray(payload.errors) ? payload.errors as unknown[] : []);
-  return errors.map(value => {
+  const errors = payloads.flatMap((payload) => (Array.isArray(payload.errors) ? (payload.errors as unknown[]) : []));
+  return errors.map((value) => {
     const item = errorRecord(value);
     const extensions = errorRecord(item.extensions);
-    return {code: typeof extensions.code === "string" ? extensions.code : "",
-      message: typeof item.message === "string" ? item.message : ""};
+    return {
+      code: typeof extensions.code === "string" ? extensions.code : "",
+      message: typeof item.message === "string" ? item.message : "",
+    };
   });
 }

@@ -1,7 +1,7 @@
 import type { Request, Response, Router } from "express";
-import type { ApiExtensionContext } from '@directus/types';
+import type { ApiExtensionContext } from "@directus/types";
 
-type Database = ApiExtensionContext['database'];
+type Database = ApiExtensionContext["database"];
 
 interface Accountability {
   admin?: boolean;
@@ -128,12 +128,7 @@ function daysBetween(now: Date, date: string | null): number | null {
 }
 
 function displayTeamName(team: TeamRow): string {
-  return (
-    team.municipality ||
-    team.municipality_name ||
-    team.name ||
-    "Unbenanntes Lokalteam"
-  );
+  return team.municipality || team.municipality_name || team.name || "Unbenanntes Lokalteam";
 }
 
 function displayUserName(row: {
@@ -147,22 +142,12 @@ function displayUserName(row: {
 }
 
 function isTrue(value: boolean | string | number | null | undefined): boolean {
-  return (
-    value === true ||
-    value === 1 ||
-    value === "1" ||
-    value === "true" ||
-    value === "t"
-  );
+  return value === true || value === 1 || value === "1" || value === "true" || value === "t";
 }
 
 function uniqueEmails(rows: MemberRow[]): string[] {
   return [
-    ...new Set(
-      rows
-        .map((row) => row.email?.trim().toLowerCase())
-        .filter((email): email is string => Boolean(email)),
-    ),
+    ...new Set(rows.map((row) => row.email?.trim().toLowerCase()).filter((email): email is string => Boolean(email))),
   ];
 }
 
@@ -170,10 +155,8 @@ function buildActivitySignal(
   activityCount: number,
   daysSinceActivity: number | null,
 ): { key: string; label: string; tone: string } {
-  if (activityCount === 0)
-    return { key: "none", label: "Keine Aktivität im Zeitraum", tone: "quiet" };
-  if (daysSinceActivity === 0)
-    return { key: "today", label: "Heute aktiv", tone: "strong" };
+  if (activityCount === 0) return { key: "none", label: "Keine Aktivität im Zeitraum", tone: "quiet" };
+  if (daysSinceActivity === 0) return { key: "today", label: "Heute aktiv", tone: "strong" };
   if (daysSinceActivity !== null && daysSinceActivity <= 7)
     return { key: "week", label: "Diese Woche aktiv", tone: "active" };
   if (daysSinceActivity !== null && daysSinceActivity <= 30)
@@ -181,10 +164,7 @@ function buildActivitySignal(
   return { key: "quiet", label: "Länger ruhig", tone: "quiet" };
 }
 
-async function canAccessDashboard(
-  database: Database,
-  accountability?: Accountability,
-): Promise<boolean> {
+async function canAccessDashboard(database: Database, accountability?: Accountability): Promise<boolean> {
   if (accountability?.admin) return true;
   if (!accountability?.user || !accountability.role) return false;
 
@@ -195,11 +175,7 @@ async function canAccessDashboard(
     .select("r.name as role_name", "p.admin_access", "p.name as policy_name");
 
   return rows.some(
-    (row: {
-      role_name?: string;
-      admin_access?: boolean;
-      policy_name?: string;
-    }) =>
+    (row: { role_name?: string; admin_access?: boolean; policy_name?: string }) =>
       row.admin_access === true ||
       ALLOWED_ROLES.has(String(row.role_name ?? "")) ||
       ALLOWED_POLICIES.has(String(row.policy_name ?? "")),
@@ -219,9 +195,7 @@ function buildAttentionReasons(
 
   if (
     currentProgress < 98 &&
-    (activityCount === 0 ||
-      (daysSinceActivity !== null &&
-        daysSinceActivity > Math.max(14, Math.floor(days / 2))))
+    (activityCount === 0 || (daysSinceActivity !== null && daysSinceActivity > Math.max(14, Math.floor(days / 2))))
   ) {
     reasons.push({ type: "stalling", label: "Keine aktuelle Bearbeitung" });
   }
@@ -229,10 +203,7 @@ function buildAttentionReasons(
   if (activityCount >= 10 && (touchedMeasures <= 3 || maxUserShare >= 0.9)) {
     reasons.push({
       type: "spurious",
-      label:
-        touchedMeasures <= 3
-          ? "Viele Änderungen an wenigen Maßnahmen"
-          : "Fast nur eine aktive Person",
+      label: touchedMeasures <= 3 ? "Viele Änderungen an wenigen Maßnahmen" : "Fast nur eine aktive Person",
     });
   }
 
@@ -246,10 +217,7 @@ function buildAttentionReasons(
   return reasons;
 }
 
-function aggregateCatalogAdoption(
-  catalogs: CatalogRow[],
-  latestScores: LatestScoreRow[],
-) {
+function aggregateCatalogAdoption(catalogs: CatalogRow[], latestScores: LatestScoreRow[]) {
   return catalogs.map((catalog) => {
     const scores = latestScores
       .filter((score) => score.catalog_version === catalog.id)
@@ -257,10 +225,7 @@ function aggregateCatalogAdoption(
     const teamsStarted = scores.filter((score) => score > 0).length;
     const teamsHalf = scores.filter((score) => score >= 50).length;
     const teamsComplete = scores.filter((score) => score >= 98).length;
-    const averageProgress =
-      scores.length > 0
-        ? scores.reduce((sum, score) => sum + score, 0) / scores.length
-        : 0;
+    const averageProgress = scores.length > 0 ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
 
     return {
       id: catalog.id,
@@ -283,9 +248,7 @@ export default {
     router.get("/summary", async (req: AuthenticatedRequest, res: Response) => {
       try {
         if (!(await canAccessDashboard(database, req.accountability))) {
-          return res
-            .status(req.accountability?.user ? 403 : 401)
-            .json({ error: "Kein Zugriff auf dieses Dashboard." });
+          return res.status(req.accountability?.user ? 403 : 401).json({ error: "Kein Zugriff auf dieses Dashboard." });
         }
 
         const days = clampDays(req.query.days);
@@ -295,14 +258,7 @@ export default {
 
         const catalogs = (await database<CatalogRow>("measure_catalog as mc")
           .leftJoin("measures as m", "m.catalog_version", "mc.id")
-          .select(
-            "mc.id",
-            "mc.name",
-            "mc.isCurrentFrontend",
-            "mc.isCurrentBackend",
-            "mc.hidden",
-            "mc.date_created",
-          )
+          .select("mc.id", "mc.name", "mc.isCurrentFrontend", "mc.isCurrentBackend", "mc.hidden", "mc.date_created")
           .count<CatalogRow[]>("m.id as measures")
           .groupBy("mc.id")
           .orderBy("mc.date_created", "desc")) as CatalogRow[];
@@ -313,9 +269,7 @@ export default {
           catalogs[0] ??
           null;
         const previousCatalog =
-          catalogs.find(
-            (catalog) => catalog.id !== currentCatalog?.id && !catalog.hidden,
-          ) ?? null;
+          catalogs.find((catalog) => catalog.id !== currentCatalog?.id && !catalog.hidden) ?? null;
 
         const [
           teams,
@@ -427,10 +381,7 @@ export default {
             `,
               [since.toISOString()],
             )
-            .then(
-              (result) =>
-                result.rows as Array<{ active_users: string | number | null }>,
-            ),
+            .then((result) => result.rows as Array<{ active_users: string | number | null }>),
 
           database
             .raw(
@@ -550,17 +501,10 @@ export default {
           latestActivityByTeam.set(activity.team_id, list);
         }
 
-        const activityByTeam = new Map(
-          activityRows.map((row) => [row.team_id, row]),
-        );
-        const topUserByTeam = new Map(
-          userShareRows.map((row) => [row.team_id, row]),
-        );
+        const activityByTeam = new Map(activityRows.map((row) => [row.team_id, row]));
+        const topUserByTeam = new Map(userShareRows.map((row) => [row.team_id, row]));
         const scoresByTeamAndCatalog = new Map(
-          latestScores.map((score) => [
-            `${score.team_id}:${score.catalog_version}`,
-            score,
-          ]),
+          latestScores.map((score) => [`${score.team_id}:${score.catalog_version}`, score]),
         );
 
         const teamSummaries = teams.map((team) => {
@@ -568,8 +512,7 @@ export default {
           const topUser = topUserByTeam.get(team.id);
           const activityCount = toNumber(activity?.activity_count);
           const topUserActivity = toNumber(topUser?.user_activity_count);
-          const maxUserShare =
-            activityCount > 0 ? topUserActivity / activityCount : 0;
+          const maxUserShare = activityCount > 0 ? topUserActivity / activityCount : 0;
           const currentScore = currentCatalog
             ? scoresByTeamAndCatalog.get(`${team.id}:${currentCatalog.id}`)
             : undefined;
@@ -578,10 +521,7 @@ export default {
             : undefined;
           const currentProgress = toNumber(currentScore?.percentage_rated);
           const previousProgress = toNumber(previousScore?.percentage_rated);
-          const daysSinceActivity = daysBetween(
-            now,
-            activity?.last_activity ?? null,
-          );
+          const daysSinceActivity = daysBetween(now, activity?.last_activity ?? null);
           const teamMembers = membersByTeam.get(team.id) ?? [];
           const contactEmails = uniqueEmails(teamMembers);
           const attentionReasons = buildAttentionReasons(
@@ -610,14 +550,9 @@ export default {
                 name: displayUserName(member),
                 email: member.email?.trim().toLowerCase() ?? null,
                 role: member.role_name,
-                isAdmin:
-                  isTrue(member.is_admin) || member.user_id === team.admin_id,
+                isAdmin: isTrue(member.is_admin) || member.user_id === team.admin_id,
               }))
-              .sort(
-                (a, b) =>
-                  Number(b.isAdmin) - Number(a.isAdmin) ||
-                  a.name.localeCompare(b.name),
-              ),
+              .sort((a, b) => Number(b.isAdmin) - Number(a.isAdmin) || a.name.localeCompare(b.name)),
             activityCount,
             activeUsers: toNumber(activity?.active_users),
             touchedMeasures: toNumber(activity?.touched_measures),
@@ -630,33 +565,21 @@ export default {
             scoreTotal: round(toNumber(currentScore?.score_total)),
             topUserEmail: topUser?.user_email ?? null,
             topUserShare: round(maxUserShare * 100),
-            activitySignal: buildActivitySignal(
-              activityCount,
-              daysSinceActivity,
-            ),
-            recentActivity: (latestActivityByTeam.get(team.id) ?? []).map(
-              (latestActivity) => ({
-                timestamp: latestActivity.timestamp,
-                action: latestActivity.action,
-                userName: displayUserName(latestActivity),
-                userEmail:
-                  latestActivity.user_email?.trim().toLowerCase() ?? null,
-                measureName: latestActivity.measure_name,
-              }),
-            ),
+            activitySignal: buildActivitySignal(activityCount, daysSinceActivity),
+            recentActivity: (latestActivityByTeam.get(team.id) ?? []).map((latestActivity) => ({
+              timestamp: latestActivity.timestamp,
+              action: latestActivity.action,
+              userName: displayUserName(latestActivity),
+              userEmail: latestActivity.user_email?.trim().toLowerCase() ?? null,
+              measureName: latestActivity.measure_name,
+            })),
             attentionReasons,
           };
         });
 
-        const activeTeams = teamSummaries.filter(
-          (team) => team.activityCount > 0,
-        );
-        const globalActiveUsers = toNumber(
-          globalActiveUserRows[0]?.active_users,
-        );
-        const attentionTeams = teamSummaries.filter(
-          (team) => team.attentionReasons.length > 0,
-        );
+        const activeTeams = teamSummaries.filter((team) => team.activityCount > 0);
+        const globalActiveUsers = toNumber(globalActiveUserRows[0]?.active_users);
+        const attentionTeams = teamSummaries.filter((team) => team.attentionReasons.length > 0);
         const stallingTeams = teamSummaries.filter((team) =>
           team.attentionReasons.some((reason) => reason.type === "stalling"),
         );
@@ -664,21 +587,15 @@ export default {
           team.attentionReasons.some((reason) => reason.type === "spurious"),
         );
         const catalogLagTeams = teamSummaries.filter((team) =>
-          team.attentionReasons.some(
-            (reason) => reason.type === "catalog_adoption",
-          ),
+          team.attentionReasons.some((reason) => reason.type === "catalog_adoption"),
         );
-        const ratingActivity = activityRows.reduce(
-          (sum, row) => sum + toNumber(row.activity_count),
-          0,
-        );
+        const ratingActivity = activityRows.reduce((sum, row) => sum + toNumber(row.activity_count), 0);
         const currentProgressValues = teamSummaries
           .map((team) => team.currentCatalogProgress)
           .filter((value) => value > 0);
         const averageCurrentProgress =
           currentProgressValues.length > 0
-            ? currentProgressValues.reduce((sum, value) => sum + value, 0) /
-              currentProgressValues.length
+            ? currentProgressValues.reduce((sum, value) => sum + value, 0) / currentProgressValues.length
             : 0;
         const teamsByProgress = [...teamSummaries].sort(
           (a, b) =>
@@ -688,17 +605,12 @@ export default {
         );
         const teamsByLastActivity = [...teamSummaries].sort(
           (a, b) =>
-            new Date(b.lastActivity ?? 0).getTime() -
-              new Date(a.lastActivity ?? 0).getTime() ||
+            new Date(b.lastActivity ?? 0).getTime() - new Date(a.lastActivity ?? 0).getTime() ||
             b.activityCount - a.activityCount ||
             a.name.localeCompare(b.name),
         );
         const recentTeams = activeTeams
-          .sort(
-            (a, b) =>
-              new Date(b.lastActivity ?? 0).getTime() -
-              new Date(a.lastActivity ?? 0).getTime(),
-          )
+          .sort((a, b) => new Date(b.lastActivity ?? 0).getTime() - new Date(a.lastActivity ?? 0).getTime())
           .slice(0, 8);
 
         return res.json({
@@ -720,9 +632,7 @@ export default {
             stallingTeams: stallingTeams.length,
             spuriousTeams: spuriousTeams.length,
             catalogLagTeams: catalogLagTeams.length,
-            completedCurrentCatalog: teamSummaries.filter(
-              (team) => team.currentCatalogProgress >= 98,
-            ).length,
+            completedCurrentCatalog: teamSummaries.filter((team) => team.currentCatalogProgress >= 98).length,
             averageCurrentProgress: round(averageCurrentProgress),
           },
           timeline: timelineRows.map((row) => ({
@@ -745,33 +655,20 @@ export default {
               )
               .slice(0, 25),
             stalling: stallingTeams
-              .sort(
-                (a, b) =>
-                  (b.daysSinceActivity ?? 9999) - (a.daysSinceActivity ?? 9999),
-              )
+              .sort((a, b) => (b.daysSinceActivity ?? 9999) - (a.daysSinceActivity ?? 9999))
               .slice(0, 25),
-            mostActive: [...teamSummaries]
-              .sort((a, b) => b.activityCount - a.activityCount)
-              .slice(0, 15),
-            spurious: spuriousTeams
-              .sort((a, b) => b.activityCount - a.activityCount)
-              .slice(0, 15),
+            mostActive: [...teamSummaries].sort((a, b) => b.activityCount - a.activityCount).slice(0, 15),
+            spurious: spuriousTeams.sort((a, b) => b.activityCount - a.activityCount).slice(0, 15),
             catalogLag: catalogLagTeams
-              .sort(
-                (a, b) => b.previousCatalogProgress - a.previousCatalogProgress,
-              )
+              .sort((a, b) => b.previousCatalogProgress - a.previousCatalogProgress)
               .slice(0, 25),
           },
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logger?.error(
-          `[community-activity] Failed to build summary: ${message}`,
-        );
+        logger?.error(`[community-activity] Failed to build summary: ${message}`);
         console.error("[community-activity] Failed to build summary:", error);
-        return res
-          .status(500)
-          .json({ error: "Dashboard konnte nicht geladen werden." });
+        return res.status(500).json({ error: "Dashboard konnte nicht geladen werden." });
       }
     });
   },

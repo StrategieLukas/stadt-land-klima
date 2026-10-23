@@ -49,8 +49,8 @@
 
 <script setup lang="ts">
 import { checkedMapStyle, visualizationUrl } from "~/shared/visualizationSafety";
-import { asRecord } from '~/shared/visualization';
-import { parseGeoData } from '~/shared/contracts/geometry';
+import { asRecord } from "~/shared/visualization";
+import { parseGeoData } from "~/shared/contracts/geometry";
 import { Icon } from "@iconify/vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import slkLogoUrl from "~/assets/images/Stadt-Land-Klima-Logo.svg";
@@ -85,9 +85,9 @@ const error = ref(false);
 const mapReady = ref(false);
 const { isDark } = useTheme();
 
-let map: import('maplibre-gl').Map | null = null;
-let popup: import('maplibre-gl').Popup | null = null;
-let maplibregl: typeof import('maplibre-gl') | null = null;
+let map: import("maplibre-gl").Map | null = null;
+let popup: import("maplibre-gl").Popup | null = null;
+let maplibregl: typeof import("maplibre-gl") | null = null;
 let densityAbortController: AbortController | null = null;
 let featureBoundsAbortController: AbortController | null = null;
 let densityTimer: ReturnType<typeof setTimeout> | null = null;
@@ -137,7 +137,10 @@ async function renderMap() {
       container: containerRef.value,
       // MapLibre validates the complete style; component transformations retain opaque expression fields.
       style: checkedMapStyle(buildStyle(spec.value)),
-      transformRequest: (url: string) => ({ url: visualizationUrl(cartoBasemapProxyUrl(url), window.location.origin), credentials: "same-origin" }),
+      transformRequest: (url: string) => ({
+        url: visualizationUrl(cartoBasemapProxyUrl(url), window.location.origin),
+        credentials: "same-origin",
+      }),
       attributionControl: {},
       cooperativeGestures: false,
       canvasContextAttributes: { preserveDrawingBuffer: true },
@@ -149,18 +152,20 @@ async function renderMap() {
     popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, maxWidth: "320px" });
     observeContainerSize();
 
-    requestAnimationFrame(() => { resizeMapAndRefreshHeatmaps(); });
+    requestAnimationFrame(() => {
+      resizeMapAndRefreshHeatmaps();
+    });
 
     map.once("load", () => {
       void (async () => {
-      resizeMapAndRefreshHeatmaps();
-      attachTooltipHandlers();
-      await fitToFeatureData();
-      await loadDensitySource();
-      map?.on("moveend", scheduleDensityLoad);
-      resizeMapAndRefreshHeatmaps();
-      mapReady.value = true;
-      loading.value = false;
+        resizeMapAndRefreshHeatmaps();
+        attachTooltipHandlers();
+        await fitToFeatureData();
+        await loadDensitySource();
+        map?.on("moveend", scheduleDensityLoad);
+        resizeMapAndRefreshHeatmaps();
+        mapReady.value = true;
+        loading.value = false;
       })();
     });
 
@@ -186,7 +191,9 @@ function destroyMap() {
   densityAbortController = null;
   featureBoundsAbortController?.abort();
   featureBoundsAbortController = null;
-  cleanupLayerListeners.forEach((cleanup) => { cleanup(); });
+  cleanupLayerListeners.forEach((cleanup) => {
+    cleanup();
+  });
   cleanupLayerListeners = [];
   popup?.remove?.();
   popup = null;
@@ -251,7 +258,12 @@ function buildStyle(mapSpec: MapLibreRenderSpec) {
     mapSpec.style && typeof mapSpec.style === "object"
       ? (themeStyleUrls(structuredCloneSafe(mapSpec.style)) as Record<string, unknown>)
       : null;
-  const baseLayers = Array.isArray(baseStyle?.layers) ? baseStyle.layers.flatMap((item: unknown) => {const record = asRecord(item); return record ? [record] : []}) : [];
+  const baseLayers = Array.isArray(baseStyle?.layers)
+    ? baseStyle.layers.flatMap((item: unknown) => {
+        const record = asRecord(item);
+        return record ? [record] : [];
+      })
+    : [];
   const externalBasemapSourceIds = basemapSourceIds(mapSpec.sources ?? {});
   return {
     version: 8,
@@ -629,10 +641,15 @@ async function featureDataForBounds() {
   featureBoundsAbortController = new AbortController();
 
   try {
-    const response = await fetch(visualizationUrl(data, window.location.origin), { signal: featureBoundsAbortController.signal, credentials: "omit", redirect: "error" });
-    return await response.json() as unknown;
+    const response = await fetch(visualizationUrl(data, window.location.origin), {
+      signal: featureBoundsAbortController.signal,
+      credentials: "omit",
+      redirect: "error",
+    });
+    return (await response.json()) as unknown;
   } catch (err: unknown) {
-    if ((err instanceof Error ? err.name : undefined) !== "AbortError") console.warn("[MapLibreRenderElement] feature bounds fetch error:", err);
+    if ((err instanceof Error ? err.name : undefined) !== "AbortError")
+      console.warn("[MapLibreRenderElement] feature bounds fetch error:", err);
     return null;
   }
 }
@@ -656,9 +673,22 @@ async function loadDensitySource() {
     const response = await fetch(resolveDensityUrl(template), { signal: densityAbortController.signal });
     const data = parseGeoData(await response.json());
     const source = map?.getSource("density");
-    if (source instanceof maplibregl!.GeoJSONSource) void source.setData({type: 'FeatureCollection', features: !data ? [] : data.type === 'FeatureCollection' ? data.features.flatMap(f => f.geometry ? [{...f, geometry: f.geometry}] : []) : data.type === 'Feature' ? data.geometry ? [{...data, geometry: data.geometry}] : [] : [{type: 'Feature', properties: null, geometry: data}]});
+    if (source instanceof maplibregl!.GeoJSONSource)
+      void source.setData({
+        type: "FeatureCollection",
+        features: !data
+          ? []
+          : data.type === "FeatureCollection"
+            ? data.features.flatMap((f) => (f.geometry ? [{ ...f, geometry: f.geometry }] : []))
+            : data.type === "Feature"
+              ? data.geometry
+                ? [{ ...data, geometry: data.geometry }]
+                : []
+              : [{ type: "Feature", properties: null, geometry: data }],
+      });
   } catch (err: unknown) {
-    if ((err instanceof Error ? err.name : undefined) !== "AbortError") console.warn("[MapLibreRenderElement] density fetch error:", err);
+    if ((err instanceof Error ? err.name : undefined) !== "AbortError")
+      console.warn("[MapLibreRenderElement] density fetch error:", err);
   }
 }
 
@@ -685,7 +715,9 @@ function observeContainerSize() {
 
 function scheduleMapResize() {
   if (resizeTimer) clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { resizeMapAndRefreshHeatmaps(); }, 80);
+  resizeTimer = setTimeout(() => {
+    resizeMapAndRefreshHeatmaps();
+  }, 80);
 }
 
 function resizeMapAndRefreshHeatmaps() {
@@ -725,7 +757,9 @@ function nextAnimationFrames(count: number) {
         resolve();
         return;
       }
-      requestAnimationFrame(() => { step(remaining - 1); });
+      requestAnimationFrame(() => {
+        step(remaining - 1);
+      });
     };
     step(count);
   });
@@ -817,7 +851,7 @@ async function featureDataForExport() {
   try {
     const response = await fetch(resolvedFeatureApiUrl.value);
     if (!response.ok) return null;
-    return await response.json() as unknown;
+    return (await response.json()) as unknown;
   } catch (err) {
     console.warn("[MapLibreRenderElement] feature export fetch error:", err);
     return null;
@@ -846,7 +880,9 @@ async function drawCartoBasemap(
       const url = `/api/carto-basemap?asset=/light_all/${zoom}/${x}/${y}.png`;
       tiles.push(
         loadImage(url)
-          .then((image) => { ctx.drawImage(image, offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize); })
+          .then((image) => {
+            ctx.drawImage(image, offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize);
+          })
           .catch(() => undefined),
       );
     }
@@ -971,7 +1007,9 @@ function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.crossOrigin = "anonymous";
-    image.onload = () => { resolve(image); };
+    image.onload = () => {
+      resolve(image);
+    };
     image.onerror = reject;
     image.src = src;
   });
@@ -1032,7 +1070,10 @@ function collectCoordinates(input: unknown, coordinates: Array<[number, number]>
   const value = asRecord(input);
   if (!value) return;
   if (value.type === "FeatureCollection") {
-    if (Array.isArray(value.features)) value.features.forEach((feature: unknown) => { collectCoordinates(feature, coordinates); });
+    if (Array.isArray(value.features))
+      value.features.forEach((feature: unknown) => {
+        collectCoordinates(feature, coordinates);
+      });
     return;
   }
   if (value.type === "Feature") {
@@ -1050,7 +1091,9 @@ function collectCoordinateArray(value: unknown, coordinates: Array<[number, numb
     coordinates.push([value[0], value[1]]);
     return;
   }
-  value.forEach((child) => { collectCoordinateArray(child, coordinates); });
+  value.forEach((child) => {
+    collectCoordinateArray(child, coordinates);
+  });
 }
 
 function structuredCloneSafe<T>(value: T): T {
@@ -1077,7 +1120,8 @@ function appendAreaParam(url: string, ars: string) {
 }
 
 function resolveUrl(url: string) {
-  if (/^https?:\/\//i.test(url)) return visualizationUrl(url, typeof window === "undefined" ? undefined : window.location.origin);
+  if (/^https?:\/\//i.test(url))
+    return visualizationUrl(url, typeof window === "undefined" ? undefined : window.location.origin);
   if (typeof window === "undefined") return url;
   return new URL(visualizationUrl(url, window.location.origin), window.location.origin).toString();
 }
@@ -1095,7 +1139,9 @@ function downloadBlob(content: Blob | string, type: string, filename: string) {
   const blob = content instanceof Blob ? content : new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   triggerDownload(url, filename);
-  window.setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
+  window.setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 }
 
 function triggerDownload(url: string, filename: string) {
@@ -1118,8 +1164,8 @@ function copyTextFallback(text: string) {
   document.body.appendChild(textarea);
   textarea.select();
   // Legacy clipboard fallback is needed on insecure/local origins without navigator.clipboard.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    document.execCommand("copy");
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  document.execCommand("copy");
   textarea.remove();
 }
 

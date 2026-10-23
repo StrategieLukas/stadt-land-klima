@@ -5,10 +5,12 @@
         <p class="mb-3 text-sm font-bold uppercase text-orange">
           {{ $t("donate.page.eyebrow") }}
         </p>
-        <h1 class="font-heading text-3xl font-bold leading-tight text-gray dark:text-[var(--slk-text-strong)] sm:text-4xl">
+        <h1
+          class="font-heading text-3xl font-bold leading-tight text-gray dark:text-[var(--slk-text-strong)] sm:text-4xl"
+        >
           {{ $t("donate.page.title") }}
         </h1>
-        <p class="mt-5 text-lg leading-8 text-gray-600 dark:text-[var(--slk-text)]">
+        <p class="text-gray-600 mt-5 text-lg leading-8 dark:text-[var(--slk-text)]">
           {{ $t("donate.page.description") }}
         </p>
         <div class="mt-7">

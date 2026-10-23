@@ -4,11 +4,7 @@
     <div class="border-b border-solid-gray-10 bg-white shadow-sm">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <NuxtLink to="/" class="flex items-center gap-3">
-          <img
-            src="~/assets/images/Stadt-Land-Klima-Logo.svg"
-            :alt="$t('logo.alt')"
-            class="h-10 w-auto dark:hidden"
-          />
+          <img src="~/assets/images/Stadt-Land-Klima-Logo.svg" :alt="$t('logo.alt')" class="h-10 w-auto dark:hidden" />
           <img
             src="~/assets/images/Stadt-Land-Klima-Logo-dark.svg"
             :alt="$t('logo.alt')"
@@ -204,7 +200,6 @@
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -263,7 +258,6 @@ async function loadElections() {
 onMounted(() => {
   void loadElections();
 });
-
 
 useHead({
   title: $t("elections.wahlcheck.title"),

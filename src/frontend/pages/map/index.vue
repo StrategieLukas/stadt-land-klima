@@ -5,8 +5,8 @@
 </template>
 
 <script setup lang="ts">
-import TheMap from '~/components/TheMap.vue';
-import { getCatalogVersion } from '~/composables/getCatalogVersion';
+import TheMap from "~/components/TheMap.vue";
+import { getCatalogVersion } from "~/composables/getCatalogVersion";
 const { $t } = useNuxtApp();
 const route = useRoute();
 const selectedCatalogVersion = ref(await getCatalogVersion(route));
@@ -15,6 +15,11 @@ const { data } = await useAsyncData(
   () => $fetch(`/api/public/stats/${encodeURIComponent(selectedCatalogVersion.value.name)}`),
 );
 const municipality_scores = computed(() => data.value?.scores ?? []);
-watch(() => route.query.v, async () => { selectedCatalogVersion.value = await getCatalogVersion(route); });
-useHead({ title: () => $t('map.title') });
+watch(
+  () => route.query.v,
+  async () => {
+    selectedCatalogVersion.value = await getCatalogVersion(route);
+  },
+);
+useHead({ title: () => $t("map.title") });
 </script>

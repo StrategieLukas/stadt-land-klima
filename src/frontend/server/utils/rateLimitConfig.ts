@@ -16,11 +16,11 @@ export interface RateLimitPreset {
 }
 
 export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
-  'editor-login': {max: 10, windowSeconds: 60},
-  'editor-session': {max: 120, windowSeconds: 60},
-  'editor-logout': {max: 30, windowSeconds: 60},
-  'editor-upload': {max: 10, windowSeconds: 60},
-  'editor-cms': {max: 600, windowSeconds: 60},
+  "editor-login": { max: 10, windowSeconds: 60 },
+  "editor-session": { max: 120, windowSeconds: 60 },
+  "editor-logout": { max: 30, windowSeconds: 60 },
+  "editor-upload": { max: 10, windowSeconds: 60 },
+  "editor-cms": { max: 600, windowSeconds: 60 },
 
   // ========================================================================
   // WRITE ENDPOINTS (POST/PUT/PATCH/DELETE)
@@ -31,15 +31,15 @@ export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
   newsletter: { max: 10, windowSeconds: 60 },
   /** Feedback form submission */
   feedback: { max: 30, windowSeconds: 60 },
-  'feedback-delivery': { max: 10, windowSeconds: 3600 },
+  "feedback-delivery": { max: 10, windowSeconds: 3600 },
   /** Generic form response submission */
-  'form-response': { max: 10, windowSeconds: 60 },
+  "form-response": { max: 10, windowSeconds: 60 },
   /** Municipality registration */
   register: { max: 10, windowSeconds: 60 },
   /** Article submission */
   article: { max: 10, windowSeconds: 60 },
   /** Candidate answer submission */
-  'candidate-answers': { max: 120, windowSeconds: 60 },
+  "candidate-answers": { max: 120, windowSeconds: 60 },
   /** Wahlcheck completion tracking */
   wahlcheck: { max: 60, windowSeconds: 60 },
 
@@ -49,9 +49,9 @@ export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
   // ========================================================================
 
   /** Election PDF generation */
-  'election-pdf': { max: 5, windowSeconds: 60 },
+  "election-pdf": { max: 5, windowSeconds: 60 },
   /** Municipality PDF generation */
-  'municipality-pdf': { max: 5, windowSeconds: 60 },
+  "municipality-pdf": { max: 5, windowSeconds: 60 },
 
   // ========================================================================
   // EXPENSIVE READ ENDPOINTS
@@ -59,27 +59,27 @@ export const RATE_LIMIT_CONFIG: Record<string, RateLimitPreset> = {
   // ========================================================================
 
   /** Content search via Meilisearch */
-  'content-search': { max: 120, windowSeconds: 60 },
+  "content-search": { max: 120, windowSeconds: 60 },
   /** Stadt-Land-Zahl proxy (upstream API call) */
-  'stadtlandzahl': { max: 300, windowSeconds: 60 },
+  stadtlandzahl: { max: 300, windowSeconds: 60 },
   /** ALTCHA CAPTCHA challenge generation */
-  'math-challenge': { max: 60, windowSeconds: 60 },
-  'csp-report': { max: 60, windowSeconds: 60 },
-  'altcha': { max: 60, windowSeconds: 60 },
+  "math-challenge": { max: 60, windowSeconds: 60 },
+  "csp-report": { max: 60, windowSeconds: 60 },
+  altcha: { max: 60, windowSeconds: 60 },
   /** Municipality preview (token validation + full data load) */
-  'municipality-preview': { max: 60, windowSeconds: 60 },
+  "municipality-preview": { max: 60, windowSeconds: 60 },
   /** Candidate info lookup (token validation) */
-  'candidate-info': { max: 60, windowSeconds: 60 },
+  "candidate-info": { max: 60, windowSeconds: 60 },
   /** Registration status check */
-  'register-check': { max: 60, windowSeconds: 60 },
+  "register-check": { max: 60, windowSeconds: 60 },
   /** Tour media file serving */
-  'tour-media': { max: 600, windowSeconds: 60 },
+  "tour-media": { max: 600, windowSeconds: 60 },
   /** Event ICS calendar export */
-  'event-ics': { max: 120, windowSeconds: 60 },
+  "event-ics": { max: 120, windowSeconds: 60 },
   /** Carto basemap tile proxy */
-  'carto-basemap': { max: 1200, windowSeconds: 60 },
+  "carto-basemap": { max: 1200, windowSeconds: 60 },
   /** AI agent registration endpoint */
-  'ai-register': { max: 30, windowSeconds: 60 },
+  "ai-register": { max: 30, windowSeconds: 60 },
 };
 
 /**

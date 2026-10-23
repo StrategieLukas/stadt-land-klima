@@ -60,7 +60,7 @@
       </div>
       <p class="mb-4 mt-0 text-center text-xs">
         <ClientOnly>
-          {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? '', $locale) }}
+          {{ $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? "", $locale) }}
         </ClientOnly>
       </p>
 
@@ -226,8 +226,16 @@
         >
           <input type="checkbox" name="sectors-accordion" autocomplete="off" />
           <div class="collapse-title flex items-center gap-4 px-2 md:px-4">
-            <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18" />
-            <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18" />
+            <img
+              src="~/assets/icons/icon_info.svg"
+              alt=""
+              class="slk-sector-detail-icon slk-theme-icon--light h-auto w-12 opacity-50 md:w-14 lg:w-18"
+            />
+            <img
+              src="~/assets/icons/icon_info-dark.svg"
+              alt=""
+              class="slk-sector-detail-icon slk-theme-icon--dark h-auto w-12 opacity-50 md:w-14 lg:w-18"
+            />
             <h2 class="font-heading text-h2 leading-none text-green">
               {{ $t("municipality.overall_status_heading") }}
             </h2>
@@ -299,10 +307,7 @@
               </h3>
             </div>
             <div class="collapse-content px-2 md:px-4">
-              <div
-                class="has-long-links prose prose-sm max-w-none"
-                v-html="sanitizeHtml(sanitizedPublicContact)"
-              ></div>
+              <div class="has-long-links prose prose-sm max-w-none" v-html="sanitizeHtml(sanitizedPublicContact)"></div>
             </div>
           </div>
 
@@ -312,8 +317,16 @@
             class="collapse collapse-plus rounded-sm p-2 shadow-list md:px-2"
           >
             <div class="mb-4 flex items-center gap-3 p-3">
-              <img src="~/assets/icons/icon_invest.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60" />
-              <img src="~/assets/icons/icon_invest-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-6 w-6 opacity-60" />
+              <img
+                src="~/assets/icons/icon_invest.svg"
+                alt=""
+                class="slk-sector-detail-icon slk-theme-icon--light h-6 w-6 opacity-60"
+              />
+              <img
+                src="~/assets/icons/icon_invest-dark.svg"
+                alt=""
+                class="slk-sector-detail-icon slk-theme-icon--dark h-6 w-6 opacity-60"
+              />
               <h3 class="font-heading text-h3 text-green">{{ $t("projects.title") }}</h3>
             </div>
             <div class="space-y-4">
@@ -337,11 +350,19 @@
           <!-- Last Update Info -->
           <div v-if="municipality?.date_updated" class="rounded-sm p-2 shadow-list md:px-4">
             <div class="text-gray-600 flex items-center gap-2 text-sm">
-              <img src="~/assets/icons/icon_info.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--light h-4 w-4 opacity-60" />
-              <img src="~/assets/icons/icon_info-dark.svg" alt="" class="slk-sector-detail-icon slk-theme-icon--dark h-4 w-4 opacity-60" />
+              <img
+                src="~/assets/icons/icon_info.svg"
+                alt=""
+                class="slk-sector-detail-icon slk-theme-icon--light h-4 w-4 opacity-60"
+              />
+              <img
+                src="~/assets/icons/icon_info-dark.svg"
+                alt=""
+                class="slk-sector-detail-icon slk-theme-icon--dark h-4 w-4 opacity-60"
+              />
               <ClientOnly>
                 <span>{{
-                  $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? '', $locale)
+                  $t("municipalities.last_updated_at") + formatLastUpdated(municipality.date_updated ?? "", $locale)
                 }}</span>
               </ClientOnly>
             </div>
@@ -353,15 +374,15 @@
 </template>
 
 <script setup lang="ts">
-import type { Project } from '~/types/components/content';
-import type {  MunicipalityScore, RatingsBySector  } from '~/types/components/municipality';
+import type { Project } from "~/types/components/content";
+import type { MunicipalityScore, RatingsBySector } from "~/types/components/municipality";
 
-import type { PropType } from 'vue';
+import type { PropType } from "vue";
 
 import { ref, onMounted, computed } from "vue";
 import lodash from "lodash";
 import MarkdownIt from "markdown-it";
-import { sanitizeHtml } from '~/utils/sanitizeHtml'
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
 
 import { isRaster, formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
 
@@ -393,8 +414,10 @@ const municipalityScore = props.municipalityScore;
 const municipality = municipalityScore.municipality;
 const subScores = createSubScoreObject(municipalityScore);
 
-const sanitizedPublicContact = computed(() => sanitizeHtml(md.render(municipality.public_contact ?? '')))
-const sanitizedOverallStatusComment = computed(() => sanitizeHtml(md.render(municipality.overall_status_comment ?? '')))
+const sanitizedPublicContact = computed(() => sanitizeHtml(md.render(municipality.public_contact ?? "")));
+const sanitizedOverallStatusComment = computed(() =>
+  sanitizeHtml(md.render(municipality.overall_status_comment ?? "")),
+);
 
 // Tab state
 const activeTab = ref("polar");
@@ -420,15 +443,15 @@ async function fetchMunicipalityProjects() {
 
   loadingProjects.value = true;
   try {
-    const { articles } = await $fetch('/api/public/articles', {
-      query: { municipality: municipality.name, limit: 5, sort: '-date_created' },
+    const { articles } = await $fetch("/api/public/articles", {
+      query: { municipality: municipality.name, limit: 5, sort: "-date_created" },
     });
     municipalityProjects.value = articles.map((article) => ({
       ...article,
       date: article.date_created,
       image_id: article.image?.id ?? null,
       image_is_raster: isRaster(article.image?.type),
-      measures: article.measures?.flatMap(link => link.measures_id ? [link.measures_id] : []) ?? [],
+      measures: article.measures?.flatMap((link) => (link.measures_id ? [link.measures_id] : [])) ?? [],
     }));
   } catch (err) {
     console.error("❌ Failed to fetch municipality projects:", err);

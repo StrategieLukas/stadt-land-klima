@@ -14,13 +14,16 @@
 </template>
 <script setup lang="ts">
 const props = defineProps<{
-  item: {coordinates: [number, number]; properties?: {power_kw?: number | undefined; popup_content?: string | null | undefined} | null | undefined};
+  item: {
+    coordinates: [number, number];
+    properties?: { power_kw?: number | undefined; popup_content?: string | null | undefined } | null | undefined;
+  };
 }>();
 const markerClass = computed(() => {
   const power = props.item.properties?.power_kw;
-  if (!power) return 'marker-default';
-  if (power >= 150) return 'marker-high-power';
-  if (power >= 50) return 'marker-medium-power';
-  return 'marker-low-power';
+  if (!power) return "marker-default";
+  if (power >= 150) return "marker-high-power";
+  if (power >= 50) return "marker-medium-power";
+  return "marker-low-power";
 });
 </script>

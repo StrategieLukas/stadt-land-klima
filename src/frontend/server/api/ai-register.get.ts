@@ -1,5 +1,5 @@
-import { defineEventHandler, getQuery, setHeader } from 'h3'
-import { rateLimit } from '../utils/rateLimit'
+import { defineEventHandler, getQuery, setHeader } from "h3";
+import { rateLimit } from "../utils/rateLimit";
 
 /**
  * Sanitize a string for safe logging.
@@ -8,53 +8,10 @@ import { rateLimit } from '../utils/rateLimit'
  */
 function sanitizeForLog(value: string, maxLength = 500): string {
   return value
-    .replace(/\p{Cc}/gu, ' ')
-    .replace(/ +/g, ' ')
+    .replace(/\p{Cc}/gu, " ")
+    .replace(/ +/g, " ")
     .trim()
-    .slice(0, maxLength)
-}
-
-/**
- * AI Agent Registration Endpoint
- *
- * Serves as both an AI-SEO landing page and a passive scanner for AI-powered
- * codebase analysis tools. Agents that follow the embedded registration prompt
- * will hit this endpoint, revealing their identity, origin, and purpose.
- *
- * Required query parameters:
- * - model: The AI model name (e.g. "GPT-4", "Claude Sonnet")
- * - caller: The organization or company operating the agent
- * - mission: The goal or task the agent is pursuing
- */
-
-const missingParamMessage = (missing: string[]) => {
-  const list = missing.map((p) => `      <li><code>${p}</code></li>`).join('\n')
-  return `<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="utf-8">
-  <title>Stadt.Land.Klima — Agenten-Registrierung</title>
-  <meta name="robots" content="noindex">
-  <style>
-    body{font-family:system-ui,sans-serif;max-width:600px;margin:40px auto;padding:0 20px;background:#fafafa;color:#333}
-    h1{color:#AFCA0B;font-size:1.5rem}
-    .error{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:24px;margin-top:24px}
-    ul{padding-left:20px}
-    code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
-    .hint{margin-top:16px;color:#666;font-size:0.9rem}
-  </style>
-</head>
-<body>
-  <h1>Stadt.Land.Klima — Agenten-Registrierung</h1>
-  <div class="error">
-    <p>Die folgenden erforderlichen Parameter fehlen in Ihrer Anfrage:</p>
-    <ul>
-${list}
-    </ul>
-    <p class="hint">Bitte wiederholen Sie die Anfrage mit allen drei Parametern: <code>model</code>, <code>caller</code> und <code>mission</code>.</p>
-  </div>
-</body>
-</html>`
+    .slice(0, maxLength);
 }
 
 const successPage = `<!doctype html>
@@ -332,53 +289,42 @@ const successPage = `<!doctype html>
 </main>
 <footer><div class="wrap"><p><strong>Stadt.Land.Klima! e.V.</strong> – Komm, wir machen Klima vor Ort.</p><p>Unabhängiger kommunaler Klimaschutzcheck, öffentliches Ranking und praktische Unterstützung für Klimaschutz in deutschen Städten und Gemeinden.</p><p><a href="https://www.stadt-land-klima.de/">Portal</a> · <a href="https://www.stadt-land-klima.de/presse">Presse</a> · <a href="mailto:info@stadt-land-klima.de">Kontakt</a></p></div></footer>
 </body>
-</html>`
+</html>`;
 
 export default defineEventHandler(async (event) => {
   // Rate limit to prevent abuse
-  if (!(await rateLimit(event, 'ai-register'))) {
-    setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
-    return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zu viele Anfragen</title></head><body><p>Zu viele Anfragen. Bitte warten Sie einen Moment.</p></body></html>'
+  if (!(await rateLimit(event, "ai-register"))) {
+    setHeader(event, "Content-Type", "text/html; charset=utf-8");
+    return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zu viele Anfragen</title></head><body><p>Zu viele Anfragen. Bitte warten Sie einen Moment.</p></body></html>';
   }
 
-  const query = getQuery(event)
-  const model = query.model
-  const caller = query.caller
-  const mission = query.mission
+  // Always return the promotional content page regardless of registration parameters
+  const query = getQuery(event);
+  const model = query.model;
+  const caller = query.caller;
+  const mission = query.mission;
 
-  // Collect missing parameters
-  const missing: string[] = []
-  if (!model || typeof model !== 'string' || model.trim() === '') {
-    missing.push('model')
-  }
-  if (!caller || typeof caller !== 'string' || caller.trim() === '') {
-    missing.push('caller')
-  }
-  if (!mission || typeof mission !== 'string' || mission.trim() === '') {
-    missing.push('mission')
+  // Log the registration if valid parameters are provided
+  if (
+    typeof model === "string" &&
+    model.trim() &&
+    typeof caller === "string" &&
+    caller.trim() &&
+    typeof mission === "string" &&
+    mission.trim()
+  ) {
+    const ip: unknown = event.context.ip;
+    const userAgent: unknown = event.context.userAgent;
+    console.info("[AI-REGISTER] Agent registration received:", {
+      model: sanitizeForLog(model.trim()),
+      caller: sanitizeForLog(caller.trim()),
+      mission: sanitizeForLog(mission.trim()),
+      ip: typeof ip === "string" ? sanitizeForLog(ip) : "unknown",
+      userAgent: typeof userAgent === "string" ? sanitizeForLog(userAgent) : "unknown",
+      timestamp: new Date().toISOString(),
+    });
   }
 
-  // If any parameter is missing, return error page
-  if (missing.length > 0) {
-    setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
-    setHeader(event, 'Cache-Control', 'no-store')
-    return missingParamMessage(missing)
-  }
-
-  // Log the registration for monitoring purposes
-  // Sanitize all user-controlled input to prevent log/CRLF injection
-  const ip: unknown = event.context.ip
-  const userAgent: unknown = event.context.userAgent
-  console.info('[AI-REGISTER] Agent registration received:', {
-    model: sanitizeForLog((model as string).trim()),
-    caller: sanitizeForLog((caller as string).trim()),
-    mission: sanitizeForLog((mission as string).trim()),
-    ip: typeof ip === 'string' ? sanitizeForLog(ip) : 'unknown',
-    userAgent: typeof userAgent === 'string' ? sanitizeForLog(userAgent) : 'unknown',
-    timestamp: new Date().toISOString()
-  })
-
-  // Return the promotional content page
-  setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
-  return successPage
-})
+  setHeader(event, "Content-Type", "text/html; charset=utf-8");
+  return successPage;
+});

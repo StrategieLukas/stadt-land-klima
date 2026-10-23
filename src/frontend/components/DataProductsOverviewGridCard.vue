@@ -16,21 +16,20 @@
         class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         loading="lazy"
       />
-      <div
-        class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/10"
-      />
+      <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/10" />
       <span
         v-if="coverImageUrl && coverImageAttribution"
-        class="pointer-events-none absolute right-1.5 top-1.5 z-[2] max-w-[45%] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity group-focus-visible:opacity-100 group-hover:opacity-100"
+        class="pointer-events-none absolute right-1.5 top-1.5 z-[2] max-w-[45%] truncate rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
         :title="coverImageAttribution"
       >
         {{ coverImageAttribution }}
       </span>
-      <div v-if="!coverImageUrl" class="relative z-0 flex h-full w-full items-center justify-center" :style="fallbackBackground">
-        <Icon
-          :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-line'"
-          class="h-10 w-10 text-white/75 drop-shadow"
-        />
+      <div
+        v-if="!coverImageUrl"
+        class="relative z-0 flex h-full w-full items-center justify-center"
+        :style="fallbackBackground"
+      >
+        <Icon :icon="iconifyStr ? String(iconifyStr) : 'mdi:chart-line'" class="h-10 w-10 text-white/75 drop-shadow" />
       </div>
 
       <div class="absolute inset-x-0 top-0 z-[1] flex items-start justify-between gap-2 p-3">
@@ -93,14 +92,17 @@ import {
   sectorLabel,
 } from "~/utils/dataProducts";
 
-const props = withDefaults(defineProps<{
-  collection: Collection;
-  ars: string;
-  baseUrl: string;
-  population?: number | null | undefined;
-  showKpi?: boolean | undefined;
-  expanded?: boolean | undefined;
-}>(), { showKpi: true, expanded: false });
+const props = withDefaults(
+  defineProps<{
+    collection: Collection;
+    ars: string;
+    baseUrl: string;
+    population?: number | null | undefined;
+    showKpi?: boolean | undefined;
+    expanded?: boolean | undefined;
+  }>(),
+  { showKpi: true, expanded: false },
+);
 
 defineEmits<{
   (e: "select"): void;
@@ -190,7 +192,8 @@ async function loadSummary() {
     aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null;
     const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {};
     canonicalKpi.value =
-      (kpiValues?.[kpi.value.plot_id] as { value: number | null; precision?: number | null | undefined } | undefined) ?? null;
+      (kpiValues?.[kpi.value.plot_id] as { value: number | null; precision?: number | null | undefined } | undefined) ??
+      null;
   } catch {
     aggregate.value = null;
     canonicalKpi.value = null;

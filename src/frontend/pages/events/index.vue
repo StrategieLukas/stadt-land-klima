@@ -1,8 +1,8 @@
 <template>
   <div class="container mx-auto px-4 py-8">
     <header class="mb-10">
-      <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t('events.title') }}</h1>
-      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('events.hero.description') }}</p>
+      <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t("events.title") }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("events.hero.description") }}</p>
     </header>
 
     <!-- Mobile sticky scroll nav -->
@@ -194,8 +194,8 @@ useHead({ title: computed(() => $t("events.title")) });
 
 const { data: eventsResult } = await useAsyncData("events-list", async () => {
   try {
-    const result = await $fetch('/api/public/events', {
-      query: { excludeInternal: 'true', limit: '-1', sort: 'start_date' },
+    const result = await $fetch("/api/public/events", {
+      query: { excludeInternal: "true", limit: "-1", sort: "start_date" },
     });
     return result;
   } catch (e) {
@@ -207,15 +207,24 @@ const events = computed(() => eventsResult.value?.events ?? []);
 
 const now = new Date();
 
-const currentEvents = computed(() => (events.value || []).filter((event) =>
-  getEventPhase(event.start_date, event.end_date, event.date_only, now) === "current"));
-const futureEvents = computed(() => (events.value || []).filter((event) =>
-  getEventPhase(event.start_date, event.end_date, event.date_only, now) === "future"));
-const pastEvents = computed(() => (events.value || []).filter((event) =>
-  getEventPhase(event.start_date, event.end_date, event.date_only, now) === "past"));
+const currentEvents = computed(() =>
+  (events.value || []).filter(
+    (event) => getEventPhase(event.start_date, event.end_date, event.date_only, now) === "current",
+  ),
+);
+const futureEvents = computed(() =>
+  (events.value || []).filter(
+    (event) => getEventPhase(event.start_date, event.end_date, event.date_only, now) === "future",
+  ),
+);
+const pastEvents = computed(() =>
+  (events.value || []).filter(
+    (event) => getEventPhase(event.start_date, event.end_date, event.date_only, now) === "past",
+  ),
+);
 
 function groupByMonth(evList: PublicEvent[]) {
-  const map = new Map<string, {monthKey: string; label: string; events: PublicEvent[]}>();
+  const map = new Map<string, { monthKey: string; label: string; events: PublicEvent[] }>();
   for (const ev of evList) {
     const key = getEventMonthKey(ev.start_date);
     const label = formatEventMonth(ev.start_date, $locale);
@@ -228,7 +237,9 @@ function groupByMonth(evList: PublicEvent[]) {
 
 const futureGroups = computed(() => groupByMonth(futureEvents.value));
 const pastGroups = computed(() => {
-  const sorted = [...pastEvents.value].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+  const sorted = [...pastEvents.value].sort(
+    (a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime(),
+  );
   return groupByMonth(sorted);
 });
 

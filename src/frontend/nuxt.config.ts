@@ -1,10 +1,14 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from "node:url";
-import {staticIconStyleHashes} from "./scripts/securityStyles.mts";
+import { staticIconStyleHashes } from "./scripts/securityStyles.mts";
 
 const publicCmsOrigins = (() => {
-  try {const url = new URL(process.env.CLIENT_DIRECTUS_URL || ''); return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password ? [url.origin] : [];}
-  catch {return [];}
+  try {
+    const url = new URL(process.env.CLIENT_DIRECTUS_URL || "");
+    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password ? [url.origin] : [];
+  } catch {
+    return [];
+  }
 })();
 export default defineNuxtConfig({
   typescript: {
@@ -33,28 +37,59 @@ export default defineNuxtConfig({
   },
   modules: ["@nuxtjs/leaflet", "@blokkli/editor", "nuxt-security"],
   security: {
-    enabled: process.env.NODE_ENV === 'production' || process.env.SLK_ENV === 'production',
-    nonce: true, sri: true, removeLoggers: false,
+    enabled: process.env.NODE_ENV === "production" || process.env.SLK_ENV === "production",
+    nonce: true,
+    sri: true,
+    removeLoggers: false,
     // API routes enforce their own bounded bodies (including 50 MB editor uploads).
-    rateLimiter: false, requestSizeLimiter: false, xssValidator: false,
-    corsHandler: false, allowedMethodsRestricter: false, csrf: false, hidePoweredBy: false,
+    rateLimiter: false,
+    requestSizeLimiter: false,
+    xssValidator: false,
+    corsHandler: false,
+    allowedMethodsRestricter: false,
+    csrf: false,
+    hidePoweredBy: false,
     headers: {
-      crossOriginResourcePolicy: false, crossOriginOpenerPolicy: false, crossOriginEmbedderPolicy: false,
-      originAgentCluster: false, referrerPolicy: false, strictTransportSecurity: false,
-      xContentTypeOptions: false, xDNSPrefetchControl: false, xDownloadOptions: false,
-      xFrameOptions: false, xPermittedCrossDomainPolicies: false, xXSSProtection: false, permissionsPolicy: false,
+      crossOriginResourcePolicy: false,
+      crossOriginOpenerPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      originAgentCluster: false,
+      referrerPolicy: false,
+      strictTransportSecurity: false,
+      xContentTypeOptions: false,
+      xDNSPrefetchControl: false,
+      xDownloadOptions: false,
+      xFrameOptions: false,
+      xPermittedCrossDomainPolicies: false,
+      xXSSProtection: false,
+      permissionsPolicy: false,
       contentSecurityPolicy: {
-        'default-src': ["'self'"],
-        'base-uri': ["'self'"], 'object-src': ["'none'"], 'form-action': ["'self'"], 'frame-ancestors': ["'self'"],
-        'script-src': ["'self'", "'strict-dynamic'", "'nonce-{{nonce}}'"], 'script-src-attr': ["'none'"],
-        'style-src': ["'self'", "'nonce-{{nonce}}'", ...staticIconStyleHashes()],
+        "default-src": ["'self'"],
+        "base-uri": ["'self'"],
+        "object-src": ["'none'"],
+        "form-action": ["'self'"],
+        "frame-ancestors": ["'self'"],
+        "script-src": ["'self'", "'strict-dynamic'", "'nonce-{{nonce}}'"],
+        "script-src-attr": ["'none'"],
+        "style-src": ["'self'", "'nonce-{{nonce}}'", ...staticIconStyleHashes()],
         // Vue/map/chart sizing uses style attributes, not executable scripts.
-        'style-src-attr': ["'unsafe-inline'"],
-        'img-src': ["'self'", 'https:', 'data:', 'blob:', ...publicCmsOrigins],
-        'font-src': ["'self'", 'https:', 'data:'], 'media-src': ["'self'", 'https:', 'blob:', ...publicCmsOrigins],
-        'connect-src': ["'self'", 'https:', 'wss:'], 'worker-src': ["'self'", 'blob:'],
-        'frame-src': ["'self'", 'https://www.betterplace-widget.org', 'https://www.youtube-nocookie.com', 'https://www.youtube.com', 'https://player.vimeo.com', 'https://app.cal.com', 'https://cal.com'],
-        'report-uri': ['/api/security/csp'], 'upgrade-insecure-requests': false,
+        "style-src-attr": ["'unsafe-inline'"],
+        "img-src": ["'self'", "https:", "data:", "blob:", ...publicCmsOrigins],
+        "font-src": ["'self'", "https:", "data:"],
+        "media-src": ["'self'", "https:", "blob:", ...publicCmsOrigins],
+        "connect-src": ["'self'", "https:", "wss:"],
+        "worker-src": ["'self'", "blob:"],
+        "frame-src": [
+          "'self'",
+          "https://www.betterplace-widget.org",
+          "https://www.youtube-nocookie.com",
+          "https://www.youtube.com",
+          "https://player.vimeo.com",
+          "https://app.cal.com",
+          "https://cal.com",
+        ],
+        "report-uri": ["/api/security/csp"],
+        "upgrade-insecure-requests": false,
       },
     },
   },
@@ -120,17 +155,27 @@ export default defineNuxtConfig({
       // The Frontend-Public policy is limited to directus_files/directus_folders read only.
       clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL ?? "",
       serverDirectusUrl: process.env.SERVER_DIRECTUS_URL ?? "",
-      appEnv: process.env.SLK_ENV === 'production' ? 'production' : process.env.APP_ENV ?? process.env.SLK_ENV ?? 'production',
-      captchaDevBypass: process.env.NODE_ENV !== 'production' && process.env.SLK_ENV !== 'production'
-        && (process.env.SLK_ENV === 'development' || process.env.APP_ENV === 'development')
-        && (!process.env.ALTCHA_SECRET || process.env.ALTCHA_SECRET === 'dev-secret-change-in-production'),
+      appEnv:
+        process.env.SLK_ENV === "production"
+          ? "production"
+          : (process.env.APP_ENV ?? process.env.SLK_ENV ?? "production"),
+      captchaDevBypass:
+        process.env.NODE_ENV !== "production" &&
+        process.env.SLK_ENV !== "production" &&
+        (process.env.SLK_ENV === "development" || process.env.APP_ENV === "development") &&
+        (!process.env.ALTCHA_SECRET || process.env.ALTCHA_SECRET === "dev-secret-change-in-production"),
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL ?? "",
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN ?? "",
       // Same-origin browser proxy. The real upstream URL and credentials stay private.
       stadtlandzahlBaseUrl: "/api/stadtlandzahl",
     },
   },
-  devtools: { enabled: process.env.NODE_ENV !== 'production' && process.env.SLK_ENV !== 'production' && process.env.APP_ENV !== 'production' },
+  devtools: {
+    enabled:
+      process.env.NODE_ENV !== "production" &&
+      process.env.SLK_ENV !== "production" &&
+      process.env.APP_ENV !== "production",
+  },
   app: {
     rootAttrs: {
       id: "nuxt-root",
@@ -144,7 +189,12 @@ export default defineNuxtConfig({
       ],
     },
   },
-  css: ["maplibre-gl/dist/maplibre-gl.css", "~/assets/css/vega-embed.css", "~/assets/css/vega-tooltip.css", "~/assets/css/main.css"],
+  css: [
+    "maplibre-gl/dist/maplibre-gl.css",
+    "~/assets/css/vega-embed.css",
+    "~/assets/css/vega-tooltip.css",
+    "~/assets/css/main.css",
+  ],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -152,7 +202,7 @@ export default defineNuxtConfig({
     },
   },
   routeRules: {
-    "/api/**": {security: {enabled: false}},
+    "/api/**": { security: { enabled: false } },
     "/**": {
       headers: { "Referrer-Policy": "strict-origin-when-cross-origin" },
     },
@@ -181,7 +231,7 @@ export default defineNuxtConfig({
     },
   },
   vite: {
-    resolve: {alias: [{find: /^zod$/, replacement: fileURLToPath(new URL('./shared/zod.ts', import.meta.url))}]},
+    resolve: { alias: [{ find: /^zod$/, replacement: fileURLToPath(new URL("./shared/zod.ts", import.meta.url)) }] },
     optimizeDeps: {
       // These app libraries are also used inside virtual editor components,
       // which the dependency scanner cannot read from disk.

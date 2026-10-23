@@ -39,7 +39,12 @@
         <LGeoJson v-if="maskGeoJson" :geojson="maskGeoJson ?? []" :options="maskOpts" />
 
         <!-- Area boundary outline -->
-        <LGeoJson v-if="areaBoundary" :geojson="areaBoundary ?? []" :options="boundaryOpts" v-on="{ ready: onBoundaryReady }" />
+        <LGeoJson
+          v-if="areaBoundary"
+          :geojson="areaBoundary ?? []"
+          :options="boundaryOpts"
+          v-on="{ ready: onBoundaryReady }"
+        />
 
         <!-- Data features: points -->
         <template v-if="layerType === 'points' && dataFeatures.length">
@@ -118,14 +123,14 @@
 
 <script setup lang="ts">
 // vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
-import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from 'leaflet';
-import { parseGeoData, type GeoData } from '~/shared/contracts/geometry';
-import type { PropType } from 'vue';
-import { z } from 'zod';
-import { GeoFeatureSchema } from '~/shared/contracts/geometry';
-import { SummarySchema } from '~/shared/contracts/slz';
-import type { Area } from '~/shared/contracts/search';
-import type { Collection } from '~/types/slz-api';
+import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from "leaflet";
+import { parseGeoData, type GeoData } from "~/shared/contracts/geometry";
+import type { PropType } from "vue";
+import { z } from "zod";
+import { GeoFeatureSchema } from "~/shared/contracts/geometry";
+import { SummarySchema } from "~/shared/contracts/slz";
+import type { Area } from "~/shared/contracts/search";
+import type { Collection } from "~/types/slz-api";
 
 import { ref, computed, watch } from "vue";
 import { areaToSlug } from "~/composables/useAreaBySlug";
@@ -143,7 +148,7 @@ const { attribution, subdomains, tileUrl } = useCartoBasemap();
 
 // ── Map state ─────────────────────────────────────────────────────────────────
 
-const mapRef = shallowRef<{leafletObject: LeafletMap} | null>(null);
+const mapRef = shallowRef<{ leafletObject: LeafletMap } | null>(null);
 const zoom = ref(11);
 const mapCenter = ref<[number, number]>([51.163, 10.447]); // Germany center fallback
 const mapReady = ref(false);
@@ -166,7 +171,9 @@ function onBoundaryReady(layer: LeafletGeoJSON) {
     } else {
       pendingBounds = bounds;
     }
-  } catch { /* Invalid or unavailable map data is optional. */ }
+  } catch {
+    /* Invalid or unavailable map data is optional. */
+  }
 }
 
 // Re-fit when the boundary changes (new page navigation)
@@ -195,13 +202,18 @@ const maskGeoJson = computed<GeoData | null>(() => {
   ];
 
   if (geom.type === "Polygon") {
-    return { type: "Feature", properties: null, geometry: { type: "Polygon", coordinates: [world, ...(geom.coordinates[0] ? [geom.coordinates[0]] : [])] } };
+    return {
+      type: "Feature",
+      properties: null,
+      geometry: { type: "Polygon", coordinates: [world, ...(geom.coordinates[0] ? [geom.coordinates[0]] : [])] },
+    };
   }
   if (geom.type === "MultiPolygon") {
     // Each polygon's outer ring becomes a hole
     return {
-      type: "Feature", properties: null,
-      geometry: { type: "Polygon", coordinates: [world, ...geom.coordinates.flatMap((p) => p[0] ? [p[0]] : [])] },
+      type: "Feature",
+      properties: null,
+      geometry: { type: "Polygon", coordinates: [world, ...geom.coordinates.flatMap((p) => (p[0] ? [p[0]] : []))] },
     };
   }
   return null;
@@ -221,7 +233,9 @@ const boundaryOpts = {
 
 const visibleNearby = computed(() => props.nearbyAreas.filter((a) => a.geo_area ?? a.geoArea));
 
-function parseGeo(input: unknown) { return parseGeoData(input); }
+function parseGeo(input: unknown) {
+  return parseGeoData(input);
+}
 
 function navigateToArea(area: Area) {
   void router.push(`/data/${areaToSlug(area.prefix, area.name)}`);
@@ -242,7 +256,9 @@ function nearbyOpts(area: Area): GeoJSONOptions {
         (layer as Path).bringToFront();
       });
       layer.on("mouseout", () => (layer as Path).setStyle(base));
-      layer.on("click", () => { navigateToArea(area); });
+      layer.on("click", () => {
+        navigateToArea(area);
+      });
     },
   };
 }
@@ -251,7 +267,11 @@ function nearbyOpts(area: Area): GeoJSONOptions {
 
 const loadingFeatures = ref(false);
 type DataFeature = z.infer<typeof GeoFeatureSchema>;
-const ItemPageSchema = z.object({type: z.literal("FeatureCollection").default("FeatureCollection"), features: z.array(GeoFeatureSchema), next: z.string().nullable().optional()});
+const ItemPageSchema = z.object({
+  type: z.literal("FeatureCollection").default("FeatureCollection"),
+  features: z.array(GeoFeatureSchema),
+  next: z.string().nullable().optional(),
+});
 const dataFeatures = ref<DataFeature[]>([]);
 const dataFeatureCollection = ref<z.infer<typeof ItemPageSchema> | null>(null);
 const summaryData = ref<z.infer<typeof SummarySchema> | null>(null);

@@ -235,14 +235,22 @@
 </template>
 
 <script setup lang="ts">
-import type { ComparisonRating, Municipality  } from '~/types/components/municipality';
-import type { Catalog } from '~/shared/contracts/search';
-import type { PropType } from 'vue';
+import type { ComparisonRating, Municipality } from "~/types/components/municipality";
+import type { Catalog } from "~/shared/contracts/search";
+import type { PropType } from "vue";
 
-import { isMunicipalityScoreComplete } from '~/shared/municipality-score-publishing';
+import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
 import { ref, computed, watch } from "vue";
-type SankeyMunicipality = { key: string; name: string; slug: string; leftRating: string | null; rightRating: string | null };
-type CoverageMunicipality = Pick<Municipality, 'id' | 'name' | 'slug'> & { localteam_id: string | { id: string } | null };
+type SankeyMunicipality = {
+  key: string;
+  name: string;
+  slug: string;
+  leftRating: string | null;
+  rightRating: string | null;
+};
+type CoverageMunicipality = Pick<Municipality, "id" | "name" | "slug"> & {
+  localteam_id: string | { id: string } | null;
+};
 type MeasureVersion = { id: string; measure_id?: string | undefined; catalog_version: Catalog };
 
 const props = defineProps({
@@ -333,20 +341,25 @@ async function fetchAll() {
     async function fetchRatings(versionId: string) {
       const measureId = vIdToMeasureId[versionId];
       if (!measureId) return [];
-      const result = await $fetch('/api/public/measure-ratings', { query: { measureId } });
+      const result = await $fetch("/api/public/measure-ratings", { query: { measureId } });
       return result.ratings;
     }
 
     const coverageMunicipalities = new Map<string, CoverageMunicipality>();
     async function fetchCoverageIds(versionId: string) {
-      const version = orderedVersions.value.find(version => version.id === versionId);
+      const version = orderedVersions.value.find((version) => version.id === versionId);
       const { scores } = await $fetch(`/api/public/stats/${encodeURIComponent(version?.label ?? "")}`);
       const ids = new Set<string>();
       for (const score of scores.filter(isMunicipalityScoreComplete)) {
         const municipality = score.municipality;
         if (municipality?.localteam_id) {
-          ids.add(typeof municipality.localteam_id === "string" ? municipality.localteam_id : municipality.localteam_id.id);
-          coverageMunicipalities.set(typeof municipality.localteam_id === "string" ? municipality.localteam_id : municipality.localteam_id.id, municipality);
+          ids.add(
+            typeof municipality.localteam_id === "string" ? municipality.localteam_id : municipality.localteam_id.id,
+          );
+          coverageMunicipalities.set(
+            typeof municipality.localteam_id === "string" ? municipality.localteam_id : municipality.localteam_id.id,
+            municipality,
+          );
         }
       }
       return ids;
@@ -391,7 +404,7 @@ async function fetchAll() {
     );
 
     // 5. Batch-fetch municipality slugs + names
-    const muniRows = allLtIds.map(id => coverageMunicipalities.get(id)).filter((item) => item != null);
+    const muniRows = allLtIds.map((id) => coverageMunicipalities.get(id)).filter((item) => item != null);
     const ltToMuni: Record<string, { slug: string; name: string }> = {};
     for (const m of muniRows || []) {
       const ltId = typeof m.localteam_id === "string" ? m.localteam_id : m.localteam_id?.id;

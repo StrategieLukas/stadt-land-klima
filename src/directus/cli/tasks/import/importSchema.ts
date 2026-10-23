@@ -1,14 +1,14 @@
-import path from 'path';
-import createDirectusClient from '../shared/createDirectusClient.ts';
-import type { CliClient, TaskOptions } from '../shared/models.ts';
-import { errorMessage, errorMessages, RecordSchema } from '../shared/models.ts';
-import readYamlFile from '../shared/readYamlFile.ts';
-import readYamlFiles from '../shared/readYamlFiles.ts';
+import path from "path";
+import createDirectusClient from "../shared/createDirectusClient.ts";
+import type { CliClient, TaskOptions } from "../shared/models.ts";
+import { errorMessage, errorMessages, RecordSchema } from "../shared/models.ts";
+import readYamlFile from "../shared/readYamlFile.ts";
+import readYamlFiles from "../shared/readYamlFiles.ts";
 
 class SchemaImportError extends Error {
-  label = 'Schema import';
+  label = "Schema import";
   status?: number;
-  body = '';
+  body = "";
   retryAfterMs: number | null = null;
   retryable = false;
 }
@@ -16,35 +16,23 @@ class SchemaImportError extends Error {
 const RETRYABLE_SCHEMA_STATUSES = new Set([408, 429, 502, 503, 504]);
 
 function readPositiveInt(value: string | undefined, fallback: number) {
-  const parsed = Number.parseInt(value ?? '', 10);
+  const parsed = Number.parseInt(value ?? "", 10);
 
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 function readNonNegativeInt(value: string | undefined, fallback: number) {
-  const parsed = Number.parseInt(value ?? '', 10);
+  const parsed = Number.parseInt(value ?? "", 10);
 
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
 function getRetryConfig() {
   return {
-    attempts: readPositiveInt(
-      process.env.DIRECTUS_SCHEMA_IMPORT_MAX_ATTEMPTS,
-      6,
-    ),
-    applyDelayMs: readNonNegativeInt(
-      process.env.DIRECTUS_SCHEMA_IMPORT_APPLY_DELAY_MS,
-      1000,
-    ),
-    baseDelayMs: readPositiveInt(
-      process.env.DIRECTUS_SCHEMA_IMPORT_RETRY_DELAY_MS,
-      2000,
-    ),
-    maxDelayMs: readPositiveInt(
-      process.env.DIRECTUS_SCHEMA_IMPORT_MAX_RETRY_DELAY_MS,
-      30000,
-    ),
+    attempts: readPositiveInt(process.env.DIRECTUS_SCHEMA_IMPORT_MAX_ATTEMPTS, 6),
+    applyDelayMs: readNonNegativeInt(process.env.DIRECTUS_SCHEMA_IMPORT_APPLY_DELAY_MS, 1000),
+    baseDelayMs: readPositiveInt(process.env.DIRECTUS_SCHEMA_IMPORT_RETRY_DELAY_MS, 2000),
+    maxDelayMs: readPositiveInt(process.env.DIRECTUS_SCHEMA_IMPORT_MAX_RETRY_DELAY_MS, 30000),
   };
 }
 
@@ -70,11 +58,7 @@ function parseRetryAfterMs(headerValue: string | null) {
   return null;
 }
 
-function getRetryDelayMs(
-  attempt: number,
-  retryAfterMs: number | null,
-  retryConfig: ReturnType<typeof getRetryConfig>,
-) {
+function getRetryDelayMs(attempt: number, retryAfterMs: number | null, retryConfig: ReturnType<typeof getRetryConfig>) {
   if (retryAfterMs !== null) {
     return Math.min(retryAfterMs, retryConfig.maxDelayMs);
   }
@@ -86,7 +70,7 @@ function getRetryDelayMs(
 
 function getErrorSummary(body: string) {
   if (!body.trim()) {
-    return '';
+    return "";
   }
 
   try {
@@ -97,20 +81,13 @@ function getErrorSummary(body: string) {
     // Fall back to a compact raw response below.
   }
 
-  return body.replace(/\s+/g, ' ').substring(0, 200);
+  return body.replace(/\s+/g, " ").substring(0, 200);
 }
 
-function createSchemaRequestError(
-  label: string,
-  status: number,
-  body: string,
-  retryAfterMs: number | null,
-) {
+function createSchemaRequestError(label: string, status: number, body: string, retryAfterMs: number | null) {
   const summary = getErrorSummary(body);
   const error = new SchemaImportError(
-    summary
-      ? `${label} failed with HTTP ${status}: ${summary}`
-      : `${label} failed with HTTP ${status}`,
+    summary ? `${label} failed with HTTP ${status}: ${summary}` : `${label} failed with HTTP ${status}`,
   );
 
   error.label = label;
@@ -123,9 +100,7 @@ function createSchemaRequestError(
 }
 
 function createSchemaNetworkError(label: string, cause: unknown) {
-  const error = new SchemaImportError(
-    `${label} request failed: ${errorMessage(cause)}`,
-  );
+  const error = new SchemaImportError(`${label} request failed: ${errorMessage(cause)}`);
 
   error.label = label;
   error.cause = cause;
@@ -134,15 +109,8 @@ function createSchemaNetworkError(label: string, cause: unknown) {
   return error;
 }
 
-function createSchemaParseError(
-  label: string,
-  status: number,
-  body: string,
-  cause: unknown,
-) {
-  const error = new SchemaImportError(
-    `Failed to parse ${label.toLowerCase()} response: ${errorMessage(cause)}`,
-  );
+function createSchemaParseError(label: string, status: number, body: string, cause: unknown) {
+  const error = new SchemaImportError(`Failed to parse ${label.toLowerCase()} response: ${errorMessage(cause)}`);
 
   error.label = label;
   error.status = status;
@@ -157,9 +125,9 @@ async function postSchemaRequest(label: string, url: string, body: unknown) {
 
   try {
     response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.CLI_DIRECTUS_STATIC_TOKEN}`,
       },
       body: JSON.stringify(body),
@@ -175,7 +143,7 @@ async function postSchemaRequest(label: string, url: string, body: unknown) {
       label,
       response.status,
       responseText,
-      parseRetryAfterMs(response.headers.get('retry-after')),
+      parseRetryAfterMs(response.headers.get("retry-after")),
     );
   }
 
@@ -205,7 +173,7 @@ function getRetryReason(err: SchemaImportError) {
 
   const summary = getErrorSummary(err.body);
 
-  return `returned HTTP ${err.status}${summary ? ` (${summary})` : ''}`;
+  return `returned HTTP ${err.status}${summary ? ` (${summary})` : ""}`;
 }
 
 async function runSchemaImport(
@@ -214,13 +182,10 @@ async function runSchemaImport(
   client: CliClient,
   retryConfig: ReturnType<typeof getRetryConfig>,
 ) {
-  const header = readYamlFile(path.join(src, 'header.yaml'), RecordSchema);
-  const collections = readYamlFiles(
-    path.join(src, 'collections'),
-    RecordSchema,
-  );
-  const fields = readYamlFiles(path.join(src, 'fields'), RecordSchema);
-  const relations = readYamlFiles(path.join(src, 'relations'), RecordSchema);
+  const header = readYamlFile(path.join(src, "header.yaml"), RecordSchema);
+  const collections = readYamlFiles(path.join(src, "collections"), RecordSchema);
+  const fields = readYamlFiles(path.join(src, "fields"), RecordSchema);
+  const relations = readYamlFiles(path.join(src, "relations"), RecordSchema);
   const schema = Object.assign({}, header, {
     collections: collections,
     fields: fields,
@@ -228,21 +193,21 @@ async function runSchemaImport(
   });
 
   if (options.verbose) {
-    console.info('Applying schema...');
+    console.info("Applying schema...");
   }
 
   // Use REST API directly for schema operations
-  const directusBaseUrl = `${client.url.toString().replace(/\/+$/, '')}/`;
-  let diffUrl = new URL('schema/diff?force=true', directusBaseUrl).toString();
-  let applyUrl = new URL('schema/apply?force=true', directusBaseUrl).toString();
+  const directusBaseUrl = `${client.url.toString().replace(/\/+$/, "")}/`;
+  let diffUrl = new URL("schema/diff?force=true", directusBaseUrl).toString();
+  let applyUrl = new URL("schema/apply?force=true", directusBaseUrl).toString();
 
   // First, try schema/diff
-  const diffResponse = await postSchemaRequest('Schema diff', diffUrl, schema);
+  const diffResponse = await postSchemaRequest("Schema diff", diffUrl, schema);
 
   // Handle 204 No Content (schema already matches)
   if (diffResponse.status === 204 || !diffResponse.text.trim()) {
     if (options.verbose) {
-      console.info('No schema differences. Done.');
+      console.info("No schema differences. Done.");
     }
     return;
   }
@@ -252,12 +217,7 @@ async function runSchemaImport(
   try {
     diffData = JSON.parse(diffResponse.text);
   } catch (e) {
-    throw createSchemaParseError(
-      'Schema diff',
-      diffResponse.status,
-      diffResponse.text.substring(0, 500),
-      e,
-    );
+    throw createSchemaParseError("Schema diff", diffResponse.status, diffResponse.text.substring(0, 500), e);
   }
 
   const diff = RecordSchema.parse(diffData).data;
@@ -265,32 +225,30 @@ async function runSchemaImport(
   // If no differences, exit early
   if (!diff) {
     if (options.verbose) {
-      console.info('No schema differences. Done.');
+      console.info("No schema differences. Done.");
     }
     return;
   }
 
   if (options.verbose) {
-    console.info('Schema differences found. Applying...');
+    console.info("Schema differences found. Applying...");
   }
 
   if (retryConfig.applyDelayMs > 0) {
     if (options.verbose) {
-      console.info(
-        `Waiting ${(retryConfig.applyDelayMs / 1000).toFixed(1)}s before applying schema...`,
-      );
+      console.info(`Waiting ${(retryConfig.applyDelayMs / 1000).toFixed(1)}s before applying schema...`);
     }
     await sleep(retryConfig.applyDelayMs);
   }
 
-  const applyResponse = await postSchemaRequest('Schema apply', applyUrl, diff);
+  const applyResponse = await postSchemaRequest("Schema apply", applyUrl, diff);
 
   // Handle 204 No Content for apply as well
   if (applyResponse.status !== 204 && applyResponse.text.trim()) {
     try {
       const applyData = JSON.parse(applyResponse.text);
       if (options.verbose) {
-        console.info('Schema apply response:', applyData);
+        console.info("Schema apply response:", applyData);
       }
     } catch (e) {
       // Non-JSON response is OK
@@ -298,7 +256,7 @@ async function runSchemaImport(
   }
 
   if (options.verbose) {
-    console.info('Schema imported.');
+    console.info("Schema imported.");
   }
 }
 
@@ -312,20 +270,12 @@ async function importSchema(src: string, options: TaskOptions = {}) {
         await runSchemaImport(src, options, client, retryConfig);
         return;
       } catch (err) {
-        if (
-          !(err instanceof SchemaImportError) ||
-          !err.retryable ||
-          attempt === retryConfig.attempts
-        ) {
+        if (!(err instanceof SchemaImportError) || !err.retryable || attempt === retryConfig.attempts) {
           logFinalSchemaError(err);
           throw err;
         }
 
-        const delayMs = getRetryDelayMs(
-          attempt,
-          err.retryAfterMs ?? null,
-          retryConfig,
-        );
+        const delayMs = getRetryDelayMs(attempt, err.retryAfterMs ?? null, retryConfig);
 
         console.warn(
           `${err.label} ${getRetryReason(err)}. Retrying schema import in ${(delayMs / 1000).toFixed(1)}s (${attempt + 1}/${retryConfig.attempts})...`,

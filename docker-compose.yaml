@@ -15,7 +15,7 @@ services:
   cache:
     image: redis:8.10.2-alpine
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -89,4 +89,4 @@ services:
     networks:
       - default
     depends_on:
-    - directus
+      - directus

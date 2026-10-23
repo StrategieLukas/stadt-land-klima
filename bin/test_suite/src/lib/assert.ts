@@ -1,7 +1,7 @@
 export class TestFailure extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'TestFailure';
+    this.name = "TestFailure";
   }
 }
 

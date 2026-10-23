@@ -1837,7 +1837,6 @@ export default defineBlokkliEditAdapter<AdapterState>((ctx) => {
       // total must be large enough so blökkli shows a next-page button when hasMore
       const total = hasMore ? offset + PER_PAGE + 1 : offset + fileList.length;
 
-
       return {
         filters: searchFilters(),
         items: pageItems.map((file) => ({

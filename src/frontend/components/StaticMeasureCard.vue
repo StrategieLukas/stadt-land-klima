@@ -1,26 +1,22 @@
 <template>
-  <article :id="`measure-${measure.measure_id}`" class="card card-compact shadow max-w-4xl mx-auto">
+  <article :id="`measure-${measure.measure_id}`" class="card card-compact mx-auto max-w-4xl shadow">
     <div class="card-body">
-      <div 
-        class="cursor-pointer flex items-center justify-between"
-        @click="toggleExpanded"
-      >
+      <div class="flex cursor-pointer items-center justify-between" @click="toggleExpanded">
         <div class="flex-1">
           <div class="flex flex-row items-center gap-3">
-            <span class="w-fit font-mono bg-gray text-base-100 px-2 py-1 rounded-lg mr-3">{{ measure.measure_id }}</span>
-            <h2 class="grow font-heading text-h2 font-bold text-gray break-words">
+            <span class="mr-3 w-fit rounded-lg bg-gray px-2 py-1 font-mono text-base-100">{{
+              measure.measure_id
+            }}</span>
+            <h2 class="grow break-words font-heading text-h2 font-bold text-gray">
               {{ measure.name }}
             </h2>
           </div>
         </div>
         <div class="ml-4 flex-shrink-0">
-          <svg 
-            :class="[
-              'w-6 h-6 text-gray-500 transition-transform duration-200',
-              isExpanded ? 'rotate-180' : ''
-            ]"
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            :class="['text-gray-500 h-6 w-6 transition-transform duration-200', isExpanded ? 'rotate-180' : '']"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -28,15 +24,12 @@
         </div>
       </div>
 
-      <div 
-        v-show="isExpanded"
-        class="divide-y-2 divide-light-blue md:px-1 lg:px-2 prose prose-sm max-w-none"
-      >
+      <div v-show="isExpanded" class="prose prose-sm max-w-none divide-y-2 divide-light-blue md:px-1 lg:px-2">
         <StaticMeasureDetails :measure="measure" />
 
         <MeasureDescriptions :measure="measure" />
 
-        <p class="text-center text-sm text-gray-600 pt-4">
+        <p class="text-gray-600 pt-4 text-center text-sm">
           <ClientOnly>
             {{ $t("last_updated_at") + lastUpdatedAtStr }}
           </ClientOnly>
@@ -46,8 +39,8 @@
   </article>
 </template>
 <script setup lang="ts">
-import type { PropType } from 'vue';
-import type { Measure } from '~/types/components/municipality';
+import type { PropType } from "vue";
+import type { Measure } from "~/types/components/municipality";
 
 import { defineProps, ref, onMounted, onBeforeUnmount } from "vue";
 const { $t, $locale } = useNuxtApp();
@@ -81,10 +74,10 @@ const handleHashNavigation = () => {
 onMounted(() => {
   // Handle initial hash navigation
   handleHashNavigation();
-  
+
   // Listen for hash changes
-  window.addEventListener('hashchange', handleHashNavigation);
-  
+  window.addEventListener("hashchange", handleHashNavigation);
+
   // Handle date formatting
   if (props.measure.date_updated) {
     const lastUpdatedAt = new Date(props.measure.date_updated);
@@ -103,6 +96,6 @@ onMounted(() => {
 
 // Cleanup
 onBeforeUnmount(() => {
-  window.removeEventListener('hashchange', handleHashNavigation);
+  window.removeEventListener("hashchange", handleHashNavigation);
 });
 </script>

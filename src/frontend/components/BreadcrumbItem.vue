@@ -63,11 +63,11 @@
 </template>
 
 <script setup lang="ts">
-import { AreaSchema } from '~/shared/contracts/search';
-import { z } from 'zod';
-import type { Area } from '~/shared/contracts/search';
+import { AreaSchema } from "~/shared/contracts/search";
+import { z } from "zod";
+import type { Area } from "~/shared/contracts/search";
 
-import type { PropType } from 'vue';
+import type { PropType } from "vue";
 
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { areaToSlug } from "~/composables/useAreaBySlug";
@@ -130,6 +130,10 @@ function onOutside(e: MouseEvent) {
     open.value = false;
   }
 }
-onMounted(() => { document.addEventListener("click", onOutside, { passive: true }); });
-onBeforeUnmount(() => { document.removeEventListener("click", onOutside); });
+onMounted(() => {
+  document.addEventListener("click", onOutside, { passive: true });
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("click", onOutside);
+});
 </script>

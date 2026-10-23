@@ -2,58 +2,79 @@ import { cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { EventDetailSchema, ProjectIdentitySchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
-import { readItems } from '@directus/sdk'
-import { defineEventHandler, getRouterParam, createError, setResponseHeader } from 'h3'
-import { createDirectusServerClient } from '../../../utils/directusServerClient'
-
-
-
+import { readItems } from "@directus/sdk";
+import { defineEventHandler, getRouterParam, createError, setResponseHeader } from "h3";
+import { createDirectusServerClient } from "../../../utils/directusServerClient";
 
 export default defineEventHandler(async (event) => {
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
-  const client = createDirectusServerClient()
-  const slug = getRouterParam(event, 'slug')
+  setResponseHeader(event, "Cache-Control", "public, max-age=60");
+  const client = createDirectusServerClient();
+  const slug = getRouterParam(event, "slug");
 
   if (!slug || !/^[a-z0-9-]{1,160}$/.test(slug)) {
-    throw createError({ statusCode: 404, statusMessage: 'Event not found' })
+    throw createError({ statusCode: 404, statusMessage: "Event not found" });
   }
 
-  const events = await client.request(readItems('events', {
-    filter: { slug: { _eq: slug }, status: { _eq: 'published' } },
-    fields: [
-      'id', 'slug', 'title', 'description', 'start_date', 'end_date', 'date_only',
-      'location', 'event_type', 'event_category', 'image_credits',
-      'registration_url', 'cta_label',
-      { image: ['id', 'type'] },
-      { series: ['slug', 'title', 'format'] },
-    ],
-    limit: 1,
-  })).then(cmsRows)
+  const events = await client
+    .request(
+      readItems("events", {
+        filter: { slug: { _eq: slug }, status: { _eq: "published" } },
+        fields: [
+          "id",
+          "slug",
+          "title",
+          "description",
+          "start_date",
+          "end_date",
+          "date_only",
+          "location",
+          "event_type",
+          "event_category",
+          "image_credits",
+          "registration_url",
+          "cta_label",
+          { image: ["id", "type"] },
+          { series: ["slug", "title", "format"] },
+        ],
+        limit: 1,
+      }),
+    )
+    .then(cmsRows);
 
   if (!events || events.length === 0) {
-    throw createError({ statusCode: 404, statusMessage: 'Event not found' })
+    throw createError({ statusCode: 404, statusMessage: "Event not found" });
   }
 
-  const eventRow = parseCms(EventDetailSchema, events[0])
+  const eventRow = parseCms(EventDetailSchema, events[0]);
 
   // Fetch ordinary reports (non-tour-redirect news items linked to this event)
-  const reports = await client.request(readItems('news_items', {
-    filter: { report_event: { _eq: eventRow.id }, status: { _eq: 'published' }, is_tour_redirect: { _eq: false } },
-    fields: ['slug'],
-    limit: 1,
-  })).then(cmsRows)
+  const reports = await client
+    .request(
+      readItems("news_items", {
+        filter: { report_event: { _eq: eventRow.id }, status: { _eq: "published" }, is_tour_redirect: { _eq: false } },
+        fields: ["slug"],
+        limit: 1,
+      }),
+    )
+    .then(cmsRows);
 
   // Fetch project links via events_articles junction table
-  const links = await client.request(readItems('events_articles', {
-    filter: { events_id: { _eq: eventRow.id }, articles_id: { status: { _eq: 'published' } } },
-    fields: [{ articles_id: ['id', 'slug', 'title'] }],
-    limit: -1,
-  })).then(cmsRows)
-  const projects = parseCms(z.array(z.object({articles_id: ProjectIdentitySchema.nullable()})), links).flatMap(link => link.articles_id ? [link.articles_id] : [])
+  const links = await client
+    .request(
+      readItems("events_articles", {
+        filter: { events_id: { _eq: eventRow.id }, articles_id: { status: { _eq: "published" } } },
+        fields: [{ articles_id: ["id", "slug", "title"] }],
+        limit: -1,
+      }),
+    )
+    .then(cmsRows);
+  const projects = parseCms(z.array(z.object({ articles_id: ProjectIdentitySchema.nullable() })), links).flatMap(
+    (link) => (link.articles_id ? [link.articles_id] : []),
+  );
 
   return {
     event: eventRow,
-    ordinaryReport: parseCms(z.array(ProjectIdentitySchema.pick({slug: true})), reports)[0] ?? null,
+    ordinaryReport: parseCms(z.array(ProjectIdentitySchema.pick({ slug: true })), reports)[0] ?? null,
     eventProjects: projects,
-  }
-})
+  };
+});

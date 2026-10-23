@@ -2,14 +2,18 @@
 
 ## Wichtige Dokumente
 
+- [Implemented security hardening](SECURITY_HARDENING.md)
+- [Remaining work and decisions](REMAINING_TODOS.md)
+
 Designs (Figma): https://www.figma.com/design/xOUA8jmhBBreYvmZRdlFSn/Stadt.Land.Klima!
 
-
 ## Preparations
+
 0. On Windows install Linux (i.e. Ubuntu) on Virtual Machine:
 1. Install Docker for your machine (https://docs.docker.com/engine/install/, https://docs.docker.com/desktop/)
 2. Clone this repo into your desired folder
 3. Copy example env-files and adjust to your needs:
+
 ```
 cd stadt-land-klima/
 cp docker/db/.env.example docker/db/.env
@@ -17,19 +21,24 @@ cp src/directus/.env.example src/directus/.env
 cp src/frontend/.env.example src/frontend/.env
 cp docker/meilisearch/.env.example docker/meilisearch/.env
 ```
+
 Setting "CACHE_ENABLED=false" for development is recommended to quickly see changes made to data in the backend.
 
 ## Installation:
+
 Docker needs to be running
 Give Permission to folder to write files and also subfolder: This is not optimal!
+
 ```
 $ cd stadt-land-klima/
 $ cd bin
 $ ./start_development.sh
 ```
+
 This may take some time.
 When finished and started check http://localhost:8081 if directus started correctly.
 In a new Terminal run :
+
 ```
 $ cd stadt-land-klima/
 $ cd bin
@@ -40,8 +49,10 @@ $ cli/import-all.sh
 $ cli/import-all.sh
 $ ./directus-cli auth:set-frontend-token
 ```
+
 Now open http://localhost:8081 in your browser and login with the credentials provided in the .env file.
 To see the frontend open http://localhost:8080.
+
 ## Start in development
 
 ```
@@ -110,6 +121,7 @@ You might have to reload the .env file in the containers shell. (e.g. with `sour
 
 If your local Directus has no schemas/roles/objects, then you need to use the Directus-CLI tool to import them. This effectively reads the .yaml-files from the code and puts them into the running directus instance.
 To import all roles, you can use (more infos using the `--help` flag):
+
 ```
 $ ./directus-cli import:roles
 ```
@@ -129,22 +141,11 @@ The Directus-CLI has a `--help` flag to show all available exports and imports.
 
 ## Dependency maintenance and security review
 
-The dependency/security review and remaining remediation work are documented in
-[SECURITY_REVIEW.md](SECURITY_REVIEW.md). Directus stays on **11.17.4**. The
-frontend uses Node **24.22.1**; the Directus image retains Node **22.23.4**.
-The separate Undici copy in the optional Directus storage drivers is locked to **7.30.1**. Production builds also rebuild the OS-updated maintenance nginx image. Use the Docker runtimes or patched Node 24.22.1+ for local npm
-commands, and install from committed lockfiles with `npm ci`.
-Use `nvm install && nvm use` from the repository root (or the existing manager's `.node-version` support); frontend/test installs enforce the patched runtime minimum.
-See [NODE_SECURITY_2026_10.md](NODE_SECURITY_2026_10.md) for the vulnerability impact assessment, host restart requirements and exact manual server rebuild/recreation commands.
+Completed branch changes are documented in [SECURITY_HARDENING.md](SECURITY_HARDENING.md); deployment actions, residual advisories and decisions are in [REMAINING_TODOS.md](REMAINING_TODOS.md). Directus stays on **11.17.4**. The frontend uses Node **24.22.1** and the Directus image uses Node **22.23.4**. The separate optional storage-driver Undici copy is locked to **7.30.1**. Production builds also rebuild the OS-updated maintenance nginx image.
 
-[NUXT_SECURITY_ARCHITECTURE.md](NUXT_SECURITY_ARCHITECTURE.md) explains SSR,
-hydration, browser/server execution, Directus credential exposure, and the design
-for keeping privileged CMS access behind authorized Nuxt endpoints.
+Use the Docker runtimes or the project's patched Node version for local npm commands and install from lockfiles with `npm ci`. From the repository root, use `nvm install && nvm use` or the existing manager's `.node-version` support. Rebuild/recreate running applications to apply runtime changes; clearing the npm cache is not normally required.
 
-[FRONTEND_ACCESS_SPLIT_PLAN.md](FRONTEND_ACCESS_SPLIT_PLAN.md) defines the planned
-private service/public access split, server-side migration, regression gates,
-credential retirement and safe response boundaries. The plan is not an
-implementation-complete status report.
+The implemented access split keeps privileged CMS access behind authorized Nuxt endpoints. Public DTOs, SSR/hydration payloads, candidate/editor sessions and assets have explicit boundaries; see the [architecture record](SECURITY_HARDENING.md#architecture-and-public-data-boundaries). Production credential retirement remains a separate coordinated action.
 
 Rebuild each extension after changing its dependencies, then restart Directus so
 it loads the rebuilt `dist` bundles. Every maintained extension now runs its compiler
@@ -159,9 +160,7 @@ Verify a frontend production build as well as `curl http://localhost:8080`.
 
 The PostgreSQL/PostGIS and Meilisearch server upgrades require explicit,
 data-preserving migrations; do not change their image tags over existing data
-directories. Nuxt 4 and Tailwind 4/DaisyUI 5 also need coordinated editor/theme
-migrations. The review explains these compatibility exceptions and the security
-consequences of retaining them.
+directories. Nuxt 4 and Blökkli 2 are implemented. Tailwind **3.4.19** and DaisyUI **4.12.24** remain installed; a Tailwind 4/DaisyUI 5 theme/component migration is an optional follow-up described in [remaining decisions](REMAINING_TODOS.md#dependency-and-platform-decisions).
 
 ## Authenticated registration mail flows
 
@@ -201,8 +200,7 @@ that also verifies registration delivery and activation-link content.
   configuration, and then runs `directus database migrate:latest` inside the
   Directus container. Use `development` instead of `production` for the local
   development stack.
-- If there's a docker permission issue, chmod 777 everything :(
-  - This applies specifically to PDF generation as well. At least the typst directory under /directus/extensions (not to be confused with directus-extensions-not-build) must be 777 for PDF generation to create files.
+- For Docker/PDF permission errors, check the container UID/GID and grant access only to required upload/temp/output directories. Do not use recursive or world-writable `chmod 777`; review host ownership before changing permissions. See [host hardening follow-up](REMAINING_TODOS.md#host-database-and-secret-hardening).
 - `./bin/update_production.sh` backs up the database by default. Use `--no-backup` when the database is unavailable and the update must proceed without that export.
 - Migrate ratings from one version to another using ./directus-cli migrate <old> <new>. Avoid using this when the "new" version is already in use, as it overwrites all ratings that do not need re-evaluation.
 
@@ -268,11 +266,11 @@ check, run `npm run test:public -- https://staging.stadt-land-klima.de` from
 
 ## Lint and security follow-up
 
-From `src/frontend`, `npm run lint` and `npm run lintExtensions` enforce zero ESLint warnings. Frontend unsafe TypeScript operations, unhandled promises and unsanitized HTML remain errors. Extension lint uses its own configuration alongside `./bin/check_extensions.sh --build`; it does not load the frontend tsconfig. Formatting is separate: `npm run format:check` / `npm run format`. Avoid formatting pinned files under `public/vendor`.
+From `src/frontend`, `npm run lint` and `npm run lintExtensions` enforce zero ESLint warnings. Frontend unsafe TypeScript operations, unhandled promises and unsanitized HTML remain errors. Extension lint uses its own configuration alongside `./bin/check_extensions.sh --build`; it does not load the frontend tsconfig. Formatting is separate: `npm run format:check` / `npm run format` now check/write maintained sources across the repository using the shared root configuration. Directus YAML exports, generated bundles, lockfiles and pinned public/vendor files retain their serializer layout or exact bytes. Avoid formatting pinned files under `public/vendor`.
 
 Website editor login uses an HttpOnly cookie and server-side Redis credentials. Existing website users must sign in once after upgrading from localStorage sessions. Keep Redis available; sessions and mutations fail closed during an outage. Set a strong private `ALTCHA_SECRET` and canonical `PUBLIC_URL`; optionally set independent `EDITOR_SESSION_SECRET` and `CANDIDATE_SESSION_SECRET` values of at least 32 characters. Data Studio has a separate browser session; deploy it on a separate origin if isolating that session is required.
 
-Directus stays at **11.17.4**. The image build verifies exact vendor source before applying the checked deep/geometry/asset guards; unexpected bytes fail the build. Rebuild/recreate Directus to install these guards. Compose disables response caching and TUS and limits transform concurrency. Reload the host nginx configuration as well: it blocks unused Directus GraphQL/hash routes and supplies the fallback security headers. Nuxt supplies the enforced per-response nonce policy. See SECURITY_DIFF_REVIEW.md for remaining advisory limits and deployment checks.
+Directus stays at **11.17.4**. The image build verifies exact vendor source before applying the checked deep/geometry/asset guards; unexpected bytes fail the build. Rebuild/recreate Directus to install these guards. Compose disables response caching and TUS and limits transform concurrency. Reload the host nginx configuration as well: it blocks unused Directus GraphQL/hash routes and supplies the fallback security headers. Nuxt supplies the enforced per-response nonce policy. See [remaining work](REMAINING_TODOS.md) for advisory limits and deployment checks.
 
 ### Logical core storage migration
 
@@ -308,3 +306,7 @@ docker compose exec -T -e DIRECTUS_URL=http://127.0.0.1:8055 \
 ```
 
 The plan is mode 0600 and contains new bearer credentials; do not commit, publish or attach it to logs. Applying checks the instance and full credential inventory before writing, rotates candidate UUIDs/64-character municipality preview credentials, suspends only legacy Frontend-role accounts and clears the CMS cache. Re-running the same plan resumes a partial failure. It does not change Frontend-Server/Public accounts or send email. Coordinate fresh candidate invitations and search reindexing separately.
+
+### Frontend node-forge backport
+
+The current registry has no fixed node-forge release for CVE-2026-85393. Frontend `npm ci` applies a source-hash-verified backport; the build/typecheck gate runs `npm run security:check` and refuses an unpatched or unexpectedly modified installation. If lifecycle scripts were intentionally disabled, run `node scripts/patch-node-forge.mts` from `src/frontend` before building. Do not edit dependency files manually or spoof a version to silence audit: raw npm audit still reports seven high graph entries. Track upstream replacement and evidence in [the hardening follow-up](SECURITY_HARDENING.md#frontend-audit-backport-and-formatting-follow-up).

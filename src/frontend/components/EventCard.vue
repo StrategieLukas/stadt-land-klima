@@ -192,5 +192,4 @@ function eventTypeLabel(type?: string | null) {
   const translated = $t(`events.type.${type}`);
   return translated === `events.type.${type}` ? type : translated;
 }
-
 </script>

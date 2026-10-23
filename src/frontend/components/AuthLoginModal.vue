@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AuthUser } from '~/shared/contracts/auth';
+import type { AuthUser } from "~/shared/contracts/auth";
 import { ref, computed, watch } from "vue";
 import { useAuth } from "~/composables/useAuth";
 

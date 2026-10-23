@@ -1,13 +1,9 @@
 <template>
   <private-view title="Consent Management">
     <template #actions>
-      <v-button
-        v-if="!status.hasAccepted && canSubmit"
-        :loading="submitting"
-        @click="acceptAgreements"
-      >
+      <v-button v-if="!status.hasAccepted && canSubmit" :loading="submitting" @click="acceptAgreements">
         <v-icon name="check" />
-        {{ $t('accept_and_continue') }}
+        {{ $t("accept_and_continue") }}
       </v-button>
     </template>
 
@@ -24,7 +20,7 @@
     <div v-else>
       <!-- ── Already accepted ──────────────────────────────────────────── -->
       <v-notice v-if="status.hasAccepted" type="success">
-        {{ $t('consent_accepted_message') }}
+        {{ $t("consent_accepted_message") }}
       </v-notice>
 
       <!-- Newsletter toggle shown after acceptance -->
@@ -40,7 +36,7 @@
       <!-- ── Pending acceptance ────────────────────────────────────────── -->
       <template v-if="!status.hasAccepted">
         <v-notice type="warning">
-          {{ $t('consent_not_accepted') }}
+          {{ $t("consent_not_accepted") }}
         </v-notice>
 
         <div class="agreements-container">
@@ -89,16 +85,16 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useApi } from '@directus/extensions-sdk';
-import MarkdownIt from 'markdown-it';
-import DOMPurify from 'dompurify';
+import { ref, computed, onMounted } from "vue";
+import { useApi } from "@directus/extensions-sdk";
+import MarkdownIt from "markdown-it";
+import DOMPurify from "dompurify";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface AgreementVersion {
   id: string;
-  type: 'terms_of_service' | 'data_protection' | 'newsletter';
+  type: "terms_of_service" | "data_protection" | "newsletter";
   version: string;
   legal_text: string;
 }
@@ -118,7 +114,7 @@ const md = new MarkdownIt({ html: false, linkify: true, breaks: true });
 function renderMarkdown(text: string | null | undefined): string | null {
   if (!text) return null;
   const rendered = md.render(text);
-  return DOMPurify.sanitize(rendered, { ADD_ATTR: ['target', 'rel'] });
+  return DOMPurify.sanitize(rendered, { ADD_ATTR: ["target", "rel"] });
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -162,27 +158,26 @@ export default {
     // ── Data loading ────────────────────────────────────────────────────────
 
     async function loadAgreementVersions(): Promise<void> {
-      const { data: { data: versions } } = await api.get<{ data: AgreementVersion[] }>(
-        '/items/agreement_versions',
-        {
-          params: {
-            filter: { isCurrentVersion: { _eq: true } },
-            fields: ['id', 'type', 'version', 'legal_text'],
-            limit: -1,
-          },
-        }
-      );
+      const {
+        data: { data: versions },
+      } = await api.get<{ data: AgreementVersion[] }>("/items/agreement_versions", {
+        params: {
+          filter: { isCurrentVersion: { _eq: true } },
+          fields: ["id", "type", "version", "legal_text"],
+          limit: -1,
+        },
+      });
 
       for (const version of versions) {
         const html = renderMarkdown(version.legal_text);
         switch (version.type) {
-          case 'terms_of_service':
+          case "terms_of_service":
             agbHtml.value = html;
             break;
-          case 'data_protection':
+          case "data_protection":
             dataProtectionHtml.value = html;
             break;
-          case 'newsletter':
+          case "newsletter":
             newsletterHtml.value = html;
             break;
         }
@@ -193,7 +188,7 @@ export default {
       // Use the dedicated endpoint so all consent logic lives server-side.
       // Previously the Vue component was calling /items/user_consent directly
       // and reconstructing the status in the browser.
-      const { data } = await api.get<ConsentStatus>('/consent/status');
+      const { data } = await api.get<ConsentStatus>("/consent/status");
       status.value = data;
 
       if (data.hasAccepted) {
@@ -214,7 +209,7 @@ export default {
         // Delegate all consent creation to the server endpoint. This replaces
         // the original approach of posting to /items/user_consent three times
         // from the frontend.
-        await api.post('/consent/accept', {
+        await api.post("/consent/accept", {
           subscribeNewsletter: newsletterChecked.value,
         });
 
@@ -226,8 +221,8 @@ export default {
           (error as { response?: { data?: { message?: string } } }).response?.data?.message ??
           (error as { response?: { data?: { error?: string } } }).response?.data?.error ??
           (error as Error).message ??
-          'Unknown error';
-        alert('Fehler beim Akzeptieren: ' + msg);
+          "Unknown error";
+        alert("Fehler beim Akzeptieren: " + msg);
       } finally {
         submitting.value = false;
       }
@@ -239,9 +234,9 @@ export default {
       newsletterUpdating.value = true;
       try {
         if (subscribe) {
-          await api.post('/consent/newsletter/optin');
+          await api.post("/consent/newsletter/optin");
         } else {
-          await api.delete('/consent/newsletter/optout');
+          await api.delete("/consent/newsletter/optout");
         }
         // Update local status immediately; no full reload needed.
         status.value = { ...status.value, newsletterSubscribed: subscribe };
@@ -250,8 +245,8 @@ export default {
           (error as { response?: { data?: { message?: string } } }).response?.data?.message ??
           (error as { response?: { data?: { error?: string } } }).response?.data?.error ??
           (error as Error).message ??
-          'Unknown error';
-        alert('Fehler beim Aktualisieren des Newsletters: ' + msg);
+          "Unknown error";
+        alert("Fehler beim Aktualisieren des Newsletters: " + msg);
       } finally {
         newsletterUpdating.value = false;
       }
@@ -264,8 +259,8 @@ export default {
         // Load versions and status concurrently — they are independent queries.
         await Promise.all([loadAgreementVersions(), loadConsentStatus()]);
       } catch (error: unknown) {
-        console.error('[consent] Error loading consent data:', error);
-        loadError.value = 'Fehler beim Laden der Einverständniserklärungen.';
+        console.error("[consent] Error loading consent data:", error);
+        loadError.value = "Fehler beim Laden der Einverständniserklärungen.";
       } finally {
         loading.value = false;
       }

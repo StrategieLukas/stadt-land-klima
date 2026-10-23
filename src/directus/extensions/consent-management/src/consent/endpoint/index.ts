@@ -1,18 +1,18 @@
-import type { Request, Router } from 'express';
-import type { Accountability, SchemaOverview, ApiExtensionContext } from '@directus/types';
+import type { Request, Router } from "express";
+import type { Accountability, SchemaOverview, ApiExtensionContext } from "@directus/types";
 
 interface ConsentRequest extends Request {
   accountability?: Accountability;
   schema?: SchemaOverview;
 }
 
-type Services = ApiExtensionContext['services'];
+type Services = ApiExtensionContext["services"];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AgreementVersion {
   id: string;
-  type: 'terms_of_service' | 'data_protection' | 'newsletter';
+  type: "terms_of_service" | "data_protection" | "newsletter";
   version: string;
   isCurrentVersion: boolean;
   legal_text: string;
@@ -41,22 +41,22 @@ interface ConsentStatusResponse {
  * the original /status handler used.
  */
 async function getCurrentVersionsByType(
-  versionsService: InstanceType<Services['ItemsService']>
-): Promise<Partial<Record<AgreementVersion['type'], AgreementVersion>>> {
+  versionsService: InstanceType<Services["ItemsService"]>,
+): Promise<Partial<Record<AgreementVersion["type"], AgreementVersion>>> {
   const versions = (await versionsService.readByQuery({
     filter: { isCurrentVersion: { _eq: true } },
-    fields: ['id', 'type', 'version'],
+    fields: ["id", "type", "version"],
     limit: -1,
   })) as AgreementVersion[];
 
   return Object.fromEntries(versions.map((v) => [v.type, v])) as Partial<
-    Record<AgreementVersion['type'], AgreementVersion>
+    Record<AgreementVersion["type"], AgreementVersion>
   >;
 }
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
-export default (router: Router, { services, getSchema }: Pick<ApiExtensionContext, 'services' | 'getSchema'>) => {
+export default (router: Router, { services, getSchema }: Pick<ApiExtensionContext, "services" | "getSchema">) => {
   const { ItemsService } = services;
 
   // ── GET /consent/status ────────────────────────────────────────────────────
@@ -64,51 +64,49 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
   // Returns whether the authenticated user has accepted required agreements and
   // whether they are subscribed to the newsletter.
   //
-  router.get('/consent/status', async (req: ConsentRequest, res) => {
+  router.get("/consent/status", async (req: ConsentRequest, res) => {
     try {
       const { accountability } = req;
       const userId = accountability?.user;
 
       if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const schema = req.schema ?? await getSchema();
+      const schema = req.schema ?? (await getSchema());
 
-      const consentsService = new ItemsService('user_consent', {
+      const consentsService = new ItemsService("user_consent", {
         accountability: null,
         schema,
       });
 
-      const versionsService = new ItemsService('agreement_versions', {
+      const versionsService = new ItemsService("agreement_versions", {
         accountability: null,
         schema,
       });
 
       // Single query for all current versions, returned as a type-keyed map.
       const versionsByType = await getCurrentVersionsByType(versionsService);
-      const agbVersion = versionsByType['terms_of_service'];
-      const dataProtectionVersion = versionsByType['data_protection'];
-      const newsletterVersion = versionsByType['newsletter'];
+      const agbVersion = versionsByType["terms_of_service"];
+      const dataProtectionVersion = versionsByType["data_protection"];
+      const newsletterVersion = versionsByType["newsletter"];
 
       // Collect only the IDs we actually care about to keep the consent query
       // selective instead of fetching every consent record for the user.
-      const relevantVersionIds = [
-        agbVersion?.id,
-        dataProtectionVersion?.id,
-        newsletterVersion?.id,
-      ].filter((id): id is string => Boolean(id));
+      const relevantVersionIds = [agbVersion?.id, dataProtectionVersion?.id, newsletterVersion?.id].filter(
+        (id): id is string => Boolean(id),
+      );
 
       const userConsents =
         relevantVersionIds.length > 0
           ? ((await consentsService.readByQuery({
-            filter: {
-              user_id: { _eq: userId },
-              consent_target: { _in: relevantVersionIds },
-            },
-            fields: ['consent_target'],
-            limit: -1,
-          })) as Pick<UserConsent, 'consent_target'>[])
+              filter: {
+                user_id: { _eq: userId },
+                consent_target: { _in: relevantVersionIds },
+              },
+              fields: ["consent_target"],
+              limit: -1,
+            })) as Pick<UserConsent, "consent_target">[])
           : [];
 
       const acceptedIds = new Set(userConsents.map((c) => c.consent_target));
@@ -125,8 +123,8 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
 
       return res.json(body);
     } catch (error) {
-      console.error('[consent] Error in GET /consent/status:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error("[consent] Error in GET /consent/status:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -140,23 +138,23 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
   // any server-side logic. Centralising it here keeps all consent mutations in
   // one place and makes future auditing straightforward.
   //
-  router.post('/consent/newsletter/optin', async (req: ConsentRequest, res) => {
+  router.post("/consent/newsletter/optin", async (req: ConsentRequest, res) => {
     try {
       const { accountability } = req;
       const userId = accountability?.user;
 
       if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const schema = req.schema ?? await getSchema();
+      const schema = req.schema ?? (await getSchema());
 
-      const consentsService = new ItemsService('user_consent', {
+      const consentsService = new ItemsService("user_consent", {
         accountability: null,
         schema,
       });
 
-      const versionsService = new ItemsService('agreement_versions', {
+      const versionsService = new ItemsService("agreement_versions", {
         accountability: null,
         schema,
       });
@@ -164,14 +162,14 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
       const currentVersions = (await versionsService.readByQuery({
         filter: {
           isCurrentVersion: { _eq: true },
-          type: { _eq: 'newsletter' },
+          type: { _eq: "newsletter" },
         },
-        fields: ['id'],
+        fields: ["id"],
         limit: 1,
-      })) as Pick<AgreementVersion, 'id'>[];
+      })) as Pick<AgreementVersion, "id">[];
 
       if (currentVersions.length === 0) {
-        return res.status(404).json({ error: 'No newsletter agreement version found' });
+        return res.status(404).json({ error: "No newsletter agreement version found" });
       }
 
       const newsletterVersionId = currentVersions[0].id;
@@ -182,12 +180,12 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
           user_id: { _eq: userId },
           consent_target: { _eq: newsletterVersionId },
         },
-        fields: ['id'],
+        fields: ["id"],
         limit: 1,
-      })) as Pick<UserConsent, 'id'>[];
+      })) as Pick<UserConsent, "id">[];
 
       if (existing.length > 0) {
-        return res.json({ success: true, message: 'Already subscribed' });
+        return res.json({ success: true, message: "Already subscribed" });
       }
 
       await consentsService.createOne({
@@ -195,10 +193,10 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
         consent_target: newsletterVersionId,
       });
 
-      return res.status(201).json({ success: true, message: 'Newsletter subscription created' });
+      return res.status(201).json({ success: true, message: "Newsletter subscription created" });
     } catch (error) {
-      console.error('[consent] Error in POST /consent/newsletter/optin:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error("[consent] Error in POST /consent/newsletter/optin:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -211,23 +209,23 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
   // semantics; deleting data violates that contract. Some email clients
   // pre-fetch GET links, which would silently opt users out.
   //
-  router.delete('/consent/newsletter/optout', async (req: ConsentRequest, res) => {
+  router.delete("/consent/newsletter/optout", async (req: ConsentRequest, res) => {
     try {
       const { accountability } = req;
       const userId = accountability?.user;
 
       if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const schema = req.schema ?? await getSchema();
+      const schema = req.schema ?? (await getSchema());
 
-      const consentsService = new ItemsService('user_consent', {
+      const consentsService = new ItemsService("user_consent", {
         accountability: null,
         schema,
       });
 
-      const versionsService = new ItemsService('agreement_versions', {
+      const versionsService = new ItemsService("agreement_versions", {
         accountability: null,
         schema,
       });
@@ -235,14 +233,14 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
       const currentVersions = (await versionsService.readByQuery({
         filter: {
           isCurrentVersion: { _eq: true },
-          type: { _eq: 'newsletter' },
+          type: { _eq: "newsletter" },
         },
-        fields: ['id'],
+        fields: ["id"],
         limit: 1,
-      })) as Pick<AgreementVersion, 'id'>[];
+      })) as Pick<AgreementVersion, "id">[];
 
       if (currentVersions.length === 0) {
-        return res.status(404).json({ error: 'No newsletter agreement version found' });
+        return res.status(404).json({ error: "No newsletter agreement version found" });
       }
 
       const newsletterVersionId = currentVersions[0].id;
@@ -255,21 +253,21 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
           user_id: { _eq: userId },
           consent_target: { _eq: newsletterVersionId },
         },
-        fields: ['id'],
+        fields: ["id"],
         limit: 1,
-      })) as Pick<UserConsent, 'id'>[];
+      })) as Pick<UserConsent, "id">[];
 
       if (existingConsents.length === 0) {
         // Idempotent: opt-out of something you're not subscribed to is fine.
-        return res.json({ success: true, message: 'Not subscribed' });
+        return res.json({ success: true, message: "Not subscribed" });
       }
 
       await consentsService.deleteOne(existingConsents[0].id);
 
-      return res.json({ success: true, message: 'Newsletter subscription removed' });
+      return res.json({ success: true, message: "Newsletter subscription removed" });
     } catch (error) {
-      console.error('[consent] Error in DELETE /consent/newsletter/optout:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error("[consent] Error in DELETE /consent/newsletter/optout:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -283,38 +281,38 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
   // here lets us validate required fields server-side, run all inserts in
   // parallel, and make the frontend logic trivial.
   //
-  router.post('/consent/accept', async (req: ConsentRequest, res) => {
+  router.post("/consent/accept", async (req: ConsentRequest, res) => {
     try {
       const { accountability } = req;
       const userId = accountability?.user;
 
       if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const schema = req.schema ?? await getSchema();
+      const schema = req.schema ?? (await getSchema());
 
       const { subscribeNewsletter } = (req.body ?? {}) as { subscribeNewsletter?: boolean };
 
-      const consentsService = new ItemsService('user_consent', {
+      const consentsService = new ItemsService("user_consent", {
         accountability: null,
         schema,
       });
 
-      const versionsService = new ItemsService('agreement_versions', {
+      const versionsService = new ItemsService("agreement_versions", {
         accountability: null,
         schema,
       });
 
       const versionsByType = await getCurrentVersionsByType(versionsService);
-      const agbVersion = versionsByType['terms_of_service'];
-      const dataProtectionVersion = versionsByType['data_protection'];
-      const newsletterVersion = versionsByType['newsletter'];
+      const agbVersion = versionsByType["terms_of_service"];
+      const dataProtectionVersion = versionsByType["data_protection"];
+      const newsletterVersion = versionsByType["newsletter"];
 
       if (!agbVersion || !dataProtectionVersion) {
         return res.status(500).json({
-          message: 'Required agreement versions (AGB / data protection) are not configured',
-          error: 'Required agreement versions (AGB / data protection) are not configured',
+          message: "Required agreement versions (AGB / data protection) are not configured",
+          error: "Required agreement versions (AGB / data protection) are not configured",
         });
       }
 
@@ -325,17 +323,13 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
             filter: {
               user_id: { _eq: userId },
               consent_target: {
-                _in: [
-                  agbVersion.id,
-                  dataProtectionVersion.id,
-                  ...(newsletterVersion ? [newsletterVersion.id] : []),
-                ],
+                _in: [agbVersion.id, dataProtectionVersion.id, ...(newsletterVersion ? [newsletterVersion.id] : [])],
               },
             },
-            fields: ['consent_target'],
+            fields: ["consent_target"],
             limit: -1,
-          })) as Pick<UserConsent, 'consent_target'>[]
-        ).map((c) => c.consent_target)
+          })) as Pick<UserConsent, "consent_target">[]
+        ).map((c) => c.consent_target),
       );
 
       const toCreate: { user_id: string; consent_target: string }[] = [];
@@ -361,8 +355,8 @@ export default (router: Router, { services, getSchema }: Pick<ApiExtensionContex
         created: toCreate.length,
       });
     } catch (error) {
-      console.error('[consent] Error in POST /consent/accept:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error("[consent] Error in POST /consent/accept:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 };

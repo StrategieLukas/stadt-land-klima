@@ -35,19 +35,20 @@
 </template>
 
 <script setup lang="ts">
-import type { NavigationPage } from '~/types/components/navigation';
+import type { NavigationPage } from "~/types/components/navigation";
 import { defineProps, computed } from "vue";
 import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
-import { sanitizeSvg } from '~/utils/sanitizeHtml'
+import { sanitizeSvg } from "~/utils/sanitizeHtml";
 
 const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
 const _props = defineProps<{ pages?: NavigationPage[] | undefined }>();
-const navLabel = (item: NavigationPage, field: "name" | "label" = "label") => translatedNavigationLabel(item, $translateDynamic, field);
+const navLabel = (item: NavigationPage, field: "name" | "label" = "label") =>
+  translatedNavigationLabel(item, $translateDynamic, field);
 
 const sanitizedPages = computed(() => {
   if (!_props.pages) return [];
-  return _props.pages.map(page => ({
+  return _props.pages.map((page) => ({
     ...page,
     icon_svg: sanitizeSvg(page.icon_svg),
   }));

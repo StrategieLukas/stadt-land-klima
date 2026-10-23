@@ -1,11 +1,16 @@
-import {test} from 'node:test';
-import assert from 'node:assert/strict';
-import {execFileSync} from 'node:child_process';
-import {fileURLToPath} from 'node:url';
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
-test('real ESLint gate rejects unsafe HTML, explicit any and unhandled promises, while accepting sanitized HTML', () => {
-  const cwd = fileURLToPath(new URL('../../../src/frontend/', import.meta.url));
-  const output = execFileSync(process.execPath, ['--input-type=module', '-e', `
+test("real ESLint gate rejects unsafe HTML, explicit any and unhandled promises, while accepting sanitized HTML", () => {
+  const cwd = fileURLToPath(new URL("../../../src/frontend/", import.meta.url));
+  const output = execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      `
     import {ESLint} from 'eslint';
     const lint = new ESLint();
     const cases = [
@@ -17,10 +22,13 @@ test('real ESLint gate rejects unsafe HTML, explicit any and unhandled promises,
     const results = [];
     for (const [filePath, code] of cases) results.push((await lint.lintText(code, {filePath})).flatMap(result => result.messages.map(message => message.ruleId)));
     console.log(JSON.stringify(results));
-  `], {cwd, encoding: 'utf8', timeout: 45000});
+  `,
+    ],
+    { cwd, encoding: "utf8", timeout: 45000 },
+  );
   const [html, any, promise, safe] = JSON.parse(output) as string[][];
-  assert.ok(html?.includes('vue/no-v-html'));
-  assert.ok(any?.includes('@typescript-eslint/no-explicit-any'));
-  assert.ok(promise?.includes('@typescript-eslint/no-floating-promises'));
+  assert.ok(html?.includes("vue/no-v-html"));
+  assert.ok(any?.includes("@typescript-eslint/no-explicit-any"));
+  assert.ok(promise?.includes("@typescript-eslint/no-floating-promises"));
   assert.deepEqual(safe, []);
 });

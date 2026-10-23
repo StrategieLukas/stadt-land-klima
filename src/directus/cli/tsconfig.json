@@ -9,14 +9,8 @@
     "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "allowJs": false,
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }

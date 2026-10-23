@@ -1,31 +1,22 @@
-import { createItems, deleteItems, readItems, updateItem } from '@directus/sdk';
-import find from 'lodash/find.js';
-import createDirectusClient from '../shared/createDirectusClient.ts';
-import type { Item, TaskOptions } from '../shared/models.ts';
-import { ItemSchema } from '../shared/models.ts';
-import readYamlFile from '../shared/readYamlFile.ts';
+import { createItems, deleteItems, readItems, updateItem } from "@directus/sdk";
+import find from "lodash/find.js";
+import createDirectusClient from "../shared/createDirectusClient.ts";
+import type { Item, TaskOptions } from "../shared/models.ts";
+import { ItemSchema } from "../shared/models.ts";
+import readYamlFile from "../shared/readYamlFile.ts";
 
-async function importCollectionItems(
-  collection: string,
-  src: string,
-  options: TaskOptions = {},
-) {
+async function importCollectionItems(collection: string, src: string, options: TaskOptions = {}) {
   const client = createDirectusClient<Record<string, Item[]>>();
 
   try {
-    const existingItems = await client.request(
-      readItems(collection, { limit: -1 }),
-    );
+    const existingItems = await client.request(readItems(collection, { limit: -1 }));
     const items = readYamlFile(src, ItemSchema.array());
 
     const itemsToCreate: Item[] = [];
     const itemsToUpdate: Item[] = [];
 
     items.forEach((item) => {
-      const existingItem =
-        item.id === undefined
-          ? undefined
-          : find(existingItems, ['id', item.id]);
+      const existingItem = item.id === undefined ? undefined : find(existingItems, ["id", item.id]);
 
       if (existingItem) {
         itemsToUpdate.push(item);
@@ -49,8 +40,7 @@ async function importCollectionItems(
 
       for (const item of itemsToUpdate) {
         try {
-          if (item.id === undefined)
-            throw new Error('Cannot update an item without an ID');
+          if (item.id === undefined) throw new Error("Cannot update an item without an ID");
           await client.request(updateItem(collection, item.id, item));
         } catch (err) {
           throw err;
@@ -61,7 +51,7 @@ async function importCollectionItems(
     // Remove
     if (options.remove) {
       const itemsToDelete = existingItems.filter((item) => {
-        return !find(items, ['id', item.id]);
+        return !find(items, ["id", item.id]);
       });
 
       if (itemsToDelete.length) {
@@ -71,10 +61,7 @@ async function importCollectionItems(
 
         const itemsToDeleteIds = itemsToDelete
           .map((item) => item.id)
-          .filter(
-            (id): id is string | number =>
-              (typeof id === 'string' && id !== '') || typeof id === 'number',
-          );
+          .filter((id): id is string | number => (typeof id === "string" && id !== "") || typeof id === "number");
         if (itemsToDeleteIds.length) {
           await client.request(
             deleteItems(collection, {

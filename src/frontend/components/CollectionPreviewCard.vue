@@ -158,9 +158,7 @@ const sectorDisplay = computed(() => {
   return t(sl as Record<string, string>);
 });
 
-const collectionDescription = computed(
-  () => props.collection.description?.["de-DE"] || "",
-);
+const collectionDescription = computed(() => props.collection.description?.["de-DE"] || "");
 const collectionTitle = computed(() => t(props.collection.title) || props.collection.id);
 
 const step0Elements = computed(() => (props.collection.render_elements ?? []).filter((e) => (e.step ?? 0) === 0));

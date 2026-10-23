@@ -12,11 +12,7 @@
   "vueCompilerOptions": {
     "strictTemplates": true,
     "dataAttributes": [],
-    "htmlAttributes": [
-      "aria-*",
-      "data-*",
-      "title"
-    ],
+    "htmlAttributes": ["aria-*", "data-*", "title"],
     "fallthroughAttributes": true,
     "checkUnknownEvents": true
   }

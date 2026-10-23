@@ -1,8 +1,6 @@
 <template>
   <div class="navigation-editor">
-    <div v-if="!items.length && !isAddingNew" class="empty-state">
-      Noch keine Navigationspunkte vorhanden.
-    </div>
+    <div v-if="!items.length && !isAddingNew" class="empty-state">Noch keine Navigationspunkte vorhanden.</div>
 
     <div class="items-list">
       <div v-for="(item, idx) in items" :key="item.id" class="item-block">
@@ -10,27 +8,37 @@
         <div class="item-row" :class="{ 'is-editing': editingPath === String(idx) }">
           <div class="item-info">
             <span class="item-index">{{ idx + 1 }}.</span>
-            <strong class="item-label">{{ item.label || '(kein Label)' }}</strong>
+            <strong class="item-label">{{ item.label || "(kein Label)" }}</strong>
             <span class="item-meta">
               <template v-if="item.link_type === 'external'">
-                <span class="badge external">extern</span> {{ item.external_url || '—' }}
+                <span class="external badge">extern</span> {{ item.external_url || "—" }}
               </template>
               <template v-else-if="item.link_type === 'none'">
-                <span class="badge none">kein Link</span>
+                <span class="none badge">kein Link</span>
               </template>
-              <template v-else>
-                <span class="badge page">seite</span> /{{ item.page_slug || '—' }}
-              </template>
+              <template v-else> <span class="page badge">seite</span> /{{ item.page_slug || "—" }} </template>
             </span>
-            <span v-if="item.children?.length" class="children-badge">
-              {{ item.children.length }} Unterpunkte
-            </span>
+            <span v-if="item.children?.length" class="children-badge"> {{ item.children.length }} Unterpunkte </span>
           </div>
           <div class="item-actions">
-            <button class="action-btn" @click="moveUp(idx)" :disabled="idx === 0 || disabled" title="Nach oben">↑</button>
-            <button class="action-btn" @click="moveDown(idx)" :disabled="idx === items.length - 1 || disabled" title="Nach unten">↓</button>
-            <button class="action-btn edit" @click="toggleEdit(String(idx), item)" :disabled="disabled" title="Bearbeiten">
-              {{ editingPath === String(idx) ? '✕' : '✏' }}
+            <button class="action-btn" @click="moveUp(idx)" :disabled="idx === 0 || disabled" title="Nach oben">
+              ↑
+            </button>
+            <button
+              class="action-btn"
+              @click="moveDown(idx)"
+              :disabled="idx === items.length - 1 || disabled"
+              title="Nach unten"
+            >
+              ↓
+            </button>
+            <button
+              class="action-btn edit"
+              @click="toggleEdit(String(idx), item)"
+              :disabled="disabled"
+              title="Bearbeiten"
+            >
+              {{ editingPath === String(idx) ? "✕" : "✏" }}
             </button>
             <button class="action-btn delete" @click="removeItem(idx)" :disabled="disabled" title="Löschen">×</button>
           </div>
@@ -54,21 +62,27 @@
             <div class="item-row child-row" :class="{ 'is-editing': editingPath === `${idx}.${childIdx}` }">
               <div class="item-info">
                 <span class="connector">└─</span>
-                <strong class="item-label">{{ child.label || '(kein Label)' }}</strong>
+                <strong class="item-label">{{ child.label || "(kein Label)" }}</strong>
                 <span class="item-meta">
                   <template v-if="child.link_type === 'external'">
-                    <span class="badge external">extern</span> {{ child.external_url || '—' }}
+                    <span class="external badge">extern</span> {{ child.external_url || "—" }}
                   </template>
-                  <template v-else>
-                    <span class="badge page">seite</span> /{{ child.page_slug || '—' }}
-                  </template>
+                  <template v-else> <span class="page badge">seite</span> /{{ child.page_slug || "—" }} </template>
                 </span>
               </div>
               <div class="item-actions">
-                <button class="action-btn" @click="moveChildUp(idx, childIdx)" :disabled="childIdx === 0 || disabled">↑</button>
-                <button class="action-btn" @click="moveChildDown(idx, childIdx)" :disabled="childIdx === item.children.length - 1 || disabled">↓</button>
+                <button class="action-btn" @click="moveChildUp(idx, childIdx)" :disabled="childIdx === 0 || disabled">
+                  ↑
+                </button>
+                <button
+                  class="action-btn"
+                  @click="moveChildDown(idx, childIdx)"
+                  :disabled="childIdx === item.children.length - 1 || disabled"
+                >
+                  ↓
+                </button>
                 <button class="action-btn edit" @click="toggleEdit(`${idx}.${childIdx}`, child)" :disabled="disabled">
-                  {{ editingPath === `${idx}.${childIdx}` ? '✕' : '✏' }}
+                  {{ editingPath === `${idx}.${childIdx}` ? "✕" : "✏" }}
                 </button>
                 <button class="action-btn delete" @click="removeChild(idx, childIdx)" :disabled="disabled">×</button>
               </div>
@@ -108,7 +122,7 @@
         <div class="item-row is-editing">
           <div class="item-info">
             <span class="item-index">{{ items.length + 1 }}.</span>
-            <em class="item-label" style="opacity:.5">Neuer Eintrag…</em>
+            <em class="item-label" style="opacity: 0.5">Neuer Eintrag…</em>
           </div>
           <div class="item-actions">
             <button class="action-btn delete" @click="cancelEdit" title="Abbrechen">×</button>
@@ -133,15 +147,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, inject, type Ref } from 'vue';
-import type { Page } from '../types';
-import { usePageSearch } from '../usePageSearch';
-import NavItemForm from './NavItemForm.vue';
+import { ref, watch, inject, type Ref } from "vue";
+import type { Page } from "../types";
+import { usePageSearch } from "../usePageSearch";
+import NavItemForm from "./NavItemForm.vue";
 
 interface NavItem {
   id: string;
   label: string;
-  link_type: 'page' | 'external' | 'none';
+  link_type: "page" | "external" | "none";
   page_slug: string | null;
   external_url: string | null;
   open_new_tab: boolean;
@@ -152,7 +166,7 @@ interface NavItem {
 
 interface EditBuffer {
   label: string;
-  link_type: 'page' | 'external' | 'none';
+  link_type: "page" | "external" | "none";
   page_slug: string;
   external_url: string;
   open_new_tab: boolean;
@@ -168,19 +182,23 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'input', value: NavItem[]): void;
+  (e: "input", value: NavItem[]): void;
 }>();
 
 const api = inject<{
   get: (path: string, config?: Record<string, unknown>) => Promise<{ data?: { data?: unknown } }>;
-}>('api');
+}>("api");
 
 // ─── Parse value ──────────────────────────────────────────────────────────────
 
 function parseValue(val: string | NavItem[] | null | undefined): NavItem[] {
   if (!val) return [];
-  if (typeof val === 'string') {
-    try { return JSON.parse(val); } catch { return []; }
+  if (typeof val === "string") {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return [];
+    }
   }
   return Array.isArray(val) ? JSON.parse(JSON.stringify(val)) : [];
 }
@@ -192,38 +210,41 @@ const isAddingNew: Ref<boolean> = ref(false);
 
 const { pageResults, search, selectPage, clear: clearPageResults } = usePageSearch(api);
 
-watch(() => props.value, (newVal) => {
-  // Only sync from outside when we're not mid-edit, to avoid clobbering the user's work.
-  // A more robust implementation would do a deep diff/merge here.
-  if (!editingPath.value && !isAddingNew.value) {
-    items.value = parseValue(newVal);
-  }
-});
+watch(
+  () => props.value,
+  (newVal) => {
+    // Only sync from outside when we're not mid-edit, to avoid clobbering the user's work.
+    // A more robust implementation would do a deep diff/merge here.
+    if (!editingPath.value && !isAddingNew.value) {
+      items.value = parseValue(newVal);
+    }
+  },
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function genId(): string {
-  return 'nav-' + Math.random().toString(36).slice(2, 9);
+  return "nav-" + Math.random().toString(36).slice(2, 9);
 }
 
 function newEditBufferDefaults(): EditBuffer {
   return {
-    label: '',
-    link_type: 'page',
-    page_slug: '',
-    external_url: '',
+    label: "",
+    link_type: "page",
+    page_slug: "",
+    external_url: "",
     open_new_tab: false,
     image_id: null,
-    description: '',
+    description: "",
   };
 }
 
-function toStoredLinkFields(buffer: EditBuffer): Omit<NavItem, 'id' | 'children'> {
+function toStoredLinkFields(buffer: EditBuffer): Omit<NavItem, "id" | "children"> {
   return {
     label: buffer.label,
     link_type: buffer.link_type,
-    page_slug: buffer.link_type === 'page' ? buffer.page_slug : null,
-    external_url: buffer.link_type === 'external' ? buffer.external_url : null,
+    page_slug: buffer.link_type === "page" ? buffer.page_slug : null,
+    external_url: buffer.link_type === "external" ? buffer.external_url : null,
     open_new_tab: buffer.open_new_tab,
     image_id: buffer.image_id,
     description: buffer.description,
@@ -231,13 +252,13 @@ function toStoredLinkFields(buffer: EditBuffer): Omit<NavItem, 'id' | 'children'
 }
 
 function emitValue(): void {
-  emit('input', JSON.parse(JSON.stringify(items.value)));
+  emit("input", JSON.parse(JSON.stringify(items.value)));
 }
 
 // ─── Slug search ──────────────────────────────────────────────────────────────
 
 function onSlugInput(): void {
-  search(editBuffer.value?.page_slug?.trim() ?? '');
+  search(editBuffer.value?.page_slug?.trim() ?? "");
 }
 
 function handleSelectPage(page: Page): void {
@@ -340,15 +361,17 @@ function toggleEdit(path: string, item: NavItem): void {
   } else {
     isAddingNew.value = false;
     editingPath.value = path;
-    editBuffer.value = JSON.parse(JSON.stringify({
-      label: item.label,
-      link_type: item.link_type,
-      page_slug: item.page_slug || '',
-      external_url: item.external_url || '',
-      open_new_tab: item.open_new_tab,
-      image_id: item.image_id,
-      description: item.description,
-    }));
+    editBuffer.value = JSON.parse(
+      JSON.stringify({
+        label: item.label,
+        link_type: item.link_type,
+        page_slug: item.page_slug || "",
+        external_url: item.external_url || "",
+        open_new_tab: item.open_new_tab,
+        image_id: item.image_id,
+        description: item.description,
+      }),
+    );
     clearPageResults();
   }
 }
@@ -364,8 +387,8 @@ function saveEdit(path: string): void {
   if (!editBuffer.value) return;
 
   // Handle new-child sentinel paths like "2.3__new"
-  if (path.endsWith('__new')) {
-    const parentIdx = parseInt(path.split('.')[0]);
+  if (path.endsWith("__new")) {
+    const parentIdx = parseInt(path.split(".")[0]);
     const newChild: NavItem = { id: genId(), ...toStoredLinkFields(editBuffer.value), children: [] };
     items.value[parentIdx].children.push(newChild);
     editingPath.value = null;
@@ -375,7 +398,7 @@ function saveEdit(path: string): void {
     return;
   }
 
-  const parts = path.split('.');
+  const parts = path.split(".");
   if (parts.length === 1) {
     Object.assign(items.value[parseInt(parts[0])], toStoredLinkFields(editBuffer.value));
   } else {

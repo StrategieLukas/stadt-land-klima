@@ -73,15 +73,21 @@ export default defineEventHandler(async (event) => {
   if (typeof scope.entityType === "string" && typeof scope.entityUuid === "string") {
     blocks = await readPublicBlocks(scope.entityType, scope.entityUuid);
   } else {
-    const [root] = await client.request(
-      readItems("blocks", {
-        filter: { uuid: { _eq: uuid }, bundle: { _eq: "vega_chart" }, status: { _eq: "published" } },
-        fields: ["entity_type", "entity_uuid", "field_name"],
-        limit: 1,
-      }),
-    ).then(cmsRows);
+    const [root] = await client
+      .request(
+        readItems("blocks", {
+          filter: { uuid: { _eq: uuid }, bundle: { _eq: "vega_chart" }, status: { _eq: "published" } },
+          fields: ["entity_type", "entity_uuid", "field_name"],
+          limit: 1,
+        }),
+      )
+      .then(cmsRows);
     if (!root) throw createError({ statusCode: 404 });
-    blocks = await readPublicBlocks(cmsString(root.entity_type), cmsString(root.entity_uuid), cmsString(root.field_name));
+    blocks = await readPublicBlocks(
+      cmsString(root.entity_type),
+      cmsString(root.entity_uuid),
+      cmsString(root.field_name),
+    );
   }
   function findChart(value: unknown, depth = 0): Record<string, unknown> | undefined {
     if (depth > 30 || !value || typeof value !== "object") return;

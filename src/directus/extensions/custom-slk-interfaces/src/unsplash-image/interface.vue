@@ -4,33 +4,17 @@
     <div v-if="props.value" class="preview-wrapper" :class="{ letterbox: props.letterbox }">
       <img :src="previewUrl ?? undefined" alt="" class="preview-img" />
       <div class="preview-actions">
-        <button class="action-btn danger" :disabled="props.disabled" @click="removeImage">
-          Remove
-        </button>
-        <a :href="previewUrl ?? undefined" target="_blank" rel="noopener" class="action-btn secondary">
-          View
-        </a>
+        <button class="action-btn danger" :disabled="props.disabled" @click="removeImage">Remove</button>
+        <a :href="previewUrl ?? undefined" target="_blank" rel="noopener" class="action-btn secondary"> View </a>
       </div>
     </div>
 
     <!-- Upload / search buttons -->
     <div v-if="!props.disabled" class="button-row">
-      <button class="action-btn primary" @click="triggerFileUpload">
-        Upload file
-      </button>
-      <button class="action-btn secondary" @click="openLibrary">
-        Select from library
-      </button>
-      <button class="action-btn secondary" @click="openUnsplash">
-        Search Unsplash
-      </button>
-      <input
-        ref="fileInputRef"
-        type="file"
-        accept="image/*"
-        style="display: none"
-        @change="onFileChosen"
-      />
+      <button class="action-btn primary" @click="triggerFileUpload">Upload file</button>
+      <button class="action-btn secondary" @click="openLibrary">Select from library</button>
+      <button class="action-btn secondary" @click="openUnsplash">Search Unsplash</button>
+      <input ref="fileInputRef" type="file" accept="image/*" style="display: none" @change="onFileChosen" />
     </div>
 
     <div v-if="uploadError" class="error-msg">{{ uploadError }}</div>
@@ -59,17 +43,10 @@
 
         <div v-if="libraryLoading" class="loading">Loading…</div>
 
-        <div v-else-if="libraryFiles.length === 0" class="empty">
-          No files found.
-        </div>
+        <div v-else-if="libraryFiles.length === 0" class="empty">No files found.</div>
 
         <div v-if="libraryFiles.length" class="photo-grid">
-          <div
-            v-for="file in libraryFiles"
-            :key="file.id"
-            class="photo-card"
-            @click="selectLibraryFile(file)"
-          >
+          <div v-for="file in libraryFiles" :key="file.id" class="photo-card" @click="selectLibraryFile(file)">
             <img
               :src="assetUrl(file.id, 'fit=cover&width=150&height=150')"
               :alt="file.title || file.filename_download"
@@ -123,9 +100,7 @@
 
         <div v-if="searching" class="loading">Searching…</div>
 
-        <div v-if="!searching && photos.length === 0 && hasSearched" class="empty">
-          No results found.
-        </div>
+        <div v-if="!searching && photos.length === 0 && hasSearched" class="empty">No results found.</div>
 
         <div v-if="photos.length" class="photo-grid">
           <div
@@ -142,14 +117,16 @@
                 target="_blank"
                 rel="noopener"
                 @click.stop
-              >{{ photo.user.name }}</a>
+                >{{ photo.user.name }}</a
+              >
               on
               <a
                 href="https://unsplash.com/?utm_source=stadtlandklima&utm_medium=referral"
                 target="_blank"
                 rel="noopener"
                 @click.stop
-              >Unsplash</a>
+                >Unsplash</a
+              >
             </div>
             <div v-if="importingId === photo.id" class="photo-loading-overlay">Importing…</div>
           </div>
@@ -178,9 +155,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, watch, type Ref } from 'vue';
-import type { DirectusFile, UnsplashPhoto, UnsplashSearchResponse } from '../types';
-import { directusUrl } from '../directus-url';
+import { ref, computed, inject, watch, type Ref } from "vue";
+import type { DirectusFile, UnsplashPhoto, UnsplashSearchResponse } from "../types";
+import { directusUrl } from "../directus-url";
 
 const MAX_FILE_SIZE_MB = 10;
 
@@ -195,7 +172,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'input', value: string | null): void;
+  (e: "input", value: string | null): void;
 }>();
 
 const api = inject<{
@@ -205,27 +182,30 @@ const api = inject<{
   get: (path: string, config?: { params?: Record<string, unknown> }) => Promise<{ data?: unknown }>;
   post: (path: string, data?: unknown) => Promise<{ data?: { data?: { id?: string } } }>;
   patch: (path: string, data?: unknown) => Promise<unknown>;
-}>('api');
+}>("api");
 
 const pendingCredits: Ref<string | null> = ref(null);
 
 async function writeCreditsToItem(primaryKey: string | number, credits: string): Promise<void> {
-  if (!api || !props.collection || primaryKey === '+') return;
+  if (!api || !props.collection || primaryKey === "+") return;
   try {
     await api.patch(`/items/${props.collection}/${primaryKey}`, {
-      [props.creditsField || 'image_credits']: credits,
+      [props.creditsField || "image_credits"]: credits,
     });
   } catch {
     // Editors can still fill in credits manually if the item update fails.
   }
 }
 
-watch(() => props.primaryKey, async (primaryKey) => {
-  if (primaryKey && primaryKey !== '+' && pendingCredits.value) {
-    await writeCreditsToItem(primaryKey, pendingCredits.value);
-    pendingCredits.value = null;
-  }
-});
+watch(
+  () => props.primaryKey,
+  async (primaryKey) => {
+    if (primaryKey && primaryKey !== "+" && pendingCredits.value) {
+      await writeCreditsToItem(primaryKey, pendingCredits.value);
+      pendingCredits.value = null;
+    }
+  },
+);
 
 // ─── Current image ────────────────────────────────────────────────────────────
 
@@ -240,7 +220,7 @@ function assetUrl(fileId: string, query?: string): string {
 }
 
 function removeImage(): void {
-  emit('input', null);
+  emit("input", null);
 }
 
 // ─── Local file upload ────────────────────────────────────────────────────────
@@ -259,12 +239,12 @@ async function onFileChosen(event: Event): Promise<void> {
   if (!file) return;
 
   // Reset so re-selecting the same file still fires
-  input.value = '';
+  input.value = "";
   uploadError.value = null;
 
   // Client-side validation
-  if (!file.type.startsWith('image/')) {
-    uploadError.value = 'Only image files are supported.';
+  if (!file.type.startsWith("image/")) {
+    uploadError.value = "Only image files are supported.";
     return;
   }
   if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
@@ -274,23 +254,23 @@ async function onFileChosen(event: Event): Promise<void> {
 
   try {
     const formData = new FormData();
-    if (props.folder) formData.append('folder', props.folder);
-    formData.append('file', file);
+    if (props.folder) formData.append("folder", props.folder);
+    formData.append("file", file);
 
-    const response = await api?.post('/files', formData);
+    const response = await api?.post("/files", formData);
     const fileId = response?.data?.data?.id ?? null;
-    emit('input', fileId);
+    emit("input", fileId);
   } catch (err) {
-    const apiMessage = (err as { response?: { data?: { errors?: { message?: string }[] } } })
-      ?.response?.data?.errors?.[0]?.message;
-    uploadError.value = 'Upload failed: ' + (apiMessage ?? (err as Error).message ?? 'Unknown error');
+    const apiMessage = (err as { response?: { data?: { errors?: { message?: string }[] } } })?.response?.data
+      ?.errors?.[0]?.message;
+    uploadError.value = "Upload failed: " + (apiMessage ?? (err as Error).message ?? "Unknown error");
   }
 }
 
 // ─── Directus library browser ─────────────────────────────────────────────────
 
 const libraryOpen: Ref<boolean> = ref(false);
-const librarySearch: Ref<string> = ref('');
+const librarySearch: Ref<string> = ref("");
 const libraryFiles: Ref<DirectusFile[]> = ref([]);
 const libraryLoading: Ref<boolean> = ref(false);
 const libraryPage: Ref<number> = ref(1);
@@ -319,23 +299,21 @@ async function loadLibraryPage(page: number): Promise<void> {
     const params: Record<string, unknown> = {
       limit: libraryPageSize,
       offset: (page - 1) * libraryPageSize,
-      fields: ['id', 'title', 'filename_download', 'type'],
-      sort: ['-uploaded_on'],
-      'filter[type][_starts_with]': 'image/',
-      meta: 'filter_count',
+      fields: ["id", "title", "filename_download", "type"],
+      sort: ["-uploaded_on"],
+      "filter[type][_starts_with]": "image/",
+      meta: "filter_count",
     };
     if (librarySearch.value.trim()) {
-      params['filter[title][_icontains]'] = librarySearch.value.trim();
+      params["filter[title][_icontains]"] = librarySearch.value.trim();
     }
-    const response = await api?.get('/files', { params });
+    const response = await api?.get("/files", { params });
     const body = response?.data as { data?: DirectusFile[]; meta?: { filter_count?: number } } | undefined;
     libraryFiles.value = body?.data ?? [];
     // Use meta.filter_count for the true total across all pages.
     // Fall back to page size only if the meta field is completely absent (shouldn't happen).
     const total = body?.meta?.filter_count ?? null;
-    libraryTotalPages.value = total !== null
-      ? Math.max(1, Math.ceil(total / libraryPageSize))
-      : 1;
+    libraryTotalPages.value = total !== null ? Math.max(1, Math.ceil(total / libraryPageSize)) : 1;
   } catch {
     libraryFiles.value = [];
     libraryTotalPages.value = 1;
@@ -345,14 +323,14 @@ async function loadLibraryPage(page: number): Promise<void> {
 }
 
 function selectLibraryFile(file: DirectusFile): void {
-  emit('input', file.id);
+  emit("input", file.id);
   closeLibrary();
 }
 
 // ─── Unsplash search ──────────────────────────────────────────────────────────
 
 const modalOpen: Ref<boolean> = ref(false);
-const searchQuery: Ref<string> = ref('');
+const searchQuery: Ref<string> = ref("");
 const photos: Ref<UnsplashPhoto[]> = ref([]);
 const searching: Ref<boolean> = ref(false);
 const searchError: Ref<string | null> = ref(null);
@@ -387,7 +365,7 @@ async function runSearch(page: number): Promise<void> {
   hasSearched.value = true;
 
   try {
-    const response = await api?.get('/unsplash/search', {
+    const response = await api?.get("/unsplash/search", {
       params: { q, page, per_page: 24 },
     });
     const data = response?.data as UnsplashSearchResponse;
@@ -396,7 +374,7 @@ async function runSearch(page: number): Promise<void> {
     totalPages.value = data.total_pages || 1;
   } catch (err) {
     const apiError = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-    searchError.value = 'Search failed: ' + (apiError ?? (err as Error).message ?? 'Unknown error');
+    searchError.value = "Search failed: " + (apiError ?? (err as Error).message ?? "Unknown error");
     photos.value = [];
   } finally {
     searching.value = false;
@@ -421,26 +399,26 @@ async function selectPhoto(photo: UnsplashPhoto): Promise<void> {
         ...(props.folder ? { folder: props.folder } : {}),
       },
     };
-    const response = await api?.post('/files/import', importPayload);
+    const response = await api?.post("/files/import", importPayload);
     const fileId = response?.data?.data?.id;
     if (fileId) {
-      emit('input', fileId);
+      emit("input", fileId);
       closeUnsplash();
-      if (props.primaryKey && props.primaryKey !== '+') {
+      if (props.primaryKey && props.primaryKey !== "+") {
         await writeCreditsToItem(props.primaryKey, credits);
       } else {
         pendingCredits.value = credits;
       }
     } else {
-      uploadError.value = 'Import succeeded but no file ID was returned.';
+      uploadError.value = "Import succeeded but no file ID was returned.";
     }
 
     // Unsplash API requirement: trigger download attribution (fire-and-forget)
-    api?.post('/unsplash/trigger-download', { download_location: photo.download_location }).catch(() => {});
+    api?.post("/unsplash/trigger-download", { download_location: photo.download_location }).catch(() => {});
   } catch (err) {
-    const apiMessage = (err as { response?: { data?: { errors?: { message?: string }[] } } })
-      ?.response?.data?.errors?.[0]?.message;
-    uploadError.value = 'Import failed: ' + (apiMessage ?? (err as Error).message ?? 'Unknown error');
+    const apiMessage = (err as { response?: { data?: { errors?: { message?: string }[] } } })?.response?.data
+      ?.errors?.[0]?.message;
+    uploadError.value = "Import failed: " + (apiMessage ?? (err as Error).message ?? "Unknown error");
   } finally {
     // Always clear the importing state, even on error, so the UI doesn't get stuck
     importingId.value = null;

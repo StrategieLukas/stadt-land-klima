@@ -50,7 +50,7 @@ export function getStadtlandzahlBaseUrls(): URL[] {
 
 export function getStadtlandzahlBaseUrl(): URL {
   const base = getStadtlandzahlBaseUrls()[0];
-  if (!base) throw createError({statusCode: 500, statusMessage: "Stadtlandzahl URL is missing"});
+  if (!base) throw createError({ statusCode: 500, statusMessage: "Stadtlandzahl URL is missing" });
   return base;
 }
 
@@ -119,7 +119,15 @@ export function rewriteStadtlandzahlPayload<T>(value: T): T {
   return rewritten as T;
 }
 
-export async function fetchStadtlandzahl(path: string, options: {params?: Record<string, unknown>; query?: Record<string, unknown>; headers?: HeadersInit; timeout?: number} = {}): Promise<unknown> {
+export async function fetchStadtlandzahl(
+  path: string,
+  options: {
+    params?: Record<string, unknown>;
+    query?: Record<string, unknown>;
+    headers?: HeadersInit;
+    timeout?: number;
+  } = {},
+): Promise<unknown> {
   const { params, query, headers: suppliedHeaders, ...fetchOptions } = options;
   const headers = new Headers(suppliedHeaders);
   const authorization = getStadtlandzahlAuthorization();

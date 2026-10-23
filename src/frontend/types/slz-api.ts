@@ -27,25 +27,45 @@ export interface MapLibreRenderSpec {
   renderer?: string | undefined;
   version?: number | undefined;
   style?: Record<string, unknown> | undefined;
-  sources?: {
-    features?: {
-      data?: string | Record<string, unknown> | null | undefined;
-      [key: string]: unknown;
-    } | undefined;
-    density?: {
-      url_template?: string | undefined;
-      urlTemplate?: string | undefined;
-      [key: string]: unknown;
-    } | undefined;
-    [key: string]: Record<string, unknown> | undefined;
-  } | undefined;
+  sources?:
+    | {
+        features?:
+          | {
+              data?: string | Record<string, unknown> | null | undefined;
+              [key: string]: unknown;
+            }
+          | undefined;
+        density?:
+          | {
+              url_template?: string | undefined;
+              urlTemplate?: string | undefined;
+              [key: string]: unknown;
+            }
+          | undefined;
+        [key: string]: Record<string, unknown> | undefined;
+      }
+    | undefined;
   layers?: Array<Record<string, unknown>> | undefined;
-  tooltip_fields?: Array<
-    string | { field?: string | undefined; label?: string | Record<string, string> | undefined; title?: string | Record<string, string> | undefined }
-  > | undefined;
-  tooltipFields?: Array<
-    string | { field?: string | undefined; label?: string | Record<string, string> | undefined; title?: string | Record<string, string> | undefined }
-  > | undefined;
+  tooltip_fields?:
+    | Array<
+        | string
+        | {
+            field?: string | undefined;
+            label?: string | Record<string, string> | undefined;
+            title?: string | Record<string, string> | undefined;
+          }
+      >
+    | undefined;
+  tooltipFields?:
+    | Array<
+        | string
+        | {
+            field?: string | undefined;
+            label?: string | Record<string, string> | undefined;
+            title?: string | Record<string, string> | undefined;
+          }
+      >
+    | undefined;
   [key: string]: unknown;
 }
 
@@ -72,9 +92,11 @@ export interface CollectionRenderConfig {
   thresholdBar?: unknown;
   layer_type?: string | undefined;
   color_field?: string | undefined;
-  threshold_bar?: {
-    thresholds?: Record<string, number> | undefined;
-  } | undefined;
+  threshold_bar?:
+    | {
+        thresholds?: Record<string, number> | undefined;
+      }
+    | undefined;
 }
 
 export interface CollectionCoverImage {
@@ -151,20 +173,32 @@ export interface SummaryAggregate {
   mean?: number | undefined;
   avg?: number | undefined;
   value?: number | undefined;
-  metadata?: {
-    attribution?: string | undefined;
-    attribution_url?: string | undefined;
-    license_name?: string | undefined;
-    license_url?: string | undefined;
-    effective_date?: string | undefined;
-  } | undefined;
+  metadata?:
+    | {
+        attribution?: string | undefined;
+        attribution_url?: string | undefined;
+        license_name?: string | undefined;
+        license_url?: string | undefined;
+        effective_date?: string | undefined;
+      }
+    | undefined;
   [key: string]: unknown;
 }
 
 export interface CollectionSummary {
   aggregate: SummaryAggregate;
-  kpi_values?: Record<string, { value: number | null; raw_value?: number | null | undefined; precision?: number | null | undefined }> | undefined;
-  kpiValues?: Record<string, { value: number | null; raw_value?: number | null | undefined; precision?: number | null | undefined }> | undefined;
+  kpi_values?:
+    | Record<
+        string,
+        { value: number | null; raw_value?: number | null | undefined; precision?: number | null | undefined }
+      >
+    | undefined;
+  kpiValues?:
+    | Record<
+        string,
+        { value: number | null; raw_value?: number | null | undefined; precision?: number | null | undefined }
+      >
+    | undefined;
   source_attributions?: SourceAttribution[] | undefined;
   sourceAttributions?: SourceAttribution[] | undefined;
   area?: string | undefined;

@@ -4,10 +4,7 @@ export function useSlzLocale() {
     if (!dict) return "";
     const requested = $locale === "en-GB" ? ["en-GB", "en-US"] : [$locale];
     return (
-      requested.map((locale) => dict[locale]).find(Boolean) ||
-      dict["de-DE"] ||
-      Object.values(dict).find(Boolean) ||
-      ""
+      requested.map((locale) => dict[locale]).find(Boolean) || dict["de-DE"] || Object.values(dict).find(Boolean) || ""
     );
   }
 

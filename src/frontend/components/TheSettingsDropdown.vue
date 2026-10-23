@@ -130,8 +130,12 @@ function handleOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => { document.addEventListener("click", handleOutside, true); });
-onUnmounted(() => { document.removeEventListener("click", handleOutside, true); });
+onMounted(() => {
+  document.addEventListener("click", handleOutside, true);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", handleOutside, true);
+});
 </script>
 
 <style scoped>

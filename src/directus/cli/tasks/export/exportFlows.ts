@@ -1,26 +1,18 @@
-import { readFlows, readOperations } from '@directus/sdk';
-import fse from 'node:fs';
-import path from 'path';
-import slugify from 'slugify';
-import { stringify } from 'yaml';
-import createDirectusClient from '../shared/createDirectusClient.ts';
-import type { Flow, Operation, TaskOptions } from '../shared/models.ts';
-import {
-  ApiFlowSchema,
-  OperationSchema,
-  requiredId,
-} from '../shared/models.ts';
+import { readFlows, readOperations } from "@directus/sdk";
+import fse from "node:fs";
+import path from "path";
+import slugify from "slugify";
+import { stringify } from "yaml";
+import createDirectusClient from "../shared/createDirectusClient.ts";
+import type { Flow, Operation, TaskOptions } from "../shared/models.ts";
+import { ApiFlowSchema, OperationSchema, requiredId } from "../shared/models.ts";
 
 async function exportFlows(dest: string, options: TaskOptions = {}) {
   const client = createDirectusClient();
 
   try {
-    const flows = ApiFlowSchema.array().parse(
-      await client.request(readFlows({ limit: -1 })),
-    );
-    const operations = OperationSchema.array().parse(
-      await client.request(readOperations({ limit: -1 })),
-    );
+    const flows = ApiFlowSchema.array().parse(await client.request(readFlows({ limit: -1 })));
+    const operations = OperationSchema.array().parse(await client.request(readOperations({ limit: -1 })));
 
     // create lookup tables for operations and flows
     const flowsById: Record<string, Flow> = {};
@@ -37,10 +29,7 @@ async function exportFlows(dest: string, options: TaskOptions = {}) {
     fse.mkdirSync(dest, { recursive: true });
 
     flows.forEach((flow) => {
-      const destPath = path.join(
-        dest,
-        slugify(flow.name, { replacement: '_', lower: false }) + '.yaml',
-      );
+      const destPath = path.join(dest, slugify(flow.name, { replacement: "_", lower: false }) + ".yaml");
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) {
@@ -67,13 +56,8 @@ async function exportFlows(dest: string, options: TaskOptions = {}) {
             operation.reject_key = operationsById[operation.reject].key;
           }
 
-          if (
-            operation.type === 'trigger' &&
-            operation.options &&
-            operation.options.flow
-          ) {
-            operation.options.flow_name =
-              flowsById[requiredId(operation.options.flow)].name;
+          if (operation.type === "trigger" && operation.options && operation.options.flow) {
+            operation.options.flow_name = flowsById[requiredId(operation.options.flow)].name;
             delete operation.options.flow;
           }
 
@@ -92,7 +76,7 @@ async function exportFlows(dest: string, options: TaskOptions = {}) {
 
       delete flow.operation;
 
-      fse.writeFileSync(destPath, stringify(flow), { encoding: 'utf8' });
+      fse.writeFileSync(destPath, stringify(flow), { encoding: "utf8" });
 
       if (options.verbose) {
         console.info(`Exported flow ${destPath}`);
@@ -100,7 +84,7 @@ async function exportFlows(dest: string, options: TaskOptions = {}) {
     });
 
     if (options.verbose) {
-      console.info('All flows exported.');
+      console.info("All flows exported.");
     }
   } catch (err) {
     console.error(err);

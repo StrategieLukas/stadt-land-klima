@@ -1,18 +1,18 @@
-import { defineHook } from '@directus/extensions-sdk';
-import type { ApiExtensionContext } from '@directus/types';
-import slugify from 'slugify';
+import { defineHook } from "@directus/extensions-sdk";
+import type { ApiExtensionContext } from "@directus/types";
+import slugify from "slugify";
 
-type Database = ApiExtensionContext['database'];
+type Database = ApiExtensionContext["database"];
 
-const JOB_OFFERS = 'job_offers';
+const JOB_OFFERS = "job_offers";
 const MAX_BASE_LENGTH = 90;
 
 const slugifyConfig = {
-  replacement: '-',
+  replacement: "-",
   remove: undefined,
   lower: true,
   strict: true,
-  locale: 'de',
+  locale: "de",
   trim: true,
 } as const;
 
@@ -27,34 +27,28 @@ type HookMeta = {
   keys?: Array<string | number>;
 };
 
-const createSlugFromNameCollections = new Set(['pages', 'municipalities', 'measures']);
-const updateSlugFromNameCollections = new Set(['municipalities', 'measures']);
+const createSlugFromNameCollections = new Set(["pages", "municipalities", "measures"]);
+const updateSlugFromNameCollections = new Set(["municipalities", "measures"]);
 
 function slugifyText(value: unknown): string {
-  return slugify(String(value ?? ''), slugifyConfig);
+  return slugify(String(value ?? ""), slugifyConfig);
 }
 
 function normalizeSlug(value: unknown): string {
-  return slugifyText(value)
-    .slice(0, MAX_BASE_LENGTH)
-    .replace(/-+$/g, '');
+  return slugifyText(value).slice(0, MAX_BASE_LENGTH).replace(/-+$/g, "");
 }
 
-async function makeUniqueSlug(
-  database: Database,
-  baseSlug: string,
-  currentId?: string | number
-): Promise<string> {
+async function makeUniqueSlug(database: Database, baseSlug: string, currentId?: string | number): Promise<string> {
   if (!baseSlug) return baseSlug;
 
   let slug = baseSlug;
   let suffix = 2;
 
   while (true) {
-    const query = database(JOB_OFFERS).where({ slug }).select('id').first();
+    const query = database(JOB_OFFERS).where({ slug }).select("id").first();
 
     if (currentId !== undefined) {
-      query.andWhereNot('id', currentId);
+      query.andWhereNot("id", currentId);
     }
 
     const existing = await query;
@@ -67,18 +61,15 @@ async function makeUniqueSlug(
 
 async function getExistingJobOffer(
   database: Database,
-  id: string | number
+  id: string | number,
 ): Promise<{ role_title?: string | null; slug?: string | null } | null> {
-  const existing = await database(JOB_OFFERS)
-    .where({ id })
-    .select('role_title', 'slug')
-    .first();
+  const existing = await database(JOB_OFFERS).where({ id }).select("role_title", "slug").first();
 
   return existing ?? null;
 }
 
 export default defineHook(({ filter }) => {
-  filter('items.create', async (payload: Payload, meta: HookMeta, { database }) => {
+  filter("items.create", async (payload: Payload, meta: HookMeta, { database }) => {
     if (meta.collection && createSlugFromNameCollections.has(meta.collection)) {
       return {
         ...payload,
@@ -88,7 +79,7 @@ export default defineHook(({ filter }) => {
 
     if (meta.collection !== JOB_OFFERS) return payload;
 
-    const providedSlug = String(payload.slug ?? '').trim();
+    const providedSlug = String(payload.slug ?? "").trim();
     const baseSlug = normalizeSlug(providedSlug || payload.role_title);
 
     return {
@@ -97,8 +88,13 @@ export default defineHook(({ filter }) => {
     };
   });
 
-  filter('items.update', async (payload: Payload, meta: HookMeta, { database }) => {
-    if (meta.collection && updateSlugFromNameCollections.has(meta.collection) && payload.name !== null && payload.name !== undefined) {
+  filter("items.update", async (payload: Payload, meta: HookMeta, { database }) => {
+    if (
+      meta.collection &&
+      updateSlugFromNameCollections.has(meta.collection) &&
+      payload.name !== null &&
+      payload.name !== undefined
+    ) {
       return {
         ...payload,
         slug: slugifyText(payload.name),
@@ -108,7 +104,7 @@ export default defineHook(({ filter }) => {
     if (meta.collection !== JOB_OFFERS) return payload;
 
     const key = meta.keys?.length === 1 ? meta.keys[0] : undefined;
-    const providedSlug = String(payload.slug ?? '').trim();
+    const providedSlug = String(payload.slug ?? "").trim();
 
     if (providedSlug) {
       return {

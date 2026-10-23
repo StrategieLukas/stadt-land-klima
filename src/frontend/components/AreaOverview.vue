@@ -342,12 +342,12 @@
 </template>
 
 <script setup lang="ts">
-import { z } from 'zod';
-import { BoundaryGeometrySchema, parseGeoCenter, type BoundaryGeometry } from '~/shared/contracts/geometry';
-import { MunicipalitiesResponseSchema } from '~/shared/contracts/search';
+import { z } from "zod";
+import { BoundaryGeometrySchema, parseGeoCenter, type BoundaryGeometry } from "~/shared/contracts/geometry";
+import { MunicipalitiesResponseSchema } from "~/shared/contracts/search";
 
-import type { PropType } from 'vue';
-import type { Area } from '~/shared/contracts/search';
+import type { PropType } from "vue";
+import type { Area } from "~/shared/contracts/search";
 
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useNuxtApp } from "#app";
@@ -360,9 +360,27 @@ import germanyBordersRaw from "~/assets/germany-state-borders.json";
 import statesLookupRaw from "~/assets/germany-states-lookup.json";
 type SvgPoint = { x: number; y: number };
 type ProjectPoint = (lon: number, lat: number) => [number, number];
-type StateView = { ars: string; name: string; prefix?: string | undefined; slug?: string | undefined; geometry?: BoundaryGeometry | null | undefined };
-type HoverInfo = { ars: string; prefix?: string | undefined; name: string; population?: number | null | undefined; scoreTotal?: number | null | undefined; statusLabel?: string | undefined; color?: string | undefined };
-const germanyBorders = z.object({ features: z.array(z.object({ properties: z.object({ NAME_1: z.string() }), geometry: BoundaryGeometrySchema })) }).parse(germanyBordersRaw);
+type StateView = {
+  ars: string;
+  name: string;
+  prefix?: string | undefined;
+  slug?: string | undefined;
+  geometry?: BoundaryGeometry | null | undefined;
+};
+type HoverInfo = {
+  ars: string;
+  prefix?: string | undefined;
+  name: string;
+  population?: number | null | undefined;
+  scoreTotal?: number | null | undefined;
+  statusLabel?: string | undefined;
+  color?: string | undefined;
+};
+const germanyBorders = z
+  .object({
+    features: z.array(z.object({ properties: z.object({ NAME_1: z.string() }), geometry: BoundaryGeometrySchema })),
+  })
+  .parse(germanyBordersRaw);
 
 const props = defineProps({
   area: { type: Object as PropType<Area>, required: true },
@@ -370,7 +388,12 @@ const props = defineProps({
   initialStateArs: { type: String as PropType<string | null | undefined>, default: null },
 });
 
-const emit = defineEmits<{ stateSelected: [state: { ars: string; name: string; prefix?: string | undefined; geoCenter: { lat: number; lon: number } | null }]; stateExited: [] }>();
+const emit = defineEmits<{
+  stateSelected: [
+    state: { ars: string; name: string; prefix?: string | undefined; geoCenter: { lat: number; lon: number } | null },
+  ];
+  stateExited: [];
+}>();
 
 const { $stadtlandzahlAPI } = useNuxtApp();
 const runtimeConfig = useRuntimeConfig();
@@ -480,7 +503,9 @@ async function loadMunicipalities(stateArs: string) {
   } catch {
     try {
       municipalities.value = await $stadtlandzahlAPI.fetchMunicipalitiesInRegion(stateArs, 2);
-    } catch { /* Optional data or URL parsing may fail; retain the existing fallback. */ }
+    } catch {
+      /* Optional data or URL parsing may fail; retain the existing fallback. */
+    }
   } finally {
     municipalitiesLoading.value = false;
   }
@@ -494,9 +519,12 @@ function numericPopulation(value: unknown) {
 async function loadDirectusMunicipalityStatus(stateArs: string) {
   directusStatusByArs.value = {};
   try {
-    const { municipalities: items } = await $fetch('/api/public/area-municipalities', { query: { arsPrefix: stateArs.slice(0, 2) } });
+    const { municipalities: items } = await $fetch("/api/public/area-municipalities", {
+      query: { arsPrefix: stateArs.slice(0, 2) },
+    });
     const map: Record<string, string | null | undefined> = {};
-    for (const item of MunicipalitiesResponseSchema.parse({ municipalities: items }).municipalities) if (item.ars) map[item.ars] = item.status;
+    for (const item of MunicipalitiesResponseSchema.parse({ municipalities: items }).municipalities)
+      if (item.ars) map[item.ars] = item.status;
     directusStatusByArs.value = map;
   } catch {
     /* non-critical — falls back to neutral color */
@@ -781,7 +809,10 @@ function buildProjection(features: { geometry: { coordinates: unknown } }[]): Pr
     (SVG_W * (1 - 2 * pad)) / ((maxLon - minLon) * cosLat),
     (SVG_H * (1 - 2 * pad)) / (maxLat - minLat),
   );
-  return (lon: number, lat: number): [number, number] => [SVG_W / 2 + (lon - lonMid) * cosLat * scale, SVG_H / 2 - (lat - latMid) * scale];
+  return (lon: number, lat: number): [number, number] => [
+    SVG_W / 2 + (lon - lonMid) * cosLat * scale,
+    SVG_H / 2 - (lat - latMid) * scale,
+  ];
 }
 
 const germanyProjection = computed(() => {
@@ -1063,7 +1094,8 @@ function municipalityHoverObj(m: Area) {
     ars: m.ars,
     name: m.name,
     prefix: m.prefix,
-    scoreTotal: m.stadtlandklimaDataAll?.[0]?.scoreTotal == null ? null : Number(m.stadtlandklimaDataAll[0]?.scoreTotal),
+    scoreTotal:
+      m.stadtlandklimaDataAll?.[0]?.scoreTotal == null ? null : Number(m.stadtlandklimaDataAll[0]?.scoreTotal),
     color: info.color,
     statusLabel: info.label,
     population: m.population ?? null,
@@ -1088,13 +1120,16 @@ onMounted(() => {
   }
 });
 
-watch(() => props.initialStateArs, (ars) => {
-  if (!isGermany.value) return;
-  if (!ars && selectedState.value) {
-    exitStateView();
-  } else if (ars && selectedState.value?.ars !== ars) {
-    const state = states.value.find((item) => item.ars === ars);
-    if (state) enterStateView(state);
-  }
-});
+watch(
+  () => props.initialStateArs,
+  (ars) => {
+    if (!isGermany.value) return;
+    if (!ars && selectedState.value) {
+      exitStateView();
+    } else if (ars && selectedState.value?.ars !== ars) {
+      const state = states.value.find((item) => item.ars === ars);
+      if (state) enterStateView(state);
+    }
+  },
+);
 </script>

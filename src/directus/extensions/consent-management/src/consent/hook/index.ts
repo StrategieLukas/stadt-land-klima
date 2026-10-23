@@ -1,10 +1,10 @@
-import type { RegisterFunctions, HookExtensionContext, SchemaOverview } from '@directus/types';
+import type { RegisterFunctions, HookExtensionContext, SchemaOverview } from "@directus/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AgreementVersion {
   id: string;
-  type: 'terms_of_service' | 'data_protection' | 'newsletter';
+  type: "terms_of_service" | "data_protection" | "newsletter";
 }
 
 interface DirectusRole {
@@ -15,27 +15,27 @@ interface DirectusRole {
 // ─── Error ────────────────────────────────────────────────────────────────────
 
 class ConsentNotAcceptedError extends Error {
-  override name = 'DirectusError';
-  code = 'CONSENT_NOT_ACCEPTED';
+  override name = "DirectusError";
+  code = "CONSENT_NOT_ACCEPTED";
   status = 400;
 
   constructor() {
     super(
-      'Du musst die AGB und Datenschutzerklärung akzeptieren, um auf diese Inhalte zugreifen ' +
-      'zu können. Bitte akzeptiere die Vereinbarungen im Consent Management Modul.'
+      "Du musst die AGB und Datenschutzerklärung akzeptieren, um auf diese Inhalte zugreifen " +
+        "zu können. Bitte akzeptiere die Vereinbarungen im Consent Management Modul.",
     );
   }
 }
 
 class ConsentConfigurationError extends Error {
-  override name = 'DirectusError';
-  code = 'CONSENT_CONFIGURATION_ERROR';
+  override name = "DirectusError";
+  code = "CONSENT_CONFIGURATION_ERROR";
   status = 500;
 
   constructor() {
     super(
-      'Die aktuellen AGB oder die aktuelle Datenschutzerklärung sind nicht konfiguriert. ' +
-      'Bitte veröffentliche beide Versionen im Consent Management Modul.'
+      "Die aktuellen AGB oder die aktuelle Datenschutzerklärung sind nicht konfiguriert. " +
+        "Bitte veröffentliche beide Versionen im Consent Management Modul.",
     );
   }
 }
@@ -45,30 +45,34 @@ class ConsentConfigurationError extends Error {
 // Using a Set instead of an array makes the lookup O(1). Add any collection
 // that the consent flow itself needs to read (e.g. the module's own tables).
 
-const CONSENT_COLLECTIONS = new Set(['user_consent', 'agreement_versions']);
+const CONSENT_COLLECTIONS = new Set(["user_consent", "agreement_versions"]);
 
 // Role names whose members are exempt from the consent gate. Keep in sync with
 // your Directus role configuration.
-const EXEMPT_ROLE_NAMES = ['Administrator', 'Frontend', 'Frontend-Public', 'Frontend-Server', 'Frontend-Preview', 'frontend'] as const;
+const EXEMPT_ROLE_NAMES = [
+  "Administrator",
+  "Frontend",
+  "Frontend-Public",
+  "Frontend-Server",
+  "Frontend-Preview",
+  "frontend",
+] as const;
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export default (
-  { filter }: Pick<RegisterFunctions, 'filter'>,
-  { services }: HookExtensionContext
-) => {
+export default ({ filter }: Pick<RegisterFunctions, "filter">, { services }: HookExtensionContext) => {
   const { ItemsService } = services;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   async function getIgnoredRoleIds(schema: SchemaOverview): Promise<Set<string>> {
-    const rolesService = new ItemsService<DirectusRole>('directus_roles', {
+    const rolesService = new ItemsService<DirectusRole>("directus_roles", {
       accountability: null,
       schema,
     });
 
     const roles = (await rolesService.readByQuery({
-      fields: ['id'],
+      fields: ["id"],
       filter: { name: { _in: [...EXEMPT_ROLE_NAMES] } },
     })) as DirectusRole[];
 
@@ -76,34 +80,31 @@ export default (
   }
 
   async function getRequiredVersionIds(
-    schema: SchemaOverview
+    schema: SchemaOverview,
   ): Promise<{ agbId: string; dataProtectionId: string } | null> {
-    const versionsService = new ItemsService<AgreementVersion>('agreement_versions', {
+    const versionsService = new ItemsService<AgreementVersion>("agreement_versions", {
       accountability: null,
       schema,
     });
 
     const versions = (await versionsService.readByQuery({
       filter: { isCurrentVersion: { _eq: true } },
-      fields: ['id', 'type'],
+      fields: ["id", "type"],
       limit: -1,
     })) as AgreementVersion[];
 
-    const agb = versions.find((v) => v.type === 'terms_of_service');
-    const dp = versions.find((v) => v.type === 'data_protection');
+    const agb = versions.find((v) => v.type === "terms_of_service");
+    const dp = versions.find((v) => v.type === "data_protection");
 
     return agb && dp ? { agbId: agb.id, dataProtectionId: dp.id } : null;
   }
 
-  async function userHasAcceptedRequiredAgreements(
-    userId: string | number,
-    schema: SchemaOverview
-  ): Promise<boolean> {
+  async function userHasAcceptedRequiredAgreements(userId: string | number, schema: SchemaOverview): Promise<boolean> {
     const versionIds = await getRequiredVersionIds(schema);
 
     if (!versionIds) throw new ConsentConfigurationError();
 
-    const consentsService = new ItemsService('user_consent', {
+    const consentsService = new ItemsService("user_consent", {
       accountability: null,
       schema,
     });
@@ -113,7 +114,7 @@ export default (
         user_id: { _eq: userId },
         consent_target: { _in: [versionIds.agbId, versionIds.dataProtectionId] },
       },
-      fields: ['consent_target'],
+      fields: ["consent_target"],
       limit: 2,
     })) as { consent_target: string }[];
 
@@ -121,20 +122,15 @@ export default (
     return accepted.has(versionIds.agbId) && accepted.has(versionIds.dataProtectionId);
   }
 
-  async function isUserRoleExempt(
-    userId: string | number,
-    schema: SchemaOverview
-  ): Promise<boolean> {
+  async function isUserRoleExempt(userId: string | number, schema: SchemaOverview): Promise<boolean> {
     const [ignoredRoleIds, usersService] = await Promise.all([
       getIgnoredRoleIds(schema),
-      Promise.resolve(
-        new ItemsService('directus_users', { accountability: null, schema })
-      ),
+      Promise.resolve(new ItemsService("directus_users", { accountability: null, schema })),
     ]);
 
     // readOne throws if the user doesn't exist, which is the correct behaviour —
     // a missing user should not silently pass the consent gate.
-    const user = await usersService.readOne(userId as string, { fields: ['role'] });
+    const user = await usersService.readOne(userId as string, { fields: ["role"] });
     const roleId = user.role as string | undefined;
 
     return Boolean(roleId && ignoredRoleIds.has(roleId));
@@ -142,7 +138,7 @@ export default (
 
   // ── Filter registration ────────────────────────────────────────────────────
   //
-  const GATED_EVENTS = ['items.create', 'items.update', 'items.read'] as const;
+  const GATED_EVENTS = ["items.create", "items.update", "items.read"] as const;
 
   GATED_EVENTS.forEach((event) => {
     filter(event, async (items, meta, context) => {

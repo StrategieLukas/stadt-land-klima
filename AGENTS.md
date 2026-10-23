@@ -23,6 +23,7 @@ docker compose -f docker-compose.yaml exec directus /directus/cli/import-all.sh
 Create `src/directus/schema/fields/<collection>.<field>.yaml`. Follow the exact format of existing files — both `meta:` and `schema:` blocks are required.
 
 **Primary key gotcha:** If the table already exists, check `\d <table>` in psql to confirm the `id` type (UUID vs integer). The YAML `type` / `data_type` / `has_auto_increment` / `special` must match the actual DB column or the import will fail with:
+
 ```
 alter table "<table>" alter column "id" drop not null — column "id" is in a primary key
 ```
@@ -32,21 +33,23 @@ alter table "<table>" alter column "id" drop not null — column "id" is in a pr
 The frontend makes client-side requests with a static Bearer token (the **frontend** role). Server-side / unauthenticated requests use the **public** role.
 DO NOT EVER change the public.yaml permissions. Anything shown on the website is read with the frontend.yaml permissions.
 Edit the relevant files in `src/directus/roles/`:
+
 - `frontend.yaml` — client-side requests that include the frontend Bearer token
 
 **Template — add to the `permissions:` list in both files:**
 
 ```yaml
-  - collection: <collection_name>
-    action: read
-    permissions: {}   # no row-level filter = all rows
-    validation: {}
-    presets: null
-    fields:
-      - "*"
+- collection: <collection_name>
+  action: read
+  permissions: {} # no row-level filter = all rows
+  validation: {}
+  presets: null
+  fields:
+    - "*"
 ```
 
 Then run `import-all.sh`. Verify with:
+
 ```sql
 SELECT r.name, p.action, p.fields
 FROM directus_permissions p
@@ -54,35 +57,36 @@ LEFT JOIN directus_roles r ON p.role = r.id
 WHERE p.collection = '<collection_name>';
 ```
 
-
 ### Custom interface extensions
 
 Located in `src/directus/extensions/directus-extension-interface-<name>/`.
 
 After editing `src/interface.vue`, rebuild:
+
 ```bash
 cd src/directus/extensions/directus-extension-interface-<name>
 npm run build
 ```
 
 Then restart Directus to pick up the new `dist/index.js`:
+
 ```bash
 docker restart stadt-land-klima-directus-1
 ```
 
 Extensions use **Directus CSS theme variables** (not hardcoded hex) so they render correctly in both light and dark mode:
 
-| Purpose | Variable |
-|---|---|
-| Page background | `var(--theme--background)` |
-| Subdued background | `var(--theme--background-subdued)` |
-| Body text | `var(--theme--foreground)` |
-| Subdued text | `var(--theme--foreground-subdued)` |
-| Border | `var(--theme--border-color)` |
-| Primary accent | `var(--theme--primary)` |
-| Primary background tint | `var(--theme--primary-background)` |
-| Border radius | `var(--theme--border-radius)` |
-| Font family | `var(--theme--fonts--sans--font-family)` |
+| Purpose                 | Variable                                 |
+| ----------------------- | ---------------------------------------- |
+| Page background         | `var(--theme--background)`               |
+| Subdued background      | `var(--theme--background-subdued)`       |
+| Body text               | `var(--theme--foreground)`               |
+| Subdued text            | `var(--theme--foreground-subdued)`       |
+| Border                  | `var(--theme--border-color)`             |
+| Primary accent          | `var(--theme--primary)`                  |
+| Primary background tint | `var(--theme--primary-background)`       |
+| Border radius           | `var(--theme--border-radius)`            |
+| Font family             | `var(--theme--fonts--sans--font-family)` |
 
 ---
 
@@ -105,6 +109,7 @@ Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The
 **1. Component file** — `src/frontend/components/Blokkli/<Name>/index.vue`
 
 **2. `defineBlokkli()` + `defineProps`**
+
 - `bundle` must match the adapter key exactly.
 - `mockProps` must use explicit `return`: `mockProps: () => { return { ... } }` — arrow shorthand `() => ({...})` breaks the static regex parser.
 - `editTitle` receives the root DOM element: `el.textContent?.trim()`.
@@ -129,14 +134,17 @@ Block components live in `src/frontend/components/Blokkli/<Name>/index.vue`. The
 ### `BlokkliField` is a multi-root fragment
 
 Its `$el` is a Vue comment node, not an HTMLElement. To get the rendered DOM:
+
 - Put `ref` on a **wrapper element** around `<BlokkliField>`.
 - Access the container via `wrapper.firstElementChild`.
 
-----------
+---
+
 Ensure you obey common coding standards and do not reinvent the wheel for every new task.
 DO NOT update Directus beyond 11.17.4
 
 ## Key rules before implementing
+
 1. See src/frontend/tailwind.config.js for common colors and "Styleguide mobil"
 2. See src/frontend/plugins/directus.client.js for the client config
 3. Check any existing page for how directus requests are done properly in this version
@@ -164,15 +172,18 @@ DO NOT update Directus beyond 11.17.4
 FEATURES.md is the canonical inventory of application functionality and its regression coverage. Review and update it in the same change for every code, configuration, schema, permission, route, endpoint, extension, integration, workflow, or user-facing behavior change. Add rows for new functionality, remove or mark retired functionality, and keep implementation paths and exact test-flow references current. Every row must state whether it has targeted automated coverage, manual-only coverage, partial coverage, or no dedicated automated test; do not claim coverage merely because a page loads incidentally.
 
 ## Project structure:
+
 1. src/frontend - contains a NuxtJS/Vue/DaisyUI/Blokkli frontend
 2. src/directus - contains exports of the current directus config in .yaml files using the import/export scripts from src/directus/cli
 3. src/directus/extensions - our custom extensions. Compile with `npm install` and then `npm run build`.
 
 ## Applying changes for directus yamls
+
 1. After changing .yaml files for the directus schema, you must run ./import-all.sh from ./bin to apply these changes to the running container.
 2. The yamls are sorted to be in alphabetical order, ensure that you stick to this formatting.
 
 ## Text
+
 1. Ensure displayed text uses the proper symbols for the language, i.e. German uses proper Umlauts for ä ö ü ß and not ae/oe/ue/ss
 2. When gendered German text is used, prefer ":" over "*" as separator.
 3. Every Directus `string` or `text` field must set `meta.options.trim: true` whenever its interface exposes the trim option. The standard `input`, `input-multiline`, and custom `auto-slug` interfaces support it. Verify support before setting the option; do not add ignored options to interfaces that do not expose trimming.
@@ -183,20 +194,22 @@ FEATURES.md is the canonical inventory of application functionality and its regr
 See [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for tracked technical debt items, future upgrades, and items requiring follow-up. Key items:
 
 - **TypeScript 7 upgrade:** Currently on TypeScript 6.0.3, the newest stable compiler supported by typescript-eslint and Blökkli. Recheck their peer ranges and Vue tooling before upgrading to 7.x.
-- **Framework stack:** Nuxt 4.6.2 with Vite 8.3.5 and Blökkli 2.0.0-alpha.73. Keep platform bindings optional and preserve the Blökkli virtual-file Vite integration; see FRAMEWORK_UPGRADE_REVIEW.md.
-- **Permanent TypeScript gate:** No diagnostic baseline. `npm run typecheck` enforces strict app/server/shared/node and Vue checking, source coverage, `lint:types`, scripts and checked JS tooling. Keep new maintained sources in these gates; see PHASE_8_REVIEW.md.
+- **Framework stack:** Nuxt 4.6.2 with Vite 8.3.5 and Blökkli 2.0.0-alpha.73. Keep platform bindings optional and preserve the Blökkli virtual-file Vite integration; see SECURITY_HARDENING.md#framework-editor-and-typescript-phases.
+- **Permanent TypeScript gate:** No diagnostic baseline. `npm run typecheck` enforces strict app/server/shared/node and Vue checking, source coverage, `lint:types`, scripts and checked JS tooling. Keep new maintained sources in these gates; see SECURITY_HARDENING.md#framework-editor-and-typescript-phases.
 
 ## Rate limiting
 
 All API endpoints that write data (POST/PUT/PATCH/DELETE) or perform expensive operations must be rate limited. The configuration is centralized in `src/frontend/server/utils/rateLimitConfig.ts`.
 
 **When adding a new API endpoint:**
+
 1. Add a rate limit entry to `RATE_LIMIT_CONFIG` in `rateLimitConfig.ts`
 2. Call `rateLimit(event, 'your-key')` at the start of the endpoint handler
 3. Write endpoints use `max: 5, windowSeconds: 60`; expensive read endpoints use `max: 10`
 4. Simple cached reads may skip rate limiting
 
-See `SECURITY_REVIEW.md` S14 for context. The rate limiter uses Redis sorted sets with per-IP sliding windows.
+See [resource hardening](SECURITY_HARDENING.md#runtime-and-pinned-directus-safeguards) (original finding S14) for context. The rate limiter uses Redis sorted sets with per-IP sliding windows.
 
 ## Checks
+
 1. Run ./test_dev.sh in the bin folder and wait for checks to complete.

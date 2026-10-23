@@ -1,22 +1,22 @@
 <template>
   <div class="flex w-full justify-center">
-    <div class="relative flex w-full items-center justify-center cursor-pointer" style="height: 500px;">
-      <canvas ref="chartCanvas" style="width: 100%; height: 100%;"></canvas>
+    <div class="relative flex w-full cursor-pointer items-center justify-center" style="height: 500px">
+      <canvas ref="chartCanvas" style="width: 100%; height: 100%"></canvas>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { NumericValue } from '~/shared/domain';
+import type { NumericValue } from "~/shared/domain";
 
-import type { ChartData, ChartOptions, ScriptableContext } from 'chart.js';
-import { treemapDatum, type TreemapItem } from '~/shared/treemap';
-import type { PropType } from 'vue';
-import type { RatingsBySector } from '~/types/components/municipality';
+import type { ChartData, ChartOptions, ScriptableContext } from "chart.js";
+import { treemapDatum, type TreemapItem } from "~/shared/treemap";
+import type { PropType } from "vue";
+import type { RatingsBySector } from "~/types/components/municipality";
 
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-import { Chart, LinearScale } from 'chart.js';
-import { TreemapController, TreemapElement } from 'chartjs-chart-treemap';
+import { ref, onMounted, onBeforeUnmount, computed } from "vue";
+import { Chart, LinearScale } from "chart.js";
+import { TreemapController, TreemapElement } from "chartjs-chart-treemap";
 Chart.register(TreemapController, TreemapElement, LinearScale);
 const { $t, $translateDynamic } = useNuxtApp();
 
@@ -28,14 +28,14 @@ const props = defineProps({
   nameMunicipality: {
     type: String,
     required: true,
-  }
+  },
 });
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
-let chartInstance: Chart<'treemap'> | null = null;
+let chartInstance: Chart<"treemap"> | null = null;
 
 function cssColor(name: string, fallback: string) {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return fallback;
   }
 
@@ -50,14 +50,14 @@ function sectorName(sector: string) {
 // Transform data for treemap - use computed to ensure reactivity
 const treeData = computed(() => {
   const data: TreemapItem[] = [];
-  
+
   Object.entries(props.ratingsBySector).forEach(([sector, ratings]) => {
     ratings.forEach((item) => {
       // Only include applicable measures with weight
       if (item.applicable && Number(item.measure?.weight) > 0) {
         const rating = Number(item.rating) || 0;
         const weight = Number(item.measure.weight) || 0;
-        
+
         data.push({
           sector: sector,
           sectorName: sectorName(sector),
@@ -70,7 +70,7 @@ const treeData = computed(() => {
       }
     });
   });
-  
+
   return data;
 });
 
@@ -86,28 +86,27 @@ function getRatingString(rating: NumericValue) {
   } else if (rating == 1) {
     return $t("rating.completed");
   } else {
-    return String(rating ?? '');
+    return String(rating ?? "");
   }
 }
 
-function colorFromRaw(ctx: ScriptableContext<'treemap'>) {
+function colorFromRaw(ctx: ScriptableContext<"treemap">) {
   // check how many children the current node has
   // if more than 1, it's a group node
   // if zero children, it's a leaf node
   // return color based on rating
 
-  if (ctx.type !== 'data') {
-    return cssColor('--slk-surface', '#ffffff');
+  if (ctx.type !== "data") {
+    return cssColor("--slk-surface", "#ffffff");
   }
-  
 
   if (treemapDatum(ctx.raw).children.length > 1) {
     // it's a group
-    return cssColor('--slk-surface-muted', '#e5e7eb');
+    return cssColor("--slk-surface-muted", "#e5e7eb");
   }
 
   const item = treemapDatum(ctx.raw).children[0];
-  if (!item) return cssColor('--slk-surface', '#ffffff');
+  if (!item) return cssColor("--slk-surface", "#ffffff");
   if (item.rating == 0) {
     return "#E30613"; // red
   } else if (item.rating == 0.25) {
@@ -122,55 +121,57 @@ function colorFromRaw(ctx: ScriptableContext<'treemap'>) {
 }
 
 // Prepare chart data
-const chartData = computed<ChartData<'treemap'>>(() => ({
-  datasets: [{
-    data: [],
-    label: props.nameMunicipality,
-    tree: treeData.value,
-    key: 'value',
-    groups: ["sectorName", "measure_name"],
-    displayMode: "container_boxes",
-    spacing: 0.5,
-    borderWidth: 2,
-    borderColor: () => cssColor('--slk-surface', '#ffffff'),
-    backgroundColor: (ctx) => colorFromRaw(ctx),
-    labels: {
-      display: true,
-      formatter: (ctx) => {
-        if (!ctx.raw) return '';
+const chartData = computed<ChartData<"treemap">>(() => ({
+  datasets: [
+    {
+      data: [],
+      label: props.nameMunicipality,
+      tree: treeData.value,
+      key: "value",
+      groups: ["sectorName", "measure_name"],
+      displayMode: "container_boxes",
+      spacing: 0.5,
+      borderWidth: 2,
+      borderColor: () => cssColor("--slk-surface", "#ffffff"),
+      backgroundColor: (ctx) => colorFromRaw(ctx),
+      labels: {
+        display: true,
+        formatter: (ctx) => {
+          if (!ctx.raw) return "";
 
-        if (treemapDatum(ctx.raw).children.length > 1) {
-          // it's a group
-          return treemapDatum(ctx.raw).sectorName ?? '';
-        }
+          if (treemapDatum(ctx.raw).children.length > 1) {
+            // it's a group
+            return treemapDatum(ctx.raw).sectorName ?? "";
+          }
 
-        const item = treemapDatum(ctx.raw).children[0];
-        if (!item) return '';
-        
-        // Show sector name for groups, measure_id for leaves
-        if (item.measure_name) {
-          return item.measure_name;
-        }
-        return item.sectorName || '';
-      },
-      color: (ctx) => {
-        if (!ctx.raw || treemapDatum(ctx.raw).children.length > 1) {
-          return cssColor('--slk-text-strong', '#101820');
-        }
+          const item = treemapDatum(ctx.raw).children[0];
+          if (!item) return "";
 
-        const item = treemapDatum(ctx.raw).children[0];
-        return item?.rating === 0 ? '#ffffff' : '#101820';
+          // Show sector name for groups, measure_id for leaves
+          if (item.measure_name) {
+            return item.measure_name;
+          }
+          return item.sectorName || "";
+        },
+        color: (ctx) => {
+          if (!ctx.raw || treemapDatum(ctx.raw).children.length > 1) {
+            return cssColor("--slk-text-strong", "#101820");
+          }
+
+          const item = treemapDatum(ctx.raw).children[0];
+          return item?.rating === 0 ? "#ffffff" : "#101820";
+        },
+        font: {
+          size: 12,
+          weight: "bold",
+        },
+        overflow: "cut",
       },
-      font: {
-        size: 12,
-        weight: 'bold',
-      },
-      overflow: 'cut',
-    }
-  }]
+    },
+  ],
 }));
 
-const chartOptions: ChartOptions<'treemap'> = {
+const chartOptions: ChartOptions<"treemap"> = {
   responsive: true,
   maintainAspectRatio: false,
   onClick: (event, elements) => {
@@ -178,17 +179,16 @@ const chartOptions: ChartOptions<'treemap'> = {
       // sector clicked
       const element = elements[0]!;
       const item = treemapDatum(chartInstance?.data.datasets[element.datasetIndex]?.data[element.index]).children[0];
-      
+
       if (item && item.sectorName) {
         // Navigate to the measure by setting the hash
         window.location.hash = `sector-${item.sector}`;
       }
-    }
-    else if (elements.length == 2) {
+    } else if (elements.length == 2) {
       // measure clicked
       const element = elements[1]!;
       const item = treemapDatum(chartInstance?.data.datasets[element.datasetIndex]?.data[element.index]).children[0];
-      
+
       if (item && item.measure_id) {
         // Navigate to the measure by setting the hash
         window.location.hash = `measure-${item.measure_id}`;
@@ -201,18 +201,18 @@ const chartOptions: ChartOptions<'treemap'> = {
     },
     tooltip: {
       callbacks: {
-        title: function(context) {
+        title: function (context) {
           if (context.length == 1) {
             // it's a group
             return treemapDatum(context[0]?.raw).sectorName;
           }
           const ctx = context[1];
-          if (!ctx) return '';
+          if (!ctx) return "";
           const item = treemapDatum(ctx.raw).children[0];
-          if (!item) return '';
+          if (!item) return "";
           return item.measure_name;
         },
-        label: function(context) {
+        label: function (context) {
           // console.log("Tooltip context:", context);
           // if (context.type !== 'data') {
           //   return 'transparent';
@@ -222,8 +222,8 @@ const chartOptions: ChartOptions<'treemap'> = {
             return "";
           }
           const item = treemapDatum(context.raw).children[0];
-          if (!item) return '';
-          
+          if (!item) return "";
+
           const lines = [];
           if (item.measure_id) {
             lines.push(`ID: ${item.measure_id}`);
@@ -231,21 +231,21 @@ const chartOptions: ChartOptions<'treemap'> = {
             lines.push(`${$t("measure.weight")}: ${item.weight}`);
           }
           return lines;
-        }
+        },
       },
       displayColors: false,
-    }
-  }
+    },
+  },
 };
 
 onMounted(() => {
   if (chartCanvas.value && treeData.value.length > 0) {
-    const ctx = chartCanvas.value.getContext('2d');
+    const ctx = chartCanvas.value.getContext("2d");
     if (!ctx) return;
     chartInstance = new Chart(ctx, {
-      type: 'treemap',
+      type: "treemap",
       data: chartData.value,
-      options: chartOptions
+      options: chartOptions,
     });
   }
 });
@@ -257,5 +257,4 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,21 +1,21 @@
 <template>
   <div class="municipality-scores-publisher">
     <div v-if="!primaryKey || primaryKey === '+'" class="notice">
-      {{ $t('directus.interfaces.municipality_scores_publisher.save_municipality_first') }}
+      {{ $t("directus.interfaces.municipality_scores_publisher.save_municipality_first") }}
     </div>
 
     <div v-else-if="loading" class="state">
       <v-progress-circular indeterminate />
-      <span>{{ $t('directus.interfaces.municipality_scores_publisher.loading_scores') }}</span>
+      <span>{{ $t("directus.interfaces.municipality_scores_publisher.loading_scores") }}</span>
     </div>
 
     <div v-else-if="errorKey" class="notice danger">
       {{ $t(errorKey) }}
-      <button type="button" class="text-button" @click="loadScores">{{ $t('generic.try_again') }}</button>
+      <button type="button" class="text-button" @click="loadScores">{{ $t("generic.try_again") }}</button>
     </div>
 
     <div v-else-if="scores.length === 0" class="notice">
-      {{ $t('directus.interfaces.municipality_scores_publisher.no_scores') }}
+      {{ $t("directus.interfaces.municipality_scores_publisher.no_scores") }}
     </div>
 
     <div
@@ -25,10 +25,12 @@
       :aria-label="$t('directus.interfaces.municipality_scores_publisher.table_label')"
     >
       <div class="scores-row scores-header" role="row">
-        <div role="columnheader">{{ $t('directus.interfaces.municipality_scores_publisher.column.catalog_version') }}</div>
-        <div role="columnheader">{{ $t('directus.interfaces.municipality_scores_publisher.column.score') }}</div>
-        <div role="columnheader">{{ $t('directus.interfaces.municipality_scores_publisher.column.rated') }}</div>
-        <div role="columnheader">{{ $t('directus.interfaces.municipality_scores_publisher.column.published') }}</div>
+        <div role="columnheader">
+          {{ $t("directus.interfaces.municipality_scores_publisher.column.catalog_version") }}
+        </div>
+        <div role="columnheader">{{ $t("directus.interfaces.municipality_scores_publisher.column.score") }}</div>
+        <div role="columnheader">{{ $t("directus.interfaces.municipality_scores_publisher.column.rated") }}</div>
+        <div role="columnheader">{{ $t("directus.interfaces.municipality_scores_publisher.column.published") }}</div>
       </div>
 
       <div v-for="row in sortedScores" :key="row.id" class="scores-row" role="row">
@@ -49,18 +51,17 @@
             @change.stop="onPublishInput(row, $event)"
           />
           <span>
-            {{ row.published ? $t('directus.interfaces.municipality_scores_publisher.boolean.yes') : $t('directus.interfaces.municipality_scores_publisher.boolean.no') }}
+            {{
+              row.published
+                ? $t("directus.interfaces.municipality_scores_publisher.boolean.yes")
+                : $t("directus.interfaces.municipality_scores_publisher.boolean.no")
+            }}
           </span>
         </label>
       </div>
     </div>
 
-    <div
-      v-if="showUnverifiedDialog"
-      class="modal-backdrop"
-      role="presentation"
-      @click.self="closeUnverifiedDialog"
-    >
+    <div v-if="showUnverifiedDialog" class="modal-backdrop" role="presentation" @click.self="closeUnverifiedDialog">
       <div
         class="modal"
         role="dialog"
@@ -71,15 +72,15 @@
         <div class="modal-header">
           <v-icon name="lock" />
           <strong id="municipality-scores-publisher-unverified-title">
-            {{ $t('directus.interfaces.municipality_scores_publisher.unverified.title') }}
+            {{ $t("directus.interfaces.municipality_scores_publisher.unverified.title") }}
           </strong>
         </div>
         <p id="municipality-scores-publisher-unverified-message">
-          {{ $t('directus.interfaces.municipality_scores_publisher.unverified.message') }}
+          {{ $t("directus.interfaces.municipality_scores_publisher.unverified.message") }}
         </p>
         <div class="modal-actions">
           <button type="button" class="primary-button" @click="closeUnverifiedDialog">
-            {{ $t('generic.close') }}
+            {{ $t("generic.close") }}
           </button>
         </div>
       </div>
@@ -88,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, ref, watch, type Ref } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref, watch, type Ref } from "vue";
 
 defineOptions({ inheritAttrs: false });
 
@@ -99,7 +100,7 @@ type Api = {
   patch: <T = unknown>(path: string, data: Record<string, unknown>) => ApiResponse<T>;
 };
 
-type CatalogStatus = 'current' | 'future' | 'archive';
+type CatalogStatus = "current" | "future" | "archive";
 
 type CurrentUser = {
   id: string;
@@ -131,10 +132,10 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-  (event: 'input', value: ScoreRow[] | null): void;
+  (event: "input", value: ScoreRow[] | null): void;
 }>();
 
-const api = inject<Api>('api');
+const api = inject<Api>("api");
 const loading = ref(false);
 const errorKey: Ref<string | null> = ref(null);
 const scores: Ref<ScoreRow[]> = ref([]);
@@ -151,22 +152,26 @@ const sortedScores = computed(() => {
     const priorityA = catalogPriority(catalogA);
     const priorityB = catalogPriority(catalogB);
     if (priorityA !== priorityB) return priorityA - priorityB;
-    return catalogLabel(a).localeCompare(catalogLabel(b), 'de');
+    return catalogLabel(a).localeCompare(catalogLabel(b), "de");
   });
 });
 
-watch(() => props.primaryKey, () => loadScores(), { immediate: true });
+watch(
+  () => props.primaryKey,
+  () => loadScores(),
+  { immediate: true },
+);
 onMounted(() => {
   void ensureCurrentUserIsVerified();
-  window.addEventListener('keydown', onEscape);
+  window.addEventListener("keydown", onEscape);
 });
-onUnmounted(() => window.removeEventListener('keydown', onEscape));
+onUnmounted(() => window.removeEventListener("keydown", onEscape));
 function onEscape(event: KeyboardEvent): void {
-  if (event.key === 'Escape') closeUnverifiedDialog();
+  if (event.key === "Escape") closeUnverifiedDialog();
 }
 
 async function loadScores(): Promise<void> {
-  if (!api || !props.primaryKey || props.primaryKey === '+') {
+  if (!api || !props.primaryKey || props.primaryKey === "+") {
     scores.value = [];
     return;
   }
@@ -176,23 +181,23 @@ async function loadScores(): Promise<void> {
   try {
     const filter = encodeURIComponent(JSON.stringify({ municipality: { _eq: props.primaryKey } }));
     const fields = [
-      'id',
-      'published',
-      'score_total',
-      'score_points',
-      'score_max',
-      'percentage_rated',
-      'catalog_version.id',
-      'catalog_version.name',
-      'catalog_version.isCurrentFrontend',
-      'catalog_version.isCurrentBackend',
-      'catalog_version.date_created',
-    ].join(',');
+      "id",
+      "published",
+      "score_total",
+      "score_points",
+      "score_max",
+      "percentage_rated",
+      "catalog_version.id",
+      "catalog_version.name",
+      "catalog_version.isCurrentFrontend",
+      "catalog_version.isCurrentBackend",
+      "catalog_version.date_created",
+    ].join(",");
     const response = await api.get<ScoreRow[]>(`/items/municipality_scores?filter=${filter}&fields=${fields}&limit=-1`);
     scores.value = response.data?.data ?? [];
   } catch (err) {
-    console.error('[MunicipalityScoresPublisher] Failed to load scores:', err);
-    errorKey.value = 'directus.interfaces.municipality_scores_publisher.error_loading';
+    console.error("[MunicipalityScoresPublisher] Failed to load scores:", err);
+    errorKey.value = "directus.interfaces.municipality_scores_publisher.error_loading";
     scores.value = [];
   } finally {
     loading.value = false;
@@ -228,9 +233,9 @@ async function setPublished(row: ScoreRow, published: boolean): Promise<void> {
   try {
     await api.patch(`/items/municipality_scores/${row.id}`, { published });
   } catch (err) {
-    console.error('[MunicipalityScoresPublisher] Failed to update publication state:', err);
+    console.error("[MunicipalityScoresPublisher] Failed to update publication state:", err);
     row.published = previous;
-    errorKey.value = 'directus.interfaces.municipality_scores_publisher.error_saving';
+    errorKey.value = "directus.interfaces.municipality_scores_publisher.error_saving";
   } finally {
     row.saving = false;
   }
@@ -264,10 +269,10 @@ async function loadCurrentUserVerification(): Promise<boolean> {
   verificationLoading.value = true;
 
   try {
-    const response = await api.get<CurrentUser>('/users/me?fields=id,verified');
+    const response = await api.get<CurrentUser>("/users/me?fields=id,verified");
     currentUserVerified.value = response.data?.data?.verified === true;
   } catch (err) {
-    console.error('[MunicipalityScoresPublisher] Failed to load current user verification state:', err);
+    console.error("[MunicipalityScoresPublisher] Failed to load current user verification state:", err);
     currentUserVerified.value = false;
   } finally {
     verificationLoading.value = false;
@@ -280,8 +285,8 @@ function closeUnverifiedDialog(): void {
   showUnverifiedDialog.value = false;
 }
 
-function normalizeCatalog(catalog: ScoreRow['catalog_version']): CatalogVersion | null {
-  return typeof catalog === 'object' && catalog !== null ? catalog : null;
+function normalizeCatalog(catalog: ScoreRow["catalog_version"]): CatalogVersion | null {
+  return typeof catalog === "object" && catalog !== null ? catalog : null;
 }
 
 function catalogPriority(catalog: CatalogVersion | null): number {
@@ -292,9 +297,9 @@ function catalogPriority(catalog: CatalogVersion | null): number {
 
 function catalogStatus(row: ScoreRow): CatalogStatus {
   const catalog = normalizeCatalog(row.catalog_version);
-  if (catalog?.isCurrentFrontend) return 'current';
-  if (catalog?.isCurrentBackend) return 'future';
-  return 'archive';
+  if (catalog?.isCurrentFrontend) return "current";
+  if (catalog?.isCurrentBackend) return "future";
+  return "archive";
 }
 
 function catalogStatusLabelKey(row: ScoreRow): string {
@@ -325,11 +330,11 @@ function formatScore(row: ScoreRow): string {
 
 function formatNumber(value: string | number | null): string {
   const number = parseNumber(value);
-  return Number.isFinite(number) ? number.toFixed(1) : '0.0';
+  return Number.isFinite(number) ? number.toFixed(1) : "0.0";
 }
 
 function parseNumber(value: string | number | null): number {
-  return typeof value === 'number' ? value : Number.parseFloat(String(value ?? ''));
+  return typeof value === "number" ? value : Number.parseFloat(String(value ?? ""));
 }
 </script>
 

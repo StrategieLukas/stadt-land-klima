@@ -811,12 +811,18 @@ html[data-theme="staedteChallengeDark"] :where(.project-page, article) :where(h1
 html[data-theme="staedteChallengeDark"]
   .prose
   :where(p, li, blockquote, td, dd, figcaption):not(:where(.not-prose, .not-prose *)),
-html[data-theme="staedteChallengeDark"] :where(.project-page, article) :where(p, li, span, dd, figcaption):not(:where(.canonical-button, .canonical-button *)) {
+html[data-theme="staedteChallengeDark"]
+  :where(.project-page, article)
+  :where(p, li, span, dd, figcaption):not(:where(.canonical-button, .canonical-button *)) {
   color: var(--slk-text) !important;
 }
 
-html[data-theme="staedteChallengeDark"] .prose :where(a):not(:where(.not-prose, .not-prose *, .canonical-button, .canonical-button *)),
-html[data-theme="staedteChallengeDark"] :where(.project-page, article) a:not(:where(.canonical-button, .canonical-button *)) {
+html[data-theme="staedteChallengeDark"]
+  .prose
+  :where(a):not(:where(.not-prose, .not-prose *, .canonical-button, .canonical-button *)),
+html[data-theme="staedteChallengeDark"]
+  :where(.project-page, article)
+  a:not(:where(.canonical-button, .canonical-button *)) {
   color: var(--slk-blue) !important;
 }
 
@@ -1384,21 +1390,15 @@ html[data-theme="staedteChallengeDark"]
   background-color: var(--slk-green-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.bg-solid-very-light-blue-60, .bg-solid-stats-light-50) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.bg-solid-very-light-blue-60, .bg-solid-stats-light-50) {
   background-color: var(--slk-blue-tint) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.bg-solid-gray-05, .bg-solid-gray-10) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.bg-solid-gray-05, .bg-solid-gray-10) {
   background-color: var(--slk-surface-subdued) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.bg-solid-gray-20, .bg-solid-gray-30) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.bg-solid-gray-20, .bg-solid-gray-30) {
   background-color: var(--slk-surface-muted) !important;
 }
 
@@ -1434,21 +1434,15 @@ html[data-theme="staedteChallengeDark"]
   border-color: var(--slk-blue) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.text-solid-gray-50, .text-solid-gray-60) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.text-solid-gray-50, .text-solid-gray-60) {
   color: var(--slk-text-muted) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.text-solid-rating-4-60, .text-solid-rating-4-90) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.text-solid-rating-4-60, .text-solid-rating-4-90) {
   color: var(--slk-success-text) !important;
 }
 
-html[data-theme="staedteChallengeDark"]
-  .elections-flow
-  :where(.text-solid-stats-dark-60, .text-solid-stats-dark-80) {
+html[data-theme="staedteChallengeDark"] .elections-flow :where(.text-solid-stats-dark-60, .text-solid-stats-dark-80) {
   color: var(--slk-blue) !important;
 }
 

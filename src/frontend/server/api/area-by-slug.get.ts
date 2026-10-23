@@ -16,26 +16,26 @@ import { queryText, queryChoice } from "~/server/utils/publicQuery";
  */
 
 export default defineEventHandler(async (event) => {
-  const query = getQuery(event)
-  const slug = queryText(query.slug) ?? ''
-  const requireGeo = queryChoice(query.requireGeo, ['true', 'false']) === 'true'
-  const includeGeo = requireGeo || queryChoice(query.includeGeo, ['true', 'false']) === 'true'
+  const query = getQuery(event);
+  const slug = queryText(query.slug) ?? "";
+  const requireGeo = queryChoice(query.requireGeo, ["true", "false"]) === "true";
+  const includeGeo = requireGeo || queryChoice(query.includeGeo, ["true", "false"]) === "true";
   if (!slug.trim()) {
-    if (requireGeo) throw createError({ statusCode: 400, statusMessage: 'Area identifier is required' })
-    return null
+    if (requireGeo) throw createError({ statusCode: 400, statusMessage: "Area identifier is required" });
+    return null;
   }
 
   try {
-    const data = parseCms(AreaSchema, await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(slug)}/`))
+    const data = parseCms(AreaSchema, await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(slug)}/`));
     if (requireGeo && !data?.geo_area && !data?.geoArea) {
-      throw createError({ statusCode: 502, statusMessage: `Geometry missing for area ${slug}` })
+      throw createError({ statusCode: 502, statusMessage: `Geometry missing for area ${slug}` });
     }
-    if (!includeGeo && data && typeof data === 'object') {
-      return {...data, geo_area: undefined, geoArea: undefined}
+    if (!includeGeo && data && typeof data === "object") {
+      return { ...data, geo_area: undefined, geoArea: undefined };
     }
-    return data
+    return data;
   } catch (error) {
-    if (requireGeo) throw error
-    return null
+    if (requireGeo) throw error;
+    return null;
   }
-})
+});

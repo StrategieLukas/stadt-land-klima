@@ -7,5 +7,5 @@
   />
 </template>
 <script setup lang="ts">
-const {$t} = useNuxtApp();
+const { $t } = useNuxtApp();
 </script>

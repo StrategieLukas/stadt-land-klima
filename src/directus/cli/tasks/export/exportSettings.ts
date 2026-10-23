@@ -1,24 +1,24 @@
-import { readSettings } from '@directus/sdk';
-import fse from 'node:fs';
-import path from 'path';
-import { stringify } from 'yaml';
-import createDirectusClient from '../shared/createDirectusClient.ts';
-import type { TaskOptions } from '../shared/models.ts';
+import { readSettings } from "@directus/sdk";
+import fse from "node:fs";
+import path from "path";
+import { stringify } from "yaml";
+import createDirectusClient from "../shared/createDirectusClient.ts";
+import type { TaskOptions } from "../shared/models.ts";
 
 // Explicitly known sensitive fields that should NOT be exported to version control
 // These will be populated from environment variables during import
 const SENSITIVE_SETTINGS_FIELDS = [
-  'mapbox_key',
-  'ai_openai_api_key',
-  'ai_anthropic_api_key',
-  'ai_google_api_key',
-  'ai_openai_compatible_api_key',
-  'ai_openai_compatible_headers',
+  "mapbox_key",
+  "ai_openai_api_key",
+  "ai_anthropic_api_key",
+  "ai_google_api_key",
+  "ai_openai_compatible_api_key",
+  "ai_openai_compatible_headers",
   // Public branding assets that are managed separately
-  'project_logo',
-  'public_foreground',
-  'public_background',
-  'public_favicon',
+  "project_logo",
+  "public_foreground",
+  "public_background",
+  "public_favicon",
 ];
 
 // Wildcard pattern to catch any field containing "key" (case-insensitive)
@@ -73,7 +73,7 @@ async function exportSettings(dest: string, options: TaskOptions = {}) {
 
     fse.mkdirSync(dest, { recursive: true });
 
-    const destPath = path.join(dest, 'settings.yaml');
+    const destPath = path.join(dest, "settings.yaml");
 
     if (!options.overwrite && fse.existsSync(destPath)) {
       if (options.verbose) {
@@ -82,34 +82,26 @@ async function exportSettings(dest: string, options: TaskOptions = {}) {
       return;
     }
 
-    fse.writeFileSync(destPath, stringify(safeSettings), { encoding: 'utf8' });
+    fse.writeFileSync(destPath, stringify(safeSettings), { encoding: "utf8" });
 
     if (options.verbose) {
       console.info(`Exported setting ${destPath}`);
 
       // Count explicitly filtered fields
-      const explicitFilteredCount = SENSITIVE_SETTINGS_FIELDS.filter(
-        (f) => f in settings,
-      ).length;
+      const explicitFilteredCount = SENSITIVE_SETTINGS_FIELDS.filter((f) => f in settings).length;
 
       // Count wildcard-matched fields that were filtered
       const wildcardFilteredFields = Object.keys(settings).filter(
-        (fieldName) =>
-          !SENSITIVE_SETTINGS_FIELDS.includes(fieldName) &&
-          matchesWildcardPattern(fieldName),
+        (fieldName) => !SENSITIVE_SETTINGS_FIELDS.includes(fieldName) && matchesWildcardPattern(fieldName),
       );
       const wildcardFilteredCount = wildcardFilteredFields.length;
 
       const totalFiltered = explicitFilteredCount + wildcardFilteredCount;
       if (totalFiltered > 0) {
-        console.info(
-          `Filtered out ${totalFiltered} sensitive field(s) from export`,
-        );
+        console.info(`Filtered out ${totalFiltered} sensitive field(s) from export`);
         if (explicitFilteredCount > 0 && wildcardFilteredCount > 0) {
           console.info(`  - ${explicitFilteredCount} from explicit list`);
-          console.info(
-            `  - ${wildcardFilteredCount} from wildcard patterns (containing "key")`,
-          );
+          console.info(`  - ${wildcardFilteredCount} from wildcard patterns (containing "key")`);
         }
       }
     }

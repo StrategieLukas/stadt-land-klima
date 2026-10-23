@@ -17,14 +17,16 @@ export async function readPublicItems(
   const client = createDirectusServerClient();
   const rows: Record<string, unknown>[] = [];
   for (let offset = 0; offset <= maximum; offset += 1000) {
-    const page = await client.request(
-      readItems(collection, {
-        ...query,
-        sort: query.sort ?? ["id"],
-        limit: Math.min(1000, maximum + 1 - offset),
-        offset,
-      }),
-    ).then(cmsRows);
+    const page = await client
+      .request(
+        readItems(collection, {
+          ...query,
+          sort: query.sort ?? ["id"],
+          limit: Math.min(1000, maximum + 1 - offset),
+          offset,
+        }),
+      )
+      .then(cmsRows);
     rows.push(...page);
     if (rows.length > maximum) throw createError({ statusCode: 502, statusMessage: "Public data limit exceeded" });
     if (page.length < 1000) return rows;

@@ -9,26 +9,26 @@
         target="_blank"
         rel="noopener noreferrer"
       >
-        {{ $t('directus.fields.view_measure_on_frontend') }}
+        {{ $t("directus.fields.view_measure_on_frontend") }}
       </a>
     </div>
 
     <div v-if="!resolvedMeasureId" class="v-notice info">
       <v-icon name="info" />
       <div class="content">
-        <div class="title">{{ $t('directus.interfaces.no_measure_found_error') }}</div>
+        <div class="title">{{ $t("directus.interfaces.no_measure_found_error") }}</div>
       </div>
     </div>
 
     <div v-else-if="loading" class="loading-container">
       <v-progress-circular indeterminate />
-      <span class="loading-text">{{ $t('generic.loading') }}</span>
+      <span class="loading-text">{{ $t("generic.loading") }}</span>
     </div>
 
     <div v-else-if="error" class="v-notice danger">
       <v-icon name="error" />
       <div class="content">
-        <div class="title">{{ $t('error') }}</div>
+        <div class="title">{{ $t("error") }}</div>
         <div class="text">{{ error }}</div>
       </div>
     </div>
@@ -47,7 +47,7 @@
         <div v-if="fieldKey === RecommendedSearchQueriesField" class="field-content">
           <div v-if="recommendedSearchQueries.length > 0" class="search-query-content">
             <label class="search-engine-selector">
-              <span>{{ $t('directus.interfaces.measure_preview.search_engine') }}</span>
+              <span>{{ $t("directus.interfaces.measure_preview.search_engine") }}</span>
               <select v-model="selectedSearchEngineId">
                 <option v-for="engine in SearchEngines" :key="engine.id" :value="engine.id">
                   {{ engine.label }}
@@ -62,31 +62,32 @@
               </li>
             </ul>
           </div>
-          <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
+          <div v-else class="field-content empty">{{ $t("no_content_available") }}</div>
         </div>
-        <div v-else-if="measureData[fieldKey]" class="field-content" v-html="sanitizeMeasureHtml(measureData[fieldKey])" />
-        <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
+        <div
+          v-else-if="measureData[fieldKey]"
+          class="field-content"
+          v-html="sanitizeMeasureHtml(measureData[fieldKey])"
+        />
+        <div v-else class="field-content empty">{{ $t("no_content_available") }}</div>
       </div>
     </div>
 
     <div v-else class="v-notice warning">
       <v-icon name="warning" />
       <div class="content">
-        <div class="title">{{ $t('no_measure_data_available') }}</div>
+        <div class="title">{{ $t("no_measure_data_available") }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, inject, getCurrentInstance, type Ref } from 'vue';
-import DOMPurify from 'dompurify';
+import { ref, computed, watch, inject, getCurrentInstance, type Ref } from "vue";
+import DOMPurify from "dompurify";
 
 type Api = {
-  get: (
-    path: string,
-    config?: { params?: Record<string, string> },
-  ) => Promise<{ data?: { data?: unknown } }>;
+  get: (path: string, config?: { params?: Record<string, string> }) => Promise<{ data?: { data?: unknown } }>;
 };
 
 const props = defineProps<{
@@ -102,54 +103,53 @@ const props = defineProps<{
   } | null;
 }>();
 
-const RecommendedSearchQueriesField = 'recommended_search_queries';
+const RecommendedSearchQueriesField = "recommended_search_queries";
 
 const SearchEngines = [
   {
-    id: 'ecosia',
-    label: 'Ecosia',
+    id: "ecosia",
+    label: "Ecosia",
     searchUrl: (query: string) => `https://www.ecosia.org/search?q=${encodeURIComponent(query)}`,
   },
   {
-    id: 'duckduckgo',
-    label: 'DuckDuckGo',
+    id: "duckduckgo",
+    label: "DuckDuckGo",
     searchUrl: (query: string) => `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
   },
   {
-    id: 'brave',
-    label: 'Brave',
+    id: "brave",
+    label: "Brave",
     searchUrl: (query: string) => `https://search.brave.com/search?q=${encodeURIComponent(query)}`,
   },
   {
-    id: 'startpage',
-    label: 'Startpage',
+    id: "startpage",
+    label: "Startpage",
     searchUrl: (query: string) => `https://www.startpage.com/sp/search?query=${encodeURIComponent(query)}`,
   },
   {
-    id: 'google',
-    label: 'Google',
+    id: "google",
+    label: "Google",
     searchUrl: (query: string) => `https://www.google.com/search?q=${encodeURIComponent(query)}`,
   },
 ];
 
-const api = inject<Api>('api');
+const api = inject<Api>("api");
 
 // ─── Derived config ───────────────────────────────────────────────────────────
 
 /** The field on the parent item that holds the measure ID */
-const measureField = computed(() =>
-  props.options?.measure_field ?? props.measure_field ?? 'measure_id'
-);
+const measureField = computed(() => props.options?.measure_field ?? props.measure_field ?? "measure_id");
 
 /** Fields from the measure record to render in the preview */
-const fieldsToDisplay = computed(() =>
+const fieldsToDisplay = computed(
+  () =>
     props.options?.fields_to_display ??
     props.fields_to_display ?? [
-      'description_about',
-      'description_evaluation_criteria',
-      'description_verification',
+      "description_about",
+      "description_evaluation_criteria",
+      "description_verification",
       RecommendedSearchQueriesField,
-    ]
+    ],
 );
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -164,13 +164,13 @@ const selectedSearchEngineId: Ref<string> = ref(SearchEngines[0].id);
 const hasMeasureData = computed(() => Object.keys(measureData.value).length > 0);
 
 function sanitizeMeasureHtml(value: unknown): string {
-  if (typeof value !== 'string') return '';
-  return DOMPurify.sanitize(value, { ADD_ATTR: ['target', 'rel', 'download'] });
+  if (typeof value !== "string") return "";
+  return DOMPurify.sanitize(value, { ADD_ATTR: ["target", "rel", "download"] });
 }
 const recommendedSearchQueries = computed(() =>
   parseSearchQueries(measureData.value[RecommendedSearchQueriesField])
     .map(replaceMunicipalityPlaceholder)
-    .filter((query, index, queries) => queries.indexOf(query) === index)
+    .filter((query, index, queries) => queries.indexOf(query) === index),
 );
 
 // ─── Watchers ─────────────────────────────────────────────────────────────────
@@ -194,13 +194,13 @@ async function ensureMeasureLoaded(): Promise<void> {
   const pk = props.primaryKey ?? null;
   const boundValue = props.value ?? null;
 
-  if (pk && pk !== '+') {
+  if (pk && pk !== "+") {
     let parentItem: Record<string, unknown> = {};
     try {
       parentItem = await fetchParentItem(pk);
       municipalityName.value = extractMunicipalityName(parentItem);
     } catch (err) {
-      console.error('[MeasurePreview] Error fetching parent item:', err);
+      console.error("[MeasurePreview] Error fetching parent item:", err);
       municipalityName.value = null;
       if (props.field !== measureField.value) {
         measureData.value = {};
@@ -248,7 +248,7 @@ async function ensureMeasureLoaded(): Promise<void> {
 async function fetchParentItem(pk: string | number): Promise<Record<string, unknown>> {
   const resp = await api?.get(`/items/${props.collection}/${pk}`, {
     params: {
-      fields: '*,localteam_id.municipality_name,localteam_id.municipality_id.name',
+      fields: "*,localteam_id.municipality_name,localteam_id.municipality_id.name",
     },
   });
   return (resp?.data?.data as Record<string, unknown>) ?? {};
@@ -259,12 +259,12 @@ async function fetchMeasure(id: string | number): Promise<void> {
   loading.value = true;
   error.value = null;
   try {
-    const fields = [...new Set([...fieldsToDisplay.value, 'sector', 'slug', 'measure_id'])].join(',');
+    const fields = [...new Set([...fieldsToDisplay.value, "sector", "slug", "measure_id"])].join(",");
     const response = await api.get(`/items/measures/${id}`, { params: { fields } });
     measureData.value = (response?.data?.data as Record<string, unknown>) ?? {};
   } catch (err) {
-    console.error('[MeasurePreview] Error fetching measure:', err);
-    error.value = (err as Error)?.message || 'Failed to fetch measure';
+    console.error("[MeasurePreview] Error fetching measure:", err);
+    error.value = (err as Error)?.message || "Failed to fetch measure";
     measureData.value = {};
   } finally {
     loading.value = false;
@@ -275,7 +275,7 @@ function parseSearchQueries(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.map((item) => String(item));
   }
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return [];
   }
 
@@ -284,7 +284,7 @@ function parseSearchQueries(value: unknown): string[] {
     return [];
   }
 
-  if (trimmed.startsWith('[')) {
+  if (trimmed.startsWith("[")) {
     try {
       const parsed = JSON.parse(trimmed) as unknown;
       if (Array.isArray(parsed)) {
@@ -297,7 +297,12 @@ function parseSearchQueries(value: unknown): string[] {
 
   return trimmed
     .split(/\r?\n/)
-    .map((line) => line.trim().replace(/^[-*]\s+/, '').replace(/^\d+\.\s+/, ''))
+    .map((line) =>
+      line
+        .trim()
+        .replace(/^[-*]\s+/, "")
+        .replace(/^\d+\.\s+/, ""),
+    )
     .filter((line) => line.length > 0);
 }
 
@@ -314,21 +319,17 @@ function searchUrlFor(query: string): string {
 function extractMunicipalityName(item: Record<string, unknown>): string | null {
   const localteam = asRecord(item.localteam_id);
   const localteamName = localteam?.municipality_name;
-  if (typeof localteamName === 'string' && localteamName.trim()) {
+  if (typeof localteamName === "string" && localteamName.trim()) {
     return localteamName;
   }
 
   const municipality = firstRecord(localteam?.municipality_id);
   const municipalityName = municipality?.name;
-  return typeof municipalityName === 'string' && municipalityName.trim()
-    ? municipalityName
-    : null;
+  return typeof municipalityName === "string" && municipalityName.trim() ? municipalityName : null;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : null;
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 }
 
 function firstRecord(value: unknown): Record<string, unknown> | null {
@@ -345,13 +346,12 @@ function getFieldLabel(fieldKey: string): string {
   // $t is injected globally by Directus — not available in script setup directly,
   // so we use getCurrentInstance as a fallback-safe approach.
   const $t = (getCurrentInstance() as any)?.appContext?.config?.globalProperties?.$t;
-  if (typeof $t === 'function') {
+  if (typeof $t === "function") {
     const translation = $t(translationKey);
     if (translation && translation !== translationKey) return translation;
   }
-  return fieldKey.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return fieldKey.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
-
 </script>
 
 <style scoped>

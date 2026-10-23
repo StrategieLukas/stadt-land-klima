@@ -1,17 +1,12 @@
-import { readRoles } from '@directus/sdk';
-import find from 'lodash/find.js';
-import pg from 'pg';
-import type { CliClient, NamedRecord, TaskOptions } from './models.ts';
+import { readRoles } from "@directus/sdk";
+import find from "lodash/find.js";
+import pg from "pg";
+import type { CliClient, NamedRecord, TaskOptions } from "./models.ts";
 
 const { Pool } = pg;
 
 function hasDatabaseConfig() {
-  return Boolean(
-    process.env.DB_DATABASE &&
-    process.env.DB_HOST &&
-    process.env.DB_PASSWORD &&
-    process.env.DB_USER,
-  );
+  return Boolean(process.env.DB_DATABASE && process.env.DB_HOST && process.env.DB_PASSWORD && process.env.DB_USER);
 }
 
 function createPool() {
@@ -30,30 +25,23 @@ async function readRoleByNameFromDatabase(roleName: string, verbose = false) {
   const pool = createPool();
 
   try {
-    const result = await pool.query<NamedRecord>(
-      'SELECT id, name FROM directus_roles WHERE name = $1',
-      [roleName],
-    );
+    const result = await pool.query<NamedRecord>("SELECT id, name FROM directus_roles WHERE name = $1", [roleName]);
 
     if (result.rows.length > 1) {
-      const ids = result.rows.map((row) => row.id).join(', ');
-      throw new Error(
-        `Duplicate Directus role names found in database: "${roleName}" (${ids})`,
-      );
+      const ids = result.rows.map((row) => row.id).join(", ");
+      throw new Error(`Duplicate Directus role names found in database: "${roleName}" (${ids})`);
     }
 
     return result.rows[0] || null;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
 
-    if (message.startsWith('Duplicate Directus role names')) {
+    if (message.startsWith("Duplicate Directus role names")) {
       throw err;
     }
 
     if (verbose) {
-      console.warn(
-        `Could not resolve role ${roleName} directly from the database: ${message}`,
-      );
+      console.warn(`Could not resolve role ${roleName} directly from the database: ${message}`);
     }
     return null;
   } finally {
@@ -61,16 +49,10 @@ async function readRoleByNameFromDatabase(roleName: string, verbose = false) {
   }
 }
 
-async function readRoleByNameFromApi(
-  client: CliClient,
-  roleName: string,
-  roles: NamedRecord[] = [],
-) {
-  const availableRoles = roles.length
-    ? roles
-    : await client.request(readRoles({ limit: -1, fields: ['id', 'name'] }));
+async function readRoleByNameFromApi(client: CliClient, roleName: string, roles: NamedRecord[] = []) {
+  const availableRoles = roles.length ? roles : await client.request(readRoles({ limit: -1, fields: ["id", "name"] }));
 
-  return find(availableRoles, ['name', roleName]) || null;
+  return find(availableRoles, ["name", roleName]) || null;
 }
 
 async function resolveRoleByName(
@@ -79,15 +61,12 @@ async function resolveRoleByName(
   roles: NamedRecord[] = [],
   options: TaskOptions = {},
 ) {
-  if (roleName === 'Public') {
-    return { id: null, name: 'Public' };
+  if (roleName === "Public") {
+    return { id: null, name: "Public" };
   }
 
   const apiRole = await readRoleByNameFromApi(client, roleName, roles);
-  const databaseRole = await readRoleByNameFromDatabase(
-    roleName,
-    options.verbose,
-  );
+  const databaseRole = await readRoleByNameFromDatabase(roleName, options.verbose);
 
   if (databaseRole) {
     if (apiRole?.id && apiRole.id !== databaseRole.id) {

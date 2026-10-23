@@ -1,11 +1,23 @@
 <template>
   <main class="stats-page container mx-auto px-4 py-8">
     <header class="mb-10">
-      <h1 class="mb-4 font-heading text-4xl font-black text-orange sm:text-6xl">{{ $t('stats.title') }}</h1>
-      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t('stats.hero.description') }}</p>
+      <h1 class="mb-4 font-heading text-4xl font-black text-orange sm:text-6xl">{{ $t("stats.title") }}</h1>
+      <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("stats.hero.description") }}</p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <CanonicalButton :label="$t('stats.measures.title')" href="#massnahmenstatistiken" icon-slug="mdi:chart-box-outline" color="orange" text-color="white" />
-        <CanonicalButton :label="$t('stats.view_ranking')" href="/municipalities" icon-slug="mdi:format-list-bulleted" color="orange" text-color="white" />
+        <CanonicalButton
+          :label="$t('stats.measures.title')"
+          href="#massnahmenstatistiken"
+          icon-slug="mdi:chart-box-outline"
+          color="orange"
+          text-color="white"
+        />
+        <CanonicalButton
+          :label="$t('stats.view_ranking')"
+          href="/municipalities"
+          icon-slug="mdi:format-list-bulleted"
+          color="orange"
+          text-color="white"
+        />
       </div>
     </header>
     <p v-if="statsError" role="alert">{{ $t("generic.technical_error") }}</p>
@@ -698,7 +710,12 @@
                   <label class="whitespace-nowrap text-sm font-semibold">k =</label>
                   <input v-model.number="kClusters" type="range" min="2" max="10" class="range range-sm w-28" />
                   <span class="w-4 text-sm font-bold">{{ kClusters }}</span>
-                  <CanonicalButton class="ml-2" :label="$t('stats.analysis.start')" color="orange" @click="computeClusteringAndRender" />
+                  <CanonicalButton
+                    class="ml-2"
+                    :label="$t('stats.analysis.start')"
+                    color="orange"
+                    @click="computeClusteringAndRender"
+                  />
                 </div>
               </div>
               <!-- Methodology note -->
@@ -802,7 +819,9 @@
           <div class="mb-8 rounded-sm bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.network") }}</h3>
             <p class="text-gray-500 mb-2 text-xs">{{ $t("stats.dominance.network.description") }}</p>
-            <p class="text-gray-400 mb-3 text-xs"><span v-html="sanitizeHtml($t('stats.dominance.network.note'))"></span></p>
+            <p class="text-gray-400 mb-3 text-xs">
+              <span v-html="sanitizeHtml($t('stats.dominance.network.note'))"></span>
+            </p>
             <div ref="dominanceForceContainer" class="w-full" style="min-height: 700px"></div>
           </div>
         </div>
@@ -830,13 +849,31 @@ import { getAllCatalogVersions } from "~/composables/getAllCatalogVersions";
 import sectorImages from "~/shared/sectorImages";
 import { isMunicipalityScoreComplete, isMunicipalityScorePublished } from "~/shared/municipality-score-publishing";
 type Measure = Statistics["measures"][number];
-type MunicipalitySummary = {id: string; name: string; slug: string; score_total?: number | null | undefined};
-type SectorStats = {sectorKey: Sector; sectorName: string; measures: Record<string, Pick<Measure, "id" | "measure_id" | "name" | "slug"> & {ratings: Record<string, MunicipalitySummary[]>}>};
-type Selection = {type: null; sectorKey: null; measureId: null; label: string} | {type: "sector"; sectorKey: Sector; measureId: null; label: string} | {type: "measure"; sectorKey: Sector; measureId: string; label: string};
-type PanelFilter = {active: boolean; label: string; type: "measure-rating" | "sector-bin" | "global-bin" | null; measureId: string | null; ratingKey: string | null; sectorKey: Sector | null; binRange: [number, number] | null};
-type ClusterRow = {name: string; slug: string; x: number; y: number; scoreTotal: string; cluster: string};
-type ForceNode = SimulationNodeDatum & {id: string; rank: number; name: string; winRate: number};
-type ForceLink = SimulationLinkDatum<ForceNode> & {dominance: number; rate: number};
+type MunicipalitySummary = { id: string; name: string; slug: string; score_total?: number | null | undefined };
+type SectorStats = {
+  sectorKey: Sector;
+  sectorName: string;
+  measures: Record<
+    string,
+    Pick<Measure, "id" | "measure_id" | "name" | "slug"> & { ratings: Record<string, MunicipalitySummary[]> }
+  >;
+};
+type Selection =
+  | { type: null; sectorKey: null; measureId: null; label: string }
+  | { type: "sector"; sectorKey: Sector; measureId: null; label: string }
+  | { type: "measure"; sectorKey: Sector; measureId: string; label: string };
+type PanelFilter = {
+  active: boolean;
+  label: string;
+  type: "measure-rating" | "sector-bin" | "global-bin" | null;
+  measureId: string | null;
+  ratingKey: string | null;
+  sectorKey: Sector | null;
+  binRange: [number, number] | null;
+};
+type ClusterRow = { name: string; slug: string; x: number; y: number; scoreTotal: string; cluster: string };
+type ForceNode = SimulationNodeDatum & { id: string; rank: number; name: string; winRate: number };
+type ForceLink = SimulationLinkDatum<ForceNode> & { dominance: number; rate: number };
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
@@ -864,7 +901,7 @@ function vegaEmbedOpts(extra: EmbedOptions = {}): EmbedOptions {
   return {
     ast: true,
     defaultStyle: false,
-      tooltip: {disableDefaultStyle: true},
+    tooltip: { disableDefaultStyle: true },
     renderer: "svg",
     actions: false,
     ...extra,
@@ -888,7 +925,10 @@ const municipalityNameCollator = new Intl.Collator("de-DE", {
   sensitivity: "base",
 });
 
-function compareByScoreThenName(a: {score_total?: number | null | undefined; name?: string | undefined}, b: {score_total?: number | null | undefined; name?: string | undefined}) {
+function compareByScoreThenName(
+  a: { score_total?: number | null | undefined; name?: string | undefined },
+  b: { score_total?: number | null | undefined; name?: string | undefined },
+) {
   const scoreDifference = (b.score_total ?? 0) - (a.score_total ?? 0);
   if (scoreDifference !== 0) return scoreDifference;
   return municipalityNameCollator.compare(a.name ?? "", b.name ?? "");
@@ -934,7 +974,8 @@ const sectorStats = computed(() => {
   const localteamToMunicipality: Record<string, MunicipalitySummary> = {};
   filteredMunScores.value.forEach((ms) => {
     const mun = ms.municipality;
-    if (mun?.localteam_id) localteamToMunicipality[mun.localteam_id?.id] = { id: mun.id, name: mun.name, slug: mun.slug };
+    if (mun?.localteam_id)
+      localteamToMunicipality[mun.localteam_id?.id] = { id: mun.id, name: mun.name, slug: mun.slug };
   });
 
   const sectorData: Partial<Record<Sector, SectorStats>> = {};
@@ -1003,7 +1044,13 @@ const panelMunFilter = ref<PanelFilter>({
   binRange: null,
 });
 // Cluster profile panel
-const clusterProfile = ref<{clusterLabel: string | null; count: number; avgTotal: string; sectorMeans: Partial<Record<Sector, number>>; municipalities: {name: string; slug: string}[]}>({ clusterLabel: null, count: 0, avgTotal: "–", sectorMeans: {}, municipalities: [] });
+const clusterProfile = ref<{
+  clusterLabel: string | null;
+  count: number;
+  avgTotal: string;
+  sectorMeans: Partial<Record<Sector, number>>;
+  municipalities: { name: string; slug: string }[];
+}>({ clusterLabel: null, count: 0, avgTotal: "–", sectorMeans: {}, municipalities: [] });
 // Raw cluster data for profile lookup (populated after computeClusteringAndRender)
 const clusterData = ref<ClusterRow[]>([]);
 
@@ -1055,7 +1102,9 @@ const ratingLabelsMap: Record<string, string> = {
   1: $t("rating.fullfilled"),
 };
 
-function parseNumber(value: number | string | null | undefined) { return value == null ? NaN : Number.parseFloat(String(value)); }
+function parseNumber(value: number | string | null | undefined) {
+  return value == null ? NaN : Number.parseFloat(String(value));
+}
 function getRatingKeys() {
   return selectedCatalogVersion.value.name === "beta"
     ? ["-1", "0", "0.25", "0.75", "1"]
@@ -1279,13 +1328,13 @@ const meanMeasureRatings = computed(() => {
 
 // ── Data fetching ────────────────────────────────────────────────────────────
 async function fetchStatsForCatalog(catalogVersionId: string) {
-  const catalog = catalogVersions.value.find(version => version.id === catalogVersionId);
-  if (!catalog) throw new Error('Catalog not found');
+  const catalog = catalogVersions.value.find((version) => version.id === catalogVersionId);
+  if (!catalog) throw new Error("Catalog not found");
   const result = await $fetch(`/api/public/stats/${encodeURIComponent(catalog.name)}`);
   return { ...result, municipalityScores: result.scores };
 }
 
-const statsData = ref<(Statistics & {municipalityScores: Statistics["scores"]}) | null>(null);
+const statsData = ref<(Statistics & { municipalityScores: Statistics["scores"] }) | null>(null);
 const statsLoading = ref(true);
 const statsError = ref(false);
 let statsGeneration = 0;
@@ -1297,7 +1346,10 @@ async function refreshStatistics(catalogId: string) {
     const result = await fetchStatsForCatalog(catalogId);
     if (generation === statsGeneration) statsData.value = result;
   } catch {
-    if (generation === statsGeneration) { statsData.value = null; statsError.value = true; }
+    if (generation === statsGeneration) {
+      statsData.value = null;
+      statsError.value = true;
+    }
   } finally {
     if (generation === statsGeneration) statsLoading.value = false;
   }
@@ -1317,8 +1369,17 @@ async function renderSunburst() {
     if (!statsData.value?.measures?.length) return;
     const { measures } = statsData.value;
     const mmr = meanMeasureRatings.value;
-    const innerRows: {name: string; theta: number; meanRating: number; order: number; sectorKey: Sector}[] = [];
-    const outerRows: {name: string; sectorName: string; theta: number; meanRatingDisplay: number; meanRating: number | null | undefined; order: number; measureId: string; sectorKey: Sector}[] = [];
+    const innerRows: { name: string; theta: number; meanRating: number; order: number; sectorKey: Sector }[] = [];
+    const outerRows: {
+      name: string;
+      sectorName: string;
+      theta: number;
+      meanRatingDisplay: number;
+      meanRating: number | null | undefined;
+      order: number;
+      measureId: string;
+      sectorKey: Sector;
+    }[] = [];
     sectorOrder.forEach((sKey, si) => {
       const sector = sectorStats.value.find((s) => s.sectorKey === sKey);
       if (!sector) return;
@@ -1446,7 +1507,10 @@ async function renderSunburst() {
       resolve: { scale: { theta: "independent", color: "independent" } },
     };
     const result = await vegaEmbed(sunburstContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
-    if (!sunburstContainer.value) { result.view.finalize(); return; }
+    if (!sunburstContainer.value) {
+      result.view.finalize();
+      return;
+    }
     vegaViewSunburst = result.view;
 
     // Click handler: update selection, re-render sunburst with highlight + dist panel
@@ -1564,7 +1628,10 @@ async function renderDistPanel() {
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
-    if (!distPanelContainer.value) { res.view.finalize(); return; }
+    if (!distPanelContainer.value) {
+      res.view.finalize();
+      return;
+    }
     vegaViewDist = res.view;
     res.view.addEventListener("click", (_e, item) => {
       if (!item?.datum) return;
@@ -1654,7 +1721,10 @@ async function renderDistPanel() {
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
-    if (!distPanelContainer.value) { res.view.finalize(); return; }
+    if (!distPanelContainer.value) {
+      res.view.finalize();
+      return;
+    }
     vegaViewDist = res.view;
     // Click on a bin: filter municipality list to that bin
     res.view.addEventListener("click", (_e, item) => {
@@ -1724,7 +1794,10 @@ async function renderDistPanel() {
       },
     };
     const res = await vegaEmbed(distPanelContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
-    if (!distPanelContainer.value) { res.view.finalize(); return; }
+    if (!distPanelContainer.value) {
+      res.view.finalize();
+      return;
+    }
     vegaViewDist = res.view;
     // Click on a bar: filter municipality list to that rating
     res.view.addEventListener("click", (_e, item) => {
@@ -1886,7 +1959,7 @@ async function computeDominanceAndRender() {
 
     // matrixValue(wins, i, j) = #measures where municipality i beat j
     // matrixValue(compared, i, j) = #measures where both had a valid rating
-    const {wins, compared} = pairwiseDominance(ratingArrays, N);
+    const { wins, compared } = pairwiseDominance(ratingArrays, N);
 
     // Win rate per municipality
     const winRates = Array.from({ length: N }, (_, i) => {
@@ -1914,7 +1987,7 @@ async function computeDominanceAndRender() {
     // Top 40 for heatmap, sorted by win rate → topNames defines display order
     const topN = Math.min(40, N);
     const topIdx = sortedIdx.slice(0, topN);
-    const topNames = topIdx.map(i => names[i] ?? "");
+    const topNames = topIdx.map((i) => names[i] ?? "");
 
     const heatmapData = [];
     for (let ii = 0; ii < topN; ii++) {
@@ -1975,7 +2048,10 @@ async function computeDominanceAndRender() {
     };
 
     const r1 = await vegaEmbed(dominanceRankContainer.value, themedVegaSpec(rankSpec), vegaEmbedOpts());
-    if (!dominanceRankContainer.value) { r1.view.finalize(); return; }
+    if (!dominanceRankContainer.value) {
+      r1.view.finalize();
+      return;
+    }
     vegaViewDominance = r1.view;
 
     // ── Dominance heatmap ──────────────────────────────────────────────────────
@@ -2023,7 +2099,10 @@ async function computeDominanceAndRender() {
     };
 
     const r2 = await vegaEmbed(dominanceHeatmapContainer.value, themedVegaSpec(heatSpec), vegaEmbedOpts());
-    if (!dominanceHeatmapContainer.value) { r2.view.finalize(); return; }
+    if (!dominanceHeatmapContainer.value) {
+      r2.view.finalize();
+      return;
+    }
     vegaViewDominanceHeatmap = r2.view;
 
     // ── Force-directed graph ──────────────────────────────────────────────────
@@ -2237,8 +2316,8 @@ async function computeClusteringAndRender() {
     const pca = new PCA(matrix, { center: true, scale: false });
     const projected = pca.predict(matrix, { nComponents: 2 }).to2DArray();
 
-    const points = projected.map(row => ({x: row[0] ?? NaN, y: row[1] ?? NaN}));
-    if (points.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) throw new Error("Invalid PCA projection");
+    const points = projected.map((row) => ({ x: row[0] ?? NaN, y: row[1] ?? NaN }));
+    if (points.some((p) => !Number.isFinite(p.x) || !Number.isFinite(p.y))) throw new Error("Invalid PCA projection");
     const clusterLabels = kMeans(points, kClusters.value);
 
     const palette = [
@@ -2298,7 +2377,10 @@ async function computeClusteringAndRender() {
     if (!clusterContainer.value) return;
     clusterContainer.value.innerHTML = "";
     const result = await vegaEmbed(clusterContainer.value, themedVegaSpec(spec), vegaEmbedOpts());
-    if (!clusterContainer.value) { result.view.finalize(); return; }
+    if (!clusterContainer.value) {
+      result.view.finalize();
+      return;
+    }
     vegaViewCluster = result.view;
 
     // Store rows for profile lookup — keep slug for sector-score lookup
@@ -2349,7 +2431,10 @@ const expandedSectorKey = ref<Sector | null>(null);
 const showListView = ref(false);
 
 const allSectorsOrdered = computed(() =>
-  sectorOrder.flatMap(k => {const sector = sectorStats.value.find(s => s.sectorKey === k); return sector ? [sector] : [];}),
+  sectorOrder.flatMap((k) => {
+    const sector = sectorStats.value.find((s) => s.sectorKey === k);
+    return sector ? [sector] : [];
+  }),
 );
 
 const sunburstSelectionLink = computed(() => {

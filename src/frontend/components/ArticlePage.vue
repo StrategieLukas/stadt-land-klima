@@ -66,7 +66,9 @@
         >
           <SmartImg
             :asset-id="getAssetId(organisation.logo)"
-            :is-raster="typeof organisation.logo === 'object' && organisation.logo?.type ? isRaster(organisation.logo.type) : true"
+            :is-raster="
+              typeof organisation.logo === 'object' && organisation.logo?.type ? isRaster(organisation.logo.type) : true
+            "
             :alt="organisation.name ?? ''"
             :height="56"
             :width="56"
@@ -292,16 +294,16 @@
 </template>
 
 <script setup lang="ts">
-import type { Asset, Organisation  } from '~/types/components/content';
+import type { Asset, Organisation } from "~/types/components/content";
 
-import type { PropType } from 'vue';
-import type { Measure } from '~/types/components/municipality';
+import type { PropType } from "vue";
+import type { Measure } from "~/types/components/municipality";
 
 import { ref } from "vue";
 import { buildLocationString, isRaster } from "~/shared/utils";
 import { formatProjectDate } from "~/shared/projectDate";
 import MarkdownIt from "markdown-it";
-import { sanitizeHtml } from '~/utils/sanitizeHtml'
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import { useReferrer } from "~/composables/useReferrer";
 import localZeroLogoDark from "~/assets/images/LocalZero-logo-small-dark.png";
 
@@ -311,21 +313,21 @@ const { backHref, backLabel } = useReferrer("/projects", $t("navigation.return_t
 const localZeroLogoId = "85624177-21f4-43c7-9b13-b53087ba2401";
 
 const props = defineProps({
-  title: {type: String as PropType<string | undefined>},
-  subtitle: {type: String as PropType<string | undefined>},
-  municipality_name: {type: String as PropType<string | undefined>},
-  municipality_slug: {type: String as PropType<string | undefined>},
-  state: {type: String as PropType<string | undefined>},
-  author: {type: String as PropType<string | undefined>},
+  title: { type: String as PropType<string | undefined> },
+  subtitle: { type: String as PropType<string | undefined> },
+  municipality_name: { type: String as PropType<string | undefined> },
+  municipality_slug: { type: String as PropType<string | undefined> },
+  state: { type: String as PropType<string | undefined> },
+  author: { type: String as PropType<string | undefined> },
   date: [String, Date] as PropType<string | Date | null>,
-  image_id: {type: String as PropType<string | undefined>},
-  image_is_raster: {type: Boolean as PropType<boolean | undefined>},
-  image_credits: {type: String as PropType<string | undefined>},
-  abstract: {type: String as PropType<string | undefined>},
-  article_text: {type: String as PropType<string | undefined>},
+  image_id: { type: String as PropType<string | undefined> },
+  image_is_raster: { type: Boolean as PropType<boolean | undefined> },
+  image_credits: { type: String as PropType<string | undefined> },
+  abstract: { type: String as PropType<string | undefined> },
+  article_text: { type: String as PropType<string | undefined> },
   link: URL as PropType<URL | null>,
-  article_instagram: {type: String as PropType<string | undefined>},
-  article_linkedin: {type: String as PropType<string | undefined>},
+  article_instagram: { type: String as PropType<string | undefined> },
+  article_linkedin: { type: String as PropType<string | undefined> },
   organisation: Object as PropType<Organisation | null | undefined>, // can be null
   measures: Array as PropType<Pick<Measure, "id" | "measure_id" | "name" | "slug">[] | null | undefined>, // can be null/empty
 });
@@ -341,14 +343,16 @@ const _src = ref(null);
 //   src.value = await toAssetUrl(props.assetId, { width: props.width, height: props.height, quality: props.quality, fit: props.fit });
 // });
 
-const sanitizedAbstract = computed(() => sanitizeHtml(md.render(props.abstract ?? '')))
-const sanitizedArticleText = computed(() => sanitizeHtml(md.render(props.article_text ?? '')))
+const sanitizedAbstract = computed(() => sanitizeHtml(md.render(props.abstract ?? "")));
+const sanitizedArticleText = computed(() => sanitizeHtml(md.render(props.article_text ?? "")));
 
 const location = computed(() => buildLocationString(props.municipality_name, props.state));
 const formattedDate = computed(() => formatProjectDate(props.date, $locale));
-const byline = computed(() => props.author && formattedDate.value
-  ? $t('article.author_date', { ':author': props.author, ':date': formattedDate.value })
-  : [props.author, formattedDate.value].filter(Boolean).join(', '));
+const byline = computed(() =>
+  props.author && formattedDate.value
+    ? $t("article.author_date", { ":author": props.author, ":date": formattedDate.value })
+    : [props.author, formattedDate.value].filter(Boolean).join(", "),
+);
 
 function getAssetId(assetId: Asset | undefined) {
   return typeof assetId === "string" ? assetId : assetId?.id;

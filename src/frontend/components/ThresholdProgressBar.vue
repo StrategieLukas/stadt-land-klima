@@ -1,15 +1,13 @@
 <template>
   <div class="w-full max-w-3xl">
     <!-- Progress Bar Container -->
-    <div
-      class="relative w-full h-8 rounded-md bg-neutral-200 border border-base-300 overflow-visible shadow-sm group"
-    >
+    <div class="group relative h-8 w-full overflow-visible rounded-md border border-base-300 bg-neutral-200 shadow-sm">
       <!-- Filled Progress Bar -->
       <div
         ref="fillRef"
-        class="absolute top-0 left-0 h-full rounded-md transition-all duration-500 ease-out group-hover:brightness-105"
+        class="absolute left-0 top-0 h-full rounded-md transition-all duration-500 ease-out group-hover:brightness-105"
         :class="currentRatingColor"
-        :style="{ 
+        :style="{
           width: fillWidth + '%',
           transitionDuration: '1000ms',
         }"
@@ -27,41 +25,36 @@
         }"
       >
         <!-- Marker -->
-        <div
-          class="w-[9px] h-8 border border-black group-hover:shadow-md"
-          :class="t.color"
-        />
+        <div class="h-8 w-[9px] border border-black group-hover:shadow-md" :class="t.color" />
         <!-- Value Label -->
-      <div
-        v-if="!(t.hideLabelOnMobile || t.hideLabelOnDesktop)"
-        class="absolute -top-6 px-1.5 py-0.5 text-xs font-semibold text-white rounded shadow-sm whitespace-nowrap"
-        :class="[t.color, 'bg-opacity-90', 'hover:z-50 z-10']"
-      >
-        {{ t.value }}
-        <span class="hidden sm:inline">{{ unit }}</span>
-      </div>
+        <div
+          v-if="!(t.hideLabelOnMobile || t.hideLabelOnDesktop)"
+          class="absolute -top-6 whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-semibold text-white shadow-sm"
+          :class="[t.color, 'bg-opacity-90', 'z-10 hover:z-50']"
+        >
+          {{ t.value }}
+          <span class="hidden sm:inline">{{ unit }}</span>
+        </div>
 
+        <!-- Show only on mobile if desktop label should be hidden -->
+        <div
+          v-else-if="t.hideLabelOnDesktop && !t.hideLabelOnMobile"
+          class="absolute -top-6 block whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-semibold text-white shadow-sm sm:hidden"
+          :class="[t.color, 'bg-opacity-90']"
+        >
+          {{ t.value }}
+          <span class="hidden sm:inline">{{ unit }}</span>
+        </div>
 
-      <!-- Show only on mobile if desktop label should be hidden -->
-      <div
-        v-else-if="t.hideLabelOnDesktop && !t.hideLabelOnMobile"
-        class="absolute -top-6 px-1.5 py-0.5 text-xs font-semibold text-white rounded shadow-sm whitespace-nowrap block sm:hidden"
-        :class="[t.color, 'bg-opacity-90']"
-      >
-        {{ t.value }}
-        <span class="hidden sm:inline">{{ unit }}</span>
-      </div>
-
-      <!-- Show only on desktop if mobile label should be hidden -->
-      <div
-        v-else-if="t.hideLabelOnMobile && !t.hideLabelOnDesktop"
-        class="absolute -top-6 px-1.5 py-0.5 text-xs font-semibold text-white rounded shadow-sm whitespace-nowrap hidden sm:block"
-        :class="[t.color, 'bg-opacity-90']"
-      >
-        {{ t.value }}
-        <span class="hidden sm:inline">{{ unit }}</span>
-      </div>
-
+        <!-- Show only on desktop if mobile label should be hidden -->
+        <div
+          v-else-if="t.hideLabelOnMobile && !t.hideLabelOnDesktop"
+          class="absolute -top-6 hidden whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-semibold text-white shadow-sm sm:block"
+          :class="[t.color, 'bg-opacity-90']"
+        >
+          {{ t.value }}
+          <span class="hidden sm:inline">{{ unit }}</span>
+        </div>
       </div>
     </div>
 
@@ -73,94 +66,88 @@
 </template>
 
 <script setup lang="ts">
-
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from "vue";
 
 const props = defineProps({
   progress: { type: Number as PropType<number | undefined>, default: 0 },
-  unit: {type: String as PropType<string | undefined>},
+  unit: { type: String as PropType<string | undefined> },
   orangeThreshold: { type: Number as PropType<number | undefined>, default: 0 },
   yellowThreshold: { type: Number as PropType<number | undefined>, default: 0 },
   lightGreenThreshold: { type: Number as PropType<number | undefined>, default: 0 },
   darkGreenThreshold: { type: Number as PropType<number | undefined>, default: 0 },
-})
+});
 
 // Determine max range for scaling
 const maxValue = computed(() =>
-  props.progress < props.darkGreenThreshold ? props.darkGreenThreshold : props.progress
-)
+  props.progress < props.darkGreenThreshold ? props.darkGreenThreshold : props.progress,
+);
 
-const progressRatio = computed(() =>
-  Math.min((props.progress / (maxValue.value || 1)) * 100, 100)
-)
+const progressRatio = computed(() => Math.min((props.progress / (maxValue.value || 1)) * 100, 100));
 
 // Start animation from 0 → target width
-const fillWidth = ref(0)
+const fillWidth = ref(0);
 onMounted(() => {
   requestAnimationFrame(() => {
-    fillWidth.value = progressRatio.value
-  })
-})
+    fillWidth.value = progressRatio.value;
+  });
+});
 
-const hideMobileLabels = computed(() => props.progress > 3 * props.darkGreenThreshold)
-const hideDesktopLabels = computed(() => props.progress > 5 * props.darkGreenThreshold)
+const hideMobileLabels = computed(() => props.progress > 3 * props.darkGreenThreshold);
+const hideDesktopLabels = computed(() => props.progress > 5 * props.darkGreenThreshold);
 
 const thresholds = computed(() => {
-  const scale = (value: number) => (value / (maxValue.value || 1)) * 100
+  const scale = (value: number) => (value / (maxValue.value || 1)) * 100;
 
   return [
     {
       value: 0,
-      color: 'bg-rating-0',
+      color: "bg-rating-0",
       position: 0,
       hideLabelOnMobile: hideMobileLabels.value,
       hideLabelOnDesktop: hideDesktopLabels.value,
     },
     {
       value: props.orangeThreshold,
-      color: 'bg-rating-1',
+      color: "bg-rating-1",
       position: scale(props.orangeThreshold),
       hideLabelOnMobile: hideMobileLabels.value,
       hideLabelOnDesktop: hideDesktopLabels.value,
     },
-      {
+    {
       value: props.yellowThreshold,
-      color: 'bg-rating-2',
+      color: "bg-rating-2",
       position: scale(props.yellowThreshold),
       hideLabelOnMobile: hideMobileLabels.value,
       hideLabelOnDesktop: hideDesktopLabels.value,
     },
     {
       value: props.lightGreenThreshold,
-      color: 'bg-rating-3',
+      color: "bg-rating-3",
       position: scale(props.lightGreenThreshold),
       hideLabelOnMobile: hideMobileLabels.value,
       hideLabelOnDesktop: hideDesktopLabels.value,
     },
     {
       value: props.darkGreenThreshold,
-      color: 'bg-rating-4',
+      color: "bg-rating-4",
       position: scale(props.darkGreenThreshold),
       hideLabelOnMobile: hideMobileLabels.value,
       hideLabelOnDesktop: hideDesktopLabels.value,
     },
-  ]
-})
+  ];
+});
 
 const currentRatingColor = computed(() => {
   if (props.progress > props.darkGreenThreshold) {
-    return 'bg-rating-4'
+    return "bg-rating-4";
   } else if (props.progress > props.lightGreenThreshold) {
-    return 'bg-rating-3'
+    return "bg-rating-3";
   } else if (props.progress > props.yellowThreshold) {
-    return 'bg-rating-2'
+    return "bg-rating-2";
   } else if (props.progress > props.orangeThreshold) {
-    return 'bg-rating-1'
+    return "bg-rating-1";
   } else {
-    return 'bg-rating-0'
+    return "bg-rating-0";
   }
-})
-
-
-
+});
 </script>

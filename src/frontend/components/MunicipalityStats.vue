@@ -9,7 +9,7 @@
       </thead>
       <tbody>
         <tr v-for="(value, key) in displayStats" :key="key">
-          <td class="capitalize">{{ key.replaceAll('_', ' ') }}</td>
+          <td class="capitalize">{{ key.replaceAll("_", " ") }}</td>
           <td>{{ value }}</td>
         </tr>
       </tbody>
@@ -18,10 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
+import type { PropType } from "vue";
 
 const props = defineProps({
-  stats: Object as PropType<Record<string, unknown>>
+  stats: Object as PropType<Record<string, unknown>>,
 });
 
 const displayStats = computed(() => {

@@ -194,7 +194,7 @@ import { routeSlug } from "~/shared/routeValues";
 const { $t } = useNuxtApp();
 const route = useRoute();
 const slug = routeSlug(route.params.slug);
-if (!slug) throw createError({statusCode: 404, statusMessage: "Job not found"});
+if (!slug) throw createError({ statusCode: 404, statusMessage: "Job not found" });
 const { backHref, backLabel } = useReferrer("/jobs", $t("jobs.back_label"));
 
 const md = new MarkdownIt({

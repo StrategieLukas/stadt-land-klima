@@ -1,6 +1,6 @@
 export default {
-  external: ['vue'],
+  external: ["vue"],
   globals: {
-    vue: 'Vue',
+    vue: "Vue",
   },
 };

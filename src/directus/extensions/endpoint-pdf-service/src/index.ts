@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
 import { convert } from "html-to-text";
 import type { Request, Response, Router } from "express";
-import type { SchemaOverview, AbstractService } from '@directus/types';
+import type { SchemaOverview, AbstractService } from "@directus/types";
 
 type ItemsService = AbstractService;
 type Schema = SchemaOverview;
@@ -79,7 +79,7 @@ type ReportData = [MunicipalityScore, SortedMeasures];
 class HttpError extends Error {
   constructor(
     public readonly status: number,
-    message: string
+    message: string,
   ) {
     super(message);
     this.name = "HttpError";
@@ -90,10 +90,7 @@ class HttpError extends Error {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function sortMeasuresBySector(
-  ratingMeasures: RatingMeasure[],
-  measures: Measure[]
-): SortedMeasures {
+function sortMeasuresBySector(ratingMeasures: RatingMeasure[], measures: Measure[]): SortedMeasures {
   if (!Array.isArray(ratingMeasures) || !Array.isArray(measures)) return {};
 
   const measureMap = new Map(measures.map((m) => [m.id, m]));
@@ -112,9 +109,7 @@ function sortMeasuresBySector(
 /** Returns a new array with HTML stripped from description_benefit (non-mutating). */
 function withPlainTextDescriptions(data: MeasureText[]): MeasureText[] {
   return data.map((item) =>
-    item.description_benefit
-      ? { ...item, description_benefit: convert(item.description_benefit) }
-      : item
+    item.description_benefit ? { ...item, description_benefit: convert(item.description_benefit) } : item,
   );
 }
 
@@ -124,7 +119,7 @@ function withPlainTextDescriptions(data: MeasureText[]): MeasureText[] {
  */
 function createTypstWorkspace(
   typstAssetsDir: string,
-  files: Record<string, unknown>
+  files: Record<string, unknown>,
 ): { typstRoot: string; inputs: Record<string, string>; cleanup: () => void } {
   const baseDir = resolveTempBaseDir();
   mkdirSync(baseDir, { recursive: true });
@@ -163,18 +158,14 @@ function createTypstWorkspace(
 }
 
 function resolveTempBaseDir(): string {
-  const tempPath = process.env.TEMP_PATH
-    ? path.resolve(process.env.TEMP_PATH)
-    : path.join(process.cwd(), ".tmp");
+  const tempPath = process.env.TEMP_PATH ? path.resolve(process.env.TEMP_PATH) : path.join(process.cwd(), ".tmp");
   return path.join(tempPath, "pdf-service");
 }
 
 function toTypstRootPath(filePath: string, typstRoot: string): string {
   const relativePath = path.relative(typstRoot, filePath);
   if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-    throw new Error(
-      `PDF temp path "${filePath}" must be inside Typst root "${typstRoot}"`
-    );
+    throw new Error(`PDF temp path "${filePath}" must be inside Typst root "${typstRoot}"`);
   }
 
   return `/${relativePath.split(path.sep).join("/")}`;
@@ -187,24 +178,34 @@ function toTypstRootPath(filePath: string, typstRoot: string): string {
 async function fetchReportData(
   req: AuthenticatedRequest,
   schema: Schema,
-  ItemsServiceClass: new (...args: any[]) => ItemsService
+  ItemsServiceClass: new (...args: any[]) => ItemsService,
 ): Promise<ReportData> {
   const { slug: municipalitySlug, version: catalogVersionName } = req.params;
   const accountability = req.accountability;
 
-  const makeService = (collection: string) =>
-    new ItemsServiceClass(collection, { schema, accountability });
+  const makeService = (collection: string) => new ItemsServiceClass(collection, { schema, accountability });
 
   // Scores and measures are independent — fetch in parallel.
   const [scores, measures] = await Promise.all([
     makeService("municipality_scores").readByQuery({
       fields: [
-        "date_updated", "score_total", "score_buildings", "score_energy",
-        "score_transport", "score_industry", "score_management",
-        "score_agriculture", "percentage_rated", "rank",
-        "municipality.id", "municipality.name", "municipality.slug",
-        "municipality.localteam_id", "municipality.municipality_type",
-        "municipality.state", "municipality.overall_status_comment",
+        "date_updated",
+        "score_total",
+        "score_buildings",
+        "score_energy",
+        "score_transport",
+        "score_industry",
+        "score_management",
+        "score_agriculture",
+        "percentage_rated",
+        "rank",
+        "municipality.id",
+        "municipality.name",
+        "municipality.slug",
+        "municipality.localteam_id",
+        "municipality.municipality_type",
+        "municipality.state",
+        "municipality.overall_status_comment",
       ],
       filter: {
         catalog_version: { name: { _eq: catalogVersionName } },
@@ -219,10 +220,7 @@ async function fetchReportData(
   ]);
 
   if (!scores?.[0]) {
-    throw new HttpError(
-      404,
-      `No scores found for municipality "${municipalitySlug}" or access denied`
-    );
+    throw new HttpError(404, `No scores found for municipality "${municipalitySlug}" or access denied`);
   }
   if (!measures?.length) {
     throw new HttpError(404, "Measures not found or access denied");
@@ -251,13 +249,15 @@ async function compilePdf(
   typstFilePath: string,
   typstRoot: string,
   typstDir: string,
-  inputs: Record<string, string>
+  inputs: Record<string, string>,
 ): Promise<Buffer> {
   const args = [
     "compile",
-    "--root", typstRoot,
+    "--root",
+    typstRoot,
     ...Object.entries(inputs).flatMap(([k, v]) => ["--input", `${k}=${v}`]),
-    "--font-path", path.join(typstDir, "fonts"),
+    "--font-path",
+    path.join(typstDir, "fonts"),
     typstFilePath,
     "-",
   ];
@@ -303,8 +303,8 @@ function makeRouteHandler(
   buildPdf: (
     data: ReportData,
     req: AuthenticatedRequest,
-    typstDir: string
-  ) => Promise<{ pdf: Buffer; filename?: string }>
+    typstDir: string,
+  ) => Promise<{ pdf: Buffer; filename?: string }>,
 ): RouteHandler {
   return async (req, res) => {
     const schema = await getSchema();
@@ -361,20 +361,15 @@ export default {
           measures: sortedMeasures,
         });
         try {
-          const pdf = await compilePdf(
-            path.join(typstRoot, "municipality_summary.typ"),
-            typstRoot,
-            typstRoot,
-            {
-              municipalityScore: inputs.municipalityScore,
-              measures: inputs.measures,
-            }
-          );
+          const pdf = await compilePdf(path.join(typstRoot, "municipality_summary.typ"), typstRoot, typstRoot, {
+            municipalityScore: inputs.municipalityScore,
+            measures: inputs.measures,
+          });
           return { pdf, filename: `${municipalityScore.municipality.slug}_summary.pdf` };
         } finally {
           cleanup();
         }
-      })
+      }),
     );
 
     // ── Election guide ────────────────────────────────────────────────────
@@ -402,13 +397,13 @@ export default {
               electionGuideText: inputs.electionGuideText,
               municipalityScore: inputs.municipalityScore,
               measures: inputs.measures,
-            }
+            },
           );
           return { pdf, filename: `${req.params.slug}_election_guide.pdf` };
         } finally {
           cleanup();
         }
-      })
+      }),
     );
   },
 };

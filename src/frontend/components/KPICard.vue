@@ -16,11 +16,11 @@
       <p v-if="descriptionText" class="text-gray-500 text-xs leading-relaxed">
         {{ descriptionText }}
       </p>
-      <div class="flex flex-row justify-content-end">
+      <div class="justify-content-end flex flex-row">
         <div class="mt-1 text-4xl font-black tabular-nums leading-none" :style="{ color: kpiColor }">
           {{ kpiDisplayValue }}
         </div>
-        <div v-if="unitText" class="mt-5 ml-2 text-gray-500 mt-0.5 text-xs">
+        <div v-if="unitText" class="text-gray-500 ml-2 mt-0.5 mt-5 text-xs">
           {{ unitText }}<template v-if="element.population_normalized"> / 1 000 Einw.</template>
         </div>
       </div>
@@ -122,7 +122,8 @@ onMounted(async () => {
     aggregate.value = (data?.aggregate as Record<string, unknown>) ?? null;
     const kpiValues = data?.kpi_values ?? data?.kpiValues ?? {};
     canonicalKpi.value =
-      (kpiValues?.[props.element.plot_id] as { value: number | null; precision?: number | null | undefined } | undefined) ?? null;
+      (kpiValues?.[props.element.plot_id] as
+        { value: number | null; precision?: number | null | undefined } | undefined) ?? null;
   } catch {
     // Silently fail — display '—'
   } finally {

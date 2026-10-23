@@ -1,4 +1,4 @@
-import type { Component } from 'vue';
+import type { Component } from "vue";
 
 // Directus Extension Interface Configuration
 export interface DirectusInterfaceConfig {

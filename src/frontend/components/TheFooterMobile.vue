@@ -1,46 +1,48 @@
 <template>
   <!-- Social Media & Onboarding Section -->
-  <div class="w-full bg-gray-100">
-  <div class="max-w-screen-xl mx-auto text-center py-8">
-    <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
-      <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
-    </NuxtLink>
-    <p class="mb-4">
-      {{ $t("generic.social_media.support_by_sharing") }}
-    </p>
-    <div class="flex items-center justify-center gap-6">
-      <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
-        <img src="~/assets/icons/icon_instagram.svg" alt="Instagram" class="h-12 w-12" />
-      </a>
-      <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" aria-label="LinkedIn">
-        <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
-      </a>
+  <div class="bg-gray-100 w-full">
+    <div class="mx-auto max-w-screen-xl py-8 text-center">
+      <NuxtLink v-if="shouldDisplayOnboardingLink" to="/mitmachen" class="flex justify-center">
+        <img src="~/assets/icons/icon_klimachecker.svg" class="m-4 w-[270px]" :alt="$t('logo.alt')" />
+      </NuxtLink>
+      <p class="mb-4">
+        {{ $t("generic.social_media.support_by_sharing") }}
+      </p>
+      <div class="flex items-center justify-center gap-6">
+        <a href="https://www.instagram.com/stadt.land.klima/" target="_blank" aria-label="Instagram">
+          <img src="~/assets/icons/icon_instagram.svg" alt="Instagram" class="h-12 w-12" />
+        </a>
+        <a href="https://www.linkedin.com/company/stadt-land-klima/" target="_blank" aria-label="LinkedIn">
+          <img src="~/assets/icons/icon_linkedin.svg" alt="LinkedIn" class="h-12 w-12" />
+        </a>
+      </div>
+      <div class="mt-4 flex items-center justify-center gap-6">
+        <a href="https://whatsapp.com/channel/0029Vb8RAti2v1Ix7Yz7OM0a" target="_blank" aria-label="WhatsApp">
+          <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
+        </a>
+        <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
+          <img src="~/assets/icons/icon_telegram.svg" alt="Telegram" class="h-12 w-12" />
+        </a>
+        <a
+          href="https://signal.group/#CjQKIPtaXcn_-6q29ufg9BBFvz0figXXqFc1H-1CddW5rkjUEhCWGjAx0p2QVVrDx4zlURBA"
+          target="_blank"
+          aria-label="Signal"
+        >
+          <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
+        </a>
+      </div>
     </div>
-    <div class="mt-4 flex items-center justify-center gap-6">
-      <a href="https://whatsapp.com/channel/0029Vb8RAti2v1Ix7Yz7OM0a" target="_blank" aria-label="WhatsApp">
-        <img src="~/assets/icons/icon_whatsapp.svg" alt="WhatsApp" class="h-12 w-12" />
-      </a>
-      <a href="https://t.me/slkinfo" target="_blank" aria-label="Telegram">
-        <img src="~/assets/icons/icon_telegram.svg" alt="Telegram" class="h-12 w-12" />
-      </a>
-      <a
-        href="https://signal.group/#CjQKIPtaXcn_-6q29ufg9BBFvz0figXXqFc1H-1CddW5rkjUEhCWGjAx0p2QVVrDx4zlURBA"
-        target="_blank"
-        aria-label="Signal"
-      >
-        <img src="~/assets/icons/icon_signal.svg" alt="Signal" class="h-12 w-12" />
-      </a>
-    </div>
-  </div>
   </div>
 
   <!-- Main Footer -->
-  <footer class="footer-vertical footer relative isolate overflow-hidden bg-olive-green p-6 pb-[84px] text-white sm:pb-6">
+  <footer
+    class="footer-vertical footer relative isolate overflow-hidden bg-olive-green p-6 pb-[84px] text-white sm:pb-6"
+  >
     <img
       src="~/assets/images/Stadt-Land-Klima-Blume.svg"
       alt=""
       aria-hidden="true"
-      class="pointer-events-none absolute left-1/2 top-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 select-none brightness-0 invert opacity-[0.08]"
+      class="pointer-events-none absolute left-1/2 top-1/2 z-0 w-full max-w-none -translate-x-1/2 -translate-y-1/2 select-none opacity-[0.08] brightness-0 invert"
     />
 
     <!-- Newsletter Signup -->
@@ -152,9 +154,9 @@
 </template>
 
 <script setup lang="ts">
-import {  requestErrorMessage } from '~/shared/requestError';
-import type { PropType } from 'vue';
-import type { NavigationItem } from '~/types/components/navigation';
+import { requestErrorMessage } from "~/shared/requestError";
+import type { PropType } from "vue";
+import type { NavigationItem } from "~/types/components/navigation";
 
 import { ref, computed, onMounted } from "vue";
 import DonateButton from "~/components/DonateButton.vue";

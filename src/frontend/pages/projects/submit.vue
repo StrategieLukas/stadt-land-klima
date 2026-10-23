@@ -257,12 +257,15 @@
 
         <div>
           <label class="text-gray-700 mb-1 block text-sm font-medium">
-            {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }} <span class="text-red-500">*</span>
+            {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }}
+            <span class="text-red-500">*</span>
           </label>
           <input
             v-model="mathChallengeAnswer"
-            type="text" inputmode="numeric" pattern="[0-9]+"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]+"
+            class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
           />
           <p v-if="mathChallengeError" class="text-red-500 mt-1 text-xs">{{ mathChallengeError }}</p>
         </div>
@@ -465,7 +468,8 @@ const errorMessage = ref("");
 const successMessage = ref("");
 const loading = ref(false);
 
-const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } = useMathChallenge('article');
+const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } =
+  useMathChallenge("article");
 
 function onAltchaStateChange(e: Event) {
   const { state, payload } = captchaEventData(e);
@@ -478,7 +482,7 @@ function onAltchaStateChange(e: Event) {
 }
 
 onMounted(async () => {
-  await loadMathChallenge()
+  await loadMathChallenge();
   await nextTick();
   await nextTick();
   altchaRef.value?.addEventListener("statechange", onAltchaStateChange);
@@ -515,12 +519,12 @@ function resetForm() {
   altchaPayload.value = "";
   errorMessage.value = "";
   captchaError.value = "";
-  mathChallengeAnswer.value = '';
-  mathChallengeError.value = '';
+  mathChallengeAnswer.value = "";
+  mathChallengeError.value = "";
   if (imageInputRef.value) {
     imageInputRef.value.value = "";
   }
-  void loadMathChallenge()
+  void loadMathChallenge();
 }
 
 function translateSubmissionError(data: ArticleSubmissionErrorData) {

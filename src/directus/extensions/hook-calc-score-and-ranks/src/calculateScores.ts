@@ -1,8 +1,8 @@
-import type { ApiExtensionContext, SchemaOverview } from '@directus/types';
+import type { ApiExtensionContext, SchemaOverview } from "@directus/types";
 
-type Logger = ApiExtensionContext['logger'];
+type Logger = ApiExtensionContext["logger"];
 type Schema = SchemaOverview;
-type Services = ApiExtensionContext['services'];
+type Services = ApiExtensionContext["services"];
 
 interface CalculateScoresParams {
   municipalityIds?: Array<number | string> | null;
@@ -60,52 +60,45 @@ interface Totals {
   denominator_rated: number;
 }
 
-const scoreSectors = [
-  'agriculture',
-  'buildings',
-  'management',
-  'energy',
-  'industry',
-  'transport',
-] as const;
+const scoreSectors = ["agriculture", "buildings", "management", "energy", "industry", "transport"] as const;
 
 function parseFiniteNumber(value: number | string | null | undefined): number {
-  const number = typeof value === 'number' ? value : Number.parseFloat(String(value ?? ''));
+  const number = typeof value === "number" ? value : Number.parseFloat(String(value ?? ""));
   return Number.isFinite(number) ? number : 0;
 }
 
 function parseOptionalNumber(value: number | string | null | undefined): number {
   if (value === null || value === undefined) return NaN;
-  const number = typeof value === 'number' ? value : Number.parseFloat(String(value));
+  const number = typeof value === "number" ? value : Number.parseFloat(String(value));
   return Number.isFinite(number) ? number : NaN;
 }
 
 export async function calculateScores(
   { municipalityIds = null, catalogVersionId }: CalculateScoresParams,
-  { services, getSchema, logger }: Context
+  { services, getSchema, logger }: Context,
 ): Promise<void> {
   logger.info(
-    `Recalculating scores for ${municipalityIds?.length ? municipalityIds.length : 'all'} municipalities and catalogVersion: ${catalogVersionId}`
+    `Recalculating scores for ${municipalityIds?.length ? municipalityIds.length : "all"} municipalities and catalogVersion: ${catalogVersionId}`,
   );
 
   const schema = await getSchema();
 
-  const ratingsService = new services.ItemsService('ratings_measures', {
+  const ratingsService = new services.ItemsService("ratings_measures", {
     schema,
     accountability: { admin: true, role: null, roles: [], user: null, app: false, ip: null },
   });
 
-  const measuresService = new services.ItemsService('measures', {
+  const measuresService = new services.ItemsService("measures", {
     schema,
     accountability: { admin: true, role: null, roles: [], user: null, app: false, ip: null },
   });
 
-  const municipalitiesService = new services.ItemsService('municipalities', {
+  const municipalitiesService = new services.ItemsService("municipalities", {
     schema,
     accountability: { admin: true, role: null, roles: [], user: null, app: false, ip: null },
   });
 
-  const municipalityScoresService = new services.ItemsService('municipality_scores', {
+  const municipalityScoresService = new services.ItemsService("municipality_scores", {
     schema,
     accountability: { admin: true, role: null, roles: [], user: null, app: false, ip: null },
   });
@@ -116,9 +109,9 @@ export async function calculateScores(
       limit: -1,
       filter: {
         catalog_version: { _eq: catalogVersionId },
-        status: { _eq: 'published' },
+        status: { _eq: "published" },
       },
-      fields: ['id', 'sector', 'weight'],
+      fields: ["id", "sector", "weight"],
     })) as Measure[];
 
     // Map measures for O(1) lookup
@@ -132,7 +125,7 @@ export async function calculateScores(
     const municipalities = (await municipalitiesService.readByQuery({
       limit: -1,
       ...(municipalityIds?.length ? { filter: { id: { _in: municipalityIds } } } : {}),
-      fields: ['id', 'localteam_id', 'name'],
+      fields: ["id", "localteam_id", "name"],
     })) as Municipality[];
 
     if (!municipalities?.length) {
@@ -141,7 +134,7 @@ export async function calculateScores(
     }
 
     logger.info(
-      `[calculateScores] Processing ${municipalities.length} municipalities for catalog ${catalogVersionId}.`
+      `[calculateScores] Processing ${municipalities.length} municipalities for catalog ${catalogVersionId}.`,
     );
 
     for (const municipality of municipalities) {
@@ -162,24 +155,21 @@ export async function calculateScores(
           measure_published: { _eq: true },
           measure_id: {
             catalog_version: { _eq: catalogVersionId },
-            status: { _eq: 'published' },
+            status: { _eq: "published" },
           },
         },
-        fields: ['applicable', 'rating', 'measure_id'],
+        fields: ["applicable", "rating", "measure_id"],
       })) as RatingMeasure[];
 
       // Score accumulators
       const totals: Totals = {
         numerator_rated_sum: 0, // sum(rating * weight) for rated entries
-        denominator_rated: 0,   // sum(weight) for rated applicable entries
+        denominator_rated: 0, // sum(weight) for rated applicable entries
       };
 
       // Per-sector accumulators
       const sectors: Record<string, SectorScores> = Object.fromEntries(
-        scoreSectors.map((sector) => [
-          sector,
-          { numerator_rated: 0, denominator_rated: 0 },
-        ])
+        scoreSectors.map((sector) => [sector, { numerator_rated: 0, denominator_rated: 0 }]),
       );
       for (const m of measures) {
         if (!sectors[m.sector]) {
@@ -190,7 +180,7 @@ export async function calculateScores(
       const completedMeasureIds = new Set<number | string>();
 
       for (const r of allRatings) {
-        const measureId = typeof r.measure_id === 'object' ? r.measure_id.id : r.measure_id;
+        const measureId = typeof r.measure_id === "object" ? r.measure_id.id : r.measure_id;
         const measure = measureById.get(measureId);
         if (!measure) {
           // Rating references a measure not in the current published set — skip
@@ -213,7 +203,7 @@ export async function calculateScores(
           continue;
         }
 
-        const sector = measure.sector ?? 'total';
+        const sector = measure.sector ?? "total";
 
         totals.numerator_rated_sum += numeric * weight;
         totals.denominator_rated += weight;
@@ -229,26 +219,19 @@ export async function calculateScores(
       const scoresToPush: Record<string, number> = {};
 
       // percentage_rated: unweighted share of published measures that are rated or not applicable.
-      scoresToPush.percentage_rated =
-        measures.length > 0 ? (completedMeasureIds.size / measures.length) * 100 : 0;
+      scoresToPush.percentage_rated = measures.length > 0 ? (completedMeasureIds.size / measures.length) * 100 : 0;
 
-      scoresToPush.score_points =
-        totalCatalogWeight > 0 ? (totals.numerator_rated_sum / totalCatalogWeight) * 100 : 0;
-      scoresToPush.score_max =
-        totalCatalogWeight > 0 ? (totals.denominator_rated / totalCatalogWeight) * 100 : 0;
+      scoresToPush.score_points = totalCatalogWeight > 0 ? (totals.numerator_rated_sum / totalCatalogWeight) * 100 : 0;
+      scoresToPush.score_max = totalCatalogWeight > 0 ? (totals.denominator_rated / totalCatalogWeight) * 100 : 0;
 
       // score_total: weighted-average rating expressed as a percentage (0–100)
       scoresToPush.score_total =
-        totals.denominator_rated > 0
-          ? (totals.numerator_rated_sum / totals.denominator_rated) * 100
-          : 0;
+        totals.denominator_rated > 0 ? (totals.numerator_rated_sum / totals.denominator_rated) * 100 : 0;
 
       // Per-sector scores
       for (const [sector, entry] of Object.entries(sectors)) {
         scoresToPush[`score_${sector}`] =
-          entry.denominator_rated > 0
-            ? (entry.numerator_rated / entry.denominator_rated) * 100
-            : 0;
+          entry.denominator_rated > 0 ? (entry.numerator_rated / entry.denominator_rated) * 100 : 0;
       }
 
       // Persist: find the existing municipality_scores record and update it
@@ -258,14 +241,14 @@ export async function calculateScores(
           municipality: { _eq: municipality.id },
           catalog_version: { _eq: catalogVersionId },
         },
-        fields: ['id'],
+        fields: ["id"],
       })) as MunicipalityScore[];
 
       if (scoreRecord?.id) {
         await municipalityScoresService.updateOne(scoreRecord.id, scoresToPush);
       } else {
         logger.warn(
-          `[calculateScores] No municipality_scores record found for "${municipality.name}" (catalogVersion=${catalogVersionId}). Scores not saved.`
+          `[calculateScores] No municipality_scores record found for "${municipality.name}" (catalogVersion=${catalogVersionId}). Scores not saved.`,
         );
       }
     }

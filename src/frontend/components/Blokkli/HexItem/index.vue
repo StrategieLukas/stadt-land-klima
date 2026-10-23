@@ -1,8 +1,5 @@
 <template>
-  <div
-    :id="'block-' + uuid"
-    class="blokkli-block-hex-item"
-  >
+  <div :id="'block-' + uuid" class="blokkli-block-hex-item">
     <!--
       hex-outer: contains the border pseudo-element (::before) and is the
       transition target for the hover "move forward" effect.
@@ -20,11 +17,7 @@
         clip-path creates the flat-top hexagon shape.
         Background image (if set) is blended with the solid color via multiply.
       -->
-      <div
-        v-blokkli-droppable:imageId
-        class="hex-tile"
-        :style="tileStyle"
-      >
+      <div v-blokkli-droppable:imageId class="hex-tile" :style="tileStyle">
         <!-- Solid blend overlay when a background image is active -->
         <div v-if="imageUrl" class="hex-overlay" :style="{ backgroundColor: hexColor }" />
 
@@ -35,18 +28,9 @@
             class="hex-icon hex-icon--local"
             aria-hidden="true"
           />
-          <Icon
-            v-else-if="iconSlug"
-            :icon="iconSlug"
-            class="hex-icon"
-            :ariaHidden="true"
-          />
+          <Icon v-else-if="iconSlug" :icon="iconSlug" class="hex-icon" :ariaHidden="true" />
           <div v-else-if="!imageUrl" class="hex-icon-placeholder" />
-          <span
-            v-blokkli-editable:label
-            class="hex-label"
-            v-text="props.label || 'Hexagon'"
-          />
+          <span v-blokkli-editable:label class="hex-label" v-text="props.label || 'Hexagon'" />
         </div>
       </div>
     </component>
@@ -54,143 +38,154 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from "@iconify/vue";
 
-const isEditing = import.meta.blokkliEditing
+const isEditing = import.meta.blokkliEditing;
 
 const { options, uuid } = defineBlokkli({
-  bundle: 'hex_item',
+  bundle: "hex_item",
   propsFieldMapping: {
-    label: { name: 'label', type: 'editable' },
-    imageId: { name: 'imageId', type: 'droppable' },
+    label: { name: "label", type: "editable" },
+    imageId: { name: "imageId", type: "droppable" },
   },
   options: {
     color: {
-      type: 'radios',
-      label: 'Farbe',
-      default: 'teal',
-      displayAs: 'colors',
+      type: "radios",
+      label: "Farbe",
+      default: "teal",
+      displayAs: "colors",
       options: {
-        teal: { label: 'Petrol', hex: '#0C7A82' },
-        green: { label: 'Grün', hex: '#1DA64A' },
-        'dark-green': { label: 'Dunkelgrün', hex: '#3F8342' },
-        lime: { label: 'Hellgrün', hex: '#AFCA0B' },
-        orange: { label: 'Orange', hex: '#F39200' },
-        'dark-blue': { label: 'Dunkelblau', hex: '#006E94' },
-        gray: { label: 'Grau', hex: '#7A7A7A' },
-        black: { label: 'Schwarz', hex: '#2C2C2C' },
+        teal: { label: "Petrol", hex: "#0C7A82" },
+        green: { label: "Grün", hex: "#1DA64A" },
+        "dark-green": { label: "Dunkelgrün", hex: "#3F8342" },
+        lime: { label: "Hellgrün", hex: "#AFCA0B" },
+        orange: { label: "Orange", hex: "#F39200" },
+        "dark-blue": { label: "Dunkelblau", hex: "#006E94" },
+        gray: { label: "Grau", hex: "#7A7A7A" },
+        black: { label: "Schwarz", hex: "#2C2C2C" },
       },
     },
     icon: {
-      type: 'text',
-      label: 'Icon (z.B. mdi:home)',
-      default: 'mdi:hexagon-outline',
+      type: "text",
+      label: "Icon (z.B. mdi:home)",
+      default: "mdi:hexagon-outline",
     },
     link: {
-      type: 'text',
-      label: 'Link',
-      default: '',
+      type: "text",
+      label: "Link",
+      default: "",
     },
     linkType: {
-      type: 'radios',
-      label: 'Link-Typ',
-      default: 'internal',
+      type: "radios",
+      label: "Link-Typ",
+      default: "internal",
       options: {
-        internal: 'Intern',
-        external: 'Extern',
+        internal: "Intern",
+        external: "Extern",
       },
     },
   },
   editor: {
-    addBehaviour: 'editable:label',
-    editTitle: (el) => el.textContent?.trim().slice(0, 40) || 'Hexagon',
-    mockProps: () => { return { label: 'Hexagon' } },
+    addBehaviour: "editable:label",
+    editTitle: (el) => el.textContent?.trim().slice(0, 40) || "Hexagon",
+    mockProps: () => {
+      return { label: "Hexagon" };
+    },
   },
-})
+});
 
 const props = defineProps<{
-  label?: string | undefined
-  imageId?: string | undefined
-}>()
+  label?: string | undefined;
+  imageId?: string | undefined;
+}>();
 
-const config = useRuntimeConfig()
+const config = useRuntimeConfig();
 
 const colorMap: Record<string, string> = {
-  teal: '#0C7A82',
-  green: '#1DA64A',
-  'dark-green': '#3F8342',
-  lime: '#AFCA0B',
-  orange: '#F39200',
-  'dark-blue': '#006E94',
-  gray: '#7A7A7A',
-  black: '#2C2C2C',
-}
+  teal: "#0C7A82",
+  green: "#1DA64A",
+  "dark-green": "#3F8342",
+  lime: "#AFCA0B",
+  orange: "#F39200",
+  "dark-blue": "#006E94",
+  gray: "#7A7A7A",
+  black: "#2C2C2C",
+};
 
-const hexColor = computed(() => colorMap[options.value.color] ?? '#0C7A82')
+const hexColor = computed(() => colorMap[options.value.color] ?? "#0C7A82");
 
 /** Darken a 6-digit hex color by the given fraction (0–1). */
 function darkenHex(hex: string, by: number): string {
-  const f = 1 - by
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return '#' + [r, g, b].map(v => Math.round(v * f).toString(16).padStart(2, '0')).join('')
+  const f = 1 - by;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (
+    "#" +
+    [r, g, b]
+      .map((v) =>
+        Math.round(v * f)
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")
+  );
 }
 
-const borderColor = computed(() => darkenHex(hexColor.value, 0.28))
+const borderColor = computed(() => darkenHex(hexColor.value, 0.28));
 
 const imageUrl = computed(() => {
-  if (!props.imageId) return ''
-  return `${config.public.clientDirectusUrl}/assets/${props.imageId}?width=400&quality=80`
-})
+  if (!props.imageId) return "";
+  return `${config.public.clientDirectusUrl}/assets/${props.imageId}?width=400&quality=80`;
+});
 
 // Pre-resolve all local icon SVGs at build time so dynamic icon_* slugs work.
-const localIconModules = import.meta.glob<string>('~/assets/icons/icon_*.svg', {
+const localIconModules = import.meta.glob<string>("~/assets/icons/icon_*.svg", {
   eager: true,
-  query: '?url',
-  import: 'default',
-})
-const localIconUrls: Record<string, string> = {}
+  query: "?url",
+  import: "default",
+});
+const localIconUrls: Record<string, string> = {};
 for (const [path, url] of Object.entries(localIconModules)) {
-  const name = path.split('/').pop()!.replace('.svg', '')
-  localIconUrls[name] = url
+  const name = path.split("/").pop()!.replace(".svg", "");
+  localIconUrls[name] = url;
 }
 
-const iconSlug = computed(() => options.value.icon?.trim() || '')
+const iconSlug = computed(() => options.value.icon?.trim() || "");
 const localIconUrl = computed(() => {
-  if (!iconSlug.value.startsWith('icon_')) return ''
-  return localIconUrls[iconSlug.value] || ''
-})
-const link = computed(() => options.value.link?.trim() || '')
+  if (!iconSlug.value.startsWith("icon_")) return "";
+  return localIconUrls[iconSlug.value] || "";
+});
+const link = computed(() => options.value.link?.trim() || "");
 
 const linkComponent = computed(() => {
-  if (!link.value) return 'div'
-  if (options.value.linkType === 'external') return 'a'
-  return resolveComponent('NuxtLink')
-})
+  if (!link.value) return "div";
+  if (options.value.linkType === "external") return "a";
+  return resolveComponent("NuxtLink");
+});
 
 const linkAttrs = computed(() => {
-  if (!link.value) return {}
-  if (options.value.linkType === 'external') {
-    return { href: link.value, target: '_blank', rel: 'noopener noreferrer' }
+  if (!link.value) return {};
+  if (options.value.linkType === "external") {
+    return { href: link.value, target: "_blank", rel: "noopener noreferrer" };
   }
-  return { to: '/' + link.value.replace(/^\//, '') }
-})
+  return { to: "/" + link.value.replace(/^\//, "") };
+});
 
 /** Style for the outer wrapper — exposes border color as a CSS variable. */
-const outerStyle = computed(() => ({ '--border-color': borderColor.value }))
+const outerStyle = computed(() => ({ "--border-color": borderColor.value }));
 
 /** Style for the hex tile surface. */
 const tileStyle = computed(() => {
   if (imageUrl.value) {
     return {
       backgroundImage: `url(${imageUrl.value})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    }
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    };
   }
-  return { backgroundColor: hexColor.value }
-})
+  return { backgroundColor: hexColor.value };
+});
 </script>
 
 <style scoped>
@@ -237,7 +232,7 @@ const tileStyle = computed(() => {
  * illusion of tiny rounded corners without altering the hex geometry.
  */
 .hex-outer:not(.hex-outer--editing)::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -4px;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);

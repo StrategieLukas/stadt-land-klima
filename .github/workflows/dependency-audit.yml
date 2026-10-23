@@ -1,13 +1,13 @@
 name: Dependency audit
 on:
   schedule:
-    - cron: '17 7 * * 1'
+    - cron: "17 7 * * 1"
   workflow_dispatch:
   pull_request:
     paths:
-      - '**/package-lock.json'
-      - 'bin/test_suite/src/dependencyAudit.ts'
-      - '.github/workflows/dependency-audit.yml'
+      - "**/package-lock.json"
+      - "bin/test_suite/src/dependencyAudit.ts"
+      - ".github/workflows/dependency-audit.yml"
 permissions:
   contents: read
 jobs:

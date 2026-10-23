@@ -67,11 +67,11 @@
 </template>
 
 <script setup lang="ts">
-import type { Map as LeafletMap, LatLngBoundsExpression } from 'leaflet';
-import type { PropType } from 'vue';
-import { DataMapSchema } from '~/shared/contracts/dataMap';
-import type { z } from 'zod';
-import type { GeoJsonObject } from 'geojson';
+import type { Map as LeafletMap, LatLngBoundsExpression } from "leaflet";
+import type { PropType } from "vue";
+import { DataMapSchema } from "~/shared/contracts/dataMap";
+import type { z } from "zod";
+import type { GeoJsonObject } from "geojson";
 
 import { ref, computed, watch, onMounted } from "vue";
 import { useRuntimeConfig } from "nuxt/app";
@@ -102,13 +102,17 @@ const props = defineProps({
 const config = useRuntimeConfig();
 const { $t } = useNuxtApp();
 
-const map = shallowRef<{leafletObject: LeafletMap} | null>(null);
+const map = shallowRef<{ leafletObject: LeafletMap } | null>(null);
 type MapData = z.infer<typeof DataMapSchema>;
-type MapState = {status: 'idle'} | {status: 'loading'} | {status: 'ready'; data: MapData} | {status: 'error'; message: string};
-const state = shallowRef<MapState>({status: 'idle'});
-const mapData = computed(() => state.value.status === 'ready' ? state.value.data : null);
-const loading = computed(() => state.value.status === 'loading');
-const error = computed(() => state.value.status === 'error' ? state.value.message : null);
+type MapState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; data: MapData }
+  | { status: "error"; message: string };
+const state = shallowRef<MapState>({ status: "idle" });
+const mapData = computed(() => (state.value.status === "ready" ? state.value.data : null));
+const loading = computed(() => state.value.status === "loading");
+const error = computed(() => (state.value.status === "error" ? state.value.message : null));
 const mapReady = ref(false);
 const zoom = ref(10);
 
@@ -146,7 +150,7 @@ const fetchMapData = async () => {
     return;
   }
 
-  state.value = {status: 'loading'};
+  state.value = { status: "loading" };
 
   try {
     const baseUrl = config.public.stadtlandzahlBaseUrl;
@@ -163,7 +167,7 @@ const fetchMapData = async () => {
     const data = DataMapSchema.parse(await response.json());
     console.log("DataProductMap: Data received:", data);
 
-    state.value = {status: 'ready', data};
+    state.value = { status: "ready", data };
 
     // Fit map to bounds if available
     if (data.bounds && mapReady.value) {
@@ -171,7 +175,7 @@ const fetchMapData = async () => {
     }
   } catch (err) {
     console.error("DataProductMap: Error fetching map data:", err);
-    state.value = {status: 'error', message: $t("stats.map.error_loading")};
+    state.value = { status: "error", message: $t("stats.map.error_loading") };
   }
 };
 

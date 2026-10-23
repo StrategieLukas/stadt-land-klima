@@ -22,6 +22,6 @@ export async function waitFor<T>(
     await sleep(intervalMs);
   }
 
-  const suffix = lastError instanceof Error ? ` Last error: ${lastError.message}` : '';
+  const suffix = lastError instanceof Error ? ` Last error: ${lastError.message}` : "";
   throw new Error(`Timed out waiting for ${label}.${suffix}`);
 }

@@ -10,7 +10,12 @@
   >
     <LTileLayer :url="tileUrl" :subdomains="subdomains" :attribution="attribution" :max-zoom="20" />
     <template v-if="markerIcon">
-      <LMarker v-for="location in locations" :key="location.key" :lat-lng="location.point" v-bind="leafletMarkerProps(leafletMarkerIcon(markerIcon))">
+      <LMarker
+        v-for="location in locations"
+        :key="location.key"
+        :lat-lng="location.point"
+        v-bind="leafletMarkerProps(leafletMarkerIcon(markerIcon))"
+      >
         <LPopup>
           <strong>{{ location.municipalityName }}</strong>
           <ul class="mt-2 space-y-1">
@@ -25,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { leafletMarkerIcon, leafletMarkerProps } from '~/shared/leafletMarker';
+import { leafletMarkerIcon, leafletMarkerProps } from "~/shared/leafletMarker";
 import { computed, nextTick, onMounted, shallowRef, watch } from "vue";
 import type { DivIcon } from "leaflet";
 import pinSvg from "~/assets/images/Pin.svg?raw";
@@ -40,7 +45,7 @@ type ProjectLocation = {
 
 const props = defineProps<{ projects: ProjectLocation[] }>();
 const { tileUrl, subdomains, attribution } = useCartoBasemap();
-const mapRef = shallowRef<{leafletObject?: import('leaflet').Map | undefined} | null>(null);
+const mapRef = shallowRef<{ leafletObject?: import("leaflet").Map | undefined } | null>(null);
 const markerIcon = shallowRef<DivIcon | null>(null);
 
 onMounted(async () => {
@@ -55,10 +60,14 @@ onMounted(async () => {
 });
 
 const locations = computed(() => {
-  const groups = new Map<string, { key: string; point: [number, number]; municipalityName: string; projects: ProjectLocation[] }>();
+  const groups = new Map<
+    string,
+    { key: string; point: [number, number]; municipalityName: string; projects: ProjectLocation[] }
+  >();
   for (const project of props.projects) {
     const key = project.point.join(",");
-    if (!groups.has(key)) groups.set(key, { key, point: project.point, municipalityName: project.municipalityName, projects: [] });
+    if (!groups.has(key))
+      groups.set(key, { key, point: project.point, municipalityName: project.municipalityName, projects: [] });
     groups.get(key)?.projects.push(project);
   }
   return [...groups.values()];
@@ -72,8 +81,11 @@ function fitProjects() {
   else if (points.length === 1) mapRef.value?.leafletObject?.setView(points[0]!, 10);
 }
 
-watch(() => props.projects, async () => {
-  await nextTick();
-  fitProjects();
-});
+watch(
+  () => props.projects,
+  async () => {
+    await nextTick();
+    fitProjects();
+  },
+);
 </script>

@@ -35,15 +35,16 @@
       <!-- Outdated: old catalog score chip + update CTA -->
       <template v-else-if="result.ctaType === 'outdated'">
         <span
-          class="text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
-          style="background-color: #fef3c7; color: #92400e;"
-        >{{ result.scoreDisplay }} ({{ $t('search.rating.old') }})</span>
+          class="whitespace-nowrap rounded-full px-2 py-0.5 text-xs"
+          style="background-color: #fef3c7; color: #92400e"
+          >{{ result.scoreDisplay }} ({{ $t("search.rating.old") }})</span
+        >
         <button
           type="button"
-          class="text-xs bg-olive-green/10 text-olive-green border border-olive-green/30 px-2 py-0.5 rounded-full whitespace-nowrap hover:bg-olive-green/20 transition-colors"
+          class="whitespace-nowrap rounded-full border border-olive-green/30 bg-olive-green/10 px-2 py-0.5 text-xs text-olive-green transition-colors hover:bg-olive-green/20"
           @click.stop="$emit('chip-action', { action: 'update', ars: result.ars, result })"
         >
-          {{ $t('search.rating.update') }}
+          {{ $t("search.rating.update") }}
         </button>
       </template>
 
@@ -80,8 +81,8 @@
 </template>
 
 <script setup lang="ts">
-import type { AreaChipAction, AreaResult  } from '~/types/components/navigation';
-import type { PropType } from 'vue';
+import type { AreaChipAction, AreaResult } from "~/types/components/navigation";
+import type { PropType } from "vue";
 
 defineProps({
   result: { type: Object as PropType<AreaResult>, required: true },

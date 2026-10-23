@@ -16,13 +16,13 @@ const props = defineProps<{
   description?: string | undefined;
 }>();
 
-const isEditing = import.meta.blokkliEditing
+const isEditing = import.meta.blokkliEditing;
 
 const { uuid } = defineBlokkli({
   bundle: "form_label",
   propsFieldMapping: {
-    text: { name: 'text', type: 'editable' },
-    description: { name: 'description', type: 'editable' },
+    text: { name: "text", type: "editable" },
+    description: { name: "description", type: "editable" },
   },
   editor: {
     addBehaviour: "editable:text",

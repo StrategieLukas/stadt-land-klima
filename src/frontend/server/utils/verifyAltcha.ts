@@ -1,5 +1,5 @@
-import { withProtectionRedis } from './protectionRedis';
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { withProtectionRedis } from "./protectionRedis";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 interface AltchaPayload {
   algorithm: string;
@@ -12,7 +12,7 @@ interface AltchaPayload {
   expires_at?: number;
 }
 
-const DEV_SECRET = 'dev-secret-change-in-production';
+const DEV_SECRET = "dev-secret-change-in-production";
 
 /**
  * Verify an ALTCHA proof. In production mode (devMode = false), the HMAC key
@@ -38,10 +38,10 @@ export async function verifyAltcha(
     return false;
   }
 
-  if (typeof payloadB64 !== 'string' || payloadB64.length > 20000) return false;
+  if (typeof payloadB64 !== "string" || payloadB64.length > 20000) return false;
   let payload: AltchaPayload;
   try {
-    const decoded: unknown = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
+    const decoded: unknown = JSON.parse(Buffer.from(payloadB64, "base64").toString());
     if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) return false;
     const parsed = decoded as Record<string, unknown>;
     // Required proof fields are checked below before cryptographic operations.
@@ -51,10 +51,20 @@ export async function verifyAltcha(
     // This prevents a browser from bypassing CAPTCHA by simply sending {dev: true}
     // — the server must also be configured with the dev secret.
     if (devMode && parsed.dev === true && hmacKey === DEV_SECRET) return true;
-    if (typeof parsed.algorithm !== "string" || typeof parsed.challenge !== "string" ||
-        typeof parsed.number !== "number" || typeof parsed.salt !== "string" || typeof parsed.signature !== "string") return false;
-    payload = { algorithm: parsed.algorithm, challenge: parsed.challenge, number: parsed.number,
-      salt: parsed.salt, signature: parsed.signature,
+    if (
+      typeof parsed.algorithm !== "string" ||
+      typeof parsed.challenge !== "string" ||
+      typeof parsed.number !== "number" ||
+      typeof parsed.salt !== "string" ||
+      typeof parsed.signature !== "string"
+    )
+      return false;
+    payload = {
+      algorithm: parsed.algorithm,
+      challenge: parsed.challenge,
+      number: parsed.number,
+      salt: parsed.salt,
+      signature: parsed.signature,
       ...(typeof parsed.purpose === "string" ? { purpose: parsed.purpose } : {}),
       ...(typeof parsed.expires_at === "number" ? { expires_at: parsed.expires_at } : {}),
     };
@@ -63,7 +73,7 @@ export async function verifyAltcha(
   }
 
   // Guard against obviously malformed payloads
-  if (!payload || typeof payload !== 'object') return false;
+  if (!payload || typeof payload !== "object") return false;
 
   // In development, accept the static dev-bypass payload so plain-HTTP devices
   // (e.g. phones on a local network without HTTPS) can submit forms. The altcha
@@ -78,23 +88,29 @@ export async function verifyAltcha(
   }
 
   // Validate required fields for non-dev payloads
-  if (payload.algorithm !== 'SHA-256' || typeof payload.challenge !== 'string' || !/^[a-f0-9]{64}$/.test(payload.challenge)
-      || !Number.isSafeInteger(payload.number) || payload.number < 0 || payload.number >= 100000
-      || typeof payload.salt !== 'string' || payload.salt.length > 512
-      || typeof payload.signature !== 'string' || !/^[a-f0-9]{64}$/.test(payload.signature)) {
+  if (
+    payload.algorithm !== "SHA-256" ||
+    typeof payload.challenge !== "string" ||
+    !/^[a-f0-9]{64}$/.test(payload.challenge) ||
+    !Number.isSafeInteger(payload.number) ||
+    payload.number < 0 ||
+    payload.number >= 100000 ||
+    typeof payload.salt !== "string" ||
+    payload.salt.length > 512 ||
+    typeof payload.signature !== "string" ||
+    !/^[a-f0-9]{64}$/.test(payload.signature)
+  ) {
     return false;
   }
 
   // 1. Verify proof-of-work: sha256(salt + number) === challenge
-  const expectedChallenge = createHash('SHA-256')
-    .update(`${payload.salt}${payload.number}`)
-    .digest('hex');
+  const expectedChallenge = createHash("SHA-256").update(`${payload.salt}${payload.number}`).digest("hex");
   if (expectedChallenge !== payload.challenge) return false;
 
   // 2. Verify HMAC signature: hmac(challenge) === signature
-  const expectedSig = createHmac('SHA-256', hmacKey).update(payload.challenge).digest('hex');
-  const a = Buffer.from(expectedSig, 'hex');
-  const b = Buffer.from(payload.signature, 'hex');
+  const expectedSig = createHmac("SHA-256", hmacKey).update(payload.challenge).digest("hex");
+  const a = Buffer.from(expectedSig, "hex");
+  const b = Buffer.from(payload.signature, "hex");
   if (a.length !== b.length) return false;
   if (!timingSafeEqual(a, b)) return false;
 
@@ -102,10 +118,16 @@ export async function verifyAltcha(
   const saltMatch = /^[a-f0-9]{24}\?(.+)$/.exec(payload.salt);
   if (!saltMatch?.[1]) return false;
   const metadata = new URLSearchParams(saltMatch[1]);
-  const expires = metadata.get('expires');
-  const signedPurpose = metadata.get('purpose');
-  if (metadata.getAll('expires').length !== 1 || metadata.getAll('purpose').length !== 1
-      || metadata.size !== 2 || !expires || !/^\d{13}$/.test(expires)) return false;
+  const expires = metadata.get("expires");
+  const signedPurpose = metadata.get("purpose");
+  if (
+    metadata.getAll("expires").length !== 1 ||
+    metadata.getAll("purpose").length !== 1 ||
+    metadata.size !== 2 ||
+    !expires ||
+    !/^\d{13}$/.test(expires)
+  )
+    return false;
   const expiresAt = Number(expires);
   if (Date.now() > expiresAt || expiresAt > Date.now() + 20 * 60 * 1000) return false;
   if (purpose && signedPurpose !== purpose) return false;
@@ -119,8 +141,8 @@ export async function verifyAltcha(
   try {
     const ttl = Math.max(60, Math.ceil((expiresAt - Date.now()) / 1000));
     const key = `altcha:used:${fingerprint}`;
-    const result = await withProtectionRedis(redis => redis.set(key, '1', {NX: true, EX: ttl}));
-    if (result !== 'OK') {
+    const result = await withProtectionRedis((redis) => redis.set(key, "1", { NX: true, EX: ttl }));
+    if (result !== "OK") {
       // Already consumed (nil)
       return false;
     }

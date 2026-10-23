@@ -11,6 +11,6 @@
 <script setup lang="ts">
 import { DONATION_PAGE_PATH } from "~/shared/donation";
 
-const props = defineProps<{ onClick?: ((event: MouseEvent) => void) | undefined }>()
-const { $t } = useNuxtApp()
+const props = defineProps<{ onClick?: ((event: MouseEvent) => void) | undefined }>();
+const { $t } = useNuxtApp();
 </script>

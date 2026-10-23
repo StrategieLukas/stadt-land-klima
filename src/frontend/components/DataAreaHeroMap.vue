@@ -44,10 +44,10 @@
 
 <script setup lang="ts">
 // vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
-import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from 'leaflet';
-import { parseGeoData, parseGeoCenter } from '~/shared/contracts/geometry';
-import type { PropType } from 'vue';
-import type { Area } from '~/shared/contracts/search';
+import type { Map as LeafletMap, GeoJSON as LeafletGeoJSON, LatLngBounds, GeoJSONOptions, Path } from "leaflet";
+import { parseGeoData, parseGeoCenter } from "~/shared/contracts/geometry";
+import type { PropType } from "vue";
+import type { Area } from "~/shared/contracts/search";
 
 import { computed, ref } from "vue";
 import { areaToSlug } from "~/composables/useAreaBySlug";
@@ -61,7 +61,7 @@ const props = defineProps({
 const router = useRouter();
 const { start: startDataRouteFeedback } = useDataRouteFeedback();
 const { attribution, subdomains, tileUrl } = useCartoBasemap();
-const mapRef = shallowRef<{leafletObject: LeafletMap} | null>(null);
+const mapRef = shallowRef<{ leafletObject: LeafletMap } | null>(null);
 const mapReady = ref(false);
 const zoom = ref(10);
 let pendingBounds: LatLngBounds | null = null;
@@ -98,7 +98,9 @@ const visibleNeighbors = computed(() =>
 
 const mapCenter = computed<[number, number]>(() => centerFor(props.area) ?? [51.1657, 10.4515]);
 
-function parseGeo(input: unknown) { return parseGeoData(input); }
+function parseGeo(input: unknown) {
+  return parseGeoData(input);
+}
 
 function centerFor(area: Area): [number, number] | null {
   const center = parseGeoCenter(area.geo_center ?? area.geoCenter);
@@ -133,7 +135,9 @@ function areaOptions(area: Area, selected: boolean): GeoJSONOptions {
         direction: "center",
         permanent: true,
       });
-      layer.on("click", () => { navigateToArea(area); });
+      layer.on("click", () => {
+        navigateToArea(area);
+      });
 
       const hoverStyle = { ...base, fillOpacity: selected ? 0.32 : 0.16, opacity: 1 };
       layer.on("mouseenter", () => {
@@ -159,7 +163,9 @@ function fitBounds(layer: LeafletGeoJSON) {
     } else {
       pendingBounds = bounds;
     }
-  } catch { /* Invalid or unavailable map data is optional. */ }
+  } catch {
+    /* Invalid or unavailable map data is optional. */
+  }
 }
 
 function applyZoomSteps(leafletMap: LeafletMap) {

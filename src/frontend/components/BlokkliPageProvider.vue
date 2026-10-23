@@ -11,26 +11,29 @@
 </template>
 
 <script setup lang="ts">
-import { FORM_SCOPE } from '~/shared/formScope'
-import type { EditPermission } from '#blokkli/types/provider'
+import { FORM_SCOPE } from "~/shared/formScope";
+import type { EditPermission } from "#blokkli/types/provider";
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ inheritAttrs: false });
 const props = defineProps<{
-  entityType: string
-  entityBundle: string
-  entityUuid: string
-  entity?: unknown
-  canEdit?: boolean | undefined
-}>()
-provide(FORM_SCOPE, computed(() => ({entityType: props.entityType, entityUuid: props.entityUuid})))
+  entityType: string;
+  entityBundle: string;
+  entityUuid: string;
+  entity?: unknown;
+  canEdit?: boolean | undefined;
+}>();
+provide(
+  FORM_SCOPE,
+  computed(() => ({ entityType: props.entityType, entityUuid: props.entityUuid })),
+);
 const providerContext = computed(() => ({
   entityType: props.entityType,
   entityBundle: props.entityBundle,
   entityUuid: props.entityUuid,
   entity: props.entity,
-}))
-const permissions = computed<EditPermission[]>(() => props.canEdit ? ['view', 'edit'] : [])
+}));
+const permissions = computed<EditPermission[]>(() => (props.canEdit ? ["view", "edit"] : []));
 
-const route = useRoute()
-const isPreview = computed(() => Boolean(route.query.blokkliPreview))
+const route = useRoute();
+const isPreview = computed(() => Boolean(route.query.blokkliPreview));
 </script>

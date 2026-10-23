@@ -23,7 +23,9 @@
           :title="item.label ?? undefined"
           :class="{
             'bg-olive-green text-white': item.link_type === 'page' && isActive(item),
-            'text-gray-600 hover:text-gray-900 hover:bg-solid-light-green-10': !(item.link_type === 'page' && isActive(item)),
+            'text-gray-600 hover:text-gray-900 hover:bg-solid-light-green-10': !(
+              item.link_type === 'page' && isActive(item)
+            ),
           }"
           @click="closeMenu"
         >
@@ -229,8 +231,8 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
-import type { NavigationItem } from '~/types/components/navigation';
+import type { PropType } from "vue";
+import type { NavigationItem } from "~/types/components/navigation";
 
 import { ref, computed, onMounted, onUnmounted, resolveComponent } from "vue";
 import { useRoute, useRuntimeConfig } from "#imports";

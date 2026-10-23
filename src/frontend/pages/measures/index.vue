@@ -1,12 +1,23 @@
 <template>
-  <div class="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto w-full min-w-0 overflow-hidden">
-
+  <div class="mx-auto w-full min-w-0 max-w-5xl overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
     <header class="mb-8">
       <h1 class="mb-4 font-heading text-4xl font-black text-gray sm:text-6xl">{{ $t("measures.heading") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("measures.description") }}</p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <CanonicalButton :label="$t('municipalities.heading')" href="/municipalities" icon-slug="mdi:format-list-numbered" color="gray" text-color="white" />
-        <CanonicalButton :label="$t('stats.measures.title')" href="/stats#massnahmenstatistiken" icon-slug="mdi:chart-bar" color="gray" text-color="white" />
+        <CanonicalButton
+          :label="$t('municipalities.heading')"
+          href="/municipalities"
+          icon-slug="mdi:format-list-numbered"
+          color="gray"
+          text-color="white"
+        />
+        <CanonicalButton
+          :label="$t('stats.measures.title')"
+          href="/stats#massnahmenstatistiken"
+          icon-slug="mdi:chart-bar"
+          color="gray"
+          text-color="white"
+        />
       </div>
     </header>
 
@@ -284,13 +295,18 @@
     </div>
 
     <!-- Sector description (shown when a sector is selected) -->
-    <div v-if="selectedSector" class="mb-4 bg-gray/5 border-l-4 border-gray/30 px-4 py-3 text-sm text-gray-700 max-w-2xl">
-      <p class="font-bold mb-1">{{ $translateDynamic(`measure_sectors.${selectedSector}.title`) }}</p>
+    <div
+      v-if="selectedSector"
+      class="text-gray-700 mb-4 max-w-2xl border-l-4 border-gray/30 bg-gray/5 px-4 py-3 text-sm"
+    >
+      <p class="mb-1 font-bold">{{ $translateDynamic(`measure_sectors.${selectedSector}.title`) }}</p>
       <p>{{ $translateDynamic(`measure_sectors.${selectedSector}.description`) }}</p>
     </div>
 
     <!-- Result count (list / cards only) -->
-    <p v-if="viewMode === 'list' || viewMode === 'cards'" class="text-sm text-gray-500 mb-4">{{ filteredMeasures.length }} Maßnahmen</p>
+    <p v-if="viewMode === 'list' || viewMode === 'cards'" class="text-gray-500 mb-4 text-sm">
+      {{ filteredMeasures.length }} Maßnahmen
+    </p>
 
     <!-- Treemap view -->
     <ClientOnly>
@@ -303,7 +319,7 @@
     </ClientOnly>
 
     <!-- Cards view -->
-    <div v-if="viewMode === 'cards'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div v-if="viewMode === 'cards'" class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <MeasureCard
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
@@ -323,17 +339,19 @@
         v-for="measure in filteredMeasures"
         :key="measure.measure_id"
         :to="`/measures/${measure.slug}?v=${currentCatalogVersion.name}`"
-        class="card rounded-md border border-gray/20 shadow hover:shadow-lg transition-shadow duration-200 block"
+        class="card block rounded-md border border-gray/20 shadow transition-shadow duration-200 hover:shadow-lg"
       >
         <div class="card-body">
           <div class="flex items-start gap-3">
-            <img :src="sectorImages[measure.sector]" class="w-7 h-7 opacity-50 flex-shrink-0 mt-0.5" alt="" />
+            <img :src="sectorImages[measure.sector]" class="mt-0.5 h-7 w-7 flex-shrink-0 opacity-50" alt="" />
             <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2 flex-wrap mb-1">
-                <span class="font-mono bg-gray text-white text-xs px-2 py-0.5 rounded flex-shrink-0">{{ measure.measure_id }}</span>
-                <h2 class="font-heading font-bold text-gray text-sm leading-snug">{{ measure.name }}</h2>
+              <div class="mb-1 flex flex-wrap items-center gap-2">
+                <span class="flex-shrink-0 rounded bg-gray px-2 py-0.5 font-mono text-xs text-white">{{
+                  measure.measure_id
+                }}</span>
+                <h2 class="font-heading text-sm font-bold leading-snug text-gray">{{ measure.name }}</h2>
               </div>
-              <p v-if="measure.description_about" class="text-xs text-gray-500 line-clamp-2">
+              <p v-if="measure.description_about" class="text-gray-500 line-clamp-2 text-xs">
                 {{ truncateHtml(measure.description_about) }}
               </p>
             </div>
@@ -348,16 +366,19 @@
         v-if="currentCatalogVersion.name === 'v1.0'"
         :to="measureCatalogDownloadUrl('ac1df0cd-8a57-4082-bdd3-432f43e4a374.xslx')"
       >
-        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
+        <button class="flex h-10 items-center justify-end bg-gray p-4 text-white">
+          {{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})
+        </button>
       </NuxtLink>
       <NuxtLink
         v-if="currentCatalogVersion.name === 'beta'"
         :to="measureCatalogDownloadUrl('9c270dd0-52dc-449b-9c2e-bbd5d5b829.xslx')"
       >
-        <button class="p-4 flex items-center justify-end text-white bg-gray h-10">{{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})</button>
+        <button class="flex h-10 items-center justify-end bg-gray p-4 text-white">
+          {{ $t("measure_catalog.download") }} ({{ currentCatalogVersion.name }})
+        </button>
       </NuxtLink>
     </div>
-
   </div>
 </template>
 
@@ -367,7 +388,7 @@ import sectorImages from "~/shared/sectorImages";
 
 import { singleRouteValue } from "~/shared/routeValues";
 
-const SECTORS = ['energy', 'agriculture', 'transport', 'industry', 'buildings', 'management'] as const;
+const SECTORS = ["energy", "agriculture", "transport", "industry", "buildings", "management"] as const;
 const { $t, $translateDynamic } = useNuxtApp();
 const config = useRuntimeConfig();
 const route = useRoute();
@@ -387,25 +408,35 @@ const title = ref($t("measures.nav_label"));
 useHead({ title });
 
 // Public contracts work during SSR and subsequent client navigation.
-const { data: allVersions } = await useAsyncData('measure-catalog-versions', async () => (await $fetch('/api/public/catalogs')).slice().sort((a, b) => b.name.localeCompare(a.name)));
+const { data: allVersions } = await useAsyncData("measure-catalog-versions", async () =>
+  (await $fetch("/api/public/catalogs")).slice().sort((a, b) => b.name.localeCompare(a.name)),
+);
 const { data: measuresData } = await useAsyncData(
   () => `measures-index-${currentCatalogVersion.value.name}`,
-  () => $fetch('/api/public/measures', { query: { v: currentCatalogVersion.value.name } }),
+  () => $fetch("/api/public/measures", { query: { v: currentCatalogVersion.value.name } }),
 );
 const measureList = computed(() => measuresData.value?.measures ?? []);
-watch(() => route.query.v, async (newV, oldV) => {
-  if (newV === oldV) return;
-  currentCatalogVersion.value = await getCatalogVersion(route, true);
-});
+watch(
+  () => route.query.v,
+  async (newV, oldV) => {
+    if (newV === oldV) return;
+    currentCatalogVersion.value = await getCatalogVersion(route, true);
+  },
+);
 
 // ── Filter state ────────────────────────────────────────────────────────────
 const selectedSector = ref(singleRouteValue(route.query.sector) ?? null);
-watch(() => route.query.sector, sector => { selectedSector.value = singleRouteValue(sector) ?? null; });
-const viewMode = ref(route.query.view === 'treemap' ? 'treemap' : route.query.view === 'cards' ? 'cards' : 'list');
+watch(
+  () => route.query.sector,
+  (sector) => {
+    selectedSector.value = singleRouteValue(sector) ?? null;
+  },
+);
+const viewMode = ref(route.query.view === "treemap" ? "treemap" : route.query.view === "cards" ? "cards" : "list");
 const filterHighImpact = ref(false);
 const filterLowCost = ref(false);
 const filterLowControversy = ref(false);
-const sortOrder = ref('id'); // 'id' | 'name' | 'impact' | 'economical' | 'political'
+const sortOrder = ref("id"); // 'id' | 'name' | 'impact' | 'economical' | 'political'
 
 const filterOpen = ref(false);
 const activeFilterCount = computed(() => {
@@ -424,24 +455,34 @@ function setSector(sector: string | null) {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function stripHtml(html: string | null) {
-  if (!html) return '';
+  if (!html) return "";
   // Use the same text projection on the server and client to avoid hydration mismatches
   return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-    .replace(/&auml;/g, 'ä').replace(/&Auml;/g, 'Ä')
-    .replace(/&ouml;/g, 'ö').replace(/&Ouml;/g, 'Ö')
-    .replace(/&uuml;/g, 'ü').replace(/&Uuml;/g, 'Ü')
-    .replace(/&szlig;/g, 'ß').replace(/&eacute;/g, 'é').replace(/&egrave;/g, 'è')
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&auml;/g, "ä")
+    .replace(/&Auml;/g, "Ä")
+    .replace(/&ouml;/g, "ö")
+    .replace(/&Ouml;/g, "Ö")
+    .replace(/&uuml;/g, "ü")
+    .replace(/&Uuml;/g, "Ü")
+    .replace(/&szlig;/g, "ß")
+    .replace(/&eacute;/g, "é")
+    .replace(/&egrave;/g, "è")
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))
     .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCharCode(parseInt(String(h), 16)))
-    .replace(/\s+/g, ' ').trim();
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function truncateHtml(html: string | null, maxLen = 130) {
   const text = stripHtml(html);
-  return text.length > maxLen ? text.slice(0, maxLen) + '…' : text;
+  return text.length > maxLen ? text.slice(0, maxLen) + "…" : text;
 }
 
 // ── Filtered + sorted list ───────────────────────────────────────────────────
@@ -449,19 +490,19 @@ const filteredMeasures = computed(() => {
   if (!measureList.value) return [];
 
   let list = measureList.value;
-  if (selectedSector.value) list = list.filter(m => m.sector === selectedSector.value);
-  if (filterHighImpact.value) list = list.filter(m => (m.impact ?? 0) >= 4);
-  if (filterLowCost.value) list = list.filter(m => (m.feasibility_economical ?? 0) >= 4);
-  if (filterLowControversy.value) list = list.filter(m => (m.feasibility_political ?? 0) >= 4);
+  if (selectedSector.value) list = list.filter((m) => m.sector === selectedSector.value);
+  if (filterHighImpact.value) list = list.filter((m) => (m.impact ?? 0) >= 4);
+  if (filterLowCost.value) list = list.filter((m) => (m.feasibility_economical ?? 0) >= 4);
+  if (filterLowControversy.value) list = list.filter((m) => (m.feasibility_political ?? 0) >= 4);
 
   const sorted = [...list];
-  if (sortOrder.value === 'name') {
-    sorted.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  } else if (sortOrder.value === 'impact') {
+  if (sortOrder.value === "name") {
+    sorted.sort((a, b) => a.name.localeCompare(b.name, "de"));
+  } else if (sortOrder.value === "impact") {
     sorted.sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
-  } else if (sortOrder.value === 'economical') {
+  } else if (sortOrder.value === "economical") {
     sorted.sort((a, b) => (b.feasibility_economical ?? 0) - (a.feasibility_economical ?? 0));
-  } else if (sortOrder.value === 'political') {
+  } else if (sortOrder.value === "political") {
     sorted.sort((a, b) => (b.feasibility_political ?? 0) - (a.feasibility_political ?? 0));
   }
   // 'id' keeps server sort: measure_id

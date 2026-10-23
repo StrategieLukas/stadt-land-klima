@@ -4,27 +4,17 @@
       <div class="header-icon"><v-icon name="person_add" /></div>
       <div>
         <h2>Redakteur:in einladen</h2>
-        <p>
-          Die eingeladene Person erhält Zugriff auf die
-          Erfolgsprojekte-Redaktion.
-        </p>
+        <p>Die eingeladene Person erhält Zugriff auf die Erfolgsprojekte-Redaktion.</p>
       </div>
     </header>
 
     <v-notice v-if="error" type="danger" class="notice">
       {{ error }}
     </v-notice>
-    <v-notice
-      v-if="success"
-      :type="success.mailSent ? 'success' : 'warning'"
-      class="notice"
-    >
-      <template v-if="success.mailSent">
-        Die Einladung wurde an {{ success.email }} versendet.
-      </template>
+    <v-notice v-if="success" :type="success.mailSent ? 'success' : 'warning'" class="notice">
+      <template v-if="success.mailSent"> Die Einladung wurde an {{ success.email }} versendet. </template>
       <template v-else>
-        Das Konto für {{ success.email }} wurde angelegt. Im Entwicklungsmodus
-        wurde keine E-Mail versendet.
+        Das Konto für {{ success.email }} wurde angelegt. Im Entwicklungsmodus wurde keine E-Mail versendet.
       </template>
     </v-notice>
 
@@ -42,28 +32,16 @@
 
       <label class="field">
         <span>Vorname</span>
-        <v-input
-          v-model="form.firstName"
-          autocomplete="given-name"
-          :disabled="submitting"
-        />
+        <v-input v-model="form.firstName" autocomplete="given-name" :disabled="submitting" />
       </label>
 
       <label class="field">
         <span>Nachname</span>
-        <v-input
-          v-model="form.lastName"
-          autocomplete="family-name"
-          :disabled="submitting"
-        />
+        <v-input v-model="form.lastName" autocomplete="family-name" :disabled="submitting" />
       </label>
 
       <div class="form-actions">
-        <v-button
-          type="submit"
-          :loading="submitting"
-          :disabled="!canSubmit || submitting"
-        >
+        <v-button type="submit" :loading="submitting" :disabled="!canSubmit || submitting">
           <v-icon name="send" left />
           Einladung senden
         </v-button>
@@ -95,19 +73,14 @@ const submitting = ref(false);
 const error = ref<string | null>(null);
 const success = ref<{ email: string; mailSent: boolean } | null>(null);
 
-const canSubmit = computed(() =>
-  Boolean(form.email.trim() && form.firstName.trim() && form.lastName.trim()),
-);
+const canSubmit = computed(() => Boolean(form.email.trim() && form.firstName.trim() && form.lastName.trim()));
 
 function errorMessage(value: unknown): string {
   if (value && typeof value === "object") {
-    const response = (value as { response?: { data?: { error?: string } } })
-      .response;
+    const response = (value as { response?: { data?: { error?: string } } }).response;
     if (response?.data?.error) return response.data.error;
   }
-  return value instanceof Error
-    ? value.message
-    : "Die Einladung konnte nicht versendet werden.";
+  return value instanceof Error ? value.message : "Die Einladung konnte nicht versendet werden.";
 }
 
 async function submitInvite() {
@@ -118,14 +91,11 @@ async function submitInvite() {
   success.value = null;
 
   try {
-    const response = await api.post<InviteResponse>(
-      "/erfolgsprojekte-users/invite",
-      {
-        email: form.email,
-        first_name: form.firstName,
-        last_name: form.lastName,
-      },
-    );
+    const response = await api.post<InviteResponse>("/erfolgsprojekte-users/invite", {
+      email: form.email,
+      first_name: form.firstName,
+      last_name: form.lastName,
+    });
     success.value = {
       email: response.data.user.email,
       mailSent: response.data.mailSent,

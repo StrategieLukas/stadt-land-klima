@@ -81,9 +81,7 @@ const { t } = useSlzLocale();
 const { start: startDataRouteFeedback } = useDataRouteFeedback();
 const runtimeConfig = useRuntimeConfig();
 
-const description = computed(
-  () => props.collection.description?.["de-DE"] || "",
-);
+const description = computed(() => props.collection.description?.["de-DE"] || "");
 
 const coverImage = computed(() => collectionCoverImage(props.collection, runtimeConfig.public.clientDirectusUrl));
 const coverImageUrl = computed(() => coverImage.value.url);

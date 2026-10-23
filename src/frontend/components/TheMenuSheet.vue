@@ -299,9 +299,8 @@
 </template>
 
 <script setup lang="ts">
-
-import type { PropType } from 'vue';
-import type { NavigationPage, NavigationItem } from '~/types/components/navigation';
+import type { PropType } from "vue";
+import type { NavigationPage, NavigationItem } from "~/types/components/navigation";
 
 import { ref, computed, onMounted, onBeforeUnmount, resolveComponent } from "vue";
 import { useRuntimeConfig } from "#imports";
@@ -313,7 +312,8 @@ const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
 const config = useRuntimeConfig();
 const { closeDrawer } = useDrawer();
-const navLabel = (item: NavigationItem, field: "label" | "name" | "title" | "description" = "label") => translatedNavigationLabel(item, $translateDynamic, field);
+const navLabel = (item: NavigationItem, field: "label" | "name" | "title" | "description" = "label") =>
+  translatedNavigationLabel(item, $translateDynamic, field);
 const navDescription = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "description");
 
 // Easter egg: pull-to-reveal SLK flower

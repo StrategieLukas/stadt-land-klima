@@ -111,7 +111,7 @@ import type { Collection, CollectionSummary } from "~/types/slz-api";
 
 definePageMeta({
   key: (route) => route.fullPath,
-  middleware: ['data-availability'],
+  middleware: ["data-availability"],
 });
 
 const route = useRoute();
@@ -201,7 +201,9 @@ onMounted(() => {
 
 onMounted(async () => {
   try {
-    const data = CollectionSchema.parse(await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`));
+    const data = CollectionSchema.parse(
+      await $fetch(`${baseUrl}/api/collections/${encodeURIComponent(collectionSlug.value)}/`),
+    );
     collection.value = data;
     if (area.value?.ars) {
       await loadFromRender(collectionSlug.value, area.value.ars);
@@ -218,11 +220,15 @@ onMounted(async () => {
   // Fetch summary for attribution block (best-effort)
   if (area.value?.ars) {
     try {
-      const s = SummarySchema.parse(await $fetch(`${baseUrl}/api/collections/${collectionSlug.value}/summary/`, {
-        params: { area: area.value.ars },
-      }));
+      const s = SummarySchema.parse(
+        await $fetch(`${baseUrl}/api/collections/${collectionSlug.value}/summary/`, {
+          params: { area: area.value.ars },
+        }),
+      );
       collectionSummary.value = s;
-    } catch { /* Attribution is optional when the source is unavailable. */ }
+    } catch {
+      /* Attribution is optional when the source is unavailable. */
+    }
   }
 
   initStepObserver();
@@ -254,7 +260,9 @@ function initStepObserver() {
     { rootMargin: "-20% 0px -60% 0px", threshold: 0 },
   );
 
-  stepEls.forEach((el) => { stepObserver!.observe(el); });
+  stepEls.forEach((el) => {
+    stepObserver!.observe(el);
+  });
 }
 
 function scrollToStep(index: number) {

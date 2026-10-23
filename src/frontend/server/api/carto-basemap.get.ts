@@ -3,7 +3,6 @@ const RASTER_TILE = /^\/(light_all|dark_all)\/(\d{1,2})\/(\d{1,10})\/(\d{1,10})(
 const SPRITE = /^\/gl\/(?:positron-gl-style|dark-matter-gl-style|voyager-gl-style)\/sprite(?:@2x)?\.(?:png|json)$/;
 const GLYPH = /^\/fonts\/([^/]{1,160})\/(\d{1,6})-(\d{1,6})\.pbf$/;
 
-
 function cartoAsset(path: string): { host: string; contentType: string } | null {
   const tile = RASTER_TILE.exec(path);
   if (tile) {
@@ -36,8 +35,8 @@ function cartoAsset(path: string): { host: string; contentType: string } | null 
 
 export default defineEventHandler(async (event) => {
   // Rate limit: see server/utils/rateLimitConfig.ts
-  if (!(await rateLimit(event, 'carto-basemap'))) {
-    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  if (!(await rateLimit(event, "carto-basemap"))) {
+    throw createError({ statusCode: 429, statusMessage: "Too many requests" });
   }
   const requestUrl = new URL(event.path ?? "/", "http://carto-proxy.local");
   if (requestUrl.searchParams.size !== 1) {

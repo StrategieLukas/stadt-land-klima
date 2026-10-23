@@ -4,8 +4,20 @@
       <h1 class="mb-4 font-heading text-4xl font-black text-stats-dark sm:text-6xl">{{ $t("tools.title") }}</h1>
       <p class="max-w-3xl text-lg leading-relaxed text-gray">{{ $t("tools.description") }}</p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <CanonicalButton :label="$t('measures.heading')" href="/measures" icon-slug="mdi:clipboard-list-outline" color="dark" text-color="white" />
-        <CanonicalButton :label="$t('data.overview.title')" href="/data" icon-slug="mdi:chart-box-outline" color="dark" text-color="white" />
+        <CanonicalButton
+          :label="$t('measures.heading')"
+          href="/measures"
+          icon-slug="mdi:clipboard-list-outline"
+          color="dark"
+          text-color="white"
+        />
+        <CanonicalButton
+          :label="$t('data.overview.title')"
+          href="/data"
+          icon-slug="mdi:chart-box-outline"
+          color="dark"
+          text-color="white"
+        />
       </div>
     </header>
 
@@ -158,7 +170,11 @@ useHead({ title: $t("tools.title") });
 
 const selectedCategory = ref<string | null>(null);
 
-const { data: toolData, pending, error } = await useAsyncData('climate-tools-list', () => $fetch('/api/public/climate-tools'));
+const {
+  data: toolData,
+  pending,
+  error,
+} = await useAsyncData("climate-tools-list", () => $fetch("/api/public/climate-tools"));
 const tools = computed(() => toolData.value?.tools ?? []);
 
 const hasLoadError = computed(() => Boolean(error.value));

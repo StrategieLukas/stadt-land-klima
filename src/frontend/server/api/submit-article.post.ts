@@ -1,4 +1,4 @@
-import { abuseProtection } from '../utils/abuseProtection';
+import { abuseProtection } from "../utils/abuseProtection";
 import { directusErrorDetails, errorRecord, requestErrorData, requestErrorStatus } from "~/shared/requestError";
 import { randomBytes } from "node:crypto";
 import type { H3Event } from "h3";
@@ -285,7 +285,9 @@ async function readRequestBuffer(event: H3Event) {
     event.node.req.on("data", (chunk: Buffer | string) => {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     });
-    event.node.req.on("end", () => { resolve(Buffer.concat(chunks)); });
+    event.node.req.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
     event.node.req.on("error", reject);
   });
 }
@@ -385,7 +387,7 @@ async function submitArticle(event: H3Event) {
   const mathChallengeToken = getInternalTextField(parts, "mathChallengeToken", 4096, true);
   const mathChallengeAnswer = getInternalTextField(parts, "mathChallengeAnswer", 10, true);
 
-  if (!verifyMathChallenge(mathChallengeToken, mathChallengeAnswer, hmacKey, 'article', devMode)) {
+  if (!verifyMathChallenge(mathChallengeToken, mathChallengeAnswer, hmacKey, "article", devMode)) {
     throw submissionError(
       400,
       "math_challenge_failed",
@@ -393,7 +395,7 @@ async function submitArticle(event: H3Event) {
     );
   }
 
-  if (!await verifyAltcha(altcha, hmacKey, { purpose: 'article', devMode })) {
+  if (!(await verifyAltcha(altcha, hmacKey, { purpose: "article", devMode }))) {
     throw submissionError(
       400,
       "captcha_failed",
@@ -431,7 +433,7 @@ async function submitArticle(event: H3Event) {
   }
   validateImage(image);
 
-  const directusUrl = (config.directusServerUrl) || "http://directus:8055";
+  const directusUrl = config.directusServerUrl || "http://directus:8055";
   const adminToken = config.directusAdminToken as string | undefined;
   if (!adminToken) {
     console.error("[submit-article] DIRECTUS_ADMIN_TOKEN not configured");
@@ -496,10 +498,10 @@ async function submitArticle(event: H3Event) {
       body: articlePayload,
     });
 
-    const directusPublicUrl = (config.directusPublicUrl) || "https://stadt-land-klima.de/backend";
+    const directusPublicUrl = config.directusPublicUrl || "https://stadt-land-klima.de/backend";
     const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "articles", article.data.id);
     const notifyAdminFlowUrl = config.directusFlowNotifyAdmin as string | undefined;
-    const notificationEmail = (config.erfolgsprojekteNotificationEmail) || "presse@stadt-land-klima.de";
+    const notificationEmail = config.erfolgsprojekteNotificationEmail || "presse@stadt-land-klima.de";
     if (!notifyAdminFlowUrl) {
       console.warn(
         "[submit-article] DIRECTUS_FLOW_NOTIFY_ADMIN not configured - skipping Erfolgsprojekte notification",
@@ -549,7 +551,7 @@ async function submitArticle(event: H3Event) {
     const directusError = directusErrorDetails(err)[0];
     const directusCode = directusError?.code;
     const directusStatus = requestErrorStatus(err);
-    console.error("[submit-article] Directus error:", {status: directusStatus, code: directusCode});
+    console.error("[submit-article] Directus error:", { status: directusStatus, code: directusCode });
     if (directusStatus === 401 || directusStatus === 403 || directusCode === "FORBIDDEN") {
       console.error("[submit-article] DIRECTUS_ADMIN_TOKEN lacks permission to create articles or files");
       throw submissionError(
@@ -568,8 +570,8 @@ async function submitArticle(event: H3Event) {
 
 export default defineEventHandler(async (event) => {
   // Rate limit: see server/utils/rateLimitConfig.ts
-  if (!(await rateLimit(event, 'article'))) {
-    throw createError({ statusCode: 429, message: 'Zu viele Anfragen. Bitte versuche es später erneut.' });
+  if (!(await rateLimit(event, "article"))) {
+    throw createError({ statusCode: 429, message: "Zu viele Anfragen. Bitte versuche es später erneut." });
   }
   try {
     return await submitArticle(event);
@@ -580,7 +582,8 @@ export default defineEventHandler(async (event) => {
       const statusCode = requestErrorStatus(err) || 500;
       event.node.res.statusCode = statusCode;
       const statusMessage = errorRecord(err).statusMessage;
-      event.node.res.statusMessage = typeof statusMessage === "string" ? statusMessage : submissionStatusMessage(statusCode);
+      event.node.res.statusMessage =
+        typeof statusMessage === "string" ? statusMessage : submissionStatusMessage(statusCode);
       return {
         success: false,
         error: errorData,

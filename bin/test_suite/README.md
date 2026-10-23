@@ -151,9 +151,7 @@ standalone checks are `test:contracts`, `test:blokkli:adapter`, `test:blokkli`,
 backend, frontend and `.env` arguments shown above. Migration asset scanning must
 use the **freshly built** public directory via `TEST_FRONTEND_BUILD_DIR`.
 
-
 Phase 8 permanent-check regressions are in `src/phase8.test.ts`: source/config coverage, deliberate strict compiler failures, build/mount wiring, checked search documents, Node proxy forwarding and unknown Directus error shapes. `phase5.test.ts` also checks actual native button click forwarding and attributes. `publicReads.test.ts` covers navigation singleton reads and nested public projection. These isolated tests are included in `npm run test:unit` and require no services. The full application gate is `npm --prefix src/frontend run typecheck`; it includes `lint:types` across all maintained TS/Vue and checked JS tooling. `.ts-baseline.txt` and its refresh command have been retired.
-
 
 For focused tour/editor acceptance without rerunning unrelated workflows:
 
@@ -166,7 +164,6 @@ This runs the existing Tour Series assertions with disposable fixture setup/clea
 Directus extension regressions run with `npm run test:extensions` (`src/directusExtensions.test.ts`) and are included in `test:unit`. They check all 14 compiler/prebuild configurations and source inclusion, consent endpoint authentication/schema resolution, service-role exemptions and required legal agreements, report database wiring, Unsplash authentication and actual radio-selector rendering. They add about a second when run alone and need no services. From the repository root, `./bin/check_extensions.sh` checks extension sources; `./bin/check_extensions.sh --build` also builds the bundles, with each package’s `prebuild` enforcing its compiler. Install each extension’s locked dependencies first with `npm ci` in its directory. See `DIRECTUS_EXTENSION_TYPES_REVIEW.md` for the negative build proofs and runtime verification.
 
 CLI regressions run through `npm run test:cli` and are included in `test:unit`. Install the CLI lockfile first (`npm --prefix ../../src/directus/cli ci --include=dev`). These cases use isolated HTTP/filesystem fixtures and add roughly 10 seconds. Compiler-negative/startup probes remain in `npm --prefix ../../src/directus/cli run test:gates`; live flow/dashboard and tour migration tests are separate serialized commands.
-
 
 Security follow-up: `securityHardening.test.ts` is part of the fast unit gate and covers actual sanitizer, quota, math, form, session, search, PDF, mail-escape and core guard/cutover implementations. `TEST_REDIS_URL=redis://<local-redis>:6379 npm run test:security:redis` separately checks the real Lua window with 100 parallel requests across two clients and removes only its unique test key. Do not point it at production. `npm run audit:dependencies -- /private/report/directory` audits all maintained npm lockfiles, writes JSON reports and exits 1 for high/critical findings or 2 for registry/tool failures. The weekly GitHub workflow deliberately fails on known findings and requires no deployment secrets.
 

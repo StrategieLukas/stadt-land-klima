@@ -1,17 +1,12 @@
-import { readPolicies } from '@directus/sdk';
-import find from 'lodash/find.js';
-import pg from 'pg';
-import type { CliClient, NamedRecord, TaskOptions } from './models.ts';
+import { readPolicies } from "@directus/sdk";
+import find from "lodash/find.js";
+import pg from "pg";
+import type { CliClient, NamedRecord, TaskOptions } from "./models.ts";
 
 const { Pool } = pg;
 
 function hasDatabaseConfig() {
-  return Boolean(
-    process.env.DB_DATABASE &&
-    process.env.DB_HOST &&
-    process.env.DB_PASSWORD &&
-    process.env.DB_USER,
-  );
+  return Boolean(process.env.DB_DATABASE && process.env.DB_HOST && process.env.DB_PASSWORD && process.env.DB_USER);
 }
 
 function createPool() {
@@ -24,39 +19,31 @@ function createPool() {
   });
 }
 
-async function readPolicyByNameFromDatabase(
-  policyName: string,
-  verbose = false,
-) {
+async function readPolicyByNameFromDatabase(policyName: string, verbose = false) {
   if (!hasDatabaseConfig()) return null;
 
   const pool = createPool();
 
   try {
-    const result = await pool.query<NamedRecord>(
-      'SELECT id, name FROM directus_policies WHERE name = $1',
-      [policyName],
-    );
+    const result = await pool.query<NamedRecord>("SELECT id, name FROM directus_policies WHERE name = $1", [
+      policyName,
+    ]);
 
     if (result.rows.length > 1) {
-      const ids = result.rows.map((row) => row.id).join(', ');
-      throw new Error(
-        `Duplicate Directus policy names found in database: "${policyName}" (${ids})`,
-      );
+      const ids = result.rows.map((row) => row.id).join(", ");
+      throw new Error(`Duplicate Directus policy names found in database: "${policyName}" (${ids})`);
     }
 
     return result.rows[0] || null;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
 
-    if (message.startsWith('Duplicate Directus policy names')) {
+    if (message.startsWith("Duplicate Directus policy names")) {
       throw err;
     }
 
     if (verbose) {
-      console.warn(
-        `Could not resolve policy ${policyName} directly from the database: ${message}`,
-      );
+      console.warn(`Could not resolve policy ${policyName} directly from the database: ${message}`);
     }
     return null;
   } finally {
@@ -64,16 +51,10 @@ async function readPolicyByNameFromDatabase(
   }
 }
 
-async function readPolicyByNameFromApi(
-  client: CliClient,
-  policyName: string,
-  policies: NamedRecord[] = [],
-) {
-  const availablePolicies = policies.length
-    ? policies
-    : await client.request(readPolicies({ limit: -1 }));
+async function readPolicyByNameFromApi(client: CliClient, policyName: string, policies: NamedRecord[] = []) {
+  const availablePolicies = policies.length ? policies : await client.request(readPolicies({ limit: -1 }));
 
-  return find(availablePolicies, ['name', policyName]) || null;
+  return find(availablePolicies, ["name", policyName]) || null;
 }
 
 async function resolvePolicyByName(
@@ -83,10 +64,7 @@ async function resolvePolicyByName(
   options: TaskOptions = {},
 ) {
   const apiPolicy = await readPolicyByNameFromApi(client, policyName, policies);
-  const databasePolicy = await readPolicyByNameFromDatabase(
-    policyName,
-    options.verbose,
-  );
+  const databasePolicy = await readPolicyByNameFromDatabase(policyName, options.verbose);
 
   if (databasePolicy) {
     if (apiPolicy?.id && apiPolicy.id !== databasePolicy.id) {

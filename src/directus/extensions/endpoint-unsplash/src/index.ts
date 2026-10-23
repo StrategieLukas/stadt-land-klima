@@ -1,5 +1,5 @@
-import type { Request, Response, Router } from 'express';
-import type { EndpointConfig } from '@directus/types';
+import type { Request, Response, Router } from "express";
+import type { EndpointConfig } from "@directus/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -63,7 +63,7 @@ interface ApiError {
 // Constants
 // ---------------------------------------------------------------------------
 
-const UPSTREAM_BASE = 'https://api.unsplash.com';
+const UPSTREAM_BASE = "https://api.unsplash.com";
 /** Abort upstream requests after this many milliseconds */
 const FETCH_TIMEOUT_MS = 8_000;
 
@@ -76,7 +76,7 @@ const FETCH_TIMEOUT_MS = 8_000;
  * Falls back gracefully on older Node versions that lack AbortSignal.timeout().
  */
 function timeoutSignal(ms: number): AbortSignal {
-  if (typeof AbortSignal.timeout === 'function') {
+  if (typeof AbortSignal.timeout === "function") {
     return AbortSignal.timeout(ms);
   }
   const controller = new AbortController();
@@ -90,11 +90,14 @@ function timeoutSignal(ms: number): AbortSignal {
  * request object via its authentication middleware.
  */
 function isAuthenticated(req: object): boolean {
-  if (!('accountability' in req)) return false;
+  if (!("accountability" in req)) return false;
   const accountability = req.accountability;
   return Boolean(
-    accountability && typeof accountability === 'object' &&
-    'user' in accountability && typeof accountability.user === 'string' && accountability.user
+    accountability &&
+    typeof accountability === "object" &&
+    "user" in accountability &&
+    typeof accountability.user === "string" &&
+    accountability.user,
   );
 }
 
@@ -119,20 +122,26 @@ function parseIntParam(raw: string | string[] | undefined, defaultValue: number,
 // ---------------------------------------------------------------------------
 
 export default {
-  id: 'unsplash',
+  id: "unsplash",
   handler: (
     router: Router,
-    { env, logger }: { env: Record<string, string>; logger: { info(...a: unknown[]): void; error(...a: unknown[]): void; warn(...a: unknown[]): void } },
+    {
+      env,
+      logger,
+    }: {
+      env: Record<string, string>;
+      logger: { info(...a: unknown[]): void; error(...a: unknown[]): void; warn(...a: unknown[]): void };
+    },
   ): void => {
     // ------------------------------------------------------------------
     // Configuration guard
     // ------------------------------------------------------------------
-    const ACCESS_KEY: string | undefined = env['UNSPLASH_ACCESS_KEY'] || process.env.UNSPLASH_ACCESS_KEY;
+    const ACCESS_KEY: string | undefined = env["UNSPLASH_ACCESS_KEY"] || process.env.UNSPLASH_ACCESS_KEY;
 
     if (!ACCESS_KEY) {
-      logger.error('[unsplash] UNSPLASH_ACCESS_KEY is not set – all requests will be rejected');
+      logger.error("[unsplash] UNSPLASH_ACCESS_KEY is not set – all requests will be rejected");
       router.use((_req: Request, res: Response<ApiError>) => {
-        res.status(503).json({ error: 'Unsplash integration is not configured' });
+        res.status(503).json({ error: "Unsplash integration is not configured" });
       });
       return;
     }
@@ -140,23 +149,23 @@ export default {
     /** Shared headers for every upstream Unsplash request */
     const unsplashHeaders: HeadersInit = {
       Authorization: `Client-ID ${ACCESS_KEY}`,
-      'Accept-Version': 'v1',
+      "Accept-Version": "v1",
     };
 
     // ------------------------------------------------------------------
     // GET /unsplash/search?q=QUERY&page=N&per_page=N
     // ------------------------------------------------------------------
     router.get(
-      '/search',
+      "/search",
       async (
         req: Request<Record<string, never>, UnsplashSearchResponse | ApiError, never, SearchQuery>,
         res: Response<UnsplashSearchResponse | ApiError>,
       ) => {
         if (!isAuthenticated(req)) {
-          return res.status(401).json({ error: 'Authentication required' });
+          return res.status(401).json({ error: "Authentication required" });
         }
 
-        const q = String(firstQueryValue(req.query.q) ?? '').trim();
+        const q = String(firstQueryValue(req.query.q) ?? "").trim();
         if (!q) {
           return res.status(400).json({ error: 'Missing required query parameter "q"' });
         }
@@ -165,10 +174,10 @@ export default {
         const perPage = parseIntParam(req.query.per_page, 24, 1, 30);
 
         const url = new URL(`${UPSTREAM_BASE}/search/photos`);
-        url.searchParams.set('query', q);
-        url.searchParams.set('page', String(page));
-        url.searchParams.set('per_page', String(perPage));
-        url.searchParams.set('orientation', 'landscape');
+        url.searchParams.set("query", q);
+        url.searchParams.set("page", String(page));
+        url.searchParams.set("per_page", String(perPage));
+        url.searchParams.set("orientation", "landscape");
 
         try {
           const response = await fetch(url.toString(), {
@@ -179,14 +188,14 @@ export default {
           if (!response.ok) {
             const text = await response.text();
             logger.warn(`[unsplash] upstream search returned ${response.status}: ${text}`);
-            return res.status(response.status).json({ error: 'Upstream error from Unsplash' });
+            return res.status(response.status).json({ error: "Upstream error from Unsplash" });
           }
 
           const data = (await response.json()) as UnsplashApiSearchResponse;
 
           const photos: UnsplashPhoto[] = (data.results ?? []).map((p) => ({
             id: p.id,
-            description: p.alt_description ?? p.description ?? '',
+            description: p.alt_description ?? p.description ?? "",
             urls: {
               thumb: p.urls.thumb,
               small: p.urls.small,
@@ -207,11 +216,11 @@ export default {
             results: photos,
           });
         } catch (err: unknown) {
-          const isTimeout = err instanceof Error && err.name === 'TimeoutError';
-          logger.error('[unsplash] search error:', err);
+          const isTimeout = err instanceof Error && err.name === "TimeoutError";
+          logger.error("[unsplash] search error:", err);
           return res
             .status(isTimeout ? 504 : 500)
-            .json({ error: isTimeout ? 'Upstream request timed out' : 'Upstream request failed' });
+            .json({ error: isTimeout ? "Upstream request timed out" : "Upstream request failed" });
         }
       },
     );
@@ -222,18 +231,18 @@ export default {
     // Required by Unsplash API guidelines when a photo is downloaded/used.
     // ------------------------------------------------------------------
     router.post(
-      '/trigger-download',
+      "/trigger-download",
       async (
         req: Request<Record<string, never>, { ok: boolean } | ApiError, TriggerDownloadBody>,
         res: Response<{ ok: boolean } | ApiError>,
       ) => {
         if (!isAuthenticated(req)) {
-          return res.status(401).json({ error: 'Authentication required' });
+          return res.status(401).json({ error: "Authentication required" });
         }
 
         const { download_location } = req.body ?? {};
 
-        if (!download_location || typeof download_location !== 'string') {
+        if (!download_location || typeof download_location !== "string") {
           return res.status(400).json({ error: 'Missing or invalid "download_location" in request body' });
         }
 
@@ -242,11 +251,11 @@ export default {
         try {
           parsed = new URL(download_location);
         } catch {
-          return res.status(400).json({ error: 'Malformed download_location URL' });
+          return res.status(400).json({ error: "Malformed download_location URL" });
         }
 
-        if (parsed.protocol !== 'https:' || parsed.hostname !== 'api.unsplash.com') {
-          return res.status(400).json({ error: 'download_location must point to https://api.unsplash.com' });
+        if (parsed.protocol !== "https:" || parsed.hostname !== "api.unsplash.com") {
+          return res.status(400).json({ error: "download_location must point to https://api.unsplash.com" });
         }
 
         try {
@@ -257,7 +266,7 @@ export default {
           return res.json({ ok: true });
         } catch (err: unknown) {
           // Non-fatal – attribution ping failed but we must not block the user
-          logger.warn('[unsplash] trigger-download failed (non-fatal):', err);
+          logger.warn("[unsplash] trigger-download failed (non-fatal):", err);
           return res.json({ ok: false });
         }
       },

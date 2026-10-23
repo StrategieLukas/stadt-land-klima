@@ -1,13 +1,13 @@
-import { abuseProtection } from '../utils/abuseProtection';
+import { abuseProtection } from "../utils/abuseProtection";
 import { directusErrorDetails, requestErrorStatus } from "~/shared/requestError";
 import { RegistrationRequestSchema } from "~/shared/contracts/submissions";
-import { randomBytes } from 'node:crypto';
-import { sendDirectusMailFlow } from '../utils/sendDirectusMailFlow';
-import { verifyAltcha } from '../utils/verifyAltcha';
-import { verifyMathChallenge } from '../utils/verifyMathChallenge';
-import { rateLimit } from '../utils/rateLimit';
+import { randomBytes } from "node:crypto";
+import { sendDirectusMailFlow } from "../utils/sendDirectusMailFlow";
+import { verifyAltcha } from "../utils/verifyAltcha";
+import { verifyMathChallenge } from "../utils/verifyMathChallenge";
+import { rateLimit } from "../utils/rateLimit";
 
-type RegistrationStepKey = 'user' | 'team' | 'email';
+type RegistrationStepKey = "user" | "team" | "email";
 type RegistrationSteps = Record<RegistrationStepKey, boolean> & {
   notify: boolean;
   welcome: boolean;
@@ -15,7 +15,7 @@ type RegistrationSteps = Record<RegistrationStepKey, boolean> & {
 type DirectusRoleValue = string | { id?: string | null } | null | undefined;
 
 function roleId(value: DirectusRoleValue): string | null {
-  if (typeof value === 'string') return value;
+  if (typeof value === "string") return value;
   return value?.id ?? null;
 }
 
@@ -26,23 +26,23 @@ async function ensureUserRole(
   expectedRoleId: string,
 ): Promise<void> {
   const readRoleId = async (): Promise<string | null> => {
-    const result = await $fetch<{ data?: { role?: DirectusRoleValue } }>(
-      `${directusUrl}/users/${userId}`,
-      { headers, params: { 'fields[]': ['id', 'role'] } },
-    );
+    const result = await $fetch<{ data?: { role?: DirectusRoleValue } }>(`${directusUrl}/users/${userId}`, {
+      headers,
+      params: { "fields[]": ["id", "role"] },
+    });
     return roleId(result.data?.role);
   };
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    if (await readRoleId() === expectedRoleId) return;
+    if ((await readRoleId()) === expectedRoleId) return;
 
     await $fetch(`${directusUrl}/users/${userId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers,
       body: { role: expectedRoleId },
     });
 
-    if (await readRoleId() === expectedRoleId) return;
+    if ((await readRoleId()) === expectedRoleId) return;
     await new Promise<void>((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
   }
 
@@ -57,9 +57,9 @@ async function deleteUserAfterFailedRegistration(
   if (!userId) return;
 
   try {
-    await $fetch(`${directusUrl}/users/${userId}`, { method: 'DELETE', headers });
+    await $fetch(`${directusUrl}/users/${userId}`, { method: "DELETE", headers });
   } catch (cleanupError) {
-    console.error('[register-municipality] Failed to clean up incomplete user:', cleanupError);
+    console.error("[register-municipality] Failed to clean up incomplete user:", cleanupError);
   }
 }
 
@@ -74,26 +74,26 @@ async function deleteLocalteamAfterFailedRegistration(
       {
         headers,
         params: {
-          'filter[localteam_id][_eq]': localteamId,
-          'fields[]': 'id',
+          "filter[localteam_id][_eq]": localteamId,
+          "fields[]": "id",
           limit: -1,
         },
       },
     );
     for (const junction of junctions.data ?? []) {
       await $fetch(`${directusUrl}/items/junction_directus_users_localteams/${junction.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers,
       });
     }
   } catch (cleanupError) {
-    console.error('[register-municipality] Failed to clean up incomplete localteam links:', cleanupError);
+    console.error("[register-municipality] Failed to clean up incomplete localteam links:", cleanupError);
   }
 
   try {
-    await $fetch(`${directusUrl}/items/localteams/${localteamId}`, { method: 'DELETE', headers });
+    await $fetch(`${directusUrl}/items/localteams/${localteamId}`, { method: "DELETE", headers });
   } catch (cleanupError) {
-    console.error('[register-municipality] Failed to clean up incomplete localteam:', cleanupError);
+    console.error("[register-municipality] Failed to clean up incomplete localteam:", cleanupError);
   }
 }
 
@@ -108,7 +108,7 @@ async function ensureLocalteamUserJunction(
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       await $fetch(`${directusUrl}/items/junction_directus_users_localteams`, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: {
           directus_users_id: userId,
@@ -125,9 +125,9 @@ async function ensureLocalteamUserJunction(
         {
           headers,
           params: {
-            'filter[directus_users_id][_eq]': userId,
-            'filter[localteam_id][_eq]': localteamId,
-            'fields[]': 'id',
+            "filter[directus_users_id][_eq]": userId,
+            "filter[localteam_id][_eq]": localteamId,
+            "fields[]": "id",
             limit: 1,
           },
         },
@@ -142,16 +142,10 @@ async function ensureLocalteamUserJunction(
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error('Directus did not persist the user/localteam junction');
+  throw lastError instanceof Error ? lastError : new Error("Directus did not persist the user/localteam junction");
 }
 
-function registrationErrorData(
-  steps: RegistrationSteps,
-  failedStep?: RegistrationStepKey,
-  errorKey?: string,
-) {
+function registrationErrorData(steps: RegistrationSteps, failedStep?: RegistrationStepKey, errorKey?: string) {
   return {
     steps,
     ...(failedStep ? { failedStep } : {}),
@@ -160,10 +154,10 @@ function registrationErrorData(
 }
 
 function registrationStatusMessage(statusCode: number) {
-  if (statusCode === 400) return 'Bad Request';
-  if (statusCode === 422) return 'Registration Failed';
-  if (statusCode === 503) return 'Service Unavailable';
-  return 'Registration Error';
+  if (statusCode === 400) return "Bad Request";
+  if (statusCode === 422) return "Registration Failed";
+  if (statusCode === 503) return "Service Unavailable";
+  return "Registration Error";
 }
 
 function createRegistrationError(statusCode: number, message: string, data?: ReturnType<typeof registrationErrorData>) {
@@ -181,8 +175,9 @@ function isDuplicateEmailError(err: unknown): boolean {
     const message = directusError.message.toLowerCase();
 
     return (
-      ['RECORD_NOT_UNIQUE', 'INVALID_UNIQUE', 'UNIQUE_CONSTRAINT'].includes(code) ||
-      (message.includes('email') && (message.includes('exist') || message.includes('unique') || message.includes('duplicate')))
+      ["RECORD_NOT_UNIQUE", "INVALID_UNIQUE", "UNIQUE_CONSTRAINT"].includes(code) ||
+      (message.includes("email") &&
+        (message.includes("exist") || message.includes("unique") || message.includes("duplicate")))
     );
   });
 }
@@ -190,78 +185,91 @@ function isDuplicateEmailError(err: unknown): boolean {
 function duplicateEmailRegistrationError(steps: RegistrationSteps) {
   return createRegistrationError(
     422,
-    'Für diese E-Mail-Adresse existiert bereits ein Account. Wenn du mehrere Kommunen bewerten möchtest, melde dich bitte mit einer separaten E-Mail-Adresse an.',
-    registrationErrorData(steps, 'user', 'localteam.register.error.email_registered'),
+    "Für diese E-Mail-Adresse existiert bereits ein Account. Wenn du mehrere Kommunen bewerten möchtest, melde dich bitte mit einer separaten E-Mail-Adresse an.",
+    registrationErrorData(steps, "user", "localteam.register.error.email_registered"),
   );
 }
 
 export default defineEventHandler(async (event) => {
   // Rate limit: see server/utils/rateLimitConfig.ts
-  if (!(await rateLimit(event, 'register'))) {
-    throw createError({ statusCode: 429, message: 'Zu viele Anfragen. Bitte versuche es später erneut.' });
+  if (!(await rateLimit(event, "register"))) {
+    throw createError({ statusCode: 429, message: "Zu viele Anfragen. Bitte versuche es später erneut." });
   }
   const config = useRuntimeConfig();
   const { hmacKey, devMode } = abuseProtection();
 
   const parsedBody = RegistrationRequestSchema.safeParse(await readRequestBody(event));
-  if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
+  if (!parsedBody.success)
+    throw createError({ statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular." });
   const body = parsedBody.data;
-  const { firstName, lastName, email, organisation, ars, municipalityName, population, state, geolocation, altcha, mathChallenge } = body ?? {};
+  const {
+    firstName,
+    lastName,
+    email,
+    organisation,
+    ars,
+    municipalityName,
+    population,
+    state,
+    geolocation,
+    altcha,
+    mathChallenge,
+  } = body ?? {};
   const steps: RegistrationSteps = { user: false, team: false, email: false, notify: false, welcome: false };
 
   // Validate required fields
   if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !ars?.trim() || !municipalityName?.trim()) {
-    throw createRegistrationError(400, 'Bitte alle Pflichtfelder ausfüllen.');
+    throw createRegistrationError(400, "Bitte alle Pflichtfelder ausfüllen.");
   }
 
   // Basic email format check
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-    throw createRegistrationError(400, 'Ungültige E-Mail-Adresse.');
+    throw createRegistrationError(400, "Ungültige E-Mail-Adresse.");
   }
 
   // Verify CAPTCHA
-  if (!mathChallenge || !verifyMathChallenge(mathChallenge.token, mathChallenge.answer, hmacKey, 'register', devMode)) {
-    throw createRegistrationError(400, 'Rechenprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.');
+  if (!mathChallenge || !verifyMathChallenge(mathChallenge.token, mathChallenge.answer, hmacKey, "register", devMode)) {
+    throw createRegistrationError(400, "Rechenprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.");
   }
 
-  if (!altcha || !await verifyAltcha(altcha, hmacKey, { devMode, purpose: 'register' })) {
-    throw createRegistrationError(400, 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.');
+  if (!altcha || !(await verifyAltcha(altcha, hmacKey, { devMode, purpose: "register" }))) {
+    throw createRegistrationError(
+      400,
+      "CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.",
+    );
   }
 
-  const directusUrl = (config.directusServerUrl) || 'http://directus:8055';
+  const directusUrl = config.directusServerUrl || "http://directus:8055";
   const adminToken = config.directusAdminToken as string | undefined;
 
   if (!adminToken) {
-    console.error('[register-municipality] DIRECTUS_ADMIN_TOKEN not configured');
+    console.error("[register-municipality] DIRECTUS_ADMIN_TOKEN not configured");
     throw createRegistrationError(
       503,
-      'Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.',
-      registrationErrorData(steps, undefined, 'generic.technical_error'),
+      "Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.",
+      registrationErrorData(steps, undefined, "generic.technical_error"),
     );
   }
 
   const headers = {
-    'Authorization': `Bearer ${adminToken}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${adminToken}`,
+    "Content-Type": "application/json",
   };
 
   // Give users a useful error before Directus returns a generic server error.
   try {
-    const existingUsers = await $fetch<{ data: Array<{ id: string; email?: string | null }> }>(
-      `${directusUrl}/users`,
-      {
-        headers,
-        params: {
-          'filter[email][_icontains]': email.trim(),
-          'fields[]': ['id', 'email'],
-          limit: 20,
-        },
+    const existingUsers = await $fetch<{ data: Array<{ id: string; email?: string | null }> }>(`${directusUrl}/users`, {
+      headers,
+      params: {
+        "filter[email][_icontains]": email.trim(),
+        "fields[]": ["id", "email"],
+        limit: 20,
       },
-    );
+    });
 
     const normalizedEmail = email.trim().toLocaleLowerCase();
     const emailAlreadyExists = existingUsers.data?.some(
-      (user) => (user.email ?? '').trim().toLocaleLowerCase() === normalizedEmail,
+      (user) => (user.email ?? "").trim().toLocaleLowerCase() === normalizedEmail,
     );
 
     if (emailAlreadyExists) {
@@ -270,26 +278,26 @@ export default defineEventHandler(async (event) => {
   } catch (err: unknown) {
     if (requestErrorStatus(err) === 422) throw err;
     // Non-fatal: the unique constraint below remains the final safeguard.
-    console.warn('[register-municipality] Email duplicate check failed (non-fatal):', err);
+    console.warn("[register-municipality] Email duplicate check failed (non-fatal):", err);
   }
 
   // --- Pre-check: reject if ARS already has a localteam ---
   try {
-    const arsCheck = await $fetch<{ data: Array<{ id: string }> }>(
-      `${directusUrl}/items/municipalities`,
-      { headers, params: { 'filter[ars][_eq]': ars.trim(), 'filter[localteam_id][_nnull]': true, 'fields[]': 'id', limit: 1 } },
-    );
+    const arsCheck = await $fetch<{ data: Array<{ id: string }> }>(`${directusUrl}/items/municipalities`, {
+      headers,
+      params: { "filter[ars][_eq]": ars.trim(), "filter[localteam_id][_nnull]": true, "fields[]": "id", limit: 1 },
+    });
     if (arsCheck.data?.length > 0) {
       throw createRegistrationError(
         422,
-        'Für diese Gemeinde existiert bereits ein Lokalteam oder eine noch nicht veröffentlichte Registrierung. Bitte wende dich an info@stadt-land-klima.de, wenn du mitarbeiten möchtest.',
-        registrationErrorData(steps, undefined, 'localteam.register.error.municipality_already_registered'),
+        "Für diese Gemeinde existiert bereits ein Lokalteam oder eine noch nicht veröffentlichte Registrierung. Bitte wende dich an info@stadt-land-klima.de, wenn du mitarbeiten möchtest.",
+        registrationErrorData(steps, undefined, "localteam.register.error.municipality_already_registered"),
       );
     }
   } catch (err: unknown) {
     if (requestErrorStatus(err) === 422) throw err;
     // Non-fatal: proceed with registration if the check itself fails
-    console.warn('[register-municipality] ARS duplicate check failed (non-fatal):', err);
+    console.warn("[register-municipality] ARS duplicate check failed (non-fatal):", err);
   }
 
   // --- Step 1: Create Directus user ---
@@ -297,27 +305,27 @@ export default defineEventHandler(async (event) => {
   try {
     LOKALTEAM_ADMIN_ROLE = await getLokalteamAdminRoleId();
   } catch (err) {
-    console.error('[register-municipality] Lokalteam admin role lookup failed:', err);
+    console.error("[register-municipality] Lokalteam admin role lookup failed:", err);
     throw createRegistrationError(
       503,
-      'Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.',
-      registrationErrorData(steps, undefined, 'generic.technical_error'),
+      "Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.",
+      registrationErrorData(steps, undefined, "generic.technical_error"),
     );
   }
 
   let userId: string | null = null;
   try {
     const userResult = await $fetch<{ data: { id: string } }>(`${directusUrl}/users`, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         email: email.trim(),
-        title: organisation?.trim() ?? '',
+        title: organisation?.trim() ?? "",
         description: `ARS: ${ars.trim()}`,
         role: LOKALTEAM_ADMIN_ROLE,
-        status: 'active',
+        status: "active",
         verified: false,
       },
     });
@@ -330,12 +338,12 @@ export default defineEventHandler(async (event) => {
     throw createRegistrationError(
       422,
       isUnique
-        ? 'Ein Account mit dieser E-Mail-Adresse existiert bereits. Bitte logge dich ein oder verwende die Passwort-vergessen-Funktion.'
-        : 'Account konnte nicht erstellt werden. Bitte versuche es später erneut.',
+        ? "Ein Account mit dieser E-Mail-Adresse existiert bereits. Bitte logge dich ein oder verwende die Passwort-vergessen-Funktion."
+        : "Account konnte nicht erstellt werden. Bitte versuche es später erneut.",
       registrationErrorData(
         steps,
-        'user',
-        isUnique ? 'localteam.register.error.email_registered' : 'localteam.register.error.account_create_failed',
+        "user",
+        isUnique ? "localteam.register.error.email_registered" : "localteam.register.error.account_create_failed",
       ),
     );
   }
@@ -344,13 +352,13 @@ export default defineEventHandler(async (event) => {
   let localteamId: string;
   try {
     const teamResult = await $fetch<{ data: { id: string } }>(`${directusUrl}/items/localteams`, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: {
         name: `Stadt.Land.Klima! ${municipalityName.trim()}`,
         municipality_name: municipalityName.trim(),
         admin_id: userId,
-        status: 'draft',
+        status: "draft",
       },
     });
     localteamId = teamResult.data.id;
@@ -358,8 +366,8 @@ export default defineEventHandler(async (event) => {
     await deleteUserAfterFailedRegistration(directusUrl, headers, userId);
     throw createRegistrationError(
       422,
-      'Lokalteam konnte nicht angelegt werden. Bitte versuche es später erneut.',
-      registrationErrorData(steps, 'team', 'localteam.register.error.localteam_create_failed'),
+      "Lokalteam konnte nicht angelegt werden. Bitte versuche es später erneut.",
+      registrationErrorData(steps, "team", "localteam.register.error.localteam_create_failed"),
     );
   }
 
@@ -370,13 +378,13 @@ export default defineEventHandler(async (event) => {
     await ensureLocalteamUserJunction(directusUrl, headers, userId, localteamId);
     steps.team = true;
   } catch (err) {
-    console.error('[register-municipality] Failed to create or verify M2M junction entry:', err);
+    console.error("[register-municipality] Failed to create or verify M2M junction entry:", err);
     await deleteLocalteamAfterFailedRegistration(directusUrl, headers, localteamId);
     await deleteUserAfterFailedRegistration(directusUrl, headers, userId);
     throw createRegistrationError(
       503,
-      'Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.',
-      registrationErrorData(steps, 'team', 'localteam.register.error.localteam_create_failed'),
+      "Registrierung ist momentan nicht verfügbar. Bitte versuche es später erneut.",
+      registrationErrorData(steps, "team", "localteam.register.error.localteam_create_failed"),
     );
   }
 
@@ -384,16 +392,16 @@ export default defineEventHandler(async (event) => {
   // The Directus 'createMunicipality' flow creates the municipality record asynchronously
   // when the localteam is created. It sets localteam_id but NOT ars/population/state.
   // We retry the lookup by localteam_id to give the flow time to run.
-  const previewToken = randomBytes(24).toString('hex');
+  const previewToken = randomBytes(24).toString("hex");
   let municipalitySlug: string | undefined;
   try {
-    const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+    const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
     let municipalityId: string | undefined;
     for (let attempt = 0; attempt < 5; attempt++) {
       if (attempt > 0) await sleep(2000);
       const muniSearch = await $fetch<{ data: Array<{ id: string; slug?: string }> }>(
         `${directusUrl}/items/municipalities`,
-        { headers, params: { 'filter[localteam_id][_eq]': localteamId, 'fields[]': ['id', 'slug'], limit: 1 } },
+        { headers, params: { "filter[localteam_id][_eq]": localteamId, "fields[]": ["id", "slug"], limit: 1 } },
       );
       municipalityId = muniSearch.data?.[0]?.id;
       municipalitySlug = muniSearch.data?.[0]?.slug ?? undefined;
@@ -401,23 +409,23 @@ export default defineEventHandler(async (event) => {
     }
     if (municipalityId) {
       await $fetch(`${directusUrl}/items/municipalities/${municipalityId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers,
         body: {
           ars: ars.trim(),
           creator_verified: false,
           preview_token: previewToken,
-          ...(population != null ? { population: (population) } : {}),
+          ...(population != null ? { population: population } : {}),
           ...(state ? { state: state.trim() } : {}),
           ...(geolocation ? { geolocation } : {}),
         },
       });
     } else {
-      console.warn('[register-municipality] Municipality not found after retries for localteam:', localteamId);
+      console.warn("[register-municipality] Municipality not found after retries for localteam:", localteamId);
     }
   } catch (err) {
     // Non-fatal: team + user already created; log and continue
-    console.warn('[register-municipality] Municipality update failed (non-fatal):', err);
+    console.warn("[register-municipality] Municipality update failed (non-fatal):", err);
   }
 
   // --- Step 4: Obtain password-reset URL (will be embedded in the welcome email) ---
@@ -426,7 +434,7 @@ export default defineEventHandler(async (event) => {
   let passwordResetUrl: string | null = null;
   try {
     const resetData = await $fetch<{ url: string }>(`${directusUrl}/generate-reset-link`, {
-      method: 'POST',
+      method: "POST",
       headers: { ...headers },
       body: { email: email.trim() },
     });
@@ -434,21 +442,24 @@ export default defineEventHandler(async (event) => {
     steps.email = true;
   } catch (err) {
     // Non-fatal: fall back to sending a separate Directus password-reset email
-    console.warn('[register-municipality] Password reset link generation failed, falling back to separate email (non-fatal):', err);
+    console.warn(
+      "[register-municipality] Password reset link generation failed, falling back to separate email (non-fatal):",
+      err,
+    );
     try {
       await $fetch(`${directusUrl}/auth/password/request`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: { email: email.trim() },
       });
       steps.email = true;
     } catch (fallbackErr) {
-      console.warn('[register-municipality] Fallback password reset email also failed (non-fatal):', fallbackErr);
+      console.warn("[register-municipality] Fallback password reset email also failed (non-fatal):", fallbackErr);
     }
   }
 
-  const appPublicUrl = (config.appPublicUrl) || 'https://stadt-land-klima.de';
-  const directusPublicUrl = (config.directusPublicUrl) || 'https://stadt-land-klima.de/backend';
+  const appPublicUrl = config.appPublicUrl || "https://stadt-land-klima.de";
+  const directusPublicUrl = config.directusPublicUrl || "https://stadt-land-klima.de/backend";
   const previewUrl = municipalitySlug
     ? `${appPublicUrl}/municipalities/${municipalitySlug}?preview=${previewToken}`
     : null;
@@ -457,9 +468,9 @@ export default defineEventHandler(async (event) => {
   const welcomeEmailFlowUrl = config.directusFlowWelcomeEmail as string | undefined;
 
   // --- Step 5: Notify admin ---
-  const adminEmail = (config.adminNotificationEmail) || 'info@stadt-land-klima.de';
+  const adminEmail = config.adminNotificationEmail || "info@stadt-land-klima.de";
   if (!notifyAdminFlowUrl) {
-    console.warn('[register-municipality] DIRECTUS_FLOW_NOTIFY_ADMIN not configured — skipping admin notification');
+    console.warn("[register-municipality] DIRECTUS_FLOW_NOTIFY_ADMIN not configured — skipping admin notification");
   } else {
     try {
       await sendDirectusMailFlow(notifyAdminFlowUrl, directusUrl, adminToken, {
@@ -470,32 +481,32 @@ export default defineEventHandler(async (event) => {
           `<ul>`,
           `<li><strong>Name:</strong> ${firstName.trim()} ${lastName.trim()}</li>`,
           `<li><strong>E-Mail:</strong> ${email.trim()}</li>`,
-          `<li><strong>Organisation:</strong> ${organisation?.trim() ?? '—'}</li>`,
+          `<li><strong>Organisation:</strong> ${organisation?.trim() ?? "—"}</li>`,
           `<li><strong>Gemeinde:</strong> ${municipalityName.trim()} (ARS: ${ars.trim()})</li>`,
           `</ul>`,
           `<p><a href="${directusPublicUrl}/admin/users/${userId}">Account in Directus öffnen und verifizieren →</a></p>`,
-          previewUrl ? `<p><a href="${previewUrl}">Vorschau der Gemeinde-Seite →</a></p>` : '',
-        ].join('\n'),
+          previewUrl ? `<p><a href="${previewUrl}">Vorschau der Gemeinde-Seite →</a></p>` : "",
+        ].join("\n"),
       });
       steps.notify = true;
     } catch (err) {
-      console.warn('[register-municipality] Admin notification email failed (non-fatal):', err);
+      console.warn("[register-municipality] Admin notification email failed (non-fatal):", err);
     }
   }
 
   // --- Step 6: Send welcome email to new user ---
   if (!welcomeEmailFlowUrl) {
-    console.warn('[register-municipality] DIRECTUS_FLOW_WELCOME_EMAIL not configured — skipping welcome email');
+    console.warn("[register-municipality] DIRECTUS_FLOW_WELCOME_EMAIL not configured — skipping welcome email");
   } else {
     try {
-      const tutorialUrl = (config.welcomeEmailTutorialUrl) || '';
-      const calendarUrl = (config.welcomeEmailCalendarUrl) || '';
-      const signalUrl = (config.welcomeEmailSignalUrl) || '';
+      const tutorialUrl = config.welcomeEmailTutorialUrl || "";
+      const calendarUrl = config.welcomeEmailCalendarUrl || "";
+      const signalUrl = config.welcomeEmailSignalUrl || "";
       await sendDirectusMailFlow(welcomeEmailFlowUrl, directusUrl, adminToken, {
         to: email.trim(),
         subject: `Willkommen bei Stadt.Land.Klima! – Dein Lokalteam für ${municipalityName.trim()} ist eingerichtet`,
         // Retained for deployments that update Nuxt before importing the protected flow.
-        template: 'email-template-welcome-new-localteam',
+        template: "email-template-welcome-new-localteam",
         data: {
           firstName: firstName.trim(),
           municipalityName: municipalityName.trim(),
@@ -508,7 +519,7 @@ export default defineEventHandler(async (event) => {
       });
       steps.welcome = true;
     } catch (err) {
-      console.warn('[register-municipality] Welcome email failed (non-fatal):', err);
+      console.warn("[register-municipality] Welcome email failed (non-fatal):", err);
     }
   }
 

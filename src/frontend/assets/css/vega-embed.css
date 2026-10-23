@@ -44,7 +44,8 @@
 .vega-embed details[open] summary {
   opacity: 0.7;
 }
-.vega-embed:hover summary, .vega-embed:focus-within summary {
+.vega-embed:hover summary,
+.vega-embed:focus-within summary {
   opacity: 1 !important;
   transition: opacity 0.2s ease;
 }
@@ -75,11 +76,13 @@
   color: #434a56;
   text-decoration: none;
 }
-.vega-embed .vega-actions a:hover, .vega-embed .vega-actions a:focus {
+.vega-embed .vega-actions a:hover,
+.vega-embed .vega-actions a:focus {
   background-color: #f7f7f9;
   color: black;
 }
-.vega-embed .vega-actions::before, .vega-embed .vega-actions::after {
+.vega-embed .vega-actions::before,
+.vega-embed .vega-actions::after {
   content: "";
   display: inline-block;
   position: absolute;

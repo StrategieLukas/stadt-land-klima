@@ -560,11 +560,7 @@
         "readonly": false,
         "required": false,
         "sort": 1,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -596,9 +592,7 @@
         "readonly": true,
         "required": false,
         "sort": 9,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -642,9 +636,7 @@
         "readonly": true,
         "required": false,
         "sort": 7,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -1136,9 +1128,7 @@
         "readonly": true,
         "required": false,
         "sort": 5,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -1182,9 +1172,7 @@
         "readonly": true,
         "required": false,
         "sort": 6,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -1292,9 +1280,7 @@
         "readonly": false,
         "required": true,
         "sort": 3,
-        "special": [
-          "file"
-        ],
+        "special": ["file"],
         "translations": [
           {
             "language": "de-DE",
@@ -1458,9 +1444,7 @@
         "readonly": false,
         "required": true,
         "sort": 13,
-        "special": [
-          "cast-json"
-        ],
+        "special": ["cast-json"],
         "translations": [
           {
             "language": "de-DE",
@@ -1512,9 +1496,7 @@
         "readonly": false,
         "required": false,
         "sort": 1,
-        "special": [
-          "m2m"
-        ],
+        "special": ["m2m"],
         "translations": [
           {
             "language": "de-DE",
@@ -1548,9 +1530,7 @@
         "readonly": false,
         "required": false,
         "sort": 2,
-        "special": [
-          "m2m"
-        ],
+        "special": ["m2m"],
         "translations": [
           {
             "language": "de-DE",
@@ -1645,9 +1625,7 @@
         "readonly": false,
         "required": false,
         "sort": 12,
-        "special": [
-          "m2o"
-        ],
+        "special": ["m2o"],
         "translations": [
           {
             "language": "de-DE",
@@ -2123,11 +2101,7 @@
         "readonly": false,
         "required": false,
         "sort": 1,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -2152,9 +2126,7 @@
         "readonly": false,
         "required": false,
         "sort": 1,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -2201,11 +2173,7 @@
         "readonly": false,
         "required": false,
         "sort": 1,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -2235,11 +2203,7 @@
         "readonly": false,
         "required": false,
         "sort": 2,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -2269,11 +2233,7 @@
         "readonly": false,
         "required": false,
         "sort": 3,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -2303,11 +2263,7 @@
         "readonly": false,
         "required": false,
         "sort": 4,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -2337,11 +2293,7 @@
         "readonly": false,
         "required": false,
         "sort": 5,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -2433,9 +2385,7 @@
         "readonly": false,
         "required": false,
         "sort": 1,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -2493,9 +2443,7 @@
         "readonly": false,
         "required": false,
         "sort": 1,
-        "special": [
-          "cast-json"
-        ],
+        "special": ["cast-json"],
         "translations": [
           {
             "language": "de-DE",
@@ -2544,11 +2492,7 @@
         "readonly": false,
         "required": false,
         "sort": 9,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -2684,11 +2628,7 @@
         "readonly": false,
         "required": false,
         "sort": 15,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -2718,11 +2658,7 @@
         "readonly": false,
         "required": false,
         "sort": 14,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -2754,11 +2690,7 @@
         "readonly": false,
         "required": false,
         "sort": 16,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -3035,10 +2967,7 @@
               "_and": [
                 {
                   "role": {
-                    "_in": [
-                      "b8c043a2-a245-42d1-b28f-20c657270926",
-                      "18781584-6436-49b7-a69d-69f4f5e5db8b"
-                    ]
+                    "_in": ["b8c043a2-a245-42d1-b28f-20c657270926", "18781584-6436-49b7-a69d-69f4f5e5db8b"]
                   }
                 }
               ]
@@ -3072,9 +3001,7 @@
         "readonly": false,
         "required": false,
         "sort": 1,
-        "special": [
-          "m2m"
-        ],
+        "special": ["m2m"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3101,9 +3028,7 @@
         "readonly": true,
         "required": false,
         "sort": 3,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3147,9 +3072,7 @@
         "readonly": true,
         "required": false,
         "sort": 5,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3243,9 +3166,7 @@
         "readonly": true,
         "required": false,
         "sort": 1,
-        "special": [
-          "uuid"
-        ],
+        "special": ["uuid"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3292,9 +3213,7 @@
         "readonly": false,
         "required": true,
         "sort": 7,
-        "special": [
-          "m2o"
-        ],
+        "special": ["m2o"],
         "translations": [
           {
             "language": "de-DE",
@@ -3343,9 +3262,7 @@
         "readonly": true,
         "required": false,
         "sort": 2,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3389,9 +3306,7 @@
         "readonly": true,
         "required": false,
         "sort": 4,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3533,9 +3448,7 @@
         "readonly": true,
         "required": false,
         "sort": 3,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3579,9 +3492,7 @@
         "readonly": true,
         "required": false,
         "sort": 5,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3765,9 +3676,7 @@
         "readonly": true,
         "required": false,
         "sort": 2,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3811,9 +3720,7 @@
         "readonly": true,
         "required": false,
         "sort": 4,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -3967,9 +3874,7 @@
         "readonly": true,
         "required": false,
         "sort": 3,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -4013,9 +3918,7 @@
         "readonly": true,
         "required": false,
         "sort": 5,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -4553,9 +4456,7 @@
         "readonly": true,
         "required": false,
         "sort": 4,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -4723,9 +4624,7 @@
         "readonly": false,
         "required": false,
         "sort": 12,
-        "special": [
-          "m2o"
-        ],
+        "special": ["m2o"],
         "translations": [
           {
             "language": "de-DE",
@@ -4774,9 +4673,7 @@
         "readonly": true,
         "required": false,
         "sort": 5,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -4820,9 +4717,7 @@
         "readonly": true,
         "required": false,
         "sort": 7,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -4864,9 +4759,7 @@
         "readonly": true,
         "required": false,
         "sort": 1,
-        "special": [
-          "uuid"
-        ],
+        "special": ["uuid"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -4914,9 +4807,7 @@
         "readonly": true,
         "required": false,
         "sort": 13,
-        "special": [
-          "o2m"
-        ],
+        "special": ["o2m"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -5160,9 +5051,7 @@
         "readonly": true,
         "required": false,
         "sort": 4,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -5206,9 +5095,7 @@
         "readonly": true,
         "required": false,
         "sort": 6,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -5299,9 +5186,7 @@
         "readonly": true,
         "required": false,
         "sort": 1,
-        "special": [
-          "uuid"
-        ],
+        "special": ["uuid"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -5345,9 +5230,7 @@
         "readonly": true,
         "required": false,
         "sort": 6,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -5439,9 +5322,7 @@
         "readonly": false,
         "required": true,
         "sort": 7,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -5488,9 +5369,7 @@
         "readonly": false,
         "required": true,
         "sort": 8,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -5537,9 +5416,7 @@
         "readonly": false,
         "required": false,
         "sort": 9,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -5588,9 +5465,7 @@
         "readonly": true,
         "required": false,
         "sort": 7,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -5634,9 +5509,7 @@
         "readonly": true,
         "required": false,
         "sort": 9,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -5725,11 +5598,7 @@
         "readonly": false,
         "required": false,
         "sort": 15,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -5759,9 +5628,7 @@
         "readonly": true,
         "required": false,
         "sort": 1,
-        "special": [
-          "uuid"
-        ],
+        "special": ["uuid"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -6191,9 +6058,7 @@
         "readonly": true,
         "required": false,
         "sort": 6,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -6237,9 +6102,7 @@
         "readonly": true,
         "required": false,
         "sort": 8,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -6527,11 +6390,7 @@
         "readonly": false,
         "required": false,
         "sort": 20,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": [
           {
             "language": "de-DE",
@@ -6607,16 +6466,7 @@
           "_and": [
             {
               "choices_rating": {
-                "_in": [
-                  "0",
-                  "1",
-                  "3",
-                  "2",
-                  "4",
-                  "5",
-                  "6",
-                  "7"
-                ]
+                "_in": ["0", "1", "3", "2", "4", "5", "6", "7"]
               }
             }
           ]
@@ -7313,9 +7163,7 @@
         "readonly": false,
         "required": true,
         "sort": 5,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -7375,9 +7223,7 @@
         "readonly": false,
         "required": true,
         "sort": 4,
-        "special": [
-          "m2o"
-        ],
+        "special": ["m2o"],
         "translations": [
           {
             "language": "de-DE",
@@ -7426,9 +7272,7 @@
         "readonly": true,
         "required": false,
         "sort": 5,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -7472,9 +7316,7 @@
         "readonly": true,
         "required": false,
         "sort": 7,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -7516,11 +7358,7 @@
         "readonly": false,
         "required": false,
         "sort": 14,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -7605,9 +7443,7 @@
         "readonly": true,
         "required": false,
         "sort": 3,
-        "special": [
-          "uuid"
-        ],
+        "special": ["uuid"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -7972,9 +7808,7 @@
         "readonly": true,
         "required": false,
         "sort": 4,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -8018,9 +7852,7 @@
         "readonly": true,
         "required": false,
         "sort": 6,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -8379,10 +8211,7 @@
         "readonly": false,
         "required": false,
         "sort": 16,
-        "special": [
-          "alias",
-          "no-data"
-        ],
+        "special": ["alias", "no-data"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -8409,10 +8238,7 @@
         "readonly": false,
         "required": false,
         "sort": 15,
-        "special": [
-          "alias",
-          "no-data"
-        ],
+        "special": ["alias", "no-data"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -8601,9 +8427,7 @@
         "readonly": false,
         "required": false,
         "sort": 8,
-        "special": [
-          "o2m"
-        ],
+        "special": ["o2m"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -8628,9 +8452,7 @@
         "readonly": true,
         "required": false,
         "sort": 1,
-        "special": [
-          "uuid"
-        ],
+        "special": ["uuid"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -8674,9 +8496,7 @@
         "readonly": true,
         "required": false,
         "sort": 2,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -8720,9 +8540,7 @@
         "readonly": true,
         "required": false,
         "sort": 3,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -8811,9 +8629,7 @@
         "readonly": false,
         "required": true,
         "sort": 4,
-        "special": [
-          "m2o"
-        ],
+        "special": ["m2o"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9155,9 +8971,7 @@
         "readonly": false,
         "required": true,
         "sort": 5,
-        "special": [
-          "m2o"
-        ],
+        "special": ["m2o"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9243,9 +9057,7 @@
         "readonly": true,
         "required": false,
         "sort": 3,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9289,9 +9101,7 @@
         "readonly": true,
         "required": false,
         "sort": 5,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9427,9 +9237,7 @@
         "readonly": false,
         "required": true,
         "sort": 9,
-        "special": [
-          "file"
-        ],
+        "special": ["file"],
         "translations": [
           {
             "language": "de-DE",
@@ -9577,9 +9385,7 @@
         "readonly": true,
         "required": false,
         "sort": 2,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9623,9 +9429,7 @@
         "readonly": true,
         "required": false,
         "sort": 4,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9667,11 +9471,7 @@
         "readonly": false,
         "required": false,
         "sort": 10,
-        "special": [
-          "alias",
-          "group",
-          "no-data"
-        ],
+        "special": ["alias", "group", "no-data"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9884,9 +9684,7 @@
         "readonly": true,
         "required": false,
         "sort": 4,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9930,9 +9728,7 @@
         "readonly": true,
         "required": false,
         "sort": 6,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -9974,9 +9770,7 @@
         "readonly": true,
         "required": false,
         "sort": 1,
-        "special": [
-          "uuid"
-        ],
+        "special": ["uuid"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -10057,9 +9851,7 @@
         "readonly": false,
         "required": false,
         "sort": 11,
-        "special": [
-          "cast-csv"
-        ],
+        "special": ["cast-csv"],
         "translations": [
           {
             "language": "de-DE",
@@ -10276,9 +10068,7 @@
         "readonly": true,
         "required": false,
         "sort": 3,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -10322,9 +10112,7 @@
         "readonly": true,
         "required": false,
         "sort": 5,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -10371,9 +10159,7 @@
         "readonly": false,
         "required": true,
         "sort": 10,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -10601,9 +10387,7 @@
         "readonly": false,
         "required": false,
         "sort": 3,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -10650,9 +10434,7 @@
         "readonly": false,
         "required": true,
         "sort": 17,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",
@@ -10701,9 +10483,7 @@
         "readonly": true,
         "required": false,
         "sort": 7,
-        "special": [
-          "date-created"
-        ],
+        "special": ["date-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -10747,9 +10527,7 @@
         "readonly": true,
         "required": false,
         "sort": 9,
-        "special": [
-          "date-updated"
-        ],
+        "special": ["date-updated"],
         "translations": [
           {
             "language": "de-DE",
@@ -10796,9 +10574,7 @@
         "readonly": true,
         "required": false,
         "sort": 1,
-        "special": [
-          "uuid"
-        ],
+        "special": ["uuid"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -10844,9 +10620,7 @@
         "readonly": true,
         "required": true,
         "sort": 10,
-        "special": [
-          "m2o"
-        ],
+        "special": ["m2o"],
         "translations": [
           {
             "language": "de-DE",
@@ -10899,9 +10673,7 @@
         "readonly": true,
         "required": true,
         "sort": 11,
-        "special": [
-          "m2o"
-        ],
+        "special": ["m2o"],
         "translations": [
           {
             "language": "de-DE",
@@ -11331,14 +11103,7 @@
           "_and": [
             {
               "rating": {
-                "_in": [
-                  "0",
-                  "0.25",
-                  "0.5",
-                  "0.75",
-                  "1",
-                  null
-                ]
+                "_in": ["0", "0.25", "0.5", "0.75", "1", null]
               }
             }
           ]
@@ -11449,10 +11214,7 @@
           "_and": [
             {
               "status": {
-                "_in": [
-                  "published",
-                  "draft"
-                ]
+                "_in": ["published", "draft"]
               }
             }
           ]
@@ -11498,9 +11260,7 @@
         "readonly": true,
         "required": false,
         "sort": 6,
-        "special": [
-          "user-created"
-        ],
+        "special": ["user-created"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -11544,9 +11304,7 @@
         "readonly": true,
         "required": false,
         "sort": 8,
-        "special": [
-          "user-updated"
-        ],
+        "special": ["user-updated"],
         "translations": null,
         "validation": null,
         "validation_message": null,
@@ -11666,9 +11424,7 @@
         "readonly": true,
         "required": true,
         "sort": 5,
-        "special": [
-          "cast-boolean"
-        ],
+        "special": ["cast-boolean"],
         "translations": [
           {
             "language": "de-DE",

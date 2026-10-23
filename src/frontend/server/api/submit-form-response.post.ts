@@ -1,6 +1,6 @@
-import { publishedForm } from '../utils/publishedForm';
-import { formDeliveryQuota } from '../utils/formDeliveryQuota';
-import { abuseProtection } from '../utils/abuseProtection';
+import { publishedForm } from "../utils/publishedForm";
+import { formDeliveryQuota } from "../utils/formDeliveryQuota";
+import { abuseProtection } from "../utils/abuseProtection";
 import { GenericFormRequestSchema } from "~/shared/contracts/submissions";
 import { readRequestBody } from "../utils/readRequestBody";
 import { verifyAltcha } from "../utils/verifyAltcha";
@@ -71,9 +71,7 @@ function normalizeValue(value: unknown, type: FieldType) {
         .map((item: unknown) => scalarText(item).trim())
         .filter(Boolean)
         .join(", ")
-    : scalarText(value)
-        .replace(/\0/g, "")
-        .trim();
+    : scalarText(value).replace(/\0/g, "").trim();
 
   if (normalized.length > MAX_TEXT_LENGTH) {
     throw submissionError(400, "Ein Feld ist zu lang.");
@@ -172,25 +170,30 @@ function findSenderName(fields: NormalizedField[]) {
 
 export default defineEventHandler(async (event) => {
   // Rate limit: see server/utils/rateLimitConfig.ts
-  if (!(await rateLimit(event, 'form-response'))) {
-    throw submissionError(429, 'Zu viele Anfragen. Bitte versuche es später erneut.');
+  if (!(await rateLimit(event, "form-response"))) {
+    throw submissionError(429, "Zu viele Anfragen. Bitte versuche es später erneut.");
   }
   const config = useRuntimeConfig();
   const { hmacKey, devMode } = abuseProtection();
   const parsedBody = GenericFormRequestSchema.safeParse(await readRequestBody(event));
-  if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
+  if (!parsedBody.success)
+    throw createError({ statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular." });
   const body = parsedBody.data;
 
   const { pagePath, values, altcha, mathChallenge } = body;
-  const {formKey, formTitle, notificationEmail, sendCopy, fields} = await publishedForm(body.entityType, body.entityUuid, body.formUuid);
-  const allowedNames = new Set(fields.map(field => field.name));
-  if (Object.keys(values).some(name => !allowedNames.has(name))) throw submissionError(400, 'Unknown form field');
+  const { formKey, formTitle, notificationEmail, sendCopy, fields } = await publishedForm(
+    body.entityType,
+    body.entityUuid,
+    body.formUuid,
+  );
+  const allowedNames = new Set(fields.map((field) => field.name));
+  if (Object.keys(values).some((name) => !allowedNames.has(name))) throw submissionError(400, "Unknown form field");
 
-  if (!mathChallenge || !verifyMathChallenge(mathChallenge.token, mathChallenge.answer, hmacKey, 'form', devMode)) {
+  if (!mathChallenge || !verifyMathChallenge(mathChallenge.token, mathChallenge.answer, hmacKey, "form", devMode)) {
     throw submissionError(400, "Rechenprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.");
   }
 
-  if (!altcha || !await verifyAltcha((altcha), hmacKey, { purpose: 'form', devMode })) {
+  if (!altcha || !(await verifyAltcha(altcha, hmacKey, { purpose: "form", devMode }))) {
     throw submissionError(400, "CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.");
   }
 
@@ -205,7 +208,7 @@ export default defineEventHandler(async (event) => {
 
   const normalizedFields = normalizeFields(fields, values);
   const responseSummary = buildResponseSummary(normalizedFields);
-  const directusUrl = (config.directusServerUrl) || "http://directus:8055";
+  const directusUrl = config.directusServerUrl || "http://directus:8055";
   const adminToken = config.directusAdminToken as string | undefined;
 
   if (!adminToken) {
@@ -213,9 +216,8 @@ export default defineEventHandler(async (event) => {
     throw submissionError(503, "Formularantworten können momentan nicht gespeichert werden.");
   }
 
-  const fallbackEmail = ((config.formResponseNotificationEmail) ||
-      (config.adminNotificationEmail) ||
-      "info@stadt-land-klima.de");
+  const fallbackEmail =
+    config.formResponseNotificationEmail || config.adminNotificationEmail || "info@stadt-land-klima.de";
   const recipientEmail = normalizeNotificationEmail(notificationEmail, fallbackEmail);
   const senderEmail = findSenderEmail(normalizedFields);
   const senderName = findSenderName(normalizedFields);
@@ -258,7 +260,7 @@ export default defineEventHandler(async (event) => {
       },
     );
 
-    const directusPublicUrl = (config.directusPublicUrl) || directusUrl;
+    const directusPublicUrl = config.directusPublicUrl || directusUrl;
     const directusItemUrl = buildDirectusItemUrl(directusPublicUrl, "form_responses", result.data.id);
     return {
       success: true,

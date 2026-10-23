@@ -1,39 +1,42 @@
-import { Meilisearch } from 'meilisearch';
-import type { ApiExtensionContext } from '@directus/types';
+import { Meilisearch } from "meilisearch";
+import type { ApiExtensionContext } from "@directus/types";
 
-type Database = ApiExtensionContext['database'];
-type Logger = ApiExtensionContext['logger'];
+type Database = ApiExtensionContext["database"];
+type Logger = ApiExtensionContext["logger"];
 
-const SKIP_BUNDLES = ['container', 'carousel', 'directus_page', 'vega_chart', 'page_nav'];
+const SKIP_BUNDLES = ["container", "carousel", "directus_page", "vega_chart", "page_nav"];
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 // ── Text extraction helpers ──
 
 function stripHtml(s: string | null | undefined): string {
-  return (s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  return (s || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function stripMd(s: string | null | undefined): string {
-  return (s || '')
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-    .replace(/[#*_`~>]/g, '')
-    .replace(/\s+/g, ' ')
+  return (s || "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[#*_`~>]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 const BUNDLE_LABELS: Record<string, string> = {
-  text: 'Text',
-  richtext: 'Fließtext',
-  heading: 'Überschrift',
-  hero: 'Hero',
-  citation: 'Zitat',
-  stat: 'Kennzahl',
-  timeline: 'Zeitstrahl',
-  timeline_item: 'Zeitleisten-Eintrag',
-  button: 'Schaltfläche',
-  image: 'Bild',
-  video: 'Video',
-  progress_bar: 'Fortschrittsbalken',
+  text: "Text",
+  richtext: "Fließtext",
+  heading: "Überschrift",
+  hero: "Hero",
+  citation: "Zitat",
+  stat: "Kennzahl",
+  timeline: "Zeitstrahl",
+  timeline_item: "Zeitleisten-Eintrag",
+  button: "Schaltfläche",
+  image: "Bild",
+  video: "Video",
+  progress_bar: "Fortschrittsbalken",
 };
 
 function bundleLabel(bundle: string): string {
@@ -66,25 +69,50 @@ interface Block {
 function extractBlockText(bundle: string, props?: BlockProps): string {
   const p = props || {};
   const parts: string[] = [];
-  const add = (...vals: (string | undefined)[]) => vals.forEach(v => v && parts.push(String(v).trim()));
+  const add = (...vals: (string | undefined)[]) => vals.forEach((v) => v && parts.push(String(v).trim()));
 
   switch (bundle) {
-    case 'text':          parts.push(stripHtml(p.content)); break;
-    case 'richtext':      parts.push(stripMd(p.content)); break;
-    case 'heading':       add(p.text); break;
-    case 'hero':          add(p.title, p.subtitle); break;
-    case 'citation':      add(p.quote, p.attribution); break;
-    case 'stat':          add(p.label, p.description, String(p.value ?? '')); break;
-    case 'timeline':      add(p.title); break;
-    case 'timeline_item': add(p.title, p.description, p.date); break;
-    case 'button':        add(p.label); break;
-    case 'image':         add(p.caption, p.alt); break;
-    case 'video':         add(p.caption); break;
-    case 'progress_bar':  add(p.label, p.description); break;
-    default: break;
+    case "text":
+      parts.push(stripHtml(p.content));
+      break;
+    case "richtext":
+      parts.push(stripMd(p.content));
+      break;
+    case "heading":
+      add(p.text);
+      break;
+    case "hero":
+      add(p.title, p.subtitle);
+      break;
+    case "citation":
+      add(p.quote, p.attribution);
+      break;
+    case "stat":
+      add(p.label, p.description, String(p.value ?? ""));
+      break;
+    case "timeline":
+      add(p.title);
+      break;
+    case "timeline_item":
+      add(p.title, p.description, p.date);
+      break;
+    case "button":
+      add(p.label);
+      break;
+    case "image":
+      add(p.caption, p.alt);
+      break;
+    case "video":
+      add(p.caption);
+      break;
+    case "progress_bar":
+      add(p.label, p.description);
+      break;
+    default:
+      break;
   }
 
-  return parts.filter(Boolean).join(' ');
+  return parts.filter(Boolean).join(" ");
 }
 
 interface SearchDoc {
@@ -96,17 +124,13 @@ interface SearchDoc {
   meta: string | null;
 }
 
-function buildBlockDoc(
-  block: Block,
-  pageName?: string,
-  entitySlug = block.entity_uuid,
-): SearchDoc | null {
+function buildBlockDoc(block: Block, pageName?: string, entitySlug = block.entity_uuid): SearchDoc | null {
   const text = extractBlockText(block.bundle, block.props || {});
   if (!text) return null;
   return {
     id: `block_${block.uuid}`,
-    type: 'block',
-    title: pageName || block.entity_uuid || '',
+    type: "block",
+    title: pageName || block.entity_uuid || "",
     text,
     url: `/${entitySlug}#block-${block.uuid}`,
     meta: bundleLabel(block.bundle),
@@ -122,10 +146,10 @@ interface Page {
 }
 
 function buildPageDoc(page: Page): SearchDoc | null {
-  if (page.status !== 'published' || !page.contents) return null;
+  if (page.status !== "published" || !page.contents) return null;
   return {
     id: `page:${page.slug}`,
-    type: 'page',
+    type: "page",
     title: page.name || page.slug,
     text: stripHtml(page.contents),
     url: `/${page.slug}`,
@@ -142,12 +166,12 @@ interface Event {
 }
 
 function buildEventDoc(event: Event): SearchDoc | null {
-  if (event.status !== 'published') return null;
+  if (event.status !== "published") return null;
   return {
     id: `event:${event.slug}`,
-    type: 'event',
-    title: event.title || '',
-    text: stripHtml(event.description || ''),
+    type: "event",
+    title: event.title || "",
+    text: stripHtml(event.description || ""),
     url: `/events/${event.slug}`,
     meta: event.event_type || null,
   };
@@ -163,16 +187,14 @@ interface Article {
 }
 
 function buildArticleDoc(article: Article): SearchDoc | null {
-  if (article.status !== 'published') return null;
-  const text = [
-    article.subtitle,
-    stripMd(article.abstract || ''),
-    stripMd(article.article_text || ''),
-  ].filter(Boolean).join(' ');
+  if (article.status !== "published") return null;
+  const text = [article.subtitle, stripMd(article.abstract || ""), stripMd(article.article_text || "")]
+    .filter(Boolean)
+    .join(" ");
   return {
     id: `article:${article.slug}`,
-    type: 'article',
-    title: article.title || '',
+    type: "article",
+    title: article.title || "",
     text,
     url: `/projects/${article.slug}`,
     meta: null,
@@ -180,9 +202,14 @@ function buildArticleDoc(article: Article): SearchDoc | null {
 }
 
 const MEASURE_DESC_FIELDS = [
-  'description', 'description_about', 'description_benefit',
-  'description_evaluation_criteria', 'description_implementation',
-  'description_legal', 'description_funding', 'description_verification',
+  "description",
+  "description_about",
+  "description_benefit",
+  "description_evaluation_criteria",
+  "description_implementation",
+  "description_legal",
+  "description_funding",
+  "description_verification",
 ];
 
 interface Measure {
@@ -194,11 +221,13 @@ interface Measure {
 
 // Return type is SearchDoc (never null) — callers no longer need a null check.
 function buildMeasureDoc(measure: Measure): SearchDoc {
-  const text = MEASURE_DESC_FIELDS.map(f => stripHtml(measure[f] || '')).filter(Boolean).join(' ');
+  const text = MEASURE_DESC_FIELDS.map((f) => stripHtml(measure[f] || ""))
+    .filter(Boolean)
+    .join(" ");
   return {
     id: `measure:${measure.slug}`,
-    type: 'measure',
-    title: measure.name || '',
+    type: "measure",
+    title: measure.name || "",
     text,
     url: `/measures/${measure.slug}`,
     meta: measure.sector || null,
@@ -215,15 +244,15 @@ interface User {
 
 function buildMemberDoc(user: User): SearchDoc | null {
   if (!user.show_on_team_page) return null;
-  const name = [user.first_name, user.last_name].filter(Boolean).join(' ');
+  const name = [user.first_name, user.last_name].filter(Boolean).join(" ");
   if (!name) return null;
   return {
     id: `member_${user.id}`,
-    type: 'member',
+    type: "member",
     title: name,
-    text: [name, stripHtml(user.bio || '')].filter(Boolean).join(' '),
+    text: [name, stripHtml(user.bio || "")].filter(Boolean).join(" "),
     url: `/organisation#member-${user.id}`,
-    meta: 'Teammitglied',
+    meta: "Teammitglied",
   };
 }
 
@@ -231,7 +260,10 @@ function buildMemberDoc(user: User): SearchDoc | null {
 
 interface HookContext {
   action: (event: string, handler: (...args: any[]) => void) => void;
-  filter: (event: string, handler: (keys: (string | number)[], meta: ActionPayload, context: ActionContext) => Promise<(string | number)[]>) => void;
+  filter: (
+    event: string,
+    handler: (keys: (string | number)[], meta: ActionPayload, context: ActionContext) => Promise<(string | number)[]>,
+  ) => void;
   logger: Logger;
   env: Record<string, string>;
 }
@@ -267,24 +299,21 @@ export default (
     logger: Logger;
     env: Record<string, string>;
     emitter: {
-      onAction: (
-        event: string,
-        handler: (meta: any, context: ActionContext) => Promise<void>,
-      ) => void;
+      onAction: (event: string, handler: (meta: any, context: ActionContext) => Promise<void>) => void;
     };
   },
 ) => {
   const ms = new Meilisearch({
-    host: env.MEILISEARCH_URL || 'http://meilisearch:7700',
-    apiKey: env.MEILISEARCH_MASTER_KEY || env.MEILI_MASTER_KEY || '',
+    host: env.MEILISEARCH_URL || "http://meilisearch:7700",
+    apiKey: env.MEILISEARCH_MASTER_KEY || env.MEILI_MASTER_KEY || "",
   });
-  const index = ms.index('site_content');
+  const index = ms.index("site_content");
 
   async function upsert(doc: SearchDoc): Promise<void> {
     try {
       await index.addDocuments([doc]);
     } catch (e: any) {
-      logger.error('[search-index] upsert failed:', e?.message ?? e);
+      logger.error("[search-index] upsert failed:", e?.message ?? e);
     }
   }
 
@@ -298,23 +327,23 @@ export default (
       await index.deleteDocument(id);
     } catch (e: any) {
       // Meilisearch returns "document_not_found" for missing docs — not a real error.
-      if (e?.code !== 'document_not_found') {
-        logger.error('[search-index] delete failed:', e?.message ?? e);
+      if (e?.code !== "document_not_found") {
+        logger.error("[search-index] delete failed:", e?.message ?? e);
       }
     }
   }
 
   // Resolve identifiers while records still exist. Removal before deletion is
   // conservative: failed DB deletions can hide a result, never disclose a draft.
-  filter('items.delete', async (keys, { collection }, { database }) => {
-    if (!collection || !['blocks', 'pages', 'events', 'articles', 'measures'].includes(collection)) return keys;
-    const rows = await database(collection).whereIn('id', keys).select('*');
+  filter("items.delete", async (keys, { collection }, { database }) => {
+    if (!collection || !["blocks", "pages", "events", "articles", "measures"].includes(collection)) return keys;
+    const rows = await database(collection).whereIn("id", keys).select("*");
     for (const row of rows) {
-      if (collection === 'blocks') await remove(`block_${row.uuid}`);
+      if (collection === "blocks") await remove(`block_${row.uuid}`);
       else {
-        const prefix = {pages: 'page', events: 'event', articles: 'article', measures: 'measure'}[collection];
+        const prefix = { pages: "page", events: "event", articles: "article", measures: "measure" }[collection];
         await remove(`${prefix}:${row.slug}`);
-        if (collection === 'pages') await removeBlocksForPage(row as Page, database);
+        if (collection === "pages") await removeBlocksForPage(row as Page, database);
       }
     }
     return keys;
@@ -323,39 +352,35 @@ export default (
   // ── blocks ──
 
   async function syncBlock(row: BlockRow, database: Database): Promise<void> {
-    if (SKIP_BUNDLES.includes(row.bundle) || row.entity_type !== 'pages' || row.field_name !== 'content') {
+    if (SKIP_BUNDLES.includes(row.bundle) || row.entity_type !== "pages" || row.field_name !== "content") {
       await remove(`block_${row.uuid}`);
       return;
     }
 
-    if (row.status !== 'published') {
+    if (row.status !== "published") {
       await remove(`block_${row.uuid}`);
       return;
     }
 
-    const pageRows = await database('pages')
+    const pageRows = await database("pages")
       .where((builder) => {
         if (UUID_PATTERN.test(row.entity_uuid)) {
-          builder.where('id', row.entity_uuid);
+          builder.where("id", row.entity_uuid);
         } else {
-          builder.where('slug', row.entity_uuid);
+          builder.where("slug", row.entity_uuid);
         }
       })
-      .select('name', 'slug', 'status')
+      .select("name", "slug", "status")
       .limit(1);
 
     // Don't index blocks belonging to unpublished pages
-    if (!pageRows[0] || pageRows[0].status !== 'published') {
+    if (!pageRows[0] || pageRows[0].status !== "published") {
       await remove(`block_${row.uuid}`);
       return;
     }
 
     const pageName = pageRows[0]?.name || row.entity_uuid;
-    const doc = buildBlockDoc(
-      row as unknown as Block,
-      pageName,
-      pageRows[0]?.slug || row.entity_uuid,
-    );
+    const doc = buildBlockDoc(row as unknown as Block, pageName, pageRows[0]?.slug || row.entity_uuid);
     if (doc) await upsert(doc);
     else await remove(`block_${row.uuid}`);
   }
@@ -366,16 +391,19 @@ export default (
    */
   async function removeBlocksForPage(page: Page, database: Database): Promise<void> {
     try {
-      const rows = await database('blocks')
-        .where('entity_type', 'pages')
-        .where('field_name', 'content')
-        .whereIn('entity_uuid', [page.id, page.slug].filter((value): value is string => Boolean(value)))
-        .select('uuid');
+      const rows = await database("blocks")
+        .where("entity_type", "pages")
+        .where("field_name", "content")
+        .whereIn(
+          "entity_uuid",
+          [page.id, page.slug].filter((value): value is string => Boolean(value)),
+        )
+        .select("uuid");
       for (const row of rows) {
         await remove(`block_${row.uuid}`);
       }
     } catch (e: any) {
-      logger.error('[search-index] removeBlocksForPage failed:', e?.message ?? e);
+      logger.error("[search-index] removeBlocksForPage failed:", e?.message ?? e);
     }
   }
 
@@ -384,25 +412,22 @@ export default (
    * Returns null when nothing is found.
    */
   async function fetchBlockRow(key: string | number, database: Database): Promise<BlockRow | null> {
-    const cols = ['uuid', 'bundle', 'props', 'entity_uuid', 'entity_type', 'field_name', 'status'] as const;
-    if (typeof key === 'string' && UUID_PATTERN.test(key)) {
-      const byUuid = await database('blocks').where('uuid', key).select(cols).limit(1);
+    const cols = ["uuid", "bundle", "props", "entity_uuid", "entity_type", "field_name", "status"] as const;
+    if (typeof key === "string" && UUID_PATTERN.test(key)) {
+      const byUuid = await database("blocks").where("uuid", key).select(cols).limit(1);
       return byUuid[0] ? (byUuid[0] as BlockRow) : null;
     }
 
     const numericId = Number(key);
     if (!Number.isInteger(numericId)) return null;
-    const byId = await database('blocks').where('id', numericId).select(cols).limit(1);
+    const byId = await database("blocks").where("id", numericId).select(cols).limit(1);
     return byId[0] ? (byId[0] as BlockRow) : null;
   }
 
   emitter.onAction(
-    'blokkli.blocks.committed',
+    "blokkli.blocks.committed",
     async (
-      {
-        createdUuids = [],
-        updatedIds = [],
-      }: { createdUuids?: string[]; updatedIds?: number[] },
+      { createdUuids = [], updatedIds = [] }: { createdUuids?: string[]; updatedIds?: number[] },
       { database }: ActionContext,
     ) => {
       for (const key of [...createdUuids, ...updatedIds]) {
@@ -410,19 +435,17 @@ export default (
           const row = await fetchBlockRow(key, database);
           if (row) await syncBlock(row, database);
         } catch (e: any) {
-          logger.error(
-            `[search-index] post-commit block sync failed: ${e?.message ?? String(e)}`,
-          );
+          logger.error(`[search-index] post-commit block sync failed: ${e?.message ?? String(e)}`);
         }
       }
     },
   );
 
-  action('items.create', async ({ collection, payload, key }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'blocks') return;
+  action("items.create", async ({ collection, payload, key }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "blocks") return;
     const blockKey: string | number | undefined = payload?.uuid ?? key;
     if (blockKey == null) {
-      logger.warn('[search-index] blocks create: payload missing uuid and key, skipping');
+      logger.warn("[search-index] blocks create: payload missing uuid and key, skipping");
       return;
     }
     // Re-fetch from DB so we have all fields, not just what was in the create payload.
@@ -434,8 +457,8 @@ export default (
     }
   });
 
-  action('items.update', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'blocks') return;
+  action("items.update", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "blocks") return;
     for (const key of keys as (string | number)[]) {
       try {
         const row = await fetchBlockRow(key, database);
@@ -446,15 +469,15 @@ export default (
     }
   });
 
-  action('items.delete', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'blocks') return;
+  action("items.delete", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "blocks") return;
     // keys may be numeric IDs at this point since the rows are already gone.
     // We stored documents as `block_<uuid>`, so we need to resolve uuid before
     // deletion. If the row is already gone we fall back to treating the key as
     // a uuid (covers the case where a uuid string was passed as the key).
     for (const key of keys as (string | number)[]) {
       try {
-        const rows = await database('blocks').where('id', key).select('uuid').limit(1);
+        const rows = await database("blocks").where("id", key).select("uuid").limit(1);
         const uuid = rows[0]?.uuid ?? key;
         await remove(`block_${uuid}`);
       } catch {
@@ -466,28 +489,28 @@ export default (
 
   // ── pages ──
 
-  action('items.create', async ({ collection, payload }: ActionPayload) => {
-    if (collection !== 'pages') return;
+  action("items.create", async ({ collection, payload }: ActionPayload) => {
+    if (collection !== "pages") return;
     const page = payload as Page;
     if (!page?.slug) return;
     const doc = buildPageDoc(page);
     if (doc) await upsert(doc);
   });
 
-  action('items.update', async ({ collection, key, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'pages') return;
+  action("items.update", async ({ collection, key, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "pages") return;
     const pageKeys = keys ?? (key != null ? [key] : []);
     for (const key of pageKeys) {
       try {
-        const rows = await database('pages')
+        const rows = await database("pages")
           .where((builder: any) => {
-            builder.where('id', key).orWhere('slug', key);
+            builder.where("id", key).orWhere("slug", key);
           })
-          .select('id', 'slug', 'name', 'contents', 'status')
+          .select("id", "slug", "name", "contents", "status")
           .limit(1);
         if (!rows[0]) continue;
         const page = rows[0] as Page;
-        if (page.status !== 'published') {
+        if (page.status !== "published") {
           await remove(`page:${page.slug}`);
           // Remove child blocks when page is unpublished
           await removeBlocksForPage(page, database);
@@ -495,23 +518,29 @@ export default (
           const doc = buildPageDoc(page);
           if (doc) await upsert(doc);
           else await remove(`page:${page.slug}`);
-          const blocks = await database('blocks').where('entity_type', 'pages').where('field_name', 'content')
-            .whereIn('entity_uuid', [page.id, page.slug].filter((value): value is string => Boolean(value))).select('*');
+          const blocks = await database("blocks")
+            .where("entity_type", "pages")
+            .where("field_name", "content")
+            .whereIn(
+              "entity_uuid",
+              [page.id, page.slug].filter((value): value is string => Boolean(value)),
+            )
+            .select("*");
           for (const block of blocks) await syncBlock(block as BlockRow, database);
         }
       } catch (e: any) {
-        logger.error('[search-index] pages update fetch failed:', e?.message ?? e);
+        logger.error("[search-index] pages update fetch failed:", e?.message ?? e);
       }
     }
   });
 
-  action('items.delete', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'pages') return;
+  action("items.delete", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "pages") return;
     // Rows are gone by the time this hook fires; resolve slug from a pre-delete
     // snapshot if available, otherwise fall back to treating the key as a slug.
     for (const key of keys as (string | number)[]) {
       try {
-        const rows = await database('pages').where('id', key).select('slug').limit(1);
+        const rows = await database("pages").where("id", key).select("slug").limit(1);
         const slug = rows[0]?.slug ?? key;
         await remove(`page:${slug}`);
         // Remove child blocks when page is deleted
@@ -526,39 +555,39 @@ export default (
 
   // ── events ──
 
-  action('items.create', async ({ collection, payload }: ActionPayload) => {
-    if (collection !== 'events') return;
+  action("items.create", async ({ collection, payload }: ActionPayload) => {
+    if (collection !== "events") return;
     const doc = buildEventDoc(payload as Event);
     if (doc) await upsert(doc);
   });
 
-  action('items.update', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'events') return;
+  action("items.update", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "events") return;
     for (const key of keys as (string | number)[]) {
       try {
-        const rows = await database('events')
-          .where('id', key)
-          .select('slug', 'title', 'description', 'event_type', 'status')
+        const rows = await database("events")
+          .where("id", key)
+          .select("slug", "title", "description", "event_type", "status")
           .limit(1);
         if (!rows[0]) continue;
         const event = rows[0] as Event;
-        if (event.status !== 'published') {
+        if (event.status !== "published") {
           await remove(`event:${event.slug}`);
         } else {
           const doc = buildEventDoc(event);
           if (doc) await upsert(doc);
         }
       } catch (e: any) {
-        logger.error('[search-index] events update fetch failed:', e?.message ?? e);
+        logger.error("[search-index] events update fetch failed:", e?.message ?? e);
       }
     }
   });
 
-  action('items.delete', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'events') return;
+  action("items.delete", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "events") return;
     for (const key of keys as (string | number)[]) {
       try {
-        const rows = await database('events').where('id', key).select('slug').limit(1);
+        const rows = await database("events").where("id", key).select("slug").limit(1);
         const slug = rows[0]?.slug ?? key;
         await remove(`event:${slug}`);
       } catch {
@@ -569,39 +598,39 @@ export default (
 
   // ── articles ──
 
-  action('items.create', async ({ collection, payload }: ActionPayload) => {
-    if (collection !== 'articles') return;
+  action("items.create", async ({ collection, payload }: ActionPayload) => {
+    if (collection !== "articles") return;
     const doc = buildArticleDoc(payload as Article);
     if (doc) await upsert(doc);
   });
 
-  action('items.update', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'articles') return;
+  action("items.update", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "articles") return;
     for (const key of keys as (string | number)[]) {
       try {
-        const rows = await database('articles')
-          .where('id', key)
-          .select('slug', 'title', 'subtitle', 'abstract', 'article_text', 'status')
+        const rows = await database("articles")
+          .where("id", key)
+          .select("slug", "title", "subtitle", "abstract", "article_text", "status")
           .limit(1);
         if (!rows[0]) continue;
         const article = rows[0] as Article;
-        if (article.status !== 'published') {
+        if (article.status !== "published") {
           await remove(`article:${article.slug}`);
         } else {
           const doc = buildArticleDoc(article);
           if (doc) await upsert(doc);
         }
       } catch (e: any) {
-        logger.error('[search-index] articles update fetch failed:', e?.message ?? e);
+        logger.error("[search-index] articles update fetch failed:", e?.message ?? e);
       }
     }
   });
 
-  action('items.delete', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'articles') return;
+  action("items.delete", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "articles") return;
     for (const key of keys as (string | number)[]) {
       try {
-        const rows = await database('articles').where('id', key).select('slug').limit(1);
+        const rows = await database("articles").where("id", key).select("slug").limit(1);
         const slug = rows[0]?.slug ?? key;
         await remove(`article:${slug}`);
       } catch {
@@ -612,30 +641,30 @@ export default (
 
   // ── measures ──
 
-  action('items.create', async ({ collection, payload }: ActionPayload) => {
-    if (collection !== 'measures') return;
+  action("items.create", async ({ collection, payload }: ActionPayload) => {
+    if (collection !== "measures") return;
     await upsert(buildMeasureDoc(payload as Measure));
   });
 
-  action('items.update', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'measures') return;
+  action("items.update", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "measures") return;
     for (const key of keys as (string | number)[]) {
       try {
-        const fields = ['slug', 'name', 'sector', ...MEASURE_DESC_FIELDS];
-        const rows = await database('measures').where('id', key).select(fields).limit(1);
+        const fields = ["slug", "name", "sector", ...MEASURE_DESC_FIELDS];
+        const rows = await database("measures").where("id", key).select(fields).limit(1);
         if (!rows[0]) continue;
         await upsert(buildMeasureDoc(rows[0] as Measure));
       } catch (e: any) {
-        logger.error('[search-index] measures update fetch failed:', e?.message ?? e);
+        logger.error("[search-index] measures update fetch failed:", e?.message ?? e);
       }
     }
   });
 
-  action('items.delete', async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
-    if (collection !== 'measures') return;
+  action("items.delete", async ({ collection, keys }: ActionPayload, { database }: ActionContext) => {
+    if (collection !== "measures") return;
     for (const key of keys as (string | number)[]) {
       try {
-        const rows = await database('measures').where('id', key).select('slug').limit(1);
+        const rows = await database("measures").where("id", key).select("slug").limit(1);
         const slug = rows[0]?.slug ?? key;
         await remove(`measure:${slug}`);
       } catch {
@@ -646,18 +675,18 @@ export default (
 
   // ── directus_users (team members) ──
 
-  action('users.create', async ({ payload, key }: ActionPayload) => {
+  action("users.create", async ({ payload, key }: ActionPayload) => {
     const user: User = { ...payload, id: payload?.id ?? key };
     const doc = buildMemberDoc(user);
     if (doc) await upsert(doc);
   });
 
-  action('users.update', async ({ keys }: ActionPayload, { database }: ActionContext) => {
+  action("users.update", async ({ keys }: ActionPayload, { database }: ActionContext) => {
     for (const key of keys as (string | number)[]) {
       try {
-        const rows = await database('directus_users')
-          .where('id', key)
-          .select('id', 'first_name', 'last_name', 'bio', 'show_on_team_page')
+        const rows = await database("directus_users")
+          .where("id", key)
+          .select("id", "first_name", "last_name", "bio", "show_on_team_page")
           .limit(1);
         if (!rows[0]) continue;
         const user = rows[0] as User;
@@ -668,7 +697,7 @@ export default (
           if (doc) await upsert(doc);
         }
       } catch (e: any) {
-        logger.error('[search-index] users update fetch failed:', e?.message ?? e);
+        logger.error("[search-index] users update fetch failed:", e?.message ?? e);
       }
     }
   });
@@ -677,7 +706,7 @@ export default (
    * FIX: Directus passes deleted user IDs via `keys`, not `payload`.
    * The original code read `payload` which is always undefined here.
    */
-  action('users.delete', async ({ keys }: ActionPayload) => {
+  action("users.delete", async ({ keys }: ActionPayload) => {
     for (const id of keys as (string | number)[]) {
       await remove(`member_${id}`);
     }

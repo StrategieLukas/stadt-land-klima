@@ -372,7 +372,7 @@ const sectorIconSvgs = Object.fromEntries(
 definePageMeta({
   key: (route) => route.fullPath,
   middleware: [
-    'data-availability',
+    "data-availability",
     (to) => {
       const requestedSlug = String(to.params.slug ?? "");
       if (requestedSlug === "bundesrepublik-deutschland") {
@@ -419,15 +419,26 @@ const { data: pageData, pending: areaPending } = useAsyncData(
     const resolvedArea = await $fetch("/api/area-by-slug", {
       params: { slug: slug.value, includeGeo: true },
     });
-    if (!resolvedArea) return { requestedSlug: slug.value, notFound: true, area: null, containedBy: [], municipalityImageId: null, municipalityImageCredits: null };
+    if (!resolvedArea)
+      return {
+        requestedSlug: slug.value,
+        notFound: true,
+        area: null,
+        containedBy: [],
+        municipalityImageId: null,
+        municipalityImageCredits: null,
+      };
     const ars = resolvedArea.ars;
     const [containedByChain, muniResult] = await Promise.all([
       fetchContainedBy(ars, resolvedArea.level ?? 6).catch(() => []),
-      $fetch('/api/public/area-municipalities', { query: { ars } }).then(result => result.municipalities).catch(() => []),
+      $fetch("/api/public/area-municipalities", { query: { ars } })
+        .then((result) => result.municipalities)
+        .catch(() => []),
     ]);
 
     return {
-      requestedSlug: slug.value, notFound: false,
+      requestedSlug: slug.value,
+      notFound: false,
       area: resolvedArea,
       containedBy: containedByChain ?? [],
       municipalityImageId: muniResult?.[0]?.image ?? null,
@@ -465,7 +476,10 @@ const resolvedArea = computed(() => {
 const area = computed(() => {
   const value = resolvedArea.value ?? matchingSeedArea.value;
   if (!value) return null;
-  const parsed = AreaSchema.safeParse({...value, population: value.population == null ? null : Number(value.population)});
+  const parsed = AreaSchema.safeParse({
+    ...value,
+    population: value.population == null ? null : Number(value.population),
+  });
   return parsed.success ? parsed.data : null;
 });
 const displayArea = computed(() => area.value);
@@ -580,7 +594,9 @@ async function loadCollectionsForCurrentArea() {
   try {
     // Try slim manifest first: much smaller (no vegalite_specs), CDN-cached.
     // Cards degrade gracefully: KPI previews still show, map thumbnails are hidden until expanded.
-    const manifest = CollectionsResponseSchema.parse(await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 }));
+    const manifest = CollectionsResponseSchema.parse(
+      await $fetch(`${baseUrl}/api/manifests/collections-index`, { timeout: 8000 }),
+    );
     const slim = (manifest?.collections ?? [])
       .filter((c) => isCollectionVisible(c.id, dataPageConfig.value ?? DEFAULT_DATA_PAGE_CONFIG))
       .map((c) => normalizeCollection(c));
@@ -600,7 +616,9 @@ async function loadCollectionsForCurrentArea() {
   try {
     // Fall back to full area-specific API.
     const params = area.value?.ars ? { area: area.value.ars } : {};
-    const data = CollectionsResponseSchema.parse(await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 }));
+    const data = CollectionsResponseSchema.parse(
+      await $fetch(`${baseUrl}/api/collections/`, { params, timeout: 12000 }),
+    );
 
     if (requestId !== collectionsRequestId || requestSlug !== slug.value) return;
 
@@ -630,7 +648,7 @@ watch(
 
 // ── Product scroll navigation ────────────────────────────────────────────────
 
-const exploreSection = ref<HTMLElement | {$el: HTMLElement} | null>(null);
+const exploreSection = ref<HTMLElement | { $el: HTMLElement } | null>(null);
 const activeSectorKey = ref("");
 let productSectionScrollFrame: number | null = null;
 let removeProductSectionListeners: (() => void) | null = null;
@@ -639,8 +657,8 @@ const sectorBarTop = computed(() => pillTop.value + 52);
 const productScrollMarginTop = computed(() => sectorBarTop.value + 58);
 
 const groupedCollections = computed(() => {
-  const groups: {key: string; label: string; color: string | undefined; collections: Collection[]}[] = [];
-  const byKey = new Map<string, typeof groups[number]>();
+  const groups: { key: string; label: string; color: string | undefined; collections: Collection[] }[] = [];
+  const byKey = new Map<string, (typeof groups)[number]>();
   for (const collection of collections.value) {
     const key = sectorKey(collection);
     if (!byKey.has(key)) {
@@ -714,8 +732,6 @@ watch(isAreaLoading, (loading) => {
   }
 });
 
-
-
 function normalizeAssetUrl(url: unknown) {
   if (!url || typeof url !== "string") return "";
   if (url.startsWith("http://web:8070")) return url.replace("http://web:8070", baseUrl);
@@ -763,7 +779,10 @@ function findAreaImageAttribution(areaValue: Partial<Area> | null) {
   for (const candidate of candidates) {
     if (!candidate || typeof candidate !== "object") continue;
     const attribution =
-      (asRecord(candidate) ?? {}).attribution_key ?? (asRecord(candidate) ?? {}).attributionKey ?? (asRecord(candidate) ?? {}).attribution ?? (asRecord(candidate) ?? {}).credits;
+      (asRecord(candidate) ?? {}).attribution_key ??
+      (asRecord(candidate) ?? {}).attributionKey ??
+      (asRecord(candidate) ?? {}).attribution ??
+      (asRecord(candidate) ?? {}).credits;
     if (typeof attribution === "string" && attribution.trim()) return attribution.trim();
   }
   return "";

@@ -72,11 +72,22 @@ export type SubScores = Partial<Record<`score_${Sector}`, NumericValue>>;
 export interface ComparisonRating {
   rating: NumericValue;
   applicable?: boolean | null | undefined;
-  localteam_id?: {
-    id?: string | undefined;
-    municipality_name?: string | null | undefined;
-    municipality_id?: (Municipality & {
-      scores?: { catalog_version: Catalog | string; published?: boolean | null | undefined; percentage_rated?: NumericValue | undefined }[] | undefined;
-    })[] | undefined;
-  } | null | undefined;
+  localteam_id?:
+    | {
+        id?: string | undefined;
+        municipality_name?: string | null | undefined;
+        municipality_id?:
+          | (Municipality & {
+              scores?:
+                | {
+                    catalog_version: Catalog | string;
+                    published?: boolean | null | undefined;
+                    percentage_rated?: NumericValue | undefined;
+                  }[]
+                | undefined;
+            })[]
+          | undefined;
+      }
+    | null
+    | undefined;
 }

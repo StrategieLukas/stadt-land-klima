@@ -30,11 +30,7 @@
 
         <!-- Histograms (all of them) -->
         <template v-if="histogramElements.length">
-          <div
-            v-for="hist in histogramElements"
-            :key="hist.plot_id"
-            class="min-h-[180px]"
-          >
+          <div v-for="hist in histogramElements" :key="hist.plot_id" class="min-h-[180px]">
             <h4 class="text-gray-500 mb-2 text-xs font-semibold uppercase tracking-wide">Verteilung (alle Kommunen)</h4>
             <ClientOnly>
               <VegaChart
@@ -150,13 +146,13 @@
 </template>
 
 <script setup lang="ts">
-import type { z } from 'zod';
-import { SummarySchema, PipelineSchema } from '~/shared/contracts/slz';
-import { cloneVisualization, asRecord } from '~/shared/visualization';
-import type { PropType } from 'vue';
-import type { Collection } from '~/types/slz-api';
-import type { GeoJsonObject } from 'geojson';
-import type { Area } from '~/shared/contracts/search';
+import type { z } from "zod";
+import { SummarySchema, PipelineSchema } from "~/shared/contracts/slz";
+import { cloneVisualization, asRecord } from "~/shared/visualization";
+import type { PropType } from "vue";
+import type { Collection } from "~/types/slz-api";
+import type { GeoJsonObject } from "geojson";
+import type { Area } from "~/shared/contracts/search";
 
 import { ref, computed, watch } from "vue";
 import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";

@@ -197,7 +197,9 @@ function goTo(index: number) {
   });
 }
 
-watch(expanded, () => { goTo(0); });
+watch(expanded, () => {
+  goTo(0);
+});
 watch(
   () => pages.value.length,
   () => {

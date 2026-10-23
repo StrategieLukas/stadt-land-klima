@@ -1,41 +1,45 @@
 <template>
-  <div
-    :id="'block-' + uuid"
-    class="blokkli-block-button flex w-full"
-    :class="[alignClass, verticalAlignClass]"
-  >
+  <div :id="'block-' + uuid" class="blokkli-block-button flex w-full" :class="[alignClass, verticalAlignClass]">
     <!-- External link -->
     <a
       v-if="options.linkType === 'external'"
       :href="options.link || '#'"
       target="_blank"
       rel="noopener noreferrer"
-      class="button-link inline-flex items-stretch rounded-md font-semibold transition-colors no-underline relative overflow-hidden"
+      class="button-link relative inline-flex items-stretch overflow-hidden rounded-md font-semibold no-underline transition-colors"
       :class="[styleClass, textColorClass, hasIcon ? 'gap-0 px-0 py-0' : 'gap-2 px-6 py-3']"
       :data-hover="options.hoverEffect"
     >
       <!-- Left icon (position: left or both) -->
       <span
         v-if="hasIcon && (options.iconPosition === 'left' || options.iconPosition === 'both')"
-        class="blokkli-button-icon flex-shrink-0 w-12 [&>svg]:h-7 [&>svg]:w-7 self-stretch flex items-center justify-center px-2 border-r-2 border-current"
+        class="blokkli-button-icon flex w-12 flex-shrink-0 items-center justify-center self-stretch border-r-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
       >
         <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
-        <span v-if="currentIconSvg" class="h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" v-html="currentIconSvg" />
+        <span
+          v-if="currentIconSvg"
+          class="flex h-7 w-7 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+          v-html="currentIconSvg"
+        />
         <!-- eslint-enable vue/no-v-html -->
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
       <!-- Label -->
       <span class="flex items-center gap-1 whitespace-nowrap" :class="labelClass">
-        <Icon icon="mdi:open-in-new" class="w-4 h-4 flex-shrink-0 opacity-80" />
+        <Icon icon="mdi:open-in-new" class="h-4 w-4 flex-shrink-0 opacity-80" />
         <span v-blokkli-editable:label v-text="props.label" />
       </span>
       <!-- Right icon (position: right or both) -->
       <span
         v-if="hasIcon && (options.iconPosition === 'right' || options.iconPosition === 'both')"
-        class="blokkli-button-icon flex-shrink-0 w-12 [&>svg]:h-7 [&>svg]:w-7 self-stretch flex items-center justify-center px-2 border-l-2 border-current"
+        class="blokkli-button-icon flex w-12 flex-shrink-0 items-center justify-center self-stretch border-l-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
       >
         <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
-        <span v-if="currentIconSvg" class="h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" v-html="currentIconSvg" />
+        <span
+          v-if="currentIconSvg"
+          class="flex h-7 w-7 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+          v-html="currentIconSvg"
+        />
         <!-- eslint-enable vue/no-v-html -->
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
@@ -44,17 +48,21 @@
     <NuxtLink
       v-else
       :to="resolveBlokkliInternalLink(options.link)"
-      class="button-link inline-flex items-stretch rounded-md font-semibold transition-colors no-underline relative overflow-hidden"
+      class="button-link relative inline-flex items-stretch overflow-hidden rounded-md font-semibold no-underline transition-colors"
       :class="[styleClass, textColorClass, hasIcon ? 'gap-0 px-0 py-0' : 'gap-2 px-6 py-3']"
       :data-hover="options.hoverEffect"
     >
       <!-- Left icon (position: left or both) -->
       <span
         v-if="hasIcon && (options.iconPosition === 'left' || options.iconPosition === 'both')"
-        class="blokkli-button-icon flex-shrink-0 w-12 [&>svg]:h-7 [&>svg]:w-7 self-stretch flex items-center justify-center px-2 border-r-2 border-current"
+        class="blokkli-button-icon flex w-12 flex-shrink-0 items-center justify-center self-stretch border-r-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
       >
         <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
-        <span v-if="currentIconSvg" class="h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" v-html="currentIconSvg" />
+        <span
+          v-if="currentIconSvg"
+          class="flex h-7 w-7 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+          v-html="currentIconSvg"
+        />
         <!-- eslint-enable vue/no-v-html -->
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
@@ -65,10 +73,14 @@
       <!-- Right icon (position: right or both) -->
       <span
         v-if="hasIcon && (options.iconPosition === 'right' || options.iconPosition === 'both')"
-        class="blokkli-button-icon flex-shrink-0 w-12 [&>svg]:h-7 [&>svg]:w-7 self-stretch flex items-center justify-center px-2 border-l-2 border-current"
+        class="blokkli-button-icon flex w-12 flex-shrink-0 items-center justify-center self-stretch border-l-2 border-current px-2 [&>svg]:h-7 [&>svg]:w-7"
       >
         <!-- eslint-disable vue/no-v-html -- SVG is imported from checked-in assets. -->
-        <span v-if="currentIconSvg" class="h-7 w-7 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" v-html="currentIconSvg" />
+        <span
+          v-if="currentIconSvg"
+          class="flex h-7 w-7 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+          v-html="currentIconSvg"
+        />
         <!-- eslint-enable vue/no-v-html -->
         <Icon v-else-if="iconifySlug" :icon="iconifySlug" class="h-7 w-7" />
       </span>
@@ -77,326 +89,329 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { resolveBlokkliInternalLink } from '~/utils/blokkliLinks'
+import { Icon } from "@iconify/vue";
+import { resolveBlokkliInternalLink } from "~/utils/blokkliLinks";
 
-const svgFiles = import.meta.glob('@/assets/icons/*.svg', { query: '?raw', import: 'default', eager: true })
+const svgFiles = import.meta.glob("@/assets/icons/*.svg", { query: "?raw", import: "default", eager: true });
 
 /** Strip background rects, hardcoded dimensions, and rewrite fills/strokes to currentColor */
 function prepareIcon(raw: string): string {
-  let svg = raw
+  let svg = raw;
   // Remove XML declaration
-  svg = svg.replace(/<\?xml[^?]*\?>/g, '')
+  svg = svg.replace(/<\?xml[^?]*\?>/g, "");
   // Remove hardcoded width/height so the SVG scales with its container
-  svg = svg.replace(/(<svg[^>]*?)\s+width="[^"]*"/g, '$1')
-  svg = svg.replace(/(<svg[^>]*?)\s+height="[^"]*"/g, '$1')
+  svg = svg.replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1");
+  svg = svg.replace(/(<svg[^>]*?)\s+height="[^"]*"/g, "$1");
   // Remove background <rect> with cls-2 class (solid bg)
-  svg = svg.replace(/<rect[^>]*class="cls-2"[^/>]*\/>/g, '')
-  svg = svg.replace(/<rect[^>]*class="cls-2"[^>]*>[^<]*<\/rect>/g, '')
+  svg = svg.replace(/<rect[^>]*class="cls-2"[^/>]*\/>/g, "");
+  svg = svg.replace(/<rect[^>]*class="cls-2"[^>]*>[^<]*<\/rect>/g, "");
   // Remove cls-3 background rects (agriculture, hint icons)
-  svg = svg.replace(/<rect[^>]*class="cls-3"[^/>]*\/>/g, '')
-  svg = svg.replace(/<rect[^>]*class="cls-3"[^>]*>[^<]*<\/rect>/g, '')
+  svg = svg.replace(/<rect[^>]*class="cls-3"[^/>]*\/>/g, "");
+  svg = svg.replace(/<rect[^>]*class="cls-3"[^>]*>[^<]*<\/rect>/g, "");
   // Remove st0 background circles (impact, invest, evaluation_criteria, politics icons)
-  svg = svg.replace(/<circle[^>]*class="st0"[^/>]*\/>/g, '')
-  svg = svg.replace(/<circle[^>]*class="st0"[^>]*>[^<]*<\/circle>/g, '')
+  svg = svg.replace(/<circle[^>]*class="st0"[^/>]*\/>/g, "");
+  svg = svg.replace(/<circle[^>]*class="st0"[^>]*>[^<]*<\/circle>/g, "");
   // Replace CSS fill/stroke declarations with currentColor
-  svg = svg.replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, 'fill: currentColor')
-  svg = svg.replace(/stroke:\s*#[0-9a-fA-F]{3,6}/g, 'stroke: currentColor')
+  svg = svg.replace(/fill:\s*#[0-9a-fA-F]{3,6}/g, "fill: currentColor");
+  svg = svg.replace(/stroke:\s*#[0-9a-fA-F]{3,6}/g, "stroke: currentColor");
   // Replace inline fill/stroke attributes with currentColor
-  svg = svg.replace(/fill="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'fill="currentColor"')
-  svg = svg.replace(/stroke="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'stroke="currentColor"')
+  svg = svg.replace(/fill="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'fill="currentColor"');
+  svg = svg.replace(/stroke="(?:#[0-9a-fA-F]{3,6}|black|white)"/g, 'stroke="currentColor"');
   // Keep fill="none" intact (restore after blanket replace)
   // Not needed — our regex only matches color values, not "none"
-  return svg
+  return svg;
 }
 
 const iconMap: Record<string, string> = Object.fromEntries(
   Object.entries(svgFiles).map(([path, svg]) => {
-    const name = path.split('/').pop()?.replace('.svg', '') || ''
-    return [name, prepareIcon(svg as string)]
+    const name = path.split("/").pop()?.replace(".svg", "") || "";
+    return [name, prepareIcon(svg as string)];
   }),
-)
+);
 
-const _isEditing = import.meta.blokkliEditing
+const _isEditing = import.meta.blokkliEditing;
 
 const { options, uuid } = defineBlokkli({
-  bundle: 'button',
+  bundle: "button",
   propsFieldMapping: {
-    label: { name: 'label', type: 'editable' },
+    label: { name: "label", type: "editable" },
   },
   options: {
     linkType: {
-      type: 'radios',
-      label: 'Link-Typ',
-      default: 'internal',
+      type: "radios",
+      label: "Link-Typ",
+      default: "internal",
       options: {
-        internal: 'Intern',
-        external: 'Extern',
+        internal: "Intern",
+        external: "Extern",
       },
     },
     link: {
-      type: 'text',
-      label: 'Link (Slug oder URL)',
-      default: 'index',
-      inputType: 'text',
+      type: "text",
+      label: "Link (Slug oder URL)",
+      default: "index",
+      inputType: "text",
     },
     variant: {
-      type: 'radios',
-      label: 'Variante',
-      default: 'filled',
-      group: 'Stil',
+      type: "radios",
+      label: "Variante",
+      default: "filled",
+      group: "Stil",
       options: {
-        filled: 'Gefüllt',
-        outline: 'Rahmen',
+        filled: "Gefüllt",
+        outline: "Rahmen",
       },
     },
     color: {
-      type: 'radios',
-      label: 'Hintergrundfarbe',
-      default: 'green',
-      group: 'Stil',
-      displayAs: 'colors',
+      type: "radios",
+      label: "Hintergrundfarbe",
+      default: "green",
+      group: "Stil",
+      displayAs: "colors",
       options: {
-        green: { label: 'Grün', hex: '#1da64a' },
-        'dark-green': { label: 'Dunkelgrün', hex: '#339737' },
-        'bright-green': { label: 'Hellgrün', hex: '#AFCA0B' },
-        blue: { label: 'Blau', hex: '#16bae7' },
-        dark: { label: 'Dunkelblau', hex: '#006e94' },
-        orange: { label: 'Orange', hex: '#f39200' },
-        red: { label: 'Rot', hex: '#e30613' },
-        yellow: { label: 'Gelb', hex: '#ffc80c' },
-        black: { label: 'Schwarz', hex: '#000000' },
-        gray: { label: 'Grau', hex: '#505050' },
-        white: { label: 'Weiß', hex: '#fbfbfb' },
+        green: { label: "Grün", hex: "#1da64a" },
+        "dark-green": { label: "Dunkelgrün", hex: "#339737" },
+        "bright-green": { label: "Hellgrün", hex: "#AFCA0B" },
+        blue: { label: "Blau", hex: "#16bae7" },
+        dark: { label: "Dunkelblau", hex: "#006e94" },
+        orange: { label: "Orange", hex: "#f39200" },
+        red: { label: "Rot", hex: "#e30613" },
+        yellow: { label: "Gelb", hex: "#ffc80c" },
+        black: { label: "Schwarz", hex: "#000000" },
+        gray: { label: "Grau", hex: "#505050" },
+        white: { label: "Weiß", hex: "#fbfbfb" },
       },
     },
     textColor: {
-      type: 'radios',
-      label: 'Textfarbe',
-      default: 'auto',
-      group: 'Stil',
-      displayAs: 'colors',
+      type: "radios",
+      label: "Textfarbe",
+      default: "auto",
+      group: "Stil",
+      displayAs: "colors",
       options: {
-        auto: { label: 'Auto', hex: '#888888' },
-        white: { label: 'Weiß', hex: '#ffffff' },
-        black: { label: 'Schwarz', hex: '#000000' },
-        green: { label: 'Grün', hex: '#1da64a' },
-        blue: { label: 'Blau', hex: '#16bae7' },
-        dark: { label: 'Dunkelblau', hex: '#006e94' },
+        auto: { label: "Auto", hex: "#888888" },
+        white: { label: "Weiß", hex: "#ffffff" },
+        black: { label: "Schwarz", hex: "#000000" },
+        green: { label: "Grün", hex: "#1da64a" },
+        blue: { label: "Blau", hex: "#16bae7" },
+        dark: { label: "Dunkelblau", hex: "#006e94" },
       },
     },
     iconSlug: {
-      type: 'text',
-      label: 'Icon (Iconify-Slug oder lokaler Name)',
-      default: '',
-      inputType: 'text',
-      group: 'Icon',
+      type: "text",
+      label: "Icon (Iconify-Slug oder lokaler Name)",
+      default: "",
+      inputType: "text",
+      group: "Icon",
     },
     iconPosition: {
-      type: 'radios',
-      label: 'Icon-Position',
-      default: 'left',
-      group: 'Icon',
+      type: "radios",
+      label: "Icon-Position",
+      default: "left",
+      group: "Icon",
       options: {
-        left: 'Links',
-        right: 'Rechts',
-        both: 'Beides',
+        left: "Links",
+        right: "Rechts",
+        both: "Beides",
       },
     },
     hoverEffect: {
-      type: 'radios',
-      label: 'Hover-Effekt',
-      default: 'darker',
-      group: 'Stil',
+      type: "radios",
+      label: "Hover-Effekt",
+      default: "darker",
+      group: "Stil",
       options: {
-        darker: 'Dunkler',
-        brighter: 'Heller',
-        none: 'Kein',
+        darker: "Dunkler",
+        brighter: "Heller",
+        none: "Kein",
       },
     },
     align: {
-      type: 'radios',
-      label: 'Ausrichtung',
-      default: 'left',
-      group: 'Stil',
+      type: "radios",
+      label: "Ausrichtung",
+      default: "left",
+      group: "Stil",
       options: {
-        left: 'Links',
-        center: 'Zentriert',
-        right: 'Rechts',
+        left: "Links",
+        center: "Zentriert",
+        right: "Rechts",
       },
     },
     verticalAlign: {
-      type: 'radios',
-      label: 'Vertikale Ausrichtung',
-      default: 'top',
-      group: 'Stil',
+      type: "radios",
+      label: "Vertikale Ausrichtung",
+      default: "top",
+      group: "Stil",
       options: {
-        top: 'Oben',
-        center: 'Mitte',
-        bottom: 'Unten',
+        top: "Oben",
+        center: "Mitte",
+        bottom: "Unten",
       },
     },
   },
   editor: {
-    addBehaviour: 'no-form',
-    editTitle: (el) => el.textContent || 'Button',
+    addBehaviour: "no-form",
+    editTitle: (el) => el.textContent || "Button",
     mockProps: () => {
-      return { label: 'Button', link: '' }
+      return { label: "Button", link: "" };
     },
   },
-})
+});
 
 const props = defineProps<{
-  label: string
-}>()
+  label: string;
+}>();
 
 const currentIconSvg = computed(() => {
-  const key = options.value.iconSlug
-  if (!key) return ''
-  return iconMap[key] || ''
-})
+  const key = options.value.iconSlug;
+  if (!key) return "";
+  return iconMap[key] || "";
+});
 
 // If not a local icon, treat it as an Iconify slug (e.g. "mdi:home", "heroicons:arrow-right")
 const iconifySlug = computed(() => {
-  const key = options.value.iconSlug
-  if (!key || iconMap[key]) return ''
-  return key
-})
+  const key = options.value.iconSlug;
+  if (!key || iconMap[key]) return "";
+  return key;
+});
 
-const hasIcon = computed(() => !!(currentIconSvg.value || iconifySlug.value))
+const hasIcon = computed(() => !!(currentIconSvg.value || iconifySlug.value));
 
 const labelClass = computed(() => {
-  if (!hasIcon.value) return ''
-  const pos = options.value.iconPosition
-  if (pos === 'right') return 'py-3 pl-6 pr-4'
-  if (pos === 'both') return 'py-3 px-4'
+  if (!hasIcon.value) return "";
+  const pos = options.value.iconPosition;
+  if (pos === "right") return "py-3 pl-6 pr-4";
+  if (pos === "both") return "py-3 px-4";
   // left (default)
-  return 'py-3 pl-4 pr-6'
-})
+  return "py-3 pl-4 pr-6";
+});
 
-const colorConfig: Record<string, { filled: string; outline: string; autoTextFilled: string; autoTextOutline: string }> = {
+const colorConfig: Record<
+  string,
+  { filled: string; outline: string; autoTextFilled: string; autoTextOutline: string }
+> = {
   green: {
-    filled: 'bg-ff-green',
-    outline: 'border-2 border-ff-green hover:bg-ff-green',
-    autoTextFilled: 'text-white',
-    autoTextOutline: 'text-ff-green hover:text-white',
+    filled: "bg-ff-green",
+    outline: "border-2 border-ff-green hover:bg-ff-green",
+    autoTextFilled: "text-white",
+    autoTextOutline: "text-ff-green hover:text-white",
   },
-  'dark-green': {
-    filled: 'bg-green',
-    outline: 'border-2 border-green hover:bg-green',
-    autoTextFilled: 'text-white',
-    autoTextOutline: 'text-green hover:text-white',
+  "dark-green": {
+    filled: "bg-green",
+    outline: "border-2 border-green hover:bg-green",
+    autoTextFilled: "text-white",
+    autoTextOutline: "text-green hover:text-white",
   },
-  'bright-green': {
-    filled: 'bg-light-green',
-    outline: 'border-2 border-light-green hover:bg-light-green',
-    autoTextFilled: 'text-black',
-    autoTextOutline: 'text-green hover:text-black',
+  "bright-green": {
+    filled: "bg-light-green",
+    outline: "border-2 border-light-green hover:bg-light-green",
+    autoTextFilled: "text-black",
+    autoTextOutline: "text-green hover:text-black",
   },
   blue: {
-    filled: 'bg-light-blue',
-    outline: 'border-2 border-light-blue hover:bg-light-blue',
-    autoTextFilled: 'text-white',
-    autoTextOutline: 'text-light-blue hover:text-white',
+    filled: "bg-light-blue",
+    outline: "border-2 border-light-blue hover:bg-light-blue",
+    autoTextFilled: "text-white",
+    autoTextOutline: "text-light-blue hover:text-white",
   },
   dark: {
-    filled: 'bg-stats-dark',
-    outline: 'border-2 border-stats-dark hover:bg-stats-dark',
-    autoTextFilled: 'text-white',
-    autoTextOutline: 'text-stats-dark hover:text-white',
+    filled: "bg-stats-dark",
+    outline: "border-2 border-stats-dark hover:bg-stats-dark",
+    autoTextFilled: "text-white",
+    autoTextOutline: "text-stats-dark hover:text-white",
   },
   orange: {
-    filled: 'bg-orange',
-    outline: 'border-2 border-orange hover:bg-orange',
-    autoTextFilled: 'text-white',
-    autoTextOutline: 'text-orange hover:text-white',
+    filled: "bg-orange",
+    outline: "border-2 border-orange hover:bg-orange",
+    autoTextFilled: "text-white",
+    autoTextOutline: "text-orange hover:text-white",
   },
   red: {
-    filled: 'bg-red',
-    outline: 'border-2 border-red hover:bg-red',
-    autoTextFilled: 'text-white',
-    autoTextOutline: 'text-red hover:text-white',
+    filled: "bg-red",
+    outline: "border-2 border-red hover:bg-red",
+    autoTextFilled: "text-white",
+    autoTextOutline: "text-red hover:text-white",
   },
   yellow: {
-    filled: 'bg-localzero-yellow',
-    outline: 'border-2 border-localzero-yellow hover:bg-localzero-yellow',
-    autoTextFilled: 'text-gray',
-    autoTextOutline: 'text-localzero-yellow hover:text-gray',
+    filled: "bg-localzero-yellow",
+    outline: "border-2 border-localzero-yellow hover:bg-localzero-yellow",
+    autoTextFilled: "text-gray",
+    autoTextOutline: "text-localzero-yellow hover:text-gray",
   },
   black: {
-    filled: 'bg-black',
-    outline: 'border-2 border-black hover:bg-black',
-    autoTextFilled: 'text-white',
-    autoTextOutline: 'text-black hover:text-white',
+    filled: "bg-black",
+    outline: "border-2 border-black hover:bg-black",
+    autoTextFilled: "text-white",
+    autoTextOutline: "text-black hover:text-white",
   },
   gray: {
-    filled: 'bg-gray',
-    outline: 'border-2 border-gray hover:bg-gray',
-    autoTextFilled: 'text-white',
-    autoTextOutline: 'text-gray hover:text-white',
+    filled: "bg-gray",
+    outline: "border-2 border-gray hover:bg-gray",
+    autoTextFilled: "text-white",
+    autoTextOutline: "text-gray hover:text-white",
   },
   white: {
-    filled: 'bg-mild-white border border-gray-300',
-    outline: 'border-2 border-mild-white hover:bg-mild-white',
-    autoTextFilled: 'text-black',
-    autoTextOutline: 'text-mild-white hover:text-black',
+    filled: "bg-mild-white border border-gray-300",
+    outline: "border-2 border-mild-white hover:bg-mild-white",
+    autoTextFilled: "text-black",
+    autoTextOutline: "text-mild-white hover:text-black",
   },
-}
+};
 
 const styleClass = computed(() => {
-  const c = colorConfig[options.value.color] || colorConfig.green!
-  return options.value.variant === 'outline' ? c.outline : c.filled
-})
+  const c = colorConfig[options.value.color] || colorConfig.green!;
+  return options.value.variant === "outline" ? c.outline : c.filled;
+});
 
 const alignClass = computed(() => {
   const map: Record<string, string> = {
-    left: 'justify-start',
-    center: 'justify-center',
-    end: 'justify-end',
-    right: 'justify-end',
-  }
-  return map[options.value.align] || 'justify-start'
-})
+    left: "justify-start",
+    center: "justify-center",
+    end: "justify-end",
+    right: "justify-end",
+  };
+  return map[options.value.align] || "justify-start";
+});
 
 const verticalAlignClass = computed(() => {
   const map: Record<string, string> = {
-    top: 'self-start',
-    center: 'self-center',
-    bottom: 'self-end',
-  }
-  return map[options.value.verticalAlign] || 'self-start'
-})
+    top: "self-start",
+    center: "self-center",
+    bottom: "self-end",
+  };
+  return map[options.value.verticalAlign] || "self-start";
+});
 
 const textColorClass = computed(() => {
-  const tc = options.value.textColor
-  const c = colorConfig[options.value.color] || colorConfig.green!
-  const isOutline = options.value.variant === 'outline'
+  const tc = options.value.textColor;
+  const c = colorConfig[options.value.color] || colorConfig.green!;
+  const isOutline = options.value.variant === "outline";
 
-  if (tc !== 'auto') {
+  if (tc !== "auto") {
     const map: Record<string, string> = {
-      white: 'text-white',
-      black: 'text-black',
-      green: 'text-ff-green',
-      blue: 'text-light-blue',
-      dark: 'text-stats-dark',
-    }
-    const base = map[tc] || ''
+      white: "text-white",
+      black: "text-black",
+      green: "text-ff-green",
+      blue: "text-light-blue",
+      dark: "text-stats-dark",
+    };
+    const base = map[tc] || "";
     // For outline with manual text color, still invert on hover for legibility
     if (isOutline) {
-      return base + ' hover:text-white'
+      return base + " hover:text-white";
     }
-    return base
+    return base;
   }
 
-  return isOutline ? c.autoTextOutline : c.autoTextFilled
-})
+  return isOutline ? c.autoTextOutline : c.autoTextFilled;
+});
 </script>
 
 <style scoped>
 /* Overlay approach: ::after sits on top of the button, zero opacity at rest,
    fades to a dark or light tint on hover. Works with any background color. */
 .button-link::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -405,17 +420,17 @@ const textColorClass = computed(() => {
   pointer-events: none;
 }
 
-.button-link[data-hover='darker']::after {
+.button-link[data-hover="darker"]::after {
   background: black;
 }
-.button-link[data-hover='darker']:hover::after {
+.button-link[data-hover="darker"]:hover::after {
   opacity: 0.15;
 }
 
-.button-link[data-hover='brighter']::after {
+.button-link[data-hover="brighter"]::after {
   background: white;
 }
-.button-link[data-hover='brighter']:hover::after {
+.button-link[data-hover="brighter"]:hover::after {
   opacity: 0.2;
 }
 

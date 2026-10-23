@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import {plausibleManifest} from "~/shared/plausibleManifest";
+import { plausibleManifest } from "~/shared/plausibleManifest";
 import { SiteLayoutSchema } from "~/shared/contracts/navigation";
 import type { NuxtApp } from "#app";
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
@@ -207,11 +207,10 @@ const cachedPayload = (key: string, nuxtApp: NuxtApp) => {
   return result.success ? result.data : undefined;
 };
 
-const { data: layoutData } = await useAsyncData(
-  "site-layout",
-  fetchLayout,
-  { getCachedData: cachedPayload, default: () => ({ pages: [], municipalities: [], navigationConfig: null }) },
-);
+const { data: layoutData } = await useAsyncData("site-layout", fetchLayout, {
+  getCachedData: cachedPayload,
+  default: () => ({ pages: [], municipalities: [], navigationConfig: null }),
+});
 
 const pages = computed(() => layoutData.value?.pages || []);
 const publishedMunicipalities = computed(() => layoutData.value?.municipalities || []);
@@ -231,15 +230,23 @@ useHead({
     },
   ],
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
-  script: plausibleAnalyticsUrl && plausibleAnalyticsDomain && !analyticsRoute.path.startsWith('/elections/thesen') && !analyticsRoute.query.blokkliPreview && !analyticsRoute.query.preview && !analyticsRoute.query.preview_token
-      ? [{
-          defer: true,
-          "data-domain": plausibleAnalyticsDomain,
-          integrity: plausibleManifest.integrity,
-          crossorigin: 'anonymous',
-          'data-api': plausibleAnalyticsUrl.replace(/\/$/, '') + '/api/event',
-          src: plausibleManifest.src,
-        }]
+  script:
+    plausibleAnalyticsUrl &&
+    plausibleAnalyticsDomain &&
+    !analyticsRoute.path.startsWith("/elections/thesen") &&
+    !analyticsRoute.query.blokkliPreview &&
+    !analyticsRoute.query.preview &&
+    !analyticsRoute.query.preview_token
+      ? [
+          {
+            defer: true,
+            "data-domain": plausibleAnalyticsDomain,
+            integrity: plausibleManifest.integrity,
+            crossorigin: "anonymous",
+            "data-api": plausibleAnalyticsUrl.replace(/\/$/, "") + "/api/event",
+            src: plausibleManifest.src,
+          },
+        ]
       : [],
 });
 //

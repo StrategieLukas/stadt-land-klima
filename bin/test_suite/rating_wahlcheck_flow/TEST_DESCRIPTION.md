@@ -47,8 +47,10 @@
 8. Verify the user sees 11 total questions in Directus.
 9. Verify candidate creation is rejected when the required salutation is omitted or explicitly set to `null`.
 10. Create two candidates:
-   - `AutomatedCandidateA <runId>` with a gender-neutral salutation, the first candidate email, and a listed party
-   - `AutomatedCandidateB <runId>` with the second candidate email and an `AutomatedParty <runId>` party
+
+- `AutomatedCandidateA <runId>` with a gender-neutral salutation, the first candidate email, and a listed party
+- `AutomatedCandidateB <runId>` with the second candidate email and an `AutomatedParty <runId>` party
+
 11. Verify the candidate list shows exactly those two candidates for this election.
 12. Verify the answers collection is visible and empty before candidate responses.
 13. Set a response deadline a few days in the future.

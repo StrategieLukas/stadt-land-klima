@@ -1,11 +1,11 @@
-import { readPermissions, readPolicies } from '@directus/sdk';
-import fs from 'fs';
-import fse from 'node:fs';
-import path from 'path';
-import slugify from 'slugify';
-import { stringify } from 'yaml';
-import createDirectusClient from '../shared/createDirectusClient.ts';
-import type { TaskOptions } from '../shared/models.ts';
+import { readPermissions, readPolicies } from "@directus/sdk";
+import fs from "fs";
+import fse from "node:fs";
+import path from "path";
+import slugify from "slugify";
+import { stringify } from "yaml";
+import createDirectusClient from "../shared/createDirectusClient.ts";
+import type { TaskOptions } from "../shared/models.ts";
 
 /**
  * Export policies and their permissions for Directus v11+
@@ -21,7 +21,7 @@ async function exportPolicies(dest: string, options: TaskOptions = {}) {
     const policies = await client.request(
       readPolicies({
         limit: -1,
-        fields: ['*'],
+        fields: ["*"],
       }),
     );
 
@@ -37,23 +37,19 @@ async function exportPolicies(dest: string, options: TaskOptions = {}) {
       // Skip system/admin policies if they have admin_access true
       // as these are typically auto-generated
       if (policy.admin_access === true) {
-        if (options.verbose)
-          console.info(`Skipping admin policy: ${policy.name}`);
+        if (options.verbose) console.info(`Skipping admin policy: ${policy.name}`);
         return;
       }
 
       // Handle i18n translation keys - map $t:public_label to 'public'
       let filename = policy.name;
-      if (filename === '$t:public_label') {
-        filename = 'public';
-      } else if (filename.startsWith('$t:')) {
+      if (filename === "$t:public_label") {
+        filename = "public";
+      } else if (filename.startsWith("$t:")) {
         // For other translation keys, strip the $t: prefix and slugify
         filename = filename.substring(3);
       }
-      const destPath = path.join(
-        dest,
-        slugify(filename, { replacement: '_', lower: false }) + '.yaml',
-      );
+      const destPath = path.join(dest, slugify(filename, { replacement: "_", lower: false }) + ".yaml");
 
       if (!options.overwrite && fse.existsSync(destPath)) {
         if (options.verbose) console.info(`File ${destPath} already exists.`);
@@ -61,9 +57,7 @@ async function exportPolicies(dest: string, options: TaskOptions = {}) {
       }
 
       // Get permissions for this policy
-      const policyPermissions = allPermissions.filter(
-        (permission) => permission.policy === policy.id,
-      );
+      const policyPermissions = allPermissions.filter((permission) => permission.policy === policy.id);
 
       // Clean up policy data for export
       // Note: We explicitly use NAME (not ID) as the unique identifier for portability
@@ -78,11 +72,7 @@ async function exportPolicies(dest: string, options: TaskOptions = {}) {
         permissions: policyPermissions
           .map((permission) => {
             // Remove internal fields for export
-            const {
-              id,
-              policy: policyReference,
-              ...cleanPermission
-            } = permission;
+            const { id, policy: policyReference, ...cleanPermission } = permission;
             return cleanPermission;
           })
           .sort((a, b) => {
@@ -104,7 +94,7 @@ async function exportPolicies(dest: string, options: TaskOptions = {}) {
       // Explicitly remove id field to ensure no UUIDs are exported (use name as identifier)
       delete cleanPolicy.id;
 
-      fs.writeFileSync(destPath, stringify(cleanPolicy), { encoding: 'utf8' });
+      fs.writeFileSync(destPath, stringify(cleanPolicy), { encoding: "utf8" });
       exportedCount++;
 
       if (options.verbose) console.info(`Exported policy ${destPath}`);

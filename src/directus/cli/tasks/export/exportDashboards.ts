@@ -1,16 +1,12 @@
-import { readDashboards, readPanels } from '@directus/sdk';
-import fs from 'fs';
-import fse from 'node:fs';
-import path from 'path';
-import slugify from 'slugify';
-import { stringify } from 'yaml';
-import createDirectusClient from '../shared/createDirectusClient.ts';
-import type { Dashboard, Panel, TaskOptions } from '../shared/models.ts';
-import {
-  ApiDashboardSchema,
-  PanelSchema,
-  relationId,
-} from '../shared/models.ts';
+import { readDashboards, readPanels } from "@directus/sdk";
+import fs from "fs";
+import fse from "node:fs";
+import path from "path";
+import slugify from "slugify";
+import { stringify } from "yaml";
+import createDirectusClient from "../shared/createDirectusClient.ts";
+import type { Dashboard, Panel, TaskOptions } from "../shared/models.ts";
+import { ApiDashboardSchema, PanelSchema, relationId } from "../shared/models.ts";
 
 function cleanDashboard(dashboard: Dashboard) {
   const clean = { ...dashboard };
@@ -45,7 +41,7 @@ function sortPanels(a: Panel, b: Panel) {
   return (
     (a.position_y ?? 0) - (b.position_y ?? 0) ||
     (a.position_x ?? 0) - (b.position_x ?? 0) ||
-    String(a.name ?? '').localeCompare(String(b.name ?? ''))
+    String(a.name ?? "").localeCompare(String(b.name ?? ""))
   );
 }
 
@@ -53,17 +49,13 @@ async function exportDashboards(dest: string, options: TaskOptions = {}) {
   const client = createDirectusClient();
 
   try {
-    const dashboards = ApiDashboardSchema.array().parse(
-      await client.request(readDashboards({ limit: -1 })),
-    );
-    const panels = PanelSchema.array().parse(
-      await client.request(readPanels({ limit: -1 })),
-    );
+    const dashboards = ApiDashboardSchema.array().parse(await client.request(readDashboards({ limit: -1 })));
+    const panels = PanelSchema.array().parse(await client.request(readPanels({ limit: -1 })));
 
     fs.mkdirSync(dest, { recursive: true });
 
     dashboards
-      .sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')))
+      .sort((a, b) => String(a.name ?? "").localeCompare(String(b.name ?? "")))
       .forEach((dashboard) => {
         const dashboardPanels = panels
           .filter((panel) => getDashboardId(panel.dashboard) === dashboard.id)
@@ -73,10 +65,7 @@ async function exportDashboards(dest: string, options: TaskOptions = {}) {
           ...cleanDashboard(dashboard),
           panels: dashboardPanels,
         };
-        const destPath = path.join(
-          dest,
-          slugify(dashboard.name, { replacement: '_', lower: false }) + '.yaml',
-        );
+        const destPath = path.join(dest, slugify(dashboard.name, { replacement: "_", lower: false }) + ".yaml");
 
         if (!options.overwrite && fse.existsSync(destPath)) {
           if (options.verbose) {
@@ -86,7 +75,7 @@ async function exportDashboards(dest: string, options: TaskOptions = {}) {
         }
 
         fse.writeFileSync(destPath, stringify(dashboardData), {
-          encoding: 'utf8',
+          encoding: "utf8",
         });
 
         if (options.verbose) {

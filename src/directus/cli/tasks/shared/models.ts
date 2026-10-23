@@ -1,6 +1,6 @@
-import type { Argv } from 'yargs';
-import { z } from 'zod';
-import type createDirectusClient from './createDirectusClient.ts';
+import type { Argv } from "yargs";
+import { z } from "zod";
+import type createDirectusClient from "./createDirectusClient.ts";
 
 export type CliClient = ReturnType<typeof createDirectusClient<{}>>;
 export type TaskOptions = {
@@ -12,14 +12,11 @@ export type CliOptions = {
   verbose?: boolean;
   force?: boolean;
   clear?: boolean;
-  'remove-orphans'?: boolean;
+  "remove-orphans"?: boolean;
 };
 export type CliArguments = Argv<CliOptions>;
 export type NamedRecord = { id: string; name: string };
-const RelationSchema = z.union([
-  z.string().min(1),
-  z.object({ id: z.string().min(1) }),
-]);
+const RelationSchema = z.union([z.string().min(1), z.object({ id: z.string().min(1) })]);
 export const AccessResponseSchema = z.object({
   data: z.array(
     z.object({
@@ -39,7 +36,7 @@ export const PermissionSchema = z.looseObject({
   policy: z.string().nullable().optional(),
   role: z.string().nullable().optional(),
   collection: z.string().min(1),
-  action: z.enum(['create', 'read', 'update', 'delete', 'share']),
+  action: z.enum(["create", "read", "update", "delete", "share"]),
   permissions: RecordSchema.nullable().optional(),
   validation: RecordSchema.nullable().optional(),
   presets: RecordSchema.nullable().optional(),
@@ -135,46 +132,36 @@ export const PresetSchema = z.looseObject({
 });
 export const TranslationSchema = z.looseObject({
   id: z.string().optional(),
-  language: z.string().regex(/^[A-Za-z0-9_-]*$/, 'Translation language must be a safe path segment').default(''),
+  language: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]*$/, "Translation language must be a safe path segment")
+    .default(""),
   key: z.string().min(1),
   value: z.string(),
 });
 export type Translation = z.infer<typeof TranslationSchema>;
 
 export function requiredId(value: unknown): string {
-  if (typeof value !== 'string' || !value)
-    throw new Error('Directus did not return the required record ID');
+  if (typeof value !== "string" || !value) throw new Error("Directus did not return the required record ID");
   return value;
 }
 export function relationId(value: unknown): string | null {
-  if (typeof value === 'string') return value;
-  if (
-    value &&
-    typeof value === 'object' &&
-    'id' in value &&
-    typeof value.id === 'string'
-  )
-    return value.id;
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "id" in value && typeof value.id === "string") return value.id;
   return null;
 }
 export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 export function errorMessages(error: unknown): string {
-  if (!error || typeof error !== 'object') return errorMessage(error);
+  if (!error || typeof error !== "object") return errorMessage(error);
   const messages: string[] = [];
-  if ('message' in error && typeof error.message === 'string')
-    messages.push(error.message);
-  if ('errors' in error && Array.isArray(error.errors)) {
+  if ("message" in error && typeof error.message === "string") messages.push(error.message);
+  if ("errors" in error && Array.isArray(error.errors)) {
     for (const detail of error.errors) {
-      if (
-        detail &&
-        typeof detail === 'object' &&
-        'message' in detail &&
-        typeof detail.message === 'string'
-      )
+      if (detail && typeof detail === "object" && "message" in detail && typeof detail.message === "string")
         messages.push(detail.message);
     }
   }
-  return messages.join('\n');
+  return messages.join("\n");
 }

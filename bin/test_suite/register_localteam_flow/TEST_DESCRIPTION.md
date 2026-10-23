@@ -10,13 +10,15 @@
 8. Solve the real Altcha widget in the browser.
 9. Submit the form and verify `/api/register-municipality` succeeds.
 10. Verify the success state shows:
-   - `Durchstarten!`
-   - `Account erstellen`
-   - `Lokalteam anlegen`
-   - `Passwort-E-Mail versenden`
-   - `Aktivierungs-E-Mail`
-   - the submitted email
-   - the selected municipality
+
+- `Durchstarten!`
+- `Account erstellen`
+- `Lokalteam anlegen`
+- `Passwort-E-Mail versenden`
+- `Aktivierungs-E-Mail`
+- the submitted email
+- the selected municipality
+
 11. Verify no visible registration error and no browser console/page errors occur.
 12. Verify Directus created an active, unverified `LokalteamAdmin` user with the submitted contact data and persisted the exact role assignment.
 13. Verify Directus created a draft localteam named `Stadt.Land.Klima! <new-test-municipality>`.

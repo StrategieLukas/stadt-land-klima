@@ -2,11 +2,11 @@ import path from "path";
 import os from "os";
 import fs from "fs";
 import { stringifyRatingReport } from "./reportCsv";
-import type { ApiExtensionContext, SchemaOverview } from '@directus/types';
+import type { ApiExtensionContext, SchemaOverview } from "@directus/types";
 
-type Database = ApiExtensionContext['database'];
+type Database = ApiExtensionContext["database"];
 type Schema = SchemaOverview;
-type Services = ApiExtensionContext['services'];
+type Services = ApiExtensionContext["services"];
 
 interface RatingMeasure {
   id?: number;
@@ -80,24 +80,24 @@ function formatTimestamp(d: Date): string {
 
 function mapToRow(raw: RatingMeasure): RatingMeasureRow {
   return {
-    id:                   raw?.id                                        ?? null,
-    status:               raw?.status                                    ?? null,
-    rating:               raw?.rating                                    ?? null,
-    applicable:           raw?.applicable                                ?? null,
-    approved:             raw?.approved                                  ?? null,
-    choices:              raw?.choices                                   ?? null,
-    current_progress:     raw?.current_progress                          ?? null,
-    date_created:         raw?.date_created                              ?? null,
-    date_updated:         raw?.date_updated                              ?? null,
-    measure_published:    raw?.measure_published                         ?? null,
-    source:               raw?.source                                    ?? null,
-    municipality:         raw?.localteam_id?.municipality_id?.name       ?? null,
-    catalog_version_name: raw?.measure_id?.catalog_version?.name         ?? null,
-    catalog_version_id:   raw?.measure_id?.catalog_version?.id           ?? null,
-    measure_date_updated: raw?.measure_id?.date_updated                  ?? null,
-    measure_id:           raw?.measure_id?.measure_id                    ?? null,
-    must_be_rated_again:  raw?.measure_id?.must_be_rated_again           ?? null,
-    measure_name:         raw?.measure_id?.name                          ?? null,
+    id: raw?.id ?? null,
+    status: raw?.status ?? null,
+    rating: raw?.rating ?? null,
+    applicable: raw?.applicable ?? null,
+    approved: raw?.approved ?? null,
+    choices: raw?.choices ?? null,
+    current_progress: raw?.current_progress ?? null,
+    date_created: raw?.date_created ?? null,
+    date_updated: raw?.date_updated ?? null,
+    measure_published: raw?.measure_published ?? null,
+    source: raw?.source ?? null,
+    municipality: raw?.localteam_id?.municipality_id?.name ?? null,
+    catalog_version_name: raw?.measure_id?.catalog_version?.name ?? null,
+    catalog_version_id: raw?.measure_id?.catalog_version?.id ?? null,
+    measure_date_updated: raw?.measure_id?.date_updated ?? null,
+    measure_id: raw?.measure_id?.measure_id ?? null,
+    must_be_rated_again: raw?.measure_id?.must_be_rated_again ?? null,
+    measure_name: raw?.measure_id?.name ?? null,
   };
 }
 
@@ -112,12 +112,20 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
 
       const itemsService = new ItemsService("ratings_measures", { knex: database, schema });
 
-      const results = await itemsService.readByQuery({
+      const results = (await itemsService.readByQuery({
         limit: -1,
         fields: [
-          "id", "status", "rating", "applicable", "approved",
-          "choices", "current_progress", "date_created", "date_updated",
-          "measure_published", "source",
+          "id",
+          "status",
+          "rating",
+          "applicable",
+          "approved",
+          "choices",
+          "current_progress",
+          "date_created",
+          "date_updated",
+          "measure_published",
+          "source",
           "localteam_id.municipality_id.name",
           "measure_id.catalog_version.name",
           "measure_id.catalog_version.id",
@@ -126,7 +134,7 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
           "measure_id.must_be_rated_again",
           "measure_id.name",
         ],
-      }) as RatingMeasure[];
+      })) as RatingMeasure[];
 
       if (!results || results.length === 0) {
         console.warn("[rating report] No data returned, skipping report.");
@@ -151,7 +159,6 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
       });
 
       console.log(`[rating report] Report sent successfully to ${REPORT_EMAIL}`);
-
     } catch (err) {
       console.error("[rating report] Cron job failed:", err);
 
@@ -166,7 +173,6 @@ export default ({ schedule }: HookContext, { services, database, getSchema }: Ho
       } catch (mailErr) {
         console.error("[rating report] Failed to send error notification:", mailErr);
       }
-
     } finally {
       if (filePath && fs.existsSync(filePath)) {
         try {

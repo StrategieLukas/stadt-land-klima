@@ -6,10 +6,11 @@
     <div class="relative h-full pt-6">
       <img src="~/assets/icons/icon_location_green_marker.svg" class="my-auto h-auto w-8" />
 
-      <div class="absolute top-0 w-full text-center font-heading text-3xl font-bold text-black break-keep whitespace-nowrap">
+      <div
+        class="absolute top-0 w-full whitespace-nowrap break-keep text-center font-heading text-3xl font-bold text-black"
+      >
         {{ (municipalityScore.rank ?? 0) > 0 ? municipalityScore.rank : "?" }}
       </div>
-
     </div>
 
     <div class="grow">
@@ -22,7 +23,6 @@
       <progress-bar :score-total="scoreTotalRounded"></progress-bar>
     </div>
 
-    
     <div v-if="isRanking" class="flex items-start">
       <svg
         class="h-6 w-4 text-black dark:text-white"
@@ -45,13 +45,11 @@
       <SlkFlowerSpinner v-if="isGeneratingPdf" :size="20" color="#fbfbfb" />
       <span v-else>PDF</span>
     </button>
-    
   </div>
 </template>
 <script setup lang="ts">
-import type { PropType } from 'vue';
-import type { MunicipalityScore } from '~/types/components/municipality';
-
+import type { PropType } from "vue";
+import type { MunicipalityScore } from "~/types/components/municipality";
 
 const props = defineProps({
   municipalityScore: {
@@ -98,25 +96,22 @@ async function fetchPDF() {
   isGeneratingPdf.value = true;
   try {
     const response = await $fetch<Blob>(`/api/pdf/municipality/${municipality.slug}`, {
-      method: 'POST',
-      responseType: 'blob',
+      method: "POST",
+      responseType: "blob",
       body: {
         slug: municipality.slug,
         catalogVersion: props.municipalityScore.catalog_version?.name,
       },
     });
 
-    const blob = new Blob([response], { type: 'application/pdf' });
+    const blob = new Blob([response], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-
+    window.open(url, "_blank");
   } catch (err) {
-    console.error('Error fetching PDF:', err);
+    console.error("Error fetching PDF:", err);
   } finally {
     isGeneratingPdf.value = false;
   }
 }
-
-
 </script>
 <style lang=""></style>

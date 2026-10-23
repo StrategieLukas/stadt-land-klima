@@ -17,9 +17,8 @@ export function normalizeDataPageConfig(value: unknown): DataPageConfig {
   const config = value as Partial<DataPageConfig>;
   return {
     under_construction: config.under_construction === true,
-    under_construction_explanation: typeof config.under_construction_explanation === "string"
-      ? config.under_construction_explanation.trim()
-      : "",
+    under_construction_explanation:
+      typeof config.under_construction_explanation === "string" ? config.under_construction_explanation.trim() : "",
     include_only: config.include_only === true,
     collection_ids: Array.isArray(config.collection_ids)
       ? config.collection_ids.filter((id): id is string => typeof id === "string")

@@ -1,7 +1,7 @@
 <template>
   <header
     ref="headerEl"
-    class="slk-header-surface border-gray-200 dark:border-[var(--slk-border)] fixed left-0 right-0 top-0 border-b transition-[box-shadow,background] duration-300"
+    class="slk-header-surface border-gray-200 fixed left-0 right-0 top-0 border-b transition-[box-shadow,background] duration-300 dark:border-[var(--slk-border)]"
     :class="[scrolled || (isOpen && embeddedInput) ? 'shadow-lg' : '', isOpen && embeddedInput ? 'z-[10005]' : 'z-50']"
   >
     <!-- Row 1: Logo | Persistent Search Bar | Actions -->
@@ -42,21 +42,21 @@
       </NuxtLink>
 
       <!-- Persistent Search Bar — always visible in the middle grid column. -->
-      <div class="min-w-0 w-full 2xl:max-w-[40rem] justify-self-center">
+      <div class="w-full min-w-0 justify-self-center 2xl:max-w-[40rem]">
         <div
           ref="searchBarRef"
-          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white dark:bg-[var(--slk-surface-subdued)] px-5 transition-colors duration-150"
+          class="flex w-full cursor-text items-center gap-2.5 rounded-full border-2 bg-white px-5 transition-colors duration-150 dark:bg-[var(--slk-surface-subdued)]"
           :class="[
             scrolled ? 'h-10' : 'h-11',
             searchFocused
               ? 'border-olive-green dark:border-[var(--slk-olive-green)]'
-              : 'border-gray-200 dark:border-[var(--slk-border)] hover:border-gray-300 dark:hover:border-[var(--slk-border-strong)]',
+              : 'border-gray-200 hover:border-gray-300 dark:border-[var(--slk-border)] dark:hover:border-[var(--slk-border-strong)]',
           ]"
           @click="searchInputRef?.focus()"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 flex-shrink-0 flex-shrink-0 transition-colors"
+            class="h-4 w-4 flex-shrink-0 transition-colors"
             :class="searchFocused ? 'text-olive-green' : 'text-gray-400'"
             fill="none"
             viewBox="0 0 24 24"
@@ -72,7 +72,7 @@
           <input
             ref="searchInputRef"
             v-model="query"
-            class="text-gray-700 dark:text-[var(--slk-text)] placeholder-gray-400 dark:placeholder-[var(--slk-text-subtle)] min-w-0 flex-1 bg-transparent text-sm outline-none"
+            class="text-gray-700 placeholder-gray-400 min-w-0 flex-1 bg-transparent text-sm outline-none dark:text-[var(--slk-text)] dark:placeholder-[var(--slk-text-subtle)]"
             :placeholder="$t('search.header.placeholder')"
             @focus="onSearchFocus"
             @keydown.up.prevent="moveFocusEmbedded(-1)"
@@ -128,11 +128,7 @@
         <div class="hidden 2xl:block">
           <LoginButton />
         </div>
-        <a
-          :href="DONATION_PAGE_PATH"
-          class="hidden sm:flex 2xl:hidden"
-          :aria-label="$t('donate.label')"
-        >
+        <a :href="DONATION_PAGE_PATH" class="hidden sm:flex 2xl:hidden" :aria-label="$t('donate.label')">
           <button
             class="flex h-9 w-9 items-center justify-center rounded-md bg-orange text-white shadow-sm transition-all hover:brightness-110"
           >
@@ -169,10 +165,9 @@
 </template>
 
 <script setup lang="ts">
-
-import type { PropType } from 'vue';
-import type { Municipality } from '~/types/components/municipality';
-import type { NavigationPage, NavigationItem } from '~/types/components/navigation';
+import type { PropType } from "vue";
+import type { Municipality } from "~/types/components/municipality";
+import type { NavigationPage, NavigationItem } from "~/types/components/navigation";
 
 import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { useSearchPalette } from "~/composables/useSearchPalette";
@@ -297,7 +292,9 @@ onMounted(() => {
     }
   };
   window.addEventListener("scroll", onScroll, { passive: true });
-  removeScrollListener = () => { window.removeEventListener("scroll", onScroll); };
+  removeScrollListener = () => {
+    window.removeEventListener("scroll", onScroll);
+  };
 
   if (headerEl.value) {
     const update = () => {
@@ -321,7 +318,9 @@ onMounted(() => {
     resizeObserver = new ResizeObserver(update);
     resizeObserver.observe(headerEl.value);
     window.addEventListener("resize", update, { passive: true });
-    removeResizeListener = () => { window.removeEventListener("resize", update); };
+    removeResizeListener = () => {
+      window.removeEventListener("resize", update);
+    };
   }
 });
 

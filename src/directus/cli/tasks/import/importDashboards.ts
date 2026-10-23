@@ -6,23 +6,12 @@ import {
   readDashboards,
   readPanels,
   updateDashboard,
-} from '@directus/sdk';
-import path from 'path';
-import createDirectusClient from '../shared/createDirectusClient.ts';
-import type {
-  CliClient,
-  Dashboard,
-  Panel,
-  TaskOptions,
-} from '../shared/models.ts';
-import {
-  ApiDashboardSchema,
-  DashboardSchema,
-  PanelSchema,
-  relationId,
-  requiredId,
-} from '../shared/models.ts';
-import readYamlFiles from '../shared/readYamlFiles.ts';
+} from "@directus/sdk";
+import path from "path";
+import createDirectusClient from "../shared/createDirectusClient.ts";
+import type { CliClient, Dashboard, Panel, TaskOptions } from "../shared/models.ts";
+import { ApiDashboardSchema, DashboardSchema, PanelSchema, relationId, requiredId } from "../shared/models.ts";
+import readYamlFiles from "../shared/readYamlFiles.ts";
 
 function getDashboardId(value: unknown) {
   return relationId(value);
@@ -32,11 +21,7 @@ function mapDashboardsByName(dashboards: Dashboard[]) {
   return new Map(dashboards.map((dashboard) => [dashboard.name, dashboard]));
 }
 
-function findDashboardByIdOrName(
-  dashboards: Dashboard[],
-  dashboardId: string | null,
-  dashboardName: string,
-) {
+function findDashboardByIdOrName(dashboards: Dashboard[], dashboardId: string | null, dashboardName: string) {
   return (
     dashboards.find((dashboard) => dashboard.id === dashboardId) ??
     dashboards.find((dashboard) => dashboard.name === dashboardName) ??
@@ -77,20 +62,14 @@ async function replaceDashboardPanels(
   existingPanels: Panel[],
   options: TaskOptions,
 ) {
-  const panelsToDelete = existingPanels.filter(
-    (panel) => getDashboardId(panel.dashboard) === dashboardId,
-  );
+  const panelsToDelete = existingPanels.filter((panel) => getDashboardId(panel.dashboard) === dashboardId);
 
   if (panelsToDelete.length) {
     if (options.verbose) {
-      console.info(
-        `Deleting ${panelsToDelete.length} existing dashboard panels`,
-      );
+      console.info(`Deleting ${panelsToDelete.length} existing dashboard panels`);
     }
 
-    const panelIdsToDelete = panelsToDelete.map((panel) =>
-      requiredId(panel.id),
-    );
+    const panelIdsToDelete = panelsToDelete.map((panel) => requiredId(panel.id));
 
     if (panelIdsToDelete.length) {
       await client.request(deletePanels(panelIdsToDelete));
@@ -105,32 +84,16 @@ async function replaceDashboardPanels(
     console.info(`Creating ${panels.length} dashboard panels`);
   }
 
-  await client.request(
-    createPanels(
-      panels.map((panel) => cleanPanelForImport(panel, dashboardId)),
-    ),
-  );
+  await client.request(createPanels(panels.map((panel) => cleanPanelForImport(panel, dashboardId))));
 }
 
-async function readPersistedDashboard(
-  client: CliClient,
-  dashboardName: string,
-  savedDashboard: unknown,
-) {
+async function readPersistedDashboard(client: CliClient, dashboardName: string, savedDashboard: unknown) {
   const savedDashboardId = getDashboardId(savedDashboard);
-  const dashboards = ApiDashboardSchema.array().parse(
-    await client.request(readDashboards({ limit: -1 })),
-  );
-  const persistedDashboard = findDashboardByIdOrName(
-    dashboards,
-    savedDashboardId,
-    dashboardName,
-  );
+  const dashboards = ApiDashboardSchema.array().parse(await client.request(readDashboards({ limit: -1 })));
+  const persistedDashboard = findDashboardByIdOrName(dashboards, savedDashboardId, dashboardName);
 
   if (!persistedDashboard?.id) {
-    throw new Error(
-      `Dashboard "${dashboardName}" was not persisted before importing panels.`,
-    );
+    throw new Error(`Dashboard "${dashboardName}" was not persisted before importing panels.`);
   }
 
   return { dashboard: persistedDashboard, dashboards };
@@ -141,18 +104,12 @@ async function importDashboards(src: string, options: TaskOptions = {}) {
 
   try {
     const dashboards = readYamlFiles(path.join(src), DashboardSchema);
-    const existingDashboards = ApiDashboardSchema.array().parse(
-      await client.request(readDashboards({ limit: -1 })),
-    );
-    const existingPanels = PanelSchema.array().parse(
-      await client.request(readPanels({ limit: -1 })),
-    );
+    const existingDashboards = ApiDashboardSchema.array().parse(await client.request(readDashboards({ limit: -1 })));
+    const existingPanels = PanelSchema.array().parse(await client.request(readPanels({ limit: -1 })));
     let currentDashboards = existingDashboards;
     let currentDashboardsByName = mapDashboardsByName(currentDashboards);
     let currentPanels = existingPanels;
-    const importedDashboardNames = new Set(
-      dashboards.map((dashboard) => dashboard.name),
-    );
+    const importedDashboardNames = new Set(dashboards.map((dashboard) => dashboard.name));
 
     for (const dashboard of dashboards) {
       const panels = dashboard.panels ?? [];
@@ -162,9 +119,7 @@ async function importDashboards(src: string, options: TaskOptions = {}) {
       if (existingDashboard) {
         if (!options.overwrite) {
           if (options.verbose) {
-            console.info(
-              `Dashboard "${dashboard.name}" already exists. Skipping.`,
-            );
+            console.info(`Dashboard "${dashboard.name}" already exists. Skipping.`);
           }
           continue;
         }
@@ -174,47 +129,28 @@ async function importDashboards(src: string, options: TaskOptions = {}) {
         }
 
         savedDashboard = await client.request(
-          updateDashboard(
-            requiredId(existingDashboard.id),
-            cleanDashboardForImport(dashboard),
-          ),
+          updateDashboard(requiredId(existingDashboard.id), cleanDashboardForImport(dashboard)),
         );
       } else {
         if (options.verbose) {
           console.info(`Creating dashboard "${dashboard.name}"`);
         }
 
-        savedDashboard = await client.request(
-          createDashboard(cleanDashboardForImport(dashboard)),
-        );
+        savedDashboard = await client.request(createDashboard(cleanDashboardForImport(dashboard)));
       }
 
-      const persisted = await readPersistedDashboard(
-        client,
-        dashboard.name,
-        savedDashboard,
-      );
+      const persisted = await readPersistedDashboard(client, dashboard.name, savedDashboard);
 
       savedDashboard = persisted.dashboard;
       currentDashboards = persisted.dashboards;
       currentDashboardsByName = mapDashboardsByName(currentDashboards);
 
-      await replaceDashboardPanels(
-        client,
-        requiredId(savedDashboard.id),
-        panels,
-        currentPanels,
-        options,
-      );
-      currentPanels = PanelSchema.array().parse(
-        await client.request(readPanels({ limit: -1 })),
-      );
+      await replaceDashboardPanels(client, requiredId(savedDashboard.id), panels, currentPanels, options);
+      currentPanels = PanelSchema.array().parse(await client.request(readPanels({ limit: -1 })));
     }
 
     if (options.remove) {
-      const dashboardsToDelete = currentDashboards.filter(
-        (dashboard) => !importedDashboardNames.has(dashboard.name),
-      );
+      const dashboardsToDelete = currentDashboards.filter((dashboard) => !importedDashboardNames.has(dashboard.name));
 
       if (dashboardsToDelete.length) {
         if (options.verbose) {
@@ -223,15 +159,11 @@ async function importDashboards(src: string, options: TaskOptions = {}) {
 
         const dashboardIdsToDelete = dashboardsToDelete
           .map((dashboard) => requiredId(dashboard.id))
-          .filter((id) => id && id !== '');
+          .filter((id) => id && id !== "");
         const panelIdsToDelete = currentPanels
-          .filter((panel) =>
-            dashboardIdsToDelete.includes(
-              getDashboardId(panel.dashboard) ?? '',
-            ),
-          )
+          .filter((panel) => dashboardIdsToDelete.includes(getDashboardId(panel.dashboard) ?? ""))
           .map((panel) => requiredId(panel.id))
-          .filter((id) => id && id !== '');
+          .filter((id) => id && id !== "");
 
         if (panelIdsToDelete.length) {
           await client.request(deletePanels(panelIdsToDelete));
@@ -244,7 +176,7 @@ async function importDashboards(src: string, options: TaskOptions = {}) {
     }
 
     if (options.verbose) {
-      console.info('Dashboards imported');
+      console.info("Dashboards imported");
     }
   } catch (err) {
     console.error(err);

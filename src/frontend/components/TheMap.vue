@@ -74,12 +74,12 @@
 </template>
 
 <script setup lang="ts">
-import { leafletMarkerIcon, leafletMarkerProps } from '~/shared/leafletMarker';
-import type { Map as LeafletMap, Control, DivIcon as LeafletDivIcon } from 'leaflet';
-import { parseGeoData } from '~/shared/contracts/geometry';
-import type { PropType } from 'vue';
-import type { MunicipalityScore } from '~/types/components/municipality';
-import type { Catalog } from '~/shared/contracts/search';
+import { leafletMarkerIcon, leafletMarkerProps } from "~/shared/leafletMarker";
+import type { Map as LeafletMap, Control, DivIcon as LeafletDivIcon } from "leaflet";
+import { parseGeoData } from "~/shared/contracts/geometry";
+import type { PropType } from "vue";
+import type { MunicipalityScore } from "~/types/components/municipality";
+import type { Catalog } from "~/shared/contracts/search";
 
 import { ref, computed, watch, onMounted } from "vue";
 import { LMap, LTileLayer, LMarker, LPopup, LGeoJson, LRectangle } from "@vue-leaflet/vue-leaflet";

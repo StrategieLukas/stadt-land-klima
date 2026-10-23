@@ -1,38 +1,65 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-8">
+  <div class="mx-auto max-w-4xl px-4 py-8">
     <!-- Header -->
-    <div class="bg-white rounded-2xl shadow-list border border-solid-gray-10 p-8 mb-8">
-      <h1 class="text-h2 font-bold text-stats-dark mb-4">
-        {{ $t('election_info.title_for', { ':name': municipalityScore.municipality.name }) }}
+    <div class="mb-8 rounded-2xl border border-solid-gray-10 bg-white p-8 shadow-list">
+      <h1 class="mb-4 text-h2 font-bold text-stats-dark">
+        {{ $t("election_info.title_for", { ":name": municipalityScore.municipality.name }) }}
       </h1>
-      <p class="text-lg text-mid-gray mb-4">
-        {{ $t('election_info.intro_prefix') }}
-        <span class="font-semibold text-stats-dark">{{ $t('election_info.improvement_potential') }}</span>
-        {{ $t('election_info.intro_suffix') }}
+      <p class="mb-4 text-lg text-mid-gray">
+        {{ $t("election_info.intro_prefix") }}
+        <span class="font-semibold text-stats-dark">{{ $t("election_info.improvement_potential") }}</span>
+        {{ $t("election_info.intro_suffix") }}
       </p>
-      <p class="text-mid-gray mb-2">
-        {{ $t('election_info.method') }}
+      <p class="mb-2 text-mid-gray">
+        {{ $t("election_info.method") }}
       </p>
       <p class="text-mid-gray">
-        {{ $t('election_info.usage_hint') }}
+        {{ $t("election_info.usage_hint") }}
       </p>
 
       <div v-if="usingFallbackCatalog" class="alert alert-warning mt-6">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.167 1.732-3l-5.48-6.76c-.54-.676-1.598-.676-2.138 0l-5.48 6.76c-.77 1.833.262 3 1.732 3z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 flex-shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.167 1.732-3l-5.48-6.76c-.54-.676-1.598-.676-2.138 0l-5.48 6.76c-.77 1.833.262 3 1.732 3z"
+          />
         </svg>
-        <span>{{ $t('election_info.fallback_catalog', { ':old': municipalityScore.catalog_version.name, ':current': currentCatalogVersion.name }) }}</span>
+        <span>{{
+          $t("election_info.fallback_catalog", {
+            ":old": municipalityScore.catalog_version.name,
+            ":current": currentCatalogVersion.name,
+          })
+        }}</span>
       </div>
 
-      <div class="flex justify-center mt-6">
+      <div class="mt-6 flex justify-center">
         <button
-          class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg hover:scale-105 transition-transform"
+          class="btn btn-primary rounded-lg px-6 py-3 font-semibold text-white transition-transform hover:scale-105"
           @click="fetchPDF()"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="mr-2 inline h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
-          {{ $t('generic.generate_pdf') }}
+          {{ $t("generic.generate_pdf") }}
         </button>
       </div>
     </div>
@@ -42,194 +69,216 @@
       <div
         v-for="(measure, index) in sortedMeasures.slice(0, 10)"
         :key="measure.measure_id"
-        class="bg-white rounded-xl shadow-list border border-solid-gray-10 p-6 transition-shadow hover:shadow-xl"
+        class="rounded-xl border border-solid-gray-10 bg-white p-6 shadow-list transition-shadow hover:shadow-xl"
       >
         <!-- Measure Header -->
-        <div class="flex items-start justify-between mb-4">
+        <div class="mb-4 flex items-start justify-between">
           <div class="flex-1">
-            <h3 class="text-xl font-bold text-stats-dark flex items-center gap-3">
-              <span class="w-8 h-8 bg-stats-dark text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <h3 class="flex items-center gap-3 text-xl font-bold text-stats-dark">
+              <span
+                class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-stats-dark text-sm font-bold text-white"
+              >
                 {{ index + 1 }}
               </span>
               {{ measure.name }}
-              <span class="text-sm font-normal text-mid-gray ml-2">({{ measure.measure_id }})</span>
+              <span class="ml-2 text-sm font-normal text-mid-gray">({{ measure.measure_id }})</span>
             </h3>
-
           </div>
         </div>
 
         <!-- Measure Content -->
         <div class="space-y-4">
           <!-- Benefit Description -->
-          <div v-if="measure.description_benefit" class="prose max-w-none text-mid-gray" v-html="sanitizeHtml(md.render(measure.description_benefit))"></div>
+          <div
+            v-if="measure.description_benefit"
+            class="prose max-w-none text-mid-gray"
+            v-html="sanitizeHtml(md.render(measure.description_benefit))"
+          ></div>
 
           <!-- Current Progress -->
-          <div v-if="measure.currentProgress" class="p-4 bg-mild-white rounded-lg border border-solid-gray-10">
-            <p class="font-semibold text-stats-dark mb-1">{{ $t('election_info.current_status') }}</p>
+          <div v-if="measure.currentProgress" class="rounded-lg border border-solid-gray-10 bg-mild-white p-4">
+            <p class="mb-1 font-semibold text-stats-dark">{{ $t("election_info.current_status") }}</p>
             <p class="text-mid-gray">{{ measure.currentProgress }}</p>
           </div>
 
           <!-- Political Demand -->
-          <div v-if="measure.politicalDemand" class="p-4 bg-mild-white rounded-lg border border-solid-gray-10">
-            <p class="font-semibold text-stats-dark mb-1">{{ $t('election_info.political_demand') }}</p>
+          <div v-if="measure.politicalDemand" class="rounded-lg border border-solid-gray-10 bg-mild-white p-4">
+            <p class="mb-1 font-semibold text-stats-dark">{{ $t("election_info.political_demand") }}</p>
             <p class="text-mid-gray">{{ measure.politicalDemand }}</p>
           </div>
 
           <!-- Contribution Description -->
-          <div v-if="measure.description_contribution" class="p-4 bg-solid-ff-green-05 rounded-lg border border-solid-ff-green-20">
-            <p class="font-semibold text-ff-green mb-1">{{ $t('election_info.contribution') }}</p>
-            <div class="prose max-w-none text-mid-gray" v-html="sanitizeHtml(md.render(measure.description_contribution))"></div>
+          <div
+            v-if="measure.description_contribution"
+            class="rounded-lg border border-solid-ff-green-20 bg-solid-ff-green-05 p-4"
+          >
+            <p class="mb-1 font-semibold text-ff-green">{{ $t("election_info.contribution") }}</p>
+            <div
+              class="prose max-w-none text-mid-gray"
+              v-html="sanitizeHtml(md.render(measure.description_contribution))"
+            ></div>
           </div>
         </div>
 
         <!-- Link to Municipality -->
-        <div class="flex justify-end mt-4 pt-4 border-t border-solid-gray-10">
+        <div class="mt-4 flex justify-end border-t border-solid-gray-10 pt-4">
           <NuxtLink
             :to="`/municipalities/${municipalityScore.municipality.slug}?v=${municipalityScore.catalog_version.name}#measure-${measure.measure_id}`"
             class="btn btn-outline btn-secondary btn-sm gap-2 text-stats-dark hover:bg-solid-light-green-10"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-            {{ $t('election_info.to_rating') }}
+            {{ $t("election_info.to_rating") }}
           </NuxtLink>
         </div>
       </div>
     </div>
 
     <!-- Bottom PDF Button -->
-    <div class="flex justify-center mt-8 py-4">
+    <div class="mt-8 flex justify-center py-4">
       <button
-        class="btn btn-primary px-6 py-3 text-white font-semibold rounded-lg hover:scale-105 transition-transform"
+        class="btn btn-primary rounded-lg px-6 py-3 font-semibold text-white transition-transform hover:scale-105"
         @click="fetchPDF()"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="mr-2 inline h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
         </svg>
-        {{ $t('generic.generate_pdf') }}
+        {{ $t("generic.generate_pdf") }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { NumericValue } from '~/shared/domain';
+import type { NumericValue } from "~/shared/domain";
 
-import type { PropType } from 'vue';
-import type { MunicipalityScore, MeasureRating } from '~/types/components/municipality';
-import type { Catalog } from '~/shared/contracts/search';
+import type { PropType } from "vue";
+import type { MunicipalityScore, MeasureRating } from "~/types/components/municipality";
+import type { Catalog } from "~/shared/contracts/search";
 
-  import MarkdownIt from 'markdown-it'
-  import { sanitizeHtml } from '~/utils/sanitizeHtml'
-  import measureCurrentProgressStrings from "~/assets/measure-current-progress-strings.json"
-  import measurePoliticalDemandStrings from "~/assets/measure-political-demand-strings.json"
+import MarkdownIt from "markdown-it";
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
+import measureCurrentProgressStrings from "~/assets/measure-current-progress-strings.json";
+import measurePoliticalDemandStrings from "~/assets/measure-political-demand-strings.json";
 
-  const { $t } = useNuxtApp()
-  const md = new MarkdownIt();
+const { $t } = useNuxtApp();
+const md = new MarkdownIt();
 
-  const props = defineProps({
-    municipalityScore: {
-      type: Object as PropType<MunicipalityScore>,
-      required: true,
-    },
-    ratingsMeasures: {
-      type: Object as PropType<MeasureRating[]>,
-      required: true,
-    },
-    usingFallbackCatalog: {
-      type: Boolean as PropType<boolean | undefined>,
-      default: false,
-    },
-    currentCatalogVersion: {
-      type: Object as PropType<Catalog>,
-      required: true,
-    },
-  });
+const props = defineProps({
+  municipalityScore: {
+    type: Object as PropType<MunicipalityScore>,
+    required: true,
+  },
+  ratingsMeasures: {
+    type: Object as PropType<MeasureRating[]>,
+    required: true,
+  },
+  usingFallbackCatalog: {
+    type: Boolean as PropType<boolean | undefined>,
+    default: false,
+  },
+  currentCatalogVersion: {
+    type: Object as PropType<Catalog>,
+    required: true,
+  },
+});
 
+const sortedMeasures = props.ratingsMeasures
+  .filter((item) => item.applicable === true && item.rating !== null)
+  .map((item) => {
+    const rating = parseFloat(String(item.rating)) || 0;
+    const weight = Number(item.measure?.weight) || 0;
+    const feasibilityPolitical = parseFloat(String(item.measure?.feasibility_political)) || 0;
+    const feasibilityEconomical = parseFloat(String(item.measure?.feasibility_economical)) || 0;
 
-  const sortedMeasures = props.ratingsMeasures
-  .filter(item =>
-    item.applicable === true &&
-    item.rating !== null
-  )
-  .map(item => {
-      const rating = parseFloat(String(item.rating)) || 0
-      const weight = Number(item.measure?.weight) || 0
-      const feasibilityPolitical = parseFloat(String(item.measure?.feasibility_political)) || 0
-      const feasibilityEconomical = parseFloat(String(item.measure?.feasibility_economical)) || 0
+    const potential = (1 - rating) * weight;
+    const difficulty = (feasibilityPolitical + feasibilityEconomical) / 2;
 
-      const potential = (1 - rating) * weight
-      const difficulty = (feasibilityPolitical + feasibilityEconomical) / 2
-
-
-      return {
-        measure_id: item.measure?.measure_id || "",
-        name: item.measure?.name || "",
-        sector: item.measure?.sector || "",
-        potential,
-        weight,
-        rating: item.rating,
-        impact: item.measure?.impact ?? null,
-        feasibility_political: feasibilityPolitical,
-        feasibility_economical: feasibilityEconomical,
-        difficulty: difficulty,
-        description_benefit: item.measure?.description_benefit,
-        description_contribution: item.measure?.description_contribution,
-        currentProgress: fetchCurrentProgressString(item.measure?.measure_id, item.rating),
-        politicalDemand: fetchPoliticalDemandString(item.measure?.measure_id, item.rating),
-      }
+    return {
+      measure_id: item.measure?.measure_id || "",
+      name: item.measure?.name || "",
+      sector: item.measure?.sector || "",
+      potential,
+      weight,
+      rating: item.rating,
+      impact: item.measure?.impact ?? null,
+      feasibility_political: feasibilityPolitical,
+      feasibility_economical: feasibilityEconomical,
+      difficulty: difficulty,
+      description_benefit: item.measure?.description_benefit,
+      description_contribution: item.measure?.description_contribution,
+      currentProgress: fetchCurrentProgressString(item.measure?.measure_id, item.rating),
+      politicalDemand: fetchPoliticalDemandString(item.measure?.measure_id, item.rating),
+    };
   })
   // Filter out measures that have no corresponding text (i.e. old BETA measures that have been removed)
-  .filter(item => item.currentProgress && item.politicalDemand)
+  .filter((item) => item.currentProgress && item.politicalDemand)
   .sort((a, b) => {
-      // Sort by potential descending
-      if (b.potential !== a.potential) return b.potential - a.potential
+    // Sort by potential descending
+    if (b.potential !== a.potential) return b.potential - a.potential;
 
-      // Tiebreaker: difficulty ascending
-      if (a.difficulty !== b.difficulty) return a.difficulty - b.difficulty
+    // Tiebreaker: difficulty ascending
+    if (a.difficulty !== b.difficulty) return a.difficulty - b.difficulty;
 
-      // Final tiebreaker: measure_id alphabetically
-      return a.measure_id.localeCompare(b.measure_id)
-  })
+    // Final tiebreaker: measure_id alphabetically
+    return a.measure_id.localeCompare(b.measure_id);
+  });
 
-  function fetchCurrentProgressString(measureId: string, rating: NumericValue) {
-      // Fetch base String from map
-      const rawString = (measureCurrentProgressStrings as Record<string, Record<string, string>>)[measureId]?.[String(rating)] || ""
+function fetchCurrentProgressString(measureId: string, rating: NumericValue) {
+  // Fetch base String from map
+  const rawString =
+    (measureCurrentProgressStrings as Record<string, Record<string, string>>)[measureId]?.[String(rating)] || "";
 
-      // Replace dynamic labels with their values
-      return rawString
-        .replaceAll("[MUNICIPALITY]", props.municipalityScore.municipality.name)
+  // Replace dynamic labels with their values
+  return rawString.replaceAll("[MUNICIPALITY]", props.municipalityScore.municipality.name);
+}
+
+function fetchPoliticalDemandString(measureId: string, rating: NumericValue) {
+  // Fetch base String from map
+  const rawString =
+    (measurePoliticalDemandStrings as Record<string, Record<string, string>>)[measureId]?.[String(rating)] || "";
+
+  // Replace dynamic labels with their values
+  return rawString.replaceAll("[MUNICIPALITY]", props.municipalityScore.municipality.name);
+}
+
+const municipality = props.municipalityScore.municipality;
+
+async function fetchPDF() {
+  try {
+    const response = await $fetch<Blob>("/api/election-pdf", {
+      responseType: "blob",
+      method: "POST",
+      body: {
+        municipalitySlug: municipality.slug,
+        catalogVersion: props.municipalityScore.catalog_version.name,
+        measures: sortedMeasures.slice(0, 10),
+      },
+    });
+
+    const blob = new Blob([response], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  } catch (err) {
+    console.error("Error fetching PDF:", err);
   }
-
-  function fetchPoliticalDemandString(measureId: string, rating: NumericValue) {
-      // Fetch base String from map
-      const rawString = (measurePoliticalDemandStrings as Record<string, Record<string, string>>)[measureId]?.[String(rating)] || ""
-
-      // Replace dynamic labels with their values
-      return rawString
-        .replaceAll("[MUNICIPALITY]", props.municipalityScore.municipality.name)
-  }
-
-  const municipality = props.municipalityScore.municipality;
-
-  async function fetchPDF() {
-    try {
-      const response = await $fetch<Blob>('/api/election-pdf', {
-        responseType: 'blob',
-        method: 'POST',
-        body: {
-          municipalitySlug: municipality.slug,
-          catalogVersion: props.municipalityScore.catalog_version.name,
-          measures: sortedMeasures.slice(0, 10),
-        },
-      });
-
-      const blob = new Blob([response], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-
-    } catch (err) {
-      console.error('Error fetching PDF:', err);
-    }
-  }
+}
 </script>

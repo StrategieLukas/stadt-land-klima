@@ -2,32 +2,42 @@ import { cmsRows } from "~/server/utils/cmsValue";
 import { queryText } from "~/server/utils/publicQuery";
 import { TourSchema } from "~/shared/contracts/content";
 import { parseCms } from "~/server/utils/parseCms";
-import { readItems } from '@directus/sdk'
-import { defineEventHandler, getQuery, setResponseHeader } from 'h3'
-import { createDirectusServerClient } from '../../utils/directusServerClient'
+import { readItems } from "@directus/sdk";
+import { defineEventHandler, getQuery, setResponseHeader } from "h3";
+import { createDirectusServerClient } from "../../utils/directusServerClient";
 
 const TOUR_FIELDS = [
-  'id', 'slug', 'title', 'status', 'introduction', 'closing_reflection',
-  'featured_on_projects', 'cover_image_credits',
-  { cover_image: ['id', 'type'] },
-  { brand_logo: ['id', 'type'] },
-]
+  "id",
+  "slug",
+  "title",
+  "status",
+  "introduction",
+  "closing_reflection",
+  "featured_on_projects",
+  "cover_image_credits",
+  { cover_image: ["id", "type"] },
+  { brand_logo: ["id", "type"] },
+];
 
 export default defineEventHandler(async (event) => {
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=60')
-  const client = createDirectusServerClient()
-  const query = getQuery(event)
-  const slug = queryText(query.slug)
+  setResponseHeader(event, "Cache-Control", "public, max-age=60");
+  const client = createDirectusServerClient();
+  const query = getQuery(event);
+  const slug = queryText(query.slug);
 
   if (!slug) {
-    return { series: null }
+    return { series: null };
   }
 
-  const series = await client.request(readItems('success_project_tours', {
-    filter: { slug: { _eq: slug }, status: { _eq: 'published' } },
-    fields: [...TOUR_FIELDS],
-    limit: 1,
-  })).then(cmsRows)
+  const series = await client
+    .request(
+      readItems("success_project_tours", {
+        filter: { slug: { _eq: slug }, status: { _eq: "published" } },
+        fields: [...TOUR_FIELDS],
+        limit: 1,
+      }),
+    )
+    .then(cmsRows);
 
-  return { series: series[0] ? parseCms(TourSchema, series[0]) : null }
-})
+  return { series: series[0] ? parseCms(TourSchema, series[0]) : null };
+});

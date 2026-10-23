@@ -51,7 +51,7 @@ async function readIncomingBody(event: H3Event): Promise<Uint8Array> {
   let bytes = 0;
   for await (const chunk of event.node.req as AsyncIterable<Buffer | string>) {
     bytes += Buffer.byteLength(chunk);
-    if (bytes > 65536) throw createError({statusCode: 413, statusMessage: 'Render request too large'});
+    if (bytes > 65536) throw createError({ statusCode: 413, statusMessage: "Render request too large" });
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
   return Buffer.concat(chunks);
@@ -73,13 +73,13 @@ const ALLOWED_UPSTREAM_PREFIXES = [
 ];
 
 function isUpstreamAllowed(path: string): boolean {
-  return ALLOWED_UPSTREAM_PREFIXES.some(prefix => (path === prefix || path.startsWith(prefix + "/")));
+  return ALLOWED_UPSTREAM_PREFIXES.some((prefix) => path === prefix || path.startsWith(prefix + "/"));
 }
 
 export default defineEventHandler(async (event) => {
   // Rate limit: see server/utils/rateLimitConfig.ts
-  if (!(await rateLimit(event, 'stadtlandzahl'))) {
-    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  if (!(await rateLimit(event, "stadtlandzahl"))) {
+    throw createError({ statusCode: 429, statusMessage: "Too many requests" });
   }
   const method = (event.method ?? event.node?.req?.method ?? "GET").toUpperCase();
   if (!ALLOWED_METHODS.has(method)) {
@@ -99,8 +99,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: "Upstream route not allowed" });
   }
 
-  if (method === 'POST' && !/^\/api\/(?:render\/?|collections\/[^/]+\/render\/?)$/.test(upstreamPath)) {
-    throw createError({statusCode: 405, statusMessage: 'Only read-only render POST requests are allowed'});
+  if (method === "POST" && !/^\/api\/(?:render\/?|collections\/[^/]+\/render\/?)$/.test(upstreamPath)) {
+    throw createError({ statusCode: 405, statusMessage: "Only read-only render POST requests are allowed" });
   }
   const requestHeaders = getIncomingHeaders(event);
   for (const header of REQUEST_HEADERS_TO_REMOVE) requestHeaders.delete(header);

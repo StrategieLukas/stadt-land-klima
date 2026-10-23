@@ -10,6 +10,6 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ onClick?: ((event: MouseEvent) => void) | undefined }>()
-const { $t } = useNuxtApp()
+const props = defineProps<{ onClick?: ((event: MouseEvent) => void) | undefined }>();
+const { $t } = useNuxtApp();
 </script>

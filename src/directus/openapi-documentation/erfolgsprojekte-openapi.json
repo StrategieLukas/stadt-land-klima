@@ -10,10 +10,7 @@
       "get": {
         "summary": "List Items",
         "description": "List the external_projects items.",
-        "tags": [
-          "Items",
-          "ItemsExternalProjects"
-        ],
+        "tags": ["Items", "ItemsExternalProjects"],
         "operationId": "readItemsExternalProjects",
         "security": [
           {
@@ -76,10 +73,7 @@
       "get": {
         "summary": "Retrieve an Item",
         "description": "Retrieve a single external_projects item by unique identifier.",
-        "tags": [
-          "Items",
-          "ItemsExternalProjects"
-        ],
+        "tags": ["Items", "ItemsExternalProjects"],
         "operationId": "readSingleItemsExternalProjects",
         "parameters": [
           {
@@ -142,10 +136,7 @@
       "get": {
         "summary": "List Items",
         "description": "List the organisations items.",
-        "tags": [
-          "Items",
-          "ItemsOrganisations"
-        ],
+        "tags": ["Items", "ItemsOrganisations"],
         "operationId": "readItemsOrganisations",
         "security": [
           {
@@ -208,10 +199,7 @@
       "get": {
         "summary": "Retrieve an Item",
         "description": "Retrieve a single organisations item by unique identifier.",
-        "tags": [
-          "Items",
-          "ItemsOrganisations"
-        ],
+        "tags": ["Items", "ItemsOrganisations"],
         "operationId": "readSingleItemsOrganisations",
         "parameters": [
           {
@@ -274,10 +262,7 @@
       "get": {
         "summary": "List Items",
         "description": "List the articles items.",
-        "tags": [
-          "Items",
-          "ItemsArticles"
-        ],
+        "tags": ["Items", "ItemsArticles"],
         "operationId": "readItemsArticles",
         "security": [
           {
@@ -340,10 +325,7 @@
       "get": {
         "summary": "Retrieve an Item",
         "description": "Retrieve a single articles item by unique identifier.",
-        "tags": [
-          "Items",
-          "ItemsArticles"
-        ],
+        "tags": ["Items", "ItemsArticles"],
         "operationId": "readSingleItemsArticles",
         "parameters": [
           {

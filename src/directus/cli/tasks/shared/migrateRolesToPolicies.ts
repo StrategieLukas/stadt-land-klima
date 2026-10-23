@@ -1,10 +1,10 @@
-import fse from 'node:fs';
-import path from 'path';
-import slugify from 'slugify';
-import { stringify } from 'yaml';
-import { errorMessage } from '../shared/models.ts';
-import { RoleSchema } from './models.ts';
-import readYamlFile from './readYamlFile.ts';
+import fse from "node:fs";
+import path from "path";
+import slugify from "slugify";
+import { stringify } from "yaml";
+import { errorMessage } from "../shared/models.ts";
+import { RoleSchema } from "./models.ts";
+import readYamlFile from "./readYamlFile.ts";
 
 /**
  * Migration script to convert old Directus v10 role YAML files to v11+ format
@@ -34,9 +34,7 @@ async function migrateRolesToPolicies(rolesSrc: string, policiesDest: string) {
   // Read all role files
   const roleFiles = fse
     .readdirSync(rolesSrc)
-    .filter(
-      (f) => (f.endsWith('.yaml') || f.endsWith('.yml')) && !f.startsWith('.'),
-    );
+    .filter((f) => (f.endsWith(".yaml") || f.endsWith(".yml")) && !f.startsWith("."));
 
   let migratedCount = 0;
   let policyCount = 0;
@@ -70,7 +68,7 @@ async function migrateRolesToPolicies(rolesSrc: string, policiesDest: string) {
 
     // Create a policy for this role's permissions
     const policyName = `${role.name} Policy`;
-    const policySlug = slugify(policyName, { replacement: '_', lower: true });
+    const policySlug = slugify(policyName, { replacement: "_", lower: true });
     const policyFile = path.join(policiesDest, `${policySlug}.yaml`);
 
     // Create policy with permissions
@@ -89,7 +87,7 @@ async function migrateRolesToPolicies(rolesSrc: string, policiesDest: string) {
     };
 
     // Write policy file
-    fse.writeFileSync(policyFile, stringify(policy), { encoding: 'utf8' });
+    fse.writeFileSync(policyFile, stringify(policy), { encoding: "utf8" });
     policyCount++;
 
     // Update role to reference the policy
@@ -100,7 +98,7 @@ async function migrateRolesToPolicies(rolesSrc: string, policiesDest: string) {
     updatedRole.policies = [policyName];
 
     // Write updated role file
-    fse.writeFileSync(rolePath, stringify(updatedRole), { encoding: 'utf8' });
+    fse.writeFileSync(rolePath, stringify(updatedRole), { encoding: "utf8" });
     migratedCount++;
 
     console.log(`Migrated ${role.name}: created policy "${policyName}"`);
@@ -118,11 +116,11 @@ async function migrateRolesToPolicies(rolesSrc: string, policiesDest: string) {
 // Check if this is being run directly
 const isMainModule = import.meta.url.endsWith(process.argv[1]);
 if (isMainModule) {
-  const rolesSrc = process.argv[2] || path.join(process.cwd(), 'roles');
-  const policiesDest = process.argv[3] || path.join(process.cwd(), 'policies');
+  const rolesSrc = process.argv[2] || path.join(process.cwd(), "roles");
+  const policiesDest = process.argv[3] || path.join(process.cwd(), "policies");
 
   migrateRolesToPolicies(rolesSrc, policiesDest).catch((err) => {
-    console.error('Migration failed:', err);
+    console.error("Migration failed:", err);
     process.exit(1);
   });
 }

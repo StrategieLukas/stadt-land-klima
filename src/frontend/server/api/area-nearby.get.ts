@@ -11,20 +11,23 @@ import { parseCms } from "~/server/utils/parseCms";
  */
 
 export default defineEventHandler(async (event) => {
-  const query = getQuery(event)
-  const ars = queryText(query.ars, 12)
-  if (ars && !/^\d+$/.test(ars)) throw createError({statusCode: 400, statusMessage: 'Invalid ARS'})
-  const radiusKm = String(queryLimit(query.radius_km, 40, 1000))
-  const limit = String(queryLimit(query.limit, 50, 500))
-  const levels = queryText(query.levels, 20) ?? '4,5,6'
-  if (!/^[1-6](,[1-6]){0,5}$/.test(levels)) throw createError({statusCode: 400, statusMessage: 'Invalid levels'})
-  if (!ars) return { areas: [] }
+  const query = getQuery(event);
+  const ars = queryText(query.ars, 12);
+  if (ars && !/^\d+$/.test(ars)) throw createError({ statusCode: 400, statusMessage: "Invalid ARS" });
+  const radiusKm = String(queryLimit(query.radius_km, 40, 1000));
+  const limit = String(queryLimit(query.limit, 50, 500));
+  const levels = queryText(query.levels, 20) ?? "4,5,6";
+  if (!/^[1-6](,[1-6]){0,5}$/.test(levels)) throw createError({ statusCode: 400, statusMessage: "Invalid levels" });
+  if (!ars) return { areas: [] };
 
   try {
-    return parseCms(z.object({areas: z.array(AreaSchema)}), await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/nearby/`, {
-      params: { radius_km: radiusKm, levels, limit },
-    }))
+    return parseCms(
+      z.object({ areas: z.array(AreaSchema) }),
+      await fetchStadtlandzahl(`/api/areas/${encodeURIComponent(ars)}/nearby/`, {
+        params: { radius_km: radiusKm, levels, limit },
+      }),
+    );
   } catch {
-    return { areas: [] }
+    return { areas: [] };
   }
-})
+});

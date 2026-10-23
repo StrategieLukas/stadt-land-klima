@@ -13,7 +13,7 @@
       </a>
     </iframe>
 
-    <p class="mt-3 text-sm text-gray-500 dark:text-[var(--slk-text-muted)]">
+    <p class="text-gray-500 mt-3 text-sm dark:text-[var(--slk-text-muted)]">
       <a
         :href="BETTERPLACE_PROJECT_URL"
         target="_blank"

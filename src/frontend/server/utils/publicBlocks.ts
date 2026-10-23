@@ -39,21 +39,25 @@ export async function readPublicBlocks(entityType: string, entityUuid: string, f
           tour: { status: { _eq: "published" } },
         }
       : { id: { _eq: entityUuid }, status: { _eq: "published" } };
-  const parents = await client.request(readItems(entityType, { filter: parentFilter, fields: ["id"], limit: 1 })).then(cmsRows);
+  const parents = await client
+    .request(readItems(entityType, { filter: parentFilter, fields: ["id"], limit: 1 }))
+    .then(cmsRows);
   if (!parents.length) throw createError({ statusCode: 404, statusMessage: "Content not found" });
-  const blocks = await client.request(
-    readItems("blocks", {
-      filter: {
-        entity_type: { _eq: entityType },
-        entity_uuid: { _eq: entityUuid },
-        field_name: { _eq: fieldName },
-        status: { _eq: "published" },
-      },
-      fields: publicBlockFields,
-      sort: ["sort_order"],
-      limit: 1001,
-    }),
-  ).then(cmsRows);
+  const blocks = await client
+    .request(
+      readItems("blocks", {
+        filter: {
+          entity_type: { _eq: entityType },
+          entity_uuid: { _eq: entityUuid },
+          field_name: { _eq: fieldName },
+          status: { _eq: "published" },
+        },
+        fields: publicBlockFields,
+        sort: ["sort_order"],
+        limit: 1001,
+      }),
+    )
+    .then(cmsRows);
   if (blocks.length > 1000) throw createError({ statusCode: 502, statusMessage: "Block limit exceeded" });
   return blocks;
 }

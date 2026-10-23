@@ -1,20 +1,26 @@
 import { z } from "zod";
 import type { MutationItem } from "#blokkli/editor/types/state";
 import { parseEditorBlocks } from "../editorBlocks";
-const mutation = z.object({
-  timestamp: z.string().optional(),
-  pluginId: z.string().optional(),
-  enabled: z.boolean().optional(),
-  plugin: z.object({ label: z.string().optional(), affectedItemUuid: z.string().optional() }).optional(),
-}).transform((value): MutationItem => ({
-  ...(value.timestamp === undefined ? {} : { timestamp: value.timestamp }),
-  ...(value.pluginId === undefined ? {} : { pluginId: value.pluginId }),
-  ...(value.enabled === undefined ? {} : { enabled: value.enabled }),
-  ...(value.plugin === undefined ? {} : { plugin: {
-    ...(value.plugin.label === undefined ? {} : { label: value.plugin.label }),
-    ...(value.plugin.affectedItemUuid === undefined ? {} : { affectedItemUuid: value.plugin.affectedItemUuid }),
-  } }),
-}));
+const mutation = z
+  .object({
+    timestamp: z.string().optional(),
+    pluginId: z.string().optional(),
+    enabled: z.boolean().optional(),
+    plugin: z.object({ label: z.string().optional(), affectedItemUuid: z.string().optional() }).optional(),
+  })
+  .transform((value): MutationItem => ({
+    ...(value.timestamp === undefined ? {} : { timestamp: value.timestamp }),
+    ...(value.pluginId === undefined ? {} : { pluginId: value.pluginId }),
+    ...(value.enabled === undefined ? {} : { enabled: value.enabled }),
+    ...(value.plugin === undefined
+      ? {}
+      : {
+          plugin: {
+            ...(value.plugin.label === undefined ? {} : { label: value.plugin.label }),
+            ...(value.plugin.affectedItemUuid === undefined ? {} : { affectedItemUuid: value.plugin.affectedItemUuid }),
+          },
+        }),
+  }));
 const blocks = z.unknown().transform((value, ctx) => {
   try {
     return parseEditorBlocks(value);

@@ -8,7 +8,13 @@ export interface Election {
   sharepic_dark?: string | { id: string } | null | undefined;
   custom_logo?: string | null | undefined;
   response_cutoff_date?: string | null | undefined;
-  localteam?: { municipality_name?: string | null | undefined; municipality_id?: { state?: string | null | undefined } | null | undefined } | null | undefined;
+  localteam?:
+    | {
+        municipality_name?: string | null | undefined;
+        municipality_id?: { state?: string | null | undefined } | null | undefined;
+      }
+    | null
+    | undefined;
 }
 export interface ElectionQuestion {
   id: string;

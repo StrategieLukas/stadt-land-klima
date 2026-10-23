@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
+import type { PropType } from "vue";
 
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 
@@ -96,6 +96,10 @@ function onClickOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => { document.addEventListener("click", onClickOutside); });
-onBeforeUnmount(() => { document.removeEventListener("click", onClickOutside); });
+onMounted(() => {
+  document.addEventListener("click", onClickOutside);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("click", onClickOutside);
+});
 </script>

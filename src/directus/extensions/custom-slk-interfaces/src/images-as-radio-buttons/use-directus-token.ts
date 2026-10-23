@@ -24,15 +24,13 @@ export default function useDirectusToken(directusApi: DirectusApi): DirectusToke
       queryParams.push(`${key}=${value}`);
     }
 
-    return path.includes('?')
-      ? `${path}&${queryParams.join('&')}`
-      : `${path}?${queryParams.join('&')}`;
+    return path.includes("?") ? `${path}&${queryParams.join("&")}` : `${path}?${queryParams.join("&")}`;
   }
 
   function getToken(): string | null {
     return (
-      directusApi.defaults?.headers?.['Authorization']?.split(' ')[1] ||
-      directusApi.defaults?.headers?.common?.['Authorization']?.split(' ')[1] ||
+      directusApi.defaults?.headers?.["Authorization"]?.split(" ")[1] ||
+      directusApi.defaults?.headers?.common?.["Authorization"]?.split(" ")[1] ||
       null
     );
   }

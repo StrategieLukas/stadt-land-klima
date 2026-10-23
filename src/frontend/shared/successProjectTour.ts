@@ -1,8 +1,9 @@
 import type { MediaFile, TourMedia } from "./tourMedia";
 import type { TourPoint } from "./tour";
 import type { ComputedRef, InjectionKey } from "vue";
-export const TOUR_REPORT_MEDIA: InjectionKey<ComputedRef<{ fileIds: Set<string>; editorPreview?: boolean | undefined }>> =
-  Symbol("tour-report-media");
+export const TOUR_REPORT_MEDIA: InjectionKey<
+  ComputedRef<{ fileIds: Set<string>; editorPreview?: boolean | undefined }>
+> = Symbol("tour-report-media");
 export type SuccessProjectTour = {
   id: string;
   slug: string;

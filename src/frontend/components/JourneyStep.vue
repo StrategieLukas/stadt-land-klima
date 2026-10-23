@@ -176,7 +176,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { ResolvedStep } from "~/composables/useCollectionRender";
-import { cloneVisualization, asRecord, type EditableSpec } from '~/shared/visualization';
+import { cloneVisualization, asRecord, type EditableSpec } from "~/shared/visualization";
 import type { RenderElement, Collection } from "~/types/slz-api";
 import { useSlzLocale } from "~/composables/useSlzLocale";
 import { hasMapVisual, mapLibreSpec } from "~/utils/dataProducts";
@@ -218,7 +218,9 @@ function injectArea(spec: unknown, ars: string): EditableSpec | null {
         const u = new URL(data.url);
         u.searchParams.set("area", ars);
         data.url = u.toString();
-      } catch { /* Optional data or URL parsing may fail; retain the existing fallback. */ }
+      } catch {
+        /* Optional data or URL parsing may fail; retain the existing fallback. */
+      }
     }
     if (Array.isArray(node?.layer)) node.layer.forEach(patchUrl);
   }
@@ -227,12 +229,10 @@ function injectArea(spec: unknown, ars: string): EditableSpec | null {
 }
 
 // Build a synthetic collection scoped to this step's elements for DataProductPanel
-const kpiCollection = computed(
-  (): Collection => ({
-    ...props.collection,
-    render_elements: props.step.elements,
-  }),
-);
+const kpiCollection = computed((): Collection => ({
+  ...props.collection,
+  render_elements: props.step.elements,
+}));
 
 const primaryElement = computed(() => props.step.elements[0] ?? null);
 

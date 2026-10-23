@@ -36,12 +36,15 @@
         <div v-if="!isEditing" class="space-y-2">
           <!-- Math challenge -->
           <label class="text-gray-700 block text-sm font-medium">
-            {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }} <span class="text-red-500">*</span>
+            {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }}
+            <span class="text-red-500">*</span>
           </label>
           <input
             v-model="mathChallengeAnswer"
-            type="text" inputmode="numeric" pattern="[0-9]+"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]+"
+            class="border-gray-300 w-full rounded-md border px-3 py-2 shadow-sm focus:border-green focus:outline-none focus:ring-2 focus:ring-green"
           />
           <p v-if="mathChallengeError" class="text-red-500 text-xs">{{ mathChallengeError }}</p>
 
@@ -94,8 +97,8 @@
 <script setup lang="ts">
 import { FORM_SCOPE } from "~/shared/formScope";
 import { GenericFormRequestSchema } from "~/shared/contracts/submissions";
-import { displayScalar } from '~/shared/visualization';
-import { captchaEventData } from '~/shared/requestError';
+import { displayScalar } from "~/shared/visualization";
+import { captchaEventData } from "~/shared/requestError";
 
 import type { FieldListItem } from "#blokkli/types";
 
@@ -121,15 +124,15 @@ const { $t, $locale } = useNuxtApp();
 const route = useRoute();
 const formScope = inject(FORM_SCOPE);
 
-const isEditing = import.meta.blokkliEditing
+const isEditing = import.meta.blokkliEditing;
 
 const { options, uuid } = defineBlokkli({
   bundle: "form",
   propsFieldMapping: {
-    fields: { name: 'fields', type: 'field' },
-    title: { name: 'title', type: 'editable' },
-    description: { name: 'description', type: 'editable' },
-    successMessage: { name: 'successMessage', type: 'editable' },
+    fields: { name: "fields", type: "field" },
+    title: { name: "title", type: "editable" },
+    description: { name: "description", type: "editable" },
+    successMessage: { name: "successMessage", type: "editable" },
   },
   options: {
     formKey: {
@@ -186,7 +189,8 @@ const captchaError = ref("");
 const submitError = ref("");
 const submissionState = ref<"idle" | "submitting" | "success">("idle");
 
-const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } = useMathChallenge('form');
+const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } =
+  useMathChallenge("form");
 
 const background = computed(() => String(options.value.background || "white"));
 
@@ -260,7 +264,7 @@ function onAltchaStateChange(e: Event) {
 }
 
 onMounted(async () => {
-  await loadMathChallenge()
+  await loadMathChallenge();
   await nextTick();
   await nextTick();
   altchaRef.value?.addEventListener("statechange", onAltchaStateChange);
@@ -281,7 +285,7 @@ function collectValues(formData: FormData) {
 
     const allValues = formData
       .getAll(field.name)
-      .map((value) => typeof value === "string" ? value.trim() : "")
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
       .filter(Boolean);
 
     values[field.name] = allValues.length > 1 ? allValues : allValues[0] || "";

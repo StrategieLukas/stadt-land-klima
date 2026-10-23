@@ -67,10 +67,10 @@
 
 <script setup lang="ts">
 import { checkedVisualizationSpec, safeVisualizationLoader } from "~/shared/visualizationSafety";
-import type { View } from 'vega';
-import { cloneVisualization, asRecord, displayScalar } from '~/shared/visualization';
-import type { PropType } from 'vue';
-import type { VisualizationSpec } from 'vega-embed';
+import type { View } from "vega";
+import { cloneVisualization, asRecord, displayScalar } from "~/shared/visualization";
+import type { PropType } from "vue";
+import type { VisualizationSpec } from "vega-embed";
 
 import { Icon } from "@iconify/vue";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
@@ -178,8 +178,11 @@ async function render() {
     const result = await vegaEmbed(vegaRef.value, checkedVisualizationSpec(embeddableSpec), {
       ast: true,
       defaultStyle: false,
-      tooltip: {disableDefaultStyle: true},
-      loader: safeVisualizationLoader(vega.loader({http: {credentials: "omit", redirect: "error"}}), window.location.origin),
+      tooltip: { disableDefaultStyle: true },
+      loader: safeVisualizationLoader(
+        vega.loader({ http: { credentials: "omit", redirect: "error" } }),
+        window.location.origin,
+      ),
       renderer: "canvas",
       actions: false,
       config: vegaConfig.value,
@@ -243,13 +246,17 @@ function observeContainerSize() {
   resizeObserver?.disconnect();
   if (!containerRef.value || typeof ResizeObserver === "undefined") return;
 
-  resizeObserver = new ResizeObserver(() => { scheduleResize(); });
+  resizeObserver = new ResizeObserver(() => {
+    scheduleResize();
+  });
   resizeObserver.observe(containerRef.value);
 }
 
 function scheduleResize() {
   if (resizeTimer) clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { void resizeVegaView(); }, 80);
+  resizeTimer = setTimeout(() => {
+    void resizeVegaView();
+  }, 80);
 }
 
 async function resizeVegaView() {
@@ -431,7 +438,11 @@ const normalizedExportDate = computed(() => normalizeDate(props.exportUpdatedAt)
 const exportTitle = computed(() => {
   const title = asRecord(props.spec)?.title;
   const rawTitle = typeof title === "string" || Array.isArray(title) ? title : asRecord(title)?.text;
-  const specTitle = Array.isArray(rawTitle) ? rawTitle.filter((line): line is string => typeof line === "string").join(" ") : typeof rawTitle === "string" ? rawTitle : "";
+  const specTitle = Array.isArray(rawTitle)
+    ? rawTitle.filter((line): line is string => typeof line === "string").join(" ")
+    : typeof rawTitle === "string"
+      ? rawTitle
+      : "";
   return props.exportTitle || specTitle || props.exportCollectionName || "Vega-Diagramm";
 });
 const exportSubtitle = computed(() => props.exportSubtitle || props.exportCollectionName || "");
@@ -522,7 +533,14 @@ async function drawExportCanvas(chartCanvas: HTMLCanvasElement) {
   return canvas;
 }
 
-async function drawHeader(ctx: CanvasRenderingContext2D, width: number, headerHeight: number, scale: number, titleLines: string[], subtitleLines: string[]) {
+async function drawHeader(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  headerHeight: number,
+  scale: number,
+  titleLines: string[],
+  subtitleLines: string[],
+) {
   const logo = await loadImage(slkLogoUrl).catch(() => null);
   if (logo) {
     const logoWidth = 112 * scale;
@@ -560,7 +578,9 @@ async function drawHeader(ctx: CanvasRenderingContext2D, width: number, headerHe
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
-    image.onload = () => { resolve(image); };
+    image.onload = () => {
+      resolve(image);
+    };
     image.onerror = reject;
     image.src = src;
   });
@@ -612,7 +632,7 @@ function findViewRows() {
   }
 }
 
-function datasetScore(entry: {name: string; rows: Record<string, unknown>[]}) {
+function datasetScore(entry: { name: string; rows: Record<string, unknown>[] }) {
   let score = Math.min(entry.rows.length, 1000) / 1000;
   const name = String(entry.name);
   if (name === "source_0" || name === "source") score += 100;
@@ -708,7 +728,8 @@ function inferExtension(contentType: string, url: string) {
   if (contentType?.includes("csv")) return "csv";
   if (contentType?.includes("json")) return "json";
   const extension = String(url)
-    .split("?")[0]?.match(/\.([a-z0-9]+)$/i)?.[1];
+    .split("?")[0]
+    ?.match(/\.([a-z0-9]+)$/i)?.[1];
   return extension || "dat";
 }
 
@@ -716,7 +737,9 @@ function downloadBlob(content: BlobPart | Blob, type: string, filename: string) 
   const blob = content instanceof Blob ? content : new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   triggerDownload(url, filename);
-  window.setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
+  window.setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 }
 
 function triggerDownload(url: string, filename: string) {
@@ -739,8 +762,8 @@ function copyTextFallback(text: string) {
   document.body.appendChild(textarea);
   textarea.select();
   // Legacy clipboard fallback is needed on insecure/local origins without navigator.clipboard.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    document.execCommand("copy");
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  document.execCommand("copy");
   textarea.remove();
 }
 

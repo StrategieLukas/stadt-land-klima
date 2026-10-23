@@ -262,8 +262,8 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
-import type { NavigationPage, NavigationItem } from '~/types/components/navigation';
+import type { PropType } from "vue";
+import type { NavigationPage, NavigationItem } from "~/types/components/navigation";
 
 import { ref, computed, onMounted, resolveComponent } from "vue";
 import { useRuntimeConfig } from "#imports";
@@ -277,7 +277,8 @@ const route = useRoute();
 const config = useRuntimeConfig();
 const { closeDrawer } = useDrawer();
 const { open: openSearch } = useSearchPalette();
-const navLabel = (item: NavigationItem, field: "label" | "name" | "title" | "description" = "label") => translatedNavigationLabel(item, $translateDynamic, field);
+const navLabel = (item: NavigationItem, field: "label" | "name" | "title" | "description" = "label") =>
+  translatedNavigationLabel(item, $translateDynamic, field);
 const navDescription = (item: NavigationItem) => translatedNavigationLabel(item, $translateDynamic, "description");
 
 const props = defineProps({
@@ -300,7 +301,10 @@ function accordionBeforeEnter(el: Element) {
   el.style.maxHeight = "0";
 }
 function accordionEnter(el: Element, done: () => void) {
-  if (!(el instanceof HTMLElement)) { done(); return; }
+  if (!(el instanceof HTMLElement)) {
+    done();
+    return;
+  }
   const height = el.scrollHeight;
   el.getBoundingClientRect(); // force reflow
   el.style.transition = "max-height 0.25s ease";
@@ -319,7 +323,10 @@ function accordionBeforeLeave(el: Element) {
   el.style.overflow = "hidden";
 }
 function accordionLeave(el: Element, done: () => void) {
-  if (!(el instanceof HTMLElement)) { done(); return; }
+  if (!(el instanceof HTMLElement)) {
+    done();
+    return;
+  }
   el.getBoundingClientRect(); // force reflow
   el.style.transition = "max-height 0.25s ease";
   el.style.maxHeight = "0";

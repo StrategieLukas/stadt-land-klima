@@ -11,7 +11,7 @@
     </div>
 
     <!-- Progress Bar -->
-    <div id="wahlcheck-progress-bar" class="bg-solid-ff-green-10 py-3 scroll-mt-0">
+    <div id="wahlcheck-progress-bar" class="scroll-mt-0 bg-solid-ff-green-10 py-3">
       <div class="mx-auto max-w-6xl px-4">
         <div class="flex items-center justify-between">
           <div v-for="(step, index) in steps" :key="step.id" class="flex items-center">
@@ -116,7 +116,6 @@
         />
       </Transition>
     </div>
-
   </div>
 </template>
 
@@ -134,8 +133,8 @@ import type { UserAnswers } from "~/types/components/elections";
 const route = useRoute();
 const { $t } = useNuxtApp();
 const municipalitySlug = routeSlug(route.params.municipalitySlug);
-if (!municipalitySlug) throw createError({statusCode: 404, statusMessage: "Not found"});
-definePageMeta({key: route => route.path});
+if (!municipalitySlug) throw createError({ statusCode: 404, statusMessage: "Not found" });
+definePageMeta({ key: (route) => route.path });
 
 // Step management
 const currentStep = ref(1);
@@ -207,8 +206,15 @@ function loadFromSessionStorage() {
   try {
     const savedData = sessionStorage.getItem(sessionStorageKey);
     if (savedData) {
-      const parsed = checkedWahlcheckState(JSON.parse(savedData), electionData.value?.election.id ?? "", electionData.value?.questions.map(q => q.id) ?? []);
-      if (parsed) {userAnswers.value = parsed.answers; doubleWeightedQuestions.value = new Set(parsed.doubleWeighted);}
+      const parsed = checkedWahlcheckState(
+        JSON.parse(savedData),
+        electionData.value?.election.id ?? "",
+        electionData.value?.questions.map((q) => q.id) ?? [],
+      );
+      if (parsed) {
+        userAnswers.value = parsed.answers;
+        doubleWeightedQuestions.value = new Set(parsed.doubleWeighted);
+      }
     }
   } catch (err) {
     console.error("Error loading from session storage:", err);
@@ -269,7 +275,11 @@ function checkForSharedResults() {
     if (shareParam && shareParam.length <= 20000 && urlParams.getAll("share").length === 1) {
       try {
         const decoded = decodeURIComponent(atob(shareParam));
-        const shareData = checkedWahlcheckState(JSON.parse(decoded), electionData.value?.election.id ?? "", electionData.value?.questions.map(q => q.id) ?? []);
+        const shareData = checkedWahlcheckState(
+          JSON.parse(decoded),
+          electionData.value?.election.id ?? "",
+          electionData.value?.questions.map((q) => q.id) ?? [],
+        );
         if (!shareData) return;
 
         if (shareData.answers) {
@@ -320,7 +330,18 @@ function clearSessionStorage() {
 
 // Election data
 type PublicWahlcheck = z.output<typeof WahlcheckSchema>;
-const electionData = ref<(PublicWahlcheck & {localteam: PublicWahlcheck["municipality"]; answers: {candidate: string; question: string; response: 0 | 1 | 2 | 3 | 4 | null; explanation: string | null}[]}) | null>(null);
+const electionData = ref<
+  | (PublicWahlcheck & {
+      localteam: PublicWahlcheck["municipality"];
+      answers: {
+        candidate: string;
+        question: string;
+        response: 0 | 1 | 2 | 3 | 4 | null;
+        explanation: string | null;
+      }[];
+    })
+  | null
+>(null);
 const pending = ref(true);
 const error = ref(false);
 const errorMessage = ref("");
@@ -340,14 +361,16 @@ async function loadElectionData() {
       localteam: data.municipality,
       questions: data.questions || [],
       candidates: data.candidates || [],
-      answers: data.candidates?.flatMap((c) =>
-        c.answers?.map((a) => ({
-          candidate: c.id,
-          question: a.question,
-          response: a.response,
-          explanation: a.explanation,
-        })) || []
-      ) || [],
+      answers:
+        data.candidates?.flatMap(
+          (c) =>
+            c.answers?.map((a) => ({
+              candidate: c.id,
+              question: a.question,
+              response: a.response,
+              explanation: a.explanation,
+            })) || [],
+        ) || [],
     };
   } catch (err) {
     console.error("Error loading election data:", err);
@@ -460,7 +483,9 @@ useHead({
 /* Phase Transitions */
 .step-fade-enter-active,
 .step-fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .step-fade-enter-from {

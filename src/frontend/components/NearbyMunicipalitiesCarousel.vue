@@ -35,7 +35,8 @@
             <LMap
               :ref="
                 (el) => {
-                  if (el && 'leafletObject' in el) nearbyMapRefs[area.ars] = el as ComponentPublicInstance & {leafletObject: LeafletMap};
+                  if (el && 'leafletObject' in el)
+                    nearbyMapRefs[area.ars] = el as ComponentPublicInstance & { leafletObject: LeafletMap };
                 }
               "
               :zoom="10"
@@ -152,12 +153,12 @@
 
 <script setup lang="ts">
 // vue-leaflet omits ready events from its types; local object listeners preserve them. Owner: app maintainers.
-import { z } from 'zod';
-import type { Map as LeafletMap } from 'leaflet';
-import type { ComponentPublicInstance } from 'vue';
-import {  parseGeoData, parseGeoCenter, type GeoData } from '~/shared/contracts/geometry';
-import { MunicipalitiesResponseSchema, scoreCatalogName } from '~/shared/contracts/search';
-import type { NumericValue } from '~/shared/domain';
+import { z } from "zod";
+import type { Map as LeafletMap } from "leaflet";
+import type { ComponentPublicInstance } from "vue";
+import { parseGeoData, parseGeoCenter, type GeoData } from "~/shared/contracts/geometry";
+import { MunicipalitiesResponseSchema, scoreCatalogName } from "~/shared/contracts/search";
+import type { NumericValue } from "~/shared/domain";
 
 import { getScorePercentageColor } from "~/shared/utils";
 import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
@@ -173,11 +174,21 @@ const props = defineProps({
   catalogVersionName: { type: String, required: true },
 });
 
-type NearbyArea = {ars: string; name: string; prefix: string; ctaType: string; isComplete: boolean; slug: string | null; scoreTotal: number | null; geoCenter: {coordinates: [number, number]} | null; geoArea: GeoData | null};
+type NearbyArea = {
+  ars: string;
+  name: string;
+  prefix: string;
+  ctaType: string;
+  isComplete: boolean;
+  slug: string | null;
+  scoreTotal: number | null;
+  geoCenter: { coordinates: [number, number] } | null;
+  geoArea: GeoData | null;
+};
 const nearbyAreas = ref<NearbyArea[]>([]);
 const loading = ref(false);
 const loaded = ref(false);
-const nearbyMapRefs = ref<Record<string, {leafletObject: LeafletMap}>>({});
+const nearbyMapRefs = ref<Record<string, { leafletObject: LeafletMap }>>({});
 
 const scrollContainer = ref<HTMLElement | null>(null);
 const showLeftShadow = ref(false);
@@ -205,7 +216,7 @@ const fitBoundsToGeoArea = async (ars: string, geoArea: GeoData | null) => {
   if (!geoArea || !mapRef?.leafletObject) return;
   try {
     const leafletMap = mapRef.leafletObject;
-    const { geoJSON } = await import('leaflet');
+    const { geoJSON } = await import("leaflet");
     const geoJsonLayer = geoJSON(geoArea);
     const bounds = geoJsonLayer.getBounds();
     if (bounds.isValid()) {
@@ -253,11 +264,15 @@ const onNearbyGeoJsonReady = (ars: string, geoArea: GeoData | null) => {
 const fetchMunicipalityData = async (ars: string) => {
   try {
     const catalogs = await getAllCatalogVersions();
-    const version = catalogs.find(catalog => catalog.id === props.catalogVersionId);
+    const version = catalogs.find((catalog) => catalog.id === props.catalogVersionId);
     if (!version) return null;
-    const { municipalities } = MunicipalitiesResponseSchema.parse(await $fetch('/api/public/area-municipalities', { query: { ars, v: version.name } }));
+    const { municipalities } = MunicipalitiesResponseSchema.parse(
+      await $fetch("/api/public/area-municipalities", { query: { ars, v: version.name } }),
+    );
     const municipality = municipalities[0];
-    return municipality ? { municipality, score: municipality.scores.find(score => scoreCatalogName(score) === version.name) ?? null } : null;
+    return municipality
+      ? { municipality, score: municipality.scores.find((score) => scoreCatalogName(score) === version.name) ?? null }
+      : null;
   } catch {
     return null;
   }
@@ -270,7 +285,19 @@ onMounted(async () => {
     const baseUrl = config.public.stadtlandzahlBaseUrl;
     const res = await fetch(`${baseUrl}/api/areas/${props.ars}/bordering-municipalities/`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = z.object({bordering_municipalities: z.array(z.object({ars: z.string(), name: z.string(), prefix: z.string(), geo_center: z.unknown().optional(), geo_area: z.unknown().optional()}))}).parse(await res.json());
+    const data = z
+      .object({
+        bordering_municipalities: z.array(
+          z.object({
+            ars: z.string(),
+            name: z.string(),
+            prefix: z.string(),
+            geo_center: z.unknown().optional(),
+            geo_area: z.unknown().optional(),
+          }),
+        ),
+      })
+      .parse(await res.json());
 
     if (data?.bordering_municipalities?.length) {
       const areas = await Promise.all(
@@ -283,21 +310,19 @@ onMounted(async () => {
           // 'complete'    → published score with all catalog measures rated → show rating
           // 'in-progress' → has a localteam but no complete published score → support the team
           // 'none'        → no localteam at all → found a team
-          const ctaType =
-            isComplete
-              ? "complete"
-              : hasLocalteam
-                ? "in-progress"
-                : "none";
+          const ctaType = isComplete ? "complete" : hasLocalteam ? "in-progress" : "none";
           return {
             ars: area.ars,
             name: area.name,
             prefix: area.prefix,
             ctaType,
             isComplete,
-            slug: isComplete ? municipality?.slug ?? null : null,
+            slug: isComplete ? (municipality?.slug ?? null) : null,
             scoreTotal: score?.score_total == null ? null : Number(score.score_total),
-            geoCenter: (() => { const c = parseGeoCenter(area.geo_center); return c ? {coordinates: [c.lon, c.lat] as [number, number]} : null; })(),
+            geoCenter: (() => {
+              const c = parseGeoCenter(area.geo_center);
+              return c ? { coordinates: [c.lon, c.lat] as [number, number] } : null;
+            })(),
             geoArea: parseGeoData(area.geo_area),
           };
         }),

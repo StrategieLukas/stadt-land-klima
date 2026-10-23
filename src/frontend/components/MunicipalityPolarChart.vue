@@ -1,7 +1,7 @@
 <template>
   <div class="flex w-full justify-center">
     <div class="relative flex h-96 w-full items-center justify-center">
-      <div class="relative flex h-96 w-full items-center justify-center cursor-pointer">
+      <div class="relative flex h-96 w-full cursor-pointer items-center justify-center">
         <div class="z-10 h-58/100 w-58/100">
           <PolarArea :data="chartData" :options="chartOptions" />
         </div>
@@ -13,16 +13,15 @@
   </div>
 </template>
 <script setup lang="ts">
-
-import type { PropType } from 'vue';
-import type { SubScores } from '~/types/components/municipality';
+import type { PropType } from "vue";
+import type { SubScores } from "~/types/components/municipality";
 
 /* import resolveConfig from "tailwindcss/resolveConfig";
 import tailwindConfig from "../tailwind.config";
 
 const config = resolveConfig(tailwindConfig); */
 
-import type {  ChartOptions } from 'chart.js';
+import type { ChartOptions } from "chart.js";
 import { PolarArea } from "vue-chartjs";
 import {
   Chart,
@@ -54,7 +53,7 @@ const props = defineProps({
   nameMunicipality: {
     type: String,
     required: true,
-  }
+  },
 });
 const subScoresArray = createSubScoreArray(props.subScores);
 const colorsArray = createColorArray(subScoresArray);
@@ -79,16 +78,9 @@ const chartData = {
   ],
 };
 // Mapping from chart data index to sector keys
-const sectorKeys = [
-  "energy",
-  "transport",
-  "agriculture",
-  "industry",
-  "buildings",
-  "management",
-];
+const sectorKeys = ["energy", "transport", "agriculture", "industry", "buildings", "management"];
 
-const chartOptions: ChartOptions<'polarArea'> = {
+const chartOptions: ChartOptions<"polarArea"> = {
   responsive: true,
   maintainAspectRatio: false,
   animation: { animateScale: false },
