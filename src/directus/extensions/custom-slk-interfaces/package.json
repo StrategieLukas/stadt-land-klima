@@ -82,7 +82,8 @@
   },
   "dependencies": {
     "@directus/errors": "^2.5.2",
-    "slugify": "^1.6.9"
+    "slugify": "^1.6.9",
+    "dompurify": "^3.4.17"
   },
   "devDependencies": {
     "@directus/extensions-sdk": "18.0.6",

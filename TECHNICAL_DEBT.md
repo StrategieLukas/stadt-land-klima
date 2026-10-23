@@ -37,7 +37,7 @@ The registry's stable TypeScript release is 7.0.2 and a 7.1 beta exists. Neither
 
 The diagnostic baseline and refresh command have been removed. The build gate now rejects every compiler error across app/server/shared/node contexts and strict Vue templates, checks inclusion of every maintained source and enforces unsafe-value/promise lint throughout TS/Vue. Optional Vue props explicitly accept undefined where Vue applies defaults. Three legacy JS tooling configs are checked separately; application JS is disabled. Defensive runtime conditions remain allowed at I/O boundaries. Nitro 2's void-only plugin declaration has two documented, locally scoped promise-rule exceptions owned by application maintainers. Five Leaflet event sites use local object listeners because installed declarations omit those supported runtime events.
 
-New sources must pass `npm run typecheck`; do not reintroduce diagnostic baselines. Directus extensions now have explicit compiler gates before bundling; see DIRECTUS_EXTENSION_TYPES_REVIEW.md. The Directus CLI remains the separate open workstream in section 6 of TYPESCRIPT_MIGRATION_PLAN.md. Its JavaScript import/export tasks have no compiler gate. During that migration, fix and regression-test the `limite` query typo in `tasks/import/importCollectionItems.mjs` and awaited sequencing of asynchronous item/flow update loops; do not turn privileged import failures into silent successes. Preserve the executable and ESM behavior, Directus 11.17.4 and code-first policy/schema configuration.
+New sources must pass `npm run typecheck`; do not reintroduce diagnostic baselines. Directus extensions now have explicit compiler gates before bundling; see DIRECTUS_EXTENSION_TYPES_REVIEW.md. The Directus CLI now has strict compilation, source coverage and fail-fast import/export checks; see DIRECTUS_CLI_TYPES_REVIEW.md. Its known pagination/sequencing defects have regression coverage. Keep Directus 11.17.4 and code-first policy/schema configuration.
 
 ---
 
@@ -113,3 +113,8 @@ See [FRAMEWORK_UPGRADE_REVIEW.md](FRAMEWORK_UPGRADE_REVIEW.md) for validation, r
 - **Update status** when work begins on an item.
 - **Move to Resolved** when the debt is paid or a conscious decision to defer is documented.
 - **Review periodically** (e.g., during sprint planning or major releases) to prioritize items.
+
+
+## Security review follow-up — 2026-10-23
+
+See [SECURITY_DIFF_REVIEW.md](SECURITY_DIFF_REVIEW.md) and the reconciled [REMAINING_TODOS.md](REMAINING_TODOS.md). The operational CLI TypeScript work is complete. Candidate cookie exchange and trusted published form routing are implemented; general personal editor JWT storage remains a separately evaluated BFF migration. Core startup/cutover guard tests and a weekly dependency-audit workflow are implemented. Current frontend audit findings remain tracked without ineffective overrides; Directus remains pinned at 11.17.4. CSP full enforcement, production credential rotation, analytics hash provisioning and deployment verification remain explicit operator/upstream work.

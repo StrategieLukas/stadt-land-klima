@@ -92,6 +92,8 @@ test('StadtLandZahl proxy forwards Node request bytes while replacing credential
   const module = {exports: {} as {default: (event: unknown) => Promise<Response>}};
   const requests: {url: string; init: RequestInit}[] = [];
   runInNewContext(compiled.outputText, {module, exports: module.exports, Headers, Response, URL, Buffer, Uint8Array,
+    require: (id: string) => {assert.equal(id, '../../utils/rateLimit'); return {rateLimit: async () => true};},
+    createError: (options: object) => Object.assign(new Error('Rejected proxy request'), options),
     defineEventHandler: (handler: unknown) => handler,
     getStadtlandzahlAuthorization: () => 'Basic upstream-fixture',
     getStadtlandzahlBaseUrls: () => [new URL('https://upstream.example.org')],

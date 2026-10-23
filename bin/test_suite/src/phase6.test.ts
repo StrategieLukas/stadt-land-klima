@@ -4,7 +4,6 @@ import {readFileSync, readdirSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {runInNewContext} from 'node:vm';
 import {createHash, createHmac} from 'node:crypto';
-import {EventEmitter} from 'node:events';
 import ts from 'typescript';
 import {singleRouteValue, routeSlug, routeText} from '../../../src/frontend/shared/routeValues.js';
 import {ClimateToolSchema, ContentPageSchema, TeamMemberSchema} from '../../../src/frontend/shared/contracts/content.js';
@@ -23,6 +22,7 @@ function load(path: string, dependencies: Row = {}, globals: Row = {}): Row {
   const requireModule = (id: string): unknown => {
     if (id in dependencies) return dependencies[id];
     if (id === 'h3') return h3;
+    if (id.endsWith('/rateLimit')) return {rateLimit: async () => true};
     if (['zod', 'sanitize-html', 'node:crypto'].includes(id)) return frontend(id);
     if (id.startsWith('~/shared/')) return frontend('./' + id.slice(2) + '.ts');
     if (id.endsWith('/cmsValue')) return load('server/utils/cmsValue.ts');
@@ -83,10 +83,10 @@ test('public query contracts reject repetition, injection, bad limits and invali
 });
 
 test('contact and registration reject malformed JSON, limits, invalid coordinates and unknown fields', () => {
-  const feedback = {title: ' Subject ', type: 'cooperation', content: 'Message', name: 'Name', contact: 'person@example.org', altcha: 'proof'};
+  const feedback = {title: ' Subject ', type: 'cooperation', content: 'Message', name: 'Name', contact: 'person@example.org', altcha: 'proof', mathChallenge: {token: 'signed', answer: '20'}};
   assert.equal(FeedbackRequestSchema.parse(feedback).title, 'Subject');
   for (const body of [null, [], 1, {title: 1}, {...feedback, title: {}}, {...feedback, sendCopy: 'yes'}, {...feedback, content: 'a'.repeat(5001)}, {...feedback, unexpected: true}]) assert.equal(FeedbackRequestSchema.safeParse(body).success, false);
-  const registration = {firstName: 'Ada', lastName: 'Example', email: 'person@example.org', ars: '08', municipalityName: 'City', altcha: 'proof'};
+  const registration = {firstName: 'Ada', lastName: 'Example', email: 'person@example.org', ars: '08', municipalityName: 'City', altcha: 'proof', mathChallenge: {token: 'signed', answer: '20'}};
   assert.equal(RegistrationRequestSchema.safeParse(registration).success, true);
   for (const extra of [{ars: '../secret'}, {population: Infinity}, {organisation: {}}, {firstName: 'a'.repeat(201)}, {geolocation: {type: 'Point', coordinates: [200, 95]}}]) assert.equal(RegistrationRequestSchema.safeParse({...registration, ...extra}).success, false);
 });
@@ -94,7 +94,7 @@ test('contact and registration reject malformed JSON, limits, invalid coordinate
 test('newsletter and generic forms reject malformed list IDs, nested values and excessive field counts', () => {
   assert.equal(NewsletterRequestSchema.safeParse({email: 'person@example.org', listIds: [1, 2]}).success, true);
   for (const listIds of [[1, '2'], [0], [], [Infinity], [1.2]]) assert.equal(NewsletterRequestSchema.safeParse({email: 'person@example.org', listIds}).success, false);
-  const form = {fields: [{name: 'name', label: 'Name', type: 'text', required: true}], values: {name: 'Ada'}, altcha: 'proof'};
+  const form = {formUuid: 'form-uuid', entityType: 'pages', entityUuid: 'page-uuid', fields: [{name: 'name', label: 'Name', type: 'text', required: true}], values: {name: 'Ada'}, altcha: 'proof', mathChallenge: {token: 'signed', answer: '20'}};
   assert.equal(GenericFormRequestSchema.safeParse(form).success, true);
   assert.equal(GenericFormRequestSchema.safeParse({...form, values: {name: {nested: true}}}).success, false);
   assert.equal(GenericFormRequestSchema.safeParse({...form, fields: Array.from({length: 51}, () => form.fields[0])}).success, false);
@@ -165,8 +165,12 @@ test('news detail enforces publication and projects private metadata', async () 
 
 test('CAPTCHA signs expiry/purpose, accepts native widget payloads and blocks replay variants', async () => {
   const used = new Set<string>();
-  const net = {connect() {const socket = new EventEmitter() as EventEmitter & {setTimeout: () => void; destroy: () => void; write: (cmd: string) => void}; socket.setTimeout = () => {}; socket.destroy = () => {}; socket.write = cmd => queueMicrotask(() => {const replay = used.has(cmd); used.add(cmd); socket.emit('data', Buffer.from(replay ? '$-1\r\n' : '+OK\r\n'));}); return socket;}};
-  const {verifyAltcha} = load('server/utils/verifyAltcha.ts', {'node:net': net});
+  const {verifyAltcha} = load('server/utils/verifyAltcha.ts', {'./protectionRedis': {
+    withProtectionRedis: async (operation: (redis: Row) => Promise<unknown>) => operation({set: async (key: string) => {
+      if (used.has(key)) return null;
+      used.add(key); return 'OK';
+    }}),
+  }});
   const secret = 'unit-test-secret'; const expiresAt = Date.now() + 600000;
   const salt = '0123456789abcdef01234567?expires=' + expiresAt + '&purpose=contact';
   const challenge = createHash('sha256').update(salt + '7').digest('hex');
@@ -178,7 +182,8 @@ test('CAPTCHA signs expiry/purpose, accepts native widget payloads and blocks re
   for (const changed of [{algorithm: 'SHA-512'}, {algorithm: 'replay'}, {salt: salt.replace('contact', 'register')}, {salt: salt.replace(String(expiresAt), String(expiresAt + 600000))}, {expires_at: expiresAt + 1}, {purpose: 'register'}]) assert.equal(await verifyAltcha(encode({...proof, ...changed}), secret, {purpose: 'contact'}), false);
   assert.equal(await verifyAltcha(encode(proof), secret, {purpose: 'register'}), false);
   assert.equal(await verifyAltcha(encode({dev: true}), secret), false);
-  assert.equal(await verifyAltcha(encode({dev: true}), secret, {devMode: true}), true);
+  assert.equal(await verifyAltcha(encode({dev: true}), secret, {devMode: true}), false);
+  assert.equal(await verifyAltcha(encode({dev: true}), 'dev-secret-change-in-production', {devMode: true}), true);
   const expiredSalt = '0123456789abcdef01234567?expires=' + (Date.now() - 1) + '&purpose=contact';
   const expiredChallenge = createHash('sha256').update(expiredSalt + '7').digest('hex');
   const expired = {...proof, salt: expiredSalt, challenge: expiredChallenge, signature: createHmac('sha256', secret).update(expiredChallenge).digest('hex')};

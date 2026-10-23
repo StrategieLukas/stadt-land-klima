@@ -256,6 +256,18 @@
         </div>
 
         <div>
+          <label class="text-gray-700 mb-1 block text-sm font-medium">
+            {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }} <span class="text-red-500">*</span>
+          </label>
+          <input
+            v-model="mathChallengeAnswer"
+            type="text" inputmode="numeric" pattern="[0-9]+"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green"
+          />
+          <p v-if="mathChallengeError" class="text-red-500 mt-1 text-xs">{{ mathChallengeError }}</p>
+        </div>
+
+        <div>
           <label class="text-gray-700 mb-2 block text-sm font-medium">
             {{ $t("captcha.title") }} <span class="text-red-500">*</span>
           </label>
@@ -349,6 +361,7 @@ const fieldTranslationKeys: Record<ArticleSubmissionTextField, string> = {
 
 const errorTranslationKeys: Record<ArticleSubmissionErrorCode, string> = {
   captcha_failed: "projects.submit.error.captcha_failed",
+  math_challenge_failed: "projects.submit.error.math_challenge_failed",
   email_invalid: "projects.submit.error.email_invalid",
   field_too_long: "projects.submit.error.field_too_long",
   image_format: "projects.submit.error.image_format",
@@ -452,6 +465,8 @@ const errorMessage = ref("");
 const successMessage = ref("");
 const loading = ref(false);
 
+const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } = useMathChallenge('article');
+
 function onAltchaStateChange(e: Event) {
   const { state, payload } = captchaEventData(e);
   if (state === "verified" && payload) {
@@ -463,6 +478,7 @@ function onAltchaStateChange(e: Event) {
 }
 
 onMounted(async () => {
+  await loadMathChallenge()
   await nextTick();
   await nextTick();
   altchaRef.value?.addEventListener("statechange", onAltchaStateChange);
@@ -499,9 +515,12 @@ function resetForm() {
   altchaPayload.value = "";
   errorMessage.value = "";
   captchaError.value = "";
+  mathChallengeAnswer.value = '';
+  mathChallengeError.value = '';
   if (imageInputRef.value) {
     imageInputRef.value.value = "";
   }
+  void loadMathChallenge()
 }
 
 function translateSubmissionError(data: ArticleSubmissionErrorData) {
@@ -542,10 +561,14 @@ function validateTextLengths() {
 async function submitArticle() {
   errorMessage.value = "";
   captchaError.value = "";
+  mathChallengeError.value = "";
 
   if (!validateTextLengths()) {
     return;
   }
+
+  if (!validateMathChallenge()) return;
+
   const payload = altchaPayload.value || altchaRef.value?.value;
   if (!payload) {
     captchaError.value = $t("captcha.required");
@@ -587,6 +610,8 @@ async function submitArticle() {
   submitData.append("submitterEmail", form.submitterEmail);
   submitData.append("image", selectedImage.value);
   submitData.append("altcha", payload);
+  submitData.append("mathChallengeToken", mathChallenge.value.token);
+  submitData.append("mathChallengeAnswer", mathChallengeAnswer.value);
 
   loading.value = true;
   try {

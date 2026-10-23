@@ -64,10 +64,19 @@
           <span>{{ $t("feedback.form.send_copy") }}</span>
         </label>
 
+        <!-- Math challenge -->
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">
+            {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }}*
+          </label>
+          <input v-model="mathChallengeAnswer" type="text" inputmode="numeric" pattern="[0-9]+" class="w-full border rounded p-2" required />
+          <p v-if="mathChallengeError" class="mt-1 text-xs text-red-500">{{ mathChallengeError }}</p>
+        </div>
+
         <!-- Altcha CAPTCHA -->
         <div class="mb-4">
           <ClientOnly>
-            <div v-if="runtimeConfig.public.appEnv === 'development'" class="h-14 bg-yellow-50 border border-yellow-200 rounded flex items-center justify-center">
+            <div v-if="runtimeConfig.public.captchaDevBypass" class="h-14 bg-yellow-50 border border-yellow-200 rounded flex items-center justify-center">
               <span class="text-xs text-yellow-600">Dev-Modus: Sicherheitsabfrage übersprungen</span>
             </div>
             <altcha-widget
@@ -130,6 +139,8 @@ const form = ref({
   sendCopy: false,
 })
 
+const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } = useMathChallenge('contact');
+
 // Altcha
 const altchaRef = ref(null)
 const altchaPayload = ref('')
@@ -148,9 +159,10 @@ function onAltchaStateChange(e: Event) {
 }
 
 onMounted(async () => {
+  await loadMathChallenge()
   // In dev, the altcha widget refuses to work over plain HTTP (no isSecureContext).
   // Pre-seed a static bypass payload; the server accepts it when appEnv=development.
-  if (runtimeConfig.public.appEnv === 'development') {
+  if (runtimeConfig.public.captchaDevBypass) {
     altchaPayload.value = btoa(JSON.stringify({ dev: true }))
     return
   }
@@ -173,6 +185,9 @@ const errorMessage = ref('')
 async function submitFeedback() {
   errorMessage.value = ''
   captchaError.value = ''
+  mathChallengeError.value = ''
+
+  if (!validateMathChallenge()) return;
 
   const payload = altchaPayload.value || captchaWidgetValue(document.querySelector('altcha-widget'))
   if (!payload) {
@@ -182,7 +197,11 @@ async function submitFeedback() {
 
   loading.value = true
   try {
-    const request = FeedbackRequestSchema.safeParse({...form.value, altcha: payload})
+    const request = FeedbackRequestSchema.safeParse({
+      ...form.value,
+      altcha: payload,
+      mathChallenge: { token: mathChallenge.value.token, answer: mathChallengeAnswer.value }
+    })
     if (!request.success) { errorMessage.value = $t("generic.technical_error"); return }
     await $fetch('/api/submit-feedback', {
       method: 'POST',
@@ -201,7 +220,10 @@ async function submitFeedback() {
 function resetForm() {
   form.value = { title: '', type: '', content: '', name: '', contact: '', sendCopy: false }
   altchaPayload.value = ''
+  mathChallengeAnswer.value = ''
+  mathChallengeError.value = ''
   successMessage.value = ''
   errorMessage.value = ''
+  void loadMathChallenge()
 }
 </script>

@@ -1,6 +1,6 @@
 name: Frontend-Server
 icon: computer
-description: Server-side frontend service identity — broader read for Nuxt endpoints, no credential fields
+description: Server-side frontend service identity — private Nuxt identity; candidate access_token is required for filtering and is excluded from endpoint DTOs
 enforce_tfa: false
 admin_access: false
 app_access: false
@@ -192,6 +192,7 @@ permissions:
     validation: null
     presets: null
     fields:
+      - access_token
       - id
       - name
       - party
@@ -215,8 +216,6 @@ permissions:
       - has_answered
       - time_first_submitted
       - time_last_edited
-      - access_token
-      - email
   - collection: candidate
     action: update
     permissions:

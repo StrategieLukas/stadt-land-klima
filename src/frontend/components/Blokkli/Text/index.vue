@@ -4,13 +4,14 @@
     class="blokkli-block-text prose max-w-none"
     :class="[sizeClass, alignClass, colorClass]"
   >
-    <div v-blokkli-editable:content v-html="props.content || ''" />
+    <div v-blokkli-editable:content v-html="sanitizedContent" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { BRAND_COLOR_CLASSES } from '~/utils/blokkliColors'
 import { getBlokkliBlockId } from '~/utils/blokkliLinks'
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
 const { options, uuid } = defineBlokkli({
   bundle: 'text',
@@ -101,6 +102,8 @@ const alignClass = computed(() => {
   }
   return map[options.value.align] || 'text-left'
 })
+
+const sanitizedContent = computed(() => sanitizeHtml(props.content))
 </script>
 
 <style scoped>

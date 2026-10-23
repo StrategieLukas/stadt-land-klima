@@ -1,3 +1,4 @@
+import { withProtectionRedis } from './protectionRedis';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 
 interface AltchaPayload {
@@ -44,7 +45,12 @@ export async function verifyAltcha(
     if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) return false;
     const parsed = decoded as Record<string, unknown>;
     // Required proof fields are checked below before cryptographic operations.
-    if (devMode && parsed.dev === true) return true;
+    // The {dev: true} payload is ONLY accepted when BOTH conditions are met:
+    // 1. devMode is true (APP_ENV === 'development')
+    // 2. The HMAC key is the known dev default
+    // This prevents a browser from bypassing CAPTCHA by simply sending {dev: true}
+    // — the server must also be configured with the dev secret.
+    if (devMode && parsed.dev === true && hmacKey === DEV_SECRET) return true;
     if (typeof parsed.algorithm !== "string" || typeof parsed.challenge !== "string" ||
         typeof parsed.number !== "number" || typeof parsed.salt !== "string" || typeof parsed.signature !== "string") return false;
     payload = { algorithm: parsed.algorithm, challenge: parsed.challenge, number: parsed.number,
@@ -63,7 +69,11 @@ export async function verifyAltcha(
   // (e.g. phones on a local network without HTTPS) can submit forms. The altcha
   // widget refuses to run over HTTP (isSecureContext = false) so we skip it.
   // This check must come BEFORE field validation — the dev payload has no challenge fields.
-  if (devMode && payload.dev === true) {
+  // Dev bypass: only active when devMode is true AND the HMAC key is the known
+  // dev default. A browser sending {dev: true} cannot bypass this in production,
+  // because production either has a real secret (hmacKey !== DEV_SECRET) or
+  // devMode is false.
+  if (devMode && payload.dev === true && hmacKey === DEV_SECRET) {
     return true;
   }
 
@@ -102,49 +112,14 @@ export async function verifyAltcha(
   if (payload.expires_at != null && payload.expires_at !== expiresAt) return false;
   if (payload.purpose != null && payload.purpose !== signedPurpose) return false;
 
-  // 5. Single-use consumption: record the challenge fingerprint in Redis via raw
-  // RESP protocol to avoid a native-module dependency. If Redis is unavailable,
+  // 5. Atomically consume the challenge using the portable Redis client.
+  // If Redis is unavailable,
   // fail closed — do not accept untracked proofs.
   const fingerprint = payload.challenge;
   try {
-    const redisUrl = process.env.REDIS_URL || 'redis://cache:6379';
-    const url = new URL(redisUrl);
-    const host = url.hostname;
-    const port = Number(url.port) || 6379;
     const ttl = Math.max(60, Math.ceil((expiresAt - Date.now()) / 1000));
     const key = `altcha:used:${fingerprint}`;
-    // Build RESP3 array: *6 SET key 1 NX EX ttl
-    const args = ['SET', key, '1', 'NX', 'EX', String(ttl)];
-    const CRLF = '\r\n';
-    let cmd = `*${args.length}${CRLF}`;
-    for (const arg of args) {
-      cmd += `$${Buffer.byteLength(arg)}${CRLF}${arg}${CRLF}`;
-    }
-    const { connect } = await import('node:net');
-    const result = await new Promise<string | null>((resolve, reject) => {
-      const socket = connect(port, host);
-      socket.setTimeout(3000);
-      const chunks: Buffer[] = [];
-      socket.on('data', (chunk: Buffer) => {
-        chunks.push(chunk);
-        const raw = Buffer.concat(chunks).toString('utf8').trim();
-        // RESP: +OK\r\n or $-1\r\n (nil bulk string for NX failure)
-        if (raw.startsWith('+OK')) {
-          socket.destroy();
-          resolve('OK');
-        } else if (raw.startsWith('$-1')) {
-          socket.destroy();
-          resolve(null);
-        } else if (raw.length > 200) {
-          // Safety: if we got too much data without a clear response, give up
-          socket.destroy();
-          reject(new Error(`Unexpected Redis response: ${raw.slice(0, 100)}`));
-        }
-      });
-      socket.on('error', (err) => { socket.destroy(); reject(err); });
-      socket.on('timeout', () => { socket.destroy(); reject(new Error('Redis timeout')); });
-      socket.write(cmd);
-    });
+    const result = await withProtectionRedis(redis => redis.set(key, '1', {NX: true, EX: ttl}));
     if (result !== 'OK') {
       // Already consumed (nil)
       return false;

@@ -1,0 +1,3 @@
+language: it-IT
+key: projects.submit.error.math_challenge_failed
+value: Verifica matematica non riuscita. Ricarica la pagina e riprova.

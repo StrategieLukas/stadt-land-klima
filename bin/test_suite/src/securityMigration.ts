@@ -28,6 +28,7 @@ let question: { id: string };
 let answerB: { id: string };
 let election: { id: string };
 let draftArticle: { id: number };
+let foreignElection: {id: string};
 let foreignTeam: { id: string };
 let foreignCandidate: { id: string };
 let foreignAnswer: { id: string };
@@ -91,7 +92,7 @@ try {
       name: `Foreign security team ${config.runId}`, slug: `foreign-${config.runId}`,
       municipality_name: `Foreign security municipality ${config.runId}`, status: 'published',
     });
-    const foreignElection = await fixture.admin.createItem<{ id: string }>('elections', {
+    foreignElection = await fixture.admin.createItem<{ id: string }>('elections', {
       descriptor: `Foreign security election ${config.runId}`, localteam: foreignTeam.id,
       is_public: false, is_approved: false, response_cutoff_date: '2099-12-31',
     });
@@ -237,7 +238,7 @@ try {
   });
 
   async function candidateRequest(path: string) {
-    // The candidate API uses token-in-URL, not session cookies.
+    // Legacy bearer routes intentionally remain compatible; the browser uses the new session flow.
     return fetch(`${config.frontendUrl}${path}`, {
       headers: { Origin: new URL(config.frontendUrl).origin },
     });
@@ -339,6 +340,25 @@ try {
       } finally { await fixture.admin.updateItem('answers', foreignAnswer.id, { response: 2 }); }
     });
   }
+
+  await step('MIG-15: team users may create owned questions/candidates but cannot create foreign election records', async () => {
+    for (const user of [fixture.localteamMember, fixture.localteamAdmin]) {
+      const ownQuestion = await user.client.createItem<{id: string}>('questions', {election: election.id, title: `Owned ${config.runId}`, thesis: 'Owned thesis', status: 'draft'});
+      assert(Boolean(ownQuestion.id), 'Owned question creation must remain available');
+      await fixture.admin.deleteItem('questions', ownQuestion.id);
+      const ownCandidate = await user.client.createItem<{id: string}>('candidate', {election: election.id, name: `Owned candidate ${config.runId}`, salutation: 'neutral', party: 'SPD', email: 'owned@example.invalid'});
+      assert(Boolean(ownCandidate.id), 'Owned candidate creation must remain available');
+      await fixture.admin.deleteItem('candidate', ownCandidate.id);
+      for (const [collection, payload] of [['questions', {election: foreignElection.id, title: `Forbidden ${config.runId}`, thesis: 'Foreign thesis'}], ['elections', {localteam: foreignTeam.id, descriptor: `Forbidden ${config.runId}`}], ['candidate', {election: foreignElection.id, name: `Forbidden ${config.runId}`, salutation: 'neutral', party: 'SPD', email: 'foreign@example.invalid'}]] as const) {
+        let rejected = false;
+        try {
+          const row = await user.client.createItem<{id: string}>(collection, payload);
+          await fixture.admin.deleteItem(collection, row.id);
+        } catch (error) {rejected = error instanceof Error && /failed with (400|403):/.test(error.message);}
+        assert(rejected, 'Foreign creation must be denied, not merely hidden on later reads');
+      }
+    }
+  });
 
   await step('MIG-14: built public scripts, source maps and extracted payloads contain no configured credentials', async () => {
     const directory = process.env.TEST_FRONTEND_BUILD_DIR || resolve(dirname(config.envPath), '../frontend/.output/public');

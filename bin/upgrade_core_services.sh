@@ -229,25 +229,9 @@ meili_helper "$meili_target" validate
 docker stop "$db_target" "$meili_target" >/dev/null
 "${CORE_COMPOSE[@]}" stop db meilisearch
 docker run --rm --network none --entrypoint sh \
-  --mount "type=bind,source=$REPO_ROOT/docker/data,target=/storage" "$CORE_DB_IMAGE" \
-  -ec 'test ! -e "/storage/db.before-$1"; test ! -e "/storage/meilisearch.before-$1";
-    rollback() {
-      status=$?;
-      if [ "$status" -ne 0 ]; then
-        for name in db meilisearch; do
-          if [ -d "/storage/$name.before-$1" ]; then
-            if [ -d "/storage/$name" ]; then mv "/storage/$name" "/storage/$name.upgrade-$1"; fi;
-            mv "/storage/$name.before-$1" "/storage/$name";
-          fi;
-        done;
-      fi;
-      exit "$status";
-    };
-    trap '\''rollback "$1"'\'' EXIT;
-    mv /storage/db "/storage/db.before-$1";
-    mv "/storage/db.upgrade-$1" /storage/db;
-    mv /storage/meilisearch "/storage/meilisearch.before-$1";
-    mv "/storage/meilisearch.upgrade-$1" /storage/meilisearch' sh "$run_id"
+  --mount "type=bind,source=$REPO_ROOT/docker/data,target=/storage" \
+  --mount "type=bind,source=$SCRIPT_DIR/lib/core-data-cutover.sh,target=/cutover.sh,readonly" \
+  "$CORE_DB_IMAGE" /cutover.sh "$run_id"
 swapped=true
 "${CORE_COMPOSE[@]}" up -d --no-deps --force-recreate db meilisearch
 "$SCRIPT_DIR/check_core_service_data.sh" "$environment"

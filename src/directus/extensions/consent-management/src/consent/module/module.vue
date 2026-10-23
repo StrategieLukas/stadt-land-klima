@@ -92,6 +92,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useApi } from '@directus/extensions-sdk';
 import MarkdownIt from 'markdown-it';
+import DOMPurify from 'dompurify';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -112,11 +113,12 @@ interface ConsentStatus {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-const md = new MarkdownIt();
+const md = new MarkdownIt({ html: false, linkify: true, breaks: true });
 
 function renderMarkdown(text: string | null | undefined): string | null {
   if (!text) return null;
-  return md.render(text);
+  const rendered = md.render(text);
+  return DOMPurify.sanitize(rendered, { ADD_ATTR: ['target', 'rel'] });
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────

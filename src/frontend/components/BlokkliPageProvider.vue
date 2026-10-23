@@ -11,6 +11,7 @@
 </template>
 
 <script setup lang="ts">
+import { FORM_SCOPE } from '~/shared/formScope'
 import type { EditPermission } from '#blokkli/types/provider'
 
 defineOptions({ inheritAttrs: false })
@@ -21,6 +22,7 @@ const props = defineProps<{
   entity?: unknown
   canEdit?: boolean | undefined
 }>()
+provide(FORM_SCOPE, computed(() => ({entityType: props.entityType, entityUuid: props.entityUuid})))
 const providerContext = computed(() => ({
   entityType: props.entityType,
   entityBundle: props.entityBundle,

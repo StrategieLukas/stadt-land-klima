@@ -48,6 +48,7 @@ export default defineNuxtConfig({
     // The private keys which are only available within server-side
     meilisearchUrl: process.env.MEILISEARCH_URL ?? "",
     meilisearchMasterKey: process.env.MEILISEARCH_MASTER_KEY ?? process.env.MEILI_MASTER_KEY ?? "",
+    candidateSessionSecret: process.env.CANDIDATE_SESSION_SECRET ?? "",
     altchaSecret: process.env.ALTCHA_SECRET ?? "",
     directusFlowRegisterMunicipality: process.env.DIRECTUS_FLOW_REGISTER_MUNICIPALITY ?? "",
     directusFlowNotifyAdmin: process.env.DIRECTUS_FLOW_NOTIFY_ADMIN ?? "",
@@ -87,14 +88,18 @@ export default defineNuxtConfig({
       // The Frontend-Public policy is limited to directus_files/directus_folders read only.
       clientDirectusUrl: process.env.CLIENT_DIRECTUS_URL ?? "",
       serverDirectusUrl: process.env.SERVER_DIRECTUS_URL ?? "",
-      appEnv: process.env.APP_ENV ?? "",
+      appEnv: process.env.SLK_ENV === 'production' ? 'production' : process.env.APP_ENV ?? process.env.SLK_ENV ?? 'production',
+      captchaDevBypass: process.env.NODE_ENV !== 'production' && process.env.SLK_ENV !== 'production'
+        && (process.env.SLK_ENV === 'development' || process.env.APP_ENV === 'development')
+        && (!process.env.ALTCHA_SECRET || process.env.ALTCHA_SECRET === 'dev-secret-change-in-production'),
+      plausibleScriptIntegrity: process.env.PLAUSIBLE_SCRIPT_INTEGRITY ?? "",
       plausibleAnalyticsUrl: process.env.PLAUSIBLE_ANALYTICS_URL ?? "",
       plausibleAnalyticsDomain: process.env.PLAUSIBLE_ANALYTICS_DOMAIN ?? "",
       // Same-origin browser proxy. The real upstream URL and credentials stay private.
       stadtlandzahlBaseUrl: "/api/stadtlandzahl",
     },
   },
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' && process.env.SLK_ENV !== 'production' && process.env.APP_ENV !== 'production' },
   app: {
     rootAttrs: {
       id: "nuxt-root",

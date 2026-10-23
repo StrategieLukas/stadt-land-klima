@@ -131,7 +131,7 @@
             <div>
               <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">{{ $t("rating.completed") }}</h2>
               <p class="text-sm text-gray-600">
-                <span v-html="$t('localteam.register.completed.body', { ':name': selectedArea.name })"></span>
+                <span v-html="sanitizeHtml($t('localteam.register.completed.body', { ':name': selectedArea.name }))"></span>
               </p>
             </div>
           </div>
@@ -173,7 +173,7 @@
             <div>
               <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">{{ $t("localteam.active_rating_in_progress") }}</h2>
               <p class="text-sm text-gray-600">
-                <span v-html="$t('localteam.register.in_progress.body', { ':name': selectedArea.name })"></span>
+                <span v-html="sanitizeHtml($t('localteam.register.in_progress.body', { ':name': selectedArea.name }))"></span>
               </p>
             </div>
           </div>
@@ -207,7 +207,7 @@
             <div>
               <h2 class="font-heading text-h2 font-bold text-gray-800 mb-1">{{ $t("localteam.active_rating_not_started") }}</h2>
               <p class="text-sm text-gray-600">
-                <span v-html="$t('localteam.register.not_started.body', { ':name': selectedArea.name })"></span>
+                <span v-html="sanitizeHtml($t('localteam.register.not_started.body', { ':name': selectedArea.name }))"></span>
               </p>
             </div>
           </div>
@@ -248,6 +248,7 @@
 </template>
 
 <script setup lang="ts">
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import { ref, computed, onMounted, watch } from 'vue'
 
 import { AreaSchema, type Area } from "~/shared/contracts/search"

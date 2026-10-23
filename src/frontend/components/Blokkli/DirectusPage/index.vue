@@ -6,6 +6,7 @@
 </template>
 
 <script setup lang="ts">
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
 const { uuid } = defineBlokkli({
   bundle: 'directus_page',
@@ -33,7 +34,7 @@ const { data: pageHtml } = await useAsyncData<string>(
     if (!props.pageSlug) return ''
     try {
       const result = await $fetch(`/api/public/pages/${encodeURIComponent(props.pageSlug)}`)
-      return result.page.contents || ''
+      return sanitizeHtml(result.page.contents || '')
     } catch {
       return ''
     }

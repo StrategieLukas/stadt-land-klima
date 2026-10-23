@@ -115,6 +115,9 @@ export async function runContactSpamSecurityFlow(
   // Steps 3-6: Test the Nuxt contact endpoint CAPTCHA behavior
   // We need the frontend URL for these tests
   const frontendUrl = fixture.config.frontendUrl;
+  // Keep the CAPTCHA rejection probes valid for the separate signed math contract.
+  const challenge = await fetch(`${frontendUrl}/api/math-challenge?purpose=contact`).then(response => response.json());
+  const mathChallenge = {token: challenge.token, answer: String(challenge.num1 + challenge.num2)};
 
   // Step 3: Missing CAPTCHA is rejected
   await runner.step(
@@ -151,6 +154,7 @@ export async function runContactSpamSecurityFlow(
           content: 'This should be rejected',
           name: 'Test User',
           contact: 'test@example.invalid',
+          mathChallenge,
           altcha: 'not-a-valid-base64-payload',
         }),
       });
@@ -209,6 +213,7 @@ export async function runContactSpamSecurityFlow(
           content: 'First submission with valid CAPTCHA',
           name: 'Test User',
           contact: 'test@example.invalid',
+          mathChallenge,
           altcha: altchaB64,
         }),
       });
@@ -227,6 +232,7 @@ export async function runContactSpamSecurityFlow(
           content: 'Replay of consumed CAPTCHA',
           name: 'Test User',
           contact: 'test@example.invalid',
+          mathChallenge,
           altcha: altchaB64,
         }),
       });
@@ -236,7 +242,7 @@ export async function runContactSpamSecurityFlow(
       );
       for (const algorithm of ['SHA-512', 'arbitrary-replay-key']) {
         const mutated = Buffer.from(JSON.stringify({...proof, algorithm})).toString('base64');
-        const response = await fetch(`${frontendUrl}/api/submit-feedback`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title: 'Replay variant', type: 'other', content: 'Rejected algorithm replay', name: 'Test', contact: 'test@example.invalid', altcha: mutated})});
+        const response = await fetch(`${frontendUrl}/api/submit-feedback`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title: 'Replay variant', type: 'other', content: 'Rejected algorithm replay', name: 'Test', contact: 'test@example.invalid', mathChallenge, altcha: mutated})});
         assertEqual(response.status, 400, 'Changing the algorithm must not evade single-use consumption');
       }
 
@@ -286,6 +292,7 @@ export async function runContactSpamSecurityFlow(
           content: 'Expired CAPTCHA should be rejected',
           name: 'Test User',
           contact: 'test@example.invalid',
+          mathChallenge,
           altcha: altchaB64,
         }),
       });
@@ -338,6 +345,7 @@ export async function runContactSpamSecurityFlow(
           content: 'Wrong purpose should be rejected',
           name: 'Test User',
           contact: 'test@example.invalid',
+          mathChallenge,
           altcha: altchaB64,
         }),
       });
@@ -361,6 +369,7 @@ export async function runContactSpamSecurityFlow(
           content: 'Should be rejected',
           name: 'Test User',
           contact: 'test@example.invalid',
+          mathChallenge,
           altcha: 'dGVzdA==',
         }),
       });
@@ -384,6 +393,7 @@ export async function runContactSpamSecurityFlow(
           content: 'Should be rejected',
           name: 'Test User',
           contact: 'not-an-email',
+          mathChallenge,
           altcha: 'dGVzdA==',
         }),
       });
@@ -407,6 +417,7 @@ export async function runContactSpamSecurityFlow(
           content: 'Test',
           name: 'Test User',
           contact: 'test@example.invalid',
+          mathChallenge,
           altcha: 'dGVzdA==',
         }),
       });
@@ -430,6 +441,7 @@ export async function runContactSpamSecurityFlow(
           content: 'X'.repeat(6000), // Exceeds MAX_CONTENT_LENGTH (5000)
           name: 'Test User',
           contact: 'test@example.invalid',
+          mathChallenge,
           altcha: 'dGVzdA==',
         }),
       });

@@ -64,7 +64,7 @@
           </div>
           <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
         </div>
-        <div v-else-if="measureData[fieldKey]" class="field-content" v-html="measureData[fieldKey]" />
+        <div v-else-if="measureData[fieldKey]" class="field-content" v-html="sanitizeMeasureHtml(measureData[fieldKey])" />
         <div v-else class="field-content empty">{{ $t('no_content_available') }}</div>
       </div>
     </div>
@@ -80,6 +80,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, inject, getCurrentInstance, type Ref } from 'vue';
+import DOMPurify from 'dompurify';
 
 type Api = {
   get: (
@@ -161,6 +162,11 @@ const error: Ref<string | null> = ref(null);
 const selectedSearchEngineId: Ref<string> = ref(SearchEngines[0].id);
 
 const hasMeasureData = computed(() => Object.keys(measureData.value).length > 0);
+
+function sanitizeMeasureHtml(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return DOMPurify.sanitize(value, { ADD_ATTR: ['target', 'rel', 'download'] });
+}
 const recommendedSearchQueries = computed(() =>
   parseSearchQueries(measureData.value[RecommendedSearchQueriesField])
     .map(replaceMunicipalityPlaceholder)

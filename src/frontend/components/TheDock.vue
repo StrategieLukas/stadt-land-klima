@@ -1,7 +1,7 @@
 <template>
   <div class="dock dock-xl border-gray-200 flex items-center justify-around border-t bg-white text-black">
     <button
-      v-for="page in pages"
+      v-for="page in navigationPages"
       :key="page.id"
       :class="{ 'dock-active': isPageActive(page.slug) }"
       class="flex min-h-[48px] min-w-0 flex-col items-center justify-end py-3"
@@ -36,12 +36,24 @@
 
 <script setup lang="ts">
 import type { NavigationPage } from '~/types/components/navigation';
-import { defineProps } from "vue";
+import { defineProps, computed } from "vue";
 import translatedNavigationLabel from "~/shared/translatedNavigationLabel";
+import { sanitizeSvg } from '~/utils/sanitizeHtml'
+
 const { $translateDynamic, $t } = useNuxtApp();
 const route = useRoute();
 const _props = defineProps<{ pages?: NavigationPage[] | undefined }>();
 const navLabel = (item: NavigationPage, field: "name" | "label" = "label") => translatedNavigationLabel(item, $translateDynamic, field);
+
+const sanitizedPages = computed(() => {
+  if (!_props.pages) return [];
+  return _props.pages.map(page => ({
+    ...page,
+    icon_svg: sanitizeSvg(page.icon_svg),
+  }));
+});
+
+const navigationPages = computed(() => sanitizedPages.value);
 
 // Use the shared drawer state
 const { isDrawerOpen, toggleDrawer, closeDrawer } = useDrawer();

@@ -1,12 +1,17 @@
 import { MunicipalityPdfRequestSchema } from "~/shared/contracts/submissions";
 import { createError, defineEventHandler, getRouterParam, readBody, setResponseHeader } from 'h3'
 import { useRuntimeConfig } from '#imports'
+import { rateLimit } from '../../../utils/rateLimit'
 
 /**
  * Proxy for the Directus PDF service. The browser cannot call Directus directly
  * because the public token was removed. This route uses the server token instead.
  */
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'municipality-pdf'))) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  }
   const slug = getRouterParam(event, 'slug') ?? ''
   if (!/^[a-z0-9-]{1,160}$/.test(slug)) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid municipality slug' })

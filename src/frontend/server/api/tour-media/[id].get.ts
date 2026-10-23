@@ -1,5 +1,11 @@
 /** Stream only assets belonging to a published tour-stop report, including range requests. */
+import { rateLimit } from '../../utils/rateLimit'
+
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'tour-media'))) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  }
   const id = getRouterParam(event, 'id') || '';
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
     throw createError({ statusCode: 404, statusMessage: 'Media not found' });

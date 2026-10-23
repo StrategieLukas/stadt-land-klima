@@ -34,6 +34,18 @@
         </p>
 
         <div v-if="!isEditing" class="space-y-2">
+          <!-- Math challenge -->
+          <label class="text-gray-700 block text-sm font-medium">
+            {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }} <span class="text-red-500">*</span>
+          </label>
+          <input
+            v-model="mathChallengeAnswer"
+            type="text" inputmode="numeric" pattern="[0-9]+"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green"
+          />
+          <p v-if="mathChallengeError" class="text-red-500 text-xs">{{ mathChallengeError }}</p>
+
+          <!-- Altcha CAPTCHA -->
           <label class="text-gray-700 block text-sm font-medium">
             {{ $t("captcha.title") }} <span class="text-red-500">*</span>
           </label>
@@ -80,6 +92,7 @@
 </template>
 
 <script setup lang="ts">
+import { FORM_SCOPE } from "~/shared/formScope";
 import { GenericFormRequestSchema } from "~/shared/contracts/submissions";
 import { displayScalar } from '~/shared/visualization';
 import { captchaEventData } from '~/shared/requestError';
@@ -106,6 +119,7 @@ const props = defineProps<{
 
 const { $t, $locale } = useNuxtApp();
 const route = useRoute();
+const formScope = inject(FORM_SCOPE);
 
 const isEditing = import.meta.blokkliEditing
 
@@ -171,6 +185,8 @@ const altchaPayload = ref("");
 const captchaError = ref("");
 const submitError = ref("");
 const submissionState = ref<"idle" | "submitting" | "success">("idle");
+
+const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } = useMathChallenge('form');
 
 const background = computed(() => String(options.value.background || "white"));
 
@@ -244,6 +260,7 @@ function onAltchaStateChange(e: Event) {
 }
 
 onMounted(async () => {
+  await loadMathChallenge()
   await nextTick();
   await nextTick();
   altchaRef.value?.addEventListener("statechange", onAltchaStateChange);
@@ -276,8 +293,11 @@ function collectValues(formData: FormData) {
 async function submitForm() {
   submitError.value = "";
   captchaError.value = "";
+  mathChallengeError.value = "";
 
   if (isEditing || submissionState.value === "submitting") return;
+
+  if (!validateMathChallenge()) return;
 
   const payload = altchaPayload.value || altchaRef.value?.value;
   if (!payload) {
@@ -296,6 +316,9 @@ async function submitForm() {
     await $fetch("/api/submit-form-response", {
       method: "POST",
       body: GenericFormRequestSchema.parse({
+        formUuid: uuid,
+        entityType: formScope?.value.entityType,
+        entityUuid: formScope?.value.entityUuid,
         formKey: formKey.value,
         formTitle: props.title?.trim() || $t("form_block.default_title"),
         pagePath: route.fullPath,
@@ -304,6 +327,7 @@ async function submitForm() {
         fields: fieldDefinitions.value,
         values: collectValues(new FormData(formRef.value)),
         altcha: payload,
+        mathChallenge: { token: mathChallenge.value.token, answer: mathChallengeAnswer.value },
       }),
     });
     submissionState.value = "success";

@@ -4,13 +4,17 @@
       <span class="h-2 w-2 rounded-full bg-light-green" aria-hidden="true" />
       {{ title }}
     </h2>
-    <div class="prose prose-gray max-w-none" v-html="html" />
+    <div class="prose prose-gray max-w-none" v-html="sanitizedHtml" />
   </section>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
+
+const props = defineProps<{
   title: string
   html: string
 }>()
+
+const sanitizedHtml = computed(() => sanitizeHtml(props.html))
 </script>

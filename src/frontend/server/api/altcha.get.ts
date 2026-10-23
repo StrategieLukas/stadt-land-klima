@@ -1,12 +1,17 @@
+import { abuseProtection } from '../utils/abuseProtection';
 import { createHash, createHmac, randomBytes, randomInt } from 'node:crypto';
 import { queryChoice } from '../utils/publicQuery';
+import { rateLimit } from '../utils/rateLimit';
 
 // Challenges expire after 20 minutes
 const CHALLENGE_TTL_MS = 20 * 60 * 1000;
 
-export default defineEventHandler((event) => {
-  const config = useRuntimeConfig();
-  const hmacKey: string = (config.altchaSecret) || 'dev-secret-change-in-production';
+export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'altcha'))) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  }
+  const { hmacKey } = abuseProtection();
 
   const query = getQuery(event);
   const purpose = queryChoice(query.purpose, ['contact', 'register', 'form', 'article']);

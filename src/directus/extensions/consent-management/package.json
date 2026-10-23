@@ -20,7 +20,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "markdown-it": "^15.0.3"
+    "markdown-it": "^15.0.3",
+    "dompurify": "^3.4.17"
   },
   "devDependencies": {
     "@directus/extensions-sdk": "18.0.6",

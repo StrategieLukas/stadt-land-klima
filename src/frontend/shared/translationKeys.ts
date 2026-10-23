@@ -731,6 +731,7 @@ export const translationKeys = [
   "projects.submit.error.image_rights_required",
   "projects.submit.error.image_too_large",
   "projects.submit.error.invalid_submission",
+  "projects.submit.error.math_challenge_failed",
   "projects.submit.error.required_fields",
   "projects.submit.error.save_failed",
   "projects.submit.error.sectors_invalid",

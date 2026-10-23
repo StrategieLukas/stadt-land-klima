@@ -171,12 +171,13 @@ import { CandidateAnswersRequestSchema } from "~/shared/contracts/candidateAnswe
 
 const route = useRoute()
 const { $t, $locale } = useNuxtApp()
-const accessToken = singleRouteValue(route.params.access_token)
-if (!accessToken || !/^[A-Za-z0-9_-]{1,100}$/.test(accessToken)) throw createError({statusCode: 404, statusMessage: "Not found"})
+let accessToken = singleRouteValue(route.params.access_token)
+if (accessToken && !/^[A-Za-z0-9_-]{1,100}$/.test(accessToken)) throw createError({statusCode: 404, statusMessage: "Not found"})
 useResponseHeader("Cache-Control").value = "private, no-store"
 useResponseHeader("Referrer-Policy").value = "no-referrer"
 definePageMeta({key: route => route.path})
 
+const candidateCsrf = ref("")
 const answers = ref<Record<string, AnswerValue | null | undefined>>({})
 const explanations = ref<Record<string, string>>({}) // Store reasoning for each question
 const submitting = ref(false)
@@ -190,7 +191,17 @@ const candidateRequest = new AbortController()
 onBeforeUnmount(() => { candidateRequest.abort(); data.value = null; })
 onMounted(async () => {
   try {
-    const result = CandidateReadSchema.parse(await $fetch(`/api/candidate/${encodeURIComponent(accessToken!)}`, {signal: candidateRequest.signal}))
+    accessToken ||= new URLSearchParams(window.location.hash.slice(1)).get('token') || undefined
+    // Remove both legacy path tokens and new fragment tokens before any API call.
+    window.history.replaceState(window.history.state, '', '/elections/thesen')
+    if (accessToken) {
+      await $fetch('/api/candidate/session', {method: 'POST', body: {token: accessToken}, headers: {'x-slk-candidate': '1'}, signal: candidateRequest.signal})
+      accessToken = undefined
+      if (route.params.access_token) { await navigateTo('/elections/thesen', {replace: true}); return }
+    }
+    const session = await $fetch('/api/candidate/session', {signal: candidateRequest.signal})
+    candidateCsrf.value = session.csrf || ''
+    const result = CandidateReadSchema.parse(session.data)
     if (candidateRequest.signal.aborted) return
     for (const answer of result.existingAnswers) {
       answers.value[answer.question] = answer.response
@@ -262,7 +273,8 @@ async function submitAnswers() {
       explanation: explanations.value[q.id] || undefined,
     }))
 
-    await $fetch(`/api/candidate/${encodeURIComponent(accessToken!)}/answers`, {
+    await $fetch('/api/candidate/session/answers', {
+      headers: {'x-slk-candidate': '1', 'x-csrf-token': candidateCsrf.value},
       method: 'POST',
       body: CandidateAnswersRequestSchema.parse({ answers: answerPayload }),
     })

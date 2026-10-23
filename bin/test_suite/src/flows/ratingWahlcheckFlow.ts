@@ -490,6 +490,17 @@ async function submitCandidateAnswers(
     assertNotIncludes(await serverResponse.text(), candidate.name, 'Candidate records must not enter the SSR/Nuxt payload');
     await openFrontendPage(page, candidateUrl);
     await page.getByText(candidate.name).waitFor({ state: 'visible', timeout: 30_000 });
+    assertEqual(new URL(page.url()).pathname, '/elections/thesen', 'Candidate bearer must be removed from the address bar');
+    const cookies = await context.cookies();
+    const cookie = cookies.find(item => item.name === 'slk-candidate');
+    assert(cookie?.httpOnly && cookie.sameSite === 'Strict', 'Candidate session must use an HttpOnly SameSite cookie');
+    const blocked = await context.request.post(`${fixture.config.frontendUrl}/api/candidate/session/answers`, {
+      headers: {'x-slk-candidate': '1'}, data: {answers: [{question: questions[0]!.id, response: responseValue}]},
+    });
+    assertEqual(blocked.status(), 403, 'A cookie without CSRF cannot authorize answers');
+    await page.reload({waitUntil: 'domcontentloaded'});
+    await page.getByText(candidate.name).waitFor({state: 'visible', timeout: 30000});
+
 
     for (const question of questions) {
       const radio = page.locator(`input[name="question-${question.id}"][value="${responseValue}"]`);

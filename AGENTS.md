@@ -186,5 +186,17 @@ See [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for tracked technical debt items, fut
 - **Framework stack:** Nuxt 4.6.2 with Vite 8.3.5 and Blökkli 2.0.0-alpha.73. Keep platform bindings optional and preserve the Blökkli virtual-file Vite integration; see FRAMEWORK_UPGRADE_REVIEW.md.
 - **Permanent TypeScript gate:** No diagnostic baseline. `npm run typecheck` enforces strict app/server/shared/node and Vue checking, source coverage, `lint:types`, scripts and checked JS tooling. Keep new maintained sources in these gates; see PHASE_8_REVIEW.md.
 
+## Rate limiting
+
+All API endpoints that write data (POST/PUT/PATCH/DELETE) or perform expensive operations must be rate limited. The configuration is centralized in `src/frontend/server/utils/rateLimitConfig.ts`.
+
+**When adding a new API endpoint:**
+1. Add a rate limit entry to `RATE_LIMIT_CONFIG` in `rateLimitConfig.ts`
+2. Call `rateLimit(event, 'your-key')` at the start of the endpoint handler
+3. Write endpoints use `max: 5, windowSeconds: 60`; expensive read endpoints use `max: 10`
+4. Simple cached reads may skip rate limiting
+
+See `SECURITY_REVIEW.md` S14 for context. The rate limiter uses Redis sorted sets with per-IP sliding windows.
+
 ## Checks
 1. Run ./test_dev.sh in the bin folder and wait for checks to complete.

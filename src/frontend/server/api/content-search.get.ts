@@ -3,10 +3,15 @@ import sanitizeHtml from "sanitize-html";
 import { queryText, queryLimit } from "../utils/publicQuery";
 import { ContentResponseSchema } from "~/shared/contracts/search";
 import { parseCms } from "../utils/parseCms";
+import { rateLimit } from "../utils/rateLimit";
 const contentTypes = ['block', 'page', 'event', 'article', 'measure', 'static_page', 'news_item', 'member', 'team'] as const;
 const indexedHit = z.object({id: z.union([z.string(), z.number()]), type: z.enum(contentTypes), title: z.string(), url: z.string().regex(/^\/(?!\/)/), meta: z.string().nullable().optional(), text: z.string().optional(), _formatted: z.object({title: z.string().optional(), text: z.string().optional()}).optional()});
 const highlight = (value: string) => sanitizeHtml(value, {allowedTags: ['mark'], allowedAttributes: {}});
 export default defineEventHandler(async event => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'content-search'))) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests' });
+  }
   const query = getQuery(event);
   const q = queryText(query.q, 200);
   const limit = queryLimit(query.limit, 12, 30);

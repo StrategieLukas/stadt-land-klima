@@ -1,6 +1,11 @@
+import { publishedForm } from '../utils/publishedForm';
+import { formDeliveryQuota } from '../utils/formDeliveryQuota';
+import { abuseProtection } from '../utils/abuseProtection';
 import { GenericFormRequestSchema } from "~/shared/contracts/submissions";
 import { readRequestBody } from "../utils/readRequestBody";
 import { verifyAltcha } from "../utils/verifyAltcha";
+import { verifyMathChallenge } from "../utils/verifyMathChallenge";
+import { rateLimit } from "../utils/rateLimit";
 
 type FieldType = "text" | "email" | "textarea" | "select" | "checkbox";
 
@@ -166,15 +171,26 @@ function findSenderName(fields: NormalizedField[]) {
 }
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'form-response'))) {
+    throw submissionError(429, 'Zu viele Anfragen. Bitte versuche es später erneut.');
+  }
   const config = useRuntimeConfig();
-  const hmacKey = (config.altchaSecret) || "dev-secret-change-in-production";
+  const { hmacKey, devMode } = abuseProtection();
   const parsedBody = GenericFormRequestSchema.safeParse(await readRequestBody(event));
   if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
   const body = parsedBody.data;
 
-  const { formKey, formTitle, pagePath, notificationEmail, sendCopy, fields, values, altcha } = body ?? {};
+  const { pagePath, values, altcha, mathChallenge } = body;
+  const {formKey, formTitle, notificationEmail, sendCopy, fields} = await publishedForm(body.entityType, body.entityUuid, body.formUuid);
+  const allowedNames = new Set(fields.map(field => field.name));
+  if (Object.keys(values).some(name => !allowedNames.has(name))) throw submissionError(400, 'Unknown form field');
 
-  if (!altcha || !await verifyAltcha((altcha), hmacKey, { purpose: 'form' })) {
+  if (!mathChallenge || !verifyMathChallenge(mathChallenge.token, mathChallenge.answer, hmacKey, 'form', devMode)) {
+    throw submissionError(400, "Rechenprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.");
+  }
+
+  if (!altcha || !await verifyAltcha((altcha), hmacKey, { purpose: 'form', devMode })) {
     throw submissionError(400, "CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.");
   }
 
@@ -207,6 +223,7 @@ export default defineEventHandler(async (event) => {
   const safeFormKey = normalizeShortText(formKey, 120, "form") || "form";
   const safePagePath = normalizeShortText(pagePath, 500, "");
 
+  await formDeliveryQuota(`${body.entityType}:${body.entityUuid}:${body.formUuid}`, sendCopy ? senderEmail : undefined);
   try {
     const result = await $fetch<{ data: { id: number | string; status: string } }>(
       `${directusUrl}/items/form_responses`,
@@ -224,7 +241,7 @@ export default defineEventHandler(async (event) => {
           sender_name: senderName || null,
           sender_email: senderEmail || null,
           notification_email: recipientEmail,
-          send_copy: sendCopy === true,
+          send_copy: sendCopy,
           response_summary: responseSummary,
           response_data: {
             fields: normalizedFields.map((field) => ({

@@ -78,7 +78,7 @@
           <div>
 	            <h3 class="text-sm font-semibold text-gray-800 mb-0.5">{{ $t("localteam.register.activation_email.title") }}</h3>
 	            <p class="text-sm text-gray-500">
-	              <span v-html="$t('localteam.register.activation_email.body', { ':email': submittedEmail })"></span>
+	              <span v-html="sanitizeHtml($t('localteam.register.activation_email.body', { ':email': submittedEmail }))"></span>
             </p>
           </div>
         </div>
@@ -95,7 +95,7 @@
           <div>
 	            <h3 class="text-sm font-semibold text-gray-800 mb-0.5">{{ $t("localteam.register.onboarding.title") }}</h3>
 	            <p class="text-sm text-gray-500">
-	              <span v-html="$t('localteam.register.onboarding.body', { ':name': municipalityName })"></span>
+	              <span v-html="sanitizeHtml($t('localteam.register.onboarding.body', { ':name': municipalityName }))"></span>
             </p>
           </div>
         </div>
@@ -153,7 +153,7 @@
     <div class="px-4 sm:px-8 pt-7 pb-5 border-b border-gray-100">
 	      <h2 class="font-heading text-h3 font-bold text-gray-800 mb-1">{{ $t("localteam.register.contact_details.title") }}</h2>
 	      <p class="text-sm text-gray-500">
-	        <span v-html="$t('localteam.register.contact_details.description', { ':name': municipalityName })"></span>
+	        <span v-html="sanitizeHtml($t('localteam.register.contact_details.description', { ':name': municipalityName }))"></span>
       </p>
     </div>
 
@@ -224,6 +224,19 @@
         />
       </div>
 
+      <!-- Math challenge -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          {{ $t("captcha.question", { ":first": mathChallenge.num1, ":second": mathChallenge.num2 }) }} <span class="text-red-500">*</span>
+        </label>
+        <input
+          v-model="mathChallengeAnswer"
+          type="text" inputmode="numeric" pattern="[0-9]+"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green transition-colors"
+        />
+        <p v-if="mathChallengeError" class="mt-1 text-xs text-red-500">{{ mathChallengeError }}</p>
+      </div>
+
       <!-- Altcha CAPTCHA widget (open-source, self-hosted proof-of-work) -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -277,6 +290,7 @@
 </template>
 
 <script setup lang="ts">
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import { RegistrationRequestSchema } from "~/shared/contracts/submissions";
 import type { NewsletterRequest } from "~/shared/contracts/submissions";
 import { captchaEventData, requestErrorData, requestErrorMessage  } from '~/shared/requestError';
@@ -304,7 +318,9 @@ const altchaRef = ref<HTMLElement | null>(null);
 const altchaPayload = ref('');
 const submittedEmail = ref('');
 
-const isDev = useRuntimeConfig().public.appEnv === 'development';
+const { mathChallenge, mathChallengeAnswer, mathChallengeError, loadMathChallenge, validateMathChallenge } = useMathChallenge('register');
+
+const isDev = useRuntimeConfig().public.captchaDevBypass;
 
 const form = reactive({ firstName: '', lastName: '', email: '', organisation: '' });
 
@@ -345,7 +361,10 @@ async function resetToIdle() {
   processingDone.value = false;
   altchaPayload.value = isDev ? btoa(JSON.stringify({ dev: true })) : '';
   captchaError.value = '';
+  mathChallengeAnswer.value = '';
+  mathChallengeError.value = '';
   if (isDev) return;
+  await loadMathChallenge()
   // The altcha-widget was unmounted while formState was 'processing' (v-else hides the form).
   // After setting idle, wait two ticks for ClientOnly to re-render the new widget, then
   // re-attach the statechange listener so the auto-solved payload is captured again.
@@ -388,6 +407,7 @@ function onAltchaStateChange(e: Event) {
 }
 
 onMounted(async () => {
+  await loadMathChallenge()
   // In dev, the altcha widget refuses to work over plain HTTP (no isSecureContext).
   // Pre-seed a static bypass payload; the server accepts it when appEnv=development.
   if (isDev) {
@@ -410,6 +430,9 @@ onUnmounted(() => {
 
 async function submit() {
   captchaError.value = '';
+  mathChallengeError.value = '';
+
+  if (!validateMathChallenge()) return;
 
   const widgetEl = document.querySelector<HTMLElement & {value?: string | undefined}>('altcha-widget');
   const payload = altchaPayload.value || widgetEl?.value;
@@ -429,6 +452,7 @@ async function submit() {
     state: props.state ?? null,
     geolocation: props.geolocation ?? null,
     altcha: payload,
+    mathChallenge: { token: mathChallenge.value.token, answer: mathChallengeAnswer.value },
   };
   submittedEmail.value = form.email;
   newsletterEmail.value = form.email;

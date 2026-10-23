@@ -42,7 +42,7 @@
           v-blokkli-editable:title
           class="leading-tight mb-4 text-4xl md:text-5xl lg:text-6xl whitespace-pre-line"
           :class="[titleColorClass, titleWeightClass]"
-          v-html="props.title || ''"
+          v-html="sanitizedTitle"
         />
         <p
           v-if="props.subtitle || isEditing"
@@ -68,6 +68,7 @@ import { Icon } from '@iconify/vue'
 import type { FieldListItem } from '#blokkli/types'
 import { BRAND_COLOR_CLASSES } from '~/utils/blokkliColors'
 import { getBlokkliBlockId } from '~/utils/blokkliLinks'
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
 const isEditing = import.meta.blokkliEditing
 
@@ -188,6 +189,8 @@ const props = defineProps<{
   imageId?: string | undefined
   blocks?: FieldListItem[] | undefined
 }>()
+
+const sanitizedTitle = computed(() => sanitizeHtml(props.title))
 
 const config = useRuntimeConfig()
 const { $t } = useNuxtApp()

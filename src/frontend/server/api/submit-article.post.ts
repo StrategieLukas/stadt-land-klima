@@ -1,3 +1,4 @@
+import { abuseProtection } from '../utils/abuseProtection';
 import { directusErrorDetails, errorRecord, requestErrorData, requestErrorStatus } from "~/shared/requestError";
 import { randomBytes } from "node:crypto";
 import type { H3Event } from "h3";
@@ -13,7 +14,9 @@ import {
 } from "~/shared/articleSubmission";
 import { createSlug } from "~/shared/slugify";
 import { verifyAltcha } from "../utils/verifyAltcha";
+import { verifyMathChallenge } from "../utils/verifyMathChallenge";
 import { sendDirectusMailFlow } from "../utils/sendDirectusMailFlow";
+import { rateLimit } from "../utils/rateLimit";
 
 const ARTICLE_IMAGE_FOLDER_ID = "82d3f1c5-9a8d-4aeb-8335-ca9330a43b90";
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -377,10 +380,20 @@ async function submitArticle(event: H3Event) {
   }
 
   const config = useRuntimeConfig();
-  const hmacKey = (config.altchaSecret) || "dev-secret-change-in-production";
+  const { hmacKey, devMode } = abuseProtection();
   const altcha = getInternalTextField(parts, "altcha", 4096, true);
+  const mathChallengeToken = getInternalTextField(parts, "mathChallengeToken", 4096, true);
+  const mathChallengeAnswer = getInternalTextField(parts, "mathChallengeAnswer", 10, true);
 
-  if (!await verifyAltcha(altcha, hmacKey, { purpose: 'article' })) {
+  if (!verifyMathChallenge(mathChallengeToken, mathChallengeAnswer, hmacKey, 'article', devMode)) {
+    throw submissionError(
+      400,
+      "math_challenge_failed",
+      "Rechenprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.",
+    );
+  }
+
+  if (!await verifyAltcha(altcha, hmacKey, { purpose: 'article', devMode })) {
     throw submissionError(
       400,
       "captcha_failed",
@@ -554,6 +567,10 @@ async function submitArticle(event: H3Event) {
 }
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'article'))) {
+    throw createError({ statusCode: 429, message: 'Zu viele Anfragen. Bitte versuche es später erneut.' });
+  }
   try {
     return await submitArticle(event);
   } catch (err: unknown) {

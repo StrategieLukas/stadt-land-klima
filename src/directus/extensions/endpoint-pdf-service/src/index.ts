@@ -16,6 +16,7 @@ const execFileAsync = promisify(execFile);
 // ---------------------------------------------------------------------------
 
 const MAX_PDF_BUFFER = 50 * 1024 * 1024; // 50 MB
+const PDF_COMPILE_TIMEOUT_MS = 30_000; // 30 seconds
 
 // ---------------------------------------------------------------------------
 // Types
@@ -261,19 +262,14 @@ async function compilePdf(
     "-",
   ];
 
-  // execFile with encoding:"buffer" returns Buffer; the promisified overload
-  // loses that detail so we cast the result, not the function.
   const result = await execFileAsync("typst", args, {
     maxBuffer: MAX_PDF_BUFFER,
     encoding: "buffer",
+    timeout: PDF_COMPILE_TIMEOUT_MS,
+    killSignal: "SIGKILL",
   });
-  const { stdout, stderr } = result as unknown as { stdout: Buffer; stderr: Buffer };
-
-  if (stderr?.length) {
-    console.warn("[pdf-service] Typst warnings:", stderr.toString());
-  }
-
-  return stdout;
+  if (result.stderr.length) console.warn("[pdf-service] Typst warnings:", result.stderr.toString());
+  return result.stdout;
 }
 
 function sendPdf(res: Response, pdf: Buffer, filename = "output.pdf"): void {

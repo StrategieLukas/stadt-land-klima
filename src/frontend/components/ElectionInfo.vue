@@ -61,7 +61,7 @@
         <!-- Measure Content -->
         <div class="space-y-4">
           <!-- Benefit Description -->
-          <div v-if="measure.description_benefit" class="prose max-w-none text-mid-gray" v-html="md.render(measure.description_benefit)"></div>
+          <div v-if="measure.description_benefit" class="prose max-w-none text-mid-gray" v-html="sanitizeHtml(md.render(measure.description_benefit))"></div>
 
           <!-- Current Progress -->
           <div v-if="measure.currentProgress" class="p-4 bg-mild-white rounded-lg border border-solid-gray-10">
@@ -78,7 +78,7 @@
           <!-- Contribution Description -->
           <div v-if="measure.description_contribution" class="p-4 bg-solid-ff-green-05 rounded-lg border border-solid-ff-green-20">
             <p class="font-semibold text-ff-green mb-1">{{ $t('election_info.contribution') }}</p>
-            <div class="prose max-w-none text-mid-gray" v-html="md.render(measure.description_contribution)"></div>
+            <div class="prose max-w-none text-mid-gray" v-html="sanitizeHtml(md.render(measure.description_contribution))"></div>
           </div>
         </div>
 
@@ -120,6 +120,7 @@ import type { MunicipalityScore, MeasureRating } from '~/types/components/munici
 import type { Catalog } from '~/shared/contracts/search';
 
   import MarkdownIt from 'markdown-it'
+  import { sanitizeHtml } from '~/utils/sanitizeHtml'
   import measureCurrentProgressStrings from "~/assets/measure-current-progress-strings.json"
   import measurePoliticalDemandStrings from "~/assets/measure-political-demand-strings.json"
 

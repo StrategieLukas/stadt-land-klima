@@ -3,7 +3,7 @@
     <header class="series-hero">
       <div class="series-hero__copy">
         <h1>{{ series.title }}</h1>
-        <div v-if="series.introduction" class="series-intro prose" v-html="series.introduction" />
+        <div v-if="series.introduction" class="series-intro prose" v-html="sanitizedIntroduction" />
         <p v-else class="series-intro">{{ $t('tour.follow_journey') }}</p>
         <CanonicalButton v-if="stops.length" href="#route" :label="$t('tour.discover')" icon-slug="mdi:map-marker-path" color="dark" />
       </div>
@@ -120,7 +120,7 @@
           </div>
           <div v-else class="series-brand__fallback"><span>{{ series.title }}</span><TourPin /><strong>Stadt.Land.Klima!</strong></div>
         </div>
-        <div v-if="series.closing_reflection" class="series-outro__reflection prose" v-html="series.closing_reflection" />
+        <div v-if="series.closing_reflection" class="series-outro__reflection prose" v-html="sanitizedClosingReflection" />
         <div v-if="allProjects.length || stops.length" class="series-outro__references">
           <div v-if="allProjects.length">
             <h2>{{ $t('tour.all_projects') }}</h2>
@@ -153,6 +153,7 @@ import type { TourMedia } from "~/shared/tourMedia";
 import { isRaster } from "~/shared/utils";
 import { useHeaderHeight } from "~/composables/useHeaderHeight";
 import { useMobileHeaderHidden } from "~/composables/useMobileHeaderHidden";
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
 type Project = { id: number; slug: string; title: string; profile_stage?: string | null | undefined };
 type Stop = SuccessProjectTourStop;
@@ -173,6 +174,8 @@ const { data: seriesResult } = await useAsyncData(`tour-${slug}`, async () =>
 );
 const series = computed<Series | null>(() => seriesResult.value?.series ?? null);
 if (!series.value) throw createError({ statusCode: 404, statusMessage: $t("page_not_found"), fatal: true });
+const sanitizedIntroduction = computed(() => sanitizeHtml(series.value?.introduction))
+const sanitizedClosingReflection = computed(() => sanitizeHtml(series.value?.closing_reflection))
 
 const { data: stopsResult } = await useAsyncData(`tour-stops-${series.value.id}`, async () =>
   $fetch('/api/public/tour-stops-by-tour', { query: { tourId: series.value!.id } })

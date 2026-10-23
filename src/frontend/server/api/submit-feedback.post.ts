@@ -1,6 +1,9 @@
+import { abuseProtection } from '../utils/abuseProtection';
 import { FeedbackRequestSchema } from "~/shared/contracts/submissions";
 import { createDirectus, rest, staticToken, createItem } from '@directus/sdk';
 import { verifyAltcha } from '../utils/verifyAltcha';
+import { verifyMathChallenge } from '../utils/verifyMathChallenge';
+import { rateLimit } from '../utils/rateLimit';
 
 const ALLOWED_TYPES = ['legal', 'bug', 'inaccuracy', 'suggestion', 'cooperation', 'other'];
 const MAX_TITLE_LENGTH = 200;
@@ -9,13 +12,17 @@ const MAX_NAME_LENGTH = 200;
 const MAX_CONTACT_LENGTH = 255;
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'feedback'))) {
+    throw createError({ statusCode: 429, message: 'Zu viele Anfragen. Bitte versuche es später erneut.' });
+  }
   const config = useRuntimeConfig();
-  const hmacKey: string = (config.altchaSecret) || 'dev-secret-change-in-production';
+  const { hmacKey, devMode } = abuseProtection();
 
   const parsedBody = FeedbackRequestSchema.safeParse(await readRequestBody(event));
   if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
   const body = parsedBody.data;
-  const { title, type, content, name, contact, sendCopy, altcha } = body ?? {};
+  const { title, type, content, name, contact, sendCopy, altcha, mathChallenge } = body ?? {};
 
   // Validate required fields
   if (!title?.trim() || !type?.trim() || !content?.trim() || !name?.trim() || !contact?.trim()) {
@@ -47,11 +54,17 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify CAPTCHA
-  const devMode = (config.public.appEnv) === 'development';
+  if (!mathChallenge || !verifyMathChallenge(mathChallenge.token, mathChallenge.answer, hmacKey, 'contact', devMode)) {
+    throw createError({ statusCode: 400, message: 'Rechenprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.' });
+  }
+
   if (!altcha || !await verifyAltcha(altcha, hmacKey, { devMode, purpose: 'contact' })) {
     throw createError({ statusCode: 400, message: 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.' });
   }
 
+  if (!await rateLimit(event, 'feedback-delivery')) {
+    throw createError({statusCode: 429, message: 'Zu viele Anfragen. Bitte versuche es später erneut.'});
+  }
   // Submit to Directus using server-side admin token
   const directusUrl = (config.directusServerUrl) || 'http://directus:8055';
   const adminToken = config.directusAdminToken as string | undefined;

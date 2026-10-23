@@ -9,13 +9,14 @@
       class="blokkli-block-heading whitespace-pre-line"
       :class="[colorClass, sizeClass, weightClass]"
     >
-      <span v-blokkli-editable:text v-html="props.text || ''" />
+      <span v-blokkli-editable:text v-html="sanitizedText" />
     </component>
   </div>
 </template>
 
 <script setup lang="ts">
 import { getBlokkliBlockId } from '~/utils/blokkliLinks'
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
 const { options, uuid } = defineBlokkli({
   bundle: 'heading',
@@ -92,6 +93,8 @@ const { options, uuid } = defineBlokkli({
 const props = defineProps<{
   text?: string | undefined
 }>()
+
+const sanitizedText = computed(() => sanitizeHtml(props.text))
 
 const headingTag = computed(() => options.value.level || 'h2')
 

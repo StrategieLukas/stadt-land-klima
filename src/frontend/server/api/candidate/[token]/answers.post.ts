@@ -2,8 +2,13 @@ import { defineEventHandler, getRouterParam, createError, setResponseHeader } fr
 import { saveCandidateAnswers } from "../../../utils/candidateAnswers";
 import { readRequestBody } from "../../../utils/readRequestBody";
 import { CandidateAnswersRequestSchema } from "../../../../shared/contracts/candidateAnswers";
+import { rateLimit } from "../../../utils/rateLimit";
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'candidate-answers'))) {
+    throw createError({ statusCode: 429, statusMessage: "Too many requests" });
+  }
   setResponseHeader(event, "Cache-Control", "private, no-store");
 
   const accessToken = getRouterParam(event, "token");

@@ -22,6 +22,7 @@ export type ArticleSubmissionTextField = keyof typeof ARTICLE_SUBMISSION_LIMITS;
 
 export type ArticleSubmissionErrorCode =
   | "captcha_failed"
+  | "math_challenge_failed"
   | "email_invalid"
   | "field_too_long"
   | "image_format"
@@ -52,6 +53,7 @@ export type ArticleSubmissionErrorData = {
 export const ArticleSubmissionErrorSchema = z.object({
   errorCode: z.enum([
     "captcha_failed",
+    "math_challenge_failed",
     "email_invalid",
     "field_too_long",
     "image_format",

@@ -1,3 +1,4 @@
+import {solveMathChallenge, solveNativeAltcha} from '../lib/captcha.js';
 import { randomUUID } from 'node:crypto';
 import type { Browser, Page } from 'playwright';
 import { assert, assertIncludes, assertNotIncludes } from '../lib/assert.js';
@@ -204,6 +205,36 @@ export async function runPublicNavigationFlow(runner: TestRunner, fixture: TestF
         assert(metadata.get('purpose') === 'contact', 'Native widget must retain cryptographically signed purpose');
         assert(Number(metadata.get('expires')) > Date.now(), 'Native widget must retain cryptographically signed expiry');
       } finally {await page.close();}
+    });
+
+    await runner.step('Public forms: nested saved definition submits with signed proofs and trusted routing', async () => {
+      const formUuid = randomUUID();
+      const formPage = await create('pages', {name: `Form ${config.runId}`, slug: `${slug}-form`, status: 'published', contents: ''});
+      await create('blocks', {uuid: randomUUID(), entity_type: 'pages', entity_uuid: formPage.id, field_name: 'content', bundle: 'container', status: 'published', options: {}, props: {blocks: [
+        {uuid: formUuid, bundle: 'form', options: {notificationEmail: 'form-security@example.invalid', sendCopy: false}, props: {title: 'Saved test form', successMessage: 'Saved response accepted', fields: [
+          {uuid: randomUUID(), bundle: 'form_field', options: {fieldName: 'message', fieldType: 'textarea', required: true}, props: {label: [{uuid: randomUUID(), bundle: 'form_label', props: {text: 'Message'}}]}},
+        ]}},
+      ]}});
+      const page = await context.newPage();
+      let responseId: string | number | undefined;
+      try {
+        await page.goto(`${config.frontendUrl}/${slug}-form`, {waitUntil: 'domcontentloaded'});
+        await waitForHydration(page);
+        await page.locator('[name="message"]').fill('<b>Stored as submitted</b>');
+        await solveMathChallenge(page); await solveNativeAltcha(page);
+        const submitted = page.waitForResponse(response => response.url().endsWith('/api/submit-form-response') && response.request().method() === 'POST');
+        await page.locator('.blokkli-block-form button[type="submit"]').click();
+        const response = await submitted;
+        assert(response.ok(), `Nested form submit must succeed, HTTP ${response.status()}: ${await response.text()}`);
+        responseId = (await response.json()).id;
+        await page.getByText('Saved response accepted').waitFor();
+        const stored = await admin.readItem<{notification_email: string; send_copy: boolean; response_summary: string}>('form_responses', responseId!, ['notification_email', 'send_copy', 'response_summary']);
+        assert(stored.notification_email === 'form-security@example.invalid' && stored.send_copy === false, 'Saved recipient and copy policy must be used');
+        assertIncludes(stored.response_summary, '<b>Stored as submitted</b>', 'Email escaping must not corrupt stored text');
+      } finally {
+        if (responseId) await admin.deleteItem('form_responses', responseId);
+        await page.close();
+      }
     });
 
     await runner.step('Public navigation: measures, catalog switching, sector filters and detail hydration', async () => {

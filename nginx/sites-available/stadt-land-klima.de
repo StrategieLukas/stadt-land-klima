@@ -1,3 +1,22 @@
+# Opaque JSON deep input bypasses the upstream query parser's prototype protection.
+map $args $slk_opaque_deep {
+  default 0;
+  ~*(^|&)(d|%64)(e|%65)(e|%65)(p|%70)= 1;
+}
+
+# Preserve no-referrer on invitation/private preview requests even when nginx
+# adds its site policy alongside the application's response headers.
+map $request_uri $slk_referrer_policy {
+  default "strict-origin-when-cross-origin";
+  ~^/(?:elections/thesen|api/candidate)(?:/|\?|$) "no-referrer";
+  ~[?&](?:preview|preview_token|blokkliPreview)= "no-referrer";
+}
+
+# Rate limiting zones — protect public endpoints from abuse
+limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=frontend:10m rate=30r/s;
+limit_req_status 429;
+
 # HTTP server
 server {
   listen 80;
@@ -77,7 +96,20 @@ server {
   server_name www.stadt-land-klima.de;
   server_tokens off;
 
+  # Security headers
+  add_header X-Permitted-Cross-Domain-Policies "none" always;
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "SAMEORIGIN" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=(self)" always;
+  add_header Referrer-Policy $slk_referrer_policy always;
+  add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" always;
+  add_header Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://analytics.stadt-land-klima.de; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.unsplash.com https://unpkg.com; font-src 'self' data:; connect-src 'self' https://data2.stadt-land-klima.de https://analytics.stadt-land-klima.de; frame-ancestors 'self'; report-uri /api/security/csp" always;
+
   location /backend/ {
+    if ($slk_opaque_deep) { return 400; }
+    if ($http_upgrade != "") { return 403; }
+    limit_req zone=api burst=20 nodelay;
     # restrict access
     # auth_basic  "stage";
     # auth_basic_user_file  /var/www/staedtechallenge.anzui.dev/.htpasswd;
@@ -91,7 +123,10 @@ server {
     proxy_read_timeout          3600;
     send_timeout                3600;
     proxy_max_temp_file_size 512M;
-    include /etc/nginx/proxy_params;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
   }
 
   # Directus AI chat endpoint — the blokkli editor makes requests to /ai/chat
@@ -103,10 +138,25 @@ server {
     proxy_send_timeout          3600;
     proxy_read_timeout          3600;
     send_timeout                3600;
-    include /etc/nginx/proxy_params;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  # Legacy invitation paths contain bearer credentials. Keep them out of access logs.
+  location ~ ^/(?:api/candidate(?:/|$)|elections/thesen(?:/|$)) {
+    access_log off;
+    limit_req zone=frontend burst=60 nodelay;
+    proxy_pass http://127.0.0.1:9000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
   }
 
   location / {
+    limit_req zone=frontend burst=60 nodelay;
     # restrict access
     # auth_basic  "stage";
     # auth_basic_user_file  /var/www/stadt-land-klima.de/.htpasswd;
@@ -120,12 +170,18 @@ server {
     proxy_read_timeout          3600;
     send_timeout                3600;
     proxy_max_temp_file_size 512M;
-    include /etc/nginx/proxy_params;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
   }
 
   location @maintenance_page {
     proxy_pass http://127.0.0.1:9090;
-    include /etc/nginx/proxy_params;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
   }
 
   access_log  /var/log/nginx/stadt-land-klima.de_access.log;

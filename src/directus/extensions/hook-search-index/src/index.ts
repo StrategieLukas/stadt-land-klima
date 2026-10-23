@@ -114,6 +114,7 @@ function buildBlockDoc(
 }
 
 interface Page {
+  id?: string;
   slug: string;
   name?: string;
   contents?: string;
@@ -121,7 +122,7 @@ interface Page {
 }
 
 function buildPageDoc(page: Page): SearchDoc | null {
-  if (!page.contents) return null;
+  if (page.status !== 'published' || !page.contents) return null;
   return {
     id: `page:${page.slug}`,
     type: 'page',
@@ -230,6 +231,7 @@ function buildMemberDoc(user: User): SearchDoc | null {
 
 interface HookContext {
   action: (event: string, handler: (...args: any[]) => void) => void;
+  filter: (event: string, handler: (keys: (string | number)[], meta: ActionPayload, context: ActionContext) => Promise<(string | number)[]>) => void;
   logger: Logger;
   env: Record<string, string>;
 }
@@ -256,7 +258,7 @@ interface BlockRow {
 }
 
 export default (
-  { action }: HookContext,
+  { action, filter }: HookContext,
   {
     logger,
     env,
@@ -302,13 +304,31 @@ export default (
     }
   }
 
+  // Resolve identifiers while records still exist. Removal before deletion is
+  // conservative: failed DB deletions can hide a result, never disclose a draft.
+  filter('items.delete', async (keys, { collection }, { database }) => {
+    if (!collection || !['blocks', 'pages', 'events', 'articles', 'measures'].includes(collection)) return keys;
+    const rows = await database(collection).whereIn('id', keys).select('*');
+    for (const row of rows) {
+      if (collection === 'blocks') await remove(`block_${row.uuid}`);
+      else {
+        const prefix = {pages: 'page', events: 'event', articles: 'article', measures: 'measure'}[collection];
+        await remove(`${prefix}:${row.slug}`);
+        if (collection === 'pages') await removeBlocksForPage(row as Page, database);
+      }
+    }
+    return keys;
+  });
+
   // ── blocks ──
 
   async function syncBlock(row: BlockRow, database: Database): Promise<void> {
-    if (SKIP_BUNDLES.includes(row.bundle)) return;
-    if (row.entity_type !== 'pages' || row.field_name !== 'content') return;
+    if (SKIP_BUNDLES.includes(row.bundle) || row.entity_type !== 'pages' || row.field_name !== 'content') {
+      await remove(`block_${row.uuid}`);
+      return;
+    }
 
-    if (row.status === 'archived') {
+    if (row.status !== 'published') {
       await remove(`block_${row.uuid}`);
       return;
     }
@@ -321,8 +341,15 @@ export default (
           builder.where('slug', row.entity_uuid);
         }
       })
-      .select('name', 'slug')
+      .select('name', 'slug', 'status')
       .limit(1);
+
+    // Don't index blocks belonging to unpublished pages
+    if (!pageRows[0] || pageRows[0].status !== 'published') {
+      await remove(`block_${row.uuid}`);
+      return;
+    }
+
     const pageName = pageRows[0]?.name || row.entity_uuid;
     const doc = buildBlockDoc(
       row as unknown as Block,
@@ -330,6 +357,26 @@ export default (
       pageRows[0]?.slug || row.entity_uuid,
     );
     if (doc) await upsert(doc);
+    else await remove(`block_${row.uuid}`);
+  }
+
+  /**
+   * Removes all indexed block documents belonging to a page, called when a page
+   * is unpublished or deleted so draft blocks cannot escape through search.
+   */
+  async function removeBlocksForPage(page: Page, database: Database): Promise<void> {
+    try {
+      const rows = await database('blocks')
+        .where('entity_type', 'pages')
+        .where('field_name', 'content')
+        .whereIn('entity_uuid', [page.id, page.slug].filter((value): value is string => Boolean(value)))
+        .select('uuid');
+      for (const row of rows) {
+        await remove(`block_${row.uuid}`);
+      }
+    } catch (e: any) {
+      logger.error('[search-index] removeBlocksForPage failed:', e?.message ?? e);
+    }
   }
 
   /**
@@ -436,16 +483,21 @@ export default (
           .where((builder: any) => {
             builder.where('id', key).orWhere('slug', key);
           })
-          .select('slug', 'name', 'contents', 'status')
+          .select('id', 'slug', 'name', 'contents', 'status')
           .limit(1);
         if (!rows[0]) continue;
         const page = rows[0] as Page;
         if (page.status !== 'published') {
           await remove(`page:${page.slug}`);
+          // Remove child blocks when page is unpublished
+          await removeBlocksForPage(page, database);
         } else {
           const doc = buildPageDoc(page);
           if (doc) await upsert(doc);
           else await remove(`page:${page.slug}`);
+          const blocks = await database('blocks').where('entity_type', 'pages').where('field_name', 'content')
+            .whereIn('entity_uuid', [page.id, page.slug].filter((value): value is string => Boolean(value))).select('*');
+          for (const block of blocks) await syncBlock(block as BlockRow, database);
         }
       } catch (e: any) {
         logger.error('[search-index] pages update fetch failed:', e?.message ?? e);
@@ -462,6 +514,10 @@ export default (
         const rows = await database('pages').where('id', key).select('slug').limit(1);
         const slug = rows[0]?.slug ?? key;
         await remove(`page:${slug}`);
+        // Remove child blocks when page is deleted
+        if (rows[0]?.slug) {
+          await removeBlocksForPage(rows[0] as Page, database);
+        }
       } catch {
         await remove(`page:${key}`);
       }

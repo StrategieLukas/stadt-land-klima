@@ -86,7 +86,7 @@
           </h2>
         </div>
         <div class="collapse-content px-2 md:px-4">
-          <div class="has-long-links prose" v-html="md.render(municipality.public_contact)"></div>
+          <div class="has-long-links prose" v-html="sanitizedPublicContact"></div>
         </div>
       </div>
 
@@ -233,7 +233,7 @@
             </h2>
           </div>
           <div class="collapse-content px-2 md:px-4">
-            <div class="has-long-links prose" v-html="md.render(municipality.overall_status_comment)"></div>
+            <div class="has-long-links prose" v-html="sanitizedOverallStatusComment"></div>
           </div>
         </div>
 
@@ -301,7 +301,7 @@
             <div class="collapse-content px-2 md:px-4">
               <div
                 class="has-long-links prose prose-sm max-w-none"
-                v-html="md.render(municipality.public_contact)"
+                v-html="sanitizedPublicContact"
               ></div>
             </div>
           </div>
@@ -361,6 +361,7 @@ import type { PropType } from 'vue';
 import { ref, onMounted, computed } from "vue";
 import lodash from "lodash";
 import MarkdownIt from "markdown-it";
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
 import { isRaster, formatLastUpdated, getStateMunicipalElectionYear } from "~/shared/utils";
 
@@ -391,6 +392,9 @@ const props = defineProps({
 const municipalityScore = props.municipalityScore;
 const municipality = municipalityScore.municipality;
 const subScores = createSubScoreObject(municipalityScore);
+
+const sanitizedPublicContact = computed(() => sanitizeHtml(md.render(municipality.public_contact ?? '')))
+const sanitizedOverallStatusComment = computed(() => sanitizeHtml(md.render(municipality.overall_status_comment ?? '')))
 
 // Tab state
 const activeTab = ref("polar");

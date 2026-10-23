@@ -703,7 +703,7 @@
               </div>
               <!-- Methodology note -->
               <div class="text-gray-400 mb-3 text-xs leading-relaxed">
-                <span v-html="$t('stats.clustering.methodology')"></span>
+                <span v-html="sanitizeHtml($t('stats.clustering.methodology'))"></span>
               </div>
               <div ref="clusterContainer" class="w-full" style="min-height: 100px"></div>
               <p v-if="clusteringError" class="mt-2 text-sm text-error">{{ clusteringError }}</p>
@@ -774,10 +774,10 @@
           <div class="mb-6 rounded-sm bg-white p-5 shadow-list">
             <h2 class="mb-2 text-base font-bold">{{ $t("stats.dominance.title") }}</h2>
             <p class="text-gray-600 mb-2 text-sm leading-relaxed">
-              <span v-html="$t('stats.dominance.description_1')"></span>
+              <span v-html="sanitizeHtml($t('stats.dominance.description_1'))"></span>
             </p>
             <p class="text-gray-600 mb-2 text-sm leading-relaxed">
-              <span v-html="$t('stats.dominance.description_2')"></span>
+              <span v-html="sanitizeHtml($t('stats.dominance.description_2'))"></span>
             </p>
             <p class="text-gray-400 mb-3 text-xs">{{ $t("stats.dominance.filter_note") }}</p>
             <CanonicalButton :label="$t('stats.analysis.start')" color="orange" @click="computeDominanceAndRender" />
@@ -802,7 +802,7 @@
           <div class="mb-8 rounded-sm bg-white p-5 shadow-list">
             <h3 class="mb-1 text-sm font-bold">{{ $t("stats.dominance.network") }}</h3>
             <p class="text-gray-500 mb-2 text-xs">{{ $t("stats.dominance.network.description") }}</p>
-            <p class="text-gray-400 mb-3 text-xs"><span v-html="$t('stats.dominance.network.note')"></span></p>
+            <p class="text-gray-400 mb-3 text-xs"><span v-html="sanitizeHtml($t('stats.dominance.network.note'))"></span></p>
             <div ref="dominanceForceContainer" class="w-full" style="min-height: 700px"></div>
           </div>
         </div>
@@ -815,6 +815,7 @@
 </template>
 
 <script setup lang="ts">
+import { sanitizeHtml } from "~/utils/sanitizeHtml";
 import type { LayerSpec, UnitSpec } from "vega-lite/types_unstable/spec/index.d.ts";
 import type { View } from "vega";
 import type { VisualizationSpec, EmbedOptions } from "vega-embed";

@@ -20,7 +20,7 @@
           <div
             v-if="!isEditing && pageBlocks.length === 0 && page.contents"
             class="prose"
-            v-html="page.contents"
+            v-html="sanitizedContents"
           />
         </article>
       </template>
@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import { useAuth } from '~/composables/useAuth'
 import { getBlokkliDataKey, mapBlokkliBlocks } from '~/shared/blokkliPersistence'
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 const { $t } = useNuxtApp();
 const { isAuthenticated, initialize } = useAuth();
 useBlockHashNavigation()
@@ -67,6 +68,7 @@ const { data: blocksData } = await useAsyncData(
   { watch: [page] }
 )
 const pageBlocks = computed(() => blocksData.value || [])
+const sanitizedContents = computed(() => sanitizeHtml(page.value?.contents))
 
 //MetaTags
 const title = computed(() => page.value ? page.value.name : $t("page_not_found"));

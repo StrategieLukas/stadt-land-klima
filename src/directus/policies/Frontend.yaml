@@ -3,40 +3,8 @@ icon: computer
 description: Alle Berechtigungen für uns Frontend
 enforce_tfa: false
 admin_access: false
-app_access: true
+app_access: false
 permissions:
-- collection: answers
-  action: create
-  permissions:
-    _or:
-    - candidate:
-        election:
-          response_cutoff_date:
-            _null: true
-    - candidate:
-        election:
-          response_cutoff_date:
-            _gt: $NOW(-24 hours)
-  validation: {}
-  presets: null
-  fields:
-  - '*'
-- collection: answers
-  action: delete
-  permissions:
-    _or:
-    - candidate:
-        election:
-          response_cutoff_date:
-            _null: true
-    - candidate:
-        election:
-          response_cutoff_date:
-            _gt: $NOW(-24 hours)
-  validation: {}
-  presets: null
-  fields:
-  - '*'
 - collection: answers
   action: read
   permissions: null
@@ -48,22 +16,6 @@ permissions:
   - explanation
   - candidate
   - question
-- collection: answers
-  action: update
-  permissions:
-    _or:
-    - candidate:
-        election:
-          response_cutoff_date:
-            _null: true
-    - candidate:
-        election:
-          response_cutoff_date:
-            _gt: $NOW(-24 hours)
-  validation: {}
-  presets: null
-  fields:
-  - '*'
 - collection: articles
   action: read
   permissions:
@@ -147,32 +99,27 @@ permissions:
 - collection: blocks
   action: read
   permissions:
-    _or:
-    - entity_type:
-        _nin:
-        - success_project_tour_stops
-        - success_project_tours
-    - _and:
-      - entity_type:
-          _eq: success_project_tour_stops
-      - status:
-          _eq: published
-      - tour_stop:
-          status:
-            _eq: published
+    _and:
+    - status:
+        _eq: published
+    - _or:
+      - _and:
+        - entity_type:
+            _eq: success_project_tour_stops
+        - tour_stop:
+            status:
+              _eq: published
           tour:
             status:
               _eq: published
           report_status:
             _eq: published
-    - _and:
-      - entity_type:
-          _eq: success_project_tours
-      - status:
-          _eq: published
-      - tour:
-          status:
-            _eq: published
+      - _and:
+        - entity_type:
+            _eq: success_project_tours
+        - tour:
+            status:
+              _eq: published
   validation: {}
   presets: null
   fields:
@@ -187,23 +134,6 @@ permissions:
   - name
   - party
   - election
-  - has_answered
-  - time_first_submitted
-  - time_last_edited
-  - access_token
-- collection: candidate
-  action: update
-  permissions:
-    _or:
-    - election:
-        response_cutoff_date:
-          _null: true
-    - election:
-        response_cutoff_date:
-          _gt: $NOW(-24 hours)
-  validation: {}
-  presets: null
-  fields:
   - has_answered
   - time_first_submitted
   - time_last_edited
@@ -274,7 +204,16 @@ permissions:
   validation: {}
   presets: null
   fields:
-  - '*'
+  - id
+  - title
+  - description
+  - filename_download
+  - modified_on
+  - type
+  - width
+  - height
+  - filesize
+  - tags
 - collection: directus_folders
   action: read
   permissions: {}
@@ -370,7 +309,6 @@ permissions:
   - start_date
   - date_only
   - end_date
-  - location
   - registration_url
   - cta_label
   - date_created
@@ -530,13 +468,15 @@ permissions:
   - geolocation
   - id
   - creator_verified
-  - preview_token
   - date_created
   - image
   - image_credits
 - collection: municipality_scores
   action: read
-  permissions: {}
+  permissions:
+    _and:
+    - published:
+        _eq: true
   validation: {}
   presets: null
   fields:
@@ -694,7 +634,6 @@ permissions:
   - status
   - tour
   - sort
-  - location
   - state
   - geolocation
   - start_date

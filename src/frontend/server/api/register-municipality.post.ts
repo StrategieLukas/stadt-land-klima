@@ -1,7 +1,11 @@
+import { abuseProtection } from '../utils/abuseProtection';
 import { directusErrorDetails, requestErrorStatus } from "~/shared/requestError";
 import { RegistrationRequestSchema } from "~/shared/contracts/submissions";
 import { randomBytes } from 'node:crypto';
 import { sendDirectusMailFlow } from '../utils/sendDirectusMailFlow';
+import { verifyAltcha } from '../utils/verifyAltcha';
+import { verifyMathChallenge } from '../utils/verifyMathChallenge';
+import { rateLimit } from '../utils/rateLimit';
 
 type RegistrationStepKey = 'user' | 'team' | 'email';
 type RegistrationSteps = Record<RegistrationStepKey, boolean> & {
@@ -192,13 +196,17 @@ function duplicateEmailRegistrationError(steps: RegistrationSteps) {
 }
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'register'))) {
+    throw createError({ statusCode: 429, message: 'Zu viele Anfragen. Bitte versuche es später erneut.' });
+  }
   const config = useRuntimeConfig();
-  const hmacKey: string = (config.altchaSecret) || 'dev-secret-change-in-production';
+  const { hmacKey, devMode } = abuseProtection();
 
   const parsedBody = RegistrationRequestSchema.safeParse(await readRequestBody(event));
   if (!parsedBody.success) throw createError({statusCode: 400, message: "Ungültige Eingaben. Bitte prüfe das Formular."});
   const body = parsedBody.data;
-  const { firstName, lastName, email, organisation, ars, municipalityName, population, state, geolocation, altcha } = body ?? {};
+  const { firstName, lastName, email, organisation, ars, municipalityName, population, state, geolocation, altcha, mathChallenge } = body ?? {};
   const steps: RegistrationSteps = { user: false, team: false, email: false, notify: false, welcome: false };
 
   // Validate required fields
@@ -212,7 +220,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify CAPTCHA
-  const devMode = (config.public.appEnv) === 'development';
+  if (!mathChallenge || !verifyMathChallenge(mathChallenge.token, mathChallenge.answer, hmacKey, 'register', devMode)) {
+    throw createRegistrationError(400, 'Rechenprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.');
+  }
+
   if (!altcha || !await verifyAltcha(altcha, hmacKey, { devMode, purpose: 'register' })) {
     throw createRegistrationError(400, 'CAPTCHA-Überprüfung fehlgeschlagen. Bitte Seite neu laden und es erneut versuchen.');
   }

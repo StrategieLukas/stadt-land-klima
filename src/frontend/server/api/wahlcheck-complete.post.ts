@@ -1,12 +1,17 @@
 import { WahlcheckCompletionRequestSchema } from "~/shared/contracts/submissions";
 import { createError, defineEventHandler } from 'h3'
 import { useRuntimeConfig } from '#imports'
+import { rateLimit } from '../utils/rateLimit'
 
 /**
  * Record that a user completed a Wahlcheck (election comparison).
  * The browser cannot call Directus directly, so this route uses the server token.
  */
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'wahlcheck'))) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  }
   const body = WahlcheckCompletionRequestSchema.safeParse(await readRequestBody(event))
   const electionId = body.success ? body.data.electionId : undefined
 

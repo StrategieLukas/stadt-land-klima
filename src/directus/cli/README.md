@@ -36,7 +36,7 @@ permissions:
 # roles/frontend.yaml
 name: frontend
 policies:
-  - <policy-id>  # Reference to the frontend policy
+  - Frontend  # Exact policy name
 ```
 
 ## Installation
@@ -76,8 +76,7 @@ This will import in the correct order:
 6. Translations
 7. Settings
 
-Dashboards are intentionally not imported by `import:all` at the moment.
-Use `import:dashboards` manually when dashboard imports are enabled for an environment.
+8. Dashboards
 
 ### Individual Commands
 
@@ -101,7 +100,7 @@ Use `import:dashboards` manually when dashboard imports are enabled for an envir
 ./directus-cli import:roles /path/to/roles
 ```
 
-> **Note:** Policies must be imported before roles, as roles reference policies by ID.
+> **Note:** Policies must be imported before roles, as roles reference policies by name.
 
 #### Export Dashboards
 ```bash
@@ -139,7 +138,7 @@ Use `import:dashboards` manually when dashboard imports are enabled for an envir
 If you have existing role YAML files from Directus v10 (with permissions directly on roles), you can use the migration helper:
 
 ```bash
-node tasks/shared/migrateRolesToPolicies.mjs /path/to/roles /path/to/policies
+node tasks/shared/migrateRolesToPolicies.ts /path/to/roles /path/to/policies
 ```
 
 This will:
@@ -186,7 +185,7 @@ description: Editor role
 parent: null
 children: []
 policies:
-  - 8b4474c0-288d-4bb8-b62e-8330646bb6aa  # Policy IDs
+  - Editor Policy  # Exact policy name, not a UUID
 ```
 
 ## Troubleshooting
@@ -213,7 +212,7 @@ You can verify by running:
 
 ### SDK version compatibility
 
-This CLI uses `@directus/sdk@^21.3.0` which supports the v11 API including policies.
+This CLI uses `@directus/sdk@^27.0.0` which supports the v11 API including policies.
 
 ## Development
 
@@ -227,3 +226,9 @@ To test changes:
 - [Directus v11 Breaking Changes](https://directus.io/docs/releases/breaking-changes/version-11)
 - [Policies Documentation](https://directus.io/docs/api/policies)
 - [Permissions Documentation](https://directus.io/docs/api/permissions)
+
+## Compiler and regression gates
+
+Install with `npm ci --include=dev`. `npm run typecheck` enforces strict NodeNext checking and source inclusion; `npm run build` runs that gate. `npm test` adds isolated command and failure-gate tests without live services. `npm run test:integration` and `npm run test:tour-migration` require the disposable local Directus/database environment and must be run serially with other CMS fixture suites. Import/export orchestration and container startup reject compiler failures before administrative writes/startup.
+
+The executable remains `index.mjs`; implementation and internal imports are TypeScript loaded by the existing tsx runtime. Source directories must exist, operation references must resolve, and flow operations/dashboard panels must include their required layout coordinates. Legacy development-token provisioning is disabled in production. See `DIRECTUS_CLI_TYPES_REVIEW.md` for verification and deployment details.

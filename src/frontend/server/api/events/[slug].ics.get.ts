@@ -1,4 +1,5 @@
 import type { H3Event } from "h3";
+import { rateLimit } from "../../utils/rateLimit";
 
 type DirectusEventResponse = {
   data?: CalendarEvent[];
@@ -194,6 +195,10 @@ function buildIcs(eventItem: CalendarEvent, eventUrl: string): string {
 }
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'event-ics'))) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  }
   const slug = getCalendarSlug(event);
 
   if (!slug) {

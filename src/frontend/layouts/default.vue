@@ -97,7 +97,8 @@ import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import { useHeaderSpacerHeight } from "~/composables/useHeaderHeight";
 
 const { $locale } = useNuxtApp();
-const { plausibleAnalyticsUrl, plausibleAnalyticsDomain } = useRuntimeConfig().public;
+const analyticsRoute = useRoute();
+const { plausibleAnalyticsUrl, plausibleAnalyticsDomain, plausibleScriptIntegrity } = useRuntimeConfig().public;
 
 const { isDrawerOpen, closeDrawer, syncDrawerState } = useDrawer();
 const hydrated = ref(false);
@@ -225,10 +226,11 @@ useHead({
     },
   ],
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
-  script: plausibleAnalyticsUrl && plausibleAnalyticsDomain
+  script: plausibleAnalyticsUrl && plausibleAnalyticsDomain && !analyticsRoute.path.startsWith('/elections/thesen') && !analyticsRoute.query.blokkliPreview && !analyticsRoute.query.preview && !analyticsRoute.query.preview_token
       ? [{
           defer: true,
           "data-domain": plausibleAnalyticsDomain,
+          ...(plausibleScriptIntegrity ? {integrity: plausibleScriptIntegrity, crossorigin: 'anonymous' as const} : {}),
           src: plausibleAnalyticsUrl + "/js/script.js",
         }]
       : [],

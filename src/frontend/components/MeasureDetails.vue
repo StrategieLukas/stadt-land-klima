@@ -10,14 +10,14 @@
         {{ $t("ratings_measure.achievement_heading") }}
       </h3>
 
-      <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.current_progress)" />
+      <div class="has-long-links prose whitespace-pre-line" v-html="sanitizeHtml(saneLinkifyStr(measure_rating.current_progress))" />
     </div>
     <div v-if="measure_rating.source" class="p-4 border-t-4 mb-4">
       <h3 class="mb-3 text-h3 font-bold text-black">
         {{ $t("ratings_measure.source_heading") }}
       </h3>
 
-      <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.source)" />
+      <div class="has-long-links prose whitespace-pre-line" v-html="sanitizeHtml(saneLinkifyStr(measure_rating.source))" />
     </div>
     <dl v-if="measure_rating.date_updated" class="px-4 mt-2 flex flex-row gap-2 text-sm">
       <dt class="font-bold">{{ $t("ratings_measure.last_updated") }}:</dt>
@@ -33,7 +33,7 @@
         {{ $t("ratings_measure.why_not_applicable_heading") }}
       </h3>
 
-      <div class="has-long-links prose whitespace-pre-line" v-html="saneLinkifyStr(measure_rating.why_not_applicable)" />
+      <div class="has-long-links prose whitespace-pre-line" v-html="sanitizeHtml(saneLinkifyStr(measure_rating.why_not_applicable))" />
     </div>
   </div>
 
@@ -109,6 +109,7 @@ import type { PropType } from 'vue';
 
   import { defineProps, onMounted, onBeforeUnmount, ref  } from "vue";
   import { formatLastUpdated, saneLinkifyStr } from "~/shared/utils";
+  import { sanitizeHtml } from "~/utils/sanitizeHtml";
   import { calculateAndAddSimilarityScores } from "~/shared/compareMunicipalities";
   import { isMunicipalityScoreComplete } from "~/shared/municipality-score-publishing";
   import ratingIcons, { ratingIndex } from "~/shared/ratingIcons";

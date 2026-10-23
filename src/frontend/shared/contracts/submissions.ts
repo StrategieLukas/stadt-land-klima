@@ -2,6 +2,10 @@ import { z } from "zod";
 const requiredText = (max: number) => z.string().trim().min(1).max(max);
 const email = requiredText(255).regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
 const captcha = z.string().min(1).max(20000);
+const mathChallenge = z.object({
+  token: z.string().min(1).max(4096),
+  answer: z.string().min(1).max(10),
+});
 export const FeedbackTypeSchema = z.enum(["legal", "bug", "inaccuracy", "suggestion", "cooperation", "other"]);
 export const FeedbackRequestSchema = z.strictObject({
   title: requiredText(200),
@@ -11,6 +15,7 @@ export const FeedbackRequestSchema = z.strictObject({
   contact: email,
   sendCopy: z.boolean().default(false),
   altcha: captcha,
+  mathChallenge,
 });
 export type FeedbackRequest = z.input<typeof FeedbackRequestSchema>;
 export const RegistrationRequestSchema = z.strictObject({
@@ -30,6 +35,7 @@ export const RegistrationRequestSchema = z.strictObject({
     .nullable()
     .optional(),
   altcha: captcha,
+  mathChallenge,
 });
 export type RegistrationRequest = z.input<typeof RegistrationRequestSchema>;
 export const NewsletterRequestSchema = z.strictObject({
@@ -39,12 +45,16 @@ export const NewsletterRequestSchema = z.strictObject({
 });
 export type NewsletterRequest = z.input<typeof NewsletterRequestSchema>;
 export const GenericFormRequestSchema = z.strictObject({
+  formUuid: z.string().min(1).max(100),
+  entityType: z.string().regex(/^[a-z_]{1,100}$/),
+  entityUuid: z.string().regex(/^[\w-]{1,100}$/),
   formKey: z.string().max(120).optional(),
   formTitle: z.string().max(180).optional(),
   pagePath: z.string().max(500).optional(),
   notificationEmail: z.string().max(255).optional(),
   sendCopy: z.boolean().optional(),
   altcha: captcha,
+  mathChallenge,
   fields: z
     .array(
       z.strictObject({

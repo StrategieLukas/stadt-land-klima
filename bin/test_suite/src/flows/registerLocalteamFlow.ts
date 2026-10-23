@@ -1,3 +1,4 @@
+import {solveMathChallenge} from '../lib/captcha.js';
 import type { Browser, Page } from 'playwright';
 import { assert, assertEqual, assertIncludes, assertNotIncludes } from '../lib/assert.js';
 import { gotoDirectusContent, loginDirectus, newContext, visibleText } from '../lib/browser.js';
@@ -407,6 +408,7 @@ export async function runRegisterLocalteamFlow(
       await page.locator('#reg-lastname').fill('Register');
       await page.locator('#reg-email').fill(newUserEmail);
       await page.locator('#reg-org').fill(`Automated Organisation ${fixture.config.runId}`);
+      await solveMathChallenge(page);
       await solveAltcha(page);
 
       const responsePromise = page.waitForResponse(

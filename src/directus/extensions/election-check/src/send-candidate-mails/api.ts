@@ -721,7 +721,7 @@ export default {
         continue;
       }
 
-      const personalLink = `${frontendBaseUrl}/elections/thesen/${candidate.access_token}`;
+      const personalLink = `${frontendBaseUrl}/elections/thesen#token=${encodeURIComponent(candidate.access_token ?? '')}`;
       const variables = templateVariables(
         candidate,
         election.is_party_election === true,

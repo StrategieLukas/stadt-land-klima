@@ -30,7 +30,7 @@
         <span
           v-if="item.svg_icon"
           class="v-icon"
-          v-html="item.svg_icon"
+          v-html="sanitizeSvg(item.svg_icon)"
         />
         <img
           v-else-if="item.file_id"
@@ -46,6 +46,7 @@
 
 <script setup lang="ts">
 import { inject, nextTick, computed } from 'vue';
+import DOMPurify from 'dompurify';
 import { directusUrl } from '../directus-url';
 import useDirectusToken, { type DirectusApi } from './use-directus-token';
 
@@ -87,6 +88,11 @@ const containerStyle = computed(() => ({
   '--v-radio-color': 'var(--theme--primary)',
   '--columns': props.choices?.length || 1,
 }));
+
+function sanitizeSvg(svg: string | undefined): string {
+  if (!svg) return '';
+  return DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true }, ADD_ATTR: ['class', 'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'd', 'points', 'cx', 'cy', 'r', 'x', 'y', 'width', 'height', 'transform', 'opacity', 'style'] });
+}
 
 function selectOption(value: string, field?: string): void {
   if (field !== props.field) return;

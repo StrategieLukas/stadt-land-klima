@@ -224,7 +224,7 @@
             </div>
             <div class="p-4 flex flex-col gap-2 flex-1">
               <p class="font-bold text-[var(--slk-text-strong)] leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
-              <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="member.bio" />
+              <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="sanitizeHtml(member.bio)" />
             </div>
           </div>
         </div>
@@ -268,7 +268,7 @@
           </div>
           <div class="p-4 flex flex-col gap-2 flex-1">
             <p class="font-bold text-[var(--slk-text-strong)] leading-snug">{{ member.first_name }} {{ member.last_name }}</p>
-            <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="member.bio" />
+            <div v-if="member.bio" class="text-sm text-[var(--slk-text-muted)] prose prose-sm max-w-none" v-html="sanitizeHtml(member.bio)" />
           </div>
         </div>
       </div>
@@ -278,6 +278,7 @@
 
 <script setup lang="ts">
 import type { TeamMember } from "~/shared/contracts/content"
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 const { $t } = useNuxtApp()
 const { isDark } = useTheme()
 

@@ -1,3 +1,4 @@
+import {newContext} from '../lib/browser.js';
 import type { Browser } from 'playwright';
 import { assert, assertIncludes, assertNotIncludes } from '../lib/assert.js';
 import type { TestFixture } from '../lib/fixture.js';
@@ -18,7 +19,7 @@ export async function runDataAvailabilityFlow(runner: TestRunner, fixture: TestF
         ['en-GB', 'Data analyses are coming soon'],
         ['it-IT', 'Le analisi dei dati saranno presto disponibili'],
       ]) {
-        const context = await browser.newContext();
+        const context = await newContext(browser);
         try {
           await context.addCookies([{ name: 'slk_locale', value: locale, url: config.frontendUrl }]);
           const page = await context.newPage();
@@ -42,7 +43,7 @@ export async function runDataAvailabilityFlow(runner: TestRunner, fixture: TestF
       const explanation = 'We are preparing new analyses.\n<em>Back soon.</em>';
       await admin.request('PATCH', '/items/data_page_config', { body: { under_construction_explanation: explanation } });
       for (const theme of ['light', 'dark']) {
-        const context = await browser.newContext({ viewport: { width: theme === 'light' ? 390 : 1440, height: 900 } });
+        const context = await newContext(browser, { viewport: { width: theme === 'light' ? 390 : 1440, height: 900 } });
         try {
           await context.addInitScript(value => localStorage.setItem('slk_theme_preference', value), theme);
           const page = await context.newPage();

@@ -13,7 +13,7 @@
       <SmartImg :asset-base-url="undefined" :asset-id="relationId(cover)" :is-raster="isRaster(typeof cover === 'string' ? 'image/jpeg' : cover.type || 'image/jpeg')" :alt="event.title" :width="1100" img-class="block max-h-[50svh] w-full object-contain" />
       <figcaption v-if="coverCredit" class="mt-2 text-xs">{{ coverCredit }}</figcaption>
     </figure>
-    <div v-if="event.description" class="prose mb-8 max-w-none" v-html="event.description" />
+    <div v-if="event.description" class="prose mb-8 max-w-none" v-html="sanitizedDescription" />
     <CanonicalButton v-if="event.registration_url && event.event_category !== 'internal'" :href="event.registration_url" :label="event.cta_label || $t('events.register')" icon-slug="mdi:calendar-check" color="green" external />
     <CanonicalButton v-if="ordinaryReport" :href="`/news/${ordinaryReport.slug}`" :label="$t('tour.read_report')" color="dark" icon-slug="mdi:newspaper" />
     <nav v-if="event.series || eventProjects.length" class="event-detail__related mt-8 flex flex-wrap gap-3">
@@ -28,6 +28,7 @@ import { useReferrer } from '~/composables/useReferrer';
 import { isRaster } from '~/shared/utils';
 import { relationId } from '~/shared/tour';
 import { formatEventDateTimeRange } from '~/shared/eventDateTime';
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 const { $t, $translateDynamic, $locale } = useNuxtApp();
 const route = useRoute();
 const slug = routeSlug(route.params.slug);
@@ -41,6 +42,7 @@ const ordinaryReport = computed(() => eventData.value?.ordinaryReport);
 const eventProjects = computed(() => eventData.value?.eventProjects ?? []);
 const cover = computed(() => event.value?.image);
 const coverCredit = computed(() => event.value?.image_credits);
+const sanitizedDescription = computed(() => sanitizeHtml(event.value?.description))
 function eventTypeLabel(type?: string | null) { return type ? $translateDynamic(`events.type.${type}`) : ''; }
 useHead(() => ({ title: event.value?.title }));
 </script>

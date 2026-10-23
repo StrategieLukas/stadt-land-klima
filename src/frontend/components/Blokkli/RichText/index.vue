@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import MarkdownIt from 'markdown-it'
 import { getBlokkliBlockId } from '~/utils/blokkliLinks'
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 
 const md = new MarkdownIt({
   html: false,
@@ -82,7 +83,7 @@ const props = defineProps<{
 
 const renderedContent = computed(() => {
   if (!props.content) return ''
-  return md.render(props.content)
+  return sanitizeHtml(md.render(props.content))
 })
 
 const sizeClass = computed(() => {

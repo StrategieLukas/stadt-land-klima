@@ -85,11 +85,11 @@
       </div>
 
       <!-- Abstract -->
-      <div v-if="abstract" class="text-gray-700 mb-4 font-semibold" v-html="md.render(abstract)" />
+      <div v-if="abstract" class="text-gray-700 mb-4 font-semibold" v-html="sanitizedAbstract" />
 
       <!-- Main Text -->
       <div class="text-gray-700 mb-4">
-        <div v-html="md.render(article_text ?? '')"></div>
+        <div v-html="sanitizedArticleText"></div>
       </div>
 
       <!-- Measures -->
@@ -273,8 +273,8 @@
         <p v-if="subtitle" class="text-gray-500 mb-6 text-lg">{{ subtitle }}</p>
 
         <div class="text-gray-700 flex-grow leading-relaxed">
-          <div v-if="abstract" class="prose mb-8 max-w-none" v-html="md.render(abstract)" />
-          <div v-html="md.render(article_text ?? '')"></div>
+          <div v-if="abstract" class="prose mb-8 max-w-none" v-html="sanitizedAbstract" />
+          <div v-html="sanitizedArticleText"></div>
         </div>
       </div>
     </div>
@@ -301,6 +301,7 @@ import { ref } from "vue";
 import { buildLocationString, isRaster } from "~/shared/utils";
 import { formatProjectDate } from "~/shared/projectDate";
 import MarkdownIt from "markdown-it";
+import { sanitizeHtml } from '~/utils/sanitizeHtml'
 import { useReferrer } from "~/composables/useReferrer";
 import localZeroLogoDark from "~/assets/images/LocalZero-logo-small-dark.png";
 
@@ -339,6 +340,9 @@ const _src = ref(null);
 //   src.value = null;
 //   src.value = await toAssetUrl(props.assetId, { width: props.width, height: props.height, quality: props.quality, fit: props.fit });
 // });
+
+const sanitizedAbstract = computed(() => sanitizeHtml(md.render(props.abstract ?? '')))
+const sanitizedArticleText = computed(() => sanitizeHtml(md.render(props.article_text ?? '')))
 
 const location = computed(() => buildLocationString(props.municipality_name, props.state));
 const formattedDate = computed(() => formatProjectDate(props.date, $locale));

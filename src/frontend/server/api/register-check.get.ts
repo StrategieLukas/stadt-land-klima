@@ -2,10 +2,15 @@ import { cmsString, cmsRows } from "~/server/utils/cmsValue";
 import { z } from "zod";
 import { parseCms } from "~/server/utils/parseCms";
 import { readItems } from '@directus/sdk'
-import { defineEventHandler, getQuery } from 'h3'
+import { defineEventHandler, getQuery, createError } from 'h3'
 import { createDirectusServerClient } from '../utils/directusServerClient'
+import { rateLimit } from '../utils/rateLimit'
 
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'register-check'))) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  }
   const query = getQuery(event)
   const ars = query.ars as string | undefined
 

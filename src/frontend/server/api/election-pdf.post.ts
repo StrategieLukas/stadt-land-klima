@@ -1,12 +1,17 @@
 import { ElectionPdfRequestSchema } from "~/shared/contracts/submissions";
 import { createError, defineEventHandler, readBody, setResponseHeader } from 'h3'
 import { useRuntimeConfig } from '#imports'
+import { rateLimit } from '../utils/rateLimit'
 
 /**
  * Proxy for the Directus election PDF service. The browser cannot call Directus
  * directly, so this route uses the server token instead.
  */
 export default defineEventHandler(async (event) => {
+  // Rate limit: see server/utils/rateLimitConfig.ts
+  if (!(await rateLimit(event, 'election-pdf'))) {
+    throw createError({ statusCode: 429, statusMessage: 'Too many requests' })
+  }
   const parsed = ElectionPdfRequestSchema.safeParse(await readBody<unknown>(event))
   if (!parsed.success) throw createError({ statusCode: 400, statusMessage: 'Invalid PDF request' })
   const { catalogVersion, municipalitySlug, measures } = parsed.data
